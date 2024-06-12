@@ -84,10 +84,10 @@ void append_data(
     if (static_cast<bool>(replace_existing) or
         not atmospheric_field.contains(key)) {
       if (find_xml_file_existence(filename)) {
-        x.data = read_variant(Atm::FieldData{1.0}, filename);
+        x.data                 = read_variant(Atm::FieldData{1.0}, filename);
         atmospheric_field[key] = x;
       } else if (static_cast<bool>(missing_is_zero)) {
-        x.data = 0.0;
+        x.data                 = 0.0;
         atmospheric_field[key] = x;
       } else if (static_cast<bool>(ignore_missing)) {
       } else {
@@ -210,15 +210,14 @@ void atmospheric_fieldAppendLineSpeciesData(
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_bands);
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
@@ -308,15 +307,14 @@ void atmospheric_fieldAppendTagsSpeciesData(
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_species);
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldAppendLookupTableSpeciesData(
@@ -355,15 +353,14 @@ void atmospheric_fieldAppendCIASpeciesData(
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_cia_data);
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
@@ -385,15 +382,14 @@ void atmospheric_fieldAppendXsecSpeciesData(
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_xsec_fit_data);
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
@@ -419,15 +415,14 @@ void atmospheric_fieldAppendPredefSpeciesData(
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_predefined_model_data);
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
@@ -442,7 +437,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 
   if (const String lines_str = "absorption_bands";
       ws.wsv_and_contains(lines_str)) {
-    using lines_t = ArrayOfAbsorptionBand;
+    using lines_t    = ArrayOfAbsorptionBand;
     const auto &data = ws.get<lines_t>(lines_str);
 
     keysSpecies(keys, data);
@@ -489,20 +484,17 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
     keysSpecies(keys, ws.get<aospec_t>(species_str));
   }
 
-  append_data(
-      atmospheric_field,
-      basename,
-      extrapolation,
-      missing_is_zero,
-      replace_existing,
-      0,
-      keys,
-      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldIGRF(AtmField &atmospheric_field,
-                           const Time &time,
-                           const Index &parsafe) {
+void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   using namespace IGRF;
 
   //! We need explicit planet-size as IGRF requires the radius
@@ -512,78 +504,37 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field,
   //! This struct deals with the computations, it's internally saving a mutable
   //! state
   struct res {
-    mutable Numeric u{}, v{}, w{};
-    mutable Numeric alt{}, lat{}, lon{};
-    const Time t;
+    Time t;
 
-    res(const Time &x) : t(x) {}
-
-    void comp(Numeric al, Numeric la, Numeric lo) const {
-      if (alt != al or lat != la or lo != lon) {
-        alt = al;
-        lat = la;
-        lon = lo;
-
-        auto f = compute(Vector{alt}.reshape(1, 1, 1), {lat}, {lon}, t, ell);
-        u = f.u(0, 0, 0);
-        v = f.v(0, 0, 0);
-        w = f.w(0, 0, 0);
-      }
+    [[nodiscard]] MagneticField comp(Numeric al, Numeric la, Numeric lo) const {
+      return compute(Vector{al}.reshape(1, 1, 1), {la}, {lo}, t, ell);
     }
 
-    Numeric get_u(Numeric z, Numeric la, Numeric lo) const {
-      comp(z, la, lo);
-      return u;
+    [[nodiscard]] Numeric get_u(Numeric z, Numeric la, Numeric lo) const {
+      return comp(z, la, lo).u(0, 0, 0);
     }
 
-    Numeric get_v(Numeric z, Numeric la, Numeric lo) const {
-      comp(z, la, lo);
-      return v;
+    [[nodiscard]] Numeric get_v(Numeric z, Numeric la, Numeric lo) const {
+      return comp(z, la, lo).v(0, 0, 0);
     }
 
-    Numeric get_w(Numeric z, Numeric la, Numeric lo) const {
-      comp(z, la, lo);
-      return w;
+    [[nodiscard]] Numeric get_w(Numeric z, Numeric la, Numeric lo) const {
+      return comp(z, la, lo).w(0, 0, 0);
     }
   };
 
-  /** Different methods for parallel and non-parallel safe versions
-   * In the paralell safe version each field component holds a copy
-   * of the res-struct.  In the unsafe version, the res-struct is
-   * shared between the fields.
-   *
-   * The parallel version is thus safe because it is doing all its
-   * computations locally but the non-parallel version is 3X faster
-   * because it saves the state of the query for, e.g., u to be
-   * reused by v and w (with no regards for order) */
-  if (parsafe == 0) {
-    const std::shared_ptr igrf_ptr = std::make_shared<res>(time);
-    atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
-        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
-          return ptr->get_u(h, lat, lon);
-        }};
-    atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
-        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
-          return ptr->get_v(h, lat, lon);
-        }};
-    atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
-        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
-          return ptr->get_w(h, lat, lon);
-        }};
-  } else {
-    atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
-        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-          return res{cpy}.get_u(h, lat, lon);
-        }};
-    atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
-        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-          return res{cpy}.get_v(h, lat, lon);
-        }};
-    atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
-        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-          return res{cpy}.get_w(h, lat, lon);
-        }};
-  }
+  atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
+      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+        return cpy.get_u(h, lat, lon);
+      }};
+  atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
+      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+        return cpy.get_v(h, lat, lon);
+      }};
+  atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
+      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+        return cpy.get_w(h, lat, lon);
+      }};
 }
 
 enum class atmospheric_fieldHydrostaticPressureDataOptions : char {
@@ -637,7 +588,7 @@ struct atmospheric_fieldHydrostaticPressureData {
     for (Index i = 1; i < alt.nelem(); i++) {
       for (Index j = 0; j < lat.nelem(); j++) {
         for (Index k = 0; k < lon.nelem(); k++) {
-          const Numeric h = alt[i] - alt[i - 1];
+          const Numeric h  = alt[i] - alt[i - 1];
           const Numeric p0 = pre(i - 1, j, k);
           const Numeric d0 = grad_p(i - 1, j, k);
 
@@ -648,8 +599,8 @@ struct atmospheric_fieldHydrostaticPressureData {
   }
 
   [[nodiscard]] std::pair<Index, Numeric> find_alt(Numeric al) const {
-    auto i = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
-    i -= (i == alt.size());
+    auto i  = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
+    i      -= (i == alt.size());
     while (i > 0 and alt[i] > al) {
       i--;
     }
@@ -662,7 +613,7 @@ struct atmospheric_fieldHydrostaticPressureData {
                                                   Numeric lo) const {
     const LatLag latlag(0, la, lat);
     const LonLag lonlag(0, lo, lon);
-    const auto iw = interpweights(latlag, lonlag);
+    const auto iw   = interpweights(latlag, lonlag);
     const Numeric p = interp(pre[alt_ind], iw, latlag, lonlag);
     const Numeric d = interp(grad_p[alt_ind], iw, latlag, lonlag);
     return {p, d};
@@ -683,7 +634,6 @@ void atmospheric_fieldHydrostaticPressure(
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
-  ARTS_ASSERT(false, "Fix isotopologues")
   using enum atmospheric_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 

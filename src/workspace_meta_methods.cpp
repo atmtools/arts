@@ -14,19 +14,19 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceApplyUnitFromSpectralRadiance",
-      .desc = "Apply unit changes to spectral radiance and its Jacobian",
-      .author = {"Richard Larsson"},
+      .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
+      .desc    = "Apply unit changes to spectral radiance and its Jacobian",
+      .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointForeground",
                   "spectral_radiance_jacobianApplyUnit",
                   "spectral_radianceApplyUnit"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyEmission",
-      .desc = "Computes clearsky emission of spectral radiances",
-      .author = {"Richard Larsson"},
+      .name    = "spectral_radianceClearskyEmission",
+      .desc    = "Computes clearsky emission of spectral radiances",
+      .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
                   "ray_path_atmospheric_pointFromPath",
@@ -40,13 +40,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
                   "spectral_radiance_jacobianAddPathPropagation"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyRayleighScattering",
-      .desc = "Computes clearsky emission of spectral radiances",
-      .author = {"Richard Larsson"},
+      .name    = "spectral_radianceClearskyRayleighScattering",
+      .desc    = "Computes clearsky emission of spectral radiances",
+      .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
                   "ray_path_atmospheric_pointFromPath",
@@ -64,13 +64,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
                   "spectral_radiance_jacobianAddPathPropagation"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyTransmission",
-      .desc = "Computes clearsky transmission of spectral radiances",
-      .author = {"Richard Larsson"},
+      .name    = "spectral_radianceClearskyTransmission",
+      .desc    = "Computes clearsky transmission of spectral radiances",
+      .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
                   "ray_path_atmospheric_pointFromPath",
@@ -83,13 +83,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
                   "spectral_radiance_jacobianAddPathPropagation"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyBackgroundTransmission",
-      .desc = "Computes clearsky transmission of spectral radiances",
-      .author = {"Richard Larsson"},
+      .name    = "spectral_radianceClearskyBackgroundTransmission",
+      .desc    = "Computes clearsky transmission of spectral radiances",
+      .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "ray_path_atmospheric_pointFromPath",
                   "ray_path_frequency_gridFromPath",
@@ -101,18 +101,18 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
                   "spectral_radiance_jacobianAddPathPropagation"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "atmospheric_fieldRead",
-      .desc = "Reads absorption file from a directory",
-      .author = {"Richard Larsson"},
-      .methods = {"atmospheric_fieldInit",
-                  "atmospheric_fieldAppendBaseData",
-                  "atmospheric_fieldAppendAbsorptionData"},
-      .out = {"atmospheric_field"},
-      .preset_gin = {"replace_existing"},
+      .name             = "atmospheric_fieldRead",
+      .desc             = "Reads absorption file from a directory",
+      .author           = {"Richard Larsson"},
+      .methods          = {"atmospheric_fieldInit",
+                           "atmospheric_fieldAppendBaseData",
+                           "atmospheric_fieldAppendAbsorptionData"},
+      .out              = {"atmospheric_field"},
+      .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
 
@@ -131,9 +131,9 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
   }
 
   WorkspaceMethodInternalRecord wsm{
-      .desc = desc,
+      .desc   = desc,
       .author = author,
-      .out = out,
+      .out    = out,
   };
 
   std::vector<std::string> first_out;
@@ -231,7 +231,7 @@ Equivalent (mostly) Python code:
                  wsm.gin_desc);
 
   for (auto ptr = std::ranges::adjacent_find(wsm.gin); ptr != wsm.gin.end();
-       ptr = std::ranges::adjacent_find(wsm.gin)) {
+       ptr      = std::ranges::adjacent_find(wsm.gin)) {
     const auto idx0 = std::distance(wsm.gin.begin(), ptr);
     const auto idx1 = idx0 + 1;
 
@@ -258,7 +258,7 @@ Equivalent (mostly) Python code:
                      "preset_gin and preset_gin_value must have the same size")
   for (auto& preset : preset_gin) {
     for (auto ptr = std::ranges::find(wsm.gin, preset); ptr != wsm.gin.end();
-         ptr = std::ranges::adjacent_find(wsm.gin)) {
+         ptr      = std::ranges::adjacent_find(wsm.gin)) {
       const auto idx0 = std::distance(wsm.gin.begin(), ptr);
 
       wsm.gin.erase(ptr);

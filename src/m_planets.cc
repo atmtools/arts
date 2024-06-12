@@ -31,7 +31,7 @@
 #include "surf.h"
 
 inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
-inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric DEG2RAD      = Conversion::deg2rad(1);
 
 // Ref. 1:
 // Seidelmann, P. Kenneth; Archinal, B. A.; A'hearn, M. F. et al (2007).
@@ -90,7 +90,7 @@ void g0Io(Numeric &g0) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<EarthEllipsoid>(model)) {
@@ -108,7 +108,7 @@ void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<JupiterEllipsoid>(model)) {
@@ -125,7 +125,7 @@ void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldMars(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<MarsEllipsoid>(model)) {
@@ -142,7 +142,7 @@ void surface_fieldMars(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<MoonEllipsoid>(model)) {
@@ -160,7 +160,7 @@ void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldIo(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<IoEllipsoid>(model)) {
@@ -174,7 +174,7 @@ void surface_fieldIo(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<EuropaEllipsoid>(model)) {
@@ -188,27 +188,27 @@ void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldGanymede(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<GanymedeEllipsoid>(model)) {
     case GanymedeEllipsoid::Sphere:
-    surface_field.ellipsoid[0] =
-        2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      surface_field.ellipsoid[0] =
+          2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
       break;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   switch (to<VenusEllipsoid>(model)) {
     case VenusEllipsoid::Sphere:
-    surface_field.ellipsoid[0] = 6051.8e3;  // From Ref. 1 (see above)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      surface_field.ellipsoid[0] = 6051.8e3;  // From Ref. 1 (see above)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
       break;
   }
 }
@@ -217,7 +217,7 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
 void surface_fieldInit(SurfaceField &surface_field,
                        const Numeric &r_equatorial,
                        const Numeric &r_polar) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   surface_field.ellipsoid[0] = r_equatorial;
@@ -228,7 +228,7 @@ void surface_fieldInit(SurfaceField &surface_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
                                      const String &option) {
-  surface_field = {};
+  surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   using enum PlanetOrMoonType;
@@ -267,7 +267,7 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
   struct Gravity {
     Numeric GM;
     Numeric a;
-    Numeric b;
+    Numeric e;
 
     Numeric operator()(Numeric h, Numeric lat, Numeric lon) const {
       using Conversion::cosd;
@@ -275,10 +275,7 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
       using Math::pow2;
       using std::sqrt;
 
-      const Numeric e = std::sqrt(1 - pow2(b / a));
-
-      const Numeric N = a / sqrt(1 - pow2(e * sind(lat)));
-
+      const Numeric N  = a / sqrt(1 - pow2(e * sind(lat)));
       const Numeric r2 = pow2((N + h) * cosd(lon) * cosd(lat)) +
                          pow2((N + h) * sind(lon) * cosd(lat)) +
                          pow2((N * (1 - pow2(e)) + h) * sind(lat));
@@ -298,8 +295,9 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
       surface_field.ellipsoid,
       ']')
 
-  gravity_operator =
-      NumericTernaryOperator{Gravity{Constant::G * mass,
-                                     surface_field.ellipsoid[0],
-                                     surface_field.ellipsoid[1]}};
+  gravity_operator = NumericTernaryOperator{
+      Gravity{Constant::G * mass,
+              surface_field.ellipsoid[0],
+              std::sqrt(1 - Math::pow2(surface_field.ellipsoid[1] /
+                                       surface_field.ellipsoid[0]))}};
 }

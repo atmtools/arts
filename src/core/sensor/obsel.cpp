@@ -2,14 +2,21 @@
 
 #include <algorithm>
 #include <exception>
+#include <iomanip>
+#include <iterator>
 #include <numeric>
-#include <stdexcept>
 
+#include "arts_constants.h"
+#include "arts_constexpr_math.h"
 #include "arts_omp.h"
+#include "configtypes.h"
 #include "debug.h"
+#include "math_funcs.h"
+#include "matpack_view.h"
 #include "mystring.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
+#include "sorting.h"
 
 namespace sensor {
 Index Obsel::ind(const PosLos& pl) const {
@@ -47,10 +54,10 @@ bool is_exhaustive_like(const Array<Obsel>& obsels) {
 
   if (obsels.empty()) return true;
 
-  const auto& first = obsels.front();
-  const auto& f_grid = first.f_grid;
-  const auto& poslos_grid = first.poslos_grid;
-  const auto& f_grid_w = first.f_grid_w;
+  const auto& first         = obsels.front();
+  const auto& f_grid        = first.f_grid;
+  const auto& poslos_grid   = first.poslos_grid;
+  const auto& f_grid_w      = first.f_grid_w;
   const auto& poslos_grid_w = first.poslos_grid_w;
 
   for (const auto& obsel : obsels | std::views::drop(1)) {
@@ -172,7 +179,7 @@ void sumup(Vector& out,
       if (iposlos == obsel.dont_have) continue;
 
       const auto first = freqs.begin();
-      const auto last = freqs.end();
+      const auto last  = freqs.end();
       auto cur = std::ranges::lower_bound(first, last, obsel.f_grid.front());
       const auto stop =
           std::ranges::upper_bound(cur, last, obsel.f_grid.back());
@@ -181,8 +188,8 @@ void sumup(Vector& out,
         const Index ifreq = obsel.ind(*cur);
         if (ifreq == obsel.dont_have) continue;
 
-        const Index iv = std::distance(first, cur);
-        out[iel] += obsel.at(ifreq, iposlos) * in[iv];
+        const Index iv  = std::distance(first, cur);
+        out[iel]       += obsel.at(ifreq, iposlos) * in[iv];
       }
     }
   } else {
@@ -197,7 +204,7 @@ void sumup(Vector& out,
         if (iposlos == obsel.dont_have) continue;
 
         const auto first = freqs.begin();
-        const auto last = freqs.end();
+        const auto last  = freqs.end();
         auto cur = std::ranges::lower_bound(first, last, obsel.f_grid.front());
         const auto stop =
             std::ranges::upper_bound(cur, last, obsel.f_grid.back());
@@ -206,8 +213,8 @@ void sumup(Vector& out,
           const Index ifreq = obsel.ind(*cur);
           if (ifreq == obsel.dont_have) continue;
 
-          const Index iv = std::distance(first, cur);
-          out[iel] += obsel.at(ifreq, iposlos) * in[iv];
+          const Index iv  = std::distance(first, cur);
+          out[iel]       += obsel.at(ifreq, iposlos) * in[iv];
         }
       } catch (std::exception& e) {
 #pragma omp critical
@@ -239,7 +246,7 @@ void sumup(Vector& out,
       if (iposlos == obsel.dont_have) continue;
 
       const auto first = freqs.begin();
-      const auto last = freqs.end();
+      const auto last  = freqs.end();
       auto cur = std::ranges::lower_bound(first, last, obsel.f_grid.front());
       const auto stop =
           std::ranges::upper_bound(cur, last, obsel.f_grid.back());
@@ -269,7 +276,7 @@ void sumup(Vector& out,
         if (iposlos == obsel.dont_have) continue;
 
         const auto first = freqs.begin();
-        const auto last = freqs.end();
+        const auto last  = freqs.end();
         auto cur = std::ranges::lower_bound(first, last, obsel.f_grid.front());
         const auto stop =
             std::ranges::upper_bound(cur, last, obsel.f_grid.back());
@@ -301,7 +308,7 @@ void exhaustive_sumup(Vector& out,
                       const PosLos& poslos) try {
   ARTS_ASSERT(is_exhaustive_like(obsels))
 
-  const Index nv = obsels.front().f_grid.size();
+  const Index nv      = obsels.front().f_grid.size();
   const Index iposlos = obsels.front().ind(poslos);
   if (iposlos == obsels.front().dont_have) return;
 
@@ -339,8 +346,8 @@ void exhaustive_sumup(Vector& out,
                       const PosLos& poslos) try {
   ARTS_ASSERT(is_exhaustive_like(obsels))
 
-  const Index nv = obsels.front().f_grid.size();
-  const Index njac = in_jac.nrows();
+  const Index nv      = obsels.front().f_grid.size();
+  const Index njac    = in_jac.nrows();
   const Index iposlos = obsels.front().ind(poslos);
   if (iposlos == obsels.front().dont_have) return;
 
@@ -404,5 +411,322 @@ std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel) {
 bool Obsel::ok() const {
   return f_grid.size() == f_grid_w.size() and f_grid.size() > 0 and
          poslos_grid.size() == poslos_grid_w.size() and poslos_grid.size() > 0;
+}
+
+void Obsel::set_frequency_dirac(const Numeric& f0) {
+  f_grid   = Vector{f0};
+  f_grid_w = {1.};
+}
+
+void boxcar(ExhaustiveVectorView x,
+            const Numeric& f0,
+            const Numeric& width,
+            const Numeric& sl = -0.5,
+            const Numeric& su = 0.5) {
+  ARTS_USER_ERROR_IF(width <= 0.0, "Width must be positive")
+  ARTS_USER_ERROR_IF(su > -sl, "Upper limit must be lower than lower limit")
+
+  const Index N = x.size();
+  if (N == 1) {
+    x[0] = f0;
+  } else {
+    const Numeric dx = 1.0 / static_cast<Numeric>(N - 1);
+    x.front()        = f0 + sl * width;
+    x.back()         = f0 + su * width;
+    for (Index i = 1; i < N - 1; i++) {
+      x[i] = std::lerp(x.front(), x.back(), static_cast<Numeric>(i) * dx);
+    }
+  }
+}
+
+Vector boxcar(const Numeric& f0,
+              const Numeric& width,
+              const Index& N,
+              const Numeric& sl = -0.5,
+              const Numeric& su = 0.5) {
+  ARTS_USER_ERROR_IF(N < 1, "N must be greater than 0")
+
+  Vector x(N);
+  boxcar(x, f0, width, sl, su);
+  return x;
+}
+
+void Obsel::set_frequency_boxcar(const Numeric& f0,
+                                 const Numeric& width,
+                                 const Index& N) {
+  f_grid_w.resize(N);
+  f_grid   = boxcar(f0, width, N);
+  f_grid_w = 1.0 / static_cast<Numeric>(N);
+}
+
+void Obsel::set_frequency_boxcar(const Numeric& f0,
+                                 const Numeric& width,
+                                 const AscendingGrid& in_f_grid,
+                                 const bool error_if_empty) {
+  const auto fs = std::ranges::lower_bound(in_f_grid, f0 - 0.5 * width);
+  const auto fe = std::ranges::upper_bound(in_f_grid, f0 + 0.5 * width);
+  std::vector<Numeric> x(fs, fe);
+
+  ARTS_USER_ERROR_IF(error_if_empty and x.empty(),
+                     "No frequencies in the boxcar")
+
+  f_grid = std::move(x);
+  f_grid_w.resize(f_grid.size());
+  f_grid_w = 1.0 / static_cast<Numeric>(f_grid.size());
+}
+
+void Obsel::normalize_frequency_weights() { f_grid_w /= sum(f_grid_w); }
+
+Numeric gauss(Numeric f0, Numeric f, Numeric fwhm) {
+  return std::exp(-4 * Constant::ln_2 * Math::pow2((f - f0) / fwhm));
+}
+
+void Obsel::set_frequency_gaussian(const Numeric& f0,
+                                   const Numeric& fwhm,
+                                   const Index& Nfwhm,
+                                   const Index& Nhwhm) {
+  ARTS_USER_ERROR_IF(
+      Nfwhm < 1,
+      "Nfwhm must be greater than 0 (must have at least one full width half maximum)")
+  ARTS_USER_ERROR_IF(
+      Nhwhm < 2,
+      "dNhwhm must be greater than 1 (must have at least two point per full width half maximum)")
+
+  const Index N      = 2 * Nfwhm * (Nhwhm - 1) + 1;
+  const Numeric hwhm = 0.5 * fwhm;
+  const Numeric dx   = hwhm / static_cast<Numeric>(Nhwhm - 1);
+
+  Vector x, y;
+  x.reserve(N);
+  y.reserve(N);
+  for (Index i = -Nfwhm; i < Nfwhm; i++) {
+    const Numeric fi = f0 + static_cast<Numeric>(i) * hwhm;
+    y.emplace_back(gauss(f0, x.emplace_back(fi), fwhm));
+    for (Index j = 1; j < Nhwhm - 1; j++) {
+      y.emplace_back(
+          gauss(f0, x.emplace_back(fi + static_cast<Numeric>(j) * dx), fwhm));
+    }
+  }
+
+  y.emplace_back(
+      gauss(f0, x.emplace_back(static_cast<Numeric>(Nfwhm) * hwhm + f0), fwhm));
+
+  f_grid   = std::move(x);
+  f_grid_w = std::move(y);
+
+  normalize_frequency_weights();
+}
+
+void Obsel::set_frequency_gaussian(const Numeric& f0,
+                                   const Numeric& fwhm,
+                                   const AscendingGrid& in_f_grid) {
+  f_grid = in_f_grid;
+
+  f_grid_w.resize(f_grid.size());
+  std::transform(f_grid.begin(),
+                 f_grid.end(),
+                 f_grid_w.begin(),
+                 [f0, fwhm](const auto& f) { return gauss(f0, f, fwhm); });
+
+  normalize_frequency_weights();
+}
+
+Vector lochain_central_frequencies(const DescendingGrid& f0s,
+                                   const String& filter) {
+  const Index M = f0s.size();
+  ARTS_USER_ERROR_IF(M < 1, "Must have at least one central frequency")
+  ARTS_USER_ERROR_IF(
+      filter.size() != static_cast<Size>(M - 1),
+      "Filter must be one smaller than the number of central frequencies: ",
+      std::quoted(filter),
+      " vs ",
+      M)
+
+  const Index NF = [M]() {
+    Index n = 1;
+    for (Index i = 1; i < M; i++) n *= 2;
+    return n;
+  }();
+
+  std::vector<Numeric> x(NF, f0s[0]);
+  for (Index j = 1; j < M; j++) {
+    const Index COUNT  = NF / (1 << j);
+    Index COUNTER      = 0;
+    bool add           = true;
+    const Numeric sadd = filter[j - 1] == 'L' ? NAN : 1.0;
+    const Numeric smin = filter[j - 1] == 'U' ? NAN : 1.0;
+    for (Index iv = 0; iv < NF; iv++) {
+      if (add) {
+        x[iv] += f0s[j] * sadd;
+      } else {
+        x[iv] -= f0s[j] * smin;
+      }
+
+      COUNTER++;
+      if (COUNTER == COUNT) {
+        COUNTER = 0;
+        add     = not add;
+      }
+    }
+  }
+
+  // Remove NANs
+  x.erase(std::remove_if(
+              x.begin(), x.end(), [](const auto& v) { return std::isnan(v); }),
+          x.end());
+
+  std::ranges::sort(x);
+
+  return x;
+}
+
+Vector lochain_central_frequencies(const DescendingGrid& f0s) {
+  const Index M = f0s.size();
+  ARTS_USER_ERROR_IF(M < 1, "Must have at least one central frequency")
+
+  const Index NF = [M]() {
+    Index n = 1;
+    for (Index i = 1; i < M; i++) n *= 2;
+    return n;
+  }();
+
+  Vector x(NF, f0s[0]);
+  for (Index j = 1; j < M; j++) {
+    const Index COUNT = NF / (1 << j);
+    Index COUNTER     = 0;
+    bool add          = true;
+    for (Index iv = 0; iv < NF; iv++) {
+      if (add) {
+        x[iv] += f0s[j];
+      } else {
+        x[iv] -= f0s[j];
+      }
+
+      COUNTER++;
+      if (COUNTER == COUNT) {
+        COUNTER = 0;
+        add     = not add;
+      }
+    }
+  }
+
+  std::ranges::sort(x);
+
+  return x;
+}
+
+void Obsel::set_frequency_lochain(const DescendingGrid& f0s,
+                                  const Numeric& width,
+                                  const Index& N,
+                                  const String& filter,
+                                  const Numeric& lower_width,
+                                  const Numeric& upper_width) {
+  ARTS_USER_ERROR_IF(N < 1, "Must have at least one frequency per sideband")
+
+  const Vector F0 = filter.empty() ? lochain_central_frequencies(f0s)
+                                   : lochain_central_frequencies(f0s, filter);
+
+  Vector x(N * F0.size());
+  for (Index i = 0; i < F0.size(); i++) {
+    boxcar(x.slice(i * N, N), F0[i], width, lower_width, upper_width);
+  }
+
+  std::ranges::sort(x);
+  f_grid = std::move(x);
+
+  f_grid_w.resize(f_grid.size());
+  f_grid_w = 1.0 / static_cast<Numeric>(f_grid.size());
+}
+
+void Obsel::set_frequency_lochain(const DescendingGrid& f0s,
+                                  const Numeric& width,
+                                  const AscendingGrid& in_f_grid,
+                                  const String& filter,
+                                  const Numeric& lower_width,
+                                  const Numeric& upper_width,
+                                  const bool error_if_empty) {
+  const Vector F0 = filter.empty() ? lochain_central_frequencies(f0s)
+                                   : lochain_central_frequencies(f0s, filter);
+
+  std::vector<Numeric> x;
+  for (double f0 : F0) {
+    const auto fs =
+        std::ranges::lower_bound(in_f_grid, f0 + lower_width * width);
+    const auto fe =
+        std::ranges::upper_bound(in_f_grid, f0 + upper_width * width);
+
+    ARTS_USER_ERROR_IF(error_if_empty and fs == fe,
+                       "No frequencies in the metmm sampler")
+
+    x.insert(x.end(), fs, fe);
+  }
+
+  std::ranges::sort(x);
+  f_grid = std::move(x);
+  f_grid_w.resize(f_grid.size());
+  f_grid_w = 1.0 / static_cast<Numeric>(f_grid.size());
+}
+
+constexpr Index cutoff_size(const Vector& f_grid_w_new,
+                            const Numeric& cutoff,
+                            const bool relative) {
+  if (relative) {
+    const Index N = f_grid_w_new.size();
+    Index sz      = N;
+    Numeric sum   = 0.0;
+
+    // First simple sum to find the cutoff
+    while (--sz >= 0) {
+      sum += f_grid_w_new[sz];
+      if (sum >= cutoff) break;
+    }
+
+    // Then remove all scaled weights below the cutoff
+    while (sz > 1) {
+      const Numeric v = f_grid_w_new[sz];
+      if (v / (1.0 - sum) >= cutoff) break;
+      sum += v;
+      --sz;
+    }
+
+    return std::min(N, sz + 1);
+  }
+
+  // Simply keep only the weights above the cutoff by finding the partition point
+  return std::distance(
+      f_grid_w_new.begin(),
+      std::ranges::partition_point(f_grid_w_new, Cmp::ge(cutoff)));
+}
+
+bool Obsel::cutoff_frequency_weights(const Numeric& cutoff, bool relative) {
+  const Index N = f_grid.size();
+
+  Vector f_grid_new   = f_grid;
+  Vector f_grid_w_new = f_grid_w;
+
+  // sorted from large to small weights
+  bubble_sort_by(
+      [&f_grid_w_new](Index i, Index j) {
+        return f_grid_w_new[i] < f_grid_w_new[j];
+      },
+      f_grid_w_new,
+      f_grid_new);
+
+  //! Get and set the new sizes
+  const Index sz = cutoff_size(f_grid_w_new, cutoff, relative);
+  f_grid_w_new.resize(sz);
+  f_grid_new.resize(sz);
+
+  // sorted from small to large frequencies
+  bubble_sort_by(
+      [&f_grid_new](Index i, Index j) { return f_grid_new[i] > f_grid_new[j]; },
+      f_grid_new,
+      f_grid_w_new);
+
+  f_grid   = std::move(f_grid_new);
+  f_grid_w = std::move(f_grid_w_new);
+  normalize_frequency_weights();
+
+  return f_grid.size() != N;
 }
 }  // namespace sensor

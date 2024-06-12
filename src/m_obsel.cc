@@ -35,18 +35,18 @@ void measurement_vector_sensorSimple(
     const Stokvec& pol) try {
   measurement_vector_sensor.resize(frequency_grid.size());
 
-  std::transform(frequency_grid.begin(),
-                 frequency_grid.end(),
-                 measurement_vector_sensor.begin(),
-                 [pos, los, pol](const auto& f) {
-                   return SensorObsel{
-                       .f_grid_w = Vector{1},
-                       .f_grid = {f},
-                       .poslos_grid_w = MuelmatVector{1},
-                       .poslos_grid = SensorPosLosVector{SensorPosLos{
-                           .pos = pos, .los = los}},
-                       .polarization = pol};
-                 });
+  std::transform(
+      frequency_grid.begin(),
+      frequency_grid.end(),
+      measurement_vector_sensor.begin(),
+      [pos, los, pol](const auto& f) {
+        return SensorObsel{
+            .f_grid_w      = Vector{1},
+            .f_grid        = {f},
+            .poslos_grid_w = MuelmatVector{1},
+            .poslos_grid   = SensorPosLosVector{{.pos = pos, .los = los}},
+            .polarization  = pol};
+      });
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -66,18 +66,18 @@ void measurement_vector_sensorGaussianFrequencyGrid(
 
   for (const auto [f0, fwhm] : f0_fwmh) {
     auto& obsel = measurement_vector_sensor.emplace_back(SensorObsel{
-        .f_grid_w = Vector(n, 1.0/static_cast<Numeric>(n)),
-        .f_grid = frequency_grid,
+        .f_grid_w      = Vector(n, 1.0 / static_cast<Numeric>(n)),
+        .f_grid        = frequency_grid,
         .poslos_grid_w = MuelmatVector{1},
-        .poslos_grid = SensorPosLosVector{SensorPosLos{.pos = pos, .los = los}},
-        .polarization = pol,
+        .poslos_grid   = SensorPosLosVector{{.pos = pos, .los = los}},
+        .polarization  = pol,
     });
     ARTS_USER_ERROR_IF(f0 <= 0.0, "Must have a positive frequency")
     ARTS_USER_ERROR_IF(fwhm < 0.0, "Must have a non-negative FWHM")
 
     if (fwhm == 0.0) {
-      auto ptr = std::ranges::find(frequency_grid, f0);
-      obsel.f_grid = AscendingGrid{f0};
+      auto ptr       = std::ranges::find(frequency_grid, f0);
+      obsel.f_grid   = AscendingGrid{f0};
       obsel.f_grid_w = {1.0};
       ARTS_USER_ERROR_IF(
           ptr == frequency_grid.end(),
@@ -135,11 +135,11 @@ void measurement_vector_sensorGaussian(
     }
 
     auto& obsel = measurement_vector_sensor.emplace_back(SensorObsel{
-        .f_grid_w = Vector(2 * n + 1),
-        .f_grid = std::move(f_grid),
+        .f_grid_w      = Vector(2 * n + 1),
+        .f_grid        = std::move(f_grid),
         .poslos_grid_w = MuelmatVector{1},
-        .poslos_grid = SensorPosLosVector{SensorPosLos{.pos = pos, .los = los}},
-        .polarization = pol,
+        .poslos_grid   = SensorPosLosVector{{.pos = pos, .los = los}},
+        .polarization  = pol,
     });
 
     gaussian(obsel.f_grid_w, obsel.f_grid, f0, fwhm);

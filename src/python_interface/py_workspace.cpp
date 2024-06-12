@@ -24,11 +24,11 @@ py::tuple pickle_method(const Method& m) {
 Method unpickle_method(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-  auto name = t[0].cast<std::string>();
-  auto ins = t[1].cast<std::vector<std::string>>();
-  auto outs = t[2].cast<std::vector<std::string>>();
+  auto name   = t[0].cast<std::string>();
+  auto ins    = t[1].cast<std::vector<std::string>>();
+  auto outs   = t[2].cast<std::vector<std::string>>();
   auto setval = t[3].cast<std::optional<Wsv>>();
-  auto ow = t[4].cast<bool>();
+  auto ow     = t[4].cast<bool>();
 
   return Method{name, ins, outs, setval, ow};
 }
@@ -44,10 +44,10 @@ py::tuple pickle_agenda(const Agenda& ag) {
 Agenda unpickle_agenda(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-  auto n = t[0].cast<std::string>();
-  auto m = t[1].cast<std::vector<Method>>();
-  auto s = t[2].cast<std::vector<std::string>>();
-  auto c = t[3].cast<std::vector<std::string>>();
+  auto n  = t[0].cast<std::string>();
+  auto m  = t[1].cast<std::vector<Method>>();
+  auto s  = t[2].cast<std::vector<std::string>>();
+  auto c  = t[3].cast<std::vector<std::string>>();
   auto ch = t[4].cast<bool>();
 
   return Agenda{n, m, s, c, ch};
@@ -62,20 +62,20 @@ void py_auto_wsm(artsclass<Workspace>& ws);
 void py_workspace(artsclass<Workspace>& ws) try {
   ws.def(py::init([](bool with_defaults) {
            if (with_defaults)
-             return std::make_shared<Workspace>(WorkspaceInitialization::FromGlobalDefaults);
+             return std::make_shared<Workspace>(
+                 WorkspaceInitialization::FromGlobalDefaults);
            return std::make_shared<Workspace>(WorkspaceInitialization::Empty);
          }),
          py::arg("with_defaults") = true)
       .def(py::init([](Workspace& w) { return w; }))
       .def("__copy__", [](Workspace& w) { return w; })
-      .def("__deepcopy__", [](Workspace& w, py::dict&) { 
-        return w.deepcopy(); 
-      })
+      .def("__deepcopy__", [](Workspace& w, py::dict&) { return w.deepcopy(); })
       .def(
           "get",
           [](Workspace& w, const std::string& n) { return from(w.share(n)); },
           py::return_value_policy::reference_internal,
           py::keep_alive<0, 1>())
+      .def("init", &Workspace::init)
       .def("set",
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
              w.set(n, std::make_shared<Wsv>(from(x)));
@@ -90,20 +90,24 @@ void py_workspace(artsclass<Workspace>& ws) try {
              } else if (ptr->holds<ArrayOfAgenda>()) {
                auto& ags = ptr->get_unsafe<ArrayOfAgenda>();
                for (auto& ag : ags) {
-                if (not ag.is_checked()) {
-                  ag.set_name(n);
-                  ag.finalize();
-                }
+                 if (not ag.is_checked()) {
+                   ag.set_name(n);
+                   ag.finalize();
+                 }
                }
              }
            })
       .def("has",
            [](Workspace& w, const std::string& n) { return w.contains(n); })
-      .def("swap", [](Workspace& w1, Workspace& w2) { using std::swap; swap(w1, w2); }, py::arg("other"));
+      .def(
+          "swap",
+          [](Workspace& w1, Workspace& w2) {
+            using std::swap;
+            swap(w1, w2);
+          },
+          py::arg("other"));
 
-  ws.def("__str__", [](const Workspace& w) {
-    return var_string(w);
-  });
+  ws.def("__str__", [](const Workspace& w) { return var_string(w); });
 
   py_auto_wsv(ws);
   py_auto_wsm(ws);

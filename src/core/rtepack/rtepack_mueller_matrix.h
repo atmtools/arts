@@ -31,16 +31,16 @@ struct muelmat final : mat44 {
   static constexpr muelmat id() { return muelmat{1.0}; }
 
   constexpr muelmat &operator+=(const muelmat &b) {
-    data[0] += b.data[0];
-    data[1] += b.data[1];
-    data[2] += b.data[2];
-    data[3] += b.data[3];
-    data[4] += b.data[4];
-    data[5] += b.data[5];
-    data[6] += b.data[6];
-    data[7] += b.data[7];
-    data[8] += b.data[8];
-    data[9] += b.data[9];
+    data[0]  += b.data[0];
+    data[1]  += b.data[1];
+    data[2]  += b.data[2];
+    data[3]  += b.data[3];
+    data[4]  += b.data[4];
+    data[5]  += b.data[5];
+    data[6]  += b.data[6];
+    data[7]  += b.data[7];
+    data[8]  += b.data[8];
+    data[9]  += b.data[9];
     data[10] += b.data[10];
     data[11] += b.data[11];
     data[12] += b.data[12];
@@ -51,16 +51,16 @@ struct muelmat final : mat44 {
   }
 
   constexpr muelmat &operator-=(const muelmat &b) {
-    data[0] -= b.data[0];
-    data[1] -= b.data[1];
-    data[2] -= b.data[2];
-    data[3] -= b.data[3];
-    data[4] -= b.data[4];
-    data[5] -= b.data[5];
-    data[6] -= b.data[6];
-    data[7] -= b.data[7];
-    data[8] -= b.data[8];
-    data[9] -= b.data[9];
+    data[0]  -= b.data[0];
+    data[1]  -= b.data[1];
+    data[2]  -= b.data[2];
+    data[3]  -= b.data[3];
+    data[4]  -= b.data[4];
+    data[5]  -= b.data[5];
+    data[6]  -= b.data[6];
+    data[7]  -= b.data[7];
+    data[8]  -= b.data[8];
+    data[9]  -= b.data[9];
     data[10] -= b.data[10];
     data[11] -= b.data[11];
     data[12] -= b.data[12];
@@ -124,23 +124,17 @@ struct muelmat final : mat44 {
 };
 
 //! Addition between muelmat matrices
-constexpr muelmat operator+(muelmat a, const muelmat &b) {
-  return a += b;
-}
+constexpr muelmat operator+(muelmat a, const muelmat &b) { return a += b; }
 
 constexpr muelmat operator+(Numeric a, muelmat b) { return muelmat{a} + b; }
 
 //! Subtraction between muelmat matrices
-constexpr muelmat operator-(muelmat a, const muelmat &b) {
-  return a -= b;
-}
+constexpr muelmat operator-(muelmat a, const muelmat &b) { return a -= b; }
 
 constexpr muelmat operator-(Numeric a, muelmat b) { return muelmat{a} - b; }
 
 //! Scaling a muelmat matrix
-constexpr muelmat operator*(muelmat a, const Numeric &b) {
- return  a *= b;
-}
+constexpr muelmat operator*(muelmat a, const Numeric &b) { return a *= b; }
 
 //! Scaling a muelmat matrix
 constexpr muelmat operator*(const Numeric &a, muelmat b) { return b * a; }
@@ -148,13 +142,11 @@ constexpr muelmat operator*(const Numeric &a, muelmat b) { return b * a; }
 //! Scaling a muelmat matrix
 constexpr muelmat operator/(muelmat a, const Numeric &b) {
   a /= b;
- return a;
+  return a;
 }
 
 //! Scaling a muelmat matrix
-constexpr muelmat operator*(muelmat a, const muelmat &b) {
-  return a *= b;
-}
+constexpr muelmat operator*(muelmat a, const muelmat &b) { return a *= b; }
 
 //! Take the average of two muelmat matrices
 constexpr muelmat avg(muelmat a, const muelmat &b) {
@@ -208,17 +200,17 @@ constexpr muelmat inv(const muelmat &A) {
                         c * e * j - c * f * i)};
 }
 
-using muelmat_vector = matpack::matpack_data<muelmat, 1>;
+using muelmat_vector      = matpack::matpack_data<muelmat, 1>;
 using muelmat_vector_view = matpack::matpack_view<muelmat, 1, false, false>;
 using muelmat_vector_const_view =
     matpack::matpack_view<muelmat, 1, true, false>;
 
-using muelmat_matrix = matpack::matpack_data<muelmat, 2>;
+using muelmat_matrix      = matpack::matpack_data<muelmat, 2>;
 using muelmat_matrix_view = matpack::matpack_view<muelmat, 2, false, false>;
 using muelmat_matrix_const_view =
     matpack::matpack_view<muelmat, 2, true, false>;
 
-using muelmat_tensor3 = matpack::matpack_data<muelmat, 3>;
+using muelmat_tensor3      = matpack::matpack_data<muelmat, 3>;
 using muelmat_tensor3_view = matpack::matpack_view<muelmat, 3, false, false>;
 using muelmat_tensor3_const_view =
     matpack::matpack_view<muelmat, 3, true, false>;

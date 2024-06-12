@@ -72,7 +72,7 @@ Method::Method(const std::string& n,
                const std::unordered_map<std::string, std::string>& kw) try
     : name(n), outargs(wsms.at(name).out), inargs(wsms.at(name).in) {
   const std::size_t nargout = outargs.size();
-  const std::size_t nargin = inargs.size();
+  const std::size_t nargin  = inargs.size();
 
   // FIXME: IN C++23, USE ZIP HERE INSTEAD AS WE CAN REMOVE LATER CODE DOING THAT
   std::vector<std::pair<std::string, bool>> outargs_set(nargout);
@@ -106,20 +106,19 @@ Method::Method(const std::string& n,
                    [&](auto& arg, auto& orig) {
                      if (auto x = inargs_set | unset | fuzzy_equals(orig);
                          bool(x)) {
-                       auto ptr = x.begin();
-                       ptr->first = arg;
+                       auto ptr    = x.begin();
+                       ptr->first  = arg;
                        ptr->second = true;
                      }
                      return std::pair<std::string, bool>{arg, true};
                    });
 
     auto unset_filt = inargs_set | unset;
-    std::transform(a.begin() + std::min(nargout, a.size()),
-                   a.end(),
-                   unset_filt.begin(),
-                   [](auto& arg) {
-                     return std::pair<std::string, bool>{arg, true};
-                   });
+    std::transform(
+        a.begin() + std::min(nargout, a.size()),
+        a.end(),
+        unset_filt.begin(),
+        [](auto& arg) { return std::pair<std::string, bool>{arg, true}; });
   }
 
   // Named arguments
@@ -129,29 +128,29 @@ Method::Method(const std::string& n,
 
       for (auto& arg : outargs_set | unset) {
         if (arg.first == key) {
-          arg.first = val;
+          arg.first  = val;
           arg.second = true;
-          any = true;
+          any        = true;
         }
 
         if (is_gname(arg.first, key)) {
-          arg.first = val;
+          arg.first  = val;
           arg.second = true;
-          any = true;
+          any        = true;
         }
       }
 
       for (auto& arg : inargs_set | unset) {
         if (arg.first == key) {
-          arg.first = val;
+          arg.first  = val;
           arg.second = true;
-          any = true;
+          any        = true;
         }
 
         if (is_gname(arg.first, key)) {
-          arg.first = val;
+          arg.first  = val;
           arg.second = true;
-          any = true;
+          any        = true;
         }
       }
 
@@ -200,8 +199,8 @@ Method::Method(std::string n, const Wsv& wsv, bool overwrite)
 
   if (wsv.holds<CallbackOperator>()) {
     const auto& cb = wsv.get_unsafe<CallbackOperator>();
-    outargs = cb.outputs;
-    inargs = cb.inputs;
+    outargs        = cb.outputs;
+    inargs         = cb.inputs;
   } else {
     outargs = {name};
   }

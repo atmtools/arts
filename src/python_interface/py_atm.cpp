@@ -35,6 +35,10 @@ void py_atm(py::module_ &m) try {
       .def_readwrite("lat_low", &Atm::Data::lat_low)
       .def_readwrite("lon_upp", &Atm::Data::lon_upp)
       .def_readwrite("lon_low", &Atm::Data::lon_low)
+      .def_property_readonly("data_type", &Atm::Data::data_type)
+      .def("__call__", [](const Atm::Data& d, Numeric alt, Numeric lat, Numeric lon){
+        return d.at(alt, lat, lon);
+      })
       .def(py::pickle(
           [](const Atm::Data &t) {
             return py::make_tuple(t.data,

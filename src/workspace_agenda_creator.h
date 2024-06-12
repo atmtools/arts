@@ -14,7 +14,8 @@ struct SetWsv {
   SetWsv(const char* const n) : SetWsv(std::string{n}) {}
   SetWsv(std::string n, WorkspaceGroup auto wsv_value)
       : name(std::move(n)), wsv(std::move(wsv_value)) {}
-  SetWsv(std::string n, const char* wsv_name) : name(std::move(n)), other(wsv_name) {}
+  SetWsv(std::string n, const char* wsv_name)
+      : name(std::move(n)), other(wsv_name) {}
 };
 
 class AgendaCreator {
@@ -22,7 +23,7 @@ class AgendaCreator {
 
  public:
   AgendaCreator(std::string name) : a(std::move(name)) {}
-  AgendaCreator(AgendaCreator&&) = delete;
+  AgendaCreator(AgendaCreator&&)      = delete;
   AgendaCreator(const AgendaCreator&) = delete;
 
   AgendaCreator& set(const std::string& name, WorkspaceGroup auto v);
