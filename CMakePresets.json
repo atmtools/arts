@@ -39,6 +39,9 @@
         "CMAKE_C_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_Fortran_FLAGS": "-isystem $env{CONDA_PREFIX}/include"
+      },
+      "environment": {
+        "LDFLAGS": "-L$env{CONDA_PREFIX}/lib -Wl,-rpath,$env{CONDA_PREFIX}/lib"
       }
     },
     {
@@ -56,6 +59,37 @@
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
         "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
+      }
+    },
+    {
+      "name": "debug-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "debug-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "nofortran-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_FORTRAN": "0"
+      }
+    },
+    {
+      "name": "lgpl-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_ARTS_LGPL": "1",
+        "NO_FASTEM": "1",
+        "NO_RT4": "1",
+        "NO_TMATRIX": "1"
       }
     },
     {

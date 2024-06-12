@@ -10,264 +10,149 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [
-          ubuntu-doc,
-          ubuntu-clang-15-debug,
-          ubuntu-gcc-11,
-          ubuntu-gcc-12-debug,
-          ubuntu-clang-15-nofortran,
-          ubuntu-clang-16-nofortran,
-          macos-gcc-13,
-          macos-clang-16,
-        ]
-
         include:
-          - name: ubuntu-doc
+          - name: linux-docs
             os: ubuntu-22.04
-            compiler: clang
-            version: "15"
-            doc: "yes"
-            arts: "no"
-            fortran: "no"
+            preset: default-gcc-conda
             check: "no"
-            libcxx: "yes"
-            buildtype: "Release"
+            doc: "yes"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: ubuntu-clang-15-debug
+          - name: linux-default-gcc
             os: ubuntu-22.04
-            compiler: clang
-            version: "15"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "11"
+            preset: default-gcc-conda
             check: "yes"
-            libcxx: "yes"
-            buildtype: "RelWithDebInfo"
+            doc: "no"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: ubuntu-gcc-11
+          - name: linux-debug-gcc
             os: ubuntu-22.04
-            compiler: gcc
-            version: "11"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "11"
+            preset: debug-gcc-conda
             check: "yes"
-            libcxx: "no"
-            buildtype: "Release"
+            doc: "no"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: ubuntu-gcc-12-debug
+          - name: linux-nofortran-gcc
             os: ubuntu-22.04
-            compiler: gcc
-            version: "12"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "12"
+            preset: nofortran-gcc-conda
             check: "yes"
-            libcxx: "no"
-            buildtype: "RelWithDebInfo"
+            doc: "no"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: ubuntu-clang-15-nofortran
+          - name: linux-lgpl-gcc
             os: ubuntu-22.04
-            compiler: clang
-            version: "15"
-            doc: "no"
-            arts: "yes"
-            fortran: "no"
+            preset: lgpl-gcc-conda
             check: "yes"
-            libcxx: "yes"
-            buildtype: "Release"
+            doc: "no"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: ubuntu-clang-16-nofortran
-            os: ubuntu-22.04
-            compiler: clang
-            version: "16"
-            doc: "no"
-            arts: "yes"
-            fortran: "no"
+          - name: mac-default-clang
+            os: macos-13
+            preset: default-clang-conda
             check: "yes"
-            libcxx: "yes"
-            buildtype: "Release"
+            doc: "no"
+            devenv: "environment-dev-mac.yml"
+            jbuild: 4
+            jcheck: 2
 
-          - name: macos-gcc-13
-            os: macos-12
-            compiler: gcc
-            version: "13"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "13"
+          - name: macm1-default-clang
+            os: macos-14
+            preset: default-clang-conda
             check: "yes"
-            libcxx: "no"
-            buildtype: "Release"
+            doc: "no"
+            devenv: "environment-dev-mac.yml"
+            jbuild: 2
+            jcheck: 2
 
-          - name: macos-clang-16
-            os: macos-12
-            compiler: clang
-            version: "16"
-            doc: "no"
-            arts: "yes"
-            fortran: "no"
+          - name: macm1-debug-clang
+            os: macos-14
+            preset: debug-clang-conda
             check: "yes"
-            libcxx: "no"
-            buildtype: "Release"
+            doc: "no"
+            devenv: "environment-dev-mac.yml"
+            jbuild: 2
+            jcheck: 2
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
-
-      - uses: actions/setup-python@v4
-        if: runner.os == 'macOS'
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.10'
+          miniforge-version: latest
+          channels: conda-forge
+          channel-priority: true
+          activate-environment: arts
+          environment-file: ${{ matrix.devenv }}
+      - shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+          conda config --show-sources
+          conda config --show
+          printenv | sort
 
       - name: Setup (Linux)
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.doc == 'yes'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" -ge "13" ]; then
-             sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main"
-          fi
+          sudo apt-get install -y texlive texlive-latex-extra doxygen
 
-          sudo apt-get update
-
-          if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            sudo apt-get install -y g++-${{ matrix.version }}
-            echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
-            echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
-          fi
-
-          if [ "${{ matrix.fortran }}" = "yes" ]; then
-            sudo apt-get install -y gfortran-${{ matrix.fortran-version }}
-            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
-            echo "USEFORTRAN=1" >> $GITHUB_ENV
-          else
-            echo "USEFORTRAN=0" >> $GITHUB_ENV
-          fi
-
-          if [ "${{ matrix.compiler }}" = "clang" ]; then
-            sudo apt-get install -y libunwind-dev clang++-${{ matrix.version }}
-            echo "CC=clang-${{ matrix.version }}" >> $GITHUB_ENV
-            echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
-          fi
-
-          if [ "${{ matrix.libcxx }}" = "yes" ]; then
-            sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
-          fi
-          sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libglew-dev libglfw3-dev libnetcdf-dev libmicrohttpd-dev
-          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
-
-          if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive texlive-latex-extra doxygen
-            sudo pip3 install sphinx sphinx_rtd_theme sphinx-favicon
-          fi
-
-
-      - name: Setup (macOS)
-        if: runner.os == 'macOS'
+      - name: Configure
+        shell: bash -l {0}
         run: |
-          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
-          brew upgrade python
-          brew install libmicrohttpd
-          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
-          if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            brew install gcc@${{ matrix.version }}
-            echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
-            echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
-          elif [ "${{ matrix.compiler }}" = "clang" ]; then
-            brew install llvm@${{ matrix.version }}
-            echo "CC=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang" >> $GITHUB_ENV
-            echo "CXX=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang++" >> $GITHUB_ENV
-            if [ "${{ matrix.fortran }}" = "yes" ]; then
-              brew install gcc@${{ matrix.fortran-version }}
-            fi
-          else
-            exit 1
-          fi
+          cmake --preset=${{ matrix.preset }}
 
-          if [ "${{ matrix.fortran }}" = "yes" ]; then
-            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
-            echo "USEFORTRAN=1" >> $GITHUB_ENV
-          else
-            echo "USEFORTRAN=0" >> $GITHUB_ENV
-          fi
-
-          brew install glew glfw netcdf
-
-      - name: Configure (Linux / macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+      - name: Build PyARTS
+        shell: bash -l {0}
         run: |
-          mkdir cmake-build
-          cd cmake-build
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_GUI=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN -DENABLE_NETCDF=1 -DENABLE_DOCSERVER=1 -DENABLE_ARTS_LGPL=0 ${{ matrix.cmakeflags }} ..
+          cmake --build build -j${{ matrix.jbuild }} --target pyarts
 
-      - name: Build (Linux)
-        if: runner.os == 'Linux' && matrix.arts == 'yes'
+      - name: Docs
+        if: matrix.doc == 'yes'
+        shell: bash -l {0}
         run: |
-          cd cmake-build
-          if [[ ${{ matrix.buildtype }} == "Release" ]]; then
-            make -j2 -C src
-          else
-            make -j2 arts
-            make -j1 pyarts
-            make -j2 -C src
-          fi
+          cmake --build build -j${{ matrix.jbuild }} --target apidoc pyarts_docs
+          tar -zcf doxygen.tar.gz build/doc/doxygen/html
+          tar -zcf sphinx.tar.gz build/python/doc/build
 
-      - name: Build (macOS)
-        if: runner.os == 'macOS' && matrix.arts == 'yes'
-        run: |
-          cd cmake-build
-          make -j3 -C src
-
-      - name: Docs (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
-        run: |
-          cd cmake-build
-          make -j2 -C doc
-          make -j2 pyarts_docs
-          tar -zcf doxygen.tar.gz doc/doxygen/html
-          tar -zcf sphinx.tar.gz python/doc/build
-
-      - name: Check (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make check
-
-      - name: Python Wheel (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make pyarts-package
-
-      - name: Check Controlfile Conversion (Linux / macOS)
+      - name: Check
         if: matrix.check == 'yes'
+        shell: bash -l {0}
         run: |
-          cd cmake-build
-          make check-conversion
+          cmake --build build -j${{ matrix.jcheck }} --target check
+
+      - name: Python Wheel
+        if: matrix.check == 'yes'
+        shell: bash -l {0}
+        run: |
+          cmake --build build --target pyarts-package
+
+      - name: Build SRC
+        if: matrix.check == 'yes'
+        shell: bash -l {0}
+        run: |
+          make -C build/src -j${{ matrix.jbuild }}
 
       - uses: actions/upload-artifact@v4
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
-        with:
-          name: docs-uguide
-          path: |
-            cmake-build/doc/uguide/arts_user.pdf
-            cmake-build/doc/uguide/arts_theory.pdf
-            cmake-build/doc/uguide/arts_developer.pdf
-
-      - uses: actions/upload-artifact@v4
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+        if: matrix.doc == 'yes'
         with:
           name: docs-doxygen
           path: |
-            cmake-build/doxygen.tar.gz
+            doxygen.tar.gz
 
       - uses: actions/upload-artifact@v4
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+        if: matrix.doc == 'yes'
         with:
           name: docs-sphinx
           path: |
-            cmake-build/sphinx.tar.gz
+            sphinx.tar.gz
