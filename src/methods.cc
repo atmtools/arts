@@ -24541,6 +24541,21 @@ Options are:
                       USES_TEMPLATES(false),
                       PASSWORKSPACE(true)));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("zeeman_magnetic_fieldFromPath"),
+      DESCRIPTION(R"--(Get the magnetic field components used by the Zeeman calculations.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("zeeman_magnetic_field"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("The magnetic field components for Zeeman effect [np, 3] - last axis is H, theta, eta"),
+      IN("ppath", "ppvar_mag"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
   md_data_raw.push_back(
       create_mdrecord(NAME("ybatch_calc_agendaSet"),
                       DESCRIPTION(R"--(Sets *ybatch_calc_agenda* to a default value

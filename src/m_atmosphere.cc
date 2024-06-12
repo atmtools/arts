@@ -21,12 +21,12 @@
 #include <cfloat>
 #include <cmath>
 #include <vector>
-#include "arts_constants.h"
-#include "arts_conversions.h"
-#include "species_tags.h"
+
 #include "absorption.h"
 #include "agenda_class.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -34,26 +34,26 @@
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "igrf13.h"
-#include "interpolation.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "linescaling.h"
 #include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "species_tags.h"
 #include "xml_io.h"
 
-using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD3_LAT_GRID;
 using GriddedFieldGrids::GFIELD3_LON_GRID;
+using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
-using GriddedFieldGrids::GFIELD4_P_GRID;
 using GriddedFieldGrids::GFIELD4_LAT_GRID;
 using GriddedFieldGrids::GFIELD4_LON_GRID;
+using GriddedFieldGrids::GFIELD4_P_GRID;
 
-
-inline constexpr Numeric GAS_CONSTANT=Constant::ideal_gas_constant;
+inline constexpr Numeric GAS_CONSTANT = Constant::ideal_gas_constant;
 
 //! Data value accuracy requirement for values at 0 and 360 deg if longitudes are cyclic
 /*!
@@ -150,7 +150,7 @@ void AtmFieldPRegridHelper(Index& ing_min,
   // Calculate grid positions:
   if (nelem_in_range > 0) {
     lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
-      p_grid_out, p_grid_in, interp_order, 0.5);
+        p_grid_out, p_grid_in, interp_order, 0.5);
     itw = interpweights(lag_p);
   }
 }
@@ -166,7 +166,8 @@ void AtmFieldPRegrid(  // WS Generic Output:
     const Verbosity& verbosity) {
   // check that p_grid_old is the p_grid associated with atmtensor_in_orig. we can
   // only check for consistent size with p_grid_old.
-  ARTS_USER_ERROR_IF (atmtensor_in_orig.npages() != p_grid_old.nelem(),
+  ARTS_USER_ERROR_IF(
+      atmtensor_in_orig.npages() != p_grid_old.nelem(),
       "p_grid_old is supposed to be the p_grid associated with the "
       "atmospheric field.\n"
       "However, it is not as their sizes are inconsistent.\n")
@@ -201,13 +202,14 @@ void AtmFieldPRegrid(  // WS Generic Output:
                         verbosity);
 
   // Interpolate:
-  ARTS_USER_ERROR_IF ((ing_max - ing_min < 0) ||
-      (ing_max - ing_min + 1 != p_grid_new.nelem()),
+  ARTS_USER_ERROR_IF(
+      (ing_max - ing_min < 0) || (ing_max - ing_min + 1 != p_grid_new.nelem()),
       "New grid seems not to be sufficiently covered by old grid.\n")
 
   for (Index i = 0; i < atmtensor_in.nrows(); i++)
     for (Index j = 0; j < atmtensor_in.ncols(); j++)
-      reinterp(atmtensor_out(joker, i, j), atmtensor_in(joker, i, j), itw, lag_p);
+      reinterp(
+          atmtensor_out(joker, i, j), atmtensor_in(joker, i, j), itw, lag_p);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -235,7 +237,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
                        p_grid_new.nelem(),
                        atmtensor_in.nrows(),
                        atmtensor_in.ncols());
-  
+
   ArrayOfLagrangeLogInterpolation lag_p;
   Matrix itw;  // nb. it is invalid to use this as it stands here...
 
@@ -251,9 +253,9 @@ void AtmFieldPRegrid(  // WS Generic Output:
                         verbosity);
 
   // Interpolate:
-  ARTS_USER_ERROR_IF ((ing_max - ing_min < 0) ||
-                      (ing_max - ing_min + 1 != p_grid_new.nelem()),
-    "New grid seems not to be sufficiently covered by old grid.\n")
+  ARTS_USER_ERROR_IF(
+      (ing_max - ing_min < 0) || (ing_max - ing_min + 1 != p_grid_new.nelem()),
+      "New grid seems not to be sufficiently covered by old grid.\n")
 
   for (Index b = 0; b < atmtensor_in.nbooks(); b++)
     for (Index i = 0; i < atmtensor_in.nrows(); i++)
@@ -405,8 +407,9 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
   chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
   chk_griddedfield_gridname(gfraw_in, 1, "Longitude");
 
-  ARTS_USER_ERROR_IF (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
-        "Can't expand data because number of Latitudes and Longitudes is greater than 1");
+  ARTS_USER_ERROR_IF(
+      gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
+      "Can't expand data because number of Latitudes and Longitudes is greater than 1");
 
   gfraw_out.set_grid_name(0, "Latitude");
   gfraw_out.set_grid_name(1, "Longitude");
@@ -461,8 +464,9 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
   chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
   chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
 
-  ARTS_USER_ERROR_IF (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
-        "Can't expand data because number of Latitudes and Longitudes is greater than 1");
+  ARTS_USER_ERROR_IF(
+      gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
+      "Can't expand data because number of Latitudes and Longitudes is greater than 1");
 
   gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
@@ -522,8 +526,9 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
   chk_griddedfield_gridname(gfraw_in, 2, "Latitude");
   chk_griddedfield_gridname(gfraw_in, 3, "Longitude");
 
-  ARTS_USER_ERROR_IF (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
-        "Can't expand data because number of Latitudes and Longitudes is greater than 1");
+  ARTS_USER_ERROR_IF(
+      gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1,
+      "Can't expand data because number of Latitudes and Longitudes is greater than 1");
 
   gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
@@ -652,7 +657,8 @@ void GriddedFieldPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid[Range(ing_min, nelem_in_range)], in_p_grid, interp_order, 0.5);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        p_grid[Range(ing_min, nelem_in_range)], in_p_grid, interp_order, 0.5);
     itw = interpweights(lag_p);
   }
 }
@@ -687,7 +693,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
   gfraw_out.set_grid(2, gfraw_in.get_numeric_grid(2));
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
-  
+
   ArrayOfLagrangeLogInterpolation lag_p;
   Matrix itw;  // nb. it is invalid to use this as it stands here...
 
@@ -724,8 +730,10 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   } else
     for (Index i = 0; i < gfraw_in.data.nrows(); i++)
       for (Index j = 0; j < gfraw_in.data.ncols(); j++)
-        reinterp(
-          gfraw_out.data(joker, i, j), gfraw_in.data(joker, i, j), itw, lag_p);
+        reinterp(gfraw_out.data(joker, i, j),
+                 gfraw_in.data(joker, i, j),
+                 itw,
+                 lag_p);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -762,7 +770,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
   gfraw_out.set_grid(3, gfraw_in.get_numeric_grid(3));
   gfraw_out.set_grid_name(3, gfraw_in.get_grid_name(3));
-  
+
   ArrayOfLagrangeLogInterpolation lag_p;
   Matrix itw;  // nb. it is invalid to use this as it stands here...
 
@@ -846,29 +854,30 @@ void GriddedFieldPRegrid(  // WS Generic Output:
  \param[in]     interp_order    Interpolation order
  \param[in]     verbosity       Verbosity levels
  */
-void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
-                                    ArrayOfLagrangeCyclic0to360Interpolation& lag_lon,
-                                    Tensor4& itw,
-                                    GriddedField& gfraw_out,
-                                    const GriddedField& gfraw_in,
-                                    const Index lat_grid_index,
-                                    const Index lon_grid_index,
-                                    ConstVectorView lat_true,
-                                    ConstVectorView lon_true,
-                                    const Index& interp_order,
-                                    const Verbosity& verbosity) {
+void GriddedFieldLatLonRegridHelper(
+    ArrayOfLagrangeInterpolation& lag_lat,
+    ArrayOfLagrangeCyclic0to360Interpolation& lag_lon,
+    Tensor4& itw,
+    GriddedField& gfraw_out,
+    const GriddedField& gfraw_in,
+    const Index lat_grid_index,
+    const Index lon_grid_index,
+    ConstVectorView lat_true,
+    ConstVectorView lon_true,
+    const Index& interp_order,
+    const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  ARTS_USER_ERROR_IF (!lat_true.nelem(),
-                      "The new latitude grid is not allowed to be empty.");
-  ARTS_USER_ERROR_IF (!lon_true.nelem(),
-                      "The new longitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lat_true.nelem(),
+                     "The new latitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lon_true.nelem(),
+                     "The new longitude grid is not allowed to be empty.");
 
   chk_griddedfield_gridname(gfraw_in, lat_grid_index, "Latitude");
   chk_griddedfield_gridname(gfraw_in, lon_grid_index, "Longitude");
-  ARTS_USER_ERROR_IF (gfraw_in.get_grid_size(lat_grid_index) == 1 ||
-      gfraw_in.get_grid_size(lon_grid_index) == 1,
-                      "Raw data has to be true 3D data (nlat>1 and nlon>1).");
+  ARTS_USER_ERROR_IF(gfraw_in.get_grid_size(lat_grid_index) == 1 ||
+                         gfraw_in.get_grid_size(lon_grid_index) == 1,
+                     "Raw data has to be true 3D data (nlat>1 and nlon>1).");
 
   out2 << "  Interpolation order: " << interp_order << "\n";
 
@@ -887,8 +896,11 @@ void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
       "Raw field to lat_grid, 3D case", in_lat_grid, lat_true, interp_order);
 
   // Calculate grid positions:
-  lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_true, in_lat_grid, interp_order);
-  lag_lon = my_interp::lagrange_interpolation_list<LagrangeCyclic0to360Interpolation>(lon_true, in_lon_grid, interp_order, 0.5);
+  lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+      lat_true, in_lat_grid, interp_order);
+  lag_lon =
+      my_interp::lagrange_interpolation_list<LagrangeCyclic0to360Interpolation>(
+          lon_true, in_lon_grid, interp_order, 0.5);
   itw = interpweights(lag_lat, lag_lon);
 }
 
@@ -902,10 +914,10 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const GriddedField2& gfraw_in_orig,
     const Index& interp_order,
     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (!lat_true.nelem(),
-                      "The new latitude grid is not allowed to be empty.");
-  ARTS_USER_ERROR_IF (!lon_true.nelem(),
-                      "The new longitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lat_true.nelem(),
+                     "The new latitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lon_true.nelem(),
+                     "The new longitude grid is not allowed to be empty.");
 
   const GriddedField2* gfraw_in_pnt;
   GriddedField2 gfraw_in_copy;
@@ -921,8 +933,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   const Index lat_grid_index = 0;
   const Index lon_grid_index = 1;
 
-  ARTS_USER_ERROR_IF (gfraw_in.get_grid_size(lat_grid_index) < 2 ||
-      gfraw_in.get_grid_size(lon_grid_index) < 2,
+  ARTS_USER_ERROR_IF(
+      gfraw_in.get_grid_size(lat_grid_index) < 2 ||
+          gfraw_in.get_grid_size(lon_grid_index) < 2,
       "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
       "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n")
 
@@ -934,28 +947,32 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   Tensor4 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
-  const Vector& in_lat_grid =
-      gfraw_in.get_numeric_grid(lat_grid_index);
-  const Vector& in_lon_grid =
-      gfraw_in.get_numeric_grid(lon_grid_index);
+  const Vector& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+  const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
     for (Index lat = 0; lat < in_lat_grid.nelem(); lat++) {
-      ARTS_USER_ERROR_IF (!is_same_within_epsilon(gfraw_in.data(lat, 0),
+      ARTS_USER_ERROR_IF(
+          !is_same_within_epsilon(gfraw_in.data(lat, 0),
                                   gfraw_in.data(lat, in_lon_grid.nelem() - 1),
                                   EPSILON_LON_CYCLIC),
-           "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
-          , "Mismatch at latitude index    : ", lat, " ("
-          , in_lat_grid[lat], " degrees)\n"
-          , "Value at 0 degrees longitude  : ", gfraw_in.data(lat, 0)
-          , "\n"
-          , "Value at 360 degrees longitude: "
-          , gfraw_in.data(lat, in_lon_grid.nelem() - 1), "\n"
-          , "Difference                    : "
-          , gfraw_in.data(lat, in_lon_grid.nelem() - 1) -
-                  gfraw_in.data(lat, 0)
-          , "\n"
-          , "Allowed difference            : ", EPSILON_LON_CYCLIC)
+          "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n",
+          "Mismatch at latitude index    : ",
+          lat,
+          " (",
+          in_lat_grid[lat],
+          " degrees)\n",
+          "Value at 0 degrees longitude  : ",
+          gfraw_in.data(lat, 0),
+          "\n",
+          "Value at 360 degrees longitude: ",
+          gfraw_in.data(lat, in_lon_grid.nelem() - 1),
+          "\n",
+          "Difference                    : ",
+          gfraw_in.data(lat, in_lon_grid.nelem() - 1) - gfraw_in.data(lat, 0),
+          "\n",
+          "Allowed difference            : ",
+          EPSILON_LON_CYCLIC)
     }
   }
 
@@ -985,10 +1002,10 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const GriddedField3& gfraw_in_orig,
     const Index& interp_order,
     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (!lat_true.nelem(),
-    "The new latitude grid is not allowed to be empty.");
-  ARTS_USER_ERROR_IF (!lon_true.nelem(),
-    "The new longitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lat_true.nelem(),
+                     "The new latitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lon_true.nelem(),
+                     "The new longitude grid is not allowed to be empty.");
 
   const GriddedField3* gfraw_in_pnt;
   GriddedField3 gfraw_in_copy;
@@ -1004,8 +1021,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   const Index lat_grid_index = 1;
   const Index lon_grid_index = 2;
 
-  ARTS_USER_ERROR_IF (gfraw_in.get_grid_size(lat_grid_index) < 2 ||
-      gfraw_in.get_grid_size(lon_grid_index) < 2,
+  ARTS_USER_ERROR_IF(
+      gfraw_in.get_grid_size(lat_grid_index) < 2 ||
+          gfraw_in.get_grid_size(lon_grid_index) < 2,
       "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
       "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n")
 
@@ -1013,39 +1031,47 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
   gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
-  
+
   ArrayOfLagrangeInterpolation lag_lat;
   ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
   Tensor4 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
-  const Vector& in_lat_grid =
-      gfraw_in.get_numeric_grid(lat_grid_index);
-  const Vector& in_lon_grid =
-      gfraw_in.get_numeric_grid(lon_grid_index);
+  const Vector& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+  const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
     for (Index g0 = 0; g0 < in_grid0.nelem(); g0++)
       for (Index lat = 0; lat < in_lat_grid.nelem(); lat++) {
-        ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+        ARTS_USER_ERROR_IF(
+            !is_same_within_epsilon(
                 gfraw_in.data(g0, lat, 0),
                 gfraw_in.data(g0, lat, in_lon_grid.nelem() - 1),
                 EPSILON_LON_CYCLIC),
-             "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
-             , "Mismatch at 1st grid index    : " , g0 , " (" , in_grid0[g0]
-             , ")\n"
-             , "         at latitude index    : " , lat , " ("
-             , in_lat_grid[lat] , " degrees)\n"
-             , "Value at 0 degrees longitude  : " , gfraw_in.data(g0, lat, 0)
-             , "\n"
-             , "Value at 360 degrees longitude: "
-             , gfraw_in.data(g0, lat, in_lon_grid.nelem() - 1) , "\n"
-             , "Difference                    : "
-             , gfraw_in.data(g0, lat, in_lon_grid.nelem() - 1) -
-                    gfraw_in.data(g0, lat, 0)
-             , "\n"
-             , "Allowed difference            : " , EPSILON_LON_CYCLIC)
+            "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n",
+            "Mismatch at 1st grid index    : ",
+            g0,
+            " (",
+            in_grid0[g0],
+            ")\n",
+            "         at latitude index    : ",
+            lat,
+            " (",
+            in_lat_grid[lat],
+            " degrees)\n",
+            "Value at 0 degrees longitude  : ",
+            gfraw_in.data(g0, lat, 0),
+            "\n",
+            "Value at 360 degrees longitude: ",
+            gfraw_in.data(g0, lat, in_lon_grid.nelem() - 1),
+            "\n",
+            "Difference                    : ",
+            gfraw_in.data(g0, lat, in_lon_grid.nelem() - 1) -
+                gfraw_in.data(g0, lat, 0),
+            "\n",
+            "Allowed difference            : ",
+            EPSILON_LON_CYCLIC)
       }
   }
 
@@ -1080,10 +1106,10 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const GriddedField4& gfraw_in_orig,
     const Index& interp_order,
     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (!lat_true.nelem(),
-                      "The new latitude grid is not allowed to be empty.");
-  ARTS_USER_ERROR_IF (!lon_true.nelem(),
-                      "The new longitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lat_true.nelem(),
+                     "The new latitude grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF(!lon_true.nelem(),
+                     "The new longitude grid is not allowed to be empty.");
 
   const GriddedField4* gfraw_in_pnt;
   GriddedField4 gfraw_in_copy;
@@ -1099,8 +1125,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   const Index lat_grid_index = 2;
   const Index lon_grid_index = 3;
 
-  ARTS_USER_ERROR_IF (gfraw_in.get_grid_size(lat_grid_index) < 2 ||
-                      gfraw_in.get_grid_size(lon_grid_index) < 2,
+  ARTS_USER_ERROR_IF(
+      gfraw_in.get_grid_size(lat_grid_index) < 2 ||
+          gfraw_in.get_grid_size(lon_grid_index) < 2,
       "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
       "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n")
 
@@ -1113,7 +1140,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
   gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
   gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
-  
+
   ArrayOfLagrangeInterpolation lag_lat;
   ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
   Tensor4 itw;
@@ -1133,35 +1160,46 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
   const Vector& in_grid1 = gfraw_in.get_numeric_grid(1);
-  const Vector& in_lat_grid =
-      gfraw_in.get_numeric_grid(lat_grid_index);
-  const Vector& in_lon_grid =
-      gfraw_in.get_numeric_grid(lon_grid_index);
+  const Vector& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+  const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
     for (Index g0 = 0; g0 < in_grid0.nelem(); g0++)
       for (Index g1 = 0; g1 < in_grid1.nelem(); g1++)
         for (Index lat = 0; lat < in_lat_grid.nelem(); lat++) {
-          ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+          ARTS_USER_ERROR_IF(
+              !is_same_within_epsilon(
                   gfraw_in.data(g0, g1, lat, 0),
                   gfraw_in.data(g0, g1, lat, in_lon_grid.nelem() - 1),
                   EPSILON_LON_CYCLIC),
               "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
-              "Mismatch at 1st grid index    : ", g0, " ("
-              , in_grid0[g0], ")\n"
-              , "         at 2nd grid index    : ", g1, " ("
-              , in_grid1[g1], ")\n"
-              , "         at latitude index    : ", lat, " ("
-              , in_lat_grid[lat], " degrees)\n"
-              , "Value at 0 degrees longitude  : "
-              , gfraw_in.data(g0, g1, lat, 0), "\n"
-              , "Value at 360 degrees longitude: "
-              , gfraw_in.data(g0, g1, lat, in_lon_grid.nelem() - 1), "\n"
-              , "Difference                    : "
-              , gfraw_in.data(g0, g1, lat, in_lon_grid.nelem() - 1) -
-                      gfraw_in.data(g0, g1, lat, 0)
-              , "\n"
-              , "Allowed difference            : ", EPSILON_LON_CYCLIC)
+              "Mismatch at 1st grid index    : ",
+              g0,
+              " (",
+              in_grid0[g0],
+              ")\n",
+              "         at 2nd grid index    : ",
+              g1,
+              " (",
+              in_grid1[g1],
+              ")\n",
+              "         at latitude index    : ",
+              lat,
+              " (",
+              in_lat_grid[lat],
+              " degrees)\n",
+              "Value at 0 degrees longitude  : ",
+              gfraw_in.data(g0, g1, lat, 0),
+              "\n",
+              "Value at 360 degrees longitude: ",
+              gfraw_in.data(g0, g1, lat, in_lon_grid.nelem() - 1),
+              "\n",
+              "Difference                    : ",
+              gfraw_in.data(g0, g1, lat, in_lon_grid.nelem() - 1) -
+                  gfraw_in.data(g0, g1, lat, 0),
+              "\n",
+              "Allowed difference            : ",
+              EPSILON_LON_CYCLIC)
         }
   }
 
@@ -1256,7 +1294,8 @@ void GriddedFieldZToPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    lag_p = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_grid[Range(ing_min, nelem_in_range)], in_z_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        z_grid[Range(ing_min, nelem_in_range)], in_z_grid, interp_order);
     itw = interpweights(lag_p);
   }
 }
@@ -1275,10 +1314,11 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
     const Index& zeropadding,
     const Verbosity& verbosity) {
   // z_field must be of the same size as its grids
-  ARTS_USER_ERROR_IF (!((z_field.npages() == p_grid.nelem() &&
+  ARTS_USER_ERROR_IF(
+      !((z_field.npages() == p_grid.nelem() &&
          z_field.nrows() == lat_grid.nelem()) &&
         z_field.ncols() == lon_grid.nelem()),
-        "*z_field* must be of the same size as *p_grid*, *lat_grid*, and *lon_grid* in *GriddedFieldZToPRegrid*.");
+      "*z_field* must be of the same size as *p_grid*, *lat_grid*, and *lon_grid* in *GriddedFieldZToPRegrid*.");
 
   // Must name the dimension "Altitude" to ensure user is aware of what they are doing.
   chk_griddedfield_gridname(gfraw_in_orig, 0, "Altitude");
@@ -1287,14 +1327,17 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
   const Vector& lat_in = gfraw_in_orig.get_numeric_grid(1);
   const Vector& lon_in = gfraw_in_orig.get_numeric_grid(2);
 
-  ARTS_USER_ERROR_IF (lat_grid.nelem() != lat_in.nelem() || lon_grid.nelem() != lon_in.nelem(),
-        "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be on the same grid as *z_field*.");
+  ARTS_USER_ERROR_IF(
+      lat_grid.nelem() != lat_in.nelem() || lon_grid.nelem() != lon_in.nelem(),
+      "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be on the same grid as *z_field*.");
   for (Index ii = 0; ii < lat_grid.nelem(); ii++)
-    ARTS_USER_ERROR_IF (lat_grid[ii] != lat_in[ii],
-          "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
+    ARTS_USER_ERROR_IF(
+        lat_grid[ii] != lat_in[ii],
+        "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
   for (Index ii = 0; ii < lon_grid.nelem(); ii++)
-    ARTS_USER_ERROR_IF (lon_grid[ii] != lon_in[ii],
-          "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
+    ARTS_USER_ERROR_IF(
+        lon_grid[ii] != lon_in[ii],
+        "Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
 
   // Pointer in case output is input variable (same memory allocated)
   const GriddedField3* gfraw_in_pnt;
@@ -1366,8 +1409,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
     // Control Parameters:
     const ArrayOfString& field_names,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (1 != atmosphere_dim,
-    "Atmospheric dimension must be 1.")
+  ARTS_USER_ERROR_IF(1 != atmosphere_dim, "Atmospheric dimension must be 1.")
 
   const Index np = im.nrows();      // Number of pressure levels.
   const Index nf = im.ncols() - 1;  // Total number of fields.
@@ -1375,10 +1417,10 @@ void atm_fields_compactFromMatrix(  // WS Output:
       // All fields called "ignore" will be ignored.
   String fn_upper;  // Temporary variable to hold upper case field_names.
 
-  ARTS_USER_ERROR_IF (field_names.nelem() != nf,
-    "Cannot extract fields from Matrix.\n"
-    "*field_names* must have one element less than there are\n"
-    "matrix columns.")
+  ARTS_USER_ERROR_IF(field_names.nelem() != nf,
+                     "Cannot extract fields from Matrix.\n"
+                     "*field_names* must have one element less than there are\n"
+                     "matrix columns.")
 
   // Remove additional fields from the field_names. All fields that
   // are flagged by 'ignore' in the field names, small or large letters,
@@ -1444,9 +1486,11 @@ void atm_fields_compactAddConstant(  // WS Output:
           species_found = true;
         }
       }
-      ARTS_USER_ERROR_IF (!species_found,
-        "Condensible species \"", condensibles[c], "\" not found "
-        "in input data.")
+      ARTS_USER_ERROR_IF(!species_found,
+                         "Condensible species \"",
+                         condensibles[c],
+                         "\" not found "
+                         "in input data.")
     }
     condensible_sum *= value;
     // Add the constant value:
@@ -1631,7 +1675,7 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
   // Parallelise this for-loop (some interpolation is being done, so it may
   // be beneficial)
 #pragma omp parallel for if (!arts_omp_in_parallel() && \
-                             nelem >= arts_omp_get_max_threads())
+                                 nelem >= arts_omp_get_max_threads())
   for (Index i = 0; i < nelem; i++) {
     try {
       atm_fields_compactAddSpecies(
@@ -1645,7 +1689,7 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
     }
   }
 
-  ARTS_USER_ERROR_IF (failed, fail_msg);
+  ARTS_USER_ERROR_IF(failed, fail_msg);
 }
 
 // Workspace method, doxygen header is auto-generated
@@ -1673,9 +1717,9 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     const Verbosity& verbosity) {
   const Index amnelem = am.nelem();
 
-  ARTS_USER_ERROR_IF (amnelem == 0,
-      "No elements in atmospheric scenario batch.\n"
-      "Check, whether any batch atmosphere file has been read!")
+  ARTS_USER_ERROR_IF(amnelem == 0,
+                     "No elements in atmospheric scenario batch.\n"
+                     "Check, whether any batch atmosphere file has been read!")
 
   // We use the existing WSMs atm_fields_compactFromMatrix and
   // atm_fields_compactAddConstant to do most of the work.
@@ -1688,7 +1732,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
 
   // Loop the batch cases:
 #pragma omp parallel for if (!arts_omp_in_parallel() && \
-                             amnelem >= arts_omp_get_max_threads())
+                                 amnelem >= arts_omp_get_max_threads())
   for (Index i = 0; i < amnelem; ++i) {
     // Skip remaining iterations if an error occurred
     if (failed) continue;
@@ -1715,7 +1759,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     }
   }
 
-  ARTS_USER_ERROR_IF (failed, fail_msg);
+  ARTS_USER_ERROR_IF(failed, fail_msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1778,9 +1822,11 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     else
       search_toa = false;
   }
-  ARTS_USER_ERROR_IF (search_toa,
+  ARTS_USER_ERROR_IF(
+      search_toa,
       "At least one atmospheric level with pressure larger p_min (=",
-      p_min, ")\n"
+      p_min,
+      ")\n"
       "is needed, but none is found.")
   const Index npn = l + 1;
   p_grid = p_grid[Range(0, npn)];
@@ -1788,8 +1834,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   const Index nsa = abs_species.nelem();
 
   // Check that there is at least one VMR species:
-  ARTS_USER_ERROR_IF (nsa < 1,
-    "There must be at least one absorption species.")
+  ARTS_USER_ERROR_IF(nsa < 1, "There must be at least one absorption species.")
 
   // In contrast to older versions, we allow the data entries to be in arbitrary
   // order. that is, we have to look for all fields individually. we require the
@@ -1812,30 +1857,30 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   t_field.resize(npn, nlat, nlon);
   for (Index i = 0; i < nf; ++i) {
     if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "T") {
-      ARTS_USER_ERROR_IF (found,
-          "Only one temperature ('T') field allowed,\n"
-          "but found at least 2.")
+      ARTS_USER_ERROR_IF(found,
+                         "Only one temperature ('T') field allowed,\n"
+                         "but found at least 2.")
       found = true;
       t_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
     }
   }
-  ARTS_USER_ERROR_IF (!found,
-    "One temperature ('T') field required, but none found")
+  ARTS_USER_ERROR_IF(!found,
+                     "One temperature ('T') field required, but none found")
 
   // Find Altitude field:
   found = false;
   z_field.resize(npn, nlat, nlon);
   for (Index i = 0; i < nf; ++i) {
     if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "z") {
-      ARTS_USER_ERROR_IF (found,
-          "Only one altitude ('z') field allowed,\n"
-          "but found at least 2.")
+      ARTS_USER_ERROR_IF(found,
+                         "Only one altitude ('z') field allowed,\n"
+                         "but found at least 2.")
       found = true;
       z_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
     }
   }
-  ARTS_USER_ERROR_IF (!found,
-    "One altitude ('z') field required, but none found")
+  ARTS_USER_ERROR_IF(!found,
+                     "One altitude ('z') field required, but none found")
 
   // Extracting the required abs_species fields:
 
@@ -1861,8 +1906,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
       }
       i++;
     }
-    ARTS_USER_ERROR_IF (!found,
-      "No field for absorption species '", as_name, "' found.")
+    ARTS_USER_ERROR_IF(
+        !found, "No field for absorption species '", as_name, "' found.")
   }
 
   //get the number of scat_species entries
@@ -1981,18 +2026,12 @@ void AtmFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const Vector& tfr_p_grid =
-      t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const Vector& tfr_lat_grid =
-      t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const Vector& tfr_lon_grid =
-      t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const Vector& zfr_p_grid =
-      z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const Vector& zfr_lat_grid =
-      z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const Vector& zfr_lon_grid =
-      z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const Vector& tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const Vector& tfr_lon_grid = t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const Vector& zfr_p_grid = z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& zfr_lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const Vector& zfr_lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   out2 << "  Interpolation order: " << interp_order << "\n";
 
@@ -2001,21 +2040,28 @@ void AtmFieldsCalc(  //WS Output:
   // Atmosphere
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
-  
+
   // NLTE basics
-  nlte_field.type = nlte_ids.nelem() == nlte_field_raw.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
-  nlte_field.levels = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_ids : ArrayOfQuantumIdentifier(0);
-  nlte_field.vib_energy = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
+  nlte_field.type = nlte_ids.nelem() == nlte_field_raw.nelem()
+                        ? EnergyLevelMapType::Tensor3_t
+                        : EnergyLevelMapType::None_t;
+  nlte_field.levels = nlte_ids.nelem() == nlte_field_raw.nelem()
+                          ? nlte_ids
+                          : ArrayOfQuantumIdentifier(0);
+  nlte_field.vib_energy =
+      nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
 
   //==========================================================================
   if (atmosphere_dim == 1) {
-    ARTS_USER_ERROR_IF (!(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1),
-          "Temperature data (T_field) has wrong dimension "
-          "(2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1),
+        "Temperature data (T_field) has wrong dimension "
+        "(2D or 3D).\n");
 
-    ARTS_USER_ERROR_IF (!(zfr_lat_grid.nelem() == 1 && zfr_lon_grid.nelem() == 1),
-          "Altitude data (z_field) has wrong dimension "
-          "(2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(zfr_lat_grid.nelem() == 1 && zfr_lon_grid.nelem() == 1),
+        "Altitude data (z_field) has wrong dimension "
+        "(2D or 3D).\n");
 
     GriddedField3 temp_gfield3;
 
@@ -2036,10 +2082,10 @@ void AtmFieldsCalc(  //WS Output:
                           vmr_zeropadding,
                           verbosity);
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR (
-        e.what(), "\n"
-        "Note that you can explicitly set vmr_zeropadding "
-        "to 1 in the method call.")
+      ARTS_USER_ERROR(e.what(),
+                      "\n"
+                      "Note that you can explicitly set vmr_zeropadding "
+                      "to 1 in the method call.")
     }
     FieldFromGriddedField(
         vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
@@ -2048,20 +2094,23 @@ void AtmFieldsCalc(  //WS Output:
     if (nlte_ids.nelem() == nlte_field_raw.nelem()) {
       GriddedFieldPRegrid(
           temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
-      FieldFromGriddedField(
-        nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
-    }
-    else
+      FieldFromGriddedField(nlte_field.value,
+                            p_grid,
+                            lat_grid,
+                            lon_grid,
+                            temp_agfield3,
+                            verbosity);
+    } else
       nlte_field.value.resize(0, 0, 0, 0);
 
   }
 
   //=========================================================================
   else if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). "
-          "You have to use \n"
-          "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
+    ARTS_USER_ERROR_IF(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). "
+                       "You have to use \n"
+                       "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
 
     //Resize variables
     t_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
@@ -2070,7 +2119,7 @@ void AtmFieldsCalc(  //WS Output:
         vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
     if (nlte_ids.nelem() == nlte_field_raw.nelem())
       nlte_field.value.resize(
-        nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
+          nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
     else
       nlte_field.value.resize(0, 0, 0, 0);
 
@@ -2086,9 +2135,13 @@ void AtmFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, tfr_p_grid, interp_order, 0.5);
-    auto lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, tfr_lat_grid, interp_order);
-    auto itw=interpweights(lag_p, lag_lat);
+    auto lag_p =
+        my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+            p_grid, tfr_p_grid, interp_order, 0.5);
+    auto lag_lat =
+        my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+            lat_grid, tfr_lat_grid, interp_order);
+    auto itw = interpweights(lag_p, lag_lat);
 
     // Interpolate:
     reinterp(t_field(joker, joker, 0),
@@ -2107,9 +2160,11 @@ void AtmFieldsCalc(  //WS Output:
         "Raw z to lat_grid, 2D case", zfr_lat_grid, lat_grid, interp_order);
 
     // Calculate grid positions:
-    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, zfr_p_grid, interp_order, 0.5);
-    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, zfr_lat_grid, interp_order);
-    itw=interpweights(lag_p, lag_lat);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        p_grid, zfr_p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        lat_grid, zfr_lat_grid, interp_order);
+    itw = interpweights(lag_p, lag_lat);
 
     // Interpolate:
     reinterp(z_field(joker, joker, 0),
@@ -2121,11 +2176,14 @@ void AtmFieldsCalc(  //WS Output:
     // Interpolate vmr_field.
     // Loop over the gaseous species:
     for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++) {
-      ARTS_USER_ERROR_IF(!(vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
+      ARTS_USER_ERROR_IF(
+          !(vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
                 1 &&
             vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() ==
                 1),
-          "VMR data of the ", gas_i, " the species has "
+          "VMR data of the ",
+          gas_i,
+          " the species has "
           "wrong dimension (1D or 3D). \n")
 
       // Check that interpolation grids are ok (and throw a detailed
@@ -2140,10 +2198,17 @@ void AtmFieldsCalc(  //WS Output:
           vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
           lat_grid,
           interp_order);
-      
-      lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5);
-      lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
-      itw=interpweights(lag_p, lag_lat);
+
+      lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+          p_grid,
+          vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+          interp_order,
+          0.5);
+      lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          lat_grid,
+          vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+          interp_order);
+      itw = interpweights(lag_p, lag_lat);
 
       // Interpolate:
       reinterp(vmr_field(gas_i, joker, joker, 0),
@@ -2155,12 +2220,15 @@ void AtmFieldsCalc(  //WS Output:
 
     // Interpolate Non-LTE
     for (Index qi_i = 0; qi_i < nlte_field_raw.nelem(); qi_i++) {
-      ARTS_USER_ERROR_IF (!(nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
+      ARTS_USER_ERROR_IF(
+          !(nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
                 1 &&
             nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() ==
                 1),
-                "NLTE data of the ", qi_i, " temperature field has "
-                "wrong dimension (1D or 3D). \n")
+          "NLTE data of the ",
+          qi_i,
+          " temperature field has "
+          "wrong dimension (1D or 3D). \n")
 
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
@@ -2175,9 +2243,16 @@ void AtmFieldsCalc(  //WS Output:
           lat_grid,
           interp_order);
 
-      lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5);
-      lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
-      itw=interpweights(lag_p, lag_lat);
+      lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+          p_grid,
+          nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
+          interp_order,
+          0.5);
+      lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          lat_grid,
+          nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
+          interp_order);
+      itw = interpweights(lag_p, lag_lat);
 
       // Interpolate:
       if (nlte_ids.nelem() == nlte_field_raw.nelem())
@@ -2194,9 +2269,9 @@ void AtmFieldsCalc(  //WS Output:
   //================================================================
   // atmosphere_dim = 3
   else if (atmosphere_dim == 3) {
-    ARTS_USER_ERROR_IF (tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
+    ARTS_USER_ERROR_IF(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
 
     GriddedField3 temp_gfield3;
 
@@ -2227,10 +2302,10 @@ void AtmFieldsCalc(  //WS Output:
                           vmr_zeropadding,
                           verbosity);
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR (
-        e.what(), "\n"
-        "Note that you can explicitly set vmr_zeropadding "
-        "to 1 in the method call.")
+      ARTS_USER_ERROR(e.what(),
+                      "\n"
+                      "Note that you can explicitly set vmr_zeropadding "
+                      "to 1 in the method call.")
     }
     FieldFromGriddedField(
         vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
@@ -2242,19 +2317,24 @@ void AtmFieldsCalc(  //WS Output:
                                nlte_field_raw,
                                interp_order,
                                verbosity);
-      
+
       try {
         GriddedFieldPRegrid(
-          temp_agfield3, p_grid, temp_agfield3, interp_order, 0, verbosity);
+            temp_agfield3, p_grid, temp_agfield3, interp_order, 0, verbosity);
       } catch (const std::runtime_error& e) {
-        ARTS_USER_ERROR ( e.what(), "\n"
-          "Note that you can explicitly set vmr_zeropadding "
-          "to 1 in the method call.")
+        ARTS_USER_ERROR(e.what(),
+                        "\n"
+                        "Note that you can explicitly set vmr_zeropadding "
+                        "to 1 in the method call.")
       }
-      
+
       if (nlte_ids.nelem() == nlte_field_raw.nelem())
-        FieldFromGriddedField(
-          nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+        FieldFromGriddedField(nlte_field.value,
+                              p_grid,
+                              lat_grid,
+                              lon_grid,
+                              temp_agfield3,
+                              verbosity);
       else
         nlte_field.value.resize(0, 0, 0, 0);
     }
@@ -2291,7 +2371,7 @@ void AtmFieldsCalc(  //WS Output:
                 nlte_field.value(ib, ip, ir, ic) =
                     nlte_when_negative == 1 ? t_field(ip, ir, ic) : 0;
                 // NOTE: This only makes sense for vibrational NLTE and is bad elsewise
-                //       but since elsewise is bad anyways with negative values, it is 
+                //       but since elsewise is bad anyways with negative values, it is
                 //       and acceptable compromise...
               }
             }
@@ -2300,12 +2380,12 @@ void AtmFieldsCalc(  //WS Output:
       }
     }
   }
-  
+
   nlte_field.ThrowIfNotOK();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MagFieldsCalcIGRF (  //WS Output:
+void MagFieldsCalcIGRF(  //WS Output:
     Tensor3& mag_u_field,
     Tensor3& mag_v_field,
     Tensor3& mag_w_field,
@@ -2317,15 +2397,39 @@ void MagFieldsCalcIGRF (  //WS Output:
     const Time& time,
     const Verbosity&) {
   ARTS_USER_ERROR_IF(z_field.npages() < 1, "Must have altitude size")
-  ARTS_USER_ERROR_IF(z_field.nrows() not_eq lat_grid.nelem(), "Must have same lat_grid.nelem() [", lat_grid.nelem(), "] as z_field.nrows() [", z_field.nrows(), ']')
-  ARTS_USER_ERROR_IF(z_field.ncols() not_eq lon_grid.nelem(), "Must have same lon_grid.nelem() [", lon_grid.nelem(), "] as z_field.ncols() [", z_field.ncols(), ']')
-  ARTS_USER_ERROR_IF(refellipsoid.nelem() not_eq 2 or refellipsoid[0] < 1 or refellipsoid[1] >= 1 or refellipsoid[1] < 0, "Bad refellipsoid: ", refellipsoid)
-  
+  ARTS_USER_ERROR_IF(z_field.nrows() not_eq lat_grid.nelem(),
+                     "Must have same lat_grid.nelem() [",
+                     lat_grid.nelem(),
+                     "] as z_field.nrows() [",
+                     z_field.nrows(),
+                     ']')
+  ARTS_USER_ERROR_IF(z_field.ncols() not_eq lon_grid.nelem(),
+                     "Must have same lon_grid.nelem() [",
+                     lon_grid.nelem(),
+                     "] as z_field.ncols() [",
+                     z_field.ncols(),
+                     ']')
+  ARTS_USER_ERROR_IF(refellipsoid.nelem() not_eq 2 or refellipsoid[0] < 1 or
+                         refellipsoid[1] >= 1 or refellipsoid[1] < 0,
+                     "Bad refellipsoid: ",
+                     refellipsoid)
+
   // Perform all computations
-  const IGRF::MagneticField mag { IGRF::compute(z_field, lat_grid, lon_grid, time, refellipsoid) };
+  const IGRF::MagneticField mag{
+      IGRF::compute(z_field, lat_grid, lon_grid, time, refellipsoid)};
   mag_u_field = mag.u;
   mag_v_field = mag.v;
   mag_w_field = mag.w;
+
+  //! ARTS Must have exactly the same magnetic field strength around the poles in the N/S and E/W directions
+  for (Index ilat = 0; ilat < lat_grid.nelem(); ++ilat) {
+    if (lat_grid[ilat] == -90 or lat_grid[ilat] == 90) {
+      for (Index ip = 0; ip < z_field.npages(); ++ip) {
+        mag_u_field(ip, ilat, joker) = mag_v_field(ip, ilat, joker) =
+            std::hypot(mag_v_field(ip, ilat, 0), mag_u_field(ip, ilat, 0));
+      }
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2346,20 +2450,17 @@ void MagFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const Vector& ufr_p_grid =
-      mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& ufr_p_grid = mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& ufr_lat_grid =
       mag_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& ufr_lon_grid =
       mag_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const Vector& vfr_p_grid =
-      mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& vfr_p_grid = mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& vfr_lat_grid =
       mag_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& vfr_lon_grid =
       mag_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const Vector& wfr_p_grid =
-      mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& wfr_p_grid = mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& wfr_lat_grid =
       mag_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& wfr_lon_grid =
@@ -2375,12 +2476,15 @@ void MagFieldsCalc(  //WS Output:
 
   //==========================================================================
   if (atmosphere_dim == 1) {
-    ARTS_USER_ERROR_IF (!(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1),
-          "Magnetic u field data has wrong dimension (2D or 3D).\n");
-    ARTS_USER_ERROR_IF (!(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1),
-          "Magnetic v field data has wrong dimension (2D or 3D).\n");
-    ARTS_USER_ERROR_IF (!(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1),
-          "Magnetic w field data has wrong dimension  (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1),
+        "Magnetic u field data has wrong dimension (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1),
+        "Magnetic v field data has wrong dimension (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1),
+        "Magnetic w field data has wrong dimension  (2D or 3D).\n");
 
     GriddedField3 temp_gfield3;
 
@@ -2399,15 +2503,15 @@ void MagFieldsCalc(  //WS Output:
 
   //=========================================================================
   else if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
-    ARTS_USER_ERROR_IF (vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
-    ARTS_USER_ERROR_IF (wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
 
     //Resize variables
     mag_u_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
@@ -2426,8 +2530,12 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(ufr_p_grid, p_grid, interp_order, 0.5);
-    auto lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(ufr_lat_grid, lat_grid, interp_order);
+    auto lag_p =
+        my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+            ufr_p_grid, p_grid, interp_order, 0.5);
+    auto lag_lat =
+        my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+            ufr_lat_grid, lat_grid, interp_order);
     const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2449,8 +2557,10 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(vfr_p_grid, p_grid, interp_order, 0.5);
-    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(vfr_lat_grid, lat_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        vfr_p_grid, p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        vfr_lat_grid, lat_grid, interp_order);
     const auto itwv = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2472,8 +2582,10 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(wfr_p_grid, p_grid, interp_order, 0.5);
-    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(wfr_lat_grid, lat_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        wfr_p_grid, p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        wfr_lat_grid, lat_grid, interp_order);
     const auto itww = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2487,15 +2599,15 @@ void MagFieldsCalc(  //WS Output:
   //================================================================
   // atmosphere_dim = 3
   else if (atmosphere_dim == 3) {
-    ARTS_USER_ERROR_IF (ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
-    ARTS_USER_ERROR_IF (vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
-    ARTS_USER_ERROR_IF (wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+    ARTS_USER_ERROR_IF(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
 
     GriddedField3 temp_gfield3;
 
@@ -2558,13 +2670,17 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
 
   // Check that the fields are correct
   for (auto& gf3 : {mag_u_field_raw, mag_v_field_raw, mag_w_field_raw}) {
-    ARTS_USER_ERROR_IF (gf3.get_grid_name(0) not_eq "Altitude" or
-                        gf3.get_grid_name(1) not_eq "Latitude" or
-                        gf3.get_grid_name(2) not_eq "Longitude",
-        "Grids are bad\n"
-        "Grids must be Altitude, Latitude, Longitude, but are: ",
-        gf3.get_grid_name(0), ", ", gf3.get_grid_name(1), ", ",
-        gf3.get_grid_name(2), '\n')
+    ARTS_USER_ERROR_IF(gf3.get_grid_name(0) not_eq "Altitude" or
+                           gf3.get_grid_name(1) not_eq "Latitude" or
+                           gf3.get_grid_name(2) not_eq "Longitude",
+                       "Grids are bad\n"
+                       "Grids must be Altitude, Latitude, Longitude, but are: ",
+                       gf3.get_grid_name(0),
+                       ", ",
+                       gf3.get_grid_name(1),
+                       ", ",
+                       gf3.get_grid_name(2),
+                       '\n')
   }
 
   // Regrid and rename raw-fields
@@ -2588,9 +2704,14 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      auto lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), u.get_numeric_grid(0), interp_order, extrapolation_factor);
+      auto lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          z_field(joker, ilat, ilon),
+          u.get_numeric_grid(0),
+          interp_order,
+          extrapolation_factor);
       auto itw = interpweights(lag);
-      reinterp(mag_u_field(joker, ilat, ilon), u.data(joker, ilat, ilon), itw, lag);
+      reinterp(
+          mag_u_field(joker, ilat, ilon), u.data(joker, ilat, ilon), itw, lag);
 
       chk_interpolation_grids("Magnetic V Field Altitude",
                               v.get_numeric_grid(0),
@@ -2598,10 +2719,15 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      
-      lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), v.get_numeric_grid(0), interp_order, extrapolation_factor);
-      itw=interpweights(lag);
-      reinterp(mag_v_field(joker, ilat, ilon), v.data(joker, ilat, ilon), itw, lag);
+
+      lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          z_field(joker, ilat, ilon),
+          v.get_numeric_grid(0),
+          interp_order,
+          extrapolation_factor);
+      itw = interpweights(lag);
+      reinterp(
+          mag_v_field(joker, ilat, ilon), v.data(joker, ilat, ilon), itw, lag);
 
       chk_interpolation_grids("Magnetic W Field Altitude",
                               w.get_numeric_grid(0),
@@ -2609,10 +2735,15 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      
-      lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), w.get_numeric_grid(0), interp_order, extrapolation_factor);
-      itw=interpweights(lag);
-      reinterp(mag_w_field(joker, ilat, ilon), w.data(joker, ilat, ilon), itw, lag);
+
+      lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          z_field(joker, ilat, ilon),
+          w.get_numeric_grid(0),
+          interp_order,
+          extrapolation_factor);
+      itw = interpweights(lag);
+      reinterp(
+          mag_w_field(joker, ilat, ilon), w.data(joker, ilat, ilon), itw, lag);
     }
   }
 }
@@ -2635,20 +2766,17 @@ void WindFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const Vector& ufr_p_grid =
-      wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& ufr_p_grid = wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& ufr_lat_grid =
       wind_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& ufr_lon_grid =
       wind_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const Vector& vfr_p_grid =
-      wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& vfr_p_grid = wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& vfr_lat_grid =
       wind_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& vfr_lon_grid =
       wind_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const Vector& wfr_p_grid =
-      wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const Vector& wfr_p_grid = wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const Vector& wfr_lat_grid =
       wind_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& wfr_lon_grid =
@@ -2664,12 +2792,15 @@ void WindFieldsCalc(  //WS Output:
 
   //==========================================================================
   if (atmosphere_dim == 1) {
-    ARTS_USER_ERROR_IF (!(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1),
-          "Wind u field data has wrong dimension (2D or 3D).\n");
-    ARTS_USER_ERROR_IF (!(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1),
-          "Wind v field data has wrong dimension (2D or 3D).\n");
-    ARTS_USER_ERROR_IF (!(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1),
-          "Wind w field data has wrong dimension  (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1),
+        "Wind u field data has wrong dimension (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1),
+        "Wind v field data has wrong dimension (2D or 3D).\n");
+    ARTS_USER_ERROR_IF(
+        !(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1),
+        "Wind w field data has wrong dimension  (2D or 3D).\n");
 
     GriddedField3 temp_gfield3;
 
@@ -2688,15 +2819,15 @@ void WindFieldsCalc(  //WS Output:
 
   //=========================================================================
   else if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
-    ARTS_USER_ERROR_IF (vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
-    ARTS_USER_ERROR_IF (wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension (1D). You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension (1D). You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
 
     //Resize variables
     wind_u_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
@@ -2715,8 +2846,12 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, ufr_p_grid, interp_order, 0.5);
-    auto lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, ufr_lat_grid, interp_order);
+    auto lag_p =
+        my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+            p_grid, ufr_p_grid, interp_order, 0.5);
+    auto lag_lat =
+        my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+            lat_grid, ufr_lat_grid, interp_order);
     const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2738,9 +2873,11 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, vfr_p_grid, interp_order, 0.5);
-    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, vfr_lat_grid, interp_order);
-    const auto itwv=interpweights(lag_p, lag_lat);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        p_grid, vfr_p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        lat_grid, vfr_lat_grid, interp_order);
+    const auto itwv = interpweights(lag_p, lag_lat);
 
     // Interpolate:
     reinterp(wind_v_field(joker, joker, 0),
@@ -2761,9 +2898,11 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, wfr_p_grid, interp_order, 0.5);
-    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, wfr_lat_grid, interp_order);
-    const auto itww=interpweights(lag_p, lag_lat);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+        p_grid, wfr_p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        lat_grid, wfr_lat_grid, interp_order);
+    const auto itww = interpweights(lag_p, lag_lat);
 
     // Interpolate:
     reinterp(wind_w_field(joker, joker, 0),
@@ -2776,15 +2915,15 @@ void WindFieldsCalc(  //WS Output:
   //================================================================
   // atmosphere_dim = 3
   else if (atmosphere_dim == 3) {
-    ARTS_USER_ERROR_IF (ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
-    ARTS_USER_ERROR_IF (vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
-    ARTS_USER_ERROR_IF (wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
-          "Raw data has wrong dimension. You have to use \n"
-          "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+    ARTS_USER_ERROR_IF(wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1,
+                       "Raw data has wrong dimension. You have to use \n"
+                       "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
 
     GriddedField3 temp_gfield3;
 
@@ -2848,8 +2987,9 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
 
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
-        "This function is intended for 2D and 3D. For 1D, use *AtmFieldsCalc*.");
+  ARTS_USER_ERROR_IF(
+      atmosphere_dim == 1,
+      "This function is intended for 2D and 3D. For 1D, use *AtmFieldsCalc*.");
 
   // Make 1D interpolation using some dummy variables
   Vector vempty(0);
@@ -2895,8 +3035,7 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
     nlte_field.value.resize(nlte_field_raw.nelem(), np, nlat, nlon);
     nlte_field.levels = nlte_ids;
     nlte_field.vib_energy = nlte_energies;
-  }
-  else
+  } else
     nlte_field = EnergyLevelMap();
   //
   for (Index ilon = 0; ilon < nlon; ilon++) {
@@ -2932,8 +3071,9 @@ void MagFieldsCalcExpand1D(Tensor3& mag_u_field,
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
 
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
-        "This function is intended for 2D and 3D. For 1D, use *MagFieldsCalc*.");
+  ARTS_USER_ERROR_IF(
+      atmosphere_dim == 1,
+      "This function is intended for 2D and 3D. For 1D, use *MagFieldsCalc*.");
 
   // Make 1D interpolation using some dummy variables
   Vector vempty(0);
@@ -2994,8 +3134,9 @@ void WindFieldsCalcExpand1D(Tensor3& wind_u_field,
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
 
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
-        "This function is intended for 2D and 3D. For 1D, use *WindFieldsCalc*.");
+  ARTS_USER_ERROR_IF(
+      atmosphere_dim == 1,
+      "This function is intended for 2D and 3D. For 1D, use *WindFieldsCalc*.");
 
   // Make 1D interpolation using some dummy variables
   Vector vempty(0);
@@ -3061,8 +3202,8 @@ void AtmFieldsExpand1D(Tensor3& t_field,
 
   const bool chknan = chk_vmr_nan;
 
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
-                      "No use in calling this method for 1D.");
+  ARTS_USER_ERROR_IF(atmosphere_dim == 1,
+                     "No use in calling this method for 1D.");
   chk_atm_field("t_field", t_field, 1, p_grid, Vector(0), Vector(0));
   chk_atm_field("z_field", z_field, 1, p_grid, Vector(0), Vector(0));
   if (nspecies)
@@ -3111,9 +3252,9 @@ void AtmFieldsExtract1D(Index& atmosphere_dim,
     return;
   }
 
-  ARTS_USER_ERROR_IF (ilat < 0 || ilat >= lat_grid.nelem(),
-        "Invalid of *ilat*. It must be >= 0 and less than "
-        "length of *lat_grid*.");
+  ARTS_USER_ERROR_IF(ilat < 0 || ilat >= lat_grid.nelem(),
+                     "Invalid of *ilat*. It must be >= 0 and less than "
+                     "length of *lat_grid*.");
 
   if (atmosphere_dim == 2) {
     Vector vtmp;
@@ -3128,9 +3269,9 @@ void AtmFieldsExtract1D(Index& atmosphere_dim,
     vmr_field.resize(vmr_field.nbooks(), vmr_field.npages(), 1, 1);
     vmr_field(joker, joker, 0, 0) = mtmp;
   } else if (atmosphere_dim == 3) {
-    ARTS_USER_ERROR_IF (ilat < 0 || ilon >= lon_grid.nelem(),
-          "Invalid of *ilon*. It must be >= 0 and less than "
-          "length of *lon_grid*.");
+    ARTS_USER_ERROR_IF(ilat < 0 || ilon >= lon_grid.nelem(),
+                       "Invalid of *ilon*. It must be >= 0 and less than "
+                       "length of *lon_grid*.");
     Vector vtmp;
     vtmp = t_field(joker, ilat, ilon);
     t_field.resize(t_field.npages(), 1, 1);
@@ -3145,7 +3286,7 @@ void AtmFieldsExtract1D(Index& atmosphere_dim,
   }
 
   else {
-    ARTS_USER_ERROR ( "Invalid of *atmosphere_dim*. It must be 1-3.");
+    ARTS_USER_ERROR("Invalid of *atmosphere_dim*. It must be 1-3.");
   }
 
   AtmosphereSet1D(atmosphere_dim, lat_grid, lon_grid, verbosity);
@@ -3400,25 +3541,26 @@ void AtmWithNLTERawRead(  //WS Output:
   xml_read_from_file(file_name, nlte_quantum_identifiers, verbosity);
 
   out3 << "NLTE identifier array read from file: " << file_name << "\n";
-  
+
   if (expect_vibrational_energies) {
     // Read each energy level field:
     file_name = tmp_basename + "ev.xml";
     xml_read_from_file(file_name, nlte_vibrational_energies, verbosity);
-    
+
     out3 << "NLTE energy levels array read from file: " << file_name << "\n";
-  }
-  else {
+  } else {
     nlte_vibrational_energies.resize(0);
   }
 
-  ARTS_USER_ERROR_IF (nlte_field_raw.nelem() != nlte_quantum_identifiers.nelem() or
-                     (nlte_field_raw.nelem() != nlte_vibrational_energies.nelem() and
-                        0 != nlte_vibrational_energies.nelem()),
+  ARTS_USER_ERROR_IF(
+      nlte_field_raw.nelem() != nlte_quantum_identifiers.nelem() or
+          (nlte_field_raw.nelem() != nlte_vibrational_energies.nelem() and
+           0 != nlte_vibrational_energies.nelem()),
       "The quantum identifers and the NLTE temperature fields\n"
       "are of different lengths.  This should not be the case.\n"
       "please check the qi.xml and t_nlte.xml files under\n",
-      basename, "\n"
+      basename,
+      "\n"
       "to correct this error.\n")
 }
 
@@ -3457,7 +3599,9 @@ void z_surfaceConstantAltitude(Matrix& z_surface,
                                const Verbosity& verbosity) {
   CREATE_OUT3;
   out3 << "Setting surface to constant altitude of " << altitude << " m\n";
-  z_surface = Matrix(lat_grid.nelem() ? lat_grid.nelem() : 1, lon_grid.nelem() ? lon_grid.nelem() : 1, altitude);
+  z_surface = Matrix(lat_grid.nelem() ? lat_grid.nelem() : 1,
+                     lon_grid.nelem() ? lon_grid.nelem() : 1,
+                     altitude);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3513,7 +3657,8 @@ void p_gridDensify(  // WS Output:
   // Check that p_grid and p_grid_old are not the same variable (pointing to the
   // same memory space). this as p_grid will be overwritten, but we will need
   // both data later on for data regridding.
-  ARTS_USER_ERROR_IF (&p_grid == &p_grid_old,
+  ARTS_USER_ERROR_IF(
+      &p_grid == &p_grid_old,
       "The old and new grids (p_grid and p_grid_old) are not allowed\n"
       "to be identical (pointing to same memory space).\n"
       "But they are doing in your case.")
@@ -3526,7 +3671,7 @@ void p_gridDensify(  // WS Output:
   cloudbox_checked = 0;
 
   // Check the keyword argument:
-  ARTS_USER_ERROR_IF (nfill < 0, "Argument *nfill* must be >= 0.");
+  ARTS_USER_ERROR_IF(nfill < 0, "Argument *nfill* must be >= 0.");
 
   // Nothing to do if nfill=0
   if (nfill > 0) {
@@ -3563,7 +3708,8 @@ void p_gridRefine(  // WS Output:
   // Check that p_grid and p_grid_old are not the same variable (pointing to the
   // same memory space). this as p_grid will be overwritten, but we will need
   // both data later on for data regridding.
-  ARTS_USER_ERROR_IF (&p_grid == &p_grid_old,
+  ARTS_USER_ERROR_IF(
+      &p_grid == &p_grid_old,
       "The old and new grids (p_grid and p_grid_old) are not allowed\n"
       "to be identical (pointing to same memory space).\n"
       "But they are doing in your case.")
@@ -3576,8 +3722,7 @@ void p_gridRefine(  // WS Output:
   cloudbox_checked = 0;
 
   // Check the keyword argument:
-  ARTS_USER_ERROR_IF (p_step10 <= 0,
-    "The keyword argument p_step must be >0.")
+  ARTS_USER_ERROR_IF(p_step10 <= 0, "The keyword argument p_step must be >0.")
 
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
@@ -3663,7 +3808,8 @@ void p_gridFromZRaw(  //WS Output
     }
     p_grid = reverse(p_grid_raw);
   } else {
-    ARTS_USER_ERROR ("z_field_raw needs to be monotonous, but this is not the case.\n")
+    ARTS_USER_ERROR(
+        "z_field_raw needs to be monotonous, but this is not the case.\n")
   }
 }
 
@@ -3727,8 +3873,8 @@ void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
                                        const Tensor3& z_field,
                                        const Numeric& planet_rotation_period,
                                        const Verbosity&) {
-  ARTS_USER_ERROR_IF (atmosphere_dim < 3,
-                      "No need to use this method for 1D and 2D.");
+  ARTS_USER_ERROR_IF(atmosphere_dim < 3,
+                     "No need to use this method for 1D and 2D.");
 
   const Index np = p_grid.nelem();
   const Index na = lat_grid.nelem();
@@ -3781,33 +3927,40 @@ void z_fieldFromHSE(Workspace& ws,
                     const Numeric& p_hse,
                     const Numeric& z_hse_accuracy,
                     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (atmfields_checked != 1,
-        "The atmospheric fields must be flagged to have "
-        "passed a consistency check (atmfields_checked=1).");
+  ARTS_USER_ERROR_IF(atmfields_checked != 1,
+                     "The atmospheric fields must be flagged to have "
+                     "passed a consistency check (atmfields_checked=1).");
 
   // Some general variables
   const Index np = p_grid.nelem();
   const Index nlat = t_field.nrows();
   const Index nlon = t_field.ncols();
   //
-  const Index firstH2O = find_first_species(
-      abs_species, Species::fromShortName("H2O"));
+  const Index firstH2O =
+      find_first_species(abs_species, Species::fromShortName("H2O"));
 
   if (firstH2O < 0) {
     CREATE_OUT1;
-    out1 << "No water vapour tag group in *abs_species*.\n"
-         << "Be aware that this leads to significant variations in atmospheres\n"
-         << "that contain considerable amounts of water vapour (e.g. Earth)!\n";
+    out1
+        << "No water vapour tag group in *abs_species*.\n"
+        << "Be aware that this leads to significant variations in atmospheres\n"
+        << "that contain considerable amounts of water vapour (e.g. Earth)!\n";
   }
   //
-  ARTS_USER_ERROR_IF (p_hse > p_grid[0] || p_hse < p_grid[np - 1],
+  ARTS_USER_ERROR_IF(
+      p_hse > p_grid[0] || p_hse < p_grid[np - 1],
       "The value of *p_hse* must be inside the range of *p_grid*:"
-      "  p_hse  = ", p_hse, " Pa\n"
-      "  p_grid = ", p_grid[np-1],
-      " - ", p_grid[0], " Pa\n")
+      "  p_hse  = ",
+      p_hse,
+      " Pa\n"
+      "  p_grid = ",
+      p_grid[np - 1],
+      " - ",
+      p_grid[0],
+      " Pa\n")
   //
-  ARTS_USER_ERROR_IF (z_hse_accuracy <= 0,
-                      "The value of *z_hse_accuracy* must be > 0.");
+  ARTS_USER_ERROR_IF(z_hse_accuracy <= 0,
+                     "The value of *z_hse_accuracy* must be > 0.");
   //
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
 
@@ -3919,8 +4072,9 @@ void z_fieldFromHSE(Workspace& ws,
   // function if used in more places.)
   for (Index row = 0; row < z_surface.nrows(); row++) {
     for (Index col = 0; col < z_surface.ncols(); col++) {
-      ARTS_USER_ERROR_IF (z_surface(row, col) < z_field(0, row, col) ||
-                          z_surface(row, col) >= z_field(z_field.npages() - 1, row, col),
+      ARTS_USER_ERROR_IF(
+          z_surface(row, col) < z_field(0, row, col) ||
+              z_surface(row, col) >= z_field(z_field.npages() - 1, row, col),
           "The surface altitude (*z_surface*) cannot be outside "
           "of the altitudes in *z_field*.")
     }
@@ -3936,8 +4090,9 @@ void vmr_fieldSetConstant(Tensor4& vmr_field,
   // Check input
   chk_if_in_range("vmr_value", vmr_value, 0, 1);
   //
-  ARTS_USER_ERROR_IF (abs_species.nelem() != vmr_field.nbooks(),
-        "Size of *vmr_field* and length of *abs_species* do not agree.");
+  ARTS_USER_ERROR_IF(
+      abs_species.nelem() != vmr_field.nbooks(),
+      "Size of *vmr_field* and length of *abs_species* do not agree.");
 
   // Find position for this species.
   const ArrayOfSpeciesTag tag(species);
@@ -3956,8 +4111,8 @@ void vmr_fieldSetAllConstant(Tensor4& vmr_field,
 
   const Index nspecies = abs_species.nelem();
 
-  ARTS_USER_ERROR_IF (vmr_values.nelem() not_eq nspecies,
-                      "Not same number of vmr_values as abs_species.");
+  ARTS_USER_ERROR_IF(vmr_values.nelem() not_eq nspecies,
+                     "Not same number of vmr_values as abs_species.");
 
   out3 << "Setting all " << nspecies << " species to constant VMR\n";
 
@@ -3969,7 +4124,6 @@ void vmr_fieldSetAllConstant(Tensor4& vmr_field,
   }
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void vmr_fieldSetRh(Workspace& ws,
                     Tensor4& vmr_field,
@@ -3979,11 +4133,11 @@ void vmr_fieldSetRh(Workspace& ws,
                     const Agenda& water_p_eq_agenda,
                     const Numeric& rh,
                     const Numeric& vmr_threshold,
-                    const Verbosity&)
-{
+                    const Verbosity&) {
   // Locate H2O
-  const Index ih2o = find_first_species(abs_species, Species::fromShortName("H2O"));
-  ARTS_USER_ERROR_IF (ih2o < 0, "There is no H2O species in *abs_species*.")
+  const Index ih2o =
+      find_first_species(abs_species, Species::fromShortName("H2O"));
+  ARTS_USER_ERROR_IF(ih2o < 0, "There is no H2O species in *abs_species*.")
 
   // Calculate partial pressure matching selected RH
   Tensor3 p_rh;
@@ -3991,9 +4145,9 @@ void vmr_fieldSetRh(Workspace& ws,
   p_rh *= rh;
 
   // Put in VMR
-  for (Index p=0; p<vmr_field.npages(); ++p) {
-    for (Index a=0; a<vmr_field.nrows(); ++a) {
-      for (Index o=0; o<vmr_field.ncols(); ++o) {
+  for (Index p = 0; p < vmr_field.npages(); ++p) {
+    for (Index a = 0; a < vmr_field.nrows(); ++a) {
+      for (Index o = 0; o < vmr_field.ncols(); ++o) {
         if (vmr_field(ih2o, p, a, o) > vmr_threshold) {
           vmr_field(ih2o, p, a, o) = p_rh(p, a, o) / p_grid[p];
         }
@@ -4027,39 +4181,45 @@ void nlte_fieldLteExternalPartitionFunction(
 
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
-        for (Index k=0; k<band.NumLines(); k++) {
-          const Quantum::Number::StateMatch lt(qi, band.lines[k].localquanta, band.quantumidentity);
+        for (Index k = 0; k < band.NumLines(); k++) {
+          const Quantum::Number::StateMatch lt(
+              qi, band.lines[k].localquanta, band.quantumidentity);
           if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
             band.population = Absorption::PopulationType::NLTE;
-            
+
             if (not checked[in]) {
               checked[in] = 1;
-              
+
               for (Index ip = 0; ip < np; ip++) {
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                    boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0) *
-                    band.lines[k].glow / single_partition_function(
-                      t_field(ip, ilat, ilon), band.Isotopologue());
+                        boltzman_factor(t_field(ip, ilat, ilon),
+                                        band.lines[k].E0) *
+                        band.lines[k].glow /
+                        single_partition_function(t_field(ip, ilat, ilon),
+                                                  band.Isotopologue());
                   }
                 }
               }
             }
           }
-          
+
           if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
             band.population = Absorption::PopulationType::NLTE;
-            
+
             if (not checked[in]) {
               checked[in] = 1;
               for (Index ip = 0; ip < np; ip++) {
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                    boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0 + h*band.lines[k].F0) *
-                    band.lines[k].gupp / single_partition_function(
-                      t_field(ip, ilat, ilon), band.Isotopologue());
+                        boltzman_factor(
+                            t_field(ip, ilat, ilon),
+                            band.lines[k].E0 + h * band.lines[k].F0) *
+                        band.lines[k].gupp /
+                        single_partition_function(t_field(ip, ilat, ilon),
+                                                  band.Isotopologue());
                   }
                 }
               }
@@ -4069,14 +4229,14 @@ void nlte_fieldLteExternalPartitionFunction(
       }
     }
   }
-  
+
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
     }
   }
-  
+
   nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
 }
 
@@ -4115,7 +4275,7 @@ void nlte_fieldLteInternalPartitionFunction(
       x++;
     }
   }
-  
+
   Tensor4 part_fun(x, np, nlat, nlon, 0.0);
   Tensor4 nlte_tensor4(nn, np, nlat, nlon, 0);
   nlte_do = 1;
@@ -4127,43 +4287,46 @@ void nlte_fieldLteInternalPartitionFunction(
 
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
-        for (Index k=0; k<band.NumLines(); k++) {
-          const Quantum::Number::StateMatch lt(qi, band.lines[k].localquanta, band.quantumidentity);
+        for (Index k = 0; k < band.NumLines(); k++) {
+          const Quantum::Number::StateMatch lt(
+              qi, band.lines[k].localquanta, band.quantumidentity);
           if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
             band.population = Absorption::PopulationType::NLTE;
-            
+
             if (not checked[in]) {
               checked[in] = 1;
-              
+
               for (Index ip = 0; ip < np; ip++) {
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0) *
-                                      band.lines[k].glow;
+                        boltzman_factor(t_field(ip, ilat, ilon),
+                                        band.lines[k].E0) *
+                        band.lines[k].glow;
                     part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                      lte(ip, ilat, ilon);
+                        lte(ip, ilat, ilon);
                   }
                 }
               }
             }
           }
-          
+
           if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
             band.population = Absorption::PopulationType::NLTE;
-            
+
             if (not checked[in]) {
               checked[in] = 1;
-              
+
               for (Index ip = 0; ip < np; ip++) {
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon),
-                                      band.lines[k].E0 + h * band.lines[k].F0) *
-                                      band.lines[k].gupp;
+                        boltzman_factor(
+                            t_field(ip, ilat, ilon),
+                            band.lines[k].E0 + h * band.lines[k].F0) *
+                        band.lines[k].gupp;
                     part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                      lte(ip, ilat, ilon);
+                        lte(ip, ilat, ilon);
                   }
                 }
               }
@@ -4173,20 +4336,20 @@ void nlte_fieldLteInternalPartitionFunction(
       }
     }
   }
-  
+
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
     }
   }
-  
+
   for (Index in = 0; in < nn; in++) {
     if (checked[in]) {
       nlte_tensor4(in, joker, joker, joker) /=
-        part_fun(part_fun_pos[in], joker, joker, joker);
+          part_fun(part_fun_pos[in], joker, joker, joker);
     }
   }
-  
+
   nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
 }

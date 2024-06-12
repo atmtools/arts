@@ -9,7 +9,10 @@
  * Zeeman effect calculations are implemented in this file
  */
 
+#include "debug.h"
 #include "global_data.h"
+#include "messages.h"
+#include "ppath_struct.h"
 #include "propagationmatrix.h"
 #include "zeeman.h"
 
@@ -42,13 +45,13 @@ void propmat_clearskyAddZeeman(
   if (abs_lines_per_species.nelem() == 0) return;
 
   ARTS_USER_ERROR_IF((atmosphere_dim not_eq 3) and (not manual_zeeman_tag),
-    "Only for 3D *atmosphere_dim* or a manual magnetic field")
-  
+                     "Only for 3D *atmosphere_dim* or a manual magnetic field")
+
   ARTS_USER_ERROR_IF((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag),
-    "Only for 2D *ppath_los* or a manual magnetic field");
-  
+                     "Only for 2D *ppath_los* or a manual magnetic field");
+
   ARTS_USER_ERROR_IF(not lbl_checked,
-    "Please set lbl_checked true to use this function")
+                     "Please set lbl_checked true to use this function")
 
   // Change to LOS by radiation
   Vector rtp_los;
@@ -82,15 +85,17 @@ void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                  const ArrayOfQuantumIdentifier& qid,
                                  const Vector& gs,
                                  const Verbosity&) {
-  ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
-  for (Index i=0; i<qid.nelem(); i++) {
+  ARTS_USER_ERROR_IF(qid.nelem() not_eq gs.nelem(),
+                     "Inputs not matching in size");
+  for (Index i = 0; i < qid.nelem(); i++) {
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
-    
-    for (AbsorptionLines& band: abs_lines) {
-      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index) continue;
 
-      for (auto& line: band.lines) {
+    for (AbsorptionLines& band : abs_lines) {
+      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index)
+        continue;
+
+      for (auto& line : band.lines) {
         auto test = id.part_of(band.quantumidentity, line.localquanta);
 
         if (test.upp) line.zeeman.gu(g);
@@ -100,13 +105,51 @@ void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                const ArrayOfQuantumIdentifier& qid,
-                                                const Vector& gs,
-                                                const Verbosity& verbosity) {
-  for (auto& abs_lines: abs_lines_per_species) {
-    for (Index i=0; i<qid.nelem(); i++) {
+void abs_lines_per_speciesZeemanCoefficients(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfQuantumIdentifier& qid,
+    const Vector& gs,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines : abs_lines_per_species) {
+    for (Index i = 0; i < qid.nelem(); i++) {
       abs_linesZeemanCoefficients(abs_lines, qid, gs, verbosity);
     }
+  }
+}
+
+void zeeman_magnetic_fieldFromPath(Matrix& B,
+                                   const Ppath& ppath,
+                                   const Matrix& ppvar_mag,
+                                   const Verbosity&) {
+  const Index np = ppath.np;
+  ARTS_USER_ERROR_IF(np != ppath.los.nrows(),
+                     "Inconsistent number of points in ppath, np: ",
+                     np,
+                     " ppath.los.nrows(): ",
+                     ppath.los.nrows());
+  ARTS_USER_ERROR_IF(ppath.los.ncols() != 2,
+                     "ppath.los must have 2 columns, have ",
+                     ppath.los.ncols());
+  ARTS_USER_ERROR_IF(np != ppvar_mag.ncols(),
+                     "Inconsistent number of points in ppvar_mag, np: ",
+                     np,
+                     " ppvar_mag.ncols(): ",
+                     ppvar_mag.ncols());
+  ARTS_USER_ERROR_IF(ppvar_mag.nrows() != 3,
+                     "ppvar_mag must have 3 columns, is ",
+                     ppvar_mag.nrows());
+  ARTS_USER_ERROR_IF(ppath.dim != 3, "ppath.dim must be 3, is ", ppath.dim);
+
+  B.resize(np, 3);
+
+  for (Index ip = 0; ip < np; ip++) {
+    const auto X = Zeeman::FromGrids(ppvar_mag(0, ip),
+                                     ppvar_mag(1, ip),
+                                     ppvar_mag(2, ip),
+                                     Conversion::deg2rad(ppath.los(ip, 0)),
+                                     Conversion::deg2rad(ppath.los(ip, 1)));
+    B(ip, 0) = X.H;
+    B(ip, 1) = Conversion::rad2deg(X.theta);
+    B(ip, 2) = Conversion::rad2deg(X.eta);
   }
 }

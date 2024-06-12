@@ -45,6 +45,7 @@ void py_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
+void py_igrf(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -148,5 +149,6 @@ PYBIND11_MODULE(arts, m) {
   py_physics(m);
   py_math(m);
   py_hitran(m);
+  py_igrf(m);
 }
 }  // namespace Python
