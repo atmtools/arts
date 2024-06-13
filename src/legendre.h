@@ -3,27 +3,7 @@
 #include "grids.h"
 #include "matpack_data.h"
 namespace Legendre {
-
-//! Stores the up (U), south (S), east (E) values of a field relative to the sphere
-struct SphericalField {
-  Numeric U{0};
-  Numeric S{0};
-  Numeric E{0};
-  
-  //! Returns the total strength of the field
-  [[nodiscard]] Numeric total() const noexcept {return std::hypot(U, S, E);}
-  
-  //! Returns the total strength of the field
-  [[nodiscard]] Numeric total_horizontal() const noexcept {return std::hypot(S, E);}
-  
-  //! Always construct to zeroes explicitly
-  constexpr SphericalField() noexcept = default;
-};
-
-
-//! Holds a SphericalField for multiple dimensions (radius times longitudes)
-using MatrixOfSphericalField = Grid<SphericalField, 2>;
-
+using Vector3 = std::array<Numeric, 3>;
 
 /** Computes the spherical field
  * 
@@ -44,25 +24,11 @@ using MatrixOfSphericalField = Grid<SphericalField, 2>;
  * @param[in] g A N x N matrix of g-coefficients
  * @param[in] h A N x N matrix of h-coefficients
  * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
+ * @param[in] pos The position [r, lat, lon] (spherical)
+ * @return A spherical field {Br, Btheta, Bphi}
  */
-SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Numeric r, const Numeric lat, const Numeric lon) ARTS_NOEXCEPT;
-
-
-/** Computes the spherical field for many radius and longitudes
- * 
- * See purely Numeric implementation for more information.
- * 
- * @param[in] g A N x N matrix of g-coefficients
- * @param[in] h A N x N matrix of h-coefficients
- * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
- */
-MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Vector& r, const Numeric lat, const Vector& lon) ARTS_NOEXCEPT;
+Vector3 schmidt_fieldcalc(const Matrix& g,
+                          const Matrix& h,
+                          const Numeric r0,
+                          const Vector3 pos);
 } // namespace Legendre

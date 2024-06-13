@@ -30,6 +30,8 @@ DO_SAVE = False
 
 CF_SAVE = True
 
+DO_PRINT_PPVAR = False
+
 # %% Optional imports
 
 if SHOW_PLOTS:
@@ -59,11 +61,22 @@ def ppath_agenda_step_by_step(arts):
     arts.ppathStepByStep()
 arts.Copy(arts.ppath_agenda, ppath_agenda_step_by_step)
 
-@pyarts.workspace.arts_agenda(ws=arts)
-def iy_main_agenda_emission(arts):
-    arts.ppathCalc()
-    arts.iyEmissionStandard()
-    arts.VectorSet(arts.geo_pos, [])
+arts.mat = pyarts.arts.Matrix()
+
+if DO_PRINT_PPVAR:
+    @pyarts.workspace.arts_agenda(ws=arts)
+    def iy_main_agenda_emission(arts):
+        arts.ppathCalc()
+        arts.iyEmissionStandard()
+        arts.zeeman_magnetic_fieldFromPath(arts.mat)
+        arts.Print(arts.mat, 0)
+        arts.VectorSet(arts.geo_pos, [])
+else:
+    @pyarts.workspace.arts_agenda(ws=arts)
+    def iy_main_agenda_emission(arts):
+        arts.ppathCalc()
+        arts.iyEmissionStandard()
+        arts.VectorSet(arts.geo_pos, [])
 arts.Copy(arts.iy_main_agenda, iy_main_agenda_emission)
 
 @pyarts.workspace.arts_agenda(ws=arts)
