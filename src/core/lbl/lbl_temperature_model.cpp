@@ -10,103 +10,103 @@ namespace model {
 using std::log;
 using std::pow;
 
-Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1);
 }
 
-Numeric dT1_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT1_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) {
   return pow(T0 / T, X1);
 }
 
-Numeric dT1_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT1_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * log(T0 / T);
 }
 
-Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * X1 * pow(T0 / T, X1) / T0;
 }
 
-Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return -X0 * X1 * pow(T0 / T, X1) / T;
 }
 
-Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * (1 + X2 * log(T / T0));
 }
 
 Numeric dT2_dX0(
-    Numeric, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X1) * (1 + X2 * log(T / T0));
 }
 
 Numeric dT2_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) * log(T0 / T);
 }
 
 Numeric dT2_dX2(
-    Numeric X0, Numeric X1, Numeric, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * log(T / T0);
 }
 
 Numeric dT2_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * X1 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) / T0 -
          X0 * X2 * pow(T0 / T, X1) / T0;
 }
 
 Numeric dT2_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return -X0 * X1 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) / T +
          X0 * X2 * pow(T0 / T, X1) / T;
 }
 
-Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return (X0 + X1 * (T0 / T - 1)) * pow(T0 / T, X2);
 }
 
-Numeric dT4_dX0(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) noexcept {
+Numeric dT4_dX0(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X2);
 }
 
-Numeric dT4_dX1(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) noexcept {
+Numeric dT4_dX1(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X2) * (T0 / T - 1.);
 }
 
 Numeric dT4_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1)) * log(T0 / T);
 }
 
 Numeric dT4_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X2 * pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T0 +
          X1 * pow(T0 / T, X2) / T;
 }
 
 Numeric dT4_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return -X2 * pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T -
          T0 * X1 * pow(T0 / T, X2) / (T * T);
 }
 
-Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, 0.25 + 1.5 * X1);
 }
 
-Numeric dT5_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT5_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) {
   return pow(T0 / T, 1.5 * X1 + 0.25);
 }
 
-Numeric dT5_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT5_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return 1.5 * X0 * pow(T0 / T, 1.5 * X1 + 0.25) * log(T0 / T);
 }
 
-Numeric dT5_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT5_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, 1.5 * X1 + 0.25) * (1.5 * X1 + 0.25) / T0;
 }
 
-Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return -X0 * pow(T0 / T, 1.5 * X1 + 0.25) * (1.5 * X1 + 0.25) / T;
 }
 
@@ -115,27 +115,27 @@ Numeric DPL(Numeric X0,
             Numeric X2,
             Numeric X3,
             Numeric T0,
-            Numeric T) noexcept {
+            Numeric T) {
   return X0 * pow(T0 / T, X1) + X2 * pow(T0 / T, X3);
 }
 
 Numeric dDPL_dX0(
-    Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) noexcept {
+    Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
   return pow(T0 / T, X1);
 }
 
 Numeric dDPL_dX1(
-    Numeric X0, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * log(T0 / T);
 }
 
 Numeric dDPL_dX2(
-    Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) noexcept {
+    Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) {
   return pow(T0 / T, X3);
 }
 
 Numeric dDPL_dX3(
-    Numeric, Numeric, Numeric X2, Numeric X3, Numeric T0, Numeric T) noexcept {
+    Numeric, Numeric, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return X2 * pow(T0 / T, X3) * log(T0 / T);
 }
 
@@ -144,7 +144,7 @@ Numeric dDPL_dT0(Numeric X0,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept {
+                 Numeric T) {
   return X0 * X1 * pow(T0 / T, X1) / T0 + X2 * X3 * pow(T0 / T, X3) / T0;
 }
 
@@ -153,11 +153,11 @@ Numeric dDPL_dT(Numeric X0,
                 Numeric X2,
                 Numeric X3,
                 Numeric T0,
-                Numeric T) noexcept {
+                Numeric T) {
   return -X0 * X1 * pow(T0 / T, X1) / T + -X2 * X3 * pow(T0 / T, X3) / T;
 }
 
-Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) noexcept {
+Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) {
   Numeric poly_fac = 1.0;
   Numeric poly_sum = 0.0;
   for (auto X : x) {
@@ -167,7 +167,7 @@ Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) noexcept {
   return poly_sum;
 }
 
-Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) noexcept {
+Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) {
   Numeric poly_fac = 1.0;
   Numeric poly_sum = 0.0;
   for (Index i = 1; i < x.size(); ++i) {
@@ -178,7 +178,7 @@ Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) noexcept {
 }
 }  // namespace model
 
-Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
+Numeric data::operator()(Numeric T0, Numeric T) const {
 #define SWITCHCASE(mod) \
   case LineShapeModelType::mod: \
     return operator()<LineShapeModelType::mod>(T0, T)
@@ -205,7 +205,7 @@ Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
     return d##name<LineShapeModelType::mod>(T0, T)
 
 #define DERIVATIVES(name)                                            \
-  Numeric data::d##name(Numeric T0, Numeric T) const ARTS_NOEXCEPT { \
+  Numeric data::d##name(Numeric T0, Numeric T) const { \
     switch (t) {                                                     \
       SWITCHCASE(name, T0);                                          \
       SWITCHCASE(name, T1);                                          \
@@ -260,7 +260,7 @@ LineShapeModelType data::Type() const { return t; }
 
 Vector data::X() const { return x; }
 
-bool data::is_zero() const noexcept {
+bool data::is_zero() const {
   switch (t) {
     using enum LineShapeModelType;
     case T0:

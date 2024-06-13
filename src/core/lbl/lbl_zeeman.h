@@ -319,7 +319,7 @@ struct model {
   [[nodiscard]] Numeric Strength(Rational Ju,
                                  Rational Jl,
                                  pol type,
-                                 Index n) const ARTS_NOEXCEPT;
+                                 Index n) const;
 
   /** Gives the strength of one subline of a given polarization
    * 
@@ -336,7 +336,7 @@ struct model {
    */
   [[nodiscard]] Numeric Strength(const QuantumNumberValueList &qn,
                                  pol type,
-                                 Index n) const ARTS_NOEXCEPT;
+                                 Index n) const;
 
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -407,7 +407,7 @@ struct model {
  * 
  * @return Zeeman model data
  */
-data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+data GetSimpleModel(const QuantumIdentifier &qid);
 
 /** Returns an advanced Zeeman model 
  * 
@@ -420,13 +420,13 @@ data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
  * 
  * @return Zeeman model data
  */
-data GetAdvancedModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+data GetAdvancedModel(const QuantumIdentifier &qid);
 
 struct magnetic_angles {
   Numeric u, v, w, sa, ca, sz, cz, H, uct, duct;
 
   magnetic_angles(const Vector3 mag = {0, 0, 0}, const Vector2 los = {0, 0});
-  
+
   [[nodiscard]] Numeric theta() const;
   [[nodiscard]] Numeric dtheta_du() const;
   [[nodiscard]] Numeric dtheta_dv() const;
@@ -439,13 +439,13 @@ struct magnetic_angles {
   friend std::ostream &operator<<(std::ostream &os, const magnetic_angles &m);
 };
 
-Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+Propmat norm_view(pol p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los);
 
 constexpr Propmat scale(const Propmat &a, const Complex F) noexcept {
   return {a.A() * F.real(),

@@ -29,109 +29,109 @@ inline constexpr std::array<Size, LineShapeModelTypeSize> model_size{
 namespace model {
 #define EMPTY(name, deriv)                                                   \
   template <typename... T>                                                   \
-  [[nodiscard]] constexpr Numeric d##name##_d##deriv(const T&...) noexcept { \
+  [[nodiscard]] constexpr Numeric d##name##_d##deriv(const T&...) { \
     return 0;                                                                \
   }
 
-constexpr Numeric T0(Numeric X0) noexcept { return X0; }
-constexpr Numeric dT0_dX0(Numeric) noexcept { return 1; }
+constexpr Numeric T0(Numeric X0) { return X0; }
+constexpr Numeric dT0_dX0(Numeric) { return 1; }
 EMPTY(T0, X1)
 EMPTY(T0, X2)
 EMPTY(T0, X3)
 EMPTY(T0, T0)
 EMPTY(T0, T)
 
-Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT1_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT1_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
+Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT1_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT1_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 EMPTY(T1, X2)
 EMPTY(T1, X3)
 
-Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dX0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 EMPTY(T2, X3)
 
-constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept {
+constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 + X1 * (T - T0);
 }
-constexpr Numeric dT3_dX0(Numeric, Numeric, Numeric, Numeric) noexcept {
+constexpr Numeric dT3_dX0(Numeric, Numeric, Numeric, Numeric) {
   return 1;
 }
-constexpr Numeric dT3_dX1(Numeric, Numeric, Numeric T0, Numeric T) noexcept {
+constexpr Numeric dT3_dX1(Numeric, Numeric, Numeric T0, Numeric T) {
   return T - T0;
 }
-constexpr Numeric dT3_dT0(Numeric, Numeric X1, Numeric, Numeric) noexcept {
+constexpr Numeric dT3_dT0(Numeric, Numeric X1, Numeric, Numeric) {
   return -X1;
 }
-constexpr Numeric dT3_dT(Numeric, Numeric X1, Numeric, Numeric) noexcept {
+constexpr Numeric dT3_dT(Numeric, Numeric X1, Numeric, Numeric) {
   return X1;
 }
 EMPTY(T3, X2)
 EMPTY(T3, X3)
 
-Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dX0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) noexcept;
+    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 EMPTY(T4, X2)
 EMPTY(T4, X3)
 
-Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT5_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT5_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT5_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
-Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) noexcept;
+Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT5_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT5_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT5_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
+Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 EMPTY(T5, X2)
 EMPTY(T5, X3)
 
 constexpr Numeric AER(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
   if (T < 250.0) return X0 + (T - 200.0) * (X1 - X0) / (250.0 - 200.0);
   if (T > 296.0) return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
   return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
 }
 constexpr Numeric dAER_dX0(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) noexcept {
+    Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return 1 - (T - 200.0) / (250.0 - 200.0);
   return 0;
 }
 constexpr Numeric dAER_dX1(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) noexcept {
+    Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return (T - 200.0) / (250.0 - 200.0);
   if (T > 296.0) return 0;
   return 1 - (T - 250.0) / (296.0 - 250.0);
 }
 constexpr Numeric dAER_dX2(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) noexcept {
+    Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return 0;
   if (T > 296.0) return 1 - (T - 296.0) / (340.0 - 296.0);
   return (T - 250.0) / (296.0 - 250.0);
 }
 constexpr Numeric dAER_dX3(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) noexcept {
+    Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T > 296.0) return (T - 296.0) / (340.0 - 296.0);
   return 0;
 }
 constexpr Numeric dAER_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) noexcept {
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
   if (T < 250.0) return (X1 - X0) / (250.0 - 200.0);
   if (T > 296.0) return (X3 - X2) / (340.0 - 296.0);
   return (X2 - X1) / (296.0 - 250.0);
@@ -143,62 +143,62 @@ Numeric DPL(Numeric X0,
             Numeric X2,
             Numeric X3,
             Numeric T0,
-            Numeric T) noexcept;
+            Numeric T);
 Numeric dDPL_dX0(Numeric X0,
                  Numeric X1,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept;
+                 Numeric T);
 Numeric dDPL_dX1(Numeric X0,
                  Numeric X1,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept;
+                 Numeric T);
 Numeric dDPL_dX2(Numeric X0,
                  Numeric X1,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept;
+                 Numeric T);
 Numeric dDPL_dX3(Numeric X0,
                  Numeric X1,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept;
+                 Numeric T);
 Numeric dDPL_dT0(Numeric X0,
                  Numeric X1,
                  Numeric X2,
                  Numeric X3,
                  Numeric T0,
-                 Numeric T) noexcept;
+                 Numeric T);
 Numeric dDPL_dT(Numeric X0,
                 Numeric X1,
                 Numeric X2,
                 Numeric X3,
                 Numeric T0,
-                Numeric T) noexcept;
+                Numeric T);
 
-Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) noexcept;
+Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T);
 constexpr Numeric dPOLY_dX0(const ExhaustiveConstVectorView&,
-                            Numeric) noexcept {
+                            Numeric) {
   return 1.0;
 }
 constexpr Numeric dPOLY_dX1(const ExhaustiveConstVectorView&,
-                            Numeric T) noexcept {
+                            Numeric T) {
   return T;
 }
 constexpr Numeric dPOLY_dX2(const ExhaustiveConstVectorView&,
-                            Numeric T) noexcept {
+                            Numeric T) {
   return T * T;
 }
 constexpr Numeric dPOLY_dX3(const ExhaustiveConstVectorView&,
-                            Numeric T) noexcept {
+                            Numeric T) {
   return T * T * T;
 }
-Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) noexcept;
+Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T);
 EMPTY(POLY, T0)
 
 #undef EMPTY
@@ -234,7 +234,7 @@ class data {
   template <LineShapeModelType mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
                                              Numeric T [[maybe_unused]]) const
-      ARTS_NOEXCEPT {
+     {
     if constexpr (mod == LineShapeModelType::T0)
       return model::T0(x[0]);
     else if constexpr (mod == LineShapeModelType::T1)
@@ -259,7 +259,7 @@ class data {
   template <LineShapeModelType mod>                                    \
   [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]], \
                                           Numeric T [[maybe_unused]])  \
-      const ARTS_NOEXCEPT {                                            \
+      const {                                            \
     if constexpr (mod == LineShapeModelType::T0)                       \
       return model::dT0_d##name(x[0]);                                 \
     else if constexpr (mod == LineShapeModelType::T1)                  \
@@ -289,14 +289,14 @@ class data {
 
 #undef DERIVATIVE
 
-  [[nodiscard]] Numeric operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dX0(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dX1(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dX2(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dX3(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dT0(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
-  [[nodiscard]] Numeric dT(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric operator()(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dX0(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dX1(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dX2(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dX3(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dT0(Numeric T0, Numeric T) const;
+  [[nodiscard]] Numeric dT(Numeric T0, Numeric T) const;
 
-  [[nodiscard]] bool is_zero() const noexcept;
+  [[nodiscard]] bool is_zero() const;
 };
 }  // namespace lbl::temperature

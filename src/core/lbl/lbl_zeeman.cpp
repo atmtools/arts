@@ -74,7 +74,7 @@ data SimpleG(const Quantum::Number::ValueList& qns,
   return {};
 }
 
-data GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
+data GetSimpleModel(const QuantumIdentifier& qid) {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   return SimpleG(qid.val, GS, GL);
@@ -133,7 +133,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
 
-data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
+data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
@@ -274,10 +274,7 @@ model::model(const QuantumIdentifier& qid) noexcept {
   *this = m;
 }
 
-Numeric model::Strength(Rational Ju,
-                        Rational Jl,
-                        pol type,
-                        Index n) const ARTS_NOEXCEPT {
+Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
   using Math::pow2;
 
   auto ml = Ml(Ju, Jl, type, n);
@@ -291,7 +288,7 @@ Numeric model::Strength(Rational Ju,
 
 Numeric model::Strength(const QuantumNumberValueList& qn,
                         pol type,
-                        Index n) const ARTS_NOEXCEPT {
+                        Index n) const {
   if (type == pol::no) return 1.0;
 
   const auto& J = qn[QuantumNumberType::J];
@@ -444,7 +441,7 @@ std::ostream& operator<<(std::ostream& os, const magnetic_angles& m) {
   return os;
 }
 
-Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
   if (p == pol::no) {
     return 1;
   }
@@ -487,7 +484,7 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
           -2 * ST * ST * C2E};
 }
 
-Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
   if (p == pol::no) {
     return 0;
   }
@@ -530,7 +527,7 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
           4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
 }
 
-Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
   if (p == pol::no) {
     return 0;
   }
@@ -573,7 +570,7 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
           4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
 }
 
-Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
   if (p == pol::no) {
     return 0;
   }

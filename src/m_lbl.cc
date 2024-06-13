@@ -63,7 +63,7 @@ void absorption_bandsFromAbsorbtionLines(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
-      new_key = old_band.quantumidentity;
+      new_key                   = old_band.quantumidentity;
       new_band.lineshape =
           toLineshape(old_band.lineshapetype, old_band.population);
       new_band.cutoff = to<LineByLineCutoffType>(toString(old_band.cutoff));
@@ -73,17 +73,17 @@ void absorption_bandsFromAbsorbtionLines(
       for (auto& old_line : old_band.lines) {
         auto& new_line = new_band.emplace_back();
 
-        new_line.a = old_line.A;
-        new_line.f0 = old_line.F0;
-        new_line.e0 = old_line.E0;
-        new_line.gu = old_line.gupp;
-        new_line.gl = old_line.glow;
+        new_line.a      = old_line.A;
+        new_line.f0     = old_line.F0;
+        new_line.e0     = old_line.E0;
+        new_line.gu     = old_line.gupp;
+        new_line.gl     = old_line.glow;
         new_line.z.gu() = old_line.zeeman.gu();
         new_line.z.gl() = old_line.zeeman.gl();
-        new_line.qn = old_line.localquanta;
+        new_line.qn     = old_line.localquanta;
 
         new_line.ls.one_by_one = false;
-        new_line.ls.T0 = old_band.T0;
+        new_line.ls.T0         = old_band.T0;
         new_line.ls.single_models.reserve(old_band.broadeningspecies.size());
 
         for (Size i = 0; i < old_band.broadeningspecies.size(); i++) {
@@ -210,11 +210,11 @@ void abs_linesFromArrayOfAbsorptionBand(
     AbsorptionLines old_band;
 
     old_band.quantumidentity = key;
-    old_band.cutoff = to<AbsorptionCutoffTypeOld>(toString(band.cutoff));
-    old_band.cutofffreq = band.cutoff_value;
-    const auto [ls, pop] = toLineshapeAndPolpulation(band.lineshape);
+    old_band.cutoff        = to<AbsorptionCutoffTypeOld>(toString(band.cutoff));
+    old_band.cutofffreq    = band.cutoff_value;
+    const auto [ls, pop]   = toLineshapeAndPolpulation(band.lineshape);
     old_band.lineshapetype = ls;
-    old_band.population = pop;
+    old_band.population    = pop;
     old_band.normalization = AbsorptionNormalizationTypeOld::SFS;
     old_band.linemixinglimit = -1;
     old_band.lines.resize(1);
@@ -229,11 +229,11 @@ void abs_linesFromArrayOfAbsorptionBand(
       old_band.bathbroadening =
           old_band.broadeningspecies.back() == SpeciesEnum::Bath;
 
-      old_line.A = line.a;
-      old_line.F0 = line.f0;
-      old_line.E0 = line.e0;
-      old_line.gupp = line.gu;
-      old_line.glow = line.gl;
+      old_line.A           = line.a;
+      old_line.F0          = line.f0;
+      old_line.E0          = line.e0;
+      old_line.gupp        = line.gu;
+      old_line.glow        = line.gl;
       old_line.zeeman.gu() = line.z.gu();
       old_line.zeeman.gl() = line.z.gl();
       old_line.localquanta = line.qn;
@@ -275,15 +275,15 @@ ARTS_METHOD_ERROR_CATCH
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
                                                       const Index n) {
   std::vector<std::pair<Index, Index>> result(n, {0, 0});
-  const Index dn = N / n;
+  const Index dn        = N / n;
   result.front().second = dn;
 
   for (Index i = 1; i < n - 1; i++) {
-    result[i].first = result[i - 1].first + dn;
+    result[i].first  = result[i - 1].first + dn;
     result[i].second = dn;
   }
 
-  result.back().first = result[n - 2].first + dn;
+  result.back().first  = result[n - 2].first + dn;
   result.back().second = N - result.back().first;
 
   return result;
@@ -384,8 +384,8 @@ void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
           return p1.qid.isotopologue_index < p2.qid.isotopologue_index;
         });
 
-    auto span = std::span{first, last};
-    i += span.size();
+    auto span  = std::span{first, last};
+    i         += span.size();
 
     if (reverse) {
       std::ranges::sort(span | std::views::reverse, {}, &order::value);
@@ -436,16 +436,16 @@ void absorption_bandsReadSpeciesSplitCatalog(
   std::set<SpeciesIsotope> isotopologues;
   for (auto& specs : absorbtion_species) {
     for (auto& spec : specs) {
-      if (is_predefined_model(spec.Isotopologue())) continue;
-
-      if (spec.is_joker()) {
-        for (auto&& isot : Species::isotopologues(spec.Spec())) {
-          if (is_predefined_model(isot)) continue;
-          if (isot.joker()) continue;
-          isotopologues.insert(isot);
+      if (spec.type == SpeciesTagType::Plain) {
+        if (spec.is_joker()) {
+          for (auto&& isot : Species::isotopologues(spec.Spec())) {
+            if (is_predefined_model(isot)) continue;
+            if (isot.joker()) continue;
+            isotopologues.insert(isot);
+          }
+        } else {
+          isotopologues.insert(spec.Isotopologue());
         }
-      } else {
-        isotopologues.insert(spec.Isotopologue());
       }
     }
   }
@@ -519,14 +519,14 @@ void absorption_bandsSaveSplit(const ArrayOfAbsorptionBand& absorption_bands,
 
   const auto p = create_if_not(dir);
 
-  std::unordered_map<SpeciesIsotope, ArrayOfAbsorptionBand>
-      isotopologues_data;
+  std::unordered_map<SpeciesIsotope, ArrayOfAbsorptionBand> isotopologues_data;
   for (auto& band : absorption_bands) {
     isotopologues_data[band.key.Isotopologue()].push_back(band);
   }
 
   for (const auto& [isot, bands] : isotopologues_data) {
-    xml_write_to_file((p / var_string(isot, ".xml")).string(), bands, FileType::ascii, 0);
+    xml_write_to_file(
+        (p / var_string(isot, ".xml")).string(), bands, FileType::ascii, 0);
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -558,7 +558,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                                 const LinemixingEcsData& ecs_data,
                                 const AtmPoint& atm_point,
                                 const PropagationPathPoint& path_point,
-                                const Index& no_negative_absorption) {
+                                const Index& no_negative_absorption) try {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
     lbl::calculate(pm,
@@ -601,3 +601,4 @@ void propagation_matrixAddLines(PropmatVector& pm,
     ARTS_USER_ERROR_IF(not error.empty(), error)
   }
 }
+ARTS_METHOD_ERROR_CATCH

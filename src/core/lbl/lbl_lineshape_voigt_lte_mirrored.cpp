@@ -91,18 +91,18 @@ Complex dline_strength_calc_dVMR(const Numeric inv_gd,
   const auto s =
       line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
 
-  const Numeric G = line.ls.G(atm);
-  const Numeric Y = line.ls.Y(atm);
-  const Numeric dG = line.ls.dG_dVMR(atm, target_spec);
-  const Numeric dY = line.ls.dY_dVMR(atm, target_spec);
+  const Numeric G   = line.ls.G(atm);
+  const Numeric Y   = line.ls.Y(atm);
+  const Numeric dG  = line.ls.dG_dVMR(atm, target_spec);
+  const Numeric dY  = line.ls.dY_dVMR(atm, target_spec);
   const Numeric dD0 = line.ls.dD0_dVMR(atm, target_spec);
   const Numeric dDV = line.ls.dDV_dVMR(atm, target_spec);
 
   const Numeric df0 = dD0 + dDV;
   const Complex lm{1 + G, -Y};
   const Complex dlm = {dG, -dY};
-  const Numeric r = atm[spec];
-  const Numeric x = atm[spec.spec];
+  const Numeric r   = atm[spec];
+  const Numeric x   = atm[spec.spec];
 
   if (target_spec == spec.spec) {
     return -Constant::inv_sqrt_pi * inv_gd * r * s *
@@ -118,22 +118,22 @@ Complex dline_strength_calc_dT(const Numeric inv_gd,
                                const line& line,
                                const AtmPoint& atm) {
   const Numeric T = atm.temperature;
-  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
-  const auto ds = line.ds_dT(
+  const auto s    = line.s(T, PartitionFunctions::Q(T, spec));
+  const auto ds   = line.ds_dT(
       T, PartitionFunctions::Q(T, spec), PartitionFunctions::dQdT(T, spec));
 
-  const Numeric G = line.ls.G(atm);
-  const Numeric Y = line.ls.Y(atm);
-  const Numeric dG = line.ls.dG_dT(atm);
-  const Numeric dY = line.ls.dY_dT(atm);
+  const Numeric G   = line.ls.G(atm);
+  const Numeric Y   = line.ls.Y(atm);
+  const Numeric dG  = line.ls.dG_dT(atm);
+  const Numeric dY  = line.ls.dY_dT(atm);
   const Numeric dD0 = line.ls.dD0_dT(atm);
   const Numeric dDV = line.ls.dDV_dT(atm);
 
   const Numeric df0 = dD0 + dDV;
   const Complex lm{1 + G, -Y};
   const Complex dlm = {dG, -dY};
-  const Numeric r = atm[spec];
-  const Numeric x = atm[spec.spec];
+  const Numeric r   = atm[spec];
+  const Numeric x   = atm[spec.spec];
 
   return Constant::inv_sqrt_pi * inv_gd * r * x *
          (2 * T * (dlm * s + lm * ds) * f0 - 2 * T * df0 * lm * s -
@@ -146,20 +146,20 @@ Complex line_strength_calc(const Numeric inv_gd,
                            const line& line,
                            const AtmPoint& atm,
                            const Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+  const auto& ls   = line.ls.single_models[ispec];
   const Numeric T0 = line.ls.T0;
-  const Numeric T = atm.temperature;
-  const Numeric P = atm.pressure;
-  const Numeric x = atm[spec.spec];
-  const Numeric r = atm[spec];
-  const Numeric v = ls.species == SpeciesEnum::Bath
-                        ? 1 - std::transform_reduce(
+  const Numeric T  = atm.temperature;
+  const Numeric P  = atm.pressure;
+  const Numeric x  = atm[spec.spec];
+  const Numeric r  = atm[spec];
+  const Numeric v  = ls.species == SpeciesEnum::Bath
+                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
                                   0.0,
                                   std::plus<>{},
                                   [&atm](auto& s) { return atm[s.species]; })
-                        : atm[ls.species];
+                         : atm[ls.species];
 
   const auto s = line.s(T, PartitionFunctions::Q(T, spec));
 
@@ -176,7 +176,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+  const auto& ls  = line.ls.single_models[ispec];
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
@@ -202,7 +202,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+  const auto& ls  = line.ls.single_models[ispec];
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
@@ -228,20 +228,20 @@ Complex dline_strength_calc_df0(const Numeric f0,
                                 const line& line,
                                 const AtmPoint& atm,
                                 const Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+  const auto& ls   = line.ls.single_models[ispec];
   const Numeric T0 = line.ls.T0;
-  const Numeric T = atm.temperature;
-  const Numeric P = atm.pressure;
-  const Numeric x = atm[spec.spec];
-  const Numeric r = atm[spec];
-  const Numeric v = ls.species == SpeciesEnum::Bath
-                        ? 1 - std::transform_reduce(
+  const Numeric T  = atm.temperature;
+  const Numeric P  = atm.pressure;
+  const Numeric x  = atm[spec.spec];
+  const Numeric r  = atm[spec];
+  const Numeric v  = ls.species == SpeciesEnum::Bath
+                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
                                   0.0,
                                   std::plus<>{},
                                   [&atm](auto& s) { return atm[s.species]; })
-                        : atm[ls.species];
+                         : atm[ls.species];
   const auto s =
       line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
   const auto ds = line.ds_df0_s_ratio() * s;
@@ -259,29 +259,29 @@ Complex dline_strength_calc_dT(const Numeric f0,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+  const auto& ls   = line.ls.single_models[ispec];
   const Numeric T0 = line.ls.T0;
-  const Numeric T = atm.temperature;
-  const Numeric P = atm.pressure;
-  const Numeric x = atm[spec.spec];
-  const Numeric r = atm[spec];
-  const Numeric v = ls.species == SpeciesEnum::Bath
-                        ? 1 - std::transform_reduce(
+  const Numeric T  = atm.temperature;
+  const Numeric P  = atm.pressure;
+  const Numeric x  = atm[spec.spec];
+  const Numeric r  = atm[spec];
+  const Numeric v  = ls.species == SpeciesEnum::Bath
+                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
                                   0.0,
                                   std::plus<>{},
                                   [&atm](auto& s) { return atm[s.species]; })
-                        : atm[ls.species];
+                         : atm[ls.species];
 
-  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
+  const auto s  = line.s(T, PartitionFunctions::Q(T, spec));
   const auto ds = line.ds_dT(
       T, PartitionFunctions::Q(T, spec), PartitionFunctions::dQdT(T, spec));
 
-  const Numeric G = ls.G(T0, T, P);
-  const Numeric Y = ls.Y(T0, T, P);
-  const Numeric dG = ls.dG_dT(T0, T, P);
-  const Numeric dY = ls.dY_dT(T0, T, P);
+  const Numeric G   = ls.G(T0, T, P);
+  const Numeric Y   = ls.Y(T0, T, P);
+  const Numeric dG  = ls.dG_dT(T0, T, P);
+  const Numeric dY  = ls.dY_dT(T0, T, P);
   const Numeric dD0 = ls.dD0_dT(T0, T, P);
   const Numeric dDV = ls.dDV_dT(T0, T, P);
 
@@ -377,10 +377,10 @@ struct single_shape_builder {
                                        const zeeman::pol pol,
                                        const Size iz) const {
     single_shape s;
-    s.f0 = f0 + H * ln.z.Splitting(ln.qn.val, pol, iz);
+    s.f0     = f0 + H * ln.z.Splitting(ln.qn.val, pol, iz);
     s.inv_gd = 1.0 / (scaled_gd_part * f0);
     s.z_imag = G0 * s.inv_gd;
-    s.s = ln.z.Strength(ln.qn.val, pol, iz) *
+    s.s      = ln.z.Strength(ln.qn.val, pol, iz) *
           (ispec == std::numeric_limits<Size>::max()
                ? line_strength_calc(s.inv_gd, spec, ln, atm)
                : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
@@ -389,12 +389,12 @@ struct single_shape_builder {
 
   operator single_shape() const {
     single_shape s;
-    s.f0 = f0;
+    s.f0     = f0;
     s.inv_gd = 1.0 / (scaled_gd_part * f0);
     s.z_imag = G0 * s.inv_gd;
-    s.s = (ispec == std::numeric_limits<Size>::max()
-               ? line_strength_calc(s.inv_gd, spec, ln, atm)
-               : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
+    s.s      = (ispec == std::numeric_limits<Size>::max()
+                    ? line_strength_calc(s.inv_gd, spec, ln, atm)
+                    : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
     return s;
   }
 };
@@ -428,15 +428,13 @@ single_shape::single_shape(const SpeciesIsotope& spec,
       s(line.z.Strength(line.qn.val, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm, ispec)) {}
 
-Complex single_shape::F(const Complex z_) noexcept { return Faddeeva::w(z_); }
+Complex single_shape::F(const Complex z_) { return Faddeeva::w(z_); }
 
-Complex single_shape::F(const Numeric f) const noexcept { return F(z(f)) + F(zm(f)); }
+Complex single_shape::F(const Numeric f) const { return F(z(f)) + F(zm(f)); }
 
-Complex single_shape::operator()(const Numeric f) const noexcept {
-  return s * F(f);
-}
+Complex single_shape::operator()(const Numeric f) const { return s * F(f); }
 
-Complex single_shape::dF(const Complex z_, const Complex F_) noexcept {
+Complex single_shape::dF(const Complex z_, const Complex F_) {
   /*! FIXME: We should use a proper algorithm here.  This produces
    *         no errors in tests, but the actual derivative form is
    *         analytically known.  Its numerical instability, however,
@@ -456,101 +454,102 @@ Complex single_shape::dF(const Complex z_, const Complex F_) noexcept {
   return (F_2 - F_) / dz;
 }
 
-Complex single_shape::dF(const Numeric f) const noexcept {
-  const Complex z_ = z(f);
+Complex single_shape::dF(const Numeric f) const {
+  const Complex z_  = z(f);
   const Complex zm_ = zm(f);
   return dF(z_, F(z_)) + dF(zm_, F(zm_));
 }
 
-single_shape::zFdF::zFdF(const Complex zp_, const Complex zm_) noexcept
-    : zp{zp_}, zm{zm_}, Fp{single_shape::F(zp_)}, Fm{single_shape::F(zm_)}, dFp{single_shape::dF(zp_, Fp)}, dFm{single_shape::dF(zm_, Fm)} {}
+single_shape::zFdF::zFdF(const Complex zp_, const Complex zm_)
+    : zp{zp_},
+      zm{zm_},
+      Fp{single_shape::F(zp_)},
+      Fm{single_shape::F(zm_)},
+      dFp{single_shape::dF(zp_, Fp)},
+      dFm{single_shape::dF(zm_, Fm)} {}
 
-single_shape::zFdF single_shape::all(const Numeric f) const noexcept {
+single_shape::zFdF single_shape::all(const Numeric f) const {
   return {z(f), zm(f)};
 }
 
-Complex single_shape::df(const Numeric f) const noexcept {
-  return s * inv_gd * dF(f);
-}
+Complex single_shape::df(const Numeric f) const { return s * inv_gd * dF(f); }
 
 Complex single_shape::df0(const Complex ds_df0,
                           const Complex dz_df0,
                           const Numeric dz_df0_fac,
-                          const Numeric f) const noexcept {
+                          const Numeric f) const {
   const auto [zp_, zm_, Fp_, Fm_, dFp_, dFm_] = all(f);
-  const Complex z_ = zp_ - zm_;
-  const Complex F_ = Fp_ + Fm_;
-  const Complex dF_ = dFp_ + dFm_;
+  const Complex z_                            = zp_ - zm_;
+  const Complex F_                            = Fp_ + Fm_;
+  const Complex dF_                           = dFp_ + dFm_;
   return ds_df0 * F_ + s * (dz_df0 + dz_df0_fac * z_) * dF_;
 }
 
 Complex single_shape::dDV(const Complex ds_dDV,
                           const Complex dz_dDV,
                           const Numeric dz_dDV_fac,
-                          const Numeric f) const noexcept {
+                          const Numeric f) const {
   const auto [zp_, zm_, Fp_, Fm_, dFp_, dFm_] = all(f);
-  const Complex z_ = zp_ - zm_;
-  const Complex F_ = Fp_ + Fm_;
-  const Complex dF_ = dFp_ + dFm_;
+  const Complex z_                            = zp_ - zm_;
+  const Complex F_                            = Fp_ + Fm_;
+  const Complex dF_                           = dFp_ + dFm_;
   return ds_dDV * F_ + s * (dz_dDV + dz_dDV_fac * z_) * dF_;
 }
 
 Complex single_shape::dD0(const Complex ds_dD0,
                           const Complex dz_dD0,
                           const Numeric dz_dD0_fac,
-                          const Numeric f) const noexcept {
+                          const Numeric f) const {
   const auto [zp_, zm_, Fp_, Fm_, dFp_, dFm_] = all(f);
-  const Complex z_ = zp_ - zm_;
-  const Complex F_ = Fp_ + Fm_;
-  const Complex dF_ = dFp_ + dFm_;
+  const Complex z_                            = zp_ - zm_;
+  const Complex F_                            = Fp_ + Fm_;
+  const Complex dF_                           = dFp_ + dFm_;
   return ds_dD0 * F_ + s * (dz_dD0 + dz_dD0_fac * z_) * dF_;
 }
 
-Complex single_shape::dG0(const Complex dz_dG0,
-                          const Numeric f) const noexcept {
+Complex single_shape::dG0(const Complex dz_dG0, const Numeric f) const {
   return s * dz_dG0 * dF(f);
 }
 
-Complex single_shape::dH(const Complex dz_dH, const Numeric f) const noexcept {
+Complex single_shape::dH(const Complex dz_dH, const Numeric f) const {
   return s * dz_dH * dF(f);
 }
 
 Complex single_shape::dVMR(const Complex ds_dVMR,
                            const Complex dz_dVMR,
                            const Numeric dz_dVMR_fac,
-                           const Numeric f) const noexcept {
+                           const Numeric f) const {
   const auto [zp_, zm_, Fp_, Fm_, dFp_, dFm_] = all(f);
-  const Complex z_ = zp_ - zm_;
-  const Complex F_ = Fp_ + Fm_;
-  const Complex dF_ = dFp_ + dFm_;
+  const Complex z_                            = zp_ - zm_;
+  const Complex F_                            = Fp_ + Fm_;
+  const Complex dF_                           = dFp_ + dFm_;
   return ds_dVMR * F_ + s * (dz_dVMR + dz_dVMR_fac * z_) * dF_;
 }
 
 Complex single_shape::dT(const Complex ds_dT,
                          const Complex dz_dT,
                          const Numeric dz_dT_fac,
-                         const Numeric f) const noexcept {
+                         const Numeric f) const {
   const auto [zp_, zm_, Fp_, Fm_, dFp_, dFm_] = all(f);
-  const Complex z_ = zp_ - zm_;
-  const Complex F_ = Fp_ + Fm_;
-  const Complex dF_ = dFp_ + dFm_;
+  const Complex z_                            = zp_ - zm_;
+  const Complex F_                            = Fp_ + Fm_;
+  const Complex dF_                           = dFp_ + dFm_;
   return ds_dT * F_ + s * (dz_dT + dz_dT_fac * z_) * dF_;
 }
 
-Complex single_shape::da(const Complex ds_da, const Numeric f) const noexcept {
+Complex single_shape::da(const Complex ds_da, const Numeric f) const {
   return ds_da * F(f);
 }
 
-Complex single_shape::de0(const Complex ds_de0,
-                          const Numeric f) const noexcept {
+Complex single_shape::de0(const Complex ds_de0, const Numeric f) const {
   return ds_de0 * F(f);
 }
 
-Complex single_shape::dG(const Complex ds_dG, const Numeric f) const noexcept {
+Complex single_shape::dG(const Complex ds_dG, const Numeric f) const {
   return ds_dG * F(f);
 }
 
-Complex single_shape::dY(const Complex ds_dY, const Numeric f) const noexcept {
+Complex single_shape::dY(const Complex ds_dY, const Numeric f) const {
   return ds_dY * F(f);
 }
 
@@ -576,7 +575,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
     pos.emplace_back(line_pos{.line = iline, .spec = ispec});
   } else {
     const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
-    const auto nz = static_cast<Size>(line.z.size(line.qn.val, pol));
+    const auto nz   = static_cast<Size>(line.z.size(line.qn.val, pol));
     for (Size iz = 0; iz < nz; iz++) {
       lines.emplace_back(s.as_zeeman(H, pol, iz));
       pos.emplace_back(line_pos{.line = iline, .spec = ispec, .iz = iz});
@@ -655,11 +654,10 @@ void band_shape_helper(std::vector<single_shape>& lines,
       pos);
 }
 
-band_shape::band_shape(std::vector<single_shape>&& ls,
-                       const Numeric cut) noexcept
+band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut)
     : lines(std::move(ls)), cutoff(cut) {}
 
-Complex band_shape::operator()(const Numeric f) const noexcept {
+Complex band_shape::operator()(const Numeric f) const {
   return std::transform_reduce(
       lines.begin(), lines.end(), Complex{}, std::plus<>{}, [f](auto& ls) {
         return ls(f);
@@ -1221,9 +1219,9 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
   std::transform(f_grid.begin(),
                  f_grid.end(),
                  dscl.begin(),
-                 [N = number_density(atm.pressure, atm.temperature),
+                 [N  = number_density(atm.pressure, atm.temperature),
                   dN = dnumber_density_dt(atm.pressure, atm.temperature),
-                  T = atm.temperature](auto f) {
+                  T  = atm.temperature](auto f) {
                    constexpr Numeric c =
                        Constant::c * Constant::c / (8 * Constant::pi);
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
@@ -1236,7 +1234,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
     const auto& lshp = shp.lines[i];
 
     const Numeric& inv_gd = lshp.inv_gd;
-    const Numeric& f0 = lshp.f0;
+    const Numeric& f0     = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       dz_fac[i] =
@@ -1314,12 +1312,12 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
                                    const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
-  const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+  const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_u = atm.mag[0] / H;
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i] = -shp.lines[pos[i].line].inv_gd * dH_dmag_u *
+    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_u *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1343,12 +1341,12 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
                                    const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
-  const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+  const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_v = atm.mag[1] / H;
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i] = -shp.lines[pos[i].line].inv_gd * dH_dmag_v *
+    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_v *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1372,12 +1370,12 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
                                    const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
-  const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+  const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_w = atm.mag[2] / H;
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i] = -shp.lines[pos[i].line].inv_gd * dH_dmag_w *
+    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_w *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1406,10 +1404,10 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
   const Numeric x = atm[target_spec];
 
   for (Size i = 0; i < pos.size(); i++) {
-    const auto& line = bnd.lines[pos[i].line];
-    const auto& lshp = shp.lines[i];
+    const auto& line      = bnd.lines[pos[i].line];
+    const auto& lshp      = shp.lines[i];
     const Numeric& inv_gd = lshp.inv_gd;
-    const Numeric& f0 = lshp.f0;
+    const Numeric& f0     = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       dz_fac[i] = -(line.ls.dD0_dVMR(atm, target_spec) +
@@ -1495,7 +1493,7 @@ void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
     const auto& line = bnd.lines[pos[i].line];
 
     const Numeric& inv_gd = lshp.inv_gd;
-    const Numeric& f0 = lshp.f0;
+    const Numeric& f0     = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       dz_fac[i] = -1.0 / f0;
@@ -1565,7 +1563,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
 
   for (Size i : filter) {
     const Numeric ds_da_ratio = 1.0 / bnd.lines[pos[i].line].a;
-    ds[i] = ds_da_ratio * shp.lines[i].s;
+    ds[i]                     = ds_da_ratio * shp.lines[i].s;
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -1625,10 +1623,10 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 
   for (Size i : filter) {
     const auto& lshp = shp.lines[i];
-    const auto& ls = bnd.lines[pos[i].line].ls;
+    const auto& ls   = bnd.lines[pos[i].line].ls;
 
     const Numeric& inv_gd = lshp.inv_gd;
-    const Numeric& f0 = lshp.f0;
+    const Numeric& f0     = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       const Numeric d = ls.dD0_dX(atm, key.spec, key.ls_coeff);
@@ -1766,10 +1764,10 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
   for (Size i : filter) {
     const auto& lshp = shp.lines[i];
-    const auto& ls = bnd.lines[pos[i].line].ls;
+    const auto& ls   = bnd.lines[pos[i].line].ls;
 
     const Numeric& inv_gd = lshp.inv_gd;
-    const Numeric& f0 = lshp.f0;
+    const Numeric& f0     = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       const Numeric d = ls.dDV_dX(atm, key.spec, key.ls_coeff);
@@ -2017,8 +2015,8 @@ void calculate(PropmatVectorView pm,
   if (nf == 0) return;
 
   const SpeciesIsotope spec = bnd_qid.Isotopologue();
-  const Numeric fmin = f_grid.front();
-  const Numeric fmax = f_grid.back();
+  const Numeric fmin        = f_grid.front();
+  const Numeric fmax        = f_grid.back();
 
   ARTS_ASSERT(jacobian_targets.target_count() ==
                   static_cast<Size>(dpm.nrows()) and

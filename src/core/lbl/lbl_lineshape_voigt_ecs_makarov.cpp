@@ -17,7 +17,7 @@ Numeric wig3(const Rational& a,
              const Rational& c,
              const Rational& d,
              const Rational& e,
-             const Rational& f) noexcept {
+             const Rational& f) {
   return WIGNER3(
       a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }
@@ -27,7 +27,7 @@ Numeric wig6(const Rational& a,
              const Rational& c,
              const Rational& d,
              const Rational& e,
-             const Rational& f) noexcept {
+             const Rational& f) {
   return WIGNER6(
       a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }

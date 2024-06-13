@@ -42,6 +42,20 @@ ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &ppvar_f,
                                        const AscendingGrid &f_grid,
                                        const ArrayOfAtmPoint &ppvar_atm);
 
+/** Frequency shift at a single ray path ppoint
+ * 
+ * @param path_freq Shifted frequency grid
+ * @param main_freq Original frequency grid
+ * @param rad_path path point of the radiation
+ * @param atm_path path point of the atmosphere
+ * @param along_path_atm_speed Speed of the measurement along the path
+ */
+void forward_path_freq(AscendingGrid &path_freq,
+                       const AscendingGrid &main_freq,
+                       const PropagationPathPoint &rad_path,
+                       const AtmPoint &atm_path,
+                       const Numeric along_path_atm_speed);
+
 /** Set frequency grid along the atmospheric path
  * 
  * @param[out] ppvar_f As WSV

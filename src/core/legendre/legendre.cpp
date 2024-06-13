@@ -67,68 +67,6 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) {
   return {P, dP};
 }
 
-std::pair<Matrix, Matrix> schmidt2(const Numeric theta, const Index nmax) {
-  ARTS_USER_ERROR_IF(
-      theta < 0 or theta > Constant::pi, "Theta=", theta, " must be in [0, pi]")
-  ARTS_USER_ERROR_IF(nmax <= 0, "nmax=", nmax, " must be > 0")
-
-  using Math::pow2;
-  using std::sqrt;
-
-  Index N = 1 + nmax;
-
-  const Numeric x = std::cos(theta);
-  Matrix P(N, N, 0);
-  Matrix dP(N, N, 0);
-
-  // Start values
-  P(0, 0)  = 1.0;
-  P(1, 0)  = x;
-  P(1, 1)  = -sqrt(1.0 - pow2(x));
-  dP(0, 0) = 0.0;
-  dP(1, 0) = 1.0;
-
-  for (Index n = 2; n < N; ++n) {
-    P(n, 0) = ((2 * (n - 1) + 1) * x * P(n - 1, 0) - (n - 1) * P(n - 2, 0)) / n;
-  }
-
-  dP(nmax, 0) = nmax / (pow2(x) - 1) * (x * P(nmax, 0) - P(nmax - 1, 0));
-  for (Index n = 2; n < nmax; ++n) {
-    dP(n, 0) = (n + 1) / (pow2(x) - 1) * (P(n + 1, 0) - x * P(n, 0));
-  }
-
-  Numeric Cm = sqrt(2.0);
-  for (Index m = 1; m < N; ++m) {
-    Cm      /= sqrt(Numeric(2 * m * (2 * m - 1)));
-    P(m, m)  = std::pow(1 - pow2(x), 0.5 * m) * Cm;
-
-    for (Index i = 1; i < m; ++i) {
-      P(m, m) *= 2 * i + 1;
-    }
-
-    dP(m, m) = -P(m, m) * m * x / sqrt(1 - pow2(x));
-
-    if (nmax > m) {
-      Numeric twoago = 0.0;
-      for (Index n = m + 1; n < N; ++n) {
-        P(n, m) = (x * (2 * n - 1) * P(n - 1, m) -
-                   sqrt(Numeric((n + m - 1) * (n - m - 1))) * twoago) /
-                  sqrt(Numeric(pow2(n) - pow2(m)));
-        twoago = P(n - 1, m);
-      }
-    }
-  }
-
-  for (Index n = 2; n < N; ++n) {
-    for (Index m = 1; m < n; ++m) {
-      dP(n, m) = sqrt(Numeric((n - m) * (n + m + 1))) * P(n, m + 1) -
-                 P(n, m) * m * x / sqrt(1 - pow2(x));
-    }
-  }
-
-  return {P, dP};
-}
-
 Vector3 schmidt_fieldcalc(const Matrix& g,
                           const Matrix& h,
                           const Numeric r0,

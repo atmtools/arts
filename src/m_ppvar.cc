@@ -6,6 +6,7 @@
 #include <surf.h>
 #include <workspace.h>
 
+#include "arts_conversions.h"
 #include "debug.h"
 #include "sorted_grid.h"
 
@@ -188,8 +189,9 @@ void ray_path_zeeman_magnetic_fieldFromPath(
                  ray_path_atmospheric_point.begin(),
                  ray_path_zeeman_magnetic_field.begin(),
                  [](const auto &p, const auto &a) -> Vector3 {
+                   using Conversion::rad2deg;
                    const auto zz = lbl::zeeman::magnetic_angles(a.mag, p.los);
-                   return {zz.H, zz.theta(), zz.eta()};
+                   return {zz.H, rad2deg(zz.theta()), rad2deg(zz.eta())};
                  });
 }
 ARTS_METHOD_ERROR_CATCH

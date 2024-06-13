@@ -23,7 +23,7 @@
     If the two radii of an ellipsoid differ with less than this value, it is
     treated as spherical for efficiency reasons.
 */
-const Numeric ellipsoid_radii_threshold = 1e-3;
+inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
 
 
 /** Size of north and south poles
@@ -31,7 +31,7 @@ const Numeric ellipsoid_radii_threshold = 1e-3;
     Latitudes with an absolute value > POLELAT are considered to be on
     the south or north pole. This is needed for definition of azimuth.
 */
-const Numeric POLELATZZZ = 90 - 1e-8;   // Rename to POLELAT when other one removed
+inline constexpr Numeric POLELATZZZ = 90 - 1e-8;   // Rename to POLELAT when other one removed
 
 
 /** Conversion from ECEF to geocentric coordinates

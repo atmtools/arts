@@ -12,6 +12,7 @@ from pyarts.common import *  # noqa
 from pyarts import hitran  # noqa
 from pyarts import cat  # noqa
 from pyarts import fields  # noqa
+from pyarts import recipe  # noqa
 
 __all__ = [s for s in dir() if not s.startswith('_')]
 __version__ = "@ARTS_VERSION@"

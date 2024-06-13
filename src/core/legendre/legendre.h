@@ -33,9 +33,8 @@ using MatrixOfSphericalField = Grid<SphericalField, 2>;
  * The derivative is undefined if theta is 0 or pi, so the function cannot
  * be called with these values
  *
- * This function is taken from the implementation by Isabela de Oliveira Martins
- * at https://github.com/de-oliveira/IsabelaFunctions/blob/master/IsabelaFunctions/fieldmodel.py
- * (2021-05-06).  It implements the calculations step-by-step, updating both main and derivative
+ * This function is taken from the implementation by at https://github.com/klaundal/ppigrf
+ * (2024-06-13).  It implements the calculations step-by-step, updating both main and derivative
  * based on previous values.
  *
  * @param[in] theta Colatitude in radians

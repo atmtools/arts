@@ -20,6 +20,7 @@
 #include <workspace.h>
 
 #include <cmath>
+#include <functional>
 #include <stdexcept>
 
 #include "arts_constants.h"
@@ -28,6 +29,8 @@
 #include "debug.h"
 #include "enums.h"
 #include "operators.h"
+#include "rtepack.h"
+#include "sorted_grid.h"
 #include "surf.h"
 
 inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;

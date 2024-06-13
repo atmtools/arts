@@ -1,5 +1,6 @@
 
 #include <atm.h>
+#include <atm_path.h>
 #include <debug.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
@@ -10,6 +11,7 @@
 
 #include "enums.h"
 #include "isotopologues.h"
+#include "physics_funcs.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -36,9 +38,10 @@ void py_atm(py::module_ &m) try {
       .def_readwrite("lon_upp", &Atm::Data::lon_upp)
       .def_readwrite("lon_low", &Atm::Data::lon_low)
       .def_property_readonly("data_type", &Atm::Data::data_type)
-      .def("__call__", [](const Atm::Data& d, Numeric alt, Numeric lat, Numeric lon){
-        return d.at(alt, lat, lon);
-      })
+      .def("__call__",
+           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+             return d.at(alt, lat, lon);
+           })
       .def(py::pickle(
           [](const Atm::Data &t) {
             return py::make_tuple(t.data,
@@ -52,8 +55,8 @@ void py_atm(py::module_ &m) try {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            auto out = std::make_shared<Atm::Data>();
-            out->data = t[0].cast<Atm::FieldData>();
+            auto out     = std::make_shared<Atm::Data>();
+            out->data    = t[0].cast<Atm::FieldData>();
             out->alt_low = t[1].cast<InterpolationExtrapolation>();
             out->alt_upp = t[2].cast<InterpolationExtrapolation>();
             out->lat_low = t[3].cast<InterpolationExtrapolation>();
@@ -67,14 +70,44 @@ void py_atm(py::module_ &m) try {
   py::implicitly_convertible<Index, Atm::Data>();
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
 
-  auto& pnt = py_staticAtmPoint(m);
+  auto &pnt = py_staticAtmPoint(m);
 
-  auto& fld = py_staticAtmField(m);
+  auto &fld = py_staticAtmField(m);
 
   pnt.def_readwrite("temperature", &AtmPoint::temperature)
       .def_readwrite("pressure", &AtmPoint::pressure)
       .def_readwrite("mag", &AtmPoint::mag)
       .def_readwrite("wind", &AtmPoint::wind)
+      .def("number_density",
+           [](AtmPoint &atm, SpeciesIsotope s) {
+             if (not atm.has(s)) throw py::key_error(var_string(s));
+             if (not atm.has(s.spec)) throw py::key_error(var_string(s));
+             return atm[s] * atm[s.spec] *
+                    number_density(atm.pressure, atm.temperature);
+           })
+      .def("species_vmr",
+           [](AtmPoint &atm, SpeciesEnum s) {
+             if (not atm.has(s)) throw py::key_error(var_string(s));
+             return atm[s];
+           })
+      .def("set_species_vmr",
+           [](AtmPoint &atm, SpeciesEnum s, Numeric x) { atm[s] = x; })
+      .def("isotopologue_ratio",
+           [](AtmPoint &atm, SpeciesIsotope s) {
+             if (not atm.has(s)) throw py::key_error(var_string(s));
+             return atm[s];
+           })
+      .def("set_isotopologue_ratio",
+           [](AtmPoint &atm, SpeciesIsotope s, Numeric x) { atm[s] = x; })
+      .def("nlte_value",
+           [](AtmPoint &atm, const QuantumIdentifier &s) {
+             if (not atm.has(s)) throw py::key_error(var_string(s));
+             return atm[s];
+           })
+      .def("set_nlte_value",
+           [](AtmPoint &atm, const QuantumIdentifier &s, Numeric x) {
+             atm[s] = x;
+           })
       .def(
           "__getitem__",
           [](AtmPoint &atm, AtmKey x) {
@@ -257,7 +290,7 @@ void py_atm(py::module_ &m) try {
             auto v = t[1].cast<std::vector<Atm::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_shared<AtmField>();
+            auto out               = std::make_shared<AtmField>();
             out->top_of_atmosphere = t[2].cast<Numeric>();
 
             for (std::size_t i = 0; i < k.size(); i++)
@@ -269,6 +302,20 @@ void py_atm(py::module_ &m) try {
 
             return out;
           }));
+
+  m.def("frequency_shift",
+        [](const AscendingGrid &frequency_grid,
+           const PropagationPathPoint &ray_path_point,
+           const AtmPoint &atmospheric_point,
+           const Numeric &rte_alonglos_v) {
+          AscendingGrid out = frequency_grid;
+          forward_path_freq(out,
+                            frequency_grid,
+                            ray_path_point,
+                            atmospheric_point,
+                            rte_alonglos_v);
+          return out;
+        });
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));

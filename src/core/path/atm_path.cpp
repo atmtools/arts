@@ -7,7 +7,9 @@
 #include <memory>
 #include <vector>
 
+#include "arts_omp.h"
 #include "debug.h"
+#include "nonstd.h"
 #include "path_point.h"
 #include "sorted_grid.h"
 
@@ -42,34 +44,67 @@ ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &path_freq,
   return path_freq;
 }
 
-void forward_path_freq(ArrayOfAscendingGrid &path_freq,
+void forward_path_freq(AscendingGrid &path_freq,
                        const AscendingGrid &main_freq,
-                       const ArrayOfPropagationPathPoint &rad_path,
-                       const ArrayOfAtmPoint &atm_path,
+                       const PropagationPathPoint &rad_path,
+                       const AtmPoint &atm_path,
                        const Numeric along_path_atm_speed) {
-  auto dot_prod = [&](Index ip) {
-    const auto &[u, v, w] = atm_path[ip].wind;
-    const auto &za = rad_path[ip].los[0];
-    const auto &aa = rad_path[ip].los[1];
-    const auto f = std::hypot(u, v, w);
-    const auto za_f = std::acos(w / f);
-    const auto aa_f = std::atan2(u, v);
-    const auto za_p = Conversion::deg2rad(180 - za);
-    const auto aa_p = Conversion::deg2rad(aa + 180);
+  auto dot_prod = [&]() {
+    const auto &[u, v, w] = atm_path.wind;
+    const auto &[za, aa]  = rad_path.los;
+    const auto f          = std::hypot(u, v, w);
+    const auto za_f       = std::acos(w / f);
+    const auto aa_f       = std::atan2(u, v);
+    const auto za_p       = Conversion::deg2rad(180 - za);
+    const auto aa_p       = Conversion::deg2rad(aa + 180);
     return f * ((f == 0) ? 1.0
                          : (std::cos(za_f) * std::cos(za_p) +
                             std::sin(za_f) * std::sin(za_p) *
                                 std::cos(aa_f - aa_p)));
   };
 
-  for (Size ip = 0; ip < atm_path.size(); ip++) {
-    const Numeric fac =
-        1.0 - (along_path_atm_speed + dot_prod(ip)) / Constant::speed_of_light;
-    ARTS_USER_ERROR_IF(fac < 0, "Bad frequency scaling factor: ", fac)
-    std::transform(main_freq.begin(),
-                   main_freq.end(),
-                   path_freq[ip].unsafe_begin(),
-                   [fac](const auto &f) { return fac * f; });
+  const Numeric fac =
+      1.0 - (along_path_atm_speed + dot_prod()) / Constant::speed_of_light;
+
+  ARTS_USER_ERROR_IF(
+      fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: ", fac)
+
+  std::transform(main_freq.begin(),
+                 main_freq.end(),
+                 path_freq.unsafe_begin(),
+                 [fac](const auto &f) { return fac * f; });
+}
+
+void forward_path_freq(ArrayOfAscendingGrid &path_freq,
+                       const AscendingGrid &main_freq,
+                       const ArrayOfPropagationPathPoint &rad_path,
+                       const ArrayOfAtmPoint &atm_path,
+                       const Numeric along_path_atm_speed) {
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 0; ip < atm_path.size(); ip++) {
+      forward_path_freq(path_freq[ip],
+                        main_freq,
+                        rad_path[ip],
+                        atm_path[ip],
+                        along_path_atm_speed);
+    }
+  } else {
+    String error{};
+#pragma omp parallel for
+    for (Size ip = 0; ip < atm_path.size(); ip++) {
+      try {
+        forward_path_freq(path_freq[ip],
+                          main_freq,
+                          rad_path[ip],
+                          atm_path[ip],
+                          along_path_atm_speed);
+      } catch (const std::exception &e) {
+#pragma omp critical
+        error = var_string(e.what(), "\n");
+      }
+    }
+
+    ARTS_USER_ERROR_IF(not error.empty(), error)
   }
 }
 
