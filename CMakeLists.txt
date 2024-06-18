@@ -130,14 +130,14 @@ list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 find_package (Boost COMPONENTS REQUIRED headers)
 
 ########### Find Python ##########
-find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package (Python REQUIRED COMPONENTS Interpreter Development.Module)
 
 include (CheckPythonModule)
 check_python_modules()
 
 find_package(pybind11 CONFIG REQUIRED)
 
-set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python3_EXECUTABLE})
+set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python_EXECUTABLE})
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
