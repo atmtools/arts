@@ -159,9 +159,6 @@ void gas_scattering_matRayleigh(TransmissionMatrix& gas_scattering_mat,
       // Rayleigh phase matrix in scattering system
       Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, stokes_dim);
 
-      // transform the phase matrix
-      Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
-
       // account for depolarization factor
       Numeric delta =
           (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
@@ -169,16 +166,13 @@ void gas_scattering_matRayleigh(TransmissionMatrix& gas_scattering_mat,
           (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
       Vector depol(6, 0.0);
 
-      switch (stokes_dim) {
-        case 4:
-          depol[5] = 1;
-          pha_mat_int[5] *= delta_prime;
-          [[fallthrough]];
-        case 1:
-          depol[0] = 1;
-          depol *= 1 - delta;
-          pha_mat_int += depol;
-      }
+      // add depolarization to phase matrix according to Hansen and Travis (1974)
+      pha_mat_int *= delta;
+      pha_mat_int[0] += (1 - delta);
+      if (stokes_dim == 4) pha_mat_int[5] *= delta_prime;
+
+      // transform the phase matrix
+      Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
 
       pha_mat_labCalc(pha_mat,
                       pha_mat_int,
