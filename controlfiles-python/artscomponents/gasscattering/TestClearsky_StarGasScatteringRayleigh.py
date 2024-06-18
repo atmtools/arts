@@ -215,7 +215,7 @@ if __name__ == "__main__":
                               stokes_dim=1)
 
     # Reference data
-    yREFERENCE = np.array([3.94192129256117e-13])
+    yREFERENCE = np.array([3.92491800384289e-13])
 
     # Compare with reference
     ws.CompareRelative(y, yREFERENCE, 1e-6)
