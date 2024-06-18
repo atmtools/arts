@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def select(ws, lines, qid, fmin=-np.infty, fmax=np.infty, safe=1):
+def select(ws, lines, qid, fmin=-np.inf, fmax=np.inf, safe=1):
     """ Select a single band
     
     Parameters:
