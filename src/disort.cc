@@ -1565,6 +1565,9 @@ void run_cdisort_flux(Workspace& ws,
     nlinspace(pfct_angs, 0, 180, nang);
   }
 
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
   WorkspaceOmpParallelCopyGuard wss{ws};
   // start loop over all frequencies
 #pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
@@ -1580,6 +1583,11 @@ void run_cdisort_flux(Workspace& ws,
                      dtauc,                                                 \
                      out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+
+    if (do_abort) {
+      continue;
+    }
+
     Vector f_grid_i(1);
 
     //Intensity of incident sun beam
@@ -1764,7 +1772,15 @@ void run_cdisort_flux(Workspace& ws,
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
-          throw e;
+        {
+#pragma omp critical(run_cdisort_flux_setabort)
+          do_abort = true;
+
+          ostringstream os;
+          os << "failure at f_index " << f_index << ":\n" << e.what();
+#pragma omp critical(ybatchCalc_push_fail_msg)
+          fail_msg.push_back(os.str());
+        }
       }
     } while (tries != Status::SUCCESS);
 
@@ -1825,6 +1841,17 @@ void run_cdisort_flux(Workspace& ws,
     /* Free allocated memory */
     c_disort_out_free(&ds, &out);
     c_disort_state_free(&ds);
+  }
+
+  if (fail_msg.nelem()) {
+    ostringstream os;
+
+    if (!do_abort) os << "\nError messages from failed run_cdisort_flux:\n";
+    for (ArrayOfString::const_iterator it = fail_msg.begin();
+         it != fail_msg.end();
+         it++)
+      os << *it << '\n';
+      throw runtime_error(os.str());
   }
 
   // Allocate aux data
