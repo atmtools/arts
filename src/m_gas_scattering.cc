@@ -164,7 +164,6 @@ void gas_scattering_matRayleigh(TransmissionMatrix& gas_scattering_mat,
           (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
       Numeric delta_prime =
           (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
-      Vector depol(6, 0.0);
 
       // add depolarization to phase matrix according to Hansen and Travis (1974)
       pha_mat_int *= delta;
