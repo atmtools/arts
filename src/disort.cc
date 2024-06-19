@@ -1782,7 +1782,7 @@ void run_cdisort_flux(Workspace& ws,
           fail_msg.push_back(os.str());
         }
       }
-    } while (tries != Status::SUCCESS);
+    } while (tries != Status::SUCCESS and not do_abort);
 
     //factor for converting it into spectral radiance units
     const Numeric conv_fac = (ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
