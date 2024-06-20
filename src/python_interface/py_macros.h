@@ -7,7 +7,7 @@
 #include <functional>
 
 namespace Python {
-namespace py = pybind11;
+namespace py = nanobind;
 }  // namespace Python
 
 constexpr Index negative_clamp(const Index i, const Index n) noexcept {
@@ -89,7 +89,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(     \
                 &x[i], [](void*) {});                                        \
           },                                                                 \
-          py::return_value_policy::reference_internal,                       \
+          py::rv_policy::reference_internal,                       \
           py::keep_alive<0, 1>())                                            \
       .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {           \
         i = negative_clamp(i, x.size());                                     \
@@ -157,14 +157,14 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(py::self > py::self)
 
 #define PythonInterfaceReadWriteData(Type, data, docstr)     \
-  def_readwrite(#data,                                       \
+  def_rw(#data,                                       \
                 &Type::data,                                 \
-                py::return_value_policy::reference_internal, \
+                py::rv_policy::reference_internal, \
                 py::doc(docstr))
 
 #define PythonInterfaceBasicReferenceProperty(                               \
     Type, PropertyName, ReadFunction, WriteFunction, docstr)                 \
-  def_property(                                                              \
+  def_prop_rw(                                                              \
       #PropertyName,                                                         \
       py::cpp_function(                                                      \
           [](Type& x)                                                        \
@@ -172,14 +172,14 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                   std::add_lvalue_reference_t<decltype(x.ReadFunction())>> { \
             return x.ReadFunction();                                         \
           },                                                                 \
-          py::return_value_policy::reference_internal),                      \
+          py::rv_policy::reference_internal),                      \
       [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) {   \
         x.WriteFunction() = std::move(y);                                    \
       },                                                                     \
       py::doc(docstr))
 
 #define PythonInterfaceSelfAttribute(ATTR)                       \
-  def_property_readonly(                                         \
+  def_prop_ro(                                         \
       #ATTR,                                                     \
       [](py::object& x) { return x.attr("value").attr(#ATTR); }, \
       "As for :class:`numpy.ndarray`")

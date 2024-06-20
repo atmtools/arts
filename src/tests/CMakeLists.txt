@@ -187,7 +187,7 @@ add_test(NAME "cpp.fast.test_mdspan" COMMAND test_mdspan)
 add_dependencies(check-deps test_mdspan)
 
 # #######################################################################################
-pybind11_add_module(test_pyversion test_pyversion.cc)
+nanobind_add_module(test_pyversion test_pyversion.cc)
 add_custom_target(check-pyversion
   COMMAND ${Python_EXECUTABLE} -c "import test_pyversion\\; test_pyversion.check_pyversion\\(\\)"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

@@ -20,7 +20,7 @@
 namespace Python {
 void py_spectroscopy(py::module_& m) try {
   static_assert(LineShapeModelParameters::N == 4);
-  artsclass<LineShapeModelParameters>(m, "LineShapeModelParameters")
+  py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
       .def(py::init([](LineShapeTemperatureModelOld a,
                        Numeric b,
                        Numeric c,
@@ -35,17 +35,17 @@ void py_spectroscopy(py::module_& m) try {
            py::arg("X3") = 0,
            "From values")
       .PythonInterfaceCopyValue(LineShapeModelParameters)
-      .def_readwrite(
+      .def_rw(
           "type",
           &LineShapeModelParameters::type,
           ":class:`~pyarts.arts.options.LineShapeTemperatureModel` The temperature model")
-      .def_readwrite(
+      .def_rw(
           "X0", &LineShapeModelParameters::X0, ":class:`float` 1st coefficient")
-      .def_readwrite(
+      .def_rw(
           "X1", &LineShapeModelParameters::X1, ":class:`float` 2nd coefficient")
-      .def_readwrite(
+      .def_rw(
           "X2", &LineShapeModelParameters::X2, ":class:`float` 3rd coefficient")
-      .def_readwrite(
+      .def_rw(
           "X3", &LineShapeModelParameters::X3, ":class:`float` 4th coefficient")
       .PythonInterfaceBasicRepresentation(LineShapeModelParameters)
       .def(py::pickle(
@@ -79,7 +79,7 @@ void py_spectroscopy(py::module_& m) try {
     if (c == "None") return Zeeman::Polarization::None;
     ARTS_USER_ERROR("Bad enum value ", c);
   };
-  artsclass<Zeeman::Polarization>(m, "ZeemanPolarization")
+  py::class_<Zeeman::Polarization>(m, "ZeemanPolarization")
       .def(py::init([]() { return std::make_shared<Zeeman::Polarization>(); }),
            "Default polarization")
       .def(py::init([ZeemanPolarizationEnumGetter](const std::string& c) {
@@ -107,7 +107,7 @@ void py_spectroscopy(py::module_& m) try {
       .doc() = "Options for ZeemanPolarization";
   py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
-  artsclass<Zeeman::Model>(m, "ZeemanModel")
+  py::class_<Zeeman::Model>(m, "ZeemanModel")
       .def(py::init([]() { return std::make_shared<Zeeman::Model>(); }),
            "Empty model")
       .def(py::init([](Numeric a, Numeric b) {
@@ -123,11 +123,11 @@ void py_spectroscopy(py::module_& m) try {
            "From list of two values")
       .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
-      .def_property("gu",
+      .def_prop_rw("gu",
                     &Zeeman::Model::gu,
                     &Zeeman::Model::gu,
                     ":class:`~float` The upper state g")
-      .def_property("gl",
+      .def_prop_rw("gl",
                     &Zeeman::Model::gl,
                     &Zeeman::Model::gl,
                     ":class:`~float` The lower state g")
@@ -141,7 +141,7 @@ void py_spectroscopy(py::module_& m) try {
       .doc() = "A Zeeman model";
   py::implicitly_convertible<std::array<Numeric, 2>, Zeeman::Model>();
 
-  artsclass<LineShape::Output>(m, "LineShapeOutput")
+  py::class_<LineShape::Output>(m, "LineShapeOutput")
       .def(py::init([](Numeric a,
                        Numeric b,
                        Numeric c,
@@ -219,7 +219,7 @@ void py_spectroscopy(py::module_& m) try {
           }))
       .doc() = "Derived line shape parameters";
 
-  artsclass<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
+  py::class_<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
       .def(py::init([](LineShape::ModelParameters G0,
                        LineShape::ModelParameters D0,
                        LineShape::ModelParameters G2,
@@ -244,63 +244,63 @@ void py_spectroscopy(py::module_& m) try {
            "From values")
       .PythonInterfaceCopyValue(LineShapeSingleSpeciesModel)
       .PythonInterfaceBasicRepresentation(LineShapeSingleSpeciesModel)
-      .def_property(
+      .def_prop_rw(
           "G0",
           [](const LineShapeSingleSpeciesModel& x) { return x.G0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G0() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-independent")
-      .def_property(
+      .def_prop_rw(
           "D0",
           [](const LineShapeSingleSpeciesModel& x) { return x.D0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.D0() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-independent")
-      .def_property(
+      .def_prop_rw(
           "G2",
           [](const LineShapeSingleSpeciesModel& x) { return x.G2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G2() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-dependent")
-      .def_property(
+      .def_prop_rw(
           "D2",
           [](const LineShapeSingleSpeciesModel& x) { return x.D2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.D2() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-dependent")
-      .def_property(
+      .def_prop_rw(
           "FVC",
           [](const LineShapeSingleSpeciesModel& x) { return x.FVC(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.FVC() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Frequency of velocity-changing collisions")
-      .def_property(
+      .def_prop_rw(
           "ETA",
           [](const LineShapeSingleSpeciesModel& x) { return x.ETA(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.ETA() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Correlation")
-      .def_property(
+      .def_prop_rw(
           "Y",
           [](const LineShapeSingleSpeciesModel& x) { return x.Y(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.Y() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: First order line mixing coefficient")
-      .def_property(
+      .def_prop_rw(
           "G",
           [](const LineShapeSingleSpeciesModel& x) { return x.G(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G() = y;
           },
           ":class:`~pyarts.arts.LineShapeModelParameters`: Second order line mixing coefficient")
-      .def_property(
+      .def_prop_rw(
           "DV",
           [](const LineShapeSingleSpeciesModel& x) { return x.DV(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
@@ -334,7 +334,7 @@ void py_spectroscopy(py::module_& m) try {
           }))
       .doc() = "Single species line shape model";
 
-  artsclass<LineShapeModel>(m, "LineShapeModel")
+  py::class_<LineShapeModel>(m, "LineShapeModel")
       .def(py::init([]() { return std::make_shared<LineShapeModel>(); }),
            "Empty model")
       .def(py::init([](const std::vector<LineShapeSingleSpeciesModel>& v) {
@@ -344,7 +344,7 @@ void py_spectroscopy(py::module_& m) try {
       .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
       .PythonInterfaceIndexItemAccess(LineShapeModel)
-      .def_property(
+      .def_prop_rw(
           "data",
           [](const LineShapeModel& x) { return x.Data(); },
           [](LineShapeModel& x, std::vector<LineShapeSingleSpeciesModel> y) {
@@ -362,7 +362,7 @@ void py_spectroscopy(py::module_& m) try {
   py::implicitly_convertible<std::vector<LineShapeSingleSpeciesModel>,
                              LineShapeModel>();
 
-  artsclass<AbsorptionSingleLine>(m, "AbsorptionSingleLine")
+  py::class_<AbsorptionSingleLine>(m, "AbsorptionSingleLine")
       .def(py::init([](Numeric a,
                        Numeric b,
                        Numeric c,
@@ -444,7 +444,7 @@ void py_spectroscopy(py::module_& m) try {
           }))
       .doc() = "Single absorption line";
 
-  artsarray<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
+  py::bind_vector<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
   py_staticAbsorptionLines(m)
@@ -560,12 +560,12 @@ void py_spectroscopy(py::module_& m) try {
           AbsorptionLines,
           lines,
           ":class:`~pyarts.arts.AbsorptionSingleLine` A list of individual lines")
-      .def_property_readonly(
+      .def_prop_ro(
           "ok",
           &AbsorptionLines::OK,
           py::doc(
               R"(:class:`bool` If False, the catalog cannot be used for any calculations)"))
-      .def_property_readonly(
+      .def_prop_ro(
           "meta_data",
           &AbsorptionLines::MetaData,
           py::doc(R"(:class:`~pyarts.arts.String` Catalog meta data string)"))

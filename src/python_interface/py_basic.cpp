@@ -1,8 +1,3 @@
-#include <pybind11/attr.h>
-#include <pybind11/cast.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl_bind.h>
 #include <python_interface.h>
 
 #include <algorithm>
@@ -16,6 +11,9 @@
 #include "python_interface_value_type.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
+
+#include <nanobind/stl/string.h>
+#include <nanobind/operators.h>
 
 namespace Python {
 namespace Extra {
@@ -63,7 +61,7 @@ void binary_ops(auto& class_) {
 }  // namespace Extra
 
 template <typename T>
-auto& fix_value_holder_artsclass(artsclass<ValueHolder<T>>& out) {
+auto& fix_value_holder_py::class_(py::class_<ValueHolder<T>>& out) {
   if constexpr (std::convertible_to<Numeric, T>) {
     py::implicitly_convertible<Numeric, ValueHolder<T>>();
   }
@@ -134,51 +132,14 @@ auto& fix_value_holder_artsclass(artsclass<ValueHolder<T>>& out) {
 }
 
 void py_basic(py::module_& m) try {
-  fix_value_holder_artsclass(py_staticString(m));
+  py::class_<ValueHolder<String>> str(m, "String");
+  fix_value_holder_py::class_(str);
 
-  fix_value_holder_artsclass(py_staticNumeric(m))
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](ValueHolder<Numeric>& x) -> py::buffer_info {
-        return {x.val.get(),
-                sizeof(Numeric),
-                py::format_descriptor<Numeric>::format(),
-                0,
-                {},
-                {}};
-      })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](ValueHolder<Numeric>& x) {
-                py::object np = py::module_::import("numpy");
-                return np.attr("array")(x, py::arg("copy") = false);
-              },
-              py::keep_alive<0, 1>()),
-          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) {
-            *x.val = *y.val;
-          },
-          "Operate on type as if :class:`numpy.ndarray` type");
+  py::class_<ValueHolder<Numeric>> num(m, "Numeric");
+  fix_value_holder_py::class_(num);
 
-  fix_value_holder_artsclass(py_staticIndex(m))
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](ValueHolder<Index>& x) -> py::buffer_info {
-        return {x.val.get(),
-                sizeof(Index),
-                py::format_descriptor<Index>::format(),
-                0,
-                {},
-                {}};
-      })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](ValueHolder<Index>& x) {
-                py::object np = py::module_::import("numpy");
-                return np.attr("array")(x, py::arg("copy") = false);
-              },
-              py::keep_alive<0, 1>()),
-          [](ValueHolder<Index>& x, ValueHolder<Index>& y) { *x.val = *y.val; },
-          "Operate on type as if :class:`numpy.ndarray` type");
+  py::class_<ValueHolder<Index>> ind(m, "Index");
+  fix_value_holder_py::class_(ind);
 
   py_staticArrayOfString(m)
       .def("index",
@@ -228,7 +189,7 @@ void py_basic(py::module_& m) try {
                                {sizeof(Index)});
       })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_property(
+      .def_prop_rw(
           "value",
           py::cpp_function(
               [](ArrayOfIndex& x) {
@@ -241,7 +202,7 @@ void py_basic(py::module_& m) try {
   py::implicitly_convertible<numpy_array, ArrayOfIndex>();
   py::implicitly_convertible<py::list, ArrayOfIndex>();
 
-  artsarray<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+  py::bind_vector<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       .def("index",
            [](const ArrayOfNumeric& v, const Numeric& f) {
              auto ptr = std::ranges::find(v, f);
@@ -258,7 +219,7 @@ void py_basic(py::module_& m) try {
                                {sizeof(Numeric)});
       })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_property(
+      .def_prop_rw(
           "value",
           py::cpp_function(
               [](ArrayOfNumeric& x) {

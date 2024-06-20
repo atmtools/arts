@@ -11,7 +11,7 @@ namespace Python {
 void py_fwd(py::module_& m) try {
   auto fwd = m.def_submodule("fwd");
 
-  py_staticSpectralRadianceOperator(m)
+  py::class_<SpectralRadianceOperator>(m, "SpectralRadianceOperator")
       .def("geometric_planar",
            [](const SpectralRadianceOperator& srad_op,
               const Numeric frequency,
@@ -52,7 +52,7 @@ void py_fwd(py::module_& m) try {
              }
              return out;
            })
-      .def_property_readonly("altitude", &SpectralRadianceOperator::altitude);
+      .def_prop_ro("altitude", &SpectralRadianceOperator::altitude);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize fwd\n", e.what()));

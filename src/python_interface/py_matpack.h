@@ -22,7 +22,7 @@ using numpy_array = py::array;
 
 template <typename T, Index... sz>
 auto& fix_matpack_constant_data(
-    artsclass<matpack::matpack_constant_data<T, sz...>>& r)
+    py::class_<matpack::matpack_constant_data<T, sz...>>& r)
   requires(sizeof...(sz) > 0)
 {
   using matpackT = matpack::matpack_constant_data<T, sz...>;
@@ -79,7 +79,7 @@ auto& fix_matpack_constant_data(
                                std::move(shpe),
                                std::move(strides));
       })
-      .def_property(
+      .def_prop_rw(
           "value",
           py::cpp_function(
               [](matpackT& x) {
@@ -105,7 +105,7 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
   static constexpr std::size_t dim = sizeof...(sz);
   static constexpr std::array<Index, dim> shape = matpackT::shape();
 
-  artsclass<matpackT> r(m, name, py::buffer_protocol());
+  py::class_<matpackT> r(m, name, py::buffer_protocol());
   r.def(py::init([]() { return std::make_shared<matpackT>(); }),
         "Default constant data")
       .PythonInterfaceCopyValue(matpackT)

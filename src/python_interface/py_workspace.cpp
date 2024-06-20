@@ -56,10 +56,10 @@ Agenda unpickle_agenda(const py::tuple& t) {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
-void py_auto_wsv(artsclass<Workspace>& ws);
-void py_auto_wsm(artsclass<Workspace>& ws);
+void py_auto_wsv(py::class_<Workspace>& ws);
+void py_auto_wsm(py::class_<Workspace>& ws);
 
-void py_workspace(artsclass<Workspace>& ws) try {
+void py_workspace(py::class_<Workspace>& ws) try {
   ws.def(py::init([](bool with_defaults) {
            if (with_defaults)
              return std::make_shared<Workspace>(
@@ -73,7 +73,7 @@ void py_workspace(artsclass<Workspace>& ws) try {
       .def(
           "get",
           [](Workspace& w, const std::string& n) { return from(w.share(n)); },
-          py::return_value_policy::reference_internal,
+          py::rv_policy::reference_internal,
           py::keep_alive<0, 1>())
       .def("init", &Workspace::init)
       .def("set",

@@ -27,7 +27,7 @@ void py_sparse(py::module_& m) try {
               throw std::out_of_range(var_string("col ", c));
             return x.rw(r, c);
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
              const auto [r, c] = ind;
@@ -37,7 +37,7 @@ void py_sparse(py::module_& m) try {
                throw std::out_of_range(var_string("col ", c));
              x.rw(r, c) = y;
            })
-      .def_property(
+      .def_prop_rw(
           "value",
           [](Sparse& s) { return s.matrix; },
           [](Sparse& s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> ns) {
@@ -77,7 +77,7 @@ arr : numpy.ndarray
             return static_cast<Block::MatrixType>(t[0].cast<Index>());
           }));
 
-  artsclass<Block>(m, "Block")
+  py::class_<Block>(m, "Block")
       .def(py::init([](Range row_range,
                        Range column_range,
                        IndexPair indices,
@@ -101,7 +101,7 @@ arr : numpy.ndarray
            }),
            "By value, sparse")
       .PythonInterfaceCopyValue(Block)
-      .def_property(
+      .def_prop_rw(
           "matrix",
           py::cpp_function(
               [](Block& x) -> std::variant<Matrix*, Sparse*> {
@@ -109,7 +109,7 @@ arr : numpy.ndarray
                   return &x.get_dense();
                 return &x.get_sparse();
               },
-              py::return_value_policy::reference_internal),
+              py::rv_policy::reference_internal),
           [](Block& x, std::variant<Matrix*, Sparse*> y) {
             if (std::holds_alternative<Matrix*>(y)) {
               x.set_matrix(
@@ -156,7 +156,7 @@ arr : numpy.ndarray
       .doc() = "A single block matrix";
 
   py_staticCovarianceMatrix(m)
-      .def_property(
+      .def_prop_rw(
           "blocks",
           [](CovarianceMatrix& x) { return x.get_blocks(); },
           [](CovarianceMatrix& x, std::vector<Block> y) {

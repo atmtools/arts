@@ -1,22 +1,22 @@
 #include <arts_conversions.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
+
+#include <nanobind/nanobind.h>
 
 #include "debug.h"
 
 namespace Python {
-namespace py = pybind11;
+namespace py = nanobind;
 
 //! Wraps a conversion function with basic information
 #define PythonInterfaceConvert(name, t, from, to, var)                                 \
   convert.def(                                                                         \
       #name,                                                                           \
-      py::vectorize(&Conversion::name<t>),                                             \
+      &Conversion::name<t>,                                             \
       py::arg(var),                                                                    \
-      py::doc(                                                                         \
+                                                                              \
           "Converts from " from " to " to "\n\nParameters:\n    " var                  \
           " (:class:`~float` or :class:`~list` or :class:`~numpy.ndarray`): " from \
-          "\n\nReturn\n------\n:class:`~float` or :class:`~list` or :class:`~numpy.ndarray`\n    " to))
+          "\n\nReturn\n------\n:class:`~float` or :class:`~list` or :class:`~numpy.ndarray`\n    " to)
 
 void py_conversions(py::module_& m) try {
   auto convert = m.def_submodule("convert");

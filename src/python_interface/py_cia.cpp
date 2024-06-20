@@ -18,18 +18,15 @@
 
 namespace Python {
 void py_cia(py::module_& m) try {
-  py_staticCIARecord(m)
-      .def(py::init([](const ArrayOfGriddedField2& data,
-                       SpeciesEnum spec1,
-                       SpeciesEnum spec2) {
-             return std::make_shared<CIARecord>(data, spec1, spec2);
-           }),
-           "From values")
-      .def_property_readonly(
+  py::class_<CIARecord>(m, "CIARecord")
+      .def(py::init<ArrayOfGriddedField2,
+                       SpeciesEnum,
+                       SpeciesEnum>())
+      .def_prop_ro(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
           ":class:`list` The two species")
-      .def_property_readonly(
+      .def_prop_ro(
           "data",
           [](const CIARecord& c) { return c.Data(); },
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Data by bands")
@@ -61,7 +58,6 @@ void py_cia(py::module_& m) try {
           py::arg("f"),
           py::arg("T_extrapolfac") = 0.0,
           py::arg("robust") = 1,
-          py::doc(
               R"--(Computes the collision-induced absorption in 1/m
 
 Parameters
@@ -86,18 +82,16 @@ Returns
   abs : Vector
     Absorption profile [1/m]
 
-)--"))
-      .def(py::pickle(
+)--")
+      .def("__getstate__",
           [](const CIARecord& t) {
-            return py::make_tuple(t.Data(), t.TwoSpecies());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_shared<CIARecord>();
-            out->Data() = t[0].cast<ArrayOfGriddedField2>();
-            out->TwoSpecies() = t[1].cast<std::array<SpeciesEnum, 2>>();
-            return out;
-          }));
+            return std::make_tuple(t.Data(), t.TwoSpecies());
+          }).def("__setstate__",
+          [](CIARecord*c, const std::tuple<ArrayOfGriddedField2, std::array<SpeciesEnum, 2>>& state) {
+            new (c) CIARecord();
+            c->Data() = std::get<0>(state);
+            c->TwoSpecies() = std::get<1>(state);
+          });
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));

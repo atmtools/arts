@@ -1,6 +1,4 @@
 #include <partfun.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
 #include <python_interface.h>
 
 #include <algorithm>
@@ -27,16 +25,16 @@ std::string docs_isotopes() {
 
 namespace Python {
 void py_species(py::module_& m) try {
-  artsclass<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
+  py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
            py::doc("Builtin values"))
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
-      .def_readonly_static("maxsize",
+      .def_ro_static("maxsize",
                            &SpeciesIsotopologueRatios::maxsize,
                            ":class:`int` The max size of the data")
-      .def_readwrite("data",
+      .def_rw("data",
                      &SpeciesIsotopologueRatios::data,
                      ":class:`list` The max size of the data")
       .def(py::pickle(
@@ -83,25 +81,25 @@ void py_species(py::module_& m) try {
           },
           py::arg("T"),
           "Partition function")
-      .def_readonly("spec",
+      .def_ro("spec",
                     &SpeciesIsotope::spec,
                     ":class:`~pyarts.arts.Species` The species")
-      .def_readonly(
+      .def_ro(
           "isotname",
           &SpeciesIsotope::isotname,
           ":class:`str` A custom name that is unique for this Species type")
-      .def_readonly(
+      .def_ro(
           "mass",
           &SpeciesIsotope::mass,
           ":class:`float` The mass of the isotope in units of grams per mol. It is Nan if not defined")
-      .def_readonly(
+      .def_ro(
           "gi",
           &SpeciesIsotope::gi,
           ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
-      .def_property_readonly("name",
+      .def_prop_ro("name",
                              &SpeciesIsotope::FullName,
                              ":class:`~pyarts.arts.String` The full name")
-      .def_property_readonly(
+      .def_prop_ro(
           "predef",
           &Species::is_predefined_model,
           ":class:`bool` Check if this represents a predefined model")
@@ -123,12 +121,12 @@ void py_species(py::module_& m) try {
              return std::make_shared<SpeciesTag>(s);
            }),
            "From :class:`str`")
-      .def_readwrite(
+      .def_rw(
           "spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
-      .def_readwrite("type",
+      .def_rw("type",
                      &SpeciesTag::type,
                      ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
-      .def_readwrite("cia_2nd_species",
+      .def_rw("cia_2nd_species",
                      &SpeciesTag::cia_2nd_species,
                      ":class:`~pyarts.arts.Species` CIA species")
       .def("partfun",
@@ -146,7 +144,7 @@ Returns
     Partition function [-]
 )--"),
            py::arg("T"))
-      .def_property_readonly("full_name",
+      .def_prop_ro("full_name",
                              &SpeciesTag::FullName,
                              ":class:`~pyarts.arts.String` The full name")
       .def(py::self == py::self)

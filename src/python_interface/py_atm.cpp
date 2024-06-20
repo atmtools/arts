@@ -17,91 +17,86 @@
 namespace Python {
 
 void py_atm(py::module_ &m) try {
-  artsclass<Atm::Data>(m, "AtmData")
-      .def(py::init([]() { return std::make_shared<Atm::Data>(); }))
-      .def(py::init([](const GriddedField3 &x) {
-        return std::make_shared<Atm::Data>(x);
-      }))
-      .def(py::init(
-          [](const Numeric &x) { return std::make_shared<Atm::Data>(x); }))
-      .def(py::init([](const Index &x) {
-        return std::make_shared<Atm::Data>(static_cast<Numeric>(x));
-      }))
-      .def(py::init([](const Atm::FunctionalData &x) {
-        return std::make_shared<Atm::Data>(x);
-      }))
-      .def_readwrite("data", &Atm::Data::data)
-      .def_readwrite("alt_upp", &Atm::Data::alt_upp)
-      .def_readwrite("alt_low", &Atm::Data::alt_low)
-      .def_readwrite("lat_upp", &Atm::Data::lat_upp)
-      .def_readwrite("lat_low", &Atm::Data::lat_low)
-      .def_readwrite("lon_upp", &Atm::Data::lon_upp)
-      .def_readwrite("lon_low", &Atm::Data::lon_low)
-      .def_property_readonly("data_type", &Atm::Data::data_type)
+  py::class_<Atm::Data>(m, "AtmData")
+      .def(py::init<Atm::Data>())
+      .def(py::init<GriddedField3>())
+      .def(py::init<Numeric>())
+      .def(py::init<Atm::FunctionalData>())
+      .def_rw("data", &Atm::Data::data)
+      .def_rw("alt_upp", &Atm::Data::alt_upp)
+      .def_rw("alt_low", &Atm::Data::alt_low)
+      .def_rw("lat_upp", &Atm::Data::lat_upp)
+      .def_rw("lat_low", &Atm::Data::lat_low)
+      .def_rw("lon_upp", &Atm::Data::lon_upp)
+      .def_rw("lon_low", &Atm::Data::lon_low)
+      .def_prop_ro("data_type", &Atm::Data::data_type)
       .def("__call__",
            [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
              return d.at(alt, lat, lon);
            })
-      .def(py::pickle(
+      .def("__getstate__",
           [](const Atm::Data &t) {
-            return py::make_tuple(t.data,
+            return std::make_tuple(t.data,
                                   t.alt_low,
                                   t.alt_upp,
                                   t.lat_low,
                                   t.lat_upp,
                                   t.lon_low,
                                   t.lon_upp);
-          },
-          [](const py::tuple &t) {
-            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
-
-            auto out     = std::make_shared<Atm::Data>();
-            out->data    = t[0].cast<Atm::FieldData>();
-            out->alt_low = t[1].cast<InterpolationExtrapolation>();
-            out->alt_upp = t[2].cast<InterpolationExtrapolation>();
-            out->lat_low = t[3].cast<InterpolationExtrapolation>();
-            out->lat_upp = t[4].cast<InterpolationExtrapolation>();
-            out->lon_low = t[5].cast<InterpolationExtrapolation>();
-            out->lon_upp = t[6].cast<InterpolationExtrapolation>();
-            return out;
-          }));
+          }).def("__setstate__",
+          [](Atm::Data* a,const std::tuple<Atm::FieldData,
+InterpolationExtrapolation,
+InterpolationExtrapolation,
+InterpolationExtrapolation,
+InterpolationExtrapolation,
+InterpolationExtrapolation,
+InterpolationExtrapolation> &state) {
+            new (a) Atm::Data();
+            a->data = std::get<0>(state);
+            a->alt_low = std::get<1>(state);
+            a->alt_upp = std::get<2>(state);
+            a->lat_low = std::get<3>(state);
+            a->lat_upp = std::get<4>(state);
+            a->lon_low = std::get<5>(state);
+            a->lon_upp = std::get<6>(state);
+          });
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
 
-  auto &pnt = py_staticAtmPoint(m);
+  auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
 
-  auto &fld = py_staticAtmField(m);
+  auto fld = py::class_<AtmField>(m, "AtmField");
 
-  pnt.def_readwrite("temperature", &AtmPoint::temperature)
-      .def_readwrite("pressure", &AtmPoint::pressure)
-      .def_readwrite("mag", &AtmPoint::mag)
-      .def_readwrite("wind", &AtmPoint::wind)
+  pnt.def_rw("temperature", &AtmPoint::temperature)
+      .def_rw("pressure", &AtmPoint::pressure)
+      .def_rw("mag", &AtmPoint::mag)
+      .def_rw("wind", &AtmPoint::wind)
       .def("number_density",
            [](AtmPoint &atm, SpeciesIsotope s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s));
-             if (not atm.has(s.spec)) throw py::key_error(var_string(s));
+             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+             if (not atm.has(s.spec)) throw py::key_error(var_string(s).c_str());
              return atm[s] * atm[s.spec] *
                     number_density(atm.pressure, atm.temperature);
            })
       .def("species_vmr",
            [](AtmPoint &atm, SpeciesEnum s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s));
+             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
              return atm[s];
            })
       .def("set_species_vmr",
            [](AtmPoint &atm, SpeciesEnum s, Numeric x) { atm[s] = x; })
       .def("isotopologue_ratio",
            [](AtmPoint &atm, SpeciesIsotope s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s));
+             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
              return atm[s];
            })
       .def("set_isotopologue_ratio",
            [](AtmPoint &atm, SpeciesIsotope s, Numeric x) { atm[s] = x; })
       .def("nlte_value",
            [](AtmPoint &atm, const QuantumIdentifier &s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s));
+             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
              return atm[s];
            })
       .def("set_nlte_value",
@@ -111,38 +106,38 @@ void py_atm(py::module_ &m) try {
       .def(
           "__getitem__",
           [](AtmPoint &atm, AtmKey x) {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const QuantumIdentifier &x) {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const SpeciesEnum &x) {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const SpeciesIsotope &x) {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
-            if (not atm.has(x.Species())) throw py::key_error(var_string(x));
+            if (not atm.has(x.Species())) throw py::key_error(var_string(x).c_str());
             return atm[x.Species()];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](AtmPoint &atm, AtmKey x, Numeric data) { atm[x] = data; })
       .def("__setitem__",
@@ -179,7 +174,7 @@ void py_atm(py::module_ &m) try {
             return out;
           },
           "Returns a flat list of values.")
-      .def(py::pickle(
+      .def("__getstate__",
           [](const AtmPoint &t) {
             auto k = t.keys();
             std::vector<Numeric> v;
@@ -187,60 +182,57 @@ void py_atm(py::module_ &m) try {
             for (auto &kn : k)
               v.emplace_back(
                   std::visit([&](auto &&key) { return t[key]; }, kn));
-            return py::make_tuple(k, v);
-          },
-          [](const py::tuple &t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-
-            auto k = t[0].cast<std::vector<AtmKeyVal>>();
-            auto v = t[1].cast<std::vector<Numeric>>();
+            return std::make_tuple(k, v);
+          }).def("__setstate__",
+          [](AtmPoint * a, const std::tuple<std::vector<AtmKeyVal>, std::vector<Numeric>> &state) {
+            
+            auto k = std::get<0>(state);
+            auto v = std::get<1>(state);
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_shared<AtmPoint>();
+            new (a) AtmPoint();
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
-                  [&](auto &&key) -> Numeric & { return out->operator[](key); },
+                  [&](auto &&key) -> Numeric & { return a->operator[](key); },
                   k[i]) = v[i];
-
-            return out;
-          }));
+          });
 
   fld.def(
          "__getitem__",
          [](AtmField &atm, AtmKey x) -> Atm::Data & {
-           if (not atm.has(x)) throw py::key_error(var_string(x));
+           if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
            return atm[x];
          },
-         py::return_value_policy::reference_internal)
+         py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const QuantumIdentifier &x) -> Atm::Data & {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const SpeciesEnum &x) -> Atm::Data & {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const SpeciesIsotope &x) -> Atm::Data & {
-            if (not atm.has(x)) throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
             if (not atm.has(x.Species()))
-              throw py::key_error(var_string(x.Species()));
+              throw py::key_error(var_string(x.Species()).c_str());
             return atm[x.Species()];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def(
           "__setitem__",
           [](AtmField &atm, AtmKey x, const Atm::Data &data) { atm[x] = data; })
@@ -272,8 +264,8 @@ void py_atm(py::module_ &m) try {
               const Numeric &h,
               const Numeric &lat,
               const Numeric &lon) { return atm.at(h, lat, lon); })
-      .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
-      .def(py::pickle(
+      .def_rw("top_of_atmosphere", &AtmField::top_of_atmosphere)
+      .def("__getstate__",
           [](const AtmField &t) {
             auto k = t.keys();
             std::vector<Atm::Data> v;
@@ -281,27 +273,23 @@ void py_atm(py::module_ &m) try {
             for (auto &kn : k)
               v.emplace_back(
                   std::visit([&](auto &&key) { return t[key]; }, kn));
-            return py::make_tuple(k, v, t.top_of_atmosphere);
-          },
-          [](const py::tuple &t) {
-            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
-
-            auto k = t[0].cast<std::vector<AtmKeyVal>>();
-            auto v = t[1].cast<std::vector<Atm::Data>>();
+            return std::make_tuple(k, v, t.top_of_atmosphere);
+          }).def("__setstate__",
+          [](AtmField*a, const std::tuple<std::vector<AtmKeyVal>, std::vector<Atm::Data>, Numeric> &state) {
+            auto k = std::get<0>(state);
+            auto v = std::get<1>(state);
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out               = std::make_shared<AtmField>();
-            out->top_of_atmosphere = t[2].cast<Numeric>();
+            new (a)AtmField();
+            a->top_of_atmosphere = std::get<2>(state);
 
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
                   [&](auto &&key) -> Atm::Data & {
-                    return out->operator[](key);
+                    return a->operator[](key);
                   },
                   k[i]) = v[i];
-
-            return out;
-          }));
+          });
 
   m.def("frequency_shift",
         [](const AscendingGrid &frequency_grid,
@@ -319,5 +307,6 @@ void py_atm(py::module_ &m) try {
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
+
 }
 }  // namespace Python

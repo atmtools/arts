@@ -12,7 +12,7 @@
 namespace Python {
 
 void py_surf(py::module_ &m) try {
-  artsclass<Surf::Data>(m, "SurfData")
+  py::class_<Surf::Data>(m, "SurfData")
       .def(py::init([]() { return std::make_shared<Surf::Data>(); }))
       .def(py::init([](const GriddedField2 &x) {
         return std::make_shared<Surf::Data>(x);
@@ -25,11 +25,11 @@ void py_surf(py::module_ &m) try {
       .def(py::init([](const Surf::FunctionalData &x) {
         return std::make_shared<Surf::Data>(x);
       }))
-      .def_readwrite("data", &Surf::Data::data)
-      .def_readwrite("lat_upp", &Surf::Data::lat_upp)
-      .def_readwrite("lat_low", &Surf::Data::lat_low)
-      .def_readwrite("lon_upp", &Surf::Data::lon_upp)
-      .def_readwrite("lon_low", &Surf::Data::lon_low)
+      .def_rw("data", &Surf::Data::data)
+      .def_rw("lat_upp", &Surf::Data::lat_upp)
+      .def_rw("lat_low", &Surf::Data::lat_low)
+      .def_rw("lon_upp", &Surf::Data::lon_upp)
+      .def_rw("lon_low", &Surf::Data::lon_low)
       .def(py::pickle(
           [](const Surf::Data &t) {
             return py::make_tuple(
@@ -56,17 +56,17 @@ void py_surf(py::module_ &m) try {
 
   auto& fld = py_staticSurfaceField(m);
 
-  pnt.def_readwrite("temperature", &SurfacePoint::temperature)
-      .def_readwrite("elevation", &SurfacePoint::elevation)
-      .def_readwrite("normal", &SurfacePoint::normal)
-      .def_readwrite("wind", &SurfacePoint::wind)
+  pnt.def_rw("temperature", &SurfacePoint::temperature)
+      .def_rw("elevation", &SurfacePoint::elevation)
+      .def_rw("normal", &SurfacePoint::normal)
+      .def_rw("wind", &SurfacePoint::wind)
       .def(
           "__getitem__",
           [](SurfacePoint &surf, SurfaceKey x) {
             if (not surf.has(x)) throw py::key_error(var_string(x));
             return surf[x];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SurfacePoint &surf, SurfaceKey x, Numeric data) {
              surf[x] = data;
@@ -103,7 +103,7 @@ void py_surf(py::module_ &m) try {
            if (not surf.has(x)) throw py::key_error(var_string(x));
            return surf[x];
          },
-         py::return_value_policy::reference_internal)
+         py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SurfaceField &surf, SurfaceKey x, const Surf::Data &data) {
              surf[x] = data;

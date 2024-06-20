@@ -27,22 +27,22 @@ void py_mcantenna(py::module_& m) try {
           }));  // NOTE: Cannot add docstring to py::enum_ (python 3.10.10, macOS)
 
   py_staticMCAntenna(m)
-      .def_readwrite("atype",
+      .def_rw("atype",
                      &MCAntenna::atype,
                      ":class:`~pyarts.arts.AntennaType` The antenna type")
-      .def_readwrite("sigma_aa",
+      .def_rw("sigma_aa",
                      &MCAntenna::sigma_aa,
                      ":class:`float` The azimuthal half-width")
-      .def_readwrite("sigma_za",
+      .def_rw("sigma_za",
                      &MCAntenna::sigma_za,
                      ":class:`float` The zenith half-width")
-      .def_readwrite("aa_grid",
+      .def_rw("aa_grid",
                      &MCAntenna::aa_grid,
                      ":class:`~pyarts.arts.Vector` The azimuth grid")
-      .def_readwrite("za_grid",
+      .def_rw("za_grid",
                      &MCAntenna::za_grid,
                      ":class:`~pyarts.arts.Vector` The zenith grid")
-      .def_readwrite("G_lookup",
+      .def_rw("G_lookup",
                      &MCAntenna::G_lookup,
                      ":class:`~pyarts.arts.Matrix` The lookup")
       .def(py::pickle(

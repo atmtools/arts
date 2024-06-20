@@ -1,9 +1,8 @@
 #include <physics_funcs.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
 
 namespace Python {
-namespace py = pybind11;
+namespace py = nanobind;
 
 void py_physics(py::module_& m) try {
   auto physics = m.def_submodule("physics");
@@ -11,10 +10,10 @@ void py_physics(py::module_& m) try {
 )--";
 
   physics.def("number_density",
-              py::vectorize(&number_density),
+              &number_density,
               py::arg("P"),
               py::arg("T"),
-              py::doc(R"--(Calculates the atmospheric number density.
+              R"--(Calculates the atmospheric number density.
 
 Parameters
 ----------
@@ -28,15 +27,15 @@ Returns
 -------
   n : Numeric or numpy.ndarray
     Number density [1/m³]
-)--"));
+)--");
 
   physics.def("planck",
-              py::vectorize([](Numeric frequency, Numeric temperature) {
+              [](Numeric frequency, Numeric temperature) {
                 return planck(frequency, temperature);
-              }),
+              },
               py::arg("frequency"),
               py::arg("temperature"),
-              py::doc(R"--(Calculates the Planck function.
+              R"--(Calculates the Planck function.
 
 Parameters
 ----------
@@ -50,7 +49,7 @@ Returns
 -------
   B : Numeric or numpy.ndarray
     Planck function [W/(m² Hz sr)]
-)--"));
+)--");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize physics\n", e.what()));

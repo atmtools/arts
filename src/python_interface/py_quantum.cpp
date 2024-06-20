@@ -2,54 +2,70 @@
 #include <quantum_numbers.h>
 #include <quantum_term_symbol.h>
 
-#include "py_macros.h"
+#include <nanobind/operators.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 
-#include <pybind11/operators.h>
+#include "py_macros.h"
 
 namespace Python {
 void py_quantum(py::module_& m) try {
-  artsclass<QuantumNumberValue>(m, "QuantumNumberValue")
-      .def(py::init([]() { return std::make_shared<QuantumNumberValue>(); }), "Default value")
-      .def(py::init(
-          [](const std::string& s) { return std::make_shared<QuantumNumberValue>(s); }), "From :class:`str`")
+  py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
+      .def(py::init<>())
+      .def(py::init<std::string>())
       .PythonInterfaceCopyValue(QuantumNumberValue)
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
-      .def_readwrite("type", &QuantumNumberValue::type, ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
-      .def_property("str_upp",
-                    &QuantumNumberValue::str_upp,
-                    [](QuantumNumberValue& x, String& y) { x.set(y, true); }, py::doc(":class:`~pyarts.arts.String` Upper value"))
-      .def_property("str_low",
-                    &QuantumNumberValue::str_low,
-                    [](QuantumNumberValue& x, String& y) { x.set(y, false); }, py::doc(":class:`~pyarts.arts.String` Lower value"))
-      .def_property("upp",
-                    &QuantumNumberValue::upp,
-                    [](QuantumNumberValue& x, Rational& y) {
-                      x.set(var_string(y), true);
-                    }, py::doc(":class:`~pyarts.arts.Rational` Upper value"))
-      .def_property("low",
-                    &QuantumNumberValue::low,
-                    [](QuantumNumberValue& x, Rational& y) {
-                      x.set(var_string(y), false);
-                    }, py::doc(":class:`~pyarts.arts.Rational` Lower value"))
-      .def(py::pickle(
-          [](const QuantumNumberValue& t) {
-            return py::make_tuple(var_string(t));
+      .def_rw(
+          "type",
+          &QuantumNumberValue::type,
+          ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
+      .def_prop_rw(
+          "str_upp",
+          &QuantumNumberValue::str_upp,
+          [](QuantumNumberValue& x, String& y) { x.set(y, true); },
+          ":class:`~pyarts.arts.String` Upper value")
+      .def_prop_rw(
+          "str_low",
+          &QuantumNumberValue::str_low,
+          [](QuantumNumberValue& x, String& y) { x.set(y, false); },
+          ":class:`~pyarts.arts.String` Lower value")
+      .def_prop_rw(
+          "upp",
+          &QuantumNumberValue::upp,
+          [](QuantumNumberValue& x, Rational& y) {
+            x.set(var_string(y), true);
           },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_shared<QuantumNumberValue>(t[0].cast<std::string>());
-          })).doc() = "A single quantum number with a value";
+          ":class:`~pyarts.arts.Rational` Upper value")
+      .def_prop_rw(
+          "low",
+          &QuantumNumberValue::low,
+          [](QuantumNumberValue& x, Rational& y) {
+            x.set(var_string(y), false);
+          },
+          ":class:`~pyarts.arts.Rational` Lower value")
+      .def("__getstate__",
+           [](const QuantumNumberValue& qnv) {
+             return std::tuple<std::string>{var_string(qnv)};
+           })
+      .def("__setstate__",
+           [](QuantumNumberValue* qnv, const std::tuple<std::string>& state) {
+             new (qnv) QuantumNumberValue(std::get<0>(state));
+           })
+      .doc() = "A single quantum number with a value";
   py::implicitly_convertible<std::string, QuantumNumberValue>();
 
-  artsclass<QuantumNumberValueList>(m, "QuantumNumberValueList")
-      .def(py::init([]() { return std::make_shared<QuantumNumberValueList>(); }), "Default list")
-      .def(py::init(
-          [](const std::string& s) { return std::make_shared<QuantumNumberValueList>(s); }), "From :class:`str`")
+  py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
+      .def(
+          py::init<>())
+      .def(py::init<std::string>())
       .PythonInterfaceCopyValue(QuantumNumberValueList)
-      .def("get",
-           [](QuantumNumberValueList& x, QuantumNumberType y) {
-             ARTS_USER_ERROR_IF(not x.has(y), "Out of range: ", y) return x[y];
-           }, py::arg("qt"), R"(Set a quantum number value
+      .def(
+          "get",
+          [](QuantumNumberValueList& x, QuantumNumberType y) {
+            ARTS_USER_ERROR_IF(not x.has(y), "Out of range: ", y) return x[y];
+          },
+          py::arg("qt"),
+          R"(Set a quantum number value
 
 Parameters
 ----------
@@ -61,8 +77,11 @@ Returns
 qn : ~pyarts.arts.QuantumNumberValue
     The value
 )")
-      .def("set",
-           [](QuantumNumberValueList& x, QuantumNumberValue y) { x.set(y); }, py::arg("qn"), R"(Set a quantum number value
+      .def(
+          "set",
+          [](QuantumNumberValueList& x, QuantumNumberValue y) { x.set(y); },
+          py::arg("qn"),
+          R"(Set a quantum number value
 
 Parameters
 ----------
@@ -70,50 +89,48 @@ qn : ~pyarts.arts.QuantumNumberValue
     The value to set
 )")
       .PythonInterfaceBasicRepresentation(QuantumNumberValueList)
-      .def(py::pickle(
-          [](const QuantumNumberValueList& t) {
-            return py::make_tuple(var_string(t));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_shared<QuantumNumberValueList>(t[0].cast<std::string>());
-          })).doc() = "A list of unique :class:`~pyarts.arts.QuantumNumberValue`";
+            .def("__getstate__",
+           [](const QuantumNumberValueList& qnv) {
+             return std::tuple<std::string>{var_string(qnv)};
+           })
+      .def("__setstate__",
+           [](QuantumNumberValueList* qnv, const std::tuple<std::string>& state) {
+             new (qnv) QuantumNumberValueList(std::get<0>(state));
+           })
+      .doc() = "A list of unique :class:`~pyarts.arts.QuantumNumberValue`";
   py::implicitly_convertible<std::string, QuantumNumberValueList>();
 
-  artsclass<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
-      .def(py::init([]() { return std::make_shared<QuantumNumberLocalState>(); }), "Default state")
-      .def(py::init([](const std::string& str) {
-        auto out = QuantumNumberLocalState{};
-        out.val = QuantumNumberValueList{str};
-        return out;
-      }), "From :class:`str`")
-      .def(py::init([](QuantumNumberValueList& ql) {
-        auto out = QuantumNumberLocalState{};
-        out.val = ql;
-        return out;
-      }), "From :class:`~pyarts.arts.QuantumNumberValueList`")
+  py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
+      .def(py::init<>())
+      .def(py::init<std::string>())
+      .def(py::init<QuantumNumberValueList>())
       .PythonInterfaceCopyValue(QuantumNumberLocalState)
       .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
-      .def_readwrite("state", &QuantumNumberLocalState::val, ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
-      .def(py::pickle(
-          [](const QuantumNumberLocalState& t) {
-            return py::make_tuple(t.val);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            auto out = std::make_shared<QuantumNumberLocalState>();
-            out->val = t[0].cast<QuantumNumberValueList>();
-            return out;
-          })).doc() = "A local state of quantum numbers";
+      .def_rw(
+          "state",
+          &QuantumNumberLocalState::val,
+          ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
+      .def("__getstate__",
+           [](const QuantumNumberLocalState& qnv) {
+             return std::tuple<std::string>{var_string(qnv)};
+           })
+      .def("__setstate__",
+           [](QuantumNumberLocalState* qnv, const std::tuple<std::string>& state) {
+             new (qnv) QuantumNumberLocalState(std::get<0>(state));
+           })
+      .doc() = "A local state of quantum numbers";
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
-  py_staticQuantumIdentifier(m)
-      .def(py::init(
-          [](const std::string& s) { return std::make_shared<QuantumIdentifier>(s); }), "From :class:`str`")
-      .def_readonly("isotopologue_index",
-                    &QuantumIdentifier::isotopologue_index, ":class:`int` The isotopologue index")
-      .def_readwrite("state", &QuantumIdentifier::val, ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
-      .def_property(
+  py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
+      .def(py::init<std::string>())
+      .def_ro("isotopologue_index",
+                    &QuantumIdentifier::isotopologue_index,
+                    ":class:`int` The isotopologue index")
+      .def_rw(
+          "state",
+          &QuantumIdentifier::val,
+          ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
+      .def_prop_ro(
           "isotopologue",
           [](QuantumIdentifier& qid) {
             return Species::Isotopologues.at(qid.isotopologue_index);
@@ -122,35 +139,36 @@ qn : ~pyarts.arts.QuantumNumberValue
             Index res = Species::find_species_index(iso);
             ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
             qid.isotopologue_index = res;
-          }, ":class:`SpeciesIsotope` The isotopologue")
+          },
+          ":class:`SpeciesIsotope` The isotopologue")
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def(py::self <= py::self)
       .def(py::self >= py::self)
       .def(py::self < py::self)
       .def(py::self > py::self)
-      .def("__hash__", [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
-      .def("as_symbol", &Quantum::Helpers::molecular_term_symbol, R"(Get the molecular symbol as often seen in literature
+      .def(
+          "__hash__",
+          [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
+      .def("as_symbol",
+           &Quantum::Helpers::molecular_term_symbol,
+           R"(Get the molecular symbol as often seen in literature
 Returns
 -------
 symbol : str
     The symbol representation
 )")
-      .def(py::pickle(
-          [](const QuantumIdentifier& t) {
-            return py::make_tuple(t.isotopologue_index, t.val);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_shared<QuantumIdentifier>();
-
-            out->isotopologue_index = t[0].cast<Index>();
-            out->val = t[1].cast<Quantum::Number::ValueList>();
-
-            return out;
-          }));
+            .def("__getstate__",
+           [](const QuantumIdentifier& qnv) {
+             return std::tuple<std::string>{var_string(qnv)};
+           })
+      .def("__setstate__",
+           [](QuantumIdentifier* qnv, const std::tuple<std::string>& state) {
+             new (qnv) QuantumIdentifier(std::get<0>(state));
+           });
   py::implicitly_convertible<std::string, QuantumIdentifier>();
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }
 }  // namespace Python

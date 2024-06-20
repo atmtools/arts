@@ -30,27 +30,49 @@ endwhile()
 # #######################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp
-    gen_auto_py_default_groups.cpp gen_auto_py_helpers.cpp pydocs.cpp)
+    gen_auto_py_helpers.cpp pydocs.cpp)
 target_link_libraries(gen_auto_py PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
 add_custom_command(
-    OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp py_auto_options.cpp py_auto_wsg_init.cpp py_auto_wsg_init.h
+    OUTPUT  ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp
     COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating automatic python interface"
 )
 
+add_executable(gen_auto_py_methods gen_auto_py_methods.cpp gen_auto_py_helpers.cpp pydocs.cpp)
+target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace arts_options)
+target_include_directories(gen_auto_py_methods PUBLIC ${ARTS_SOURCE_DIR}/src)
+
+add_custom_command(
+    OUTPUT ${PYARTS_WORKSPACE_METHODS} 
+    COMMAND gen_auto_py_methods ${NUM_PYARTS_WSM}
+    DEPENDS gen_auto_py_methods
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating automatic python interface"
+)
+
+add_executable(gen_auto_py_options gen_auto_py_options.cpp gen_auto_py_helpers.cpp pydocs.cpp)
+target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options)
+target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
+
+add_custom_command(
+    OUTPUT py_auto_options.cpp
+    COMMAND gen_auto_py_options ${NUM_PYARTS_WSM}
+    DEPENDS gen_auto_py_options
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating automatic python interface"
+)
+
 # #######################################################################################
 
-# ########## pybind11 class interface
-pybind11_add_module(pyarts_cpp THIN_LTO
+nanobind_add_module(pyarts_cpp NB_STATIC STABLE_ABI
     ${PYARTS_WORKSPACE_METHODS}
-    ${PYARTS_WORKSPACE_VARS}
-    py_auto_wsg.cpp
-    py_auto_wsg_init.cpp
+    #${PYARTS_WORKSPACE_VARS}
+    #py_auto_wsg.cpp
     py_auto_interface.cpp
     py_auto_options.cpp
 
@@ -95,8 +117,6 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_igrf.cpp
     py_zeeman.cpp
 
-    python_interface_groups.cpp
-
     gen_auto_py_helpers.cpp
 )
 
@@ -106,12 +126,8 @@ endif()
 
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
 target_link_libraries(pyarts_cpp PUBLIC artsworkspace arts_options)
-target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_compile_definitions(pyarts_cpp PUBLIC PYBIND11_DETAILED_ERROR_MESSAGES)
 set_target_properties(
     pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${ARTS_BINARY_DIR}/python/pyarts/")
-
-# #######################################################################################

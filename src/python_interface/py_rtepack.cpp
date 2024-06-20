@@ -1,4 +1,3 @@
-#include <pybind11/pybind11.h>
 #include <python_interface.h>
 #include <rtepack.h>
 
@@ -42,7 +41,7 @@ void py_rtepack(py::module_ &m) try {
                                {4},
                                {sizeof(Numeric)});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](Stokvec &x) {
                           py::object np = py::module_::import("numpy");
@@ -69,7 +68,7 @@ void py_rtepack(py::module_ &m) try {
             {static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecVector &x) {
                           py::object np = py::module_::import("numpy");
@@ -95,7 +94,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecMatrix &x) {
                           py::object np = py::module_::import("numpy");
@@ -121,7 +120,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecTensor3 &x) {
                           py::object np = py::module_::import("numpy");
@@ -150,7 +149,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecTensor4 &x) {
                           py::object np = py::module_::import("numpy");
@@ -182,7 +181,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecTensor5 &x) {
                           py::object np = py::module_::import("numpy");
@@ -217,7 +216,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](StokvecTensor6 &x) {
                           py::object np = py::module_::import("numpy");
@@ -244,7 +243,7 @@ void py_rtepack(py::module_ &m) try {
                                {7},
                                {sizeof(Numeric)});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](Propmat &x) {
                           py::object np = py::module_::import("numpy");
@@ -268,7 +267,7 @@ void py_rtepack(py::module_ &m) try {
             {static_cast<ssize_t>(7 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](PropmatVector &x) {
                           py::object np = py::module_::import("numpy");
@@ -294,7 +293,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(7 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](PropmatMatrix &x) {
                           py::object np = py::module_::import("numpy");
@@ -330,7 +329,7 @@ void py_rtepack(py::module_ &m) try {
                                {4, 4},
                                {4 * sizeof(Numeric), sizeof(Numeric)});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](Muelmat &x) {
                           py::object np = py::module_::import("numpy");
@@ -356,7 +355,7 @@ void py_rtepack(py::module_ &m) try {
                                 static_cast<ssize_t>(4 * sizeof(Numeric)),
                                 static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](MuelmatVector &x) {
                           py::object np = py::module_::import("numpy");
@@ -384,7 +383,7 @@ void py_rtepack(py::module_ &m) try {
              static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property("value",
+      .def_prop_rw("value",
                     py::cpp_function(
                         [](MuelmatMatrix &x) {
                           py::object np = py::module_::import("numpy");

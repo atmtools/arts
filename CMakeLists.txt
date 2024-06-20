@@ -135,7 +135,13 @@ find_package (Python REQUIRED COMPONENTS Interpreter Development.Module)
 include (CheckPythonModule)
 check_python_modules()
 
-find_package(pybind11 CONFIG REQUIRED)
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+  OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE NB_DIR)
+
+list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
+
+find_package(nanobind CONFIG REQUIRED)
 
 set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python_EXECUTABLE})
 

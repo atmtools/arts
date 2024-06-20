@@ -1,5 +1,4 @@
 #include <parameters.h>
-#include <pybind11/cast.h>
 
 #include <algorithm>
 #include <memory>
@@ -7,7 +6,7 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "auto_wsg.h"
+#include <workspace.h>
 #include "debug.h"
 #include "py_macros.h"
 #include "python_interface.h"
@@ -47,57 +46,62 @@ std::filesystem::path correct_include_path(
 }
 
 void py_agenda(py::module_& m) try {
-  py_staticCallbackOperator(m)
+  py::class_<CallbackOperator>(m, "CallbackOperator")
       .def(
-          py::init([](const std::function<void(
-                          const std::shared_ptr<Workspace>&)>& f,
-                      const std::vector<std::string>& i,
-                      const std::vector<std::string>& o) {
-            return std::make_shared<CallbackOperator>(f, i, o);
-          }),
+          "__init__",
+          [](CallbackOperator* cb,
+             const std::function<void(const std::shared_ptr<Workspace>&)>& f,
+             const std::vector<std::string>& i,
+             const std::vector<std::string>& o) {
+            new (cb) CallbackOperator(f, i, o);
+          },
           py::arg("f"),
-          py::arg("inputs") = std::vector<std::string>{},
+          py::arg("inputs")  = std::vector<std::string>{},
           py::arg("outputs") = std::vector<std::string>{},
-          py::doc("Initialize as structured call"))
+          "Initialize as structured call")
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
-  artsclass<Method>(m, "Method")
-      .def(py::init([](const std::string& n,
-                       const std::vector<std::string>& a,
-                       const std::unordered_map<std::string, std::string>& kw)
-                        -> Method {
-             return {n, a, kw};
-           }),
-           py::arg("name"),
-           py::arg("args"),
-           py::arg("kwargs"),
-           py::doc("A named method with args and kwargs"))
-      .def(py::init([](const std::string& n, const PyWsvValue& v) -> Method {
-             return std::visit(
-                 [&](auto&& wsv) -> Method {
-                   return {n, Wsv{*wsv}, n.front() == '@'};
-                 },
-                 from(v).value);
-           }),
-           py::arg("name"),
-           py::arg("wsv"),
-           py::doc("A method that sets a workspace variable"))
-      .def_property_readonly(
+  py::class_<Method>(m, "Method")
+      .def(
+          "__init__",
+          [](Method* m,
+             const std::string& n,
+             const std::vector<std::string>& a,
+             const std::unordered_map<std::string, std::string>& kw) -> Method {
+            new (m) Method{n, a, kw};
+          },
+          py::arg("name"),
+          py::arg("args"),
+          py::arg("kwargs"),
+          "A named method with args and kwargs")
+      .def(
+          "__init__",
+          [](Method* m, const std::string& n, const PyWsvValue& v) -> Method {
+            new (m) Method{std::visit(
+                [&](auto&& wsv) -> Method {
+                  return {n, Wsv{*wsv}, n.front() == '@'};
+                },
+                from(v).value)};
+          },
+          py::arg("name"),
+          py::arg("wsv"),
+          "A method that sets a workspace variable")
+      .def_prop_ro(
           "val",
           [](const Method& method) -> std::variant<py::none, PyWsvValue> {
             const auto& x = method.get_setval();
             if (x) return from(x.value());
             return py::none();
           },
-          py::doc("The value (if any) of a set method"))
-      .def_property_readonly(
+          "The value (if any) of a set method")
+      .def_prop_ro(
           "name",
           [](const Method& method) { return method.get_name(); },
           py::doc("The name of the method"))
       .def("__str__", [](const Method& method) { return var_string(method); })
       .doc() = "The method class of ARTS";
 
-  py_staticAgenda(m)
+  py::class_<Agenda>(m, "Agenda")
       .def(py::init<std::string>(), py::arg("name"), "Create with name")
       .def("add",
            &Agenda::add,
@@ -122,18 +126,19 @@ so Copy(a, out=b) will not even see the b variable.
           [](Agenda& a, bool fix) { a.finalize(fix); },
           py::arg("fix") = false,
           "Finalize the agenda, making it possible to use it in the workspace")
-      .def_property_readonly(
+      .def_prop_ro(
           "name",
           [](const Agenda& agenda) { return agenda.get_name(); },
-          py::doc("The name of the agenda"))
-      .def_property_readonly(
+          "The name of the agenda")
+      .def_prop_ro(
           "methods",
           [](const Agenda& agenda) { return agenda.get_methods(); },
-          py::doc("The methods of the agenda"));
+          "The methods of the agenda");
 
-  py_staticArrayOfAgenda(m)
+  py::bind_vector<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(
-          py::init([](std::vector<Agenda> va) {
+          "__init__",
+          [](ArrayOfAgenda* a, std::vector<Agenda> va) {
             for (auto& a : va) {
               ARTS_USER_ERROR_IF(
                   a.get_name() not_eq va.front().get_name(),
@@ -148,16 +153,16 @@ so Copy(a, out=b) will not even see the b variable.
                   '"',
                   '\n')
             }
-            return std::make_shared<ArrayOfAgenda>(va);
-          }),
+            new (a) ArrayOfAgenda > (va);
+          },
           "Create from :class:`list`")
       .def(
           "finalize",
           [](ArrayOfAgenda& aa) {
             for (auto& a : aa) a.finalize();
           },
-          py::doc("Checks if the agenda works"))
-      .def_property(
+          "Checks if the agenda works")
+      .def_prop_rw(
           "name",
           [](ArrayOfAgenda& a) -> String {
             if (a.size() == 0) return "";
@@ -166,7 +171,7 @@ so Copy(a, out=b) will not even see the b variable.
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
           },
-          py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"));
+          ":class:`~pyarts.arts.String` Name of the array of agenda");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));

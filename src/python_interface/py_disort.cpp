@@ -1,6 +1,4 @@
 #include <disort.h>
-#include <pybind11/cast.h>
-#include <pybind11/pybind11.h>
 #include <python_interface.h>
 
 #include <memory>
@@ -9,11 +7,13 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "matpack_iter.h"
-#include "python_interface_groups.h"
 #include "sorted_grid.h"
 #include "sorting.h"
 
-PYBIND11_MAKE_OPAQUE(std::vector<disort::BDRF>);
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/bind_vector.h>
+
+NB_MAKE_OPAQUE(std::vector<disort::BDRF>);
 
 namespace Python {
 using bdrf_func = std::function<Matrix(const Vector&, const Vector&)>;
@@ -21,10 +21,10 @@ using bdrf_func = std::function<Matrix(const Vector&, const Vector&)>;
 void py_disort(py::module_& m) try {
   auto disort_nm = m.def_submodule("disort");
 
-  artsclass<disort::BDRF>(disort_nm, "bdrf")
+  py::class_<disort::BDRF>(disort_nm, "bdrf")
       .def(py::init<>())
-      .def(py::init([](const bdrf_func& f) {
-             return disort::BDRF([f](ExhaustiveMatrixView mat,
+      .def("__init__", [](disort::BDRF * b, const bdrf_func& f) {
+             new (b) disort::BDRF([f](ExhaustiveMatrixView mat,
                                      const ExhaustiveConstVectorView& a,
                                      const ExhaustiveConstVectorView& b) {
                const Matrix out = f(Vector{a}, Vector{b});
@@ -37,7 +37,7 @@ void py_disort(py::module_& m) try {
                }
                mat = out;
              });
-           }),
+           },
            py::keep_alive<0, 1>())
       .def("__call__",
            [](const disort::BDRF& bdrf, const Vector& a, const Vector& b) {
@@ -47,11 +47,10 @@ void py_disort(py::module_& m) try {
            });
   py::implicitly_convertible<bdrf_func, disort::BDRF>();
 
-  artsarray<std::vector<disort::BDRF>>(disort_nm, "ArrayOfBDRF");
+  py::bind_vector<std::vector<disort::BDRF>>(disort_nm, "ArrayOfBDRF");
 
-  artsclass<disort::main_data>(m, "cppdisort")
-      .def(
-          py::init([](const AscendingGrid& tau_arr,
+  py::class_<disort::main_data>(m, "cppdisort")
+      .def("__init__", [](disort::main_data*n, const AscendingGrid& tau_arr,
                       const Vector& omega_arr,
                       const Index NQuad,
                       const Matrix& Leg_coeffs_all,
@@ -69,7 +68,7 @@ void py_disort(py::module_& m) try {
             const Index NLeg = NLeg_.value_or(NQuad);
             const Index NLayers = tau_arr.size();
 
-            return disort::main_data(
+            new (n) disort::main_data(
                 NQuad,
                 NLeg,
                 NFourier,
@@ -84,7 +83,7 @@ void py_disort(py::module_& m) try {
                 mu0,
                 I0,
                 phi0);
-          }),
+          },
           "Run disort, mostly mimicying the 0.7 Pythonic-DISORT interface.\n",
           py::arg("tau_arr"),
           py::arg("omega_arr"),
@@ -93,27 +92,20 @@ void py_disort(py::module_& m) try {
           py::arg("mu0"),
           py::arg("I0"),
           py::arg("phi0"),
-          py::arg_v("NLeg",
+          py::arg("NLeg") = std::nullopt,
+          py::arg("NFourier") =
                     std::nullopt,
-                    "Number of Legendre polynomials to use. Default is NQuad."),
-          py::arg_v("NFourier",
-                    std::nullopt,
-                    "Number of Fourier modes to use. Default is NQuad."),
-          py::arg_v(
-              "b_pos",
+          py::arg(
+              "b_pos")=
               std::nullopt,
-              "Boundary conditions for positive Fourier modes. Default is 0."),
-          py::arg_v(
-              "b_neg",
+          py::arg(
+              "b_neg")=
               std::nullopt,
-              "Boundary conditions for negative Fourier modes. Default is 0."),
-          py::arg_v("f_arr", std::nullopt, "Fractional scaling. Default is 0."),
-          py::arg_v("BDRF_Fourier_modes",
+          py::arg("f_arr")= std::nullopt,
+          py::arg("BDRF_Fourier_modes")=
                     std::vector<disort::BDRF>{},
-                    "BDRF modes. Default is none."),
-          py::arg_v("s_poly_coeffs",
-                    std::nullopt,
-                    "Surface polynomial coefficients. Default is 0."))
+          py::arg("s_poly_coeffs")=
+                    std::nullopt)
       .def(
           "u",
           [](disort::main_data& dis,

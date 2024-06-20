@@ -1,8 +1,3 @@
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-
 #include <algorithm>
 #include <functional>
 #include <memory>
@@ -19,12 +14,12 @@
 
 namespace Python {
 void py_xsec(py::module_& m) try {
-  py_staticXsecRecord(m)
-      .def_property("version",
+  py::class_<XsecRecord>(m, "XsecRecord")
+      .def_prop_rw("version",
                     &XsecRecord::Version,
                     &XsecRecord::SetVersion,
                     ":class:`int` The version")
-      .def_property("species",
+      .def_prop_rw("species",
                     &XsecRecord::Species,
                     &XsecRecord::SetSpecies,
                     ":class:`~pyarts.arts.Species` The species")
@@ -96,30 +91,34 @@ Returns
     Absorption profile [1/m]
 
 )--"))
-      .def(py::pickle(
-          [](const XsecRecord& self) {
-            return py::make_tuple(self.Version(),
-                                  self.Species(),
-                                  self.FitMinPressures(),
-                                  self.FitMaxPressures(),
-                                  self.FitMinTemperatures(),
-                                  self.FitMaxTemperatures(),
-                                  self.FitCoeffs());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
-
-            auto out = std::make_shared<XsecRecord>();
-            out->SetVersion(t[0].cast<Index>());
-            out->SetSpecies(t[1].cast<SpeciesEnum>());
-            out->FitMinPressures() = t[2].cast<Vector>();
-            out->FitMaxPressures() = t[3].cast<Vector>();
-            out->FitMinTemperatures() = t[4].cast<Vector>();
-            out->FitMaxTemperatures() = t[5].cast<Vector>();
-            out->FitCoeffs() = t[6].cast<ArrayOfGriddedField1Named>();
-
-            return out;
-          }))
+      .def("__getstate__",
+           [](const XsecRecord& self) {
+             return std::make_tuple(self.Version(),
+                                    self.Species(),
+                                    self.FitMinPressures(),
+                                    self.FitMaxPressures(),
+                                    self.FitMinTemperatures(),
+                                    self.FitMaxTemperatures(),
+                                    self.FitCoeffs());
+           })
+      .def("__setstate__",
+           [](XsecRecord* self,
+              const std::tuple<Index,
+                               SpeciesEnum,
+                               Vector,
+                               Vector,
+                               Vector,
+                               Vector,
+                               ArrayOfGriddedField1Named>& state) {
+             new (self) XsecRecord();
+             self->SetVersion(std::get<0>(state));
+             self->SetSpecies(std::get<1>(state));
+             self->FitMinPressures()    = std::get<2>(state);
+             self->FitMaxPressures()    = std::get<3>(state);
+             self->FitMinTemperatures() = std::get<4>(state);
+             self->FitMaxTemperatures() = std::get<5>(state);
+             self->FitCoeffs()          = std::get<6>(state);
+           })
       .def(
           "to_dict",
           [](const XsecRecord& self) {
@@ -127,48 +126,48 @@ Returns
 
             py::dict attrs;
             attrs["creation_data"] = var_string(Time{});
-            attrs["version"] = self.Version();
-            attrs["species"] = toString(self.Species());
+            attrs["version"]       = self.Version();
+            attrs["species"]       = toString(self.Species());
 
             std::vector<Size> r(self.FitCoeffs().size());
             std::iota(r.begin(), r.end(), 0);
             auto coords = py::dict{};
 
-            coords["coeffs"] = py::dict{};
+            coords["coeffs"]         = py::dict{};
             coords["coeffs"]["dims"] = "coeffs";
             coords["coeffs"]["data"] =
                 std::vector<std::string>{"p00", "p10", "p01", "p20"};
 
-            coords["bands"] = py::dict{};
+            coords["bands"]         = py::dict{};
             coords["bands"]["dims"] = "bands";
             coords["bands"]["data"] = std::move(r);
 
             py::dict data_vars{};
-            data_vars["fitminpressures"] = py::dict{};
+            data_vars["fitminpressures"]         = py::dict{};
             data_vars["fitminpressures"]["dims"] = "bands";
             data_vars["fitminpressures"]["data"] = self.FitMinPressures();
 
-            data_vars["fitmaxpressures"] = py::dict{};
+            data_vars["fitmaxpressures"]         = py::dict{};
             data_vars["fitmaxpressures"]["dims"] = "bands";
             data_vars["fitmaxpressures"]["data"] = self.FitMaxPressures();
 
-            data_vars["fitmintemperatures"] = py::dict{};
+            data_vars["fitmintemperatures"]         = py::dict{};
             data_vars["fitmintemperatures"]["dims"] = "bands";
             data_vars["fitmintemperatures"]["data"] = self.FitMinTemperatures();
 
-            data_vars["fitmaxtemperatures"] = py::dict{};
+            data_vars["fitmaxtemperatures"]         = py::dict{};
             data_vars["fitmaxtemperatures"]["dims"] = "bands";
             data_vars["fitmaxtemperatures"]["data"] = self.FitMaxTemperatures();
 
             for (Size i = 0; i < self.FitCoeffs().size(); ++i) {
-              const String band_fgrid = var_string("band", i, "_fgrid");
-              const String band_coeffs = var_string("band", i, "_coeffs");
-              const auto band_fgrid_key = py::str(band_fgrid);
-              const auto band_coeffs_key = py::str(band_coeffs);
+              const String band_fgrid    = var_string("band", i, "_fgrid");
+              const String band_coeffs   = var_string("band", i, "_coeffs");
+              const auto band_fgrid_key  = py::str(band_fgrid.c_str());
+              const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
-              coords[band_fgrid_key] = py::dict{};
-              coords[band_fgrid_key]["dims"] = band_fgrid;
-              coords[band_fgrid_key]["data"] = self.FitCoeffs()[i].grid<0>();
+              coords[band_fgrid_key]          = py::dict{};
+              coords[band_fgrid_key]["dims"]  = band_fgrid;
+              coords[band_fgrid_key]["data"]  = self.FitCoeffs()[i].grid<0>();
               coords[band_fgrid_key]["attrs"] = py::dict{};
               coords[band_fgrid_key]["attrs"]["name"] =
                   self.FitCoeffs()[i].gridname<0>();
@@ -176,7 +175,7 @@ Returns
               data_vars[band_coeffs_key] = py::dict{};
               data_vars[band_coeffs_key]["dims"] =
                   std::vector<std::string>{band_fgrid, "coeffs"};
-              data_vars[band_coeffs_key]["data"] = self.FitCoeffs()[i].data;
+              data_vars[band_coeffs_key]["data"]  = self.FitCoeffs()[i].data;
               data_vars[band_coeffs_key]["attrs"] = py::dict{};
               data_vars[band_coeffs_key]["attrs"]["name"] =
                   self.FitCoeffs()[i].data_name;
@@ -188,15 +187,15 @@ Returns
               }
             }
 
-            out["coords"] = coords;
-            out["attrs"] = attrs;
+            out["coords"]    = coords;
+            out["attrs"]     = attrs;
             out["data_vars"] = data_vars;
             return out;
           })
       .def(
           "to_xarray",
           [](py::object& xr) {
-            py::module_ xarray = py::module_::import("xarray");
+            py::module_ xarray = py::module_::import_("xarray");
             return xarray.attr("Dataset").attr("from_dict")(
                 xr.attr("to_dict")());
           },
@@ -210,50 +209,50 @@ Returns
       .def_static(
           "from_dict",
           [](const py::dict& d) {
-            auto attrs = d["attrs"];
-            auto coords = d["coords"];
+            auto attrs     = d["attrs"];
+            auto coords    = d["coords"];
             auto data_vars = d["data_vars"];
 
             auto out = std::make_shared<XsecRecord>();
-            out->SetVersion(attrs["version"].cast<Index>());
-            out->SetSpecies(attrs["species"].cast<SpeciesEnum>());
+            out->SetVersion(py::cast<Index>(attrs["version"]);
+            out->SetSpecies(py::cast<SpeciesEnum>(attrs["species"]);
             out->FitMinPressures() =
-                data_vars["fitminpressures"]["data"].cast<Vector>();
+                py::cast<Vector>(data_vars["fitminpressures"]["data"]);
             out->FitMaxPressures() =
-                data_vars["fitmaxpressures"]["data"].cast<Vector>();
+                py::cast<Vector>(data_vars["fitmaxpressures"]["data"]);
             out->FitMinTemperatures() =
-                data_vars["fitmintemperatures"]["data"].cast<Vector>();
+                py::cast<Vector>(data_vars["fitmintemperatures"]["data"]);
             out->FitMaxTemperatures() =
-                data_vars["fitmaxtemperatures"]["data"].cast<Vector>();
+                py::cast<Vector>(data_vars["fitmaxtemperatures"]["data"]);
 
             out->FitCoeffs().reserve(out->FitMinPressures().size());
             for (Index i = 0; i < out->FitMinPressures().size(); ++i) {
-              const String band_fgrid = var_string("band", i, "_fgrid");
-              const String band_coeffs = var_string("band", i, "_coeffs");
-              const auto band_fgrid_key = py::str(band_fgrid);
-              const auto band_coeffs_key = py::str(band_coeffs);
+              const String band_fgrid    = var_string("band", i, "_fgrid");
+              const String band_coeffs   = var_string("band", i, "_coeffs");
+              const auto band_fgrid_key  = py::str(band_fgrid.c_str());
+              const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
-              auto& band = out->FitCoeffs().emplace_back();
-              band.grid<0>() = coords[band_fgrid_key]["data"].cast<Vector>();
-              band.grid<1>() = coords["coeffs"]["data"].cast<ArrayOfString>();
-              band.data = data_vars[band_coeffs_key]["data"].cast<Matrix>();
+              auto& band     = out->FitCoeffs().emplace_back();
+              band.grid<0>() = py::cast<Vector>(coords[band_fgrid_key]["data"]);
+              band.grid<1>() = py::cast<ArrayOfString>(coords["coeffs"]["data"]);
+              band.data = py::cast<Matrix>(data_vars[band_coeffs_key]["data"]);
 
               if (coords[band_fgrid_key].contains("attrs") and
                   coords[band_fgrid_key]["attrs"].contains("name")) {
                 band.gridname<0>() =
-                    coords[band_fgrid_key]["attrs"]["name"].cast<String>();
+                    py::cast<String>(coords[band_fgrid_key]["attrs"]["name"]);
               }
 
               if (coords["coeffs"].contains("attrs") and
                   coords["coeffs"]["attrs"].contains("name")) {
                 band.gridname<1>() =
-                    coords["coeffs"]["attrs"]["name"].cast<String>();
+                    py::cast<String>(coords["coeffs"]["attrs"]["name"]);
               }
 
               if (data_vars[band_coeffs_key].contains("attrs") and
                   data_vars[band_coeffs_key]["attrs"].contains("name")) {
                 band.data_name =
-                    data_vars[band_coeffs_key]["attrs"]["name"].cast<String>();
+                    py::cast<String>data_vars[band_coeffs_key]["attrs"]["name"]);
               }
             }
             return out;

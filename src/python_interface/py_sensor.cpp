@@ -17,8 +17,8 @@ void py_sensor(py::module_& m) try {
                                {static_cast<ssize_t>(sizeof(Numeric))});
       })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
-      .def_readwrite("pos", &SensorPosLos::pos, "Position")
-      .def_readwrite("los", &SensorPosLos::los, "Line of sight");
+      .def_rw("pos", &SensorPosLos::pos, "Position")
+      .def_rw("los", &SensorPosLos::los, "Line of sight");
 
   py_staticSensorPosLosVector(m)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
@@ -32,7 +32,7 @@ void py_sensor(py::module_& m) try {
             {static_cast<ssize_t>(5 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
       })
-      .def_property(
+      .def_prop_rw(
           "value",
           py::cpp_function(
               [](SensorPosLosVector& x) {
@@ -68,15 +68,15 @@ void py_sensor(py::module_& m) try {
                     SensorPosLosVector,
                     Stokvec>(),
            "From pos and los")
-      .def_readwrite("f_grid_w", &SensorObsel::f_grid_w, "Frequency weights")
-      .def_readwrite("f_grid", &SensorObsel::f_grid, "Frequency grid")
-      .def_readwrite("poslos_w",
+      .def_rw("f_grid_w", &SensorObsel::f_grid_w, "Frequency weights")
+      .def_rw("f_grid", &SensorObsel::f_grid, "Frequency grid")
+      .def_rw("poslos_w",
                      &SensorObsel::poslos_grid_w,
                      "Position and line of sight weights")
-      .def_readwrite("poslos",
+      .def_rw("poslos",
                      &SensorObsel::poslos_grid,
                      "Position and line of sight grid")
-      .def_readwrite(
+      .def_rw(
           "polarization", &SensorObsel::polarization, "Polarization sampling")
       .def(
           "set_frequency_gaussian",
