@@ -67,7 +67,7 @@ void py_zeeman(py::module_& m);
  */
 NB_MODULE(arts, m) try {
   m.doc() = "Interface directly to the C++ types via python";
-  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
+  py::class_<Workspace> ws(m, "_Workspace");
 
   static bool init = true;
   if (init) {
@@ -140,7 +140,7 @@ NB_MODULE(arts, m) try {
   py_disort(m);
 
   // Must be last, it contains automatic conversion operations
-  py_workspace(ws);
+  // py_workspace(ws);
 
   // Extras calling pure internal functions
   py_constants(m);

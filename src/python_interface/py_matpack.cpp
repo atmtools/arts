@@ -1,7 +1,7 @@
 #include <python_interface.h>
 
-#include "hpy_matpack.h"
 #include "hpy_arts.h"
+#include "hpy_matpack.h"
 
 namespace Python {
 void py_matpack(py::module_& m) try {
@@ -16,13 +16,14 @@ void py_matpack(py::module_& m) try {
            py::arg("extent"),
            py::arg("stride") = 1,
            "Valued initialization")
-      .def("__getstate__", 
-          [](const Range& self) {
-            return std::make_tuple(self.offset, self.extent, self.stride);
-          }).def("__setstate__",
-          [](Range*r, const std::tuple<Index, Index, Index>& t) {
-            new (r) Range{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
-          })
+      .def("__getstate__",
+           [](const Range& self) {
+             return std::make_tuple(self.offset, self.extent, self.stride);
+           })
+      .def("__setstate__",
+           [](Range* r, const std::tuple<Index, Index, Index>& t) {
+             new (r) Range{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
+           })
       .doc() = "A range, used to select parts of a matpack type";
 
   py::class_<IndexVector> iv1(m, "IndexVector");
@@ -43,36 +44,35 @@ void py_matpack(py::module_& m) try {
   matpack_interface(v5);
   matpack_interface(v6);
   matpack_interface(v7);
-  xml_interface(v1);
-  xml_interface(v2);
-  xml_interface(v3);
-  xml_interface(v4);
-  xml_interface(v5);
-  xml_interface(v6);
-  xml_interface(v7);
+  workspace_group_interface(v1);
+  workspace_group_interface(v2);
+  workspace_group_interface(v3);
+  workspace_group_interface(v4);
+  workspace_group_interface(v5);
+  workspace_group_interface(v6);
+  workspace_group_interface(v7);
 
-  py::class_<Rational>(m, "Rational")
-      .def(py::init<Index, Index>(),
-           py::arg("n") = 0,
-           py::arg("d") = 1,
-           "Default rational")
-      .def(py::init<String>(),
-           "From :class:`str`")
-      .def(py::init<Numeric>(),
-           "From :class:`float`")
+  py::class_<Rational> rat(m, "Rational");
+  rat.def(py::init<Index, Index>(),
+          py::arg("n") = 0,
+          py::arg("d") = 1,
+          "Default rational")
+      .def(py::init<String>(), "From :class:`str`")
+      .def(py::init<Numeric>(), "From :class:`float`")
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
       // .PythonInterfaceCommonMath(Index)
       // .PythonInterfaceCommonMathSelf
       .def_rw("n", &Rational::numer, ":class:`int` Numerator")
       .def_rw("d", &Rational::denom, ":class:`int` Denominator")
-      .def("__getstate__", 
-          [](const Rational& self) {
-            return std::make_tuple(self.numer, self.denom);
-          }).def("__setstate__",
-          [](Rational*r, const std::tuple<Index, Index>& t) {
-            new (r) Range{std::get<0>(t), std::get<1>(t)};
-          });
+      .def("__getstate__",
+           [](const Rational& self) {
+             return std::make_tuple(self.numer, self.denom);
+           })
+      .def("__setstate__", [](Rational* r, const std::tuple<Index, Index>& t) {
+        new (r) Range{std::get<0>(t), std::get<1>(t)};
+      });
+  workspace_group_interface(rat);
   py::implicitly_convertible<Index, Rational>();
 
   py::class_<ComplexVector> comv1(m, "ComplexVector");

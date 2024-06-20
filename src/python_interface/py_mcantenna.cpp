@@ -16,17 +16,15 @@ void py_mcantenna(py::module_& m) try {
              AntennaType::ANTENNA_TYPE_LOOKUP,
              "As from a lookup")
       .PythonInterfaceCopyValue(AntennaType)
-      .def(py::pickle(
+      .def("__getstate__",
           [](const AntennaType& self) {
-            return py::make_tuple(static_cast<Index>(self));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return std::make_tuple(static_cast<Index>(self));
+          }).def("__setstate__",
+          [](AntennaType*a, const std::tuple<Index>& state) {
+            new (a) AntennaType{static_cast<AntennaType>(std::get<0>(state))};
+          }).doc() = "An antenna type";
 
-            return static_cast<AntennaType>(t[0].cast<Index>());
-          }));  // NOTE: Cannot add docstring to py::enum_ (python 3.10.10, macOS)
-
-  py_staticMCAntenna(m)
+  py::class_<MCAntenna>(m,"MCAntenna")
       .def_rw("atype",
                      &MCAntenna::atype,
                      ":class:`~pyarts.arts.AntennaType` The antenna type")

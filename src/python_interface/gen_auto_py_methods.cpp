@@ -28,6 +28,8 @@ std::string using_pygroup() {
     os << "  using py" << name << " = ";
     if (wsg.value_type) {
       os << "ValueHolder<" << name << ">";
+    }else if (name == "Any") {
+      os << "py::object";
     } else {
       os << name;
     }
@@ -43,7 +45,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   std::ostringstream os;
 
-  os << "\n    const Workspace& _ws";
+  os << "    Workspace& _ws";
   for (auto& v : wsm.out) {
     os << ",\n    std::optional<py" << wsvs.at(v).type << "* const> _" << v;
   }
@@ -696,31 +698,29 @@ std::string method_argument_documentation(
   for (auto& t : wsm.out) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
-       << "\").noconvert()";
+    os << "\"" << t << "\"_a.noconvert()=std::nullopt";
   }
 
   for (auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg(\"" << t << "\").noconvert() = std::nullopt";
+    os << "\"" << t << "\"_a=std::nullopt";
   }
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t << "\")";
+    os << "\"" << t << "\"_a=std::nullopt";
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     if (not first) os << ",\n    ";
     first = false;
     if (wsm.gin_value[i]) {
-      os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, R\"-x-("
-         << to_defval_str(*wsm.gin_value[i]) << ")-x-\")";
+      os << "\"" << wsm.gin[i] << "\"_a=std::nullopt";
     } else {
-      os << "py::arg(\"" << wsm.gin[i] << "\") = std::nullopt";
+      os << "\"" << wsm.gin[i] << "\"_a=std::nullopt";
     }
   }
 
@@ -742,8 +742,8 @@ std::string method(const std::string& name,
   os << "      } catch (std::exception& e) {\n";
   os << method_error(name, wsm);
   os << "      }\n";
-  os << "    },\n    " << method_argument_documentation(wsm) << "py::doc(R\""
-     << method_docs(name) << "\"));\n\n";
+  os << "    },\n    " << method_argument_documentation(wsm) << "R\""
+     << method_docs(name) << "\");\n\n";
   return os.str();
 }
 
@@ -757,13 +757,13 @@ std::string method(const std::string& name,
   os << "[](";
   os << "\n    Workspace& _ws,";
   for (auto& str : wsm.output) {
-    os << "\n    std::optional<py" << wsvs.at(str).type << "> _" << str
+    os << "\n    std::optional<py" << wsvs.at(str).type << " * const> _" << str
        << ",";
   }
   for (auto& str : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
     os << "\n     const std::optional<const py" << wsvs.at(str).type
-       << "> _" << str << ",";
+       << " * const> _" << str << ",";
   }
   os << "\n     const std::optional<const ";
   if (wsm.array) os << "ArrayOf";
@@ -837,21 +837,18 @@ std::string method(const std::string& name,
   os << "    },\n    ";
 
   for (auto& t : wsm.output) {
-    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
-       << "\").noconvert(),\n    ";
+    os << "\"" << t << "\"_a.noconvert()=std::nullopt,\n    ";
   }
   for (auto& t : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
-    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
-       << "\"),\n    ";
+    os << "\"" << t << "\"_a=std::nullopt,\n    ";
   }
-  os << "py::arg_v(\"" << name << "\", std::nullopt, \"self." << name
-     << "\"),\n    ";
+  os << "\"" << name << "\"_a=std::nullopt,\n    ";
 
-  os << "py::doc(R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
+  os << "R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
      << get_agenda_io(name) << name << " : ~pyarts.arts.";
   if (wsm.array) os << "ArrayOf";
-  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\"));\n\n";
+  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\");\n\n";
   return os.str();
 }
 

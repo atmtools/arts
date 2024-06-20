@@ -36,7 +36,7 @@ target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
 add_custom_command(
-    OUTPUT  ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp
+    OUTPUT  ${PYARTS_WORKSPACE_VARS} py_auto_interface.cpp
     COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -67,12 +67,24 @@ add_custom_command(
     COMMENT "Generating automatic python interface"
 )
 
+add_executable(gen_auto_py_groups gen_auto_py_groups.cpp gen_auto_py_helpers.cpp pydocs.cpp)
+target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options)
+target_include_directories(gen_auto_py_groups PUBLIC ${ARTS_SOURCE_DIR}/src)
+
+add_custom_command(
+    OUTPUT py_auto_wsg.cpp py_auto_wsg.h 
+    COMMAND gen_auto_py_groups
+    DEPENDS gen_auto_py_groups
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating automatic python interface"
+)
+
 # #######################################################################################
 
 nanobind_add_module(pyarts_cpp NB_STATIC STABLE_ABI
     ${PYARTS_WORKSPACE_METHODS}
     #${PYARTS_WORKSPACE_VARS}
-    #py_auto_wsg.cpp
+    py_auto_wsg.cpp
     py_auto_interface.cpp
     py_auto_options.cpp
 

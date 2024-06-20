@@ -11,12 +11,12 @@
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
   os << "  py::class_<" << wso.name << "> _g"<< wso.name <<"(m, \"" << wso.name << "\");\n  _g"<< wso.name;
 
-  os << ".def(py::init<>([](){})\n";
+  os << ".def(py::init<>())\n";
 
-  os << "      .def(py::init<"<< wso.name <<">([](){})\n";
+  os << "      .def(py::init<"<< wso.name <<">())\n";
 
   os << "      .def(\"__init__\", []("<< wso.name <<"*y, const std::string& x) {new (y) "<< wso.name <<"{to<" << wso.name
-     << ">(x)};}), \"String constructor\")\n";
+     << ">(x)};}, \"String constructor\")\n";
 
   os << "      .def(\"__hash__\", [](const " << wso.name
      << "& x) {return std::hash<" << wso.name << ">{}(x);})\n";
@@ -46,15 +46,15 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
   os << "      .def(py::self < py::self)\n";
   os << "      .def(py::self > py::self)\n";
 
-  os << "      .def(\"__getstate__\"(\n        [](" << wso.name
+  os << "      .def(\"__getstate__\",\n        [](" << wso.name
      << "& t) {\n"
         "          return std::tuple<std::string>{String{toString(t)}};\n"
-        "        })\n"
-        "      .def(\"__setstate__\"(\n        [](" << wso.name << "* e, const std::tuple<std::string>& state) {\n"
+        "      })\n"
+        "      .def(\"__setstate__\",\n        [](" << wso.name << "* e, const std::tuple<std::string>& state) {\n"
         "           new (e) "<< wso.name << "{to<"
      << wso.name
      << ">(std::get<0>(state))};\n"
-        "        }))\n";
+        "      })\n";
 
   os << "      .def_static(\"get_options\", [](){return enumtyps::" << wso.name
      << "Types;}, \"Get a list of all options\")\n";
@@ -103,6 +103,14 @@ void enum_options(const std::string& fname) {
 
 #include <enums.h>
 
+)-x-";
+
+  for (auto& wso : wsos) {
+    cc << "NB_MAKE_OPAQUE(" << wso.name << ");\n";
+  }
+
+cc << R"-x-(
+
 namespace Python {
 void py_auto_options(py::module_& m) try {
 )-x-";
@@ -119,6 +127,5 @@ void py_auto_options(py::module_& m) try {
 }
 
 int main() {
-
   enum_options("py_auto_options");
 }
