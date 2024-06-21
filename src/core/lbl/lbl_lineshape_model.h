@@ -17,7 +17,7 @@ struct species_model {
   std::vector<std::pair<LineShapeModelVariable, temperature::data>> data{};
 
 #define VARIABLE(name) \
-  [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const noexcept
+  [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const
 
   VARIABLE(G0);
   VARIABLE(D0);
@@ -31,25 +31,16 @@ struct species_model {
 
 #undef VARIABLE
 
-#define DERIVATIVE(name)                                               \
-  [[nodiscard]] Numeric dG0_d##name(Numeric T0, Numeric T, Numeric P)  \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dD0_d##name(Numeric T0, Numeric T, Numeric P)  \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dG2_d##name(Numeric T0, Numeric T, Numeric P)  \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dD2_d##name(Numeric T0, Numeric T, Numeric P)  \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dETA_d##name(Numeric T0, Numeric T, Numeric P) \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dFVC_d##name(Numeric T0, Numeric T, Numeric P) \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dY_d##name(Numeric T0, Numeric T, Numeric P)   \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dG_d##name(Numeric T0, Numeric T, Numeric P)   \
-      const noexcept;                                                  \
-  [[nodiscard]] Numeric dDV_d##name(Numeric T0, Numeric T, Numeric P)  \
-      const noexcept
+#define DERIVATIVE(name)                                                      \
+  [[nodiscard]] Numeric dG0_d##name(Numeric T0, Numeric T, Numeric P) const;  \
+  [[nodiscard]] Numeric dD0_d##name(Numeric T0, Numeric T, Numeric P) const;  \
+  [[nodiscard]] Numeric dG2_d##name(Numeric T0, Numeric T, Numeric P) const;  \
+  [[nodiscard]] Numeric dD2_d##name(Numeric T0, Numeric T, Numeric P) const;  \
+  [[nodiscard]] Numeric dETA_d##name(Numeric T0, Numeric T, Numeric P) const; \
+  [[nodiscard]] Numeric dFVC_d##name(Numeric T0, Numeric T, Numeric P) const; \
+  [[nodiscard]] Numeric dY_d##name(Numeric T0, Numeric T, Numeric P) const;   \
+  [[nodiscard]] Numeric dG_d##name(Numeric T0, Numeric T, Numeric P) const;   \
+  [[nodiscard]] Numeric dDV_d##name(Numeric T0, Numeric T, Numeric P) const
 
   DERIVATIVE(P);
   DERIVATIVE(T);
@@ -64,47 +55,47 @@ struct species_model {
   [[nodiscard]] Numeric dG0_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD0_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG2_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD2_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dETA_dX(Numeric T0,
                                 Numeric T,
                                 Numeric P,
-                                LineShapeModelCoefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dFVC_dX(Numeric T0,
                                 Numeric T,
                                 Numeric P,
-                                LineShapeModelCoefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dY_dX(Numeric T0,
                               Numeric T,
                               Numeric P,
-                              LineShapeModelCoefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG_dX(Numeric T0,
                               Numeric T,
                               Numeric P,
-                              LineShapeModelCoefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dDV_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   friend std::ostream& operator<<(std::ostream& os, const species_model& x);
   friend std::istream& operator>>(std::istream& os, species_model& x);
@@ -120,11 +111,11 @@ struct model {
   friend std::ostream& operator<<(std::ostream& os, const model& x);
   friend std::istream& operator>>(std::istream& is, model& x);
 
-#define VARIABLE(name)                                            \
-  [[nodiscard]] Numeric name(const AtmPoint& atm) const noexcept; \
-                                                                  \
-  [[nodiscard]] Numeric d##name##_dVMR(const AtmPoint& atm,       \
-                                       SpeciesEnum species) const noexcept
+#define VARIABLE(name)                                      \
+  [[nodiscard]] Numeric name(const AtmPoint& atm) const;    \
+                                                            \
+  [[nodiscard]] Numeric d##name##_dVMR(const AtmPoint& atm, \
+                                       SpeciesEnum species) const
 
   VARIABLE(G0);
   VARIABLE(D0);
@@ -138,16 +129,16 @@ struct model {
 
 #undef VARIABLE
 
-#define DERIVATIVE(name)                                                  \
-  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm) const noexcept;  \
-  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm) const noexcept;  \
-  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm) const noexcept;  \
-  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm) const noexcept;  \
-  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm) const noexcept; \
-  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm) const noexcept; \
-  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm) const noexcept;   \
-  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm) const noexcept;   \
-  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm) const noexcept
+#define DERIVATIVE(name)                                         \
+  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm) const;  \
+  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm) const;  \
+  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm) const;  \
+  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm) const;  \
+  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm) const; \
+  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm) const; \
+  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm) const;   \
+  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm) const;   \
+  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm) const
 
   DERIVATIVE(T);
   DERIVATIVE(T0);
@@ -157,23 +148,22 @@ struct model {
 
 #define DERIVATIVE(name)                                                   \
   [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm, const Size spec)  \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm, const Size spec)  \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm, const Size spec)  \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm, const Size spec)  \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm, const Size spec) \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm, const Size spec) \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm, const Size spec)   \
-      const noexcept;                                                      \
+      const;                                                               \
   [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm, const Size spec)   \
-      const noexcept;                                                      \
-  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm, const Size spec)  \
-      const noexcept
+      const;                                                               \
+  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm, const Size spec) const
 
   DERIVATIVE(X0);
   DERIVATIVE(X1);
@@ -186,39 +176,39 @@ struct model {
 
   [[nodiscard]] Numeric dG0_dX(const AtmPoint& atm,
                                const Size spec,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD0_dX(const AtmPoint& atm,
                                const Size spec,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG2_dX(const AtmPoint& atm,
                                const Size spec,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD2_dX(const AtmPoint& atm,
                                const Size spec,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dETA_dX(const AtmPoint& atm,
                                 const Size spec,
-                                LineShapeModelCoefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm,
                                 const Size spec,
-                                LineShapeModelCoefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dY_dX(const AtmPoint& atm,
                               const Size spec,
-                              LineShapeModelCoefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG_dX(const AtmPoint& atm,
                               const Size spec,
-                              LineShapeModelCoefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm,
                                const Size spec,
-                               LineShapeModelCoefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const;
 
   //! Remove all line shape variables that evaluate unconditionally to 0
   void clear_zeroes();
@@ -230,7 +220,8 @@ std::istream& operator>>(std::istream& is, std::vector<species_model>& x);
 
 std::ostream& operator<<(
     std::ostream& os,
-    const std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
+    const std::vector<
+        std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
 
 std::istream& operator>>(
     std::istream& is,

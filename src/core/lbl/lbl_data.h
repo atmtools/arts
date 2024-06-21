@@ -47,28 +47,25 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric s(Numeric T, Numeric Q) const noexcept;
+  [[nodiscard]] Numeric s(Numeric T, Numeric Q) const;
 
-  [[nodiscard]] constexpr Numeric nlte_k(Numeric ru,
-                                         Numeric rl) const noexcept {
+  [[nodiscard]] constexpr Numeric nlte_k(Numeric ru, Numeric rl) const {
     return (rl * gu / gl - ru) * a / Math::pow3(f0);
   }
 
-  [[nodiscard]] constexpr Numeric dnlte_k_drl() const noexcept {
+  [[nodiscard]] constexpr Numeric dnlte_k_drl() const {
     return gu / gl * a / Math::pow3(f0);
   }
 
-  [[nodiscard]] constexpr Numeric dnlte_k_dru() const noexcept {
+  [[nodiscard]] constexpr Numeric dnlte_k_dru() const {
     return -a / Math::pow3(f0);
   }
 
-  [[nodiscard]] constexpr Numeric nlte_e(Numeric ru) const noexcept {
-    return ru * a;
-  }
+  [[nodiscard]] constexpr Numeric nlte_e(Numeric ru) const { return ru * a; }
 
-  [[nodiscard]] constexpr Numeric dnlte_e_dru() const noexcept { return a; }
+  [[nodiscard]] constexpr Numeric dnlte_e_dru() const { return a; }
 
-  [[nodiscard]] static constexpr Numeric dnlte_e_drl() noexcept { return 0; }
+  [[nodiscard]] static constexpr Numeric dnlte_e_drl() { return 0; }
 
   /*! Derivative of s(T, Q) wrt to this->e0
 
@@ -76,10 +73,10 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const noexcept;
+  [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const;
 
   //! The ratio of ds_de0 / s
-  [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const noexcept {
+  [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const {
     return -1 / (Constant::k * T);
   }
 
@@ -89,12 +86,10 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_df0(Numeric T, Numeric Q) const noexcept;
+  [[nodiscard]] Numeric ds_df0(Numeric T, Numeric Q) const;
 
   //! The ratio of ds_df0 / s
-  [[nodiscard]] constexpr Numeric ds_df0_s_ratio() const noexcept {
-    return -3 / f0;
-  }
+  [[nodiscard]] constexpr Numeric ds_df0_s_ratio() const { return -3 / f0; }
 
   /*! Derivative of s(T, Q) wrt to this->a
 
@@ -102,7 +97,7 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_da(Numeric T, Numeric Q) const noexcept;
+  [[nodiscard]] Numeric ds_da(Numeric T, Numeric Q) const;
 
   /*! Derivative of s(T, Q) wrt to input t
 
@@ -111,9 +106,7 @@ struct line {
   @param[in] dQ_dt Partition function derivative at temperature wrt t [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_dT(Numeric T,
-                              Numeric Q,
-                              Numeric dQ_dt) const noexcept;
+  [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dt) const;
 
   friend std::ostream& operator<<(std::ostream& os, const line& x);
 
@@ -129,27 +122,27 @@ struct band_data {
 
   Numeric cutoff_value{std::numeric_limits<Numeric>::infinity()};
 
-  [[nodiscard]] auto&& back() noexcept { return lines.back(); }
-  [[nodiscard]] auto&& back() const noexcept { return lines.back(); }
-  [[nodiscard]] auto&& front() noexcept { return lines.front(); }
-  [[nodiscard]] auto&& front() const noexcept { return lines.front(); }
-  [[nodiscard]] auto size() const noexcept { return lines.size(); }
-  [[nodiscard]] auto begin() noexcept { return lines.begin(); }
-  [[nodiscard]] auto begin() const noexcept { return lines.begin(); }
-  [[nodiscard]] auto cbegin() const noexcept { return lines.cbegin(); }
-  [[nodiscard]] auto end() noexcept { return lines.end(); }
-  [[nodiscard]] auto end() const noexcept { return lines.end(); }
-  [[nodiscard]] auto cend() const noexcept { return lines.cend(); }
+  [[nodiscard]] auto&& back() { return lines.back(); }
+  [[nodiscard]] auto&& back() const { return lines.back(); }
+  [[nodiscard]] auto&& front() { return lines.front(); }
+  [[nodiscard]] auto&& front() const { return lines.front(); }
+  [[nodiscard]] auto size() const { return lines.size(); }
+  [[nodiscard]] auto begin() { return lines.begin(); }
+  [[nodiscard]] auto begin() const { return lines.begin(); }
+  [[nodiscard]] auto cbegin() const { return lines.cbegin(); }
+  [[nodiscard]] auto end() { return lines.end(); }
+  [[nodiscard]] auto end() const { return lines.end(); }
+  [[nodiscard]] auto cend() const { return lines.cend(); }
   template <typename T>
-  void push_back(T&& l) noexcept {
+  void push_back(T&& l) {
     lines.push_back(std::forward<T>(l));
   }
   template <typename... Ts>
-  lbl::line& emplace_back(Ts&&... l) noexcept {
+  lbl::line& emplace_back(Ts&&... l) {
     return lines.emplace_back(std::forward<Ts>(l)...);
   }
 
-  [[nodiscard]] constexpr Numeric get_cutoff_frequency() const noexcept {
+  [[nodiscard]] constexpr Numeric get_cutoff_frequency() const {
     using enum LineByLineCutoffType;
     switch (cutoff) {
       case None:
@@ -203,7 +196,8 @@ struct line_key {
   LineShapeModelVariable ls_var{static_cast<LineShapeModelVariable>(-1)};
 
   //! The line shape coefficient if ls_var is not FINAL
-  LineShapeModelCoefficient ls_coeff{static_cast<LineShapeModelCoefficient>(-1)};
+  LineShapeModelCoefficient ls_coeff{
+      static_cast<LineShapeModelCoefficient>(-1)};
 
   /* The line parameter to be used for the line shape derivative
   

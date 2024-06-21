@@ -232,8 +232,8 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
 
   if (JJ == Rational(0)) return 0.0;
   auto DIV = Omega / JJ;
-  auto T1 = (Sigma * DIV).toNumeric();
-  auto T2 = (Lambda * DIV).toNumeric();
+  auto T1  = (Sigma * DIV).toNumeric();
+  auto T2  = (Lambda * DIV).toNumeric();
   return GS * T1 + GL * T2;
 }
 
@@ -260,13 +260,13 @@ struct model {
   bool on{false};
 
   /** Default init */
-  constexpr model() noexcept = default;
-  constexpr model(model &&) noexcept = default;
-  constexpr model(const model &) noexcept = default;
-  constexpr model &operator=(model &&) noexcept = default;
-  constexpr model &operator=(const model &) noexcept = default;
+  constexpr model() noexcept                               = default;
+  constexpr model(model &&) noexcept                       = default;
+  constexpr model(const model &) noexcept                  = default;
+  constexpr model &operator=(model &&) noexcept            = default;
+  constexpr model &operator=(const model &) noexcept       = default;
   constexpr auto operator<=>(const model &) const noexcept = default;
-  constexpr model(data d) noexcept : mdata(d), on(not empty()){};
+  constexpr model(data d) noexcept : mdata(d), on(not empty()) {};
 
   /** Attempts to compute Zeeman input if available
    * 
@@ -319,7 +319,7 @@ struct model {
   [[nodiscard]] Numeric Strength(Rational Ju,
                                  Rational Jl,
                                  pol type,
-                                 Index n) const ARTS_NOEXCEPT;
+                                 Index n) const;
 
   /** Gives the strength of one subline of a given polarization
    * 
@@ -336,7 +336,7 @@ struct model {
    */
   [[nodiscard]] Numeric Strength(const QuantumNumberValueList &qn,
                                  pol type,
-                                 Index n) const ARTS_NOEXCEPT;
+                                 Index n) const;
 
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -407,7 +407,7 @@ struct model {
  * 
  * @return Zeeman model data
  */
-data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+data GetSimpleModel(const QuantumIdentifier &qid);
 
 /** Returns an advanced Zeeman model 
  * 
@@ -420,15 +420,32 @@ data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
  * 
  * @return Zeeman model data
  */
-data GetAdvancedModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+data GetAdvancedModel(const QuantumIdentifier &qid);
 
-Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+struct magnetic_angles {
+  Numeric u, v, w, sa, ca, sz, cz, H, uct, duct;
 
-Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+  magnetic_angles(const Vector3 mag = {0, 0, 0}, const Vector2 los = {0, 0});
 
-Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric theta() const;
+  [[nodiscard]] Numeric dtheta_du() const;
+  [[nodiscard]] Numeric dtheta_dv() const;
+  [[nodiscard]] Numeric dtheta_dw() const;
+  [[nodiscard]] Numeric eta() const;
+  [[nodiscard]] Numeric deta_du() const;
+  [[nodiscard]] Numeric deta_dv() const;
+  [[nodiscard]] Numeric deta_dw() const;
 
-Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+  friend std::ostream &operator<<(std::ostream &os, const magnetic_angles &m);
+};
+
+Propmat norm_view(pol p, Vector3 mag, Vector2 los);
+
+Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los);
+
+Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los);
+
+Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los);
 
 constexpr Propmat scale(const Propmat &a, const Complex F) noexcept {
   return {a.A() * F.real(),

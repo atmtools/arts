@@ -6,6 +6,7 @@
 #include <surf.h>
 #include <workspace.h>
 
+#include "arts_conversions.h"
 #include "debug.h"
 #include "sorted_grid.h"
 
@@ -169,6 +170,29 @@ void ray_path_propagation_matrixFromPath(
     ARTS_USER_ERROR_IF(
         do_abort, "Error messages from failed cases:\n", fail_msg)
   }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void ray_path_zeeman_magnetic_fieldFromPath(
+    ArrayOfVector3 &ray_path_zeeman_magnetic_field,
+    const ArrayOfPropagationPathPoint &ray_path,
+    const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+  const Size np = ray_path_atmospheric_point.size();
+  ARTS_USER_ERROR_IF(
+      np != ray_path.size(),
+      "ray_path and ray_path_atmospheric_point must have the same size")
+
+  ray_path_zeeman_magnetic_field.resize(np);
+
+  std::transform(ray_path.begin(),
+                 ray_path.end(),
+                 ray_path_atmospheric_point.begin(),
+                 ray_path_zeeman_magnetic_field.begin(),
+                 [](const auto &p, const auto &a) -> Vector3 {
+                   using Conversion::rad2deg;
+                   const auto zz = lbl::zeeman::magnetic_angles(a.mag, p.los);
+                   return {zz.H, rad2deg(zz.theta()), rad2deg(zz.eta())};
+                 });
 }
 ARTS_METHOD_ERROR_CATCH
 

@@ -48,48 +48,47 @@ struct single_shape {
                const Index,
                const Size);
 
-  [[nodiscard]] constexpr Complex z(Numeric f) const noexcept {
+  [[nodiscard]] constexpr Complex z(Numeric f) const {
     return Complex{inv_gd * (f - f0), z_imag};
   }
 
-  [[nodiscard]] static Complex F(const Complex z_) noexcept;
+  [[nodiscard]] static Complex F(const Complex z_);
 
-  [[nodiscard]] Complex F(const Numeric f) const noexcept;
+  [[nodiscard]] Complex F(const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> operator()(
-      const Numeric f) const noexcept;
+  [[nodiscard]] std::pair<Complex, Complex> operator()(const Numeric f) const;
 
-  [[nodiscard]] static Complex dF(const Complex z_, const Complex F_) noexcept;
+  [[nodiscard]] static Complex dF(const Complex z_, const Complex F_);
 
-  [[nodiscard]] Complex dF(const Numeric f) const noexcept;
+  [[nodiscard]] Complex dF(const Numeric f) const;
 
  private:
   struct zFdF {
     Complex z, F, dF;
-    zFdF(const Complex z_) noexcept;
+    zFdF(const Complex z_);
   };
 
-  [[nodiscard]] zFdF all(const Numeric f) const noexcept;
+  [[nodiscard]] zFdF all(const Numeric f) const;
 
  public:
   [[nodiscard]] std::pair<Complex, Complex> dru(const Numeric dk_dru,
                                                 const Numeric de_ratio_dru,
-                                                const Numeric f) const noexcept;
+                                                const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> drl(const Numeric dk_drl,
                                                 const Numeric de_ratio_drl,
-                                                const Numeric f) const noexcept;
+                                                const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const noexcept;
+  [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dH(const Complex dz_dH,
-                                               const Numeric f) const noexcept;
+                                               const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dT(const Numeric dk_dT,
                                                const Numeric de_ratio_dT,
                                                const Complex dz_dT,
                                                const Numeric dz_dT_fac,
-                                               const Numeric f) const noexcept;
+                                               const Numeric f) const;
 };
 
 //! A band shape is a collection of single shapes.  The shapes are sorted by frequency.
@@ -98,14 +97,13 @@ struct band_shape {
   std::vector<single_shape> lines{};
   Numeric cutoff{-1};
 
-  [[nodiscard]] Size size() const noexcept { return lines.size(); }
+  [[nodiscard]] Size size() const { return lines.size(); }
 
   band_shape() = default;
 
-  band_shape(std::vector<single_shape>&& ls, const Numeric cut) noexcept;
+  band_shape(std::vector<single_shape>&& ls, const Numeric cut);
 
-  [[nodiscard]] std::pair<Complex, Complex> operator()(
-      const Numeric f) const noexcept;
+  [[nodiscard]] std::pair<Complex, Complex> operator()(const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const;
 
@@ -192,7 +190,7 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ExhaustiveConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los = {},
+              const Vector2& los    = {},
               const zeeman::pol pol = zeeman::pol::no);
 
   void update_zeeman(const Vector2& los,

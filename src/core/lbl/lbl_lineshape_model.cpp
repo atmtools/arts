@@ -12,7 +12,8 @@ std::ostream& operator<<(
 }
 
 std::istream& operator>>(
-    std::istream& is, std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
+    std::istream& is,
+    std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
   String name;
   is >> name >> x.second;
 
@@ -23,8 +24,8 @@ std::istream& operator>>(
 
 std::ostream& operator<<(
     std::ostream& os,
-    const std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>&
-        x) {
+    const std::vector<
+        std::pair<LineShapeModelVariable, lbl::temperature::data>>& x) {
   os << x.size();
   for (auto& y : x) os << ' ' << y;
   return os;
@@ -41,21 +42,21 @@ std::istream& operator>>(
 }
 
 namespace lbl::line_shape {
-#define VARIABLE(name, PVAR, DPVAR)                                       \
-  Numeric species_model::name(                                            \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const noexcept { \
-    auto ptr = std::ranges::find_if(data, [](auto& x) {                   \
-      return x.first == LineShapeModelVariable::name;                     \
-    });                                                                   \
-    return ptr != data.end() ? PVAR * ptr->second(T0, T) : 0.0;           \
-  }                                                                       \
-                                                                          \
-  Numeric species_model::d##name##_dP(                                    \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const noexcept { \
-    auto ptr = std::ranges::find_if(data, [](auto& x) {                   \
-      return x.first == LineShapeModelVariable::name;                     \
-    });                                                                   \
-    return ptr != data.end() ? DPVAR * ptr->second(T0, T) : 0.0;          \
+#define VARIABLE(name, PVAR, DPVAR)                              \
+  Numeric species_model::name(                                   \
+      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
+    auto ptr = std::ranges::find_if(data, [](auto& x) {          \
+      return x.first == LineShapeModelVariable::name;            \
+    });                                                          \
+    return ptr != data.end() ? PVAR * ptr->second(T0, T) : 0.0;  \
+  }                                                              \
+                                                                 \
+  Numeric species_model::d##name##_dP(                           \
+      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
+    auto ptr = std::ranges::find_if(data, [](auto& x) {          \
+      return x.first == LineShapeModelVariable::name;            \
+    });                                                          \
+    return ptr != data.end() ? DPVAR * ptr->second(T0, T) : 0.0; \
   }
 
 VARIABLE(G0, P, 1);
@@ -70,13 +71,13 @@ VARIABLE(DV, P* P, 2 * P);
 
 #undef VARIABLE
 
-#define DERIVATIVE(name, deriv, PVAR)                                     \
-  Numeric species_model::d##name##_d##deriv(                              \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const noexcept { \
-    auto ptr = std::ranges::find_if(data, [](auto& x) {                   \
-      return x.first == LineShapeModelVariable::name;                     \
-    });                                                                   \
-    return ptr != data.end() ? PVAR * ptr->second.d##deriv(T0, T) : 0.0;  \
+#define DERIVATIVE(name, deriv, PVAR)                                    \
+  Numeric species_model::d##name##_d##deriv(                             \
+      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const {         \
+    auto ptr = std::ranges::find_if(data, [](auto& x) {                  \
+      return x.first == LineShapeModelVariable::name;                    \
+    });                                                                  \
+    return ptr != data.end() ? PVAR * ptr->second.d##deriv(T0, T) : 0.0; \
   }
 
 #define VARIABLE(deriv)        \
@@ -104,13 +105,13 @@ VARIABLE(X3);
 /////////////////////////////////////////////////////////////////////////////
 
 #define VARIABLE(mod)                                                         \
-  Numeric model::mod(const AtmPoint& atm) const noexcept {                    \
+  Numeric model::mod(const AtmPoint& atm) const {                             \
     Numeric vmr = 0.0;                                                        \
     Numeric out = 0.0;                                                        \
                                                                               \
     const auto compute = [&](const species_model& m) {                        \
-      const Numeric this_vmr = atm[m.species];                                \
-      vmr += this_vmr;                                                        \
+      const Numeric this_vmr  = atm[m.species];                               \
+      vmr                    += this_vmr;                                     \
       out += this_vmr * m.mod(T0, atm.temperature, atm.pressure);             \
     };                                                                        \
                                                                               \
@@ -130,8 +131,8 @@ VARIABLE(X3);
     return out;                                                               \
   }                                                                           \
                                                                               \
-  [[nodiscard]] Numeric model::d##mod##_dVMR(                                 \
-      const AtmPoint& atm, SpeciesEnum species) const noexcept {              \
+  [[nodiscard]] Numeric model::d##mod##_dVMR(const AtmPoint& atm,             \
+                                             SpeciesEnum species) const {     \
     auto ptr = std::ranges::find_if(                                          \
         single_models, [&](auto& m) { return m.species == species; });        \
                                                                               \
@@ -166,13 +167,13 @@ VARIABLE(DV);
 #undef VARIABLE
 
 #define DERIVATIVE(mod, deriv)                                               \
-  Numeric model::d##mod##_d##deriv(const AtmPoint& atm) const noexcept {     \
+  Numeric model::d##mod##_d##deriv(const AtmPoint& atm) const {              \
     Numeric vmr = 0.0;                                                       \
     Numeric out = 0.0;                                                       \
                                                                              \
     const auto compute = [&](const species_model& m) {                       \
-      const Numeric this_vmr = atm[m.species];                               \
-      vmr += this_vmr;                                                       \
+      const Numeric this_vmr  = atm[m.species];                              \
+      vmr                    += this_vmr;                                    \
       out +=                                                                 \
           this_vmr * m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
     };                                                                       \
@@ -215,7 +216,7 @@ VARIABLE(T0);
 
 #define DERIVATIVE(mod, deriv)                                                 \
   Numeric model::d##mod##_d##deriv(const AtmPoint& atm, const Size spec)       \
-      const noexcept {                                                         \
+      const {                                                                  \
     if (spec >= single_models.size()) return 0.0;                              \
     const auto& m = single_models[spec];                                       \
                                                                                \
@@ -268,7 +269,7 @@ VARIABLE(X3);
 #define VARIABLE(name)                                                       \
   Numeric model::d##name##_dX(                                               \
       const AtmPoint& atm, const Size spec, LineShapeModelCoefficient coeff) \
-      const noexcept {                                                       \
+      const {                                                                \
     switch (coeff) {                                                         \
       case LineShapeModelCoefficient::X0:                                    \
         return d##name##_dX0(atm, spec);                                     \
@@ -283,7 +284,7 @@ VARIABLE(X3);
   }                                                                          \
   Numeric species_model::d##name##_dX(                                       \
       Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)     \
-      const noexcept {                                                       \
+      const {                                                                \
     switch (coeff) {                                                         \
       case LineShapeModelCoefficient::X0:                                    \
         return d##name##_dX0(T0, T, P);                                      \

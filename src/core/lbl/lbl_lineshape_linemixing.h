@@ -33,22 +33,20 @@ using species_data_map = std::unordered_map<SpeciesEnum, species_data>;
 struct isot_map {
   std::unordered_map<SpeciesIsotope, species_data_map> data{};
 
-  species_data_map& operator[](const SpeciesIsotope& key) {
-    return data[key];
-  }
+  species_data_map& operator[](const SpeciesIsotope& key) { return data[key]; }
   [[nodiscard]] auto find(const SpeciesIsotope& key) const {
     return data.find(key);
   }
-  [[nodiscard]] auto begin() noexcept { return data.begin(); }
-  [[nodiscard]] auto end() noexcept { return data.end(); }
-  [[nodiscard]] auto begin() const noexcept { return data.begin(); }
-  [[nodiscard]] auto end() const noexcept { return data.end(); }
-  [[nodiscard]] auto cbegin() const noexcept { return data.cbegin(); }
-  [[nodiscard]] auto cend() const noexcept { return data.cend(); }
-  void clear() noexcept { data.clear(); }
+  [[nodiscard]] auto begin() { return data.begin(); }
+  [[nodiscard]] auto end() { return data.end(); }
+  [[nodiscard]] auto begin() const { return data.begin(); }
+  [[nodiscard]] auto end() const { return data.end(); }
+  [[nodiscard]] auto cbegin() const { return data.cbegin(); }
+  [[nodiscard]] auto cend() const { return data.cend(); }
+  void clear() { data.clear(); }
   void reserve(const size_t n) { data.reserve(n); }
-  [[nodiscard]] std::size_t size() const noexcept { return data.size(); }
-  [[nodiscard]] bool empty() const noexcept { return data.empty(); }
+  [[nodiscard]] std::size_t size() const { return data.size(); }
+  [[nodiscard]] bool empty() const { return data.empty(); }
 
   friend std::ostream& operator<<(std::ostream&, const isot_map&);
 };  // isot_map

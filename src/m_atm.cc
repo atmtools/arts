@@ -1,4 +1,5 @@
 #include <workspace.h>
+#include <zconf.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -495,7 +496,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 }
 
 void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
-  using namespace IGRF;
+  using IGRF::igrf;
 
   //! We need explicit planet-size as IGRF requires the radius
   //! This is the WGS84 version of that, with radius of equator and pole
@@ -506,20 +507,20 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   struct res {
     Time t;
 
-    [[nodiscard]] MagneticField comp(Numeric al, Numeric la, Numeric lo) const {
-      return compute(Vector{al}.reshape(1, 1, 1), {la}, {lo}, t, ell);
+    [[nodiscard]] Vector3 comp(Numeric al, Numeric la, Numeric lo) const {
+      return igrf({al, la, lo}, ell, t);
     }
 
     [[nodiscard]] Numeric get_u(Numeric z, Numeric la, Numeric lo) const {
-      return comp(z, la, lo).u(0, 0, 0);
+      return igrf({z, la, lo}, ell, t)[0];
     }
 
     [[nodiscard]] Numeric get_v(Numeric z, Numeric la, Numeric lo) const {
-      return comp(z, la, lo).v(0, 0, 0);
+      return igrf({z, la, lo}, ell, t)[1];
     }
 
     [[nodiscard]] Numeric get_w(Numeric z, Numeric la, Numeric lo) const {
-      return comp(z, la, lo).w(0, 0, 0);
+      return igrf({z, la, lo}, ell, t)[2];
     }
   };
 

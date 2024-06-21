@@ -46,69 +46,67 @@ struct single_shape {
                const Index,
                const Size);
 
-  [[nodiscard]] constexpr Complex z(Numeric f) const noexcept {
+  [[nodiscard]] constexpr Complex z(Numeric f) const {
     return Complex{inv_gd * (f - f0), z_imag};
   }
 
-  [[nodiscard]] static Complex F(const Complex z_) noexcept;
+  [[nodiscard]] static Complex F(const Complex z_);
 
-  [[nodiscard]] Complex F(const Numeric f) const noexcept;
+  [[nodiscard]] Complex F(const Numeric f) const;
 
-  [[nodiscard]] Complex operator()(const Numeric f) const noexcept;
+  [[nodiscard]] Complex operator()(const Numeric f) const;
 
-  [[nodiscard]] static Complex dF(const Complex z_, const Complex F_) noexcept;
+  [[nodiscard]] static Complex dF(const Complex z_, const Complex F_);
 
-  [[nodiscard]] Complex dF(const Numeric f) const noexcept;
+  [[nodiscard]] Complex dF(const Numeric f) const;
 
  private:
   struct zFdF {
     Complex z, F, dF;
-    zFdF(const Complex z_) noexcept;
+    zFdF(const Complex z_);
   };
 
-  [[nodiscard]] zFdF all(const Numeric f) const noexcept;
+  [[nodiscard]] zFdF all(const Numeric f) const;
 
  public:
-  [[nodiscard]] Complex df(const Numeric f) const noexcept;
+  [[nodiscard]] Complex df(const Numeric f) const;
 
   [[nodiscard]] Complex df0(const Complex ds_df0,
                             const Complex dz_df0,
                             const Numeric dz_df0_fac,
-                            const Numeric f) const noexcept;
+                            const Numeric f) const;
 
   [[nodiscard]] Complex dDV(const Complex ds_dDV,
                             const Complex dz_dDV,
                             const Numeric dz_dDV_fac,
-                            const Numeric f) const noexcept;
+                            const Numeric f) const;
 
   [[nodiscard]] Complex dD0(const Complex ds_dD0,
                             const Complex dz_dD0,
                             const Numeric dz_dD0_fac,
-                            const Numeric f) const noexcept;
+                            const Numeric f) const;
 
-  [[nodiscard]] Complex dG0(const Complex dz_dG0,
-                            const Numeric f) const noexcept;
+  [[nodiscard]] Complex dG0(const Complex dz_dG0, const Numeric f) const;
 
-  [[nodiscard]] Complex dH(const Complex dz_dH, const Numeric f) const noexcept;
+  [[nodiscard]] Complex dH(const Complex dz_dH, const Numeric f) const;
 
   [[nodiscard]] Complex dVMR(const Complex ds_dVMR,
                              const Complex dz_dVMR,
                              const Numeric dz_dVMR_fac,
-                             const Numeric f) const noexcept;
+                             const Numeric f) const;
 
   [[nodiscard]] Complex dT(const Complex ds_dT,
                            const Complex dz_dT,
                            const Numeric dz_dT_fac,
-                           const Numeric f) const noexcept;
+                           const Numeric f) const;
 
-  [[nodiscard]] Complex da(const Complex ds_da, const Numeric f) const noexcept;
+  [[nodiscard]] Complex da(const Complex ds_da, const Numeric f) const;
 
-  [[nodiscard]] Complex de0(const Complex ds_de0,
-                            const Numeric f) const noexcept;
+  [[nodiscard]] Complex de0(const Complex ds_de0, const Numeric f) const;
 
-  [[nodiscard]] Complex dG(const Complex ds_dG, const Numeric f) const noexcept;
+  [[nodiscard]] Complex dG(const Complex ds_dG, const Numeric f) const;
 
-  [[nodiscard]] Complex dY(const Complex ds_dY, const Numeric f) const noexcept;
+  [[nodiscard]] Complex dY(const Complex ds_dY, const Numeric f) const;
 };
 
 Size count_lines(const band_data& bnd, const zeeman::pol type);
@@ -182,13 +180,13 @@ struct band_shape {
   std::vector<single_shape> lines{};
   Numeric cutoff{-1};
 
-  [[nodiscard]] Size size() const noexcept { return lines.size(); }
+  [[nodiscard]] Size size() const { return lines.size(); }
 
   band_shape() = default;
 
-  band_shape(std::vector<single_shape>&& ls, const Numeric cut) noexcept;
+  band_shape(std::vector<single_shape>&& ls, const Numeric cut);
 
-  [[nodiscard]] Complex operator()(const Numeric f) const noexcept;
+  [[nodiscard]] Complex operator()(const Numeric f) const;
 
   [[nodiscard]] Complex df(const Numeric f) const;
 
@@ -398,7 +396,7 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ExhaustiveConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los = {},
+              const Vector2& los    = {},
               const zeeman::pol pol = zeeman::pol::no);
 
   void update_zeeman(const Vector2& los,
