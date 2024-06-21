@@ -1,16 +1,7 @@
-#include <algorithm>
-#include <functional>
-#include <memory>
-#include <stdexcept>
+#include <python_interface.h.
 
-#include "configtypes.h"
-#include "details.h"
-#include "matpack_math.h"
-#include "physics_funcs.h"
-#include "py_macros.h"
-#include "python_interface.h"
-#include "species.h"
-#include "xsec_fit.h"
+#include <artstime.h>
+#include <xsec_fit.h>
 
 namespace Python {
 void py_xsec(py::module_& m) try {
@@ -23,35 +14,25 @@ void py_xsec(py::module_& m) try {
                     &XsecRecord::Species,
                     &XsecRecord::SetSpecies,
                     ":class:`~pyarts.arts.Species` The species")
-      .PythonInterfaceBasicReferenceProperty(
-          XsecRecord,
-          fitcoeffs,
-          FitCoeffs,
-          FitCoeffs,
+      .def_prop_rw("fitcoeffs",
+          &XsecRecord::FitCoeffs,
+          &XsecRecord::FitCoeffs,
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .PythonInterfaceBasicReferenceProperty(
-          XsecRecord,
-          fitminpressures,
-          FitMinPressures,
-          FitMinPressures,
+      .def_prop_rw("fitminpressures",
+          &XsecRecord::FitMinPressures,
+          &XsecRecord::FitMinPressures,
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .PythonInterfaceBasicReferenceProperty(
-          XsecRecord,
-          fitmaxpressures,
-          FitMaxPressures,
-          FitMaxPressures,
+      .def_prop_rw("fitmaxpressures",
+          &XsecRecord::FitMaxPressures,
+          &XsecRecord::FitMaxPressures,
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .PythonInterfaceBasicReferenceProperty(
-          XsecRecord,
-          fitmintemperatures,
-          FitMinTemperatures,
-          FitMinTemperatures,
+      .def_prop_rw("fitmintemperatures",
+          &XsecRecord::FitMinTemperatures,
+          &XsecRecord::FitMinTemperatures,
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .PythonInterfaceBasicReferenceProperty(
-          XsecRecord,
-          fitmaxtemperatures,
-          FitMaxTemperatures,
-          FitMaxTemperatures,
+      .def_prop_rw("fitmaxtemperatures",
+          &XsecRecord::FitMaxTemperatures,
+          &XsecRecord::FitMaxTemperatures,
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(
           "compute_abs",

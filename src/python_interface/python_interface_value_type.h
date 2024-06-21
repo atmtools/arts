@@ -2,13 +2,6 @@
 #define python_interface_value_type_h
 
 #include <matpack_concepts.h>
-
-#include <cmath>
-#include <concepts>
-#include <memory>
-#include <type_traits>
-#include <utility>
-
 namespace Python {
 template <typename type>
 struct ValueHolder {

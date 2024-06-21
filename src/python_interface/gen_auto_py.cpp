@@ -1303,8 +1303,8 @@ int main(int argc, char** argv) {
   const int num_variables = std::stoi(argv[1]);
   const int num_methods = std::stoi(argv[2]);
 
-  enum_options("py_auto_options");
-  groups("py_auto_wsg");
+  //enum_options("py_auto_options");
+  //groups("py_auto_wsg");
   variables(num_variables);
   //methods(num_methods);
 

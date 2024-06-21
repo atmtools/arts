@@ -210,12 +210,12 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
       auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
       auto grid     = gd.attr("grids").attr("__getitem__")(i);
 
-      const auto dim =
+      const auto n =
           gridname ? gridname : py::str(var_string("dim", i).c_str());
-      out["dims"].attr("append")(dim);
-      out["coords"][dim]         = py::dict{};
-      out["coords"][dim]["data"] = grid;
-      out["coords"][dim]["dims"] = dim;
+      out["dims"].attr("append")(n);
+      out["coords"][n]         = py::dict{};
+      out["coords"][n]["data"] = grid;
+      out["coords"][n]["dims"] = n;
     }
 
     out["name"] = gd.attr("dataname");
@@ -251,8 +251,8 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
     gd.grid_names = py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
 
     py::list coords{};
-    for (auto& dim : gd.grid_names) {
-      coords.append(d["coords"][py::str(dim.c_str())]["data"]);
+    for (auto& n : gd.grid_names) {
+      coords.append(d["coords"][py::str(n.c_str())]["data"]);
     }
     gd.grids = py::cast<typename mtype::grids_t>(coords);
 

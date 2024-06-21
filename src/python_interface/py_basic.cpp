@@ -1,13 +1,11 @@
 #include <nanobind/operators.h>
+#include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
 #include <python_interface.h>
 
-#include <algorithm>
-#include <iomanip>
-#include <memory>
-
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
+#include "hpy_vector.h"
 #include "mystring.h"
 #include "python_interface_value_type.h"
 #include "supergeneric.h"

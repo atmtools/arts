@@ -61,7 +61,7 @@ target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
     OUTPUT py_auto_options.cpp
-    COMMAND gen_auto_py_options ${NUM_PYARTS_WSM}
+    COMMAND gen_auto_py_options
     DEPENDS gen_auto_py_options
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating automatic python interface"
