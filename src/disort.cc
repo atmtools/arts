@@ -656,7 +656,7 @@ void get_pfct(Tensor3& pfct_bulk_par,
       Numeric sca =
           (ext_bulk_par(f_index, ip) + ext_bulk_par(f_index, ip + 1)) -
           (abs_bulk_par(f_index, ip) + abs_bulk_par(f_index, ip + 1));
-      if (std::isnormal(sca)){
+      if (std::isnormal(static_cast<float>(sca))) {
         // Calculate layer averaged Z (omitting factor 0.5) and rescale from
         // Z (Csca) to P (4Pi)
         for (Index ia = 0; ia < nang; ia++)
