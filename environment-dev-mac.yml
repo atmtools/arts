@@ -2,7 +2,7 @@ dependencies:
         - boost
         - build
         - ccache
-        - clang=16.*
+        - clang
         - clangxx
         - cmake
         - docutils
@@ -12,11 +12,12 @@ dependencies:
         - glew
         - glfw
         - lark-parser
-        - libclang=16.*
+        - libclang
         - libcxx
         - libmicrohttpd
         - llvm-openmp
         - matplotlib
+        - nanobind
         - netcdf4
         - ninja
         - numpy<2

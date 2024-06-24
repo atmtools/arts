@@ -153,7 +153,6 @@ class GasAbsLookup {
 
   friend std::ostream& operator<<(std::ostream& os, const GasAbsLookup& gal);
   
- private:
   //! The species tags for which the table is valid.
   ArrayOfArrayOfSpeciesTag species;
 

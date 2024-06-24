@@ -10,6 +10,7 @@ dependencies:
         - lark-parser
         - libcxx
         - matplotlib
+        - nanobind
         - netcdf4
         - ninja
         - numpy<2

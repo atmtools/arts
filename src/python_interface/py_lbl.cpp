@@ -20,11 +20,11 @@ void py_lbl(py::module_& m) try {
 
   py::class_<lbl::temperature::data>(m, "TemperatureModel")
       .def(py::init<LineShapeModelType, Vector>())
-      .def_prop_rw_ro(
+      .def_prop_ro(
           "type",
           &lbl::temperature::data::Type,
           ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
-      .def_prop_rw_ro("data",
+      .def_prop_ro("data",
                              &lbl::temperature::data::X,
                              ":class:`~pyarts.arts.Vector` The coefficients")
       .PythonInterfaceBasicRepresentation(lbl::temperature::data);
@@ -117,19 +117,19 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
-      .def_rw(
+      .def_ro(
           "on",
           &lbl::zeeman::model::on,
           ":class:`~pyarts.arts.Bool` If True, the Zeeman effect is included")
       .def_prop_rw(
           "gl",
-          &lbl::zeeman::model::gl,
-          &lbl::zeeman::model::gl,
+          [](lbl::zeeman::model &z){return z.gl();},
+          [](lbl::zeeman::model &z,Numeric g){ z.gl(g);},
           ":class:`~pyarts.arts.Numeric` The lower level statistical weight")
       .def_prop_rw(
           "gu",
-          &lbl::zeeman::model::gu,
-          &lbl::zeeman::model::gu,
+          [](lbl::zeeman::model &z){return z.gu();},
+          [](lbl::zeeman::model &z,Numeric g){ z.gu(g);},
           ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
       .PythonInterfaceBasicRepresentation(lbl::zeeman::model);
 
@@ -155,7 +155,7 @@ void py_lbl(py::module_& m) try {
       .def_rw("z", &lbl::line::z, "The Zeeman model")
       .def_rw("ls", &lbl::line::ls, "The line shape model")
       .def_rw("qn", &lbl::line::qn, "The quantum numbers of this line")
-      .def("s", py::vectorize(&lbl::line::s), "The line strength")
+      .def("s", &lbl::line::s, "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
   py::bind_vector<std::vector<lbl::line>>(m, "LineList")

@@ -1,10 +1,9 @@
-#include <python_interface.h>
-#include <quantum_numbers.h>
-#include <quantum_term_symbol.h>
-
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
+#include <python_interface.h>
+#include <quantum_numbers.h>
+#include <quantum_term_symbol.h>
 
 #include "py_macros.h"
 
@@ -15,10 +14,9 @@ void py_quantum(py::module_& m) try {
       .def(py::init<std::string>())
       .PythonInterfaceCopyValue(QuantumNumberValue)
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
-      .def_rw(
-          "type",
-          &QuantumNumberValue::type,
-          ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
+      .def_rw("type",
+              &QuantumNumberValue::type,
+              ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
       .def_prop_rw(
           "str_upp",
           &QuantumNumberValue::str_upp,
@@ -55,8 +53,7 @@ void py_quantum(py::module_& m) try {
   py::implicitly_convertible<std::string, QuantumNumberValue>();
 
   py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
-      .def(
-          py::init<>())
+      .def(py::init<>())
       .def(py::init<std::string>())
       .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def(
@@ -89,12 +86,13 @@ qn : ~pyarts.arts.QuantumNumberValue
     The value to set
 )")
       .PythonInterfaceBasicRepresentation(QuantumNumberValueList)
-            .def("__getstate__",
+      .def("__getstate__",
            [](const QuantumNumberValueList& qnv) {
              return std::tuple<std::string>{var_string(qnv)};
            })
       .def("__setstate__",
-           [](QuantumNumberValueList* qnv, const std::tuple<std::string>& state) {
+           [](QuantumNumberValueList* qnv,
+              const std::tuple<std::string>& state) {
              new (qnv) QuantumNumberValueList(std::get<0>(state));
            })
       .doc() = "A list of unique :class:`~pyarts.arts.QuantumNumberValue`";
@@ -103,7 +101,6 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
       .def(py::init<>())
       .def(py::init<std::string>())
-      .def(py::init<QuantumNumberValueList>())
       .PythonInterfaceCopyValue(QuantumNumberLocalState)
       .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
       .def_rw(
@@ -115,7 +112,8 @@ qn : ~pyarts.arts.QuantumNumberValue
              return std::tuple<std::string>{var_string(qnv)};
            })
       .def("__setstate__",
-           [](QuantumNumberLocalState* qnv, const std::tuple<std::string>& state) {
+           [](QuantumNumberLocalState* qnv,
+              const std::tuple<std::string>& state) {
              new (qnv) QuantumNumberLocalState(std::get<0>(state));
            })
       .doc() = "A local state of quantum numbers";
@@ -124,13 +122,13 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
       .def(py::init<std::string>())
       .def_ro("isotopologue_index",
-                    &QuantumIdentifier::isotopologue_index,
-                    ":class:`int` The isotopologue index")
+              &QuantumIdentifier::isotopologue_index,
+              ":class:`int` The isotopologue index")
       .def_rw(
           "state",
           &QuantumIdentifier::val,
           ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
-      .def_prop_ro(
+      .def_prop_rw(
           "isotopologue",
           [](QuantumIdentifier& qid) {
             return Species::Isotopologues.at(qid.isotopologue_index);
@@ -147,9 +145,7 @@ qn : ~pyarts.arts.QuantumNumberValue
       .def(py::self >= py::self)
       .def(py::self < py::self)
       .def(py::self > py::self)
-      .def(
-          "__hash__",
-          [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
+      .def(py::hash(py::self))
       .def("as_symbol",
            &Quantum::Helpers::molecular_term_symbol,
            R"(Get the molecular symbol as often seen in literature
@@ -158,7 +154,7 @@ Returns
 symbol : str
     The symbol representation
 )")
-            .def("__getstate__",
+      .def("__getstate__",
            [](const QuantumIdentifier& qnv) {
              return std::tuple<std::string>{var_string(qnv)};
            })

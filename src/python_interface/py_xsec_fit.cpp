@@ -1,39 +1,30 @@
-#include <python_interface.h.
-
 #include <artstime.h>
+#include <python_interface.h>
 #include <xsec_fit.h>
 
 namespace Python {
 void py_xsec(py::module_& m) try {
   py::class_<XsecRecord>(m, "XsecRecord")
-      .def_prop_rw("version",
-                    &XsecRecord::Version,
-                    &XsecRecord::SetVersion,
-                    ":class:`int` The version")
-      .def_prop_rw("species",
-                    &XsecRecord::Species,
-                    &XsecRecord::SetSpecies,
-                    ":class:`~pyarts.arts.Species` The species")
-      .def_prop_rw("fitcoeffs",
-          &XsecRecord::FitCoeffs,
-          &XsecRecord::FitCoeffs,
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_prop_rw("fitminpressures",
-          &XsecRecord::FitMinPressures,
-          &XsecRecord::FitMinPressures,
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_prop_rw("fitmaxpressures",
-          &XsecRecord::FitMaxPressures,
-          &XsecRecord::FitMaxPressures,
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_prop_rw("fitmintemperatures",
-          &XsecRecord::FitMinTemperatures,
-          &XsecRecord::FitMinTemperatures,
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_prop_rw("fitmaxtemperatures",
-          &XsecRecord::FitMaxTemperatures,
-          &XsecRecord::FitMaxTemperatures,
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def_ro_static(
+          "version", &XsecRecord::mversion, ":class:`int` The version")
+      .def_rw("species",
+              &XsecRecord::mspecies,
+              ":class:`~pyarts.arts.Species` The species")
+      .def_rw("fitcoeffs",
+              &XsecRecord::mfitcoeffs,
+              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def_rw("fitminpressures",
+              &XsecRecord::mfitminpressures,
+              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def_rw("fitmaxpressures",
+              &XsecRecord::mfitmaxpressures,
+              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def_rw("fitmintemperatures",
+              &XsecRecord::mfitmintemperatures,
+              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def_rw("fitmaxtemperatures",
+              &XsecRecord::mfitmaxtemperatures,
+              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(
           "compute_abs",
           [](XsecRecord& xsec,
@@ -48,30 +39,29 @@ void py_xsec(py::module_& m) try {
             out *= VMR * number_density(P, T);
             return out;
           },
-          py::arg("T"),
-          py::arg("P"),
-          py::arg("VMR"),
-          py::arg("f"),
-          py::doc(
-              R"--(Computes the Hitran cross-section absorption in 1/m
+          "T"_a,
+          "P"_a,
+          "VMR"_a,
+          "f"_a,
+          R"--(Computes the Hitran cross-section absorption in 1/m
 
-Parameters
-----------
-T : Numeric
-    Temperature [K]
-P : Numeric
-    Pressure [Pa]
-VMR : Numeric
-    VMR of species [-]
-f : Vector
-    Frequency grid [Hz]
+      Parameters
+      ----------
+      T : Numeric
+          Temperature [K]
+      P : Numeric
+          Pressure [Pa]
+      VMR : Numeric
+          VMR of species [-]
+      f : Vector
+          Frequency grid [Hz]
 
-Returns
--------
-  abs : Vector
-    Absorption profile [1/m]
+      Returns
+      -------
+        abs : Vector
+          Absorption profile [1/m]
 
-)--"))
+      )--")
       .def("__getstate__",
            [](const XsecRecord& self) {
              return std::make_tuple(self.Version(),
@@ -147,9 +137,9 @@ Returns
               const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
               coords[band_fgrid_key]          = py::dict{};
+              coords[band_fgrid_key]["attrs"] = py::dict{};
               coords[band_fgrid_key]["dims"]  = band_fgrid;
               coords[band_fgrid_key]["data"]  = self.FitCoeffs()[i].grid<0>();
-              coords[band_fgrid_key]["attrs"] = py::dict{};
               coords[band_fgrid_key]["attrs"]["name"] =
                   self.FitCoeffs()[i].gridname<0>();
 
@@ -180,23 +170,23 @@ Returns
             return xarray.attr("Dataset").attr("from_dict")(
                 xr.attr("to_dict")());
           },
-          py::doc(R"--(Convert XsecRecord to :func:`xarray.DataArray`.)--"))
+          R"--(Convert XsecRecord to :func:`xarray.DataArray`.)--")
       .def(
           "to_netcdf",
           [](py::object& xr, py::object& f) {
             return xr.attr("to_xarray")().attr("to_netcdf")(f);
           },
-          py::doc(R"--(Save XsecRecord to NetCDF file.)--"))
+          R"--(Save XsecRecord to NetCDF file.)--")
       .def_static(
           "from_dict",
           [](const py::dict& d) {
-            auto attrs     = d["attrs"];
-            auto coords    = d["coords"];
-            auto data_vars = d["data_vars"];
+            const py::dict attrs  = d["attrs"];
+            const py::dict coords = d["coords"];
+            auto data_vars        = d["data_vars"];
 
             auto out = std::make_shared<XsecRecord>();
-            out->SetVersion(py::cast<Index>(attrs["version"]);
-            out->SetSpecies(py::cast<SpeciesEnum>(attrs["species"]);
+            out->SetVersion(py::cast<Index>(attrs["version"]));
+            out->SetSpecies(py::cast<SpeciesEnum>(attrs["species"]));
             out->FitMinPressures() =
                 py::cast<Vector>(data_vars["fitminpressures"]["data"]);
             out->FitMaxPressures() =
@@ -215,25 +205,33 @@ Returns
 
               auto& band     = out->FitCoeffs().emplace_back();
               band.grid<0>() = py::cast<Vector>(coords[band_fgrid_key]["data"]);
-              band.grid<1>() = py::cast<ArrayOfString>(coords["coeffs"]["data"]);
+              band.grid<1>() =
+                  py::cast<ArrayOfString>(coords["coeffs"]["data"]);
               band.data = py::cast<Matrix>(data_vars[band_coeffs_key]["data"]);
 
-              if (coords[band_fgrid_key].contains("attrs") and
-                  coords[band_fgrid_key]["attrs"].contains("name")) {
+              const py::dict coords_band_fgrid = coords[band_fgrid_key];
+              const py::dict coords_band_fgrid_attrs =
+                  coords[band_fgrid_key]["attrs"];
+              if (coords_band_fgrid.contains("attrs") and
+                  coords_band_fgrid_attrs.contains("name")) {
                 band.gridname<0>() =
                     py::cast<String>(coords[band_fgrid_key]["attrs"]["name"]);
               }
 
-              if (coords["coeffs"].contains("attrs") and
-                  coords["coeffs"]["attrs"].contains("name")) {
+              const py::dict coords_coeffs = coords["coeffs"];
+              const py::dict coords_coeffs_attrs = coords["coeffs"]["attrs"];
+              if (coords_coeffs.contains("attrs") and
+                  coords_coeffs_attrs.contains("name")) {
                 band.gridname<1>() =
                     py::cast<String>(coords["coeffs"]["attrs"]["name"]);
               }
 
-              if (data_vars[band_coeffs_key].contains("attrs") and
-                  data_vars[band_coeffs_key]["attrs"].contains("name")) {
-                band.data_name =
-                    py::cast<String>data_vars[band_coeffs_key]["attrs"]["name"]);
+              const py::dict data_vars_band_coeffs = coords["coeffs"];
+              const py::dict data_vars_band_coeffs_attrs = coords["coeffs"]["attrs"];
+              if (data_vars_band_coeffs.contains("attrs") and
+                  data_vars_band_coeffs_attrs.contains("name")) {
+                band.data_name = py::cast<String>(
+                    data_vars[band_coeffs_key]["attrs"]["name"]);
               }
             }
             return out;
@@ -241,18 +239,18 @@ Returns
       .def_static(
           "from_xarray",
           [](py::object& v) {
-            return py::type::of<XsecRecord>().attr("from_dict")(
+            return py::type<XsecRecord>().attr("from_dict")(
                 v.attr("to_dict")());
           },
-          py::doc(R"--(Create XsecRecord from :func:`xarray.DataArray`.)--"))
+          R"--(Create XsecRecord from :func:`xarray.DataArray`.)--")
       .def_static(
           "from_netcdf",
           [](py::object& v) {
-            py::module_ xarray = py::module_::import("xarray");
-            return py::type::of<XsecRecord>().attr("from_dict")(
+            py::module_ xarray = py::module_::import_("xarray");
+            return py::type<XsecRecord>().attr("from_dict")(
                 xarray.attr("open_dataset")(v).attr("to_dict")());
           },
-          py::doc(R"--(Create an XsecRecord from a NetCDF file.)--"))
+          R"--(Create an XsecRecord from a NetCDF file.)--")
       .def("__eq__", [](const XsecRecord& self, const XsecRecord& other) {
         return self.Version() == other.Version() and
                self.Species() == other.Species() and
@@ -271,6 +269,7 @@ Returns
                             a.data == b.data;
                    });
       });
+  ;
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));

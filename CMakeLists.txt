@@ -354,6 +354,7 @@ else ()
   ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
+  ARTS_ADD_COMPILER_FLAG (Wno-deprecated-literal-operator)
 endif ()
 
 if (ARTS_SANITIZE AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)

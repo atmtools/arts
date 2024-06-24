@@ -45,15 +45,17 @@ void py_nlte(py::module_ &m) try {
                                std::vector<Numeric>>(qn, v);
            })
       .def("__setstate__",
-           [](VibrationalEnergyLevels &t,
+           [](VibrationalEnergyLevels *t,
               const std::tuple<std::vector<QuantumIdentifier>,
                                std::vector<Numeric>> &s) {
              const auto qn = std::get<0>(s);
              const auto v  = std::get<1>(s);
              ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
 
+             new (t) VibrationalEnergyLevels{};
+
              for (std::size_t i = 0; i < v.size(); i++) {
-               t[qn[i]] = v[i];
+               (*t)[qn[i]] = v[i];
              }
            });
 } catch (std::exception &e) {

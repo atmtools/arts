@@ -1,86 +1,51 @@
 #include <python_interface.h>
 
-#include <type_traits>
-#include <variant>
-
 #include "debug.h"
-#include "py_macros.h"
 
 namespace Python {
 void py_rte(py::module_& m) try {
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          species,
-          Species,
-          Species,
-          ":class:`~pyarts.arts.ArrayOfArrayOfSpeciesTag` Active species")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          non_linear_species,
-          NonLinearSpecies,
-          NonLinearSpecies,
-          ":class:`~pyarts.arts.ArrayOfIndex` Non-linear species")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          f_grid,
-          Fgrid,
-          Fgrid,
-          ":class:`~pyarts.arts.ArrayOfIndex` Trained frequencies")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          flag_default,
-          FLAGDefault,
-          FLAGDefault,
+      .def_rw("species",
+              &GasAbsLookup::species,
+              ":class:`~pyarts.arts.ArrayOfArrayOfSpeciesTag` Active species")
+      .def_rw("non_linear_species",
+              &GasAbsLookup::nonlinear_species,
+              ":class:`~pyarts.arts.ArrayOfIndex` Non-linear species")
+      .def_rw("f_grid",
+              &GasAbsLookup::f_grid,
+              ":class:`~pyarts.arts.ArrayOfIndex` Trained frequencies")
+      .def_rw(
+          "flag_default",
+          &GasAbsLookup::flag_default,
           ":class:`~pyarts.arts.ArrayOfLagrangeInterpolation` Active interpolation")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          p_grid,
-          Pgrid,
-          Pgrid,
-          ":class:`~pyarts.arts.Vector` Trained pressures")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          log_p_grid,
-          LogPgrid,
-          LogPgrid,
-          ":class:`~pyarts.arts.Vector` Trained pressure in log")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          vmrs,
-          VMRs,
-          VMRs,
-          ":class:`~pyarts.arts.Matrix` Training VMRs")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          t_ref,
-          Tref,
-          Tref,
-          ":class:`~pyarts.arts.Vector` Trained temperatures")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          t_pert,
-          Tpert,
-          Tpert,
-          ":class:`~pyarts.arts.Vector` Temperature perturbations")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          nls_pert,
-          NLSPert,
-          NLSPert,
-          ":class:`~pyarts.arts.Vector` Non-linear perturbations")
-      .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup,
-          xsec,
-          Xsec,
-          Xsec,
-          ":class:`~pyarts.arts.Tensor4` Cross-section data")
+      .def_rw("p_grid",
+              &GasAbsLookup::p_grid,
+              ":class:`~pyarts.arts.Vector` Trained pressures")
+      .def_rw("log_p_grid",
+              &GasAbsLookup::log_p_grid,
+              ":class:`~pyarts.arts.Vector` Trained pressure in log")
+      .def_rw("vmrs",
+              &GasAbsLookup::vmrs_ref,
+              ":class:`~pyarts.arts.Matrix` Training VMRs")
+      .def_rw("t_ref",
+              &GasAbsLookup::t_ref,
+              ":class:`~pyarts.arts.Vector` Trained temperatures")
+      .def_rw("t_pert",
+              &GasAbsLookup::t_pert,
+              ":class:`~pyarts.arts.Vector` Temperature perturbations")
+      .def_rw("nls_pert",
+              &GasAbsLookup::nls_pert,
+              ":class:`~pyarts.arts.Vector` Non-linear perturbations")
+      .def_rw("xsec",
+              &GasAbsLookup::xsec,
+              ":class:`~pyarts.arts.Tensor4` Cross-section data")
       .def("__getstate__",
            [](GasAbsLookup& self) {
              return std::tuple<ArrayOfArrayOfSpeciesTag,
                                ArrayOfIndex,
                                Vector,
                                ArrayOfLagrangeInterpolation,
+                               Vector,
                                Vector,
                                Matrix,
                                Vector,
@@ -104,6 +69,7 @@ void py_rte(py::module_& m) try {
                                ArrayOfIndex,
                                Vector,
                                ArrayOfLagrangeInterpolation,
+                               Vector,
                                Vector,
                                Matrix,
                                Vector,

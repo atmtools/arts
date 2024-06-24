@@ -67,7 +67,7 @@ void py_agenda(py::module_& m) try {
           [](Method* m,
              const std::string& n,
              const std::vector<std::string>& a,
-             const std::unordered_map<std::string, std::string>& kw) -> Method {
+             const std::unordered_map<std::string, std::string>& kw) {
             new (m) Method{n, a, kw};
           },
           py::arg("name"),
@@ -76,28 +76,24 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* m, const std::string& n, const PyWsvValue& v) -> Method {
-            new (m) Method{std::visit(
-                [&](auto&& wsv) -> Method {
-                  return {n, Wsv{*wsv}, n.front() == '@'};
-                },
-                from(v).value)};
+          [](Method* m, const std::string& n, const WsvValue& v) {
+            new (m) Method{n, std::visit([](auto a){ return Wsv(std::move(a));}, v)};
           },
           py::arg("name"),
           py::arg("wsv"),
           "A method that sets a workspace variable")
       .def_prop_ro(
           "val",
-          [](const Method& method) -> std::variant<py::none, PyWsvValue> {
+          [](const Method& method) -> py::object {
             const auto& x = method.get_setval();
-            if (x) return from(x.value());
+            if (x) return py::cast(x.value());
             return py::none();
           },
           "The value (if any) of a set method")
       .def_prop_ro(
           "name",
           [](const Method& method) { return method.get_name(); },
-          py::doc("The name of the method"))
+          "The name of the method")
       .def("__str__", [](const Method& method) { return var_string(method); })
       .doc() = "The method class of ARTS";
 
@@ -139,9 +135,9 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "__init__",
           [](ArrayOfAgenda* a, std::vector<Agenda> va) {
-            for (auto& a : va) {
+            for (auto& ag : va) {
               ARTS_USER_ERROR_IF(
-                  a.get_name() not_eq va.front().get_name(),
+                  ag.get_name() not_eq va.front().get_name(),
                   "An ArrayOfAgenda must only consist of agendas with the same name\n"
                   "You have input a list of agendas that contains disimilar names.\n"
                   "\nThe first item is named: \"",
@@ -149,11 +145,11 @@ so Copy(a, out=b) will not even see the b variable.
                   '"',
                   '\n',
                   "A later item in the list is names: \"",
-                  a.get_name(),
+                  ag.get_name(),
                   '"',
                   '\n')
             }
-            new (a) ArrayOfAgenda > (va);
+            new (a) ArrayOfAgenda(std::move(va));
           },
           "Create from :class:`list`")
       .def(

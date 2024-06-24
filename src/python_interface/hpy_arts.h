@@ -111,8 +111,6 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
         py::is_operator());
   }
 
-  c.def(py::hash(py::self));
-
   if constexpr (std::same_as<String, T>) {
     c.def("__int__",
           [](const ValueHolder<T>& a) { return py::int_(std::stoi(*a.val)); });

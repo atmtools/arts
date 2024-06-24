@@ -58,7 +58,6 @@ void py_matpack(py::module_& m) try {
           py::arg("d") = 1,
           "Default rational")
       .def(py::init<String>(), "From :class:`str`")
-      .def(py::init<Numeric>(), "From :class:`float`")
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
       // .PythonInterfaceCommonMath(Index)

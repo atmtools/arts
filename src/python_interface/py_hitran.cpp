@@ -11,7 +11,7 @@ void py_hitran(py::module_ &m) try {
           &Hitran::id_from_lookup,
           py::arg("mol"),
           py::arg("iso"),
-          py::doc(R"--(Get the Arts quantum identifier of the HITRAN molecule
+          R"--(Get the Arts quantum identifier of the HITRAN molecule
 
 Parameters
 ----------
@@ -24,13 +24,13 @@ Return
 ------
 :class:`~pyarts.arts.QuantumIdentifier`
     Identifier
-)--"));
+)--");
 
   hit.def("ratio",
           &Hitran::ratio_from_lookup,
           py::arg("mol"),
           py::arg("iso"),
-          py::doc(R"--(Get the isotopologue ratio in HITRAN of HITRAN molecule
+          R"--(Get the isotopologue ratio in HITRAN of HITRAN molecule
 
 Parameters
 ----------
@@ -43,7 +43,7 @@ Return
 ------
 :class:`float`
     Atmospheric ratio of isotopologue
-)--"));
+)--");
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize hitran\n", e.what()));
 }

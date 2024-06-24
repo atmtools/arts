@@ -5,17 +5,19 @@
 namespace Python {
 template <typename type>
 struct ValueHolder {
-  type* val;
+  std::shared_ptr<type> val;
 
   template <typename T>
   using common_type = std::common_type_t<type, T>;
 
+  ValueHolder(std::shared_ptr<type> x) : val(std::move(x)) {}
   ValueHolder() : val(new type{}) {}
   ValueHolder(const ValueHolder& other) : val(new type{*other.val}) {}
   ValueHolder& operator=(const ValueHolder& other) {
     *val = *other.val;
     return *this;
   }
+  ValueHolder& operator=(std::shared_ptr<type> x) {val=std::move(x);}
 
   ValueHolder(type t) : val(new type{t}) {}
   ValueHolder& operator=(type a) noexcept {

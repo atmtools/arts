@@ -114,6 +114,7 @@ class XsecRecord {
   //             Index dataset,
   //             Numeric pressure) const;
 
+public:
   static constexpr Index P00 = 0;
   static constexpr Index P10 = 1;
   static constexpr Index P01 = 2;

@@ -1156,12 +1156,11 @@ abs_coef : ~pyarts.arts.Vector
 void internalNamedModel(py::module_& m) {
   py::class_<Absorption::PredefinedModel::ModelName>(m, "ModelName")
       .def(py::init<Absorption::PredefinedModel::ModelName>())
-      .def(py::pickle(
-          [](const py::object&) { return py::make_tuple(); },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
-            return std::make_shared<Absorption::PredefinedModel::ModelName>();
-          }))
+      .def("__getstate__",
+          [](const Absorption::PredefinedModel::ModelName&) { return py::make_tuple(); }).def("__setstate__",
+          [](Absorption::PredefinedModel::ModelName*s,const std::tuple<>&) {
+            new(s) Absorption::PredefinedModel::ModelName{};
+          })
       .doc() = "Named model, contains no data";
 }
 
@@ -1198,7 +1197,7 @@ void py_predefined(py::module_& m) try {
                     }
                     return out;
                   })
-      .def("__getstate__"
+      .def("__getstate__",
           [](const PredefinedModelData& t) {
             const std::unordered_map<SpeciesIsotope,
                                      Absorption::PredefinedModel::ModelVariant>

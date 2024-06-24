@@ -20,6 +20,7 @@ dependencies:
         - libcxx
         - libmicrohttpd
         - llvm-openmp
+        - nanobind
         - matplotlib
         - netcdf4
         - ninja

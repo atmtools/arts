@@ -2,17 +2,48 @@
 #include <rtepack.h>
 
 #include "enums.h"
+#include "hpy_numpy.h"
+#include "matpack_data.h"
+#include "nanobind/nanobind.h"
 #include "py_macros.h"
 
 namespace Python {
+template <typename T, Index M, size_t... N>
+void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
+  c.def(
+      "__array__",
+      [](matpack::matpack_data<T, M> &v) {
+        constexpr auto n = M + sizeof...(N);
+        std::array<size_t, n> shape{};
+        std::ranges::copy(v.shape(), shape.begin());
+        std::ranges::copy(std::array{N...}, shape.begin() + M);
+        return py::ndarray<py::numpy, Numeric, py::ndim<n>, py::c_contig>(
+            v.data_handle(), n, shape.data(), py::handle());
+      },
+      py::rv_policy::reference_internal);
+
+  c.def_prop_rw("value",
+                    [](matpack::matpack_data<T, M> &x) {
+                      py::object np = py::module_::import_("numpy");
+                      return np.attr("array")(x, py::arg("copy") = false);
+                    },
+                [](matpack::matpack_data<T, M> &x,
+                   matpack::matpack_data<T, M> &y) { x = y; });
+
+  common_ndarray(c);
+}
+
 void py_rtepack(py::module_ &m) try {
-  py_staticStokvec(m)
-      .def(py::init<Numeric>())
-      .def(py::init(
-          [](const PolarizationChoice p) { return rtepack::to_stokvec(p); }))
-      .def(py::init([](const String &p) {
-        return rtepack::to_stokvec(to<PolarizationChoice>(p));
-      }))
+  py::class_<Stokvec> sv(m, "Stokvec");
+  sv.def(py::init_implicit<Numeric>())
+      .def("__init__",
+           [](Stokvec *s, const PolarizationChoice p) {
+             new (s) Stokvec{rtepack::to_stokvec(p)};
+           })
+      .def("__init__",
+           [](Stokvec *s, const String &p) {
+             new (s) Stokvec{rtepack::to_stokvec(to<PolarizationChoice>(p))};
+           })
       .def_static(
           "linpol",
           [](const Numeric angle) {
@@ -30,204 +61,46 @@ void py_rtepack(py::module_ &m) try {
           },
           "Returns [1.0, 0.0, 0.0, sin(angle)], the circular polarization vector for a given phase delay angle",
           py::arg("angle"))
-      .def(py::init([](std::array<Numeric, 4> a) {
-        return Stokvec{a[0], a[1], a[2], a[3]};
-      }))
-      .def_buffer([](Stokvec &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               1,
-                               {4},
-                               {sizeof(Numeric)});
-      })
+      .def(
+          "__array__",
+          [](Stokvec &v) {
+            std::array<size_t, 1> shape = {4};
+            return py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
+                v.data.data(), 1, shape.data(), py::handle());
+          },
+          py::rv_policy::reference_internal)
       .def_prop_rw("value",
-                    py::cpp_function(
-                        [](Stokvec &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](Stokvec &x, Stokvec &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<Numeric, Stokvec>();
-  py::implicitly_convertible<std::array<Numeric, 4>, Stokvec>();
+                       [](Stokvec &x) {
+                         py::object np = py::module_::import_("numpy");
+                         return np.attr("array")(x, py::arg("copy") = false);
+                       },
+                   [](Stokvec &x, Stokvec &y) { x = y; });
+  common_ndarray(sv);
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
   py::implicitly_convertible<String, Stokvec>();
 
-  py_staticStokvecVector(m)
-      .def(py::init<std::vector<Numeric>>())
-      .def(py::init<std::vector<Stokvec>>())
-      .def_buffer([](StokvecVector &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            2,
-            {static_cast<ssize_t>(x.nelem()), static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecVector &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecVector &x, StokvecVector &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<std::vector<Numeric>, StokvecVector>();
-  py::implicitly_convertible<std::vector<Stokvec>, StokvecVector>();
+  py::class_<StokvecVector> vsv(m, "StokvecVector");
+  vsv.def(py::init_implicit<std::vector<Numeric>>())
+      .def(py::init_implicit<std::vector<Stokvec>>());
+  rtepack_array<Stokvec, 1, 4>(vsv);
 
-  py_staticStokvecMatrix(m)
-      .def_buffer([](StokvecMatrix &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            3,
-            {static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecMatrix &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecMatrix &x, StokvecMatrix &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<StokvecMatrix> msv(m, "StokvecMatrix");
+  rtepack_array<Stokvec, 2, 4>(msv);
 
-  py_staticStokvecTensor3(m)
-      .def_buffer([](StokvecTensor3 &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            4,
-            {static_cast<ssize_t>(x.npages()),
-             static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecTensor3 &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecTensor3 &x, StokvecTensor3 &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<StokvecTensor3> t3sv(m, "StokvecTensor3");
+  rtepack_array<Stokvec, 3, 4>(t3sv);
 
-  py_staticStokvecTensor4(m)
-      .def_buffer([](StokvecTensor4 &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            5,
-            {static_cast<ssize_t>(x.nbooks()),
-             static_cast<ssize_t>(x.npages()),
-             static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
-                                  sizeof(Numeric)),
-             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecTensor4 &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecTensor4 &x, StokvecTensor4 &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<StokvecTensor4> t4sv(m, "StokvecTensor4");
+  rtepack_array<Stokvec, 4, 4>(t4sv);
 
-  py_staticStokvecTensor5(m)
-      .def_buffer([](StokvecTensor5 &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            6,
-            {static_cast<ssize_t>(x.nshelves()),
-             static_cast<ssize_t>(x.nbooks()),
-             static_cast<ssize_t>(x.npages()),
-             static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
-                                  x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
-                                  sizeof(Numeric)),
-             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecTensor5 &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecTensor5 &x, StokvecTensor5 &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<StokvecTensor5> t5sv(m, "StokvecTensor5");
+  rtepack_array<Stokvec, 5, 4>(t5sv);
 
-  py_staticStokvecTensor6(m)
-      .def_buffer([](StokvecTensor6 &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            7,
-            {static_cast<ssize_t>(x.nvitrines()),
-             static_cast<ssize_t>(x.nshelves()),
-             static_cast<ssize_t>(x.nbooks()),
-             static_cast<ssize_t>(x.npages()),
-             static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.nshelves() * x.nbooks() * x.npages() *
-                                  x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
-                                  x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
-                                  sizeof(Numeric)),
-             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](StokvecTensor6 &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](StokvecTensor6 &x, StokvecTensor6 &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<StokvecTensor6> t6sv(m, "StokvecTensor6");
+  rtepack_array<Stokvec, 6, 4>(t6sv);
 
-  py_staticPropmat(m)
-      .def(py::init<Numeric>())
+  py::class_<Propmat> pm(m, "Propmat");
+  pm.def(py::init_implicit<Numeric>())
       .def(py::init<Numeric,
                     Numeric,
                     Numeric,
@@ -235,76 +108,30 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
-      .def_buffer([](Propmat &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               1,
-                               {7},
-                               {sizeof(Numeric)});
-      })
+      .def("__array__",
+           [](Propmat &x) {
+             std::array<size_t, 1> shape = {7};
+             return py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
+                 x.data.data(), 1, shape.data(), py::handle());
+           })
       .def_prop_rw("value",
-                    py::cpp_function(
-                        [](Propmat &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](Propmat &x, Propmat &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<Numeric, Propmat>();
+                       [](Propmat &x) {
+                         py::object np = py::module_::import_("numpy");
+                         return np.attr("array")(x, py::arg("copy") = false);
+                       },
+                   [](Propmat &x, Propmat &y) { x = y; });
+  common_ndarray(pm);
 
-  py_staticPropmatVector(m)
-      .def(py::init<std::vector<Numeric>>())
-      .def(py::init<std::vector<Propmat>>())
-      .def_buffer([](PropmatVector &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            2,
-            {static_cast<ssize_t>(x.nelem()), static_cast<ssize_t>(7)},
-            {static_cast<ssize_t>(7 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](PropmatVector &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](PropmatVector &x, PropmatVector &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<std::vector<Numeric>, PropmatVector>();
-  py::implicitly_convertible<std::vector<Propmat>, PropmatVector>();
+  py::class_<PropmatVector> vpm(m, "PropmatVector");
+  vpm.def(py::init_implicit<std::vector<Numeric>>())
+      .def(py::init_implicit<std::vector<Propmat>>());
+  rtepack_array<Propmat, 1, 7>(vpm);
 
-  py_staticPropmatMatrix(m)
-      .def_buffer([](PropmatMatrix &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            3,
-            {static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(7)},
-            {static_cast<ssize_t>(7 * x.ncols() * sizeof(Numeric)),
-             static_cast<ssize_t>(7 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](PropmatMatrix &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](PropmatMatrix &x, PropmatMatrix &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<PropmatMatrix> mpm(m, "PropmatMatrix");
+  rtepack_array<Propmat, 2, 7>(mpm);
 
-  py_staticMuelmat(m)
-      .def(py::init<Numeric>())
+  py::class_<Muelmat> mm(m, "Muelmat");
+  mm.def(py::init_implicit<Numeric>())
       .def(py::init<Numeric,
                     Numeric,
                     Numeric,
@@ -321,77 +148,28 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
-      .def_buffer([](Muelmat &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               2,
-                               {4, 4},
-                               {4 * sizeof(Numeric), sizeof(Numeric)});
-      })
+      .def("__array__",
+           [](Muelmat &x) {
+             std::array<size_t, 2> shape = {4, 4};
+             return py::
+                 ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
+                     x.data.data(), 2, shape.data(), py::handle());
+           })
       .def_prop_rw("value",
-                    py::cpp_function(
-                        [](Muelmat &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](Muelmat &x, Muelmat &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<Numeric, Muelmat>();
+                       [](Muelmat &x) {
+                         py::object np = py::module_::import_("numpy");
+                         return np.attr("array")(x, py::arg("copy") = false);
+                       },
+                   [](Muelmat &x, Muelmat &y) { x = y; });
+  common_ndarray(mm);
 
-  py_staticMuelmatVector(m)
-      .def(py::init<std::vector<Numeric>>())
-      .def(py::init<std::vector<Muelmat>>())
-      .def_buffer([](MuelmatVector &x) -> py::buffer_info {
-        return py::buffer_info(x.data_handle(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               3,
-                               {static_cast<ssize_t>(x.nelem()),
-                                static_cast<ssize_t>(4),
-                                static_cast<ssize_t>(4)},
-                               {static_cast<ssize_t>(16 * sizeof(Numeric)),
-                                static_cast<ssize_t>(4 * sizeof(Numeric)),
-                                static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](MuelmatVector &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](MuelmatVector &x, MuelmatVector &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-  py::implicitly_convertible<std::vector<Numeric>, MuelmatVector>();
-  py::implicitly_convertible<std::vector<Muelmat>, MuelmatVector>();
+  py::class_<MuelmatVector> vmm(m, "MuelmatVector");
+  vmm.def(py::init_implicit<std::vector<Numeric>>())
+      .def(py::init_implicit<std::vector<Muelmat>>());
+  rtepack_array<Muelmat, 1, 4, 4>(vmm);
 
-  py_staticMuelmatMatrix(m)
-      .def_buffer([](MuelmatMatrix &x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            4,
-            {static_cast<ssize_t>(x.nrows()),
-             static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4),
-             static_cast<ssize_t>(4)},
-            {static_cast<ssize_t>(x.ncols() * 16 * sizeof(Numeric)),
-             static_cast<ssize_t>(16 * sizeof(Numeric)),
-             static_cast<ssize_t>(4 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
-      })
-      .def_prop_rw("value",
-                    py::cpp_function(
-                        [](MuelmatMatrix &x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](MuelmatMatrix &x, MuelmatMatrix &y) { x = y; })
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
+  py::class_<MuelmatMatrix> mmm(m, "MuelmatMatrix");
+  rtepack_array<Muelmat, 2, 4, 4>(mmm);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

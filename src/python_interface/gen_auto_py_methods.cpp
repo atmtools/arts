@@ -25,7 +25,7 @@ std::string using_pygroup() {
   const auto& wsgs = internal_workspace_groups();
 
   for (auto& [name, wsg] : wsgs) {
-    os << "  using py" << name << " = ";
+    os << "  using py" << name << " [[maybe_unused]] = ";
     if (wsg.value_type) {
       os << "ValueHolder<" << name << ">";
     }else if (name == "Any") {
@@ -45,7 +45,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   std::ostringstream os;
 
-  os << "    Workspace& _ws";
+  os << "    Workspace& _ws [[maybe_unused]]";
   for (auto& v : wsm.out) {
     os << ",\n    std::optional<py" << wsvs.at(v).type << "* const> _" << v;
   }

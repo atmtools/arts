@@ -1,45 +1,46 @@
 #include <obsel.h>
 #include <python_interface.h>
 
+#include "hpy_arts.h"
+#include "hpy_numpy.h"
 #include "py_macros.h"
 #include "sorted_grid.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
-  py_staticSensorPosLos(m)
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](SensorPosLos& x) -> py::buffer_info {
-        return py::buffer_info(&x,
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               1,
-                               {static_cast<ssize_t>(5)},
-                               {static_cast<ssize_t>(sizeof(Numeric))});
+  py::class_<SensorPosLos>splos(m,"SensorPosLos");
+  workspace_group_interface(splos);
+  common_ndarray(splos);
+     splos
+      .def("__array__",[](SensorPosLos& x) {
+std::array<size_t, 1> shape = {5};
+        return py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(&x, 1, shape.data(), py::handle());
       })
+.def_prop_rw(
+      "value",
+      [](py::object& v) {
+        auto np = py::module_::import_("numpy");
+        return np.attr("array")(v, py::arg("copy") = false);
+      },
+      [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
       .def_rw("pos", &SensorPosLos::pos, "Position")
       .def_rw("los", &SensorPosLos::los, "Line of sight");
 
-  py_staticSensorPosLosVector(m)
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](SensorPosLosVector& x) -> py::buffer_info {
-        return py::buffer_info(
-            x.data_handle(),
-            sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(),
-            2,
-            {static_cast<ssize_t>(x.size()), static_cast<ssize_t>(5)},
-            {static_cast<ssize_t>(5 * sizeof(Numeric)),
-             static_cast<ssize_t>(sizeof(Numeric))});
+  py::class_<SensorPosLosVector>vsplos(m, "SensorPosLosVector");
+  workspace_group_interface(vsplos);
+  common_ndarray(vsplos);
+     vsplos
+      .def("__array__",[](SensorPosLosVector& x) {
+std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
+        return py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(x.data_handle(), 2, shape.data(), py::handle());
       })
       .def_prop_rw(
           "value",
-          py::cpp_function(
               [](SensorPosLosVector& x) {
-                py::object np = py::module_::import("numpy");
+                py::object np = py::module_::import_("numpy");
                 return np.attr("array")(x, py::arg("copy") = false);
               },
-              py::keep_alive<0, 1>()),
           [](SensorPosLosVector& x, Matrix& y) {
             if (y.ncols() != 5) {
               throw std::runtime_error("Bad shape");
@@ -50,19 +51,18 @@ void py_sensor(py::module_& m) try {
                                   .los = {row[3], row[4]}};
             });
           },
-          py::doc(":class:`~pyarts.arts.Matrix`"))
-      .def(py::pickle(
+          ":class:`~pyarts.arts.Matrix`")
+      .def("__getstate__",
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return py::type::of<SensorPosLosVector>()(t[0])
-                .cast<SensorPosLosVector>();
-          }));
+          }).def("__setstate__",
+          [](py::object& self, const py::tuple& state) {
+            self.attr("value") = state[0];
+          });
 
-  py_staticSensorObsel(m)
-      .def(py::init<Vector,
+  py::class_<SensorObsel>so(m,"SensorObsel");
+  workspace_group_interface(so);
+     so .def(py::init<Vector,
                     AscendingGrid,
                     MuelmatVector,
                     SensorPosLosVector,
@@ -91,7 +91,7 @@ void py_sensor(py::module_& m) try {
           py::arg("fwhm"),
           py::arg("Nfwhm") = Index{5},
           py::arg("Nhwhm") = Index{3},
-          py::doc(R"--(Gaussian frequency grid
+          R"--(Gaussian frequency grid
   
 Parameters
 ----------
@@ -103,7 +103,7 @@ Nfwhm : int
     Number of fwhm to include
 Nhwhm : int
     Number of half width at half maximum to include
-)--"))
+)--")
       .def(
           "set_frequency_lochain",
           [](SensorObsel& s,
@@ -117,7 +117,7 @@ Nhwhm : int
           py::arg("width"),
           py::arg("N"),
           py::arg("filter") = String{},
-          py::doc(R"--(Local oscillator style channel selection frequency grid
+          R"--(Local oscillator style channel selection frequency grid
   
 Parameters
 ----------
@@ -131,7 +131,7 @@ filter : list of int, optional
     Selection of sub-channels to include - one shorter than f0s
     with each element being U for upper bandpass, L for lower bandpass,
     or anything else for full bandpass.  Default is full bandpass.
-)--"))
+)--")
       .def("ok", &SensorObsel::ok, "Check if the obsel is valid")
       .def("cutoff_frequency_weights",
            &SensorObsel::cutoff_frequency_weights,
