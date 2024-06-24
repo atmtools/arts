@@ -23,14 +23,22 @@ void py_basic(py::module_& m) try {
 
   auto aos = py::bind_vector<ArrayOfString>(m, "ArrayOfString");
   vector_interface(aos);
+  workspace_group_interface(aos);
 
   auto aoi = py::bind_vector<ArrayOfIndex>(m, "ArrayOfIndex");
   vector_interface(aoi);
   common_ndarray(aoi);
+  workspace_group_interface(aoi);
 
   auto aon = py::bind_vector<ArrayOfNumeric>(m, "ArrayOfNumeric");
   vector_interface(aon);
   common_ndarray(aon);
+
+  auto a1 = py::bind_vector<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex");
+  workspace_group_interface(a1);
+
+  auto a2 = py::bind_vector<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString");
+  workspace_group_interface(a2);
 
   py::class_<Any>(m, "Any")
       .def("__init__",

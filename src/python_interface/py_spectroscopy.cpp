@@ -1,4 +1,5 @@
 #include <lineshapemodel.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
@@ -19,6 +20,12 @@
 #include "quantum_numbers.h"
 #include "species_tags.h"
 
+NB_MAKE_OPAQUE(AbsorptionCutoffTypeOld)
+NB_MAKE_OPAQUE(AbsorptionMirroringTypeOld)
+NB_MAKE_OPAQUE(AbsorptionNormalizationTypeOld)
+NB_MAKE_OPAQUE(AbsorptionPopulationTypeOld)
+NB_MAKE_OPAQUE(LineShapeTemperatureModelOld)
+NB_MAKE_OPAQUE(LineShapeTypeOld)
 NB_MAKE_OPAQUE(Zeeman::Polarization)
 
 namespace Python {
@@ -752,14 +759,20 @@ X : ~pyarts.arts.LineShapeOutput
                                      std::get<12>(state));
            });
 
-  py::class_<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
-      .def(
-          "fuzzy_find_all",
-          [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
-            return fuzzy_find_all(a, q);
-          },
-          py::arg("q"),
-          "Find all the indexes that could match the given quantum identifier");
+  auto a1 =
+      py::bind_vector<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
+          .def(
+              "fuzzy_find_all",
+              [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
+                return fuzzy_find_all(a, q);
+              },
+              py::arg("q"),
+              "Find all the indexes that could match the given quantum identifier");
+  workspace_group_interface(a1);
+
+  auto a2 = py::bind_vector<ArrayOfArrayOfAbsorptionLines>(
+      m, "ArrayOfArrayOfAbsorptionLines");
+  workspace_group_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));

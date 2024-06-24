@@ -1,6 +1,8 @@
+#include <nanobind/stl/bind_vector.h>
 #include <path_point.h>
 #include <python_interface.h>
 
+#include "hpy_arts.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -26,6 +28,16 @@ void py_path(py::module_& m) try {
       .def_rw("ngroup",
               &PropagationPathPoint::ngroup,
               ":class:`float` Path group refractive index");
+
+  auto a1 = py::bind_vector<ArrayOfPropagationPathPoint>(
+      m, "ArrayOfPropagationPathPoint");
+  workspace_group_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint>(
+      m, "ArrayOfArrayOfPropagationPathPoint");
+  workspace_group_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint>(
+      m, "ArrayOfArrayOfArrayOfPropagationPathPoint");
+  workspace_group_interface(a3);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));

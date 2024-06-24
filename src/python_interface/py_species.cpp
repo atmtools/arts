@@ -1,3 +1,4 @@
+#include <nanobind/stl/bind_vector.h>
 #include <partfun.h>
 #include <python_interface.h>
 
@@ -7,6 +8,7 @@
 #include <vector>
 
 #include "debug.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "nanobind/nanobind.h"
 #include "py_macros.h"
@@ -126,6 +128,9 @@ void py_species(py::module_& m) try {
                                        std::get<3>(state));
            })
       .def(py::init_implicit<std::string>());
+
+  auto a1 = py::bind_vector<ArrayOfSpeciesIsotope>(m, "ArrayOfSpeciesIsotope");
+  workspace_group_interface(a1);
 
   py::class_<SpeciesTag>(m, "SpeciesTag")
       .def(
@@ -251,6 +256,10 @@ Returns
       .def(py::init_implicit<std::string>())
       .def(py::init_implicit<Array<SpeciesTag>>())
       .doc() = "List of :class:`~pyarts.arts.SpeciesTag`";
+
+  auto b1 =
+      py::bind_vector<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag");
+  workspace_group_interface(b1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize species\n", e.what()));

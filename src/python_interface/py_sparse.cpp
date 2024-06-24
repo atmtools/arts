@@ -1,5 +1,6 @@
 #include <nanobind/eigen/dense.h>
 #include <nanobind/eigen/sparse.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 
 #include <memory>
@@ -74,6 +75,9 @@ arr : numpy.ndarray
            });
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
                              Sparse>();
+
+  auto a1 = py::bind_vector<ArrayOfSparse>(m, "ArrayOfSparse");
+  workspace_group_interface(a1);
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense, "Dense matrix block")
@@ -173,6 +177,7 @@ arr : numpy.ndarray
              self->get_blocks()         = std::get<0>(state);
              self->get_inverse_blocks() = std::get<1>(state);
            });
+
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));

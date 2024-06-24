@@ -1,5 +1,7 @@
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 
+#include "hpy_arts.h"
 #include "optproperties.h"
 #include "py_macros.h"
 
@@ -15,12 +17,11 @@ void py_scattering(py::module_& m) try {
            [](const PType& self) {
              return py::make_tuple(static_cast<Index>(self));
            })
-      .def("__setstate__",
-           [](PType* self, const py::tuple& t) {
-             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+      .def("__setstate__", [](PType* self, const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
 
-             new (self) PType{py::cast<Index>(t[0])};
-           });
+        new (self) PType{py::cast<Index>(t[0])};
+      });
 
   py::class_<SingleScatteringData>(m, "SingleScatteringData")
       .def_rw("ptype",
@@ -117,7 +118,22 @@ void py_scattering(py::module_& m) try {
                                       py::cast<Numeric>(t[5]),
                                       py::cast<Numeric>(t[6])};
       });
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
+
+  auto a1 = py::bind_vector<ArrayOfScatteringMetaData>(
+      m, "ArrayOfScatteringMetaData");
+  workspace_group_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData>(
+      m, "ArrayOfArrayOfScatteringMetaData");
+  workspace_group_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfSingleScatteringData>(
+      m, "ArrayOfSingleScatteringData");
+  workspace_group_interface(a3);
+  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData>(
+      m, "ArrayOfArrayOfSingleScatteringData");
+  workspace_group_interface(a4);
+
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }
 }  // namespace Python

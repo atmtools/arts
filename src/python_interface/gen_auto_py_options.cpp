@@ -72,8 +72,11 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
   };
   for (auto& value : wso.values_and_desc) {
     // Skip last element in value which contains the description
-    for (auto& x : value | std::views::take(value.size() - 1)) {
-      if (nonstd::isdigit(x.front()) || contains_invalid_chars(x)) continue;
+    for (Size i = 0; i < value.size() - 1; i++) {
+      auto& x = value[i];
+      if (nonstd::isdigit(x.front()) or contains_invalid_chars(x) or
+          std::ranges::any_of(value | std::views::take(i), Cmp::eq(x)))
+        continue;
 
       os << "      .def_prop_ro_static(\"" << x;
 

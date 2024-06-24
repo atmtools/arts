@@ -1,3 +1,4 @@
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 
 #include "hpy_arts.h"
@@ -52,6 +53,33 @@ void py_matpack(py::module_& m) try {
   workspace_group_interface(v6);
   workspace_group_interface(v7);
 
+  auto a1 = py::bind_vector<ArrayOfVector>(m, "ArrayOfVector");
+  workspace_group_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfVector>(m, "ArrayOfArrayOfVector");
+  workspace_group_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfMatrix>(m, "ArrayOfMatrix");
+  workspace_group_interface(a3);
+  auto a4 = py::bind_vector<ArrayOfArrayOfMatrix>(m, "ArrayOfArrayOfMatrix");
+  workspace_group_interface(a4);
+  auto a5 = py::bind_vector<ArrayOfTensor3>(m, "ArrayOfTensor3");
+  workspace_group_interface(a5);
+  auto a6 = py::bind_vector<ArrayOfArrayOfTensor3>(m, "ArrayOfArrayOfTensor3");
+  workspace_group_interface(a6);
+  auto a7 = py::bind_vector<ArrayOfTensor4>(m, "ArrayOfTensor4");
+  workspace_group_interface(a7);
+  auto a8 = py::bind_vector<ArrayOfTensor5>(m, "ArrayOfTensor5");
+  workspace_group_interface(a8);
+  auto a9 = py::bind_vector<ArrayOfTensor6>(m, "ArrayOfTensor6");
+  workspace_group_interface(a9);
+  auto a10 = py::bind_vector<ArrayOfArrayOfTensor6>(m, "ArrayOfArrayOfTensor6");
+  workspace_group_interface(a10);
+  auto a11 = py::bind_vector<ArrayOfTensor7>(m, "ArrayOfTensor7");
+  workspace_group_interface(a11);
+  auto a12 = py::bind_vector<ArrayOfVector2>(m, "ArrayOfVector2");
+  workspace_group_interface(a12);
+  auto a13 = py::bind_vector<ArrayOfVector3>(m, "ArrayOfVector3");
+  workspace_group_interface(a13);
+
   py::class_<Rational> rat(m, "Rational");
   rat.def(py::init<Index, Index>(),
           py::arg("n") = 0,
@@ -86,6 +114,9 @@ void py_matpack(py::module_& m) try {
 
   py::implicitly_convertible<Vector, AscendingGrid>();
   py::implicitly_convertible<AscendingGrid, Vector>();
+
+  auto b1 = py::bind_vector<ArrayOfAscendingGrid>(m, "ArrayOfAscendingGrid");
+  workspace_group_interface(b1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));

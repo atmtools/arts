@@ -5,6 +5,9 @@
 #include "hpy_numpy.h"
 
 #include <nanobind/ndarray.h>
+#include <nanobind/stl/array.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/tuple.h>
 
 namespace Python {
 namespace py = nanobind;

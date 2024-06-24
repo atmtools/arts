@@ -1,4 +1,5 @@
 #include <lineshapemodel.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
@@ -10,18 +11,16 @@
 #include "absorptionlines.h"
 #include "cia.h"
 #include "debug.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
-#include "quantum_numbers.h"
 #include "species_tags.h"
 
 namespace Python {
 void py_cia(py::module_& m) try {
   py::class_<CIARecord>(m, "CIARecord")
-      .def(py::init<ArrayOfGriddedField2,
-                       SpeciesEnum,
-                       SpeciesEnum>())
+      .def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
       .def_prop_ro(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
@@ -57,8 +56,8 @@ void py_cia(py::module_& m) try {
           py::arg("X1"),
           py::arg("f"),
           py::arg("T_extrapolfac") = 0.0,
-          py::arg("robust") = 1,
-              R"--(Computes the collision-induced absorption in 1/m
+          py::arg("robust")        = 1,
+          R"--(Computes the collision-induced absorption in 1/m
 
 Parameters
 ----------
@@ -84,14 +83,21 @@ Returns
 
 )--")
       .def("__getstate__",
-          [](const CIARecord& t) {
-            return std::make_tuple(t.Data(), t.TwoSpecies());
-          }).def("__setstate__",
-          [](CIARecord*c, const std::tuple<ArrayOfGriddedField2, std::array<SpeciesEnum, 2>>& state) {
+           [](const CIARecord& t) {
+             return std::make_tuple(t.Data(), t.TwoSpecies());
+           })
+      .def(
+          "__setstate__",
+          [](CIARecord* c,
+             const std::tuple<ArrayOfGriddedField2, std::array<SpeciesEnum, 2>>&
+                 state) {
             new (c) CIARecord();
-            c->Data() = std::get<0>(state);
+            c->Data()       = std::get<0>(state);
             c->TwoSpecies() = std::get<1>(state);
           });
+
+  auto acr = py::bind_vector<ArrayOfCIARecord>(m, "ArrayOfCIARecord");
+  workspace_group_interface(acr);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));

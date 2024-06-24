@@ -1,8 +1,10 @@
-#include <stdexcept>
-
+#include <nanobind/stl/bind_vector.h>
 #include <rtepack.h>
 
+#include <stdexcept>
+
 #include "debug.h"
+#include "hpy_arts.h"
 #include "hpy_matpack.h"
 
 namespace Python {
@@ -33,6 +35,30 @@ void py_griddedfield(py::module_& m) try {
 
   py::class_<StokvecGriddedField6> gf6sv(m, "StokvecGriddedField6");
   gridded_data_interface(gf6sv);
+
+  auto a1 = py::bind_vector<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1");
+  workspace_group_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfGriddedField2>(m, "ArrayOfGriddedField2");
+  workspace_group_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfGriddedField3>(m, "ArrayOfGriddedField3");
+  workspace_group_interface(a3);
+  auto a4 = py::bind_vector<ArrayOfGriddedField4>(m, "ArrayOfGriddedField4");
+  workspace_group_interface(a4);
+  auto b1 = py::bind_vector<ArrayOfArrayOfGriddedField1>(
+      m, "ArrayOfArrayOfGriddedField1");
+  workspace_group_interface(b1);
+  auto b2 = py::bind_vector<ArrayOfArrayOfGriddedField2>(
+      m, "ArrayOfArrayOfGriddedField2");
+  workspace_group_interface(b2);
+  auto b3 = py::bind_vector<ArrayOfArrayOfGriddedField3>(
+      m, "ArrayOfArrayOfGriddedField3");
+  workspace_group_interface(b3);
+  auto c1 = py::bind_vector<ArrayOfGriddedField1Named>(
+      m, "ArrayOfGriddedField1Named");
+  workspace_group_interface(c1);
+  auto d2 = py::bind_vector<ArrayOfNamedGriddedField2>(
+      m, "ArrayOfNamedGriddedField2");
+  workspace_group_interface(d2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));

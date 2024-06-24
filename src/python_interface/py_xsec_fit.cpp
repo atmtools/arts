@@ -1,6 +1,9 @@
 #include <artstime.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <xsec_fit.h>
+
+#include "hpy_arts.h"
 
 namespace Python {
 void py_xsec(py::module_& m) try {
@@ -218,7 +221,7 @@ void py_xsec(py::module_& m) try {
                     py::cast<String>(coords[band_fgrid_key]["attrs"]["name"]);
               }
 
-              const py::dict coords_coeffs = coords["coeffs"];
+              const py::dict coords_coeffs       = coords["coeffs"];
               const py::dict coords_coeffs_attrs = coords["coeffs"]["attrs"];
               if (coords_coeffs.contains("attrs") and
                   coords_coeffs_attrs.contains("name")) {
@@ -227,7 +230,8 @@ void py_xsec(py::module_& m) try {
               }
 
               const py::dict data_vars_band_coeffs = coords["coeffs"];
-              const py::dict data_vars_band_coeffs_attrs = coords["coeffs"]["attrs"];
+              const py::dict data_vars_band_coeffs_attrs =
+                  coords["coeffs"]["attrs"];
               if (data_vars_band_coeffs.contains("attrs") and
                   data_vars_band_coeffs_attrs.contains("name")) {
                 band.data_name = py::cast<String>(
@@ -269,7 +273,9 @@ void py_xsec(py::module_& m) try {
                             a.data == b.data;
                    });
       });
-  ;
+
+  auto a1 = py::bind_vector<ArrayOfXsecRecord>(m, "ArrayOfXsecRecord");
+  workspace_group_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));

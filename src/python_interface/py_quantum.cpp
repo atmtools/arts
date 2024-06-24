@@ -1,10 +1,12 @@
 #include <nanobind/operators.h>
+#include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <quantum_term_symbol.h>
 
+#include "hpy_arts.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -163,6 +165,10 @@ symbol : str
              new (qnv) QuantumIdentifier(std::get<0>(state));
            });
   py::implicitly_convertible<std::string, QuantumIdentifier>();
+
+  auto a1 =
+      py::bind_vector<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier");
+  workspace_group_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));

@@ -2,17 +2,15 @@
 #include <atm.h>
 #include <atm_path.h>
 #include <debug.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
 
-#include <memory>
-#include <type_traits>
-
 #include "enums.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "physics_funcs.h"
-#include "py_macros.h"
 
 namespace Python {
 
@@ -35,31 +33,33 @@ void py_atm(py::module_ &m) try {
              return d.at(alt, lat, lon);
            })
       .def("__getstate__",
-          [](const Atm::Data &t) {
-            return std::make_tuple(t.data,
-                                  t.alt_low,
-                                  t.alt_upp,
-                                  t.lat_low,
-                                  t.lat_upp,
-                                  t.lon_low,
-                                  t.lon_upp);
-          }).def("__setstate__",
-          [](Atm::Data* a,const std::tuple<Atm::FieldData,
-InterpolationExtrapolation,
-InterpolationExtrapolation,
-InterpolationExtrapolation,
-InterpolationExtrapolation,
-InterpolationExtrapolation,
-InterpolationExtrapolation> &state) {
-            new (a) Atm::Data();
-            a->data = std::get<0>(state);
-            a->alt_low = std::get<1>(state);
-            a->alt_upp = std::get<2>(state);
-            a->lat_low = std::get<3>(state);
-            a->lat_upp = std::get<4>(state);
-            a->lon_low = std::get<5>(state);
-            a->lon_upp = std::get<6>(state);
-          });
+           [](const Atm::Data &t) {
+             return std::make_tuple(t.data,
+                                    t.alt_low,
+                                    t.alt_upp,
+                                    t.lat_low,
+                                    t.lat_upp,
+                                    t.lon_low,
+                                    t.lon_upp);
+           })
+      .def("__setstate__",
+           [](Atm::Data *a,
+              const std::tuple<Atm::FieldData,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation> &state) {
+             new (a) Atm::Data();
+             a->data    = std::get<0>(state);
+             a->alt_low = std::get<1>(state);
+             a->alt_upp = std::get<2>(state);
+             a->lat_low = std::get<3>(state);
+             a->lat_upp = std::get<4>(state);
+             a->lon_low = std::get<5>(state);
+             a->lon_upp = std::get<6>(state);
+           });
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
@@ -76,7 +76,8 @@ InterpolationExtrapolation> &state) {
       .def("number_density",
            [](AtmPoint &atm, SpeciesIsotope s) {
              if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
-             if (not atm.has(s.spec)) throw py::key_error(var_string(s).c_str());
+             if (not atm.has(s.spec))
+               throw py::key_error(var_string(s).c_str());
              return atm[s] * atm[s.spec] *
                     number_density(atm.pressure, atm.temperature);
            })
@@ -134,7 +135,8 @@ InterpolationExtrapolation> &state) {
       .def(
           "__getitem__",
           [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
-            if (not atm.has(x.Species())) throw py::key_error(var_string(x).c_str());
+            if (not atm.has(x.Species()))
+              throw py::key_error(var_string(x).c_str());
             return atm[x.Species()];
           },
           py::rv_policy::reference_internal)
@@ -175,27 +177,29 @@ InterpolationExtrapolation> &state) {
           },
           "Returns a flat list of values.")
       .def("__getstate__",
-          [](const AtmPoint &t) {
-            auto k = t.keys();
-            std::vector<Numeric> v;
-            v.reserve(k.size());
-            for (auto &kn : k)
-              v.emplace_back(
-                  std::visit([&](auto &&key) { return t[key]; }, kn));
-            return std::make_tuple(k, v);
-          }).def("__setstate__",
-          [](AtmPoint * a, const std::tuple<std::vector<AtmKeyVal>, std::vector<Numeric>> &state) {
-            
-            auto k = std::get<0>(state);
-            auto v = std::get<1>(state);
-            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
+           [](const AtmPoint &t) {
+             auto k = t.keys();
+             std::vector<Numeric> v;
+             v.reserve(k.size());
+             for (auto &kn : k)
+               v.emplace_back(
+                   std::visit([&](auto &&key) { return t[key]; }, kn));
+             return std::make_tuple(k, v);
+           })
+      .def("__setstate__",
+           [](AtmPoint *a,
+              const std::tuple<std::vector<AtmKeyVal>, std::vector<Numeric>>
+                  &state) {
+             auto k = std::get<0>(state);
+             auto v = std::get<1>(state);
+             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            new (a) AtmPoint();
-            for (std::size_t i = 0; i < k.size(); i++)
-              std::visit(
-                  [&](auto &&key) -> Numeric & { return a->operator[](key); },
-                  k[i]) = v[i];
-          });
+             new (a) AtmPoint();
+             for (std::size_t i = 0; i < k.size(); i++)
+               std::visit(
+                   [&](auto &&key) -> Numeric & { return a->operator[](key); },
+                   k[i]) = v[i];
+           });
 
   fld.def(
          "__getitem__",
@@ -266,28 +270,31 @@ InterpolationExtrapolation> &state) {
               const Numeric &lon) { return atm.at(h, lat, lon); })
       .def_rw("top_of_atmosphere", &AtmField::top_of_atmosphere)
       .def("__getstate__",
-          [](const AtmField &t) {
-            auto k = t.keys();
-            std::vector<Atm::Data> v;
-            v.reserve(k.size());
-            for (auto &kn : k)
-              v.emplace_back(
-                  std::visit([&](auto &&key) { return t[key]; }, kn));
-            return std::make_tuple(k, v, t.top_of_atmosphere);
-          }).def("__setstate__",
-          [](AtmField*a, const std::tuple<std::vector<AtmKeyVal>, std::vector<Atm::Data>, Numeric> &state) {
+           [](const AtmField &t) {
+             auto k = t.keys();
+             std::vector<Atm::Data> v;
+             v.reserve(k.size());
+             for (auto &kn : k)
+               v.emplace_back(
+                   std::visit([&](auto &&key) { return t[key]; }, kn));
+             return std::make_tuple(k, v, t.top_of_atmosphere);
+           })
+      .def(
+          "__setstate__",
+          [](AtmField *a,
+             const std::tuple<std::vector<AtmKeyVal>,
+                              std::vector<Atm::Data>,
+                              Numeric> &state) {
             auto k = std::get<0>(state);
             auto v = std::get<1>(state);
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            new (a)AtmField();
+            new (a) AtmField();
             a->top_of_atmosphere = std::get<2>(state);
 
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
-                  [&](auto &&key) -> Atm::Data & {
-                    return a->operator[](key);
-                  },
+                  [&](auto &&key) -> Atm::Data & { return a->operator[](key); },
                   k[i]) = v[i];
           });
 
@@ -304,9 +311,11 @@ InterpolationExtrapolation> &state) {
                             rte_alonglos_v);
           return out;
         });
+
+  auto aap = py::bind_vector<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint");
+  workspace_group_interface(aap);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
-
 }
 }  // namespace Python

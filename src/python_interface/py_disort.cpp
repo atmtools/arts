@@ -1,4 +1,8 @@
 #include <disort.h>
+#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
 #include <memory>
@@ -10,9 +14,6 @@
 #include "sorted_grid.h"
 #include "sorting.h"
 
-#include <nanobind/stl/vector.h>
-#include <nanobind/stl/bind_vector.h>
-
 NB_MAKE_OPAQUE(std::vector<disort::BDRF>);
 
 namespace Python {
@@ -23,22 +24,24 @@ void py_disort(py::module_& m) try {
 
   py::class_<disort::BDRF>(disort_nm, "bdrf")
       .def(py::init<>())
-      .def("__init__", [](disort::BDRF * b, const bdrf_func& f) {
-             new (b) disort::BDRF([f](ExhaustiveMatrixView mat,
+      .def(
+          "__init__",
+          [](disort::BDRF* b, const bdrf_func& f) {
+            new (b) disort::BDRF([f](ExhaustiveMatrixView mat,
                                      const ExhaustiveConstVectorView& a,
                                      const ExhaustiveConstVectorView& b) {
-               const Matrix out = f(Vector{a}, Vector{b});
-               if (out.shape() != mat.shape()) {
-                 throw std::runtime_error(
-                     var_string("BDRF function returned wrong shape\n",
-                                matpack::shape_help{out.shape()},
-                                " vs ",
-                                matpack::shape_help{mat.shape()}));
-               }
-               mat = out;
-             });
-           },
-           py::keep_alive<0, 1>())
+              const Matrix out = f(Vector{a}, Vector{b});
+              if (out.shape() != mat.shape()) {
+                throw std::runtime_error(
+                    var_string("BDRF function returned wrong shape\n",
+                               matpack::shape_help{out.shape()},
+                               " vs ",
+                               matpack::shape_help{mat.shape()}));
+              }
+              mat = out;
+            });
+          },
+          py::keep_alive<0, 1>())
       .def("__call__",
            [](const disort::BDRF& bdrf, const Vector& a, const Vector& b) {
              Matrix out(a.size(), b.size());
@@ -49,74 +52,68 @@ void py_disort(py::module_& m) try {
 
   py::bind_vector<std::vector<disort::BDRF>>(disort_nm, "ArrayOfBDRF");
 
-  py::class_<disort::main_data>(m, "cppdisort")
-      .def("__init__", [](disort::main_data*n, const AscendingGrid& tau_arr,
-                      const Vector& omega_arr,
-                      const Index NQuad,
-                      const Matrix& Leg_coeffs_all,
-                      Numeric mu0,
-                      Numeric I0,
-                      Numeric phi0,
-                      const std::optional<Index> NLeg_,
-                      const std::optional<Index> NFourier_,
-                      const std::optional<Matrix>& b_pos,
-                      const std::optional<Matrix>& b_neg,
-                      const std::optional<Vector>& f_arr,
-                      const std::vector<disort::BDRF>& bdrf,
-                      const std::optional<Matrix>& s_poly_coeffs) {
-            const Index NFourier = NFourier_.value_or(NQuad);
-            const Index NLeg = NLeg_.value_or(NQuad);
-            const Index NLayers = tau_arr.size();
+  py::class_<disort::main_data> x(m, "cppdisort");
+  x.def(
+      "__init__",
+      [](disort::main_data* n,
+         const AscendingGrid& tau_arr,
+         const Vector& omega_arr,
+         const Index NQuad,
+         const Matrix& Leg_coeffs_all,
+         Numeric mu0,
+         Numeric I0,
+         Numeric phi0,
+         const std::optional<Index> NLeg_,
+         const std::optional<Index> NFourier_,
+         const std::optional<Matrix>& b_pos,
+         const std::optional<Matrix>& b_neg,
+         const std::optional<Vector>& f_arr,
+         const std::vector<disort::BDRF>& bdrf,
+         const std::optional<Matrix>& s_poly_coeffs) {
+        const Index NFourier = NFourier_.value_or(NQuad);
+        const Index NLeg     = NLeg_.value_or(NQuad);
+        const Index NLayers  = tau_arr.size();
 
-            new (n) disort::main_data(
-                NQuad,
-                NLeg,
-                NFourier,
-                tau_arr,
-                omega_arr,
-                Leg_coeffs_all,
-                b_pos.value_or(Matrix(NFourier, NQuad / 2, 0.0)),
-                b_neg.value_or(Matrix(NFourier, NQuad / 2, 0.0)),
-                f_arr.value_or(Vector(NLayers, 0.0)),
-                s_poly_coeffs.value_or(Matrix(NLayers, 0, 0.0)),
-                bdrf,
-                mu0,
-                I0,
-                phi0);
-          },
-          "Run disort, mostly mimicying the 0.7 Pythonic-DISORT interface.\n",
-          py::arg("tau_arr"),
-          py::arg("omega_arr"),
-          py::arg("NQuad"),
-          py::arg("Leg_coeffs_all"),
-          py::arg("mu0"),
-          py::arg("I0"),
-          py::arg("phi0"),
-          py::arg("NLeg") = std::nullopt,
-          py::arg("NFourier") =
-                    std::nullopt,
-          py::arg(
-              "b_pos")=
-              std::nullopt,
-          py::arg(
-              "b_neg")=
-              std::nullopt,
-          py::arg("f_arr")= std::nullopt,
-          py::arg("BDRF_Fourier_modes")=
-                    std::vector<disort::BDRF>{},
-          py::arg("s_poly_coeffs")=
-                    std::nullopt)
-      .def(
-          "u",
-          [](disort::main_data& dis,
-             const AscendingGrid& tau,
-             const Vector& phi) {
-            Tensor3 out(tau.size(), phi.size(), dis.mu().size());
-            dis.ungridded_u(out, tau, phi);
-            return out;
-          },
-          py::arg("tau"),
-          py::arg("phi"))
+        new (n)
+            disort::main_data(NQuad,
+                              NLeg,
+                              NFourier,
+                              tau_arr,
+                              omega_arr,
+                              Leg_coeffs_all,
+                              b_pos.value_or(Matrix(NFourier, NQuad / 2, 0.0)),
+                              b_neg.value_or(Matrix(NFourier, NQuad / 2, 0.0)),
+                              f_arr.value_or(Vector(NLayers, 0.0)),
+                              s_poly_coeffs.value_or(Matrix(NLayers, 0, 0.0)),
+                              bdrf,
+                              mu0,
+                              I0,
+                              phi0);
+      },
+      "Run disort, mostly mimicying the 0.7 Pythonic-DISORT interface.\n",
+      py::arg("tau_arr"),
+      py::arg("omega_arr"),
+      py::arg("NQuad"),
+      py::arg("Leg_coeffs_all"),
+      py::arg("mu0"),
+      py::arg("I0"),
+      py::arg("phi0"),
+      py::arg("NLeg").none()          = py::none(),
+      py::arg("NFourier").none()      = py::none(),
+      py::arg("b_pos").none()         = py::none(),
+      py::arg("b_neg").none()         = py::none(),
+      py::arg("f_arr").none()         = py::none(),
+      py::arg("BDRF_Fourier_modes")   = std::vector<disort::BDRF>{},
+      py::arg("s_poly_coeffs").none() = py::none());
+  x.def(
+       "u",
+       [](disort::main_data& dis, const AscendingGrid& tau, const Vector& phi) {
+         Tensor3 out(tau.size(), phi.size(), dis.mu().size());
+         dis.ungridded_u(out, tau, phi);
+         return out;
+       },
+       py::arg("tau"),
+       py::arg("phi"))
       .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {

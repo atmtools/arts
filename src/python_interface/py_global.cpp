@@ -1,5 +1,9 @@
 
 #include <arts_omp.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/vector.h>
 #include <parameters.h>
 #include <python_interface.h>
 
@@ -8,24 +12,23 @@ extern Parameters parameters;
 namespace Python {
 
 void py_global(py::module_& m) try {
-  auto global = m.def_submodule("globals");
+  auto global  = m.def_submodule("globals");
   global.doc() = "Global settings and data";
 
   py::class_<Parameters>(global, "parameters")
       .def_rw_static(
           "includepath",
           &parameters.includepath,
-          
-              ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
-      .def_rw_static(
-          "datapath",
-          &parameters.datapath,
-          ":class:`~pyarts.arts.ArrayOfString` Automatic data paths")
+
+          ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
+      .def_rw_static("datapath",
+                     &parameters.datapath,
+                     ":class:`~pyarts.arts.ArrayOfString` Automatic data paths")
       .def_rw_static(
           "numthreads",
           &parameters.numthreads,
-          
-              ":class:`~pyarts.arts.Index` Number of threads allowed to start")
+
+          ":class:`~pyarts.arts.Index` Number of threads allowed to start")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
@@ -36,8 +39,8 @@ void py_global(py::module_& m) try {
       "workspace_groups",
       []() { return internal_workspace_groups(); },
       "Get a copy of all workspace variables\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of variables");
+      "Return\n------\n:class:`dict`"
+      "\n    Map of variables");
 
   py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
       .def_ro("default_value", &WorkspaceVariableRecord::default_value)
@@ -48,8 +51,8 @@ void py_global(py::module_& m) try {
       "workspace_variables",
       []() { return workspace_variables(); },
       "Get a copy of all workspace variables\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of variables");
+      "Return\n------\n:class:`dict`"
+      "\n    Map of variables");
 
   py::class_<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
@@ -63,19 +66,18 @@ void py_global(py::module_& m) try {
       .def_ro("gin_type", &WorkspaceMethodInternalRecord::gin_type)
       .def_ro("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
       .def_ro("gin_value", &WorkspaceMethodInternalRecord::gin_value)
-      .def_ro("pass_workspace",
-                    &WorkspaceMethodInternalRecord::pass_workspace)
+      .def_ro("pass_workspace", &WorkspaceMethodInternalRecord::pass_workspace)
       .def_ro("desc", &WorkspaceMethodInternalRecord::desc);
 
   global.def(
       "workspace_methods",
       []() { return internal_workspace_methods(); },
       "Get a copy of all workspace methods\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of methods");
+      "Return\n------\n:class:`dict`"
+      "\n    Map of methods");
 
   py::class_<WorkspaceAgendaInternalRecord>(global,
-                                           "WorkspaceAgendaInternalRecord")
+                                            "WorkspaceAgendaInternalRecord")
       .def_ro("desc", &WorkspaceAgendaInternalRecord::desc)
       .def_ro("output", &WorkspaceAgendaInternalRecord::output)
       .def_ro("input", &WorkspaceAgendaInternalRecord::input)
@@ -86,8 +88,8 @@ void py_global(py::module_& m) try {
       "workspace_agendas",
       []() { return internal_workspace_agendas(); },
       "Get a copy of all workspace agendas\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of agendas");
+      "Return\n------\n:class:`dict`"
+      "\n    Map of agendas");
 
   global.def(
       "all_isotopologues",
@@ -98,8 +100,8 @@ void py_global(py::module_& m) try {
   global.def("omp_get_max_threads",
              &omp_get_max_threads,
              "Get maximum number of OpenMP threads\n\n"
-                     "Return\n------\n:class:`int`"
-                     "\n    Number of maximum threads");
+             "Return\n------\n:class:`int`"
+             "\n    Number of maximum threads");
 
   global.def(
       "omp_set_num_threads",

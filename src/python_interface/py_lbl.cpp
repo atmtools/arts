@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "enums.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
@@ -11,8 +12,6 @@
 #include "partfun.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
-
-#include <nanobind/stl/bind_vector.h>
 
 namespace Python {
 void py_lbl(py::module_& m) try {
@@ -25,8 +24,8 @@ void py_lbl(py::module_& m) try {
           &lbl::temperature::data::Type,
           ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
       .def_prop_ro("data",
-                             &lbl::temperature::data::X,
-                             ":class:`~pyarts.arts.Vector` The coefficients")
+                   &lbl::temperature::data::X,
+                   ":class:`~pyarts.arts.Vector` The coefficients")
       .PythonInterfaceBasicRepresentation(lbl::temperature::data);
 
   using pair_vector_type =
@@ -81,19 +80,18 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
 
   py::class_<std::vector<lbl::line_shape::species_model>>(m,
-                                                         "LineShapeModelList")
+                                                          "LineShapeModelList")
       .PythonInterfaceBasicRepresentation(
           std::vector<lbl::line_shape::species_model>);
 
   py::class_<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
       .def_rw("one_by_one",
-                     &lbl::line_shape::model::one_by_one,
-                     "If true, the lines are treated one by one")
-      .def_rw(
-          "T0", &lbl::line_shape::model::T0, "The reference temperature")
+              &lbl::line_shape::model::one_by_one,
+              "If true, the lines are treated one by one")
+      .def_rw("T0", &lbl::line_shape::model::T0, "The reference temperature")
       .def_rw("single_models",
-                     &lbl::line_shape::model::single_models,
-                     "The single models")
+              &lbl::line_shape::model::single_models,
+              "The single models")
       .def("G0",
            &lbl::line_shape::model::G0,
            "The G0 coefficient",
@@ -123,27 +121,26 @@ void py_lbl(py::module_& m) try {
           ":class:`~pyarts.arts.Bool` If True, the Zeeman effect is included")
       .def_prop_rw(
           "gl",
-          [](lbl::zeeman::model &z){return z.gl();},
-          [](lbl::zeeman::model &z,Numeric g){ z.gl(g);},
+          [](lbl::zeeman::model& z) { return z.gl(); },
+          [](lbl::zeeman::model& z, Numeric g) { z.gl(g); },
           ":class:`~pyarts.arts.Numeric` The lower level statistical weight")
       .def_prop_rw(
           "gu",
-          [](lbl::zeeman::model &z){return z.gu();},
-          [](lbl::zeeman::model &z,Numeric g){ z.gu(g);},
+          [](lbl::zeeman::model& z) { return z.gu(); },
+          [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
           ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
       .PythonInterfaceBasicRepresentation(lbl::zeeman::model);
 
   py::class_<lbl::line>(m, "AbsorptionLine")
       .def_rw("a",
-                     &lbl::line::a,
-                     ":class:`~pyarts.arts.Numeric` The Einstein coefficient")
-      .def_rw(
-          "f0",
-          &lbl::line::f0,
-          ":class:`~pyarts.arts.Numeric` The line center frequency [Hz]")
+              &lbl::line::a,
+              ":class:`~pyarts.arts.Numeric` The Einstein coefficient")
+      .def_rw("f0",
+              &lbl::line::f0,
+              ":class:`~pyarts.arts.Numeric` The line center frequency [Hz]")
       .def_rw("e0",
-                     &lbl::line::e0,
-                     ":class:`~pyarts.arts.Numeric` The lower level energy [J]")
+              &lbl::line::e0,
+              ":class:`~pyarts.arts.Numeric` The lower level energy [J]")
       .def_rw(
           "gu",
           &lbl::line::gu,
@@ -163,21 +160,20 @@ void py_lbl(py::module_& m) try {
 
   py::class_<lbl::band_data>(m, "AbsorptionBandData")
       .def_rw("lines", &lbl::band_data::lines, "The lines in the band")
-      .def_rw(
-          "lineshape", &lbl::band_data::lineshape, "The lineshape type")
+      .def_rw("lineshape", &lbl::band_data::lineshape, "The lineshape type")
       .def_rw("cutoff", &lbl::band_data::cutoff, "The cutoff type")
       .def_rw("cutoff_value",
-                     &lbl::band_data::cutoff_value,
-                     "The cutoff value [Hz]")
+              &lbl::band_data::cutoff_value,
+              "The cutoff value [Hz]")
       .PythonInterfaceBasicRepresentation(lbl::band_data);
 
   py::class_<AbsorptionBand>(m, "AbsorptionBand")
       .def_rw("data",
-                     &AbsorptionBand::data,
-                     ":class:`~pyarts.arts.AbsorptionBandData`")
+              &AbsorptionBand::data,
+              ":class:`~pyarts.arts.AbsorptionBandData`")
       .def_rw("key",
-                     &AbsorptionBand::key,
-                     ":class:`~pyarts.arts.QuantumIdentifier`");
+              &AbsorptionBand::key,
+              ":class:`~pyarts.arts.QuantumIdentifier`");
 
   py::bind_vector<ArrayOfAbsorptionBand>(m, "ArrayOfAbsorptionBand")
       .def(
@@ -263,6 +259,9 @@ void py_lbl(py::module_& m) try {
       "Partition function",
       py::arg("T"),
       py::arg("isotopologue"));
+
+  py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
+  workspace_group_interface(led);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));

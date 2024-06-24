@@ -1,5 +1,7 @@
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 
+#include "hpy_arts.h"
 #include "mystring.h"
 #include "sun.h"
 
@@ -40,6 +42,9 @@ void py_star(py::module_& m) try {
                             std::get<4>(state),
                             std::get<5>(state)};
            });
+
+  auto a1 = py::bind_vector<ArrayOfSun>(m, "ArrayOfSun");
+  workspace_group_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize star\n", e.what()));

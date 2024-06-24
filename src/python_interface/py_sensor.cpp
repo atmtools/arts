@@ -1,3 +1,4 @@
+#include <nanobind/stl/bind_vector.h>
 #include <obsel.h>
 #include <python_interface.h>
 
@@ -8,39 +9,44 @@
 
 namespace Python {
 void py_sensor(py::module_& m) try {
-  py::class_<SensorPosLos>splos(m,"SensorPosLos");
+  py::class_<SensorPosLos> splos(m, "SensorPosLos");
   workspace_group_interface(splos);
   common_ndarray(splos);
-     splos
-      .def("__array__",[](SensorPosLos& x) {
-std::array<size_t, 1> shape = {5};
-        return py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(&x, 1, shape.data(), py::handle());
-      })
-.def_prop_rw(
-      "value",
-      [](py::object& v) {
-        auto np = py::module_::import_("numpy");
-        return np.attr("array")(v, py::arg("copy") = false);
-      },
-      [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
+  splos
+      .def("__array__",
+           [](SensorPosLos& x) {
+             std::array<size_t, 1> shape = {5};
+             return py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
+                 &x, 1, shape.data(), py::handle());
+           })
+      .def_prop_rw(
+          "value",
+          [](py::object& v) {
+            auto np = py::module_::import_("numpy");
+            return np.attr("array")(v, py::arg("copy") = false);
+          },
+          [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
       .def_rw("pos", &SensorPosLos::pos, "Position")
       .def_rw("los", &SensorPosLos::los, "Line of sight");
 
-  py::class_<SensorPosLosVector>vsplos(m, "SensorPosLosVector");
+  py::class_<SensorPosLosVector> vsplos(m, "SensorPosLosVector");
   workspace_group_interface(vsplos);
   common_ndarray(vsplos);
-     vsplos
-      .def("__array__",[](SensorPosLosVector& x) {
-std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
-        return py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(x.data_handle(), 2, shape.data(), py::handle());
-      })
+  vsplos
+      .def("__array__",
+           [](SensorPosLosVector& x) {
+             std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
+             return py::
+                 ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
+                     x.data_handle(), 2, shape.data(), py::handle());
+           })
       .def_prop_rw(
           "value",
-              [](SensorPosLosVector& x) {
-                py::object np = py::module_::import_("numpy");
-                return np.attr("array")(x, py::arg("copy") = false);
-              },
+          [](SensorPosLosVector& x) {
+            py::object np = py::module_::import_("numpy");
+            return np.attr("array")(x, py::arg("copy") = false);
+          },
           [](SensorPosLosVector& x, Matrix& y) {
             if (y.ncols() != 5) {
               throw std::runtime_error("Bad shape");
@@ -53,29 +59,29 @@ std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
           },
           ":class:`~pyarts.arts.Matrix`")
       .def("__getstate__",
-          [](const py::object& self) {
-            return py::make_tuple(self.attr("value"));
-          }).def("__setstate__",
-          [](py::object& self, const py::tuple& state) {
-            self.attr("value") = state[0];
-          });
+           [](const py::object& self) {
+             return py::make_tuple(self.attr("value"));
+           })
+      .def("__setstate__", [](py::object& self, const py::tuple& state) {
+        self.attr("value") = state[0];
+      });
 
-  py::class_<SensorObsel>so(m,"SensorObsel");
+  py::class_<SensorObsel> so(m, "SensorObsel");
   workspace_group_interface(so);
-     so .def(py::init<Vector,
-                    AscendingGrid,
-                    MuelmatVector,
-                    SensorPosLosVector,
-                    Stokvec>(),
-           "From pos and los")
+  so.def(py::init<Vector,
+                  AscendingGrid,
+                  MuelmatVector,
+                  SensorPosLosVector,
+                  Stokvec>(),
+         "From pos and los")
       .def_rw("f_grid_w", &SensorObsel::f_grid_w, "Frequency weights")
       .def_rw("f_grid", &SensorObsel::f_grid, "Frequency grid")
       .def_rw("poslos_w",
-                     &SensorObsel::poslos_grid_w,
-                     "Position and line of sight weights")
+              &SensorObsel::poslos_grid_w,
+              "Position and line of sight weights")
       .def_rw("poslos",
-                     &SensorObsel::poslos_grid,
-                     "Position and line of sight grid")
+              &SensorObsel::poslos_grid,
+              "Position and line of sight grid")
       .def_rw(
           "polarization", &SensorObsel::polarization, "Polarization sampling")
       .def(
@@ -138,6 +144,9 @@ filter : list of int, optional
            py::arg("cutoff"),
            py::arg("relative") = true,
            "Cuts out parts of the frequency grid with low weights");
+
+  auto a1 = py::bind_vector<ArrayOfSensorObsel>(m, "ArrayOfSensorObsel");
+  workspace_group_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));
