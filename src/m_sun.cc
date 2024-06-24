@@ -202,28 +202,34 @@ void sunsChangeGeometry(ArrayOfSun &suns,
   if (sun_index == -999) return;
 
   ARTS_USER_ERROR_IF(sun_index+1 > suns.nelem(),
-                      "The sun index ", sun_index, " is out of range. \n"
-                      "The sun array has only ", suns.nelem(), " elements.")
-
-  if (radius > 0) suns[sun_index].radius = radius;
-  if (distance > 0) suns[sun_index].distance = distance;
+                     "The sun index ", sun_index, " is out of range. \n"
+                     "The sun array has only ", suns.nelem(), " elements.")
 
   //some sanity checks
   ARTS_USER_ERROR_IF(distance<radius,
                      "The distance to the center of the sun (", distance, " m) \n"
                      " is smaller than the radius of the sun (", radius, " m )")
 
-  ARTS_USER_ERROR_IF(latitude < -90 || latitude > 90,
-                     "The latitude of the sun should be between -90 and 90 degrees,\n"
-                     "but is ", latitude, " degrees")
+  if (radius > 0) suns[sun_index].radius = radius;
+  if (distance > 0) suns[sun_index].distance = distance;
 
-  ARTS_USER_ERROR_IF(longitude < -180 || longitude > 360,
-                     "The longitude of the sun should be between -180 and 360 degrees,\n"
-                     "but is ", longitude, " degrees")
+  if (latitude != -999)
+  {
+    ARTS_USER_ERROR_IF(latitude < -90 || latitude > 90,
+                       "The latitude of the sun should be between -90 and 90 degrees,\n"
+                       "but is ", latitude, " degrees")
 
+    suns[sun_index].latitude = latitude;
+  }
 
-  suns[sun_index].latitude = latitude;
-  suns[sun_index].longitude = longitude;
+  if (longitude != -999)
+  {
+    ARTS_USER_ERROR_IF(longitude < -180 || longitude > 360,
+                       "The longitude of the sun should be between -180 and 360 degrees,\n"
+                       "but is ", longitude, " degrees")
+
+    suns[sun_index].longitude = longitude;
+  }
 }
 
 void sunsOff(Index &suns_do,
