@@ -1,18 +1,19 @@
 
 #include <debug.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
 #include <surf.h>
 
-#include <memory>
-
 #include "hpy_arts.h"
-#include "nanobind/nanobind.h"
-#include "py_macros.h"
+
+NB_MAKE_OPAQUE(InterpolationExtrapolation);
 
 namespace Python {
-
 void py_surf(py::module_ &m) try {
   py::class_<Surf::Data>(m, "SurfData")
       .def(py::init<>())
@@ -81,21 +82,22 @@ void py_surf(py::module_ &m) try {
             }
             return std::tuple<std::vector<SurfaceKeyVal>, std::vector<Numeric>>(
                 k, v);
-          }).def("__setstate__",
-          [](SurfacePoint *s,
-             const std::tuple<std::vector<SurfaceKeyVal>, std::vector<Numeric>>
-                 &state) {
-            auto k = std::get<0>(state);
-            auto v = std::get<1>(state);
-            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
+          })
+      .def("__setstate__",
+           [](SurfacePoint *s,
+              const std::tuple<std::vector<SurfaceKeyVal>, std::vector<Numeric>>
+                  &state) {
+             auto k = std::get<0>(state);
+             auto v = std::get<1>(state);
+             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            new (s) SurfacePoint{};
-            for (std::size_t i = 0; i < k.size(); i++) {
-              std::visit(
-                  [&](auto &&key) -> Numeric & { return s->operator[](key); },
-                  k[i]) = v[i];
-            }
-          });
+             new (s) SurfacePoint{};
+             for (std::size_t i = 0; i < k.size(); i++) {
+               std::visit(
+                   [&](auto &&key) -> Numeric & { return s->operator[](key); },
+                   k[i]) = v[i];
+             }
+           });
 
   fld.def(
          "__getitem__",

@@ -1,4 +1,6 @@
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string.h>
 #include <partfun.h>
 #include <python_interface.h>
 
@@ -10,7 +12,6 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "isotopologues.h"
-#include "nanobind/nanobind.h"
 #include "py_macros.h"
 #include "species.h"
 #include "species_tags.h"

@@ -1,5 +1,7 @@
 #include <lineshapemodel.h>
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
@@ -14,7 +16,6 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "isotopologues.h"
-#include "nanobind/nanobind.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
@@ -105,13 +106,13 @@ void py_spectroscopy(py::module_& m) try {
           },
           py::arg("str") = std::string{"None"},
           "From :class:`str`")
-      .PythonInterfaceCopyValue(Zeeman::Polarization)
+      // .PythonInterfaceCopyValue(Zeeman::Polarization)
       .def("__repr__",
-           [ZeemanPolarizationStringGetter](Zeeman::Polarization c) {
+           [ZeemanPolarizationStringGetter](const Zeeman::Polarization& c) {
              return ZeemanPolarizationStringGetter(c);
            })
       .def("__str__",
-           [ZeemanPolarizationStringGetter](Zeeman::Polarization c) {
+           [ZeemanPolarizationStringGetter](const Zeeman::Polarization& c) {
              return ZeemanPolarizationStringGetter(c);
            })
       .def("__getstate__",

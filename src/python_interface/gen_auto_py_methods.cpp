@@ -47,13 +47,13 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   os << "    Workspace& _ws [[maybe_unused]]";
   for (auto& v : wsm.out) {
-    os << ",\n    std::optional<py" << wsvs.at(v).type << "* const> _" << v;
+    os << ",\n    py" << wsvs.at(v).type << "* const _" << v;
   }
 
   for (Size i = 0; i < wsm.gout.size(); i++) {
     const auto& v = wsm.gout.at(i);
     const auto& g = wsm.gout_type.at(i);
-    os << ",\n    std::optional<py" << g << "* const> _" << v;
+    os << ",\n    py" << g << "* const _" << v;
   }
 
   const auto not_out = [&wsm](const auto& v) {
@@ -61,7 +61,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   };
 
   for (auto& v : wsm.in | std::ranges::views::filter(not_out)) {
-    os << ",\n    std::optional<const py" << wsvs.at(v).type << "* const> _"
+    os << ",\n    const py" << wsvs.at(v).type << "* const _"
        << v;
   }
 
@@ -73,7 +73,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
     const auto& v = wsm.gin.at(i);
     const auto& g = wsm.gin_type.at(i);
     if (not_gout(v)) {
-      os << ",\n    std::optional<const py" << g << "* const> _" << v;
+      os << ",\n    const py" << g << "* const _" << v;
     }
   }
 
@@ -100,7 +100,7 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
     if (wsm.gout_type[i] == "Any" or uses_variadic(wsm.gout_type[i])) {
       os << "        Wsv " << wsm.gout[i] << " = _" << wsm.gout[i]
          << " ? from(_" << wsm.gout[i]
-         << R"(.value()) : throw std::runtime_error("Unknown output: \")"
+         << R"() : throw std::runtime_error("Unknown output: \")"
          << wsm.gout[i] << "\\\"\");\n";
     } else {
       os << "        auto& " << wsm.gout[i] << " = select_gout<"
@@ -122,7 +122,7 @@ std::string method_gin_selection(const std::string& name,
     if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
       os << "        Wsv " << wsm.gin[i] << " = _" << wsm.gin[i] << " ? from(_"
          << wsm.gin[i]
-         << R"(.value()) : throw std::runtime_error("Unknown input: \")"
+         << R"() : throw std::runtime_error("Unknown input: \")"
          << wsm.gin[i] << "\\\"\");\n";
     } else {
       if (has_default) {
@@ -641,7 +641,7 @@ std::string method_error(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
        << workspace_variables().at(t).type;
     os << R"(, defaults to self.)" << t << R"()-x-"),
               ")";
@@ -652,7 +652,7 @@ std::string method_error(const std::string& name,
     first = false;
     os << t << " : \",\n              "
        << "_" << t << " ? type(_" << t
-       << R"(.value()) : std::string("NoneType"),
+       << R"() : std::string("NoneType"),
               ")";
   }
 
@@ -661,7 +661,7 @@ std::string method_error(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
        << workspace_variables().at(t).type;
     os << R"(, defaults to self.)" << t << R"()-x-"),
               ")";
@@ -674,7 +674,7 @@ std::string method_error(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()";
+       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()";
     if (v) {
       os << g << ", defaults to " << to_defval_str(*v);
     } else {
@@ -757,17 +757,17 @@ std::string method(const std::string& name,
   os << "[](";
   os << "\n    Workspace& _ws,";
   for (auto& str : wsm.output) {
-    os << "\n    std::optional<py" << wsvs.at(str).type << " * const> _" << str
+    os << "\n    py" << wsvs.at(str).type << " * const _" << str
        << ",";
   }
   for (auto& str : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n     const std::optional<const py" << wsvs.at(str).type
-       << " * const> _" << str << ",";
+    os << "\n     const py" << wsvs.at(str).type
+       << " * const _" << str << ",";
   }
-  os << "\n     const std::optional<const ";
+  os << "\n     const ";
   if (wsm.array) os << "ArrayOf";
-  os << "Agenda * const> _" << name << ") -> void {\n      try {\n";
+  os << "Agenda * const _" << name << ") -> void {\n      try {\n";
 
   for (auto& str : wsm.output) {
     os << "\n      auto& " << str << " = select_";
@@ -810,7 +810,7 @@ std::string method(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
        << workspace_variables().at(t).type;
     os << R"(, defaults to self.)" << t << R"()-x-"),
               ")";
@@ -821,7 +821,7 @@ std::string method(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
        << workspace_variables().at(t).type;
     os << R"(, defaults to self.)" << t << R"()-x-"),
               ")";
@@ -870,6 +870,10 @@ void methods(int nfiles) {
 #include <m_ignore.h>
 #include <m_xml.h>
 #include <workspace.h>
+
+#include <nanobind/stl/optional.h>
+
+NB_MAKE_OPAQUE(SpeciesEnum);
 
 namespace Python {
 void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"

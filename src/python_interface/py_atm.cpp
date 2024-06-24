@@ -3,6 +3,9 @@
 #include <atm_path.h>
 #include <debug.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
@@ -66,8 +69,10 @@ void py_atm(py::module_ &m) try {
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
+  workspace_group_interface(pnt);
 
   auto fld = py::class_<AtmField>(m, "AtmField");
+  workspace_group_interface(fld);
 
   pnt.def_rw("temperature", &AtmPoint::temperature)
       .def_rw("pressure", &AtmPoint::pressure)

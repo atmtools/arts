@@ -1,3 +1,6 @@
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string.h>
 #include <python_interface.h>
 #include <rtepack.h>
 
@@ -5,8 +8,8 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "matpack_data.h"
-#include "nanobind/nanobind.h"
-#include "nanobind/stl/bind_vector.h"
+
+NB_MAKE_OPAQUE(PolarizationChoice)
 
 namespace Python {
 template <typename T, Index M, size_t... N>

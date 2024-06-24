@@ -1,11 +1,11 @@
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string.h>
 #include <obsel.h>
 #include <python_interface.h>
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
-#include "nanobind/nanobind.h"
-#include "py_macros.h"
 #include "sorted_grid.h"
 
 namespace Python {
@@ -163,6 +163,6 @@ filter : list of int, optional
   workspace_group_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));
+      var_string("DEV ERROR:\nCannot initialize sensors\n", e.what()));
 }
 }  // namespace Python
