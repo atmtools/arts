@@ -14,12 +14,15 @@ namespace Python {
 void py_basic(py::module_& m) try {
   py::class_<ValueHolder<String>> str(m, "String");
   value_holder_interface(str);
+  workspace_group_interface(str);
 
   py::class_<ValueHolder<Numeric>> num(m, "Numeric");
   value_holder_interface(num);
+  workspace_group_interface(num);
 
   py::class_<ValueHolder<Index>> ind(m, "Index");
   value_holder_interface(ind);
+  workspace_group_interface(ind);
 
   auto aos = py::bind_vector<ArrayOfString>(m, "ArrayOfString");
   vector_interface(aos);

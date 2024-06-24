@@ -13,15 +13,19 @@ template <typename T, Index M, size_t... N>
 void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
   c.def(
       "__array__",
-      [](matpack::matpack_data<T, M> &v) {
+      [](matpack::matpack_data<T, M> &v, py::object dtype, py::object copy) {
         constexpr auto n = M + sizeof...(N);
         std::array<size_t, n> shape{};
         std::ranges::copy(v.shape(), shape.begin());
         std::ranges::copy(std::array{N...}, shape.begin() + M);
-        return py::ndarray<py::numpy, Numeric, py::ndim<n>, py::c_contig>(
+        auto np = py::module_::import_("numpy");
+        auto x  = py::ndarray<py::numpy, Numeric, py::ndim<n>, py::c_contig>(
             v.data_handle(), n, shape.data(), py::handle());
+        return np.attr("array")(
+            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
-      py::rv_policy::reference_internal);
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
 
   c.def_prop_rw(
       "value",
@@ -66,12 +70,17 @@ void py_rtepack(py::module_ &m) try {
           py::arg("angle"))
       .def(
           "__array__",
-          [](Stokvec &v) {
+          [](Stokvec &v, py::object dtype, py::object copy) {
             std::array<size_t, 1> shape = {4};
-            return py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
-                v.data.data(), 1, shape.data(), py::handle());
+            auto np                     = py::module_::import_("numpy");
+            auto x =
+                py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
+                    v.data.data(), 1, shape.data(), py::handle());
+            return np.attr("array")(
+                x, py::arg("dtype") = dtype, py::arg("copy") = copy);
           },
-          py::rv_policy::reference_internal)
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
           [](Stokvec &x) {
@@ -112,12 +121,19 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
-      .def("__array__",
-           [](Propmat &x) {
-             std::array<size_t, 1> shape = {7};
-             return py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
-                 x.data.data(), 1, shape.data(), py::handle());
-           })
+      .def(
+          "__array__",
+          [](Propmat &x, py::object dtype, py::object copy) {
+            std::array<size_t, 1> shape = {7};
+            auto np                     = py::module_::import_("numpy");
+            auto w =
+                py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
+                    x.data.data(), 1, shape.data(), py::handle());
+            return np.attr("array")(
+                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
           [](Propmat &x) {
@@ -153,13 +169,19 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
-      .def("__array__",
-           [](Muelmat &x) {
-             std::array<size_t, 2> shape = {4, 4};
-             return py::
-                 ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
-                     x.data.data(), 2, shape.data(), py::handle());
-           })
+      .def(
+          "__array__",
+          [](Muelmat &x, py::object dtype, py::object copy) {
+            std::array<size_t, 2> shape = {4, 4};
+            auto np                     = py::module_::import_("numpy");
+            auto w =
+                py::ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
+                    x.data.data(), 2, shape.data(), py::handle());
+            return np.attr("array")(
+                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
           [](Muelmat &x) {

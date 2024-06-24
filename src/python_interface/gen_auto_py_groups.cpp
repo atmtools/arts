@@ -1,4 +1,5 @@
 #include <workspace.h>
+
 #include <iostream>
 
 void groups(const std::string& fname) {
@@ -20,6 +21,17 @@ void groups(const std::string& fname) {
   for (auto& [group, wsg] : wsgs) {
     hos << "NB_MAKE_OPAQUE(Array<" << group << ">);\n";
   }
+
+  std::string_view newline = "\n";
+  hos << "namespace Python {\nusing PyWSV = std::variant<";
+  for (auto& [group, wsg] : wsgs) {
+    hos << std::exchange(newline, ",\n");
+    if (wsg.value_type)
+      hos << "  ValueHolder<" << group << ">";
+    else
+      hos << "  std::shared_ptr<" << group << ">";
+  }
+  hos << ">;\n}\n";
 
   hos << R"--(
 namespace Python {
@@ -73,6 +85,4 @@ std::string type(const py::object * const x) {
 )--";
 }
 
-int main() {
-  groups("py_auto_wsg");
-}
+int main() { groups("py_auto_wsg"); }

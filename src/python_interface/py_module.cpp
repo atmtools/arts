@@ -1,8 +1,6 @@
 #include <parameters.h>
 #include <python_interface.h>
 
-#include <memory>
-
 #include <nanobind/nanobind.h>
 
 extern Parameters parameters;
@@ -12,7 +10,7 @@ void parse_path_from_environment(String envvar, ArrayOfString& paths);
 namespace Python {
 namespace py = nanobind;
 
-//void py_workspace(py::class_<Workspace>& ws);
+void py_workspace(py::class_<Workspace>& ws);
 
 void py_basic(py::module_& m);
 void py_matpack(py::module_& m);
@@ -140,7 +138,7 @@ NB_MODULE(arts, m) try {
   py_disort(m);
 
   // Must be last, it contains automatic conversion operations
-  // py_workspace(ws);
+  py_workspace(ws);
 
   // Extras calling pure internal functions
   py_constants(m);

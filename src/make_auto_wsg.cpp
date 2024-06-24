@@ -110,6 +110,7 @@ template <typename T> struct WorkspaceGroupInfo {
   static constexpr std::string_view name = "<Unknown>";
   static constexpr std::string_view file = "<Unknown>";
   static constexpr std::string_view desc = "<Unknown>";
+  static constexpr bool value_type = false;
 };
 
 )";
@@ -120,6 +121,8 @@ template <typename T> struct WorkspaceGroupInfo {
        << "\";\n";
     os << "  static constexpr std::string_view desc = R\"--("
        << data.at(group).desc << ")--\";\n";
+    os << "  static constexpr bool value_type = " << data.at(group).value_type
+       << ";\n";
     os << "};\n\n";
   }
 

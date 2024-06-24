@@ -1,13 +1,12 @@
 #pragma once
 
 #include <matpack.h>
-
-#include "hpy_numpy.h"
-
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
+
+#include "hpy_numpy.h"
 
 namespace Python {
 namespace py = nanobind;
@@ -21,8 +20,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
       "__init__",
       [](mtype* v, const py::list& l) {
         auto np = py::module_::import_("numpy");
-        auto m =
-            py::type<mtype>()(np.attr("array")(l, py::arg("copy") = false));
+        auto m  = py::type<mtype>()(np.attr("array")(l));
 
         new (v) mtype(py::cast<mtype>(m));
       },
@@ -76,13 +74,17 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& v) {
+      [](mtype& v, py::object dtype, py::object copy) {
         std::array<size_t, ndim> shape;
         std::ranges::copy(v.shape(), shape.begin());
 
-        return nd(v.data_handle(), ndim, shape.data(), py::handle());
+        auto np = py::module_::import_("numpy");
+        auto x  = nd(v.data_handle(), ndim, shape.data(), py::handle());
+        return np.attr("array")(
+            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
-      py::rv_policy::reference_internal);
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -107,13 +109,17 @@ void matpack_constant_interface(
 
   c.def(
       "__array__",
-      [](mtype& v) {
+      [](mtype& v, py::object dtype, py::object copy) {
         constexpr std::array<size_t, sizeof...(ndim)> shape{
             static_cast<size_t>(ndim)...};
 
-        return nd(v.data.data(), sizeof...(ndim), shape.data(), py::handle());
+        auto np = py::module_::import_("numpy");
+        auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::handle());
+        return np.attr("array")(
+            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
-      py::rv_policy::reference_internal);
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -142,12 +148,16 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
 
   c.def(
       "__array__",
-      [](matpack::grid<Compare>& v) {
+      [](matpack::grid<Compare>& v, py::object dtype, py::object copy) {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
-        return nd(v.data_handle(), 1, shape.data(), py::handle());
+        auto np = py::module_::import_("numpy");
+        auto x  = nd(v.data_handle(), 1, shape.data(), py::handle());
+        return np.attr("array")(
+            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
-      py::rv_policy::reference_internal);
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
 
   py::implicitly_convertible<nd, matpack::grid<Compare>>();
   py::implicitly_convertible<mtype, matpack::grid<Compare>>();
@@ -187,10 +197,15 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
   c.def("ok", &mtype::ok, "Check the field");
 
-  c.def("__array__", [](mtype& gd) {
-    auto np = py::module_::import_("numpy");
-    return np.attr("array")(gd.data, py::arg("copy") = false);
-  });
+  c.def(
+      "__array__",
+      [](mtype& gd, py::object dtype, py::object copy) {
+        auto np = py::module_::import_("numpy");
+        return np.attr("array")(
+            gd.data, py::arg("dtype") = dtype, py::arg("copy") = copy);
+      },
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
 
   c.def_prop_rw(
       "value",

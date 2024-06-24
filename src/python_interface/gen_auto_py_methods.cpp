@@ -698,29 +698,29 @@ std::string method_argument_documentation(
   for (auto& t : wsm.out) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "\"" << t << "\"_a.noconvert()=std::nullopt";
+    os << "\"" << t << "\"_a.noconvert().none() = py::none()";
   }
 
   for (auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "\"" << t << "\"_a=std::nullopt";
+    os << "\"" << t << "\"_a.none() = py::none()";
   }
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;
-    os << "\"" << t << "\"_a=std::nullopt";
+    os << "\"" << t << "\"_a.none() = py::none()";
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     if (not first) os << ",\n    ";
     first = false;
     if (wsm.gin_value[i]) {
-      os << "\"" << wsm.gin[i] << "\"_a=std::nullopt";
+      os << "\"" << wsm.gin[i] << "\"_a.none() = py::none()";
     } else {
-      os << "\"" << wsm.gin[i] << "\"_a=std::nullopt";
+      os << "\"" << wsm.gin[i] << "\"_a.none() = py::none()";
     }
   }
 
@@ -837,13 +837,13 @@ std::string method(const std::string& name,
   os << "    },\n    ";
 
   for (auto& t : wsm.output) {
-    os << "\"" << t << "\"_a.noconvert()=std::nullopt,\n    ";
+    os << "\"" << t << "\"_a.noconvert().none() = py::none(),\n    ";
   }
   for (auto& t : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
-    os << "\"" << t << "\"_a=std::nullopt,\n    ";
+    os << "\"" << t << "\"_a.none() = py::none(),\n    ";
   }
-  os << "\"" << name << "\"_a=std::nullopt,\n    ";
+  os << "\"" << name << "\"_a.none() = py::none(),\n    ";
 
   os << "R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
      << get_agenda_io(name) << name << " : ~pyarts.arts.";

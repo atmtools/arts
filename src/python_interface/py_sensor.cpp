@@ -4,6 +4,7 @@
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
+#include "nanobind/nanobind.h"
 #include "py_macros.h"
 #include "sorted_grid.h"
 
@@ -13,12 +14,19 @@ void py_sensor(py::module_& m) try {
   workspace_group_interface(splos);
   common_ndarray(splos);
   splos
-      .def("__array__",
-           [](SensorPosLos& x) {
-             std::array<size_t, 1> shape = {5};
-             return py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
-                 &x, 1, shape.data(), py::handle());
-           })
+      .def(
+          "__array__",
+          [](SensorPosLos& x, py::object dtype, py::object copy) {
+            std::array<size_t, 1> shape = {5};
+            auto np                     = py::module_::import_("numpy");
+            auto w =
+                py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
+                    &x, 1, shape.data(), py::handle());
+            return np.attr("array")(
+                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
           [](py::object& v) {
@@ -34,13 +42,19 @@ void py_sensor(py::module_& m) try {
   workspace_group_interface(vsplos);
   common_ndarray(vsplos);
   vsplos
-      .def("__array__",
-           [](SensorPosLosVector& x) {
-             std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
-             return py::
-                 ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
-                     x.data_handle(), 2, shape.data(), py::handle());
-           })
+      .def(
+          "__array__",
+          [](SensorPosLosVector& x, py::object dtype, py::object copy) {
+            std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
+            auto np                     = py::module_::import_("numpy");
+            auto w =
+                py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
+                    x.data_handle(), 2, shape.data(), py::handle());
+            return np.attr("array")(
+                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
           [](SensorPosLosVector& x) {
