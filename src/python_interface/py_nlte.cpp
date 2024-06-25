@@ -3,12 +3,15 @@
 #include <nanobind/stl/string.h>
 #include <workspace.h>
 
+#include "hpy_arts.h"
+
 namespace Python {
 namespace py = nanobind;
 
 void py_nlte(py::module_ &m) try {
-  py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
-      .def("__init__",
+  py::class_<VibrationalEnergyLevels> vibe(m, "VibrationalEnergyLevels");
+  workspace_group_interface(vibe);
+  vibe.def("__init__",
            [](VibrationalEnergyLevels *n,
               std::map<QuantumIdentifier, Numeric> &inv) {
              new (n) VibrationalEnergyLevels{};

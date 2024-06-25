@@ -7,6 +7,7 @@
 #include <quantum_term_symbol.h>
 
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -121,8 +122,9 @@ qn : ~pyarts.arts.QuantumNumberValue
       .doc() = "A local state of quantum numbers";
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
-  py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
-      .def(py::init<std::string>())
+  py::class_<QuantumIdentifier> qids(m, "QuantumIdentifier");
+  workspace_group_interface(qids);
+  qids.def(py::init<std::string>())
       .def_ro("isotopologue_index",
               &QuantumIdentifier::isotopologue_index,
               ":class:`int` The isotopologue index")
@@ -167,8 +169,9 @@ symbol : str
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
   auto a1 =
-      py::bind_vector<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier");
+      py::bind_vector<ArrayOfQuantumIdentifier, py::rv_policy::reference_internal>(m, "ArrayOfQuantumIdentifier");
   workspace_group_interface(a1);
+  vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));

@@ -50,7 +50,7 @@ void py_disort(py::module_& m) try {
            });
   py::implicitly_convertible<bdrf_func, disort::BDRF>();
 
-  py::bind_vector<std::vector<disort::BDRF>>(disort_nm, "ArrayOfBDRF");
+  py::bind_vector<std::vector<disort::BDRF>, py::rv_policy::reference_internal>(disort_nm, "ArrayOfBDRF");
 
   py::class_<disort::main_data> x(m, "cppdisort");
   x.def(

@@ -7,12 +7,13 @@
 
 #include "artstime.h"
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "nanobind/stl/bind_vector.h"
 
 namespace Python {
 void py_time(py::module_& m) try {
-  py::class_<Time>(m, "Time")
-      .def(
+  py::class_<Time>time(m, "Time");workspace_group_interface(time);
+  time    .def(
           "__init__",
           [](Time* t, std::chrono::system_clock::time_point nt) {
             new (t) Time{};
@@ -75,7 +76,7 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  auto a1 = py::bind_vector<ArrayOfTime>(m, "ArrayOfTime")
+  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfTime")
                 .def_prop_ro(
                     "as_datetime",
                     [](const ArrayOfTime& in)
@@ -87,9 +88,11 @@ void py_time(py::module_& m) try {
                     },
                     "A :class:`list` of :class:`datetime.datetime`");
   workspace_group_interface(a1);
+  vector_interface(a1);
 
-  auto a2 = py::bind_vector<ArrayOfArrayOfTime>(m, "ArrayOfArrayOfTime");
+  auto a2 = py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfTime");
   workspace_group_interface(a2);
+  vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize time\n", e.what()));

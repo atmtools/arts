@@ -20,7 +20,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
       "__init__",
       [](mtype* v, const py::list& l) {
         auto np = py::module_::import_("numpy");
-        auto m  = py::type<mtype>()(np.attr("array")(l));
+        auto m  = py::type<mtype>()(np.attr("asarray")(l));
 
         new (v) mtype(py::cast<mtype>(m));
       },
@@ -30,14 +30,11 @@ void matpack_common_interface(py::class_<mtype>& c) {
 
   c.def("__repr__", [](const mtype& v) { return var_string(v); });
 
-  c.def("__iter__",
-        [](py::object& v) { return v.attr("value").attr("__iter__")(); });
-
   c.def_prop_rw(
       "value",
       [](py::object& v) {
         auto np = py::module_::import_("numpy");
-        return np.attr("array")(v, py::arg("copy") = false);
+        return np.attr("asarray")(v, py::arg("copy") = false);
       },
       [](mtype& a, const mtype& b) { a = b; });
 
@@ -80,7 +77,7 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::handle());
-        return np.attr("array")(
+        return np.attr("asarray")(
             x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
       "dtype"_a.none() = py::none(),
@@ -115,7 +112,7 @@ void matpack_constant_interface(
 
         auto np = py::module_::import_("numpy");
         auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::handle());
-        return np.attr("array")(
+        return np.attr("asarray")(
             x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
       "dtype"_a.none() = py::none(),
@@ -153,7 +150,7 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), 1, shape.data(), py::handle());
-        return np.attr("array")(
+        return np.attr("asarray")(
             x, py::arg("dtype") = dtype, py::arg("copy") = copy);
       },
       "dtype"_a.none() = py::none(),
@@ -199,19 +196,19 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& gd, py::object dtype, py::object copy) {
+      [](mtype& gd, py::object dtype_, py::object copy) {
         auto np = py::module_::import_("numpy");
-        return np.attr("array")(
-            gd.data, py::arg("dtype") = dtype, py::arg("copy") = copy);
+        return np.attr("asarray")(
+            gd.data, py::arg("dtype") = dtype_, py::arg("copy") = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
 
   c.def_prop_rw(
       "value",
-      [](py::object& v) {
+      [](mtype& v) {
         auto np = py::module_::import_("numpy");
-        return np.attr("array")(v, py::arg("copy") = false);
+        return np.attr("asarray")(v, py::arg("copy") = false);
       },
       [](mtype& a, const mtype& b) { a = b; });
 

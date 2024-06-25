@@ -1,21 +1,26 @@
-#include <workspace.h>
 #include <arts_options.h>
-#include <iostream>
-#include <set>
 #include <nonstd.h>
+#include <workspace.h>
+
 #include <algorithm>
+#include <iostream>
 #include <ranges>
+#include <set>
 
 #include "pydocs.h"
 
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
-  os << "  py::class_<" << wso.name << "> _g"<< wso.name <<"(m, \"" << wso.name << "\");\n  _g"<< wso.name;
+  os << "  py::class_<" << wso.name << "> _g" << wso.name << "(m, \""
+     << wso.name << "\");\n";
 
-  os << ".def(py::init<>())\n";
+  os << "  xml_interface(_g" << wso.name << ");\n";
 
-  os << "      .def(py::init<"<< wso.name <<">())\n";
+  os << "  _g" << wso.name << ".def(py::init<>())\n";
 
-  os << "      .def(\"__init__\", []("<< wso.name <<"*y, const std::string& x) {new (y) "<< wso.name <<"{to<" << wso.name
+  os << "      .def(py::init<" << wso.name << ">())\n";
+
+  os << "      .def(\"__init__\", [](" << wso.name
+     << "*y, const std::string& x) {new (y) " << wso.name << "{to<" << wso.name
      << ">(x)};}, \"String constructor\")\n";
 
   os << "      .def(\"__hash__\", [](const " << wso.name
@@ -50,9 +55,11 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
      << "& t) {\n"
         "          return std::tuple<std::string>{String{toString(t)}};\n"
         "      })\n"
-        "      .def(\"__setstate__\",\n        [](" << wso.name << "* e, const std::tuple<std::string>& state) {\n"
-        "           new (e) "<< wso.name << "{to<"
+        "      .def(\"__setstate__\",\n        []("
      << wso.name
+     << "* e, const std::tuple<std::string>& state) {\n"
+        "           new (e) "
+     << wso.name << "{to<" << wso.name
      << ">(std::get<0>(state))};\n"
         "      })\n";
 
@@ -99,21 +106,26 @@ void enum_options(const std::string& fname) {
   const auto& wsos = internal_options();
 
   auto cc = std::ofstream(fname + ".cpp");
+  auto hh = std::ofstream(fname + ".h");
 
   cc << R"-x-(#include "python_interface.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
 
-#include <enums.h>
+#include <hpy_arts.h>
 
-)-x-";
+#include")-x-"
+     << fname << ".h\"\n\n";
 
+  hh << "#pragma once\n\n"
+        "#include <enums.h>\n"
+        "#include <nanobind/nanobind.h>\n\n";
   for (auto& wso : wsos) {
-    cc << "NB_MAKE_OPAQUE(" << wso.name << ");\n";
+    hh << "NB_MAKE_OPAQUE(" << wso.name << ");\n";
   }
 
-cc << R"-x-(
+  cc << R"-x-(
 
 namespace Python {
 void py_auto_options(py::module_& m) try {
@@ -130,6 +142,4 @@ void py_auto_options(py::module_& m) try {
 )-x-";
 }
 
-int main() {
-  enum_options("py_auto_options");
-}
+int main() { enum_options("py_auto_options"); }

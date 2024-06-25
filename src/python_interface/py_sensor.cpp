@@ -6,6 +6,7 @@
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
+#include "hpy_vector.h"
 #include "sorted_grid.h"
 
 namespace Python {
@@ -22,7 +23,7 @@ void py_sensor(py::module_& m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
                     &x, 1, shape.data(), py::handle());
-            return np.attr("array")(
+            return np.attr("asarray")(
                 w, py::arg("dtype") = dtype, py::arg("copy") = copy);
           },
           "dtype"_a.none() = py::none(),
@@ -31,7 +32,7 @@ void py_sensor(py::module_& m) try {
           "value",
           [](py::object& v) {
             auto np = py::module_::import_("numpy");
-            return np.attr("array")(v, py::arg("copy") = false);
+            return np.attr("asarray")(v, py::arg("copy") = false);
           },
           [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
@@ -50,7 +51,7 @@ void py_sensor(py::module_& m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
                     x.data_handle(), 2, shape.data(), py::handle());
-            return np.attr("array")(
+            return np.attr("asarray")(
                 w, py::arg("dtype") = dtype, py::arg("copy") = copy);
           },
           "dtype"_a.none() = py::none(),
@@ -59,7 +60,7 @@ void py_sensor(py::module_& m) try {
           "value",
           [](SensorPosLosVector& x) {
             py::object np = py::module_::import_("numpy");
-            return np.attr("array")(x, py::arg("copy") = false);
+            return np.attr("asarray")(x, py::arg("copy") = false);
           },
           [](SensorPosLosVector& x, Matrix& y) {
             if (y.ncols() != 5) {
@@ -159,8 +160,9 @@ filter : list of int, optional
            py::arg("relative") = true,
            "Cuts out parts of the frequency grid with low weights");
 
-  auto a1 = py::bind_vector<ArrayOfSensorObsel>(m, "ArrayOfSensorObsel");
+  auto a1 = py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(m, "ArrayOfSensorObsel");
   workspace_group_interface(a1);
+  vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize sensors\n", e.what()));

@@ -7,8 +7,9 @@
 
 namespace Python {
 void py_xsec(py::module_& m) try {
-  py::class_<XsecRecord>(m, "XsecRecord")
-      .def_ro_static(
+  py::class_<XsecRecord> xsec(m, "XsecRecord");
+  workspace_group_interface(xsec);
+  xsec.def_ro_static(
           "version", &XsecRecord::mversion, ":class:`int` The version")
       .def_rw("species",
               &XsecRecord::mspecies,
@@ -274,8 +275,9 @@ void py_xsec(py::module_& m) try {
                    });
       });
 
-  auto a1 = py::bind_vector<ArrayOfXsecRecord>(m, "ArrayOfXsecRecord");
+  auto a1 = py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(m, "ArrayOfXsecRecord");
   workspace_group_interface(a1);
+  vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));

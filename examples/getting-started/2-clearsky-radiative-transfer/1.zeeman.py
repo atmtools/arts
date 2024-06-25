@@ -45,7 +45,7 @@ ws.spectral_radianceApplyUnitFromSpectralRadiance()
 
 # %% Show results
 
-plt.plot((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
+plt.plot((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance+0)
 plt.xlabel("Frequency offset [MHz]")
 plt.ylabel("Spectral radiance [K]")
 plt.title(f"Zeeman effect of {round(line_f0/1e6)} MHz O$_2$ line")

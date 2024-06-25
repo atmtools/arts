@@ -2,11 +2,13 @@
 #include <python_interface.h>
 
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 
 namespace Python {
 void py_telsem(py::module_& m) try {
-  py::class_<TelsemAtlas>(m, "TelsemAtlas")
-      .def("__getstate__",
+  py::class_<TelsemAtlas> tels(m, "TelsemAtlas");
+  workspace_group_interface(tels);
+  tels.def("__getstate__",
            [](TelsemAtlas& self) {
              return py::make_tuple(self.DataCount(),
                                    self.ChannelCount(),
@@ -43,8 +45,9 @@ void py_telsem(py::module_& m) try {
         self->Correspondance() = py::cast<ArrayOfIndex>(t[13]);
       });
 
-  auto a1 = py::bind_vector<ArrayOfTelsemAtlas>(m, "ArrayOfTelsemAtlas");
+  auto a1 = py::bind_vector<ArrayOfTelsemAtlas, py::rv_policy::reference_internal>(m, "ArrayOfTelsemAtlas");
   workspace_group_interface(a1);
+  vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));

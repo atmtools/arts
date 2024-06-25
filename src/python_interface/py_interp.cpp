@@ -43,7 +43,7 @@ Array<Numeric>>& state) {
             l->dlx = std::get<2>(state);
           }).doc() = "Polynomial interpolation object";
 
-  py::bind_vector<ArrayOfLagrangeInterpolation>(interp, "ArrayOfLagrangeInterpolation")
+  py::bind_vector<ArrayOfLagrangeInterpolation, py::rv_policy::reference_internal>(interp, "ArrayOfLagrangeInterpolation")
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
 
   py::class_<LagrangeCyclic0to360Interpolation>(interp, "CyclicGrid0to360")

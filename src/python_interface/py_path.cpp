@@ -3,12 +3,14 @@
 #include <python_interface.h>
 
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_path(py::module_& m) try {
-  py::class_<PropagationPathPoint>(m, "PropagationPathPoint")
-      .def_rw(
+  py::class_<PropagationPathPoint> pppp(m, "PropagationPathPoint");
+  workspace_group_interface(pppp);
+  pppp.def_rw(
           "pos_type",
           &PropagationPathPoint::pos_type,
           ":class:`~pyarts.arts.options.PathPositionType` Path position type")
@@ -29,15 +31,18 @@ void py_path(py::module_& m) try {
               &PropagationPathPoint::ngroup,
               ":class:`float` Path group refractive index");
 
-  auto a1 = py::bind_vector<ArrayOfPropagationPathPoint>(
+  auto a1 = py::bind_vector<ArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
       m, "ArrayOfPropagationPathPoint");
   workspace_group_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint>(
+  vector_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropagationPathPoint");
   workspace_group_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint>(
+  vector_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfArrayOfPropagationPathPoint");
   workspace_group_interface(a3);
+  vector_interface(a3);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));

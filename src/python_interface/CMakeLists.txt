@@ -49,7 +49,7 @@ add_custom_command(
     COMMAND gen_auto_py_methods ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py_methods
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating automatic python interface"
+    COMMENT "Generating python workspace methods"
 )
 
 add_executable(gen_auto_py_options gen_auto_py_options.cpp gen_auto_py_helpers.cpp pydocs.cpp)
@@ -57,11 +57,11 @@ target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
-    OUTPUT py_auto_options.cpp
+    OUTPUT  py_auto_options.cpp py_auto_options.h
     COMMAND gen_auto_py_options
     DEPENDS gen_auto_py_options
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating automatic python interface"
+    COMMENT "Generating python options"
 )
 
 add_executable(gen_auto_py_groups gen_auto_py_groups.cpp gen_auto_py_helpers.cpp pydocs.cpp)
@@ -73,7 +73,7 @@ add_custom_command(
     COMMAND gen_auto_py_groups
     DEPENDS gen_auto_py_groups
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating automatic python interface"
+    COMMENT "Generating python workspace groups"
 )
 
 add_executable(gen_auto_py_variables gen_auto_py_variables.cpp gen_auto_py_helpers.cpp pydocs.cpp)
@@ -85,7 +85,7 @@ add_custom_command(
     COMMAND gen_auto_py_variables ${NUM_PYARTS_WSV}
     DEPENDS gen_auto_py_variables
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating automatic python interface"
+    COMMENT "Generating python workspace variables"
 )
 
 # #######################################################################################

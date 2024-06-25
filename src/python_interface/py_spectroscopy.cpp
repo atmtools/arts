@@ -15,18 +15,13 @@
 #include "cia.h"
 #include "debug.h"
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "isotopologues.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
 
-NB_MAKE_OPAQUE(AbsorptionCutoffTypeOld)
-NB_MAKE_OPAQUE(AbsorptionMirroringTypeOld)
-NB_MAKE_OPAQUE(AbsorptionNormalizationTypeOld)
-NB_MAKE_OPAQUE(AbsorptionPopulationTypeOld)
-NB_MAKE_OPAQUE(LineShapeTemperatureModelOld)
-NB_MAKE_OPAQUE(LineShapeTypeOld)
 NB_MAKE_OPAQUE(Zeeman::Polarization)
 
 namespace Python {
@@ -516,7 +511,7 @@ void py_spectroscopy(py::module_& m) try {
            })
       .doc() = "Single absorption line";
 
-  py::bind_vector<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
+  py::bind_vector<Array<AbsorptionSingleLine>, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
   py::class_<AbsorptionLines> al(m, "AbsorptionLines");
@@ -761,7 +756,7 @@ X : ~pyarts.arts.LineShapeOutput
            });
 
   auto a1 =
-      py::bind_vector<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
+      py::bind_vector<ArrayOfAbsorptionLines, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLines")
           .def(
               "fuzzy_find_all",
               [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
@@ -770,10 +765,12 @@ X : ~pyarts.arts.LineShapeOutput
               py::arg("q"),
               "Find all the indexes that could match the given quantum identifier");
   workspace_group_interface(a1);
+  vector_interface(a1);
 
-  auto a2 = py::bind_vector<ArrayOfArrayOfAbsorptionLines>(
+  auto a2 = py::bind_vector<ArrayOfArrayOfAbsorptionLines, py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfAbsorptionLines");
   workspace_group_interface(a2);
+  vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));

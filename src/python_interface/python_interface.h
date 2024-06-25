@@ -4,23 +4,7 @@
 #include <nanobind/nanobind.h>
 #include <py_auto_wsg.h>
 #include <workspace.h>
-
-#include <algorithm>
-#include <filesystem>
-#include <iomanip>
-#include <ios>
-#include <istream>
-#include <iterator>
-#include <memory>
-#include <optional>
-#include <ostream>
-#include <stdexcept>
-#include <streambuf>
-#include <type_traits>
-#include <variant>
-
-#include "auto_wsg.h"
-#include "enums.h"
+#include <py_auto_options.h>
 
 using ssize_t = Py_ssize_t;
 
@@ -121,5 +105,13 @@ const T& select_gin(const ValueHolder<T>* const x, const T& defval) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 }  // namespace Python
+
+template<typename T>
+struct std::hash<Python::ValueHolder<T>> {
+  std::size_t operator()(const Python::ValueHolder<T>& x) const {
+    return std::hash<T>{}(x->val);
+  }
+};
+
 
 #endif  // python_interface_h

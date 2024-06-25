@@ -10,9 +10,6 @@
 #include <surf.h>
 
 #include "hpy_arts.h"
-
-NB_MAKE_OPAQUE(InterpolationExtrapolation);
-
 namespace Python {
 void py_surf(py::module_ &m) try {
   py::class_<Surf::Data>(m, "SurfData")

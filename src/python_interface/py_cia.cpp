@@ -19,8 +19,9 @@
 
 namespace Python {
 void py_cia(py::module_& m) try {
-  py::class_<CIARecord>(m, "CIARecord")
-      .def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
+  py::class_<CIARecord> cia(m, "CIARecord");
+  workspace_group_interface(cia);
+  cia.def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
       .def_prop_ro(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
@@ -31,7 +32,7 @@ void py_cia(py::module_& m) try {
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Data by bands")
       .def(
           "compute_abs",
-          [](CIARecord& cia,
+          [](CIARecord& cia_,
              Numeric T,
              Numeric P,
              Numeric X0,
@@ -41,7 +42,7 @@ void py_cia(py::module_& m) try {
              Index robust) {
             Vector out(f.nelem(), 0);
 
-            for (auto& cia_data : cia.Data()) {
+            for (auto& cia_data : cia_.Data()) {
               Vector result(f.nelem(), 0);
               cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust);
               out += result;
@@ -96,8 +97,9 @@ Returns
             c->TwoSpecies() = std::get<1>(state);
           });
 
-  auto acr = py::bind_vector<ArrayOfCIARecord>(m, "ArrayOfCIARecord");
+  auto acr = py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(m, "ArrayOfCIARecord");
   workspace_group_interface(acr);
+  vector_interface(acr);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));

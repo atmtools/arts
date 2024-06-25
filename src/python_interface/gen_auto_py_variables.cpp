@@ -84,7 +84,6 @@ void variables(const int nfiles) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>
 
 #include <nanobind/stl/shared_ptr.h>
-NB_MAKE_OPAQUE(SpeciesEnum);
 
 namespace Python {
 void py_auto_wsv_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";

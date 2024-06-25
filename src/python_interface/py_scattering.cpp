@@ -1,8 +1,9 @@
 #include <nanobind/stl/bind_vector.h>
+#include <optproperties.h>
 #include <python_interface.h>
 
 #include "hpy_arts.h"
-#include "optproperties.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -23,8 +24,9 @@ void py_scattering(py::module_& m) try {
         new (self) PType{py::cast<Index>(t[0])};
       });
 
-  py::class_<SingleScatteringData>(m, "SingleScatteringData")
-      .def_rw("ptype",
+  py::class_<SingleScatteringData> ssdb(m, "SingleScatteringData");
+  workspace_group_interface(ssdb);
+  ssdb.def_rw("ptype",
               &SingleScatteringData::ptype,
               ":class:`~pyarts.arts.PType` The type")
       .def_rw("description",
@@ -77,8 +79,9 @@ void py_scattering(py::module_& m) try {
                                         py::cast<Tensor5>(t[8])};
       });
 
-  py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
-      .def_rw("description",
+  py::class_<ScatteringMetaData> smdb(m, "ScatteringMetaData");
+  workspace_group_interface(smdb);
+  smdb.def_rw("description",
               &ScatteringMetaData::description,
               ":class:`~pyarts.arts.String` The description")
       .def_rw("source",
@@ -119,18 +122,22 @@ void py_scattering(py::module_& m) try {
                                       py::cast<Numeric>(t[6])};
       });
 
-  auto a1 = py::bind_vector<ArrayOfScatteringMetaData>(
+  auto a1 = py::bind_vector<ArrayOfScatteringMetaData, py::rv_policy::reference_internal>(
       m, "ArrayOfScatteringMetaData");
   workspace_group_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData>(
+  vector_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData, py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfScatteringMetaData");
   workspace_group_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfSingleScatteringData>(
+  vector_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfSingleScatteringData, py::rv_policy::reference_internal>(
       m, "ArrayOfSingleScatteringData");
   workspace_group_interface(a3);
-  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData>(
+  vector_interface(a3);
+  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData, py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfSingleScatteringData");
   workspace_group_interface(a4);
+  vector_interface(a4);
 
 } catch (std::exception& e) {
   throw std::runtime_error(

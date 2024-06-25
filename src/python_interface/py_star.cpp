@@ -2,13 +2,15 @@
 #include <python_interface.h>
 
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "mystring.h"
 #include "sun.h"
 
 namespace Python {
 void py_star(py::module_& m) try {
-  py::class_<Sun>(m, "Sun")
-      .def_rw("description",
+  py::class_<Sun> suns(m, "Sun");
+  workspace_group_interface(suns);
+  suns.def_rw("description",
               &Sun::description,
               ":class:`~pyarts.arts.String` Sun description")
       .def_rw(
@@ -43,8 +45,9 @@ void py_star(py::module_& m) try {
                             std::get<5>(state)};
            });
 
-  auto a1 = py::bind_vector<ArrayOfSun>(m, "ArrayOfSun");
+  auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(m, "ArrayOfSun");
   workspace_group_interface(a1);
+  vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize star\n", e.what()));

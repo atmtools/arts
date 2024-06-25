@@ -30,7 +30,7 @@ void py_lbl(py::module_& m) try {
 
   using pair_vector_type =
       std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
-  py::bind_vector<pair_vector_type>(m, "LineShapeVariableTemperatureModelList")
+  py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(m, "LineShapeVariableTemperatureModelList")
       .def("get",
            [](const pair_vector_type& self,
               LineShapeModelVariable x) -> lbl::temperature::data {
@@ -155,7 +155,7 @@ void py_lbl(py::module_& m) try {
       .def("s", &lbl::line::s, "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
-  py::bind_vector<std::vector<lbl::line>>(m, "LineList")
+  py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(m, "LineList")
       .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
 
   py::class_<lbl::band_data>(m, "AbsorptionBandData")
@@ -167,16 +167,19 @@ void py_lbl(py::module_& m) try {
               "The cutoff value [Hz]")
       .PythonInterfaceBasicRepresentation(lbl::band_data);
 
-  py::class_<AbsorptionBand>(m, "AbsorptionBand")
-      .def_rw("data",
+  py::class_<AbsorptionBand> absd(m, "AbsorptionBand");
+  workspace_group_interface(absd);
+  absd.def_rw("data",
               &AbsorptionBand::data,
               ":class:`~pyarts.arts.AbsorptionBandData`")
       .def_rw("key",
               &AbsorptionBand::key,
               ":class:`~pyarts.arts.QuantumIdentifier`");
 
-  py::bind_vector<ArrayOfAbsorptionBand>(m, "ArrayOfAbsorptionBand")
-      .def(
+  auto aoab =
+      py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionBand");
+  workspace_group_interface(aoab);
+  aoab.def(
           "__getitem__",
           [](ArrayOfAbsorptionBand& x,
              const QuantumIdentifier& key) -> std::shared_ptr<lbl::band_data> {

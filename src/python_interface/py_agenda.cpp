@@ -1,16 +1,17 @@
 #include <parameters.h>
+#include <workspace.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
-#include <type_traits>
 #include <unordered_map>
 
-#include <workspace.h>
 #include "debug.h"
+#include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
 #include "python_interface.h"
-#include "workspace_agenda_class.h"
 
 extern Parameters parameters;
 
@@ -46,29 +47,30 @@ std::filesystem::path correct_include_path(
 }
 
 void py_agenda(py::module_& m) try {
-  py::class_<CallbackOperator>(m, "CallbackOperator")
-      .def(
-          "__init__",
-          [](CallbackOperator* cb,
-             const std::function<void(const std::shared_ptr<Workspace>&)>& f,
-             const std::vector<std::string>& i,
-             const std::vector<std::string>& o) {
-            new (cb) CallbackOperator(f, i, o);
-          },
-          py::arg("f"),
-          py::arg("inputs")  = std::vector<std::string>{},
-          py::arg("outputs") = std::vector<std::string>{},
-          "Initialize as structured call")
+  py::class_<CallbackOperator> cbd(m, "CallbackOperator");
+  workspace_group_interface(cbd);
+  cbd.def(
+         "__init__",
+         [](CallbackOperator* cb,
+            const std::function<void(const std::shared_ptr<Workspace>&)>& f,
+            const std::vector<std::string>& i,
+            const std::vector<std::string>& o) {
+           new (cb) CallbackOperator(f, i, o);
+         },
+         py::arg("f"),
+         py::arg("inputs")  = std::vector<std::string>{},
+         py::arg("outputs") = std::vector<std::string>{},
+         "Initialize as structured call")
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
   py::class_<Method>(m, "Method")
       .def(
           "__init__",
-          [](Method* m,
+          [](Method* me,
              const std::string& n,
              const std::vector<std::string>& a,
              const std::unordered_map<std::string, std::string>& kw) {
-            new (m) Method{n, a, kw};
+            new (me) Method{n, a, kw};
           },
           py::arg("name"),
           py::arg("args"),
@@ -76,8 +78,9 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* m, const std::string& n, const WsvValue& v) {
-            new (m) Method{n, std::visit([](auto a){ return Wsv(std::move(a));}, v)};
+          [](Method* me, const std::string& n, const WsvValue& v) {
+            new (me) Method{
+                n, std::visit([](auto a) { return Wsv(std::move(a)); }, v)};
           },
           py::arg("name"),
           py::arg("wsv"),
@@ -97,8 +100,9 @@ void py_agenda(py::module_& m) try {
       .def("__str__", [](const Method& method) { return var_string(method); })
       .doc() = "The method class of ARTS";
 
-  py::class_<Agenda>(m, "Agenda")
-      .def(py::init<std::string>(), py::arg("name"), "Create with name")
+  py::class_<Agenda> ag(m, "Agenda");
+  workspace_group_interface(ag);
+  ag.def(py::init<std::string>(), py::arg("name"), "Create with name")
       .def("add",
            &Agenda::add,
            py::arg("method").none(false),
@@ -131,27 +135,28 @@ so Copy(a, out=b) will not even see the b variable.
           [](const Agenda& agenda) { return agenda.get_methods(); },
           "The methods of the agenda");
 
-  py::bind_vector<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(
-          "__init__",
-          [](ArrayOfAgenda* a, std::vector<Agenda> va) {
-            for (auto& ag : va) {
-              ARTS_USER_ERROR_IF(
-                  ag.get_name() not_eq va.front().get_name(),
-                  "An ArrayOfAgenda must only consist of agendas with the same name\n"
-                  "You have input a list of agendas that contains disimilar names.\n"
-                  "\nThe first item is named: \"",
-                  va.front().get_name(),
-                  '"',
-                  '\n',
-                  "A later item in the list is names: \"",
-                  ag.get_name(),
-                  '"',
-                  '\n')
-            }
-            new (a) ArrayOfAgenda(std::move(va));
-          },
-          "Create from :class:`list`")
+  auto aag = py::bind_vector<ArrayOfAgenda, py::rv_policy::reference_internal>(m, "ArrayOfAgenda");
+  workspace_group_interface(aag);
+  aag.def(
+         "__init__",
+         [](ArrayOfAgenda* a, std::vector<Agenda> va) {
+           for (auto& ag_ : va) {
+             ARTS_USER_ERROR_IF(
+                 ag_.get_name() not_eq va.front().get_name(),
+                 "An ArrayOfAgenda must only consist of agendas with the same name\n"
+                 "You have input a list of agendas that contains disimilar names.\n"
+                 "\nThe first item is named: \"",
+                 va.front().get_name(),
+                 '"',
+                 '\n',
+                 "A later item in the list is names: \"",
+                 ag_.get_name(),
+                 '"',
+                 '\n')
+           }
+           new (a) ArrayOfAgenda(std::move(va));
+         },
+         "Create from :class:`list`")
       .def(
           "finalize",
           [](ArrayOfAgenda& aa) {

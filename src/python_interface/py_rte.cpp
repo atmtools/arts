@@ -1,11 +1,13 @@
+#include <debug.h>
 #include <python_interface.h>
 
-#include "debug.h"
+#include "hpy_arts.h"
 
 namespace Python {
 void py_rte(py::module_& m) try {
-  py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def_rw("species",
+  py::class_<GasAbsLookup> galu(m, "GasAbsLookup");
+  workspace_group_interface(galu);
+  galu.def_rw("species",
               &GasAbsLookup::species,
               ":class:`~pyarts.arts.ArrayOfArrayOfSpeciesTag` Active species")
       .def_rw("non_linear_species",

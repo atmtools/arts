@@ -16,7 +16,6 @@
 #include "physics_funcs.h"
 
 namespace Python {
-
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data>(m, "AtmData")
       .def(py::init<Atm::Data>())
@@ -317,7 +316,7 @@ void py_atm(py::module_ &m) try {
           return out;
         });
 
-  auto aap = py::bind_vector<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint");
+  auto aap = py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(m, "ArrayOfAtmPoint");
   workspace_group_interface(aap);
 } catch (std::exception &e) {
   throw std::runtime_error(

@@ -1,6 +1,7 @@
+#include <mc_antenna.h>
 #include <python_interface.h>
 
-#include "mc_antenna.h"
+#include "hpy_arts.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -26,8 +27,9 @@ void py_mcantenna(py::module_& m) try {
            })
       .doc() = "An antenna type";
 
-  py::class_<MCAntenna>(m, "MCAntenna")
-      .def_rw("atype",
+  py::class_<MCAntenna> mcan(m, "MCAntenna");
+  workspace_group_interface(mcan);
+  mcan.def_rw("atype",
               &MCAntenna::atype,
               ":class:`~pyarts.arts.AntennaType` The antenna type")
       .def_rw("sigma_aa",
@@ -55,17 +57,17 @@ void py_mcantenna(py::module_& m) try {
                                     self.G_lookup);
            })
       .def("__setstate__",
-           [](MCAntenna* m,
+           [](MCAntenna* ma,
               const std::
                   tuple<AntennaType, Numeric, Numeric, Vector, Vector, Matrix>&
                       state) {
-             new (m) MCAntenna{};
-             m->atype    = std::get<0>(state);
-             m->sigma_aa = std::get<1>(state);
-             m->sigma_za = std::get<2>(state);
-             m->aa_grid  = std::get<3>(state);
-             m->za_grid  = std::get<4>(state);
-             m->G_lookup = std::get<5>(state);
+             new (ma) MCAntenna{};
+             ma->atype    = std::get<0>(state);
+             ma->sigma_aa = std::get<1>(state);
+             ma->sigma_za = std::get<2>(state);
+             ma->aa_grid  = std::get<3>(state);
+             ma->za_grid  = std::get<4>(state);
+             ma->G_lookup = std::get<5>(state);
            });
 } catch (std::exception& e) {
   throw std::runtime_error(

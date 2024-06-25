@@ -1,25 +1,24 @@
+#include <arts_omp.h>
+#include <debug.h>
 #include <fwd.h>
 #include <python_interface.h>
 
-#include "arts_omp.h"
-#include "debug.h"
-#include "fwd_spectral_radiance.h"
-#include "py_macros.h"
-#include "rtepack.h"
+#include "hpy_arts.h"
 
 namespace Python {
 void py_fwd(py::module_& m) try {
   auto fwd = m.def_submodule("fwd");
 
-  py::class_<SpectralRadianceOperator>(m, "SpectralRadianceOperator")
-      .def("geometric_planar",
-           [](const SpectralRadianceOperator& srad_op,
-              const Numeric frequency,
-              const Vector3 pos,
-              const Vector2 los) {
-             const auto path = srad_op.geometric_planar(pos, los);
-             return srad_op(frequency, path);
-           })
+  py::class_<SpectralRadianceOperator> sro(m, "SpectralRadianceOperator");
+  workspace_group_interface(sro);
+  sro.def("geometric_planar",
+          [](const SpectralRadianceOperator& srad_op,
+             const Numeric frequency,
+             const Vector3 pos,
+             const Vector2 los) {
+            const auto path = srad_op.geometric_planar(pos, los);
+            return srad_op(frequency, path);
+          })
       .def("geometric_planar",
            [](const SpectralRadianceOperator& srad_op,
               const Vector& frequency,

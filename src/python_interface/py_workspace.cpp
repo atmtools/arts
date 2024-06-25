@@ -3,7 +3,7 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
-#include <python_interface.h>
+#include "python_interface.h"
 
 #include <algorithm>
 #include <memory>
@@ -11,13 +11,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <filesystem>
 
-#include "auto_wsg.h"
 #include "python_interface_value_type.h"
-#include "workspace_agenda_class.h"
-#include "workspace_class.h"
-
-NB_MAKE_OPAQUE(SpeciesEnum);
+#include <workspace.h>
 
 extern Parameters parameters;
 namespace Python {

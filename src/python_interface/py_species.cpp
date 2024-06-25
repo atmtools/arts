@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 #include <partfun.h>
 #include <python_interface.h>
 
@@ -11,6 +12,7 @@
 
 #include "debug.h"
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "isotopologues.h"
 #include "py_macros.h"
 #include "species.h"
@@ -59,8 +61,12 @@ void py_species(py::module_& m) try {
              self->data = std::get<0>(state);
            });
 
-  py::bind_vector<ArrayOfSpeciesEnum>(m, "ArrayOfSpeciesEnum")
-      .def("__init__",
+  auto aose =
+      py::bind_vector<ArrayOfSpeciesEnum, py::rv_policy::reference_internal>(
+          m, "ArrayOfSpeciesEnum");
+  workspace_group_interface(aose);
+  vector_interface(aose);
+  aose.def("__init__",
            [](ArrayOfSpeciesEnum* self, const std::vector<std::string>& x) {
              new (self) ArrayOfSpeciesEnum();
              self->reserve(x.size());
@@ -72,8 +78,9 @@ void py_species(py::module_& m) try {
            });
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesEnum>();
 
-  py::class_<SpeciesIsotope>(m, "SpeciesIsotope")
-      .def(
+  py::class_<SpeciesIsotope> siso(m, "SpeciesIsotope");
+  workspace_group_interface(siso);
+  siso.def(
           "__init__",
           [](SpeciesIsotope* self, Index i) {
             new (self) SpeciesIsotope(Species::Isotopologues.at(i));
@@ -130,17 +137,15 @@ void py_species(py::module_& m) try {
            })
       .def(py::init_implicit<std::string>());
 
-  auto a1 = py::bind_vector<ArrayOfSpeciesIsotope>(m, "ArrayOfSpeciesIsotope");
+  auto a1 =
+      py::bind_vector<ArrayOfSpeciesIsotope, py::rv_policy::reference_internal>(
+          m, "ArrayOfSpeciesIsotope");
   workspace_group_interface(a1);
+  vector_interface(a1);
 
-  py::class_<SpeciesTag>(m, "SpeciesTag")
-      .def(
-          "__init__",
-          [](SpeciesTag* self, const std::string& s) {
-            new (self) SpeciesTag(s);
-          },
-          "From :class:`str`")
-      .def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
+  py::class_<SpeciesTag> stag(m, "SpeciesTag");
+  workspace_group_interface(stag);
+  stag.def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_rw("type",
               &SpeciesTag::type,
               ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
@@ -181,65 +186,49 @@ Returns
            })
       .def(py::init_implicit<std::string>());
 
-  py::bind_vector<ArrayOfSpeciesTag>(m, "ArrayOfSpeciesTag")
+  //////////////////////////////////////////////////////////////////////
+  
+  auto tmp1_ =
+      py::bind_vector<Array<SpeciesTag>, py::rv_policy::reference_internal>(
+          m, "_ArrayOfSpeciesTag");
+  vector_interface(tmp1_);
+
+  //////////////////////////////////////////////////////////////////////
+
+  py::class_<ArrayOfSpeciesTag> astag(m, "ArrayOfSpeciesTag");
+  workspace_group_interface(astag);
+  astag.def(py::init_implicit<std::string>())
+      .def(py::init_implicit<Array<SpeciesTag>>())
       .def(
-          "__init__",
-          [](ArrayOfSpeciesTag* self, const std::string& x) {
-            new (self) ArrayOfSpeciesTag(x);
-          },
-          "From :class:`str`")
-      .def("__init__",
-           [](ArrayOfSpeciesTag* self, const std::vector<std::string>& x) {
-             new (self) ArrayOfSpeciesTag(x.size());
-             std::transform(
-                 x.begin(), x.end(), self->begin(), [](const std::string& s) {
-                   return SpeciesTag(s);
-                 });
+          "_inner",
+          [](ArrayOfSpeciesTag& s) -> Array<SpeciesTag>& { return s; },
+          py::rv_policy::reference_internal)
+      .def("__len__",
+           [](py::object& s) { return s.attr("_inner")().attr("__len__")(); })
+      .def("__getitem__",
+           [](py::object& s, py::object i) {
+             return s.attr("_inner")().attr("__getitem__")(i);
            })
-      // .def(py::init([](const std::vector<std::string>& x) {
-      //   auto out = std::make_shared<ArrayOfSpeciesTag>(x.size());
-      //   std::transform(
-      //       x.begin(), x.end(), out->begin(), [](const std::string& s) {
-      //         return SpeciesTag(s);
-      //       });
-      //   return out;
-      // }))
-      // .PythonInterfaceFileIO(ArrayOfSpeciesTag)
-      .PythonInterfaceCopyValue(ArrayOfSpeciesTag)
-      .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
-      .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
+      .def("__setitem__",
+           [](py::object& s, py::object i, py::object v) {
+             s.attr("_inner")().attr("__setitem__")(i, v);
+           })
+      .def("append",
+           [](py::object& s, py::object v) {
+             s.attr("_inner")().attr("append")(v);
+           })
+      .def(
+          "pop",
+          [](py::object& s, py::object i) {
+            return s.attr("_inner")().attr("pop")(i);
+          },
+          "i"_a = -1)
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def("__hash__",
            [](const ArrayOfSpeciesTag& x) {
              return std::hash<ArrayOfSpeciesTag>{}(x);
            })
-      .def(
-          "__init__",
-          [](ArrayOfSpeciesTag* self) { new (self) ArrayOfSpeciesTag(); },
-          "Empty list")
-      .def("__init__",
-           [](ArrayOfSpeciesTag* self, Index a, const SpeciesTag& b) {
-             new (self) ArrayOfSpeciesTag(a, b);
-           })
-      .def(
-          "__init__",
-          [](ArrayOfSpeciesTag* self, const std::vector<SpeciesTag>& v) {
-            new (self) ArrayOfSpeciesTag(v);
-          },
-          "From :class:`list`")
-      .def(
-          "append",
-          [](ArrayOfSpeciesTag& x, SpeciesTag y) { x.emplace_back(y); },
-          "Appends a SpeciesTag at the end of the Array")
-      .def(
-          "pop",
-          [](ArrayOfSpeciesTag& x) {
-            SpeciesTag y = x.back();
-            x.pop_back();
-            return y;
-          },
-          "Pops a SpeciesTag from the end of the Array")
       .def(
           "__getstate",
           [](const ArrayOfSpeciesTag& x) {
@@ -250,17 +239,53 @@ Returns
               const std::tuple<std::vector<SpeciesTag>>& v) {
              new (x) ArrayOfSpeciesTag(std::get<0>(v));
            })
-      .def("__init__",
-           [](ArrayOfSpeciesTag* self, const std::vector<SpeciesTag>& x) {
-             new (self) ArrayOfSpeciesTag(x);
-           })
-      .def(py::init_implicit<std::string>())
-      .def(py::init_implicit<Array<SpeciesTag>>())
-      .doc() = "List of :class:`~pyarts.arts.SpeciesTag`";
+      .def("__init__", [](ArrayOfSpeciesTag* s, py::list l) {
+        py::print("OI");
+        auto x = py::cast<Array<SpeciesTag>>(l);
+        new (s) ArrayOfSpeciesTag();
+        for (auto& e : x) {
+          s->push_back(e);
+        }
+      });
+  py::implicitly_convertible<py::list, ArrayOfSpeciesTag>();
 
-  auto b1 =
-      py::bind_vector<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag");
+  //////////////////////////////////////////////////////////////////////
+
+  auto tmp2_ = py::bind_vector<Array<Array<SpeciesTag>>,
+                               py::rv_policy::reference_internal>(
+      m, "_ArrayOfArrayOfSpeciesTag");
+  vector_interface(tmp2_);
+
+  //////////////////////////////////////////////////////////////////////
+
+  auto b1 = py::bind_vector<ArrayOfArrayOfSpeciesTag,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfSpeciesTag");
   workspace_group_interface(b1);
+  vector_interface(b1);
+  b1.def("__init__",
+         [](ArrayOfArrayOfSpeciesTag* s, const Array<Array<SpeciesTag>>& x) {
+           new (s) ArrayOfArrayOfSpeciesTag(x.size());
+           for (auto& v : x) {
+             s->emplace_back();
+             for (auto& e : v) {
+               s->back().push_back(e);
+             }
+           }
+         });
+  py::implicitly_convertible<Array<Array<SpeciesTag>>,
+                             ArrayOfArrayOfSpeciesTag>();
+  b1.def("__init__", [](ArrayOfArrayOfSpeciesTag* s, py::list l) {
+    auto x = py::cast<Array<Array<SpeciesTag>>>(l);
+    new (s) ArrayOfArrayOfSpeciesTag(x.size());
+    for (auto& v : x) {
+      s->emplace_back();
+      for (auto& e : v) {
+        s->back().push_back(e);
+      }
+    }
+  });
+  py::implicitly_convertible<py::list, ArrayOfArrayOfSpeciesTag>();
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize species\n", e.what()));

@@ -1,9 +1,12 @@
 #include <python_interface.h>
 
+#include "hpy_arts.h"
+
 namespace Python {
 void py_tessem(py::module_& m) try {
-  py::class_<TessemNN>(m, "TessemNN")
-      .def("__repr__", [](TessemNN&) { return "TessemNN"; })
+  py::class_<TessemNN> tess(m, "TessemNN");
+  workspace_group_interface(tess);
+  tess.def("__repr__", [](TessemNN&) { return "TessemNN"; })
       .def_rw("nb_inputs", &TessemNN::nb_inputs, ":class:`int`")
       .def_rw("nb_outputs", &TessemNN::nb_outputs, ":class:`int`")
       .def_rw("nb_cache", &TessemNN::nb_cache, ":class:`int`")

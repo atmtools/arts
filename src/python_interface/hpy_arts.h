@@ -2,6 +2,7 @@
 
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include <nanobind/stl/string.h>
 #include <xml_io.h>
 
 #include <concepts>
@@ -17,11 +18,14 @@ template <typename T, typename U = T>
 void xml_interface(py::class_<T>& c) {
   c.def(
       "savexml",
-      [](const U& x,
+      [](const T& x,
          const char* const file,
          const char* const type,
          bool clobber) {
-        xml_write_to_file(file, x, to<FileType>(type), clobber ? 0 : 1);
+        xml_write_to_file(file,
+                          static_cast<const U&>(x),
+                          to<FileType>(type),
+                          clobber ? 0 : 1);
       },
       "file"_a.none(false),
       "type"_a.none(false) = "ascii",
@@ -42,7 +46,9 @@ void xml_interface(py::class_<T>& c) {
 
   c.def(
       "readxml",
-      [](U& x, const char* const file) { xml_read_from_file(file, x); },
+      [](T& x, const char* const file) {
+        xml_read_from_file(file, static_cast<U&>(x));
+      },
       "file"_a.none(false),
       "Read variable from file\n"
       "\n"
@@ -134,6 +140,9 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
     });
   }
 
+  c.def("__hash__",
+        [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); });
+
   c.def("__getstate__",
         [](const ValueHolder<T>& self) { return std::make_tuple(*self.val); });
   c.def("__setstate__", [](ValueHolder<T>* self, const std::tuple<T>& state) {
@@ -146,8 +155,12 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
       return py::str(String{a}.c_str()).attr("__getitem__")(i);
     });
   }
+}
 
-  c.doc() = var_string(WorkspaceGroupInfo<T>::desc).c_str();
+template <typename T>
+void str_interface(py::class_<T>& c) {
+  c.def("__str__", [](const T& x) { return var_string(x); });
+  c.def("__repr__", [](const T& x) { return var_string(x); });
 }
 
 template <WorkspaceGroup T>
@@ -155,11 +168,10 @@ void workspace_group_interface(py::class_<T>& c) {
   c.def(py::init<>());
   c.def(py::init<T>());
 
-  c.def("__str__", [](const T& x) { return var_string(x); });
-  c.def("__repr__", [](const T& x) { return var_string(x); });
   c.def("__copy__", [](const T& t) -> T { return t; });
   c.def("__deepcopy__", [](const T& t, py::dict&) -> T { return t; });
 
+  str_interface(c);
   xml_interface<T>(c);
 }
 
@@ -171,11 +183,10 @@ void workspace_group_interface(py::class_<ValueHolder<T>>& c) {
   c.def(py::init_implicit<T>());
   c.def(py::init<U>());
 
-  c.def("__str__", [](const U& x) { return var_string(x); });
-  c.def("__repr__", [](const U& x) { return var_string(x); });
   c.def("__copy__", [](const U& t) -> U { return t; });
   c.def("__deepcopy__", [](const U& t, py::dict&) -> U { return t; });
 
+  str_interface(c);
   xml_interface<U, T>(c);
 }
 }  // namespace Python

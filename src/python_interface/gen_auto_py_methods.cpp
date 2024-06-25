@@ -871,10 +871,6 @@ void methods(int nfiles) {
 #include <m_xml.h>
 #include <workspace.h>
 
-#include <nanobind/stl/optional.h>
-
-NB_MAKE_OPAQUE(SpeciesEnum);
-
 namespace Python {
 void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
                             << using_pygroup();
