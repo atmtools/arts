@@ -31,8 +31,8 @@ std::string docs_isotopes() {
 
 namespace Python {
 void py_species(py::module_& m) try {
-  py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
-      .def(
+  py::class_<SpeciesIsotopologueRatios> sirs(m, "SpeciesIsotopologueRatios");
+  sirs.def(
           "__init__",
           [](SpeciesIsotopologueRatios* sir) {
             new (sir) SpeciesIsotopologueRatios(
@@ -40,7 +40,6 @@ void py_species(py::module_& m) try {
           },
           "Builtin values")
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
-      // .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
@@ -187,7 +186,7 @@ Returns
       .def(py::init_implicit<std::string>());
 
   //////////////////////////////////////////////////////////////////////
-  
+
   auto tmp1_ =
       py::bind_vector<Array<SpeciesTag>, py::rv_policy::reference_internal>(
           m, "_ArrayOfSpeciesTag");

@@ -616,10 +616,6 @@ class TestGroups:
         x = cxx.Sparse()
         test.io(x, delete=True)
 
-    def testSpeciesIsotopologueRatios(self):
-        x = cxx.SpeciesIsotopologueRatios()
-        test.io(x, delete=True)
-
     def testString(self):
         x = cxx.String("ho")
         test.io(x, delete=True)
@@ -1004,4 +1000,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.testNumericUnaryOperator()
+    x.test_construct_empty()

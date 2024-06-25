@@ -3,18 +3,19 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
-#include "python_interface.h"
+#include <workspace.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <filesystem>
 
+#include "nanobind/nanobind.h"
+#include "python_interface.h"
 #include "python_interface_value_type.h"
-#include <workspace.h>
 
 extern Parameters parameters;
 namespace Python {
@@ -70,33 +71,6 @@ std::filesystem::path correct_include_path(
 void py_auto_wsv(py::class_<Workspace>& ws);
 void py_auto_wsm(py::class_<Workspace>& ws);
 
-template <WorkspaceGroup T>
-PyWSV from(std::shared_ptr<T> wsv) {
-  if constexpr (WorkspaceGroupInfo<T>::value_type)
-    return ValueHolder<T>(std::move(wsv));
-  else
-    return wsv;
-}
-
-PyWSV from(const std::shared_ptr<Wsv>& wsv) {
-  return std::visit([](auto v) { return from(std::move(v)); }, wsv->value);
-}
-
-template <WorkspaceGroup T>
-Wsv from_py(std::shared_ptr<T> wsv) {
-  return wsv;
-}
-
-template <WorkspaceGroup T>
-Wsv from_py(ValueHolder<T> wsv) {
-  std::shared_ptr<T> copy = wsv.val;
-  return copy;
-}
-
-Wsv from_py(const PyWSV& wsv) {
-  return std::visit([](auto v) { return from_py(std::move(v)); }, wsv);
-}
-
 void py_workspace(py::class_<Workspace>& ws) try {
   ws.def(
         "__init__",
@@ -118,31 +92,34 @@ void py_workspace(py::class_<Workspace>& ws) try {
           py::rv_policy::reference_internal,
           py::keep_alive<0, 1>())
       .def("init", &Workspace::init)
-      .def("set",
-           [](Workspace& w, const std::string& n, const PyWSV& x) {
-             if (w.contains(n)) {
-               *w.share(n) = from_py(x);
-             } else {
-               w.set(n, std::make_shared<Wsv>(from_py(x)));
-             }
+      .def(
+          "set",
+          [](Workspace& w, const std::string& n, const PyWSV& x) {
+            if (w.contains(n)) {
+              *w.share(n) = from_py(x);
+            } else {
+              w.set(n, std::make_shared<Wsv>(from_py(x)));
+            }
 
-             auto& ptr = w.share(n);
-             if (ptr->holds<Agenda>()) {
-               auto& ag = ptr->get_unsafe<Agenda>();
-               if (not ag.is_checked()) {
-                 ag.set_name(n);
-                 ag.finalize();
-               }
-             } else if (ptr->holds<ArrayOfAgenda>()) {
-               auto& ags = ptr->get_unsafe<ArrayOfAgenda>();
-               for (auto& ag : ags) {
-                 if (not ag.is_checked()) {
-                   ag.set_name(n);
-                   ag.finalize();
-                 }
-               }
-             }
-           })
+            auto& ptr = w.share(n);
+            if (ptr->holds<Agenda>()) {
+              auto& ag = ptr->get_unsafe<Agenda>();
+              if (not ag.is_checked()) {
+                ag.set_name(n);
+                ag.finalize();
+              }
+            } else if (ptr->holds<ArrayOfAgenda>()) {
+              auto& ags = ptr->get_unsafe<ArrayOfAgenda>();
+              for (auto& ag : ags) {
+                if (not ag.is_checked()) {
+                  ag.set_name(n);
+                  ag.finalize();
+                }
+              }
+            }
+          },
+          "name"_a,
+          "value"_a.noconvert())
       .def("has",
            [](Workspace& w, const std::string& n) { return w.contains(n); })
       .def(

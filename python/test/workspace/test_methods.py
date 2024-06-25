@@ -39,7 +39,7 @@ class TestMethods:
             "N2-SelfContStandardType",
             "O3",
         ]
-
+        
         ws.absorption_speciesSet(ws.absorption_species, species)
         ws.absorption_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
         ws.absorption_speciesSet(ws.absorption_species_2, species)
@@ -96,4 +96,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_predefined_doc()
+    x.test_generic_output()

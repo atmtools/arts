@@ -31,14 +31,14 @@ void py_xsec(py::module_& m) try {
               ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(
           "compute_abs",
-          [](XsecRecord& xsec,
+          [](XsecRecord& self,
              Numeric T,
              Numeric P,
              Numeric VMR,
              const Vector& f) {
             Vector out(f.nelem(), 0);
 
-            xsec.Extract(out, f, P, T);
+            self.Extract(out, f, P, T);
 
             out *= VMR * number_density(P, T);
             return out;

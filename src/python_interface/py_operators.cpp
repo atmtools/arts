@@ -5,6 +5,7 @@
 #include <operators.h>
 
 #include "hpy_arts.h"
+#include "hpy_numpy.h"
 
 namespace Python {
 void py_operators(py::module_& m) {
@@ -12,14 +13,8 @@ void py_operators(py::module_& m) {
   nuop.def(py::init_implicit<NumericUnaryOperator::func_t>())
       .def(
           "__call__",
-          [](NumericUnaryOperator& f, Numeric x) { return f(x); },
-          py::arg("x"))
-      .def(
-          "__call__",
-          [](NumericUnaryOperator& f, py::ndarray<Numeric> x) {
-            auto u = py::ndarray<Numeric>(x);
-            std::transform(x.data(), x.data() + x.size(), u.data(), f);
-            return u;
+          [](NumericUnaryOperator& f, py::object x) {
+            return vectorize(f.f, x);
           },
           py::arg("x"));
   workspace_group_interface(nuop);
@@ -28,8 +23,8 @@ void py_operators(py::module_& m) {
   ntop.def(py::init_implicit<NumericTernaryOperator::func_t>())
       .def(
           "__call__",
-          [](NumericTernaryOperator& f, Numeric x, Numeric y, Numeric z) {
-            return f(x, y, z);
+          [](NumericTernaryOperator& f, py::object x, py::object y, py::object z) {
+            return vectorize(f.f, x, y, z);
           },
           py::arg("x"),
           py::arg("y"),
