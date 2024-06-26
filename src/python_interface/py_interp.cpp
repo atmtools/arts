@@ -6,6 +6,7 @@
 #include "py_macros.h"
 
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/variant.h>
 
 namespace Python {
 using PythonLags =

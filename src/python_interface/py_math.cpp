@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 
 namespace Python {
 namespace py = nanobind;
@@ -190,18 +191,6 @@ w6 : float
       },
       "deg"_a = Index{0},
       R"(Computes the Gauss-Legendre quadrature
-
-Parameters
-----------
-deg : int
-    The degree of the Gauss-Legendre quadrature
-
-Returns
--------
-x : List[float]
-    The abscissas
-w : List[float]
-    The weights
 )");
 
   math.def(
