@@ -1,6 +1,7 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <python_interface.h>
 
 #include "hpy_arts.h"
@@ -16,6 +17,10 @@ void py_basic(py::module_& m) try {
   py::class_<ValueHolder<String>> str(m, "String");
   value_holder_interface(str);
   workspace_group_interface(str);
+  str.def("__init__", [](ValueHolder<String>* s, const py::bytes& b) {
+    new (s) ValueHolder<String>{b.c_str()};
+  });
+  py::implicitly_convertible<py::bytes, ValueHolder<String>>();
 
   py::class_<ValueHolder<Numeric>> num(m, "Numeric");
   value_holder_interface(num);
@@ -25,11 +30,11 @@ void py_basic(py::module_& m) try {
   value_holder_interface(ind);
   workspace_group_interface(ind);
 
-  auto aos = py::bind_vector<ArrayOfString>(m, "ArrayOfString");
-  vector_interface(aos);
+  auto aos = py::class_<ArrayOfString>(m, "ArrayOfString");
+  value_holder_vector_interface(aos);
   workspace_group_interface(aos);
 
-  auto aoi = py::bind_vector<ArrayOfIndex>(m, "ArrayOfIndex");
+  auto aoi = py::class_<ArrayOfIndex>(m, "ArrayOfIndex");
   aoi.def(
          "__array__",
          [](ArrayOfIndex& v, py::object dtype, py::object copy) {
@@ -50,11 +55,11 @@ void py_basic(py::module_& m) try {
             return np.attr("asarray")(v, py::arg("copy") = false);
           },
           [](ArrayOfIndex& a, const ArrayOfIndex& b) { a = b; });
-  vector_interface(aoi);
+  value_holder_vector_interface(aoi);
   common_ndarray(aoi);
   workspace_group_interface(aoi);
 
-  auto aon = py::bind_vector<ArrayOfNumeric>(m, "ArrayOfNumeric");
+  auto aon = py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric");
   aon.def(
          "__array__",
          [](ArrayOfNumeric& v, py::object dtype, py::object copy) {
@@ -76,7 +81,7 @@ void py_basic(py::module_& m) try {
             return np.attr("asarray")(v, py::arg("copy") = false);
           },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; });
-  vector_interface(aon);
+  value_holder_vector_interface(aon);
   common_ndarray(aon);
 
   auto a1 =
