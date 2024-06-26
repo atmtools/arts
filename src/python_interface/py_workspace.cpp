@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -89,9 +90,17 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n) -> PyWSV {
             return from(w.share(n));
           },
-          py::rv_policy::reference_internal,
-          py::keep_alive<0, 1>())
+          py::rv_policy::reference_internal)
       .def("init", &Workspace::init)
+      .def(
+          "init",
+          [](Workspace& w, const std::string& n, const std::string& t) {
+            ARTS_USER_ERROR_IF(
+                w.contains(n), "Workspace variable '", n, "' already exists.");
+            w.set(n, std::make_shared<Wsv>(Wsv::from_named_type(t)));
+          },
+          "name"_a,
+          "typename"_a)
       .def(
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
@@ -99,8 +108,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
                                "Workspace variable '",
                                n,
                                "' does not exist.");
-            w.set(n, std::make_shared<Wsv>(from_py(x)));
-            // std::visit([](auto& v) { std::cout << "ref count: " << v.use_count() << std::endl; }, w.share(n)->value);
+            w.overwrite(n, std::make_shared<Wsv>(from_py(x)));
 
             auto& ptr = w.share(n);
             if (ptr->holds<Agenda>()) {

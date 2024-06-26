@@ -21,7 +21,7 @@ import pyarts.arts as cxx
 from pyarts.workspace.callback import callback_operator
 
 
-_group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
+_group_types = tuple(eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups()))
 _wsvs = cxx.globals.workspace_variables()
 
 
@@ -44,18 +44,17 @@ class Workspace(cxx._Workspace):
 
     def __setattr__(self, attr, value):
         if self.has(attr):
-            typ = type(getattr(self, attr))
-            super().set(attr, typ(value))
+            if isinstance(value, _group_types):
+                super().set(attr, value)
+            else:
+                typ = type(getattr(self, attr))
+                super().set(attr, typ(value))
         else:
             if attr in _wsvs:
                 super().init(attr)
-                setattr(self, attr, value)
-            elif type(value) in _group_types:
-                self.set(attr, value)
             else:
-                raise AttributeError(
-                    f"'Workspace' object has no attribute '{attr}'"
-                )
+                super().init(attr, value.__class__.__name__)
+            setattr(self, attr, value)
 
     def __delattr__(self, attr):
         if attr == "__class__":
