@@ -25,10 +25,55 @@ void py_basic(py::module_& m) try {
   py::class_<ValueHolder<Numeric>> num(m, "Numeric");
   value_holder_interface(num);
   workspace_group_interface(num);
+  num.def(
+         "__array__",
+         [](ValueHolder<Numeric>& n, py::object dtype, py::object copy) {
+           using nd =
+               py::ndarray<py::numpy, Numeric, py::ndim<0>, py::c_contig>;
+           std::array<size_t, 0> shape{};
+
+           auto np = py::module_::import_("numpy");
+           auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
+           return np.attr("asarray")(
+               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+         },
+         "dtype"_a.none() = py::none(),
+         "copy"_a.none()  = py::none())
+      .def_prop_rw(
+          "value",
+          [](py::object& v) {
+            auto np = py::module_::import_("numpy");
+            return np.attr("asarray")(v, py::arg("copy") = false);
+          },
+          [](ValueHolder<Numeric>& a, const ValueHolder<Numeric>& b) {
+            a = b;
+          });
+  common_ndarray(num);
 
   py::class_<ValueHolder<Index>> ind(m, "Index");
   value_holder_interface(ind);
   workspace_group_interface(ind);
+  ind.def(
+         "__array__",
+         [](ValueHolder<Index>& n, py::object dtype, py::object copy) {
+           using nd = py::ndarray<py::numpy, Index, py::ndim<0>, py::c_contig>;
+           std::array<size_t, 0> shape{};
+
+           auto np = py::module_::import_("numpy");
+           auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
+           return np.attr("asarray")(
+               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+         },
+         "dtype"_a.none() = py::none(),
+         "copy"_a.none()  = py::none())
+      .def_prop_rw(
+          "value",
+          [](py::object& v) {
+            auto np = py::module_::import_("numpy");
+            return np.attr("asarray")(v, py::arg("copy") = false);
+          },
+          [](ValueHolder<Index>& a, const ValueHolder<Index>& b) { a = b; });
+  common_ndarray(ind);
 
   auto aos = py::class_<ArrayOfString>(m, "ArrayOfString");
   value_holder_vector_interface(aos);

@@ -26,10 +26,6 @@ void matpack_common_interface(py::class_<mtype>& c) {
       },
       "l"_a);
 
-  c.def("__str__", [](const mtype& v) { return var_string(v); });
-
-  c.def("__repr__", [](const mtype& v) { return var_string(v); });
-
   c.def_prop_rw(
       "value",
       [](py::object& v) {

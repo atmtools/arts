@@ -6,6 +6,8 @@
 #include <nanobind/stl/vector.h>
 #include <workspace.h>
 
+#include <iterator>
+
 #include "python_interface_value_type.h"
 
 NB_MAKE_OPAQUE(
@@ -40,62 +42,63 @@ template <typename Value>
 void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
   using namespace nanobind;
   using ValueRef = Value &;
-  using Vector   = Array<Value>;
 
   cl.def(init<>(), "Default constructor")
 
-      .def("__len__", [](const Vector &v) { return v.size(); })
+      .def("__len__", [](const Array<Value> &v) { return v.size(); })
 
       .def(
           "__bool__",
-          [](const Vector &v) { return !v.empty(); },
+          [](const Array<Value> &v) { return !v.empty(); },
           "Check whether the vector is nonempty")
 
       .def("__repr__",
-           [](handle_t<Vector> h) {
+           [](handle_t<Array<Value>> h) {
              return steal<str>(detail::repr_list(h.ptr()));
            })
 
       .def(
           "__iter__",
-          [](Vector &v) {
+          [](Array<Value> &v) {
             return make_iterator(
-                type<Vector>(), "Iterator", v.begin(), v.end());
+                type<Array<Value>>(), "Iterator", v.begin(), v.end());
           },
           keep_alive<0, 1>())
 
       .def(
           "__getitem__",
-          [](Vector &v, Py_ssize_t i) -> ValueRef {
+          [](Array<Value> &v, Py_ssize_t i) -> ValueRef {
             return v[detail::wrap(i, v.size())];
           },
           rv_policy::automatic_reference)
 
       .def(
-          "clear", [](Vector &v) { v.clear(); }, "Remove all items from list.");
+          "clear",
+          [](Array<Value> &v) { v.clear(); },
+          "Remove all items from list.");
 
   if constexpr (detail::is_copy_constructible_v<Value>) {
-    cl.def(init<const Vector &>(), "Copy constructor");
+    cl.def(init<const Array<Value> &>(), "Copy constructor");
 
     cl.def(
         "__init__",
-        [](Vector *v, typed<iterable, ValueHolder<Value>> seq) {
-          new (v) Vector();
+        [](Array<Value> *v, typed<iterable, ValueHolder<Value>> seq) {
+          new (v) Array<Value>();
           v->reserve(len_hint(seq));
           for (handle h : seq) v->push_back(cast<ValueHolder<Value>>(h));
         },
         "Construct from an iterable object");
 
-    implicitly_convertible<iterable, Vector>();
+    implicitly_convertible<iterable, Array<Value>>();
 
     cl.def(
           "append",
-          [](Vector &v, const Value &value) { v.push_back(value); },
+          [](Array<Value> &v, const Value &value) { v.push_back(value); },
           "Append `arg` to the end of the list.")
 
         .def(
             "insert",
-            [](Vector &v, Py_ssize_t i, const Value &x) {
+            [](Array<Value> &v, Py_ssize_t i, const Value &x) {
               if (i < 0) i += (Py_ssize_t)v.size();
               if (i < 0 || (size_t)i > v.size()) throw index_error();
               v.insert(v.begin() + i, x);
@@ -104,7 +107,7 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
         .def(
             "pop",
-            [](Vector &v, Py_ssize_t i) {
+            [](Array<Value> &v, Py_ssize_t i) {
               size_t index = detail::wrap(i, v.size());
               Value result = std::move(v[index]);
               v.erase(v.begin() + index);
@@ -115,25 +118,25 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
         .def(
             "extend",
-            [](Vector &v, const Vector &src) {
+            [](Array<Value> &v, const Array<Value> &src) {
               v.insert(v.end(), src.begin(), src.end());
             },
             "Extend `self` by appending elements from `arg`.")
 
         .def("__setitem__",
-             [](Vector &v, Py_ssize_t i, const Value &value) {
+             [](Array<Value> &v, Py_ssize_t i, const Value &value) {
                v[detail::wrap(i, v.size())] = value;
              })
 
         .def("__delitem__",
-             [](Vector &v, Py_ssize_t i) {
+             [](Array<Value> &v, Py_ssize_t i) {
                v.erase(v.begin() + detail::wrap(i, v.size()));
              })
 
         .def("__getitem__",
-             [](const Vector &v, const slice &slice) -> Vector * {
+             [](const Array<Value> &v, const slice &slice) -> Array<Value> * {
                auto [start, stop, step, length] = slice.compute(v.size());
-               auto *seq                        = new Vector();
+               auto *seq                        = new Array<Value>();
                seq->reserve(length);
 
                for (size_t i = 0; i < length; ++i) {
@@ -144,22 +147,23 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
                return seq;
              })
 
-        .def("__setitem__",
-             [](Vector &v, const slice &slice, const Vector &value) {
-               auto [start, stop, step, length] = slice.compute(v.size());
+        .def(
+            "__setitem__",
+            [](Array<Value> &v, const slice &slice, const Array<Value> &value) {
+              auto [start, stop, step, length] = slice.compute(v.size());
 
-               if (length != value.size())
-                 throw index_error(
-                     "The left and right hand side of the slice "
-                     "assignment have mismatched sizes!");
+              if (length != value.size())
+                throw index_error(
+                    "The left and right hand side of the slice "
+                    "assignment have mismatched sizes!");
 
-               for (size_t i = 0; i < length; ++i) {
-                 v[start]  = value[i];
-                 start    += step;
-               }
-             })
+              for (size_t i = 0; i < length; ++i) {
+                v[start]  = value[i];
+                start    += step;
+              }
+            })
 
-        .def("__delitem__", [](Vector &v, const slice &slice) {
+        .def("__delitem__", [](Array<Value> &v, const slice &slice) {
           auto [start, stop, step, length] = slice.compute(v.size());
           if (length == 0) return;
 
@@ -185,23 +189,42 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
         .def(self != self)
 
         .def("__contains__",
-             [](const Vector &v, const Value &x) {
+             [](const Array<Value> &v, const Value &x) {
                return std::find(v.begin(), v.end(), x) != v.end();
              })
 
         .def("__contains__",  // fallback for incompatible types
-             [](const Vector &, handle) { return false; })
+             [](const Array<Value> &, handle) { return false; })
 
         .def(
             "count",
-            [](const Vector &v, const Value &x) {
+            [](const Array<Value> &v, const Value &x) {
               return std::count(v.begin(), v.end(), x);
             },
             "Return number of occurrences of `arg`.")
 
         .def(
+            "index",
+            [](const Array<Value> &v,
+               const Value &value,
+               Size start,
+               Size end) {
+              auto s = v.begin() + std::min(start, v.size());
+              auto e = v.begin() + std::min(end, v.size());
+              auto p = std::find(s, e, value);
+              if (p == e)
+                throw std::invalid_argument(
+                    var_string(value, " is not in list"));
+              return Index{std::distance(v.begin(), p)};
+            },
+            "value"_a,
+            "start"_a = Size{0},
+            "end"_a   = std::numeric_limits<Size>::max(),
+            "Return first occurence of value between `start` and `end` - defaults to full range")
+
+        .def(
             "remove",
-            [](Vector &v, const Value &x) {
+            [](Array<Value> &v, const Value &x) {
               auto p = std::find(v.begin(), v.end(), x);
               if (p != v.end())
                 v.erase(p);

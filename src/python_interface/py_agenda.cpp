@@ -1,3 +1,7 @@
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
+#include <nanobind/stl/vector.h>
 #include <parameters.h>
 #include <workspace.h>
 
@@ -10,7 +14,6 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
-#include "py_macros.h"
 #include "python_interface.h"
 
 extern Parameters parameters;
@@ -78,9 +81,10 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* me, const std::string& n, const WsvValue& v) {
-            new (me) Method{
-                n, std::visit([](auto a) { return Wsv(std::move(a)); }, v)};
+          [](Method* me, const std::string& n, const PyWSV& v) {
+            new (me) Method{n,
+                            std::visit([](auto a) { return Wsv(std::move(a)); },
+                                       from_py(v).value)};
           },
           py::arg("name"),
           py::arg("wsv"),
@@ -135,7 +139,8 @@ so Copy(a, out=b) will not even see the b variable.
           [](const Agenda& agenda) { return agenda.get_methods(); },
           "The methods of the agenda");
 
-  auto aag = py::bind_vector<ArrayOfAgenda, py::rv_policy::reference_internal>(m, "ArrayOfAgenda");
+  auto aag = py::bind_vector<ArrayOfAgenda, py::rv_policy::reference_internal>(
+      m, "ArrayOfAgenda");
   workspace_group_interface(aag);
   aag.def(
          "__init__",
