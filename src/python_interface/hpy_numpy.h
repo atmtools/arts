@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/function.h>
 
 namespace Python {
 namespace py = nanobind;
@@ -9,7 +10,7 @@ using namespace py::literals;
 template <typename FUNC, typename ...in>
 auto vectorize(FUNC f, in&&... args) {
   auto np = py::module_::import_("numpy");
-  return np.attr("vectorize")(f)(std::forward<in>(args)...);
+  return np.attr("vectorize")(py::cpp_function(f))(std::forward<in>(args)...);
 }
 
 void common_ndarray(auto& c) {
