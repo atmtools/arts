@@ -2,6 +2,7 @@
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
+#include <nanobind/stl/function.h>
 #include <parameters.h>
 #include <workspace.h>
 
