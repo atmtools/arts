@@ -31,10 +31,7 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
 
   c.def_prop_rw(
       "value",
-      [](matpack::matpack_data<T, M> &x) {
-        py::object np = py::module_::import_("numpy");
-        return np.attr("asarray")(x, py::arg("copy") = false);
-      },
+      [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
       [](matpack::matpack_data<T, M> &x, matpack::matpack_data<T, M> &y) {
         x = y;
       });
@@ -85,10 +82,7 @@ void py_rtepack(py::module_ &m) try {
           "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](Stokvec &x) {
-            py::object np = py::module_::import_("numpy");
-            return np.attr("asarray")(x, py::arg("copy") = false);
-          },
+          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
           [](Stokvec &x, Stokvec &y) { x = y; });
   common_ndarray(sv);
   workspace_group_interface(sv);
@@ -145,10 +139,7 @@ void py_rtepack(py::module_ &m) try {
           "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](Propmat &x) {
-            py::object np = py::module_::import_("numpy");
-            return np.attr("asarray")(x, py::arg("copy") = false);
-          },
+          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
           [](Propmat &x, Propmat &y) { x = y; });
   common_ndarray(pm);
   workspace_group_interface(pm);
@@ -196,10 +187,7 @@ void py_rtepack(py::module_ &m) try {
           "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](Muelmat &x) {
-            py::object np = py::module_::import_("numpy");
-            return np.attr("asarray")(x, py::arg("copy") = false);
-          },
+          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
           [](Muelmat &x, Muelmat &y) { x = y; });
   common_ndarray(mm);
   workspace_group_interface(mm);
@@ -214,47 +202,65 @@ void py_rtepack(py::module_ &m) try {
   rtepack_array<Muelmat, 2, 4, 4>(mmm);
   workspace_group_interface(mmm);
 
-  auto a1 = py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(m, "ArrayOfPropmatVector");
+  auto a1 =
+      py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(
+          m, "ArrayOfPropmatVector");
   workspace_group_interface(a1);
   vector_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfArrayOfPropmatVector, py::rv_policy::reference_internal>(
+  auto a2 = py::bind_vector<ArrayOfArrayOfPropmatVector,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropmatVector");
   workspace_group_interface(a2);
   vector_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfPropmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfPropmatMatrix");
+  auto a3 =
+      py::bind_vector<ArrayOfPropmatMatrix, py::rv_policy::reference_internal>(
+          m, "ArrayOfPropmatMatrix");
   workspace_group_interface(a3);
   vector_interface(a3);
-  auto a4 = py::bind_vector<ArrayOfArrayOfPropmatMatrix, py::rv_policy::reference_internal>(
+  auto a4 = py::bind_vector<ArrayOfArrayOfPropmatMatrix,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropmatMatrix");
   workspace_group_interface(a4);
   vector_interface(a4);
 
-  auto b1 = py::bind_vector<ArrayOfMuelmatVector, py::rv_policy::reference_internal>(m, "ArrayOfMuelmatVector");
+  auto b1 =
+      py::bind_vector<ArrayOfMuelmatVector, py::rv_policy::reference_internal>(
+          m, "ArrayOfMuelmatVector");
   workspace_group_interface(b1);
   vector_interface(b1);
-  auto b2 = py::bind_vector<ArrayOfArrayOfMuelmatVector, py::rv_policy::reference_internal>(
+  auto b2 = py::bind_vector<ArrayOfArrayOfMuelmatVector,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfMuelmatVector");
   workspace_group_interface(b2);
   vector_interface(b2);
-  auto b3 = py::bind_vector<ArrayOfMuelmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfMuelmatMatrix");
+  auto b3 =
+      py::bind_vector<ArrayOfMuelmatMatrix, py::rv_policy::reference_internal>(
+          m, "ArrayOfMuelmatMatrix");
   workspace_group_interface(b3);
   vector_interface(b3);
-  auto b4 = py::bind_vector<ArrayOfArrayOfMuelmatMatrix, py::rv_policy::reference_internal>(
+  auto b4 = py::bind_vector<ArrayOfArrayOfMuelmatMatrix,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfMuelmatMatrix");
   workspace_group_interface(b4);
   vector_interface(b4);
 
-  auto c1 = py::bind_vector<ArrayOfStokvecVector, py::rv_policy::reference_internal>(m, "ArrayOfStokvecVector");
+  auto c1 =
+      py::bind_vector<ArrayOfStokvecVector, py::rv_policy::reference_internal>(
+          m, "ArrayOfStokvecVector");
   workspace_group_interface(c1);
   vector_interface(c1);
-  auto c2 = py::bind_vector<ArrayOfArrayOfStokvecVector, py::rv_policy::reference_internal>(
+  auto c2 = py::bind_vector<ArrayOfArrayOfStokvecVector,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfStokvecVector");
   workspace_group_interface(c2);
   vector_interface(c2);
-  auto c3 = py::bind_vector<ArrayOfStokvecMatrix, py::rv_policy::reference_internal>(m, "ArrayOfStokvecMatrix");
+  auto c3 =
+      py::bind_vector<ArrayOfStokvecMatrix, py::rv_policy::reference_internal>(
+          m, "ArrayOfStokvecMatrix");
   workspace_group_interface(c3);
   vector_interface(c3);
-  auto c4 = py::bind_vector<ArrayOfArrayOfStokvecMatrix, py::rv_policy::reference_internal>(
+  auto c4 = py::bind_vector<ArrayOfArrayOfStokvecMatrix,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfStokvecMatrix");
   workspace_group_interface(c4);
   vector_interface(c4);

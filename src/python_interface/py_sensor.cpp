@@ -30,10 +30,7 @@ void py_sensor(py::module_& m) try {
           "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](py::object& v) {
-            auto np = py::module_::import_("numpy");
-            return np.attr("asarray")(v, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
       .def_rw("pos", &SensorPosLos::pos, "Position")
@@ -58,10 +55,7 @@ void py_sensor(py::module_& m) try {
           "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](SensorPosLosVector& x) {
-            py::object np = py::module_::import_("numpy");
-            return np.attr("asarray")(x, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](SensorPosLosVector& x, Matrix& y) {
             if (y.ncols() != 5) {
               throw std::runtime_error("Bad shape");
@@ -160,7 +154,9 @@ filter : list of int, optional
            py::arg("relative") = true,
            "Cuts out parts of the frequency grid with low weights");
 
-  auto a1 = py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(m, "ArrayOfSensorObsel");
+  auto a1 =
+      py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(
+          m, "ArrayOfSensorObsel");
   workspace_group_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {

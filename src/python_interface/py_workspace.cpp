@@ -1,3 +1,4 @@
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
@@ -13,7 +14,6 @@
 #include <string>
 #include <vector>
 
-#include "nanobind/nanobind.h"
 #include "python_interface.h"
 #include "python_interface_value_type.h"
 
@@ -95,11 +95,12 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
-            if (w.contains(n)) {
-              *w.share(n) = from_py(x);
-            } else {
-              w.set(n, std::make_shared<Wsv>(from_py(x)));
-            }
+            ARTS_USER_ERROR_IF(not w.contains(n),
+                               "Workspace variable '",
+                               n,
+                               "' does not exist.");
+            w.set(n, std::make_shared<Wsv>(from_py(x)));
+            // std::visit([](auto& v) { std::cout << "ref count: " << v.use_count() << std::endl; }, w.share(n)->value);
 
             auto& ptr = w.share(n);
             if (ptr->holds<Agenda>()) {

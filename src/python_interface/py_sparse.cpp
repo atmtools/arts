@@ -75,7 +75,8 @@ arr : numpy.ndarray
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
                              Sparse>();
 
-  auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(m, "ArrayOfSparse");
+  auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(
+      m, "ArrayOfSparse");
   workspace_group_interface(a1);
   vector_interface(a1);
 

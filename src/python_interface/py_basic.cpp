@@ -41,10 +41,7 @@ void py_basic(py::module_& m) try {
          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](py::object& v) {
-            auto np = py::module_::import_("numpy");
-            return np.attr("asarray")(v, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ValueHolder<Numeric>& a, const ValueHolder<Numeric>& b) {
             a = b;
           });
@@ -68,10 +65,7 @@ void py_basic(py::module_& m) try {
          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](py::object& v) {
-            auto np = py::module_::import_("numpy");
-            return np.attr("asarray")(v, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ValueHolder<Index>& a, const ValueHolder<Index>& b) { a = b; });
   common_ndarray(ind);
 

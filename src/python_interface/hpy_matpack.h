@@ -28,10 +28,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
 
   c.def_prop_rw(
       "value",
-      [](py::object& v) {
-        auto np = py::module_::import_("numpy");
-        return np.attr("asarray")(v, py::arg("copy") = false);
-      },
+      [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; });
 
   c.def("__getstate__",
@@ -202,10 +199,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
   c.def_prop_rw(
       "value",
-      [](mtype& v) {
-        auto np = py::module_::import_("numpy");
-        return np.attr("asarray")(v, py::arg("copy") = false);
-      },
+      [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; });
 
   c.def("__repr__", [](const mtype& m) { return var_string(m); });
