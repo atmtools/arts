@@ -9,6 +9,7 @@
 
 #include "enums.h"
 #include "hpy_arts.h"
+#include "hpy_numpy.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
 #include "partfun.h"
@@ -84,36 +85,73 @@ void py_lbl(py::module_& m) try {
       .def_rw("data", &lbl::line_shape::species_model::data, "The data")
       .def("__getitem__",
            [](py::object& x, const py::object& key) {
-             return x.attr("__getitem__")(key);
+             return x.attr("data").attr("__getitem__")(key);
            })
       .def("__setitem__",
            [](py::object& x, const py::object& key, const py::object& val) {
-             x.attr("__setitem__")(key, val);
+             x.attr("data").attr("__setitem__")(key, val);
            })
-      .def("G0",
-           &lbl::line_shape::species_model::G0,
-           "The G0 coefficient",
-           "T0"_a,
-           "T"_a,
-           "P"_a)
-      .def("Y",
-           &lbl::line_shape::species_model::Y,
-           "The Y coefficient",
-           "T0"_a,
-           "T"_a,
-           "P"_a)
-      .def("D0",
-           &lbl::line_shape::species_model::D0,
-           "The D0 coefficient",
-           "T0"_a,
-           "T"_a,
-           "P"_a)
+      .def(
+          "G0",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.G0(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          "The G0 coefficient",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "Y",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.Y(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          "The Y coefficient",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "D0",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.D0(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          "The D0 coefficient",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
       .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
 
-  auto lsml = py::bind_vector<std::vector<lbl::line_shape::species_model>>(
-                  m, "LineShapeModelList")
-                  .PythonInterfaceBasicRepresentation(
-                      std::vector<lbl::line_shape::species_model>);
+  using line_shape_model_list = std::vector<lbl::line_shape::species_model>;
+  auto lsml =
+      py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(
+          m, "LineShapeModelList")
+          .PythonInterfaceBasicRepresentation(line_shape_model_list);
   vector_interface(lsml);
 
   py::class_<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
@@ -178,7 +216,15 @@ void py_lbl(py::module_& m) try {
       .def_rw("z", &lbl::line::z, "The Zeeman model")
       .def_rw("ls", &lbl::line::ls, "The line shape model")
       .def_rw("qn", &lbl::line::qn, "The quantum numbers of this line")
-      .def("s", &lbl::line::s, "The line strength")
+      .def(
+          "s",
+          [](const lbl::line& self, py::object& T, py::object& Q) {
+            return vectorize(
+                [&self](Numeric t, Numeric q) { return self.s(t, q); }, T, Q);
+          },
+          "T"_a,
+          "Q"_a,
+          "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
   auto ll = py::bind_vector<std::vector<lbl::line>,
@@ -274,20 +320,11 @@ void py_lbl(py::module_& m) try {
       "atm"_a,
       "T"_a);
 
-  lbl.def("Q",
-          &PartitionFunctions::Q,
-          "Partition function",
-          "T"_a,
-          "isotopologue"_a);
   lbl.def(
       "Q",
-      [](const Vector& T, const SpeciesIsotope& isot) {
-        Vector Q(T.size());
-        std::transform(
-            T.begin(), T.end(), Q.begin(), [&isot](Numeric t) -> Numeric {
-              return PartitionFunctions::Q(t, isot);
-            });
-        return Q;
+      [](py::object t, SpeciesIsotope isot) {
+        return vectorize(
+            [isot](Numeric T) { return PartitionFunctions::Q(T, isot); }, t);
       },
       "Partition function",
       "T"_a,

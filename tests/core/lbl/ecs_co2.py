@@ -23,15 +23,11 @@ def lblvals(band, T, T0=296):
 
     f0 = 0
     for line in band.data.lines:
-        assert (
-            line.f0 >= f0
-        ), f"Previous f0 {f0} larger than current f0 {line.f0}"
+        assert line.f0 >= f0, f"Previous f0 {f0} larger than current f0 {line.f0}"
         f0 = line.f0
 
         lbl_str.append(
-            line.s(T, Q)
-            * pyarts.arts.constants.c**2
-            / (8 * pyarts.arts.constants.pi)
+            line.s(T, Q) * pyarts.arts.constants.c**2 / (8 * pyarts.arts.constants.pi)
         )
         lbl_val.append([])
         for i in range(len(line.ls.single_models)):
@@ -86,15 +82,15 @@ def adaptband(band, T, p, second_order=False):
 
     for i in range(ff.shape[0]):
         for j in range(ff.shape[1]):
-            band.data.lines[j].ls.single_models[i].data.set(
-                "Y", pyarts.arts.TemperatureModel("POLY", yf[i, j][::-1])
+            band.data.lines[j].ls.single_models[i]["Y"] = pyarts.arts.TemperatureModel(
+                "POLY", yf[i, j][::-1]
             )
             if second_order:
-                band.data.lines[j].ls.single_models[i].data.set(
-                    "G", pyarts.arts.TemperatureModel("POLY", sf[i, j][::-1])
+                band.data.lines[j].ls.single_models[i]["G"] = (
+                    pyarts.arts.TemperatureModel("POLY", sf[i, j][::-1])
                 )
-                band.data.lines[j].ls.single_models[i].data.set(
-                    "DV", pyarts.arts.TemperatureModel("POLY", ff[i, j][::-1])
+                band.data.lines[j].ls.single_models[i]["DV"] = (
+                    pyarts.arts.TemperatureModel("POLY", ff[i, j][::-1])
                 )
 
     band.data.lineshape = "VP_LTE"
