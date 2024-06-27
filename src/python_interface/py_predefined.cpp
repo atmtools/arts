@@ -1180,7 +1180,7 @@ void py_predefined(py::module_& m) try {
   pdmd.def_static("fromcatalog",
                   [](const char* const basename,
                      const ArrayOfArrayOfSpeciesTag& specs) {
-                    auto out = std::make_shared<PredefinedModelData>();
+                    auto out = PredefinedModelData{};
                     for (auto& spec : specs) {
                       for (auto& mod : spec) {
                         if (mod.type == SpeciesTagType::Predefined) {
@@ -1193,11 +1193,11 @@ void py_predefined(py::module_& m) try {
                             xml_read_from_file(filename, data);
                             std::visit(
                                 [&](auto& model) {
-                                  out->data[mod.Isotopologue()] = model;
+                                  out.data[mod.Isotopologue()] = model;
                                 },
                                 data.data.at(mod.Isotopologue()));
                           } else {
-                            out->data[mod.Isotopologue()] =
+                            out.data[mod.Isotopologue()] =
                                 Absorption::PredefinedModel::ModelName{};
                           }
                         }

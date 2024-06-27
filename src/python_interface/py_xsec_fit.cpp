@@ -1,5 +1,6 @@
 #include <artstime.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string_view.h>
 #include <python_interface.h>
 #include <xsec_fit.h>
 
@@ -165,11 +166,13 @@ void py_xsec(py::module_& m) try {
             out["coords"]    = coords;
             out["attrs"]     = attrs;
             out["data_vars"] = data_vars;
+            py::print("EI");
             return out;
           })
       .def(
           "to_xarray",
           [](py::object& xr) {
+            py::print("OI");
             py::module_ xarray = py::module_::import_("xarray");
             return xarray.attr("Dataset").attr("from_dict")(
                 xr.attr("to_dict")());
@@ -188,26 +191,26 @@ void py_xsec(py::module_& m) try {
             const py::dict coords = d["coords"];
             auto data_vars        = d["data_vars"];
 
-            auto out = std::make_shared<XsecRecord>();
-            out->SetVersion(py::cast<Index>(attrs["version"]));
-            out->SetSpecies(py::cast<SpeciesEnum>(attrs["species"]));
-            out->FitMinPressures() =
+            auto out = XsecRecord{};
+            out.SetVersion(py::cast<Index>(attrs["version"]));
+            out.SetSpecies(py::cast<SpeciesEnum>(attrs["species"]));
+            out.FitMinPressures() =
                 py::cast<Vector>(data_vars["fitminpressures"]["data"]);
-            out->FitMaxPressures() =
+            out.FitMaxPressures() =
                 py::cast<Vector>(data_vars["fitmaxpressures"]["data"]);
-            out->FitMinTemperatures() =
+            out.FitMinTemperatures() =
                 py::cast<Vector>(data_vars["fitmintemperatures"]["data"]);
-            out->FitMaxTemperatures() =
+            out.FitMaxTemperatures() =
                 py::cast<Vector>(data_vars["fitmaxtemperatures"]["data"]);
 
-            out->FitCoeffs().reserve(out->FitMinPressures().size());
-            for (Index i = 0; i < out->FitMinPressures().size(); ++i) {
+            out.FitCoeffs().reserve(out.FitMinPressures().size());
+            for (Index i = 0; i < out.FitMinPressures().size(); ++i) {
               const String band_fgrid    = var_string("band", i, "_fgrid");
               const String band_coeffs   = var_string("band", i, "_coeffs");
               const auto band_fgrid_key  = py::str(band_fgrid.c_str());
               const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
-              auto& band     = out->FitCoeffs().emplace_back();
+              auto& band     = out.FitCoeffs().emplace_back();
               band.grid<0>() = py::cast<Vector>(coords[band_fgrid_key]["data"]);
               band.grid<1>() =
                   py::cast<ArrayOfString>(coords["coeffs"]["data"]);
@@ -219,7 +222,7 @@ void py_xsec(py::module_& m) try {
               if (coords_band_fgrid.contains("attrs") and
                   coords_band_fgrid_attrs.contains("name")) {
                 band.gridname<0>() =
-                    py::cast<String>(coords[band_fgrid_key]["attrs"]["name"]);
+                    py::cast<std::string_view>(coords[band_fgrid_key]["attrs"]["name"]);
               }
 
               const py::dict coords_coeffs       = coords["coeffs"];
@@ -227,7 +230,7 @@ void py_xsec(py::module_& m) try {
               if (coords_coeffs.contains("attrs") and
                   coords_coeffs_attrs.contains("name")) {
                 band.gridname<1>() =
-                    py::cast<String>(coords["coeffs"]["attrs"]["name"]);
+                    py::cast<std::string_view>(coords["coeffs"]["attrs"]["name"]);
               }
 
               const py::dict data_vars_band_coeffs = coords["coeffs"];
@@ -235,10 +238,11 @@ void py_xsec(py::module_& m) try {
                   coords["coeffs"]["attrs"];
               if (data_vars_band_coeffs.contains("attrs") and
                   data_vars_band_coeffs_attrs.contains("name")) {
-                band.data_name = py::cast<String>(
+                band.data_name = py::cast<std::string_view>(
                     data_vars[band_coeffs_key]["attrs"]["name"]);
               }
             }
+            py::print("HI");
             return out;
           })
       .def_static(

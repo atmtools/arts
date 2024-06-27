@@ -1,14 +1,16 @@
 #include <lbl.h>
+#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/pair.h>
 #include <python_interface.h>
 
+#include <iomanip>
 #include <memory>
+#include <stdexcept>
 
 #include "enums.h"
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "isotopologues.h"
-#include "lbl_data.h"
-#include "lbl_lineshape_model.h"
-#include "lbl_lineshape_voigt_ecs.h"
 #include "partfun.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
@@ -18,48 +20,76 @@ void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
   py::class_<lbl::temperature::data>(m, "TemperatureModel")
-      .def(py::init<LineShapeModelType, Vector>())
-      .def_prop_ro(
+      .def(py::init<LineShapeModelType, Vector>(),
+           "type"_a,
+           "data"_a = Vector{0.0})
+      .def_prop_rw(
           "type",
           &lbl::temperature::data::Type,
+          [](lbl::temperature::data& self, LineShapeModelType x) {
+            self = lbl::temperature::data{x, self.X()};
+          },
           ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
-      .def_prop_ro("data",
-                   &lbl::temperature::data::X,
-                   ":class:`~pyarts.arts.Vector` The coefficients")
-      .PythonInterfaceBasicRepresentation(lbl::temperature::data);
+      .def_prop_rw(
+          "data",
+          &lbl::temperature::data::X,
+          [](lbl::temperature::data& self, const Vector& x) {
+            self = lbl::temperature::data{self.Type(), x};
+          },
+          ":class:`~pyarts.arts.Vector` The coefficients")
+      .PythonInterfaceBasicRepresentation(lbl::temperature::data)
+      .def("__getstate__",
+           [](const lbl::temperature::data& v) {
+             return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
+           })
+      .def("__setstate__",
+           [](lbl::temperature::data& v,
+              const std::tuple<LineShapeModelType, Vector>& x) {
+             new (&v) lbl::temperature::data{std::get<0>(x), std::get<1>(x)};
+           });
 
   using pair_vector_type =
       std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
-  py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(
-      m, "LineShapeVariableTemperatureModelList")
-      .def("get",
-           [](const pair_vector_type& self,
-              LineShapeModelVariable x) -> lbl::temperature::data {
-             for (auto& [var, data] : self) {
-               if (var == x) {
-                 return data;
-               }
-             }
-             return {};
-           })
-      .def("set",
-           [](pair_vector_type& self,
-              LineShapeModelVariable x,
-              lbl::temperature::data y) {
-             for (auto& [var, data] : self) {
-               if (var == x) {
-                 data = y;
-                 return;
-               }
-             }
-             self.emplace_back(x, y);
-           })
-      .PythonInterfaceBasicRepresentation(pair_vector_type);
+  auto lsvtml =
+      py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(
+          m, "LineShapeVariableTemperatureModelList")
+          .def("__getitem__",
+               [](pair_vector_type& self,
+                  LineShapeModelVariable x) -> lbl::temperature::data& {
+                 for (auto& [var, data] : self) {
+                   if (var == x) {
+                     return data;
+                   }
+                 }
+                 throw std::out_of_range(var_string(std::quoted(toString(x))));
+               })
+          .def("__setitem__",
+               [](pair_vector_type& self,
+                  LineShapeModelVariable x,
+                  const lbl::temperature::data& y) {
+                 for (auto& [var, data] : self) {
+                   if (var == x) {
+                     data = y;
+                     return;
+                   }
+                 }
+                 self.emplace_back(x, y);
+               })
+          .PythonInterfaceBasicRepresentation(pair_vector_type);
+  vector_interface(lsvtml);
 
   py::class_<lbl::line_shape::species_model>(m, "LineShapeSpeciesModel")
       .def_rw(
           "species", &lbl::line_shape::species_model::species, "The species")
       .def_rw("data", &lbl::line_shape::species_model::data, "The data")
+      .def("__getitem__",
+           [](py::object& x, const py::object& key) {
+             return x.attr("__getitem__")(key);
+           })
+      .def("__setitem__",
+           [](py::object& x, const py::object& key, const py::object& val) {
+             x.attr("__setitem__")(key, val);
+           })
       .def("G0",
            &lbl::line_shape::species_model::G0,
            "The G0 coefficient",
@@ -80,10 +110,11 @@ void py_lbl(py::module_& m) try {
            "P"_a)
       .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
 
-  py::class_<std::vector<lbl::line_shape::species_model>>(m,
-                                                          "LineShapeModelList")
-      .PythonInterfaceBasicRepresentation(
-          std::vector<lbl::line_shape::species_model>);
+  auto lsml = py::bind_vector<std::vector<lbl::line_shape::species_model>>(
+                  m, "LineShapeModelList")
+                  .PythonInterfaceBasicRepresentation(
+                      std::vector<lbl::line_shape::species_model>);
+  vector_interface(lsml);
 
   py::class_<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
       .def_rw("one_by_one",
@@ -110,7 +141,7 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
-      .def_ro(
+      .def_rw(
           "on",
           &lbl::zeeman::model::on,
           ":class:`~pyarts.arts.Bool` If True, the Zeeman effect is included")
@@ -150,9 +181,10 @@ void py_lbl(py::module_& m) try {
       .def("s", &lbl::line::s, "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
-  py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(
-      m, "LineList")
-      .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
+  auto ll = py::bind_vector<std::vector<lbl::line>,
+                            py::rv_policy::reference_internal>(m, "LineList")
+                .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
+  vector_interface(ll);
 
   py::class_<lbl::band_data>(m, "AbsorptionBandData")
       .def_rw("lines", &lbl::band_data::lines, "The lines in the band")
@@ -176,6 +208,7 @@ void py_lbl(py::module_& m) try {
       py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(
           m, "ArrayOfAbsorptionBand");
   workspace_group_interface(aoab);
+  vector_interface(aoab);
   aoab.def(
           "__getitem__",
           [](ArrayOfAbsorptionBand& x,

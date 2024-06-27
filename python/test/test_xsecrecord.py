@@ -60,6 +60,8 @@ class TestXsecRecord:
     def test_xarray(self):
         xa = self.xr.to_xarray()
         xr2 = pyarts.arts.XsecRecord.from_xarray(xa)
+        print(xr2)
+        print(xr)
         assert self.xr == xr2
 
     def test_netcdf(self):
@@ -70,4 +72,4 @@ class TestXsecRecord:
 if __name__ == "__main__":
     a = TestXsecRecord()
     a.setup_method()
-    a.test_netcdf()
+    a.test_xarray()
