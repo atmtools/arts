@@ -12,7 +12,7 @@ namespace py = nanobind;
   convert.def(                                                                 \
       #name,                                                                   \
       [](py::object v) {                                                       \
-        return vectorize([](t x) { return Conversion::name(x); }, v);                 \
+        return vectorize([](t x) { return Conversion::name(x); }, v);          \
       },                                                                       \
       py::arg(var),                                                            \
                                                                                \

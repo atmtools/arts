@@ -25,7 +25,8 @@ String as_pyarts(const String& x) try {
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
   const auto found_in_options = [&](auto& key) {
-    return std::ranges::any_of(internal_options(), Cmp::eq(key), &EnumeratedOption::name);
+    return std::ranges::any_of(
+        internal_options(), Cmp::eq(key), &EnumeratedOption::name);
   };
 
   if (found_in_options(x) or found_in(wsgs))
@@ -77,7 +78,7 @@ String unwrap_stars(String x) try {
     return std::find(p, x.end(), '*');
   };
   const auto idx = [&](auto p) { return std::distance(x.begin(), p); };
-  const auto mv = [&](auto p) {
+  const auto mv  = [&](auto p) {
     do p++;
     while (p < x.end() and not nonstd::isspace(*p) and (*p) not_eq '*');
     return std::min(p, x.end());
@@ -88,7 +89,7 @@ String unwrap_stars(String x) try {
   auto ptr = find(x.begin());
   while (ptr < x.end()) {
     const Index pos = idx(ptr);
-    ptr = mv(ptr);
+    ptr             = mv(ptr);
     if (ptr < x.end() and *(ptr) == '*') start_pos.push_back(pos);
     ptr = find(ptr + 1);
   }
@@ -96,8 +97,8 @@ String unwrap_stars(String x) try {
   while (not start_pos.empty()) {
     const Index pos = start_pos.back();
     start_pos.pop_back();
-    const auto start_ptr = x.begin() + pos;
-    const auto end_ptr = 1 + mv(start_ptr);
+    const auto start_ptr    = x.begin() + pos;
+    const auto end_ptr      = 1 + mv(start_ptr);
     const auto replace_name = x.substr(pos, std::distance(start_ptr, end_ptr));
     x.replace(start_ptr,
               end_ptr,
@@ -125,9 +126,9 @@ Parameters
     String name;
   };
 
-  auto& ag = wsas.at(x);
+  auto& ag      = wsas.at(x);
   auto& out_ind = ag.output;
-  auto& in_ind = ag.input;
+  auto& in_ind  = ag.input;
 
   const auto output = [&](const std::string& ind) {
     return std::ranges::any_of(out_ind, Cmp::eq(ind));
@@ -260,7 +261,7 @@ String method_docs(const String& name) try {
     out += "\n";
   };
 
-  out = "--(";
+  out  = "--(";
   out += unwrap_stars(method.desc);
   fix();
 
@@ -272,10 +273,10 @@ String method_docs(const String& name) try {
 
   out += "\nParameters\n----------";
   for (auto& varname : method.out) {
-    const String io = is_input(varname) ? "INOUT" : "OUT";
-    const auto& wsv = wsvs.at(varname);
-    const auto& grpname = wsv.type;
-    out += var_string('\n',
+    const String io      = is_input(varname) ? "INOUT" : "OUT";
+    const auto& wsv      = wsvs.at(varname);
+    const auto& grpname  = wsv.type;
+    out                 += var_string('\n',
                       varname,
                       " : ~pyarts.arts.",
                       grpname,
@@ -291,10 +292,10 @@ String method_docs(const String& name) try {
   }
 
   for (std::size_t i = 0; i < method.gout.size(); i++) {
-    const auto& varname = method.gout[i];
-    const String io = is_ginput(varname) ? "INOUT" : "OUT";
-    const auto& grpname = compose_generic_groups(method.gout_type[i]);
-    out += var_string('\n',
+    const auto& varname  = method.gout[i];
+    const String io      = is_ginput(varname) ? "INOUT" : "OUT";
+    const auto& grpname  = compose_generic_groups(method.gout_type[i]);
+    out                 += var_string('\n',
                       varname,
                       " : ",
                       grpname,
@@ -308,9 +309,9 @@ String method_docs(const String& name) try {
   for (auto varname : method.in) {
     if (is_output(varname)) continue;
 
-    const auto& wsv = wsvs.at(varname);
-    const auto& grpname = wsv.type;
-    out += var_string('\n',
+    const auto& wsv      = wsvs.at(varname);
+    const auto& grpname  = wsv.type;
+    out                 += var_string('\n',
                       varname,
                       " : ~pyarts.arts.",
                       grpname,
@@ -326,8 +327,8 @@ String method_docs(const String& name) try {
   for (std::size_t i = 0; i < method.gin.size(); i++) {
     const auto& varname = method.gin[i];
     if (is_goutput(varname)) continue;
-    const auto& grpname = compose_generic_groups(method.gin_type[i]);
-    const auto& defval = method.gin_value[i];
+    const auto& grpname   = compose_generic_groups(method.gin_type[i]);
+    const auto& defval    = method.gin_value[i];
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{

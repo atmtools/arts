@@ -275,7 +275,9 @@ void py_xsec(py::module_& m) try {
                    });
       });
 
-  auto a1 = py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(m, "ArrayOfXsecRecord");
+  auto a1 =
+      py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(
+          m, "ArrayOfXsecRecord");
   workspace_group_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {

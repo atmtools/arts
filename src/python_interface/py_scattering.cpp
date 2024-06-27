@@ -122,19 +122,23 @@ void py_scattering(py::module_& m) try {
                                       py::cast<Numeric>(t[6])};
       });
 
-  auto a1 = py::bind_vector<ArrayOfScatteringMetaData, py::rv_policy::reference_internal>(
+  auto a1 = py::bind_vector<ArrayOfScatteringMetaData,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfScatteringMetaData");
   workspace_group_interface(a1);
   vector_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData, py::rv_policy::reference_internal>(
+  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfScatteringMetaData");
   workspace_group_interface(a2);
   vector_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfSingleScatteringData, py::rv_policy::reference_internal>(
+  auto a3 = py::bind_vector<ArrayOfSingleScatteringData,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfSingleScatteringData");
   workspace_group_interface(a3);
   vector_interface(a3);
-  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData, py::rv_policy::reference_internal>(
+  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfSingleScatteringData");
   workspace_group_interface(a4);
   vector_interface(a4);

@@ -51,13 +51,13 @@ void py_cia(py::module_& m) try {
             out *= Math::pow2(number_density(P, T)) * X0 * X1;
             return out;
           },
-          py::arg("T"),
-          py::arg("P"),
-          py::arg("X0"),
-          py::arg("X1"),
-          py::arg("f"),
-          py::arg("T_extrapolfac") = 0.0,
-          py::arg("robust")        = 1,
+          "T"_a,
+          "P"_a,
+          "X0"_a,
+          "X1"_a,
+          "f"_a,
+          "T_extrapolfac"_a = 0.0,
+          "robust"_a        = 1,
           R"--(Computes the collision-induced absorption in 1/m
 
 Parameters
@@ -97,7 +97,9 @@ Returns
             c->TwoSpecies() = std::get<1>(state);
           });
 
-  auto acr = py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(m, "ArrayOfCIARecord");
+  auto acr =
+      py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(
+          m, "ArrayOfCIARecord");
   workspace_group_interface(acr);
   vector_interface(acr);
 } catch (std::exception& e) {

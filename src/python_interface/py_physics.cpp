@@ -17,8 +17,8 @@ void py_physics(py::module_& m) try {
         return vectorize(
             [](Numeric a, Numeric b) { return number_density(a, b); }, p, t);
       },
-      py::arg("P"),
-      py::arg("T"),
+      "P"_a,
+      "T"_a,
       R"--(Calculates the atmospheric number density.
 
 Parameters
@@ -42,8 +42,8 @@ Returns
                          frequency,
                          temperature);
       },
-      py::arg("frequency"),
-      py::arg("temperature"),
+      "frequency"_a,
+      "temperature"_a,
       R"--(Calculates the Planck function.
 
 Parameters

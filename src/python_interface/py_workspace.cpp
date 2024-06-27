@@ -8,13 +8,14 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
+#include <iomanip>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "debug.h"
 #include "python_interface.h"
 #include "python_interface_value_type.h"
 
@@ -81,7 +82,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
           else
             new (w) Workspace{WorkspaceInitialization::Empty};
         },
-        py::arg("with_defaults") = true)
+        "with_defaults"_a = true)
       .def(py::init<Workspace>())
       .def("__copy__", [](Workspace& w) { return w; })
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w.deepcopy(); })
@@ -95,8 +96,10 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "init",
           [](Workspace& w, const std::string& n, const std::string& t) {
-            ARTS_USER_ERROR_IF(
-                w.contains(n), "Workspace variable '", n, "' already exists.");
+            if (w.contains(n))
+              throw std::domain_error(var_string(
+                  "Workspace variable ", std::quoted(n), " exists."));
+
             w.set(n, std::make_shared<Wsv>(Wsv::from_named_type(t)));
           },
           "name"_a,
@@ -104,11 +107,22 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
-            ARTS_USER_ERROR_IF(not w.contains(n),
-                               "Workspace variable '",
-                               n,
-                               "' does not exist.");
-            w.overwrite(n, std::make_shared<Wsv>(from_py(x)));
+            if (not w.contains(n))
+              throw std::domain_error(var_string(
+                  "Workspace variable ", std::quoted(n), " does not exist."));
+
+            auto wsv = std::make_shared<Wsv>(from_py(x));
+
+            if (wsv->value.index() != w.share(n)->value.index())
+              throw std::domain_error(
+                  var_string("Type mismatch: ",
+                             std::quoted(n),
+                             " is of type ",
+                             std::quoted(w.share(n)->type_name()),
+                             ", cannot be set to ",
+                             std::quoted(wsv->type_name())));
+
+            w.overwrite(n, wsv);
 
             auto& ptr = w.share(n);
             if (ptr->holds<Agenda>()) {
@@ -137,7 +151,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
             using std::swap;
             swap(w1, w2);
           },
-          py::arg("other"));
+          "other"_a);
 
   ws.def("__str__", [](const Workspace& w) { return var_string(w); });
 

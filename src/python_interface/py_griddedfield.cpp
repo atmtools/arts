@@ -49,35 +49,48 @@ void py_griddedfield(py::module_& m) try {
   gridded_data_interface(gf6sv);
   workspace_group_interface(gf6sv);
 
-  auto a1 = py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField1");
+  auto a1 =
+      py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField1");
   workspace_group_interface(a1);
   vector_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfGriddedField2, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField2");
+  auto a2 =
+      py::bind_vector<ArrayOfGriddedField2, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField2");
   workspace_group_interface(a2);
   vector_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfGriddedField3, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField3");
+  auto a3 =
+      py::bind_vector<ArrayOfGriddedField3, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField3");
   workspace_group_interface(a3);
   vector_interface(a3);
-  auto a4 = py::bind_vector<ArrayOfGriddedField4, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField4");
+  auto a4 =
+      py::bind_vector<ArrayOfGriddedField4, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField4");
   workspace_group_interface(a4);
   vector_interface(a4);
-  auto b1 = py::bind_vector<ArrayOfArrayOfGriddedField1, py::rv_policy::reference_internal>(
+  auto b1 = py::bind_vector<ArrayOfArrayOfGriddedField1,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfGriddedField1");
   workspace_group_interface(b1);
   vector_interface(b1);
-  auto b2 = py::bind_vector<ArrayOfArrayOfGriddedField2, py::rv_policy::reference_internal>(
+  auto b2 = py::bind_vector<ArrayOfArrayOfGriddedField2,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfGriddedField2");
   workspace_group_interface(b2);
   vector_interface(b2);
-  auto b3 = py::bind_vector<ArrayOfArrayOfGriddedField3, py::rv_policy::reference_internal>(
+  auto b3 = py::bind_vector<ArrayOfArrayOfGriddedField3,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfGriddedField3");
   workspace_group_interface(b3);
   vector_interface(b3);
-  auto c1 = py::bind_vector<ArrayOfGriddedField1Named, py::rv_policy::reference_internal>(
+  auto c1 = py::bind_vector<ArrayOfGriddedField1Named,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfGriddedField1Named");
   workspace_group_interface(c1);
   vector_interface(c1);
-  auto d2 = py::bind_vector<ArrayOfNamedGriddedField2, py::rv_policy::reference_internal>(
+  auto d2 = py::bind_vector<ArrayOfNamedGriddedField2,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfNamedGriddedField2");
   workspace_group_interface(d2);
   vector_interface(d2);

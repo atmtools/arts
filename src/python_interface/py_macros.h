@@ -28,7 +28,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       },                                                                \
       py::arg("file").none(false),                                      \
       py::arg("type").none(false) = "ascii",                            \
-      py::arg("clobber") = true,                                        \
+      py::arg("clobber")          = true,                               \
       py::doc("Saves :class:`" #RealType "` to file\n"                  \
               "\n"                                                      \
               "Parameters:\n"                                           \
@@ -89,7 +89,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(     \
                 &x[i], [](void*) {});                                        \
           },                                                                 \
-          py::rv_policy::reference_internal,                       \
+          py::rv_policy::reference_internal,                                 \
           py::keep_alive<0, 1>())                                            \
       .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {           \
         i = negative_clamp(i, x.size());                                     \

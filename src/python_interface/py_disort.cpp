@@ -50,7 +50,8 @@ void py_disort(py::module_& m) try {
            });
   py::implicitly_convertible<bdrf_func, disort::BDRF>();
 
-  py::bind_vector<std::vector<disort::BDRF>, py::rv_policy::reference_internal>(disort_nm, "ArrayOfBDRF");
+  py::bind_vector<std::vector<disort::BDRF>, py::rv_policy::reference_internal>(
+      disort_nm, "ArrayOfBDRF");
 
   py::class_<disort::main_data> x(m, "cppdisort");
   x.def(
@@ -91,20 +92,20 @@ void py_disort(py::module_& m) try {
                               phi0);
       },
       "Run disort, mostly mimicying the 0.7 Pythonic-DISORT interface.\n",
-      py::arg("tau_arr"),
-      py::arg("omega_arr"),
-      py::arg("NQuad"),
-      py::arg("Leg_coeffs_all"),
-      py::arg("mu0"),
-      py::arg("I0"),
-      py::arg("phi0"),
-      py::arg("NLeg").none()          = py::none(),
-      py::arg("NFourier").none()      = py::none(),
-      py::arg("b_pos").none()         = py::none(),
-      py::arg("b_neg").none()         = py::none(),
-      py::arg("f_arr").none()         = py::none(),
-      py::arg("BDRF_Fourier_modes")   = std::vector<disort::BDRF>{},
-      py::arg("s_poly_coeffs").none() = py::none());
+      "tau_arr"_a,
+      "omega_arr"_a,
+      "NQuad"_a,
+      "Leg_coeffs_all"_a,
+      "mu0"_a,
+      "I0"_a,
+      "phi0"_a,
+      "NLeg"_a.none()          = py::none(),
+      "NFourier"_a.none()      = py::none(),
+      "b_pos"_a.none()         = py::none(),
+      "b_neg"_a.none()         = py::none(),
+      "f_arr"_a.none()         = py::none(),
+      "BDRF_Fourier_modes"_a   = std::vector<disort::BDRF>{},
+      "s_poly_coeffs"_a.none() = py::none());
   x.def(
        "u",
        [](disort::main_data& dis, const AscendingGrid& tau, const Vector& phi) {
@@ -112,8 +113,8 @@ void py_disort(py::module_& m) try {
          dis.ungridded_u(out, tau, phi);
          return out;
        },
-       py::arg("tau"),
-       py::arg("phi"))
+       "tau"_a,
+       "phi"_a)
       .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {
@@ -121,7 +122,7 @@ void py_disort(py::module_& m) try {
             dis.ungridded_flux(out[0], out[1], out[2], tau);
             return out;
           },
-          py::arg("tau"))
+          "tau"_a)
       .def(
           "pydisort_u",
           [](disort::main_data& dis, Vector tau_, const Vector& phi) {
@@ -142,8 +143,8 @@ void py_disort(py::module_& m) try {
             }
             return out;
           },
-          py::arg("tau"),
-          py::arg("phi"))
+          "tau"_a,
+          "phi"_a)
       .def(
           "pydisort_flux_up",
           [](disort::main_data& dis, Vector tau_) {
@@ -164,7 +165,7 @@ void py_disort(py::module_& m) try {
             }
             return out;
           },
-          py::arg("tau"))
+          "tau"_a)
       .def(
           "pydisort_flux_down",
           [](disort::main_data& dis, Vector tau_) {
@@ -186,7 +187,7 @@ void py_disort(py::module_& m) try {
             }
             return out;
           },
-          py::arg("tau"));
+          "tau"_a);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize disort\n", e.what()));

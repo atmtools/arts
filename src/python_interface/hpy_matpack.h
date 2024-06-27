@@ -1,9 +1,11 @@
 #pragma once
 
 #include <matpack.h>
+#include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/tuple.h>
 
 #include "hpy_numpy.h"
@@ -70,8 +72,7 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::handle());
-        return np.attr("asarray")(
-            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -105,8 +106,7 @@ void matpack_constant_interface(
 
         auto np = py::module_::import_("numpy");
         auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::handle());
-        return np.attr("asarray")(
-            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -143,8 +143,7 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), 1, shape.data(), py::handle());
-        return np.attr("asarray")(
-            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -191,8 +190,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
       "__array__",
       [](mtype& gd, py::object dtype_, py::object copy) {
         auto np = py::module_::import_("numpy");
-        return np.attr("asarray")(
-            gd.data, py::arg("dtype") = dtype_, py::arg("copy") = copy);
+        return np.attr("asarray")(gd.data, "dtype"_a = dtype_, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -201,10 +199,6 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; });
-
-  c.def("__repr__", [](const mtype& m) { return var_string(m); });
-
-  c.def("__str__", [](const mtype& m) { return var_string(m); });
 
   c.def("to_dict", [](const py::object& gd) {
     py::dict out;
@@ -247,10 +241,10 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
     auto gd = mtype{};
 
-    gd.data = py::cast<typename mtype::data_t>(d["data"]);
+    gd.data = py::cast<dtype>(d["data"]);
 
     if (d.contains("name")) {
-      gd.data_name = py::cast<String>(d["name"]);
+      gd.data_name = py::cast<std::string_view>(d["name"]);
     }
 
     gd.grid_names = py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
@@ -267,6 +261,16 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
   c.def_static("from_xarray", [](const py::object& xarray) {
     return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")());
   });
+
+  c.def(
+      "__eq__",
+      [](const mtype& a, const mtype& b) { return a == b; },
+      py::is_operator());
+
+  c.def(
+      "__ne__",
+      [](const mtype& a, const mtype& b) { return a != b; },
+      py::is_operator());
 
   common_ndarray(c);
 

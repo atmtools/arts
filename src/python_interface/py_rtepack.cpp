@@ -23,8 +23,7 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
         auto np = py::module_::import_("numpy");
         auto x  = py::ndarray<py::numpy, Numeric, py::ndim<n>, py::c_contig>(
             v.data_handle(), n, shape.data(), py::handle());
-        return np.attr("asarray")(
-            x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -59,14 +58,14 @@ void py_rtepack(py::module_ &m) try {
                            0.0};
           },
           "Returns [1.0, cos(2*angle), sin(2*angle), 0.0], the linear polarization vector for a given angle",
-          py::arg("angle"))
+          "angle"_a)
       .def_static(
           "cirpol",
           [](const Numeric angle) {
             return Stokvec{1.0, 0.0, 0.0, Conversion::sind(angle)};
           },
           "Returns [1.0, 0.0, 0.0, sin(angle)], the circular polarization vector for a given phase delay angle",
-          py::arg("angle"))
+          "angle"_a)
       .def(
           "__array__",
           [](Stokvec &v, py::object dtype, py::object copy) {
@@ -75,8 +74,7 @@ void py_rtepack(py::module_ &m) try {
             auto x =
                 py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
                     v.data.data(), 1, shape.data(), py::handle());
-            return np.attr("asarray")(
-                x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none())
@@ -132,8 +130,7 @@ void py_rtepack(py::module_ &m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
                     x.data.data(), 1, shape.data(), py::handle());
-            return np.attr("asarray")(
-                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none())
@@ -180,8 +177,7 @@ void py_rtepack(py::module_ &m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
                     x.data.data(), 2, shape.data(), py::handle());
-            return np.attr("asarray")(
-                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none())

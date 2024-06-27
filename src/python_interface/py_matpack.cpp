@@ -14,10 +14,10 @@ void common_math_interface(py::class_<T>& cls_) {
       .def(py::self - Type())
       .def(py::self * Type())
       .def(py::self / Type())
-      .def(py::self += Type())
-      .def(py::self -= Type())
-      .def(py::self *= Type())
-      .def(py::self /= Type())
+      .def(py::self += Type(), py::rv_policy::none)
+      .def(py::self -= Type(), py::rv_policy::none)
+      .def(py::self *= Type(), py::rv_policy::none)
+      .def(py::self /= Type(), py::rv_policy::none)
       .def(py::self == Type())
       .def(py::self != Type())
       .def(py::self <= Type())
@@ -44,10 +44,10 @@ void common_self_math_interface(py::class_<T>& cls_) {
       .def(py::self - py::self)
       .def(py::self * py::self)
       .def(py::self / py::self)
-      .def(py::self += py::self)
-      .def(py::self -= py::self)
-      .def(py::self *= py::self)
-      .def(py::self /= py::self)
+      .def(py::self += py::self, py::rv_policy::none)
+      .def(py::self -= py::self, py::rv_policy::none)
+      .def(py::self *= py::self, py::rv_policy::none)
+      .def(py::self /= py::self, py::rv_policy::none)
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def(py::self <= py::self)
@@ -66,9 +66,9 @@ void py_matpack(py::module_& m) try {
 
   py::class_<Range>(m, "Range")
       .def(py::init<Index, Index, Index>(),
-           py::arg("offset"),
-           py::arg("extent"),
-           py::arg("stride") = 1,
+           "offset"_a,
+           "extent"_a,
+           "stride"_a = 1,
            "Valued initialization")
       .def("__getstate__",
            [](const Range& self) {
@@ -166,10 +166,7 @@ void py_matpack(py::module_& m) try {
   py::class_<Rational> rat(m, "Rational");
   common_math_interface<Index>(rat);
   common_self_math_interface(rat);
-  rat.def(py::init<Index, Index>(),
-          py::arg("n") = 0,
-          py::arg("d") = 1,
-          "Default rational")
+  rat.def(py::init<Index, Index>(), "n"_a = 0, "d"_a = 1, "Default rational")
       .def(py::init<String>(), "From :class:`str`")
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })

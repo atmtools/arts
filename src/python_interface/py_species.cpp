@@ -98,7 +98,7 @@ void py_species(py::module_& m) try {
           [](const SpeciesIsotope& self, Numeric T) {
             return PartitionFunctions::Q(T, self);
           },
-          py::arg("T"),
+          "T"_a,
           "Partition function")
       .def_ro("spec",
               &SpeciesIsotope::spec,

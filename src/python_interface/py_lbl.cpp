@@ -30,7 +30,8 @@ void py_lbl(py::module_& m) try {
 
   using pair_vector_type =
       std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
-  py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(m, "LineShapeVariableTemperatureModelList")
+  py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(
+      m, "LineShapeVariableTemperatureModelList")
       .def("get",
            [](const pair_vector_type& self,
               LineShapeModelVariable x) -> lbl::temperature::data {
@@ -62,21 +63,21 @@ void py_lbl(py::module_& m) try {
       .def("G0",
            &lbl::line_shape::species_model::G0,
            "The G0 coefficient",
-           py::arg("T0"),
-           py::arg("T"),
-           py::arg("P"))
+           "T0"_a,
+           "T"_a,
+           "P"_a)
       .def("Y",
            &lbl::line_shape::species_model::Y,
            "The Y coefficient",
-           py::arg("T0"),
-           py::arg("T"),
-           py::arg("P"))
+           "T0"_a,
+           "T"_a,
+           "P"_a)
       .def("D0",
            &lbl::line_shape::species_model::D0,
            "The D0 coefficient",
-           py::arg("T0"),
-           py::arg("T"),
-           py::arg("P"))
+           "T0"_a,
+           "T"_a,
+           "P"_a)
       .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
 
   py::class_<std::vector<lbl::line_shape::species_model>>(m,
@@ -92,15 +93,9 @@ void py_lbl(py::module_& m) try {
       .def_rw("single_models",
               &lbl::line_shape::model::single_models,
               "The single models")
-      .def("G0",
-           &lbl::line_shape::model::G0,
-           "The G0 coefficient",
-           py::arg("atm"))
-      .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", py::arg("atm"))
-      .def("D0",
-           &lbl::line_shape::model::D0,
-           "The D0 coefficient",
-           py::arg("atm"))
+      .def("G0", &lbl::line_shape::model::G0, "The G0 coefficient", "atm"_a)
+      .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", "atm"_a)
+      .def("D0", &lbl::line_shape::model::D0, "The D0 coefficient", "atm"_a)
       .def("remove",
            [](lbl::line_shape::model& self, LineShapeModelVariable x) {
              for (auto& specmod : self.single_models) {
@@ -155,7 +150,8 @@ void py_lbl(py::module_& m) try {
       .def("s", &lbl::line::s, "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
-  py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(m, "LineList")
+  py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(
+      m, "LineList")
       .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
 
   py::class_<lbl::band_data>(m, "AbsorptionBandData")
@@ -177,7 +173,8 @@ void py_lbl(py::module_& m) try {
               ":class:`~pyarts.arts.QuantumIdentifier`");
 
   auto aoab =
-      py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionBand");
+      py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(
+          m, "ArrayOfAbsorptionBand");
   workspace_group_interface(aoab);
   aoab.def(
           "__getitem__",
@@ -239,16 +236,16 @@ void py_lbl(py::module_& m) try {
         return std::pair{eqv_str, eqv_val};
       },
       "Compute equivalent lines for a given band",
-      py::arg("band"),
-      py::arg("ecs_data"),
-      py::arg("atm"),
-      py::arg("T"));
+      "band"_a,
+      "ecs_data"_a,
+      "atm"_a,
+      "T"_a);
 
   lbl.def("Q",
           &PartitionFunctions::Q,
           "Partition function",
-          py::arg("T"),
-          py::arg("isotopologue"));
+          "T"_a,
+          "isotopologue"_a);
   lbl.def(
       "Q",
       [](const Vector& T, const SpeciesIsotope& isot) {
@@ -260,8 +257,8 @@ void py_lbl(py::module_& m) try {
         return Q;
       },
       "Partition function",
-      py::arg("T"),
-      py::arg("isotopologue"));
+      "T"_a,
+      "isotopologue"_a);
 
   py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
   workspace_group_interface(led);

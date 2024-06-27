@@ -28,7 +28,7 @@ std::string using_pygroup() {
     os << "  using py" << name << " [[maybe_unused]] = ";
     if (wsg.value_type) {
       os << "ValueHolder<" << name << ">";
-    }else if (name == "Any") {
+    } else if (name == "Any") {
       os << "py::object";
     } else {
       os << name;
@@ -61,8 +61,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   };
 
   for (auto& v : wsm.in | std::ranges::views::filter(not_out)) {
-    os << ",\n    const py" << wsvs.at(v).type << "* const _"
-       << v;
+    os << ",\n    const py" << wsvs.at(v).type << "* const _" << v;
   }
 
   const auto not_gout = [&wsm](const auto& v) {
@@ -100,8 +99,8 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
     if (wsm.gout_type[i] == "Any" or uses_variadic(wsm.gout_type[i])) {
       os << "        Wsv " << wsm.gout[i] << " = _" << wsm.gout[i]
          << " ? from(_" << wsm.gout[i]
-         << R"() : throw std::runtime_error("Unknown output: \")"
-         << wsm.gout[i] << "\\\"\");\n";
+         << R"() : throw std::runtime_error("Unknown output: \")" << wsm.gout[i]
+         << "\\\"\");\n";
     } else {
       os << "        auto& " << wsm.gout[i] << " = select_gout<"
          << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", \"" << wsm.gout[i]
@@ -121,8 +120,7 @@ std::string method_gin_selection(const std::string& name,
 
     if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
       os << "        Wsv " << wsm.gin[i] << " = _" << wsm.gin[i] << " ? from(_"
-         << wsm.gin[i]
-         << R"() : throw std::runtime_error("Unknown input: \")"
+         << wsm.gin[i] << R"() : throw std::runtime_error("Unknown input: \")"
          << wsm.gin[i] << "\\\"\");\n";
     } else {
       if (has_default) {
@@ -651,8 +649,7 @@ std::string method_error(const std::string& name,
     if (not first) os << ",\\n" << spaces;
     first = false;
     os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t
-       << R"() : std::string("NoneType"),
+       << "_" << t << " ? type(_" << t << R"() : std::string("NoneType"),
               ")";
   }
 
@@ -757,13 +754,11 @@ std::string method(const std::string& name,
   os << "[](";
   os << "\n    Workspace& _ws,";
   for (auto& str : wsm.output) {
-    os << "\n    py" << wsvs.at(str).type << " * const _" << str
-       << ",";
+    os << "\n    py" << wsvs.at(str).type << " * const _" << str << ",";
   }
   for (auto& str : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n     const py" << wsvs.at(str).type
-       << " * const _" << str << ",";
+    os << "\n     const py" << wsvs.at(str).type << " * const _" << str << ",";
   }
   os << "\n     const ";
   if (wsm.array) os << "ArrayOf";

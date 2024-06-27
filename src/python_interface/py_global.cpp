@@ -122,7 +122,7 @@ Parameters
     threads : int
         Number of threads
 )--"),
-      py::arg("threads") = omp_get_max_threads();
+      "threads"_a = omp_get_max_threads();
 #endif
 
 } catch (std::exception& e) {

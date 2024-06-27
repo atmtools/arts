@@ -2,9 +2,9 @@
 #define python_interface_h
 
 #include <nanobind/nanobind.h>
+#include <py_auto_options.h>
 #include <py_auto_wsg.h>
 #include <workspace.h>
-#include <py_auto_options.h>
 
 using ssize_t = Py_ssize_t;
 
@@ -106,12 +106,11 @@ const T& select_gin(const ValueHolder<T>* const x, const T& defval) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 }  // namespace Python
 
-template<typename T>
+template <typename T>
 struct std::hash<Python::ValueHolder<T>> {
   std::size_t operator()(const Python::ValueHolder<T>& x) const {
     return std::hash<T>{}(x->val);
   }
 };
-
 
 #endif  // python_interface_h

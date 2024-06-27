@@ -1,8 +1,8 @@
+#include <nanobind/stl/function.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
-#include <nanobind/stl/function.h>
 #include <parameters.h>
 #include <workspace.h>
 
@@ -61,9 +61,9 @@ void py_agenda(py::module_& m) try {
             const std::vector<std::string>& o) {
            new (cb) CallbackOperator(f, i, o);
          },
-         py::arg("f"),
-         py::arg("inputs")  = std::vector<std::string>{},
-         py::arg("outputs") = std::vector<std::string>{},
+         "f"_a,
+         "inputs"_a  = std::vector<std::string>{},
+         "outputs"_a = std::vector<std::string>{},
          "Initialize as structured call")
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
@@ -76,9 +76,9 @@ void py_agenda(py::module_& m) try {
              const std::unordered_map<std::string, std::string>& kw) {
             new (me) Method{n, a, kw};
           },
-          py::arg("name"),
-          py::arg("args"),
-          py::arg("kwargs"),
+          "name"_a,
+          "args"_a,
+          "kwargs"_a,
           "A named method with args and kwargs")
       .def(
           "__init__",
@@ -87,8 +87,8 @@ void py_agenda(py::module_& m) try {
                             std::visit([](auto a) { return Wsv(std::move(a)); },
                                        from_py(v).value)};
           },
-          py::arg("name"),
-          py::arg("wsv"),
+          "name"_a,
+          "wsv"_a,
           "A method that sets a workspace variable")
       .def_prop_ro(
           "val",
@@ -107,10 +107,10 @@ void py_agenda(py::module_& m) try {
 
   py::class_<Agenda> ag(m, "Agenda");
   workspace_group_interface(ag);
-  ag.def(py::init<std::string>(), py::arg("name"), "Create with name")
+  ag.def(py::init<std::string>(), "name"_a, "Create with name")
       .def("add",
            &Agenda::add,
-           py::arg("method").none(false),
+           "method"_a.none(false),
            R"--(
 Adds a method to the Agenda
 
@@ -124,12 +124,12 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "execute",
           [](Agenda& a, Workspace& ws) { a.execute(ws); },
-          py::arg("ws"),
+          "ws"_a,
           "Executes the agenda on the provided workspace")
       .def(
           "finalize",
           [](Agenda& a, bool fix) { a.finalize(fix); },
-          py::arg("fix") = false,
+          "fix"_a = false,
           "Finalize the agenda, making it possible to use it in the workspace")
       .def_prop_ro(
           "name",

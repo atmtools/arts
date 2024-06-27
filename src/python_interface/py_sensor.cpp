@@ -23,8 +23,7 @@ void py_sensor(py::module_& m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
                     &x, 1, shape.data(), py::handle());
-            return np.attr("asarray")(
-                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none())
@@ -48,8 +47,7 @@ void py_sensor(py::module_& m) try {
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
                     x.data_handle(), 2, shape.data(), py::handle());
-            return np.attr("asarray")(
-                w, py::arg("dtype") = dtype, py::arg("copy") = copy);
+            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none())
@@ -102,10 +100,10 @@ void py_sensor(py::module_& m) try {
              const Index& Nhwhm) {
             s.set_frequency_gaussian(f0, fwhm, Nfwhm, Nhwhm);
           },
-          py::arg("f0"),
-          py::arg("fwhm"),
-          py::arg("Nfwhm") = Index{5},
-          py::arg("Nhwhm") = Index{3},
+          "f0"_a,
+          "fwhm"_a,
+          "Nfwhm"_a = Index{5},
+          "Nhwhm"_a = Index{3},
           R"--(Gaussian frequency grid
   
 Parameters
@@ -128,10 +126,10 @@ Nhwhm : int
              const String& filter) {
             s.set_frequency_lochain(DescendingGrid{f0s}, width, N, filter);
           },
-          py::arg("f0s"),
-          py::arg("width"),
-          py::arg("N"),
-          py::arg("filter") = String{},
+          "f0s"_a,
+          "width"_a,
+          "N"_a,
+          "filter"_a = String{},
           R"--(Local oscillator style channel selection frequency grid
   
 Parameters
@@ -150,8 +148,8 @@ filter : list of int, optional
       .def("ok", &SensorObsel::ok, "Check if the obsel is valid")
       .def("cutoff_frequency_weights",
            &SensorObsel::cutoff_frequency_weights,
-           py::arg("cutoff"),
-           py::arg("relative") = true,
+           "cutoff"_a,
+           "relative"_a = true,
            "Cuts out parts of the frequency grid with low weights");
 
   auto a1 =

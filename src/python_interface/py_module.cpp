@@ -1,7 +1,6 @@
+#include <nanobind/nanobind.h>
 #include <parameters.h>
 #include <python_interface.h>
-
-#include <nanobind/nanobind.h>
 
 extern Parameters parameters;
 
@@ -20,7 +19,7 @@ void py_time(py::module_& m);
 void py_tessem(py::module_& m);
 void py_quantum(py::module_& m);
 void py_rte(py::module_& m);
-void py_rtepack(py::module_ &m);
+void py_rtepack(py::module_& m);
 void py_telsem(py::module_& m);
 void py_species(py::module_& m);
 void py_sparse(py::module_& m);
@@ -41,7 +40,7 @@ void py_math(py::module_& m);
 void py_auto_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_atm(py::module_& m);
-void py_surf(py::module_ &m);
+void py_surf(py::module_& m);
 void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
 void py_operators(py::module_& m);
@@ -86,7 +85,7 @@ NB_MODULE(arts, m) try {
         parameters.includepath.push_back(
             arts_default_include_path.substr(lastPos, pos - lastPos));
         lastPos = arts_default_include_path.find_first_not_of(':', pos);
-        pos = arts_default_include_path.find_first_of(':', lastPos);
+        pos     = arts_default_include_path.find_first_of(':', lastPos);
       }
     }
 #endif
@@ -150,7 +149,8 @@ NB_MODULE(arts, m) try {
   py_hitran(m);
   py_igrf(m);
   py_zeeman(m);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
 }
 }  // namespace Python

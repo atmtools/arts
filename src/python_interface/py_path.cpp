@@ -31,15 +31,18 @@ void py_path(py::module_& m) try {
               &PropagationPathPoint::ngroup,
               ":class:`float` Path group refractive index");
 
-  auto a1 = py::bind_vector<ArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
+  auto a1 = py::bind_vector<ArrayOfPropagationPathPoint,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfPropagationPathPoint");
   workspace_group_interface(a1);
   vector_interface(a1);
-  auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
+  auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropagationPathPoint");
   workspace_group_interface(a2);
   vector_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(
+  auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfArrayOfPropagationPathPoint");
   workspace_group_interface(a3);
   vector_interface(a3);

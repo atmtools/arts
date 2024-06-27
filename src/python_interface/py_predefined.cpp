@@ -80,11 +80,11 @@ void internalCKDMT400(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::arg("predefined_model_data"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      "predefined_model_data"_a,
       R"--(Computes foreign absorption using MT CKD Hitran version
 
 Parameters
@@ -128,11 +128,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::arg("predefined_model_data"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      "predefined_model_data"_a,
       R"--(Computes self absorption using MT CKD Hitran version
 
 Parameters
@@ -167,10 +167,10 @@ void internalMPM89(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes water absorption using MPM89
 
 Parameters
@@ -202,11 +202,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes oxygen absorption using MPM89
 
 Parameters
@@ -242,11 +242,11 @@ void internalMPM93(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes nitrogen absorption using MPM93
 
 Parameters
@@ -281,9 +281,9 @@ void internalELL07(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_temperature"),
-      py::arg("lwc"),
+      "f_grid"_a,
+      "rtp_temperature"_a,
+      "lwc"_a,
       R"--(Computes water absorption using PWR98
 
 Parameters
@@ -314,10 +314,10 @@ void internalPWR98(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes water absorption using PWR98
 
 Parameters
@@ -349,11 +349,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes oxygen absorption using PWR98
 
 Parameters
@@ -388,10 +388,10 @@ void internalPWR20xx(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes water absorption using PWR2021
 
 Parameters
@@ -424,11 +424,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes oxygen absorption using PWR2021
 
 Parameters
@@ -461,10 +461,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes water absorption using PWR2022
 
 Parameters
@@ -497,11 +497,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes oxygen absorption using PWR2022
 
 Parameters
@@ -535,11 +535,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes nitrogen absorption using PWR2021
 
 Parameters
@@ -575,11 +575,11 @@ void internalTRE05(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
       R"--(Computes oxygen absorption using TRE05
 
 Parameters
@@ -614,10 +614,10 @@ void internalCKDMT100(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
@@ -649,11 +649,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_n2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_n2"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
@@ -686,10 +686,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
@@ -722,10 +722,10 @@ void internalCKDMT252(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_co2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_co2"_a,
       R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
@@ -756,10 +756,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
       R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
@@ -796,12 +796,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o"),
-      py::arg("x_o2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a,
+      "x_o2"_a,
       R"--(Computes N2 fun absorption using MT CKD version 2.52
 
 Parameters
@@ -842,12 +842,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o"),
-      py::arg("x_o2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a,
+      "x_o2"_a,
       R"--(Computes N2 rot absorption using MT CKD version 2.52
 
 Parameters
@@ -884,10 +884,10 @@ void internalSTANDARD(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes self water absorption using Rosenkranz standard
 
 Parameters
@@ -918,10 +918,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes foreign water absorption using Rosenkranz standard
 
 Parameters
@@ -952,10 +952,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
       R"--(Computes nitrogen absorption using Rosenkranz standard
 
 Parameters
@@ -987,11 +987,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a,
       R"--(Computes oxygen absorption using Rosenkranz standard
 
 Parameters
@@ -1026,10 +1026,10 @@ void internalCKDMT350(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
@@ -1061,10 +1061,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes foreign absorption using MT CKD version 3.50
 
 Parameters
@@ -1097,10 +1097,10 @@ void internalCKDMT320(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes self absorption using MT CKD version 3.20
 
 Parameters
@@ -1132,10 +1132,10 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
       R"--(Computes foreign absorption using MT CKD version 3.20
 
 Parameters

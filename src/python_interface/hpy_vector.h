@@ -52,11 +52,6 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
           [](const Array<Value> &v) { return !v.empty(); },
           "Check whether the vector is nonempty")
 
-      .def("__repr__",
-           [](handle_t<Array<Value>> h) {
-             return steal<str>(detail::repr_list(h.ptr()));
-           })
-
       .def(
           "__iter__",
           [](Array<Value> &v) {

@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
   }
 
   const int num_variables = std::stoi(argv[1]);
-  const int num_methods = std::stoi(argv[2]);
+  const int num_methods   = std::stoi(argv[2]);
 
   std::ofstream os("py_auto_interface.cpp");
   os << "#include <python_interface.h>\n\n";

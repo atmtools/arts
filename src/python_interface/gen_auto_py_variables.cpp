@@ -4,7 +4,6 @@
 
 #include "pydocs.h"
 
-
 std::vector<std::string> errors;
 #define ERRORAPPEND                \
   catch (std::exception & e) {     \
@@ -81,12 +80,14 @@ void variables(const int nfiles) {
   }
 
   for (int i = 0; i < nfiles; i++) {
-    select_ofstream(ofs, i) << R"--(#include <python_interface.h>
+    select_ofstream(ofs, i)
+        << R"--(#include <python_interface.h>
 
 #include <nanobind/stl/shared_ptr.h>
 
 namespace Python {
-void py_auto_wsv_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+void py_auto_wsv_)--"
+        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   int ifile = 0;
@@ -104,8 +105,7 @@ void py_auto_wsv_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
 
 int main(int argc, char** argv) {
   if (argc != 2) {
-    std::cerr << "Usage: " << argv[0]
-              << " <NUM VARIABLE FILES>\n";
+    std::cerr << "Usage: " << argv[0] << " <NUM VARIABLE FILES>\n";
     return 1;
   }
 

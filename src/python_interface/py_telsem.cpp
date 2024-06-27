@@ -45,7 +45,9 @@ void py_telsem(py::module_& m) try {
         self->Correspondance() = py::cast<ArrayOfIndex>(t[13]);
       });
 
-  auto a1 = py::bind_vector<ArrayOfTelsemAtlas, py::rv_policy::reference_internal>(m, "ArrayOfTelsemAtlas");
+  auto a1 =
+      py::bind_vector<ArrayOfTelsemAtlas, py::rv_policy::reference_internal>(
+          m, "ArrayOfTelsemAtlas");
   workspace_group_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {

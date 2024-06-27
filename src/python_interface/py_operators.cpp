@@ -16,19 +16,20 @@ void py_operators(py::module_& m) {
           [](NumericUnaryOperator& f, py::object x) {
             return vectorize(f.f, x);
           },
-          py::arg("x"));
+          "x"_a);
   workspace_group_interface(nuop);
 
   py::class_<NumericTernaryOperator> ntop(m, "NumericTernaryOperator");
   ntop.def(py::init_implicit<NumericTernaryOperator::func_t>())
       .def(
           "__call__",
-          [](NumericTernaryOperator& f, py::object x, py::object y, py::object z) {
-            return vectorize(f.f, x, y, z);
-          },
-          py::arg("x"),
-          py::arg("y"),
-          py::arg("z"));
+          [](NumericTernaryOperator& f,
+             py::object x,
+             py::object y,
+             py::object z) { return vectorize(f.f, x, y, z); },
+          "x"_a,
+          "y"_a,
+          "z"_a);
   workspace_group_interface(ntop);
 }
 }  // namespace Python

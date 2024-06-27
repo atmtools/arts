@@ -12,8 +12,9 @@
 
 namespace Python {
 void py_time(py::module_& m) try {
-  py::class_<Time>time(m, "Time");workspace_group_interface(time);
-  time    .def(
+  py::class_<Time> time(m, "Time");
+  workspace_group_interface(time);
+  time.def(
           "__init__",
           [](Time* t, std::chrono::system_clock::time_point nt) {
             new (t) Time{};
@@ -76,7 +77,8 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfTime")
+  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(
+                m, "ArrayOfTime")
                 .def_prop_ro(
                     "as_datetime",
                     [](const ArrayOfTime& in)
@@ -90,7 +92,9 @@ void py_time(py::module_& m) try {
   workspace_group_interface(a1);
   vector_interface(a1);
 
-  auto a2 = py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfTime");
+  auto a2 =
+      py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(
+          m, "ArrayOfArrayOfTime");
   workspace_group_interface(a2);
   vector_interface(a2);
 } catch (std::exception& e) {

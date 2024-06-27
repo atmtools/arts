@@ -64,7 +64,7 @@ void py_quantum(py::module_& m) try {
           [](QuantumNumberValueList& x, QuantumNumberType y) {
             ARTS_USER_ERROR_IF(not x.has(y), "Out of range: ", y) return x[y];
           },
-          py::arg("qt"),
+          "qt"_a,
           R"(Set a quantum number value
 
 Parameters
@@ -80,7 +80,7 @@ qn : ~pyarts.arts.QuantumNumberValue
       .def(
           "set",
           [](QuantumNumberValueList& x, QuantumNumberValue y) { x.set(y); },
-          py::arg("qn"),
+          "qn"_a,
           R"(Set a quantum number value
 
 Parameters
@@ -168,8 +168,9 @@ symbol : str
            });
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
-  auto a1 =
-      py::bind_vector<ArrayOfQuantumIdentifier, py::rv_policy::reference_internal>(m, "ArrayOfQuantumIdentifier");
+  auto a1 = py::bind_vector<ArrayOfQuantumIdentifier,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfQuantumIdentifier");
   workspace_group_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {

@@ -23,10 +23,11 @@ inline static std::function<py::object(py::object&, py::object&, py::object&)>
 
 inline static std::function<py::object(
     py::object&, py::object&, py::object&, py::object&, py::object&)>
-    five_args{[](py::object&, py::object&, py::object&, py::object&, py::object&) {
-      throw std::logic_error("Not implemented");
-      return py::none();
-    }};
+    five_args{
+        [](py::object&, py::object&, py::object&, py::object&, py::object&) {
+          throw std::logic_error("Not implemented");
+          return py::none();
+        }};
 }  // namespace Python::details
 
 #endif  // python_interface_pyarts_details_h

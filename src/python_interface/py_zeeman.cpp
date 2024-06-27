@@ -26,7 +26,8 @@ void py_zeeman(py::module_& m) try {
       .def_prop_ro("deta_du", &lbl::zeeman::magnetic_angles::deta_du)
       .def_prop_ro("deta_dv", &lbl::zeeman::magnetic_angles::deta_dv)
       .def_prop_ro("deta_dw", &lbl::zeeman::magnetic_angles::deta_dw)
-      .doc() = "Magnetic angles for the Zeeman effect, note that the numbers are in radians.";
+      .doc() =
+      "Magnetic angles for the Zeeman effect, note that the numbers are in radians.";
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize IGRF\n", e.what()));

@@ -45,7 +45,8 @@ void py_star(py::module_& m) try {
                             std::get<5>(state)};
            });
 
-  auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(m, "ArrayOfSun");
+  auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(
+      m, "ArrayOfSun");
   workspace_group_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {

@@ -34,8 +34,7 @@ void py_basic(py::module_& m) try {
 
            auto np = py::module_::import_("numpy");
            auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
-           return np.attr("asarray")(
-               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -58,8 +57,7 @@ void py_basic(py::module_& m) try {
 
            auto np = py::module_::import_("numpy");
            auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
-           return np.attr("asarray")(
-               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -82,20 +80,16 @@ void py_basic(py::module_& m) try {
 
            auto np = py::module_::import_("numpy");
            auto x  = nd(v.data(), 1, shape.data(), py::handle());
-           return np.attr("asarray")(
-               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](ArrayOfIndex& v) {
-            auto np = py::module_::import_("numpy");
-            return np.attr("asarray")(v, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ArrayOfIndex& a, const ArrayOfIndex& b) { a = b; });
-  value_holder_vector_interface(aoi);
   common_ndarray(aoi);
+  value_holder_vector_interface(aoi);
   workspace_group_interface(aoi);
 
   auto aon = py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric");
@@ -108,20 +102,16 @@ void py_basic(py::module_& m) try {
 
            auto np = py::module_::import_("numpy");
            auto x  = nd(v.data(), 1, shape.data(), py::handle());
-           return np.attr("asarray")(
-               x, py::arg("dtype") = dtype, py::arg("copy") = copy);
+           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
       .def_prop_rw(
           "value",
-          [](ArrayOfNumeric& v) {
-            auto np = py::module_::import_("numpy");
-            return np.attr("asarray")(v, py::arg("copy") = false);
-          },
+          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; });
-  value_holder_vector_interface(aon);
   common_ndarray(aon);
+  value_holder_vector_interface(aon);
 
   auto a1 =
       py::bind_vector<ArrayOfArrayOfIndex, py::rv_policy::reference_internal>(
@@ -138,7 +128,7 @@ void py_basic(py::module_& m) try {
   py::class_<Any> any(m, "Any");
   workspace_group_interface(any);
   any.def("__init__",
-          [](Any* a, const py::args&, const py::kwargs&) { new (a) Any{}; })
+          [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; })
       .def("__getstate__", [](const Any&) { return std::tuple<>(); })
       .def("__setstate__", [](Any* a, const std::tuple<>&) { new (a) Any{}; });
 } catch (std::exception& e) {

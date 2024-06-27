@@ -1,8 +1,8 @@
 #include <lineshapemodel.h>
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
-#include <nanobind/stl/array.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
@@ -34,11 +34,11 @@ void py_spectroscopy(py::module_& m) try {
                     Numeric,
                     Numeric,
                     Numeric>(),
-           py::arg("type") = LineShapeTemperatureModelOld::None,
-           py::arg("X0")   = 0,
-           py::arg("X1")   = 0,
-           py::arg("X2")   = 0,
-           py::arg("X3")   = 0,
+           "type"_a = LineShapeTemperatureModelOld::None,
+           "X0"_a   = 0,
+           "X1"_a   = 0,
+           "X2"_a   = 0,
+           "X3"_a   = 0,
            "From values")
       .PythonInterfaceCopyValue(LineShapeModelParameters)
       .def_rw(
@@ -100,7 +100,7 @@ void py_spectroscopy(py::module_& m) try {
                                          const std::string& c) {
             new (z) Zeeman::Polarization{ZeemanPolarizationEnumGetter(c)};
           },
-          py::arg("str") = std::string{"None"},
+          "str"_a = std::string{"None"},
           "From :class:`str`")
       // .PythonInterfaceCopyValue(Zeeman::Polarization)
       .def("__repr__",
@@ -127,15 +127,15 @@ void py_spectroscopy(py::module_& m) try {
   py::class_<Zeeman::Model>(m, "ZeemanModel")
       .def(py::init<>())
       .def(py::init<Numeric, Numeric>(),
-           py::arg("gu"),
-           py::arg("gl"),
+           "gu"_a,
+           "gl"_a,
            "From two numeric values")
       .def(
           "__init__",
           [](Zeeman::Model* z, std::array<Numeric, 2> a) {
             new (z) Zeeman::Model(a[0], a[1]);
           },
-          py::arg("gs"),
+          "gs"_a,
           "From list of two values")
       .def_prop_rw(
           "gu",
@@ -168,15 +168,15 @@ void py_spectroscopy(py::module_& m) try {
                     Numeric,
                     Numeric,
                     Numeric>(),
-           py::arg("g0")  = 0,
-           py::arg("d0")  = 0,
-           py::arg("g2")  = 0,
-           py::arg("d2")  = 0,
-           py::arg("fvc") = 0,
-           py::arg("eta") = 0,
-           py::arg("y")   = 0,
-           py::arg("g")   = 0,
-           py::arg("dv")  = 0,
+           "g0"_a  = 0,
+           "d0"_a  = 0,
+           "g2"_a  = 0,
+           "d2"_a  = 0,
+           "fvc"_a = 0,
+           "eta"_a = 0,
+           "y"_a   = 0,
+           "g"_a   = 0,
+           "dv"_a  = 0,
            "From values")
       .PythonInterfaceCopyValue(LineShape::Output)
       .def_rw(
@@ -267,15 +267,15 @@ void py_spectroscopy(py::module_& m) try {
                     LineShape::ModelParameters,
                     LineShape::ModelParameters,
                     LineShape::ModelParameters>(),
-           py::arg("G0")  = LineShape::ModelParameters{},
-           py::arg("D0")  = LineShape::ModelParameters{},
-           py::arg("G2")  = LineShape::ModelParameters{},
-           py::arg("D2")  = LineShape::ModelParameters{},
-           py::arg("FVC") = LineShape::ModelParameters{},
-           py::arg("ETA") = LineShape::ModelParameters{},
-           py::arg("Y")   = LineShape::ModelParameters{},
-           py::arg("G")   = LineShape::ModelParameters{},
-           py::arg("DV")  = LineShape::ModelParameters{},
+           "G0"_a  = LineShape::ModelParameters{},
+           "D0"_a  = LineShape::ModelParameters{},
+           "G2"_a  = LineShape::ModelParameters{},
+           "D2"_a  = LineShape::ModelParameters{},
+           "FVC"_a = LineShape::ModelParameters{},
+           "ETA"_a = LineShape::ModelParameters{},
+           "Y"_a   = LineShape::ModelParameters{},
+           "G"_a   = LineShape::ModelParameters{},
+           "DV"_a  = LineShape::ModelParameters{},
            "From values")
       .PythonInterfaceCopyValue(LineShapeSingleSpeciesModel)
       .PythonInterfaceBasicRepresentation(LineShapeSingleSpeciesModel)
@@ -421,15 +421,15 @@ void py_spectroscopy(py::module_& m) try {
                     ZeemanModel,
                     LineShapeModel,
                     Quantum::Number::LocalState>(),
-           py::arg("F0")          = 0,
-           py::arg("I0")          = 0,
-           py::arg("E0")          = 0,
-           py::arg("glow")        = 0,
-           py::arg("gupp")        = 0,
-           py::arg("A")           = 0,
-           py::arg("zeeman")      = Zeeman::Model(),
-           py::arg("lineshape")   = LineShape::Model(),
-           py::arg("localquanta") = Quantum::Number::LocalState{},
+           "F0"_a          = 0,
+           "I0"_a          = 0,
+           "E0"_a          = 0,
+           "glow"_a        = 0,
+           "gupp"_a        = 0,
+           "A"_a           = 0,
+           "zeeman"_a      = Zeeman::Model(),
+           "lineshape"_a   = LineShape::Model(),
+           "localquanta"_a = Quantum::Number::LocalState{},
            "From values")
       .PythonInterfaceCopyValue(AbsorptionSingleLine)
       .PythonInterfaceBasicRepresentation(AbsorptionSingleLine)
@@ -512,7 +512,9 @@ void py_spectroscopy(py::module_& m) try {
            })
       .doc() = "Single absorption line";
 
-  py::bind_vector<Array<AbsorptionSingleLine>, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionSingleLine")
+  py::bind_vector<Array<AbsorptionSingleLine>,
+                  py::rv_policy::reference_internal>(
+      m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
   py::class_<AbsorptionLines> al(m, "AbsorptionLines");
@@ -567,19 +569,19 @@ void py_spectroscopy(py::module_& m) try {
                                   std::move(broadeningspecies),
                                   std::move(lines));
         },
-        py::arg("selfbroadening")    = false,
-        py::arg("bathbroadening")    = false,
-        py::arg("cutoff")            = AbsorptionCutoffTypeOld::None,
-        py::arg("mirroring")         = AbsorptionMirroringTypeOld::None,
-        py::arg("population")        = AbsorptionPopulationTypeOld::LTE,
-        py::arg("normalization")     = AbsorptionNormalizationTypeOld::None,
-        py::arg("lineshapetype")     = LineShapeTypeOld::DP,
-        py::arg("T0")                = 296,
-        py::arg("cutofffreq")        = -1,
-        py::arg("linemixinglimit")   = -1,
-        py::arg("quantumidentity")   = QuantumIdentifier("H2O-161"),
-        py::arg("broadeningspecies") = ArrayOfSpeciesEnum{},
-        py::arg("lines")             = Array<AbsorptionSingleLine>{},
+        "selfbroadening"_a    = false,
+        "bathbroadening"_a    = false,
+        "cutoff"_a            = AbsorptionCutoffTypeOld::None,
+        "mirroring"_a         = AbsorptionMirroringTypeOld::None,
+        "population"_a        = AbsorptionPopulationTypeOld::LTE,
+        "normalization"_a     = AbsorptionNormalizationTypeOld::None,
+        "lineshapetype"_a     = LineShapeTypeOld::DP,
+        "T0"_a                = 296,
+        "cutofffreq"_a        = -1,
+        "linemixinglimit"_a   = -1,
+        "quantumidentity"_a   = QuantumIdentifier("H2O-161"),
+        "broadeningspecies"_a = ArrayOfSpeciesEnum{},
+        "lines"_a             = Array<AbsorptionSingleLine>{},
         "From values")
       .def_rw(
 
@@ -673,10 +675,10 @@ void py_spectroscopy(py::module_& m) try {
 
             return band.ShapeParameters(line, T, P, VMR);
           },
-          py::arg("line"),
-          py::arg("T"),
-          py::arg("P"),
-          py::arg("VMR"),
+          "line"_a,
+          "T"_a,
+          "P"_a,
+          "VMR"_a,
 
           R"--(Computes the line shape paramters for the given atmospheric state
 
@@ -757,18 +759,21 @@ X : ~pyarts.arts.LineShapeOutput
            });
 
   auto a1 =
-      py::bind_vector<ArrayOfAbsorptionLines, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLines")
+      py::bind_vector<ArrayOfAbsorptionLines,
+                      py::rv_policy::reference_internal>(
+          m, "ArrayOfAbsorptionLines")
           .def(
               "fuzzy_find_all",
               [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
                 return fuzzy_find_all(a, q);
               },
-              py::arg("q"),
+              "q"_a,
               "Find all the indexes that could match the given quantum identifier");
   workspace_group_interface(a1);
   vector_interface(a1);
 
-  auto a2 = py::bind_vector<ArrayOfArrayOfAbsorptionLines, py::rv_policy::reference_internal>(
+  auto a2 = py::bind_vector<ArrayOfArrayOfAbsorptionLines,
+                            py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfAbsorptionLines");
   workspace_group_interface(a2);
   vector_interface(a2);
