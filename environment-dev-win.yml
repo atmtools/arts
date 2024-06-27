@@ -13,7 +13,7 @@ dependencies:
         - nanobind
         - netcdf4
         - ninja
-        - numpy<2
+        - numpy>=2
         - openblas
         - pkg-config
         - pybind11

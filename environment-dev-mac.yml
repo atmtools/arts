@@ -20,7 +20,7 @@ dependencies:
         - nanobind
         - netcdf4
         - ninja
-        - numpy<2
+        - numpy>=2
         - pkg-config
         - pybind11
         - pytest
