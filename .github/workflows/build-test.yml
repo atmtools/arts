@@ -142,7 +142,7 @@ jobs:
         if: matrix.check == 'yes'
         shell: bash -l {0}
         run: |
-          cmake --build build -j${{ matrix.jcheck }} --target check
+          cmake --build build -j1 --verbose --target check
 
       - name: Python Wheel
         if: matrix.check == 'yes'
