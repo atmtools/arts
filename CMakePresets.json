@@ -91,6 +91,20 @@
       }
     },
     {
+      "name": "reldeb-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "reldeb-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
       "name": "nofortran-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {

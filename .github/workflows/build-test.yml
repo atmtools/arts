@@ -29,9 +29,9 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: linux-debug-gcc
+          - name: linux-reldeb-gcc
             os: ubuntu-22.04
-            preset: debug-gcc-conda
+            preset: reldeb-gcc-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
