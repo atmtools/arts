@@ -10,6 +10,10 @@ if (ENABLE_FORTRAN AND NOT NO_RT4)
     )
   set_target_properties (rt4 PROPERTIES
     COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")
+
+  if (NOT IPO_FORTRAN_SUPPORTED)
+    set_property(TARGET rt4 PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
   set(ENABLE_RT4 false)
 endif()

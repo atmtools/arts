@@ -90,7 +90,11 @@ add_custom_command(
 
 # #######################################################################################
 
-nanobind_add_module(pyarts_cpp NB_STATIC STABLE_ABI
+if (IPO_SUPPORTED)
+  set(NANOBIND_LTO "LTO")
+endif()
+
+nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
     ${PYARTS_WORKSPACE_METHODS}
     ${PYARTS_WORKSPACE_VARS}
     py_auto_wsg.cpp
