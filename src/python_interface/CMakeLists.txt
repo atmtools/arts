@@ -101,15 +101,19 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_auto_interface.cpp
     py_auto_options.cpp
 
-    py_module.cpp
+    py_workspace.cpp
     py_matpack.cpp
-    py_basic.cpp
     py_griddedfield.cpp
+    py_rtepack.cpp
+    py_agenda.cpp
+
+    py_basic.cpp
+    py_sensor.cpp
+    py_lbl.cpp
     py_disort.cpp
     py_time.cpp
     py_tessem.cpp
     py_rte.cpp
-    py_rtepack.cpp
     py_telsem.cpp
     py_species.cpp
     py_sparse.cpp
@@ -119,8 +123,6 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_physics.cpp
     py_spectroscopy.cpp
     py_jac.cpp
-    py_agenda.cpp
-    py_workspace.cpp
     py_global.cpp
     py_xsec_fit.cpp
     py_nlte.cpp
@@ -134,13 +136,12 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_atm.cpp
     py_surf.cpp
     py_fwd.cpp
-    py_lbl.cpp
     py_cia.cpp
     py_operators.cpp
     py_interp.cpp
-    py_sensor.cpp
     py_igrf.cpp
     py_zeeman.cpp
+    py_module.cpp
 
     gen_auto_py_helpers.cpp
 )
