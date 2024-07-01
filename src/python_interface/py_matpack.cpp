@@ -5,6 +5,7 @@
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"
+#include "matpack_data.h"
 #include "python_interface.h"
 
 namespace Python {

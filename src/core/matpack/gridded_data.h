@@ -255,7 +255,8 @@ struct gridded_data {
 
  public:
   template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] T interp(const typename Grids::value_type&... other, Index order) const
+  [[nodiscard]] T interp(const typename Grids::value_type&... other,
+                         Index order) const
     requires(0 < dim and
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
              sizeof...(lag_ts) == dim)
@@ -336,3 +337,95 @@ std::ostream& operator<<(
   return os;
 }
 }  // namespace matpack
+
+template <typename T, typename... Grids>
+struct std::formatter<matpack::gridded_data<T, Grids...>> {
+  static constexpr Size n = sizeof...(Grids);
+
+  format_tags tags;
+
+  [[nodiscard]] constexpr std::formatter<matpack::gridded_data<T, Grids...>>&
+  inner_fmt() {
+    return *this;
+  }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) {
+    tags.compat(x);
+  }
+
+  using fmt_t = matpack::gridded_data<T, Grids...>;
+
+  template <Size N>
+  using grid_t = typename fmt_t::template grid_t<N>;
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+ private:
+  template <Size N, class FmtContext>
+  void grid(const fmt_t& v, FmtContext& ctx) const {
+    if (tags.names) {
+      std::ranges::copy(R"(")"sv, ctx.out());
+      std::ranges::copy(v.grid_names[N], ctx.out());
+      std::ranges::copy(R"(")"sv, ctx.out());
+      std::ranges::copy(": "sv, ctx.out());
+    }
+
+    std::formatter<grid_t<N>> gridfmt{};
+    tags.compat(gridfmt);
+    gridfmt.format(std::get<N>(v.grids), ctx);
+    std::ranges::copy(",\n"sv, ctx.out());
+  }
+
+ public:
+  template <class FmtContext>
+  FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
+    if (tags.bracket) {
+      std::ranges::copy("{\n"sv, ctx.out());
+    }
+
+    if constexpr (constexpr Size N = 0; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 1; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 2; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 3; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 4; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 5; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 6; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 7; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 8; n > N) grid<N>(v, ctx);
+    if constexpr (constexpr Size N = 9; n > N) grid<N>(v, ctx);
+
+    if (tags.names) {
+      std::ranges::copy(R"(")"sv, ctx.out());
+      std::ranges::copy(v.data_name, ctx.out());
+      std::ranges::copy(R"(")"sv, ctx.out());
+      std::ranges::copy(": "sv, ctx.out());
+    }
+
+    std::formatter<matpack::matpack_data<T, n>> datafmt{};
+    datafmt.inner_fmt().tags = tags;
+    datafmt.format(v.data, ctx);
+
+    if (tags.bracket) {
+      std::ranges::copy("\n}"sv, ctx.out());
+    }
+
+    return ctx.out();
+  }
+};
+
+template <typename T, typename... Grids>
+struct std::formatter<Array<matpack::gridded_data<T, Grids...>>>
+    : formatter_compat<matpack::gridded_data<T, Grids...>> {};
+
+template <typename T, typename... Grids>
+struct std::formatter<Array<Array<matpack::gridded_data<T, Grids...>>>>
+    : formatter_compat<Array<matpack::gridded_data<T, Grids...>>> {};

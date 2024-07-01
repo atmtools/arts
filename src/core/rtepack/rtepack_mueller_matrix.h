@@ -221,3 +221,22 @@ Array<muelmat_vector> reverse_cumulative_transmission(
 Array<muelmat_vector> forward_cumulative_transmission(
     const Array<muelmat_vector> &T);
 }  // namespace rtepack
+
+template <>
+
+struct std::formatter<rtepack::muelmat> {
+  std::formatter<rtepack::mat44> fmt;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const rtepack::muelmat &v,
+                              FmtContext &ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

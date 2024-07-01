@@ -6,6 +6,8 @@
 #include <xml_io.h>
 
 #include <concepts>
+#include <format>
+#include <iomanip>
 
 #include "auto_wsg.h"
 #include "python_interface_value_type.h"
@@ -159,8 +161,27 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
 
 template <typename T>
 void str_interface(py::class_<T>& c) {
-  c.def("__str__", [](const T& x) { return var_string(x); });
-  c.def("__repr__", [](const T& x) { return var_string(x); });
+  c.def("__format__", [](const T& x, std::string fmt) {
+    if constexpr (std::formattable<T, char>) {
+      fmt = "{:" + fmt + "}";
+      return std::vformat(fmt.c_str(), std::make_format_args(x));
+    } else {
+      if (not fmt.empty()) {
+        throw std::format_error(
+            var_string("Cannot support options: ", std::quoted(fmt)));
+      }
+
+      return var_string(x);
+    }
+  });
+
+  c.def("__str__", [](const T& x) {
+    return var_string(x); /*std::format("{:NB,}", x);*/
+  });
+
+  c.def("__repr__", [](const T& x) {
+    return var_string(x); /*std::format("{:sNB,}", x);*/
+  });
 }
 
 template <WorkspaceGroup T>

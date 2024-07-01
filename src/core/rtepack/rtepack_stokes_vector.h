@@ -112,33 +112,52 @@ std::function<stokvec(const stokvec, const Numeric)> unit_converter(
 std::function<stokvec(const stokvec, const stokvec, const Numeric)>
 dunit_converter(const SpectralRadianceUnitType type, const Numeric n = 1.0);
 
-using stokvec_vector = matpack::matpack_data<stokvec, 1>;
+using stokvec_vector      = matpack::matpack_data<stokvec, 1>;
 using stokvec_vector_view = matpack::matpack_view<stokvec, 1, false, false>;
 using stokvec_vector_const_view =
     matpack::matpack_view<stokvec, 1, true, false>;
 
-using stokvec_matrix = matpack::matpack_data<stokvec, 2>;
+using stokvec_matrix      = matpack::matpack_data<stokvec, 2>;
 using stokvec_matrix_view = matpack::matpack_view<stokvec, 2, false, false>;
 using stokvec_matrix_const_view =
     matpack::matpack_view<stokvec, 2, true, false>;
 
-using stokvec_tensor3 = matpack::matpack_data<stokvec, 3>;
+using stokvec_tensor3      = matpack::matpack_data<stokvec, 3>;
 using stokvec_tensor3_view = matpack::matpack_view<stokvec, 3, false, false>;
 using stokvec_tensor3_const_view =
     matpack::matpack_view<stokvec, 3, true, false>;
 
-using stokvec_tensor4 = matpack::matpack_data<stokvec, 4>;
+using stokvec_tensor4      = matpack::matpack_data<stokvec, 4>;
 using stokvec_tensor4_view = matpack::matpack_view<stokvec, 4, false, false>;
 using stokvec_tensor4_const_view =
     matpack::matpack_view<stokvec, 4, true, false>;
 
-using stokvec_tensor5 = matpack::matpack_data<stokvec, 5>;
+using stokvec_tensor5      = matpack::matpack_data<stokvec, 5>;
 using stokvec_tensor5_view = matpack::matpack_view<stokvec, 5, false, false>;
 using stokvec_tensor5_const_view =
     matpack::matpack_view<stokvec, 5, true, false>;
 
-using stokvec_tensor6 = matpack::matpack_data<stokvec, 6>;
+using stokvec_tensor6      = matpack::matpack_data<stokvec, 6>;
 using stokvec_tensor6_view = matpack::matpack_view<stokvec, 6, false, false>;
 using stokvec_tensor6_const_view =
     matpack::matpack_view<stokvec, 6, true, false>;
 }  // namespace rtepack
+
+template <>
+
+struct std::formatter<rtepack::stokvec> {
+  std::formatter<rtepack::vec4> fmt;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const rtepack::stokvec &v,
+                              FmtContext &ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

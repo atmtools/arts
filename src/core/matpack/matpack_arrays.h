@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array.h>
+
 #include "matpack_constexpr.h"
 #include "matpack_data.h"
-
-#include <array.h>
 
 //! An array of vectors of Numeric
 using ArrayOfVector = Array<Vector>;
@@ -78,3 +78,15 @@ std::ostream& operator<<(std::ostream& os, const Array<Array<Array<T>>>& a) {
   return os;
 }
 }  // namespace matpack
+
+template <typename T, Index N>
+struct std::formatter<Array<matpack::matpack_data<T, N>>>
+    : formatter_compat<matpack::matpack_data<T, N>> {};
+
+template <typename T, Index N>
+struct std::formatter<Array<Array<matpack::matpack_data<T, N>>>>
+    : formatter_compat<Array<matpack::matpack_data<T, N>>> {};
+
+template <typename T, Index N>
+struct std::formatter<Array<Array<Array<matpack::matpack_data<T, N>>>>>
+    : formatter_compat<Array<Array<matpack::matpack_data<T, N>>>> {};

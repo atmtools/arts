@@ -1,16 +1,19 @@
 #pragma once
 
-#include "matpack_concepts.h"
-#include "nonstd.h"
+#include <format_tags.h>
+#include <nonstd.h>
 
 #include <complex>
 #include <type_traits>
+
+#include "matpack_concepts.h"
 
 using namespace std::complex_literals;
 
 //! Helper struct that is guaranteed by the C++ standard to represent the memory
 //! layout of a Complex
-template <typename T> struct ComplexLayout {
+template <typename T>
+struct ComplexLayout {
   T real, imag;
 };
 
@@ -22,7 +25,7 @@ template <typename T> struct ComplexLayout {
  * @return Its real value as a reference, a
  */
 template <matpack::complex_type T>
-constexpr matpack::complex_subtype<T> &real_val(T &c) noexcept {
+constexpr matpack::complex_subtype<T>& real_val(T& c) noexcept {
   return reinterpret_cast<ComplexLayout<matpack::complex_subtype<T>>(&)>(c)
       .real;
 }
@@ -35,7 +38,7 @@ constexpr matpack::complex_subtype<T> &real_val(T &c) noexcept {
  * @return Its imaginary value as a reference, b
  */
 template <matpack::complex_type T>
-constexpr matpack::complex_subtype<T> &imag_val(T &c) noexcept {
+constexpr matpack::complex_subtype<T>& imag_val(T& c) noexcept {
   return reinterpret_cast<ComplexLayout<matpack::complex_subtype<T>>(&)>(c)
       .imag;
 }
@@ -48,7 +51,7 @@ constexpr matpack::complex_subtype<T> &imag_val(T &c) noexcept {
  * @return Its real value as a constant reference, a
  */
 template <matpack::complex_type T>
-constexpr matpack::complex_subtype<T> real_val(const T &c) noexcept {
+constexpr matpack::complex_subtype<T> real_val(const T& c) noexcept {
   return reinterpret_cast<const ComplexLayout<matpack::complex_subtype<T>>(&)>(
              c)
       .real;
@@ -62,7 +65,7 @@ constexpr matpack::complex_subtype<T> real_val(const T &c) noexcept {
  * @return Its imaginary value as a constant reference, b
  */
 template <matpack::complex_type T>
-constexpr matpack::complex_subtype<T> imag_val(const T &c) noexcept {
+constexpr matpack::complex_subtype<T> imag_val(const T& c) noexcept {
   return reinterpret_cast<const ComplexLayout<matpack::complex_subtype<T>>(&)>(
              c)
       .imag;
@@ -106,25 +109,35 @@ constexpr T operator/(T x, matpack::complex_subtype<T> c) noexcept {
   return x / c;
 }
 
-template <matpack::complex_type T> constexpr T operator+(T x, T c) {
+template <matpack::complex_type T>
+constexpr T operator+(T x, T c) {
   return x + c;
 }
 
-template <matpack::complex_type T> constexpr T operator-(T x, T c) {
+template <matpack::complex_type T>
+constexpr T operator-(T x, T c) {
   return x - c;
 }
 
-template <matpack::complex_type T> constexpr T operator*(T x, T c) {
+template <matpack::complex_type T>
+constexpr T operator*(T x, T c) {
   return x * c;
 }
 
-template <matpack::complex_type T> constexpr T operator/(T x, T c) {
+template <matpack::complex_type T>
+constexpr T operator/(T x, T c) {
   return x / c;
 }
 
-template <matpack::complex_type T> constexpr T operator-(T c) { return -c; }
+template <matpack::complex_type T>
+constexpr T operator-(T c) {
+  return -c;
+}
 
-template <matpack::complex_type T> constexpr T operator+(T c) { return c; }
+template <matpack::complex_type T>
+constexpr T operator+(T c) {
+  return c;
+}
 
 template <matpack::complex_type T, matpack::complex_type U>
 constexpr auto operator+(T x, U c) noexcept
@@ -181,7 +194,8 @@ constexpr matpack::complex_subtype<T> abs2(T c) {
  * @param c A complex type, a + ib
  * @return Its conjugate, a - ib
  */
-template <matpack::complex_type T> constexpr T conj(T c) {
+template <matpack::complex_type T>
+constexpr T conj(T c) {
   return {c.real(), -c.imag()};
 }
 
@@ -313,45 +327,78 @@ constexpr Complex operator-(Complex c) noexcept { return {-a1, -b1}; }
 // FIXME: Cannot be template because Eigen interferes, so explicit copies are
 // required for operations NOTE: Remove these if there is ever an overload
 // warning updating the C++ compiler version
-#define _complex_operations_(T)                                                \
-  constexpr Complex operator+(Complex c, T x) noexcept {                       \
-    return operator+(c, static_cast<Numeric>(x));                              \
-  }                                                                            \
-  constexpr Complex operator-(Complex c, T x) noexcept {                       \
-    return operator-(c, static_cast<Numeric>(x));                              \
-  }                                                                            \
-  constexpr Complex operator*(Complex c, T x) noexcept {                       \
-    return operator*(c, static_cast<Numeric>(x));                              \
-  }                                                                            \
-  constexpr Complex operator/(Complex c, T x) noexcept {                       \
-    return operator/(c, static_cast<Numeric>(x));                              \
-  }                                                                            \
-                                                                               \
-  constexpr Complex operator+(T x, Complex c) noexcept {                       \
-    return operator+(static_cast<Numeric>(x), c);                              \
-  }                                                                            \
-  constexpr Complex operator-(T x, Complex c) noexcept {                       \
-    return operator-(static_cast<Numeric>(x), c);                              \
-  }                                                                            \
-  constexpr Complex operator*(T x, Complex c) noexcept {                       \
-    return operator*(static_cast<Numeric>(x), c);                              \
-  }                                                                            \
-  constexpr Complex operator/(T x, Complex c) noexcept {                       \
-    return operator/(static_cast<Numeric>(x), c);                              \
+#define _complex_operations_(T)                          \
+  constexpr Complex operator+(Complex c, T x) noexcept { \
+    return operator+(c, static_cast<Numeric>(x));        \
+  }                                                      \
+  constexpr Complex operator-(Complex c, T x) noexcept { \
+    return operator-(c, static_cast<Numeric>(x));        \
+  }                                                      \
+  constexpr Complex operator*(Complex c, T x) noexcept { \
+    return operator*(c, static_cast<Numeric>(x));        \
+  }                                                      \
+  constexpr Complex operator/(Complex c, T x) noexcept { \
+    return operator/(c, static_cast<Numeric>(x));        \
+  }                                                      \
+                                                         \
+  constexpr Complex operator+(T x, Complex c) noexcept { \
+    return operator+(static_cast<Numeric>(x), c);        \
+  }                                                      \
+  constexpr Complex operator-(T x, Complex c) noexcept { \
+    return operator-(static_cast<Numeric>(x), c);        \
+  }                                                      \
+  constexpr Complex operator*(T x, Complex c) noexcept { \
+    return operator*(static_cast<Numeric>(x), c);        \
+  }                                                      \
+  constexpr Complex operator/(T x, Complex c) noexcept { \
+    return operator/(static_cast<Numeric>(x), c);        \
   }
 
-_complex_operations_(int)
-_complex_operations_(float)
-_complex_operations_(Index)
-
+_complex_operations_(int) _complex_operations_(float)
+    _complex_operations_(Index)
 #undef _complex_operations_
 
-/** Test if any nan are in the complex
+    /** Test if any nan are in the complex
  * 
  * @param c A complex type, a + ib
  * @return true if isnan(a) or isnan(b)
  * @return false if not
  */
-constexpr bool isnan(Complex c) noexcept {
+    constexpr bool isnan(Complex c) noexcept {
   return nonstd::isnan(c.real()) or nonstd::isnan(c.imag());
 }
+
+template <typename T>
+struct std::formatter<std::complex<T>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  template <typename... Ts>
+  void compat(std::formatter<Ts>&... x) const {
+    (tags.compat(x.inner_fmt().tags), ...);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::complex<T>& v, FmtContext& ctx) const {
+    std::formatter<T> fmt{};
+
+    if (tags.comma) {
+      fmt.format(v.real(), ctx);
+      std::ranges::copy(","sv, ctx.out());
+      fmt.format(v.imag(), ctx);
+    } else {
+      fmt.format(v.real(), ctx);
+      if (v.imag() >= 0) std::ranges::copy("+"sv, ctx.out());
+      fmt.format(v.imag(), ctx);
+      std::ranges::copy("j"sv, ctx.out());
+    }
+
+    return ctx.out();
+  }
+};

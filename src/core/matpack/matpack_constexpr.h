@@ -567,3 +567,31 @@ struct tuple_element<I, T> {
   using type = typename T::value_type;
 };
 }  // namespace std
+
+template <typename T, Index... N>
+struct std::formatter<matpack::matpack_constant_data<T, N...>> {
+  std::formatter<matpack::matpack_view<T, sizeof...(N), true, false>> fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(inner_fmt().tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) const {
+    inner_fmt().tags.compat(x);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const matpack::matpack_constant_data<T, N...>& v,
+                              FmtContext& ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <debug.h>
+#include <format_tags.h>
 
 #include <algorithm>
 #include <array>
 #include <functional>
 #include <numeric>
 #include <ostream>
+#include <ranges>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -27,9 +29,9 @@ struct matpack_strided_access {
   Index stride{1};
 
   //! Construct this object with an offset, extent, and stride
-  constexpr matpack_strided_access(Index i0 = 0,
+  constexpr matpack_strided_access(Index i0  = 0,
                                    Index len = -1,
-                                   Index d = 1) noexcept
+                                   Index d   = 1) noexcept
       : offset(i0), extent(len), stride(d) {}
 
   //! Construct this object with an offset, full extent, and stride
@@ -698,7 +700,7 @@ class matpack_view {
 
  public:
   template <access_operator... access,
-            Index M = num_index<access...>,
+            Index M     = num_index<access...>,
             class ret_t = mutable_access<access...>>
   [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
@@ -716,7 +718,7 @@ class matpack_view {
   }
 
   template <access_operator... access,
-            Index M = num_index<access...>,
+            Index M     = num_index<access...>,
             class ret_t = constant_access<access...>>
   [[nodiscard]] constexpr auto operator()(access&&... ind) const -> ret_t
     requires(sizeof...(access) == N)
@@ -733,7 +735,7 @@ class matpack_view {
   }
 
   template <access_operator access,
-            Index M = num_index<access>,
+            Index M     = num_index<access>,
             class ret_t = mutable_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
@@ -752,7 +754,7 @@ class matpack_view {
   }
 
   template <access_operator access,
-            Index M = num_index<access>,
+            Index M     = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     assert(check_index_sizes(view, 0, ind));
@@ -806,7 +808,9 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, constant, false> Exhaustive slice of the sub-view
    */
-  matpack_view<T, N-1, constant, false> as_slice(Index i) requires(N > 1) {
+  matpack_view<T, N - 1, constant, false> as_slice(Index i)
+    requires(N > 1)
+  {
     return operator[](i).view;
   }
 
@@ -820,7 +824,9 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, true, false> Exhaustive slice of the sub-view
    */
-  matpack_view<T, N-1, true, false> as_slice(Index i) const requires(N > 1) {
+  matpack_view<T, N - 1, true, false> as_slice(Index i) const
+    requires(N > 1)
+  {
     return operator[](i).view;
   }
 
@@ -946,7 +952,7 @@ class matpack_view {
 
   friend std::ostream& operator<<(std::ostream& os, const matpack_view& mv) {
     constexpr char extra = N == 1 ? ' ' : '\n';
-    bool first = true;
+    bool first           = true;
     for (auto&& v : mv) {
       if (not first)
         os << extra;
@@ -974,10 +980,10 @@ class matpack_view {
   //! Helper function to implement real or imaginary view of the complex data
   template <bool impl_constant, Index i>
   constexpr auto cmpl_impl() const {
-    using real_t = complex_subtype<T>;
-    using strided_t = strided_mdspan<real_t, N>;
-    using matpack_t = matpack_view<real_t, N, impl_constant, true>;
-    using mapping_type = typename strided_t::mapping_type;
+    using real_t        = complex_subtype<T>;
+    using strided_t     = strided_mdspan<real_t, N>;
+    using matpack_t     = matpack_view<real_t, N, impl_constant, true>;
+    using mapping_type  = typename strided_t::mapping_type;
     const auto [sz, st] = cmplx_sz();
     return matpack_t{
         strided_t{&reinterpret_cast<real_t*>(view.data_handle())[i],
@@ -1035,13 +1041,17 @@ class matpack_view {
         {std::array<Index, 1>{nrows()}, std::array<Index, 1>{nrows() + 1}}};
   }
 
-  constexpr matpack_view<T, 1, constant, false> flat_view() requires(not strided) {
+  constexpr matpack_view<T, 1, constant, false> flat_view()
+    requires(not strided)
+  {
     return {view.data_handle(), {size()}};
   }
 
   template <Index M>
   constexpr matpack_view<T, M, constant, false> reshape_as(
-      const std::array<Index, M>& sz) const requires(not strided)  {
+      const std::array<Index, M>& sz) const
+    requires(not strided)
+  {
     if (size() != mdsize<M>(sz)) std::terminate();
     ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
 
@@ -1050,7 +1060,9 @@ class matpack_view {
 
   //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
   template <integral... inds, Index M = sizeof...(inds)>
-  constexpr auto reshape_as(inds&&... sz) const requires(not strided)  {
+  constexpr auto reshape_as(inds&&... sz) const
+    requires(not strided)
+  {
     return reshape_as<M>(
         std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
   }
@@ -1213,32 +1225,49 @@ class matpack_view {
   template <bool c, bool s>
   constexpr bool operator==(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::equal_to<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::equal_to<>());
   }
   template <bool c, bool s>
   constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return not (*this == x);
+    return not(*this == x);
   }
   template <bool c, bool s>
   constexpr bool operator<(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
+    return std::equal(
+        elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
   }
   template <bool c, bool s>
   constexpr bool operator<=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less_equal<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::less_equal<>());
   }
   template <bool c, bool s>
   constexpr bool operator>(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::greater<>());
   }
   template <bool c, bool s>
   constexpr bool operator>=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater_equal<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::greater_equal<>());
   }
 
   constexpr bool operator==(const data_t& x) const {
@@ -1502,3 +1531,157 @@ using ExhaustiveConstComplexMatrixView =
 //! A constant continuous view of a tensor of Complex of rank 3
 using ExhaustiveConstComplexTensor3View =
     matpack::matpack_view<Complex, 3, true, false>;
+
+template <typename T, bool constant, bool strided>
+struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
+  format_tags tags;
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) const {
+    tags.compat(x);
+  }
+
+  [[nodiscard]] constexpr bool short_str() const { return tags.short_str; }
+  [[nodiscard]] constexpr bool bracket() const { return tags.bracket; }
+  [[nodiscard]] constexpr bool comma() const { return tags.comma; }
+
+  [[nodiscard]] constexpr std::formatter<
+      matpack::matpack_view<T, 1, constant, strided>>&
+  inner_fmt() {
+    return *this;
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(
+      const matpack::matpack_view<T, 1, constant, strided>& v,
+      FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    const auto n = v.size();
+    std::formatter<T> fmt{};
+    tags.compat(fmt);
+
+    bool first = true;
+
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    if (tags.short_str and n > short_str_v_cut) {
+      for (auto&& a : v | take(short_str_v_stp)) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+
+      if (comma()) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" ..."sv, ctx.out());
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    } else {
+      for (auto&& a : v) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    }
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+
+    return ctx.out();
+  }
+};
+
+template <typename T, Index N, bool constant, bool strided>
+struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
+  std::formatter<matpack::matpack_view<T, N - 1, true, false>> fmt{};
+
+  [[nodiscard]] constexpr bool short_str() const { return fmt.short_str(); }
+  [[nodiscard]] constexpr bool bracket() const { return fmt.bracket(); }
+  [[nodiscard]] constexpr bool comma() const { return fmt.comma(); }
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(inner_fmt().tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) const {
+    inner_fmt().tags.compat(x);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(
+      const matpack::matpack_view<T, N, constant, strided>& v,
+      FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    const Index n = v.shape()[0];
+    bool first    = true;
+
+    if (bracket()) {
+      std::ranges::copy("[\n"sv, ctx.out());
+    }
+
+    if (short_str() and n > short_str_v_cut) {
+      for (auto&& a : v | take(short_str_v_stp)) {
+        if (not first) {
+          if (comma()) std::ranges::copy(","sv, ctx.out());
+          std::ranges::copy("\n"sv, ctx.out());
+        }
+        fmt.format(a, ctx);
+        first = false;
+      }
+
+      if (comma()) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy("\n"sv, ctx.out());
+      std::ranges::copy("..."sv, ctx.out());
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) {
+        if (not first) {
+          if (comma()) std::ranges::copy(","sv, ctx.out());
+          std::ranges::copy("\n"sv, ctx.out());
+        }
+        fmt.format(a, ctx);
+        first = false;
+      }
+    } else {
+      for (auto&& a : v) {
+        if (not first) {
+          if (comma()) std::ranges::copy(","sv, ctx.out());
+          std::ranges::copy("\n"sv, ctx.out());
+        }
+        fmt.format(a, ctx);
+        first = false;
+      }
+    }
+
+    if (bracket()) {
+      std::ranges::copy("\n]"sv, ctx.out());
+    }
+
+    return ctx.out();
+  }
+};

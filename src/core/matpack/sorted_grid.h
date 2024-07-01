@@ -165,3 +165,31 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 }  // namespace matpack
+
+template <class Compare>
+struct std::formatter<matpack::grid<Compare>> {
+  std::formatter<matpack::matpack_view<Numeric, 1, true, false>> fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(inner_fmt().tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) const {
+    inner_fmt().tags.compat(x);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const matpack::grid<Compare>& v,
+                              FmtContext& ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

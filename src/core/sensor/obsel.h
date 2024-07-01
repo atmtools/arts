@@ -3,8 +3,11 @@
 #include <matpack.h>
 #include <rtepack.h>
 
+#include <algorithm>
 #include <tuple>
 
+#include "format_tags.h"
+#include "matpack_constexpr.h"
 #include "sorted_grid.h"
 
 namespace sensor {
@@ -219,7 +222,7 @@ struct Obsel {
   void set_frequency_lochain(const DescendingGrid& f0s,
                              const Numeric& width,
                              const Index& N,
-                             const String& filter = {},
+                             const String& filter       = {},
                              const Numeric& lower_width = -0.5,
                              const Numeric& upper_width = 0.5);
 
@@ -315,3 +318,59 @@ using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;
 using SensorObsel        = sensor::Obsel;
 using ArrayOfSensorObsel = Array<SensorObsel>;
+
+template <>
+
+struct std::formatter<SensorPosLos> {
+  format_tags tags;
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
+    std::formatter<Vector3> fmt3{};
+    std::formatter<Vector2> fmt2{};
+    make_compat(fmt3, fmt2);
+
+    fmt3.format(v.pos, ctx);
+
+    if (fmt3.fmt.comma()) std::ranges::copy(",", ctx.out());
+    std::ranges::copy(" ", ctx.out());
+
+    return fmt2.format(v.los, ctx);
+  }
+};
+template <>
+
+struct std::formatter<SensorObsel> {
+  std::formatter<Vector> f_grid_w{};
+  std::formatter<AscendingGrid> f_grid{};
+  std::formatter<MuelmatVector> poslos_grid_w{};
+  std::formatter<SensorPosLosVector> poslos_grid{};
+  std::formatter<Stokvec> polarization{};
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    auto x                         = f_grid_w.parse(ctx);
+    f_grid.inner_fmt().tags        = f_grid_w.inner_fmt().tags;
+    poslos_grid_w.inner_fmt().tags = f_grid_w.inner_fmt().tags;
+    poslos_grid.inner_fmt().tags   = f_grid_w.inner_fmt().tags;
+    polarization.inner_fmt().tags  = f_grid_w.inner_fmt().tags;
+    return x;
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
+    // os << "Obsel:\n";
+    // os << "  frequency grid:                 " << obsel.f_grid << '\n';
+    // os << "  pos-los grid:                   " << obsel.poslos_grid << '\n';
+    // os << "  polarization:                   " << obsel.polarization << '\n';
+    // os << "  frequency grid weights:         " << obsel.f_grid_w << '\n';
+    // os << "  pos-los grid polarized weigths: " << obsel.poslos_grid_w << '\n';
+    // return os;
+    return ctx.out();
+  }
+};

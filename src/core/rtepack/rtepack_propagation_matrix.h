@@ -69,20 +69,39 @@ constexpr propmat avg(propmat a, const propmat &b) {
   return a;
 }
 
-using propmat_vector = matpack::matpack_data<propmat, 1>;
+using propmat_vector      = matpack::matpack_data<propmat, 1>;
 using propmat_vector_view = matpack::matpack_view<propmat, 1, false, false>;
 using propmat_vector_const_view =
     matpack::matpack_view<propmat, 1, true, false>;
 
-using propmat_matrix = matpack::matpack_data<propmat, 2>;
+using propmat_matrix      = matpack::matpack_data<propmat, 2>;
 using propmat_matrix_view = matpack::matpack_view<propmat, 2, false, false>;
 using propmat_matrix_const_view =
     matpack::matpack_view<propmat, 2, true, false>;
 
-using propmat_tensor3 = matpack::matpack_data<propmat, 3>;
+using propmat_tensor3      = matpack::matpack_data<propmat, 3>;
 using propmat_tensor3_view = matpack::matpack_view<propmat, 3, false, false>;
 using propmat_tensor3_const_view =
     matpack::matpack_view<propmat, 3, true, false>;
 
 propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 }  // namespace rtepack
+
+template <>
+
+struct std::formatter<rtepack::propmat> {
+  std::formatter<rtepack::vec7> fmt;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const rtepack::propmat &v,
+                              FmtContext &ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

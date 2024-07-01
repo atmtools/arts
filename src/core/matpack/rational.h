@@ -17,6 +17,7 @@
 #include <ostream>
 
 #include <configtypes.h>
+#include <format_tags.h>
 
 using std::gcd;
 
@@ -925,5 +926,39 @@ constexpr Numeric operator-(Rational y, Numeric x) noexcept {
 constexpr Numeric operator-(Numeric x, Rational y) noexcept {
   return x - y.toNumeric();
 }
+
+template <>
+struct std::formatter<Rational> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  template <typename... Ts>
+  void compat(std::formatter<Ts>&... x) const {
+    (tags.compat(x.inner_fmt().tags), ...);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Rational& v, FmtContext& ctx) const {
+    std::formatter<Index> fmt{};
+
+    if (tags.comma) {
+      fmt.format(v.numer, ctx);
+      std::ranges::copy(","sv, ctx.out());
+      fmt.format(v.denom, ctx);
+    } else {
+      fmt.format(v.numer, ctx);
+      std::ranges::copy("/"sv, ctx.out());
+      fmt.format(v.denom, ctx);
+    }
+
+    return ctx.out();
+  }
+};
 
 #endif  // rational_h

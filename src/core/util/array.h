@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <array>
 #include <ostream>
+#include <ranges>
 #include <sstream>
 #include <vector>
 
 #include "configtypes.h"
 #include "debug.h"
+#include "format_tags.h"
 
 /** An array of Index. */
 template <typename base>
@@ -150,3 +152,67 @@ std::string stringify(const Array<T>& list,
   for (auto& x : list) os << beg << x << sep;
   return os.str();
 }
+
+template <typename T>
+struct formatter_compat {
+  std::formatter<T> fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    (xs.compat(inner_fmt().tags), ...);
+  }
+
+  template <typename U>
+  constexpr void compat(std::formatter<U>& x) const {
+    inner_fmt().tags.compat(x);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::vector<T>& v,
+                              FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    const auto n = v.size();
+
+    bool first = true;
+
+    if (inner_fmt().tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
+      for (auto&& a : v | take(short_str_v_stp)) {
+        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+
+      if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" ..."sv, ctx.out());
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) {
+        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    } else {
+      for (auto&& a : v) {
+        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    }
+
+    if (inner_fmt().tags.bracket) std::ranges::copy("]"sv, ctx.out());
+
+    return ctx.out();
+  }
+};
