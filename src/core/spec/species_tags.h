@@ -288,7 +288,7 @@ struct std::formatter<SpeciesTag> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(

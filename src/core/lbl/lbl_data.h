@@ -248,7 +248,7 @@ struct std::formatter<lbl::line> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -304,7 +304,7 @@ struct std::formatter<lbl::band_data> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -345,7 +345,7 @@ struct std::formatter<AbsorptionBand> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -380,7 +380,7 @@ struct std::formatter<lbl::line_key> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(

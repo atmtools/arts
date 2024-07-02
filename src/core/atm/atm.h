@@ -433,7 +433,7 @@ struct std::formatter<ParticulatePropertyTag> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -463,7 +463,7 @@ struct std::formatter<AtmPoint> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -540,7 +540,7 @@ struct std::formatter<Atm::FunctionalData> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -571,7 +571,7 @@ struct std::formatter<Atm::Data> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -623,7 +623,7 @@ struct std::formatter<AtmField> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(

@@ -369,7 +369,7 @@ struct std::formatter<Jacobian::AtmTarget> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -413,7 +413,7 @@ struct std::formatter<Jacobian::SurfaceTarget> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -457,7 +457,7 @@ struct std::formatter<Jacobian::LineTarget> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -501,7 +501,7 @@ struct std::formatter<JacobianTargets> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(

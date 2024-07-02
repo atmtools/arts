@@ -243,7 +243,7 @@ struct std::formatter<
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -285,7 +285,7 @@ struct std::formatter<lbl::line_shape::species_model> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -328,7 +328,7 @@ struct std::formatter<lbl::line_shape::model> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U>& x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(

@@ -284,7 +284,7 @@ struct std::formatter<SurfacePropertyTag> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -314,7 +314,7 @@ struct std::formatter<SurfaceTypeTag> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -343,7 +343,7 @@ struct std::formatter<Surf::FunctionalData> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -373,7 +373,7 @@ struct std::formatter<Surf::Data> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -421,7 +421,7 @@ struct std::formatter<SurfaceField> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -484,7 +484,7 @@ struct std::formatter<SurfacePoint> {
 
   template <typename U>
   constexpr void compat(const std::formatter<U> &x) {
-    x._make_compat(*this);
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
