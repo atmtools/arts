@@ -11,9 +11,10 @@
 
 #include <absorptionlines.h>
 #include <matpack.h>
-#include "quantum_numbers.h"
 
 #include <unordered_map>
+
+#include "quantum_numbers.h"
 
 /** The data type for additioanl NLTE vibrational energy levels
  *
@@ -22,28 +23,32 @@
  * with some functionality further down the chain (2023-01-31, RL)
  */
 struct VibrationalEnergyLevels {
-  using Key = QuantumIdentifier;
-  using T = Numeric;
+  using Key       = QuantumIdentifier;
+  using T         = Numeric;
   using size_type = std::size_t;
+  using map_t     = std::unordered_map<Key, T>;
 
-  std::unordered_map<Key, T> data;
+  map_t data;
 
-  [[nodiscard]] auto begin() {return data.begin();}
-  [[nodiscard]] auto begin() const {return data.begin();}
-  [[nodiscard]] auto cbegin() const {return data.cbegin();}
-  [[nodiscard]] auto end() {return data.end();}
-  [[nodiscard]] auto end() const {return data.end();}
-  [[nodiscard]] auto cend() const {return data.cend();}
-  [[nodiscard]] T& at( const Key& key ) {return data.at(key);}
-  [[nodiscard]] const T& at( const Key& key ) const {return data.at(key);}
-  T& operator[]( const Key& key ) {return data[key];}
-  T& operator[]( Key&& key ) {return data[std::move(key)];}
-  [[nodiscard]] bool empty() const noexcept {return data.empty();}
-  [[nodiscard]] size_type size() const noexcept {return data.size(); }
-  [[nodiscard]] Index nelem() const noexcept {return static_cast<Index>(size());}
+  [[nodiscard]] auto begin() { return data.begin(); }
+  [[nodiscard]] auto begin() const { return data.begin(); }
+  [[nodiscard]] auto cbegin() const { return data.cbegin(); }
+  [[nodiscard]] auto end() { return data.end(); }
+  [[nodiscard]] auto end() const { return data.end(); }
+  [[nodiscard]] auto cend() const { return data.cend(); }
+  [[nodiscard]] T& at(const Key& key) { return data.at(key); }
+  [[nodiscard]] const T& at(const Key& key) const { return data.at(key); }
+  T& operator[](const Key& key) { return data[key]; }
+  T& operator[](Key&& key) { return data[std::move(key)]; }
+  [[nodiscard]] bool empty() const noexcept { return data.empty(); }
+  [[nodiscard]] size_type size() const noexcept { return data.size(); }
+  [[nodiscard]] Index nelem() const noexcept {
+    return static_cast<Index>(size());
+  }
   [[nodiscard]] std::pair<Numeric, Numeric> lower_upper(const Key& key) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const VibrationalEnergyLevels& vib);
 };
 
 /** Sets up the solution matrix for linear statistical equilibrium equation
@@ -128,7 +133,8 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines);
  * @param[in] abs_lines All lines of interest
  * @return Vector Einstein coefficient for induced absorption of all lines
  */
-Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lines);
+Vector createBji(const Vector& Bij,
+                 const ArrayOfArrayOfAbsorptionLines& abs_lines);
 
 /** Create a Cji object
  * 
@@ -168,16 +174,16 @@ void setCji(Vector& Cji,
  * @param[in] P Pressure
  */
 void nlte_collision_factorsCalcFromCoeffs(
-  Vector& Cij,
-  Vector& Cji,
-  const ArrayOfArrayOfAbsorptionLines& abs_lines,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const ArrayOfArrayOfGriddedField1& collision_coefficients,
-  const ArrayOfQuantumIdentifier& collision_line_identifiers,
-  const SpeciesIsotopologueRatios& isotopologue_ratios,
-  const ConstVectorView& vmr,
-  const Numeric& T,
-  const Numeric& P);
+    Vector& Cij,
+    Vector& Cji,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfGriddedField1& collision_coefficients,
+    const ArrayOfQuantumIdentifier& collision_line_identifiers,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
+    const ConstVectorView& vmr,
+    const Numeric& T,
+    const Numeric& P);
 
 /** Finds upper and lower states in SEE Matrix
  * 
@@ -187,10 +193,10 @@ void nlte_collision_factorsCalcFromCoeffs(
  * @param[in] nlte_quantum_identifiers As WSV
  */
 void nlte_positions_in_statistical_equilibrium_matrix(
-  ArrayOfIndex& upper,
-  ArrayOfIndex& lower,
-  const ArrayOfArrayOfAbsorptionLines& abs_lines,
-  const ArrayOfQuantumIdentifier& nlte_qid);
+    ArrayOfIndex& upper,
+    ArrayOfIndex& lower,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfQuantumIdentifier& nlte_qid);
 
 /** Finds a unique lower state if one exists or returns index to last element
  * 
@@ -208,5 +214,35 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
 void check_collision_line_identifiers(
     const ArrayOfQuantumIdentifier& collision_line_identifiers);
 
-#endif /* NLTE_H */
+template <>
+struct std::formatter<VibrationalEnergyLevels> {
+  format_tags tags;
 
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const VibrationalEnergyLevels& v,
+                              FmtContext& ctx) const {
+    std::formatter<VibrationalEnergyLevels::map_t> map;
+    map.format(v.data, ctx);
+    return ctx.out();
+  }
+};
+
+#endif /* NLTE_H */

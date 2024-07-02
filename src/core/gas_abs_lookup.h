@@ -9,10 +9,10 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "species_tags.h"
 #include "absorption.h"
 #include "interp.h"
 #include "matpack_data.h"
+#include "species_tags.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -35,8 +35,7 @@ class GasAbsLookup {
         t_ref(),
         t_pert(),
         nls_pert(),
-        xsec() { /* Nothing to do here */
-  }
+        xsec() { /* Nothing to do here */ }
 
   // Documentation is with the implementation!
   void Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
@@ -111,48 +110,46 @@ class GasAbsLookup {
       const Index& mc_seed,
       const Agenda& abs_xsec_agenda);
 
-  friend void nca_read_from_file(const int ncid,
-                                 GasAbsLookup& gal);
+  friend void nca_read_from_file(const int ncid, GasAbsLookup& gal);
 
-  friend void nca_write_to_file(const int ncid,
-                                const GasAbsLookup& gal);
+  friend void nca_write_to_file(const int ncid, const GasAbsLookup& gal);
 
   /** The species tags for which the table is valid */
-  ArrayOfArrayOfSpeciesTag& Species() {return species;}
-  const ArrayOfArrayOfSpeciesTag& Species() const {return species;}
-  
+  ArrayOfArrayOfSpeciesTag& Species() { return species; }
+  const ArrayOfArrayOfSpeciesTag& Species() const { return species; }
+
   /** The species tags with non-linear treatment */
-  ArrayOfIndex& NonLinearSpecies() {return nonlinear_species;}
-  
+  ArrayOfIndex& NonLinearSpecies() { return nonlinear_species; }
+
   /** The frequency grid [Hz] */
-  Vector& Fgrid() {return f_grid;}
-  
+  Vector& Fgrid() { return f_grid; }
+
   /** Frequency grid positions */
-  ArrayOfLagrangeInterpolation& FLAGDefault() {return flag_default;}
-  
+  ArrayOfLagrangeInterpolation& FLAGDefault() { return flag_default; }
+
   /** The pressure grid for the table [Pa] */
-  Vector& Pgrid() {return p_grid;}
-  
+  Vector& Pgrid() { return p_grid; }
+
   /** The natural log of the pressure grid */
-  Vector& LogPgrid() {return log_p_grid;}
-  
+  Vector& LogPgrid() { return log_p_grid; }
+
   /** The reference VMR profiles */
-  Matrix& VMRs() {return vmrs_ref;}
-  
+  Matrix& VMRs() { return vmrs_ref; }
+
   /** The reference temperature profile [K] */
-  Vector& Tref() {return t_ref;}
-  
+  Vector& Tref() { return t_ref; }
+
   /** The vector of temperature perturbations [K] */
-  Vector& Tpert() {return t_pert;}
-  
+  Vector& Tpert() { return t_pert; }
+
   /** The vector of perturbations for the VMRs of the nonlinear species */
-  Vector& NLSPert() {return nls_pert;}
-  
+  Vector& NLSPert() { return nls_pert; }
+
   /** Absorption cross sections */
-  Tensor4& Xsec() {return xsec;}
+  Tensor4& Xsec() { return xsec; }
 
   friend std::ostream& operator<<(std::ostream& os, const GasAbsLookup& gal);
-  
+
   //! The species tags for which the table is valid.
   ArrayOfArrayOfSpeciesTag species;
 
@@ -268,6 +265,85 @@ class GasAbsLookup {
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
     computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
+};
+
+template <>
+struct std::formatter<GasAbsLookup> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const GasAbsLookup& v, FmtContext& ctx) const {
+    std::formatter<ArrayOfArrayOfSpeciesTag> species{};
+    std::formatter<ArrayOfIndex> nonlinear_species{};
+    std::formatter<Vector> f_grid{};
+    std::formatter<ArrayOfLagrangeInterpolation> flag_default{};
+    std::formatter<Vector> p_grid{};
+    std::formatter<Vector> log_p_grid{};
+    std::formatter<Matrix> vmrs_ref{};
+    std::formatter<Vector> t_ref{};
+    std::formatter<Vector> t_pert{};
+    std::formatter<Vector> nls_pert{};
+    std::formatter<Tensor4> xsec{};
+
+    make_compat(species,
+                nonlinear_species,
+                f_grid,
+                flag_default,
+                p_grid,
+                log_p_grid,
+                vmrs_ref,
+                t_ref,
+                t_pert,
+                nls_pert,
+                xsec);
+
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    species.format(v.species, ctx);
+    std::format_to(ctx, "{}", sep);
+    nonlinear_species.format(v.nonlinear_species, ctx);
+    std::format_to(ctx, "{}", sep);
+    f_grid.format(v.f_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    flag_default.format(v.flag_default, ctx);
+    std::format_to(ctx, "{}", sep);
+    p_grid.format(v.p_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    log_p_grid.format(v.log_p_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    vmrs_ref.format(v.vmrs_ref, ctx);
+    std::format_to(ctx, "{}", sep);
+    t_ref.format(v.t_ref, ctx);
+    std::format_to(ctx, "{}", sep);
+    t_pert.format(v.t_pert, ctx);
+    std::format_to(ctx, "{}", sep);
+    nls_pert.format(v.nls_pert, ctx);
+    std::format_to(ctx, "{}", sep);
+    xsec.format(v.xsec, ctx);
+    std::format_to(ctx, "{}", sep);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
 };
 
 #endif  //  gas_abs_lookup_h

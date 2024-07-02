@@ -1114,6 +1114,11 @@ std::string EnumeratedOption::docs() const {
   return os.str();
 }
 
+int format_ind(const std::string& name) {
+  if (name == "SpeciesEnum") return 1;
+  return 0;
+}
+
 std::string EnumeratedOption::tail() const {
   std::ostringstream os;
 
@@ -1126,7 +1131,7 @@ std::string EnumeratedOption::tail() const {
      << m << ";\n}\n\n";
 
   // Create enumtyps array
-  os << "namespace enumtyps {\n  static constexpr std::array " << name
+  os << "namespace enumtyps {\n  inline constexpr std::array " << name
      << "Types = {";
   for (const auto& v : values_and_desc) {
     os << name << "::" << v[0] << ", ";
@@ -1143,12 +1148,12 @@ std::string EnumeratedOption::tail() const {
     }
     os << "};\n  };\n";
   }
-  os << "  template <int i=0>\n  inline constexpr auto " << name
+  os << "  template <int i="<<format_ind(name)<<">\n  inline constexpr auto " << name
      << "Names = enum_str_data<" << name << ", i>::strs;\n";
   os << "}  // namespace enumstrs\n\n";
 
   // Create toString functions
-  os << "template <int i=0> constexpr const std::string_view toString(" << name
+  os << "template <int i="<<format_ind(name)<<"> constexpr const std::string_view toString(" << name
      << " x) requires(i >= 0 and i < " << n - 1
      << ") {\n"
         "  if (good_enum(x))\n    return enumstrs::"
@@ -1182,6 +1187,42 @@ std::string EnumeratedOption::tail() const {
      << "& s, bifstream*);\n\n";
   os << "void xml_write_to_stream(std::ostream& os_xml, const " << name
      << "& s, bofstream*, const std::string&);\n\n";
+
+  os << "template<> struct std::formatter<" << name  << "> {\n  using T=" << name << ";\n";
+  os << R"--(
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const T& v, FmtContext& ctx) const {
+  constexpr Index IND = )--" << format_ind(name) << ";\n";
+
+os << R"--(
+    if (tags.bracket) {
+      return std::format_to(ctx.out(), "\"{}\"", toString<IND>(v));
+    }
+    
+    return std::format_to(ctx.out(), "{}", toString<IND>(v));
+  }
+)--";
+  os << "};\nstatic_assert(arts_formattable<" << name << ">, \""<<name<<"\");\n";
 
   return os.str();
 }
@@ -1250,7 +1291,7 @@ std::string EnumeratedOption::impl() const {
   std::ostringstream os;
   // Create ostream operator
   os << "std::ostream &operator<<(std::ostream &os, const " << name
-     << " x) {\n  return os << toString(x);\n}\n\n";
+     << " x) {\n  return os << toString<"<<format_ind(name)<<">(x);\n}\n\n";
   os << "std::istream &operator>>(std::istream &is, " << name
      << "& x) {\n  std::string s;\n  is >> s;\n  x = to<" << name
      << ">(s);\n  return is;\n}\n\n";
@@ -1274,7 +1315,7 @@ std::string EnumeratedOption::impl() const {
   os << "void xml_write_to_stream(std::ostream& os, const " << name
      << "& s, bofstream*, const std::string&) {\n"
         "  os << \"<"
-     << name << "> \" << toString(s) << \" </" << name << ">\\n\";\n}\n\n";
+     << name << "> \" << toString<"<<format_ind(name)<<">(s) << \" </" << name << ">\\n\";\n}\n\n";
 
   return os.str();
 }

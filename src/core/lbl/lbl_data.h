@@ -2,9 +2,11 @@
 
 #include <matpack.h>
 
+#include <format>
 #include <limits>
 #include <vector>
 
+#include "array.h"
 #include "configtypes.h"
 #include "enums.h"
 #include "lbl_lineshape_model.h"
@@ -231,3 +233,170 @@ using AbsorptionBand = lbl::band;
 
 //! A list of multiple bands
 using ArrayOfAbsorptionBand = std::vector<lbl::band>;
+
+template <>
+struct std::formatter<lbl::line> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    if (tags.comma) {
+      std::format_to(
+          ctx.out(), "{}, {}, {}, {}, {}", v.a, v.f0, v.e0, v.gu, v.gl);
+    } else {
+      std::format_to(ctx.out(), "{} {} {} {} {}", v.a, v.f0, v.e0, v.gu, v.gl);
+    }
+
+    if (not tags.short_str) {
+      std::formatter<lbl::zeeman::model> z{};
+      std::formatter<lbl::line_shape::model> ls{};
+      std::formatter<QuantumNumberLocalState> qn{};
+
+      make_compat(z, ls, qn);
+
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" "sv, ctx.out());
+      z.format(v.z, ctx.out);
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" "sv, ctx.out());
+      ls.format(v.ls, ctx.out);
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" "sv, ctx.out());
+      qn.format(v.qn, ctx.out);
+    }
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<lbl::band_data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
+    std::formatter<std::vector<lbl::line>> lines{};
+    std::formatter<LineByLineLineshape> lineshape{};
+    std::formatter<LineByLineCutoffType> cutoff{};
+    std::formatter<Numeric> cutoff_value{};
+
+    make_compat(lines, lineshape, cutoff, cutoff_value);
+
+    lineshape.format(v.lineshape, ctx.out());
+    std::ranges::copy(" "sv, ctx.out());
+    cutoff.format(v.cutoff, ctx.out());
+    std::ranges::copy(" "sv, ctx.out());
+    cutoff_value.format(v.cutoff_value, ctx.out());
+    std::ranges::copy("\n"sv, ctx.out());
+    return lines.format(v.lines, ctx.out());
+  }
+};
+
+template <>
+struct std::formatter<AbsorptionBand> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AbsorptionBand& v, FmtContext& ctx) const {
+    std::formatter<QuantumIdentifier> key;
+    std::formatter<lbl::band_data> data;
+
+    make_compat(key, data);
+
+    key.format(v.key, ctx.out());
+    std::ranges::copy("\n"sv, ctx.out());
+    return data.format(v.data, ctx.out());
+  }
+};
+
+template <>
+struct std::formatter<lbl::line_key> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    std::formatter<QuantumIdentifier> band{};
+    make_compat(band);
+    band.format(v.band, ctx);
+    std::format_to(ctx.out(), "{}{}{}{}", sep, v.line, sep, v.spec);
+
+    return ctx.out();
+  }
+};

@@ -53,3 +53,80 @@ struct isot_map {
 }  // namespace lbl::linemixing
 
 using LinemixingEcsData = lbl::linemixing::isot_map;
+
+template <>
+struct std::formatter<lbl::linemixing::species_data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::linemixing::species_data& v,
+                              FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    std::formatter<lbl::temperature::data> data{};
+    make_compat(data);
+
+    data.format(v.scaling, ctx);
+    std::format_to(ctx, "{}", sep);
+    data.format(v.beta, ctx);
+    std::format_to(ctx, "{}", sep);
+    data.format(v.lambda, ctx);
+    std::format_to(ctx, "{}", sep);
+    data.format(v.collisional_distance, ctx);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<LinemixingEcsData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const LinemixingEcsData& v,
+                              FmtContext& ctx) const {
+    std::formatter<
+        std::unordered_map<SpeciesIsotope, lbl::linemixing::species_data_map>>
+        data{};
+    make_compat(data);
+    return data.format(v.data, ctx);
+  }
+};

@@ -88,15 +88,6 @@ concept WorkspaceGroupIsPrintable  = requires(T a) {
 
 )";
 
-  for (auto& group : groups()) {
-    os << "static_assert(WorkspaceGroupIsDefaultConstructible<" << group
-       << ">, \"Must be default constructible\");\n";
-    os << "static_assert(WorkspaceGroupIsCopyable<" << group
-       << ">, \"Must be copyable\");\n";
-    os << "static_assert(WorkspaceGroupIsPrintable<" << group
-       << ">, \"Must be printable\");\n";
-  }
-
   os << '\n';
   for (auto& group : groups()) {
     os << "void xml_read_from_stream(std::istream &, " << group
@@ -297,6 +288,20 @@ Wsv Wsv::from_named_type(const std::string& type) {
     os << "template <> " << group << "& Wsv::get<" << group
        << ">() const { return *share<" << group << ">(); }\n\n";
   }
+
+  // Static asserts
+  for (auto& group : groups()) {
+    os << "static_assert(WorkspaceGroupIsDefaultConstructible<" << group
+       << ">, \"Must be default constructible\");\n";
+    os << "static_assert(WorkspaceGroupIsCopyable<" << group
+       << ">, \"Must be copyable\");\n";
+    os << "static_assert(WorkspaceGroupIsPrintable<" << group
+       << ">, \"Must be printable\");\n";
+    if (not data.at(group).value_type) {
+      os << "static_assert(arts_formattable<" << group
+         << ">, \"Must be formattable according to ARTS rules\");\n";
+    }
+  }
 }
 
 void auto_workspace(std::ostream& os) {
@@ -394,7 +399,7 @@ concept internally_consistent =
 
 )--";
 
-  for (auto group : groups()) {
+  for (auto&& group : groups()) {
     os << "static_assert(internally_consistent<" << group
        << ">,\n     "
           R"--(R"-x-("

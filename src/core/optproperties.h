@@ -16,10 +16,11 @@
 #ifndef optproperties_h
 #define optproperties_h
 
-#include "matpack_data.h"
-#include "mystring.h"
 #include <matpack.h>
 #include <rtepack.h>
+
+#include "matpack_data.h"
+#include "mystring.h"
 
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).
@@ -32,9 +33,9 @@
 
 */
 enum PType : Index {
-  PTYPE_GENERAL = 300,
+  PTYPE_GENERAL     = 300,
   PTYPE_AZIMUTH_RND = 200,
-  PTYPE_TOTAL_RND = 100,
+  PTYPE_TOTAL_RND   = 100,
 };
 
 //! An attribute to classify the method to be used for SingleScatteringData
@@ -43,7 +44,7 @@ enum PType : Index {
   TMATRIX      T-Matrix method
 */
 enum ParticleSSDMethod {
-  PARTICLE_SSDMETHOD_NONE = 0,
+  PARTICLE_SSDMETHOD_NONE    = 0,
   PARTICLE_SSDMETHOD_TMATRIX = 1,
 };
 
@@ -69,15 +70,18 @@ struct SingleScatteringData {
   Tensor5 ext_mat_data;
   Tensor5 abs_vec_data;
 
-  friend std::ostream& operator<<(std::ostream& os, const SingleScatteringData& ssd);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SingleScatteringData& ssd);
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
 typedef Array<Array<SingleScatteringData> > ArrayOfArrayOfSingleScatteringData;
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfSingleScatteringData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfSingleScatteringData& x);
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSingleScatteringData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfSingleScatteringData& x);
 
 /*===========================================================================
   === The ScatteringMetaData structure
@@ -99,14 +103,16 @@ struct ScatteringMetaData {
   Numeric diameter_volume_equ;
   Numeric diameter_area_equ_aerodynamical;
 
-  friend std::ostream& operator<<(std::ostream& os, const ScatteringMetaData& ssd);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ScatteringMetaData& ssd);
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
 typedef Array<Array<ScatteringMetaData> > ArrayOfArrayOfScatteringMetaData;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfScatteringMetaData& x);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfScatteringMetaData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfScatteringMetaData& x);
 
 // General functions:
 // =============================================================
@@ -303,5 +309,177 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstVectorView T_grid,
                            ConstVectorView sa_grid,
                            const Index f_index = -1);
+
+template <>
+struct std::formatter<ScatteringMetaData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ScatteringMetaData& v,
+                              FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    const std::string_view sep   = tags.comma ? ", "sv : " "sv;
+    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+
+    std::format_to(ctx,
+                   "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                   quote,
+                   v.description,
+                   quote,
+                   sep,
+                   quote,
+                   v.source,
+                   quote,
+                   sep,
+                   quote,
+                   v.refr_index,
+                   quote,
+                   sep,
+                   v.mass,
+                   sep,
+                   v.diameter_max,
+                   sep,
+                   v.diameter_volume_equ,
+                   sep,
+                   v.diameter_area_equ_aerodynamical);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<PType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const PType& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+
+    switch (v) {
+      case PTYPE_GENERAL:
+        std::format_to(ctx, "{}PTYPE_GENERAL{}", quote, quote);
+        break;
+      case PTYPE_AZIMUTH_RND:
+        std::format_to(ctx, "{}PTYPE_AZIMUTH_RND{}", quote, quote);
+        break;
+      case PTYPE_TOTAL_RND:
+        std::format_to(ctx, "{}PTYPE_TOTAL_RND{}", quote, quote);
+        break;
+      default:
+        std::format_to(ctx, "{}PTYPE_UNKNOWN{}", quote, quote);
+        break;
+    }
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SingleScatteringData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SingleScatteringData& v,
+                              FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    const std::string_view sep   = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+
+    std::formatter<PType> ptype;
+    String description;
+    std::formatter<Vector> f_grid;
+    std::formatter<Vector> T_grid;
+    std::formatter<Vector> za_grid;
+    std::formatter<Vector> aa_grid;
+    std::formatter<Tensor7> pha_mat_data;
+    std::formatter<Tensor5> ext_mat_data;
+    std::formatter<Tensor5> abs_vec_data;
+
+    make_compat(ptype,
+                f_grid,
+                T_grid,
+                za_grid,
+                aa_grid,
+                pha_mat_data,
+                ext_mat_data,
+                abs_vec_data);
+
+    ptype.format(v.ptype, ctx);
+    std::format_to(ctx, "{}{}{}{}{}", sep, quote, v.description, quote, sep);
+    f_grid.format(v.f_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    T_grid.format(v.T_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    za_grid.format(v.za_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    aa_grid.format(v.aa_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    pha_mat_data.format(v.pha_mat_data, ctx);
+    std::format_to(ctx, "{}", sep);
+    ext_mat_data.format(v.ext_mat_data, ctx);
+    std::format_to(ctx, "{}", sep);
+    abs_vec_data.format(v.abs_vec_data, ctx);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
 
 #endif  //optproperties_h

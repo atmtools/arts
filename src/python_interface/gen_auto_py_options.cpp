@@ -14,6 +14,7 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
      << wso.name << "\");\n";
 
   os << "  xml_interface(_g" << wso.name << ");\n";
+  os << "  str_interface(_g" << wso.name << ");\n";
 
   os << "  _g" << wso.name << ".def(py::init<>())\n";
 
@@ -31,18 +32,6 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
 
   os << "      .def(\"__deepcopy__\", [](" << wso.name << " t, py::dict&) -> "
      << wso.name << " { return t; })\n";
-
-  os << "      .def(\"__str__\", [](" << wso.name << " t) -> std::string";
-  if (wso.name == "SpeciesEnum")
-    os << " { return String{toString<1>(t)}; })\n";
-  else
-    os << " { return String{toString(t)}; })\n";
-
-  os << "      .def(\"__repr__\", [](" << wso.name << " t) -> std::string";
-  if (wso.name == "SpeciesEnum")
-    os << " { return String{toString<1>(t)}; })\n";
-  else
-    os << " { return String{toString(t)}; })\n";
 
   os << "      .def(py::self == py::self)\n";
   os << "      .def(py::self != py::self)\n";

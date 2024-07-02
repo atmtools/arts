@@ -15,7 +15,9 @@
 #include <matpack.h>
 #include <rtepack.h>
 
+#include <format>
 #include <limits>
+#include <string_view>
 
 #include "quantum_numbers.h"
 
@@ -582,5 +584,38 @@ constexpr Derived FromPreDerived(Numeric H,
 
 // Typedef to make it easier to use
 using ZeemanModel = Zeeman::Model;
+
+
+template <>
+struct std::formatter<ZeemanModel> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ZeemanModel& v, FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out()); 
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    std::format_to(ctx.out(), "{}{}{}", v.gu(), sep, v.gl());
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out()); 
+    return ctx.out();
+  }
+};
 
 #endif /* zeemandata_h */

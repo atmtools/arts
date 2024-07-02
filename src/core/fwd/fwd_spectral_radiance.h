@@ -16,7 +16,7 @@
 #include "surf.h"
 
 namespace fwd {
-class spectral_radiance {
+struct spectral_radiance {
   AscendingGrid alt;
   AscendingGrid lat;
   AscendingGrid lon;
@@ -30,7 +30,6 @@ class spectral_radiance {
 
   Vector2 ellipsoid;
 
- public:
   struct as_vector {};
 
   struct weighted_position {
@@ -38,11 +37,11 @@ class spectral_radiance {
     Index i{0}, j{0}, k{0};
   };
 
-  spectral_radiance() = default;
-  spectral_radiance(const spectral_radiance&) = default;
-  spectral_radiance(spectral_radiance&&) = default;
+  spectral_radiance()                                    = default;
+  spectral_radiance(const spectral_radiance&)            = default;
+  spectral_radiance(spectral_radiance&&)                 = default;
   spectral_radiance& operator=(const spectral_radiance&) = default;
-  spectral_radiance& operator=(spectral_radiance&&) = default;
+  spectral_radiance& operator=(spectral_radiance&&)      = default;
 
   spectral_radiance(AscendingGrid alt,
                     AscendingGrid lat,
@@ -54,7 +53,7 @@ class spectral_radiance {
                     const std::shared_ptr<ArrayOfXsecRecord>& xsec,
                     const std::shared_ptr<PredefinedModelData>& predef,
                     Numeric ciaextrap = {},
-                    Index ciarobust = {});
+                    Index ciarobust   = {});
 
   Stokvec operator()(const Numeric f,
                      const std::vector<path>& path_points,
@@ -142,9 +141,9 @@ class spectral_radiance {
 
     for (const auto& p : pos) {
       if (p.w == 0.0) continue;
-      const auto [propmat, stokvec] = pm(p.i, p.j, p.k)(f, pp.point.los);
-      out.first += p.w * propmat;
-      out.second += p.w * stokvec;
+      const auto [propmat, stokvec]  = pm(p.i, p.j, p.k)(f, pp.point.los);
+      out.first                     += p.w * propmat;
+      out.second                    += p.w * stokvec;
     }
 
     return out;
@@ -153,3 +152,37 @@ class spectral_radiance {
 }  // namespace fwd
 
 using SpectralRadianceOperator = fwd::spectral_radiance;
+
+template <>
+struct std::formatter<SpectralRadianceOperator> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SpectralRadianceOperator& v,
+                              FmtContext& ctx) const {
+    std::format_to(ctx,
+                   "operator over\n  alt: {:sB,}\n  lat: {:sB,}\n  lon: {:sB,}",
+                   v.alt,
+                   v.lat,
+                   v.lon);
+    return ctx.out();
+  }
+};

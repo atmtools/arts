@@ -394,4 +394,43 @@ void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 MatrixView operator+=(MatrixView, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
 
+template<>
+struct std::formatter<CovarianceMatrix> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const CovarianceMatrix& v,
+                              FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+   const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+
+    std::formatter<Matrix> blocks;
+    blocks.format(Matrix{v}, ctx);
+    std::format_to(ctx, "{}", sep);
+    blocks.format(v.get_inverse(), ctx);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
 #endif  // covariance_matrix_h

@@ -11,6 +11,8 @@
 #ifndef supergeneric_h
 #define supergeneric_h
 
+#include <format_tags.h>
+
 #include <ostream>
 
 //! A placeholder for any type.
@@ -19,7 +21,35 @@
 */
 class Any {
   // Nothing to do here.
-  friend std::ostream& operator<<(std::ostream& os, const Any&) {return os;}
+  friend std::ostream& operator<<(std::ostream& os, const Any&) { return os; }
+};
+
+template <>
+struct std::formatter<Any> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Any&, FmtContext& ctx) const {
+    return ctx.out();
+  }
 };
 
 #endif  // supergeneric_h

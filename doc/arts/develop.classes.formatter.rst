@@ -1,53 +1,139 @@
 Use of std::formatter<T>
 ========================
 
+What does it achieve?
+---------------------
+
+We use formatters to allow converting ARTS classes to strings in a consistent way.
+This has some main uses:
+
+1. See the content of the types in python using `__repr__`, `__str__`, or `print`.
+   Using formatters instead of stream operators is not just faster, but also
+   more consistent.  And it allows us to specialize the formatting for each
+   object using the python `__format__` interface to control some aspects of
+   how the output looks.
+2. Calls to `std::format` inside the C++ code can be used to format strings
+   in a consistent way.  This is especially useful for logging and debugging,
+   and may even be used in the XML IO code when `std::print` is available.
+
+How is it implemented?
+----------------------
+
 Most ARTS classes should provide a `std::formatter<T>` specialization to allow
 formatting of the class using `fmt::format` and its ilks.
-The only exceptions are `String`, `Numeric`, and `Index` as we want to rely
-on the most standard method of printing these values.
+The only exceptions are those groups that are marked as `value_type` in the
+workspace groups definition.
 
-If you are
-
- This is done by
+This is done by
 specialization of the `std::formatter<T>` class template for the class in
 question. The following is an outline of meta-code
 for the specialization of this class that
 must exist for most ARTS classes:
 
 .. code-block:: cpp
-  :caption: src/core/matpack/rational.h
+  :caption: Meta code for formatting ARTS classes to strings
   :linenos:
 
   template <>
   struct std::formatter<ARTSTYPE> {
-    format_tags tags;
-    OR
-    std::formatter<OTHER_ARTSTYPE> fmt;
+    MetaData...;
 
     [[nodiscard]] constexpr auto& inner_fmt();
-    
-    template <typename T> void compat(std::formatter<T>& x) const;
-    
-    template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs);
-    
+
+    [[nodiscard]] constexpr const auto& inner_fmt() const;
+
+    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
+
+    template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const;
+
     constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx);
 
     template <class FmtContext> FmtContext::iterator format(const ARTSTYPE& v, FmtContext& ctx) const;
   };
 
+This specialization must live on the top-level namespace (otherwise it does not work).
+
 The only two functions that are actually needed for the class to be
-formattable are `format` and `parse`.  The other functions are ARTS-specific.
+formattable are `format` and `parse`.  The rest are helper functions and data that
+allow us to make the format across multiple ARTS classes compatible.
+The implementation of `format` is also specific to the class in question,
+so its potential implementations will not be discussed here in details,
+but examples and best-practices will be given.
 
-The `METADATA...` must be defined class-by-class and made compatible with the other types.
-There are two main ways to specialize a `std::formatter<T>` for your new ARTS class.  The first is to
-have its metadata be a pure `format_tags tags;` data object.  One class that does this is `Rational`.
-The second is to have the metadata be a single other `std::formatter<T>`.  An example for this 
-is `Vector` and all owning `matpack_data` objects.
+The `MetaData` is a placeholder for additional data that the class needs to store
+to be formatted.  For sake of sanity in the code, it is recommended that this data
+is either another `std::formatter<T> fmt;` or a `format_tags tags;` object, as explicitly named.
+Any other names or more options are discouraged as it will break cross-class compatibility.
+Only these two options are discussed here.
 
-The `inner_fmt` function should return a reference to the `std::formatter<T>` that is responsible
-for the formatting of the class.  If the `METADATA` is a `format_tags` object, then this function
-returns `*this`, and if `METADATA` is another `std::formatter<T>`, then this function returns
-that `std::formatter<T>` object.
+If your class's `MetaData` is `std::formatter<T> fmt;` then the following is the recommended implementation:
 
-The `compat` and `make_compat` functions are used to make the `std::formatter<T>` compatible with other `std::formatter<T>`s.
-`compat` makes the 
+.. code-block:: cpp
+  :caption: Meta code for formatting ARTS classes that inherit a formatter
+  :linenos:
+
+  template <>
+  struct std::formatter<ARTSTYPE> {
+    std::formatter<T> fmt;
+
+    [[nodiscard]] constexpr auto& inner_fmt() {return fmt.inner_fmt();}
+
+    [[nodiscard]] constexpr const auto& inner_fmt() const {return fmt.inner_fmt();}
+
+    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
+
+    template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const { fmt.inner_fmt().make_compat(xs...); }
+
+    constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {return fmt.inner_fmt().parse(ctx);}
+
+    template <class FmtContext> FmtContext::iterator format(const ARTSTYPE& v, FmtContext& ctx) const;
+  };
+
+If your class's is `format_tags tags;` then the following is the recommended implementation:
+
+.. code-block:: cpp
+  :caption: Meta code for formatting ARTS classes that owns a formatter
+  :linenos:
+
+  template <>
+  struct std::formatter<ARTSTYPE> {
+    format_tags tags;
+
+    [[nodiscard]] constexpr auto& inner_fmt() {return *this;}
+
+    [[nodiscard]] constexpr const auto& inner_fmt() const {return *this;}
+
+    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
+
+    template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const { tags.compat(xs...); }
+
+    constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) { return parse_format_tags(tags, ctx); }
+
+    template <class FmtContext> FmtContext::iterator format(const ARTSTYPE& v, FmtContext& ctx) const;
+  };
+
+The above ensures that there exists at most one `tags` object for each class, and that
+the `tags` object is the only object that needs to be passed around to ensure compatibility.
+The following is achieved by this design:
+
+1. `inner_fmt()` has a member object `tags`.
+2. `compat()` and `make_compat()` pass their arguments to `tags` via `inner_fmt()`.
+3. It is possible to have 
+
+It also allows calling `make_compat(...)` inside the `format` function on all local formatters,
+so that they can act on the same tags as the main formatter.
+
+What formatter options are available?
+-------------------------------------
+
+The following options are available for the `format_tags` object:
+
+1. `bracket`. Activated by the `B` character in the format string.
+2. `short_str`. Activated by the `s` character in the format string.
+3. `comma`. Activated by the `,` character in the format string.
+4. `names`. Activated by the `N` character in the format string.
+
+The default formatting string given to `__str__` is `{:NB,}` and the default
+formatting string given to `__repr__` is `{:sNB,}`.
+
+What a type will do with these options is up to the type itself.

@@ -41,12 +41,12 @@
  */
 class TelsemAtlas {
  public:
-  TelsemAtlas() = default;
-  TelsemAtlas(const TelsemAtlas &) = default;
-  TelsemAtlas(TelsemAtlas &&) = default;
+  TelsemAtlas()                               = default;
+  TelsemAtlas(const TelsemAtlas &)            = default;
+  TelsemAtlas(TelsemAtlas &&)                 = default;
   TelsemAtlas &operator=(const TelsemAtlas &) = default;
-  TelsemAtlas &operator=(TelsemAtlas &&) = default;
-  ~TelsemAtlas() = default;
+  TelsemAtlas &operator=(TelsemAtlas &&)      = default;
+  ~TelsemAtlas()                              = default;
 
   /*! Create and read atlas from file.
      *
@@ -261,65 +261,63 @@ class TelsemAtlas {
                                   bofstream *,
                                   const String &);
 
-  friend void xml_read_from_stream(std::istream &,
-                                   TelsemAtlas &,
-                                   bifstream *);
+  friend void xml_read_from_stream(std::istream &, TelsemAtlas &, bifstream *);
 
   // Number of lines in the Atlas.
-  Index& DataCount() {return ndat;}
-  
+  Index &DataCount() { return ndat; }
+
   // Number of channels in the Atlas.
-  Index& ChannelCount() {return nchan;}
-  
+  Index &ChannelCount() { return nchan; }
+
   // Name of the atlas (including version number).
-  String& Name() {return name;}
-  
+  String &Name() { return name; }
+
   // Month of the Atlas.
-  Index& Month() {return month;}
-  
+  Index &Month() { return month; }
+
   // Resolution of the Atlas.
-  Numeric& Lat() {return dlat;}
-  
+  Numeric &Lat() { return dlat; }
+
   // Number of cells per lat band.
-  ArrayOfIndex& Cells() {return ncells;}
-  
+  ArrayOfIndex &Cells() { return ncells; }
+
   // The first cell number of lat band.
-  ArrayOfIndex& FirstCells() {return firstcells;}
-  
+  ArrayOfIndex &FirstCells() { return firstcells; }
+
   // Emissivities
-  Matrix& Emis() {return emis;}
-  
+  Matrix &Emis() { return emis; }
+
   // Emissivity uncertainties.
-  Matrix& Emis_err() {return emis_err;}
-  
+  Matrix &Emis_err() { return emis_err; }
+
   // Emissivity correlations.
-  Tensor3& Correlations() {return correl;}
-  
+  Tensor3 &Correlations() { return correl; }
+
   // Surface classes.
-  ArrayOfIndex& Classes1() {return classes1;}
-  ArrayOfIndex& Classes2() {return classes2;}
-  
+  ArrayOfIndex &Classes1() { return classes1; }
+  ArrayOfIndex &Classes2() { return classes2; }
+
   // Cellnumber of each of the pixels in the atlas.
-  ArrayOfIndex& Cellnumber() {return cellnums;}
-  
+  ArrayOfIndex &Cellnumber() { return cellnums; }
+
   // Derived from file data
-  ArrayOfIndex& Correspondance() {return correspondence;}
-  
+  ArrayOfIndex &Correspondance() { return correspondence; }
+
   // Regression coefficients.
-  Numeric A0_K0(Index i) {return a0_k0[i];}
-  Numeric A0_K1(Index i) {return a0_k1[i];}
-  Numeric A0_K2(Index i) {return a0_k2[i];}
-  Numeric A0_EVEH(Index i) {return a0_eveh[i];}
-  Numeric A1_EVEH(Index i) {return a1_eveh[i];}
-  Numeric A2_EVEH(Index i) {return a2_eveh[i];}
-  Numeric A3_EVEH(Index i) {return a3_eveh[i];}
-  Numeric B0_EVEH(Index i) {return b0_eveh[i];}
-  Numeric B1_EVEH(Index i) {return b1_eveh[i];}
-  Numeric B2_EVEH(Index i) {return b2_eveh[i];}
-  Numeric B3_EVEH(Index i) {return b3_eveh[i];}
-  Numeric RAPPORT43_32(Index i) {return rapport43_32[i];}
-  Numeric RAPPORT54_43(Index i) {return rapport54_43[i];}
-  
+  Numeric A0_K0(Index i) { return a0_k0[i]; }
+  Numeric A0_K1(Index i) { return a0_k1[i]; }
+  Numeric A0_K2(Index i) { return a0_k2[i]; }
+  Numeric A0_EVEH(Index i) { return a0_eveh[i]; }
+  Numeric A1_EVEH(Index i) { return a1_eveh[i]; }
+  Numeric A2_EVEH(Index i) { return a2_eveh[i]; }
+  Numeric A3_EVEH(Index i) { return a3_eveh[i]; }
+  Numeric B0_EVEH(Index i) { return b0_eveh[i]; }
+  Numeric B1_EVEH(Index i) { return b1_eveh[i]; }
+  Numeric B2_EVEH(Index i) { return b2_eveh[i]; }
+  Numeric B3_EVEH(Index i) { return b3_eveh[i]; }
+  Numeric RAPPORT43_32(Index i) { return rapport43_32[i]; }
+  Numeric RAPPORT54_43(Index i) { return rapport54_43[i]; }
+
  private:
   // Number of lines in the Atlas.
   Index ndat;
@@ -365,10 +363,39 @@ class TelsemAtlas {
   static const std::array<Numeric, 4> rapport54_43;
 };
 
-typedef Array<TelsemAtlas> ArrayOfTelsemAtlas;
+using ArrayOfTelsemAtlas = Array<TelsemAtlas>;
 
 std::ostream &operator<<(std::ostream &os, const TelsemAtlas &ta);
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfTelsemAtlas& a);
+std::ostream &operator<<(std::ostream &os, const ArrayOfTelsemAtlas &a);
+
+template <>
+struct std::formatter<TelsemAtlas> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const TelsemAtlas &, FmtContext &ctx) const {
+    std::format_to(ctx, "TelsemAtlas");
+    return ctx.out();
+  }
+};
 
 #endif /* telsem_h */

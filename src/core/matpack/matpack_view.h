@@ -1536,24 +1536,17 @@ template <typename T, bool constant, bool strided>
 struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
   format_tags tags;
 
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
   template <typename... Ts>
   constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    (xs.compat(tags), ...);
+    tags.compat(xs...);
   }
 
   template <typename U>
-  constexpr void compat(std::formatter<U>& x) const {
-    tags.compat(x);
-  }
-
-  [[nodiscard]] constexpr bool short_str() const { return tags.short_str; }
-  [[nodiscard]] constexpr bool bracket() const { return tags.bracket; }
-  [[nodiscard]] constexpr bool comma() const { return tags.comma; }
-
-  [[nodiscard]] constexpr std::formatter<
-      matpack::matpack_view<T, 1, constant, strided>>&
-  inner_fmt() {
-    return *this;
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -1583,7 +1576,7 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
         first = false;
       }
 
-      if (comma()) std::ranges::copy(","sv, ctx.out());
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
       std::ranges::copy(" ..."sv, ctx.out());
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
@@ -1611,20 +1604,17 @@ template <typename T, Index N, bool constant, bool strided>
 struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
   std::formatter<matpack::matpack_view<T, N - 1, true, false>> fmt{};
 
-  [[nodiscard]] constexpr bool short_str() const { return fmt.short_str(); }
-  [[nodiscard]] constexpr bool bracket() const { return fmt.bracket(); }
-  [[nodiscard]] constexpr bool comma() const { return fmt.comma(); }
-
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
 
   template <typename... Ts>
   constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    (xs.compat(inner_fmt().tags), ...);
+    (xs.inner_fmt().compat(inner_fmt().tags), ...);
   }
 
   template <typename U>
-  constexpr void compat(std::formatter<U>& x) const {
-    inner_fmt().tags.compat(x);
+  constexpr void compat(const std::formatter<U>& x) {
+    inner_fmt().compat(x);
   }
 
   constexpr std::format_parse_context::iterator parse(
@@ -1641,27 +1631,27 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
     const Index n = v.shape()[0];
     bool first    = true;
 
-    if (bracket()) {
+    if (inner_fmt().tags.bracket) {
       std::ranges::copy("[\n"sv, ctx.out());
     }
 
-    if (short_str() and n > short_str_v_cut) {
+    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
       for (auto&& a : v | take(short_str_v_stp)) {
         if (not first) {
-          if (comma()) std::ranges::copy(","sv, ctx.out());
+          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
           std::ranges::copy("\n"sv, ctx.out());
         }
         fmt.format(a, ctx);
         first = false;
       }
 
-      if (comma()) std::ranges::copy(","sv, ctx.out());
+      if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
       std::ranges::copy("\n"sv, ctx.out());
       std::ranges::copy("..."sv, ctx.out());
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
         if (not first) {
-          if (comma()) std::ranges::copy(","sv, ctx.out());
+          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
           std::ranges::copy("\n"sv, ctx.out());
         }
         fmt.format(a, ctx);
@@ -1670,7 +1660,7 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
     } else {
       for (auto&& a : v) {
         if (not first) {
-          if (comma()) std::ranges::copy(","sv, ctx.out());
+          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
           std::ranges::copy("\n"sv, ctx.out());
         }
         fmt.format(a, ctx);
@@ -1678,7 +1668,7 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
       }
     }
 
-    if (bracket()) {
+    if (inner_fmt().tags.bracket) {
       std::ranges::copy("\n]"sv, ctx.out());
     }
 

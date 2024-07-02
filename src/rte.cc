@@ -27,6 +27,7 @@
 #include "jacobian.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
+#include "matpack_view.h"
 #include "path_point.h"
 #include "physics_funcs.h"
 #include "refraction.h"
@@ -304,7 +305,7 @@ void get_stepwise_clearsky_propmat(const Workspace& ws,
                                    atm_point,
                                    propagation_matrix_agenda);
 
-  const Vector sensor_like_los{path::mirror(path_point.los)};
+  const Vector sensor_like_los{ExhaustiveConstVectorView{path::mirror(path_point.los)}};
   adapt_stepwise_partial_derivatives(
       dK_dx, dS_dx, jacobian_targets, ppath_f_grid, sensor_like_los);
 }

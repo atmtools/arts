@@ -1,7 +1,10 @@
-#ifndef python_interface_value_type_h
-#define python_interface_value_type_h
+#pragma once
 
+#include <format_tags.h>
 #include <matpack_concepts.h>
+#include <mystring.h>
+
+#include <memory>
 namespace Python {
 template <typename type>
 struct ValueHolder {
@@ -32,10 +35,45 @@ struct ValueHolder {
     return os << *a.val;
   }
 };
-
-// Set the type and ensure they are correct
-using Numeric_ = ValueHolder<Numeric>;
-using Index_   = ValueHolder<Index>;
 }  // namespace Python
 
-#endif  // python_interface_value_type_h
+template <typename T>
+struct std::formatter<Python::ValueHolder<T>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Python::ValueHolder<T>& v,
+                              FmtContext& ctx) const {
+    std::formatter<T> fmt{};
+
+    if constexpr (std::same_as<T, String>) {
+      if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
+    }
+
+    fmt.format(*v.val, ctx);
+
+    if constexpr (std::same_as<T, String>) {
+      if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
+    }
+
+    return ctx.out();
+  }
+};

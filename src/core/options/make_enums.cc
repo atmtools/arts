@@ -15,6 +15,8 @@ void create_header(std::ostream& os) try {
 #include <string>
 #include <string_view>
 
+#include <format_tags.h>
+
 using namespace std::literals;
 
 class bifstream;

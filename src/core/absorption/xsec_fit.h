@@ -114,7 +114,7 @@ class XsecRecord {
   //             Index dataset,
   //             Numeric pressure) const;
 
-public:
+ public:
   static constexpr Index P00 = 0;
   static constexpr Index P10 = 1;
   static constexpr Index P01 = 2;
@@ -140,5 +140,68 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
 XsecRecord* hitran_xsec_get_data(
     const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
     const SpeciesEnum species);
+
+template <>
+struct std::formatter<XsecRecord> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
+    std::formatter<SpeciesEnum> mspecies;
+    std::formatter<Vector> mfitminpressures;
+    std::formatter<Vector> mfitmaxpressures;
+    std::formatter<Vector> mfitmintemperatures;
+    std::formatter<Vector> mfitmaxtemperatures;
+    std::formatter<ArrayOfGriddedField1Named> mfitcoeffs;
+    make_compat(mspecies,
+                mfitminpressures,
+                mfitmaxpressures,
+                mfitmintemperatures,
+                mfitmaxtemperatures,
+                mfitcoeffs);
+
+    if (tags.short_str) {
+      std::format_to(ctx, "XsecRecord(");
+      mspecies.format(v.Species(), ctx);
+      std::format_to(ctx, ")");
+    } else {
+      const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+
+      if (tags.bracket) std::format_to(ctx, "[");
+      mspecies.format(v.Species(), ctx);
+      std::format_to(ctx, "{}", sep);
+      mfitminpressures.format(v.FitMinPressures(), ctx);
+      std::format_to(ctx, "{}", sep);
+      mfitmaxpressures.format(v.FitMaxPressures(), ctx);
+      std::format_to(ctx, "{}", sep);
+      mfitmintemperatures.format(v.FitMinTemperatures(), ctx);
+      std::format_to(ctx, "{}", sep);
+      mfitmaxtemperatures.format(v.FitMaxTemperatures(), ctx);
+      std::format_to(ctx, "{}", sep);
+      mfitcoeffs.format(v.FitCoeffs(), ctx);
+      if (tags.bracket) std::format_to(ctx, "]");
+    }
+
+    return ctx.out();
+  }
+};
 
 #endif  // HITRAN_XSEC_H

@@ -373,10 +373,16 @@ struct std::formatter<std::complex<T>> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x.make_compat(*this);
+  }
 
   template <typename... Ts>
-  void compat(std::formatter<Ts>&... x) const {
-    (tags.compat(x.inner_fmt().tags), ...);
+  void make_compat(std::formatter<Ts>&... x) const {
+    tags.compat(x...);
   }
 
   constexpr std::format_parse_context::iterator parse(

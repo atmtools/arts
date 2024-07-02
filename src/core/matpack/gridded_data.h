@@ -344,19 +344,17 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
 
   format_tags tags;
 
-  [[nodiscard]] constexpr std::formatter<matpack::gridded_data<T, Grids...>>&
-  inner_fmt() {
-    return *this;
-  }
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
   template <typename... Ts>
   constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    (xs.compat(tags), ...);
+    tags.compat(xs...);
   }
 
   template <typename U>
-  constexpr void compat(std::formatter<U>& x) {
-    tags.compat(x);
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
   }
 
   using fmt_t = matpack::gridded_data<T, Grids...>;
@@ -421,11 +419,3 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
     return ctx.out();
   }
 };
-
-template <typename T, typename... Grids>
-struct std::formatter<Array<matpack::gridded_data<T, Grids...>>>
-    : formatter_compat<matpack::gridded_data<T, Grids...>> {};
-
-template <typename T, typename... Grids>
-struct std::formatter<Array<Array<matpack::gridded_data<T, Grids...>>>>
-    : formatter_compat<Array<matpack::gridded_data<T, Grids...>>> {};

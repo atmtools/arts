@@ -106,4 +106,53 @@ std::pair<Numeric, bool> hit_sun(const Sun& sun,
                                  const Vector2 los,
                                  const Vector2 ell);
 
+template <>
+struct std::formatter<Sun> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Sun& v, FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    std::formatter<Matrix> spectrum{};
+    make_compat(spectrum);
+
+    const std::string_view sep   = tags.comma ? ", "sv : " "sv;
+    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    std::format_to(ctx, "{}{}{}{}", quote, v.description, quote, sep);
+    spectrum.format(v.spectrum, ctx);
+    std::format_to(ctx,
+                   "{}{}{}{}{}{}{}{}",
+                   sep,
+                   v.radius,
+                   sep,
+                   v.distance,
+                   sep,
+                   v.latitude,
+                   sep,
+                   v.longitude);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
 #endif /* star_h */

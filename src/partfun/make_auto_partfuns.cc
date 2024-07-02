@@ -184,7 +184,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
   // Write if the data exist
   for (auto& spec : data) {
     os << "inline constexpr std::array<std::string_view, " << spec.second.size()
-       << "> has" << spec.first << "{\n";
+       << "> has" << toString<0>(spec.first) << "{\n";
     for (auto& isot : spec.second) os << "  \"" << isot << "\",\n";
     os << "};\n\n";
   }
@@ -209,10 +209,10 @@ void make_h(const std::vector<std::string>& xmlfiles) {
   for (auto& spec : data) {
     Index i = 0;
 
-    os << "\ntemplate<Derivatives deriv>\nNumeric compute" << spec.first
+    os << "\ntemplate<Derivatives deriv>\nNumeric compute" << toString<0>(spec.first)
        << "(Numeric T, const std::string_view isot) {\n";
     for (auto& isot : spec.second) {
-      os << "  if (isot == std::get<" << i++ << ">(has" << spec.first
+      os << "  if (isot == std::get<" << i++ << ">(has" << toString<0>(spec.first)
          << ")) {\n"
             "    if constexpr (deriv == Derivatives::No) return "
          << func_name(species_name(spec.first, isot), false)

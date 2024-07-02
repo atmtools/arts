@@ -176,11 +176,19 @@ void str_interface(py::class_<T>& c) {
   });
 
   c.def("__str__", [](const T& x) {
-    return var_string(x); /*std::format("{:NB,}", x);*/
+    if constexpr (std::formattable<T, char>) {
+      return std::format("{:NB,}", x);
+    } else {
+      return var_string(x);
+    }
   });
 
   c.def("__repr__", [](const T& x) {
-    return var_string(x); /*std::format("{:sNB,}", x);*/
+    if constexpr (std::formattable<T, char>) {
+      return std::format("{:sNB,}", x);
+    } else {
+      return var_string(x);
+    }
   });
 }
 

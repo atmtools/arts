@@ -5,6 +5,7 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 
 #include "enums.h"
@@ -154,7 +155,7 @@ struct Point {
 };
 
 using FunctionalData = std::function<Numeric(Numeric, Numeric)>;
-using FieldData = std::variant<GriddedField2, Numeric, FunctionalData>;
+using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -171,11 +172,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data() = default;
-  Data(const Data &) = default;
-  Data(Data &&) = default;
+  Data()                        = default;
+  Data(const Data &)            = default;
+  Data(Data &&)                 = default;
   Data &operator=(const Data &) = default;
-  Data &operator=(Data &&) = default;
+  Data &operator=(Data &&)      = default;
 
   // Allow copy and move construction implicitly from all types
   explicit Data(const GriddedField2 &x) : data(x) {}
@@ -268,3 +269,266 @@ static_assert(
 
 using SurfacePoint = Surf::Point;
 using SurfaceField = Surf::Field;
+
+template <>
+struct std::formatter<SurfacePropertyTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfacePropertyTag &v,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.bracket ? "\"" : "";
+    return std::format_to(ctx, "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<SurfaceTypeTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfaceTypeTag &v, FmtContext &ctx) const {
+    const std::string_view quote = tags.bracket ? "\"" : "";
+    return std::format_to(ctx, "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<Surf::FunctionalData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Surf::FunctionalData &,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.bracket ? R"(")"sv : ""sv;
+    std::format_to(ctx, "{0}functional-data{0}", quote);
+    return ctx.out();
+  }
+};
+template <>
+struct std::formatter<Surf::Data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Surf::Data &v, FmtContext &ctx) const {
+    std::formatter<Surf::FieldData> data{};
+    std::formatter<InterpolationExtrapolation> interp{};
+    make_compat(interp, data);
+
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    data.format(v.data, ctx);
+    std::format_to(ctx, "{}", sep);
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    interp.format(v.lat_upp, ctx);
+    std::format_to(ctx, "{}", sep);
+    interp.format(v.lat_low, ctx);
+    std::format_to(ctx, "{}", sep);
+    interp.format(v.lon_upp, ctx);
+    std::format_to(ctx, "{}", sep);
+    interp.format(v.lon_low, ctx);
+
+    if (tags.bracket) std::ranges::copy("]]"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SurfaceField> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
+    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+
+    std::formatter<Vector2> vec;
+    std::format_to(ctx, R"("Ellipsoid": )");
+    vec.format(v.ellipsoid, ctx);
+
+    if (tags.short_str) {
+      std::format_to(
+          ctx,
+          R"(, "SurfaceKey": {}, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
+          v.map<SurfaceKey>().size(),
+          v.map<SurfaceTypeTag>().size(),
+          v.map<SurfacePropertyTag>().size());
+    } else {
+      std::formatter<std::unordered_map<SurfaceKey, Surf::Data>> key{};
+      std::formatter<std::unordered_map<SurfaceTypeTag, Surf::Data>> type{};
+      std::formatter<std::unordered_map<SurfacePropertyTag, Surf::Data>> prop{};
+
+      std::ranges::copy(R"(,
+"SurfaceKey": )",
+                        ctx.out());
+      key.format(v.map<SurfaceKey>(), ctx);
+
+      std::ranges::copy(R"(,
+"SurfaceTypeTag": )",
+                        ctx.out());
+      type.format(v.map<SurfaceTypeTag>(), ctx);
+
+      std::ranges::copy(R"(,
+"SurfacePropertyTag": )",
+                        ctx.out());
+      prop.format(v.map<SurfacePropertyTag>(), ctx);
+    }
+
+    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SurfacePoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts> &...xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U> &x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
+    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+
+    std::formatter<Vector3> vec3;
+    std::formatter<Vector2> vec2;
+
+    std::format_to(ctx.out(),
+                   R"("elevation": {}, "temperature": {}, "wind")",
+                   v.elevation,
+                   v.temperature);
+    vec3.format(v.wind, ctx);
+    std::format_to(ctx.out(), ", \"normal\": ");
+    vec2.format(v.normal, ctx);
+
+    if (tags.short_str) {
+      std::format_to(ctx,
+                     R"(, "SurfaceTypeTag": {}, "SurfacePropertyTag": {}, )",
+                     v.type.size(),
+                     v.prop.size());
+
+    } else {
+      std::formatter<std::unordered_map<SurfaceTypeTag, Numeric>> type;
+      std::formatter<std::unordered_map<SurfacePropertyTag, Numeric>> prop;
+
+      std::ranges::copy(R"(,
+"SurfaceTypeTag": )",
+                        ctx.out());
+      type.format(v.type, ctx);
+
+      std::ranges::copy(R"(,
+"SurfacePropertyTag": )",
+                        ctx.out());
+      prop.format(v.prop, ctx);
+    }
+
+    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    return ctx.out();
+  }
+};

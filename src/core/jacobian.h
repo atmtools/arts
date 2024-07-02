@@ -10,6 +10,7 @@
 #include <numeric>
 #include <vector>
 
+#include "array.h"
 #include "debug.h"
 
 namespace Jacobian {
@@ -50,7 +51,7 @@ struct AtmTarget {
                        type,
                        '.')
 
-    auto xnew = atm[type].flat_view();
+    auto xnew   = atm[type].flat_view();
     auto xold_d = x.slice(x_start, x_size);
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
@@ -69,7 +70,7 @@ struct AtmTarget {
                        type,
                        '.')
 
-    auto xnew = x.slice(x_start, x_size);
+    auto xnew   = x.slice(x_start, x_size);
     auto xold_d = atm[type].flat_view();
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
@@ -121,7 +122,7 @@ struct SurfaceTarget {
                        type,
                        '.')
 
-    auto xnew = surf[type].flat_view();
+    auto xnew   = surf[type].flat_view();
     auto xold_d = x.slice(x_start, x_size);
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
@@ -141,7 +142,7 @@ struct SurfaceTarget {
                        type,
                        '.')
 
-    auto xnew = x.slice(x_start, x_size);
+    auto xnew   = x.slice(x_start, x_size);
     auto xold_d = surf[type].flat_view();
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
@@ -181,9 +182,13 @@ struct LineTarget {
     return os << "Line key value: ";
   }
 
-  void update(ArrayOfAbsorptionBand&, const Vector&) const { ARTS_ASSERT(false) }
+  void update(ArrayOfAbsorptionBand&, const Vector&) const {
+    ARTS_ASSERT(false)
+  }
 
-  void update(Vector&, const ArrayOfAbsorptionBand&) const { ARTS_ASSERT(false) }
+  void update(Vector&, const ArrayOfAbsorptionBand&) const {
+    ARTS_ASSERT(false)
+  }
 };
 
 template <typename U, typename T>
@@ -281,7 +286,7 @@ struct targets_t {
     ((std::ranges::for_each(target<Targets>(),
                             [](auto& a) {
                               a.x_start = 0;
-                              a.x_size = 0;
+                              a.x_size  = 0;
                             })),
      ...);
   }
@@ -301,15 +306,14 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
       if ([&atm_field, this, pos = i]() -> bool {
             for (auto& t : target<AtmTarget>()) {
               if (t.target_pos == pos) {
-                ARTS_USER_ERROR_IF(
-                    not atm_field.contains(t.type),
-                    "The target ",
-                    t,
-                    " is not in the atmosphere,"
-                    " but is required by jacobian target ",
-                    this)
+                ARTS_USER_ERROR_IF(not atm_field.contains(t.type),
+                                   "The target ",
+                                   t,
+                                   " is not in the atmosphere,"
+                                   " but is required by jacobian target ",
+                                   this)
                 t.x_start = x_size();
-                t.x_size = atm_field[t.type].flat_view().size();
+                t.x_size  = atm_field[t.type].flat_view().size();
                 return true;
               }
             }
@@ -350,3 +354,179 @@ Numeric field_perturbation(const auto& f) {
 }
 
 using JacobianTargets = Jacobian::Targets;
+
+template <>
+struct std::formatter<Jacobian::AtmTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::AtmTarget& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    std::formatter<AtmKeyVal> type{};
+    make_compat(type);
+    type.format(v.type, ctx);
+    std::format_to(ctx,
+                   ": [{}{}{}{}{}{}{}]",
+                   v.d,
+                   sep,
+                   v.target_pos,
+                   sep,
+                   v.x_start,
+                   sep,
+                   v.x_size);
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Jacobian::SurfaceTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::SurfaceTarget& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    std::formatter<SurfaceKeyVal> type{};
+    make_compat(type);
+    type.format(v.type, ctx);
+    std::format_to(ctx,
+                   ": [{}{}{}{}{}{}{}]",
+                   v.d,
+                   sep,
+                   v.target_pos,
+                   sep,
+                   v.x_start,
+                   sep,
+                   v.x_size);
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Jacobian::LineTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::LineTarget& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    std::formatter<LblLineKey> type{};
+    make_compat(type);
+    type.format(v.type, ctx);
+    std::format_to(ctx,
+                   ": [{}{}{}{}{}{}{}]",
+                   v.d,
+                   sep,
+                   v.target_pos,
+                   sep,
+                   v.x_start,
+                   sep,
+                   v.x_size);
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<JacobianTargets> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
+    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+
+    const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+
+    std::formatter<std::vector<Jacobian::AtmTarget>> atm{};
+    std::formatter<std::vector<Jacobian::SurfaceTarget>> surf{};
+    std::formatter<std::vector<Jacobian::LineTarget>> line{};
+
+    std::format_to(ctx, "\"atm\": ");
+    atm.format(v.atm(), ctx);
+    std::format_to(ctx, "\"surf\": ");
+    surf.format(v.surf(), ctx);
+    std::format_to(ctx, "\"line\": ");
+    line.format(v.line(), ctx);
+
+    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    return ctx.out();
+  }
+};

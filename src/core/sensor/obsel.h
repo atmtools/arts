@@ -320,9 +320,21 @@ using SensorObsel        = sensor::Obsel;
 using ArrayOfSensorObsel = Array<SensorObsel>;
 
 template <>
-
 struct std::formatter<SensorPosLos> {
-  format_tags tags;
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
+  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
@@ -337,8 +349,8 @@ struct std::formatter<SensorPosLos> {
 
     fmt3.format(v.pos, ctx);
 
-    if (fmt3.fmt.comma()) std::ranges::copy(",", ctx.out());
-    std::ranges::copy(" ", ctx.out());
+    if (tags.comma) std::ranges::copy(","sv, ctx.out());
+    std::ranges::copy(" "sv, ctx.out());
 
     return fmt2.format(v.los, ctx);
   }
@@ -346,31 +358,52 @@ struct std::formatter<SensorPosLos> {
 template <>
 
 struct std::formatter<SensorObsel> {
-  std::formatter<Vector> f_grid_w{};
-  std::formatter<AscendingGrid> f_grid{};
-  std::formatter<MuelmatVector> poslos_grid_w{};
-  std::formatter<SensorPosLosVector> poslos_grid{};
-  std::formatter<Stokvec> polarization{};
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
+  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    auto x                         = f_grid_w.parse(ctx);
-    f_grid.inner_fmt().tags        = f_grid_w.inner_fmt().tags;
-    poslos_grid_w.inner_fmt().tags = f_grid_w.inner_fmt().tags;
-    poslos_grid.inner_fmt().tags   = f_grid_w.inner_fmt().tags;
-    polarization.inner_fmt().tags  = f_grid_w.inner_fmt().tags;
-    return x;
+    return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
-    // os << "Obsel:\n";
-    // os << "  frequency grid:                 " << obsel.f_grid << '\n';
-    // os << "  pos-los grid:                   " << obsel.poslos_grid << '\n';
-    // os << "  polarization:                   " << obsel.polarization << '\n';
-    // os << "  frequency grid weights:         " << obsel.f_grid_w << '\n';
-    // os << "  pos-los grid polarized weigths: " << obsel.poslos_grid_w << '\n';
-    // return os;
+    std::formatter<Vector> f_grid_w{};
+    std::formatter<AscendingGrid> f_grid{};
+    std::formatter<MuelmatVector> poslos_grid_w{};
+    std::formatter<SensorPosLosVector> poslos_grid{};
+    std::formatter<Stokvec> polarization{};
+    make_compat(f_grid_w, f_grid, poslos_grid_w, poslos_grid, polarization);
+
+    std::ranges::copy("Obsel:"sv, ctx.out());
+
+    std::ranges::copy("\n  frequency grid:                 "sv, ctx.out());
+    f_grid.format(v.f_grid, ctx);
+
+    std::ranges::copy("\n  pos-los grid:                   "sv, ctx.out());
+    poslos_grid.format(v.poslos_grid, ctx);
+
+    std::ranges::copy("\n  polarization:                   "sv, ctx.out());
+    polarization.format(v.polarization, ctx);
+
+    std::ranges::copy("\n  frequency grid weights:         "sv, ctx.out());
+    f_grid_w.format(v.f_grid_w, ctx);
+
+    std::ranges::copy("\n  pos-los grid polarized weigths: "sv, ctx.out());
+    poslos_grid_w.format(v.poslos_grid_w, ctx);
+
     return ctx.out();
   }
 };

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <format>
 #include <ostream>
 #include <ranges>
 #include <sstream>
@@ -108,7 +109,7 @@ class CmpArrayOfNumeric {
 
 //! Determine total number of elements in an ArrayOfArray
 template <class base>
-Index TotalNumberOfElements(const Array<Array<base> >& aa) {
+Index TotalNumberOfElements(const Array<Array<base>>& aa) {
   Index N_aa = 0;
   for (Size i = 0; i < aa.size(); i++) {
     N_aa += aa[i].size();
@@ -119,9 +120,7 @@ Index TotalNumberOfElements(const Array<Array<base> >& aa) {
 
 //! Determine the index of an element in a flattened version of the array
 template <class base>
-Index FlattenedIndex(const Array<Array<base> >& aa,
-                     Size outer,
-                     Size inner = 0) {
+Index FlattenedIndex(const Array<Array<base>>& aa, Size outer, Size inner = 0) {
   ARTS_ASSERT(outer < aa.size());
   ARTS_ASSERT(inner < aa[outer].size());
 
@@ -153,65 +152,135 @@ std::string stringify(const Array<T>& list,
   return os.str();
 }
 
-template <typename T>
-struct formatter_compat {
-  std::formatter<T> fmt;
+template <>
+struct std::formatter<std::vector<Index>> {
+  format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
   template <typename... Ts>
   constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    (xs.compat(inner_fmt().tags), ...);
+    tags.compat(xs...);
   }
 
   template <typename U>
-  constexpr void compat(std::formatter<U>& x) const {
-    inner_fmt().tags.compat(x);
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
+    return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const std::vector<T>& v,
+  FmtContext::iterator format(const std::vector<Index>& v,
                               FmtContext& ctx) const {
     using std::ranges::views::take, std::ranges::views::drop;
+
+    std::formatter<Index> fmt{};
 
     const auto n = v.size();
 
     bool first = true;
 
-    if (inner_fmt().tags.bracket) std::ranges::copy("["sv, ctx.out());
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
 
-    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
+    if (tags.short_str and n > short_str_v_cut) {
       for (auto&& a : v | take(short_str_v_stp)) {
-        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
         fmt.format(a, ctx);
         first = false;
       }
 
-      if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
       std::ranges::copy(" ..."sv, ctx.out());
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
         fmt.format(a, ctx);
         first = false;
       }
     } else {
       for (auto&& a : v) {
-        if (not first and inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy("\n"sv, ctx.out());
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
         fmt.format(a, ctx);
         first = false;
       }
     }
 
-    if (inner_fmt().tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<std::vector<Numeric>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  constexpr void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x.make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::vector<Numeric>& v,
+                              FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    std::formatter<Numeric> fmt{};
+
+    const auto n = v.size();
+
+    bool first = true;
+
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+
+    if (tags.short_str and n > short_str_v_cut) {
+      for (auto&& a : v | take(short_str_v_stp)) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+
+      if (tags.comma) std::ranges::copy(","sv, ctx.out());
+      std::ranges::copy(" ..."sv, ctx.out());
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    } else {
+      for (auto&& a : v) {
+        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
+        if (not first) std::ranges::copy(" "sv, ctx.out());
+        fmt.format(a, ctx);
+        first = false;
+      }
+    }
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
 
     return ctx.out();
   }

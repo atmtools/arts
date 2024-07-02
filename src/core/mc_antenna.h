@@ -20,8 +20,8 @@
 
 enum AntennaType {
   ANTENNA_TYPE_PENCIL_BEAM = 1,
-  ANTENNA_TYPE_GAUSSIAN = 2,
-  ANTENNA_TYPE_LOOKUP = 3
+  ANTENNA_TYPE_GAUSSIAN    = 2,
+  ANTENNA_TYPE_LOOKUP      = 3
 };
 
 /** An Antenna object used by MCGeneral.
@@ -34,18 +34,14 @@ struct MCAntenna {
   Vector aa_grid, za_grid;
   Matrix G_lookup;
 
-  MCAntenna()
-      : aa_grid(),
-        za_grid(),
-        G_lookup() { /* Nothing to do here */
-  }
+  MCAntenna() : aa_grid(), za_grid(), G_lookup() { /* Nothing to do here */ }
 
   /** set_pencil_beam
    *
    * Makes the antenna pattern a pencil beam.
    */
   void set_pencil_beam();
-  
+
   /** set_gaussian.
    *
    * Makes the antenna pattern a 2D gaussian specified by za and aa standard deviations.
@@ -58,7 +54,7 @@ struct MCAntenna {
    * @date       2005-12-02
    */
   void set_gaussian(const Numeric& za_sigma, const Numeric& aa_sigma);
-    
+
   /** set_gaussian_fwhm.
    *
    * Makes the antenna pattern a 2D gaussian specified by za and aa FWHM.
@@ -87,7 +83,7 @@ struct MCAntenna {
   void set_lookup(ConstVectorView za_grid,
                   ConstVectorView aa_grid,
                   ConstMatrixView G_lookup);
-    
+
   /** return_los
    *
    * Returns the normalized Gaussian weight for a photon line of sight
@@ -108,7 +104,7 @@ struct MCAntenna {
   void return_los(Numeric& wgt,
                   ConstMatrixView R_return,
                   ConstMatrixView R_enu2ant) const;
-    
+
   /** draw_los.
    *
    * Draws a line of sight by sampling the antenna response function.
@@ -172,5 +168,96 @@ void rotmat_stokes(MatrixView R_pra,
                    const Numeric& f2_dir,
                    ConstMatrixView R_f1,
                    ConstMatrixView R_f2);
+
+template <>
+struct std::formatter<AntennaType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AntennaType& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    switch (v) {
+      case ANTENNA_TYPE_PENCIL_BEAM:
+        std::format_to(ctx, "{}ANTENNA_TYPE_PENCIL_BEAM{}", quote, quote);
+        break;
+      case ANTENNA_TYPE_GAUSSIAN:
+        std::format_to(ctx, "{}ANTENNA_TYPE_GAUSSIAN{}", quote, quote);
+        break;
+      case ANTENNA_TYPE_LOOKUP:
+        std::format_to(ctx, "{}ANTENNA_TYPE_LOOKUP{}", quote, quote);
+        break;
+      default:
+        std::format_to(ctx, "{}ANTENNA_TYPE_UNKNOWN{}", quote, quote);
+        break;
+    }
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<MCAntenna> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  template <typename... Ts>
+  void make_compat(std::formatter<Ts>&... xs) const {
+    tags.compat(xs...);
+  }
+
+  template <typename U>
+  constexpr void compat(const std::formatter<U>& x) {
+    x._make_compat(*this);
+  }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const MCAntenna& v, FmtContext& ctx) const {
+    std::formatter<AntennaType> atype{};
+    Numeric sigma_aa{}, sigma_za{};
+    std::formatter<Vector> grid{};
+    std::formatter<Matrix> G_lookup{};
+    make_compat(atype, grid, G_lookup);
+
+    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+
+    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    atype.format(v.atype, ctx);
+
+    std::format_to(ctx, "{}{}{}{}{}", sep, v.sigma_aa, sep, v.sigma_za, sep);
+
+    grid.format(v.aa_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    grid.format(v.za_grid, ctx);
+    std::format_to(ctx, "{}", sep);
+    G_lookup.format(v.G_lookup, ctx);
+
+    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    return ctx.out();
+  }
+};
 
 #endif  // mc_antenna_h
