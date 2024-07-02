@@ -51,7 +51,7 @@
  * improvements for large symbols, and some 20 % for small symbols.
  */
 
-#define PRIME_LIST_USE_VECTOR       0
+#define PRIME_LIST_USE_VECTOR       1
 
 /* Size in bytes of the vector instances.  SSE: 16, AVX:32 */
 
