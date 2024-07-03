@@ -9,6 +9,7 @@ class Workspace;
 #include <memory>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 struct CallbackOperator {
@@ -33,11 +34,6 @@ struct std::formatter<CallbackOperator> {
     tags.compat(xs...);
   }
 
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -46,18 +42,18 @@ struct std::formatter<CallbackOperator> {
   template <class FmtContext>
   FmtContext::iterator format(const CallbackOperator& v,
                               FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<std::vector<std::string>> strs;
 
     make_compat(strs);
 
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
-    std::format_to(ctx, "input: ");
+    tags.add_if_bracket(ctx, '[');
+    std::format_to(ctx.out(), "input: ");
     strs.format(v.inputs, ctx);
-    std::format_to(ctx, "{}output: ", sep);
+    std::format_to(ctx.out(), "{}output: ", sep);
     strs.format(v.outputs, ctx);
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

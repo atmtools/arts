@@ -163,8 +163,8 @@ template <typename T>
 void str_interface(py::class_<T>& c) {
   c.def("__format__", [](const T& x, std::string fmt) {
     if constexpr (std::formattable<T, char>) {
-      fmt = "{:" + fmt + "}";
-      return std::vformat(fmt.c_str(), std::make_format_args(x));
+     fmt = std::format("{}{}{}", "{:"sv, fmt, "}"sv);
+     return std::vformat(fmt.c_str(), std::make_format_args(x));
     } else {
       if (not fmt.empty()) {
         throw std::format_error(

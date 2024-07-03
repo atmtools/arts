@@ -11,13 +11,12 @@
 #include <array.h>
 #include <binio/bifstream.h>
 #include <binio/bofstream.h>
+#include <configtypes.h>
+#include <format_tags.h>
 #include <mystring.h>
 
 #include <numeric>
 #include <ostream>
-
-#include <configtypes.h>
-#include <format_tags.h>
 
 using std::gcd;
 
@@ -116,7 +115,7 @@ struct Rational {
    * @return Rational& *this
    */
   constexpr Rational& operator+=(const Rational& a) noexcept {
-    numer = numer * a.denom + a.numer * denom;
+    numer  = numer * a.denom + a.numer * denom;
     denom *= a.denom;
     return *this;
   }
@@ -147,7 +146,7 @@ struct Rational {
    * @return Rational& *this
    */
   constexpr Rational& operator-=(const Rational& a) noexcept {
-    numer = numer * a.denom - a.numer * denom;
+    numer  = numer * a.denom - a.numer * denom;
     denom *= a.denom;
     return *this;
   }
@@ -319,16 +318,16 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec = 4) noexcept {
 
   // Keep track of sign independently
   const bool signchange = x < 0;
-  x = signchange ? -x : x;
+  x                     = signchange ? -x : x;
 
   // Add numbers by keeping the floor
   size_t i = 0;
   do {
-    const auto xi = Index(x);
-    nom += xi;
-    x = 10 * (x - Numeric(xi));
-    nom *= 10;
-    denom *= 10;
+    const auto xi  = Index(x);
+    nom           += xi;
+    x              = 10 * (x - Numeric(xi));
+    nom           *= 10;
+    denom         *= 10;
     i++;
   } while (i <= maxdec);
 
@@ -951,19 +950,8 @@ struct std::formatter<Rational> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Rational& v, FmtContext& ctx) const {
-    std::formatter<Index> fmt{};
-
-    if (tags.comma) {
-      fmt.format(v.numer, ctx);
-      std::ranges::copy(","sv, ctx.out());
-      fmt.format(v.denom, ctx);
-    } else {
-      fmt.format(v.numer, ctx);
-      std::ranges::copy("/"sv, ctx.out());
-      fmt.format(v.denom, ctx);
-    }
-
-    return ctx.out();
+    const std::string_view div = tags.comma ? ","sv : "/"sv;
+    return std::format_to(ctx.out(), "{}{}{}", v.numer, div, v.denom);
   }
 };
 

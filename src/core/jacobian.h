@@ -380,12 +380,12 @@ struct std::formatter<Jacobian::AtmTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::AtmTarget& v,
                               FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<AtmKeyVal> type{};
     make_compat(type);
     type.format(v.type, ctx);
-    std::format_to(ctx,
+    std::format_to(ctx.out(),
                    ": [{}{}{}{}{}{}{}]",
                    v.d,
                    sep,
@@ -424,12 +424,12 @@ struct std::formatter<Jacobian::SurfaceTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::SurfaceTarget& v,
                               FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<SurfaceKeyVal> type{};
     make_compat(type);
     type.format(v.type, ctx);
-    std::format_to(ctx,
+    std::format_to(ctx.out(),
                    ": [{}{}{}{}{}{}{}]",
                    v.d,
                    sep,
@@ -468,12 +468,12 @@ struct std::formatter<Jacobian::LineTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::LineTarget& v,
                               FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<LblLineKey> type{};
     make_compat(type);
     type.format(v.type, ctx);
-    std::format_to(ctx,
+    std::format_to(ctx.out(),
                    ": [{}{}{}{}{}{}{}]",
                    v.d,
                    sep,
@@ -511,22 +511,22 @@ struct std::formatter<JacobianTargets> {
 
   template <class FmtContext>
   FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+    tags.add_if_bracket(ctx, '{');
 
-    const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep = tags.sep(true);
 
     std::formatter<std::vector<Jacobian::AtmTarget>> atm{};
     std::formatter<std::vector<Jacobian::SurfaceTarget>> surf{};
     std::formatter<std::vector<Jacobian::LineTarget>> line{};
 
-    std::format_to(ctx, "\"atm\": ");
+    std::format_to(ctx.out(), R"("atm": )");
     atm.format(v.atm(), ctx);
-    std::format_to(ctx, "\"surf\": ");
+    std::format_to(ctx.out(), R"({}"surf": )", sep);
     surf.format(v.surf(), ctx);
-    std::format_to(ctx, "\"line\": ");
+    std::format_to(ctx.out(), R"({}"line": )", sep);
     line.format(v.line(), ctx);
 
-    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };

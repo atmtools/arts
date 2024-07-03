@@ -444,8 +444,8 @@ struct std::formatter<ParticulatePropertyTag> {
   template <class FmtContext>
   FmtContext::iterator format(const ParticulatePropertyTag &v,
                               FmtContext &ctx) const {
-    const std::string_view quote = tags.bracket ? "\"" : "";
-    return std::format_to(ctx, "{}{}{}", quote, v.name, quote);
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
   }
 };
 
@@ -473,7 +473,7 @@ struct std::formatter<AtmPoint> {
 
   template <class FmtContext>
   FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
-    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+    tags.add_if_bracket(ctx, '{');
 
     std::formatter<Vector3> vec3;
     std::format_to(ctx.out(),
@@ -481,13 +481,13 @@ struct std::formatter<AtmPoint> {
                    v.pressure,
                    v.temperature);
     vec3.format(v.mag, ctx);
-    std::format_to(ctx.out(), ", \"wind\": ");
+    std::format_to(ctx.out(), R"("wind": )");
     vec3.format(v.wind, ctx);
 
     if (tags.short_str) {
       std::format_to(
-          ctx,
-          R"(, "SpeciesEnum": {}, "SpeciesIsotope": {}, "QuantumIdentifier": {}, ParticulatePropertyTag": {}, )",
+          ctx.out(),
+          R"(, "SpeciesEnum": {}, , "SpeciesIsotope": {}, "QuantumIdentifier": {}, "ParticulatePropertyTag": {})",
           v.specs.size(),
           v.isots.size(),
           v.nlte.size(),
@@ -500,28 +500,24 @@ struct std::formatter<AtmPoint> {
       std::formatter<std::unordered_map<ParticulatePropertyTag, Numeric>>
           partp{};
 
-      std::ranges::copy(R"(,
-"SpeciesEnum": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SpeciesEnum": )");
       specs.format(v.specs, ctx);
 
-      std::ranges::copy(R"(,
-"SpeciesIsotope": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SpeciesIsotope": )");
       isots.format(v.isots, ctx);
 
-      std::ranges::copy(R"(,
-"QuantumIdentifier": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"QuantumIdentifier": )");
       nlte.format(v.nlte, ctx);
 
-      std::ranges::copy(R"(
-"ParticulatePropertyTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(
+"ParticulatePropertyTag": )");
       partp.format(v.partp, ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };
@@ -551,9 +547,8 @@ struct std::formatter<Atm::FunctionalData> {
   template <class FmtContext>
   FmtContext::iterator format(const Atm::FunctionalData &,
                               FmtContext &ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")"sv : ""sv;
-    std::format_to(ctx, "{0}functional-data{0}", quote);
-    return ctx.out();
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
   }
 };
 
@@ -585,26 +580,26 @@ struct std::formatter<Atm::Data> {
     std::formatter<InterpolationExtrapolation> interp{};
     make_compat(interp, data);
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
     data.format(v.data, ctx);
-    std::format_to(ctx, "{}", sep);
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    std::format_to(ctx.out(), "{}", sep);
+    tags.add_if_bracket(ctx, '[');
 
     interp.format(v.alt_upp, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.alt_low, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lat_upp, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lat_low, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lon_upp, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lon_low, ctx);
 
-    if (tags.bracket) std::ranges::copy("]]"sv, ctx.out());
+    if (tags.bracket) std::format_to(ctx.out(), "]]");
     return ctx.out();
   }
 };
@@ -633,12 +628,12 @@ struct std::formatter<AtmField> {
 
   template <class FmtContext>
   FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
-    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+    tags.add_if_bracket(ctx, '{');
 
     if (tags.short_str) {
       std::format_to(
-          ctx,
-          R"("top_of_atmosphere": {}, "Base": {}, "SpeciesEnum": {}, "SpeciesIsotope": {}, "QuantumIdentifier": {}, ParticulatePropertyTag": {}, )",
+          ctx.out(),
+          R"("top_of_atmosphere": {}, "Base": {}, "SpeciesEnum": {}, "SpeciesIsotope": {}, "QuantumIdentifier": {}, "ParticulatePropertyTag": {})",
           v.top_of_atmosphere,
           v.other().size(),
           v.specs().size(),
@@ -653,32 +648,30 @@ struct std::formatter<AtmField> {
       std::formatter<std::unordered_map<ParticulatePropertyTag, Atm::Data>>
           partp{};
 
-      std::format_to(ctx, R"("top_of_atmosphere": {},
-"AtmKey": )", v.top_of_atmosphere);
+      std::format_to(ctx.out(),
+                     R"("top_of_atmosphere": {},
+"AtmKey": )",
+                     v.top_of_atmosphere);
       other.format(v.other(), ctx);
 
-      std::ranges::copy(R"(,
-"SpeciesEnum": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SpeciesEnum": )");
       specs.format(v.specs(), ctx);
 
-      std::ranges::copy(R"(,
-"SpeciesIsotope": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SpeciesIsotope": )");
       isots.format(v.isots(), ctx);
 
-      std::ranges::copy(R"(,
-"QuantumIdentifier": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"QuantumIdentifier": )");
       nlte.format(v.nlte(), ctx);
 
-      std::ranges::copy(R"(,
-"ParticulatePropertyTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"ParticulatePropertyTag": )");
       partp.format(v.partp(), ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };

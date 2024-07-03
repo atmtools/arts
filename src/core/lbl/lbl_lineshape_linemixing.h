@@ -79,21 +79,21 @@ struct std::formatter<lbl::linemixing::species_data> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::linemixing::species_data& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    tags.add_if_bracket(ctx, '[');
+    const std::string_view sep = tags.sep();
 
     std::formatter<lbl::temperature::data> data{};
     make_compat(data);
 
     data.format(v.scaling, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     data.format(v.beta, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     data.format(v.lambda, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     data.format(v.collisional_distance, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

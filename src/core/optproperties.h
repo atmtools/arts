@@ -335,13 +335,13 @@ struct std::formatter<ScatteringMetaData> {
   template <class FmtContext>
   FmtContext::iterator format(const ScatteringMetaData& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     const std::string_view sep   = tags.comma ? ", "sv : " "sv;
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
 
-    std::format_to(ctx,
-                   "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+    std::format_to(ctx.out(),
+                   "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
                    quote,
                    v.description,
                    quote,
@@ -360,9 +360,10 @@ struct std::formatter<ScatteringMetaData> {
                    sep,
                    v.diameter_volume_equ,
                    sep,
-                   v.diameter_area_equ_aerodynamical);
+                   v.diameter_area_equ_aerodynamical,
+                   sep);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -391,20 +392,21 @@ struct std::formatter<PType> {
 
   template <class FmtContext>
   FmtContext::iterator format(const PType& v, FmtContext& ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
 
     switch (v) {
       case PTYPE_GENERAL:
-        std::format_to(ctx, "{}PTYPE_GENERAL{}", quote, quote);
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_GENERAL"sv, quote);
         break;
       case PTYPE_AZIMUTH_RND:
-        std::format_to(ctx, "{}PTYPE_AZIMUTH_RND{}", quote, quote);
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PTYPE_AZIMUTH_RND"sv, quote);
         break;
       case PTYPE_TOTAL_RND:
-        std::format_to(ctx, "{}PTYPE_TOTAL_RND{}", quote, quote);
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_TOTAL_RND"sv, quote);
         break;
       default:
-        std::format_to(ctx, "{}PTYPE_UNKNOWN{}", quote, quote);
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_UNKNOWN"sv, quote);
         break;
     }
 
@@ -437,10 +439,10 @@ struct std::formatter<SingleScatteringData> {
   template <class FmtContext>
   FmtContext::iterator format(const SingleScatteringData& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     const std::string_view sep   = tags.comma ? ",\n"sv : "\n"sv;
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
 
     std::formatter<PType> ptype;
     String description;
@@ -462,22 +464,23 @@ struct std::formatter<SingleScatteringData> {
                 abs_vec_data);
 
     ptype.format(v.ptype, ctx);
-    std::format_to(ctx, "{}{}{}{}{}", sep, quote, v.description, quote, sep);
+    std::format_to(
+        ctx.out(), "{}{}{}{}{}", sep, quote, v.description, quote, sep);
     f_grid.format(v.f_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     T_grid.format(v.T_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     za_grid.format(v.za_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     aa_grid.format(v.aa_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     pha_mat_data.format(v.pha_mat_data, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     ext_mat_data.format(v.ext_mat_data, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     abs_vec_data.format(v.abs_vec_data, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

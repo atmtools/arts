@@ -258,14 +258,20 @@ struct std::formatter<lbl::line> {
 
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    if (tags.comma) {
-      std::format_to(
-          ctx.out(), "{}, {}, {}, {}, {}", v.a, v.f0, v.e0, v.gu, v.gl);
-    } else {
-      std::format_to(ctx.out(), "{} {} {} {} {}", v.a, v.f0, v.e0, v.gu, v.gl);
-    }
+    const std::string_view sep = tags.sep();
+    std::format_to(ctx.out(),
+                   "{}{}{}{}{}{}{}{}{}",
+                   v.a,
+                   sep,
+                   v.f0,
+                   sep,
+                   v.e0,
+                   sep,
+                   v.gu,
+                   sep,
+                   v.gl);
 
     if (not tags.short_str) {
       std::formatter<lbl::zeeman::model> z{};
@@ -274,18 +280,15 @@ struct std::formatter<lbl::line> {
 
       make_compat(z, ls, qn);
 
-      if (tags.comma) std::ranges::copy(","sv, ctx.out());
-      std::ranges::copy(" "sv, ctx.out());
-      z.format(v.z, ctx.out);
-      if (tags.comma) std::ranges::copy(","sv, ctx.out());
-      std::ranges::copy(" "sv, ctx.out());
-      ls.format(v.ls, ctx.out);
-      if (tags.comma) std::ranges::copy(","sv, ctx.out());
-      std::ranges::copy(" "sv, ctx.out());
-      qn.format(v.qn, ctx.out);
+      std::format_to(ctx.out(), "{}", sep);
+      z.format(v.z, ctx);
+      std::format_to(ctx.out(), "{}", sep);
+      ls.format(v.ls, ctx);
+      std::format_to(ctx.out(), "{}", sep);
+      qn.format(v.qn, ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -320,14 +323,13 @@ struct std::formatter<lbl::band_data> {
     std::formatter<Numeric> cutoff_value{};
 
     make_compat(lines, lineshape, cutoff, cutoff_value);
-
-    lineshape.format(v.lineshape, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-    cutoff.format(v.cutoff, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-    cutoff_value.format(v.cutoff_value, ctx.out());
-    std::ranges::copy("\n"sv, ctx.out());
-    return lines.format(v.lines, ctx.out());
+    const auto sep = tags.sep();
+    lineshape.format(v.lineshape, ctx);
+    cutoff.format(v.cutoff, ctx);
+    std::format_to(ctx.out(), "{}", sep);
+    cutoff_value.format(v.cutoff_value, ctx);
+    std::format_to(ctx.out(), "\n");
+    return lines.format(v.lines, ctx);
   }
 };
 
@@ -360,9 +362,9 @@ struct std::formatter<AbsorptionBand> {
 
     make_compat(key, data);
 
-    key.format(v.key, ctx.out());
-    std::ranges::copy("\n"sv, ctx.out());
-    return data.format(v.data, ctx.out());
+    key.format(v.key, ctx);
+    std::format_to(ctx.out(), "\n");
+    return data.format(v.data, ctx);
   }
 };
 
@@ -390,7 +392,7 @@ struct std::formatter<lbl::line_key> {
 
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<QuantumIdentifier> band{};
     make_compat(band);

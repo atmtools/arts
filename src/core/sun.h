@@ -130,17 +130,17 @@ struct std::formatter<Sun> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Sun& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<Matrix> spectrum{};
     make_compat(spectrum);
 
     const std::string_view sep   = tags.comma ? ", "sv : " "sv;
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
-    std::format_to(ctx, "{}{}{}{}", quote, v.description, quote, sep);
+    const std::string_view quote = tags.quote();
+    std::format_to(ctx.out(), "{}{}{}{}", quote, v.description, quote, sep);
     spectrum.format(v.spectrum, ctx);
-    std::format_to(ctx,
-                   "{}{}{}{}{}{}{}{}",
+    std::format_to(ctx.out(),
+                   "{}{}{}{}{}{}{}",
                    sep,
                    v.radius,
                    sep,
@@ -150,7 +150,7 @@ struct std::formatter<Sun> {
                    sep,
                    v.longitude);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

@@ -252,17 +252,15 @@ struct std::formatter<CIARecord> {
 
   template <class FmtContext>
   FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
-    std::formatter<SpeciesEnum> specs;
+    std::formatter<std::array<SpeciesEnum, 2>> specs;
     std::formatter<ArrayOfGriddedField2> arr;
 
     make_compat(specs, arr);
 
-    specs.format(v.Species(0), ctx);
-    std::ranges::copy(sep, ctx.out());
-    specs.format(v.Species(1), ctx);
-    std::ranges::copy(sep, ctx.out());
+    specs.format(v.TwoSpecies(), ctx);
+    std::format_to(ctx.out(), "{}", sep);
     arr.format(v.Data(), ctx);
 
     return ctx.out();

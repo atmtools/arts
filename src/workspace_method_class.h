@@ -56,11 +56,6 @@ struct std::formatter<Wsv> {
     tags.compat(xs...);
   }
 
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -69,20 +64,18 @@ struct std::formatter<Wsv> {
   template <class FmtContext>
   FmtContext::iterator format(const Wsv& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      std::format_to(ctx, "{}", v.type_name());
-    } else {
-      std::visit(
-          [*this, &ctx]<typename T>(const std::shared_ptr<T>& x) {
-            if constexpr (arts_formattable<T>) {
-              std::formatter<T> fmt{};
-              make_compat(fmt);
-              fmt.format(*x, ctx);
-            } else {
-              std::ranges::copy("Not formattable"sv, ctx.out());
-            }
-          },
-          v.value);
+      return std::format_to(
+          ctx.out(), "{}{}{}", tags.quote(), v.type_name(), tags.quote());
     }
+
+    std::visit(
+        [*this, &ctx]<typename T>(const std::shared_ptr<T>& x) {
+          std::formatter<T> fmt{};
+          make_compat(fmt);
+          fmt.format(*x, ctx);
+        },
+        v.value);
+
     return ctx.out();
   }
 };
@@ -99,11 +92,6 @@ struct std::formatter<Method> {
     tags.compat(xs...);
   }
 
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -111,15 +99,19 @@ struct std::formatter<Method> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Method& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("[\n"sv, ctx.out());
+    if (tags.bracket) std::format_to(ctx.out(), "[\n"sv);
 
-    const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep = tags.sep(true);
 
     if (tags.names) {
-      const std::string_view quote = tags.bracket ? R"(")" : ""sv;
-      std::format_to(ctx, "{}{}{}", quote, v.get_name(), quote);
-      if (v.overwrite()) std::format_to(ctx, " (overwrite)");
-      std::format_to(ctx, "{}", sep);
+      const std::string_view ow = v.overwrite() ? " (overwrite)"sv : ""sv;
+      std::format_to(ctx.out(),
+                     "{}{}{}{}{}",
+                     tags.quote(),
+                     v.get_name(),
+                     tags.quote(),
+                     ow,
+                     sep);
     }
 
     if (v.get_setval().has_value()) {
@@ -130,13 +122,13 @@ struct std::formatter<Method> {
       std::formatter<std::vector<std::string>> outargs{};
       std::formatter<std::vector<std::string>> inargs{};
       make_compat(outargs, inargs);
-      std::format_to(ctx, "{}outputs: ", sep);
+      std::format_to(ctx.out(), "outputs: "sv);
       outargs.format(v.get_outs(), ctx);
-      std::format_to(ctx, "{}inputs: ", sep);
+      std::format_to(ctx.out(), "{}inputs: ", sep);
       inargs.format(v.get_ins(), ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("\n]"sv, ctx.out());
+    if (tags.bracket) std::format_to(ctx.out(), "\n]"sv);
     return ctx.out();
   }
 };
@@ -153,11 +145,6 @@ struct std::formatter<Agenda> {
     tags.compat(xs...);
   }
 
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -165,19 +152,17 @@ struct std::formatter<Agenda> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep = tags.sep(true);
 
     if (tags.names) {
-      const std::string_view quote = tags.bracket ? R"(")" : ""sv;
-      std::format_to(ctx,
-                     "{}{}{} (checked: {}):\n",
-                     quote,
+      std::format_to(ctx.out(),
+                     "{}{}{} (checked: {}):",
+                     tags.quote(),
                      v.get_name(),
-                     quote,
-                     v.is_checked(),
-                     sep);
+                     tags.quote(),
+                     v.is_checked());
     }
 
     std::formatter<std::vector<Method>> methods{};
@@ -186,12 +171,12 @@ struct std::formatter<Agenda> {
     make_compat(methods, share, copy);
 
     methods.format(v.get_methods(), ctx);
-    std::format_to(ctx, "{}Shared: ", sep);
-    share.format(v.get_methods(), ctx);
-    std::format_to(ctx, "{}Copied: ", sep);
-    copy.format(v.get_methods(), ctx);
+    std::format_to(ctx.out(), "{}  Shared: ", sep);
+    share.format(v.get_share(), ctx);
+    std::format_to(ctx.out(), "{}  Copied: ", sep);
+    copy.format(v.get_copy(), ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

@@ -15,11 +15,11 @@
 #ifndef covariance_matrix_h
 #define covariance_matrix_h
 
-#include <memory>
-#include <utility>
-
 #include <matpack.h>
 #include <mystring.h>
+
+#include <memory>
+#include <utility>
 
 class CovarianceMatrix;
 
@@ -95,10 +95,10 @@ class Block {
     // Nothing to do here.
   }
 
-  Block(const Block &) = default;
-  Block(Block &&) = default;
+  Block(const Block &)            = default;
+  Block(Block &&)                 = default;
   Block &operator=(const Block &) = default;
-  Block &operator=(Block &&) = default;
+  Block &operator=(Block &&)      = default;
 
   ~Block() = default;
 
@@ -113,20 +113,27 @@ class Block {
   [[nodiscard]] Range get_column_range() const { return column_range_; }
 
   /*! The row range of this block*/
-  Range& get_row_range() { return row_range_; }
+  Range &get_row_range() { return row_range_; }
   /*! The column range of this block*/
-  Range& get_column_range() { return column_range_; }
+  Range &get_column_range() { return column_range_; }
 
-  void set_matrix(std::shared_ptr<Sparse> sparse) { sparse_ = std::move(sparse); dense_ = nullptr; matrix_type_=MatrixType::sparse; }
-  void set_matrix(std::shared_ptr<Matrix> dense) { dense_ = std::move(dense); sparse_ = nullptr; matrix_type_=MatrixType::dense; }
+  void set_matrix(std::shared_ptr<Sparse> sparse) {
+    sparse_      = std::move(sparse);
+    dense_       = nullptr;
+    matrix_type_ = MatrixType::sparse;
+  }
+  void set_matrix(std::shared_ptr<Matrix> dense) {
+    dense_       = std::move(dense);
+    sparse_      = nullptr;
+    matrix_type_ = MatrixType::dense;
+  }
 
   /*! Return the diagonal as a vector.*/
   [[nodiscard]] Vector diagonal() const {
     if (dense_) {
       return ::diagonal(*dense_);
-    }        
+    }
     return sparse_->diagonal();
-   
   }
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
@@ -207,11 +214,11 @@ void add_inv(MatrixView A, const Block &);
  */
 class CovarianceMatrix {
  public:
-  CovarianceMatrix() = default;
-  CovarianceMatrix(const CovarianceMatrix &) = default;
-  CovarianceMatrix(CovarianceMatrix &&) = default;
+  CovarianceMatrix()                                    = default;
+  CovarianceMatrix(const CovarianceMatrix &)            = default;
+  CovarianceMatrix(CovarianceMatrix &&)                 = default;
   CovarianceMatrix &operator=(const CovarianceMatrix &) = default;
-  CovarianceMatrix &operator=(CovarianceMatrix &&) = default;
+  CovarianceMatrix &operator=(CovarianceMatrix &&)      = default;
 
   ~CovarianceMatrix() = default;
 
@@ -394,41 +401,41 @@ void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 MatrixView operator+=(MatrixView, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
 
-template<>
+template <>
 struct std::formatter<CovarianceMatrix> {
   format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
   template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
+  void make_compat(std::formatter<Ts> &...xs) const {
     tags.compat(xs...);
   }
 
   template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
+  constexpr void compat(const std::formatter<U> &x) {
     x.make_compat(*this);
   }
 
   constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+      std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const CovarianceMatrix& v,
-                              FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+  FmtContext::iterator format(const CovarianceMatrix &v,
+                              FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '[');
 
-   const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep = tags.sep(true);
 
     std::formatter<Matrix> blocks;
     blocks.format(Matrix{v}, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     blocks.format(v.get_inverse(), ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

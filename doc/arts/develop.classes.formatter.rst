@@ -42,8 +42,6 @@ must exist for most ARTS classes:
 
     [[nodiscard]] constexpr const auto& inner_fmt() const;
 
-    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
-
     template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const;
 
     constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx);
@@ -80,8 +78,6 @@ If your class's `MetaData` is `std::formatter<T> fmt;` then the following is the
 
     [[nodiscard]] constexpr const auto& inner_fmt() const {return fmt.inner_fmt();}
 
-    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
-
     template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const { fmt.inner_fmt().make_compat(xs...); }
 
     constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {return fmt.inner_fmt().parse(ctx);}
@@ -89,7 +85,7 @@ If your class's `MetaData` is `std::formatter<T> fmt;` then the following is the
     template <class FmtContext> FmtContext::iterator format(const ARTSTYPE& v, FmtContext& ctx) const;
   };
 
-If your class's is `format_tags tags;` then the following is the recommended implementation:
+If your class's `MetaData` is `format_tags tags;` then the following is the recommended implementation:
 
 .. code-block:: cpp
   :caption: Meta code for formatting ARTS classes that owns a formatter
@@ -103,8 +99,6 @@ If your class's is `format_tags tags;` then the following is the recommended imp
 
     [[nodiscard]] constexpr const auto& inner_fmt() const {return *this;}
 
-    template <typename T> constexpr void compat(const std::formatter<T>& x) { x.make_compat(*this); }
-
     template <typename... Ts> constexpr void make_compat(std::formatter<Ts>&... xs) const { tags.compat(xs...); }
 
     constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) { return parse_format_tags(tags, ctx); }
@@ -117,10 +111,9 @@ the `tags` object is the only object that needs to be passed around to ensure co
 The following is achieved by this design:
 
 1. `inner_fmt()` has a member object `tags`.
-2. `compat()` and `make_compat()` pass their arguments to `tags` via `inner_fmt()`.
-3. It is possible to have 
+2. `make_compat()` pass their arguments to `tags` via `inner_fmt()`.
 
-It also allows calling `make_compat(...)` inside the `format` function on all local formatters,
+It also allows calling `make_compat(...)` inside the `format` function on local formatters,
 so that they can act on the same tags as the main formatter.
 
 What formatter options are available?

@@ -393,7 +393,7 @@ struct std::formatter<TelsemAtlas> {
 
   template <class FmtContext>
   FmtContext::iterator format(const TelsemAtlas &, FmtContext &ctx) const {
-    std::format_to(ctx, "TelsemAtlas");
+    std::format_to(ctx.out(), "TelsemAtlas");
     return ctx.out();
   }
 };

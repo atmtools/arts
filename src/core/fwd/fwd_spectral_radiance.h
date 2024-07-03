@@ -178,7 +178,7 @@ struct std::formatter<SpectralRadianceOperator> {
   template <class FmtContext>
   FmtContext::iterator format(const SpectralRadianceOperator& v,
                               FmtContext& ctx) const {
-    std::format_to(ctx,
+    std::format_to(ctx.out(),
                    "operator over\n  alt: {:sB,}\n  lat: {:sB,}\n  lon: {:sB,}",
                    v.alt,
                    v.lat,

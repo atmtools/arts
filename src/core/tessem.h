@@ -58,36 +58,31 @@ struct std::formatter<TessemNN> {
 
   template <class FmtContext>
   FmtContext::iterator format(const TessemNN& v, FmtContext& ctx) const {
-    const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep = tags.sep(true);
 
-    std::format_to(ctx,
-                   "{}{}{}{}{}{}\n",
-                   v.nb_inputs,
-                   sep,
-                   v.nb_outputs,
-                   sep,
-                   v.nb_cache,
-                   sep);
+  std::format_to( ctx.out(), "{}{}{}{}{}{}", v.nb_inputs,
+    sep,v.nb_outputs, sep,  v.nb_cache,sep);
+    
     std::formatter<Vector> vec;
     std::formatter<Matrix> mat;
     make_compat(vec, mat);
 
     vec.format(v.b1, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.b2, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     mat.format(v.w1, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     mat.format(v.w2, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.x_min, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.x_max, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.y_min, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.y_max, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
 
     return ctx.out();
   }

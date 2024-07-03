@@ -97,9 +97,10 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
       FmtContext &ctx) const {
     std::formatter<Vector> vec{};
     make_compat(vec);
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
-    std::format_to(ctx,
+    const std::string_view sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
+
+    std::format_to(ctx.out(),
                    "{}{}{}{}{}{}",
                    v.ref_temp,
                    sep,
@@ -108,13 +109,14 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
                    v.ref_h2o_vmr,
                    sep);
     vec.format(v.self_absco_ref, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.for_absco_ref, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.wavenumbers, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vec.format(v.self_texp, ctx);
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -144,7 +146,7 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
   template <class FmtContext>
   FmtContext::iterator format(const Absorption::PredefinedModel::ModelName &,
                               FmtContext &ctx) const {
-    std::format_to(ctx, "[]");
+    std::format_to(ctx.out(), "[]");
     return ctx.out();
   }
 };

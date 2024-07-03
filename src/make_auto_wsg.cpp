@@ -297,10 +297,8 @@ Wsv Wsv::from_named_type(const std::string& type) {
        << ">, \"Must be copyable\");\n";
     os << "static_assert(WorkspaceGroupIsPrintable<" << group
        << ">, \"Must be printable\");\n";
-    if (not data.at(group).value_type) {
-      os << "static_assert(arts_formattable<" << group
-         << ">, \"Must be formattable according to ARTS rules\");\n";
-    }
+    os << "static_assert(arts_formattable_or_value_type<" << group
+       << ">, \"Must be formattable according to ARTS rules\");\n";
   }
 }
 

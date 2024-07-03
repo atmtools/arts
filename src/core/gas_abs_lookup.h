@@ -315,33 +315,33 @@ struct std::formatter<GasAbsLookup> {
                 nls_pert,
                 xsec);
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    const std::string_view sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
 
     species.format(v.species, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     nonlinear_species.format(v.nonlinear_species, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     f_grid.format(v.f_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     flag_default.format(v.flag_default, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     p_grid.format(v.p_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     log_p_grid.format(v.log_p_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     vmrs_ref.format(v.vmrs_ref, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     t_ref.format(v.t_ref, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     t_pert.format(v.t_pert, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     nls_pert.format(v.nls_pert, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     xsec.format(v.xsec, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

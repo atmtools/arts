@@ -244,7 +244,7 @@ struct std::formatter<Time> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
     return std::format_to(ctx.out(), "{}{}{}", quote, v.time, quote);
   }
 };

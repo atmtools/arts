@@ -1021,17 +1021,24 @@ struct std::formatter<LineShapeModelParameters> {
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeModelParameters& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<LineShapeTemperatureModelOld> type;
     make_compat(type);
-    std::ranges::copy(sep, ctx.out());
-    std::format_to(
-        ctx, "{}{}{}{}{}{}{}", v.X0, sep, v.X1, sep, v.X2, sep, v.X3);
+    std::format_to(ctx.out(),
+                   "{}{}{}{}{}{}{}{}",
+                   sep,
+                   v.X0,
+                   sep,
+                   v.X1,
+                   sep,
+                   v.X2,
+                   sep,
+                   v.X3);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -1061,21 +1068,22 @@ struct std::formatter<LineShapeSingleSpeciesModel> {
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeSingleSpeciesModel& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<LineShapeModelParameters> mpf{};
     make_compat(mpf);
 
     std::string_view sep      = ""sv;
-    std::string_view next_sep = tags.comma ? ", "sv : " "sv;
+    std::string_view next_sep = tags.sep();
 
     for (const auto& mp : v.Data()) {
       if (mp.type not_eq LineShapeTemperatureModelOld::None) {
-        std::ranges::copy(std::exchange(sep, next_sep), ctx.out());
+        std::format_to(ctx.out(), "{}", std::exchange(sep, next_sep));
         mpf.format(ctx, mp);
       }
     }
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -1104,12 +1112,12 @@ struct std::formatter<LineShapeModel> {
 
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeModel& v, FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<std::vector<LineShapeSingleSpeciesModel>> data{};
     data.format(ctx, v.Data());
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

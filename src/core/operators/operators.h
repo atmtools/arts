@@ -61,7 +61,6 @@ struct std::formatter<CustomOperator<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const CustomOperator<WTs...> &,
                               FmtContext &ctx) const {
-    std::format_to(ctx, "?=f(?)");
-    return ctx.out();
+    return std::format_to(ctx.out(), "?=f(?)"sv);
   }
 };

@@ -348,10 +348,7 @@ struct std::formatter<SensorPosLos> {
     make_compat(fmt3, fmt2);
 
     fmt3.format(v.pos, ctx);
-
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-
+    std::format_to(ctx.out(), "{}", tags.sep());
     return fmt2.format(v.los, ctx);
   }
 };
@@ -387,21 +384,21 @@ struct std::formatter<SensorObsel> {
     std::formatter<Stokvec> polarization{};
     make_compat(f_grid_w, f_grid, poslos_grid_w, poslos_grid, polarization);
 
-    std::ranges::copy("Obsel:"sv, ctx.out());
-
-    std::ranges::copy("\n  frequency grid:                 "sv, ctx.out());
+    std::format_to(ctx.out(),
+                   "Obsel:"
+                   "\n  frequency grid:                 ");
     f_grid.format(v.f_grid, ctx);
 
-    std::ranges::copy("\n  pos-los grid:                   "sv, ctx.out());
+    std::format_to(ctx.out(), "\n  pos-los grid:                   ");
     poslos_grid.format(v.poslos_grid, ctx);
 
-    std::ranges::copy("\n  polarization:                   "sv, ctx.out());
+    std::format_to(ctx.out(), "\n  polarization:                   ");
     polarization.format(v.polarization, ctx);
 
-    std::ranges::copy("\n  frequency grid weights:         "sv, ctx.out());
+    std::format_to(ctx.out(), "\n  frequency grid weights:         ");
     f_grid_w.format(v.f_grid_w, ctx);
 
-    std::ranges::copy("\n  pos-los grid polarized weigths: "sv, ctx.out());
+    std::format_to(ctx.out(), "\n  pos-los grid polarized weigths: ");
     poslos_grid_w.format(v.poslos_grid_w, ctx);
 
     return ctx.out();

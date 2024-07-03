@@ -376,7 +376,7 @@ struct std::formatter<std::complex<T>> {
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
   template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
+  constexpr void compat(const std::formatter<U>& x) {
     x.make_compat(*this);
   }
 
@@ -392,17 +392,15 @@ struct std::formatter<std::complex<T>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::complex<T>& v, FmtContext& ctx) const {
-    std::formatter<T> fmt{};
-
+    const std::string_view j = tags.names ? "j"sv : ""sv;
     if (tags.comma) {
-      fmt.format(v.real(), ctx);
-      std::ranges::copy(","sv, ctx.out());
-      fmt.format(v.imag(), ctx);
+      std::format_to(ctx.out(), "({},{}{})", v.real(), v.imag(), j);
     } else {
-      fmt.format(v.real(), ctx);
-      if (v.imag() >= 0) std::ranges::copy("+"sv, ctx.out());
-      fmt.format(v.imag(), ctx);
-      std::ranges::copy("j"sv, ctx.out());
+      if (v.imag() >= 0) {
+        std::format_to(ctx.out(), "{}+{}{}", v.real(), v.imag(), j);
+      } else {
+        std::format_to(ctx.out(), "{}{}{}", v.real(), v.imag(), j);
+      }
     }
 
     return ctx.out();

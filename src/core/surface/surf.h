@@ -295,8 +295,8 @@ struct std::formatter<SurfacePropertyTag> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePropertyTag &v,
                               FmtContext &ctx) const {
-    const std::string_view quote = tags.bracket ? "\"" : "";
-    return std::format_to(ctx, "{}{}{}", quote, v.name, quote);
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
   }
 };
 
@@ -324,8 +324,8 @@ struct std::formatter<SurfaceTypeTag> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SurfaceTypeTag &v, FmtContext &ctx) const {
-    const std::string_view quote = tags.bracket ? "\"" : "";
-    return std::format_to(ctx, "{}{}{}", quote, v.name, quote);
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
   }
 };
 
@@ -354,9 +354,8 @@ struct std::formatter<Surf::FunctionalData> {
   template <class FmtContext>
   FmtContext::iterator format(const Surf::FunctionalData &,
                               FmtContext &ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")"sv : ""sv;
-    std::format_to(ctx, "{0}functional-data{0}", quote);
-    return ctx.out();
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
   }
 };
 template <>
@@ -387,22 +386,22 @@ struct std::formatter<Surf::Data> {
     std::formatter<InterpolationExtrapolation> interp{};
     make_compat(interp, data);
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
 
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
     data.format(v.data, ctx);
-    std::format_to(ctx, "{}", sep);
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    std::format_to(ctx.out(), "{}", sep);
+    tags.add_if_bracket(ctx, '[');
 
     interp.format(v.lat_upp, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lat_low, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lon_upp, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     interp.format(v.lon_low, ctx);
 
-    if (tags.bracket) std::ranges::copy("]]"sv, ctx.out());
+    if (tags.bracket) std::format_to(ctx.out(), "]]"sv);
     return ctx.out();
   }
 };
@@ -431,15 +430,15 @@ struct std::formatter<SurfaceField> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
-    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+    tags.add_if_bracket(ctx, '{');
 
     std::formatter<Vector2> vec;
-    std::format_to(ctx, R"("Ellipsoid": )");
+    std::format_to(ctx.out(), R"("Ellipsoid": )");
     vec.format(v.ellipsoid, ctx);
 
     if (tags.short_str) {
       std::format_to(
-          ctx,
+          ctx.out(),
           R"(, "SurfaceKey": {}, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
           v.map<SurfaceKey>().size(),
           v.map<SurfaceTypeTag>().size(),
@@ -449,23 +448,20 @@ struct std::formatter<SurfaceField> {
       std::formatter<std::unordered_map<SurfaceTypeTag, Surf::Data>> type{};
       std::formatter<std::unordered_map<SurfacePropertyTag, Surf::Data>> prop{};
 
-      std::ranges::copy(R"(,
-"SurfaceKey": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SurfaceKey": )");
       key.format(v.map<SurfaceKey>(), ctx);
 
-      std::ranges::copy(R"(,
-"SurfaceTypeTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SurfaceTypeTag": )");
       type.format(v.map<SurfaceTypeTag>(), ctx);
 
-      std::ranges::copy(R"(,
-"SurfacePropertyTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SurfacePropertyTag": )");
       prop.format(v.map<SurfacePropertyTag>(), ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };
@@ -494,41 +490,38 @@ struct std::formatter<SurfacePoint> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
-    if (tags.bracket) std::ranges::copy("{"sv, ctx.out());
+    tags.add_if_bracket(ctx, '{');
 
     std::formatter<Vector3> vec3;
     std::formatter<Vector2> vec2;
 
     std::format_to(ctx.out(),
-                   R"("elevation": {}, "temperature": {}, "wind")",
+                   R"("elevation": {}, "temperature": {}, "wind": )",
                    v.elevation,
                    v.temperature);
     vec3.format(v.wind, ctx);
-    std::format_to(ctx.out(), ", \"normal\": ");
+    std::format_to(ctx.out(), R"(, "normal": )");
     vec2.format(v.normal, ctx);
 
     if (tags.short_str) {
-      std::format_to(ctx,
-                     R"(, "SurfaceTypeTag": {}, "SurfacePropertyTag": {}, )",
+      std::format_to(ctx.out(),
+                     R"(, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
                      v.type.size(),
                      v.prop.size());
-
     } else {
       std::formatter<std::unordered_map<SurfaceTypeTag, Numeric>> type;
       std::formatter<std::unordered_map<SurfacePropertyTag, Numeric>> prop;
 
-      std::ranges::copy(R"(,
-"SurfaceTypeTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SurfaceTypeTag": )");
       type.format(v.type, ctx);
 
-      std::ranges::copy(R"(,
-"SurfacePropertyTag": )",
-                        ctx.out());
+      std::format_to(ctx.out(), R"(,
+"SurfacePropertyTag": )");
       prop.format(v.prop, ctx);
     }
 
-    if (tags.bracket) std::ranges::copy("}"sv, ctx.out());
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };

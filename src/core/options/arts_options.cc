@@ -25,8 +25,8 @@ std::vector<EnumeratedOption> internal_options_create() {
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "GridType",
-      .desc = R"(Type of Lagrange interpolation weights.
+      .name            = "GridType",
+      .desc            = R"(Type of Lagrange interpolation weights.
 )",
       .values_and_desc = {
           Value{"Standard", "1-to-1 interpolation grid"},
@@ -238,8 +238,8 @@ std::vector<EnumeratedOption> internal_options_create() {
       }});
 
   opts.emplace_back(EnumeratedOption{
-      .name = "QuantumNumberType",
-      .desc = R"(The type of value for a quantum number.
+      .name            = "QuantumNumberType",
+      .desc            = R"(The type of value for a quantum number.
 )",
       .values_and_desc = {
           Value{"alpha", "Quantum number \"alpha\" - Not in VAMDC"},
@@ -315,8 +315,8 @@ std::vector<EnumeratedOption> internal_options_create() {
       }});
 
   opts.emplace_back(EnumeratedOption{
-      .name = "IsoRatioOption",
-      .desc = R"(The type of isotopologue ratio to use.
+      .name            = "IsoRatioOption",
+      .desc            = R"(The type of isotopologue ratio to use.
 )",
       .values_and_desc = {
           Value{"Builtin", "Use the built-in isotopologue ratio"},
@@ -924,8 +924,8 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "EarthEllipsoid",
-      .desc = "Choice of ellipsoid.\n",
+      .name            = "EarthEllipsoid",
+      .desc            = "Choice of ellipsoid.\n",
       .values_and_desc = {Value{"Sphere", R"(A spherical Earth.
 
   The radius is set following the value set for the Earth radius.)"},
@@ -1148,12 +1148,14 @@ std::string EnumeratedOption::tail() const {
     }
     os << "};\n  };\n";
   }
-  os << "  template <int i="<<format_ind(name)<<">\n  inline constexpr auto " << name
-     << "Names = enum_str_data<" << name << ", i>::strs;\n";
+  os << "  template <int i=" << format_ind(name)
+     << ">\n  inline constexpr auto " << name << "Names = enum_str_data<"
+     << name << ", i>::strs;\n";
   os << "}  // namespace enumstrs\n\n";
 
   // Create toString functions
-  os << "template <int i="<<format_ind(name)<<"> constexpr const std::string_view toString(" << name
+  os << "template <int i=" << format_ind(name)
+     << "> constexpr const std::string_view toString(" << name
      << " x) requires(i >= 0 and i < " << n - 1
      << ") {\n"
         "  if (good_enum(x))\n    return enumstrs::"
@@ -1188,7 +1190,8 @@ std::string EnumeratedOption::tail() const {
   os << "void xml_write_to_stream(std::ostream& os_xml, const " << name
      << "& s, bofstream*, const std::string&);\n\n";
 
-  os << "template<> struct std::formatter<" << name  << "> {\n  using T=" << name << ";\n";
+  os << "template<> struct std::formatter<" << name << "> {\n  using T=" << name
+     << ";\n";
   os << R"--(
   format_tags tags;
 
@@ -1200,11 +1203,6 @@ std::string EnumeratedOption::tail() const {
     tags.compat(xs...);
   }
 
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1212,17 +1210,15 @@ std::string EnumeratedOption::tail() const {
 
   template <class FmtContext>
   FmtContext::iterator format(const T& v, FmtContext& ctx) const {
-  constexpr Index IND = )--" << format_ind(name) << ";\n";
+  constexpr Index IND = )--"
+     << format_ind(name) << ";\n";
 
-os << R"--(
-    if (tags.bracket) {
-      return std::format_to(ctx.out(), "\"{}\"", toString<IND>(v));
-    }
-    
-    return std::format_to(ctx.out(), "{}", toString<IND>(v));
+  os << R"--(
+    const auto q = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", q, toString<IND>(v), q);
   }
 )--";
-  os << "};\nstatic_assert(arts_formattable<" << name << ">, \""<<name<<"\");\n";
+  os << "};\n";
 
   return os.str();
 }
@@ -1291,7 +1287,7 @@ std::string EnumeratedOption::impl() const {
   std::ostringstream os;
   // Create ostream operator
   os << "std::ostream &operator<<(std::ostream &os, const " << name
-     << " x) {\n  return os << toString<"<<format_ind(name)<<">(x);\n}\n\n";
+     << " x) {\n  return os << toString<" << format_ind(name) << ">(x);\n}\n\n";
   os << "std::istream &operator>>(std::istream &is, " << name
      << "& x) {\n  std::string s;\n  is >> s;\n  x = to<" << name
      << ">(s);\n  return is;\n}\n\n";
@@ -1315,7 +1311,9 @@ std::string EnumeratedOption::impl() const {
   os << "void xml_write_to_stream(std::ostream& os, const " << name
      << "& s, bofstream*, const std::string&) {\n"
         "  os << \"<"
-     << name << "> \" << toString<"<<format_ind(name)<<">(s) << \" </" << name << ">\\n\";\n}\n\n";
-
+     << name << "> \" << toString<" << format_ind(name) << ">(s) << \" </"
+     << name << ">\\n\";\n}\n\n";
+  os << "static_assert(arts_formattable<" << name << ">, \"Not good: " << name
+     << "\");\n\n";
   return os.str();
 }

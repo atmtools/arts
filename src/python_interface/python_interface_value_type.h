@@ -65,13 +65,13 @@ struct std::formatter<Python::ValueHolder<T>> {
     std::formatter<T> fmt{};
 
     if constexpr (std::same_as<T, String>) {
-      if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
+      if (tags.quoted) std::format_to(ctx.out(), R"(")");
     }
 
     fmt.format(*v.val, ctx);
 
     if constexpr (std::same_as<T, String>) {
-      if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
+      if (tags.quoted)std::format_to(ctx.out(),R"(")");
     }
 
     return ctx.out();

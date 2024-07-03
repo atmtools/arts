@@ -1564,38 +1564,31 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
     std::formatter<T> fmt{};
     tags.compat(fmt);
 
-    bool first = true;
+    std::string_view first = tags.sep();
+    std::string_view sep   = ""sv;
 
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     if (tags.short_str and n > short_str_v_cut) {
       for (auto&& a : v | take(short_str_v_stp)) {
-        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy(" "sv, ctx.out());
+        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
         fmt.format(a, ctx);
-        first = false;
       }
 
-      if (tags.comma) std::ranges::copy(","sv, ctx.out());
-      std::ranges::copy(" ..."sv, ctx.out());
+      std::format_to(ctx.out(), "{}...", sep);
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy(" "sv, ctx.out());
+        std::format_to(ctx.out(), "{}", sep);
         fmt.format(a, ctx);
-        first = false;
       }
     } else {
       for (auto&& a : v) {
-        if (not first and tags.comma) std::ranges::copy(","sv, ctx.out());
-        if (not first) std::ranges::copy(" "sv, ctx.out());
+        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
         fmt.format(a, ctx);
-        first = false;
       }
     }
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
-
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -1628,49 +1621,32 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
       FmtContext& ctx) const {
     using std::ranges::views::take, std::ranges::views::drop;
 
-    const Index n = v.shape()[0];
-    bool first    = true;
+    const Index n          = v.shape()[0];
+    std::string_view first = inner_fmt().tags.sep(true);
+    std::string_view sep   = ""sv;
 
-    if (inner_fmt().tags.bracket) {
-      std::ranges::copy("[\n"sv, ctx.out());
-    }
+    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "[\n");
 
     if (inner_fmt().tags.short_str and n > short_str_v_cut) {
       for (auto&& a : v | take(short_str_v_stp)) {
-        if (not first) {
-          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-          std::ranges::copy("\n"sv, ctx.out());
-        }
+        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
         fmt.format(a, ctx);
-        first = false;
       }
 
-      if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-      std::ranges::copy("\n"sv, ctx.out());
-      std::ranges::copy("..."sv, ctx.out());
+      std::format_to(ctx.out(), "{}...", sep);
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-        if (not first) {
-          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-          std::ranges::copy("\n"sv, ctx.out());
-        }
+        std::format_to(ctx.out(), "{}", sep);
         fmt.format(a, ctx);
-        first = false;
       }
     } else {
       for (auto&& a : v) {
-        if (not first) {
-          if (inner_fmt().tags.comma) std::ranges::copy(","sv, ctx.out());
-          std::ranges::copy("\n"sv, ctx.out());
-        }
+        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
         fmt.format(a, ctx);
-        first = false;
       }
     }
 
-    if (inner_fmt().tags.bracket) {
-      std::ranges::copy("\n]"sv, ctx.out());
-    }
+    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "\n]");
 
     return ctx.out();
   }

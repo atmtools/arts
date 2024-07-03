@@ -313,9 +313,9 @@ struct std::formatter<PropagationPathPoint> {
   template <class FmtContext>
   FmtContext::iterator format(const PropagationPathPoint& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
     std::formatter<PathPositionType> pos_type{};
     std::formatter<PathPositionType> los_type{};
@@ -324,15 +324,15 @@ struct std::formatter<PropagationPathPoint> {
     make_compat(pos_type, los_type, pos, los);
 
     pos_type.format(v.pos_type, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     los_type.format(v.los_type, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     pos.format(v.pos, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     los.format(v.los, ctx);
-    std::format_to(ctx, "{}{}{}{}", sep, v.nreal, sep, v.ngroup);
+    std::format_to(ctx.out(), "{}{}{}{}", sep, v.nreal, sep, v.ngroup);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

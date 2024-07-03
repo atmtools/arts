@@ -8,8 +8,6 @@
 #include <algorithm>
 #include <set>
 
-#include "species.h"
-
 namespace Species {
 struct Tag {
   //! Molecular species index in Species::Isotopologues
@@ -298,22 +296,21 @@ struct std::formatter<SpeciesTag> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesTag& v, FmtContext& ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
     std::format_to(ctx.out(), "{}{}", quote, v.Spec());
 
     switch (v.type) {
       case SpeciesTagType::Plain:
-        if (not v.is_joker())
-          std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
+        if (not v.is_joker()) std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Predefined:
-        std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
+        std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Cia:
         std::format_to(ctx.out(), "-CIA-{}", v.cia_2nd_species);
         break;
       case SpeciesTagType::XsecFit:
-        std::format_to(ctx.out(), "-XFIT", v.Isotopologue().isotname);
+        std::format_to(ctx.out(), "-XFIT");
         break;
     }
 

@@ -22,6 +22,7 @@
 #define matpackII_h
 
 #include <ostream>
+#include <utility>
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
@@ -193,27 +194,24 @@ struct std::formatter<Sparse> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Sparse& v, FmtContext& ctx) const {
-    const std::string_view opb = tags.bracket ? "["sv : ""sv;
-    const std::string_view clb = tags.bracket ? "]"sv : ""sv;
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    using Iter = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
 
-    std::format_to(ctx, "{}", opb);
+    std::string_view first = tags.sep();
+    std::string_view sep = ""sv;
+
+    tags.add_if_bracket(ctx, '[');
+
     for (int k = 0; k < v.matrix.outerSize(); ++k) {
-      for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(v.matrix, k); it; ++it) {
-        std::format_to(ctx,
-                       "{}{}{}{}{}{}{}{}",
-                       opb,
-                       it.row(),
-                       sep,
-                       it.col(),
-                       sep,
-                       it.value(),
-                       clb,
-                       sep);
+      for (Iter it(v.matrix, k); it; ++it) {
+        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
+        tags.add_if_bracket(ctx, '[');
+        std::format_to(
+            ctx.out(), "{}{}{}{}{}", it.row(), sep, it.col(), sep, it.value());
+        tags.add_if_bracket(ctx, ']');
       }
     }
-    std::format_to(ctx, "{}", clb);
 
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

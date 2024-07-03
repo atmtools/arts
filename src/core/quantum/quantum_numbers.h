@@ -1247,27 +1247,27 @@ struct std::formatter<QuantumNumberValue> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberValue& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
+
+    const auto quote = tags.quote();
+    const auto sep   = tags.sep();
 
     std::formatter<QuantumNumberType> type;
     make_compat(type);
 
     type.format(v.type, ctx);
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
+    std::format_to(ctx.out(),
+                   "{}{}{}{}{}{}{}{}",
+                   sep,
+                   quote,
+                   v.str_upp(),
+                   quote,
+                   sep,
+                   quote,
+                   v.str_low(),
+                   quote);
 
-    if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
-    std::ranges::copy(v.str_upp(), ctx.out());
-    if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
-
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-
-    if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
-    std::ranges::copy(v.str_low(), ctx.out());
-    if (tags.bracket) std::ranges::copy(R"(")", ctx.out());
-
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -1299,7 +1299,7 @@ struct std::formatter<QuantumNumberValueList> {
                               FmtContext& ctx) const {
     std::formatter<std::vector<QuantumNumberValue>> q{};
     make_compat(q);
-    return q.format(v.values, ctx.out);
+    return q.format(v.values, ctx);
   }
 };
 
@@ -1328,12 +1328,13 @@ struct std::formatter<QuantumNumberLocalState> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberLocalState& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<QuantumNumberValueList> q{};
     make_compat(q);
-    q.format(v.val, ctx.out);
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    q.format(v.val, ctx);
+    
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -1363,17 +1364,15 @@ struct std::formatter<QuantumIdentifier> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumIdentifier& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<QuantumNumberValueList> val{};
     make_compat(val);
 
-    std::format_to(ctx, "{}", v.Isotopologue().FullName());
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-    val.format(v.val, ctx.out());
+    std::format_to(ctx.out(), "{}{}", v.Isotopologue().FullName(), tags.sep());
+    val.format(v.val, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

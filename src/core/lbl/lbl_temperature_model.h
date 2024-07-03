@@ -272,18 +272,17 @@ struct std::formatter<lbl::temperature::data> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::temperature::data& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<LineShapeModelType> t{};
     std::formatter<Vector> x{};
     make_compat(t, x);
 
     t.format(v.Type(), ctx);
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
+    std::format_to(ctx.out(), "{}", tags.sep());
     x.format(v.X(), ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

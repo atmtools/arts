@@ -179,25 +179,24 @@ struct std::formatter<XsecRecord> {
                 mfitcoeffs);
 
     if (tags.short_str) {
-      std::format_to(ctx, "XsecRecord(");
-      mspecies.format(v.Species(), ctx);
-      std::format_to(ctx, ")");
+      std::format_to(ctx.out(), "XsecRecord({})", v.Species());
     } else {
-      const std::string_view sep = tags.comma ? ",\n"sv : "\n"sv;
+      const std::string_view sep = tags.sep(true);
+      tags.add_if_bracket(ctx, '[');
 
-      if (tags.bracket) std::format_to(ctx, "[");
       mspecies.format(v.Species(), ctx);
-      std::format_to(ctx, "{}", sep);
+      std::format_to(ctx.out(), "{}", sep);
       mfitminpressures.format(v.FitMinPressures(), ctx);
-      std::format_to(ctx, "{}", sep);
+      std::format_to(ctx.out(), "{}", sep);
       mfitmaxpressures.format(v.FitMaxPressures(), ctx);
-      std::format_to(ctx, "{}", sep);
+      std::format_to(ctx.out(), "{}", sep);
       mfitmintemperatures.format(v.FitMinTemperatures(), ctx);
-      std::format_to(ctx, "{}", sep);
+      std::format_to(ctx.out(), "{}", sep);
       mfitmaxtemperatures.format(v.FitMaxTemperatures(), ctx);
-      std::format_to(ctx, "{}", sep);
+      std::format_to(ctx.out(), "{}", sep);
       mfitcoeffs.format(v.FitCoeffs(), ctx);
-      if (tags.bracket) std::format_to(ctx, "]");
+
+      tags.add_if_bracket(ctx, ']');
     }
 
     return ctx.out();

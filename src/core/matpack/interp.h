@@ -1688,15 +1688,23 @@ struct std::formatter<my_interp::Lagrange<PolyOrder, do_derivs, type, Limit>> {
   FmtContext::iterator format(
       const my_interp::Lagrange<PolyOrder, do_derivs, type, Limit> &v,
       FmtContext &ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
-    std::format_to(ctx, "{}", v.pos);
-    for (auto &x : v.lx) std::format_to(ctx, "{}{}", sep, x);
-    for (auto &x : v.dlx) std::format_to(ctx, "{}{}", sep, x);
+    std::format_to(ctx.out(), "{}", v.pos);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    for (auto &x : v.lx) {
+      std::format_to(ctx.out(), "{}{}", sep, x);
+    }
+
+    if constexpr (do_derivs) {
+      for (auto &x : v.dlx) {
+        std::format_to(ctx.out(), "{}{}", sep, x);
+      }
+    }
+
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

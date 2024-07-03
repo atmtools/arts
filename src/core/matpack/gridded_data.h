@@ -371,24 +371,20 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
   template <Size N, class FmtContext>
   void grid(const fmt_t& v, FmtContext& ctx) const {
     if (tags.names) {
-      std::ranges::copy(R"(")"sv, ctx.out());
-      std::ranges::copy(v.grid_names[N], ctx.out());
-      std::ranges::copy(R"(")"sv, ctx.out());
-      std::ranges::copy(": "sv, ctx.out());
+      const std::string_view quote = tags.quote();
+      std::format_to(ctx.out(),"{}{}{}: ", quote, v.grid_names[N], quote);
     }
 
     std::formatter<grid_t<N>> gridfmt{};
     tags.compat(gridfmt);
     gridfmt.format(std::get<N>(v.grids), ctx);
-    std::ranges::copy(",\n"sv, ctx.out());
+    std::format_to(ctx.out(), ",\n");
   }
 
  public:
   template <class FmtContext>
   FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
-    if (tags.bracket) {
-      std::ranges::copy("{\n"sv, ctx.out());
-    }
+    if (tags.bracket) std::format_to(ctx.out(), "{{\n");
 
     if constexpr (constexpr Size N = 0; n > N) grid<N>(v, ctx);
     if constexpr (constexpr Size N = 1; n > N) grid<N>(v, ctx);
@@ -402,19 +398,15 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
     if constexpr (constexpr Size N = 9; n > N) grid<N>(v, ctx);
 
     if (tags.names) {
-      std::ranges::copy(R"(")"sv, ctx.out());
-      std::ranges::copy(v.data_name, ctx.out());
-      std::ranges::copy(R"(")"sv, ctx.out());
-      std::ranges::copy(": "sv, ctx.out());
+      const std::string_view quote = tags.quote();
+      std::format_to(ctx.out(),"{}{}{}: ", quote, v.data_name, quote);
     }
 
     std::formatter<matpack::matpack_data<T, n>> datafmt{};
     datafmt.inner_fmt().tags = tags;
     datafmt.format(v.data, ctx);
 
-    if (tags.bracket) {
-      std::ranges::copy("\n}"sv, ctx.out());
-    }
+    if (tags.bracket) std::format_to(ctx.out(), "\n}}");
 
     return ctx.out();
   }

@@ -229,49 +229,6 @@ std::istream& operator>>(
     std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
 
 template <>
-struct std::formatter<
-    std::pair<LineShapeModelVariable, lbl::temperature::data>> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(
-      const std::pair<LineShapeModelVariable, lbl::temperature::data>& v,
-      FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
-
-    std::formatter<LineShapeModelVariable> p1{};
-    std::formatter<lbl::temperature::data> p2{};
-    make_compat(p1, p2);
-
-    p1.format(v.first, ctx);
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
-    p2.format(v.second, ctx);
-
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
-    return ctx.out();
-  }
-};
-
-template <>
 struct std::formatter<lbl::line_shape::species_model> {
   format_tags tags;
 
@@ -296,7 +253,7 @@ struct std::formatter<lbl::line_shape::species_model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::species_model& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
     std::formatter<SpeciesEnum> species{};
     std::formatter<
@@ -305,11 +262,10 @@ struct std::formatter<lbl::line_shape::species_model> {
     make_compat(species, data);
 
     species.format(v.species, ctx);
-    if (tags.comma) std::ranges::copy(","sv, ctx.out());
-    std::ranges::copy(" "sv, ctx.out());
+    std::format_to(ctx.out(), "{}", tags.sep());
     data.format(v.data, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -339,19 +295,16 @@ struct std::formatter<lbl::line_shape::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::model& v,
                               FmtContext& ctx) const {
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
 
-    if (tags.comma) {
-      std::format_to(ctx.out(), "{}, {}, ", v.one_by_one, v.T0);
-    } else {
-      std::format_to(ctx.out(), "{} {} ", v.one_by_one, v.T0);
-    }
+    const auto sep = tags.sep();
+    std::format_to(ctx.out(), "{}{}{}{}", v.one_by_one, sep, v.T0, sep);
 
     std::formatter<std::vector<lbl::line_shape::species_model>> s;
     make_compat(s);
     s.format(v.single_models, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };

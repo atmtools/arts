@@ -193,19 +193,23 @@ struct std::formatter<AntennaType> {
 
   template <class FmtContext>
   FmtContext::iterator format(const AntennaType& v, FmtContext& ctx) const {
-    const std::string_view quote = tags.bracket ? R"(")" : ""sv;
+    const std::string_view quote = tags.quote();
     switch (v) {
       case ANTENNA_TYPE_PENCIL_BEAM:
-        std::format_to(ctx, "{}ANTENNA_TYPE_PENCIL_BEAM{}", quote, quote);
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "ANTENNA_TYPE_PENCIL_BEAM"sv, quote);
         break;
       case ANTENNA_TYPE_GAUSSIAN:
-        std::format_to(ctx, "{}ANTENNA_TYPE_GAUSSIAN{}", quote, quote);
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "ANTENNA_TYPE_GAUSSIAN"sv, quote);
         break;
       case ANTENNA_TYPE_LOOKUP:
-        std::format_to(ctx, "{}ANTENNA_TYPE_LOOKUP{}", quote, quote);
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "ANTENNA_TYPE_LOOKUP"sv, quote);
         break;
       default:
-        std::format_to(ctx, "{}ANTENNA_TYPE_UNKNOWN{}", quote, quote);
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "ANTENNA_TYPE_UNKNOWN"sv, quote);
         break;
     }
     return ctx.out();
@@ -237,25 +241,25 @@ struct std::formatter<MCAntenna> {
   template <class FmtContext>
   FmtContext::iterator format(const MCAntenna& v, FmtContext& ctx) const {
     std::formatter<AntennaType> atype{};
-    Numeric sigma_aa{}, sigma_za{};
     std::formatter<Vector> grid{};
     std::formatter<Matrix> G_lookup{};
     make_compat(atype, grid, G_lookup);
 
-    const std::string_view sep = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep = tags.sep();
 
-    if (tags.bracket) std::ranges::copy("["sv, ctx.out());
+    tags.add_if_bracket(ctx, '[');
     atype.format(v.atype, ctx);
 
-    std::format_to(ctx, "{}{}{}{}{}", sep, v.sigma_aa, sep, v.sigma_za, sep);
+    std::format_to(
+        ctx.out(), "{}{}{}{}{}", sep, v.sigma_aa, sep, v.sigma_za, sep);
 
     grid.format(v.aa_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     grid.format(v.za_grid, ctx);
-    std::format_to(ctx, "{}", sep);
+    std::format_to(ctx.out(), "{}", sep);
     G_lookup.format(v.G_lookup, ctx);
 
-    if (tags.bracket) std::ranges::copy("]"sv, ctx.out());
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
