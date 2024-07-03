@@ -60,7 +60,7 @@
  * limited.
  */
 
-#define PRIME_LIST_VECT_SIZE        16
+#define PRIME_LIST_VECT_SIZE        32
 
 /* Size in bytes of each word in multi-word integers.  4 or 8. */
 
