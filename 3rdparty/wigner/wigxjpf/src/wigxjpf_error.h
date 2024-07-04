@@ -23,24 +23,42 @@
 
 #include "wigxjpf_config.h"
 
+typedef void (*wigxjpf_error_handler_func_t)(void);
+
+extern wigxjpf_error_handler_func_t wigxjpf_error_handler;
+
 void wigxjpf_error(void);
+
+#if PYWIGXJPF_ERROR_HANDLING
 
 #include <setjmp.h>
 
-extern __thread jmp_buf _error_jmp_env;
+void pywigxjpf_error_handler(void);
 
-#if PYWIGXJPF_ERROR_HANDLING || ERRNO_ERROR_HANDLING
-#define NONABORT_ERROR_SETUP(x)           \
-  do {                                    \
-    if (setjmp(_error_jmp_env)) return x; \
+extern __thread jmp_buf pywigxjpf_jmp_env;
+
+/* This is called before every evaluation in the python code, in order
+ * to deal gracefully with invalid user input.
+ *
+ * It is not recommended to do something similar in other code - rather
+ * fix the code to initialise the temporary arrays large enough for all
+ * used symbols!
+ *
+ * Note: wigxjpf_error_handler is a not thread local global, which
+ * does not matter since it will be set to the same every time.
+ */
+# define PYWIGXJPF_ERROR_SETUP(x) do {			\
+    wigxjpf_error_handler = pywigxjpf_error_handler;	\
+    if (setjmp(pywigxjpf_jmp_env))			\
+      return x;						\
   } while (0)
 #else
-#define NONABORT_ERROR_SETUP(x) do {} while(0)
+# define PYWIGXJPF_ERROR_SETUP(x) do { } while (0)
 #endif
 
-void wigxjpf_drop_temp(void);
+# define PYWIGXJPF_ERROR_SETUP_void  PYWIGXJPF_ERROR_SETUP()
+# define PYWIGXJPF_ERROR_SETUP_NaN   PYWIGXJPF_ERROR_SETUP(strtof("NAN",NULL))
 
-# define NONABORT_ERROR_SETUP_void  NONABORT_ERROR_SETUP()
-# define NONABORT_ERROR_SETUP_NaN   NONABORT_ERROR_SETUP(strtof("NAN",NULL))
+void wigxjpf_drop_temp(void);
 
 #endif/*__WIGXJPF_ERROR_H__*/

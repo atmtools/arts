@@ -55,7 +55,7 @@ interface, but are renamed:
                        jj7,jj8,jj9])
 """
 
-__version__ = '1.11'
+__version__ = '1.13.3  '
 __author__ = 'C. Forssen and H.T. Johansson'
 __all__ = ['pywigxjpf']
 

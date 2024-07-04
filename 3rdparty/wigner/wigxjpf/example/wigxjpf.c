@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
 	    two_m1, two_m2, two_m3;
 	  int max_two_j = 0;
 	  int n;
+	  int eval_3j = 0;
 
 	  n = sscanf(argv[i]+5,"%lf,%lf,%lf,%lf,%lf,%lf",
 		     &j1, &j2, &j3, &m1, &m2, &m3);
@@ -159,6 +160,27 @@ int main(int argc, char *argv[])
 	      DBL_TO_TWO(m2);
 	      DBL_TO_TWO(m3);
 
+	      eval_3j = 1;
+	    }
+
+	  n = sscanf(argv[i]+5,"%lf,%lf,%lf,%lf,%lf,x",
+		     &j1, &j2, &j3, &m1, &m2);
+
+	  if (n == 5)
+	    {
+	      DBL_TO_TWO(j1);
+	      DBL_TO_TWO(j2);
+	      DBL_TO_TWO(j3);
+	      DBL_TO_TWO(m1);
+	      DBL_TO_TWO(m2);
+
+	      two_m3 = - two_m1 - two_m2;
+
+	      eval_3j = 1;
+	    }
+
+	  if (eval_3j)
+	    {
 	      printf ("3j(%.1f %.1f %.1f   %.1f %.1f %.1f) = ",
 		      0.5 * two_j1, 0.5 * two_j2, 0.5 * two_j3,
 		      0.5 * two_m1, 0.5 * two_m2, 0.5 * two_m3);

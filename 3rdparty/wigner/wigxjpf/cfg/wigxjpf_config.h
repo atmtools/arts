@@ -41,6 +41,22 @@
 #define WIGXJPF_IMPL_DOUBLE_FACTORIAL  0
 #endif
 
+/* How to declare a variable sized array at end of structure. */
+
+#if   defined(TRAIL_ARRAY_EMPTY)
+#define WIGXJPF_STR_VAR_LEN_ARRAY_SIZE     /* Empty: []
+					      Since C11. */
+#elif defined(TRAIL_ARRAY_ZERO)
+#define WIGXJPF_STR_VAR_LEN_ARRAY_SIZE  0  /* Empty: [0]
+					      This is a compiler extension. */
+#elif defined(TRAIL_ARRAY_ONE)
+#define WIGXJPF_STR_VAR_LEN_ARRAY_SIZE  1  /* Empty: [1]
+					      This uses undefined behaviour. */
+#else
+#warning No TRAIL_ARRAY_xxx -> using WIGXJPF_STR_VAR_LEN_ARRAY_SIZE as [0].
+#define WIGXJPF_STR_VAR_LEN_ARRAY_SIZE  0
+#endif
+
 /* Size in bytes of each prime exponent.  2 or 4. */
 
 #define PRIME_LIST_SIZEOF_ITEM      4
@@ -51,7 +67,9 @@
  * improvements for large symbols, and some 20 % for small symbols.
  */
 
-#define PRIME_LIST_USE_VECTOR       0
+/* Note: removed from code. */
+
+/* #define PRIME_LIST_USE_VECTOR       0 */
 
 /* Size in bytes of the vector instances.  SSE: 16, AVX:32 */
 

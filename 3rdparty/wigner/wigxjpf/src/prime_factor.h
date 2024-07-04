@@ -37,43 +37,19 @@ typedef uint32_t    u_prime_exp_t;
 # error PRIME_LIST_SIZEOF_ITEM must be 2 or 4.
 #endif
 
-#if PRIME_LIST_USE_VECTOR
-typedef prime_exp_t v_prime_exp_t
-__attribute__ ((vector_size (PRIME_LIST_VECT_SIZE)));
-# define V_PRIME_EXP_T  v_prime_exp_t
-# define V_EXPO         v_expo
-# define PRIME_LIST_VECT_BLOCK_ITEMS \
-  (PRIME_LIST_VECT_SIZE / PRIME_LIST_SIZEOF_ITEM)
-# if PRIME_LIST_VECT_BLOCK_ITEMS == 2
-#  define V_ITEM_INIT(x)   { x, x }
-# elif PRIME_LIST_VECT_BLOCK_ITEMS == 4
-#  define V_ITEM_INIT(x)   { x, x, x, x }
-# elif PRIME_LIST_VECT_BLOCK_ITEMS == 8
-#  define V_ITEM_INIT(x)   { x, x, x, x, x, x, x, x }
-# elif PRIME_LIST_VECT_BLOCK_ITEMS == 16
-#  define V_ITEM_INIT(x)   { x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x }
-# endif
-#else
 # define V_PRIME_EXP_T    prime_exp_t
 # define V_EXPO           expo
 # define PRIME_LIST_VECT_BLOCK_ITEMS 1
 # define V_ITEM_INIT(x)   x
-#endif
 
 struct prime_exponents
 {
   int num_blocks; /* how many items (in units of vector blocks). */
-  union
-  {
-    /* Note: the size of the arrays below are not included in memory
-     * allocations.  They are dynamic and use the offset of expo in
-     * the structure.
-     */
-    prime_exp_t      expo[PRIME_LIST_VECT_BLOCK_ITEMS * 4];
-#if PRIME_LIST_USE_VECTOR
-    v_prime_exp_t  v_expo[4];
-#endif
-  };
+  /* Note: the size of the arrays below are not included in memory
+   * allocations.  They are dynamic and use the offset of expo in
+   * the structure.
+   */
+  prime_exp_t      expo[WIGXJPF_STR_VAR_LEN_ARRAY_SIZE /* Variable size! */];
 };
 
 extern uint32_t *wigxjpf_prime_list;
@@ -171,33 +147,12 @@ static inline void pexpo_keep_min(struct prime_exponents *keep_fpf,
 
   assert(keep_fpf->num_blocks == in_fpf->num_blocks);
 
-#if !PRIME_LIST_USE_VECTOR
   for (i = 0; i < keep_fpf->num_blocks; i++)
     {
       keep_fpf->expo[i] =
 	(in_fpf->expo[i] < keep_fpf->expo[i]) ?
 	in_fpf->expo[i] : keep_fpf->expo[i];
     }
-#else
-  for (i = 0; i < keep_fpf->num_blocks; i++)
-    {
-      v_prime_exp_t in_smaller_sign_bit =
-	in_fpf->v_expo[i] - keep_fpf->v_expo[i];
-
-      v_prime_exp_t shift_sign =
-	V_ITEM_INIT(sizeof (prime_exp_t) * 8 - 1);
-
-      v_prime_exp_t in_smaller_all_bits   =
-	in_smaller_sign_bit >> shift_sign;
-      v_prime_exp_t keep_smaller_all_bits = ~in_smaller_all_bits;
-
-      v_prime_exp_t smallest =
-	(in_fpf->v_expo[i] & in_smaller_all_bits) |
-	(keep_fpf->v_expo[i] & keep_smaller_all_bits);
-
-      keep_fpf->v_expo[i] = smallest;
-    }
-#endif
 }
 
 static inline void pexpo_keep_min_in_as_diff(struct prime_exponents *keep_fpf,
@@ -207,7 +162,6 @@ static inline void pexpo_keep_min_in_as_diff(struct prime_exponents *keep_fpf,
 
   assert(keep_fpf->num_blocks == in_fpf->num_blocks);
 
-#if !PRIME_LIST_USE_VECTOR
   for (i = 0; i < keep_fpf->num_blocks; i++)
     {
       prime_exp_t tmp = in_fpf->expo[i] - keep_fpf->expo[i];
@@ -218,30 +172,6 @@ static inline void pexpo_keep_min_in_as_diff(struct prime_exponents *keep_fpf,
 
       in_fpf->expo[i] = tmp;
     }
-#else
-  for (i = 0; i < keep_fpf->num_blocks; i++)
-    {
-      v_prime_exp_t tmp = in_fpf->v_expo[i] - keep_fpf->v_expo[i];
-
-      v_prime_exp_t in_smaller_sign_bit =
-	in_fpf->v_expo[i] - keep_fpf->v_expo[i];
-
-      v_prime_exp_t shift_sign =
-	V_ITEM_INIT(sizeof (prime_exp_t) * 8 - 1);
-
-      v_prime_exp_t in_smaller_all_bits   =
-	in_smaller_sign_bit >> shift_sign;
-      v_prime_exp_t keep_smaller_all_bits = ~in_smaller_all_bits;
-
-      v_prime_exp_t smallest =
-	(in_fpf->v_expo[i] & in_smaller_all_bits) |
-	(keep_fpf->v_expo[i] & keep_smaller_all_bits);
-
-      keep_fpf->v_expo[i] = smallest;
-
-      in_fpf->v_expo[i] = tmp;
-    }
-#endif
 }
 
 struct pexpo_eval_temp

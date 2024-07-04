@@ -20,16 +20,16 @@
 
 #include "wigxjpf_error.h"
 
-#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-__thread jmp_buf _error_jmp_env;
+#if PYWIGXJPF_ERROR_HANDLING
 
+__thread jmp_buf pywigxjpf_jmp_env;
 
-void wigxjpf_error_pywigxjpf(void)
+void pywigxjpf_error_handler(void)
 {
-  /* Allow reuse of the temp array. */
+  /* Allow reuse of the (thread-local) temp array. */
   wigxjpf_drop_temp();
 
   fprintf(stderr,
@@ -38,31 +38,21 @@ void wigxjpf_error_pywigxjpf(void)
 	  "** Library misuse?  See documentation. **\n"
 	  "\n");
 
-  longjmp(_error_jmp_env, 1);
+  longjmp(pywigxjpf_jmp_env, 1);
 }
 
+#endif/*PYWIGXJPF_ERROR_HANDLING*/
 
-void wigxjpf_error_exit(void)
+wigxjpf_error_handler_func_t wigxjpf_error_handler = NULL;
+
+void wigxjpf_error(void)
 {
+  if (wigxjpf_error_handler)
+    {
+      wigxjpf_error_handler();
+      return;
+    }
+
   fprintf (stderr, "wigxjpf: Abort.\n");
   exit(1);
-}
-
-void wigxjpf_error_set_errno(void)
-{
-  wigxjpf_drop_temp();
-  errno = EDOM;
-  longjmp(_error_jmp_env, 1);
-}
-
-void wigxjpf_error(void) {
-  #ifdef PYWIGXJPF_ERROR_HANDLING
-  wigxjpf_error_pywigxjpf();
-  #else
-  #if ERRNO_ERROR_HANDLING
-  wigxjpf_error_set_errno();
-  #else
-  wigxjpf_error_exit();
-  #endif
-  #endif
 }
