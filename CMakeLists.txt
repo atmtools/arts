@@ -4,6 +4,10 @@ else ()
   cmake_minimum_required (VERSION 3.18)
 endif ()
 
+if (NOT ${CMAKE_VERSION} VERSION_LESS 3.30)
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 project (ARTS C CXX)
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
