@@ -150,10 +150,10 @@ add_library(wigxjpf STATIC
 target_include_directories(wigxjpf
     PUBLIC
         inc/
-    PRIVATE
         cfg/
-        src/
         ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE
+        src/
 )
 
 set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS
