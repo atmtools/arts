@@ -92,6 +92,16 @@ then
     $EVAL $STATS --9j=100.0,80.0,50.0,50.0,100.0,70.0,60.0,50.0,100.0
 
     $EVAL $STATS --9j=20,20,40,20,20,40,20,20,40
+
+    # Repeat some calculations with x as last m
+    $EVAL $STATS --3j=1.5,1.5,1,1.5,-0.5,x
+    $EVAL $STATS --3j=1,2,4,1,-2,x
+    $EVAL $STATS --3j=1,2,1,1,1,x
+    $EVAL $STATS --3j=1,2,3,0.5,-0.5,x
+    $EVAL $STATS --3j=1,1,1,1,0,x
+    $EVAL $STATS --3j=3,3,3,-1,-1,x
+    $EVAL $STATS --3j=3.5,2.5,2,3.5,-1.5,x
+    $EVAL $STATS --3j=7.5,7.5,0,1.5,-1.5,x
 fi
 
 # Reasonable memory use (< 100 MB)

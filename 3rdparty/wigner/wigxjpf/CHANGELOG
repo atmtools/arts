@@ -1,3 +1,15 @@
+1.13  2024-05-04
+
+	Bugfix for gcc 14:  (T. Djärv).
+	  Variable sized array at end of struct with [], [0] or [1].
+
+1.12  2024-02-17
+
+	Allow x for last m when calculating 3j from command line.
+	Handle compilation in other directory (VPATH).
+	Callback: wigxjpf_error_handler().  Use in python interface.
+	CMakeLists.txt file.  (Plain Makefile is and will remain standard.)
+
 1.11  2020-01-31
 
 	Fixes for Windows (MSVC / MinGW)  (A. Egel).

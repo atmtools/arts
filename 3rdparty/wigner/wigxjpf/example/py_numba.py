@@ -3,7 +3,8 @@ import pywigxjpf_ffi
 import time
 
 import numba
-from numba import cffi_support
+#from numba import cffi_support  # Line below works on python2 also.
+from numba.core.typing import cffi_utils as cffi_support
 cffi_support.register_module(pywigxjpf_ffi)
 nb_wig3jj = pywigxjpf_ffi.lib.wig3jj
 
