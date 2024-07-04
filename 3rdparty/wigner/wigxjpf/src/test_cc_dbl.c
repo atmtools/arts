@@ -33,6 +33,23 @@
 #if TEST_THREAD
 __thread int global = 0;
 #endif
+#if defined(TEST_TRAIL_ARRAY_EMPTY) || \
+  defined(TEST_TRAIL_ARRAY_ZERO) || \
+  defined(TEST_TRAIL_ARRAY_ONE)
+struct trail_struct
+{
+  int a;
+# if TEST_TRAIL_ARRAY_EMPTY
+  int trail[];
+# endif
+# if TEST_TRAIL_ARRAY_ZERO
+  int trail[0];
+# endif
+# if TEST_TRAIL_ARRAY_ONE
+  int trail[1];
+# endif
+};
+#endif
 
 int main()
 {
@@ -68,7 +85,20 @@ int main()
   __uint128_t b;
   printf ("#define MULTI_WORD_INT_SIZEOF_ITEM 8\n");
 #endif
-
+#if defined(TEST_TRAIL_ARRAY_EMPTY) || \
+  defined(TEST_TRAIL_ARRAY_ZERO) || \
+  defined(TEST_TRAIL_ARRAY_ONE)
+  struct trail_struct ts;
+# if TEST_TRAIL_ARRAY_EMPTY
+  printf ("#define TRAIL_ARRAY_EMPTY 1\n");
+# endif
+# if TEST_TRAIL_ARRAY_ZERO
+  printf ("#define TRAIL_ARRAY_ZERO 1\n");
+# endif
+# if TEST_TRAIL_ARRAY_ONE
+  printf ("#define TRAIL_ARRAY_ONE 1\n");
+# endif
+#endif
 
   return 0;
 }

@@ -4,6 +4,7 @@ Contents
 1. Purpose
 2. License
 3. Compilation
+3a. Building in a separate directory
 4. Command-line evaluation of single symbols
 5. Library interfaces
 5a. Simple C interface
@@ -78,6 +79,24 @@ The python interface requires numpy and cffi, and can be tested:
 make pysimple.test
 make pysimple2.test   # For explicit python2
 make pysimple3.test   # For explicit python3
+
+
+3a. Building in a separate directory
+====================================
+
+To compile from another directory (to not change in files in the
+source directory), VPATH can be used:
+
+mkdir wigxjpf-build
+cd wigxjpf-build
+make -f ../wigxjpf-1.13/Makefile VPATH=../wigxjpf-VERSION/ test
+
+Notes:
+
+It does not work if the code was already compiled in the source
+directory (use 'make clean').
+
+It does currently not work to compile the python interface with VPATH.
 
 
 4. Command-line evaluation of single symbols

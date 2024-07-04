@@ -50,8 +50,18 @@ FPSIMPLE_OBJECTS = $(FPSIMPLE_OBJS:%.o=obj/%.o)
 AR = ar
 RLIB = ranlib
 
+# If inc/ and cfg/ dirs do not exist in current dir (likely build-only
+# directory), then try to use VPATH location.
+CINCDIRS := $(addprefix -I ,\
+       $(wildcard $(addsuffix /inc/,. $(VPATH))) \
+       $(wildcard $(addsuffix /cfg/,. $(VPATH))) \
+       gen/)
+
+# Same for example/ directory.
+EXAMPLEDIR := $(wildcard $(addsuffix /example/,. $(VPATH)))
+
 FCFLAGS += -O3 -I mod/
-CFLAGS += -O3 -fPIC -g -I inc/ -I cfg/ -I gen/ \
+CFLAGS += -O3 -fPIC -g $(CINCDIRS) \
 	-Wall -Wextra -Wconversion -Wcast-qual
 ARFLAGS = -cr
 
@@ -70,7 +80,8 @@ endif
 ####################################################################
 
 AUTO_CONFIG_TESTS = TEST_LONG_DOUBLE TEST_FLOAT128 \
-	TEST_THREAD TEST_UINT128
+	TEST_THREAD TEST_UINT128 \
+	TEST_TRAIL_ARRAY_EMPTY TEST_TRAIL_ARRAY_ZERO TEST_TRAIL_ARRAY_ONE
 
 gen/wigxjpf_auto_config.h.%: src/test_cc_dbl.c Makefile
 	@echo "  AUTO   $@"
@@ -200,7 +211,7 @@ pywigxjpf_ffi3: pywigxjpf_ffi-python3
 	@echo "  CHECK  $@"
 	$(QUIET)mkdir -p logs/
 	$(QUIET)./$< > logs/$*simple.out
-	$(QUIET)diff example/$*simple.good logs/$*simple.out
+	$(QUIET)diff $(EXAMPLEDIR)/$*simple.good logs/$*simple.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
 %fail.test: bin/%fail
@@ -209,14 +220,14 @@ pywigxjpf_ffi3: pywigxjpf_ffi-python3
 	$(QUIET)( for i in 0 1 2 3 4 5 6 7 8 ; do \
 	  echo "-- Test $$i --" ; \
 	  ./$< $$i 2>&1 || true ; done ) > logs/$*fail.out
-	$(QUIET)diff example/$*fail.expect logs/$*fail.out
+	$(QUIET)diff $(EXAMPLEDIR)/$*fail.expect logs/$*fail.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
 pysimple.test-%: example/pysimple.py pywigxjpf_ffi-%
 	@echo "  CHECK  $@"
 	$(QUIET)mkdir -p logs/
 	$(QUIET)PYTHONPATH=pywigxjpf $* ./$< > logs/pysimple$*.out
-	$(QUIET)diff -u example/pysimple.good logs/pysimple$*.out
+	$(QUIET)diff -u $(EXAMPLEDIR)/pysimple.good logs/pysimple$*.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
 pyfail.test-%: example/pyfail.py pywigxjpf_ffi-%
@@ -226,7 +237,7 @@ pyfail.test-%: example/pyfail.py pywigxjpf_ffi-%
 	  echo "-- Test $$i --" ; \
 	  PYTHONPATH=pywigxjpf $* ./$< $$i 2>&1 || true ; done ) \
 	  > logs/pyfail$*.out
-	$(QUIET)diff -u example/pyfail.expect logs/pyfail$*.out
+	$(QUIET)diff -u $(EXAMPLEDIR)/pyfail.expect logs/pyfail$*.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
 pysimple.test:  pysimple.test-python  pyfail.test-python 
@@ -238,10 +249,10 @@ venv_pyinstall.setup-%: example/pysimple.py pywigxjpf_ffi-%
 	$(QUIET)mkdir -p logs/
 	$(QUIET) ( rm -rf vennv-$* > logs/$@.log 2> logs/$@.err.log ) && \
 	  ( virtualenv --python=$* vennv-$* >> logs/$@.log ) && \
-	  ( . vennv-$*/bin/activate ; pip --version ; pip list ; \
-	    pip install numpy ; pip list ; \
-	    pip install numba ; pip list ; \
-	    $* setup.py install ; \
+	  ( . vennv-$*/bin/activate && pip --version && pip list && \
+	    pip install numpy && pip list && \
+	    pip install numba && pip list && \
+	    $* setup.py install && \
 	    pip list ) >> logs/$@.log 2>> logs/$@.err.log || \
 	  ( echo "* Failure *" ; \
 	    cat logs/$@.log ; cat logs/$@.err.log ; exit 1 )
@@ -249,20 +260,21 @@ venv_pyinstall.setup-%: example/pysimple.py pywigxjpf_ffi-%
 venv_pysimple.test-%: example/pysimple.py venv_pyinstall.setup-%
 	@echo "  CHECK  $@"
 	$(QUIET)mkdir -p logs/
-	$(QUIET) . vennv-$*/bin/activate ; \
-	  $* example/pysimple.py > logs/venv_pysimple$*.out
-	$(QUIET). vennv-$*/bin/activate ; \
+	$(QUIET) . vennv-$*/bin/activate && \
+	  $* $(EXAMPLEDIR)/pysimple.py > logs/venv_pysimple$*.out
+	$(QUIET). vennv-$*/bin/activate && \
 	  ( for i in 0 1 2 3 4 5 6 7 8 9 10 11 ; do \
 	  echo "-- Test $$i --" ; \
-	  PYTHONPATH=pywigxjpf $* example/pyfail.py $$i 2>&1 || true ; done ) \
+	  PYTHONPATH=pywigxjpf $* $(EXAMPLEDIR)/pyfail.py $$i 2>&1 || true ; \
+	  done ) \
 	  > logs/venv_pyfail$*.out
-	$(QUIET) . vennv-$*/bin/activate ; \
-	  $* example/py_numba.py > logs/venv_py_numba$*.out
-	$(QUIET)diff -u example/pysimple.good logs/venv_pysimple$*.out
-	$(QUIET)diff -u example/pyfail.expect logs/venv_pyfail$*.out
+	$(QUIET) . vennv-$*/bin/activate && \
+	  $* $(EXAMPLEDIR)/py_numba.py > logs/venv_py_numba$*.out
+	$(QUIET)diff -u $(EXAMPLEDIR)/pysimple.good logs/venv_pysimple$*.out
+	$(QUIET)diff -u $(EXAMPLEDIR)/pyfail.expect logs/venv_pyfail$*.out
 
 venv_pysimple.test: venv_pysimple.test-python
-venv_pysimple2.test: venv_pysimple.test-python2
+#venv_pysimple2.test: venv_pysimple.test-python2 # pip support for py2 ended
 venv_pysimple3.test: venv_pysimple.test-python3
 
 # We cut away all exponents before comparison, in order to also
@@ -271,9 +283,9 @@ venv_pysimple3.test: venv_pysimple.test-python3
 evaltable.%.test: bin/wigxjpf
 	@echo "  CHECK  $@"
 	$(QUIET)mkdir -p logs/
-	$(QUIET)MEMUSE=$* STATS=" " example/evaltable.sh | \
+	$(QUIET)MEMUSE=$* STATS=" " $(EXAMPLEDIR)/evaltable.sh | \
 	  sed -e "s/ //g" -e "s/\([eE][+-]\)0\+/\1/" > logs/evaltable.$*.out
-	$(QUIET)cat example/evaltable.$*.good | \
+	$(QUIET)cat $(EXAMPLEDIR)/evaltable.$*.good | \
 	  sed -e "s/#.*//" -e "s/ //g" -e '/^$$/d' > logs/evaltable.$*.cmpgood
 	$(QUIET)diff logs/evaltable.$*.cmpgood logs/evaltable.$*.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
@@ -295,3 +307,5 @@ clean: clean-test
 	rm -rf lib/
 	rm -rf bin/
 	rm -rf mod/
+	rm -rf src/*.o
+	rm -rf build/ dist/ .eggs/
