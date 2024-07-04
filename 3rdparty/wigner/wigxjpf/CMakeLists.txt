@@ -156,6 +156,8 @@ target_include_directories(wigxjpf
         src/
 )
 
+target_compile_definitions(wigxjpf PUBLIC -DERRNO_ERROR_HANDLING)
+
 set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS
   "-O3 -fPIC ${CMAKE_C_FLAGS}")
 
