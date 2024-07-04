@@ -106,7 +106,7 @@ assert np.allclose(ws.absorption_bands[0].data.lines[il].f0, lc), (
     + f"lc should be set to {ws.absorption_bands[0].data.lines[il].f0}"
 )
 
-ws.WignerInit(symbol_type=3)
+#ws.WignerInit(symbol_type=3)
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.atmospheric_pointInit()

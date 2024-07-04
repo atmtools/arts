@@ -1152,6 +1152,7 @@ struct std::formatter<AbsorptionLines> {
     } else {
       std::formatter<Array<AbsorptionSingleLine>> lines{};
       make_compat(lines);
+      lines.format(v.lines, ctx);
     }
 
     tags.add_if_bracket(ctx, ']');

@@ -10,9 +10,6 @@
 #include <numeric>
 #include <vector>
 
-#include "array.h"
-#include "debug.h"
-
 namespace Jacobian {
 struct AtmTarget {
   AtmKeyVal type;

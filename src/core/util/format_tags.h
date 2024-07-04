@@ -16,6 +16,30 @@ using namespace std::literals;
 inline constexpr Index short_str_v_stp = 3;
 inline constexpr Index short_str_v_cut = 8;
 
+struct format_tags;
+template <typename T>
+concept arts_inner_fmt =
+    requires(std::formatter<T> x) { x.inner_fmt().tags; } and
+    std::same_as<
+        format_tags,
+        std::remove_cvref_t<decltype(std::formatter<T>{}.inner_fmt().tags)>>;
+
+template <typename T>
+concept arts_formatter_compat =
+    requires(std::formatter<T> x, std::formatter<T> y) { x.make_compat(y); };
+
+template <typename T>
+concept arts_formattable = std::formattable<T, char> and arts_inner_fmt<T> and
+                           arts_formatter_compat<T> and requires(T x) {
+                             std::format("{}", x);
+                             std::format("{:sqNB,}", x);
+                           };
+
+template <typename T>
+concept arts_formattable_or_value_type =
+    arts_formattable<T> or std::integral<T> or std::floating_point<T> or
+    std::same_as<T, std::string>;
+
 struct format_tags {
   bool names     = false;
   bool comma     = false;
@@ -55,8 +79,30 @@ struct format_tags {
     return ""sv;
   }
 
-  template <class FmtContext> void add_if_bracket(FmtContext& ctx, char x) const {
+  template <class FmtContext>
+  void add_if_bracket(FmtContext& ctx, char x) const {
     if (bracket) std::format_to(ctx.out(), "{}", x);
+  }
+
+  template <class FmtContext>
+  constexpr auto format(FmtContext& ctx) const {
+    return ctx.out();
+  }
+
+  template <class FmtContext,
+            arts_formattable_or_value_type T,
+            typename... Rest>
+  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
+    std::formatter<T> fmt;
+    compat(fmt);
+    fmt.format(x, ctx);
+    return format(ctx, r...);
+  }
+
+  template <class FmtContext, std::formattable<char> T, typename... Rest>
+  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
+    std::format_to(ctx.out(), "{}", x);
+    return format(ctx, r...);
   }
 };
 
@@ -101,41 +147,22 @@ constexpr std::format_parse_context::iterator parse_format_tags(
   return it;
 }
 
-template <typename T>
-concept arts_inner_fmt =
-    requires(std::formatter<T> x) { x.inner_fmt().tags; } and
-    std::same_as<
-        format_tags,
-        std::remove_cvref_t<decltype(std::formatter<T>{}.inner_fmt().tags)>>;
-
-template <typename T>
-concept arts_formatter_compat =
-    requires(std::formatter<T> x, std::formatter<T> y) { x.make_compat(y); };
-
-template <typename T>
-concept arts_formattable =
-    arts_inner_fmt<T> and arts_formatter_compat<T> and requires(T x) {
-      std::format("{}", x);
-      std::format("{:sqNB,}", x);
-    };
-
-template <typename T>
-concept arts_formattable_or_value_type =
-    arts_formattable<T> or std::integral<T> or std::floating_point<T> or
-    std::same_as<T, std::string>;
-
 struct arts_formattable_compat_format_tags {
   format_tags tags;
+
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
   template <typename... Ts>
   constexpr void make_compat(std::formatter<Ts>&... xs) const {
     tags.compat(xs...);
   }
+
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
+
   template <class FmtContext>
   FmtContext::iterator format(const auto& v, FmtContext& ctx) const {
     return std::format_to(ctx.out(), "{}", v);
@@ -200,7 +227,7 @@ struct std::formatter<std::unordered_map<Key, Value>> {
     std::formatter<Value> value{};
 
     make_compat(key, value);
-    std::string_view sep = "";
+    std::string_view sep  = "";
     std::string_view next = tags.sep();
 
     tags.add_if_bracket(ctx, '{');
@@ -242,7 +269,7 @@ struct std::formatter<std::map<Key, Value>> {
     std::formatter<Value> value{};
 
     make_compat(key, value);
-    std::string_view sep = "";
+    std::string_view sep  = "";
     std::string_view next = tags.sep();
 
     tags.add_if_bracket(ctx, '{');
@@ -285,7 +312,7 @@ struct std::formatter<std::vector<T, Allocator>> {
 
     const auto n = v.size();
 
-    std::string_view first = inner_fmt().tags.sep(true);
+    std::string_view first = inner_fmt().tags.sep();
     auto sep               = ""sv;
 
     inner_fmt().tags.add_if_bracket(ctx, '[');
@@ -299,7 +326,7 @@ struct std::formatter<std::vector<T, Allocator>> {
       std::format_to(ctx.out(), "{}...", sep);
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-      std::format_to(ctx.out(), "{}", sep);
+        std::format_to(ctx.out(), "{}", sep);
         fmt.format(a, ctx);
       }
     } else {
@@ -341,7 +368,7 @@ struct std::formatter<std::array<T, N>> {
 
     const auto n = v.size();
 
-    std::string_view first = inner_fmt().tags.sep(true);
+    std::string_view first = inner_fmt().tags.sep();
     auto sep               = ""sv;
 
     inner_fmt().tags.add_if_bracket(ctx, '[');
@@ -355,7 +382,7 @@ struct std::formatter<std::array<T, N>> {
       std::format_to(ctx.out(), "{}...", sep);
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-      std::format_to(ctx.out(), "{}", sep);
+        std::format_to(ctx.out(), "{}", sep);
         fmt.format(a, ctx);
       }
     } else {

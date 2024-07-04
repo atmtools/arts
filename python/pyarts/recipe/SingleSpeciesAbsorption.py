@@ -16,6 +16,7 @@ class SingleSpeciesAbsorption:
             See absorption_speciesSet for details.
         """
         self.ws = pyarts.Workspace()
+        self.ws.WignerInit()
         self.ws.absorption_speciesSet(species=[species])
         self.ws.ReadCatalogData()
         self.ws.propagation_matrix_agendaAuto()

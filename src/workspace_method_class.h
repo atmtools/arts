@@ -71,7 +71,7 @@ struct std::formatter<Wsv> {
     std::visit(
         [*this, &ctx]<typename T>(const std::shared_ptr<T>& x) {
           std::formatter<T> fmt{};
-          make_compat(fmt);
+          this->make_compat(fmt);
           fmt.format(*x, ctx);
         },
         v.value);
