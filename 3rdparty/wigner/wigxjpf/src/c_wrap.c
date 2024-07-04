@@ -34,7 +34,7 @@ void wig_table_init(int max_two_j, int wigner_type)
 {
   int max_factorial;
 
-  PYWIGXJPF_ERROR_SETUP_void;
+  NONABORT_ERROR_SETUP_void;
 
   if (max_two_j < 0) {
     fprintf (stderr,
@@ -66,7 +66,7 @@ void wig_table_init(int max_two_j, int wigner_type)
 
 void wig_table_free(void)
 {
-  PYWIGXJPF_ERROR_SETUP_void;
+  NONABORT_ERROR_SETUP_void;
 
   wigxjpf_fill_factors(0);
 }
@@ -75,7 +75,7 @@ void wig_temp_init(int max_two_j)
 {
   int max_iter = (max_two_j / 2) + 1;
 
-  PYWIGXJPF_ERROR_SETUP_void;
+  NONABORT_ERROR_SETUP_void;
 
   if (max_two_j < 0) {
     fprintf (stderr, "wigxjpf: Negative max_two_j in wig_temp_init.\n");
@@ -88,7 +88,7 @@ void wig_temp_init(int max_two_j)
 #if WIGXJPF_HAVE_THREAD
 void wig_thread_temp_init(int max_two_j)
 {
-  PYWIGXJPF_ERROR_SETUP_void;
+  NONABORT_ERROR_SETUP_void;
 
   wig_temp_init(max_two_j);
 }
@@ -96,7 +96,7 @@ void wig_thread_temp_init(int max_two_j)
 
 void wig_temp_free(void)
 {
-  PYWIGXJPF_ERROR_SETUP_void;
+  NONABORT_ERROR_SETUP_void;
 
   wigxjpf_temp_free(wigxjpf_global_temp);
   wigxjpf_global_temp = NULL;
@@ -120,7 +120,7 @@ double wig3jj(int two_j1, int two_j2, int two_j3,
 {
   double result;
 
-  PYWIGXJPF_ERROR_SETUP_NaN;
+  NONABORT_ERROR_SETUP_NaN;
 
   calc_3j_double(&result,
 		 two_j1, two_j2, two_j3,
@@ -135,7 +135,7 @@ double wig6jj(int two_j1, int two_j2, int two_j3,
 {
   double result;
 
-  PYWIGXJPF_ERROR_SETUP_NaN;
+  NONABORT_ERROR_SETUP_NaN;
 
   calc_6j_double(&result,
 		 two_j1, two_j2, two_j3,
@@ -151,7 +151,7 @@ double wig9jj(int two_j1, int two_j2, int two_j3,
 {
   double result;
 
-  PYWIGXJPF_ERROR_SETUP_NaN;
+  NONABORT_ERROR_SETUP_NaN;
 
   calc_9j_double(&result,
 		 two_j1, two_j2, two_j3,
