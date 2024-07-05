@@ -220,7 +220,7 @@ void py_spectroscopy(py::module_& m) try {
           "DV",
           &LineShape::Output::DV,
           ":class:`float`: Second order line mixing f-shifting")
-      .PythonInterfaceBasicRepresentation(LineShape::Output)
+     // .PythonInterfaceBasicRepresentation(LineShape::Output)
       .def("__getstate__",
            [](const LineShape::Output& t) {
              return std::tuple<Numeric,

@@ -40,7 +40,7 @@ void py_species(py::module_& m) try {
           },
           "Builtin values")
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
-      .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
+     // .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
                      ":class:`int` The max size of the data")
@@ -239,7 +239,6 @@ Returns
              new (x) ArrayOfSpeciesTag(std::get<0>(v));
            })
       .def("__init__", [](ArrayOfSpeciesTag* s, py::list l) {
-        py::print("OI");
         auto x = py::cast<Array<SpeciesTag>>(l);
         new (s) ArrayOfSpeciesTag();
         for (auto& e : x) {

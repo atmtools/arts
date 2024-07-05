@@ -44,16 +44,6 @@ struct std::formatter<Python::ValueHolder<T>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);

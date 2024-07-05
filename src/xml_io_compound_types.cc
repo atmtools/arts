@@ -216,7 +216,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     block_tag.add_attribute("row_index", i);
     block_tag.add_attribute("column_index", j);
 
-    Range row_range = c.get_row_range();
+    Range row_range    = c.get_row_range();
     Range column_range = c.get_column_range();
     block_tag.add_attribute("row_start", row_range.offset);
     block_tag.add_attribute("row_extent", row_range.extent);
@@ -247,7 +247,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     block_tag.add_attribute("row_index", i);
     block_tag.add_attribute("column_index", j);
 
-    Range row_range = c.get_row_range();
+    Range row_range    = c.get_row_range();
     Range column_range = c.get_column_range();
     block_tag.add_attribute("row_start", row_range.offset);
     block_tag.add_attribute("row_extent", row_range.extent);
@@ -549,24 +549,24 @@ void xml_read_from_stream_gf(std::istream& is_xml,
   }
 }
 
-#define GF_READ(GF)                                                         \
-  void xml_read_from_stream(                                                \
-      std::istream& is_xml, GF& gfield, bifstream* pbifs) {                 \
-    ArtsXMLTag tag;                                                         \
-                                                                            \
-    tag.read_from_stream(is_xml);                                           \
-    tag.check_name(#GF);                                                    \
-                                                                            \
-    Index version = 0;                                                      \
-    if (tag.has_attribute("version"))                                       \
-      tag.get_attribute_value("version", version);                          \
-    tag.get_attribute_value("name", gfield.data_name);                      \
-                                                                            \
-    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);                \
-                                                                            \
-    tag.read_from_stream(is_xml);                                           \
-    tag.check_name("/" #GF);                                                \
-                                                                            \
+#define GF_READ(GF)                                                      \
+  void xml_read_from_stream(                                             \
+      std::istream& is_xml, GF& gfield, bifstream* pbifs) {              \
+    ArtsXMLTag tag;                                                      \
+                                                                         \
+    tag.read_from_stream(is_xml);                                        \
+    tag.check_name(#GF);                                                 \
+                                                                         \
+    Index version = 0;                                                   \
+    if (tag.has_attribute("version"))                                    \
+      tag.get_attribute_value("version", version);                       \
+    tag.get_attribute_value("name", gfield.data_name);                   \
+                                                                         \
+    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);             \
+                                                                         \
+    tag.read_from_stream(is_xml);                                        \
+    tag.check_name("/" #GF);                                             \
+                                                                         \
     ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n", gfield); \
   }
 
@@ -1161,7 +1161,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
-  os_xml << std::quoted(stag.Name()) << '\n';
+  os_xml << '"' << stag.Name() << '"' << '\n';
 
   close_tag.set_name("/SpeciesTag");
   close_tag.write_to_stream(os_xml);
@@ -1405,7 +1405,7 @@ void xml_read_from_stream(std::istream& is_xml,
     internal_open_tag.get_attribute_value("key", key_str);
     SpeciesIsotope isot{key_str};
     ARTS_USER_ERROR_IF(
-        not isot.OK(), "Cannot understand key: ", std::quoted(key_str))
+        not isot.OK(), "Cannot understand key: ", '"', key_str, '"')
 
     String sizes_str;
     internal_open_tag.get_attribute_value("sizes", sizes_str);
@@ -1534,7 +1534,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (keytype == "QuantumIdentifier")
     key_val = QuantumIdentifier(key);
   else
-    ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
+    ARTS_USER_ERROR("Cannot understand the keytype: ", '"', keytype, '"')
 
   if (type == "GriddedField3")
     data.data = GriddedField3{};
@@ -1544,7 +1544,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data =
         Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
   else
-    ARTS_USER_ERROR("Cannot understand the data type: ", std::quoted(type))
+    ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
 
   std::visit(
       [&](auto& v) {
@@ -1760,11 +1760,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   //! List of all KEY values
-  auto keys = atm.keys();
-  const Index nspec = atm.nspec();
-  const Index nnlte = atm.nnlte();
+  auto keys          = atm.keys();
+  const Index nspec  = atm.nspec();
+  const Index nnlte  = atm.nnlte();
   const Index nother = atm.nother();
-  const Index nisot = atm.nisot();
+  const Index nisot  = atm.nisot();
 
   open_tag.add_attribute("nspec", nspec);
   open_tag.add_attribute("nnlte", nnlte);
@@ -1822,7 +1822,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (keytype == "SurfaceTypeTag")
     key_val = SurfaceTypeTag{key};
   else
-    ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
+    ARTS_USER_ERROR("Cannot understand the keytype: ", '"', keytype, '"')
 
   if (type == "GriddedField2")
     data.data = GriddedField2{};
@@ -1832,7 +1832,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data =
         Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
   else
-    ARTS_USER_ERROR("Cannot understand the data type: ", std::quoted(type))
+    ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
 
   std::visit(
       [&](auto& v) {
@@ -2032,8 +2032,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("azimuth", surf.normal[1]);
 
   //! List of all KEY values
-  auto keys = surf.keys();
-  const Index ntype = surf.ntype();
+  auto keys          = surf.keys();
+  const Index ntype  = surf.ntype();
   const Index nother = surf.nother();
 
   open_tag.add_attribute("ntype", ntype);
@@ -2126,7 +2126,7 @@ void xml_read_from_stream(std::istream& is_xml, Method& m, bifstream* pbifs) {
 
     m = Method{name, wsv, static_cast<bool>(overwrite)};
   } else {
-    ARTS_USER_ERROR("Bad type: ", std::quoted(type))
+    ARTS_USER_ERROR("Bad type: ", '"', type, '"')
   }
 
   ArtsXMLTag close_tag;
@@ -2638,7 +2638,7 @@ void xml_read_from_stream(std::istream& is_xml,
   ecsd.reserve(nisot);
   for (Index j = 0; j < nisot; j++) {
     const tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
-    const auto nspec = isot_tag.get<Index>("nelem");
+    const auto nspec   = isot_tag.get<Index>("nelem");
     const auto isotkey = isot_tag.get<SpeciesIsotope>("isot");
 
     auto& spec_data_map = ecsd[isotkey];

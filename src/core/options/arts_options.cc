@@ -1101,12 +1101,12 @@ std::string EnumeratedOption::docs() const {
 
   const auto n = values_and_desc.front().size();
 
-  os << "Group name: " << std::quoted(name) << "\n\n"
+  os << "Group name: " << '"'<< name<< '"' << "\n\n"
      << desc << "\n\nValid options:\n\n";
   for (auto& v : values_and_desc) {
     std::string_view x = "- ";
     for (auto& s : v | std::views::take(n - 1)) {
-      os << std::exchange(x, " or ") << "``" << std::quoted(s) << "``";
+      os << std::exchange(x, " or ") << "``" << '"'<< s<< '"' << "``";
     }
     os << ": " << v.back() << '\n';
   }
@@ -1197,11 +1197,6 @@ std::string EnumeratedOption::tail() const {
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {

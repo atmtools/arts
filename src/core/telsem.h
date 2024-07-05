@@ -376,16 +376,6 @@ struct std::formatter<TelsemAtlas> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -393,8 +383,7 @@ struct std::formatter<TelsemAtlas> {
 
   template <class FmtContext>
   FmtContext::iterator format(const TelsemAtlas &, FmtContext &ctx) const {
-    std::format_to(ctx.out(), "TelsemAtlas");
-    return ctx.out();
+    return std::format_to(ctx.out(), "TelsemAtlas"sv);
   }
 };
 

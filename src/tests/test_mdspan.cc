@@ -552,8 +552,6 @@ void test_my_interp() {
       0, 3.5, matpack::matpack_constant_data<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
   auto iw = interpweights(std::array{x, x}, std::array{x2, x2});
 
-  matpack::shape_help{iw.shape()};
-
   interp(Matrix(7, 7, 1), interpweights(x, x2), x, x2);
 
   reinterp(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2});

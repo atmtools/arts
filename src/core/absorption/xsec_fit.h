@@ -148,16 +148,6 @@ struct std::formatter<XsecRecord> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -165,39 +155,25 @@ struct std::formatter<XsecRecord> {
 
   template <class FmtContext>
   FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
-    std::formatter<SpeciesEnum> mspecies;
-    std::formatter<Vector> mfitminpressures;
-    std::formatter<Vector> mfitmaxpressures;
-    std::formatter<Vector> mfitmintemperatures;
-    std::formatter<Vector> mfitmaxtemperatures;
-    std::formatter<ArrayOfGriddedField1Named> mfitcoeffs;
-    make_compat(mspecies,
-                mfitminpressures,
-                mfitmaxpressures,
-                mfitmintemperatures,
-                mfitmaxtemperatures,
-                mfitcoeffs);
-
     if (tags.short_str) {
-      std::format_to(ctx.out(), "XsecRecord({})", v.Species());
-    } else {
-      const std::string_view sep = tags.sep(true);
-      tags.add_if_bracket(ctx, '[');
-
-      mspecies.format(v.Species(), ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mfitminpressures.format(v.FitMinPressures(), ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mfitmaxpressures.format(v.FitMaxPressures(), ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mfitmintemperatures.format(v.FitMinTemperatures(), ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mfitmaxtemperatures.format(v.FitMaxTemperatures(), ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mfitcoeffs.format(v.FitCoeffs(), ctx);
-
-      tags.add_if_bracket(ctx, ']');
+      return std::format_to(ctx.out(), "XsecRecord({})", v.Species());
     }
+
+    const std::string_view sep = tags.sep(true);
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.Species(),
+                sep,
+                v.FitMinPressures(),
+                sep,
+                v.FitMaxPressures(),
+                sep,
+                v.FitMinTemperatures(),
+                sep,
+                v.FitMaxTemperatures(),
+                sep,
+                v.FitCoeffs());
+    tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

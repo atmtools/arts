@@ -66,5 +66,5 @@ void timeSet(Time& time, const String& time_str) try {
 } catch (...) {
   // Still, sring conversions may throw std::invalid_argument or std::out_of_range,
   // we don't care which but just want to warn users about their input
-  ARTS_USER_ERROR("Cannot convert ", std::quoted(time_str), " to valid time")
+  ARTS_USER_ERROR("Cannot convert \"", time_str, "\" to valid time")
 }

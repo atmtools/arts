@@ -9,10 +9,9 @@
 #include "wigner_functions.h"
 
 #include <math_funcs.h>
+#include <wigxjpf_config.h>
 
 #include <algorithm>
-
-#include <wigxjpf_config.h>
 
 #include "debug.h"
 
@@ -32,9 +31,7 @@ void arts_wigner_thread_init(int max_two_j [[maybe_unused]]) {
 #endif
 }
 
-void arts_wigner_thread_free() {
-  wig_temp_free();
-}
+void arts_wigner_thread_free() { wig_temp_free(); }
 
 Numeric wigner3j(const Rational j1,
                  const Rational j2,
@@ -62,7 +59,7 @@ Numeric wigner3j(const Rational j1,
 
   if (errno == EDOM) {
     errno = 0;
-    ARTS_USER_ERROR("Bad state, perhaps you need to call Wigner3Init?")
+    ARTS_USER_ERROR("Bad state, perhaps you need to call WignerInit?")
   }
 
   return Numeric(g);
@@ -150,19 +147,13 @@ constexpr int wigner3_size(const Rational& J) { return 1 + 2 * J.toInt(6); }
 
 constexpr int wigner6_size(const Rational& J) { return J.toInt(4) + 1; }
 
-constexpr Rational wigner3_revere_size(const int j) {
-  return Rational{(j - 1) / 2, 6};
-}
+Rational wigner3_revere_size(const int j) { return Rational{(j - 1) / 2, 6}; }
 
-constexpr Rational wigner6_revere_size(const int j) {
-  return Rational{j - 1, 4};
-}
+Rational wigner6_revere_size(const int j) { return Rational{j - 1, 4}; }
 
 extern "C" int wigxjpf_max_prime_decomp;
 
-bool is_wigner_ready(int j) {
-  return not(j > wigxjpf_max_prime_decomp);
-}
+bool is_wigner_ready(int j) { return not(j > wigxjpf_max_prime_decomp); }
 
 bool is_wigner3_ready(const Rational& J) {
   const int test = wigner3_size(J);
@@ -192,27 +183,27 @@ Numeric dwigner3j(Index M, Index J1, Index J2, Index J) {
   Index JI = std::min(J1, J2);
   Index MA = std::abs(M);
   if (MA > JI) return GCM;
-  Index UN = 1 - 2 * (JS % 2);
-  Index QM = M + M;
+  Index UN    = 1 - 2 * (JS % 2);
+  Index QM    = M + M;
   Numeric CG0 = 0.;
-  GCM = static_cast<Numeric>(UN) *
+  GCM         = static_cast<Numeric>(UN) *
         std::sqrt(CJM(JI, MA) / CJM(JS, MA) * CJM(J0, 0) /
                   static_cast<Numeric>(JS + JS + 1));
-  Index AJ0 = J0;
-  Index AJM = JM + 1;
-  Index AJ02 = AJ0 * AJ0;
-  Index AJM2 = AJM * AJM;
+  Index AJ0    = J0;
+  Index AJM    = JM + 1;
+  Index AJ02   = AJ0 * AJ0;
+  Index AJM2   = AJM * AJM;
   Numeric ACG0 = 0.;
   for (Index I = J0 + 1; I <= J; I++) {
-    Index AI = I;
-    Index AI2 = AI * AI;
+    Index AI    = I;
+    Index AI2   = AI * AI;
     Numeric ACG = std::sqrt((AJM2 - AI2) * (AI2 - AJ02));
     Numeric CG1 =
         (static_cast<Numeric>(QM) * static_cast<Numeric>(I + I - 1) * GCM -
          ACG0 * CG0) /
         ACG;
-    CG0 = GCM;
-    GCM = CG1;
+    CG0  = GCM;
+    GCM  = CG1;
     ACG0 = ACG;
   }
   return GCM;
@@ -250,11 +241,11 @@ x10:
   TERM /= (4. * static_cast<Numeric>(2 * B + 1) * static_cast<Numeric>(B) *
            static_cast<Numeric>(2 * B - 1) * static_cast<Numeric>(D) *
            static_cast<Numeric>(2 * D - 1) * static_cast<Numeric>(2 * D + 1));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C + F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C + F)) * std::sqrt(TERM);
   return SIXJ;
 
 x11:
-  TERM = (static_cast<Numeric>(F + B + D + 1) *
+  TERM  = (static_cast<Numeric>(F + B + D + 1) *
           static_cast<Numeric>(F + B - D + 1) *
           static_cast<Numeric>(F + D - B) * static_cast<Numeric>(B + D - F));
   TERM /= (4. * static_cast<Numeric>(B) * static_cast<Numeric>(2 * B + 1) *
@@ -272,7 +263,7 @@ x12:
   TERM /= (4. * static_cast<Numeric>(2 * B + 1) * static_cast<Numeric>(B + 1) *
            static_cast<Numeric>(2 * B + 3) * static_cast<Numeric>(2 * D - 1) *
            static_cast<Numeric>(D) * static_cast<Numeric>(2 * D + 1));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
   return SIXJ;
 
 x2:
@@ -315,7 +306,7 @@ x22:
   TERM /= (4. * static_cast<Numeric>(2 * B + 1) * static_cast<Numeric>(B + 1) *
            static_cast<Numeric>(2 * B + 3) * static_cast<Numeric>(D) *
            static_cast<Numeric>(D + 1) * static_cast<Numeric>(2 * D + 1));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
   return SIXJ;
 
 x3:
@@ -336,7 +327,7 @@ x30:
   TERM /= (4. * static_cast<Numeric>(2 * B + 1) * static_cast<Numeric>(B) *
            static_cast<Numeric>(2 * B - 1) * static_cast<Numeric>(D + 1) *
            static_cast<Numeric>(2 * D + 1) * static_cast<Numeric>(2 * D + 3));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
   return SIXJ;
 
 x31:
@@ -347,18 +338,18 @@ x31:
   TERM /= (4. * static_cast<Numeric>(B) * static_cast<Numeric>(2 * B + 1) *
            static_cast<Numeric>(B + 1) * static_cast<Numeric>(2 * D + 1) *
            static_cast<Numeric>(D + 1) * static_cast<Numeric>(2 * D + 3));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
   return SIXJ;
 
 x32:
-  TERM = (static_cast<Numeric>(F + D + B + 3) *
+  TERM  = (static_cast<Numeric>(F + D + B + 3) *
           static_cast<Numeric>(F + B + D + 2) *
           static_cast<Numeric>(B + D - F + 2) *
           static_cast<Numeric>(B + D - F + 1));
   TERM /= (4. * static_cast<Numeric>(2 * B + 3) * static_cast<Numeric>(B + 1) *
            static_cast<Numeric>(2 * B + 1) * static_cast<Numeric>(2 * D + 3) *
            static_cast<Numeric>(D + 1) * static_cast<Numeric>(2 * D + 1));
-  SIXJ = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
+  SIXJ  = static_cast<Numeric>(pow_negative_one(A + C - F)) * std::sqrt(TERM);
   return SIXJ;
 
 x1000:
@@ -369,8 +360,8 @@ x1000:
 int WignerInformation::largest = -1;
 int WignerInformation::fastest = -1;
 bool WignerInformation::threej = false;
-bool WignerInformation::sixj = false;
-bool WignerInformation::init = false;
+bool WignerInformation::sixj   = false;
+bool WignerInformation::init   = false;
 
 std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
   os << "Wigner Information: ";
@@ -404,7 +395,7 @@ std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
 }
 
 void WignerInformation::initalize() {
-  ARTS_USER_ERROR_IF(init, "Must not be initialized.", WignerInformation{})
+  ARTS_USER_ERROR_IF(init, "Must not be initialized.")
 
   if (sixj) {
     make_wigner_ready(largest, fastest, 6);
@@ -446,39 +437,34 @@ WignerInformation::WignerInformation(int largest_symbol,
   }
 
   ARTS_USER_ERROR_IF(largest_symbol < 0,
-                     "You must specify a non-negative integer for largest.\n",
-                     *this);
+                     "You must specify a non-negative integer for largest.");
   ARTS_USER_ERROR_IF(fastest_symbol < 0,
-                     "You must specify a non-negative integer for fastest.\n",
-                     *this);
+                     "You must specify a non-negative integer for fastest.");
   ARTS_USER_ERROR_IF(not(three or six),
-                     "You must specify at least one of threej or sixj.\n",
-                     *this);
+                     "You must specify at least one of threej or sixj.");
 
   largest = largest_symbol;
   fastest = fastest_symbol;
-  threej = three;
-  sixj = six;
+  threej  = three;
+  sixj    = six;
 
   initalize();
 }
 
 void WignerInformation::assert_valid_wigner3(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", WignerInformation{})
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
 
   ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
                      "Wigner library not ready for Wigner 3j symbols with J = ",
                      J,
-                     "\nPlease initialize it properly.\n",
-                     WignerInformation{});
+                     "\nPlease initialize it properly.");
 }
 
 void WignerInformation::assert_valid_wigner6(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", WignerInformation{})
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
 
   ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
                      "Wigner library not ready for Wigner 6j symbols with J = ",
                      J,
-                     "\nPlease initialize it properly.\n",
-                     WignerInformation{});
+                     "\nPlease initialize it properly.");
 }

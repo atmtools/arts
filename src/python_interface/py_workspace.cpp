@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
@@ -15,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "debug.h"
+#include "hpy_arts.h"
 #include "python_interface.h"
 #include "python_interface_value_type.h"
 
@@ -98,7 +99,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n, const std::string& t) {
             if (w.contains(n))
               throw std::domain_error(var_string(
-                  "Workspace variable ", std::quoted(n), " exists."));
+                  "Workspace variable ", '"', n, '"', " exists."));
 
             w.set(n, std::make_shared<Wsv>(Wsv::from_named_type(t)));
           },
@@ -109,18 +110,18 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n, const PyWSV& x) {
             if (not w.contains(n))
               throw std::domain_error(var_string(
-                  "Workspace variable ", std::quoted(n), " does not exist."));
+                  "Workspace variable ", '"', n, '"', " does not exist."));
 
             auto wsv = std::make_shared<Wsv>(from_py(x));
 
             if (wsv->value.index() != w.share(n)->value.index())
               throw std::domain_error(
                   var_string("Type mismatch: ",
-                             std::quoted(n),
-                             " is of type ",
-                             std::quoted(w.share(n)->type_name()),
-                             ", cannot be set to ",
-                             std::quoted(wsv->type_name())));
+                             '"', n, '"',
+                             " is of type \"",
+                             w.share(n)->type_name(),
+                             "\", cannot be set to \"",
+                             wsv->type_name(),'"'));
 
             w.overwrite(n, wsv);
 
@@ -153,7 +154,14 @@ void py_workspace(py::class_<Workspace>& ws) try {
           },
           "other"_a);
 
-  ws.def("__str__", [](const Workspace& w) { return var_string(w); });
+  str_interface(ws);
+  ws.def(
+      "__iter__",
+      [](const Workspace& w) {
+        return py::make_iterator(
+            py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
+      },
+      py::rv_policy::reference_internal);
 
   py_auto_wsv(ws);
   py_auto_wsm(ws);

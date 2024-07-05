@@ -308,7 +308,7 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
                                    t,
                                    " is not in the atmosphere,"
                                    " but is required by jacobian target ",
-                                   this)
+                                   *this)
                 t.x_start = x_size();
                 t.x_size  = atm_field[t.type].flat_view().size();
                 return true;
@@ -359,16 +359,6 @@ struct std::formatter<Jacobian::AtmTarget> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -378,21 +368,17 @@ struct std::formatter<Jacobian::AtmTarget> {
   FmtContext::iterator format(const Jacobian::AtmTarget& v,
                               FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
-
-    std::formatter<AtmKeyVal> type{};
-    make_compat(type);
-    type.format(v.type, ctx);
-    std::format_to(ctx.out(),
-                   ": [{}{}{}{}{}{}{}]",
-                   v.d,
-                   sep,
-                   v.target_pos,
-                   sep,
-                   v.x_start,
-                   sep,
-                   v.x_size);
-
-    return ctx.out();
+    return tags.format(ctx,
+                       v.type,
+                       ": ["sv,
+                       v.d,
+                       sep,
+                       v.target_pos,
+                       sep,
+                       v.x_start,
+                       sep,
+                       v.x_size,
+                       ']');
   }
 };
 
@@ -403,16 +389,6 @@ struct std::formatter<Jacobian::SurfaceTarget> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -422,21 +398,17 @@ struct std::formatter<Jacobian::SurfaceTarget> {
   FmtContext::iterator format(const Jacobian::SurfaceTarget& v,
                               FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
-
-    std::formatter<SurfaceKeyVal> type{};
-    make_compat(type);
-    type.format(v.type, ctx);
-    std::format_to(ctx.out(),
-                   ": [{}{}{}{}{}{}{}]",
-                   v.d,
-                   sep,
-                   v.target_pos,
-                   sep,
-                   v.x_start,
-                   sep,
-                   v.x_size);
-
-    return ctx.out();
+    return tags.format(ctx,
+                       v.type,
+                       ": ["sv,
+                       v.d,
+                       sep,
+                       v.target_pos,
+                       sep,
+                       v.x_start,
+                       sep,
+                       v.x_size,
+                       ']');
   }
 };
 
@@ -447,16 +419,6 @@ struct std::formatter<Jacobian::LineTarget> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -466,21 +428,17 @@ struct std::formatter<Jacobian::LineTarget> {
   FmtContext::iterator format(const Jacobian::LineTarget& v,
                               FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
-
-    std::formatter<LblLineKey> type{};
-    make_compat(type);
-    type.format(v.type, ctx);
-    std::format_to(ctx.out(),
-                   ": [{}{}{}{}{}{}{}]",
-                   v.d,
-                   sep,
-                   v.target_pos,
-                   sep,
-                   v.x_start,
-                   sep,
-                   v.x_size);
-
-    return ctx.out();
+    return tags.format(ctx,
+                       v.type,
+                       ": ["sv,
+                       v.d,
+                       sep,
+                       v.target_pos,
+                       sep,
+                       v.x_start,
+                       sep,
+                       v.x_size,
+                       ']');
   }
 };
 
@@ -490,16 +448,6 @@ struct std::formatter<JacobianTargets> {
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
@@ -511,17 +459,15 @@ struct std::formatter<JacobianTargets> {
     tags.add_if_bracket(ctx, '{');
 
     const std::string_view sep = tags.sep(true);
-
-    std::formatter<std::vector<Jacobian::AtmTarget>> atm{};
-    std::formatter<std::vector<Jacobian::SurfaceTarget>> surf{};
-    std::formatter<std::vector<Jacobian::LineTarget>> line{};
-
-    std::format_to(ctx.out(), R"("atm": )");
-    atm.format(v.atm(), ctx);
-    std::format_to(ctx.out(), R"({}"surf": )", sep);
-    surf.format(v.surf(), ctx);
-    std::format_to(ctx.out(), R"({}"line": )", sep);
-    line.format(v.line(), ctx);
+    tags.format(ctx,
+                R"("atm": )"sv,
+                v.atm(),
+                sep,
+                R"("surf": )"sv,
+                v.surf(),
+                sep,
+                R"("line": )"sv,
+                v.line());
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();

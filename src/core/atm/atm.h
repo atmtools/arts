@@ -135,10 +135,9 @@ struct Point {
     }
   } catch (std::out_of_range &) {
     if constexpr (isSpecies<T>) {
-      ARTS_USER_ERROR("Species VMR not found: ", std::quoted(toString<1>(x)))
+      ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
     } else if constexpr (isSpeciesIsotope<T>) {
-      ARTS_USER_ERROR("Isotopologue ration not found: ",
-                      std::quoted(x.FullName()))
+      ARTS_USER_ERROR("Isotopologue ration not found: \"", x.FullName(), '"')
     } else if constexpr (isParticulatePropertyTag<T>) {
       ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
     } else if constexpr (isQuantumIdentifier<T>) {
@@ -426,16 +425,6 @@ struct std::formatter<ParticulatePropertyTag> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -456,16 +445,6 @@ struct std::formatter<AtmPoint> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -475,46 +454,49 @@ struct std::formatter<AtmPoint> {
   FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
 
-    std::formatter<Vector3> vec3;
-    std::format_to(ctx.out(),
-                   R"("pressure": {}, "temperature": {}, "mag": )",
-                   v.pressure,
-                   v.temperature);
-    vec3.format(v.mag, ctx);
-    std::format_to(ctx.out(), R"("wind": )");
-    vec3.format(v.wind, ctx);
+    const std::string_view sep = tags.sep(true);
+
+    tags.format(ctx,
+                R"("pressure": )"sv,
+                v.pressure,
+                sep,
+                R"("temperature": )"sv,
+                v.temperature,
+                sep,
+                R"("mag" :)"sv,
+                v.mag,
+                sep,
+                R"("wind": )"sv,
+                v.wind,
+                sep);
 
     if (tags.short_str) {
-      std::format_to(
-          ctx.out(),
-          R"(, "SpeciesEnum": {}, , "SpeciesIsotope": {}, "QuantumIdentifier": {}, "ParticulatePropertyTag": {})",
-          v.specs.size(),
-          v.isots.size(),
-          v.nlte.size(),
-          v.partp.size());
+      tags.format(ctx,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs.size(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots.size(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte.size(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp.size());
 
     } else {
-      std::formatter<std::unordered_map<SpeciesEnum, Numeric>> specs{};
-      std::formatter<std::unordered_map<SpeciesIsotope, Numeric>> isots{};
-      std::formatter<std::unordered_map<QuantumIdentifier, Numeric>> nlte{};
-      std::formatter<std::unordered_map<ParticulatePropertyTag, Numeric>>
-          partp{};
-
-      std::format_to(ctx.out(), R"(,
-"SpeciesEnum": )");
-      specs.format(v.specs, ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SpeciesIsotope": )");
-      isots.format(v.isots, ctx);
-
-      std::format_to(ctx.out(), R"(,
-"QuantumIdentifier": )");
-      nlte.format(v.nlte, ctx);
-
-      std::format_to(ctx.out(), R"(
-"ParticulatePropertyTag": )");
-      partp.format(v.partp, ctx);
+      tags.format(ctx,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs,
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots,
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte,
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp);
     }
 
     tags.add_if_bracket(ctx, '}');
@@ -528,16 +510,6 @@ struct std::formatter<Atm::FunctionalData> {
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
@@ -559,16 +531,6 @@ struct std::formatter<Atm::Data> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -576,30 +538,24 @@ struct std::formatter<Atm::Data> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Atm::Data &v, FmtContext &ctx) const {
-    std::formatter<Atm::FieldData> data{};
-    std::formatter<InterpolationExtrapolation> interp{};
-    make_compat(interp, data);
-
     const std::string_view sep = tags.sep();
-
     tags.add_if_bracket(ctx, '[');
-    data.format(v.data, ctx);
-    std::format_to(ctx.out(), "{}", sep);
+    tags.format(ctx, v.data, sep);
     tags.add_if_bracket(ctx, '[');
-
-    interp.format(v.alt_upp, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.alt_low, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lat_upp, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lat_low, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lon_upp, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lon_low, ctx);
-
-    if (tags.bracket) std::format_to(ctx.out(), "]]");
+    tags.format(ctx,
+                v.alt_upp,
+                sep,
+                v.alt_low,
+                sep,
+                v.lat_upp,
+                sep,
+                v.lat_low,
+                sep,
+                v.lon_upp,
+                sep,
+                v.lon_low);
+    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -611,16 +567,6 @@ struct std::formatter<AtmField> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -631,44 +577,47 @@ struct std::formatter<AtmField> {
     tags.add_if_bracket(ctx, '{');
 
     if (tags.short_str) {
-      std::format_to(
-          ctx.out(),
-          R"("top_of_atmosphere": {}, "Base": {}, "SpeciesEnum": {}, "SpeciesIsotope": {}, "QuantumIdentifier": {}, "ParticulatePropertyTag": {})",
-          v.top_of_atmosphere,
-          v.other().size(),
-          v.specs().size(),
-          v.isots().size(),
-          v.nlte().size(),
-          v.partp().size());
+      const std::string_view sep = tags.sep();
+
+      tags.format(ctx,
+                  R"("top_of_atmosphere": )"sv,
+                  v.top_of_atmosphere,
+                  sep,
+                  R"("Base": )"sv,
+                  v.other().size(),
+                  sep,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs().size(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots().size(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte().size(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp().size());
     } else {
-      std::formatter<std::unordered_map<QuantumIdentifier, Atm::Data>> nlte{};
-      std::formatter<std::unordered_map<SpeciesEnum, Atm::Data>> specs{};
-      std::formatter<std::unordered_map<SpeciesIsotope, Atm::Data>> isots{};
-      std::formatter<std::unordered_map<AtmKey, Atm::Data>> other{};
-      std::formatter<std::unordered_map<ParticulatePropertyTag, Atm::Data>>
-          partp{};
+      const std::string_view sep = tags.sep(true);
 
-      std::format_to(ctx.out(),
-                     R"("top_of_atmosphere": {},
-"AtmKey": )",
-                     v.top_of_atmosphere);
-      other.format(v.other(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SpeciesEnum": )");
-      specs.format(v.specs(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SpeciesIsotope": )");
-      isots.format(v.isots(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"QuantumIdentifier": )");
-      nlte.format(v.nlte(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"ParticulatePropertyTag": )");
-      partp.format(v.partp(), ctx);
+      tags.format(ctx,
+                  R"("top_of_atmosphere": )"sv,
+                  v.top_of_atmosphere,
+                  sep,
+                  R"("Base": )"sv,
+                  v.other(),
+                  sep,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp());
     }
 
     tags.add_if_bracket(ctx, '}');

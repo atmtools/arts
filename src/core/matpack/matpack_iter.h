@@ -134,22 +134,6 @@ public:
   }
 };
 
-//! Helper struct to pretty-print the shape of the object
-template <std::size_t N> struct shape_help {
-std::array<Index, N> shape;
-constexpr shape_help(const std::array<Index, N>& x) : shape(x) {}
-friend std::ostream& operator<<(std::ostream& os, const shape_help& sh) {
-  bool first=true;
-  os << '(';
-  for (auto& x: sh.shape) {
-    if (not first) os << ", ";
-    first = false;
-    os << x;
-  }
-  return os << ')';
-}
-};
-
 //! Return a constant Index array of size N with value v
 template <Index N, Index v> 
 constexpr std::array<Index, N> constant_array() {
@@ -197,10 +181,6 @@ struct flat_shape_pos {
   [[nodiscard]] constexpr auto operator>(const flat_shape_pos& other) const noexcept {return pos > other.pos;}
   [[nodiscard]] constexpr auto operator<=(const flat_shape_pos& other) const noexcept {return pos <= other.pos;}
   [[nodiscard]] constexpr auto operator>=(const flat_shape_pos& other) const noexcept {return pos >= other.pos;}
-
-  friend std::ostream& operator<<(std::ostream& os, const flat_shape_pos& fsp) {
-    return os << "POS: " << shape_help<N>(fsp.pos) << " SHP: " << shape_help<N>(fsp.shp);
-  }
 
 private:
   constexpr void adapt() noexcept {

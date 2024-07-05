@@ -31,16 +31,6 @@ struct std::formatter<Any> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -48,7 +38,7 @@ struct std::formatter<Any> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Any&, FmtContext& ctx) const {
-    return ctx.out();
+    return std::format_to(ctx.out(), "{}Any{}", tags.quote(), tags.quote());
   }
 };
 

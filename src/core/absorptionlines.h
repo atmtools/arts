@@ -1028,16 +1028,6 @@ struct std::formatter<AbsorptionSingleLine> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1049,32 +1039,24 @@ struct std::formatter<AbsorptionSingleLine> {
     tags.add_if_bracket(ctx, '[');
 
     const std::string_view sep = tags.sep();
-
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}{}{}{}{}{}{}",
-                   v.F0,
-                   sep,
-                   v.I0,
-                   sep,
-                   v.E0,
-                   sep,
-                   v.glow,
-                   sep,
-                   v.gupp,
-                   sep,
-                   v.A,
-                   sep);
-
-    std::formatter<Zeeman::Model> zeeman{};
-    std::formatter<LineShape::Model> lineshape{};
-    std::formatter<Quantum::Number::LocalState> localquanta{};
-    make_compat(zeeman, lineshape, localquanta);
-
-    zeeman.format(v.zeeman, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    lineshape.format(v.lineshape, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    localquanta.format(v.localquanta, ctx);
+    tags.format(ctx,
+                v.F0,
+                sep,
+                v.I0,
+                sep,
+                v.E0,
+                sep,
+                v.glow,
+                sep,
+                v.gupp,
+                sep,
+                v.A,
+                sep,
+                v.zeeman,
+                sep,
+                v.lineshape,
+                sep,
+                v.localquanta);
 
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
@@ -1088,16 +1070,6 @@ struct std::formatter<AbsorptionLines> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1108,51 +1080,33 @@ struct std::formatter<AbsorptionLines> {
     tags.add_if_bracket(ctx, '[');
 
     if (tags.short_str) {
-      std::formatter<AbsorptionCutoffTypeOld> cutoff{};
-      std::formatter<AbsorptionMirroringTypeOld> mirroring{};
-      std::formatter<AbsorptionPopulationTypeOld> population{};
-      std::formatter<AbsorptionNormalizationTypeOld> normalization{};
-      std::formatter<LineShapeTypeOld> lineshapetype{};
-      std::formatter<QuantumIdentifier> quantumidentity{};
-      std::formatter<ArrayOfSpeciesEnum> broadeningspecies{};
-
-      make_compat(cutoff,
-                  mirroring,
-                  population,
-                  normalization,
-                  lineshapetype,
-                  quantumidentity,
-                  broadeningspecies);
-
       const std::string_view sep = tags.sep();
-
-      std::format_to(
-          ctx.out(), "{}{}{}{}", v.selfbroadening, sep, v.bathbroadening, sep);
-      cutoff.format(v.cutoff, ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      mirroring.format(v.mirroring, ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      population.format(v.population, ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      normalization.format(v.normalization, ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      lineshapetype.format(v.lineshapetype, ctx);
-      std::format_to(ctx.out(),
-                     "{}{}{}{}{}{}{}",
-                     sep,
-                     v.T0,
-                     sep,
-                     v.cutofffreq,
-                     sep,
-                     v.linemixinglimit,
-                     sep);
-      quantumidentity.format(v.quantumidentity, ctx);
-      std::format_to(ctx.out(), "{}", sep);
-      broadeningspecies.format(v.broadeningspecies, ctx);
+      tags.format(ctx,
+                  v.selfbroadening,
+                  sep,
+                  v.bathbroadening,
+                  sep,
+                  v.cutoff,
+                  sep,
+                  v.mirroring,
+                  sep,
+                  v.population,
+                  sep,
+                  v.normalization,
+                  sep,
+                  v.lineshapetype,
+                  sep,
+                  v.T0,
+                  sep,
+                  v.cutofffreq,
+                  sep,
+                  v.linemixinglimit,
+                  sep,
+                  v.quantumidentity,
+                  sep,
+                  v.broadeningspecies);
     } else {
-      std::formatter<Array<AbsorptionSingleLine>> lines{};
-      make_compat(lines);
-      lines.format(v.lines, ctx);
+      tags.format(ctx, v.lines);
     }
 
     tags.add_if_bracket(ctx, ']');

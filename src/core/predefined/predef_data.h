@@ -76,16 +76,6 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -95,28 +85,25 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
   FmtContext::iterator format(
       const Absorption::PredefinedModel::MT_CKD400::WaterData &v,
       FmtContext &ctx) const {
-    std::formatter<Vector> vec{};
-    make_compat(vec);
     const std::string_view sep = tags.sep();
+
     tags.add_if_bracket(ctx, '[');
-
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}",
-                   v.ref_temp,
-                   sep,
-                   v.ref_press,
-                   sep,
-                   v.ref_h2o_vmr,
-                   sep);
-    vec.format(v.self_absco_ref, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.for_absco_ref, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.wavenumbers, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.self_texp, ctx);
-
+    tags.format(ctx,
+                v.ref_temp,
+                sep,
+                v.ref_press,
+                sep,
+                v.ref_h2o_vmr,
+                sep,
+                v.self_absco_ref,
+                sep,
+                v.for_absco_ref,
+                sep,
+                v.wavenumbers,
+                sep,
+                v.self_texp);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };
@@ -128,16 +115,6 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -146,8 +123,7 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
   template <class FmtContext>
   FmtContext::iterator format(const Absorption::PredefinedModel::ModelName &,
                               FmtContext &ctx) const {
-    std::format_to(ctx.out(), "[]");
-    return ctx.out();
+    return std::format_to(ctx.out(), "[]");
   }
 };
 
@@ -158,16 +134,6 @@ struct std::formatter<PredefinedModelData> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -176,10 +142,7 @@ struct std::formatter<PredefinedModelData> {
   template <class FmtContext>
   FmtContext::iterator format(const PredefinedModelData &v,
                               FmtContext &ctx) const {
-    std::formatter<PredefinedModelData::ModelData> data{};
-    make_compat(data);
-    data.format(v.data, ctx);
-    return ctx.out();
+    return tags.format(ctx, v.data);
   }
 };
 

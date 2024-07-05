@@ -94,9 +94,9 @@ void append_data(
       } else {
         ARTS_USER_ERROR_IF(
             not atmospheric_field.contains(key),
-            "Filename: ",
-            std::quoted(filename),
-            " does not exist",
+            "Filename: \"",
+            filename,
+            "\" does not exist",
             " and no options for workarounds are given.  Cannot populate atmospheric_field with key: ",
             to_string(key))
       }
@@ -130,14 +130,14 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
 
   ARTS_USER_ERROR_IF(not atmospheric_field.has(p) and
                          not static_cast<bool>(allow_missing_pressure),
-                     "Pressure is missing from the read atmospheric field at ",
-                     std::quoted(basename))
+                     "Pressure is missing from the read atmospheric field at \"",
+                     basename, '"')
 
   ARTS_USER_ERROR_IF(
       not atmospheric_field.has(t) and
           not static_cast<bool>(allow_missing_temperature),
-      "Temperature is missing from the read atmospheric field at ",
-      std::quoted(basename))
+      "Temperature is missing from the read atmospheric field at \"",
+      basename,'"')
 
   switch (to<MissingFieldComponentError>(deal_with_field_component)) {
     case MissingFieldComponentError::Throw:

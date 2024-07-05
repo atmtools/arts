@@ -37,7 +37,7 @@
 #include "species_tags.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
-inline constexpr Numeric TEMP_0_C = Constant::temperature_at_0c;
+inline constexpr Numeric TEMP_0_C       = Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions in alphabetical order
@@ -50,18 +50,18 @@ void adapt_stepwise_partial_derivatives(
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight) {
   // All relevant quantities are extracted first
-  DEBUG_ONLY(const Size nq = jacobian_targets.target_count();)
-  DEBUG_ONLY(const Index nv = ppath_f_grid.size();)
-  ARTS_ASSERT(nq == static_cast<Size>(dK_dx.nrows()))
-  ARTS_ASSERT(nq == static_cast<Size>(dS_dx.nrows()))
-  ARTS_ASSERT(nv == dK_dx.ncols())
-  ARTS_ASSERT(nv == dS_dx.ncols())
+  ARTS_ASSERT(jacobian_targets.target_count() ==
+              static_cast<Size>(dK_dx.nrows()))
+  ARTS_ASSERT(jacobian_targets.target_count() ==
+              static_cast<Size>(dS_dx.nrows()))
+  ARTS_ASSERT(ppath_f_grid.size() == dK_dx.ncols())
+  ARTS_ASSERT(ppath_f_grid.size() == dS_dx.ncols())
 
   for (auto w : {AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w}) {
     if (auto wind_pair = jacobian_targets.find<Jacobian::AtmTarget>(w);
         wind_pair.first) {
       const auto i = wind_pair.second->target_pos;
-      ARTS_ASSERT(i < nq)
+      ARTS_ASSERT(i < jacobian_targets.target_count())
 
       const Vector scale =
           get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, w);
@@ -89,7 +89,7 @@ void apply_iy_unit(MatrixView iy,
   // If any change here, remember to update the other function.
 
   const Index nf = iy.nrows();
-  const Size ns = iy.ncols();
+  const Size ns  = iy.ncols();
 
   ARTS_ASSERT(f_grid.size() == nf);
   ARTS_ASSERT(i_pol.size() == ns);
@@ -305,7 +305,8 @@ void get_stepwise_clearsky_propmat(const Workspace& ws,
                                    atm_point,
                                    propagation_matrix_agenda);
 
-  const Vector sensor_like_los{ExhaustiveConstVectorView{path::mirror(path_point.los)}};
+  const Vector sensor_like_los{
+      ExhaustiveConstVectorView{path::mirror(path_point.los)}};
   adapt_stepwise_partial_derivatives(
       dK_dx, dS_dx, jacobian_targets, ppath_f_grid, sensor_like_los);
 }
@@ -391,28 +392,28 @@ void mueller_modif2stokes(Matrix& Cs) {
   Cs.resize(4, 4);
   Cs(0, 0) = 1;
   Cs(0, 1) = Cs(1, 0) = 1;
-  Cs(1, 1) = -1;
+  Cs(1, 1)            = -1;
   Cs(0, 2) = Cs(1, 2) = Cs(2, 0) = Cs(2, 1) = 0;
-  Cs(2, 2) = 1;
+  Cs(2, 2)                                  = 1;
   Cs(0, 3) = Cs(1, 3) = Cs(2, 3) = Cs(3, 0) = Cs(3, 1) = Cs(3, 2) = 0;
-  Cs(3, 3) = 1;
+  Cs(3, 3)                                                        = 1;
 }
 
 void mueller_rotation(Matrix& L, const Numeric& rotangle) {
   //
   L.resize(4, 4);
-  L(0, 0) = 1;
+  L(0, 0)             = 1;
   const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
-  const Numeric c2 = cos(alpha);
+  const Numeric c2    = cos(alpha);
   L(0, 1) = L(1, 0) = 0;
-  L(1, 1) = c2;
-  const Numeric s2 = sin(alpha);
+  L(1, 1)           = c2;
+  const Numeric s2  = sin(alpha);
   L(0, 2) = L(2, 0) = 0;
-  L(1, 2) = s2;
-  L(2, 1) = -s2;
-  L(2, 2) = c2;
+  L(1, 2)           = s2;
+  L(2, 1)           = -s2;
+  L(2, 2)           = c2;
   L(0, 3) = L(1, 3) = L(2, 3) = L(3, 0) = L(3, 1) = L(3, 2) = 0;
-  L(3, 3) = 1;
+  L(3, 3)                                                   = 1;
 }
 
 void mueller_stokes2modif(Matrix& Cm) {
@@ -420,11 +421,11 @@ void mueller_stokes2modif(Matrix& Cm) {
   Cm.resize(4, 4);
   Cm(0, 0) = 0.5;
   Cm(0, 1) = Cm(1, 0) = 0.5;
-  Cm(1, 1) = -0.5;
+  Cm(1, 1)            = -0.5;
   Cm(0, 2) = Cm(1, 2) = Cm(2, 0) = Cm(2, 1) = 0;
-  Cm(2, 2) = 1;
+  Cm(2, 2)                                  = 1;
   Cm(0, 3) = Cm(1, 3) = Cm(2, 3) = Cm(3, 0) = Cm(3, 1) = Cm(3, 2) = 0;
-  Cm(3, 3) = 1;
+  Cm(3, 3)                                                        = 1;
 }
 
 void ze_cfac(Vector& fac,
@@ -451,10 +452,10 @@ void ze_cfac(Vector& fac,
       K2 = k2;
     } else {
       Complex n(complex_n(iv, 0), complex_n(iv, 1));
-      Complex n2 = n * n;
-      Complex K = (n2 - Numeric(1.0)) / (n2 + Numeric(2.0));
+      Complex n2   = n * n;
+      Complex K    = (n2 - Numeric(1.0)) / (n2 + Numeric(2.0));
       Numeric absK = abs(K);
-      K2 = absK * absK;
+      K2           = absK * absK;
     }
 
     // Wavelength

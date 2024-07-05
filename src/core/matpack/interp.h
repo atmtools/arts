@@ -941,7 +941,7 @@ struct Lagrange {
       os << "of runtime ";
     os << "polynominal order: " << (l.size() - 1) << '\n';
 
-    os << "Grid type is: " << std::quoted(var_string(type));
+    os << "Grid type is: " << '"' << type << '"';
     if constexpr (type == GridType::Cyclic)
       os << " in range [" << Limit<cycle_limit::lower>::bound << ", "
          << Limit<cycle_limit::upper>::bound << ')';
@@ -1243,9 +1243,9 @@ constexpr void interpweights(
   requires(N > 0 and matpack_assignable<decltype(out), Numeric>)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
-                     matpack::shape_help{std::array{lag.size()...}},
+                     std::array{lag.size()...},
                      " vs ",
-                     matpack::shape_help{out.shape()})
+                     out.shape())
 
   const auto in = matpack::elemwise{lag.lx...};
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
@@ -1269,9 +1269,9 @@ constexpr void dinterpweights(
            dlx < N)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
-                     matpack::shape_help{std::array{lag.size()...}},
+                     std::array{lag.size()...},
                      " vs ",
-                     matpack::shape_help{out.shape()})
+                     out.shape())
 
   const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(
       std::make_integer_sequence<Index, N>{}, lag...);
@@ -1668,16 +1668,6 @@ struct std::formatter<my_interp::Lagrange<PolyOrder, do_derivs, type, Limit>> {
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {

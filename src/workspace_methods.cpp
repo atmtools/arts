@@ -195,7 +195,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   return os.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string("Error in meta-function header(",
-                                      std::quoted(name),
+                                      '"', name, '"',
                                       ", ",
                                       overload,
                                       "):\n\n",
@@ -257,7 +257,7 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
   return os.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
-      "Cannot create call of method ", std::quoted(name), ":\n\n", e.what()));
+      "Cannot create call of method ", '"', name, '"', ":\n\n", e.what()));
 }
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
@@ -3058,12 +3058,13 @@ See *SpeciesIsotope* for valid ``species``
       .author    = {"Richard Larsson"},
       .out       = {"absorption_bands"},
       .in        = {"absorption_bands"},
-      .gin       = {"species", "fmin", "fmax"},
-      .gin_type  = {"SpeciesIsotope", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
+      .gin       = {"species", "fmin", "fmax", "on"},
+      .gin_type  = {"SpeciesIsotope", "Numeric", "Numeric", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{1}},
       .gin_desc  = {"Isotopologue of the species",
                     "Minimum line frequency to set Zeeman splitting for",
-                    "Maximum line frequency to set Zeeman splitting for"},
+                    "Maximum line frequency to set Zeeman splitting for",
+                    "On or off"},
   };
 
   wsm_data["ray_path_pointBackground"] = {

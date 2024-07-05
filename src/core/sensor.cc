@@ -64,8 +64,6 @@ void antenna1d_matrix(Sparse& H,
       antenna_response.grid<1>();
   ConstVectorView aresponse_za_grid =
       antenna_response.grid<2>();
-  DEBUG_ONLY(const Index n_ar_aa =
-                 antenna_response.grid<3>().size();)
 
   //
   const Index n_ar_f = aresponse_f_grid.size();
@@ -76,7 +74,7 @@ void antenna1d_matrix(Sparse& H,
   ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
   ARTS_ASSERT(n_ar_f);
   ARTS_ASSERT(n_ar_za > 1);
-  ARTS_ASSERT(n_ar_aa == 1);
+  ARTS_ASSERT(antenna_response.grid<3>().size() == 1);
 
   // If response data extend outside za_grid is checked in
   // integration_func_by_vecmult
@@ -601,12 +599,10 @@ void mixer_matrix(Sparse& H,
   // Frequency grid of for sideband response specification
   ConstVectorView filter_grid = filter.grid<0>();
 
-  DEBUG_ONLY(const Index nrp = filter.data.size();)
-
   // Asserts
   ARTS_ASSERT(lo > f_grid[0]);
   ARTS_ASSERT(lo < last(f_grid));
-  ARTS_ASSERT(filter_grid.size() == nrp);
+  ARTS_ASSERT(filter_grid.size() == filter.data.size());
   ARTS_ASSERT(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
   // If response data extend outside f_grid is checked in summation_by_vecmult
 

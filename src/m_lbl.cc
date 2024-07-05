@@ -534,13 +534,16 @@ ARTS_METHOD_ERROR_CATCH
 void absorption_bandsSetZeeman(ArrayOfAbsorptionBand& absorption_bands,
                                const SpeciesIsotope& species,
                                const Numeric& fmin,
-                               const Numeric& fmax) try {
+                               const Numeric& fmax,
+                               const Index& _on) try {
+  const bool on = static_cast<bool>(_on);
+  
   for (auto& [key, band] : absorption_bands) {
     if (key.Isotopologue() != species) continue;
 
     for (auto& line : band.lines) {
       if (line.f0 >= fmin and line.f0 <= fmax) {
-        line.z.on = true;
+        line.z.on = on;
       }
     }
   }

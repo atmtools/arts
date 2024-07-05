@@ -250,7 +250,7 @@ Wsv Wsv::from_named_type(const std::string& type) {
     os << "  if (type == \"" << group << "\") return " << group << "{};\n";
   }
 
-  os << R"--( throw std::runtime_error(var_string("Unknown workspace group ", std::quoted(type)));
+  os << R"--( throw std::runtime_error(var_string("Unknown workspace group \"", type, '"'));
 }
 )--";
 
@@ -270,9 +270,9 @@ Wsv Wsv::from_named_type(const std::string& type) {
           "  if (not holds<"
        << group
        << ">()) {\n"
-          "    throw std::runtime_error(var_string(\"Cannot use workspace variable of workspace group \",\n"
-          "                                        std::quoted(type_name()),\n"
-          "                                        \" as \\\""
+          "    throw std::runtime_error(var_string(\"Cannot use workspace variable of workspace group \\\"\",\n"
+          "                                        type_name(),\n"
+          "                                        \"\\\" as \\\""
        << group
        << "\\\"\"));\n"
           "  }\n"
@@ -344,9 +344,9 @@ void auto_workspace(std::ostream& os) {
           "get<"
        << group
        << ">();\n} catch (std::out_of_range&) {\n"
-          "  throw std::runtime_error(var_string(\"Undefined workspace variable \", std::quoted(name)));\n"
+          "  throw std::runtime_error(var_string(\"Undefined workspace variable \", '\"', name, '\"'));\n"
           "} catch (std::exception& e) {\n"
-          "  throw std::runtime_error(var_string(\"Error getting workspace variable \", std::quoted(name), \":\\n\", e.what()));\n"
+          "  throw std::runtime_error(var_string(\"Error getting workspace variable \", '\"', name, '\"', \":\\n\", e.what()));\n"
           "}\n\n";
 
     os << "template<> void Workspace::overwrite<" << group

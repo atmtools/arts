@@ -408,16 +408,6 @@ struct std::formatter<CovarianceMatrix> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -426,15 +416,9 @@ struct std::formatter<CovarianceMatrix> {
   template <class FmtContext>
   FmtContext::iterator format(const CovarianceMatrix &v,
                               FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
     const std::string_view sep = tags.sep(true);
-
-    std::formatter<Matrix> blocks;
-    blocks.format(Matrix{v}, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    blocks.format(v.get_inverse(), ctx);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, Matrix{v}, sep, v.get_inverse());
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

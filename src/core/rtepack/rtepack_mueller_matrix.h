@@ -231,16 +231,6 @@ struct std::formatter<rtepack::muelmat> {
   [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts> &...xs) const {
-    (xs.inner_fmt().compat(inner_fmt().tags), ...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    inner_fmt().tags.compat(x);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return fmt.parse(ctx);

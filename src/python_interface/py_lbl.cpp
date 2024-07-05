@@ -62,7 +62,7 @@ void py_lbl(py::module_& m) try {
                      return data;
                    }
                  }
-                 throw std::out_of_range(var_string(std::quoted(toString(x))));
+                 throw std::out_of_range(var_string('"', x, '"'));
                })
           .def("__setitem__",
                [](pair_vector_type& self,

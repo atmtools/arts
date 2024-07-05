@@ -156,7 +156,7 @@ Method::Method(const std::string& n,
 
       if (not any) {
         throw std::runtime_error(
-            var_string("No named argument ", std::quoted(key)));
+            var_string("No named argument ", '"', key, '"'));
       }
     }
   }
@@ -178,22 +178,22 @@ Method::Method(const std::string& n,
     if (inargs[i].front() == '_' and not wsms.at(n).defs.contains(inargs[i])) {
       throw std::runtime_error(
           var_string("Missing required generic input argument ",
-                     std::quoted(std::string_view(inargs[i].begin() + 1,
-                                                  inargs[i].end()))));
+                   '"', std::string_view(inargs[i].begin() + 1,
+                                                  inargs[i].end()), '"'));
     }
   }
 } catch (std::out_of_range&) {
-  throw std::runtime_error(var_string("No method named ", std::quoted(n)));
+  throw std::runtime_error(var_string("No method named ", '"', n, '"'));
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
-      "Error in method construction for ", std::quoted(n), "\n", e.what()));
+      "Error in method construction for ", '"', n, '"', "\n", e.what()));
 }
 
 Method::Method(std::string n, const Wsv& wsv, bool overwrite)
     : name(std::move(n)), setval(wsv), overwrite_setval(overwrite) {
   if (not setval) {
     throw std::runtime_error(var_string("Cannot set workspace variable ",
-                                        std::quoted(name),
+                                       '"', name, '"',
                                         " to empty value"));
   }
 
@@ -221,7 +221,7 @@ void Method::operator()(Workspace& ws) const try {
     wsms.at(name).func(ws, outargs, inargs);
   }
 } catch (std::out_of_range&) {
-  throw std::runtime_error(var_string("No method named ", std::quoted(name)));
+  throw std::runtime_error(var_string("No method named ",'"', name, '"'));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Error in method ", *this, "\n", e.what()));

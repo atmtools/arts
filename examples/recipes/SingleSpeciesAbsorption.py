@@ -34,7 +34,6 @@ plt.legend(
     ncols=4,
     loc="lower center",
 )
-# plt.show()
 
 # %% Integration test by ensuring some statistics look good
 assert np.isclose(6.7940695853245560e-28 / xsec.mean(), 1)

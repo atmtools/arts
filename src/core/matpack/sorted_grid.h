@@ -173,16 +173,6 @@ struct std::formatter<matpack::grid<Compare>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    inner_fmt().make_compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return fmt.parse(ctx);

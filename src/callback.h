@@ -29,11 +29,6 @@ struct std::formatter<CallbackOperator> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -42,19 +37,24 @@ struct std::formatter<CallbackOperator> {
   template <class FmtContext>
   FmtContext::iterator format(const CallbackOperator& v,
                               FmtContext& ctx) const {
-    const std::string_view sep = tags.sep();
+    const std::string_view quote = tags.quote();
 
-    std::formatter<std::vector<std::string>> strs;
+    tags.add_if_bracket(ctx, '{');
 
-    make_compat(strs);
+    tags.format(ctx,
+                quote,
+                "input"sv,
+                quote,
+                ": "sv,
+                v.inputs,
+                tags.sep(true),
+                quote,
+                "output"sv,
+                quote,
+                ": "sv,
+                v.outputs);
 
-    tags.add_if_bracket(ctx, '[');
-    std::format_to(ctx.out(), "input: ");
-    strs.format(v.inputs, ctx);
-    std::format_to(ctx.out(), "{}output: ", sep);
-    strs.format(v.outputs, ctx);
-    tags.add_if_bracket(ctx, ']');
-
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };

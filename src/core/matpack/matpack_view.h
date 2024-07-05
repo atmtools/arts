@@ -471,10 +471,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const me_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -482,10 +479,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ce_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -493,10 +487,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ms_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -504,10 +495,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const cs_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -708,7 +696,7 @@ class matpack_view {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind...))
     if constexpr (N == M)
@@ -725,7 +713,7 @@ class matpack_view {
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind...),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind...))
     if constexpr (N == M)
@@ -743,7 +731,7 @@ class matpack_view {
     assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind))
     if constexpr (N == M and N == 1)
@@ -759,9 +747,9 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
-                "\nAccessor: ",
+                "Out-of-bounds:\nShape:    "sv,
+                shape(),
+                "\nAccessor: "sv,
                 access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
@@ -1129,10 +1117,7 @@ class matpack_view {
   constexpr matpack_view& operator+=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) += x[i];
     else
@@ -1147,10 +1132,7 @@ class matpack_view {
   constexpr matpack_view& operator-=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) -= x[i];
     else
@@ -1165,10 +1147,7 @@ class matpack_view {
   constexpr matpack_view& operator*=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) *= x[i];
     else
@@ -1183,10 +1162,7 @@ class matpack_view {
   constexpr matpack_view& operator/=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) /= x[i];
     else
@@ -1318,10 +1294,7 @@ class matpack_view {
     requires(not constant)
   {
     auto ext_sh = mdshape(x);
-    ARTS_ASSERT(shape() == ext_sh,
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(ext_sh))
+    ARTS_ASSERT(shape() == ext_sh, shape(), " vs ", ext_sh)
 
     auto pos = flat_shape_pos<N>(ext_sh);
     for (Index i = 0; i < size(); i++) {
@@ -1383,22 +1356,18 @@ std::string describe(const matpack_view<T, N, constant, strided>& m) {
     return var_string("constant and strided matpack_view of rank ",
                       N,
                       " of shape ",
-                      shape_help<N>(m.shape()));
+                      m.shape());
   else if constexpr (constant)
     return var_string("constant and exhaustive matpack_view of rank ",
                       N,
                       " of shape ",
-                      shape_help<N>(m.shape()));
+                      m.shape());
   else if constexpr (strided)
-    return var_string("strided matpack_view of rank ",
-                      N,
-                      " of shape ",
-                      shape_help<N>(m.shape()));
+    return var_string(
+        "strided matpack_view of rank ", N, " of shape ", m.shape());
   else
-    return var_string("exhaustive matpack_view of rank ",
-                      N,
-                      " of shape ",
-                      shape_help<N>(m.shape()));
+    return var_string(
+        "exhaustive matpack_view of rank ", N, " of shape ", m.shape());
 }
 }  // namespace matpack
 
@@ -1539,16 +1508,6 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1561,8 +1520,6 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
     using std::ranges::views::take, std::ranges::views::drop;
 
     const auto n = v.size();
-    std::formatter<T> fmt{};
-    tags.compat(fmt);
 
     std::string_view first = tags.sep();
     std::string_view sep   = ""sv;
@@ -1570,21 +1527,17 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
     tags.add_if_bracket(ctx, '[');
 
     if (tags.short_str and n > short_str_v_cut) {
-      for (auto&& a : v | take(short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
-        fmt.format(a, ctx);
+      tags.format(ctx, v.front());
+      for (auto&& a : v | take(short_str_v_stp) | drop(1)) {
+        tags.format(ctx, sep, a);
       }
 
-      std::format_to(ctx.out(), "{}...", sep);
+      std::format_to(ctx.out(), "...");
 
-      for (auto&& a : v | drop(n - short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}", sep);
-        fmt.format(a, ctx);
-      }
+      for (auto&& a : v | drop(n - short_str_v_stp)) tags.format(ctx, sep, a);
     } else {
       for (auto&& a : v) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
-        fmt.format(a, ctx);
+        tags.format(ctx, std::exchange(sep, first), a);
       }
     }
 
@@ -1599,16 +1552,6 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
 
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
-
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    (xs.inner_fmt().compat(inner_fmt().tags), ...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    inner_fmt().compat(x);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
@@ -1629,25 +1572,41 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
 
     if (inner_fmt().tags.short_str and n > short_str_v_cut) {
       for (auto&& a : v | take(short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
-        fmt.format(a, ctx);
+        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
       }
 
-      std::format_to(ctx.out(), "{}...", sep);
+      std::format_to(ctx.out(), "...");
 
       for (auto&& a : v | drop(n - short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}", sep);
-        fmt.format(a, ctx);
+        std::format_to(ctx.out(), "{}{}", sep, a);
       }
     } else {
       for (auto&& a : v) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
-        fmt.format(a, ctx);
+        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
       }
     }
 
     if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "\n]");
 
     return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Range> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Range& v, FmtContext& ctx) const {
+    return tags.format(
+        ctx, "Range("sv, v.offset, ", "sv, v.extent, ", "sv, v.stride, ')');
   }
 };

@@ -347,16 +347,6 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   using fmt_t = matpack::gridded_data<T, Grids...>;
 
   template <Size N>
@@ -372,19 +362,17 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
   void grid(const fmt_t& v, FmtContext& ctx) const {
     if (tags.names) {
       const std::string_view quote = tags.quote();
-      std::format_to(ctx.out(),"{}{}{}: ", quote, v.grid_names[N], quote);
+      std::format_to(ctx.out(), "{}{}{}: ", quote, v.grid_names[N], quote);
     }
 
-    std::formatter<grid_t<N>> gridfmt{};
-    tags.compat(gridfmt);
-    gridfmt.format(std::get<N>(v.grids), ctx);
-    std::format_to(ctx.out(), ",\n");
+    tags.format(ctx, std::get<N>(v.grids), tags.sep(true));
   }
 
  public:
   template <class FmtContext>
   FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
-    if (tags.bracket) std::format_to(ctx.out(), "{{\n");
+    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, '\n');
 
     if constexpr (constexpr Size N = 0; n > N) grid<N>(v, ctx);
     if constexpr (constexpr Size N = 1; n > N) grid<N>(v, ctx);
@@ -399,15 +387,13 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
 
     if (tags.names) {
       const std::string_view quote = tags.quote();
-      std::format_to(ctx.out(),"{}{}{}: ", quote, v.data_name, quote);
+      std::format_to(ctx.out(), "{}{}{}: ", quote, v.data_name, quote);
     }
 
-    std::formatter<matpack::matpack_data<T, n>> datafmt{};
-    datafmt.inner_fmt().tags = tags;
-    datafmt.format(v.data, ctx);
+    tags.format(ctx, v.data);
 
-    if (tags.bracket) std::format_to(ctx.out(), "\n}}");
-
+    tags.add_if_bracket(ctx, '\n');
+    tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
 };

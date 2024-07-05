@@ -55,9 +55,9 @@ struct matpack_constant_view {
     requires(not constant and sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
-                shape_help<N>{std::array{static_cast<Index>(i)...}},
+                std::array{static_cast<Index>(i)...},
                 " vs ",
-                shape_help<N>{shape()})
+                shape())
     return view(i...);
   }
 
@@ -66,9 +66,9 @@ struct matpack_constant_view {
     requires(sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
-                shape_help<N>{std::array{static_cast<Index>(i)...}},
+                std::array{static_cast<Index>(i)...},
                 " vs ",
-                shape_help<N>{shape()})
+                shape())
     return view(i...);
   }
 
@@ -584,16 +584,6 @@ struct std::formatter<matpack::matpack_constant_data<T, N...>> {
 
   [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
-
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts> &...xs) const {
-    inner_fmt().make_compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {

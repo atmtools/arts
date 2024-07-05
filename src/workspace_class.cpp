@@ -25,7 +25,7 @@ const std::shared_ptr<Wsv>& Workspace::share(const std::string& name) const
   return wsv.at(name);
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      var_string("Undefined workspace variable ", std::quoted(name)));
+      var_string("Undefined workspace variable ", '"', name, '"'));
 }
 
 std::shared_ptr<Wsv> Workspace::copy(const std::string& name) const {
@@ -52,18 +52,30 @@ void Workspace::set(const std::string& name,
   }
 } catch (const std::bad_variant_access&) {
   throw std::runtime_error(var_string("Workspace variable ",
-                                      std::quoted(name),
+                                      '"',
+                                      name,
+                                      '"',
                                       " is of type ",
-                                      std::quoted(wsv.at(name)->type_name()),
+                                      '"',
+                                      wsv.at(name)->type_name(),
+                                      '"',
                                       ".\nIt cannot be set to ",
-                                      std::quoted(data->type_name())));
+                                      '"',
+                                      data->type_name(),
+                                      '"'));
 } catch (const std::string& type) {
   throw std::runtime_error(var_string("Cannot set built-in workspace variable ",
-                                      std::quoted(name),
+                                      '"',
+                                      name,
+                                      '"',
                                       " of workspace group ",
-                                      std::quoted(type),
+                                      '"',
+                                      type,
+                                      '"',
                                       " to ",
-                                      std::quoted(data->type_name())));
+                                      '"',
+                                      data->type_name(),
+                                      '"'));
 }
 
 void Workspace::overwrite(const std::string& name,
@@ -74,11 +86,17 @@ void Workspace::overwrite(const std::string& name,
   wsv[name] = data;
 } catch (const std::string& type) {
   throw std::runtime_error(var_string("Cannot set built-in workspace variable ",
-                                      std::quoted(name),
+                                      '"',
+                                      name,
+                                      '"',
                                       " of workspace group ",
-                                      std::quoted(type),
+                                      '"',
+                                      type,
+                                      '"',
                                       " to ",
-                                      std::quoted(data->type_name())));
+                                      '"',
+                                      data->type_name(),
+                                      '"'));
 }
 
 std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
@@ -119,7 +137,9 @@ bool Workspace::wsv_and_contains(const std::string& name) const {
       std::ranges::none_of(wsv_data | std::views::keys,
                            [&name](const auto& n) { return n == name; }),
       "Invalid workspace variable: ",
-      std::quoted(name))
+      '"',
+      name,
+      '"')
   return contains(name);
 }
 
@@ -129,7 +149,7 @@ void Workspace::init(const std::string& name) try {
           Wsv::from_named_type(workspace_variables().at(name).type)));
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      var_string("Undefined workspace variable ", std::quoted(name)));
+      var_string("Undefined workspace variable ", '"', name, '"'));
 }
 
 Workspace Workspace::deepcopy() const {

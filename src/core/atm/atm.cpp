@@ -148,7 +148,7 @@ std::ostream &operator<<(std::ostream &os, const Field &atm) {
   };
 
   std::string_view space = "";
-  for (auto && key : atm.keys()) {
+  for (auto &&key : atm.keys()) {
     os << std::exchange(space, ",\n") << key << ":";
     std::visit(printer, atm[key].data);
   }
@@ -158,23 +158,24 @@ std::ostream &operator<<(std::ostream &os, const Field &atm) {
 
 Numeric Point::mean_mass(SpeciesEnum s) const {
   Numeric ratio = 0.0;
-  Numeric mass = 0.0;
+  Numeric mass  = 0.0;
   for (auto &[isot, this_ratio] : isots) {
     if (isot.spec == s and not(is_predefined_model(isot) or isot.joker())) {
       ratio += this_ratio;
-      mass += this_ratio * isot.mass;
+      mass  += this_ratio * isot.mass;
     }
   }
 
   ARTS_USER_ERROR_IF(ratio == 0,
-                     "Cannot find a ratio for the mean mass of species ",
-                     std::quoted(toString<1>(s)))
+                     "Cannot find a ratio for the mean mass of species \"",
+                     toString<1>(s),
+                     '"')
 
   return mass / ratio;
 }
 
 Numeric Point::mean_mass() const {
-  Numeric vmr = 0.0;
+  Numeric vmr  = 0.0;
   Numeric mass = 0.0;
   for (auto &[spec, this_vmr] : specs) {
     vmr += this_vmr;
@@ -299,8 +300,7 @@ struct interp_helper {
   [[no_unique_address]] std::conditional_t<
       precompute,
       decltype(my_interp::flat_interpweights(lags_alt, lags_lat, lags_lon)),
-      my_interp::Empty>
-      iws{};
+      my_interp::Empty> iws{};
 
   constexpr interp_helper(const Vector &alt_grid,
                           const Vector &lat_grid,
@@ -661,18 +661,18 @@ void Point::check_and_fix() try {
 
   for (auto &spec : specs) {
     ARTS_USER_ERROR_IF(nonstd::isnan(spec.second) or spec.second < 0.0,
-                       "VMR for ",
-                       std::quoted(toString<1>(spec.first)),
-                       " is ",
+                       "VMR for \"",
+                       toString<1>(spec.first),
+                       "\" is ",
                        spec.second)
   }
 
   for (auto &isot : isots) {
     //! Cannot check isnan because it is a valid state for isotopologue ratios
     ARTS_USER_ERROR_IF(isot.second < 0.0,
-                       "Isotopologue ratio for ",
-                       std::quoted(isot.first.FullName()),
-                       " is ",
+                       "Isotopologue ratio for \"",
+                       isot.first.FullName(),
+                       "\" is ",
                        isot.second)
   }
 
@@ -882,7 +882,7 @@ Numeric get(const GriddedField3 &gf3,
             const Numeric lat,
             const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
-  
+
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
         return my_interp::interp(data, al, la, lo);

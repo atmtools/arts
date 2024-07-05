@@ -235,16 +235,6 @@ struct std::formatter<lbl::line_shape::species_model> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -254,18 +244,9 @@ struct std::formatter<lbl::line_shape::species_model> {
   FmtContext::iterator format(const lbl::line_shape::species_model& v,
                               FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
-
-    std::formatter<SpeciesEnum> species{};
-    std::formatter<
-        std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>>
-        data{};
-    make_compat(species, data);
-
-    species.format(v.species, ctx);
-    std::format_to(ctx.out(), "{}", tags.sep());
-    data.format(v.data, ctx);
-
+    tags.format(ctx, v.species, tags.sep(), v.data);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };
@@ -277,16 +258,6 @@ struct std::formatter<lbl::line_shape::model> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -295,16 +266,12 @@ struct std::formatter<lbl::line_shape::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::model& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
     const auto sep = tags.sep();
-    std::format_to(ctx.out(), "{}{}{}{}", v.one_by_one, sep, v.T0, sep);
 
-    std::formatter<std::vector<lbl::line_shape::species_model>> s;
-    make_compat(s);
-    s.format(v.single_models, ctx);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };

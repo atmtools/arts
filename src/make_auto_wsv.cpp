@@ -14,7 +14,7 @@ const static auto wsg = internal_workspace_groups();
 
 std::vector<std::string> wsv_names(std::ostream& os) {
   const static auto vars = internal_workspace_variables();
-  const static auto ags = internal_workspace_agendas();
+  const static auto ags  = internal_workspace_agendas();
 
   std::vector<std::string> names;
   names.reserve(vars.size() + ags.size());
@@ -27,10 +27,14 @@ std::vector<std::string> wsv_names(std::ostream& os) {
           "static_assert(false, R\"--(\n\nWorkspace variable type is not a workspace group\n"
           "This is not allowed.\n"
           "The workspace variable is: ",
-          std::quoted(name),
+          '"',
+          name,
+          '"',
           "\n"
           "The workspace variable type is: ",
-          std::quoted(data.type),
+          '"',
+          data.type,
+          '"',
           "\n\n)--\");\n\n");
     }
   }
@@ -47,7 +51,9 @@ std::vector<std::string> wsv_names(std::ostream& os) {
         "static_assert(false, R\"--(\n\nDuplicate name in workspace variables and agendas\n"
         "This is not allowed.\n"
         "The duplicate name is: ",
-        std::quoted(*ptr),
+        '"',
+        *ptr,
+        '"',
         "\n\n)--\");\n\n");
     ptr = std::adjacent_find(ptr + 1, names.end());
   }

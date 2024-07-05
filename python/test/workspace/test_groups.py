@@ -896,6 +896,15 @@ class TestGroups:
                 fail.append(f"\n\nFailed {group}, cannot print:\n{e}\n\n")
                 continue
 
+            if "\0" in str(x):
+                fail.append(f"\n\nFailed {group}, \\0 in str()")
+
+            if "\0" in repr(x):
+                fail.append(f"\n\nFailed {group}, \\0 in repr()")
+
+            if "\0" in format(x):
+                fail.append(f"\n\nFailed {group}, \\0 in format()")
+
             try:
                 assert isinstance(
                     repr(x), str
@@ -1000,4 +1009,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_construct_empty()
+    x.test_print()

@@ -1003,16 +1003,6 @@ struct std::formatter<LineShapeModelParameters> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1021,23 +1011,9 @@ struct std::formatter<LineShapeModelParameters> {
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeModelParameters& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
     const std::string_view sep = tags.sep();
-
-    std::formatter<LineShapeTemperatureModelOld> type;
-    make_compat(type);
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}{}{}",
-                   sep,
-                   v.X0,
-                   sep,
-                   v.X1,
-                   sep,
-                   v.X2,
-                   sep,
-                   v.X3);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.type, sep, v.X0, sep, v.X1, sep, v.X2, sep, v.X3);
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
@@ -1050,16 +1026,6 @@ struct std::formatter<LineShapeSingleSpeciesModel> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1068,23 +1034,7 @@ struct std::formatter<LineShapeSingleSpeciesModel> {
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeSingleSpeciesModel& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
-    std::formatter<LineShapeModelParameters> mpf{};
-    make_compat(mpf);
-
-    std::string_view sep      = ""sv;
-    std::string_view next_sep = tags.sep();
-
-    for (const auto& mp : v.Data()) {
-      if (mp.type not_eq LineShapeTemperatureModelOld::None) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, next_sep));
-        mpf.format(ctx, mp);
-      }
-    }
-
-    tags.add_if_bracket(ctx, ']');
-    return ctx.out();
+    return tags.format(ctx, v.Data());
   }
 };
 
@@ -1095,16 +1045,6 @@ struct std::formatter<LineShapeModel> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1112,12 +1052,6 @@ struct std::formatter<LineShapeModel> {
 
   template <class FmtContext>
   FmtContext::iterator format(const LineShapeModel& v, FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
-    std::formatter<std::vector<LineShapeSingleSpeciesModel>> data{};
-    data.format(ctx, v.Data());
-
-    tags.add_if_bracket(ctx, ']');
-    return ctx.out();
+    return tags.format(ctx, v.Data());
   }
 };

@@ -104,11 +104,13 @@ std::istream& operator>>(std::istream& is, Time& t) {
   ARTS_USER_ERROR_IF(
       YMD.size() not_eq 3 or HMS.size() not_eq 3,
       "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-      "\"year-month-day\"   looks like: ",
-      std::quoted(ymd),
+      "\"year-month-day\"   looks like: \"",
+      ymd,
+      '"',
       '\n',
-      "\"hour:min:seconds\" looks like: ",
-      std::quoted(hms));
+      "\"hour:min:seconds\" looks like: \"",
+      hms,
+      '"');
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
   int year{}, month{}, day{};
@@ -123,7 +125,7 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_mon.ec) or
                          std::make_error_code(res_day.ec),
                      "Cannot understand time point for year-month-day: ",
-                     std::quoted(ymd))
+                     '"', ymd, '"')
   ARTS_USER_ERROR_IF(year < 1900,
                      "We cannot yet support times before the year 1900")
 
@@ -140,17 +142,17 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_min.ec) or
                          std::make_error_code(res_sec.ec),
                      "Cannot understand time point for hour:minute:second in: ",
-                     std::quoted(hms))
+                     '"', hms, '"')
 
   std::tm tm_struct{};
-  tm_struct.tm_year = year - 1900;
-  tm_struct.tm_mon = month - 1;
-  tm_struct.tm_mday = day;
-  tm_struct.tm_hour = hour;
-  tm_struct.tm_hour = hour;
-  tm_struct.tm_min = minute;
+  tm_struct.tm_year  = year - 1900;
+  tm_struct.tm_mon   = month - 1;
+  tm_struct.tm_mday  = day;
+  tm_struct.tm_hour  = hour;
+  tm_struct.tm_hour  = hour;
+  tm_struct.tm_min   = minute;
   tm_struct.tm_isdst = -1;
-  t = Time{tm_struct} + TimeStep{sec};
+  t                  = Time{tm_struct} + TimeStep{sec};
 
   return is;
 }

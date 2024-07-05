@@ -1229,16 +1229,6 @@ struct std::formatter<QuantumNumberValue> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1247,27 +1237,22 @@ struct std::formatter<QuantumNumberValue> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberValue& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
     const auto quote = tags.quote();
     const auto sep   = tags.sep();
 
-    std::formatter<QuantumNumberType> type;
-    make_compat(type);
-
-    type.format(v.type, ctx);
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}{}{}",
-                   sep,
-                   quote,
-                   v.str_upp(),
-                   quote,
-                   sep,
-                   quote,
-                   v.str_low(),
-                   quote);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.type,
+                sep,
+                quote,
+                v.str_upp(),
+                quote,
+                sep,
+                quote,
+                v.str_low(),
+                quote);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };
@@ -1279,16 +1264,6 @@ struct std::formatter<QuantumNumberValueList> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1297,9 +1272,7 @@ struct std::formatter<QuantumNumberValueList> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberValueList& v,
                               FmtContext& ctx) const {
-    std::formatter<std::vector<QuantumNumberValue>> q{};
-    make_compat(q);
-    return q.format(v.values, ctx);
+    return tags.format(ctx, v.values);
   }
 };
 
@@ -1310,16 +1283,6 @@ struct std::formatter<QuantumNumberLocalState> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1328,14 +1291,7 @@ struct std::formatter<QuantumNumberLocalState> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberLocalState& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
-    std::formatter<QuantumNumberValueList> q{};
-    make_compat(q);
-    q.format(v.val, ctx);
-    
-    tags.add_if_bracket(ctx, ']');
-    return ctx.out();
+    return tags.format(ctx, v.val);
   }
 };
 
@@ -1346,16 +1302,6 @@ struct std::formatter<QuantumIdentifier> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -1365,14 +1311,39 @@ struct std::formatter<QuantumIdentifier> {
   FmtContext::iterator format(const QuantumIdentifier& v,
                               FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
-
-    std::formatter<QuantumNumberValueList> val{};
-    make_compat(val);
-
-    std::format_to(ctx.out(), "{}{}", v.Isotopologue().FullName(), tags.sep());
-    val.format(v.val, ctx);
-
+    tags.format(ctx, v.Isotopologue().FullName(), tags.sep(), v.val);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Quantum::Number::QuantumNumberValueType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Quantum::Number::QuantumNumberValueType& v,
+                              FmtContext& ctx) const {
+    const auto quote = tags.quote();
+
+    switch (v) {
+      case Quantum::Number::QuantumNumberValueType::I:
+        return format_to(ctx.out(), "{}I{}", quote, quote);
+      case Quantum::Number::QuantumNumberValueType::S:
+        return format_to(ctx.out(), "{}S{}", quote, quote);
+      case Quantum::Number::QuantumNumberValueType::H:
+        return format_to(ctx.out(), "{}H{}", quote, quote);
+    }
+
+    return format_to(ctx.out(), "{}bad-value{}", quote, quote);
   }
 };

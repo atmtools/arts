@@ -7,7 +7,7 @@ namespace Python {
 void py_zeeman(py::module_& m) try {
   py::class_<lbl::zeeman::magnetic_angles>(m, "MagneticAngles")
       .def(py::init<Vector3, Vector2>())
-      .PythonInterfaceBasicRepresentation(lbl::zeeman::magnetic_angles)
+      //.PythonInterfaceBasicRepresentation(lbl::zeeman::magnetic_angles)
       .def_ro("u", &lbl::zeeman::magnetic_angles::u)
       .def_ro("v", &lbl::zeeman::magnetic_angles::v)
       .def_ro("w", &lbl::zeeman::magnetic_angles::w)

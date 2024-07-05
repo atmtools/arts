@@ -274,16 +274,6 @@ struct std::formatter<GasAbsLookup> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -291,57 +281,33 @@ struct std::formatter<GasAbsLookup> {
 
   template <class FmtContext>
   FmtContext::iterator format(const GasAbsLookup& v, FmtContext& ctx) const {
-    std::formatter<ArrayOfArrayOfSpeciesTag> species{};
-    std::formatter<ArrayOfIndex> nonlinear_species{};
-    std::formatter<Vector> f_grid{};
-    std::formatter<ArrayOfLagrangeInterpolation> flag_default{};
-    std::formatter<Vector> p_grid{};
-    std::formatter<Vector> log_p_grid{};
-    std::formatter<Matrix> vmrs_ref{};
-    std::formatter<Vector> t_ref{};
-    std::formatter<Vector> t_pert{};
-    std::formatter<Vector> nls_pert{};
-    std::formatter<Tensor4> xsec{};
-
-    make_compat(species,
-                nonlinear_species,
-                f_grid,
-                flag_default,
-                p_grid,
-                log_p_grid,
-                vmrs_ref,
-                t_ref,
-                t_pert,
-                nls_pert,
-                xsec);
-
     const std::string_view sep = tags.sep();
+
     tags.add_if_bracket(ctx, '[');
-
-    species.format(v.species, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    nonlinear_species.format(v.nonlinear_species, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    f_grid.format(v.f_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    flag_default.format(v.flag_default, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    p_grid.format(v.p_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    log_p_grid.format(v.log_p_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vmrs_ref.format(v.vmrs_ref, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    t_ref.format(v.t_ref, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    t_pert.format(v.t_pert, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    nls_pert.format(v.nls_pert, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    xsec.format(v.xsec, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-
+    tags.format(ctx,
+                v.species,
+                sep,
+                v.nonlinear_species,
+                sep,
+                v.f_grid,
+                sep,
+                v.flag_default,
+                sep,
+                v.p_grid,
+                sep,
+                v.log_p_grid,
+                sep,
+                v.vmrs_ref,
+                sep,
+                v.t_ref,
+                sep,
+                v.t_pert,
+                sep,
+                v.nls_pert,
+                sep,
+                v.xsec);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };

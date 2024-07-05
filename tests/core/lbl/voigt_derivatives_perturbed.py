@@ -16,6 +16,12 @@ class Setting:
         for x in ws.absorption_bands[0].data.lines:
             x.ls.one_by_one = self.one_by_one
         ws.frequency_grid = self.frequency_grid
+        ws.absorption_bandsSetZeeman(
+            species="O2-66",
+            fmin=50474199538.7676-1e6,
+            fmax=50474199538.7676+1e6,
+            on=self.zeeman,
+        )
 
     def title(self, title):
         return (
@@ -106,7 +112,7 @@ assert np.allclose(ws.absorption_bands[0].data.lines[il].f0, lc), (
     + f"lc should be set to {ws.absorption_bands[0].data.lines[il].f0}"
 )
 
-#ws.WignerInit(symbol_type=3)
+ws.WignerInit(symbol_type=3)
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.atmospheric_pointInit()
@@ -393,9 +399,7 @@ for setting in settings:
 
     # O2 G0 X0
     d = 1e-1
-    orig = copy(
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"]
-    )
+    orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"]
     data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
@@ -416,7 +420,7 @@ for setting in settings:
     # O2 G0 X1
     d = 1e-4
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"]
-    data = orig.data
+    data = copy(orig.data)
     data[1] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -436,7 +440,7 @@ for setting in settings:
     # Bath G0 X0
     d = 1e-3
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -456,7 +460,7 @@ for setting in settings:
     # Bath G0 X1
     d = 1e-3
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"]
-    data = orig.data
+    data = copy(orig.data)
     data[1] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -496,7 +500,7 @@ for setting in settings:
     # O2 Y X1
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[1] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -516,7 +520,7 @@ for setting in settings:
     # O2 Y X2
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[2] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -536,7 +540,7 @@ for setting in settings:
     # O2 Y X3
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[3] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -556,7 +560,7 @@ for setting in settings:
     # Bath Y X0
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -576,7 +580,7 @@ for setting in settings:
     # Bath Y X1
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[1] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -596,7 +600,7 @@ for setting in settings:
     # O2 Y X2
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[2] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -616,7 +620,7 @@ for setting in settings:
     # O2 Y X3
     d = 1e-10
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
-    data = orig.data
+    data = copy(orig.data)
     data[3] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -636,7 +640,7 @@ for setting in settings:
     # O2 D0 X0
     d = 1e-3
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -656,7 +660,7 @@ for setting in settings:
     # Bath D0 X0
     d = 1e-3
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -676,7 +680,7 @@ for setting in settings:
     # O2 DV X0
     d = 1e-1 / ws.atmospheric_point.pressure
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -696,7 +700,7 @@ for setting in settings:
     # Bath DV X0
     d = 1e4 / ws.atmospheric_point.pressure**2
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -716,7 +720,7 @@ for setting in settings:
     # O2 G X0
     d = 1e-3
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"] = (
         pyarts.arts.TemperatureModel(orig.type, data)
@@ -736,7 +740,7 @@ for setting in settings:
     # Bath G X0
     d = 1
     orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"]
-    data = orig.data
+    data = copy(orig.data)
     data[0] += d
     ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"] = (
         pyarts.arts.TemperatureModel(orig.type, data)

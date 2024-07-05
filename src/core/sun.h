@@ -113,16 +113,6 @@ struct std::formatter<Sun> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -130,26 +120,24 @@ struct std::formatter<Sun> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Sun& v, FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
-    std::formatter<Matrix> spectrum{};
-    make_compat(spectrum);
-
-    const std::string_view sep   = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
-    std::format_to(ctx.out(), "{}{}{}{}", quote, v.description, quote, sep);
-    spectrum.format(v.spectrum, ctx);
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}{}",
-                   sep,
-                   v.radius,
-                   sep,
-                   v.distance,
-                   sep,
-                   v.latitude,
-                   sep,
-                   v.longitude);
 
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                quote,
+                v.description,
+                quote,
+                sep,
+                v.spectrum,
+                sep,
+                v.radius,
+                sep,
+                v.distance,
+                sep,
+                v.latitude,
+                sep,
+                v.longitude);
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

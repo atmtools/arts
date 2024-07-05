@@ -37,15 +37,17 @@ String as_pyarts(const String& x) try {
     return var_string(":attr:`~pyarts.workspace.Workspace.", x, '`');
 
   throw std::invalid_argument(var_string(
-      std::quoted(x),
+      '"',
+      x,
+      '"',
       " is not a valid group, method, or workspace variable.\n"
       "If it is a GIN or GOUT, consider representing it as \"``",
       x,
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Could not convert ", std::quoted(x), " to pyarts: ", e.what()));
+  throw std::runtime_error(
+      var_string("Could not convert ", '"', x, '"', " to pyarts: ", e.what()));
 }
 
 uint32_t hlist_num_cols(const std::vector<String>& v1,
@@ -167,8 +169,8 @@ Parameters
 
   return writer.size() ? out + "\n\n" : "";
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));
+  throw std::runtime_error(
+      var_string("Could not get agenda IO for ", '"', x, '"', ":\n", e.what()));
 }
 
 String until_first_newline(const String& x) {
@@ -189,15 +191,17 @@ String short_doc(const String& x) try {
   if (found_in(wsvs)) return until_first_newline(wsvs.at(x).desc);
 
   throw std::invalid_argument(var_string(
-      std::quoted(x),
+      '"',
+      x,
+      '"',
       " is not a valid group, method, or workspace variable.\n"
       "If it is a GIN or GOUT, consider representing it as \"``",
       x,
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Could not get short doc for ", std::quoted(x), ":\n", e.what()));
+  throw std::runtime_error(
+      var_string("Could not get short doc for ", '"', x, '"', ":\n", e.what()));
 }
 
 void remove_trailing(String& x, char n) {
@@ -351,7 +355,7 @@ String method_docs(const String& name) try {
 
   return out;
 } catch (std::out_of_range& e) {
-  throw std::runtime_error(var_string("Cannot find: ", std::quoted(name)));
+  throw std::runtime_error(var_string("Cannot find: ", '"', name, '"'));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Error in method_docs(", name, "): ", e.what()));

@@ -221,16 +221,6 @@ struct std::formatter<VibrationalEnergyLevels> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -239,9 +229,7 @@ struct std::formatter<VibrationalEnergyLevels> {
   template <class FmtContext>
   FmtContext::iterator format(const VibrationalEnergyLevels& v,
                               FmtContext& ctx) const {
-    std::formatter<VibrationalEnergyLevels::map_t> map;
-    map.format(v.data, ctx);
-    return ctx.out();
+    return tags.format(ctx, v.data);
   }
 };
 

@@ -277,16 +277,6 @@ struct std::formatter<SurfacePropertyTag> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -307,16 +297,6 @@ struct std::formatter<SurfaceTypeTag> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -335,16 +315,6 @@ struct std::formatter<Surf::FunctionalData> {
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
@@ -365,16 +335,6 @@ struct std::formatter<Surf::Data> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -382,26 +342,14 @@ struct std::formatter<Surf::Data> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Surf::Data &v, FmtContext &ctx) const {
-    std::formatter<Surf::FieldData> data{};
-    std::formatter<InterpolationExtrapolation> interp{};
-    make_compat(interp, data);
-
     const std::string_view sep = tags.sep();
+
     tags.add_if_bracket(ctx, '[');
-
-    data.format(v.data, ctx);
-    std::format_to(ctx.out(), "{}", sep);
+    tags.format(ctx, v.data, sep);
     tags.add_if_bracket(ctx, '[');
-
-    interp.format(v.lat_upp, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lat_low, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lon_upp, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    interp.format(v.lon_low, ctx);
-
-    if (tags.bracket) std::format_to(ctx.out(), "]]"sv);
+    tags.format(ctx, v.lat_upp, sep, v.lat_low, sep, v.lon_upp, sep, v.lon_low);
+    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -413,16 +361,6 @@ struct std::formatter<SurfaceField> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -431,10 +369,8 @@ struct std::formatter<SurfaceField> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
-
-    std::formatter<Vector2> vec;
-    std::format_to(ctx.out(), R"("Ellipsoid": )");
-    vec.format(v.ellipsoid, ctx);
+    std::format_to(ctx.out(), R"()");
+    tags.format(ctx, R"("Ellipsoid": )"sv, v.ellipsoid);
 
     if (tags.short_str) {
       std::format_to(
@@ -444,21 +380,17 @@ struct std::formatter<SurfaceField> {
           v.map<SurfaceTypeTag>().size(),
           v.map<SurfacePropertyTag>().size());
     } else {
-      std::formatter<std::unordered_map<SurfaceKey, Surf::Data>> key{};
-      std::formatter<std::unordered_map<SurfaceTypeTag, Surf::Data>> type{};
-      std::formatter<std::unordered_map<SurfacePropertyTag, Surf::Data>> prop{};
-
-      std::format_to(ctx.out(), R"(,
-"SurfaceKey": )");
-      key.format(v.map<SurfaceKey>(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SurfaceTypeTag": )");
-      type.format(v.map<SurfaceTypeTag>(), ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SurfacePropertyTag": )");
-      prop.format(v.map<SurfacePropertyTag>(), ctx);
+      const std::string_view sep = tags.sep(true);
+      tags.format(ctx,
+                  sep,
+                  R"("SurfaceKey": )"sv,
+                  v.map<SurfaceKey>(),
+                  sep,
+                  R"("SurfaceTypeTag": )"sv,
+                  v.map<SurfaceTypeTag>(),
+                  sep,
+                  R"("SurfacePropertyTag": )"sv,
+                  v.map<SurfacePropertyTag>());
     }
 
     tags.add_if_bracket(ctx, '}');
@@ -473,16 +405,6 @@ struct std::formatter<SurfacePoint> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts> &...xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U> &x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
@@ -491,17 +413,11 @@ struct std::formatter<SurfacePoint> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
-
-    std::formatter<Vector3> vec3;
-    std::formatter<Vector2> vec2;
-
     std::format_to(ctx.out(),
                    R"("elevation": {}, "temperature": {}, "wind": )",
                    v.elevation,
                    v.temperature);
-    vec3.format(v.wind, ctx);
-    std::format_to(ctx.out(), R"(, "normal": )");
-    vec2.format(v.normal, ctx);
+    tags.format(ctx, v.wind, R"(, "normal": )"sv, v.normal);
 
     if (tags.short_str) {
       std::format_to(ctx.out(),
@@ -509,16 +425,14 @@ struct std::formatter<SurfacePoint> {
                      v.type.size(),
                      v.prop.size());
     } else {
-      std::formatter<std::unordered_map<SurfaceTypeTag, Numeric>> type;
-      std::formatter<std::unordered_map<SurfacePropertyTag, Numeric>> prop;
-
-      std::format_to(ctx.out(), R"(,
-"SurfaceTypeTag": )");
-      type.format(v.type, ctx);
-
-      std::format_to(ctx.out(), R"(,
-"SurfacePropertyTag": )");
-      prop.format(v.prop, ctx);
+      const std::string_view sep = tags.sep(true);
+      tags.format(ctx,
+                  sep,
+                  R"("SurfaceTypeTag": )"sv,
+                  v.type,
+                  sep,
+                  R"("SurfacePropertyTag": )"sv,
+                  v.prop);
     }
 
     tags.add_if_bracket(ctx, '}');

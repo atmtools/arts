@@ -176,16 +176,6 @@ struct std::formatter<AntennaType> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -223,16 +213,6 @@ struct std::formatter<MCAntenna> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -240,25 +220,20 @@ struct std::formatter<MCAntenna> {
 
   template <class FmtContext>
   FmtContext::iterator format(const MCAntenna& v, FmtContext& ctx) const {
-    std::formatter<AntennaType> atype{};
-    std::formatter<Vector> grid{};
-    std::formatter<Matrix> G_lookup{};
-    make_compat(atype, grid, G_lookup);
-
     const std::string_view sep = tags.sep();
-
     tags.add_if_bracket(ctx, '[');
-    atype.format(v.atype, ctx);
-
-    std::format_to(
-        ctx.out(), "{}{}{}{}{}", sep, v.sigma_aa, sep, v.sigma_za, sep);
-
-    grid.format(v.aa_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    grid.format(v.za_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    G_lookup.format(v.G_lookup, ctx);
-
+    tags.format(ctx,
+                v.atype,
+                sep,
+                v.sigma_aa,
+                sep,
+                v.sigma_za,
+                sep,
+                v.aa_grid,
+                sep,
+                v.za_grid,
+                sep,
+                v.G_lookup);
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

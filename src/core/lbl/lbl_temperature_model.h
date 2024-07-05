@@ -254,16 +254,6 @@ struct std::formatter<lbl::temperature::data> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -273,16 +263,9 @@ struct std::formatter<lbl::temperature::data> {
   FmtContext::iterator format(const lbl::temperature::data& v,
                               FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
-
-    std::formatter<LineShapeModelType> t{};
-    std::formatter<Vector> x{};
-    make_compat(t, x);
-
-    t.format(v.Type(), ctx);
-    std::format_to(ctx.out(), "{}", tags.sep());
-    x.format(v.X(), ctx);
-
+    tags.format(ctx, v.Type(), tags.sep(), v.X());
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };

@@ -61,16 +61,6 @@ struct std::formatter<lbl::linemixing::species_data> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -79,21 +69,19 @@ struct std::formatter<lbl::linemixing::species_data> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::linemixing::species_data& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
     const std::string_view sep = tags.sep();
 
-    std::formatter<lbl::temperature::data> data{};
-    make_compat(data);
-
-    data.format(v.scaling, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    data.format(v.beta, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    data.format(v.lambda, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    data.format(v.collisional_distance, ctx);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.scaling,
+                sep,
+                v.beta,
+                sep,
+                v.lambda,
+                sep,
+                v.collisional_distance);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };
@@ -105,16 +93,6 @@ struct std::formatter<LinemixingEcsData> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -123,10 +101,6 @@ struct std::formatter<LinemixingEcsData> {
   template <class FmtContext>
   FmtContext::iterator format(const LinemixingEcsData& v,
                               FmtContext& ctx) const {
-    std::formatter<
-        std::unordered_map<SpeciesIsotope, lbl::linemixing::species_data_map>>
-        data{};
-    make_compat(data);
-    return data.format(v.data, ctx);
+    return tags.format(ctx, v.data);
   }
 };

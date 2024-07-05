@@ -34,9 +34,9 @@ void py_disort(py::module_& m) try {
               if (out.shape() != mat.shape()) {
                 throw std::runtime_error(
                     var_string("BDRF function returned wrong shape\n",
-                               matpack::shape_help{out.shape()},
+                               out.shape(),
                                " vs ",
-                               matpack::shape_help{mat.shape()}));
+                               mat.shape()));
               }
               mat = out;
             });

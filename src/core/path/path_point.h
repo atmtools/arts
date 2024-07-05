@@ -295,16 +295,6 @@ struct std::formatter<PropagationPathPoint> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -313,26 +303,23 @@ struct std::formatter<PropagationPathPoint> {
   template <class FmtContext>
   FmtContext::iterator format(const PropagationPathPoint& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
     const std::string_view sep = tags.sep();
 
-    std::formatter<PathPositionType> pos_type{};
-    std::formatter<PathPositionType> los_type{};
-    std::formatter<Vector3> pos;
-    std::formatter<Vector2> los;
-    make_compat(pos_type, los_type, pos, los);
-
-    pos_type.format(v.pos_type, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    los_type.format(v.los_type, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    pos.format(v.pos, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    los.format(v.los, ctx);
-    std::format_to(ctx.out(), "{}{}{}{}", sep, v.nreal, sep, v.ngroup);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.pos_type,
+                sep,
+                v.los_type,
+                sep,
+                v.pos,
+                sep,
+                v.los,
+                sep,
+                v.nreal,
+                sep,
+                v.ngroup);
     tags.add_if_bracket(ctx, ']');
+
     return ctx.out();
   }
 };

@@ -66,7 +66,7 @@ std::string variable(const std::string& name,
 
   return fix_newlines(os.str()) + ")-x-\");\n\n";
 } catch (std::exception& e) {
-  std::cerr << "Error in variable " << std::quoted(name) << ":\n"
+  std::cerr << "Error in variable " << '"' << name << '"' << ":\n"
             << e.what() << '\n';
   std::exit(1);
 }

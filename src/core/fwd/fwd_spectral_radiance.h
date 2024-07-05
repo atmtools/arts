@@ -160,16 +160,6 @@ struct std::formatter<SpectralRadianceOperator> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -178,11 +168,12 @@ struct std::formatter<SpectralRadianceOperator> {
   template <class FmtContext>
   FmtContext::iterator format(const SpectralRadianceOperator& v,
                               FmtContext& ctx) const {
-    std::format_to(ctx.out(),
-                   "operator over\n  alt: {:sB,}\n  lat: {:sB,}\n  lon: {:sB,}",
-                   v.alt,
-                   v.lat,
-                   v.lon);
-    return ctx.out();
+    return tags.format(ctx,
+                       "operator over\n  alt: "sv,
+                       v.alt,
+                       "\n  lat: "sv,
+                       v.lat,
+                       "\n  lon: "sv,
+                       v.lon);
   }
 };

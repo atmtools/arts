@@ -41,16 +41,6 @@ struct std::formatter<TessemNN> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -60,29 +50,30 @@ struct std::formatter<TessemNN> {
   FmtContext::iterator format(const TessemNN& v, FmtContext& ctx) const {
     const std::string_view sep = tags.sep(true);
 
-  std::format_to( ctx.out(), "{}{}{}{}{}{}", v.nb_inputs,
-    sep,v.nb_outputs, sep,  v.nb_cache,sep);
-    
-    std::formatter<Vector> vec;
-    std::formatter<Matrix> mat;
-    make_compat(vec, mat);
-
-    vec.format(v.b1, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.b2, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    mat.format(v.w1, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    mat.format(v.w2, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.x_min, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.x_max, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.y_min, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    vec.format(v.y_max, ctx);
-    std::format_to(ctx.out(), "{}", sep);
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.nb_inputs,
+                sep,
+                v.nb_outputs,
+                sep,
+                v.nb_cache,
+                sep,
+                v.b1,
+                sep,
+                v.b2,
+                sep,
+                v.w1,
+                sep,
+                v.w2,
+                sep,
+                v.x_min,
+                sep,
+                v.x_max,
+                sep,
+                v.y_min,
+                sep,
+                v.y_max);
+    tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

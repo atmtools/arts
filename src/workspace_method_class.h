@@ -3,6 +3,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -51,11 +52,6 @@ struct std::formatter<Wsv> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -68,15 +64,11 @@ struct std::formatter<Wsv> {
           ctx.out(), "{}{}{}", tags.quote(), v.type_name(), tags.quote());
     }
 
-    std::visit(
+    return std::visit(
         [*this, &ctx]<typename T>(const std::shared_ptr<T>& x) {
-          std::formatter<T> fmt{};
-          this->make_compat(fmt);
-          fmt.format(*x, ctx);
+          return tags.format(ctx, *x);
         },
         v.value);
-
-    return ctx.out();
   }
 };
 
@@ -87,11 +79,6 @@ struct std::formatter<Method> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -99,36 +86,36 @@ struct std::formatter<Method> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Method& v, FmtContext& ctx) const {
-    if (tags.bracket) std::format_to(ctx.out(), "[\n"sv);
+    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, '\n');
 
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep   = tags.sep(true);
+    const std::string_view quote = tags.quote();
 
     if (tags.names) {
       const std::string_view ow = v.overwrite() ? " (overwrite)"sv : ""sv;
-      std::format_to(ctx.out(),
-                     "{}{}{}{}{}",
-                     tags.quote(),
-                     v.get_name(),
-                     tags.quote(),
-                     ow,
-                     sep);
+      tags.format(ctx, quote, v.get_name(), ow, quote, sep);
     }
 
     if (v.get_setval().has_value()) {
-      std::formatter<Wsv> setval{};
-      make_compat(setval);
-      setval.format(v.get_setval().value(), ctx);
+      tags.format(ctx, v.get_setval().value());
     } else {
-      std::formatter<std::vector<std::string>> outargs{};
-      std::formatter<std::vector<std::string>> inargs{};
-      make_compat(outargs, inargs);
-      std::format_to(ctx.out(), "outputs: "sv);
-      outargs.format(v.get_outs(), ctx);
-      std::format_to(ctx.out(), "{}inputs: ", sep);
-      inargs.format(v.get_ins(), ctx);
+      tags.format(ctx,
+                  quote,
+                  "outputs"sv,
+                  quote,
+                  ": "sv,
+                  v.get_outs(),
+                  sep,
+                  quote,
+                  "inputs"sv,
+                  quote,
+                  ": "sv,
+                  v.get_ins());
     }
 
-    if (tags.bracket) std::format_to(ctx.out(), "\n]"sv);
+    tags.add_if_bracket(ctx, '\n');
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -140,11 +127,6 @@ struct std::formatter<Agenda> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -154,27 +136,23 @@ struct std::formatter<Agenda> {
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep   = tags.sep(true);
+    const std::string_view quote = tags.quote();
 
     if (tags.names) {
-      std::format_to(ctx.out(),
-                     "{}{}{} (checked: {}):",
-                     tags.quote(),
-                     v.get_name(),
-                     tags.quote(),
-                     v.is_checked());
+      tags.format(
+          ctx, quote, v.get_name(), quote, " (checked: "sv, v.is_checked(), ')');
     }
 
-    std::formatter<std::vector<Method>> methods{};
-    std::formatter<std::vector<std::string>> share{};
-    std::formatter<std::vector<std::string>> copy{};
-    make_compat(methods, share, copy);
-
-    methods.format(v.get_methods(), ctx);
-    std::format_to(ctx.out(), "{}  Shared: ", sep);
-    share.format(v.get_share(), ctx);
-    std::format_to(ctx.out(), "{}  Copied: ", sep);
-    copy.format(v.get_copy(), ctx);
+    tags.format(ctx,
+                sep,
+                v.get_methods(),
+                sep,
+                "  Shared: "sv,
+                v.get_share(),
+                sep,
+                "  Copied: "sv,
+                v.get_copy());
 
     tags.add_if_bracket(ctx, ']');
     return ctx.out();

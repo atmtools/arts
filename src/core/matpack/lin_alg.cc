@@ -81,14 +81,12 @@ void lubacksub(VectorView x,
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU
      is a quadratic matrix.*/
-  DEBUG_ONLY(Index column_stride = LU.stride(1));
-  DEBUG_ONLY(Index vec_stride = b.stride(0));
 
   ARTS_ASSERT(is_size(LU, n, n));
   ARTS_ASSERT(is_size(b, n));
   ARTS_ASSERT(is_size(indx, n));
-  ARTS_ASSERT(column_stride == 1);
-  ARTS_ASSERT(vec_stride == 1);
+  ARTS_ASSERT(LU.stride(1) == 1);
+  ARTS_ASSERT(b.stride(0) == 1);
 
   char trans = 'N';
   int n_int = (int)n;

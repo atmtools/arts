@@ -48,6 +48,42 @@ enum ParticleSSDMethod {
   PARTICLE_SSDMETHOD_TMATRIX = 1,
 };
 
+template <>
+struct std::formatter<ParticleSSDMethod> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ParticleSSDMethod& v,
+                              FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+
+    switch (v) {
+      case PARTICLE_SSDMETHOD_NONE:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_NONE"sv, quote);
+        break;
+      case PARTICLE_SSDMETHOD_TMATRIX:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_TMATRIX"sv, quote);
+        break;
+      default:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_UNKNOWN"sv, quote);
+        break;
+    }
+
+    return ctx.out();
+  }
+};
+
 /*===========================================================================
   === The SingleScatteringData structure
   ===========================================================================*/
@@ -317,16 +353,6 @@ struct std::formatter<ScatteringMetaData> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -337,31 +363,29 @@ struct std::formatter<ScatteringMetaData> {
                               FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep   = tags.comma ? ", "sv : " "sv;
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
-    std::format_to(ctx.out(),
-                   "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-                   quote,
-                   v.description,
-                   quote,
-                   sep,
-                   quote,
-                   v.source,
-                   quote,
-                   sep,
-                   quote,
-                   v.refr_index,
-                   quote,
-                   sep,
-                   v.mass,
-                   sep,
-                   v.diameter_max,
-                   sep,
-                   v.diameter_volume_equ,
-                   sep,
-                   v.diameter_area_equ_aerodynamical,
-                   sep);
+    tags.format(ctx,
+                quote,
+                v.description,
+                quote,
+                sep,
+                quote,
+                v.source,
+                quote,
+                sep,
+                quote,
+                v.refr_index,
+                quote,
+                sep,
+                v.mass,
+                sep,
+                v.diameter_max,
+                sep,
+                v.diameter_volume_equ,
+                sep,
+                v.diameter_area_equ_aerodynamical);
 
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
@@ -374,16 +398,6 @@ struct std::formatter<PType> {
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
@@ -421,16 +435,6 @@ struct std::formatter<SingleScatteringData> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -439,47 +443,30 @@ struct std::formatter<SingleScatteringData> {
   template <class FmtContext>
   FmtContext::iterator format(const SingleScatteringData& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-
-    const std::string_view sep   = tags.comma ? ",\n"sv : "\n"sv;
+    const std::string_view sep   = tags.sep(true);
     const std::string_view quote = tags.quote();
 
-    std::formatter<PType> ptype;
-    String description;
-    std::formatter<Vector> f_grid;
-    std::formatter<Vector> T_grid;
-    std::formatter<Vector> za_grid;
-    std::formatter<Vector> aa_grid;
-    std::formatter<Tensor7> pha_mat_data;
-    std::formatter<Tensor5> ext_mat_data;
-    std::formatter<Tensor5> abs_vec_data;
-
-    make_compat(ptype,
-                f_grid,
-                T_grid,
-                za_grid,
-                aa_grid,
-                pha_mat_data,
-                ext_mat_data,
-                abs_vec_data);
-
-    ptype.format(v.ptype, ctx);
-    std::format_to(
-        ctx.out(), "{}{}{}{}{}", sep, quote, v.description, quote, sep);
-    f_grid.format(v.f_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    T_grid.format(v.T_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    za_grid.format(v.za_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    aa_grid.format(v.aa_grid, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    pha_mat_data.format(v.pha_mat_data, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    ext_mat_data.format(v.ext_mat_data, ctx);
-    std::format_to(ctx.out(), "{}", sep);
-    abs_vec_data.format(v.abs_vec_data, ctx);
-
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.ptype,
+                sep,
+                quote,
+                v.description,
+                quote,
+                sep,
+                v.f_grid,
+                sep,
+                v.T_grid,
+                sep,
+                v.za_grid,
+                sep,
+                v.aa_grid,
+                sep,
+                v.pha_mat_data,
+                sep,
+                v.ext_mat_data,
+                sep,
+                v.abs_vec_data);
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

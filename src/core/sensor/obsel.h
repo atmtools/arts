@@ -326,16 +326,6 @@ struct std::formatter<SensorPosLos> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
-
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
@@ -343,32 +333,15 @@ struct std::formatter<SensorPosLos> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
-    std::formatter<Vector3> fmt3{};
-    std::formatter<Vector2> fmt2{};
-    make_compat(fmt3, fmt2);
-
-    fmt3.format(v.pos, ctx);
-    std::format_to(ctx.out(), "{}", tags.sep());
-    return fmt2.format(v.los, ctx);
+    return tags.format(ctx, v.pos, tags.sep(), v.los);
   }
 };
 template <>
-
 struct std::formatter<SensorObsel> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  template <typename... Ts>
-  constexpr void make_compat(std::formatter<Ts>&... xs) const {
-    tags.compat(xs...);
-  }
-
-  template <typename U>
-  constexpr void compat(const std::formatter<U>& x) {
-    x.make_compat(*this);
-  }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
@@ -377,30 +350,16 @@ struct std::formatter<SensorObsel> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
-    std::formatter<Vector> f_grid_w{};
-    std::formatter<AscendingGrid> f_grid{};
-    std::formatter<MuelmatVector> poslos_grid_w{};
-    std::formatter<SensorPosLosVector> poslos_grid{};
-    std::formatter<Stokvec> polarization{};
-    make_compat(f_grid_w, f_grid, poslos_grid_w, poslos_grid, polarization);
-
-    std::format_to(ctx.out(),
-                   "Obsel:"
-                   "\n  frequency grid:                 ");
-    f_grid.format(v.f_grid, ctx);
-
-    std::format_to(ctx.out(), "\n  pos-los grid:                   ");
-    poslos_grid.format(v.poslos_grid, ctx);
-
-    std::format_to(ctx.out(), "\n  polarization:                   ");
-    polarization.format(v.polarization, ctx);
-
-    std::format_to(ctx.out(), "\n  frequency grid weights:         ");
-    f_grid_w.format(v.f_grid_w, ctx);
-
-    std::format_to(ctx.out(), "\n  pos-los grid polarized weigths: ");
-    poslos_grid_w.format(v.poslos_grid_w, ctx);
-
-    return ctx.out();
+    return tags.format(ctx,
+                       "Obsel:\n  frequency grid:                 "sv,
+                       v.f_grid,
+                       "\n  pos-los grid:                   "sv,
+                       v.poslos_grid,
+                       "\n  polarization:                   "sv,
+                       v.polarization,
+                       "\n  frequency grid weights:         "sv,
+                       v.f_grid_w,
+                        "\n  pos-los grid polarized weigths: "sv,
+                       v.poslos_grid_w);
   }
 };

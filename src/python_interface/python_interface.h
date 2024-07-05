@@ -33,14 +33,14 @@ template <WorkspaceGroup T>
 T& select_gout(T* const x, const char* const name) {
   return x ? *x
            : throw std::runtime_error(
-                 var_string("Unknown ouput: ", std::quoted(name)));
+                 var_string("Unknown ouput: ", '"', name, '"'));
 }
 
 template <WorkspaceGroup T>
 T& select_gout(ValueHolder<T>* const x, const char* const name) {
   return x ? static_cast<T&>(*x)
            : throw std::runtime_error(
-                 var_string("Unknown ouput: ", std::quoted(name)));
+                 var_string("Unknown ouput: ", '"', name, '"'));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,14 +82,14 @@ template <WorkspaceGroup T>
 const T& select_gin(const T* const x, const char* const name) {
   return x ? *x
            : throw std::runtime_error(
-                 var_string("Unknown input: ", std::quoted(name)));
+                 var_string("Unknown input: ", '"', name, '"'));
 }
 
 template <WorkspaceGroup T>
 const T& select_gin(const ValueHolder<T>* const x, const char* const name) {
   return x ? static_cast<const T&>(*x)
            : throw std::runtime_error(
-                 var_string("Unknown input: ", std::quoted(name)));
+                 var_string("Unknown input: ", '"', name, '"'));
 }
 
 template <WorkspaceGroup T>
