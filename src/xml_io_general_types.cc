@@ -1034,8 +1034,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
                   vector.size() * sizeof(Numeric));

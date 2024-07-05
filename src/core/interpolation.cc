@@ -42,7 +42,7 @@
   what we have really *are* interpolation weights, and not something
   else. 
 */
-constexpr Numeric sum_check_epsilon = 1e-6;
+[[maybe_unused]] constexpr Numeric sum_check_epsilon = 1e-6;
 
 //! Allowed tolerance for fractional distance values
 /*!

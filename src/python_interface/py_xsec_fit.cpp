@@ -105,7 +105,7 @@ void py_xsec(py::module_& m) try {
              py::dict attrs;
              attrs["creation_data"] = var_string(Time{});
              attrs["version"]       = py::object(self.attr("version"));
-             attrs["species"]       = self.attr("species").attr("__str__")();
+             attrs["species"]       = self.attr("species").attr("__format__")("");
 
              auto fitcoeffs = py::object(self.attr("fitcoeffs"));
 
