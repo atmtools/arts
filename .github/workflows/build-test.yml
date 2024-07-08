@@ -58,7 +58,7 @@ jobs:
 
           - name: mac-default-clang
             os: macos-13
-            preset: default-clang-conda
+            preset: macintel-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
