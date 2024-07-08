@@ -395,6 +395,6 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
         "Cannot find any data for \"",
         name,
         "\" in file at ",
-        fil.c_str())
+        fil.string())
   }
 } ARTS_METHOD_ERROR_CATCH
