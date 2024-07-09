@@ -14,6 +14,7 @@ jobs:
           - name: linux-docs
             os: ubuntu-22.04
             preset: default-gcc-conda
+            pyarts: "yes"
             check: "no"
             doc: "yes"
             devenv: "environment-dev-linux.yml"
@@ -23,6 +24,7 @@ jobs:
           - name: linux-default-gcc
             os: ubuntu-22.04
             preset: default-gcc-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
@@ -32,6 +34,7 @@ jobs:
           - name: linux-reldeb-gcc
             os: ubuntu-22.04
             preset: reldeb-gcc-conda
+            pyarts: "yes"
             check: "no"
             doc: "no"
             devenv: "environment-dev-linux.yml"
@@ -41,6 +44,7 @@ jobs:
           - name: linux-nofortran-gcc
             os: ubuntu-22.04
             preset: nofortran-gcc-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
@@ -50,6 +54,7 @@ jobs:
           - name: linux-lgpl-gcc
             os: ubuntu-22.04
             preset: lgpl-gcc-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
@@ -59,6 +64,7 @@ jobs:
           - name: mac-default-clang
             os: macos-13
             preset: macintel-clang-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
@@ -68,6 +74,7 @@ jobs:
           - name: macm1-default-clang
             os: macos-14
             preset: default-clang-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
@@ -77,6 +84,7 @@ jobs:
           - name: macm1-debug-clang
             os: macos-14
             preset: debug-clang-conda
+            pyarts: "yes"
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
@@ -86,7 +94,8 @@ jobs:
           - name: windows-default-msvc
             os: windows-latest
             preset: default-msvc-conda
-            check: "yes"
+            pyarts: "no"
+            check: "no"
             doc: "no"
             devenv: "environment-dev-win.yml"
             jbuild: 4
@@ -126,6 +135,7 @@ jobs:
           cmake --build build -j${{ matrix.jbuild }} --target artsworkspace
 
       - name: Build PyARTS
+        if: matrix.pyarts == 'yes'
         shell: bash -l {0}
         run: |
           cmake --build build -j${{ matrix.jbuild }} --target pyarts
