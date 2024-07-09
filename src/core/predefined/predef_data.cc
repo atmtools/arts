@@ -84,7 +84,7 @@ ModelVariant model_data(const std::string_view name) {
   }
 
   throw std::runtime_error(var_string(
-      "Unknown model name: ", std::quoted(name), ". Are all models defined?"));
+      "Unknown model name: \"", name, "\". Are all models defined?"));
 }
 
 }  // namespace Absorption::PredefinedModel

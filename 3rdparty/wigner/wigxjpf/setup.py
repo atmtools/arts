@@ -17,7 +17,7 @@ except ImportError:
           '\n\n')
 
 setup(name='pywigxjpf',
-      version='1.11',
+      version='1.13.3  ',
       description='Wigner Symbols',
       long_description="""
 WIGXJPF evaluates Wigner 3j, 6j and 9j symbols

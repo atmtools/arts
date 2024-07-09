@@ -102,8 +102,12 @@ void wig_temp_free(void)
   wigxjpf_global_temp = NULL;
 }
 
-/* This function is only called from the error handler, to allow reuse
- * of the temp array.
+/* This function is only called from the python error handler, to
+ * allow reuse of the temp array.
+ *
+ * It is not recommended to use the approach to catch errors and reset
+ * generally.  Rather, ensure that the temporary arrays are allocated
+ * large enough.
  */
 void wigxjpf_drop_temp(void)
 {

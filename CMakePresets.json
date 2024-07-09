@@ -39,6 +39,9 @@
         "CMAKE_C_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_Fortran_FLAGS": "-isystem $env{CONDA_PREFIX}/include"
+      },
+      "environment": {
+        "LDFLAGS": "-L$env{CONDA_PREFIX}/lib -Wl,-rpath,$env{CONDA_PREFIX}/lib"
       }
     },
     {
@@ -69,7 +72,8 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
-        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
+        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran",
+        "ENABLE_GUI": "0"
       }
     },
     {
@@ -87,6 +91,20 @@
       }
     },
     {
+      "name": "reldeb-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "reldeb-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
       "name": "nofortran-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
@@ -101,6 +119,13 @@
         "NO_FASTEM": "1",
         "NO_RT4": "1",
         "NO_TMATRIX": "1"
+      }
+    },
+    {
+      "name": "macintel-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.3"
       }
     },
     {

@@ -72,5 +72,5 @@ String comma(bool& first, const String& spaces) {
     first = false;
     return "";
   }
-  return var_string(',', (spaces.size() ? '\n' : ' '), spaces);
+  return std::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
 }

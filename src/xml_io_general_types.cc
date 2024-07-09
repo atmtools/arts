@@ -144,23 +144,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index r = 0; r < matrix.nrows(); ++r) {
-    if (pbofs)
-      *pbofs << matrix(r, 0);
-    else
-      os_xml << matrix(r, 0);
-
-    for (Index c = 1; c < matrix.ncols(); ++c) {
-      if (pbofs)
-        *pbofs << matrix(r, c);
-      else
-        os_xml << " " << matrix(r, c);
-    }
-
-    if (!pbofs) os_xml << '\n';
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(matrix.data_handle()),
+                  matrix.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", matrix) << '\n';
   }
 
   close_tag.set_name("/Matrix");
@@ -580,23 +568,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index p = 0; p < tensor.npages(); ++p) {
-    for (Index r = 0; r < tensor.nrows(); ++r) {
-      if (pbofs)
-        *pbofs << tensor(p, r, 0);
-      else
-        os_xml << tensor(p, r, 0);
-      for (Index c = 1; c < tensor.ncols(); ++c) {
-        if (pbofs)
-          *pbofs << tensor(p, r, c);
-        else
-          os_xml << " " << tensor(p, r, c);
-      }
-      if (!pbofs) os_xml << '\n';
-    }
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
+                  tensor.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", tensor) << '\n';
   }
 
   close_tag.set_name("/Tensor3");
@@ -678,25 +654,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index b = 0; b < tensor.nbooks(); ++b) {
-    for (Index p = 0; p < tensor.npages(); ++p) {
-      for (Index r = 0; r < tensor.nrows(); ++r) {
-        if (pbofs)
-          *pbofs << tensor(b, p, r, 0);
-        else
-          os_xml << tensor(b, p, r, 0);
-        for (Index c = 1; c < tensor.ncols(); ++c) {
-          if (pbofs)
-            *pbofs << tensor(b, p, r, c);
-          else
-            os_xml << " " << tensor(b, p, r, c);
-        }
-        if (!pbofs) os_xml << '\n';
-      }
-    }
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
+                  tensor.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", tensor) << '\n';
   }
 
   close_tag.set_name("/Tensor4");
@@ -783,27 +745,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index s = 0; s < tensor.nshelves(); ++s) {
-    for (Index b = 0; b < tensor.nbooks(); ++b) {
-      for (Index p = 0; p < tensor.npages(); ++p) {
-        for (Index r = 0; r < tensor.nrows(); ++r) {
-          if (pbofs)
-            *pbofs << tensor(s, b, p, r, 0);
-          else
-            os_xml << tensor(s, b, p, r, 0);
-          for (Index c = 1; c < tensor.ncols(); ++c) {
-            if (pbofs)
-              *pbofs << tensor(s, b, p, r, c);
-            else
-              os_xml << " " << tensor(s, b, p, r, c);
-          }
-          if (!pbofs) os_xml << '\n';
-        }
-      }
-    }
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
+                  tensor.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", tensor) << '\n';
   }
 
   close_tag.set_name("/Tensor5");
@@ -895,29 +841,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index v = 0; v < tensor.nvitrines(); ++v) {
-    for (Index s = 0; s < tensor.nshelves(); ++s) {
-      for (Index b = 0; b < tensor.nbooks(); ++b) {
-        for (Index p = 0; p < tensor.npages(); ++p) {
-          for (Index r = 0; r < tensor.nrows(); ++r) {
-            if (pbofs)
-              *pbofs << tensor(v, s, b, p, r, 0);
-            else
-              os_xml << tensor(v, s, b, p, r, 0);
-            for (Index c = 1; c < tensor.ncols(); ++c) {
-              if (pbofs)
-                *pbofs << tensor(v, s, b, p, r, c);
-              else
-                os_xml << " " << tensor(v, s, b, p, r, c);
-            }
-            if (!pbofs) os_xml << '\n';
-          }
-        }
-      }
-    }
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
+                  tensor.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", tensor) << '\n';
   }
 
   close_tag.set_name("/Tensor6");
@@ -1014,31 +942,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  for (Index l = 0; l < tensor.nlibraries(); ++l) {
-    for (Index v = 0; v < tensor.nvitrines(); ++v) {
-      for (Index s = 0; s < tensor.nshelves(); ++s) {
-        for (Index b = 0; b < tensor.nbooks(); ++b) {
-          for (Index p = 0; p < tensor.npages(); ++p) {
-            for (Index r = 0; r < tensor.nrows(); ++r) {
-              if (pbofs)
-                *pbofs << tensor(l, v, s, b, p, r, 0);
-              else
-                os_xml << tensor(l, v, s, b, p, r, 0);
-              for (Index c = 1; c < tensor.ncols(); ++c) {
-                if (pbofs)
-                  *pbofs << tensor(l, v, s, b, p, r, c);
-                else
-                  os_xml << " " << tensor(l, v, s, b, p, r, c);
-              }
-              if (!pbofs) os_xml << '\n';
-            }
-          }
-        }
-      }
-    }
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
+                  tensor.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", tensor) << '\n';
   }
 
   close_tag.set_name("/Tensor7");
@@ -1126,13 +1034,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-
-  for (Index i = 0; i < n; ++i)
-    if (pbofs)
-      *pbofs << vector[i];
-    else
-      os_xml << vector[i] << '\n';
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
+                  vector.size() * sizeof(Numeric));
+  } else {
+    os_xml << std::format("{}", vector) << '\n';
+  }
 
   close_tag.set_name("/Vector");
   close_tag.write_to_stream(os_xml);

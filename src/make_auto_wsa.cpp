@@ -46,7 +46,7 @@ std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
 
   for (const auto& [name, record] : wsa) {
     auto& ag = map[name];
-    ag.desc = record.desc;
+    ag.desc  = record.desc;
     ag.array = record.array;
 
     for (const auto& out : record.output) {
@@ -188,7 +188,7 @@ void agenda_checker(std::ostream& os, const std::string& name, bool array) {
   }
   os << ".get_name(); n != \"" << name
      << "\") {\n"
-        "    throw std::runtime_error(var_string(\"Mismatch with name: \", std::quoted(n)));\n  }\n";
+        "    throw std::runtime_error(var_string(\"Mismatch with name: \", n));\n  }\n";
 }
 
 void workspace_setup_and_exec(std::ostream& os,
@@ -200,8 +200,8 @@ void workspace_setup_and_exec(std::ostream& os,
 
   // FIXME: This should be overwrite, no?  And then if it exists we should copy over it?
   for (auto& i : ag.i) {
-    os << "  _lws.set(" << std::quoted(i.second) << ", const_cast<" << i.first
-       << "*>(&" << i.second << "));\n";
+    os << "  _lws.set(" << var_string('"', i.second, '"') << ", const_cast<"
+       << i.first << "*>(&" << i.second << "));\n";
   }
 
   os << "\n"
@@ -214,8 +214,8 @@ void workspace_setup_and_exec(std::ostream& os,
 
   os << "\n  // Modified data must be copied here\n";
   for (auto& o : ag.o) {
-    os << "  _lws.overwrite(" << std::quoted(o.second) << ", &" << o.second
-       << ");\n";
+    os << "  _lws.overwrite(" << var_string('"', o.second, '"') << ", &"
+       << o.second << ");\n";
   }
 
   os << "\n  // Run all the methods\n  " << name;
@@ -241,15 +241,15 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
      << wsa.size() << ");\n\n";
 
   for (const auto& [name, ag] : agmap) {
-    os << "ags[" << std::quoted(name)
+    os << "ags[\"" << name << '"'
        << "] = WorkspaceAgendaRecord{\n    .desc=R\"--(" << ag.desc << ")--\","
        << "\n    .output={";
     for (const auto& o : ag.o) {
-      os << std::quoted(o.second) << ", ";
+      os << var_string('"', o.second, '"') << ", ";
     }
     os << "},\n    .input={";
     for (const auto& i : ag.i) {
-      os << std::quoted(i.second) << ", ";
+      os << var_string('"', i.second, '"') << ", ";
     }
     os << "}\n  };\n\n";
   }
@@ -269,7 +269,7 @@ bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
        << ";\n";
   }
   os << R"--(
-  throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
+  throw std::runtime_error(var_string("Not a predefined agenda: \"", ag, '"'));
 }
 
 void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
@@ -279,7 +279,7 @@ void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
        << " = true; return;}\n";
   }
   os << R"--(
-  throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
+  throw std::runtime_error(var_string("Not a predefined agenda: \"", ag, '"'));
 }
 std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab) {
 )--";
@@ -298,7 +298,7 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
     agenda_checker(os, name, ag.array);
     workspace_setup_and_exec(os, name, ag);
     os << "} catch(std::exception& e) {\n  throw std::runtime_error(var_string(R\"--(Error executing agenda "
-       << std::quoted(name) << ":\n)--\", e.what()));\n}\n\n";
+       << '"' << name << '"' << ":\n)--\", e.what()));\n}\n\n";
   }
 }
 

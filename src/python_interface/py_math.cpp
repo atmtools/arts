@@ -1,28 +1,27 @@
 #include <fastgl.h>
 #include <legendre.h>
 #include <matpack.h>
-#include <pybind11/attr.h>
-#include <pybind11/cast.h>
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 #include <wigner_functions.h>
 
 #include <utility>
 
 namespace Python {
-namespace py = pybind11;
+namespace py = nanobind;
+using namespace nanobind::literals;
 
 void py_math(py::module_& m) try {
-  auto math = m.def_submodule("math");
+  auto math  = m.def_submodule("math");
   math.doc() = "Contains select mathematics from Arts internal functions";
 
   math.def(
       "make_wigner_ready",
       &make_wigner_ready,
-      py::arg("fastest") = 250,
-      py::arg("largest") = 20000000,
-      py::arg("symbol_size") = 6,
-      py::doc(
-          R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
+      "fastest"_a     = 250,
+      "largest"_a     = 20000000,
+      "symbol_size"_a = 6,
+      R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
 
 Parameters
 ----------
@@ -37,17 +36,17 @@ Returns
 -------
 actual_size : int
     The actual state as returned by the library
-)--"));
+)--");
 
   math.def("wigner3j",
            &wigner3j,
-           py::arg("j1"),
-           py::arg("j2"),
-           py::arg("j3"),
-           py::arg("m1"),
-           py::arg("m2"),
-           py::arg("m3"),
-           py::doc(R"--(Computes the Wigner 3J symbol
+           "j1"_a,
+           "j2"_a,
+           "j3"_a,
+           "m1"_a,
+           "m2"_a,
+           "m3"_a,
+           R"--(Computes the Wigner 3J symbol
 
 .. math::
     w_3 = \left(\begin{array}{ccc} j_1&j_2&j_3\\m_1&m_2&m_3\end{array}\right)
@@ -74,17 +73,17 @@ Returns
 -------
 w3 : float
     The value
-)--"));
+)--");
 
   math.def("wigner6j",
            &wigner6j,
-           py::arg("j1"),
-           py::arg("j2"),
-           py::arg("j3"),
-           py::arg("l1"),
-           py::arg("l2"),
-           py::arg("l3"),
-           py::doc(R"--(Computes the Wigner 6J symbol
+           "j1"_a,
+           "j2"_a,
+           "j3"_a,
+           "l1"_a,
+           "l2"_a,
+           "l3"_a,
+           R"--(Computes the Wigner 6J symbol
 
 .. math::
     w_6 = \left\{\begin{array}{ccc} j_1&j_2&j_3\\l_1&l_2&l_3\end{array}\right\}
@@ -111,17 +110,15 @@ Returns
 -------
 w3 : float
     The value
-)--"));
+)--");
 
-  math.def(
-      "dwigner3j",
-      &dwigner3j,
-      py::arg("M"),
-      py::arg("J1"),
-      py::arg("J2"),
-      py::arg("J"),
-      py::doc(
-          R"--(Computes the Wigner 3J symbol using floating point approximation
+  math.def("dwigner3j",
+           &dwigner3j,
+           "M"_a,
+           "J1"_a,
+           "J2"_a,
+           "J"_a,
+           R"--(Computes the Wigner 3J symbol using floating point approximation
 
 .. math::
     w_3 = \left(\begin{array}{ccc} J_1&J_2&J\\M&-M&0\end{array}\right)
@@ -143,18 +140,16 @@ Returns
 -------
 w3 : float
     The value
-)--"));
+)--");
 
-  math.def(
-      "dwigner6j",
-      &dwigner6j,
-      py::arg("A"),
-      py::arg("B"),
-      py::arg("C"),
-      py::arg("D"),
-      py::arg("F"),
-      py::doc(
-          R"--(Computes the Wigner 6J symbol using floating point approximation
+  math.def("dwigner6j",
+           &dwigner6j,
+           "A"_a,
+           "B"_a,
+           "C"_a,
+           "D"_a,
+           "F"_a,
+           R"--(Computes the Wigner 6J symbol using floating point approximation
 
 .. math::
     w_6 = \left\{\begin{array}{ccc} A&B&1\\D&C&F\end{array}\right\}
@@ -181,7 +176,7 @@ Returns
 -------
 w6 : float
     The value
-)--"));
+)--");
 
   math.def(
       "leggauss",
@@ -191,21 +186,9 @@ w6 : float
         Legendre::GaussLegendre(out.first, out.second);
         return out;
       },
-      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
-      py::doc(R"(Computes the Gauss-Legendre quadrature
-
-Parameters
-----------
-deg : int
-    The degree of the Gauss-Legendre quadrature
-
-Returns
--------
-x : List[float]
-    The abscissas
-w : List[float]
-    The weights
-)"));
+      "deg"_a = Index{0},
+      R"(Computes the Gauss-Legendre quadrature
+)");
 
   math.def(
       "pdleggauss",
@@ -216,8 +199,8 @@ w : List[float]
         Legendre::PositiveDoubleGaussLegendre(out.first, out.second);
         return out;
       },
-      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
-      py::doc(R"(Computes the Positive Double Gauss-Legendre quadrature
+      "deg"_a = Index{0},
+      R"(Computes the Positive Double Gauss-Legendre quadrature
 
 Parameters
 ----------
@@ -230,7 +213,7 @@ x : List[float]
     The abscissas
 w : List[float]
     The weights
-)"));
+)");
 
   math.def(
       "pleggauss",
@@ -240,8 +223,8 @@ w : List[float]
         Legendre::PositiveGaussLegendre(out.first, out.second);
         return out;
       },
-      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
-      py::doc(R"(Computes the Positive Gauss-Legendre quadrature
+      "deg"_a = Index{0},
+      R"(Computes the Positive Gauss-Legendre quadrature
 
 Parameters
 ----------
@@ -254,14 +237,13 @@ x : List[float]
     The abscissas
 w : List[float]
     The weights
-)"));
+)");
 
-  math.def(
-      "schmidt_legendre_polynomial",
-      &Legendre::schmidt,
-      py::arg("theta"),
-      py::arg("nmax"),
-      py::doc(R"(Computes the Positive Gauss-Legendre quadrature
+  math.def("schmidt_legendre_polynomial",
+           &Legendre::schmidt,
+           "theta"_a,
+           "nmax"_a,
+           R"(Computes the Positive Gauss-Legendre quadrature
 
 Parameters
 ----------
@@ -276,7 +258,7 @@ Pnm : Matrix
     The Polynominal matrix (nmax+1 x nmax+1; valid the the left of the diagonal only)
 dPnm : Matrix
     The Polynominal matrix derivative (nmax+1 x nmax+1; valid the the left of the diagonal only)
-)"));
+)");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize math\n", e.what()));

@@ -290,7 +290,7 @@ Equivalent (mostly) Python code:
   return wsm;
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
-      "Error creating meta-function ", std::quoted(name), ":\n\n", e.what()));
+      "Error creating meta-function ", '"', name, '"', ":\n\n", e.what()));
 }
 
 std::string WorkspaceMethodInternalMetaRecord::call(
@@ -358,7 +358,9 @@ std::string WorkspaceMethodInternalMetaRecord::call(
   return code.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string("Error creating call for meta-function ",
-                                      std::quoted(name),
+                                      '"',
+                                      name,
+                                      '"',
                                       ":\n\n",
                                       e.what()));
 }

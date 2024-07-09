@@ -30,6 +30,7 @@
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
+#include "matpack_view.h"
 #include "nlte.h"
 #include "optproperties.h"
 #include "path_point.h"
@@ -168,7 +169,7 @@ void propagation_matrixAddFaraday(
     }
   }
 
-  const Vector rtp_los{path::mirror(path_point.los)};
+  const Vector rtp_los{ExhaustiveConstVectorView{path::mirror(path_point.los)}};
 
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *absorption_species* and "

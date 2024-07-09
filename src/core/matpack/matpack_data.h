@@ -789,7 +789,7 @@ template <typename T, Index N>
 std::string describe(const matpack_data<T, N>& m) {
   using namespace matpack;
   return var_string(
-      "matpack_data of rank ", N, " of shape ", shape_help<N>(m.shape()));
+      "matpack_data of rank ", N, " of shape ", m.shape());
 }
 }  // namespace matpack
 
@@ -825,3 +825,22 @@ using ComplexTensor3 = matpack::matpack_data<Complex, 3>;
 
 //! A vector of Index
 using IndexVector = matpack::matpack_data<Index, 1>;
+
+template <typename T, Index N>
+struct std::formatter<matpack::matpack_data<T, N>> {
+  std::formatter<matpack::matpack_view<T, N, true, false>> fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const matpack::matpack_data<T, N>& v,
+                              FmtContext& ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

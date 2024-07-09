@@ -129,7 +129,7 @@ void surface_props_check(const SurfaceField& surface_field,
 
   for (auto &name : surface_props_names)
     ARTS_USER_ERROR_IF(not surface_field.contains(SurfacePropertyTag{name}),
-                       "No ", std::quoted(name), " field in surface_field")
+                       "No \"", name, "\" field in surface_field")
 
   for (Size i = 0; i < surface_props_names.size(); i++) {
     ARTS_USER_ERROR_IF (surface_props_names[i].size() == 0,

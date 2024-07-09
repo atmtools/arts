@@ -1,5 +1,4 @@
-#ifndef species_tags_h
-#define species_tags_h
+#pragma once
 
 #include <enums.h>
 #include <isotopologues.h>
@@ -8,8 +7,6 @@
 
 #include <algorithm>
 #include <set>
-
-#include "species.h"
 
 namespace Species {
 struct Tag {
@@ -32,8 +29,7 @@ struct Tag {
       : spec_ind(find_species_index(isot)),
         type(is_predefined_model(isot)
                  ? SpeciesTagType::Predefined
-                 : SpeciesTagType::Plain) { /* Nothing to be done here. */
-  }
+                 : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
 
   // Documentation is with implementation.
   [[nodiscard]] String Name() const;
@@ -68,7 +64,8 @@ struct Tag {
 
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
 
-  [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept = default;
+  [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept =
+      default;
 
   [[nodiscard]] constexpr bool is_joker() const ARTS_NOEXCEPT {
     ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;
@@ -221,8 +218,7 @@ std::pair<Index, Index> find_first_isotologue(
  * @param abs_species  As WSV
  * @return The set of unique species that requires line-by-line calculations
  */
-std::set<SpeciesEnum> lbl_species(
-    const ArrayOfArrayOfSpeciesTag&) noexcept;
+std::set<SpeciesEnum> lbl_species(const ArrayOfArrayOfSpeciesTag&) noexcept;
 
 namespace Species {
 /*! First VMR or 0
@@ -266,7 +262,7 @@ template <>
 struct hash<ArrayOfSpeciesTag> {
   std::size_t operator()(const ArrayOfSpeciesTag& g) const {
     std::size_t out = 0;
-    std::size_t i = 1;
+    std::size_t i   = 1;
     for (auto& a : g) {
       out ^= (std::hash<SpeciesTag>{}(a) << i);
       i++;
@@ -276,4 +272,43 @@ struct hash<ArrayOfSpeciesTag> {
 };
 }  // namespace std
 
-#endif  // species_tags_h
+template <>
+struct std::formatter<SpeciesTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SpeciesTag& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+    std::format_to(ctx.out(), "{}{}", quote, v.Spec());
+
+    switch (v.type) {
+      case SpeciesTagType::Plain:
+        if (not v.is_joker()) std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
+        break;
+      case SpeciesTagType::Predefined:
+        std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
+        break;
+      case SpeciesTagType::Cia:
+        std::format_to(ctx.out(), "-CIA-{}", v.cia_2nd_species);
+        break;
+      case SpeciesTagType::XsecFit:
+        std::format_to(ctx.out(), "-XFIT");
+        break;
+    }
+
+    std::format_to(ctx.out(), "{}", quote);
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<ArrayOfSpeciesTag>
+    : std::formatter<std::vector<SpeciesTag>> {};

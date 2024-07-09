@@ -1,23 +1,16 @@
-/** Contains the absorption namespace
- * @file   absorptionlines.h
- * @author Richard Larsson
- * @date   2019-09-07
- * 
- * @brief  Contains the absorption lines implementation
- * 
- * This namespace contains classes to deal with absorption lines
- **/
+#pragma once
 
-#ifndef absorptionlines_h
-#define absorptionlines_h
-
+#include <format_tags.h>
 #include <jacobian.h>
 #include <matpack.h>
 
+#include <format>
 #include <istream>
+#include <string_view>
 #include <utility>
 #include <vector>
 
+#include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
 #include "enums.h"
@@ -62,9 +55,8 @@ constexpr std::string_view normalizationtype2metadatastring(
   return "There's an error";
 }
 
-
-
-constexpr std::string_view populationtype2metadatastring(AbsorptionPopulationTypeOld in) {
+constexpr std::string_view populationtype2metadatastring(
+    AbsorptionPopulationTypeOld in) {
   switch (in) {
     case AbsorptionPopulationTypeOld::LTE:
       return "The lines are considered as in pure LTE.\n";
@@ -94,7 +86,7 @@ constexpr bool relaxationtype_relmat(AbsorptionPopulationTypeOld in) noexcept {
 String cutofftype2metadatastring(AbsorptionCutoffTypeOld in, Numeric cutoff);
 
 /** Namespace to contain things required for absorption calculations */
-namespace Absorption {                       
+namespace Absorption {
 /** Computations and data for a single absorption line */
 struct SingleLine {
   /** Central frequency */
@@ -136,14 +128,14 @@ struct SingleLine {
    * @param[in] lineshape_ Line shape model
    * @param[in] localquanta_ Local quantum numbers
    */
-  SingleLine(Numeric F0_ = 0,
-             Numeric I0_ = 0,
-             Numeric E0_ = 0,
-             Numeric glow_ = 0,
-             Numeric gupp_ = 0,
-             Numeric A_ = 0,
-             Zeeman::Model zeeman_ = Zeeman::Model(),
-             LineShape::Model lineshape_ = LineShape::Model(),
+  SingleLine(Numeric F0_                              = 0,
+             Numeric I0_                              = 0,
+             Numeric E0_                              = 0,
+             Numeric glow_                            = 0,
+             Numeric gupp_                            = 0,
+             Numeric A_                               = 0,
+             Zeeman::Model zeeman_                    = Zeeman::Model(),
+             LineShape::Model lineshape_              = LineShape::Model(),
              Quantum::Number::LocalState localquanta_ = {})
       : F0(F0_),
         I0(I0_),
@@ -214,17 +206,18 @@ struct SingleLine {
 
 /** Single line reading output */
 struct SingleLineExternal {
-  bool bad = true;
-  bool selfbroadening = false;
-  bool bathbroadening = false;
-  AbsorptionCutoffTypeOld cutoff = AbsorptionCutoffTypeOld::None;
-  AbsorptionMirroringTypeOld mirroring = AbsorptionMirroringTypeOld::None;
+  bool bad                               = true;
+  bool selfbroadening                    = false;
+  bool bathbroadening                    = false;
+  AbsorptionCutoffTypeOld cutoff         = AbsorptionCutoffTypeOld::None;
+  AbsorptionMirroringTypeOld mirroring   = AbsorptionMirroringTypeOld::None;
   AbsorptionPopulationTypeOld population = AbsorptionPopulationTypeOld::LTE;
-  AbsorptionNormalizationTypeOld normalization = AbsorptionNormalizationTypeOld::None;
+  AbsorptionNormalizationTypeOld normalization =
+      AbsorptionNormalizationTypeOld::None;
   LineShapeTypeOld lineshapetype = LineShapeTypeOld::DP;
-  Numeric T0 = 0;
-  Numeric cutofffreq = 0;
-  Numeric linemixinglimit = -1;
+  Numeric T0                     = 0;
+  Numeric cutofffreq             = 0;
+  Numeric linemixinglimit        = -1;
   QuantumIdentifier quantumidentity;
   ArrayOfSpeciesEnum species;
   SingleLine line;
@@ -288,19 +281,22 @@ struct Lines {
    * @param[in] broadeningspecies_ List of broadening species
    * @param[in] lines_ List of SingleLine(s)
    */
-  Lines(bool selfbroadening_ = false,
-        bool bathbroadening_ = false,
-        AbsorptionCutoffTypeOld cutoff_ = AbsorptionCutoffTypeOld::None,
-        AbsorptionMirroringTypeOld mirroring_ = AbsorptionMirroringTypeOld::None,
-        AbsorptionPopulationTypeOld population_ = AbsorptionPopulationTypeOld::LTE,
-        AbsorptionNormalizationTypeOld normalization_ = AbsorptionNormalizationTypeOld::None,
-        LineShapeTypeOld lineshapetype_ = LineShapeTypeOld::DP,
-        Numeric T0_ = 296,
-        Numeric cutofffreq_ = -1,
-        Numeric linemixinglimit_ = -1,
-        QuantumIdentifier quantumidentity_ = QuantumIdentifier(),
-        ArrayOfSpeciesEnum broadeningspecies_ = {},
-        Array<SingleLine> lines_ = {})
+  Lines(
+      bool selfbroadening_                  = false,
+      bool bathbroadening_                  = false,
+      AbsorptionCutoffTypeOld cutoff_       = AbsorptionCutoffTypeOld::None,
+      AbsorptionMirroringTypeOld mirroring_ = AbsorptionMirroringTypeOld::None,
+      AbsorptionPopulationTypeOld population_ =
+          AbsorptionPopulationTypeOld::LTE,
+      AbsorptionNormalizationTypeOld normalization_ =
+          AbsorptionNormalizationTypeOld::None,
+      LineShapeTypeOld lineshapetype_       = LineShapeTypeOld::DP,
+      Numeric T0_                           = 296,
+      Numeric cutofffreq_                   = -1,
+      Numeric linemixinglimit_              = -1,
+      QuantumIdentifier quantumidentity_    = QuantumIdentifier(),
+      ArrayOfSpeciesEnum broadeningspecies_ = {},
+      Array<SingleLine> lines_              = {})
       : selfbroadening(selfbroadening_),
         bathbroadening(bathbroadening_),
         cutoff(cutoff_),
@@ -564,8 +560,7 @@ struct Lines {
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const SpeciesEnum spec) const
-      ARTS_NOEXCEPT;
+  [[nodiscard]] Index LineShapePos(const SpeciesEnum spec) const ARTS_NOEXCEPT;
 
   /** Line shape parameters vmr derivative
    * 
@@ -889,7 +884,7 @@ SingleLineExternal ReadFromJplStream(std::istream& is);
  */
 std::vector<Lines> split_list_of_external_lines(
     std::vector<SingleLineExternal>& external_lines,
-    const std::vector<QuantumNumberType>& localquantas = {},
+    const std::vector<QuantumNumberType>& localquantas  = {},
     const std::vector<QuantumNumberType>& globalquantas = {});
 
 /** Number of lines */
@@ -946,10 +941,10 @@ std::ostream& operator<<(std::ostream& os, const Array<Lines>& a);
 std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a);
 }  // namespace Absorption
 
-using AbsorptionSingleLine = Absorption::SingleLine;
-using ArrayOfAbsorptionSingleLine = Array<AbsorptionSingleLine>;
-using AbsorptionLines = Absorption::Lines;
-using ArrayOfAbsorptionLines = Array<AbsorptionLines>;
+using AbsorptionSingleLine          = Absorption::SingleLine;
+using ArrayOfAbsorptionSingleLine   = Array<AbsorptionSingleLine>;
+using AbsorptionLines               = Absorption::Lines;
+using ArrayOfAbsorptionLines        = Array<AbsorptionLines>;
 using ArrayOfArrayOfAbsorptionLines = Array<ArrayOfAbsorptionLines>;
 
 struct AbsorptionMirroringTagTypeStatus {
@@ -1026,4 +1021,95 @@ AbsorptionSpeciesBandIndex flat_index(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);
 
-#endif  // absorptionlines_h
+template <>
+struct std::formatter<AbsorptionSingleLine> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AbsorptionSingleLine& v,
+                              FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+
+    const std::string_view sep = tags.sep();
+    tags.format(ctx,
+                v.F0,
+                sep,
+                v.I0,
+                sep,
+                v.E0,
+                sep,
+                v.glow,
+                sep,
+                v.gupp,
+                sep,
+                v.A,
+                sep,
+                v.zeeman,
+                sep,
+                v.lineshape,
+                sep,
+                v.localquanta);
+
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<AbsorptionLines> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AbsorptionLines& v, FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+
+    if (tags.short_str) {
+      const std::string_view sep = tags.sep();
+      tags.format(ctx,
+                  v.selfbroadening,
+                  sep,
+                  v.bathbroadening,
+                  sep,
+                  v.cutoff,
+                  sep,
+                  v.mirroring,
+                  sep,
+                  v.population,
+                  sep,
+                  v.normalization,
+                  sep,
+                  v.lineshapetype,
+                  sep,
+                  v.T0,
+                  sep,
+                  v.cutofffreq,
+                  sep,
+                  v.linemixinglimit,
+                  sep,
+                  v.quantumidentity,
+                  sep,
+                  v.broadeningspecies);
+    } else {
+      tags.format(ctx, v.lines);
+    }
+
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};

@@ -36,8 +36,18 @@ if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
     add_executable(tmatrix_amplq
       amplq.lp.f
       lpq.f)
+
+    if (NOT IPO_FORTRAN_SUPPORTED)
+      set_property(TARGET tmatrix_tmq PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+      set_property(TARGET tmatrix_amplq PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+    endif()
   endif()
 
+  if (NOT IPO_FORTRAN_SUPPORTED)
+    set_property(TARGET tmatrix PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+    set_property(TARGET tmatrix_tmd PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+    set_property(TARGET tmatrix_ampld PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
   set(ENABLE_TMATRIX false)
 endif()

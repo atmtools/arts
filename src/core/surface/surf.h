@@ -5,6 +5,7 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 
 #include "enums.h"
@@ -154,7 +155,7 @@ struct Point {
 };
 
 using FunctionalData = std::function<Numeric(Numeric, Numeric)>;
-using FieldData = std::variant<GriddedField2, Numeric, FunctionalData>;
+using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -171,11 +172,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data() = default;
-  Data(const Data &) = default;
-  Data(Data &&) = default;
+  Data()                        = default;
+  Data(const Data &)            = default;
+  Data(Data &&)                 = default;
   Data &operator=(const Data &) = default;
-  Data &operator=(Data &&) = default;
+  Data &operator=(Data &&)      = default;
 
   // Allow copy and move construction implicitly from all types
   explicit Data(const GriddedField2 &x) : data(x) {}
@@ -268,3 +269,173 @@ static_assert(
 
 using SurfacePoint = Surf::Point;
 using SurfaceField = Surf::Field;
+
+template <>
+struct std::formatter<SurfacePropertyTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfacePropertyTag &v,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<SurfaceTypeTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfaceTypeTag &v, FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<Surf::FunctionalData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Surf::FunctionalData &,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
+  }
+};
+template <>
+struct std::formatter<Surf::Data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Surf::Data &v, FmtContext &ctx) const {
+    const std::string_view sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.data, sep);
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.lat_upp, sep, v.lat_low, sep, v.lon_upp, sep, v.lon_low);
+    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SurfaceField> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '{');
+    std::format_to(ctx.out(), R"()");
+    tags.format(ctx, R"("Ellipsoid": )"sv, v.ellipsoid);
+
+    if (tags.short_str) {
+      std::format_to(
+          ctx.out(),
+          R"(, "SurfaceKey": {}, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
+          v.map<SurfaceKey>().size(),
+          v.map<SurfaceTypeTag>().size(),
+          v.map<SurfacePropertyTag>().size());
+    } else {
+      const std::string_view sep = tags.sep(true);
+      tags.format(ctx,
+                  sep,
+                  R"("SurfaceKey": )"sv,
+                  v.map<SurfaceKey>(),
+                  sep,
+                  R"("SurfaceTypeTag": )"sv,
+                  v.map<SurfaceTypeTag>(),
+                  sep,
+                  R"("SurfacePropertyTag": )"sv,
+                  v.map<SurfacePropertyTag>());
+    }
+
+    tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SurfacePoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '{');
+    std::format_to(ctx.out(),
+                   R"("elevation": {}, "temperature": {}, "wind": )",
+                   v.elevation,
+                   v.temperature);
+    tags.format(ctx, v.wind, R"(, "normal": )"sv, v.normal);
+
+    if (tags.short_str) {
+      std::format_to(ctx.out(),
+                     R"(, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
+                     v.type.size(),
+                     v.prop.size());
+    } else {
+      const std::string_view sep = tags.sep(true);
+      tags.format(ctx,
+                  sep,
+                  R"("SurfaceTypeTag": )"sv,
+                  v.type,
+                  sep,
+                  R"("SurfacePropertyTag": )"sv,
+                  v.prop);
+    }
+
+    tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
+};

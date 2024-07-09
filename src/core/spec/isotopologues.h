@@ -1,15 +1,14 @@
-#ifndef isotopologues_h
-#define isotopologues_h
+#pragma once
 
 #include <compare.h>
 #include <enums.h>
 #include <mystring.h>
 #include <nonstd.h>
 
+#include <array>
 #include <limits>
 #include <string_view>
 #include <tuple>
-#include <array>
 
 namespace Species {
 inline constexpr std::string_view Joker = "*";
@@ -32,7 +31,7 @@ struct Isotope {
       SpeciesEnum spec_,
       const std::string_view isotname_ = Joker,
       Numeric mass_ = std::numeric_limits<Numeric>::quiet_NaN(),
-      Index gi_ = -1)
+      Index gi_     = -1)
       : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
 
   Isotope(const std::string_view);
@@ -1290,13 +1289,13 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
  */
 constexpr Numeric mean_mass(SpeciesEnum spec, const IsotopologueRatios& ir) {
   Numeric sum_rm = 0;
-  Numeric sum_r = 0;
+  Numeric sum_r  = 0;
   for (std::size_t i = IsotopologuesStart[std::size_t(spec)];
        i < IsotopologuesStart[std::size_t(spec) + 1];
        i++) {
     if (not nonstd::isnan(Isotopologues[i].mass) and not nonstd::isnan(ir[i])) {
       sum_rm += ir[i] * Isotopologues[i].mass;
-      sum_r += ir[i];
+      sum_r  += ir[i];
     }
   }
   if (sum_r not_eq 0) return sum_rm / sum_r;
@@ -1354,4 +1353,21 @@ struct std::hash<SpeciesIsotope> {
   }
 };
 
-#endif  // isotopologues_h
+template <>
+struct std::formatter<SpeciesIsotope> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SpeciesIsotope& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.FullName(), quote);
+  }
+};

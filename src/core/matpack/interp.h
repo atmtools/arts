@@ -156,9 +156,9 @@ constexpr bool full_cycle(const Numeric xo, const Numeric xn) noexcept
 template <matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Index start_pos_finder(const Numeric x, const Vec &xvec) {
   if (const Index n = xvec.size(); n > 1) {
-    const Numeric x0 = xvec[0];
-    const Numeric x1 = xvec[n - 1];
-    const Numeric frac = (x - x0) / (x1 - x0);
+    const Numeric x0     = xvec[0];
+    const Numeric x1     = xvec[n - 1];
+    const Numeric frac   = (x - x0) / (x1 - x0);
     const auto start_pos = static_cast<Index>(frac * (Numeric)(n - 2));
     return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
   }
@@ -232,7 +232,7 @@ constexpr bool is_cyclic() {
  * @param[in] polyorder Polynominal orders
  */
 template <bool ascending,
-          template <cycle_limit lim> class Limit = no_cycle,
+          template <cycle_limit lim> class Limit       = no_cycle,
           matpack::ranked_matpack_type<Numeric, 1> Vec = Vector>
 constexpr Index pos_finder(Index p0,
                            const Numeric x,
@@ -290,7 +290,7 @@ constexpr Index pos_finder(Index p0,
  */
 template <bool ascending,
           Index polyorder,
-          template <cycle_limit lim> class Limit = no_cycle,
+          template <cycle_limit lim> class Limit       = no_cycle,
           matpack::ranked_matpack_type<Numeric, 1> Vec = Vector>
 constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
   requires(test_cyclic_limit<Limit>())
@@ -432,9 +432,9 @@ constexpr Numeric l_factor(const Numeric x,
   } else if constexpr (type == GridType::Cyclic) {
     // Cyclic weights
     // We have to ensure that all weights are cyclic (e.g., 355 degrees < -6 degrees)
-    const auto N = static_cast<Index>(xi.size());
-    const Index m_pos = cycler(m, N);
-    const Index j_pos = cycler(j, N);
+    const auto N        = static_cast<Index>(xi.size());
+    const Index m_pos   = cycler(m, N);
+    const Index j_pos   = cycler(j, N);
     const Numeric x_val = cyclic_clamp<Limit>(x);
 
     // We ignore the last point in full cycles
@@ -558,9 +558,9 @@ constexpr double dl_dval(const Index p0,
     // Cyclic weights
     // We have to ensure that all weights are cyclic (e.g., 355 degrees < -6 degrees)
     const decltype(i + p0) N = xi.size();
-    const Index i_pos = cycler(i + p0, N);
-    const Index j_pos = cycler(j + p0, N);
-    const Numeric x_val = cyclic_clamp<Limit>(x);
+    const Index i_pos        = cycler(i + p0, N);
+    const Index j_pos        = cycler(j + p0, N);
+    const Numeric x_val      = cyclic_clamp<Limit>(x);
     if (full_cycle<Limit>(xi[0], xi[N - 1])) {
       // We ignore the last point in full cycles
       if (i_pos == N - 1 or j_pos == N - 1) return 0;
@@ -588,8 +588,8 @@ constexpr double dl_dval(const Index p0,
     Numeric val = 1.0 / min_cyclic<Limit>(xi[j_pos] - xi[i_pos]);
     for (Index m = 0; m < n; m++) {
       if (m not_eq j and m not_eq i) {
-        const Index m_pos = cycler(m + p0, N);
-        val *= min_cyclic<Limit>(x_val - xi[m_pos]) /
+        const Index m_pos  = cycler(m + p0, N);
+        val               *= min_cyclic<Limit>(x_val - xi[m_pos]) /
                min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
       }
     }
@@ -668,9 +668,9 @@ struct DescendingOrder {
 };
 
 /*! A Lagrange interpolation computer */
-template <Index PolyOrder = -1,
-          bool do_derivs = false,
-          GridType type = GridType::Standard,
+template <Index PolyOrder                        = -1,
+          bool do_derivs                         = false,
+          GridType type                          = GridType::Standard,
           template <cycle_limit lim> class Limit = no_cycle>
   requires(test_cyclic_limit<Limit>())
 struct Lagrange {
@@ -823,9 +823,9 @@ struct Lagrange {
   constexpr Lagrange()
     requires(not runtime_polyorder())
       : lx({1}), dlx({0}) {}
-  constexpr Lagrange(const Lagrange &l) = default;
-  constexpr Lagrange(Lagrange &&l) noexcept = default;
-  constexpr Lagrange &operator=(const Lagrange &l) = default;
+  constexpr Lagrange(const Lagrange &l)                = default;
+  constexpr Lagrange(Lagrange &&l) noexcept            = default;
+  constexpr Lagrange &operator=(const Lagrange &l)     = default;
   constexpr Lagrange &operator=(Lagrange &&l) noexcept = default;
 
   /*! Standard initializer from Vector-types for runtime polyorder
@@ -941,7 +941,7 @@ struct Lagrange {
       os << "of runtime ";
     os << "polynominal order: " << (l.size() - 1) << '\n';
 
-    os << "Grid type is: " << std::quoted(var_string(type));
+    os << "Grid type is: " << '"' << type << '"';
     if constexpr (type == GridType::Cyclic)
       os << " in range [" << Limit<cycle_limit::lower>::bound << ", "
          << Limit<cycle_limit::upper>::bound << ')';
@@ -1026,7 +1026,7 @@ struct Lagrange {
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
   static constexpr void check(const Vec &xi,
                               const Index polyorder,
-                              const Numeric x = 0,
+                              const Numeric x        = 0,
                               const Numeric extrapol = 0.5)
     requires(test_cyclic_limit<Limit>())
   {
@@ -1243,9 +1243,9 @@ constexpr void interpweights(
   requires(N > 0 and matpack_assignable<decltype(out), Numeric>)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
-                     matpack::shape_help{std::array{lag.size()...}},
+                     std::array{lag.size()...},
                      " vs ",
-                     matpack::shape_help{out.shape()})
+                     out.shape())
 
   const auto in = matpack::elemwise{lag.lx...};
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
@@ -1269,9 +1269,9 @@ constexpr void dinterpweights(
            dlx < N)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
-                     matpack::shape_help{std::array{lag.size()...}},
+                     std::array{lag.size()...},
                      " vs ",
-                     matpack::shape_help{out.shape()})
+                     out.shape())
 
   const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(
       std::make_integer_sequence<Index, N>{}, lag...);
@@ -1581,13 +1581,14 @@ using flat_interpweights_t = typename flat_interpweights<lags...>::type;
  */
 template <list_of_lagrange_type... lags,
           std::size_t N = sizeof...(lags),
-          typename T = detail::flat_interpweights_t<lags...>>
+          typename T    = detail::flat_interpweights_t<lags...>>
 constexpr auto flat_interpweights(const lags &...lag)
   requires(N > 0)
 {
   const std::array sz = {static_cast<Index>(lag.size())...};
-  const Index n = sz.front();
-  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)), "bad size")
+  const Index n       = sz.front();
+  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)),
+                     "bad size")
 
   std::vector<T> out(n);
   for (Index i = 0; i < n; i++) out[i] = interpweights(lag[i]...);
@@ -1596,7 +1597,7 @@ constexpr auto flat_interpweights(const lags &...lag)
 
 template <list_of_lagrange_type... lags,
           std::size_t N = sizeof...(lags),
-          typename T = detail::flat_interpweights_t<lags...>>
+          typename T    = detail::flat_interpweights_t<lags...>>
 constexpr auto flat_interp(
     const matpack::strict_rank_matpack_type<N> auto &field,
     const std::vector<T> &iw,
@@ -1605,8 +1606,9 @@ constexpr auto flat_interp(
 {
   const std::array sz = {static_cast<Index>(iw.size()),
                          static_cast<Index>(lag.size())...};
-  const Index n = sz.front();
-  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)), "bad size")
+  const Index n       = sz.front();
+  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)),
+                     "bad size")
 
   using F = decltype(field);
   matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
@@ -1616,14 +1618,15 @@ constexpr auto flat_interp(
 
 template <list_of_lagrange_type... lags,
           std::size_t N = sizeof...(lags),
-          typename T = detail::flat_interpweights_t<lags...>>
+          typename T    = detail::flat_interpweights_t<lags...>>
 constexpr auto flat_interp(
     const matpack::strict_rank_matpack_type<N> auto &field, const lags &...lag)
   requires(N > 0)
 {
   const std::array sz = {static_cast<Index>(lag.size())...};
-  const Index n = sz.front();
-  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)), "bad size")
+  const Index n       = sz.front();
+  ARTS_USER_ERROR_IF(std::any_of(sz.begin() + 1, sz.end(), Cmp::ne(n)),
+                     "bad size")
 
   using F = decltype(field);
   matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
@@ -1633,7 +1636,7 @@ constexpr auto flat_interp(
 }  // namespace my_interp
 
 // For linear interpolation
-using LagrangeInterpolation = my_interp::Lagrange<>;
+using LagrangeInterpolation        = my_interp::Lagrange<>;
 using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
 
 // For logarithmic interpolation
@@ -1654,3 +1657,44 @@ using ArrayOfLagrangeCyclicPM180Interpolation =
 
 template <std::size_t sz, bool deriv = false>
 using FixedLagrangeInterpolation = my_interp::Lagrange<sz, deriv>;
+
+template <Index PolyOrder,
+          bool do_derivs,
+          GridType type,
+          template <my_interp::cycle_limit lim>
+          class Limit>
+struct std::formatter<my_interp::Lagrange<PolyOrder, do_derivs, type, Limit>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(
+      const my_interp::Lagrange<PolyOrder, do_derivs, type, Limit> &v,
+      FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '[');
+
+    const std::string_view sep = tags.sep();
+
+    std::format_to(ctx.out(), "{}", v.pos);
+
+    for (auto &x : v.lx) {
+      std::format_to(ctx.out(), "{}{}", sep, x);
+    }
+
+    if constexpr (do_derivs) {
+      for (auto &x : v.dlx) {
+        std::format_to(ctx.out(), "{}{}", sep, x);
+      }
+    }
+
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};

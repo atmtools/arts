@@ -50,12 +50,13 @@ constexpr Index isot(SpeciesEnum species,
                      std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
   ARTS_USER_ERROR_IF(spec_ind < 0,
-                     "Bad isotopologue: ",
-                     std::quoted(isot),
-                     "\nValid options are:\n",
-                     isotopologues_names(species),
-                     "\nThe original tag reads ",
-                     std::quoted(orig))
+                     "Bad isotopologue: \"",
+                     isot,
+                     "\"\nValid options are:\n",
+                     species,
+                     "\nThe original tag reads \"",
+                     orig,
+                     '"')
   return spec_ind;
 }
 
@@ -68,26 +69,30 @@ constexpr Numeric freq(std::string_view part,
     auto err =
         fast_float::from_chars(part.data(), part.data() + part.size(), f);
     ARTS_USER_ERROR_IF(err.ec == std::errc::invalid_argument,
-                       "Invalid argument: ",
-                       std::quoted(part),
-                       "\nThe original tag reads ",
-                       std::quoted(orig));
+                       "Invalid argument: \"",
+                       part,
+                       "\"\nThe original tag reads \"",
+                       orig,
+                       '"');
     ARTS_USER_ERROR_IF(err.ec == std::errc::result_out_of_range,
-                       "Out-of-range: ",
-                       std::quoted(part),
-                       "\nThe original tag reads ",
-                       std::quoted(orig));
+                       "Out-of-range: \"",
+                       part,
+                       "\"\nThe original tag reads \"",
+                       orig,
+                       '"');
   }
   return f;
 }
 
 constexpr void check(std::string_view text, std::string_view orig) {
-  ARTS_USER_ERROR_IF(text.size(),
-                     "Parsing error.  The text ",
-                     std::quoted(text),
-                     " remains to be parsed at end of a complete species tag\n"
-                     "The original tag reads ",
-                     std::quoted(orig))
+  ARTS_USER_ERROR_IF(
+      text.size(),
+      "Parsing error.  The text \"",
+      text,
+      "\" remains to be parsed at end of a complete species tag\n"
+      "The original tag reads \"",
+      orig,
+      '"')
 }
 }  // namespace detail
 
@@ -105,23 +110,23 @@ SpeciesTag parse_tag(std::string_view text) {
   // wild-tag species. Otherwise we have to process the tag a bit more
   if (text.size() == 0) {
     tag.spec_ind = isot(species, Joker, orig);
-    tag.type = SpeciesTagType::Plain;
+    tag.type     = SpeciesTagType::Plain;
     check(text, orig);
   } else {
     if (const std::string_view tag_key = next(text); tag_key == "CIA") {
-      tag.spec_ind = isot(species, Joker, orig);
+      tag.spec_ind        = isot(species, Joker, orig);
       tag.cia_2nd_species = spec(next(text), orig);
-      tag.type = SpeciesTagType::Cia;
+      tag.type            = SpeciesTagType::Cia;
       check(text, orig);
     } else if (tag_key == "XFIT") {
       tag.spec_ind = isot(species, Joker, orig);
-      tag.type = SpeciesTagType::XsecFit;
+      tag.type     = SpeciesTagType::XsecFit;
       check(text, orig);
     } else {
       tag.spec_ind = isot(species, tag_key, orig);
-      tag.type = is_predefined_model(Isotopologues[tag.spec_ind])
-                     ? SpeciesTagType::Predefined
-                     : SpeciesTagType::Plain;
+      tag.type     = is_predefined_model(Isotopologues[tag.spec_ind])
+                         ? SpeciesTagType::Predefined
+                         : SpeciesTagType::Plain;
     }
   }
 
@@ -187,8 +192,9 @@ ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
           "All species in a group of tags must be the same\n"
           "Your list of tags have been parsed as: ",
           *this,
-          "\nThe original tags-list read ",
-          std::quoted(text))}
+          "\nThe original tags-list read \"",
+          text,
+          '"')}
 
       Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
                               SpeciesEnum spec,
@@ -233,8 +239,8 @@ String ArrayOfSpeciesTag::Name() const {
   bool first = true;
   for (auto& x : *this) {
     if (not first) out += ", ";
-    out += x.Name();
-    first = false;
+    out   += x.Name();
+    first  = false;
   }
   return out;
 }
@@ -309,4 +315,3 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
-

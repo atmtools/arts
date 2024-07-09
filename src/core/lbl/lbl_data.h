@@ -2,9 +2,11 @@
 
 #include <matpack.h>
 
+#include <format>
 #include <limits>
 #include <vector>
 
+#include "array.h"
 #include "configtypes.h"
 #include "enums.h"
 #include "lbl_lineshape_model.h"
@@ -231,3 +233,88 @@ using AbsorptionBand = lbl::band;
 
 //! A list of multiple bands
 using ArrayOfAbsorptionBand = std::vector<lbl::band>;
+
+template <>
+struct std::formatter<lbl::line> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.a, sep, v.f0, sep, v.e0, sep, v.gu, sep, v.gl);
+    if (not tags.short_str) tags.format(ctx, sep, v.z, sep, v.ls, sep, v.qn);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<lbl::band_data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
+    const auto sep = tags.sep();
+
+    tags.format(ctx, v.lineshape, sep, v.cutoff, sep, v.cutoff_value);
+    if (not tags.short_str) tags.format(ctx, sep, v.lines);
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<AbsorptionBand> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AbsorptionBand& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.key, tags.sep(), v.data);
+  }
+};
+
+template <>
+struct std::formatter<lbl::line_key> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+    return tags.format(ctx, v.band, sep, v.line, sep, v.spec);
+  }
+};

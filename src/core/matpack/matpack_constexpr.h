@@ -11,7 +11,7 @@ namespace matpack {
 //! The constant matpack view
 template <typename T, bool constant, Index... alldim>
 struct matpack_constant_view {
-  static constexpr Index N = sizeof...(alldim);
+  static constexpr Index N  = sizeof...(alldim);
   static constexpr Index sz = (alldim * ...);
   static_assert(sz > 0);
 
@@ -29,7 +29,7 @@ struct matpack_constant_view {
 
   template <bool c>
   using any_view = matpack_constant_view<T, c, alldim...>;
-  using data_t = matpack_constant_data<T, alldim...>;
+  using data_t   = matpack_constant_data<T, alldim...>;
 
   template <bool c, Index outer, Index... rest>
   struct inner_type {
@@ -55,9 +55,9 @@ struct matpack_constant_view {
     requires(not constant and sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
-                shape_help<N>{std::array{static_cast<Index>(i)...}},
+                std::array{static_cast<Index>(i)...},
                 " vs ",
-                shape_help<N>{shape()})
+                shape())
     return view(i...);
   }
 
@@ -66,9 +66,9 @@ struct matpack_constant_view {
     requires(sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
-                shape_help<N>{std::array{static_cast<Index>(i)...}},
+                std::array{static_cast<Index>(i)...},
                 " vs ",
-                shape_help<N>{shape()})
+                shape())
     return view(i...);
   }
 
@@ -222,7 +222,7 @@ struct matpack_constant_view {
   friend std::ostream &operator<<(std::ostream &os,
                                   const matpack_constant_view &mv) {
     constexpr char extra = N == 1 ? ' ' : '\n';
-    bool first = true;
+    bool first           = true;
     for (auto &&v : mv) {
       if (not first)
         os << extra;
@@ -237,7 +237,7 @@ struct matpack_constant_view {
 //! The constant matpack data
 template <typename T, Index... alldim>
 struct matpack_constant_data {
-  static constexpr Index N = sizeof...(alldim);
+  static constexpr Index N  = sizeof...(alldim);
   static constexpr Index sz = (alldim * ...);
   static_assert(sz > 0);
 
@@ -247,8 +247,8 @@ struct matpack_constant_data {
   }
 
   template <bool c>
-  using any_view = matpack_constant_view<T, c, alldim...>;
-  using mut_view_type = any_view<false>;
+  using any_view        = matpack_constant_view<T, c, alldim...>;
+  using mut_view_type   = any_view<false>;
   using const_view_type = any_view<true>;
   template <bool c>
   using inner_view = typename mut_view_type::template inner_view<c>;
@@ -498,6 +498,16 @@ struct matpack_constant_data {
                                   const matpack_constant_data &mv) {
     return os << mv.view();
   }
+
+  operator matpack_view<T, N, false, false>() {
+    return matpack_view<T, N, false, false>(const_cast<T *>(data.data()),
+                                            shape());
+  }
+
+  operator matpack_view<T, N, true, false>() const {
+    return matpack_view<T, N, true, false>(const_cast<T *>(data.data()),
+                                           shape());
+  }
 };
 
 template <Index i, typename T, Index N>
@@ -567,3 +577,22 @@ struct tuple_element<I, T> {
   using type = typename T::value_type;
 };
 }  // namespace std
+
+template <typename T, Index... N>
+struct std::formatter<matpack::matpack_constant_data<T, N...>> {
+  std::formatter<matpack::matpack_view<T, sizeof...(N), true, false>> fmt;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const matpack::matpack_constant_data<T, N...> &v,
+                              FmtContext &ctx) const {
+    return fmt.format(v, ctx);
+  }
+};

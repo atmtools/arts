@@ -4,6 +4,10 @@ else ()
   cmake_minimum_required (VERSION 3.18)
 endif ()
 
+if (NOT ${CMAKE_VERSION} VERSION_LESS 3.30)
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 project (ARTS C CXX)
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -130,14 +134,20 @@ list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 find_package (Boost COMPONENTS REQUIRED headers)
 
 ########### Find Python ##########
-find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package (Python REQUIRED COMPONENTS Interpreter Development.Module)
 
 include (CheckPythonModule)
 check_python_modules()
 
-find_package(pybind11 CONFIG REQUIRED)
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+  OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE NB_DIR)
 
-set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python3_EXECUTABLE})
+list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
+
+find_package(nanobind CONFIG REQUIRED)
+
+set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python_EXECUTABLE})
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
@@ -210,6 +220,8 @@ endif ()
 if (ENABLE_IPO)
   include(CheckIPOSupported)
   check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX OUTPUT IPO_ERROR)
+  check_ipo_supported(RESULT IPO_FORTRAN_SUPPORTED LANGUAGES Fortran)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   if (NOT IPO_SUPPORTED)
     message(FATAL_ERROR "IPO / LTO not supported: ${IPO_ERROR}")
   endif()
@@ -339,7 +351,6 @@ else ()
   ARTS_ADD_COMPILER_FLAG (W)
   ARTS_ADD_COMPILER_FLAG (Wall)
   ARTS_ADD_COMPILER_FLAG (Wextra)
-  ARTS_ADD_COMPILER_FLAG (Wshadow)
   ARTS_ADD_COMPILER_FLAG (Wconversion)
   ARTS_ADD_COMPILER_FLAG (Wdeprecated)
   ARTS_ADD_COMPILER_FLAG (Wdeprecated-declarations)
@@ -348,6 +359,7 @@ else ()
   ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
+  ARTS_ADD_COMPILER_FLAG (Wno-deprecated-literal-operator)
 endif ()
 
 if (ARTS_SANITIZE AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)

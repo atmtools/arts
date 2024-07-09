@@ -3,10 +3,13 @@
 
 class Workspace;
 
+#include <format_tags.h>
+
 #include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 struct CallbackOperator {
@@ -17,6 +20,43 @@ struct CallbackOperator {
   void operator()(Workspace& ws) const;
 
   friend std::ostream& operator<<(std::ostream& os, const CallbackOperator&);
+};
+
+template <>
+struct std::formatter<CallbackOperator> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const CallbackOperator& v,
+                              FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+
+    tags.add_if_bracket(ctx, '{');
+
+    tags.format(ctx,
+                quote,
+                "input"sv,
+                quote,
+                ": "sv,
+                v.inputs,
+                tags.sep(true),
+                quote,
+                "output"sv,
+                quote,
+                ": "sv,
+                v.outputs);
+
+    tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
 };
 
 #endif

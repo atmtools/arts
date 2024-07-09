@@ -1,112 +1,116 @@
 
 #include <arts_omp.h>
+#include <nanobind/stl/array.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/vector.h>
 #include <parameters.h>
-#include <python_interface.h>
+
+#include "python_interface.h"
 
 extern Parameters parameters;
 
 namespace Python {
 
 void py_global(py::module_& m) try {
-  auto global = m.def_submodule("globals");
+  auto global  = m.def_submodule("globals");
   global.doc() = "Global settings and data";
 
-  artsclass<Parameters>(global, "parameters")
-      .def_readwrite_static(
+  py::class_<Parameters>(global, "parameters")
+      .def_rw_static(
           "includepath",
           &parameters.includepath,
-          py::doc(
-              ":class:`~pyarts.arts.ArrayOfString` Automatic include paths"))
-      .def_readwrite_static(
-          "datapath",
-          &parameters.datapath,
-          py::doc(":class:`~pyarts.arts.ArrayOfString` Automatic data paths"))
-      .def_readwrite_static(
+
+          ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
+      .def_rw_static("datapath",
+                     &parameters.datapath,
+                     ":class:`~pyarts.arts.ArrayOfString` Automatic data paths")
+      .def_rw_static(
           "numthreads",
           &parameters.numthreads,
-          py::doc(
-              ":class:`~pyarts.arts.Index` Number of threads allowed to start"))
+
+          ":class:`~pyarts.arts.Index` Number of threads allowed to start")
       .doc() = "Access to static settings data";
 
-  artsclass<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
-      .def_readonly("file", &WorkspaceGroupRecord::file)
-      .def_readonly("desc", &WorkspaceGroupRecord::desc);
+  py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
+      .def_ro("file", &WorkspaceGroupRecord::file)
+      .def_ro("desc", &WorkspaceGroupRecord::desc);
 
   global.def(
       "workspace_groups",
       []() { return internal_workspace_groups(); },
-      py::doc("Get a copy of all workspace variables\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of variables"));
+      "Get a copy of all workspace variables\n\n"
+      "Return\n------\n:class:`dict`"
+      "\n    Map of variables");
 
-  artsclass<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
-      .def_readonly("default_value", &WorkspaceVariableRecord::default_value)
-      .def_readonly("type", &WorkspaceVariableRecord::type)
-      .def_readonly("desc", &WorkspaceVariableRecord::desc);
+  py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
+      .def_ro("default_value", &WorkspaceVariableRecord::default_value)
+      .def_ro("type", &WorkspaceVariableRecord::type)
+      .def_ro("desc", &WorkspaceVariableRecord::desc);
 
   global.def(
       "workspace_variables",
       []() { return workspace_variables(); },
-      py::doc("Get a copy of all workspace variables\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of variables"));
+      "Get a copy of all workspace variables\n\n"
+      "Return\n------\n:class:`dict`"
+      "\n    Map of variables");
 
-  artsclass<WorkspaceMethodInternalRecord>(global,
+  py::class_<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
-      .def_readonly("output", &WorkspaceMethodInternalRecord::out)
-      .def_readonly("input", &WorkspaceMethodInternalRecord::in)
-      .def_readonly("author", &WorkspaceMethodInternalRecord::author)
-      .def_readonly("gout", &WorkspaceMethodInternalRecord::gout)
-      .def_readonly("gout_type", &WorkspaceMethodInternalRecord::gout_type)
-      .def_readonly("gout_desc", &WorkspaceMethodInternalRecord::gout_desc)
-      .def_readonly("gin", &WorkspaceMethodInternalRecord::gin)
-      .def_readonly("gin_type", &WorkspaceMethodInternalRecord::gin_type)
-      .def_readonly("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
-      .def_readonly("gin_value", &WorkspaceMethodInternalRecord::gin_value)
-      .def_readonly("pass_workspace",
-                    &WorkspaceMethodInternalRecord::pass_workspace)
-      .def_readonly("desc", &WorkspaceMethodInternalRecord::desc);
+      .def_ro("output", &WorkspaceMethodInternalRecord::out)
+      .def_ro("input", &WorkspaceMethodInternalRecord::in)
+      .def_ro("author", &WorkspaceMethodInternalRecord::author)
+      .def_ro("gout", &WorkspaceMethodInternalRecord::gout)
+      .def_ro("gout_type", &WorkspaceMethodInternalRecord::gout_type)
+      .def_ro("gout_desc", &WorkspaceMethodInternalRecord::gout_desc)
+      .def_ro("gin", &WorkspaceMethodInternalRecord::gin)
+      .def_ro("gin_type", &WorkspaceMethodInternalRecord::gin_type)
+      .def_ro("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
+      .def_ro("gin_value", &WorkspaceMethodInternalRecord::gin_value)
+      .def_ro("pass_workspace", &WorkspaceMethodInternalRecord::pass_workspace)
+      .def_ro("desc", &WorkspaceMethodInternalRecord::desc);
 
   global.def(
       "workspace_methods",
       []() { return internal_workspace_methods(); },
-      py::doc("Get a copy of all workspace methods\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of methods"));
+      "Get a copy of all workspace methods\n\n"
+      "Return\n------\n:class:`dict`"
+      "\n    Map of methods");
 
-  artsclass<WorkspaceAgendaInternalRecord>(global,
-                                           "WorkspaceAgendaInternalRecord")
-      .def_readonly("desc", &WorkspaceAgendaInternalRecord::desc)
-      .def_readonly("output", &WorkspaceAgendaInternalRecord::output)
-      .def_readonly("input", &WorkspaceAgendaInternalRecord::input)
-      .def_readonly("array", &WorkspaceAgendaInternalRecord::array)
+  py::class_<WorkspaceAgendaInternalRecord>(global,
+                                            "WorkspaceAgendaInternalRecord")
+      .def_ro("desc", &WorkspaceAgendaInternalRecord::desc)
+      .def_ro("output", &WorkspaceAgendaInternalRecord::output)
+      .def_ro("input", &WorkspaceAgendaInternalRecord::input)
+      .def_ro("array", &WorkspaceAgendaInternalRecord::array)
       .doc() = "Agenda records used as workspace variables";
 
   global.def(
       "workspace_agendas",
       []() { return internal_workspace_agendas(); },
-      py::doc("Get a copy of all workspace agendas\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Map of agendas"));
+      "Get a copy of all workspace agendas\n\n"
+      "Return\n------\n:class:`dict`"
+      "\n    Map of agendas");
 
   global.def(
       "all_isotopologues",
       []() { return Species::Isotopologues; },
-      py::doc("List of all valid `~pyarts.arts.SpeciesIsotopeRecord`"));
+      "List of all valid `~pyarts.arts.SpeciesIsotopeRecord`");
 
 #ifdef _OPENMP
   global.def("omp_get_max_threads",
              &omp_get_max_threads,
-             py::doc("Get maximum number of OpenMP threads\n\n"
-                     "Return\n------\n:class:`int`"
-                     "\n    Number of maximum threads"));
+             "Get maximum number of OpenMP threads\n\n"
+             "Return\n------\n:class:`int`"
+             "\n    Number of maximum threads");
 
   global.def(
       "omp_set_num_threads",
       [startup_max = omp_get_max_threads(), one = 1](int threads) {
         omp_set_num_threads(std::clamp<int>(threads, one, startup_max));
       },
-      py::doc(R"--(
+      R"--(
 Sets the maximum number of OpenMP threads
 
 The input is clamped between 1 and n, where n
@@ -118,7 +122,7 @@ Parameters
     threads : int
         Number of threads
 )--"),
-      py::arg("threads") = omp_get_max_threads());
+      "threads"_a = omp_get_max_threads();
 #endif
 
 } catch (std::exception& e) {

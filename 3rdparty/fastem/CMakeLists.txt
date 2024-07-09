@@ -8,6 +8,10 @@ if (ENABLE_FORTRAN AND NOT NO_FASTEM)
     )
   set_target_properties (fastem PROPERTIES
     COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")
+
+  if (NOT IPO_FORTRAN_SUPPORTED)
+    set_property(TARGET fastem PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
   set(ENABLE_FASTEM false)
 endif()

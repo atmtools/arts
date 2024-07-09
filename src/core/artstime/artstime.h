@@ -1,13 +1,4 @@
-/**
- * @file   artstime.h
- * @author Richard Larsson
- * @date   2020-04-13
- * 
- * @brief  Stuff related to time in ARTS
-*/
-
-#ifndef ARTSTIME_H
-#define ARTSTIME_H
+#pragma once
 
 #include <matpack.h>
 
@@ -229,4 +220,21 @@ struct DebugTime {
   ~DebugTime();
 };
 
-#endif  // ARTSTIME_H
+template <>
+struct std::formatter<Time> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.time, quote);
+  }
+};

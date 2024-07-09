@@ -5,10 +5,10 @@ namespace Python {
 void py_igrf(py::module_& m) try {
   m.def("igrf",
         &IGRF::igrf,
-        py::arg("pos"),
-        py::arg("ell") = Vector2{6378137.0, 6356752.314245},
-        py::arg("t")   = Time{},
-      R"--(Compute the magnetic field according to IGRF
+        "pos"_a,
+        "ell"_a = Vector2{6378137.0, 6356752.314245},
+        "t"_a   = Time{},
+        R"--(Compute the magnetic field according to IGRF
 
 The coefficients are builtin and available for the years 2000-2020.
 No secular variation is taken into account beyond an interpolation

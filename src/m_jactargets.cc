@@ -86,8 +86,9 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
     const Numeric& d) {
   ARTS_USER_ERROR_IF(
       std::ranges::none_of(Species::Isotopologues, Cmp::eq(species)),
-      "Unknown isotopologue: ",
-      std::quoted(species.FullName()));
+      "Unknown isotopologue: \"",
+      species.FullName(),
+      '"');
 
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
       species, d, jacobian_targets.target_count());
@@ -123,18 +124,18 @@ void jacobian_targetsAddLineParameter(
   if (coefficient.empty()) {
     key.var = to<LineByLineVariable>(parameter);
   } else {
-    key.ls_var = to<LineShapeModelVariable>(parameter);
+    key.ls_var   = to<LineShapeModelVariable>(parameter);
     key.ls_coeff = to<LineShapeModelCoefficient>(coefficient);
-    key.spec = [&]() {
+    key.spec     = [&]() {
       auto ptr = std::ranges::find(
           band.data.lines[line_index].ls.single_models,
           [](const String& spec) { return to<SpeciesEnum>(spec); }(species),
           &lbl::line_shape::species_model::species);
       ARTS_USER_ERROR_IF(
           ptr == band.data.lines[line_index].ls.single_models.end(),
-          "No species model for species: ",
-          std::quoted(species),
-          " in line: ",
+          "No species model for species: \"",
+          species,
+          "\" in line: ",
           band.data.lines[line_index],
           " for quantum identifier: ",
           qid);

@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <exception>
+#include <format>
 #include <functional>
 #include <iomanip>
 #include <limits>
@@ -95,10 +97,10 @@ struct Point {
   Vector3 mag{NAN, NAN, NAN};
 
   Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Point(const Point &) = default;
-  Point(Point &&) = default;
+  Point(const Point &)            = default;
+  Point(Point &&)                 = default;
   Point &operator=(const Point &) = default;
-  Point &operator=(Point &&) = default;
+  Point &operator=(Point &&)      = default;
 
   template <KeyType T>
   constexpr Numeric operator[](T &&x) const try {
@@ -133,10 +135,9 @@ struct Point {
     }
   } catch (std::out_of_range &) {
     if constexpr (isSpecies<T>) {
-      ARTS_USER_ERROR("Species VMR not found: ",
-                      std::quoted(toString<1>(x)))
+      ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
     } else if constexpr (isSpeciesIsotope<T>) {
-      ARTS_USER_ERROR("Isotopologue ration not found: ", std::quoted(x.FullName()))
+      ARTS_USER_ERROR("Isotopologue ration not found: \"", x.FullName(), '"')
     } else if constexpr (isParticulatePropertyTag<T>) {
       ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
     } else if constexpr (isQuantumIdentifier<T>) {
@@ -241,7 +242,7 @@ struct Point {
 //! All the field data; if these types grow too much we might want to
 //! reconsider...
 using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
-using FieldData = std::variant<GriddedField3, Numeric, FunctionalData>;
+using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -274,11 +275,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data() = default;
-  Data(const Data &) = default;
-  Data(Data &&) = default;
+  Data()                        = default;
+  Data(const Data &)            = default;
+  Data(Data &&)                 = default;
   Data &operator=(const Data &) = default;
-  Data &operator=(Data &&) = default;
+  Data &operator=(Data &&)      = default;
 
   // Allow copy and move construction implicitly from all types
   explicit Data(const RawDataType auto &x) : data(x) {}
@@ -344,15 +345,14 @@ struct Field final : FieldMap::Map<Data,
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
   Field(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Field(const Field &) = default;
-  Field(Field &&) = default;
-  Field &operator=(const Field &) = default;
-  Field &operator=(Field &&) = default;
+  Field(const Field &)                = default;
+  Field(Field &&) noexcept            = default;
+  Field &operator=(const Field &)     = default;
+  Field &operator=(Field &&) noexcept = default;
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
-  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots()
-      const;
+  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
       const;
@@ -401,10 +401,10 @@ static_assert(
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
 }  // namespace Atm
 
-using AtmKeyVal = Atm::KeyVal;
-using AtmField = Atm::Field;
-using AtmPoint = Atm::Point;
-using ArrayOfAtmPoint = Array<AtmPoint>;
+using AtmKeyVal         = Atm::KeyVal;
+using AtmField          = Atm::Field;
+using AtmPoint          = Atm::Point;
+using ArrayOfAtmPoint   = Array<AtmPoint>;
 using AtmFunctionalData = Atm::FunctionalData;
 
 bool operator==(const AtmKeyVal &, AtmKey);
@@ -417,3 +417,210 @@ bool operator==(const AtmKeyVal &, const ParticulatePropertyTag &);
 bool operator==(const ParticulatePropertyTag &, const AtmKeyVal &);
 
 std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
+
+template <>
+struct std::formatter<ParticulatePropertyTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ParticulatePropertyTag &v,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<AtmPoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '{');
+
+    const std::string_view sep = tags.sep(true);
+
+    tags.format(ctx,
+                R"("pressure": )"sv,
+                v.pressure,
+                sep,
+                R"("temperature": )"sv,
+                v.temperature,
+                sep,
+                R"("mag" :)"sv,
+                v.mag,
+                sep,
+                R"("wind": )"sv,
+                v.wind,
+                sep);
+
+    if (tags.short_str) {
+      tags.format(ctx,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs.size(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots.size(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte.size(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp.size());
+
+    } else {
+      tags.format(ctx,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs,
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots,
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte,
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp);
+    }
+
+    tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Atm::FunctionalData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Atm::FunctionalData &,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
+  }
+};
+
+template <>
+struct std::formatter<Atm::Data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Atm::Data &v, FmtContext &ctx) const {
+    const std::string_view sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.data, sep);
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.alt_upp,
+                sep,
+                v.alt_low,
+                sep,
+                v.lat_upp,
+                sep,
+                v.lat_low,
+                sep,
+                v.lon_upp,
+                sep,
+                v.lon_low);
+    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<AtmField> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
+    tags.add_if_bracket(ctx, '{');
+
+    if (tags.short_str) {
+      const std::string_view sep = tags.sep();
+
+      tags.format(ctx,
+                  R"("top_of_atmosphere": )"sv,
+                  v.top_of_atmosphere,
+                  sep,
+                  R"("Base": )"sv,
+                  v.other().size(),
+                  sep,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs().size(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots().size(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte().size(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp().size());
+    } else {
+      const std::string_view sep = tags.sep(true);
+
+      tags.format(ctx,
+                  R"("top_of_atmosphere": )"sv,
+                  v.top_of_atmosphere,
+                  sep,
+                  R"("Base": )"sv,
+                  v.other(),
+                  sep,
+                  R"("SpeciesEnum": )"sv,
+                  v.specs(),
+                  sep,
+                  R"("SpeciesIsotope": )"sv,
+                  v.isots(),
+                  sep,
+                  R"("QuantumIdentifier": )"sv,
+                  v.nlte(),
+                  sep,
+                  R"("ParticulatePropertyTag": )"sv,
+                  v.partp());
+    }
+
+    tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
+};

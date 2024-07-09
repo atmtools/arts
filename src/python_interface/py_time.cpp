@@ -1,26 +1,41 @@
+#include <nanobind/nanobind.h>
+#include <nanobind/operators.h>
+#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/chrono.h>
+#include <nanobind/stl/string.h>
 #include <python_interface.h>
 
-#include "py_macros.h"
+#include "artstime.h"
+#include "hpy_arts.h"
+#include "hpy_vector.h"
+#include "nanobind/stl/bind_vector.h"
 
 namespace Python {
 void py_time(py::module_& m) try {
-  py_staticTime(m)
-      .def(py::init([](std::chrono::system_clock::time_point nt) {
-        Time t;
-        t.time = nt;
-        return t;
-      }), "From :class:`datetime.datetime`")
-      .def(py::init([](Numeric x) {
-        Time t;
-        t.Seconds(x);
-        return t;
-      }), "From :class:`float` seconds from Unix time start")
-      .def(py::init([](const std::string& s) { return std::make_shared<Time>(s); }), "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
-      .def_readwrite("time", &Time::time, ":class:`datetime.datetime` The time")
-      .def_property(
+  py::class_<Time> time(m, "Time");
+  workspace_group_interface(time);
+  time.def(
+          "__init__",
+          [](Time* t, std::chrono::system_clock::time_point nt) {
+            new (t) Time{};
+            t->time = nt;
+          },
+          "From :class:`datetime.datetime`")
+      .def(
+          "__init__",
+          [](Time* t, Numeric x) {
+            new (t) Time{};
+            t->Seconds(x);
+          },
+          "From :class:`float` seconds from Unix time start")
+      .def(py::init<std::string>(),
+           "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
+      .def_rw("time", &Time::time, ":class:`datetime.datetime` The time")
+      .def_prop_rw(
           "sec",
           [](const Time& t) { return t.Seconds(); },
-          [](Time& t, Numeric n) { return t.Seconds(n); }, ":class:`float` Time from Unix start")
+          [](Time& t, Numeric n) { return t.Seconds(n); },
+          ":class:`float` Time from Unix start")
       .def(
           "__add__",
           [](Time& t, Numeric n) {
@@ -53,30 +68,37 @@ void py_time(py::module_& m) try {
             return t2;
           },
           py::is_operator())
-      .def(py::pickle(
-          [](const py::object& self) {
-            return py::make_tuple(self.attr("time"));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return py::type::of<Time>()(t[0]).cast<Time>();
-          }));
+      .def("__getstate__",
+           [](const Time& t) { return std::tuple<std::string>{var_string(t)}; })
+      .def("__setstate__", [](Time* t, const std::tuple<std::string>& state) {
+        new (t) Time{std::get<0>(state)};
+      });
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  py_staticArrayOfTime(m)
-      .def_property_readonly(
-          "as_datetime",
-          [](const ArrayOfTime& in)
-              -> std::vector<std::chrono::system_clock::time_point> {
-            const Index n = in.size();
-            std::vector<std::chrono::system_clock::time_point> out(n);
-            for (Index i = 0; i < n; i++) out[i] = in[i].time;
-            return out;
-          },
-          py::doc("A :class:`list` of :class:`datetime.datetime`"));
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
+  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(
+                m, "ArrayOfTime")
+                .def_prop_ro(
+                    "as_datetime",
+                    [](const ArrayOfTime& in)
+                        -> std::vector<std::chrono::system_clock::time_point> {
+                      const Index n = in.size();
+                      std::vector<std::chrono::system_clock::time_point> out(n);
+                      for (Index i = 0; i < n; i++) out[i] = in[i].time;
+                      return out;
+                    },
+                    "A :class:`list` of :class:`datetime.datetime`");
+  workspace_group_interface(a1);
+  vector_interface(a1);
+
+  auto a2 =
+      py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(
+          m, "ArrayOfArrayOfTime");
+  workspace_group_interface(a2);
+  vector_interface(a2);
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
 }
 }  // namespace Python

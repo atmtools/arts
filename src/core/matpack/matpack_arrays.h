@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array.h>
+
 #include "matpack_constexpr.h"
 #include "matpack_data.h"
-
-#include <array.h>
 
 //! An array of vectors of Numeric
 using ArrayOfVector = Array<Vector>;

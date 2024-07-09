@@ -34,9 +34,9 @@
 #include "optproperties.h"
 #include "rtepack.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI      = Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 
 #define PART_TYPE scat_data[i_ss][i_se].ptype
 #define F_DATAGRID scat_data[i_ss][i_se].f_grid
@@ -67,7 +67,6 @@ void pha_mat_sptFromData(  // Output:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
   if (N_se_total != pnd_field.nbooks()) {
@@ -219,8 +218,7 @@ void pha_mat_sptFromData(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size();
-             za_inc_idx++) {
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size(); za_inc_idx++) {
           for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             pha_matTransform(
@@ -277,7 +275,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
-           scat_data_mono[0][0].T_grid.size());
+                scat_data_mono[0][0].T_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
@@ -289,11 +287,12 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     //ARTS_ASSERT(is_size(scat_theta, doit_za_grid_size, 1,
     //                doit_za_grid_size, aa_grid.size()));
 
-    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == static_cast<Size>(TotalNumberOfElements(scat_data_mono)));
+    ARTS_ASSERT(pha_mat_sptDOITOpt.size() ==
+                static_cast<Size>(TotalNumberOfElements(scat_data_mono)));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
-           scat_data_mono[0][0].T_grid.size());
+                scat_data_mono[0][0].T_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == 1);
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
@@ -440,15 +439,14 @@ void opt_prop_sptFromData(  // Output and Input:
     const Index& scat_lon_index,
     const Tensor4& pnd_field,
     const Index& f_index) {
-  const Index N_ss = scat_data.size();
+  const Index N_ss     = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
-             if (N_ss) {
-               ARTS_ASSERT(ext_mat_spt[0].size() == N_se_total);
-               ARTS_ASSERT(abs_vec_spt[0].size() == N_se_total);
-             });
+  ARTS_ASSERT(N_ss == 0 or
+              ext_mat_spt[0].size() == TotalNumberOfElements(scat_data));
+  ARTS_ASSERT(N_ss == 0 or
+              abs_vec_spt[0].size() == TotalNumberOfElements(scat_data));
 
   // Check that we don't have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -471,8 +469,8 @@ void opt_prop_sptFromData(  // Output and Input:
   Tensor3 abs_vec_data_int;
 
   // Initialisation
-  for (auto& pm: ext_mat_spt) pm = 0.;
-  for (auto& sv: abs_vec_spt) sv = 0.;
+  for (auto& pm : ext_mat_spt) pm = 0.;
+  for (auto& sv : abs_vec_spt) sv = 0.;
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
@@ -646,13 +644,12 @@ void opt_prop_sptFromScat_data(  // Output and Input:
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  const Size N_ss = scat_data.size();
+  const Size N_ss      = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data);)
-  ARTS_ASSERT(ext_mat_spt.size() == N_se_total);
-  ARTS_ASSERT(abs_vec_spt.size() == N_se_total);
+  ARTS_ASSERT(ext_mat_spt.size() == TotalNumberOfElements(scat_data));
+  ARTS_ASSERT(abs_vec_spt.size() == TotalNumberOfElements(scat_data));
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, 4, 4]
@@ -838,8 +835,12 @@ void opt_prop_bulkCalc(  // Output and Input:
 
   // this is the loop over the different scattering elements
   for (Size l = 0; l < N_se; l++) {
-    abs_vec_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * abs_vec_spt[l][0];
-    ext_mat_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * ext_mat_spt[l][0];
+    abs_vec_part[0] +=
+        pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) *
+        abs_vec_spt[l][0];
+    ext_mat_part[0] +=
+        pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) *
+        ext_mat_spt[l][0];
   }
 
   abs_vec += abs_vec_part;
@@ -851,9 +852,9 @@ void ext_matAddGas(PropmatVector& ext_mat,
                    const PropmatVector& propmat_clearsky) {
   const Index f_dim = ext_mat.size();
 
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.size(),
-        "Frequency dimension of ext_mat and propmat_clearsky\n"
-        "are inconsistent in ext_matAddGas.");
+  ARTS_USER_ERROR_IF(f_dim != propmat_clearsky.size(),
+                     "Frequency dimension of ext_mat and propmat_clearsky\n"
+                     "are inconsistent in ext_matAddGas.");
 
   ext_mat += propmat_clearsky;
 }
@@ -863,11 +864,11 @@ void abs_vecAddGas(StokvecVector& abs_vec,
                    const PropmatVector& propmat_clearsky) {
   const Index f_dim = abs_vec.size();
 
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.size(),
-        "Frequency dimension of abs_vec and propmat_clearsky\n"
-        "are inconsistent in abs_vecAddGas.");
+  ARTS_USER_ERROR_IF(f_dim != propmat_clearsky.size(),
+                     "Frequency dimension of abs_vec and propmat_clearsky\n"
+                     "are inconsistent in abs_vecAddGas.");
 
-  for (Index iv=0; iv<f_dim; iv++) {
+  for (Index iv = 0; iv < f_dim; iv++) {
     abs_vec[iv] += absvec(propmat_clearsky[iv]);
   }
 }
@@ -880,8 +881,8 @@ void pha_matCalc(Tensor4& pha_mat,
                  const Index& scat_lat_index,
                  const Index& scat_lon_index) {
   Index N_se = pha_mat_spt.nshelves();
-  Index Nza = pha_mat_spt.nbooks();
-  Index Naa = pha_mat_spt.npages();
+  Index Nza  = pha_mat_spt.nbooks();
+  Index Naa  = pha_mat_spt.npages();
 
   pha_mat.resize(Nza, Naa, 4, 4);
 
@@ -906,10 +907,8 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa - 1; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
-               ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
-                 ++stokes_index_2)
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4; ++stokes_index_1)
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4; ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
               pha_mat(za_index, 0, stokes_index_1, stokes_index_2) +=
@@ -932,10 +931,8 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
-               ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
-                 ++stokes_index_2)
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4; ++stokes_index_1)
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4; ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
               pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2) +=
@@ -1206,9 +1203,9 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
       //Stuff that doesn't need interpolating
-      PART_TYPE = scat_data_raw[i_ss][i_se].ptype;
-      F_DATAGRID = f_grid;
-      T_DATAGRID = scat_data_raw[i_ss][i_se].T_grid;
+      PART_TYPE   = scat_data_raw[i_ss][i_se].ptype;
+      F_DATAGRID  = f_grid;
+      T_DATAGRID  = scat_data_raw[i_ss][i_se].T_grid;
       ZA_DATAGRID = scat_data_raw[i_ss][i_se].za_grid;
       AA_DATAGRID = scat_data_raw[i_ss][i_se].aa_grid;
 
@@ -1235,7 +1232,9 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           (scat_data_raw[i_ss][i_se].f_grid.size() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
-        const auto lag_freq=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
+        const auto lag_freq =
+            my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+                f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
         const auto itw = interpweights(lag_freq);
 
         //Phase matrix data
@@ -1454,11 +1453,11 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
         for (Index i_za = 0; i_za < EXT_MAT_DATA.npages(); i_za++)
           for (Index i_aa = 0; i_aa < EXT_MAT_DATA.nrows(); i_aa++) {
             for (Index i_st = 0; i_st < EXT_MAT_DATA.ncols(); i_st++)
-              extmat_tmp(i_f, 0, i_za, i_aa, i_st) =
-                  interp(EXT_MAT_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
+              extmat_tmp(i_f, 0, i_za, i_aa, i_st) = interp(
+                  EXT_MAT_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
             for (Index i_st = 0; i_st < ABS_VEC_DATA.ncols(); i_st++)
-              absvec_tmp(i_f, 0, i_za, i_aa, i_st) =
-                  interp(ABS_VEC_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
+              absvec_tmp(i_f, 0, i_za, i_aa, i_st) = interp(
+                  ABS_VEC_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
           }
 
       // Norm & other consistency checks.
@@ -1568,14 +1567,15 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
             // below use theoretical (ext-abs derived) sca xs as reference.
             Csca = Csca_data;
             for (Index t = 0; t < T_DATAGRID.size(); t++) {
-              Cext_data = EXT_MAT_DATA(f, t, 0, 0, 0);
-              Csca_data = Cext_data - ABS_VEC_DATA(f, t, 0, 0, 0);
+              Cext_data      = EXT_MAT_DATA(f, t, 0, 0, 0);
+              Csca_data      = Cext_data - ABS_VEC_DATA(f, t, 0, 0, 0);
               Numeric xs_dev = (Csca - Csca_data) / Cext_data;
               if (abs(norm_dev + (Csca - Csca_data) / Cext_data) >
                   this_threshold)
                 std::cout << "Accumulated deviation (abs(" << norm_dev << "+"
-                     << xs_dev << ")=" << abs(norm_dev + xs_dev)
-                     << " exceeding threshold (" << this_threshold << ").\n";
+                          << xs_dev << ")=" << abs(norm_dev + xs_dev)
+                          << " exceeding threshold (" << this_threshold
+                          << ").\n";
               if (abs(Csca - Csca_data) / Cext_data > this_threshold) {
                 std::ostringstream os;
                 os << "  " << errmsg << "\n"
@@ -1669,7 +1669,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       //Except for T_grid in the case that we reduce ALL three ssd variables.
       if (!phamat_only) {
         T_DATAGRID.resize(1);
-        T_DATAGRID = T;
+        T_DATAGRID   = T;
         EXT_MAT_DATA = extmat_tmp;
         ABS_VEC_DATA = absvec_tmp;
       }
@@ -1720,8 +1720,8 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
       //Stuff that doesn't need interpolating
       scat_data_mono[i_ss][i_se].ptype = PART_TYPE;
       scat_data_mono[i_ss][i_se].f_grid.resize(1);
-      scat_data_mono[i_ss][i_se].f_grid = f_grid[f_index];
-      scat_data_mono[i_ss][i_se].T_grid = scat_data[i_ss][i_se].T_grid;
+      scat_data_mono[i_ss][i_se].f_grid  = f_grid[f_index];
+      scat_data_mono[i_ss][i_se].T_grid  = scat_data[i_ss][i_se].T_grid;
       scat_data_mono[i_ss][i_se].za_grid = ZA_DATAGRID;
       scat_data_mono[i_ss][i_se].aa_grid = AA_DATAGRID;
 
@@ -1828,8 +1828,8 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
         scat_data_mono[i_ss][i_se] = scat_data[i_ss][i_se];
       } else {
         //Stuff that doesn't need interpolating
-        scat_data_mono[i_ss][i_se].ptype = PART_TYPE;
-        scat_data_mono[i_ss][i_se].T_grid = T_DATAGRID;
+        scat_data_mono[i_ss][i_se].ptype   = PART_TYPE;
+        scat_data_mono[i_ss][i_se].T_grid  = T_DATAGRID;
         scat_data_mono[i_ss][i_se].za_grid = ZA_DATAGRID;
         scat_data_mono[i_ss][i_se].aa_grid = AA_DATAGRID;
 
@@ -1887,12 +1887,11 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Index& scat_lat_index,
     const Index& scat_lon_index,
     const Tensor4& pnd_field) {
-  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  ARTS_ASSERT(ext_mat_spt.size() == N_se_total);
-  ARTS_ASSERT(abs_vec_spt.size() == N_se_total);
+  ARTS_ASSERT(ext_mat_spt.size() == TotalNumberOfElements(scat_data_mono));
+  ARTS_ASSERT(abs_vec_spt.size() == TotalNumberOfElements(scat_data_mono));
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -1938,11 +1937,11 @@ void opt_prop_sptFromMonoData(  // Output and Input:
         // Extinction matrix:
         //
         Index ext_npages = scat_data_mono[i_ss][i_se].ext_mat_data.npages();
-        Index ext_nrows = scat_data_mono[i_ss][i_se].ext_mat_data.nrows();
-        Index ext_ncols = scat_data_mono[i_ss][i_se].ext_mat_data.ncols();
+        Index ext_nrows  = scat_data_mono[i_ss][i_se].ext_mat_data.nrows();
+        Index ext_ncols  = scat_data_mono[i_ss][i_se].ext_mat_data.ncols();
         Index abs_npages = scat_data_mono[i_ss][i_se].abs_vec_data.npages();
-        Index abs_nrows = scat_data_mono[i_ss][i_se].abs_vec_data.nrows();
-        Index abs_ncols = scat_data_mono[i_ss][i_se].abs_vec_data.ncols();
+        Index abs_nrows  = scat_data_mono[i_ss][i_se].abs_vec_data.nrows();
+        Index abs_ncols  = scat_data_mono[i_ss][i_se].abs_vec_data.ncols();
 
         //Check that scattering data temperature range covers required temperature
         ConstVectorView t_grid = scat_data_mono[i_ss][i_se].T_grid;
@@ -2336,8 +2335,7 @@ void pha_mat_sptFromScat_data(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size();
-             za_inc_idx++) {
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size(); za_inc_idx++) {
           for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             pha_matTransform(
@@ -2372,7 +2370,7 @@ void ScatSpeciesMerge(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const Tensor3& t_field,
     const Tensor3& z_field,
-    const Matrix &z_surface) {
+    const Matrix& z_surface) {
   // FIXME:
   // so far, this works for both scat_data and scat_data_raw. Needs to be
   // adapted, though, once we have WSM that can create Z/K/a with different
@@ -2417,11 +2415,11 @@ void ScatSpeciesMerge(  //WS Output:
   scat_species_merged[0] = "mergedfield-mergedpsd";
   for (Size sp = 0; sp < scat_data_merged[0].size(); sp++) {
     SingleScatteringData& this_part = scat_data_merged[0][sp];
-    this_part.ptype = scat_data[0][0].ptype;
-    this_part.description = "Merged scattering elements";
-    this_part.f_grid = scat_data[0][0].f_grid;
-    this_part.za_grid = scat_data[0][0].za_grid;
-    this_part.aa_grid = scat_data[0][0].aa_grid;
+    this_part.ptype                 = scat_data[0][0].ptype;
+    this_part.description           = "Merged scattering elements";
+    this_part.f_grid                = scat_data[0][0].f_grid;
+    this_part.za_grid               = scat_data[0][0].za_grid;
+    this_part.aa_grid               = scat_data[0][0].aa_grid;
     this_part.pha_mat_data.resize(scat_data[0][0].pha_mat_data.nlibraries(),
                                   1,
                                   scat_data[0][0].pha_mat_data.nshelves(),
@@ -2448,12 +2446,12 @@ void ScatSpeciesMerge(  //WS Output:
     ScatteringMetaData& this_meta = scat_meta_merged[0][sp];
     std::ostringstream os;
     os << "Merged scattering element of cloudbox-level #" << sp;
-    this_meta.description = os.str();
-    this_meta.source = "ARTS internal";
-    this_meta.refr_index = "Unknown";
-    this_meta.mass = -1.;
-    this_meta.diameter_max = -1.;
-    this_meta.diameter_volume_equ = -1.;
+    this_meta.description                     = os.str();
+    this_meta.source                          = "ARTS internal";
+    this_meta.refr_index                      = "Unknown";
+    this_meta.mass                            = -1.;
+    this_meta.diameter_max                    = -1.;
+    this_meta.diameter_volume_equ             = -1.;
     this_meta.diameter_area_equ_aerodynamical = -1.;
   }
 
@@ -2517,7 +2515,7 @@ void ScatSpeciesMerge(  //WS Output:
     for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
       for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
         SingleScatteringData& orig_part = scat_data[i_ss][i_se];
-        const Index pnd_index = FlattenedIndex(scat_data, i_ss, i_se);
+        const Index pnd_index           = FlattenedIndex(scat_data, i_ss, i_se);
 
         // If the particle number density at a specific point in the
         // atmosphere for the i_se scattering element is zero, we don't
@@ -2560,7 +2558,7 @@ void ScatSpeciesMerge(  //WS Output:
                   v *= pnd_field(pnd_index, i_lv, 0, 0);
                   this_part.ext_mat_data(i_f, 0, i_za, 0, joker) += v;
 
-                  v = orig_part.abs_vec_data(i_f, 0, i_za, i_aa, joker);
+                  v  = orig_part.abs_vec_data(i_f, 0, i_za, i_aa, joker);
                   v *= pnd_field(pnd_index, i_lv, 0, 0);
                   this_part.abs_vec_data(i_f, 0, i_za, i_aa, joker) += v;
                 } else {
@@ -2607,12 +2605,12 @@ void ScatSpeciesMerge(  //WS Output:
                     // Weighted sum of pha_mat_data
                     if (orig_part.T_grid.size() == 1) {
                       Vector v{orig_part.pha_mat_data(i_f,
-                                                        0,
-                                                        i_za_out,
-                                                        i_aa_out,
-                                                        i_za_inc,
-                                                        i_aa_inc,
-                                                        joker)};
+                                                      0,
+                                                      i_za_out,
+                                                      i_aa_out,
+                                                      i_za_inc,
+                                                      i_aa_inc,
+                                                      joker)};
                       v *= pnd_field(pnd_index, i_lv, 0, 0);
                       this_part.pha_mat_data(i_f,
                                              0,
@@ -2661,9 +2659,9 @@ void ScatSpeciesMerge(  //WS Output:
   if (z_field(cloudbox_limits[0], 0, 0) > z_surface(0, 0))
     pnd_field_merged(0, 0, 0, 0) = 0.;
 
-  pnd_field = pnd_field_merged;
-  scat_data = scat_data_merged;
-  scat_meta = scat_meta_merged;
+  pnd_field    = pnd_field_merged;
+  scat_data    = scat_data_merged;
+  scat_meta    = scat_meta_merged;
   scat_species = scat_species_merged;
 }
 
@@ -2674,7 +2672,7 @@ void ExtractFromMetaSingleScatSpecies(
     //WS Input:
     const ArrayOfArrayOfScatteringMetaData& scat_meta,
     const String& meta_name,
-    const Index &scat_species_index) {
+    const Index& scat_species_index) {
   if (scat_species_index < 0) {
     std::ostringstream os;
     os << "scat_species_index can't be <0!";
@@ -2712,5 +2710,3 @@ void ExtractFromMetaSingleScatSpecies(
     }
   }
 }
-
-

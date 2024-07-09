@@ -2,7 +2,8 @@
 
 #include <workspace.h>
 
-uint32_t hlist_num_cols(const std::vector<String>& v, const std::vector<String>& v2={});
+uint32_t hlist_num_cols(const std::vector<String>& v,
+                        const std::vector<String>& v2 = {});
 
 bool str_compare_nocase(const std::string& lhs, const std::string& rhs);
 

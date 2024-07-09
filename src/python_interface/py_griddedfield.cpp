@@ -1,169 +1,99 @@
-#include <python_interface.h>
+#include <nanobind/stl/bind_vector.h>
+#include <rtepack.h>
 
 #include <stdexcept>
-#include <variant>
 
 #include "debug.h"
-#include "gridded_data.h"
-#include "mystring.h"
-#include "py_macros.h"
-#include "sorted_grid.h"
+#include "hpy_arts.h"
+#include "hpy_matpack.h"
+#include "hpy_vector.h"
+#include "python_interface.h"
 
 namespace Python {
-
-template <typename T, typename... Grids>
-auto& fix_griddedfield(artsclass<matpack::gridded_data<T, Grids...>>& gf) {
-  using GF = matpack::gridded_data<T, Grids...>;
-
-  gf.def(py::init<std::string,
-                  typename GF::data_t,
-                  std::array<std::string, GF::dim>,
-                  typename GF::grids_t>(),
-         "Full field",
-         py::arg("dataname") = "",
-         py::arg("data"),
-         py::arg("gridnames") = std::array<std::string, GF::dim>{},
-         py::arg("grids"));
-
-  gf.def_readwrite("data", &GF::data, "Data field");
-  gf.def_readwrite("dataname", &GF::data_name, "Data name");
-  gf.def_readwrite("grids", &GF::grids, "Grid fields");
-  gf.def_readwrite("gridnames", &GF::grid_names, "Grid name");
-  gf.def_property_readonly_static(
-      "dim",
-      [](const py::object&) { return GF::dim; },
-      "Dimension of the field");
-  gf.def_property_readonly(
-      "shape",
-      [](const GF& gd) { return py::tuple(py::cast(gd.shape())); },
-      "Shape of the grids field");
-  gf.def("ok", &GF::ok, "Check the field");
-  gf.def("__getitem__", [](py::object& x, py::object& y) {
-    return x.attr("data").attr("__getitem__")(y);
-  });
-  gf.def("__setitem__", [](py::object& x, py::object& y, py::object& z) {
-    return x.attr("data").attr("__setitem__")(y, z);
-  });
-
-  gf.def(py::pickle(
-      [](const py::object& self) {
-        return py::make_tuple(self.attr("data"),
-                              self.attr("grids"),
-                              self.attr("dataname"),
-                              self.attr("gridnames"));
-      },
-      [](const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-        auto gd = std::make_shared<GF>();
-        gd->data = t[0].cast<typename GF::data_t>();
-        gd->grids = t[1].cast<typename GF::grids_t>();
-        gd->data_name = t[2].cast<std::string>();
-        gd->grid_names = t[3].cast<std::array<std::string, GF::dim>>();
-        return gd;
-      }));
-
-  gf.def("to_dict", [](const py::object& gd) {
-    py::dict out;
-
-    out["dims"] = py::list{};
-    out["coords"] = py::dict{};
-    for (Size i = 0; i < GF::dim; ++i) {
-      auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
-      auto grid = gd.attr("grids").attr("__getitem__")(i);
-
-      const auto dim = py::cast<py::bool_>(gridname)
-                           ? gridname
-                           : py::str(var_string("dim", i));
-      out["dims"].attr("append")(dim);
-      out["coords"][dim] = py::dict{};
-      out["coords"][dim]["data"] = grid;
-      out["coords"][dim]["dims"] = dim;
-    }
-
-    out["name"] = gd.attr("dataname");
-    out["data"] = gd.attr("data");
-
-    return out;
-  });
-
-  gf.def("to_xarray", [](const py::object& gd) {
-    py::module_ xarray = py::module_::import("xarray");
-    return xarray.attr("DataArray").attr("from_dict")(gd.attr("to_dict")());
-  });
-
-  gf.def_static("from_dict", [](const py::dict& d) {
-    if (not d.contains("coords"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'coords''");
-    if (not d.contains("dims"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'dims''");
-    if (not d.contains("data"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'data''");
-
-    auto gd = std::make_shared<GF>();
-
-    gd->data = d["data"].cast<typename GF::data_t>();
-    if (d.contains("name")) {
-      gd->data_name = d["name"].cast<std::string>();
-    }
-
-    gd->grid_names = d["dims"].cast<std::array<std::string, GF::dim>>();
-
-    py::list coords{};
-    for (auto& dim : gd->grid_names) {
-      coords.append(d["coords"][py::str(dim)]["data"]);
-    }
-    gd->grids = coords.cast<typename GF::grids_t>();
-
-    return gd;
-  });
-
-  gf.def_static("from_xarray", [](const py::object& xarray) {
-    return py::type::of<GF>().attr("from_dict")(xarray.attr("to_dict")());
-  });
-
-  gf.def("__eq__", [](const GF& a, const GF& b) { return a == b; });
-
-  return gf;
-}
-
-template <typename T, typename... Grids>
-auto artsgf(py::module_& m, const char* name) {
-  using GF = matpack::gridded_data<T, Grids...>;
-
-  auto gf =
-      artsclass<GF>(m, name)
-          .def(py::init([]() { return std::make_shared<GF>(); }), "Empty field")
-          .def(py::init<GF>(), "Copy field");
-
-  fix_griddedfield(gf);
-
-  gf.def("__repr__", [](const GF& gd) { return var_string(gd); });
-  gf.def("__str__", [](const GF& gd) { return var_string(gd); });
-
-  return gf;
-}
-
-using VectorOrArrayOfString = std::variant<Vector, ArrayOfString>;
-
 void py_griddedfield(py::module_& m) try {
-  fix_griddedfield(py_staticGriddedField1(m));
-  fix_griddedfield(py_staticGriddedField2(m));
-  fix_griddedfield(py_staticGriddedField3(m));
-  fix_griddedfield(py_staticGriddedField4(m));
-  fix_griddedfield(py_staticGriddedField5(m));
-  fix_griddedfield(py_staticGriddedField6(m));
+  py::class_<GriddedField1> gf1(m, "GriddedField1");
+  py::class_<GriddedField2> gf2(m, "GriddedField2");
+  py::class_<GriddedField3> gf3(m, "GriddedField3");
+  py::class_<GriddedField4> gf4(m, "GriddedField4");
+  py::class_<GriddedField5> gf5(m, "GriddedField5");
+  py::class_<GriddedField6> gf6(m, "GriddedField6");
+  gridded_data_interface(gf1);
+  workspace_group_interface(gf1);
+  gridded_data_interface(gf2);
+  workspace_group_interface(gf2);
+  gridded_data_interface(gf3);
+  workspace_group_interface(gf3);
+  gridded_data_interface(gf4);
+  workspace_group_interface(gf4);
+  gridded_data_interface(gf5);
+  workspace_group_interface(gf5);
+  gridded_data_interface(gf6);
+  workspace_group_interface(gf6);
 
-  fix_griddedfield(py_staticNamedGriddedField2(m));
-  fix_griddedfield(py_staticNamedGriddedField3(m));
+  py::class_<NamedGriddedField2> ngf2(m, "NamedGriddedField2");
+  py::class_<NamedGriddedField3> ngf3(m, "NamedGriddedField3");
+  gridded_data_interface(ngf2);
+  workspace_group_interface(ngf2);
+  gridded_data_interface(ngf3);
+  workspace_group_interface(ngf3);
 
-  fix_griddedfield(py_staticGriddedField1Named(m));
+  py::class_<GriddedField1Named> gf1n(m, "GriddedField1Named");
+  gridded_data_interface(gf1n);
+  workspace_group_interface(gf1n);
 
-  fix_griddedfield(py_staticComplexGriddedField2(m));
+  py::class_<ComplexGriddedField2> gf2c(m, "ComplexGriddedField2");
+  gridded_data_interface(gf2c);
+  workspace_group_interface(gf2c);
 
-  fix_griddedfield(py_staticStokvecGriddedField6(m));
+  py::class_<StokvecGriddedField6> gf6sv(m, "StokvecGriddedField6");
+  gridded_data_interface(gf6sv);
+  workspace_group_interface(gf6sv);
+
+  auto a1 =
+      py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField1");
+  workspace_group_interface(a1);
+  vector_interface(a1);
+  auto a2 =
+      py::bind_vector<ArrayOfGriddedField2, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField2");
+  workspace_group_interface(a2);
+  vector_interface(a2);
+  auto a3 =
+      py::bind_vector<ArrayOfGriddedField3, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField3");
+  workspace_group_interface(a3);
+  vector_interface(a3);
+  auto a4 =
+      py::bind_vector<ArrayOfGriddedField4, py::rv_policy::reference_internal>(
+          m, "ArrayOfGriddedField4");
+  workspace_group_interface(a4);
+  vector_interface(a4);
+  auto b1 = py::bind_vector<ArrayOfArrayOfGriddedField1,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfGriddedField1");
+  workspace_group_interface(b1);
+  vector_interface(b1);
+  auto b2 = py::bind_vector<ArrayOfArrayOfGriddedField2,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfGriddedField2");
+  workspace_group_interface(b2);
+  vector_interface(b2);
+  auto b3 = py::bind_vector<ArrayOfArrayOfGriddedField3,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfGriddedField3");
+  workspace_group_interface(b3);
+  vector_interface(b3);
+  auto c1 = py::bind_vector<ArrayOfGriddedField1Named,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfGriddedField1Named");
+  workspace_group_interface(c1);
+  vector_interface(c1);
+  auto d2 = py::bind_vector<ArrayOfNamedGriddedField2,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfNamedGriddedField2");
+  workspace_group_interface(d2);
+  vector_interface(d2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));

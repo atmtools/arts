@@ -3,8 +3,11 @@
 #include <matpack.h>
 #include <rtepack.h>
 
+#include <algorithm>
 #include <tuple>
 
+#include "format_tags.h"
+#include "matpack_constexpr.h"
 #include "sorted_grid.h"
 
 namespace sensor {
@@ -219,7 +222,7 @@ struct Obsel {
   void set_frequency_lochain(const DescendingGrid& f0s,
                              const Numeric& width,
                              const Index& N,
-                             const String& filter = {},
+                             const String& filter       = {},
                              const Numeric& lower_width = -0.5,
                              const Numeric& upper_width = 0.5);
 
@@ -315,3 +318,48 @@ using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;
 using SensorObsel        = sensor::Obsel;
 using ArrayOfSensorObsel = Array<SensorObsel>;
+
+template <>
+struct std::formatter<SensorPosLos> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.pos, tags.sep(), v.los);
+  }
+};
+template <>
+struct std::formatter<SensorObsel> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
+    return tags.format(ctx,
+                       "Obsel:\n  frequency grid:                 "sv,
+                       v.f_grid,
+                       "\n  pos-los grid:                   "sv,
+                       v.poslos_grid,
+                       "\n  polarization:                   "sv,
+                       v.polarization,
+                       "\n  frequency grid weights:         "sv,
+                       v.f_grid_w,
+                        "\n  pos-los grid polarized weigths: "sv,
+                       v.poslos_grid_w);
+  }
+};

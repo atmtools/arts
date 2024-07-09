@@ -1,11 +1,11 @@
 #pragma once
 
+#include <matpack.h>
+
 #include <functional>
 #include <ostream>
 
 #include "debug.h"
-
-#include <matpack.h>
 
 #if defined(__clang__)
 #elif defined(__GNUC__)
@@ -13,14 +13,14 @@
 #pragma GCC diagnostic ignored "-Wnon-template-friend"
 #endif
 
-template <typename R, typename ... Args>
+template <typename R, typename... Args>
 struct CustomOperator {
   using func_t = std::function<R(Args...)>;
   func_t f;
 
-  friend std::ostream& operator<<(std::ostream& os, const CustomOperator&);
+  friend std::ostream &operator<<(std::ostream &os, const CustomOperator &);
 
-  R operator()(Args... args) const { 
+  R operator()(Args... args) const {
     if (f) return f(args...);
     ARTS_USER_ERROR("CustomOperator not set");
   }
@@ -33,4 +33,24 @@ struct CustomOperator {
 
 using NumericUnaryOperator = CustomOperator<Numeric, Numeric>;
 
-using NumericTernaryOperator = CustomOperator<Numeric, Numeric, Numeric, Numeric>;
+using NumericTernaryOperator =
+    CustomOperator<Numeric, Numeric, Numeric, Numeric>;
+
+template <typename... WTs>
+struct std::formatter<CustomOperator<WTs...>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const CustomOperator<WTs...> &,
+                              FmtContext &ctx) const {
+    return std::format_to(ctx.out(), "?=f(?)"sv);
+  }
+};

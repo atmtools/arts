@@ -1,12 +1,14 @@
 #pragma once
 
 #include <debug.h>
+#include <format_tags.h>
 
 #include <algorithm>
 #include <array>
 #include <functional>
 #include <numeric>
 #include <ostream>
+#include <ranges>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -27,9 +29,9 @@ struct matpack_strided_access {
   Index stride{1};
 
   //! Construct this object with an offset, extent, and stride
-  constexpr matpack_strided_access(Index i0 = 0,
+  constexpr matpack_strided_access(Index i0  = 0,
                                    Index len = -1,
-                                   Index d = 1) noexcept
+                                   Index d   = 1) noexcept
       : offset(i0), extent(len), stride(d) {}
 
   //! Construct this object with an offset, full extent, and stride
@@ -469,10 +471,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const me_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -480,10 +479,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ce_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -491,10 +487,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ms_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -502,10 +495,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const cs_view& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
@@ -698,7 +688,7 @@ class matpack_view {
 
  public:
   template <access_operator... access,
-            Index M = num_index<access...>,
+            Index M     = num_index<access...>,
             class ret_t = mutable_access<access...>>
   [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
@@ -706,7 +696,7 @@ class matpack_view {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind...))
     if constexpr (N == M)
@@ -716,14 +706,14 @@ class matpack_view {
   }
 
   template <access_operator... access,
-            Index M = num_index<access...>,
+            Index M     = num_index<access...>,
             class ret_t = constant_access<access...>>
   [[nodiscard]] constexpr auto operator()(access&&... ind) const -> ret_t
     requires(sizeof...(access) == N)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind...),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind...))
     if constexpr (N == M)
@@ -733,7 +723,7 @@ class matpack_view {
   }
 
   template <access_operator access,
-            Index M = num_index<access>,
+            Index M     = num_index<access>,
             class ret_t = mutable_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
@@ -741,7 +731,7 @@ class matpack_view {
     assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
+                shape(),
                 "\nAccessor: ",
                 access_str(ind))
     if constexpr (N == M and N == 1)
@@ -752,14 +742,14 @@ class matpack_view {
   }
 
   template <access_operator access,
-            Index M = num_index<access>,
+            Index M     = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
-                "\nAccessor: ",
+                "Out-of-bounds:\nShape:    "sv,
+                shape(),
+                "\nAccessor: "sv,
                 access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
@@ -806,7 +796,9 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, constant, false> Exhaustive slice of the sub-view
    */
-  matpack_view<T, N-1, constant, false> as_slice(Index i) requires(N > 1) {
+  matpack_view<T, N - 1, constant, false> as_slice(Index i)
+    requires(N > 1)
+  {
     return operator[](i).view;
   }
 
@@ -820,7 +812,9 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, true, false> Exhaustive slice of the sub-view
    */
-  matpack_view<T, N-1, true, false> as_slice(Index i) const requires(N > 1) {
+  matpack_view<T, N - 1, true, false> as_slice(Index i) const
+    requires(N > 1)
+  {
     return operator[](i).view;
   }
 
@@ -946,7 +940,7 @@ class matpack_view {
 
   friend std::ostream& operator<<(std::ostream& os, const matpack_view& mv) {
     constexpr char extra = N == 1 ? ' ' : '\n';
-    bool first = true;
+    bool first           = true;
     for (auto&& v : mv) {
       if (not first)
         os << extra;
@@ -974,10 +968,10 @@ class matpack_view {
   //! Helper function to implement real or imaginary view of the complex data
   template <bool impl_constant, Index i>
   constexpr auto cmpl_impl() const {
-    using real_t = complex_subtype<T>;
-    using strided_t = strided_mdspan<real_t, N>;
-    using matpack_t = matpack_view<real_t, N, impl_constant, true>;
-    using mapping_type = typename strided_t::mapping_type;
+    using real_t        = complex_subtype<T>;
+    using strided_t     = strided_mdspan<real_t, N>;
+    using matpack_t     = matpack_view<real_t, N, impl_constant, true>;
+    using mapping_type  = typename strided_t::mapping_type;
     const auto [sz, st] = cmplx_sz();
     return matpack_t{
         strided_t{&reinterpret_cast<real_t*>(view.data_handle())[i],
@@ -1035,13 +1029,17 @@ class matpack_view {
         {std::array<Index, 1>{nrows()}, std::array<Index, 1>{nrows() + 1}}};
   }
 
-  constexpr matpack_view<T, 1, constant, false> flat_view() requires(not strided) {
+  constexpr matpack_view<T, 1, constant, false> flat_view()
+    requires(not strided)
+  {
     return {view.data_handle(), {size()}};
   }
 
   template <Index M>
   constexpr matpack_view<T, M, constant, false> reshape_as(
-      const std::array<Index, M>& sz) const requires(not strided)  {
+      const std::array<Index, M>& sz) const
+    requires(not strided)
+  {
     if (size() != mdsize<M>(sz)) std::terminate();
     ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
 
@@ -1050,7 +1048,9 @@ class matpack_view {
 
   //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
   template <integral... inds, Index M = sizeof...(inds)>
-  constexpr auto reshape_as(inds&&... sz) const requires(not strided)  {
+  constexpr auto reshape_as(inds&&... sz) const
+    requires(not strided)
+  {
     return reshape_as<M>(
         std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
   }
@@ -1117,10 +1117,7 @@ class matpack_view {
   constexpr matpack_view& operator+=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) += x[i];
     else
@@ -1135,10 +1132,7 @@ class matpack_view {
   constexpr matpack_view& operator-=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) -= x[i];
     else
@@ -1153,10 +1147,7 @@ class matpack_view {
   constexpr matpack_view& operator*=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) *= x[i];
     else
@@ -1171,10 +1162,7 @@ class matpack_view {
   constexpr matpack_view& operator/=(const matpack_view<T, N, c, s>& x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == x.shape(),
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(x.shape()))
+    ARTS_ASSERT(shape() == x.shape(), shape(), " vs ", x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) /= x[i];
     else
@@ -1213,32 +1201,49 @@ class matpack_view {
   template <bool c, bool s>
   constexpr bool operator==(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::equal_to<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::equal_to<>());
   }
   template <bool c, bool s>
   constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return not (*this == x);
+    return not(*this == x);
   }
   template <bool c, bool s>
   constexpr bool operator<(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
+    return std::equal(
+        elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
   }
   template <bool c, bool s>
   constexpr bool operator<=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less_equal<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::less_equal<>());
   }
   template <bool c, bool s>
   constexpr bool operator>(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::greater<>());
   }
   template <bool c, bool s>
   constexpr bool operator>=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater_equal<>());
+    return std::equal(elem_begin(),
+                      elem_end(),
+                      x.elem_begin(),
+                      x.elem_end(),
+                      std::greater_equal<>());
   }
 
   constexpr bool operator==(const data_t& x) const {
@@ -1289,10 +1294,7 @@ class matpack_view {
     requires(not constant)
   {
     auto ext_sh = mdshape(x);
-    ARTS_ASSERT(shape() == ext_sh,
-                shape_help<N>(shape()),
-                " vs ",
-                shape_help<N>(ext_sh))
+    ARTS_ASSERT(shape() == ext_sh, shape(), " vs ", ext_sh)
 
     auto pos = flat_shape_pos<N>(ext_sh);
     for (Index i = 0; i < size(); i++) {
@@ -1354,22 +1356,18 @@ std::string describe(const matpack_view<T, N, constant, strided>& m) {
     return var_string("constant and strided matpack_view of rank ",
                       N,
                       " of shape ",
-                      shape_help<N>(m.shape()));
+                      m.shape());
   else if constexpr (constant)
     return var_string("constant and exhaustive matpack_view of rank ",
                       N,
                       " of shape ",
-                      shape_help<N>(m.shape()));
+                      m.shape());
   else if constexpr (strided)
-    return var_string("strided matpack_view of rank ",
-                      N,
-                      " of shape ",
-                      shape_help<N>(m.shape()));
+    return var_string(
+        "strided matpack_view of rank ", N, " of shape ", m.shape());
   else
-    return var_string("exhaustive matpack_view of rank ",
-                      N,
-                      " of shape ",
-                      shape_help<N>(m.shape()));
+    return var_string(
+        "exhaustive matpack_view of rank ", N, " of shape ", m.shape());
 }
 }  // namespace matpack
 
@@ -1502,3 +1500,113 @@ using ExhaustiveConstComplexMatrixView =
 //! A constant continuous view of a tensor of Complex of rank 3
 using ExhaustiveConstComplexTensor3View =
     matpack::matpack_view<Complex, 3, true, false>;
+
+template <typename T, bool constant, bool strided>
+struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(
+      const matpack::matpack_view<T, 1, constant, strided>& v,
+      FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    const auto n = v.size();
+
+    std::string_view first = tags.sep();
+    std::string_view sep   = ""sv;
+
+    tags.add_if_bracket(ctx, '[');
+
+    if (tags.short_str and n > short_str_v_cut) {
+      tags.format(ctx, v.front());
+      for (auto&& a : v | take(short_str_v_stp) | drop(1)) {
+        tags.format(ctx, sep, a);
+      }
+
+      std::format_to(ctx.out(), "...");
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) tags.format(ctx, sep, a);
+    } else {
+      for (auto&& a : v) {
+        tags.format(ctx, std::exchange(sep, first), a);
+      }
+    }
+
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <typename T, Index N, bool constant, bool strided>
+struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
+  std::formatter<matpack::matpack_view<T, N - 1, true, false>> fmt{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(
+      const matpack::matpack_view<T, N, constant, strided>& v,
+      FmtContext& ctx) const {
+    using std::ranges::views::take, std::ranges::views::drop;
+
+    const Index n          = v.shape()[0];
+    std::string_view first = inner_fmt().tags.sep(true);
+    std::string_view sep   = ""sv;
+
+    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "[\n");
+
+    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
+      for (auto&& a : v | take(short_str_v_stp)) {
+        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
+      }
+
+      std::format_to(ctx.out(), "...");
+
+      for (auto&& a : v | drop(n - short_str_v_stp)) {
+        std::format_to(ctx.out(), "{}{}", sep, a);
+      }
+    } else {
+      for (auto&& a : v) {
+        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
+      }
+    }
+
+    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "\n]");
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Range> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Range& v, FmtContext& ctx) const {
+    return tags.format(
+        ctx, "Range("sv, v.offset, ", "sv, v.extent, ", "sv, v.stride, ')');
+  }
+};

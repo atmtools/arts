@@ -34,10 +34,8 @@ void atmfields_checkedCalc(Index& atmfields_checked,
   ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::p), "No pressure field")
   ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::t), "No temperature field")
   for (auto& spec : abs_species)
-    ARTS_USER_ERROR_IF(not atm_field.has(spec.Species()),
-                       "No ",
-                       std::quoted(var_string(spec)),
-                       " field")
+    ARTS_USER_ERROR_IF(
+        not atm_field.has(spec.Species()), "No \"", spec, "\" field")
 
     {
       const bool u = atm_field.has(AtmKey::mag_u),
@@ -140,12 +138,12 @@ void atmgeom_checkedCalc(
   // save time
   if (3 > 1) {
     // Find 500 hPa
-    Index ip = -1;
+    Index ip      = -1;
     Numeric dpmin = 99e99;
     for (Index i = 0; i < p_grid.nelem(); i++) {
       const Numeric dp = abs(p_grid[i] - 500e2);
       if (dp < dpmin) {
-        ip = i;
+        ip    = i;
         dpmin = dp;
       }
     }
@@ -205,7 +203,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
                            const Vector& f_grid,
                            const Numeric& dfrel_threshold,
                            const String& check_level,
-                           const Numeric& )//sca_mat_threshold)
+                           const Numeric&)  //sca_mat_threshold)
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adapted to this!
 {
@@ -220,7 +218,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
   ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
   if (f_grid.nelem() > 1) chk_if_increasing("f_grid", f_grid);
 
-  Index nf = f_grid.nelem();
+  Index nf   = f_grid.nelem();
   Index N_ss = scat_data.size();
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
     Index N_se = scat_data[i_ss].size();
@@ -354,11 +352,11 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const ArrayOfIndex& sensor_response_pol,
                         const Matrix& sensor_response_dlos) {
   // Some sizes
-  const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos.nrows();
-  const Index n1y = sensor_response.nrows();
+  const Index nf      = f_grid.nelem();
+  const Index nlos    = mblock_dlos.nrows();
+  const Index n1y     = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
-  const Index niyb = nf * nlos * 4;
+  const Index niyb    = nf * nlos * 4;
 
   // Sensor position and LOS.
   //

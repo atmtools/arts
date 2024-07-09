@@ -529,29 +529,6 @@ void GasAbsLookup::Extract(Matrix& sga,
   // Check dimension of t_ref:
   ARTS_ASSERT(is_size(t_ref, n_p_grid));
 
-  // Check dimension of xsec:
-  DEBUG_ONLY({
-    Index a, b, c, d;
-    if (0 == n_t_pert)
-      a = 1;
-    else
-      a = n_t_pert;
-    b = n_species + n_nls * (n_nls_pert - 1);
-    c = n_f_grid;
-    d = n_p_grid;
-    //       cout << "xsec: "
-    //            << xsec.nbooks() << ", "
-    //            << xsec.npages() << ", "
-    //            << xsec.nrows() << ", "
-    //            << xsec.ncols() << "\n";
-    //       cout << "a b c d: "
-    //            << a << ", "
-    //            << b << ", "
-    //            << c << ", "
-    //            << d << "\n";
-    ARTS_ASSERT(is_size(xsec, a, b, c, d));
-  })
-
   // Make sure that log_p_grid is initialized:
   if (log_p_grid.size() != n_p_grid) {
     std::ostringstream os;

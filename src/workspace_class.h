@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "auto_wsg.h"
+#include "format_tags.h"
 
 enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
 
@@ -82,4 +83,31 @@ class Workspace {
   void init(const std::string& name);
 
   [[nodiscard]] Workspace deepcopy() const;
+};
+
+template <>
+struct std::formatter<Workspace> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Workspace& v, FmtContext& ctx) const {
+    const std::string_view sep   = tags.sep(true);
+    const std::string_view quote = tags.quote();
+
+    tags.add_if_bracket(ctx, '{');
+    for (auto& [name, wsv] : v) {
+      tags.format(ctx, quote, name, quote, ": "sv, *wsv, sep);
+    }
+    tags.add_if_bracket(ctx, '}');
+
+    return ctx.out();
+  }
 };

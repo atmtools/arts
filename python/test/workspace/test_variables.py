@@ -109,7 +109,6 @@ class TestVariables:
         Test creation of WSVs.
         """
         self.ws.array_of_index = pyarts.arts.ArrayOfIndex()
-        self.ws.array_of_index = pyarts.arts.ArrayOfIndex()
         with pytest.raises(Exception):
             self.ws.array_of_index = pyarts.arts.Numeric()
 
@@ -207,4 +206,4 @@ class TestVariables:
 if __name__ == "__main__":
     ta = TestVariables()
     ta.setup_method()
-    ta.test_sparse_transfer()
+    ta.test_array_of_index_transfer()

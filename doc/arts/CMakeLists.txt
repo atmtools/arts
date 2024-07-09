@@ -3,6 +3,8 @@ set(files
   guide.theory.rst
   guide.user.rst
   develop.rst
+  develop.classes.rst
+  develop.classes.formatter.rst
 )
 
 foreach(fil ${files})

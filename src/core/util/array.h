@@ -2,12 +2,15 @@
 
 #include <algorithm>
 #include <array>
+#include <format>
 #include <ostream>
+#include <ranges>
 #include <sstream>
 #include <vector>
 
 #include "configtypes.h"
 #include "debug.h"
+#include "format_tags.h"
 
 /** An array of Index. */
 template <typename base>
@@ -106,7 +109,7 @@ class CmpArrayOfNumeric {
 
 //! Determine total number of elements in an ArrayOfArray
 template <class base>
-Index TotalNumberOfElements(const Array<Array<base> >& aa) {
+Index TotalNumberOfElements(const Array<Array<base>>& aa) {
   Index N_aa = 0;
   for (Size i = 0; i < aa.size(); i++) {
     N_aa += aa[i].size();
@@ -117,9 +120,7 @@ Index TotalNumberOfElements(const Array<Array<base> >& aa) {
 
 //! Determine the index of an element in a flattened version of the array
 template <class base>
-Index FlattenedIndex(const Array<Array<base> >& aa,
-                     Size outer,
-                     Size inner = 0) {
+Index FlattenedIndex(const Array<Array<base>>& aa, Size outer, Size inner = 0) {
   ARTS_ASSERT(outer < aa.size());
   ARTS_ASSERT(inner < aa[outer].size());
 

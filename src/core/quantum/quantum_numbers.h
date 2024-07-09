@@ -1,5 +1,4 @@
-#ifndef quantun_numbers_h
-#define quantun_numbers_h
+#pragma once
 
 #include <enums.h>
 
@@ -13,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "array.h"
 #include "debug.h"
 #include "isotopologues.h"
 #include "nonstd.h"
@@ -300,9 +300,9 @@ union ValueHolder {
 
   constexpr ValueHolder(QuantumNumberType t) noexcept
       : ValueHolder(common_value_type(t)) {}
-  constexpr ValueHolder(const ValueHolder&) = default;
-  constexpr ValueHolder(ValueHolder&&) noexcept = default;
-  constexpr ValueHolder& operator=(const ValueHolder&) = default;
+  constexpr ValueHolder(const ValueHolder&)                = default;
+  constexpr ValueHolder(ValueHolder&&) noexcept            = default;
+  constexpr ValueHolder& operator=(const ValueHolder&)     = default;
   constexpr ValueHolder& operator=(ValueHolder&&) noexcept = default;
 };
 
@@ -316,9 +316,9 @@ struct ValueDescription {
 
   constexpr ValueDescription(QuantumNumberValueType t) noexcept
       : type(t), val(t) {}
-  constexpr ValueDescription(const ValueDescription&) = default;
-  constexpr ValueDescription(ValueDescription&&) noexcept = default;
-  constexpr ValueDescription& operator=(const ValueDescription&) = default;
+  constexpr ValueDescription(const ValueDescription&)                = default;
+  constexpr ValueDescription(ValueDescription&&) noexcept            = default;
+  constexpr ValueDescription& operator=(const ValueDescription&)     = default;
   constexpr ValueDescription& operator=(ValueDescription&&) noexcept = default;
 
   //! Debug output only
@@ -367,7 +367,7 @@ struct TwoLevelValueHolder {
 
   constexpr TwoLevelValueHolder(QuantumNumberType t) noexcept
       : upp(t), low(t) {}
-  constexpr TwoLevelValueHolder(const TwoLevelValueHolder&) = default;
+  constexpr TwoLevelValueHolder(const TwoLevelValueHolder&)     = default;
   constexpr TwoLevelValueHolder(TwoLevelValueHolder&&) noexcept = default;
   constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) =
       default;
@@ -660,9 +660,9 @@ struct Value {
 
   constexpr Value(QuantumNumberType t = QuantumNumberType::term)
       : type(t), qn(type) {}
-  Value(const Value&) = default;
-  Value(Value&&) noexcept = default;
-  Value& operator=(const Value&) = default;
+  Value(const Value&)                = default;
+  Value(Value&&) noexcept            = default;
+  Value& operator=(const Value&)     = default;
   Value& operator=(Value&&) noexcept = default;
 
   constexpr Value(QuantumNumberType t, Rational upp_, Rational low_)
@@ -832,7 +832,7 @@ constexpr bool is_sorted(
 }
 
 //! A list of many quantum numbers.  Should always remain sorted
-class ValueList {
+struct ValueList {
   Array<Value> values;
 
   //! Internal sort function.  Should be called whenever new items are created
@@ -841,7 +841,6 @@ class ValueList {
   //! Internal check function.  Remember to sort by type before calling this
   [[nodiscard]] bool has_unique_increasing_types() const;
 
- public:
   //! From text
   explicit ValueList(std::string_view s, bool legacy = false);
 
@@ -1172,10 +1171,10 @@ bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
 std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a);
 }  // namespace Quantum::Number
 
-using QuantumNumberValue = Quantum::Number::Value;
-using QuantumNumberValueList = Quantum::Number::ValueList;
-using QuantumNumberLocalState = Quantum::Number::LocalState;
-using QuantumIdentifier = Quantum::Number::GlobalState;
+using QuantumNumberValue       = Quantum::Number::Value;
+using QuantumNumberValueList   = Quantum::Number::ValueList;
+using QuantumNumberLocalState  = Quantum::Number::LocalState;
+using QuantumIdentifier        = Quantum::Number::GlobalState;
 using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
 
 std::ostream& operator<<(std::ostream& os, const Array<QuantumNumberType>& a);
@@ -1195,7 +1194,7 @@ template <>
 struct hash<QuantumNumberValueList> {
   std::size_t operator()(const QuantumNumberValueList& g) const {
     std::size_t out = 0;
-    std::size_t i = 1;
+    std::size_t i   = 1;
     for (auto& x : g) {
       out ^= (std::hash<QuantumNumberType>{}(x.type) ^
               (std::hash<Quantum::Number::TwoLevelValueHolder>{}(x.qn) << 1))
@@ -1223,4 +1222,128 @@ struct hash<QuantumIdentifier> {
 };
 }  // namespace std
 
-#endif  // quantun_numbers_h
+template <>
+struct std::formatter<QuantumNumberValue> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const QuantumNumberValue& v,
+                              FmtContext& ctx) const {
+    const auto quote = tags.quote();
+    const auto sep   = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.type,
+                sep,
+                quote,
+                v.str_upp(),
+                quote,
+                sep,
+                quote,
+                v.str_low(),
+                quote);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<QuantumNumberValueList> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const QuantumNumberValueList& v,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, v.values);
+  }
+};
+
+template <>
+struct std::formatter<QuantumNumberLocalState> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const QuantumNumberLocalState& v,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, v.val);
+  }
+};
+
+template <>
+struct std::formatter<QuantumIdentifier> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const QuantumIdentifier& v,
+                              FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.Isotopologue().FullName(), tags.sep(), v.val);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<Quantum::Number::QuantumNumberValueType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Quantum::Number::QuantumNumberValueType& v,
+                              FmtContext& ctx) const {
+    const auto quote = tags.quote();
+
+    switch (v) {
+      case Quantum::Number::QuantumNumberValueType::I:
+        return format_to(ctx.out(), "{}I{}", quote, quote);
+      case Quantum::Number::QuantumNumberValueType::S:
+        return format_to(ctx.out(), "{}S{}", quote, quote);
+      case Quantum::Number::QuantumNumberValueType::H:
+        return format_to(ctx.out(), "{}H{}", quote, quote);
+    }
+
+    return format_to(ctx.out(), "{}bad-value{}", quote, quote);
+  }
+};

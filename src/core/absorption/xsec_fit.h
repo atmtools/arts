@@ -114,6 +114,7 @@ class XsecRecord {
   //             Index dataset,
   //             Numeric pressure) const;
 
+ public:
   static constexpr Index P00 = 0;
   static constexpr Index P10 = 1;
   static constexpr Index P01 = 2;
@@ -139,5 +140,43 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
 XsecRecord* hitran_xsec_get_data(
     const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
     const SpeciesEnum species);
+
+template <>
+struct std::formatter<XsecRecord> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      return std::format_to(ctx.out(), "XsecRecord({})", v.Species());
+    }
+
+    const std::string_view sep = tags.sep(true);
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.Species(),
+                sep,
+                v.FitMinPressures(),
+                sep,
+                v.FitMaxPressures(),
+                sep,
+                v.FitMinTemperatures(),
+                sep,
+                v.FitMaxTemperatures(),
+                sep,
+                v.FitCoeffs());
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
 
 #endif  // HITRAN_XSEC_H

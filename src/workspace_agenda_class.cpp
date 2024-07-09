@@ -96,11 +96,11 @@ void Agenda::finalize(bool fix) try {
   for (const std::string& i : must_in) {
     if (std::ranges::binary_search(outs_first, i)) {
       throw std::runtime_error(
-          var_string("Agenda ",
-                     std::quoted(name),
-                     " first uses ",
-                     std::quoted(i),
-                     " as an output but it is agenda input"));
+          var_string("Agenda \"",
+                     name,
+                     "\" first uses \"",
+                     i,
+                     "\" as an output but it is agenda input"));
     }
 
     if (not std::ranges::binary_search(ins_first, i)) {
@@ -109,8 +109,8 @@ void Agenda::finalize(bool fix) try {
                              std::vector<std::string>{i},
                              std::unordered_map<std::string, std::string>{});
       } else {
-        throw std::runtime_error(var_string(
-            "Agenda ", std::quoted(name), " does not use ", std::quoted(i)));
+        throw std::runtime_error(
+            var_string("Agenda \"", name, "\" does not use \"", i, '"'));
       }
     }
   }
@@ -119,11 +119,11 @@ void Agenda::finalize(bool fix) try {
     if (std::ranges::binary_search(ins_first, o) or
         std::ranges::binary_search(in_then_out, o)) {
       throw std::runtime_error(
-          var_string("Agenda ",
-                     std::quoted(name),
-                     " first uses ",
-                     std::quoted(o),
-                     " as an input but it is agenda output"));
+          var_string("Agenda \"",
+                     name,
+                     "\" first uses \"",
+                     o,
+                     "\" as an input but it is agenda output"));
     }
 
     if (not std::ranges::binary_search(outs_first, o)) {
@@ -132,8 +132,8 @@ void Agenda::finalize(bool fix) try {
                              std::vector<std::string>{o},
                              std::unordered_map<std::string, std::string>{});
       } else {
-        throw std::runtime_error(var_string(
-            "Agenda ", std::quoted(name), " does not set ", std::quoted(o)));
+        throw std::runtime_error(
+            var_string("Agenda \"", name, "\" does not set \"", o, '"'));
       }
     }
   }
@@ -151,8 +151,8 @@ void Agenda::finalize(bool fix) try {
 
   checked = true;
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Error finalizing agenda ", std::quoted(name), '\n', e.what()));
+  throw std::runtime_error(
+      var_string("Error finalizing agenda \"", name, '"', '\n', e.what()));
 }
 
 void agenda_add_inner_logic(Workspace& out,
@@ -226,7 +226,7 @@ void Agenda::execute(Workspace& ws) const try {
   }
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error executing agenda ", std::quoted(name), '\n', e.what()));
+      var_string("Error executing agenda ", '"', name, '"', '\n', e.what()));
 }
 
 bool Agenda::has_method(const std::string& method) const {

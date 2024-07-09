@@ -16,7 +16,8 @@ if(DOWNLOAD_CATDATA_DEPS)
     string(PREPEND DOWNLOAD_CATDATA_DEPS "arts-cat-data/")
     add_custom_command(
         OUTPUT ${DOWNLOAD_CATDATA_DEPS}
-        COMMAND ${Python3_EXECUTABLE} ${ARTS_SOURCE_DIR}/tests/testdata/get_testdata.py ${CMAKE_CURRENT_BINARY_DIR} cat ${DOWNLOAD_CATDATA}
+        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/tests/testdata/get_testdata.py cat ${DOWNLOAD_CATDATA}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
     )
 
@@ -47,7 +48,8 @@ if(DOWNLOAD_XMLDATA_DEPS)
     string(PREPEND DOWNLOAD_XMLDATA_DEPS "arts-xml-data/")
     add_custom_command(
         OUTPUT ${DOWNLOAD_XMLDATA_DEPS}
-        COMMAND ${Python3_EXECUTABLE} ${ARTS_SOURCE_DIR}/tests/testdata/get_testdata.py ${CMAKE_CURRENT_BINARY_DIR} xml ${DOWNLOAD_XMLDATA}
+        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/tests/testdata/get_testdata.py xml ${DOWNLOAD_XMLDATA}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
     )
 

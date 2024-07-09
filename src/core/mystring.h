@@ -9,6 +9,7 @@
 
 #include "array.h"
 #include "configtypes.h"
+#include "format_tags.h"
 
 /** The String type for ARTS. Implementation. */
 using String = std::string;
@@ -42,7 +43,7 @@ void extract(T& x, String& line, Size n) {
   x = T(0);
 
   const Size N = n;
-  Size i = 0;
+  Size i       = 0;
   while (i < N and i < line.size() and isspace(line[i])) ++i;
   while (n > i and (n - 1) < line.size() and isspace(line[n - 1])) --n;
 

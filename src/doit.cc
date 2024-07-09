@@ -460,7 +460,7 @@ void doit_scat_fieldNormalize(const Workspace& ws,
       }
       ARTS_USER_ERROR_IF (abs(1. - corr_factor) > norm_error_threshold,
           "ERROR: DOIT correction factor exceeds threshold (=",
-          norm_error_threshold, "): ", std::setprecision(4),
+          norm_error_threshold, "): ",
           1. - corr_factor, " at p_index ", p_index, "\n")
       if (abs(1. - corr_factor) > norm_error_threshold / 2.) {
       }

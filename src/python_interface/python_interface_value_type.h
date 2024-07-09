@@ -1,14 +1,10 @@
-#ifndef python_interface_value_type_h
-#define python_interface_value_type_h
+#pragma once
 
+#include <format_tags.h>
 #include <matpack_concepts.h>
+#include <mystring.h>
 
-#include <cmath>
-#include <concepts>
 #include <memory>
-#include <type_traits>
-#include <utility>
-
 namespace Python {
 template <typename type>
 struct ValueHolder {
@@ -17,41 +13,57 @@ struct ValueHolder {
   template <typename T>
   using common_type = std::common_type_t<type, T>;
 
-  ValueHolder() : val(std::make_shared<type>()) {}
-  ValueHolder(const ValueHolder& other) : val(std::make_shared<type>(*other.val)) {}
-  ValueHolder(ValueHolder&&) noexcept = default;
+  ValueHolder(std::shared_ptr<type> x) : val(std::move(x)) {}
+  ValueHolder() : val(new type{}) {}
+  ValueHolder(const ValueHolder& other) : val(new type{*other.val}) {}
   ValueHolder& operator=(const ValueHolder& other) {
-    val = std::make_shared<type>(*other.val);
+    *val = *other.val;
     return *this;
   }
-  ValueHolder& operator=(ValueHolder&&) noexcept = default;
-  ValueHolder(const type& a) : val(std::make_shared<type>(a)) {}
-  ValueHolder(type&& a) noexcept : val(std::make_shared<type>(a)) {}
-  ValueHolder& operator=(const type& a) noexcept {
-    *val = a;
-    return *this;
-  }
-  ValueHolder& operator=(type&& a) noexcept {
-    *val = a;
-    return *this;
-  }
+  ValueHolder& operator=(std::shared_ptr<type> x) { val = std::move(x); }
 
-  ValueHolder(const std::shared_ptr<type>& a) : val(a) {}
-  ValueHolder(std::shared_ptr<type>&& a) : val(std::move(a)) {}
+  ValueHolder(type t) : val(new type{t}) {}
+  ValueHolder& operator=(type a) noexcept {
+    *val = a;
+    return *this;
+  }
 
   operator type&() noexcept { return *val; }
   operator const type&() const noexcept { return *val; }
-  operator std::shared_ptr<type>&() noexcept { return val; }
-  operator const std::shared_ptr<type>&() const noexcept { return val; }
 
   friend std::ostream& operator<<(std::ostream& os, const ValueHolder& a) {
     return os << *a.val;
   }
 };
-
-// Set the type and ensure they are correct
-using Numeric_ = ValueHolder<Numeric>;
-using Index_ = ValueHolder<Index>;
 }  // namespace Python
 
-#endif  // python_interface_value_type_h
+template <typename T>
+struct std::formatter<Python::ValueHolder<T>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Python::ValueHolder<T>& v,
+                              FmtContext& ctx) const {
+    std::formatter<T> fmt{};
+
+    if constexpr (std::same_as<T, String>) {
+      if (tags.quoted) std::format_to(ctx.out(), R"(")");
+    }
+
+    fmt.format(*v.val, ctx);
+
+    if constexpr (std::same_as<T, String>) {
+      if (tags.quoted)std::format_to(ctx.out(),R"(")");
+    }
+
+    return ctx.out();
+  }
+};

@@ -194,14 +194,9 @@ void filename_xml(const String& filename) {
 */
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
-                             const Index& digits) {
+                             const Index&) {
   ARTS_USER_ERROR_IF("" == filename, "Must have filename")
-  var_string(filename,
-             ".",
-             std::setw((int)digits),
-             std::setfill('0'),
-             file_index,
-             ".xml");
+  filename = std::format("{}{}{}{}", filename, ".", file_index, ".xml");
 }
 
 String complete_basename(const String& basename) {

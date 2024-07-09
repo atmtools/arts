@@ -304,7 +304,7 @@ line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
             band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
             band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
         "Lineshape not supported ",
-        std::quoted(toString(band.lineshape)),
+        '"', band.lineshape, '"',
         " for band: ",
         qid)
   }

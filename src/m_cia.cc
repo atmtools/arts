@@ -392,9 +392,9 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
 
     ARTS_USER_ERROR_IF(
         robust == 0 and absorption_cia_data.back().DatasetCount() == 0,
-        "Cannot find any data for ",
-        std::quoted(name),
-        " in file at ",
-        fil)
+        "Cannot find any data for \"",
+        name,
+        "\" in file at ",
+        fil.string())
   }
 } ARTS_METHOD_ERROR_CATCH

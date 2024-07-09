@@ -17,20 +17,20 @@
 void scan_wsmr_for_errors(ArrayOfString& errors,
                           const std::string& name,
                           const WorkspaceMethodInternalRecord& wsmr) {
-  const auto wsm = internal_workspace_methods();
+  const auto wsm  = internal_workspace_methods();
   const auto& wsv = workspace_variables();
 
   if (wsmr.desc.size() == 0) {
-    errors.push_back(var_string("No description for ", std::quoted(name)));
+    errors.push_back(var_string("No description for ", '"', name, '"'));
   }
 
   if (wsmr.desc.back() not_eq '\n') {
     errors.push_back(var_string(
-        "Description for ", std::quoted(name), " does not end with a newline"));
+        "Description for ", '"', name, '"', " does not end with a newline"));
   }
 
   if (wsmr.author.size() == 0) {
-    errors.push_back(var_string("No authors for ", std::quoted(name)));
+    errors.push_back(var_string("No authors for ", '"', name, '"'));
   }
 
   if (wsmr.gout.size() not_eq wsmr.gout_type.size() or
@@ -42,24 +42,28 @@ void scan_wsmr_for_errors(ArrayOfString& errors,
                                 "), gout_desc (",
                                 wsmr.gout_desc.size(),
                                 ") for ",
-                                std::quoted(name)));
+                                '"',
+                                name,
+                                '"'));
   }
 
   for (auto& type : wsmr.gout_type) {
     if (not valid_wsg(type)) {
-      errors.push_back(var_string("Invalid gout_type for ",
-                                  std::quoted(name),
-                                  ": ",
-                                  std::quoted(type)));
+      errors.push_back(var_string(
+          "Invalid gout_type for ", '"', name, '"', ": ", '"', type, '"'));
     }
   }
 
   for (auto& gvar : wsmr.gout) {
     if (wsv.find(gvar) not_eq wsv.end()) {
       errors.push_back(var_string("Invalid gout for ",
-                                  std::quoted(name),
+                                  '"',
+                                  name,
+                                  '"',
                                   ": ",
-                                  std::quoted(gvar),
+                                  '"',
+                                  gvar,
+                                  '"',
                                   " - it is already a WSV"));
     }
   }
@@ -76,22 +80,28 @@ void scan_wsmr_for_errors(ArrayOfString& errors,
                                 "), gin_desc (",
                                 wsmr.gin_desc.size(),
                                 ") for ",
-                                std::quoted(name)));
+                                '"',
+                                name,
+                                '"'));
   }
 
   for (auto& type : wsmr.gin_type) {
     if (not valid_wsg(type)) {
       errors.push_back(var_string(
-          "Invalid gin_type for ", std::quoted(name), ": ", std::quoted(type)));
+          "Invalid gin_type for ", '"', name, '"', ": ", '"', type, '"'));
     }
   }
 
   for (auto& gvar : wsmr.gin) {
     if (wsv.find(gvar) not_eq wsv.end()) {
       errors.push_back(var_string("Invalid gin for ",
-                                  std::quoted(name),
+                                  '"',
+                                  name,
+                                  '"',
                                   ": ",
-                                  std::quoted(gvar),
+                                  '"',
+                                  gvar,
+                                  '"',
                                   " - it is already a WSV"));
     }
   }
@@ -99,9 +109,13 @@ void scan_wsmr_for_errors(ArrayOfString& errors,
   for (auto& var : wsmr.out) {
     if (wsv.find(var) == wsv.end()) {
       errors.push_back(var_string("Invalid out for ",
-                                  std::quoted(name),
+                                  '"',
+                                  name,
+                                  '"',
                                   ": ",
-                                  std::quoted(var),
+                                  '"',
+                                  var,
+                                  '"',
                                   " - it is not a WSV"));
     }
   }
@@ -109,9 +123,13 @@ void scan_wsmr_for_errors(ArrayOfString& errors,
   for (auto& var : wsmr.in) {
     if (wsv.find(var) == wsv.end()) {
       errors.push_back(var_string("Invalid in for ",
-                                  std::quoted(name),
+                                  '"',
+                                  name,
+                                  '"',
                                   ": ",
-                                  std::quoted(var),
+                                  '"',
+                                  var,
+                                  '"',
                                   " - it is not a WSV"));
     }
   }
@@ -176,7 +194,7 @@ ArrayOfString scan_for_errors() {
   for (auto& [name, wsmr] : wsm) {
     if (wsmr.has_overloads()) {
       std::size_t i = 0;
-      auto owsmr = make_overload(wsmr, i);
+      auto owsmr    = make_overload(wsmr, i);
       while (owsmr) {
         scan_wsmr_for_errors(errors, name, *owsmr);
         owsmr = make_overload(wsmr, ++i);
@@ -237,7 +255,7 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
 void call_function(std::ostream& os,
                    const std::string& name,
                    const WorkspaceMethodInternalRecord& wsmr) try {
-  const auto wsm = internal_workspace_methods();
+  const auto wsm  = internal_workspace_methods();
   const auto& wsv = workspace_variables();
 
   if (wsmr.has_any()) {

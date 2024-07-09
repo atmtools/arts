@@ -13,3 +13,4 @@ add_custom_command(OUTPUT enums.h enums.cpp
 
 add_library(arts_enum_options STATIC enums.h enums.cpp)
 target_include_directories(arts_enum_options PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(arts_enum_options PUBLIC util)

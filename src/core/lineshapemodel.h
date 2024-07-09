@@ -1,25 +1,14 @@
-/** Contains the line shape namespace
- * @file   lineshapemodel.h
- * @author Richard Larsson
- * @date   2018-09-19
- * 
- * @brief  Contains the line shape namespace
- * 
- * This namespace computes all line shape parameters
- * for any set of line shape we can use in ARTS.  Should
- * be extended for more use as seen fit.
- **/
+#pragma once
 
-#ifndef lineshapemodel_h
-#define lineshapemodel_h
+#include <algorithm>
+#include <string_view>
+#include <utility>
 
 #include "arts_conversions.h"
 #include "atm.h"
 #include "enums.h"
-#include "jacobian.h"
+#include "format_tags.h"
 #include "species_tags.h"
-#include <algorithm>
-#include <utility>
 /** Turns selected Type into a human readable string
  * 
  * This function takes the input Type
@@ -29,7 +18,8 @@
  * 
  * @return std::string_view of LineShapeTypeOld
  */
-constexpr std::string_view shapetype2metadatastring(LineShapeTypeOld type) noexcept {
+constexpr std::string_view shapetype2metadatastring(
+    LineShapeTypeOld type) noexcept {
   switch (type) {
     case LineShapeTypeOld::DP:
       return "The line shape type is the Doppler profile\n";
@@ -73,7 +63,6 @@ constexpr bool independent_per_broadener(LineShapeTypeOld in) {
   return std::binary_search(data.begin(), data.end(), in);
 }
 
-
 /** Computations of line shape derived parameters
  * 
  * Defines many classes and IO routines for line 
@@ -89,33 +78,43 @@ namespace LineShape {
  */
 struct ModelParameters {
   static constexpr Index N = 4;
-  static_assert(4 == N, "Must update either LineShapeCoeff options or ModelParameters");
+  static_assert(4 == N,
+                "Must update either LineShapeCoeff options or ModelParameters");
   LineShapeTemperatureModelOld type;
   Numeric X0;
   Numeric X1;
   Numeric X2;
   Numeric X3;
-  
-  constexpr ModelParameters(LineShapeTemperatureModelOld intype=LineShapeTemperatureModelOld::None,
-                            Numeric inX0=std::numeric_limits<Numeric>::quiet_NaN(),
-                            Numeric inX1=std::numeric_limits<Numeric>::quiet_NaN(),
-                            Numeric inX2=std::numeric_limits<Numeric>::quiet_NaN(),
-                            Numeric inX3=std::numeric_limits<Numeric>::quiet_NaN())
-  noexcept : type(intype), X0(inX0), X1(inX1), X2(inX2), X3(inX3) {}
-  
-  template <typename VectorType> constexpr
-  ModelParameters(LineShapeTemperatureModelOld intype, VectorType&& v) ARTS_NOEXCEPT :
-  ModelParameters(intype) {
+
+  constexpr ModelParameters(
+      LineShapeTemperatureModelOld intype = LineShapeTemperatureModelOld::None,
+      Numeric inX0 = std::numeric_limits<Numeric>::quiet_NaN(),
+      Numeric inX1 = std::numeric_limits<Numeric>::quiet_NaN(),
+      Numeric inX2 = std::numeric_limits<Numeric>::quiet_NaN(),
+      Numeric inX3 = std::numeric_limits<Numeric>::quiet_NaN()) noexcept
+      : type(intype), X0(inX0), X1(inX1), X2(inX2), X3(inX3) {}
+
+  template <typename VectorType>
+  constexpr ModelParameters(LineShapeTemperatureModelOld intype,
+                            VectorType&& v) ARTS_NOEXCEPT
+      : ModelParameters(intype) {
     const auto n = std::size(v);
     ARTS_ASSERT(n <= N, "Must have at most ", N, " inputs, got: ", n)
     switch (n) {
-      case 4: X3 = v[3]; [[fallthrough]];
-      case 3: X2 = v[2]; [[fallthrough]];
-      case 2: X1 = v[1]; [[fallthrough]];
-      case 1: X0 = v[0];
+      case 4:
+        X3 = v[3];
+        [[fallthrough]];
+      case 3:
+        X2 = v[2];
+        [[fallthrough]];
+      case 2:
+        X1 = v[1];
+        [[fallthrough]];
+      case 1:
+        X0 = v[0];
     }
   }
-  
+
   /** Line mixing as done by AER data in ARTS
    * 
    * Uses piece-wise linear interpolation and extrapolates at the edges
@@ -127,14 +126,13 @@ struct ModelParameters {
    * 
    * @return The broadening parameter at temperature
    */
-  [[nodiscard]] constexpr Numeric special_linemixing_aer(Numeric T) const noexcept {
-    if (T < 250.0)
-      return X0 + (T - 200.0) * (X1 - X0) / (250.0 - 200.0);
-    if (T > 296.0)
-      return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
+  [[nodiscard]] constexpr Numeric special_linemixing_aer(
+      Numeric T) const noexcept {
+    if (T < 250.0) return X0 + (T - 200.0) * (X1 - X0) / (250.0 - 200.0);
+    if (T > 296.0) return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
     return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
   }
-  
+
   /** The temperature derivative of special_linemixing_aer
    * 
    * @param[in] T The temperature
@@ -142,14 +140,13 @@ struct ModelParameters {
    * 
    * @return The temperature derivative of the broadening parameter at temperature
    */
-  [[nodiscard]] constexpr Numeric special_linemixing_aer_dT(Numeric T) const noexcept {
-    if (T < 250.0)
-      return (X1 - X0) / (250.0 - 200.0);
-    if (T > 296.0)
-      return (X3 - X2) / (340.0 - 296.0);
+  [[nodiscard]] constexpr Numeric special_linemixing_aer_dT(
+      Numeric T) const noexcept {
+    if (T < 250.0) return (X1 - X0) / (250.0 - 200.0);
+    if (T > 296.0) return (X3 - X2) / (340.0 - 296.0);
     return (X2 - X1) / (296.0 - 250.0);
   }
-  
+
   /** The derivative of special_linemixing_aer wrt X0
    * 
    * @param[in] T The temperature
@@ -157,11 +154,10 @@ struct ModelParameters {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   static constexpr Numeric special_linemixing_aer_dX0(Numeric T) noexcept {
-    if (T < 250.0)
-      return 1 - (T - 200.0) / (250.0 - 200.0);
+    if (T < 250.0) return 1 - (T - 200.0) / (250.0 - 200.0);
     return 0;
   }
-  
+
   /** The derivative of special_linemixing_aer wrt X1
    * 
    * @param[in] T The temperature
@@ -169,13 +165,11 @@ struct ModelParameters {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   static constexpr Numeric special_linemixing_aer_dX1(Numeric T) noexcept {
-    if (T < 250.0)
-      return (T - 200.0) / (250.0 - 200.0);
-    if (T > 296.0)
-      return 0;
+    if (T < 250.0) return (T - 200.0) / (250.0 - 200.0);
+    if (T > 296.0) return 0;
     return 1 - (T - 250.0) / (296.0 - 250.0);
   }
-  
+
   /** The derivative of special_linemixing_aer wrt X2
    * 
    * @param[in] T The temperature
@@ -183,13 +177,11 @@ struct ModelParameters {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   static constexpr Numeric special_linemixing_aer_dX2(Numeric T) noexcept {
-    if (T < 250.0)
-      return 0;
-    if (T > 296.0)
-      return 1 - (T - 296.0)  / (340.0 - 296.0);
+    if (T < 250.0) return 0;
+    if (T > 296.0) return 1 - (T - 296.0) / (340.0 - 296.0);
     return (T - 250.0) / (296.0 - 250.0);
   }
-  
+
   /** The derivative of special_linemixing_aer wrt X3
    * 
    * @param[in] T The temperature
@@ -197,23 +189,22 @@ struct ModelParameters {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   static constexpr Numeric special_linemixing_aer_dX3(Numeric T) noexcept {
-    if (T > 296.0)
-      return (T - 296.0) / (340.0 - 296.0);
+    if (T > 296.0) return (T - 296.0) / (340.0 - 296.0);
     return 0;
   }
-  
+
   [[nodiscard]] Numeric at(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dX1(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dX2(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dX3(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dT(Numeric T, Numeric T0) const noexcept;
-  
+
   [[nodiscard]] Numeric dT0(Numeric T, Numeric T0) const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const ModelParameters& mp);
@@ -234,25 +225,30 @@ String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
  */
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type);
 
-constexpr ModelParameters modelparameterGetEmpty(const LineShapeTemperatureModelOld t) noexcept {
-  switch(t) {
-    case LineShapeTemperatureModelOld::None:   // 0
+constexpr ModelParameters modelparameterGetEmpty(
+    const LineShapeTemperatureModelOld t) noexcept {
+  switch (t) {
+    case LineShapeTemperatureModelOld::None:  // 0
       return {LineShapeTemperatureModelOld::None, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T0:     // Constant, X0
+    case LineShapeTemperatureModelOld::T0:  // Constant, X0
       return {LineShapeTemperatureModelOld::T0, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T1:     // Standard, X0 * (T0/T) ^ X1
+    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
       return {LineShapeTemperatureModelOld::T1, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+    case LineShapeTemperatureModelOld::
+        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
       return {LineShapeTemperatureModelOld::T2, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T3:     // X0 + X1 * (T - T0)
+    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
       return {LineShapeTemperatureModelOld::T3, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+    case LineShapeTemperatureModelOld::
+        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
       return {LineShapeTemperatureModelOld::T4, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
       return {LineShapeTemperatureModelOld::T5, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+    case LineShapeTemperatureModelOld::
+        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
       return {LineShapeTemperatureModelOld::LM_AER, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+    case LineShapeTemperatureModelOld::
+        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return {LineShapeTemperatureModelOld::DPL, 0, 0, 0, 0};
     case LineShapeTemperatureModelOld::POLY:
       return {LineShapeTemperatureModelOld::POLY, 0, 0, 0, 0};
@@ -261,24 +257,28 @@ constexpr ModelParameters modelparameterGetEmpty(const LineShapeTemperatureModel
 }
 
 constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
-  switch(mp.type) {
-    case LineShapeTemperatureModelOld::None:   // 0
+  switch (mp.type) {
+    case LineShapeTemperatureModelOld::None:  // 0
       return true;
-    case LineShapeTemperatureModelOld::T0:     // Constant, X0
+    case LineShapeTemperatureModelOld::T0:  // Constant, X0
       return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::T1:     // Standard, X0 * (T0/T) ^ X1
+    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
       return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+    case LineShapeTemperatureModelOld::
+        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
       return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::T3:     // X0 + X1 * (T - T0)
+    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
       return (mp.X0 == 0 and mp.X1 == 0);
-    case LineShapeTemperatureModelOld::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+    case LineShapeTemperatureModelOld::
+        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
       return (mp.X0 == 0 and mp.X1 == 0);
-    case LineShapeTemperatureModelOld::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
       return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+    case LineShapeTemperatureModelOld::
+        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
       return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
-    case LineShapeTemperatureModelOld::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+    case LineShapeTemperatureModelOld::
+        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return (mp.X0 == 0 and mp.X2 == 0);
     case LineShapeTemperatureModelOld::POLY:
       return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
@@ -286,25 +286,30 @@ constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
   return true;
 }
 
-constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept {
-  switch(mp.type) {
-    case LineShapeTemperatureModelOld::None:   // 0
+constexpr Numeric modelparameterFirstExponent(
+    const ModelParameters mp) noexcept {
+  switch (mp.type) {
+    case LineShapeTemperatureModelOld::None:  // 0
       return 0;
-    case LineShapeTemperatureModelOld::T0:     // Constant, X0
+    case LineShapeTemperatureModelOld::T0:  // Constant, X0
       return 0;
-    case LineShapeTemperatureModelOld::T1:     // Standard, X0 * (T0/T) ^ X1
+    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
       return mp.X1;
-    case LineShapeTemperatureModelOld::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+    case LineShapeTemperatureModelOld::
+        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
       return mp.X1;
-    case LineShapeTemperatureModelOld::T3:     // X0 + X1 * (T - T0)
+    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
       return 0;
-    case LineShapeTemperatureModelOld::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+    case LineShapeTemperatureModelOld::
+        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
       return mp.X2;
-    case LineShapeTemperatureModelOld::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
-      return (0.25 + 1.5*mp.X1);
-    case LineShapeTemperatureModelOld::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return (0.25 + 1.5 * mp.X1);
+    case LineShapeTemperatureModelOld::
+        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
       return 0;
-    case LineShapeTemperatureModelOld::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+    case LineShapeTemperatureModelOld::
+        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return mp.X1;
     case LineShapeTemperatureModelOld::POLY:
       return 0;
@@ -317,35 +322,49 @@ constexpr Index nVars = 9;
 
 /** Main output of Model */
 struct Output {
-  Numeric G0{0}, // Pressure broadening speed-independent
-      D0{0},     // Pressure f-shifting speed-independent
-      G2{0},     // Pressure broadening speed-dependent
-      D2{0},     // Pressure f-shifting speed-dependent
-      FVC{0},    // Frequency of velocity-changing collisions
-      ETA{0},    // Correlation
-      Y{0},      // First order line mixing coefficient
-      G{0},      // Second order line mixing coefficient
-      DV{0};     // Second order line mixing f-shifting
+  Numeric G0{0},  // Pressure broadening speed-independent
+      D0{0},      // Pressure f-shifting speed-independent
+      G2{0},      // Pressure broadening speed-dependent
+      D2{0},      // Pressure f-shifting speed-dependent
+      FVC{0},     // Frequency of velocity-changing collisions
+      ETA{0},     // Correlation
+      Y{0},       // First order line mixing coefficient
+      G{0},       // Second order line mixing coefficient
+      DV{0};      // Second order line mixing f-shifting
   constexpr Output() noexcept = default;
-  constexpr Output(Numeric g0, Numeric d0, Numeric g2, Numeric d2, Numeric fvc,
-                   Numeric eta, Numeric y, Numeric g, Numeric dv) noexcept
-      : G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {
-  }
-  constexpr Output(const Output &) noexcept = default;
-  constexpr Output(Output &&) noexcept = default;
-  constexpr Output &operator=(const Output &) noexcept = default;
-  constexpr Output &operator=(Output &&) noexcept = default;
-  constexpr Output &operator-=(Output&& other) noexcept {
+  constexpr Output(Numeric g0,
+                   Numeric d0,
+                   Numeric g2,
+                   Numeric d2,
+                   Numeric fvc,
+                   Numeric eta,
+                   Numeric y,
+                   Numeric g,
+                   Numeric dv) noexcept
+      : G0(g0),
+        D0(d0),
+        G2(g2),
+        D2(d2),
+        FVC(fvc),
+        ETA(eta),
+        Y(y),
+        G(g),
+        DV(dv) {}
+  constexpr Output(const Output&) noexcept            = default;
+  constexpr Output(Output&&) noexcept                 = default;
+  constexpr Output& operator=(const Output&) noexcept = default;
+  constexpr Output& operator=(Output&&) noexcept      = default;
+  constexpr Output& operator-=(Output&& other) noexcept {
     static_assert(nVars == 9, "Must update");
-    G0 -= other.G0;
-    D0 -= other.D0;
-    G2 -= other.G2;
-    D2 -= other.D2;
+    G0  -= other.G0;
+    D0  -= other.D0;
+    G2  -= other.G2;
+    D2  -= other.D2;
     FVC -= other.FVC;
     ETA -= other.ETA;
-    Y -= other.Y;
-    G -= other.G;
-    DV -= other.DV;
+    Y   -= other.Y;
+    G   -= other.G;
+    DV  -= other.DV;
     return *this;
   }
 
@@ -357,7 +376,7 @@ struct Output {
     return *this;
   }
 
-  friend std::ostream &operator<<(std::ostream &os, Output x);
+  friend std::ostream& operator<<(std::ostream& os, Output x);
 };
 
 /** Compute the line shape parameters for a single broadening species */
@@ -367,21 +386,24 @@ class SingleSpeciesModel {
 
  public:
   /** Default initialization */
-  constexpr SingleSpeciesModel(
-    ModelParameters G0=ModelParameters{},
-    ModelParameters D0=ModelParameters{},
-    ModelParameters G2=ModelParameters{},
-    ModelParameters D2=ModelParameters{},
-    ModelParameters FVC=ModelParameters{},
-    ModelParameters ETA=ModelParameters{},
-    ModelParameters Y=ModelParameters{},
-    ModelParameters G=ModelParameters{},
-    ModelParameters DV=ModelParameters{})
+  constexpr SingleSpeciesModel(ModelParameters G0  = ModelParameters{},
+                               ModelParameters D0  = ModelParameters{},
+                               ModelParameters G2  = ModelParameters{},
+                               ModelParameters D2  = ModelParameters{},
+                               ModelParameters FVC = ModelParameters{},
+                               ModelParameters ETA = ModelParameters{},
+                               ModelParameters Y   = ModelParameters{},
+                               ModelParameters G   = ModelParameters{},
+                               ModelParameters DV  = ModelParameters{})
       : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}) {}
 
-#define ACCESS_INTERNAL(VARPOS)                                             \
-  constexpr ModelParameters& VARPOS() noexcept { return std::get<Index(LineShapeVariableOld::VARPOS)>(X); } \
-  constexpr ModelParameters VARPOS() const noexcept { return std::get<Index(LineShapeVariableOld::VARPOS)>(X); }
+#define ACCESS_INTERNAL(VARPOS)                              \
+  constexpr ModelParameters& VARPOS() noexcept {             \
+    return std::get<Index(LineShapeVariableOld::VARPOS)>(X); \
+  }                                                          \
+  constexpr ModelParameters VARPOS() const noexcept {        \
+    return std::get<Index(LineShapeVariableOld::VARPOS)>(X); \
+  }
   ACCESS_INTERNAL(G0);
   ACCESS_INTERNAL(D0);
   ACCESS_INTERNAL(G2);
@@ -395,18 +417,22 @@ class SingleSpeciesModel {
 
   /** Get internal Data reference */
   constexpr std::array<ModelParameters, nVars>& Data() noexcept { return X; }
-  
+
   /** Get const internal Data reference */
-  [[nodiscard]] constexpr const std::array<ModelParameters, nVars>& Data() const noexcept { return X; }
+  [[nodiscard]] constexpr const std::array<ModelParameters, nVars>& Data()
+      const noexcept {
+    return X;
+  }
 
   /** Set variable to a different ModelParameters
    * 
    * @param[in] var The variable
    * @param[in] x The new ModelParameters for var
    */
-  constexpr void Set(LineShapeVariableOld var, const ModelParameters& x) noexcept {
+  constexpr void Set(LineShapeVariableOld var,
+                     const ModelParameters& x) noexcept {
 #define MODELPARAMCASESETTER(X) \
-  case LineShapeVariableOld::X:             \
+  case LineShapeVariableOld::X: \
     X() = x;                    \
     break
     switch (var) {
@@ -429,22 +455,26 @@ class SingleSpeciesModel {
    * 
    * @return ModelParameters copy
    */
-  [[nodiscard]] constexpr ModelParameters Get(LineShapeVariableOld var) const noexcept {
-  #define MODELPARAMCASEGETTER(X) case LineShapeVariableOld::X: out = X(); break;  
-  ModelParameters out{};
-  switch (var) {
-    MODELPARAMCASEGETTER(G0);
-    MODELPARAMCASEGETTER(D0);
-    MODELPARAMCASEGETTER(G2);
-    MODELPARAMCASEGETTER(D2);
-    MODELPARAMCASEGETTER(FVC);
-    MODELPARAMCASEGETTER(ETA);
-    MODELPARAMCASEGETTER(Y);
-    MODELPARAMCASEGETTER(G);
-    MODELPARAMCASEGETTER(DV);
-  }
-  return out;
-  #undef MODELPARAMCASEGETTER
+  [[nodiscard]] constexpr ModelParameters Get(
+      LineShapeVariableOld var) const noexcept {
+#define MODELPARAMCASEGETTER(X) \
+  case LineShapeVariableOld::X: \
+    out = X();                  \
+    break;
+    ModelParameters out{};
+    switch (var) {
+      MODELPARAMCASEGETTER(G0);
+      MODELPARAMCASEGETTER(D0);
+      MODELPARAMCASEGETTER(G2);
+      MODELPARAMCASEGETTER(D2);
+      MODELPARAMCASEGETTER(FVC);
+      MODELPARAMCASEGETTER(ETA);
+      MODELPARAMCASEGETTER(Y);
+      MODELPARAMCASEGETTER(G);
+      MODELPARAMCASEGETTER(DV);
+    }
+    return out;
+#undef MODELPARAMCASEGETTER
   }
 
   /** Binary read for SingleSpeciesModel */
@@ -452,17 +482,19 @@ class SingleSpeciesModel {
 
   /** Binary write for SingleSpeciesModel */
   bofstream& write(bofstream& bof) const;
-  
-  [[nodiscard]] std::pair<bool, bool> MatchTypes(const SingleSpeciesModel& other) const noexcept;
 
-  friend std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm);
+  [[nodiscard]] std::pair<bool, bool> MatchTypes(
+      const SingleSpeciesModel& other) const noexcept;
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SingleSpeciesModel& ssm);
 
   friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
 
   [[nodiscard]] Output at(Numeric T, Numeric T0, Numeric P) const noexcept;
-    
+
   [[nodiscard]] Output dT(Numeric T, Numeric T0, Numeric P) const noexcept;
-  
+
   [[nodiscard]] Output dT0(Numeric T, Numeric T0, Numeric P) const noexcept;
 };
 
@@ -562,30 +594,32 @@ inline constexpr std::string_view self_broadening = "SELF";
  */
 class Model {
  private:
-   std::vector<SingleSpeciesModel> mdata;
+  std::vector<SingleSpeciesModel> mdata;
 
  public:
   /** Default init just sets the size */
-  Model(Index n=0) noexcept : mdata(n) {}
-  
+  Model(Index n = 0) noexcept : mdata(n) {}
+
   /** Init from copying a vector */
-  explicit Model(const std::vector<SingleSpeciesModel>& assm) noexcept : mdata(assm) {}
-  
+  explicit Model(const std::vector<SingleSpeciesModel>& assm) noexcept
+      : mdata(assm) {}
+
   /** Init from copying itself */
   Model(const Model& m) noexcept : Model(m.mdata) {}
-  
+
   /** Init from moving a vector */
-  explicit Model(std::vector<SingleSpeciesModel>&& assm) noexcept : mdata(std::move(assm)) {}
-  
+  explicit Model(std::vector<SingleSpeciesModel>&& assm) noexcept
+      : mdata(std::move(assm)) {}
+
   /** Init from moving a itself */
   Model(Model&& m) noexcept : Model(std::move(m.mdata)) {}
-  
+
   /** Copy and equals */
   Model& operator=(const Model& m) = default;
-  
+
   /** Move and equals */
   Model& operator=(Model&& m) = default;
-  
+
   /** Standard HITRAN init
    * 
    * @param[in] sgam Self pressure broadening coefficient
@@ -600,60 +634,65 @@ class Model {
         Numeric agam,
         Numeric nair,
         Numeric psf,
-        std::array<Numeric, 12> aer_interp = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept;
-  
+        std::array<Numeric, 12> aer_interp = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept;
+
   /** The Model is good to use
    * 
    * @return true/false
    */
-  [[nodiscard]] bool OK(LineShapeTypeOld type, bool self, bool bath,
-          const std::size_t nspecies) const noexcept;
-  
+  [[nodiscard]] bool OK(LineShapeTypeOld type,
+                        bool self,
+                        bool bath,
+                        const std::size_t nspecies) const noexcept;
+
   /** Number of species in Model */
   [[nodiscard]] Size size() const { return mdata.size(); }
-  
+
   /** Resize function for Model 
    * 
    * Just resizes, does nothing with the new data
    * 
    * @param[in] n New size of mspecies and mdata
    */
-  void resize(Size n) {mdata.resize(n);}
-  
+  void resize(Size n) { mdata.resize(n); }
+
   /** Reserve function for Model 
    * 
    * Just reserves, does nothing with the new data
    * 
    * @param[in] n New reserves of mspecies and mdata
    */
-  void reserve(Index n) {mdata.reserve(n);}
-  
+  void reserve(Index n) { mdata.reserve(n); }
+
   /** Get a SingleSpeciesModel
    * 
    * @param[in] i Position in mdata
    * @return reference to SingleSpeciesModel
    */
-  SingleSpeciesModel& operator[](Index i) {return mdata[i];}
-  
+  SingleSpeciesModel& operator[](Index i) { return mdata[i]; }
+
   /** Get a SingleSpeciesModel
    * 
    * @param[in] i Position in mdata
    * @return reference to SingleSpeciesModel
    */
-  const SingleSpeciesModel& operator[](Index i) const {return mdata[i];}
-  
+  const SingleSpeciesModel& operator[](Index i) const { return mdata[i]; }
+
   [[nodiscard]] auto begin() { return mdata.begin(); }
   [[nodiscard]] auto end() { return mdata.end(); }
-  
+
   [[nodiscard]] auto begin() const { return mdata.begin(); }
   [[nodiscard]] auto end() const { return mdata.end(); }
-  
+
   [[nodiscard]] auto cbegin() const { return mdata.cbegin(); }
   [[nodiscard]] auto cend() const { return mdata.cend(); }
 
   /** The line shape model data */
-  [[nodiscard]] const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
-  
+  [[nodiscard]] const std::vector<SingleSpeciesModel>& Data() const noexcept {
+    return mdata;
+  }
+
   /** The line shape model data reference */
   std::vector<SingleSpeciesModel>& Data() noexcept { return mdata; }
 
@@ -678,75 +717,128 @@ class Model {
    * @param[in] x Model containing new line mixing data
    */
   void SetLineMixingModel(SingleSpeciesModel x);
-  
+
   [[nodiscard]] std::pair<bool, bool> Match(const Model& other) const noexcept;
-  
-  friend
-  std::istream& from_linefunctiondata(std::istream& data,
-                                      LineShapeTypeOld& type,
-                                      bool& self,
-                                      bool& bath,
-                                      Model& m,
-                                      ArrayOfSpeciesEnum& species);
-  
-  friend
-  std::istream& from_artscat4(std::istream& is,
-                              LineShapeTypeOld& type,
-                              bool& self,
-                              bool& bath,
-                              Model& m,
-                              ArrayOfSpeciesEnum& species,
-                              const QuantumIdentifier& qid);
+
+  friend std::istream& from_linefunctiondata(std::istream& data,
+                                             LineShapeTypeOld& type,
+                                             bool& self,
+                                             bool& bath,
+                                             Model& m,
+                                             ArrayOfSpeciesEnum& species);
+
+  friend std::istream& from_artscat4(std::istream& is,
+                                     LineShapeTypeOld& type,
+                                     bool& self,
+                                     bool& bath,
+                                     Model& m,
+                                     ArrayOfSpeciesEnum& species,
+                                     const QuantumIdentifier& qid);
 
   friend std::ostream& operator<<(std::ostream&, const Model&);
 
   friend std::istream& operator>>(std::istream&, Model&);
-  
+
   /** Binary read for Model */
   bifstream& read(bifstream& bif);
-  
+
   /** Binary write for Model */
   bofstream& write(bofstream& bof) const;
 
-[[nodiscard]] Numeric G0(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric D0(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric G2(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric D2(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric ETA(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric FVC(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric Y(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric G(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric DV(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric G0(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric D0(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric G2(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric D2(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric ETA(Numeric T,
+                            Numeric T0,
+                            Numeric P,
+                            const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric FVC(Numeric T,
+                            Numeric T0,
+                            Numeric P,
+                            const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric Y(Numeric T,
+                          Numeric T0,
+                          Numeric P,
+                          const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric G(Numeric T,
+                          Numeric T0,
+                          Numeric P,
+                          const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric DV(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           const Vector& vmrs) const ARTS_NOEXCEPT;
 
-[[nodiscard]] Numeric dG0dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dD0dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dG2dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dD2dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dETAdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dFVCdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dYdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dGdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
-[[nodiscard]] Numeric dDVdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dG0dT(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dD0dT(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dG2dT(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dD2dT(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dETAdT(Numeric T,
+                               Numeric T0,
+                               Numeric P,
+                               const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dFVCdT(Numeric T,
+                               Numeric T0,
+                               Numeric P,
+                               const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dYdT(Numeric T,
+                             Numeric T0,
+                             Numeric P,
+                             const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dGdT(Numeric T,
+                             Numeric T0,
+                             Numeric P,
+                             const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dDVdT(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const ARTS_NOEXCEPT;
 };  // Model;
 
-Model hitran_model(Numeric sgam,
-                   Numeric nself,
-                   Numeric agam,
-                   Numeric nair,
-                   Numeric psf);
+Model hitran_model(
+    Numeric sgam, Numeric nself, Numeric agam, Numeric nair, Numeric psf);
 
 Model lblrtm_model(Numeric sgam,
                    Numeric nself,
                    Numeric agam,
                    Numeric nair,
                    Numeric psf,
-                   std::array<Numeric, 12> aer_interp = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+                   std::array<Numeric, 12> aer_interp = {
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
 
 String ModelShape2MetaData(const Model& m);
 
 Model MetaData2ModelShape(const String& s);
 
-ArrayOfString ModelMetaDataArray(const Model& m, const bool self, const ArrayOfSpeciesEnum& sts, const Numeric T0);
+ArrayOfString ModelMetaDataArray(const Model& m,
+                                 const bool self,
+                                 const ArrayOfSpeciesEnum& sts,
+                                 const Numeric T0);
 
 std::istream& from_artscat4(std::istream& is,
                             LineShapeTypeOld& type,
@@ -778,7 +870,8 @@ std::istream& from_pressurebroadeningdata(std::istream& data,
 /** Legacy dealing with reading old LineFunctionData */
 namespace LegacyLineFunctionData {
 /** Length per variable for temperature model */
-constexpr Index temperaturemodel2legacysize(LineShapeTemperatureModelOld type) noexcept {
+constexpr Index temperaturemodel2legacysize(
+    LineShapeTemperatureModelOld type) noexcept {
   switch (type) {
     case LineShapeTemperatureModelOld::None:
       return 0;
@@ -872,7 +965,7 @@ Index self_listed(const QuantumIdentifier& qid,
                   LegacyPressureBroadeningData::TypePB t);
 
 /** Pressure broadening types to number of elements */
-constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type)  {
+constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type) {
   switch (type) {
     case TypePB::PB_NONE:
       return 0;
@@ -899,9 +992,66 @@ void vector2modelpb(LineShapeTypeOld& mtype,
 };  // namespace LegacyPressureBroadeningData
 };  // namespace LineShape
 
-using LineShapeModelParameters = LineShape::ModelParameters;
-using LineShapeModel = LineShape::Model;
+using LineShapeModelParameters    = LineShape::ModelParameters;
+using LineShapeModel              = LineShape::Model;
 using LineShapeSingleSpeciesModel = LineShape::SingleSpeciesModel;
 
-#endif  // lineshapemodel_h
+template <>
+struct std::formatter<LineShapeModelParameters> {
+  format_tags tags;
 
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const LineShapeModelParameters& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.type, sep, v.X0, sep, v.X1, sep, v.X2, sep, v.X3);
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<LineShapeSingleSpeciesModel> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const LineShapeSingleSpeciesModel& v,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, v.Data());
+  }
+};
+
+template <>
+struct std::formatter<LineShapeModel> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const LineShapeModel& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.Data());
+  }
+};

@@ -560,7 +560,7 @@ void main_data::check_input_size() const {
 
   ARTS_USER_ERROR_IF(
       (source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
-      matpack::shape_help{source_poly_coeffs.shape()},
+      source_poly_coeffs.shape(),
       " vs (",
       NLayers,
       ", ",
@@ -578,7 +578,7 @@ void main_data::check_input_size() const {
                      ")");
 
   ARTS_USER_ERROR_IF((b_pos.shape() != std::array{NFourier, N}),
-                     matpack::shape_help{b_pos.shape()},
+                     b_pos.shape(),
                      " vs (",
                      NFourier,
                      ", ",
@@ -586,7 +586,7 @@ void main_data::check_input_size() const {
                      ')')
 
   ARTS_USER_ERROR_IF((b_neg.shape() != std::array{NFourier, N}),
-                     matpack::shape_help{b_neg.shape()},
+                     b_neg.shape(),
                      " vs (",
                      NFourier,
                      ", ",

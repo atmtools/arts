@@ -27,14 +27,13 @@
 void arts_wigner_thread_init(int max_two_j);
 void arts_wigner_thread_free();
 
-class WignerInformation {
+struct WignerInformation {
   static int largest;
   static int fastest;
   static bool threej;
   static bool sixj;
   static bool init;
 
-public:
   static void initalize();
 
   static void unload();
@@ -53,6 +52,9 @@ public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const WignerInformation& wi);
 };
+
+Rational wigner3_reverse_size(const int j);
+Rational wigner6_reverse_size(const int j);
 
 /*! Refine limits from multiple inputs
  * 

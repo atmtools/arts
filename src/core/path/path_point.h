@@ -5,6 +5,8 @@
 #include <matpack.h>
 #include <surf.h>
 
+#include <format>
+
 #include "matpack_constexpr.h"
 
 namespace path {
@@ -18,8 +20,8 @@ struct PropagationPathPoint {
    * the current point's pos_type, and that the current point's los_type is the
    * same as the next point's pos_type.
    */
-  PathPositionType pos_type{PathPositionType::unknown},
-      los_type{PathPositionType::unknown};
+  PathPositionType pos_type{PathPositionType::unknown};
+  PathPositionType los_type{PathPositionType::unknown};
 
   //! Position of the point: alt [m], lat [deg], lon [deg]
   Vector3 pos;
@@ -109,7 +111,7 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Numeric surface_search_accuracy = 0.1,
-    const bool surface_search_safe = false);
+    const bool surface_search_safe        = false);
 
 /** Fills a propagation path with geometrically spaced points
  *
@@ -279,9 +281,45 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
     ArrayOfPropagationPathPoint& path);
 }  // namespace path
 
-using PropagationPathPoint = path::PropagationPathPoint;
+using PropagationPathPoint        = path::PropagationPathPoint;
 using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;
 using ArrayOfArrayOfPropagationPathPoint =
     path::ArrayOfArrayOfPropagationPathPoint;
 using ArrayOfArrayOfArrayOfPropagationPathPoint =
     path::ArrayOfArrayOfArrayOfPropagationPathPoint;
+
+template <>
+struct std::formatter<PropagationPathPoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const PropagationPathPoint& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.pos_type,
+                sep,
+                v.los_type,
+                sep,
+                v.pos,
+                sep,
+                v.los,
+                sep,
+                v.nreal,
+                sep,
+                v.ngroup);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};

@@ -47,7 +47,7 @@ struct Map {
                 "Only for base-type keys");
 
   static constexpr std::size_t N = sizeof...(Keys);
-  using KeyVal = std::variant<Keys...>;
+  using KeyVal                   = std::variant<Keys...>;
   std::tuple<std::unordered_map<Keys, T>...> map_data;
 
  private:
@@ -79,8 +79,7 @@ struct Map {
   [[nodiscard]] constexpr const T &operator[](const Key &k) const try {
     return map<Key>().at(k);
   } catch (std::out_of_range &) {
-    throw std::out_of_range(
-        var_string("Key not found in map: ", std::quoted(var_string(k))));
+    throw std::out_of_range(var_string("Key not found in map: \"", k, '"'));
   } catch (...) {
     throw;
   }
@@ -97,8 +96,7 @@ struct Map {
         },
         k);
   } catch (std::out_of_range &) {
-    throw std::out_of_range(
-        var_string("Key not found in map: ", std::quoted(var_string(k))));
+    throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
   } catch (...) {
     throw;
   }

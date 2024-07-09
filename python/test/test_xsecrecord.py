@@ -55,10 +55,11 @@ class TestXsecRecord:
     def test_species(self):
         xr = pyarts.arts.XsecRecord()
         xr.species = "CFC11"
-        assert str(xr.species) == "CFC11"
+        assert format(xr.species) == "CFC11"
 
     def test_xarray(self):
         xa = self.xr.to_xarray()
+        print(xa)
         xr2 = pyarts.arts.XsecRecord.from_xarray(xa)
         assert self.xr == xr2
 
@@ -70,4 +71,4 @@ class TestXsecRecord:
 if __name__ == "__main__":
     a = TestXsecRecord()
     a.setup_method()
-    a.test_netcdf()
+    a.test_xarray()

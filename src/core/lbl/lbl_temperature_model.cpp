@@ -258,7 +258,7 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
 
 LineShapeModelType data::Type() const { return t; }
 
-Vector data::X() const { return x; }
+const Vector& data::X() const { return x; }
 
 bool data::is_zero() const {
   switch (t) {

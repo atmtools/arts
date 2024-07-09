@@ -2,8 +2,7 @@ import pyarts
 
 
 class SingleSpeciesAbsorption:
-    """Creates a propagation matrix operator from a species list.
-    """
+    """Creates a propagation matrix operator from a species list."""
 
     def __init__(
         self,
@@ -13,10 +12,11 @@ class SingleSpeciesAbsorption:
 
         Parameters
         ----------
-        species : list
-            A list of species.  See absorption_speciesSet for details.
+        species : str
+            See absorption_speciesSet for details.
         """
         self.ws = pyarts.Workspace()
+        self.ws.WignerInit()
         self.ws.absorption_speciesSet(species=[species])
         self.ws.ReadCatalogData()
         self.ws.propagation_matrix_agendaAuto()
@@ -54,6 +54,7 @@ class SingleSpeciesAbsorption:
 
 
 if __name__ == "__main__":
+    import numpy as np
     import matplotlib.pyplot as plt
 
     o2_spec = SingleSpeciesAbsorption(species="O2-66")

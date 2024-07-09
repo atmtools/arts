@@ -2,13 +2,14 @@
 
 #include <matpack.h>
 
+#include <format>
 #include <ostream>
 #include <vector>
 
+#include "array.h"
 #include "atm.h"
 #include "enums.h"
 #include "lbl_temperature_model.h"
-#include "species.h"
 
 namespace lbl::line_shape {
 struct species_model {
@@ -226,3 +227,51 @@ std::ostream& operator<<(
 std::istream& operator>>(
     std::istream& is,
     std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
+
+template <>
+struct std::formatter<lbl::line_shape::species_model> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line_shape::species_model& v,
+                              FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.species, tags.sep(), v.data);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<lbl::line_shape::model> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::line_shape::model& v,
+                              FmtContext& ctx) const {
+    const auto sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};

@@ -470,3 +470,28 @@ constexpr Propmat scale(const Propmat &a,
           da.W() * F.imag() + a.W() * dF.imag()};
 }
 };  // namespace lbl::zeeman
+
+template <>
+struct std::formatter<lbl::zeeman::model> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::zeeman::model &v,
+                              FmtContext &ctx) const {
+    const auto sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.on, sep, v.gu(), sep, v.gl());
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};

@@ -16,10 +16,11 @@
 #ifndef optproperties_h
 #define optproperties_h
 
-#include "matpack_data.h"
-#include "mystring.h"
 #include <matpack.h>
 #include <rtepack.h>
+
+#include "matpack_data.h"
+#include "mystring.h"
 
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).
@@ -32,9 +33,9 @@
 
 */
 enum PType : Index {
-  PTYPE_GENERAL = 300,
+  PTYPE_GENERAL     = 300,
   PTYPE_AZIMUTH_RND = 200,
-  PTYPE_TOTAL_RND = 100,
+  PTYPE_TOTAL_RND   = 100,
 };
 
 //! An attribute to classify the method to be used for SingleScatteringData
@@ -43,8 +44,44 @@ enum PType : Index {
   TMATRIX      T-Matrix method
 */
 enum ParticleSSDMethod {
-  PARTICLE_SSDMETHOD_NONE = 0,
+  PARTICLE_SSDMETHOD_NONE    = 0,
   PARTICLE_SSDMETHOD_TMATRIX = 1,
+};
+
+template <>
+struct std::formatter<ParticleSSDMethod> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ParticleSSDMethod& v,
+                              FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+
+    switch (v) {
+      case PARTICLE_SSDMETHOD_NONE:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_NONE"sv, quote);
+        break;
+      case PARTICLE_SSDMETHOD_TMATRIX:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_TMATRIX"sv, quote);
+        break;
+      default:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_UNKNOWN"sv, quote);
+        break;
+    }
+
+    return ctx.out();
+  }
 };
 
 /*===========================================================================
@@ -69,15 +106,18 @@ struct SingleScatteringData {
   Tensor5 ext_mat_data;
   Tensor5 abs_vec_data;
 
-  friend std::ostream& operator<<(std::ostream& os, const SingleScatteringData& ssd);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SingleScatteringData& ssd);
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
 typedef Array<Array<SingleScatteringData> > ArrayOfArrayOfSingleScatteringData;
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfSingleScatteringData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfSingleScatteringData& x);
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSingleScatteringData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfSingleScatteringData& x);
 
 /*===========================================================================
   === The ScatteringMetaData structure
@@ -99,14 +139,16 @@ struct ScatteringMetaData {
   Numeric diameter_volume_equ;
   Numeric diameter_area_equ_aerodynamical;
 
-  friend std::ostream& operator<<(std::ostream& os, const ScatteringMetaData& ssd);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ScatteringMetaData& ssd);
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
 typedef Array<Array<ScatteringMetaData> > ArrayOfArrayOfScatteringMetaData;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfScatteringMetaData& x);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfScatteringMetaData& x);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfScatteringMetaData& x);
 
 // General functions:
 // =============================================================
@@ -303,5 +345,131 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstVectorView T_grid,
                            ConstVectorView sa_grid,
                            const Index f_index = -1);
+
+template <>
+struct std::formatter<ScatteringMetaData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ScatteringMetaData& v,
+                              FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+
+    const std::string_view sep   = tags.sep();
+    const std::string_view quote = tags.quote();
+
+    tags.format(ctx,
+                quote,
+                v.description,
+                quote,
+                sep,
+                quote,
+                v.source,
+                quote,
+                sep,
+                quote,
+                v.refr_index,
+                quote,
+                sep,
+                v.mass,
+                sep,
+                v.diameter_max,
+                sep,
+                v.diameter_volume_equ,
+                sep,
+                v.diameter_area_equ_aerodynamical);
+
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<PType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const PType& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+
+    switch (v) {
+      case PTYPE_GENERAL:
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_GENERAL"sv, quote);
+        break;
+      case PTYPE_AZIMUTH_RND:
+        std::format_to(
+            ctx.out(), "{}{}{}", quote, "PTYPE_AZIMUTH_RND"sv, quote);
+        break;
+      case PTYPE_TOTAL_RND:
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_TOTAL_RND"sv, quote);
+        break;
+      default:
+        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_UNKNOWN"sv, quote);
+        break;
+    }
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<SingleScatteringData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SingleScatteringData& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep   = tags.sep(true);
+    const std::string_view quote = tags.quote();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.ptype,
+                sep,
+                quote,
+                v.description,
+                quote,
+                sep,
+                v.f_grid,
+                sep,
+                v.T_grid,
+                sep,
+                v.za_grid,
+                sep,
+                v.aa_grid,
+                sep,
+                v.pha_mat_data,
+                sep,
+                v.ext_mat_data,
+                sep,
+                v.abs_vec_data);
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
 
 #endif  //optproperties_h

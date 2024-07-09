@@ -9,10 +9,10 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "species_tags.h"
 #include "absorption.h"
 #include "interp.h"
 #include "matpack_data.h"
+#include "species_tags.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -35,8 +35,7 @@ class GasAbsLookup {
         t_ref(),
         t_pert(),
         nls_pert(),
-        xsec() { /* Nothing to do here */
-  }
+        xsec() { /* Nothing to do here */ }
 
   // Documentation is with the implementation!
   void Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
@@ -111,49 +110,46 @@ class GasAbsLookup {
       const Index& mc_seed,
       const Agenda& abs_xsec_agenda);
 
-  friend void nca_read_from_file(const int ncid,
-                                 GasAbsLookup& gal);
+  friend void nca_read_from_file(const int ncid, GasAbsLookup& gal);
 
-  friend void nca_write_to_file(const int ncid,
-                                const GasAbsLookup& gal);
+  friend void nca_write_to_file(const int ncid, const GasAbsLookup& gal);
 
   /** The species tags for which the table is valid */
-  ArrayOfArrayOfSpeciesTag& Species() {return species;}
-  const ArrayOfArrayOfSpeciesTag& Species() const {return species;}
-  
+  ArrayOfArrayOfSpeciesTag& Species() { return species; }
+  const ArrayOfArrayOfSpeciesTag& Species() const { return species; }
+
   /** The species tags with non-linear treatment */
-  ArrayOfIndex& NonLinearSpecies() {return nonlinear_species;}
-  
+  ArrayOfIndex& NonLinearSpecies() { return nonlinear_species; }
+
   /** The frequency grid [Hz] */
-  Vector& Fgrid() {return f_grid;}
-  
+  Vector& Fgrid() { return f_grid; }
+
   /** Frequency grid positions */
-  ArrayOfLagrangeInterpolation& FLAGDefault() {return flag_default;}
-  
+  ArrayOfLagrangeInterpolation& FLAGDefault() { return flag_default; }
+
   /** The pressure grid for the table [Pa] */
-  Vector& Pgrid() {return p_grid;}
-  
+  Vector& Pgrid() { return p_grid; }
+
   /** The natural log of the pressure grid */
-  Vector& LogPgrid() {return log_p_grid;}
-  
+  Vector& LogPgrid() { return log_p_grid; }
+
   /** The reference VMR profiles */
-  Matrix& VMRs() {return vmrs_ref;}
-  
+  Matrix& VMRs() { return vmrs_ref; }
+
   /** The reference temperature profile [K] */
-  Vector& Tref() {return t_ref;}
-  
+  Vector& Tref() { return t_ref; }
+
   /** The vector of temperature perturbations [K] */
-  Vector& Tpert() {return t_pert;}
-  
+  Vector& Tpert() { return t_pert; }
+
   /** The vector of perturbations for the VMRs of the nonlinear species */
-  Vector& NLSPert() {return nls_pert;}
-  
+  Vector& NLSPert() { return nls_pert; }
+
   /** Absorption cross sections */
-  Tensor4& Xsec() {return xsec;}
+  Tensor4& Xsec() { return xsec; }
 
   friend std::ostream& operator<<(std::ostream& os, const GasAbsLookup& gal);
-  
- private:
+
   //! The species tags for which the table is valid.
   ArrayOfArrayOfSpeciesTag species;
 
@@ -269,6 +265,51 @@ class GasAbsLookup {
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
     computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
+};
+
+template <>
+struct std::formatter<GasAbsLookup> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const GasAbsLookup& v, FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.species,
+                sep,
+                v.nonlinear_species,
+                sep,
+                v.f_grid,
+                sep,
+                v.flag_default,
+                sep,
+                v.p_grid,
+                sep,
+                v.log_p_grid,
+                sep,
+                v.vmrs_ref,
+                sep,
+                v.t_ref,
+                sep,
+                v.t_pert,
+                sep,
+                v.nls_pert,
+                sep,
+                v.xsec);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
 };
 
 #endif  //  gas_abs_lookup_h

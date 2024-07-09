@@ -1,4 +1,5 @@
 #include <lineshapemodel.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
@@ -10,32 +11,28 @@
 #include "absorptionlines.h"
 #include "cia.h"
 #include "debug.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
-#include "quantum_numbers.h"
 #include "species_tags.h"
 
 namespace Python {
 void py_cia(py::module_& m) try {
-  py_staticCIARecord(m)
-      .def(py::init([](const ArrayOfGriddedField2& data,
-                       SpeciesEnum spec1,
-                       SpeciesEnum spec2) {
-             return std::make_shared<CIARecord>(data, spec1, spec2);
-           }),
-           "From values")
-      .def_property_readonly(
+  py::class_<CIARecord> cia(m, "CIARecord");
+  workspace_group_interface(cia);
+  cia.def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
+      .def_prop_ro(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
           ":class:`list` The two species")
-      .def_property_readonly(
+      .def_prop_ro(
           "data",
           [](const CIARecord& c) { return c.Data(); },
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Data by bands")
       .def(
           "compute_abs",
-          [](CIARecord& cia,
+          [](CIARecord& cia_,
              Numeric T,
              Numeric P,
              Numeric X0,
@@ -45,7 +42,7 @@ void py_cia(py::module_& m) try {
              Index robust) {
             Vector out(f.nelem(), 0);
 
-            for (auto& cia_data : cia.Data()) {
+            for (auto& cia_data : cia_.Data()) {
               Vector result(f.nelem(), 0);
               cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust);
               out += result;
@@ -54,15 +51,14 @@ void py_cia(py::module_& m) try {
             out *= Math::pow2(number_density(P, T)) * X0 * X1;
             return out;
           },
-          py::arg("T"),
-          py::arg("P"),
-          py::arg("X0"),
-          py::arg("X1"),
-          py::arg("f"),
-          py::arg("T_extrapolfac") = 0.0,
-          py::arg("robust") = 1,
-          py::doc(
-              R"--(Computes the collision-induced absorption in 1/m
+          "T"_a,
+          "P"_a,
+          "X0"_a,
+          "X1"_a,
+          "f"_a,
+          "T_extrapolfac"_a = 0.0,
+          "robust"_a        = 1,
+          R"--(Computes the collision-induced absorption in 1/m
 
 Parameters
 ----------
@@ -86,18 +82,26 @@ Returns
   abs : Vector
     Absorption profile [1/m]
 
-)--"))
-      .def(py::pickle(
-          [](const CIARecord& t) {
-            return py::make_tuple(t.Data(), t.TwoSpecies());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_shared<CIARecord>();
-            out->Data() = t[0].cast<ArrayOfGriddedField2>();
-            out->TwoSpecies() = t[1].cast<std::array<SpeciesEnum, 2>>();
-            return out;
-          }));
+)--")
+      .def("__getstate__",
+           [](const CIARecord& t) {
+             return std::make_tuple(t.Data(), t.TwoSpecies());
+           })
+      .def(
+          "__setstate__",
+          [](CIARecord* c,
+             const std::tuple<ArrayOfGriddedField2, std::array<SpeciesEnum, 2>>&
+                 state) {
+            new (c) CIARecord();
+            c->Data()       = std::get<0>(state);
+            c->TwoSpecies() = std::get<1>(state);
+          });
+
+  auto acr =
+      py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(
+          m, "ArrayOfCIARecord");
+  workspace_group_interface(acr);
+  vector_interface(acr);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));

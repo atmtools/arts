@@ -92,7 +92,7 @@ size_t wigxjpf_fill_factors(int max_factorial)
     }
 
   /* We can now count the number of prime numbers, i.e. the size of
-   * out basis.
+   * our basis.
    */
 
   int num_primes = 0;

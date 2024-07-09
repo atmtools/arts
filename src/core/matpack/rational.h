@@ -11,12 +11,12 @@
 #include <array.h>
 #include <binio/bifstream.h>
 #include <binio/bofstream.h>
+#include <configtypes.h>
+#include <format_tags.h>
 #include <mystring.h>
 
 #include <numeric>
 #include <ostream>
-
-#include <configtypes.h>
 
 using std::gcd;
 
@@ -115,7 +115,7 @@ struct Rational {
    * @return Rational& *this
    */
   constexpr Rational& operator+=(const Rational& a) noexcept {
-    numer = numer * a.denom + a.numer * denom;
+    numer  = numer * a.denom + a.numer * denom;
     denom *= a.denom;
     return *this;
   }
@@ -146,7 +146,7 @@ struct Rational {
    * @return Rational& *this
    */
   constexpr Rational& operator-=(const Rational& a) noexcept {
-    numer = numer * a.denom - a.numer * denom;
+    numer  = numer * a.denom - a.numer * denom;
     denom *= a.denom;
     return *this;
   }
@@ -318,16 +318,16 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec = 4) noexcept {
 
   // Keep track of sign independently
   const bool signchange = x < 0;
-  x = signchange ? -x : x;
+  x                     = signchange ? -x : x;
 
   // Add numbers by keeping the floor
   size_t i = 0;
   do {
-    const auto xi = Index(x);
-    nom += xi;
-    x = 10 * (x - Numeric(xi));
-    nom *= 10;
-    denom *= 10;
+    const auto xi  = Index(x);
+    nom           += xi;
+    x              = 10 * (x - Numeric(xi));
+    nom           *= 10;
+    denom         *= 10;
     i++;
   } while (i <= maxdec);
 
@@ -925,5 +925,24 @@ constexpr Numeric operator-(Rational y, Numeric x) noexcept {
 constexpr Numeric operator-(Numeric x, Rational y) noexcept {
   return x - y.toNumeric();
 }
+
+template <>
+struct std::formatter<Rational> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Rational& v, FmtContext& ctx) const {
+    const std::string_view div = tags.comma ? ","sv : "/"sv;
+    return std::format_to(ctx.out(), "{}{}{}", v.numer, div, v.denom);
+  }
+};
 
 #endif  // rational_h

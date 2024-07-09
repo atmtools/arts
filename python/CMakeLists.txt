@@ -31,7 +31,7 @@ add_custom_target(pyarts
   COMMENT "Updating ARTS python package.")
 add_custom_target(pyarts-package
   ALL
-  COMMAND ${Python3_EXECUTABLE} -m build
+  COMMAND ${Python_EXECUTABLE} -m build
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS python package.")
@@ -52,13 +52,13 @@ add_custom_target(python_conversion
   COMMENT "Converting *.arts controlfiles to Python")
 
 add_custom_target(pyarts_tests
-  COMMAND ${Python3_EXECUTABLE} -m pytest -v test
+  COMMAND ${Python_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
   COMMENT "Run PyARTS tests")
 
 add_test(NAME pytest
-  COMMAND ${Python3_EXECUTABLE} -m pytest -v test
+  COMMAND ${Python_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(
   pytest PROPERTIES

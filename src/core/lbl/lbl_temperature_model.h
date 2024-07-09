@@ -27,10 +27,10 @@ inline constexpr std::array<Size, LineShapeModelTypeSize> model_size{
 };
 
 namespace model {
-#define EMPTY(name, deriv)                                                   \
-  template <typename... T>                                                   \
+#define EMPTY(name, deriv)                                          \
+  template <typename... T>                                          \
   [[nodiscard]] constexpr Numeric d##name##_d##deriv(const T&...) { \
-    return 0;                                                                \
+    return 0;                                                       \
   }
 
 constexpr Numeric T0(Numeric X0) { return X0; }
@@ -50,47 +50,31 @@ EMPTY(T1, X2)
 EMPTY(T1, X3)
 
 Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT2_dX0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT2_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT2_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT2_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT2_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT2_dX0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT2_dX1(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT2_dX2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT2_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT2_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 EMPTY(T2, X3)
 
 constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 + X1 * (T - T0);
 }
-constexpr Numeric dT3_dX0(Numeric, Numeric, Numeric, Numeric) {
-  return 1;
-}
+constexpr Numeric dT3_dX0(Numeric, Numeric, Numeric, Numeric) { return 1; }
 constexpr Numeric dT3_dX1(Numeric, Numeric, Numeric T0, Numeric T) {
   return T - T0;
 }
-constexpr Numeric dT3_dT0(Numeric, Numeric X1, Numeric, Numeric) {
-  return -X1;
-}
-constexpr Numeric dT3_dT(Numeric, Numeric X1, Numeric, Numeric) {
-  return X1;
-}
+constexpr Numeric dT3_dT0(Numeric, Numeric X1, Numeric, Numeric) { return -X1; }
+constexpr Numeric dT3_dT(Numeric, Numeric X1, Numeric, Numeric) { return X1; }
 EMPTY(T3, X2)
 EMPTY(T3, X3)
 
 Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT4_dX0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT4_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT4_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT4_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
-Numeric dT4_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT4_dX0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT4_dX1(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT4_dX2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT4_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
+Numeric dT4_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 EMPTY(T4, X2)
 EMPTY(T4, X3)
 
@@ -108,25 +92,21 @@ constexpr Numeric AER(
   if (T > 296.0) return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
   return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
 }
-constexpr Numeric dAER_dX0(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) {
+constexpr Numeric dAER_dX0(Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return 1 - (T - 200.0) / (250.0 - 200.0);
   return 0;
 }
-constexpr Numeric dAER_dX1(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) {
+constexpr Numeric dAER_dX1(Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return (T - 200.0) / (250.0 - 200.0);
   if (T > 296.0) return 0;
   return 1 - (T - 250.0) / (296.0 - 250.0);
 }
-constexpr Numeric dAER_dX2(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) {
+constexpr Numeric dAER_dX2(Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T < 250.0) return 0;
   if (T > 296.0) return 1 - (T - 296.0) / (340.0 - 296.0);
   return (T - 250.0) / (296.0 - 250.0);
 }
-constexpr Numeric dAER_dX3(
-    Numeric, Numeric, Numeric, Numeric, Numeric T) {
+constexpr Numeric dAER_dX3(Numeric, Numeric, Numeric, Numeric, Numeric T) {
   if (T > 296.0) return (T - 296.0) / (340.0 - 296.0);
   return 0;
 }
@@ -138,64 +118,32 @@ constexpr Numeric dAER_dT(
 }
 EMPTY(AER, T0)
 
-Numeric DPL(Numeric X0,
-            Numeric X1,
-            Numeric X2,
-            Numeric X3,
-            Numeric T0,
-            Numeric T);
-Numeric dDPL_dX0(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T);
-Numeric dDPL_dX1(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T);
-Numeric dDPL_dX2(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T);
-Numeric dDPL_dX3(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T);
-Numeric dDPL_dT0(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T);
-Numeric dDPL_dT(Numeric X0,
-                Numeric X1,
-                Numeric X2,
-                Numeric X3,
-                Numeric T0,
-                Numeric T);
+Numeric DPL(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dX0(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dX1(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dX2(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dX3(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dT0(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
+Numeric dDPL_dT(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
 
 Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T);
-constexpr Numeric dPOLY_dX0(const ExhaustiveConstVectorView&,
-                            Numeric) {
+constexpr Numeric dPOLY_dX0(const ExhaustiveConstVectorView&, Numeric) {
   return 1.0;
 }
-constexpr Numeric dPOLY_dX1(const ExhaustiveConstVectorView&,
-                            Numeric T) {
+constexpr Numeric dPOLY_dX1(const ExhaustiveConstVectorView&, Numeric T) {
   return T;
 }
-constexpr Numeric dPOLY_dX2(const ExhaustiveConstVectorView&,
-                            Numeric T) {
+constexpr Numeric dPOLY_dX2(const ExhaustiveConstVectorView&, Numeric T) {
   return T * T;
 }
-constexpr Numeric dPOLY_dX3(const ExhaustiveConstVectorView&,
-                            Numeric T) {
+constexpr Numeric dPOLY_dX3(const ExhaustiveConstVectorView&, Numeric T) {
   return T * T * T;
 }
 Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T);
@@ -210,13 +158,13 @@ class data {
 
  public:
   [[nodiscard]] LineShapeModelType Type() const;
-  [[nodiscard]] Vector X() const;
+  [[nodiscard]] const Vector& X() const;
 
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
   constexpr data(LineShapeModelType type = LineShapeModelType::T0,
-                 Vector X = {0.0})
+                 Vector X                = {0.0})
       : t(type), x(std::move(X)) {
     ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
     ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
@@ -233,8 +181,7 @@ class data {
 
   template <LineShapeModelType mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
-                                             Numeric T [[maybe_unused]]) const
-     {
+                                             Numeric T [[maybe_unused]]) const {
     if constexpr (mod == LineShapeModelType::T0)
       return model::T0(x[0]);
     else if constexpr (mod == LineShapeModelType::T1)
@@ -255,29 +202,28 @@ class data {
       return model::POLY(x, T);
   }
 
-#define DERIVATIVE(name)                                               \
-  template <LineShapeModelType mod>                                    \
-  [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]], \
-                                          Numeric T [[maybe_unused]])  \
-      const {                                            \
-    if constexpr (mod == LineShapeModelType::T0)                       \
-      return model::dT0_d##name(x[0]);                                 \
-    else if constexpr (mod == LineShapeModelType::T1)                  \
-      return model::dT1_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == LineShapeModelType::T2)                  \
-      return model::dT2_d##name(x[0], x[1], x[2], T0, T);              \
-    else if constexpr (mod == LineShapeModelType::T3)                  \
-      return model::dT3_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == LineShapeModelType::T4)                  \
-      return model::dT4_d##name(x[0], x[1], x[2], T0, T);              \
-    else if constexpr (mod == LineShapeModelType::T5)                  \
-      return model::dT5_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == LineShapeModelType::AER)                 \
-      return model::dAER_d##name(x[0], x[1], x[2], x[3], T);           \
-    else if constexpr (mod == LineShapeModelType::DPL)                 \
-      return model::dDPL_d##name(x[0], x[1], x[2], x[3], T0, T);       \
-    else if constexpr (mod == LineShapeModelType::POLY)                \
-      return model::dPOLY_d##name(x, T);                               \
+#define DERIVATIVE(name)                                                      \
+  template <LineShapeModelType mod>                                           \
+  [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]],        \
+                                          Numeric T [[maybe_unused]]) const { \
+    if constexpr (mod == LineShapeModelType::T0)                              \
+      return model::dT0_d##name(x[0]);                                        \
+    else if constexpr (mod == LineShapeModelType::T1)                         \
+      return model::dT1_d##name(x[0], x[1], T0, T);                           \
+    else if constexpr (mod == LineShapeModelType::T2)                         \
+      return model::dT2_d##name(x[0], x[1], x[2], T0, T);                     \
+    else if constexpr (mod == LineShapeModelType::T3)                         \
+      return model::dT3_d##name(x[0], x[1], T0, T);                           \
+    else if constexpr (mod == LineShapeModelType::T4)                         \
+      return model::dT4_d##name(x[0], x[1], x[2], T0, T);                     \
+    else if constexpr (mod == LineShapeModelType::T5)                         \
+      return model::dT5_d##name(x[0], x[1], T0, T);                           \
+    else if constexpr (mod == LineShapeModelType::AER)                        \
+      return model::dAER_d##name(x[0], x[1], x[2], x[3], T);                  \
+    else if constexpr (mod == LineShapeModelType::DPL)                        \
+      return model::dDPL_d##name(x[0], x[1], x[2], x[3], T0, T);              \
+    else if constexpr (mod == LineShapeModelType::POLY)                       \
+      return model::dPOLY_d##name(x, T);                                      \
   }
 
   DERIVATIVE(X0)
@@ -300,3 +246,26 @@ class data {
   [[nodiscard]] bool is_zero() const;
 };
 }  // namespace lbl::temperature
+
+template <>
+struct std::formatter<lbl::temperature::data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::temperature::data& v,
+                              FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.Type(), tags.sep(), v.X());
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};

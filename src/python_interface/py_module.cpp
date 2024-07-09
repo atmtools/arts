@@ -1,16 +1,15 @@
+#include <nanobind/nanobind.h>
 #include <parameters.h>
 #include <python_interface.h>
-
-#include <memory>
 
 extern Parameters parameters;
 
 void parse_path_from_environment(String envvar, ArrayOfString& paths);
 
 namespace Python {
-namespace py = pybind11;
+namespace py = nanobind;
 
-void py_workspace(artsclass<Workspace>& ws);
+void py_workspace(py::class_<Workspace>& ws);
 
 void py_basic(py::module_& m);
 void py_matpack(py::module_& m);
@@ -20,7 +19,7 @@ void py_time(py::module_& m);
 void py_tessem(py::module_& m);
 void py_quantum(py::module_& m);
 void py_rte(py::module_& m);
-void py_rtepack(py::module_ &m);
+void py_rtepack(py::module_& m);
 void py_telsem(py::module_& m);
 void py_species(py::module_& m);
 void py_sparse(py::module_& m);
@@ -41,7 +40,7 @@ void py_math(py::module_& m);
 void py_auto_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_atm(py::module_& m);
-void py_surf(py::module_ &m);
+void py_surf(py::module_& m);
 void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
 void py_operators(py::module_& m);
@@ -52,7 +51,7 @@ void py_disort(py::module_& m);
 void py_igrf(py::module_& m);
 void py_zeeman(py::module_& m);
 
-/** Construct a new pybind11 module object to hold all the Arts types and functions
+/** Construct a new nanobind module object to hold all the Arts types and functions
  * 
  * Note: the order of execution mostly does not matter bar for some important things:
  *
@@ -63,9 +62,9 @@ void py_zeeman(py::module_& m);
  * 
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
-PYBIND11_MODULE(arts, m) try {
+NB_MODULE(arts, m) try {
   m.doc() = "Interface directly to the C++ types via python";
-  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
+  py::class_<Workspace> ws(m, "_Workspace");
 
   static bool init = true;
   if (init) {
@@ -86,7 +85,7 @@ PYBIND11_MODULE(arts, m) try {
         parameters.includepath.push_back(
             arts_default_include_path.substr(lastPos, pos - lastPos));
         lastPos = arts_default_include_path.find_first_not_of(':', pos);
-        pos = arts_default_include_path.find_first_of(':', lastPos);
+        pos     = arts_default_include_path.find_first_of(':', lastPos);
       }
     }
 #endif
@@ -104,10 +103,6 @@ PYBIND11_MODULE(arts, m) try {
   // so it should be included early for documentation purposes when its
   // data is used by modules below it
   py_auto_options(m);
-
-  // Initialize the workspace groups (this requires just pure python)
-  py_manual_groupsEarlyInit(m);
-  py_initAllValidWorkspaceGroups(m);
 
   py_basic(m);
   py_matpack(m);
@@ -154,7 +149,10 @@ PYBIND11_MODULE(arts, m) try {
   py_hitran(m);
   py_igrf(m);
   py_zeeman(m);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
+
+  py::set_leak_warnings(false);
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
 }
 }  // namespace Python

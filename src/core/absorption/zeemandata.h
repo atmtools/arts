@@ -15,13 +15,15 @@
 #include <matpack.h>
 #include <rtepack.h>
 
+#include <format>
 #include <limits>
+#include <string_view>
 
 #include "quantum_numbers.h"
 
 /** Implements Zeeman modeling */
 namespace Zeeman {
-  
+
 /** Zeeman polarization selection */
 enum class Polarization : char { SigmaMinus, Pi, SigmaPlus, None };
 
@@ -145,7 +147,6 @@ constexpr Rational Mu(Rational Ju,
   return start(Ju, Jl, type) + n;
 }
 
-
 /** Gives the lower state M value at an index
  * 
  * The user has to ensure that Ju and Jl is a valid transition
@@ -216,13 +217,12 @@ constexpr Numeric SimpleGCaseB(Rational N,
   auto SS = S * (S + 1);
   auto LL = Lambda * Lambda;
 
-  if (JJ == 0)
-    return 0.0;
+  if (JJ == 0) return 0.0;
   if (NN not_eq 0) {
     auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
     auto T2 = ((JJ - SS + NN) * LL / NN / JJ / 2).toNumeric();
     return GS * T1 + GL * T2;
-  }      
+  }
   auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
   return GS * T1;
 }
@@ -249,13 +249,11 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
                                Numeric GL) noexcept {
   auto JJ = J * (J + 1);
 
-  if (JJ == Rational(0))
-    return 0.0;
+  if (JJ == Rational(0)) return 0.0;
   auto DIV = Omega / JJ;
-  auto T1 = (Sigma * DIV).toNumeric();
-  auto T2 = (Lambda * DIV).toNumeric();
+  auto T1  = (Sigma * DIV).toNumeric();
+  auto T2  = (Lambda * DIV).toNumeric();
   return GS * T1 + GL * T2;
- 
 }
 
 /** Main storage for Zeeman splitting coefficients
@@ -280,12 +278,13 @@ class Model {
   SplittingData mdata;
 
  public:
-   /** Default copy/init of Model from its only private variable */
-   constexpr Model(SplittingData gs = {NAN, NAN}) noexcept : mdata(gs) {}
-   
-   /** Default copy/init of Model from its only private variable */
-   constexpr Model(Numeric gu, Numeric gl) noexcept : Model(SplittingData{gu, gl}) {}
-  
+  /** Default copy/init of Model from its only private variable */
+  constexpr Model(SplittingData gs = {NAN, NAN}) noexcept : mdata(gs) {}
+
+  /** Default copy/init of Model from its only private variable */
+  constexpr Model(Numeric gu, Numeric gl) noexcept
+      : Model(SplittingData{gu, gl}) {}
+
   /** Attempts to compute Zeeman input if available
    * 
    * Will first attempt advanced initialization from
@@ -305,19 +304,19 @@ class Model {
 
   /** Returns the upper state g */
   constexpr Numeric& gu() noexcept { return mdata.gu; }
-  
+
   /** Returns the lower state g */
   constexpr Numeric& gl() noexcept { return mdata.gl; }
 
   /** Sets the upper state g */
   constexpr void gu(Numeric x) noexcept { mdata.gu = x; }
-  
+
   /** Sets the lower state g */
   constexpr void gl(Numeric x) noexcept { mdata.gl = x; }
-  
+
   /** Returns the upper state g */
   [[nodiscard]] constexpr Numeric gu() const noexcept { return mdata.gu; }
-  
+
   /** Returns the lower state g */
   [[nodiscard]] constexpr Numeric gl() const noexcept { return mdata.gl; }
 
@@ -334,8 +333,11 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const ARTS_NOEXCEPT;
-  
+  [[nodiscard]] Numeric Strength(Rational Ju,
+                                 Rational Jl,
+                                 Polarization type,
+                                 Index n) const ARTS_NOEXCEPT;
+
   /** Gives the splitting of one subline of a given polarization
    * 
    * The user has to ensure that Ju and Jl is a valid transition
@@ -349,8 +351,10 @@ class Model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] constexpr Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
-      noexcept {
+  [[nodiscard]] constexpr Numeric Splitting(Rational Ju,
+                                            Rational Jl,
+                                            Polarization type,
+                                            Index n) const noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
@@ -360,13 +364,13 @@ class Model {
 
   /** Output operator for Zeeman::Model */
   friend std::ostream& operator<<(std::ostream& os, const Model& m);
-  
+
   /** Input operator for Zeeman::Model */
   friend std::istream& operator>>(std::istream& is, Model& m);
-  
+
   /** Output operator for Zeeman::Model */
   friend std::ostream& operator<<(bofstream& bof, const Model& m);
-  
+
   /** Input operator for Zeeman::Model */
   friend std::istream& operator>>(bifstream& bif, Model& m);
 };  // Model;
@@ -432,8 +436,7 @@ struct AllPolarizationVectors {
  * 
  * @return The polarization vectors of all Zeeman polarization
  */
-AllPolarizationVectors AllPolarization(Numeric theta,
-                                       Numeric eta) noexcept;
+AllPolarizationVectors AllPolarization(Numeric theta, Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt theta
  * 
@@ -442,8 +445,8 @@ AllPolarizationVectors AllPolarization(Numeric theta,
  * 
  * @return The derivative of AllPolarization wrt theta
  */
-AllPolarizationVectors AllPolarization_dtheta(
-    Numeric theta, const Numeric eta) noexcept;
+AllPolarizationVectors AllPolarization_dtheta(Numeric theta,
+                                              const Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt eta
  * 
@@ -460,8 +463,8 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
  * @param[in] data The pre-computed polarization vectors
  * @param[in] type The type of polarization to select
  */
-const PolarizationVector& SelectPolarization(
-    const AllPolarizationVectors& data, Polarization type) noexcept;
+const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
+                                             Polarization type) noexcept;
 
 /** Sums the Zeeman components into a propagation matrix
  *
@@ -469,8 +472,9 @@ const PolarizationVector& SelectPolarization(
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
-                 const PolarizationVector &polvec);
+void sum_propmat(PropmatVectorView pm,
+                 const ConstComplexVectorView& abs,
+                 const PolarizationVector& polvec);
 
 /** Sums the Zeeman components into a source vector
  *
@@ -478,8 +482,9 @@ void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
-                 const PolarizationVector &polvec);
+void sum_stokvec(StokvecVectorView sv,
+                 const ConstComplexVectorView& abs,
+                 const PolarizationVector& polvec);
 
 /** Sums the Zeeman components derivatives into a propagation matrix
  *
@@ -493,12 +498,15 @@ void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
  * @param[in] dtheta The derivative w.r.t. theta
  * @param[in] deta The derivative w.r.t. eta
  */
-void dsum_propmat(PropmatVectorView dpm, const ConstComplexVectorView &abs,
-                  const ConstComplexVectorView &dabs,
-                  const PolarizationVector &polvec,
-                  const PolarizationVector &dpolvec_dtheta,
-                  const PolarizationVector &dpolvec_deta, const Numeric dH,
-                  const Numeric dtheta, const Numeric deta);
+void dsum_propmat(PropmatVectorView dpm,
+                  const ConstComplexVectorView& abs,
+                  const ConstComplexVectorView& dabs,
+                  const PolarizationVector& polvec,
+                  const PolarizationVector& dpolvec_dtheta,
+                  const PolarizationVector& dpolvec_deta,
+                  const Numeric dH,
+                  const Numeric dtheta,
+                  const Numeric deta);
 
 /** Sums the Zeeman components derivatives into a source vector
  *
@@ -512,12 +520,15 @@ void dsum_propmat(PropmatVectorView dpm, const ConstComplexVectorView &abs,
  * @param[in] dtheta The derivative w.r.t. theta
  * @param[in] deta The derivative w.r.t. eta
  */
-void dsum_stokvec(StokvecVectorView dsv, const ConstComplexVectorView &abs,
-                  const ConstComplexVectorView &dabs,
-                  const PolarizationVector &polvec,
-                  const PolarizationVector &dpolvec_dtheta,
-                  const PolarizationVector &dpolvec_deta, const Numeric dH,
-                  const Numeric dtheta, const Numeric deta);
+void dsum_stokvec(StokvecVectorView dsv,
+                  const ConstComplexVectorView& abs,
+                  const ConstComplexVectorView& dabs,
+                  const PolarizationVector& polvec,
+                  const PolarizationVector& dpolvec_dtheta,
+                  const PolarizationVector& dpolvec_deta,
+                  const Numeric dH,
+                  const Numeric dtheta,
+                  const Numeric deta);
 
 /** Contains derived values useful for Zeeman calculations
  * 
@@ -563,7 +574,8 @@ struct Derived {
  * 
  * @return The derived plane
  */
-Derived FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept;
+Derived FromGrids(
+    Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept;
 
 /** Sets Derived from predefined Derived parameters
  * 
@@ -582,5 +594,26 @@ constexpr Derived FromPreDerived(Numeric H,
 
 // Typedef to make it easier to use
 using ZeemanModel = Zeeman::Model;
+
+template <>
+struct std::formatter<ZeemanModel> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ZeemanModel& v, FmtContext& ctx) const {
+    tags.add_if_bracket(ctx, '[');
+    std::format_to(ctx.out(), "{}{}{}", v.gu(), tags.sep(), v.gl());
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
 
 #endif /* zeemandata_h */

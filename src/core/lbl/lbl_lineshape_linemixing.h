@@ -53,3 +53,54 @@ struct isot_map {
 }  // namespace lbl::linemixing
 
 using LinemixingEcsData = lbl::linemixing::isot_map;
+
+template <>
+struct std::formatter<lbl::linemixing::species_data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const lbl::linemixing::species_data& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx,
+                v.scaling,
+                sep,
+                v.beta,
+                sep,
+                v.lambda,
+                sep,
+                v.collisional_distance);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<LinemixingEcsData> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const LinemixingEcsData& v,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, v.data);
+  }
+};

@@ -1,22 +1,28 @@
-#include <python_interface.h>
+#include <nanobind/eigen/dense.h>
+#include <nanobind/eigen/sparse.h>
+#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/shared_ptr.h>
 
 #include <memory>
 #include <utility>
 #include <variant>
 
-#include "covariance_matrix.h"
-#include "matpack_concepts.h"
-#include "matpack_sparse.h"
+#include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
+#include "python_interface.h"
 
 namespace Python {
 void py_sparse(py::module_& m) try {
-  py_staticSparse(m)
-      .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
-        Sparse s;
-        s.matrix.swap(es);
-        return s;
-      }), "From :class:`scipy.sparse.csr_matrix`")
+  py::class_<Sparse> sp(m, "Sparse");
+  workspace_group_interface(sp);
+  sp.def(
+        "__init__",
+        [](Sparse* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
+          new (s) Sparse{};
+          s->matrix.swap(es);
+        },
+        "From :class:`scipy.sparse.csr_matrix`")
       .def(
           "__getitem__",
           [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
@@ -27,7 +33,7 @@ void py_sparse(py::module_& m) try {
               throw std::out_of_range(var_string("col ", c));
             return x.rw(r, c);
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
              const auto [r, c] = ind;
@@ -37,79 +43,70 @@ void py_sparse(py::module_& m) try {
                throw std::out_of_range(var_string("col ", c));
              x.rw(r, c) = y;
            })
-      .def_property(
+      .def_prop_rw(
           "value",
           [](Sparse& s) { return s.matrix; },
           [](Sparse& s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> ns) {
             s.matrix.swap(ns);
-          }, "Treat as :class:`scipy.sparse.csr_matrix`")
-      .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); }, R"(Make a dense :class:`numpy.ndarray` from the sparse matrix
+          },
+          "Treat as :class:`scipy.sparse.csr_matrix`")
+      .def(
+          "toarray",
+          [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); },
+          R"(Make a dense :class:`numpy.ndarray` from the sparse matrix
 
 Returns
 -------
 arr : numpy.ndarray
     A dense array
 )")
-      .def(py::pickle(
-          [](const Sparse& self) { return py::make_tuple(self.matrix); },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-
-            auto out = std::make_shared<Sparse>();
-            out->matrix = t[0].cast<decltype(out->matrix)>();
-
-            return out;
-          }));
+      .def("__getstate__",
+           [](const Sparse& self) {
+             return std::tuple<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>>{
+                 self.matrix};
+           })
+      .def("__setstate__",
+           [](Sparse* self,
+              const std::tuple<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>>&
+                  state) {
+             new (self) Sparse{};
+             self->matrix = std::get<0>(state);
+           });
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
                              Sparse>();
+
+  auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(
+      m, "ArrayOfSparse");
+  workspace_group_interface(a1);
+  vector_interface(a1);
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense, "Dense matrix block")
       .value("sparse", Block::MatrixType::sparse, "Sparse matrix block")
       .PythonInterfaceCopyValue(Block::MatrixType)
-      .def(py::pickle(
-          [](const Block::MatrixType& self) {
-            return py::make_tuple(static_cast<Index>(self));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+      .def("__getstate__",
+           [](const Block::MatrixType& self) {
+             return std::tuple<Index>{static_cast<Index>(self)};
+           })
+      .def("__setstate__",
+           [](Block::MatrixType* self, const std::tuple<Index>& state) {
+             new (self) Block::MatrixType{
+                 static_cast<Block::MatrixType>(std::get<0>(state))};
+           });
 
-            return static_cast<Block::MatrixType>(t[0].cast<Index>());
-          }));
-
-  artsclass<Block>(m, "Block")
-      .def(py::init([](Range row_range,
-                       Range column_range,
-                       IndexPair indices,
-                       Matrix mat) {
-             return std::make_shared<Block>(
-                 row_range,
-                 column_range,
-                 indices,
-                 std::make_shared<Matrix>(std::move(mat)));
-           }),
+  py::class_<Block>(m, "Block")
+      .def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(),
            "By value, dense")
-      .def(py::init([](Range row_range,
-                       Range column_range,
-                       IndexPair indices,
-                       Sparse mat) {
-             return std::make_shared<Block>(
-                 row_range,
-                 column_range,
-                 indices,
-                 std::make_shared<Sparse>(std::move(mat)));
-           }),
+      .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(),
            "By value, sparse")
       .PythonInterfaceCopyValue(Block)
-      .def_property(
+      .def_prop_rw(
           "matrix",
-          py::cpp_function(
-              [](Block& x) -> std::variant<Matrix*, Sparse*> {
-                if (x.get_matrix_type() == Block::MatrixType::dense)
-                  return &x.get_dense();
-                return &x.get_sparse();
-              },
-              py::return_value_policy::reference_internal),
+          [](Block& x) -> std::variant<Matrix*, Sparse*> {
+            if (x.get_matrix_type() == Block::MatrixType::dense)
+              return &x.get_dense();
+            return &x.get_sparse();
+          },
           [](Block& x, std::variant<Matrix*, Sparse*> y) {
             if (std::holds_alternative<Matrix*>(y)) {
               x.set_matrix(
@@ -120,66 +117,69 @@ arr : numpy.ndarray
             }
           },
           ":class:`~pyarts.arts.Matrix` or :class:`~pyarts.arts.Sparse` The matrix held inside the instance")
-      .def(py::pickle(
-          [](const Block& self) {
-            if (self.get_matrix_type() == Block::MatrixType::sparse)
-              return py::make_tuple(self.get_row_range(),
-                                    self.get_column_range(),
-                                    self.get_indices(),
-                                    self.get_matrix_type(),
-                                    self.get_sparse());
-            return py::make_tuple(self.get_row_range(),
-                                  self.get_column_range(),
-                                  self.get_indices(),
-                                  self.get_matrix_type(),
-                                  self.get_dense());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+      .def("__getstate__",
+           [](const Block& self) {
+             if (self.get_matrix_type() == Block::MatrixType::sparse)
+               return std::
+                   tuple<Range, Range, IndexPair, std::variant<Matrix, Sparse>>{
+                       self.get_row_range(),
+                       self.get_column_range(),
+                       self.get_indices(),
+                       self.get_sparse()};
+             return std::
+                 tuple<Range, Range, IndexPair, std::variant<Matrix, Sparse>>{
+                     self.get_row_range(),
+                     self.get_column_range(),
+                     self.get_indices(),
+                     self.get_dense()};
+           })
+      .def(
+          "__setstate__",
+          [](Block* self,
+             const std::
+                 tuple<Range, Range, IndexPair, std::variant<Matrix, Sparse>>&
+                     state) {
+            auto row_range    = std::get<0>(state);
+            auto column_range = std::get<1>(state);
+            auto indices      = std::get<2>(state);
+            auto mat          = std::get<3>(state);
 
-            auto row_range = t[0].cast<Range>();
-            auto column_range = t[1].cast<Range>();
-            auto indices = t[2].cast<IndexPair>();
-
-            if (t[3].cast<Block::MatrixType>() == Block::MatrixType::sparse)
-              return std::make_shared<Block>(
-                  row_range,
-                  column_range,
-                  indices,
-                  std::make_shared<Sparse>(Sparse{t[4].cast<Sparse>()}));
-            return std::make_shared<Block>(
-                row_range,
-                column_range,
-                indices,
-                std::make_shared<Matrix>(Matrix{t[4].cast<Matrix>()}));
-          }))
+            if (std::holds_alternative<Sparse>(mat))
+              new (self) Block(row_range,
+                               column_range,
+                               indices,
+                               std::make_shared<Sparse>(std::get<Sparse>(mat)));
+            else
+              new (self) Block(row_range,
+                               column_range,
+                               indices,
+                               std::make_shared<Matrix>(std::get<Matrix>(mat)));
+          })
       .doc() = "A single block matrix";
 
-  py_staticCovarianceMatrix(m)
-      .def_property(
+  py::class_<CovarianceMatrix> covm(m, "CovarianceMatrix");
+  workspace_group_interface(covm);
+  covm.def_prop_rw(
           "blocks",
           [](CovarianceMatrix& x) { return x.get_blocks(); },
           [](CovarianceMatrix& x, std::vector<Block> y) {
             x.get_blocks() = std::move(y);
-          }, ":class:`list` of :class:`~pyarts.arts.Block`")
-      .PythonInterfaceFileIO(CovarianceMatrix)
-      .PythonInterfaceBasicRepresentation(CovarianceMatrix)
-      .def(py::pickle(
-          [](CovarianceMatrix& self) {
-            return py::make_tuple(self.get_blocks(), self.get_inverse_blocks());
           },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-
-            auto b = t[0].cast<std::vector<Block>>();
-            auto i = t[0].cast<std::vector<Block>>();
-
-            auto out = std::make_shared<CovarianceMatrix>();
-            out->get_blocks() = std::move(b);
-            out->get_inverse_blocks() = std::move(i);
-            return out;
-          }));
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
+          ":class:`list` of :class:`~pyarts.arts.Block`")
+      .def("__getstate__",
+           [](CovarianceMatrix& self) {
+             return std::tuple<std::vector<Block>, std::vector<Block>>(
+                 self.get_blocks(), self.get_inverse_blocks());
+           })
+      .def("__setstate__",
+           [](CovarianceMatrix* self,
+              const std::tuple<std::vector<Block>, std::vector<Block>>& state) {
+             new (self) CovarianceMatrix{};
+             self->get_blocks()         = std::get<0>(state);
+             self->get_inverse_blocks() = std::get<1>(state);
+           });
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
 }
 }  // namespace Python

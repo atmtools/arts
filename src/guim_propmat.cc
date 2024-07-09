@@ -167,7 +167,7 @@ void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
   }
 
   bool invalid_state = not success.get();
-  ARTS_USER_ERROR_IF(invalid_state, '\n', ctrl.error)
+  ARTS_USER_ERROR_IF(invalid_state, '\n', ctrl.error.load())
 
 #else   // ARTS_GUI_ENABLED not defined
   ARTS_USER_ERROR("Did not compile with GUI")

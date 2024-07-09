@@ -1,63 +1,66 @@
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/string.h>
+#include <workspace.h>
 
-#include <python_interface.h>
-
-#include <memory>
-#include <vector>
-
-#include "debug.h"
-#include "py_macros.h"
-#include "python_interface_value_type.h"
-#include "quantum_numbers.h"
+#include "hpy_arts.h"
 
 namespace Python {
+namespace py = nanobind;
+
 void py_nlte(py::module_ &m) try {
-  py_staticVibrationalEnergyLevels(m)
-      .def(py::init([](std::map<QuantumIdentifier, Numeric> &in) {
-        auto out = std::make_shared<VibrationalEnergyLevels>();
-        for (auto &x : in) {
-          out->operator[](x.first) = x.second;
-        }
-        return out;
-      }))
+  py::class_<VibrationalEnergyLevels> vibe(m, "VibrationalEnergyLevels");
+  workspace_group_interface(vibe);
+  vibe.def("__init__",
+           [](VibrationalEnergyLevels *n,
+              std::map<QuantumIdentifier, Numeric> &inv) {
+             new (n) VibrationalEnergyLevels{};
+             for (auto &x : inv) {
+               n->operator[](x.first) = x.second;
+             }
+           })
       .def(
           "__getitem__",
           [](VibrationalEnergyLevels &x, const QuantumIdentifier &q) {
-            if (x.data.find(q) == x.end()) throw py::key_error(var_string(q));
+            if (x.data.find(q) == x.end())
+              throw py::key_error(var_string(q).c_str());
             return x[q];
           },
-          py::return_value_policy::reference_internal)
+          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](VibrationalEnergyLevels &x,
               const QuantumIdentifier &q,
               Numeric y) { x[q] = y; })
-      .def(py::pickle(
-          [](const VibrationalEnergyLevels &t) {
-            std::vector<QuantumIdentifier> qn;
-            std::vector<Numeric> v;
+      .def("__getstate__",
+           [](const VibrationalEnergyLevels &t) {
+             std::vector<QuantumIdentifier> qn;
+             std::vector<Numeric> v;
 
-            qn.reserve(t.size());
-            v.reserve(t.size());
+             qn.reserve(t.size());
+             v.reserve(t.size());
 
-            for (auto &x : t) {
-              qn.emplace_back(x.first);
-              v.emplace_back(x.second);
-            }
+             for (auto &x : t) {
+               qn.emplace_back(x.first);
+               v.emplace_back(x.second);
+             }
 
-            return py::make_tuple(qn, v);
-          },
-          [](const py::tuple &t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+             return std::tuple<std::vector<QuantumIdentifier>,
+                               std::vector<Numeric>>(qn, v);
+           })
+      .def("__setstate__",
+           [](VibrationalEnergyLevels *t,
+              const std::tuple<std::vector<QuantumIdentifier>,
+                               std::vector<Numeric>> &s) {
+             const auto qn = std::get<0>(s);
+             const auto v  = std::get<1>(s);
+             ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
 
-            const auto qn = t[0].cast<std::vector<QuantumIdentifier>>();
-            const auto v = t[1].cast<std::vector<Numeric>>();
-            ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
+             new (t) VibrationalEnergyLevels{};
 
-            auto out = std::make_shared<VibrationalEnergyLevels>();
-            for (std::size_t i = 0; i < v.size(); i++) {
-              out->operator[](qn[i]) = v[i];
-            }
-            return out;
-          }));
+             for (std::size_t i = 0; i < v.size(); i++) {
+               (*t)[qn[i]] = v[i];
+             }
+           });
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize nlte\n", e.what()));

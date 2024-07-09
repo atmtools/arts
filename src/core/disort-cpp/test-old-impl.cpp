@@ -25,8 +25,7 @@ struct Timing {
 inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
   for (auto& t : vt) {
     if (t.name.contains('\n') or t.name.contains(' ') or t.name.empty())
-      throw std::runtime_error(
-          var_string("bad name: ", std::quoted(std::string(t.name))));
+      throw std::runtime_error(var_string("bad name: ", '"', t.name, '"'));
     if (t.name not_eq "dummy") {
       os << std::setprecision(15) << t.name << " " << t.dt.count() << '\n';
     }
@@ -34,11 +33,11 @@ inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
   return os;
 }
 
-constexpr Index NQuad = 40;
+constexpr Index NQuad    = 40;
 constexpr Index NFourier = 3;
-constexpr Numeric mu0 = 1.0;
-constexpr Numeric phi0 = 0.0;
-constexpr Numeric I0 = 1.0;
+constexpr Numeric mu0    = 1.0;
+constexpr Numeric phi0   = 0.0;
+constexpr Numeric I0     = 1.0;
 
 static const Vector dtau{
     9.23190158e-03, 7.99612323e-03, 6.88202828e-03, 5.95522020e-03,
@@ -69,48 +68,48 @@ void oldimpl(bool print_results = false) {
   disort_state ds;
   disort_output out;
 
-  ds.accur = 0.005;
-  ds.flag.prnt[0] = FALSE;
-  ds.flag.prnt[1] = FALSE;
-  ds.flag.prnt[2] = FALSE;
-  ds.flag.prnt[3] = FALSE;
-  ds.flag.prnt[4] = TRUE;
-  ds.flag.usrtau = FALSE;
-  ds.flag.usrang = TRUE;
-  ds.flag.spher = FALSE;
-  ds.flag.general_source = FALSE;
-  ds.flag.output_uum = FALSE;
-  ds.flag.brdf_type = BRDF_NONE;
-  ds.flag.ibcnd = GENERAL_BC;
-  ds.flag.usrang = TRUE;
-  ds.flag.planck = FALSE;
-  ds.flag.onlyfl = FALSE;
-  ds.flag.lamber = TRUE;
-  ds.flag.quiet = FALSE;
-  ds.flag.intensity_correction = FALSE;
+  ds.accur                         = 0.005;
+  ds.flag.prnt[0]                  = FALSE;
+  ds.flag.prnt[1]                  = FALSE;
+  ds.flag.prnt[2]                  = FALSE;
+  ds.flag.prnt[3]                  = FALSE;
+  ds.flag.prnt[4]                  = TRUE;
+  ds.flag.usrtau                   = FALSE;
+  ds.flag.usrang                   = TRUE;
+  ds.flag.spher                    = FALSE;
+  ds.flag.general_source           = FALSE;
+  ds.flag.output_uum               = FALSE;
+  ds.flag.brdf_type                = BRDF_NONE;
+  ds.flag.ibcnd                    = GENERAL_BC;
+  ds.flag.usrang                   = TRUE;
+  ds.flag.planck                   = FALSE;
+  ds.flag.onlyfl                   = FALSE;
+  ds.flag.lamber                   = TRUE;
+  ds.flag.quiet                    = FALSE;
+  ds.flag.intensity_correction     = FALSE;
   ds.flag.old_intensity_correction = FALSE;
 
-  ds.nlyr = static_cast<int>(NLayers);
-  ds.nstr = static_cast<int>(NQuad);
+  ds.nlyr   = static_cast<int>(NLayers);
+  ds.nstr   = static_cast<int>(NQuad);
   ds.nphase = ds.nstr;
-  ds.nmom = ds.nstr;
-  ds.numu = static_cast<int>(1);
-  ds.nphi = static_cast<int>(1);
+  ds.nmom   = ds.nstr;
+  ds.numu   = static_cast<int>(1);
+  ds.nphi   = static_cast<int>(1);
 
   c_disort_state_alloc(&ds);
   c_disort_out_alloc(&ds, &out);
 
   for (Index i = 0; i < NLayers; i++) {
-    ds.dtauc[i] = dtau[i];
-    ds.ssalb[i] = omega[i];
+    ds.dtauc[i]                         = dtau[i];
+    ds.ssalb[i]                         = omega[i];
     ds.pmom[0 + i * (ds.nmom_nstr + 1)] = 1.0;
     ds.pmom[2 + i * (ds.nmom_nstr + 1)] = 0.1;
   }
 
-  ds.umu[0] = 0.5;
-  ds.phi[0] = 0.0;
-  ds.bc.umu0 = mu0;
-  ds.bc.phi0 = phi0;
+  ds.umu[0]   = 0.5;
+  ds.phi[0]   = 0.0;
+  ds.bc.umu0  = mu0;
+  ds.bc.phi0  = phi0;
   ds.bc.fbeam = I0;
 
   c_disort(&ds, &out);
@@ -172,11 +171,11 @@ void newimpl(bool print_results = false) {
     disort::flux_data fd;
     disort::u_data ud;
     const auto [a0, b0] = dis.flux_down(fd, 0);
-    const auto c0 = dis.flux_up(fd, 0);
+    const auto c0       = dis.flux_up(fd, 0);
     std::cout << a0 << ',' << b0 << ',' << c0 << ',' << '\n';
     for (auto t : tau | std::ranges::views::take(NLayers - 1)) {
       const auto [a, b] = dis.flux_down(fd, t);
-      const auto c = dis.flux_up(fd, t);
+      const auto c      = dis.flux_up(fd, t);
       std::cout << a << ',' << b << ',' << c << ',' << '\n';
     }
   }
@@ -188,18 +187,18 @@ std::pair<Numeric, Numeric> absrel(ExhaustiveVectorView v1,
     if (i == 0) std::cerr << "ERROR\n";
   }
 
-  v1 -= v2;
-  const Numeric a_ = std::abs(std::ranges::max(
+  v1               -= v2;
+  const Numeric a_  = std::abs(std::ranges::max(
       v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
-  v1 /= v2;
-  const Numeric b_ = std::abs(std::ranges::max(
+  v1               /= v2;
+  const Numeric b_  = std::abs(std::ranges::max(
       v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
   return {a_, b_};
 }
 
 void test_flat() try {
   const Index NLayers_ = 100;
-  const Index NQuad_ = 28;
+  const Index NQuad_   = 28;
 
   RandomNumberGenerator<> rng;
   auto draw = rng.get(0.00001, 0.99999);
@@ -237,7 +236,7 @@ void test_flat() try {
   const Vector f_arr{Leg_coeffs_all(joker, NQuad_)};
 
   // Optional (unused)
-  const Index NLeg = NQuad_;
+  const Index NLeg      = NQuad_;
   const Index NFourier_ = NQuad_;
 
   const disort::main_data dis(NQuad_,
@@ -255,7 +254,7 @@ void test_flat() try {
                               I0,
                               phi0);
 
-  const Index NP = 500;
+  const Index NP   = 500;
   const Vector phi = uniform_grid(0, NP, Constant::pi / NP);
 
   Tensor3 u1(NLayers_, NP, NQuad_), u2(NLayers_, NP, NQuad_),
@@ -296,10 +295,10 @@ void test_flat() try {
     DebugTime norm{"1-by-1 Flux"};
     disort::flux_data data_flux;
     for (Index i = 0; i < NLayers_; i++) {
-      fu1[i] = dis.flux_up(data_flux, tau_arr[i]);
+      fu1[i]      = dis.flux_up(data_flux, tau_arr[i]);
       auto [d, b] = dis.flux_down(data_flux, tau_arr[i]);
-      fd1[i] = d;
-      fb1[i] = b;
+      fd1[i]      = d;
+      fb1[i]      = b;
     }
   }
 
@@ -340,13 +339,15 @@ void handle_opt(const char* c, bool& print, Index& N) {
   std::string s = c;
   std::cout << s << '\n';
 
-  if (s == "print") print=true;
-  else N = std::stoi(s);
+  if (s == "print")
+    print = true;
+  else
+    N = std::stoi(s);
 }
 
 int main(int argc, char** argv) {
   bool print = false;
-  Index N = 100;
+  Index N    = 100;
   Index argi = 1;
   while (argc > argi) {
     handle_opt(argv[argi], print, N);
@@ -357,7 +358,6 @@ int main(int argc, char** argv) {
     oldimpl(print);
     newimpl(print);
   } else {
-
     Array<Timing> ts1;
     ts1.reserve(N);
     Array<Timing> ts2;

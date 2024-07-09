@@ -187,9 +187,9 @@ add_test(NAME "cpp.fast.test_mdspan" COMMAND test_mdspan)
 add_dependencies(check-deps test_mdspan)
 
 # #######################################################################################
-pybind11_add_module(test_pyversion test_pyversion.cc)
+nanobind_add_module(test_pyversion test_pyversion.cc)
 add_custom_target(check-pyversion
-  COMMAND ${Python3_EXECUTABLE} -c "import test_pyversion\\; test_pyversion.check_pyversion\\(\\)"
+  COMMAND ${Python_EXECUTABLE} -c "import test_pyversion\\; test_pyversion.check_pyversion\\(\\)"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS test_pyversion
   COMMENT "Check Python version")
@@ -251,7 +251,7 @@ add_dependencies(check-deps test_fwd)
 add_dependencies(run_interp_perf run_matpack_perf)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/perf_results.py perf_results.py COPYONLY)
 add_custom_target(run_perf
-  COMMAND ${Python3_EXECUTABLE} perf_results.py matpack_perf.txt interp_perf.txt > perf_report.rst
+  COMMAND ${Python_EXECUTABLE} perf_results.py matpack_perf.txt interp_perf.txt > perf_report.rst
   DEPENDS run_matpack_perf run_interp_perf
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Creating performance test report"

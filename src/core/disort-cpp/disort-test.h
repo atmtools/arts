@@ -9,8 +9,6 @@
 inline bool is_good(const auto& a, const auto& b) {
   if (a.shape() != b.shape()) {
     std::cerr << "!!!\n\nBad shapes\n\n!!!\n";
-    std::cerr << matpack::shape_help{a.shape()} << '\n';
-    std::cerr << matpack::shape_help{b.shape()} << '\n';
     return false;
   }
 

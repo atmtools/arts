@@ -1,92 +1,150 @@
+#include <nanobind/stl/bind_vector.h>
+#include <optproperties.h>
 #include <python_interface.h>
 
+#include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_scattering(py::module_& m) try {
   py::enum_<PType>(m, "PType")
       .value("PTYPE_GENERAL", PType::PTYPE_GENERAL, "As general")
-      .value("PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND, "Azimuthally random")
-      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND, "Totallt random")
+      .value(
+          "PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND, "Azimuthally random")
+      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND, "Totally random")
       .PythonInterfaceCopyValue(PType)
-      .def(py::pickle(
-          [](const PType& self) {
-            return py::make_tuple(static_cast<Index>(self));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            
-            return static_cast<PType>(t[0].cast<Index>());
-          }));
+      .def("__getstate__",
+           [](const PType& self) {
+             return py::make_tuple(static_cast<Index>(self));
+           })
+      .def("__setstate__", [](PType* self, const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
 
-  py_staticSingleScatteringData(m)
-   .def_readwrite("ptype", &SingleScatteringData::ptype, ":class:`~pyarts.arts.PType` The type")
-      .def_readwrite("description", &SingleScatteringData::description, ":class:`~pyarts.arts.String` The description")
-      .def_readwrite("f_grid", &SingleScatteringData::f_grid, ":class:`~pyarts.arts.Vector` The frequency grid")
-      .def_readwrite("T_grid", &SingleScatteringData::T_grid, ":class:`~pyarts.arts.Vector` The temperature grid")
-      .def_readwrite("za_grid", &SingleScatteringData::za_grid, ":class:`~pyarts.arts.Vector` The zenith grid")
-      .def_readwrite("aa_grid", &SingleScatteringData::aa_grid, ":class:`~pyarts.arts.Vector` The azimuth grid")
-      .def_readwrite("pha_mat_data", &SingleScatteringData::pha_mat_data, ":class:`~pyarts.arts.Tensor7` The phase matrix")
-      .def_readwrite("ext_mat_data", &SingleScatteringData::ext_mat_data, ":class:`~pyarts.arts.Tensor5` The extinction matrix")
-      .def_readwrite("abs_vec_data", &SingleScatteringData::abs_vec_data, ":class:`~pyarts.arts.Tensor5` The absorption vector")
-      .def(py::pickle(
-          [](const SingleScatteringData& self) {
-            return py::make_tuple(self.ptype,
-                                  self.description,
-                                  self.f_grid,
-                                  self.T_grid,
-                                  self.za_grid,
-                                  self.aa_grid,
-                                  self.pha_mat_data,
-                                  self.ext_mat_data,
-                                  self.abs_vec_data);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
+        new (self) PType{py::cast<Index>(t[0])};
+      });
 
-            return std::make_shared<SingleScatteringData>(SingleScatteringData{t[0].cast<PType>(),
-                                            t[1].cast<String>(),
-                                            t[2].cast<Vector>(),
-                                            t[3].cast<Vector>(),
-                                            t[4].cast<Vector>(),
-                                            t[5].cast<Vector>(),
-                                            t[6].cast<Tensor7>(),
-                                            t[7].cast<Tensor5>(),
-                                            t[8].cast<Tensor5>()});
-          }));
+  py::class_<SingleScatteringData> ssdb(m, "SingleScatteringData");
+  workspace_group_interface(ssdb);
+  ssdb.def_rw("ptype",
+              &SingleScatteringData::ptype,
+              ":class:`~pyarts.arts.PType` The type")
+      .def_rw("description",
+              &SingleScatteringData::description,
+              ":class:`~pyarts.arts.String` The description")
+      .def_rw("f_grid",
+              &SingleScatteringData::f_grid,
+              ":class:`~pyarts.arts.Vector` The frequency grid")
+      .def_rw("T_grid",
+              &SingleScatteringData::T_grid,
+              ":class:`~pyarts.arts.Vector` The temperature grid")
+      .def_rw("za_grid",
+              &SingleScatteringData::za_grid,
+              ":class:`~pyarts.arts.Vector` The zenith grid")
+      .def_rw("aa_grid",
+              &SingleScatteringData::aa_grid,
+              ":class:`~pyarts.arts.Vector` The azimuth grid")
+      .def_rw("pha_mat_data",
+              &SingleScatteringData::pha_mat_data,
+              ":class:`~pyarts.arts.Tensor7` The phase matrix")
+      .def_rw("ext_mat_data",
+              &SingleScatteringData::ext_mat_data,
+              ":class:`~pyarts.arts.Tensor5` The extinction matrix")
+      .def_rw("abs_vec_data",
+              &SingleScatteringData::abs_vec_data,
+              ":class:`~pyarts.arts.Tensor5` The absorption vector")
+      .def("__getstate__",
+           [](const SingleScatteringData& self) {
+             return py::make_tuple(self.ptype,
+                                   self.description,
+                                   self.f_grid,
+                                   self.T_grid,
+                                   self.za_grid,
+                                   self.aa_grid,
+                                   self.pha_mat_data,
+                                   self.ext_mat_data,
+                                   self.abs_vec_data);
+           })
+      .def("__setstate__", [](SingleScatteringData* self, const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-  py_staticScatteringMetaData(m)
-      .def_readwrite("description", &ScatteringMetaData::description, ":class:`~pyarts.arts.String` The description")
-      .def_readwrite("source", &ScatteringMetaData::source, ":class:`~pyarts.arts.String` The source")
-      .def_readwrite("refr_index", &ScatteringMetaData::refr_index, ":class:`~pyarts.arts.String` The refractive index")
-      .def_readwrite("mass", &ScatteringMetaData::mass, ":class:`float` The mass")
-      .def_readwrite("diameter_max", &ScatteringMetaData::diameter_max, ":class:`float` The max diameter")
-      .def_readwrite("diameter_volume_equ",
-                     &ScatteringMetaData::diameter_volume_equ, ":class:`float` The volume equivalent diameter")
-      .def_readwrite("diameter_area_equ_aerodynamical",
-                     &ScatteringMetaData::diameter_area_equ_aerodynamical, ":class:`float` The diameter area equivalent")
-      .def(py::pickle(
-          [](const ScatteringMetaData& self) {
-            return py::make_tuple(self.description,
-                                  self.source,
-                                  self.refr_index,
-                                  self.mass,
-                                  self.diameter_max,
-                                  self.diameter_volume_equ,
-                                  self.diameter_area_equ_aerodynamical);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+        new (self) SingleScatteringData{py::cast<PType>(t[0]),
+                                        py::cast<String>(t[1]),
+                                        py::cast<Vector>(t[2]),
+                                        py::cast<Vector>(t[3]),
+                                        py::cast<Vector>(t[4]),
+                                        py::cast<Vector>(t[5]),
+                                        py::cast<Tensor7>(t[6]),
+                                        py::cast<Tensor5>(t[7]),
+                                        py::cast<Tensor5>(t[8])};
+      });
 
-            return std::make_shared<ScatteringMetaData>(ScatteringMetaData{t[0].cast<String>(),
-                                          t[1].cast<String>(),
-                                          t[2].cast<String>(),
-                                          t[3].cast<Numeric>(),
-                                          t[4].cast<Numeric>(),
-                                          t[5].cast<Numeric>(),
-                                          t[6].cast<Numeric>()});
-          }));
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
+  py::class_<ScatteringMetaData> smdb(m, "ScatteringMetaData");
+  workspace_group_interface(smdb);
+  smdb.def_rw("description",
+              &ScatteringMetaData::description,
+              ":class:`~pyarts.arts.String` The description")
+      .def_rw("source",
+              &ScatteringMetaData::source,
+              ":class:`~pyarts.arts.String` The source")
+      .def_rw("refr_index",
+              &ScatteringMetaData::refr_index,
+              ":class:`~pyarts.arts.String` The refractive index")
+      .def_rw("mass", &ScatteringMetaData::mass, ":class:`float` The mass")
+      .def_rw("diameter_max",
+              &ScatteringMetaData::diameter_max,
+              ":class:`float` The max diameter")
+      .def_rw("diameter_volume_equ",
+              &ScatteringMetaData::diameter_volume_equ,
+              ":class:`float` The volume equivalent diameter")
+      .def_rw("diameter_area_equ_aerodynamical",
+              &ScatteringMetaData::diameter_area_equ_aerodynamical,
+              ":class:`float` The diameter area equivalent")
+      .def("__getstate__",
+           [](const ScatteringMetaData& self) {
+             return py::make_tuple(self.description,
+                                   self.source,
+                                   self.refr_index,
+                                   self.mass,
+                                   self.diameter_max,
+                                   self.diameter_volume_equ,
+                                   self.diameter_area_equ_aerodynamical);
+           })
+      .def("__setstate__", [](ScatteringMetaData* self, const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+
+        new (self) ScatteringMetaData{py::cast<String>(t[0]),
+                                      py::cast<String>(t[1]),
+                                      py::cast<String>(t[2]),
+                                      py::cast<Numeric>(t[3]),
+                                      py::cast<Numeric>(t[4]),
+                                      py::cast<Numeric>(t[5]),
+                                      py::cast<Numeric>(t[6])};
+      });
+
+  auto a1 = py::bind_vector<ArrayOfScatteringMetaData,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfScatteringMetaData");
+  workspace_group_interface(a1);
+  vector_interface(a1);
+  auto a2 = py::bind_vector<ArrayOfArrayOfScatteringMetaData,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfScatteringMetaData");
+  workspace_group_interface(a2);
+  vector_interface(a2);
+  auto a3 = py::bind_vector<ArrayOfSingleScatteringData,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfSingleScatteringData");
+  workspace_group_interface(a3);
+  vector_interface(a3);
+  auto a4 = py::bind_vector<ArrayOfArrayOfSingleScatteringData,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfSingleScatteringData");
+  workspace_group_interface(a4);
+  vector_interface(a4);
+
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }
 }  // namespace Python

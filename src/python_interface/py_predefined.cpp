@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "debug.h"
+#include "hpy_arts.h"
 #include "isotopologues.h"
 #include "predefined/predef_data.h"
 #include "py_macros.h"
@@ -13,56 +14,48 @@
 
 namespace Python {
 void internalCKDMT400(py::module_& m) {
-  artsclass<Absorption::PredefinedModel::MT_CKD400::WaterData>(
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>(
       m, "MTCKD400WaterData")
-      .def(py::init([]() {
-             return std::make_shared<
-                 Absorption::PredefinedModel::MT_CKD400::WaterData>();
-           }),
-           "Default water data")
-      .def_readwrite(
-          "ref_temp",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp,
-          ":class:`float` Reference temperature")
-      .def_readwrite(
-          "ref_press",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press,
-          ":class:`float` Reference pressure")
-      .def_readwrite(
-          "ref_h2o_vmr",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr,
-          ":class:`float` Reference water VMR")
-      .def_readwrite(
+      .def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
+      .def_rw("ref_temp",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp,
+              ":class:`float` Reference temperature")
+      .def_rw("ref_press",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press,
+              ":class:`float` Reference pressure")
+      .def_rw("ref_h2o_vmr",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr,
+              ":class:`float` Reference water VMR")
+      .def_rw(
           "self_absco_ref",
           &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref,
           ":class:`list` Self absorption")
-      .def_readwrite(
-          "for_absco_ref",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref,
-          ":class:`list` Foreign absorption")
-      .def_readwrite(
-          "wavenumbers",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers,
-          ":class:`list` Wavenumbers")
-      .def_readwrite(
-          "self_texp",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp,
-          ":class:`list` Self temperature exponent")
-      .def(py::pickle(
-          [](const Absorption::PredefinedModel::MT_CKD400::WaterData& t) {
-            return py::make_tuple(
-                t.self_absco_ref, t.for_absco_ref, t.wavenumbers, t.self_texp);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto out = std::make_shared<
-                Absorption::PredefinedModel::MT_CKD400::WaterData>();
-            out->self_absco_ref = t[0].cast<std::vector<double>>();
-            out->for_absco_ref = t[1].cast<std::vector<double>>();
-            out->wavenumbers = t[2].cast<std::vector<double>>();
-            out->self_texp = t[3].cast<std::vector<double>>();
-            return out;
-          }))
+      .def_rw("for_absco_ref",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref,
+              ":class:`list` Foreign absorption")
+      .def_rw("wavenumbers",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers,
+              ":class:`list` Wavenumbers")
+      .def_rw("self_texp",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp,
+              ":class:`list` Self temperature exponent")
+      .def("__getstate__",
+           [](const Absorption::PredefinedModel::MT_CKD400::WaterData& t) {
+             return std::make_tuple(
+                 t.self_absco_ref, t.for_absco_ref, t.wavenumbers, t.self_texp);
+           })
+      .def("__setstate__",
+           [](Absorption::PredefinedModel::MT_CKD400::WaterData* o,
+              const std::tuple<std::vector<double>,
+                               std::vector<double>,
+                               std::vector<double>,
+                               std::vector<double>>& state) {
+             new (o) Absorption::PredefinedModel::MT_CKD400::WaterData{};
+             o->self_absco_ref = std::get<0>(state);
+             o->for_absco_ref  = std::get<1>(state);
+             o->wavenumbers    = std::get<2>(state);
+             o->self_texp      = std::get<3>(state);
+           })
       .doc() = "Water data representation for the MT CKD 4.0 model";
 
   m.def(
@@ -79,19 +72,20 @@ void internalCKDMT400(py::module_& m) {
             p,
             t,
             x,
-            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.data.at("H2O-ForeignContCKDMT400"_isot)));
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
+                data.data.at("H2O-ForeignContCKDMT400"_isot)));
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::arg("predefined_model_data"),
-      py::doc(R"--(Computes foreign absorption using MT CKD Hitran version
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      "predefined_model_data"_a,
+      R"--(Computes foreign absorption using MT CKD Hitran version
 
 Parameters
 ----------
@@ -110,7 +104,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_self_h2o_ckdmt400",
@@ -126,19 +120,20 @@ abs_coef : ~pyarts.arts.Vector
             p,
             t,
             x,
-            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.data.at("H2O-SelfContCKDMT400"_isot)));
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
+                data.data.at("H2O-SelfContCKDMT400"_isot)));
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::arg("predefined_model_data"),
-      py::doc(R"--(Computes self absorption using MT CKD Hitran version
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      "predefined_model_data"_a,
+      R"--(Computes self absorption using MT CKD Hitran version
 
 Parameters
 ----------
@@ -157,7 +152,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalMPM89(py::module_& m) {
@@ -172,11 +167,11 @@ void internalMPM89(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes water absorption using MPM89
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes water absorption using MPM89
 
 Parameters
 ----------
@@ -193,7 +188,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_mpm89",
@@ -207,12 +202,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes oxygen absorption using MPM89
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes oxygen absorption using MPM89
 
 Parameters
 ----------
@@ -231,7 +226,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalMPM93(py::module_& m) {
@@ -247,12 +242,12 @@ void internalMPM93(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes nitrogen absorption using MPM93
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes nitrogen absorption using MPM93
 
 Parameters
 ----------
@@ -271,7 +266,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalELL07(py::module_& m) {
@@ -286,10 +281,10 @@ void internalELL07(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_temperature"),
-      py::arg("lwc"),
-      py::doc(R"--(Computes water absorption using PWR98
+      "f_grid"_a,
+      "rtp_temperature"_a,
+      "lwc"_a,
+      R"--(Computes water absorption using PWR98
 
 Parameters
 ----------
@@ -304,7 +299,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalPWR98(py::module_& m) {
@@ -319,11 +314,11 @@ void internalPWR98(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes water absorption using PWR98
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes water absorption using PWR98
 
 Parameters
 ----------
@@ -340,7 +335,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_pwr98",
@@ -354,12 +349,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes oxygen absorption using PWR98
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes oxygen absorption using PWR98
 
 Parameters
 ----------
@@ -378,7 +373,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalPWR20xx(py::module_& m) {
@@ -393,11 +388,11 @@ void internalPWR20xx(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes water absorption using PWR2021
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes water absorption using PWR2021
 
 Parameters
 ----------
@@ -414,7 +409,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_pwr2021",
@@ -429,12 +424,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes oxygen absorption using PWR2021
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes oxygen absorption using PWR2021
 
 Parameters
 ----------
@@ -453,7 +448,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_h2o_pwr2022",
@@ -466,11 +461,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes water absorption using PWR2022
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes water absorption using PWR2022
 
 Parameters
 ----------
@@ -487,7 +482,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_pwr2022",
@@ -502,12 +497,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes oxygen absorption using PWR2022
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes oxygen absorption using PWR2022
 
 Parameters
 ----------
@@ -526,7 +521,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_n2_pwr2021",
@@ -540,12 +535,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes nitrogen absorption using PWR2021
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes nitrogen absorption using PWR2021
 
 Parameters
 ----------
@@ -564,7 +559,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalTRE05(py::module_& m) {
@@ -580,12 +575,12 @@ void internalTRE05(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o") = 0.0,
-      py::doc(R"--(Computes oxygen absorption using TRE05
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a = 0.0,
+      R"--(Computes oxygen absorption using TRE05
 
 Parameters
 ----------
@@ -604,7 +599,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalCKDMT100(py::module_& m) {
@@ -619,11 +614,11 @@ void internalCKDMT100(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
@@ -640,7 +635,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_v0v0_ckdmt100",
@@ -654,12 +649,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_n2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_n2"_a,
+      R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
@@ -678,7 +673,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_v1v0_ckdmt100",
@@ -691,11 +686,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
@@ -712,7 +707,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalCKDMT252(py::module_& m) {
@@ -727,11 +722,11 @@ void internalCKDMT252(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_co2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 2.52
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_co2"_a,
+      R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
 ----------
@@ -748,7 +743,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_vis_ckdmt252",
@@ -761,11 +756,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 2.52
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
 ----------
@@ -782,7 +777,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_n2_fun_ckdmt252",
@@ -801,13 +796,13 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o"),
-      py::arg("x_o2"),
-      py::doc(R"--(Computes N2 fun absorption using MT CKD version 2.52
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a,
+      "x_o2"_a,
+      R"--(Computes N2 fun absorption using MT CKD version 2.52
 
 Parameters
 ----------
@@ -828,7 +823,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_n2_rot_ckdmt252",
@@ -847,13 +842,13 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::arg("x_h2o"),
-      py::arg("x_o2"),
-      py::doc(R"--(Computes N2 rot absorption using MT CKD version 2.52
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      "x_h2o"_a,
+      "x_o2"_a,
+      R"--(Computes N2 rot absorption using MT CKD version 2.52
 
 Parameters
 ----------
@@ -874,7 +869,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalSTANDARD(py::module_& m) {
@@ -889,11 +884,11 @@ void internalSTANDARD(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes self water absorption using Rosenkranz standard
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes self water absorption using Rosenkranz standard
 
 Parameters
 ----------
@@ -910,7 +905,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_h2o_foreign_standard",
@@ -923,11 +918,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes foreign water absorption using Rosenkranz standard
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes foreign water absorption using Rosenkranz standard
 
 Parameters
 ----------
@@ -944,7 +939,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_n2_standard",
@@ -957,11 +952,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_n2"),
-      py::doc(R"--(Computes nitrogen absorption using Rosenkranz standard
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_n2"_a,
+      R"--(Computes nitrogen absorption using Rosenkranz standard
 
 Parameters
 ----------
@@ -978,7 +973,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_o2_standard",
@@ -992,12 +987,12 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_o2"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes oxygen absorption using Rosenkranz standard
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_o2"_a,
+      "x_h2o"_a,
+      R"--(Computes oxygen absorption using Rosenkranz standard
 
 Parameters
 ----------
@@ -1016,7 +1011,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalCKDMT350(py::module_& m) {
@@ -1031,11 +1026,11 @@ void internalCKDMT350(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
@@ -1052,7 +1047,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_foreign_h2o_ckdmt350",
@@ -1066,11 +1061,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes foreign absorption using MT CKD version 3.50
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes foreign absorption using MT CKD version 3.50
 
 Parameters
 ----------
@@ -1087,7 +1082,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 
 void internalCKDMT320(py::module_& m) {
@@ -1102,11 +1097,11 @@ void internalCKDMT320(py::module_& m) {
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.20
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes self absorption using MT CKD version 3.20
 
 Parameters
 ----------
@@ -1123,7 +1118,7 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 
   m.def(
       "get_foreign_h2o_ckdmt320",
@@ -1137,11 +1132,11 @@ abs_coef : ~pyarts.arts.Vector
         });
         return out;
       },
-      py::arg("f_grid"),
-      py::arg("rtp_pressure"),
-      py::arg("rtp_temperature"),
-      py::arg("x_h2o"),
-      py::doc(R"--(Computes foreign absorption using MT CKD version 3.20
+      "f_grid"_a,
+      "rtp_pressure"_a,
+      "rtp_temperature"_a,
+      "x_h2o"_a,
+      R"--(Computes foreign absorption using MT CKD version 3.20
 
 Parameters
 ----------
@@ -1158,76 +1153,78 @@ Returns
 -------
 abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
-)--"));
+)--");
 }
 void internalNamedModel(py::module_& m) {
-  artsclass<Absorption::PredefinedModel::ModelName>(m, "ModelName")
-      .def(py::init([]() {
-             return std::make_shared<Absorption::PredefinedModel::ModelName>();
-           }),
-           "Default named data")
-      .def(py::pickle(
-          [](const py::object&) { return py::make_tuple(); },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
-            return std::make_shared<Absorption::PredefinedModel::ModelName>();
-          }))
+  py::class_<Absorption::PredefinedModel::ModelName>(m, "ModelName")
+      .def(py::init<Absorption::PredefinedModel::ModelName>())
+      .def("__getstate__",
+           [](const Absorption::PredefinedModel::ModelName&) {
+             return py::make_tuple();
+           })
+      .def("__setstate__",
+           [](Absorption::PredefinedModel::ModelName* s, const std::tuple<>&) {
+             new (s) Absorption::PredefinedModel::ModelName{};
+           })
       .doc() = "Named model, contains no data";
 }
 
 void py_predefined(py::module_& m) try {
   //! The predef python namespace where all INTERNAL data lives
-  auto predef = m.def_submodule("predef");
+  auto predef  = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
 
   //! ARTS Workspace class, must live on the main (m) namespace
-  py_staticPredefinedModelData(m)
-      .def_static("fromcatalog",
+  py::class_<PredefinedModelData> pdmd(m, "PredefinedModelData");
+  workspace_group_interface(pdmd);
+  pdmd.def_static("fromcatalog",
                   [](const char* const basename,
                      const ArrayOfArrayOfSpeciesTag& specs) {
-                    auto out = std::make_shared<PredefinedModelData>();
+                    auto out = PredefinedModelData{};
                     for (auto& spec : specs) {
                       for (auto& mod : spec) {
                         if (mod.type == SpeciesTagType::Predefined) {
                           String filename =
                               (std::filesystem::path(basename) /
-                              (mod.Isotopologue().FullName() + ".xml")).string();
+                               (mod.Isotopologue().FullName() + ".xml"))
+                                  .string();
                           if (find_xml_file_existence(filename)) {
                             PredefinedModelData data;
                             xml_read_from_file(filename, data);
                             std::visit(
                                 [&](auto& model) {
-                                  out->data[mod.Isotopologue()] = model;
+                                  out.data[mod.Isotopologue()] = model;
                                 },
                                 data.data.at(mod.Isotopologue()));
                           } else {
-                            out->data[mod.Isotopologue()] = Absorption::PredefinedModel::ModelName{};
+                            out.data[mod.Isotopologue()] =
+                                Absorption::PredefinedModel::ModelName{};
                           }
                         }
                       }
                     }
                     return out;
                   })
-      .def(py::pickle(
-          [](const PredefinedModelData& t) {
-            const std::unordered_map<SpeciesIsotope,
-                                     Absorption::PredefinedModel::ModelVariant>
-                x{t.data.begin(), t.data.end()};
-            return py::make_tuple(x);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            auto out = std::make_shared<PredefinedModelData>();
-            const std::unordered_map<SpeciesIsotope,
-                                     Absorption::PredefinedModel::ModelVariant>
-                x = t[0].cast<std::unordered_map<
-                    SpeciesIsotope,
-                    Absorption::PredefinedModel::ModelVariant>>();
-            for (auto& [k, v] : x) {
-              out->data[k] = v;
-            }
-            return out;
-          }));
+      .def("__getstate__",
+           [](const PredefinedModelData& t) {
+             const std::unordered_map<SpeciesIsotope,
+                                      Absorption::PredefinedModel::ModelVariant>
+                 x{t.data.begin(), t.data.end()};
+             return std::make_tuple(x);
+           })
+      .def("__setstate__",
+           [](PredefinedModelData* pm,
+              const std::tuple<std::unordered_map<
+                  SpeciesIsotope,
+                  Absorption::PredefinedModel::ModelVariant>>& state) {
+             new (pm) PredefinedModelData{};
+             const std::unordered_map<SpeciesIsotope,
+                                      Absorption::PredefinedModel::ModelVariant>
+                 x = std::get<0>(state);
+             for (auto& [k, v] : x) {
+               pm->data[k] = v;
+             }
+           });
 
   //! All internal functionality, included methods of named classes go on the predef namespace
   internalNamedModel(predef);
