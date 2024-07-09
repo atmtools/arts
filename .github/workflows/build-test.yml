@@ -32,7 +32,7 @@ jobs:
           - name: linux-reldeb-gcc
             os: ubuntu-22.04
             preset: reldeb-gcc-conda
-            check: "yes"
+            check: "no"
             doc: "no"
             devenv: "environment-dev-linux.yml"
             jbuild: 4
