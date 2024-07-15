@@ -1,89 +1,10 @@
 #include <matpack.h>
 #include <rtepack.h>
+#include <cmath>
 
 #include "arts_constants.h"
 
 namespace Absorption::PredefinedModel::MT_CKD252 {
-Numeric XINT_FUN(const Numeric V1A,
-                 const Numeric /* V2A */,
-                 const Numeric DVA,
-                 const auto& A,
-                 const Index nA,
-                 const Numeric VI) {
-  // ----------------------------------------------------------------------
-  //     THIS SUBROUTINE INTERPOLATES THE A ARRAY STORED
-  //     FROM V1A TO V2A IN INCREMENTS OF DVA INTO XINT
-  // ----------------------------------------------------------------------
-
-  const Numeric ONEPL = 1.001;  // original value given in F77 code
-  // FIXME const Numeric ONEMI  = 0.999;     // original value given in F77 code
-
-  //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
-
-  Numeric RECDVA = 1.00e0 / DVA;
-
-  int J = (int)((VI - V1A) * RECDVA + ONEPL);
-  Numeric VJ = V1A + DVA * (Numeric)(J - 1);
-  Numeric P = RECDVA * (VI - VJ);
-  Numeric C = (3.00e0 - 2.00e0 * P) * P * P;
-  Numeric B = 0.500e0 * P * (1.00e0 - P);
-  Numeric B1 = B * (1.00e0 - P);
-  Numeric B2 = B * P;
-
-  Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < nA) {
-    xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
-           A[J + 2] * B2;
-  }
-
-  /*
-  cout << (J-1) << " <-> " << (J+2)
-       << ",  V=" << VI << ", VJ=" << VJ << "\n";
-  cout << "xint=" << xint  << " " << A[J-1] << " " << A[J] << " " << A[J+1] << " " << A[J+2] << "\n";
-  */
-
-  return xint;
-}
-
-Numeric XINT_FUN(const Numeric V1A,
-                 const Numeric /* V2A */,
-                 const Numeric DVA,
-                 const auto& A,
-                 const Numeric VI) {
-  // ----------------------------------------------------------------------
-  //     THIS SUBROUTINE INTERPOLATES THE A ARRAY STORED
-  //     FROM V1A TO V2A IN INCREMENTS OF DVA INTO XINT
-  // ----------------------------------------------------------------------
-
-  const Numeric ONEPL = 1.001;  // original value given in F77 code
-  // FIXME const Numeric ONEMI  = 0.999;     // original value given in F77 code
-
-  //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
-
-  Numeric RECDVA = 1.00e0 / DVA;
-
-  int J = (int)((VI - V1A) * RECDVA + ONEPL);
-  Numeric VJ = V1A + DVA * (Numeric)(J - 1);
-  Numeric P = RECDVA * (VI - VJ);
-  Numeric C = (3.00e0 - 2.00e0 * P) * P * P;
-  Numeric B = 0.500e0 * P * (1.00e0 - P);
-  Numeric B1 = B * (1.00e0 - P);
-  Numeric B2 = B * P;
-
-  Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < A.nelem()) {
-    xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
-           A[J + 2] * B2;
-  }
-
-  /*
-  cout << (J-1) << " <-> " << (J+2)
-       << ",  V=" << VI << ", VJ=" << VJ << "\n";
-  cout << "xint=" << xint  << " " << A[J-1] << " " << A[J] << " " << A[J+1] << " " << A[J+2] << "\n";
-  */
-
-  return xint;
-}
 
 Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
   // ---------------------------------------------------------------------- B18060
@@ -172,6 +93,7 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   constexpr Numeric T1 = 273.0e0;
   constexpr Numeric TO = 296.0e0;
   constexpr Numeric PO = 1013.0e0;
+  constexpr int FCO2_ckd_mt_250_npt = 5003;
   //     Temparature dependence coefficients for wavenumbers between 2386
   //     and 2434. Computed based on (line-coupled) continuum coefficients
   //     at 250K and 296K, set to unity at T_eff (determined by invariance
@@ -1097,14 +1019,13 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
 
-  int I1 = (int)((V1C - FCO2_ckd_mt_250_v1) / FCO2_ckd_mt_250_dv);
+  int I1 = (int)((V1C - FCO2_ckd_mt_250_v1) / FCO2_ckd_mt_250_dv + 0.01);
   if (V1C < FCO2_ckd_mt_250_v1) I1 = -1;
-  V1C = FCO2_ckd_mt_250_v1 + (FCO2_ckd_mt_250_dv * (Numeric)I1);
+  V1C = FCO2_ckd_mt_250_v1 + (FCO2_ckd_mt_250_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - FCO2_ckd_mt_250_v1) / FCO2_ckd_mt_250_dv);
+  int I2 = (int)((V2C - FCO2_ckd_mt_250_v1) / FCO2_ckd_mt_250_dv + 0.01);
 
   int NPTC = I2 - I1 + 3;
-  constexpr int FCO2_ckd_mt_250_npt = 5003;
   if (NPTC > FCO2_ckd_mt_250_npt) NPTC = FCO2_ckd_mt_250_npt + 1;
 
   V2C = V1C + FCO2_ckd_mt_250_dv * (Numeric)(NPTC - 1);
@@ -1117,8 +1038,8 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   Vector FCO2T0(NPTC + addF77fields, 0.);  // [cm^3/molecules]
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + J;
-    if ((I > 0) && (I <= FCO2_ckd_mt_250_npt)) {
+    Index I = I1 + J - 2;
+    if ((I >= 0) && (I < FCO2_ckd_mt_250_npt)) {
       FCO2T0[J] = FCO2_ckd_mt_250[I];
     }
   }
@@ -1155,7 +1076,7 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
     //  CKD MT 2.5 Adjustment to the original scaling made (temperature dependece added)
     if ((VJ > 2000.0e0) && (VJ < 2998.0e0)) {
       int JFAC = int((VJ - 1998.00e0) / 2.00e0 + 0.00001e0);
-      FCO2 = XfacCO2[JFAC] * FCO2;
+      FCO2 = XfacCO2[JFAC - 1] * FCO2;
     }
 
     // CKD cross section times number density with radiative field [1]
@@ -1165,14 +1086,22 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
+  Numeric VJ = V1C;
+  Index J = 1;
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < FCO2_ckd_mt_250_v2)) {
+      while (V > VJ) {
+        VJ += DVC;
+        J++;
+      }
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky[s].A() +=
-          vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
+      if (J < k.size() - 1) {
+        propmat_clearsky[s].A() +=
+            vmr * 1.000e2 * std::lerp(k[J], k[J + 1], 1. + (V - VJ) / DVC);
+      }
     }
   }
 }
@@ -1470,11 +1399,11 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
 
-  int I1 = (int)((V1C - O2_vis_ckd_mt_250_v1) / O2_vis_ckd_mt_250_dv);
+  int I1 = (int)((V1C - O2_vis_ckd_mt_250_v1) / O2_vis_ckd_mt_250_dv + 0.01);
   if (V1C < O2_vis_ckd_mt_250_v1) I1 = I1 - 1;
-  V1C = O2_vis_ckd_mt_250_v1 + (O2_vis_ckd_mt_250_dv * (Numeric)I1);
+  V1C = O2_vis_ckd_mt_250_v1 + (O2_vis_ckd_mt_250_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - O2_vis_ckd_mt_250_v1) / O2_vis_ckd_mt_250_dv);
+  int I2 = (int)((V2C - O2_vis_ckd_mt_250_v1) / O2_vis_ckd_mt_250_dv + 0.01);
 
   int NPTC = I2 - I1 + 3;
 
@@ -1484,12 +1413,11 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
     return;
   }
 
-  std::vector<Numeric> CO(NPTC + 1);
+  std::vector<Numeric> CO(NPTC + 1, 0.);
 
   for (Index J = 1; J <= NPTC; ++J) {
-    CO[J] = 0.000e0;
-    Index I = I1 + J;
-    if ((I > 0) && (I <= O2_vis_ckd_mt_250_npt)) {
+    Index I = I1 + J - 2;
+    if ((I >= 0) && (I < O2_vis_ckd_mt_250_npt)) {
       Numeric VJ = V1C + (DVC * (Numeric)(J - 1));
       CO[J] = O2_vis_ckd_mt_250[I] / VJ;
     }
@@ -1517,10 +1445,9 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
   // Molecular cross section calculated by CKD.
   // The cross sectionis calculated on the predefined
   // CKD wavenumber grid.
-  std::vector<Numeric> k(NPTC + 1);  // [1/cm]
-  k[0] = 0.00e0;                     // not used array field
+  Vector k(NPTC + 1, 0.);  // [1/cm]
   for (Index J = 1; J <= NPTC; ++J) {
-    Numeric VJ = V1C + (DVC * (Numeric)(J - 1));
+    Numeric VJ = V1C + (DVC * static_cast<Numeric>(J - 1));
     Numeric SO2 = 0.0e0;
 
     SO2 = CO[J] * factor * tau_fac;
@@ -1531,14 +1458,22 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
+  Numeric VJ = V1C;
+  Index J = 1;
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > V1S) && (V < V2S)) {
+      while (V > VJ) {
+        VJ += DVC;
+        J++;
+      }
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky[s].A() +=
-          vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, NPTC + 1, V);
+      if (J < k.size() - 1) {
+        propmat_clearsky[s].A() +=
+            vmr * 1.000e2 * std::lerp(k[J], k[J+1], 1.+(V-VJ)/DVC);
+      }
     }
   }
 }
@@ -1680,15 +1615,15 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
 
   // retrieve the appropriate array sequence of the self continuum
   // arrays of the CKD model.
-  Numeric DVC = N2N2_N2F_ckd_mt_250_dv;
+  constexpr Numeric DVC = N2N2_N2F_ckd_mt_250_dv;
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
 
-  int I1 = (int)((V1C - N2N2_N2F_ckd_mt_250_v1) / N2N2_N2F_ckd_mt_250_dv);
+  int I1 = (int)((V1C - N2N2_N2F_ckd_mt_250_v1) / N2N2_N2F_ckd_mt_250_dv + 0.01);
   if (V1C < N2N2_N2F_ckd_mt_250_v1) I1 = -1;
-  V1C = N2N2_N2F_ckd_mt_250_v1 + (N2N2_N2F_ckd_mt_250_dv * (Numeric)I1);
+  V1C = N2N2_N2F_ckd_mt_250_v1 + (N2N2_N2F_ckd_mt_250_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - N2N2_N2F_ckd_mt_250_v1) / N2N2_N2F_ckd_mt_250_dv);
+  int I2 = (int)((V2C - N2N2_N2F_ckd_mt_250_v1) / N2N2_N2F_ckd_mt_250_dv + 0.01);
 
   int NPTC = I2 - I1 + 3;
   if (NPTC > N2N2_N2F_ckd_mt_250_npt) NPTC = N2N2_N2F_ckd_mt_250_npt + 1;
@@ -1703,8 +1638,8 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
   Vector xn2t(NPTC + 1, 0.);
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + J;
-    if ((I > 0) && (I <= N2N2_N2F_ckd_mt_250_npt)) {
+    Index I = I1 + J - 2;
+    if ((I >= 0) && (I < N2N2_N2F_ckd_mt_250_npt)) {
       xn2[J] = N2N2_N2F_ckd_mt_250[I];
       xn2t[J] = N2N2_N2Ft_ckd_mt_250[I];
     }
@@ -1738,8 +1673,9 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
   // CKD wavenumber grid.
   Vector k(NPTC + 1 + 1, 0.);  // [1/cm]
   Vector C0(NPTC + 1 + 1, 0.);
+  Numeric VJ = V1C - DVC;
   for (Index J = 1; J <= NPTC; ++J) {
-    Numeric VJ = V1C + (DVC * (Numeric)(J - 1));
+    VJ += DVC;
     Numeric SN2 = 0.000e0;
     if ((xn2[J] > 0.000e0) && (xn2t[J] > 0.000e0)) {
       C0[J] = factor * xn2[J] * pow((xn2t[J] / xn2[J]), xktfac) / VJ;
@@ -1754,14 +1690,22 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
+  VJ = V1C;
+  Index J = 1;
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > N2N2_N2F_ckd_mt_250_v1) && (V < N2N2_N2F_ckd_mt_250_v2)) {
+      while (V > VJ) {
+        VJ += DVC;
+        J++;
+      }
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky[s].A() +=
-          vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
+      if (J < k.size() - 1) {
+        propmat_clearsky[s].A() +=
+            vmr * 1.000e2 * std::lerp(k[J], k[J + 1], 1. + (V - VJ) / DVC);
+      }
     }
   }
 }
@@ -1923,11 +1867,11 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
 
-  int I1 = (int)((V1C - N2N2_CT296_ckd_mt_100_v1) / N2N2_CT296_ckd_mt_100_dv);
+  int I1 = (int)((V1C - N2N2_CT296_ckd_mt_100_v1) / N2N2_CT296_ckd_mt_100_dv + 0.01);
   if (V1C < N2N2_CT296_ckd_mt_100_v1) I1 = -1;
-  V1C = N2N2_CT296_ckd_mt_100_v1 + (N2N2_CT296_ckd_mt_100_dv * (Numeric)I1);
+  V1C = N2N2_CT296_ckd_mt_100_v1 + (N2N2_CT296_ckd_mt_100_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - N2N2_CT296_ckd_mt_100_v1) / N2N2_CT296_ckd_mt_100_dv);
+  int I2 = (int)((V2C - N2N2_CT296_ckd_mt_100_v1) / N2N2_CT296_ckd_mt_100_dv + 0.01);
 
   int NPTC = I2 - I1 + 3;
   if (NPTC > N2N2_CT296_ckd_mt_100_npt) NPTC = N2N2_CT296_ckd_mt_100_npt + 1;
@@ -1943,8 +1887,8 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
   Vector sf_T0(NPTC + 1, 0.);
   Vector sf_T1(NPTC + 1, 0.);
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + J;
-    if ((I > 0) && (I <= N2N2_CT296_ckd_mt_100_npt)) {
+    Index I = I1 + J - 2;
+    if ((I >= 0) && (I < N2N2_CT296_ckd_mt_100_npt)) {
       C0[J] = N2N2_CT296_ckd_mt_100[I];  // at T=296 K
       sf_T0[J] = N2N2_sf_296_ckd_mt_100[I];
       C1[J] = N2N2_CT220_ckd_mt_100[I];  // at T=260 K
@@ -1994,14 +1938,22 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
+  Numeric VJ = V1C;
+  Index J = 1;
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < N2N2_CT220_ckd_mt_100_v2)) {
+      while (V > VJ) {
+        VJ += DVC;
+        J++;
+      }
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky[s].A() +=
-          vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
+      if (J < k.size() - 1) {
+        propmat_clearsky[s].A() +=
+            vmr * 1.000e2 * std::lerp(k[J], k[J + 1], 1. + (V - VJ) / DVC);
+      }
     }
   }
 }
