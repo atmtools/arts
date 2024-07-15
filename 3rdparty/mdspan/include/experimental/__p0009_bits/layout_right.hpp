@@ -19,6 +19,7 @@
 #include "trait_backports.hpp"
 #include "extents.hpp"
 #include <stdexcept>
+#include <exception>
 #include "layout_stride.hpp"
 
 namespace std {
