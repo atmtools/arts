@@ -1501,8 +1501,8 @@ using ExhaustiveConstComplexMatrixView =
 using ExhaustiveConstComplexTensor3View =
     matpack::matpack_view<Complex, 3, true, false>;
 
-template <typename T, bool constant, bool strided>
-struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
+template <typename T, Index N, bool constant, bool strided>
+struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -1515,78 +1515,30 @@ struct std::formatter<matpack::matpack_view<T, 1, constant, strided>> {
 
   template <class FmtContext>
   FmtContext::iterator format(
-      const matpack::matpack_view<T, 1, constant, strided>& v,
-      FmtContext& ctx) const {
-    using std::ranges::views::take, std::ranges::views::drop;
-
-    const auto n = v.size();
-
-    std::string_view first = tags.sep();
-    std::string_view sep   = ""sv;
-
-    tags.add_if_bracket(ctx, '[');
-
-    if (tags.short_str and n > short_str_v_cut) {
-      tags.format(ctx, v.front());
-      for (auto&& a : v | take(short_str_v_stp) | drop(1)) {
-        tags.format(ctx, sep, a);
-      }
-
-      std::format_to(ctx.out(), "...");
-
-      for (auto&& a : v | drop(n - short_str_v_stp)) tags.format(ctx, sep, a);
-    } else {
-      for (auto&& a : v) {
-        tags.format(ctx, std::exchange(sep, first), a);
-      }
-    }
-
-    tags.add_if_bracket(ctx, ']');
-    return ctx.out();
-  }
-};
-
-template <typename T, Index N, bool constant, bool strided>
-struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
-  std::formatter<matpack::matpack_view<T, N - 1, true, false>> fmt{};
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(
       const matpack::matpack_view<T, N, constant, strided>& v,
       FmtContext& ctx) const {
     using std::ranges::views::take, std::ranges::views::drop;
 
-    const Index n          = v.shape()[0];
-    std::string_view first = inner_fmt().tags.sep(true);
-    std::string_view sep   = ""sv;
+    const Index n              = v.shape()[0];
+    const std::string_view sep = inner_fmt().tags.sep(N != 1);
 
-    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "[\n");
+    tags.add_if_bracket(ctx, '[');
+    if constexpr (N > 1) tags.add_if_bracket(ctx, '\n');
 
-    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
-      for (auto&& a : v | take(short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
-      }
+    if (n > 0) {
+      tags.format(ctx, v[0]);
 
-      std::format_to(ctx.out(), "...");
-
-      for (auto&& a : v | drop(n - short_str_v_stp)) {
-        std::format_to(ctx.out(), "{}{}", sep, a);
-      }
-    } else {
-      for (auto&& a : v) {
-        std::format_to(ctx.out(), "{}{}", std::exchange(sep, first), a);
+      if (tags.short_str and n > 8) {
+        for (auto&& a : v | take(3) | drop(1)) tags.format(ctx, sep, a);
+        tags.format(ctx, sep, "...");
+        for (auto&& a : v | drop(n - 3)) tags.format(ctx, sep, a);
+      } else  {
+        for (auto&& a : v | drop(1)) tags.format(ctx, sep, a);
       }
     }
 
-    if (inner_fmt().tags.bracket) std::format_to(ctx.out(), "\n]");
+    if constexpr (N > 1) tags.add_if_bracket(ctx, '\n');
+    tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

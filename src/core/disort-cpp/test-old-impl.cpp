@@ -62,7 +62,7 @@ static const Vector dtau{
     1.65319907e-07, 1.45281750e-07, 1.27701031e-07, 1.07430593e-07};
 static const Index NLayers = dtau.size();
 
-const Vector omega(NLayers, 1.0 - 1e-6);  // not 1.0
+const Vector omega(NLayers, 0.0);  // not 1.0
 
 void oldimpl(bool print_results = false) {
   disort_state ds;
@@ -103,7 +103,7 @@ void oldimpl(bool print_results = false) {
     ds.dtauc[i]                         = dtau[i];
     ds.ssalb[i]                         = omega[i];
     ds.pmom[0 + i * (ds.nmom_nstr + 1)] = 1.0;
-    ds.pmom[2 + i * (ds.nmom_nstr + 1)] = 0.1;
+   // ds.pmom[2 + i * (ds.nmom_nstr + 1)] = 0.1;
   }
 
   ds.umu[0]   = 0.5;
@@ -138,7 +138,7 @@ void newimpl(bool print_results = false) {
   const Matrix Leg_coeffs_all = []() {
     Matrix out(NLayers, NFourier);
     for (Index i = 0; i < NLayers; i++) {
-      out[i] = {1.0, 0.0, 0.1};
+      out[i] = {1.0, 0.0, 0.0};
     }
     return out;
   }();
@@ -152,7 +152,7 @@ void newimpl(bool print_results = false) {
   // DebugTime setup{"setup"};
   disort::main_data dis(NQuad,
                         3,
-                        3,
+                        NFourier,
                         tau,
                         omega,
                         Leg_coeffs_all,
@@ -346,7 +346,7 @@ void handle_opt(const char* c, bool& print, Index& N) {
 }
 
 int main(int argc, char** argv) {
-  bool print = false;
+  bool print = true;
   Index N    = 100;
   Index argi = 1;
   while (argc > argi) {
@@ -355,7 +355,9 @@ int main(int argc, char** argv) {
   }
 
   if (print) {
+    std::cout << "OLD:\n";
     oldimpl(print);
+    std::cout << "NEW:\n";
     newimpl(print);
   } else {
     Array<Timing> ts1;
@@ -386,5 +388,5 @@ int main(int argc, char** argv) {
               << '\n';
   }
 
-  test_flat();
+  //test_flat();
 }

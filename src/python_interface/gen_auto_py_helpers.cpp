@@ -3,13 +3,11 @@
 #include <workspace.h>
 
 #include <algorithm>
-#include <iomanip>
 #include <iterator>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
 
-#include "array.h"
 #include "arts_options.h"
 #include "compare.h"
 #include "debug.h"
@@ -310,7 +308,7 @@ String method_docs(const String& name) try {
                       "]**");
   }
 
-  for (auto varname : method.in) {
+  for (auto&& varname : method.in) {
     if (is_output(varname)) continue;
 
     const auto& wsv      = wsvs.at(varname);

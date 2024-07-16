@@ -195,7 +195,9 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   return os.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string("Error in meta-function header(",
-                                      '"', name, '"',
+                                      '"',
+                                      name,
+                                      '"',
                                       ", ",
                                       overload,
                                       "):\n\n",
@@ -2470,6 +2472,18 @@ variables are not considered
       .gin_desc  = {"Absolute or relative path to the directory"},
   };
 
+  wsm_data["ray_pathGeometricUplooking"] = {
+      .desc     = R"--(Wraps *ray_pathGeometric* for straight uplooking paths
+)--",
+      .author   = {"Richard Larsson"},
+      .out      = {"ray_path"},
+      .in       = {"atmospheric_field", "surface_field"},
+      .gin      = {"latitude", "longitude", "max_step"},
+      .gin_type = {"Numeric", "Numeric", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
+      .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
+  };
+
   wsm_data["ray_pathGeometric"] = {
       .desc      = R"--(Get a geometric radiation path
 
@@ -3355,6 +3369,27 @@ have sorted *suns* by distance before running this code.
            R"--(The depolarization factor to use.)--",
            "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
+  };
+
+  wsm_data["disort_intensitiesClearskyDisort"] = {
+      .desc      = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+)--",
+      .author    = {"Richard Larsson"},
+      .gout      = {"disort_intensities"},
+      .gout_type = {"Tensor3"},
+      .gout_desc =
+          {"Tensor3 of disort intensities [(ray_path - 1) x frequency_grid x NQuad]"},
+      .in        = {"ray_path",
+                    "ray_path_atmospheric_point",
+                    "ray_path_propagation_matrix",
+                    "ray_path_frequency_grid"},
+      .gin       = {"NQuad", "NLeg", "NFourier"},
+      .gin_type  = {"Index", "Index", "Index"},
+      .gin_value = {Index{4}, Index{-1}, Index{-1}},
+      .gin_desc =
+          {"Number of quadrature angles to use",
+           "Number of internal Legendre polynomials to use (-1 defaults to NQuad).",
+           "Number of internal Fourier modes to use (-1 defaults to NLeg)"},
   };
 
   /*
