@@ -13,6 +13,7 @@
 #include "compare.h"
 #include "legendre.h"
 #include "lin_alg.h"
+#include "matpack_view.h"
 
 namespace disort {
 void mathscr_v(auto&& um,
@@ -25,32 +26,79 @@ void mathscr_v(auto&& um,
                const Index Ni0   = 0,
                const Numeric scl = 1.0,
                const Numeric add = 0.0) {
+  const Index Nk = K.size();
   const Index Ni = um.size();
-  const Index Nk = G.ncols();
   const Index Nc = source_poly_coeffs.size();
-
-  for (Index c = 0; c < Nc; c++) {
-    data.cvec[c] = std::pow(tau, Nc - 1 - c);
-  }
-
-  data.src = 0.0;
-  for (Index k = 0; k < Nk; k++) {
-    for (Index i : std::ranges::iota_view(0, Nc)) {
-      for (Index j = 0; j <= i; j++) {
-        const Numeric fs =
-            Legendre::tgamma_ratio(static_cast<Numeric>(Nc - j),
-                                   static_cast<Numeric>(Nc - i)) *
-            source_poly_coeffs[1 - j];
-        data.src(k, i) += fs * std::pow(K[k], -(i - j + 1));
-      }
-    }
-  }
+  const Index n  = Nc - 1;
 
   std::ranges::copy(inv_mu, data.k1.begin());
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
-  mult(data.k2, data.src, data.cvec);
-  data.k1 *= data.k2;
+
+  // for (Index c = 0; c < n; c++) {
+  //   data.cvec[c] = std::pow(tau, n - c);
+  // }
+  // data.cvec.back() = 1.0;
+
+  // // e.g., for Nc=2, [0, 0], [1, 0], [1, 1]
+  // data.src = 0;
+  // for (Index i = 0; i < Nc; i++) {
+  //   const Numeric fi = Legendre::factorial(n - i);
+  //   for (Index j = 0; j <= i; j++) {
+  //     const Numeric fj = Legendre::factorial(n - j);
+  //     const Numeric sj = source_poly_coeffs[n - j];
+
+  //     for (Index k = 0; k < Nk; k++) {
+  //       data.src(k, i) += (fj / fi) * std::pow(K[k], -1 - i + j) * sj;
+  //     }
+  //   }
+  // }
+
+  // Numeric sum = 0.0;
+  // for (Index i = 0; i < Nc; i++) {
+  //   const Numeric taun = std::pow(tau, n - i);
+  //   const Numeric fi   = Legendre::factorial(n - i);
+
+  //   Numeric sum2 = 0.0;
+  //   for (Index j = 0; j <= i; j++) {
+  //     const Numeric f = Legendre::factorial(n - j) / fi;
+  //     for (Index k = 0; k < Nk; k++) {
+  //       if (j == i) {
+  //         sum2 += f * source_poly_coeffs[n - j] / K[k];
+  //       } else if ((j - i) == 1) {
+  //         sum2 += f * source_poly_coeffs[n - j];
+  //       } else {
+  //         sum2 += f * source_poly_coeffs[n - j] * std::pow(K[k], j - i - 1);
+  //       }
+  //     }
+  //   }
+  //   sum += taun * sum2;
+  // }
+
+  for (Index i = 0; i < Nc; i++) {
+    data.cvec[i] = std::pow(tau, n - i);
+  }
+
+  for (Index k = 0; k < Nk; k++) {
+    Numeric sum2 = 0.0;
+    for (Index i = 0; i < Nc; i++) {
+      const Numeric fi = Legendre::factorial(n - i);
+      for (Index j = 0; j <= i; j++) {
+        const Numeric f = data.cvec[i] * Legendre::factorial(n - j) *
+                          source_poly_coeffs[n - j] / fi;
+        if (j == i) {
+          sum2 += f / K[k];
+        } else if ((j - i) == 1) {
+          sum2 += f;
+        } else {
+          sum2 += f * std::pow(K[k], j - i - 1);
+        }
+      }
+    }
+
+    data.k1[k] *= sum2;
+  }
+
   mult(um, G.slice(Ni0, Ni), data.k1, scl, add);
 }
 
@@ -308,13 +356,13 @@ void main_data::diagonalize() {
             amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
 
         for (Index i = 0; i < N; i++) {
-          G[i].slice(0, N)      = amb[i].slice(0, N);
-          G[i].slice(0, N)     *= 0.5;
-          G[i].slice(N, N)      = G[i].slice(0, N);
+          G[i].slice(0, N)  = amb[i].slice(0, N);
+          G[i].slice(0, N) *= 0.5;
+          G[i].slice(N, N)  = G[i].slice(0, N);
 
-          const Numeric sqrt_x  = std::sqrt(K[i]);
-          K[i]                  = -sqrt_x;
-          K[i + N]              = sqrt_x;
+          const Numeric sqrt_x = std::sqrt(K[i]);
+          K[i]                 = -sqrt_x;
+          K[i + N]             = sqrt_x;
         }
 
         mult(GmG, apb, G.slice(0, N));

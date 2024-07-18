@@ -36,10 +36,9 @@ ArrayOfAscendingGrid ray_path_tau_arrFromPath(
     for (Size i = 0; i < N - 1; i++) {
       tau[i] = r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
                                     ray_path_propagation_matrix[i + 0][iv].A());
-    }
-
-    for (Size i = 1; i < N - 1; i++) {
-      tau[i] += tau[i - 1];
+      if (i > 0) {
+        tau[i] += tau[i - 1];
+      }
     }
 
     ray_path_tau_arr[iv] = std::move(tau);
@@ -127,25 +126,26 @@ void disort_intensitiesClearskyDisort(
 
   ARTS_USER_ERROR_IF(NLeg < 1, "Must be at least 1")
 
-  disort::main_data dis(N - 1, NQuad, NLeg, NFourier, 2, NLeg, 1);
+  constexpr Index Nscoeffs = 2;
+  disort::main_data dis(N - 1, NQuad, NLeg, NFourier, Nscoeffs, NLeg, 1);
 
-  dis.solar_zenith() = 1.0;
-  dis.beam_azimuth() = 0.0;
-  dis.brdf_modes()[0] =
-      disort::BDRF{[](ExhaustiveMatrixView x,
-                      const ExhaustiveConstVectorView&,
-                      const ExhaustiveConstVectorView&) { x = 0.0; }};
+  dis.solar_zenith()                  = 1.0;
+  dis.beam_azimuth()                  = 0.0;
   dis.omega()                         = 0.0;
   dis.f()                             = 0.0;
   dis.all_legendre_coeffs()           = 0.0;
   dis.all_legendre_coeffs()(joker, 0) = 1.0;
   dis.positive_boundary()             = 0.0;
   dis.negative_boundary()             = 0.0;
+  dis.brdf_modes()[0] =
+      disort::BDRF{[](ExhaustiveMatrixView x,
+                      const ExhaustiveConstVectorView&,
+                      const ExhaustiveConstVectorView&) { x = 0.0; }};
 
   const ArrayOfAscendingGrid ray_path_tau_arr =
       ray_path_tau_arrFromPath(ray_path, ray_path_propagation_matrix);
 
-#pragma omp parallel for firstprivate(dis)
+  //#pragma omp parallel for firstprivate(dis)
   for (Index iv = 0; iv < nv; iv++) {
     dis.tau() = ray_path_tau_arr[iv];
     for (Size i = 0; i < N - 1; i++) {
@@ -158,9 +158,22 @@ void disort_intensitiesClearskyDisort(
       const Numeric y0 = planck(f0, t0);
       const Numeric y1 = planck(f1, t1);
 
-      dis.source_poly()(i, 0) = std::midpoint(y0, y1);
-      dis.source_poly()(i, 1) = 0;
+      if constexpr (Nscoeffs == 1) {
+        dis.source_poly()(i, 0) = std::midpoint(y0, y1);
+      } else {
+        const Numeric x0 = i == 0 ? 0.0 : ray_path_tau_arr[iv][i - 1];
+        const Numeric x1 = ray_path_tau_arr[iv][i];
+        const Numeric b  = (y1 - y0) / (x1 - x0);
+
+        dis.source_poly()(i, 0) = y0 - b * x0;
+        dis.source_poly()(i, 1) = b;
+      }
+
+      // std::cout << y0 - b * x0 << ' ' << y1 - b * x1 << '\n';
     }
+
+    //const disort::main_data cdis = dis;
+    // std::cout << std::format("src[{}] = np.array({:B,}).reshape(N, 2);\ntau[{}] = np.array({:B,})\n", iv, dis.source_poly(), iv, cdis.tau());
 
     dis.update_all(0.0);
 
