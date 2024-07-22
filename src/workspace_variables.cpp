@@ -525,6 +525,28 @@ radiance.
       .type = "SpectralRadianceOperator",
   };
 
+  wsv_data["model_state_vector"] = {
+      .desc = R"(A state vector of the model.
+
+In classical ``F(x) = y``-notation, this is the ``x``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector"] = {
+      .desc = R"(The measurment vector for, e.g., a sensor.
+
+In classical ``F(x) = y``-notation, this is the ``y``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector_jacobian"] = {
+      .desc = R"(The partial derivatives of the *measurement_vector*.
+)",
+      .type = "Matrix",
+  };
+
   wsv_data["measurement_vector_sensor"] = {
       .desc = R"(A list of sensor elements.
 

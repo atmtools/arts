@@ -34,49 +34,11 @@ struct AtmTarget {
                const AtmField&,
                const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
-  friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
-    return os << "Atmosphere key value: " << target.type << ", starting at "
-              << target.x_start << " of size " << target.x_size;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target);
 
-  void update(AtmField& atm, const Vector& x) const {
-    ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                       "Got too small vector.")
+  void update(AtmField& atm, const Vector& x) const;
 
-    ARTS_USER_ERROR_IF(not atm.contains(type),
-                       "Atmosphere does not contain key value ",
-                       type,
-                       '.')
-
-    auto xnew   = atm[type].flat_view();
-    auto xold_d = x.slice(x_start, x_size);
-    ARTS_USER_ERROR_IF(
-        xnew.size() not_eq xold_d.size(),
-        "Problem with sizes.  \n"
-        "Did you change your atmosphere since you set the jacobian targets?")
-
-    set(xnew, atm, xold_d);
-  }
-
-  void update(Vector& x, const AtmField& atm) const {
-    ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                       "Got too small vector.")
-
-    ARTS_USER_ERROR_IF(not atm.contains(type),
-                       "Atmosphere does not contain key value ",
-                       type,
-                       '.')
-
-    auto xnew   = x.slice(x_start, x_size);
-    auto xold_d = atm[type].flat_view();
-    ARTS_USER_ERROR_IF(
-        xnew.size() not_eq xold_d.size(),
-        "Problem with sizes.  \n"
-        "Did you change your atmosphere since you set the jacobian targets?\n"
-        "Did you forget to finalize the JacobianTargets?")
-
-    unset(xnew, atm, xold_d);
-  }
+  void update(Vector& x, const AtmField& atm) const;
 };
 
 struct SurfaceTarget {
@@ -105,49 +67,11 @@ struct SurfaceTarget {
                const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
   friend std::ostream& operator<<(std::ostream& os,
-                                  const SurfaceTarget& target) {
-    return os << "Surface key value: " << target.type << ", starting at "
-              << target.x_start << " of size " << target.x_size;
-  }
+                                  const SurfaceTarget& target);
 
-  void update(SurfaceField& surf, const Vector& x) const {
-    ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                       "Got too small vector.")
+  void update(SurfaceField& surf, const Vector& x) const;
 
-    ARTS_USER_ERROR_IF(not surf.contains(type),
-                       "Surface does not contain key value ",
-                       type,
-                       '.')
-
-    auto xnew   = surf[type].flat_view();
-    auto xold_d = x.slice(x_start, x_size);
-    ARTS_USER_ERROR_IF(
-        xnew.size() not_eq xold_d.size(),
-        "Problem with sizes.\n"
-        "Did you change your surface since you set the jacobian targets?\n"
-        "Did you forget to finalize the JacobianTargets?")
-
-    set(xnew, surf, xold_d);
-  }
-
-  void update(Vector& x, const SurfaceField& surf) const {
-    ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                       "Got too small vector.")
-
-    ARTS_USER_ERROR_IF(not surf.contains(type),
-                       "Surface does not contain key value ",
-                       type,
-                       '.')
-
-    auto xnew   = x.slice(x_start, x_size);
-    auto xold_d = surf[type].flat_view();
-    ARTS_USER_ERROR_IF(
-        xnew.size() not_eq xold_d.size(),
-        "Problem with sizes.\n"
-        "Did you change your surface since you set the jacobian targets?")
-
-    unset(xnew, surf, xold_d);
-  }
+  void update(Vector& x, const SurfaceField& surf) const;
 };
 
 struct LineTarget {
@@ -175,17 +99,11 @@ struct LineTarget {
                const ArrayOfAbsorptionBand&,
                const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
-  friend std::ostream& operator<<(std::ostream& os, const LineTarget&) {
-    return os << "Line key value: ";
-  }
+  friend std::ostream& operator<<(std::ostream& os, const LineTarget&);
 
-  void update(ArrayOfAbsorptionBand&, const Vector&) const {
-    ARTS_ASSERT(false)
-  }
+  void update(ArrayOfAbsorptionBand&, const Vector&) const;
 
-  void update(Vector&, const ArrayOfAbsorptionBand&) const {
-    ARTS_ASSERT(false)
-  }
+  void update(Vector&, const ArrayOfAbsorptionBand&) const;
 };
 
 template <typename U, typename T>
@@ -265,14 +183,19 @@ struct targets_t {
     ((std::ranges::for_each(
          target<Targets>(),
          [&](auto& a) {
-           ARTS_USER_ERROR_IF(a.x_start + a.x_size >= xsize,
+           ARTS_USER_ERROR_IF((a.x_start + a.x_size) > xsize,
                               "The target ",
                               a,
-                              " is out of bounds of the x-vector.")
-           ARTS_USER_ERROR_IF(t_size >= a.target_pos,
-                              "The target ",
-                              a,
-                              " is out of bounds of the target vector.")
+                              " is out of bounds of the x-vector.  (xsize: ",
+                              xsize,
+                              ')')
+           ARTS_USER_ERROR_IF(
+               t_size <= a.target_pos,
+               "The target ",
+               a,
+               " is out of bounds of the target vector.  (t_size: ",
+               t_size,
+               ')')
          })),
      ...);
   }
@@ -290,58 +213,23 @@ struct targets_t {
 };
 
 struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
-  [[nodiscard]] const auto& atm() const { return target<AtmTarget>(); }
-  [[nodiscard]] const auto& surf() const { return target<SurfaceTarget>(); }
-  [[nodiscard]] const auto& line() const { return target<LineTarget>(); }
+  [[nodiscard]] const std::vector<AtmTarget>& atm() const;
+  [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
+  [[nodiscard]] const std::vector<LineTarget>& line() const;
+  [[nodiscard]] std::vector<AtmTarget>& atm();
+  [[nodiscard]] std::vector<SurfaceTarget>& surf();
+  [[nodiscard]] std::vector<LineTarget>& line();
 
   //! Sets the sizes and x-positions of the targets.
-  void finalize(const AtmField& atm_field) {
-    zero_out_x();
+  void finalize(const AtmField& atmospheric_field,
+                const SurfaceField& surface_field,
+                const ArrayOfAbsorptionBand& absorption_bands);
 
-    const Size Nt = target_count();
-    for (Size i = 0; i < Nt; i++) {
-      if ([&atm_field, this, pos = i]() -> bool {
-            for (auto& t : target<AtmTarget>()) {
-              if (t.target_pos == pos) {
-                ARTS_USER_ERROR_IF(not atm_field.contains(t.type),
-                                   "The target ",
-                                   t,
-                                   " is not in the atmosphere,"
-                                   " but is required by jacobian target ",
-                                   *this)
-                t.x_start = x_size();
-                t.x_size  = atm_field[t.type].flat_view().size();
-                return true;
-              }
-            }
-            return false;
-          }())
-        continue;
-
-      ARTS_ASSERT(false, "Missing impl for surface and line parameters")
-      ARTS_USER_ERROR("Cannot reach here, there is no target position ", i)
-    }
-
-    throwing_check(x_size());
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const Targets& targets) {
-    os << "Jacobian targets:\n";
-    for (const auto& t : targets.atm()) {
-      os << "  " << t << '\n';
-    }
-    for (const auto& t : targets.surf()) {
-      os << "  " << t << '\n';
-    }
-    for (const auto& t : targets.line()) {
-      os << "  " << t << '\n';
-    }
-    return os;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const Targets& targets);
 };
 }  // namespace Jacobian
 
-Numeric field_perturbation(const auto& f) {
+inline Numeric field_perturbation(const auto& f) {
   return std::transform_reduce(
       f.begin(),
       f.end(),
@@ -370,15 +258,17 @@ struct std::formatter<Jacobian::AtmTarget> {
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
-                       ": ["sv,
+                       ": "sv,
                        v.d,
                        sep,
+                       "target_pos: "sv,
                        v.target_pos,
                        sep,
+                       "x_start: "sv,
                        v.x_start,
                        sep,
-                       v.x_size,
-                       ']');
+                       "x_size: "sv,
+                       v.x_size);
   }
 };
 
@@ -400,15 +290,17 @@ struct std::formatter<Jacobian::SurfaceTarget> {
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
-                       ": ["sv,
+                       ": "sv,
                        v.d,
                        sep,
+                       "target_pos: "sv,
                        v.target_pos,
                        sep,
+                       "x_start: "sv,
                        v.x_start,
                        sep,
-                       v.x_size,
-                       ']');
+                       "x_size: "sv,
+                       v.x_size);
   }
 };
 
@@ -430,15 +322,17 @@ struct std::formatter<Jacobian::LineTarget> {
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
-                       ": ["sv,
+                       ": "sv,
                        v.d,
                        sep,
+                       "target_pos: "sv,
                        v.target_pos,
                        sep,
+                       "x_start: "sv,
                        v.x_start,
                        sep,
-                       v.x_size,
-                       ']');
+                       "x_size: "sv,
+                       v.x_size);
   }
 };
 

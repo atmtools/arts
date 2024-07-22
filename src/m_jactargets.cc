@@ -15,8 +15,10 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 }
 
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
-                              const AtmField& atm_field) {
-  jacobian_targets.finalize(atm_field);
+                              const AtmField& atmospheric_field,
+                              const SurfaceField& surface_field,
+                              const ArrayOfAbsorptionBand& absorption_bands) {
+  jacobian_targets.finalize(atmospheric_field, surface_field, absorption_bands);
 }
 
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
@@ -72,18 +74,23 @@ void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
 }
 
 void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
-                                   const String& species,
+                                   const SpeciesEnum& species,
                                    const Numeric& d) {
-  const SpeciesEnum s = to<SpeciesEnum>(species);
-
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      s, d, jacobian_targets.target_count());
+      species, d, jacobian_targets.target_count());
 }
 
+void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
+                                   const String& species,
+                                   const Numeric& d) {
+  jacobian_targetsAddSpeciesVMR(jacobian_targets, to<SpeciesEnum>(species), d);
+}
+#include <iostream>
 void jacobian_targetsAddSpeciesIsotopologueRatio(
     JacobianTargets& jacobian_targets,
     const SpeciesIsotope& species,
     const Numeric& d) {
+      std::cout <<"SpeciesIsotope\n";
   ARTS_USER_ERROR_IF(
       std::ranges::none_of(Species::Isotopologues, Cmp::eq(species)),
       "Unknown isotopologue: \"",
@@ -92,6 +99,15 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
 
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
       species, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSpeciesIsotopologueRatio(
+    JacobianTargets& jacobian_targets,
+    const String& species,
+    const Numeric& d) {
+      std::cout <<"String\n";
+  jacobian_targetsAddSpeciesIsotopologueRatio(
+      jacobian_targets, SpeciesIsotope{species}, d);
 }
 
 void jacobian_targetsAddLineParameter(

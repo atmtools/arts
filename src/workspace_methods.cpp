@@ -195,7 +195,9 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   return os.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string("Error in meta-function header(",
-                                      '"', name, '"',
+                                      '"',
+                                      name,
+                                      '"',
                                       ", ",
                                       overload,
                                       "):\n\n",
@@ -2218,7 +2220,10 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atmospheric_field"},
+      .in     = {"jacobian_targets",
+                 "atmospheric_field",
+                 "surface_field",
+                 "absorption_bands"},
   };
 
   wsm_data["jacobian_targetsAddTemperature"] = {
@@ -2291,10 +2296,10 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"String", "Numeric"},
+      .gin_type  = {"SpeciesEnum,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
-          {"The species of interest (short or long name)",
+          {"The species of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
 
@@ -2307,7 +2312,7 @@ See *SpeciesIsotope* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"SpeciesIsotope", "Numeric"},
+      .gin_type  = {"SpeciesIsotope,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The species isotopologue of interest",
@@ -3092,9 +3097,7 @@ See *SpeciesIsotope* for valid ``species``
 The core calculations happens inside the *spectral_radiance_operator*.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector"},
-      .gout_type = {"Vector"},
-      .gout_desc = {"The measurement vector"},
+      .out       = {"measurement_vector"},
       .in        = {"measurement_vector_sensor",
                     "spectral_radiance_operator",
                     "ray_path_observer_agenda"},
@@ -3115,10 +3118,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 User choices of *spectral_radiance_unit* does not adversely affect this method.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector", "measurement_vector_jacobian"},
-      .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"The measurement vector",
-                    "The measurement vector's associated Jacobian"},
+      .out       = {"measurement_vector", "measurement_vector_jacobian"},
       .in        = {"measurement_vector_sensor",
                     "jacobian_targets",
                     "atmospheric_field",
@@ -3355,6 +3355,75 @@ have sorted *suns* by distance before running this code.
            R"--(The depolarization factor to use.)--",
            "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
+  };
+
+  wsm_data["atmospheric_fieldFromModelState"] = {
+      .desc   = R"--(Sets *atmospheric_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["surface_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surface_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_field"},
+      .in     = {"surface_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["absorption_bandsFromModelState"] = {
+      .desc   = R"--(Sets *absorption_bands* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_bands"},
+      .in     = {"absorption_bands", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorSize"] = {
+      .desc =
+          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+
+Warning:
+
+    Does not zero out existing data. Use *model_state_vectorZero* if that is desired.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorZero"] = {
+      .desc   = R"--(Sets *model_state_vector* to 0.0
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector"},
+  };
+
+  wsm_data["model_state_vectorFromAtmosphere"] = {
+      .desc   = R"--(Sets *model_state_vector*'s atmospheric part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "atmospheric_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromSurface"] = {
+      .desc   = R"--(Sets *model_state_vector*'s surface part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "surface_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromBands"] = {
+      .desc   = R"--(Sets *model_state_vector*'s absorption line part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "absorption_bands", "jacobian_targets"},
   };
 
   /*

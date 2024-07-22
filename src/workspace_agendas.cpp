@@ -97,5 +97,16 @@ The output must be sized as:
                  "surface_field"},
   };
 
+  wsa_data["measurement_vector_inversion_step_agenda"] = {
+      .desc   = R"--(Sets the measurment vector per inversion step.
+
+The intent is that the *model_state_vector* is used to update the
+atmosphere, sensor, line data, ..., and use this updated state to
+calculate the *measurement_vector*.
+)--",
+      .output = {"measurement_vector", "measurement_vector_jacobian"},
+      .input  = {"model_state_vector", "jacobian_targets"},
+  };
+
   return wsa_data;
 }

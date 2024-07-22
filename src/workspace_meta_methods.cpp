@@ -116,6 +116,28 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .preset_gin_value = {Index{0}},
   });
 
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "UpdateModelStates",
+      .desc    = "Update state of the model in preparation for a forward model run",
+      .author  = {"Richard Larsson"},
+      .methods = {"absorption_bandsFromModelState",
+                  "surface_fieldFromModelState",
+                  "atmospheric_fieldFromModelState"},
+      .out     = {"absorption_bands", "surface_field", "atmospheric_field"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "model_state_vectorFromData",
+      .desc    = "Get *model_state_vector* from available data",
+      .author  = {"Richard Larsson"},
+      .methods = {"model_state_vectorSize",
+                  "model_state_vectorZero",
+                  "model_state_vectorFromAtmosphere",
+                  "model_state_vectorFromSurface",
+                  "model_state_vectorFromBands"},
+      .out     = {"model_state_vector"},
+  });
+
   return out;
 }
 const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
