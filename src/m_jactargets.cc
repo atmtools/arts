@@ -85,12 +85,11 @@ void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
                                    const Numeric& d) {
   jacobian_targetsAddSpeciesVMR(jacobian_targets, to<SpeciesEnum>(species), d);
 }
-#include <iostream>
+
 void jacobian_targetsAddSpeciesIsotopologueRatio(
     JacobianTargets& jacobian_targets,
     const SpeciesIsotope& species,
     const Numeric& d) {
-      std::cout <<"SpeciesIsotope\n";
   ARTS_USER_ERROR_IF(
       std::ranges::none_of(Species::Isotopologues, Cmp::eq(species)),
       "Unknown isotopologue: \"",
@@ -105,7 +104,6 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
     JacobianTargets& jacobian_targets,
     const String& species,
     const Numeric& d) {
-      std::cout <<"String\n";
   jacobian_targetsAddSpeciesIsotopologueRatio(
       jacobian_targets, SpeciesIsotope{species}, d);
 }
