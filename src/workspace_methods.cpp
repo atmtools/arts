@@ -2303,6 +2303,36 @@ See *SpeciesEnum* for valid ``species``
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
 
+  wsm_data["jacobian_targetsAddAtmosphere"] = {
+      .desc   = R"--(Sets an atmospheric target
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
+      .gin    = {"target", "d"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
+           "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["jacobian_targetsAddSurface"] = {
+      .desc      = R"--(Sets a surface target
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
 
@@ -2320,25 +2350,22 @@ See *SpeciesIsotope* for valid ``species``
   };
 
   wsm_data["jacobian_targetsAddLineParameter"] = {
-      .desc   = R"--(Set line parameter derivative
+      .desc      = R"--(Set line parameter derivative
 
 See *LineByLineVariable* and *LineShapeModelVariable* for valid ``parameter``.
 
 See *SpeciesEnum* for valid ``species``.
 
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "absorption_bands"},
-      .gin = {"id", "line_index", "parameter", "species"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "absorption_bands"},
+      .gin       = {"id", "line_index", "parameter", "species"},
       .gin_type  = {"QuantumIdentifier",
                     "Index",
                     "LineByLineVariable,LineShapeModelVariable",
                     "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String{"None"}},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{"None"}},
       .gin_desc =
           {"The quantum identifier of the band",
            "The index of the line in the band",

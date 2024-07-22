@@ -12,33 +12,34 @@ nlon = 5
 def rem(x, v, start, length):
     end = start + length
     x[start:end] -= v
-    return x, end
+    return x
 
 
 # Scale x by 1.1
-def scl10(x, v, start, length):
+def scl110(x, v, start, length):
     end = start + length
     x[start:end] = 1.1 * v
-    return x, end
+    return x
+
+
+# Scale x by 1.1
+def noop(x, v, start, length):
+    return x
 
 
 def ops(ws, op):
     x = ws.model_state_vector * 1.0
 
-    n = 0
+    for key in ws.jacobian_targets.atm:
+        data = np.asarray(ws.atmospheric_field[key.type].data)
+        x = op(x, data.flatten(), key.x_start, key.x_size)
 
-    x, n = op(x, ws.atmospheric_field[pyarts.arts.AtmKey.t].data, n, 1)
-    x, n = op(
-        x,
-        ws.atmospheric_field[pyarts.arts.AtmKey.p].data.data.flatten(),
-        n,
-        nalt * nlat * nlon,
-    )
-    x, n = op(x, ws.atmospheric_field[spec].data, n, 1)
-    x, n = op(x, ws.atmospheric_field[isot].data, n, 1)
+    for key in ws.jacobian_targets.surf:
+        data = np.asarray(ws.surface_field[key.type].data)
+        x = op(x, data.flatten(), key.x_start, key.x_size)
 
     for key in ws.jacobian_targets.line:
-        x, n = op(x, ws.absorption_bands[key.type], n, 1)
+        x = op(x, ws.absorption_bands[key.type], key.x_start, key.x_size)
 
     return x
 
@@ -49,12 +50,24 @@ ws.jacobian_targetsInit()
 
 ws.atmospheric_fieldInit(toa=toa)
 ws.surface_fieldEarth()
+ws.surface_field["t"] = 295
+ws.surface_field["h"] = pyarts.arts.GriddedField2(
+    data=2 + np.random.random((nlat, nlon)),
+    name="Elevation",
+    grids=(
+        np.linspace(0, 90, nlat),
+        np.linspace(0, 180, nlon),
+    ),
+    grid_names=["Latitude", "Longitude"],
+)
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.absorption_bandsSelectFrequency(fmin=100e9, fmax=120e9, by_line=1)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
-while len(ws.absorption_bands) != 1: ws.absorption_bands.pop()
+
+while len(ws.absorption_bands) != 1:
+    ws.absorption_bands.pop()
 
 # %% Temperature and pressure and VMR and ratios
 
@@ -62,7 +75,7 @@ ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 ws.jacobian_targetsAddTemperature()
 
 ws.atmospheric_field[pyarts.arts.AtmKey.p] = pyarts.arts.GriddedField3(
-    data=np.random.random((nalt, nlat, nlon)),
+    data=2 + np.random.random((nalt, nlat, nlon)),
     name="Pressure",
     grids=(
         np.linspace(0, toa, nalt),
@@ -84,10 +97,27 @@ ws.jacobian_targetsAddSpeciesIsotopologueRatio(species=isot)
 # %% Line center and Einstein and G0 and Y
 
 key = ws.absorption_bands[0].key
-ws.jacobian_targetsAddLineParameter(id=key, line_index = 0, parameter="f0")
-ws.jacobian_targetsAddLineParameter(id=key, line_index = 0, parameter="a")
-ws.jacobian_targetsAddLineParameter(id=key, line_index = 0, parameter="G0", species="O2")
-ws.jacobian_targetsAddLineParameter(id=key, line_index = 0, parameter="Y", species="O2")
+ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
+ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="a")
+ws.jacobian_targetsAddLineParameter(
+    id=key, line_index=0, parameter="G0", species="O2"
+)
+ws.jacobian_targetsAddLineParameter(
+    id=key, line_index=0, parameter="Y", species="O2"
+)
+ws.jacobian_targetsAddLineParameter(
+    id=key, line_index=0, parameter="G0", species="AIR"
+)
+ws.jacobian_targetsAddLineParameter(
+    id=key, line_index=0, parameter="Y", species="AIR"
+)
+
+
+# %% Surface temperature and altitude
+
+ws.jacobian_targetsAddSurface(target="t")
+ws.jacobian_targetsAddSurface(target="h")
+
 
 # %% Finalize
 
@@ -102,16 +132,16 @@ ws.model_state_vectorFromData()
 x = ops(ws, rem)
 assert np.allclose(x, 0)
 
-# %% Check scaling 
+# %% Check scaling
 
-x1 = ops(ws, scl10)
-x2 = ws.model_state_vector * 1.0
+x1 = ops(ws, scl110)
+x2 = ops(ws, noop)
 assert np.allclose(x1 / x2, 1.1)
 
 # %% Check update
 
-ws.UpdateModelStates(model_state_vector = x1)
+ws.UpdateModelStates(model_state_vector=x1)
 
 ws.model_state_vectorFromData()
-x2 = ws.model_state_vector * 1.0
+x2 = ops(ws, noop)
 assert np.allclose(x1 / x2, 1.0)

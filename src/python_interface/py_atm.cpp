@@ -17,6 +17,11 @@
 
 namespace Python {
 void py_atm(py::module_ &m) try {
+  py::class_<ParticulatePropertyTag> ppt = py::class_<ParticulatePropertyTag>(m, "ParticulatePropertyTag");
+  workspace_group_interface(ppt);
+  ppt.def_rw("name", &ParticulatePropertyTag::name);
+  ppt.def(py::init_implicit<String>());
+
   py::class_<Atm::Data>(m, "AtmData")
       .def(py::init<Atm::Data>())
       .def(py::init<GriddedField3>())

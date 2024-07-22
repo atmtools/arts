@@ -225,6 +225,31 @@ about the isotopologue, the absorption scheme, and the frequency limits
       .skip_pyinit = true,
   };
 
+  wsg_data["ParticulatePropertyTag"] = {
+      .file = "atm.h",
+      .desc = R"--(An particulate property key
+)--",
+  };
+
+  wsg_data["SurfaceKey"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface key
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["SurfaceTypeTag"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface type
+)--",
+  };
+
+  wsg_data["SurfacePropertyTag"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface property
+)--",
+  };
+
   wsg_data["ArrayOfSpeciesEnum"] = {
       .file        = "species.h",
       .desc        = R"--(A list of *SpeciesEnum*
@@ -235,6 +260,13 @@ about the isotopologue, the absorption scheme, and the frequency limits
   wsg_data["SpeciesEnum"] = {
       .file        = "enums.h",
       .desc        = R"--(An atmospheric species
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["AtmKey"] = {
+      .file        = "enums.h",
+      .desc        = R"--(An atmospheric key
 )--",
       .skip_pyinit = true,
   };

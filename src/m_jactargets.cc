@@ -22,6 +22,62 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
   jacobian_targets.finalize(atmospheric_field, surface_field, absorption_bands);
 }
 
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfaceKey& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfaceTypeTag& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfacePropertyTag& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const AtmKey& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const SpeciesEnum& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const SpeciesIsotope& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const QuantumIdentifier& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const ParticulatePropertyTag& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
                                     const Numeric& d) {
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
