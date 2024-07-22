@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <type_traits>
+#include <utility>
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
@@ -132,5 +134,72 @@ std::ostream& operator<<(std::ostream& os, const line_key& x) {
             << "\n  spec: " << x.spec << "\n  var: " << x.var
             << "\n  ls_var: " << x.ls_var << "\n  ls_coeff: " << x.ls_coeff
             << '\n';
+}
+
+template <typename T>
+auto local_get_value(T& absorption_bands, const line_key& type)
+    -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
+  auto& band =
+      [&type, &absorption_bands]() {
+        auto ptr =
+            std::ranges::find(absorption_bands, type.band, &lbl::band::key);
+        ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
+                           "No band with quantum identifier: ",
+                           type.band);
+        return ptr;
+      }()
+          ->data;
+
+  ARTS_USER_ERROR_IF(type.line >= band.lines.size(),
+                     "Line index out of range: ",
+                     type.line,
+                     " band has ",
+                     band.lines.size(),
+                     " absorption lines. Band: ",
+                     type.band);
+  auto& line = band.lines[type.line];
+
+  if (good_enum(type.ls_var)) {
+    auto& line_ls_data = line.ls.single_models;
+    ARTS_USER_ERROR_IF(type.spec >= line_ls_data.size(),
+                       "Not enough line data for line: ",
+                       line,
+                       " for quantum identifier: ",
+                       type.band);
+
+    auto& ls_data = line_ls_data[type.spec].data;
+    auto ls_ptr   = std::ranges::find_if(
+        ls_data, [var = type.ls_var](auto& x) { return x.first == var; });
+    ARTS_USER_ERROR_IF(ls_ptr == ls_data.end(),
+                       "No line shape parameter: \"",
+                       type.ls_var,
+                       "\" for species: \"",
+                       line_ls_data[type.spec].species,
+                       "\" in line: ",
+                       line,
+                       " for quantum identifier: ",
+                       type.band);
+
+    return ls_ptr->second.X(type.ls_coeff);
+  }
+
+  switch (type.var) {
+    case LineByLineVariable::f0:
+      return line.f0;
+    case LineByLineVariable::e0:
+      return line.e0;
+    case LineByLineVariable::a:
+      return line.a;
+  }
+
+  std::unreachable();
+}
+
+Numeric& line_key::get_value(std::vector<lbl::band>& b) const {
+  return local_get_value(b, *this);
+}
+
+const Numeric& line_key::get_value(const std::vector<lbl::band>& b) const {
+  return local_get_value(b, *this);
 }
 }  // namespace lbl

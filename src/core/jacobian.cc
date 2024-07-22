@@ -1,7 +1,12 @@
 #include "jacobian.h"
 
+#include <algorithm>
+
 #include "compare.h"
+#include "debug.h"
+#include "enums.h"
 #include "lbl_data.h"
+#include "matpack_view.h"
 #include "surf.h"
 
 namespace Jacobian {
@@ -13,14 +18,14 @@ std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
 void AtmTarget::update(AtmField& atm, const Vector& x) const {
   ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
                      "Got too small vector.")
+  auto xold_d = x.slice(x_start, x_size);
 
   ARTS_USER_ERROR_IF(not atm.contains(type),
                      "Atmosphere does not contain key value ",
                      type,
                      '.')
+  auto xnew = atm[type].flat_view();
 
-  auto xnew   = atm[type].flat_view();
-  auto xold_d = x.slice(x_start, x_size);
   ARTS_USER_ERROR_IF(
       xnew.size() not_eq xold_d.size(),
       "Problem with sizes.  \n"
@@ -32,14 +37,14 @@ void AtmTarget::update(AtmField& atm, const Vector& x) const {
 void AtmTarget::update(Vector& x, const AtmField& atm) const {
   ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
                      "Got too small vector.")
+  auto xnew = x.slice(x_start, x_size);
 
   ARTS_USER_ERROR_IF(not atm.contains(type),
                      "Atmosphere does not contain key value ",
                      type,
                      '.')
-
-  auto xnew   = x.slice(x_start, x_size);
   auto xold_d = atm[type].flat_view();
+
   ARTS_USER_ERROR_IF(
       xnew.size() not_eq xold_d.size(),
       "Problem with sizes.  \n"
@@ -57,12 +62,12 @@ std::ostream& operator<<(std::ostream& os, const SurfaceTarget& target) {
 void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
   ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
                      "Got too small vector.")
+  auto xold_d = x.slice(x_start, x_size);
 
   ARTS_USER_ERROR_IF(
       not surf.contains(type), "Surface does not contain key value ", type, '.')
+  auto xnew = surf[type].flat_view();
 
-  auto xnew   = surf[type].flat_view();
-  auto xold_d = x.slice(x_start, x_size);
   ARTS_USER_ERROR_IF(
       xnew.size() not_eq xold_d.size(),
       "Problem with sizes.\n"
@@ -75,12 +80,12 @@ void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
 void SurfaceTarget::update(Vector& x, const SurfaceField& surf) const {
   ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
                      "Got too small vector.")
+  auto xnew = x.slice(x_start, x_size);
 
   ARTS_USER_ERROR_IF(
       not surf.contains(type), "Surface does not contain key value ", type, '.')
-
-  auto xnew   = x.slice(x_start, x_size);
   auto xold_d = surf[type].flat_view();
+
   ARTS_USER_ERROR_IF(
       xnew.size() not_eq xold_d.size(),
       "Problem with sizes.\n"
@@ -93,12 +98,23 @@ std::ostream& operator<<(std::ostream& os, const LineTarget&) {
   return os << "Line key value: ";
 }
 
-void LineTarget::update(ArrayOfAbsorptionBand&, const Vector&) const {
-  ARTS_ASSERT(false)
+void LineTarget::update(ArrayOfAbsorptionBand& absorption_bands,
+                        const Vector& x) const {
+  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
+                     "Got too small vector.")
+  set(ExhaustiveVectorView{type.get_value(absorption_bands)},
+      absorption_bands,
+      x.slice(x_start, x_size));
 }
 
-void LineTarget::update(Vector&, const ArrayOfAbsorptionBand&) const {
-  ARTS_ASSERT(false)
+void LineTarget::update(Vector& x,
+                        const ArrayOfAbsorptionBand& absorption_bands) const {
+  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
+                     "Got too small vector.")
+
+  unset(x.slice(x_start, x_size),
+        absorption_bands,
+        ExhaustiveConstVectorView{type.get_value(absorption_bands)});
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {
@@ -121,7 +137,7 @@ std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
 
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
-                       const ArrayOfAbsorptionBand& absorption_bands) {
+                       const ArrayOfAbsorptionBand&) {
   zero_out_x();
 
   const Size natm  = atm().size();
@@ -161,10 +177,9 @@ void Targets::finalize(const AtmField& atmospheric_field,
                                            &LineTarget::type),
                        "Multiple targets of the same type: ",
                        t.type)
-    ARTS_USER_ERROR("Not implemented yet.")
-    // t.x_start = last_size;
-    // t.x_size  = absorption_bands[t.type].flat_view().size();
-    // last_size += t.x_size;
+    t.x_start  = last_size;
+    t.x_size   = 1;
+    last_size += t.x_size;
   }
 
   throwing_check(last_size);

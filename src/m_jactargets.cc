@@ -2,6 +2,7 @@
 #include <jacobian.h>
 
 #include <iterator>
+#include <limits>
 
 #include "configtypes.h"
 #include "debug.h"
@@ -113,13 +114,8 @@ void jacobian_targetsAddLineParameter(
     const ArrayOfAbsorptionBand& absorption_bands,
     const QuantumIdentifier& qid,
     const Index& line_index,
-    const String& parameter,
-    const String& species,
-    const String& coefficient,
-    const Numeric& d) {
-  lbl::line_key key{qid};
-  key.line = static_cast<Size>(line_index);
-
+    const LineByLineVariable& parameter,
+    const String&) {
   const AbsorptionBand& band = [&]() {
     auto ptr = std::ranges::find(absorption_bands, qid, &lbl::band::key);
     ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
@@ -128,6 +124,9 @@ void jacobian_targetsAddLineParameter(
     return *ptr;
   }();
 
+  lbl::line_key key{qid};
+  key.line = static_cast<Size>(line_index);
+
   ARTS_USER_ERROR_IF(key.line >= band.data.lines.size() or line_index < 0,
                      "Line index out of range: ",
                      line_index,
@@ -135,29 +134,80 @@ void jacobian_targetsAddLineParameter(
                      band.data.lines.size(),
                      " absorption lines.");
 
-  if (coefficient.empty()) {
-    key.var = to<LineByLineVariable>(parameter);
-  } else {
-    key.ls_var   = to<LineShapeModelVariable>(parameter);
-    key.ls_coeff = to<LineShapeModelCoefficient>(coefficient);
-    key.spec     = [&]() {
-      auto ptr = std::ranges::find(
-          band.data.lines[line_index].ls.single_models,
-          [](const String& spec) { return to<SpeciesEnum>(spec); }(species),
-          &lbl::line_shape::species_model::species);
-      ARTS_USER_ERROR_IF(
-          ptr == band.data.lines[line_index].ls.single_models.end(),
-          "No species model for species: \"",
-          species,
-          "\" in line: ",
-          band.data.lines[line_index],
-          " for quantum identifier: ",
-          qid);
-      return std::distance(band.data.lines[line_index].ls.single_models.begin(),
-                           ptr);
-    }();
-  }
+  key.var = parameter;
 
   jacobian_targets.target<Jacobian::LineTarget>().emplace_back(
-      key, d, jacobian_targets.target_count());
+      key,
+      std::numeric_limits<Numeric>::quiet_NaN(),
+      jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddLineParameter(
+    JacobianTargets& jacobian_targets,
+    const ArrayOfAbsorptionBand& absorption_bands,
+    const QuantumIdentifier& qid,
+    const Index& line_index,
+    const LineShapeModelVariable& parameter,
+    const String& species) {
+  const AbsorptionBand& band = [&]() {
+    auto ptr = std::ranges::find(absorption_bands, qid, &lbl::band::key);
+    ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
+                       "No band with quantum identifier: ",
+                       qid);
+    return *ptr;
+  }();
+
+  lbl::line_key key{qid};
+  key.line = static_cast<Size>(line_index);
+
+  ARTS_USER_ERROR_IF(key.line >= band.data.lines.size() or line_index < 0,
+                     "Line index out of range: ",
+                     line_index,
+                     " band has ",
+                     band.data.lines.size(),
+                     " absorption lines.");
+
+  const auto& lineshape_data = band.data.lines[line_index].ls.single_models;
+
+  key.ls_var = parameter;
+  key.spec   = [&]() {
+    auto ptr = std::ranges::find(lineshape_data,
+                                 to<SpeciesEnum>(species),
+                                 &lbl::line_shape::species_model::species);
+    ARTS_USER_ERROR_IF(
+        ptr == band.data.lines[line_index].ls.single_models.end(),
+        "No species model for species: \"",
+        species,
+        "\" in line: ",
+        band.data.lines[line_index],
+        " for quantum identifier: ",
+        qid);
+    return std::distance(band.data.lines[line_index].ls.single_models.begin(),
+                         ptr);
+  }();
+
+  const auto& lsdata = lineshape_data[key.spec].data;
+  const auto lsptr   = std::ranges::find_if(
+      lsdata, [parameter](const auto& x) { return x.first == parameter; });
+
+  ARTS_USER_ERROR_IF(lsptr == lsdata.end(),
+                     "No line shape parameter: \"",
+                     parameter,
+                     "\" for species: \"",
+                     species,
+                     "\" in line: ",
+                     band.data.lines[line_index],
+                     " for quantum identifier: ",
+                     qid);
+
+  const auto& specdata = lsptr->second;
+
+  for (Index i = 0; i < specdata.X().size(); i++) {
+    key.ls_coeff = enumtyps::LineShapeModelCoefficientTypes[i];
+
+    jacobian_targets.target<Jacobian::LineTarget>().emplace_back(
+        key,
+        std::numeric_limits<Numeric>::quiet_NaN(),
+        jacobian_targets.target_count());
+  }
 }

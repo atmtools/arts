@@ -110,7 +110,7 @@ std::string type(const std::variant<std::shared_ptr<T>...> * const x)  {
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
-NB_MAKE_OPAQUE(SpeciesEnum)
+#include "py_auto_options.h"
 
 namespace Python {
 )--";

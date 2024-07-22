@@ -12,6 +12,7 @@
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
+#include "lbl_data.h"
 #include "partfun.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
@@ -19,6 +20,15 @@
 namespace Python {
 void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
+
+  py::class_<lbl::line_key> line_key(lbl, "line_key");
+  line_key.def_rw("band", &lbl::line_key::band);
+  line_key.def_rw("line", &lbl::line_key::line);
+  line_key.def_rw("spec", &lbl::line_key::spec);
+  line_key.def_rw("ls_var", &lbl::line_key::ls_var);
+  line_key.def_rw("ls_coeff", &lbl::line_key::ls_coeff);
+  line_key.def_rw("var", &lbl::line_key::var);
+  str_interface(line_key);
 
   py::class_<lbl::temperature::data>(m, "TemperatureModel")
       .def(py::init<LineShapeModelType, Vector>(),
@@ -33,7 +43,7 @@ void py_lbl(py::module_& m) try {
           ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
       .def_prop_rw(
           "data",
-          &lbl::temperature::data::X,
+          [](lbl::temperature::data& self) { return self.X(); },
           [](lbl::temperature::data& self, const Vector& x) {
             self = lbl::temperature::data{self.Type(), x};
           },
@@ -285,6 +295,13 @@ void py_lbl(py::module_& m) try {
           py::rv_policy::reference_internal,
           py::keep_alive<0, 1>(),
           ":class:`~pyarts.arts.AbsorptionBandData`");
+  aoab.def("__getitem__",
+           [](const ArrayOfAbsorptionBand& x,
+              const lbl::line_key& key) -> Numeric { return key.get_value(x); })
+      .def("__setitem__",
+           [](ArrayOfAbsorptionBand& x, const lbl::line_key& key, Numeric v) {
+             key.get_value(x) = v;
+           });
 
   lbl.def(
       "equivalent_lines",

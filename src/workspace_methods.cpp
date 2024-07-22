@@ -2322,35 +2322,28 @@ See *SpeciesIsotope* for valid ``species``
   wsm_data["jacobian_targetsAddLineParameter"] = {
       .desc   = R"--(Set line parameter derivative
 
-See *LineByLineVariable* for valid ``parameter``.
+See *LineByLineVariable* and *LineShapeModelVariable* for valid ``parameter``.
 
 See *SpeciesEnum* for valid ``species``.
 
-See *LineShapeModelCoefficient* for valid ``coefficient``.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
       .in     = {"jacobian_targets", "absorption_bands"},
-      .gin = {"id", "line_index", "parameter", "species", "coefficient", "d"},
+      .gin = {"id", "line_index", "parameter", "species"},
       .gin_type  = {"QuantumIdentifier",
                     "Index",
-                    "String",
-                    "String",
-                    "String",
-                    "Numeric"},
+                    "LineByLineVariable,LineShapeModelVariable",
+                    "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
-                    String{""},
-                    String{""},
-                    Numeric{0.1}},
+                    String{"None"}},
       .gin_desc =
           {"The quantum identifier of the band",
            "The index of the line in the band",
            "The parameter to compute the derivative for (see options in error message)",
-           "The coefficient in question (if non-empty, ``parameter`` refers to be a line shape parameter, otherwise, ``parameter`` referes to a standard absorption line parameter)",
-           "The species of interest (long or short name; error message shows only valid long names)",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+           "The species of interest (only for *LineShapeModelVariable* overload)"},
   };
 
   wsm_data["absorption_bandsSelectFrequency"] = {

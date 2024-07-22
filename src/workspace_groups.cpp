@@ -233,8 +233,22 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["SpeciesEnum"] = {
-      .file        = "species.h",
+      .file        = "enums.h",
       .desc        = R"--(An atmospheric species
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["LineShapeModelVariable"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A line shape model parameter
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["LineByLineVariable"] = {
+      .file        = "enums.h",
+      .desc        = R"--(An line-by-line variable parameter
 )--",
       .skip_pyinit = true,
   };

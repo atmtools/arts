@@ -159,6 +159,8 @@ class data {
  public:
   [[nodiscard]] LineShapeModelType Type() const;
   [[nodiscard]] const Vector& X() const;
+  [[nodiscard]] Numeric& X(LineShapeModelCoefficient);
+  [[nodiscard]] const Numeric& X(LineShapeModelCoefficient) const;
 
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
