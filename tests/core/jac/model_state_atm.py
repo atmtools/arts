@@ -22,11 +22,12 @@ def scl110(x, v, start, length):
     return x
 
 
-# Scale x by 1.1
+# A no-op call
 def noop(x, v, start, length):
     return x
 
 
+# Invoke some operation on all data
 def ops(ws, op):
     x = ws.model_state_vector * 1.0
 
