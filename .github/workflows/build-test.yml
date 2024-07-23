@@ -33,7 +33,7 @@ jobs:
 
           - name: linux-reldeb-gcc
             os: ubuntu-22.04
-            preset: reldeb-gcc-conda
+            preset: relnondebug-gcc-conda
             pyarts: "yes"
             check: "no"
             doc: "no"
@@ -165,6 +165,13 @@ jobs:
         shell: bash -l {0}
         run: |
           ninja -C build -j${{ matrix.jbuild }} src/all
+
+      - name: Build size
+        if : runner.os == 'Linux' || runner.os == 'macOS'
+        shell: bash -l {0}
+        run: |
+          echo "Build size:"
+          du -hs .
 
       - uses: actions/upload-artifact@v4
         if: matrix.doc == 'yes'

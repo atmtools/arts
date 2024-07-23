@@ -77,6 +77,13 @@
       }
     },
     {
+      "name": "relnondebug-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "NO_NDEBUG": "1"
+      }
+    },
+    {
       "name": "debug-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
