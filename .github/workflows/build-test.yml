@@ -33,7 +33,7 @@ jobs:
 
           - name: linux-reldeb-gcc
             os: ubuntu-22.04
-            preset: reldeb-gcc-conda
+            preset: relnondebug-gcc-conda
             pyarts: "yes"
             check: "no"
             doc: "no"
