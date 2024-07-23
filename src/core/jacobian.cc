@@ -3,11 +3,6 @@
 #include <algorithm>
 
 #include "compare.h"
-#include "debug.h"
-#include "enums.h"
-#include "lbl_data.h"
-#include "matpack_view.h"
-#include "surf.h"
 
 namespace Jacobian {
 std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
@@ -16,42 +11,15 @@ std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
 }
 
 void AtmTarget::update(AtmField& atm, const Vector& x) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-  auto xold_d = x.slice(x_start, x_size);
-
-  ARTS_USER_ERROR_IF(not atm.contains(type),
-                     "Atmosphere does not contain key value ",
-                     type,
-                     '.')
-  auto xnew = atm[type].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xnew.size() not_eq xold_d.size(),
-      "Problem with sizes.  \n"
-      "Did you change your atmosphere since you set the jacobian targets?")
-
-  set(xnew, atm, xold_d);
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_model(atm, type, x.slice(x_start, x_size));
 }
 
 void AtmTarget::update(Vector& x, const AtmField& atm) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-  auto xnew = x.slice(x_start, x_size);
-
-  ARTS_USER_ERROR_IF(not atm.contains(type),
-                     "Atmosphere does not contain key value ",
-                     type,
-                     '.')
-  auto xold_d = atm[type].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xnew.size() not_eq xold_d.size(),
-      "Problem with sizes.  \n"
-      "Did you change your atmosphere since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  unset(xnew, atm, xold_d);
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_state(x.slice(x_start, x_size), atm, type);
 }
 
 std::ostream& operator<<(std::ostream& os, const SurfaceTarget& target) {
@@ -60,38 +28,15 @@ std::ostream& operator<<(std::ostream& os, const SurfaceTarget& target) {
 }
 
 void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-  auto xold_d = x.slice(x_start, x_size);
-
-  ARTS_USER_ERROR_IF(
-      not surf.contains(type), "Surface does not contain key value ", type, '.')
-  auto xnew = surf[type].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xnew.size() not_eq xold_d.size(),
-      "Problem with sizes.\n"
-      "Did you change your surface since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  set(xnew, surf, xold_d);
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_model(surf, type, x.slice(x_start, x_size));
 }
 
 void SurfaceTarget::update(Vector& x, const SurfaceField& surf) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-  auto xnew = x.slice(x_start, x_size);
-
-  ARTS_USER_ERROR_IF(
-      not surf.contains(type), "Surface does not contain key value ", type, '.')
-  auto xold_d = surf[type].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xnew.size() not_eq xold_d.size(),
-      "Problem with sizes.\n"
-      "Did you change your surface since you set the jacobian targets?")
-
-  unset(xnew, surf, xold_d);
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_state(x.slice(x_start, x_size), surf, type);
 }
 
 std::ostream& operator<<(std::ostream& os, const LineTarget&) {
@@ -100,21 +45,16 @@ std::ostream& operator<<(std::ostream& os, const LineTarget&) {
 
 void LineTarget::update(ArrayOfAbsorptionBand& absorption_bands,
                         const Vector& x) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-  set(ExhaustiveVectorView{type.get_value(absorption_bands)},
-      absorption_bands,
-      x.slice(x_start, x_size));
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_model(absorption_bands, type, x.slice(x_start, x_size));
 }
 
 void LineTarget::update(Vector& x,
                         const ArrayOfAbsorptionBand& absorption_bands) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (x_start + x_size),
-                     "Got too small vector.")
-
-  unset(x.slice(x_start, x_size),
-        absorption_bands,
-        ExhaustiveConstVectorView{type.get_value(absorption_bands)});
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_state(x.slice(x_start, x_size), absorption_bands, type);
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {

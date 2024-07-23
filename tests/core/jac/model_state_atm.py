@@ -144,4 +144,5 @@ ws.UpdateModelStates(model_state_vector=x1)
 
 ws.model_state_vectorFromData()
 x2 = ops(ws, noop)
+
 assert np.allclose(x1 / x2, 1.0)

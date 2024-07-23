@@ -22,17 +22,44 @@ struct AtmTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(
-      ExhaustiveVectorView, const AtmField&, const ExhaustiveConstVectorView&)>
-      set{[](ExhaustiveVectorView xnew,
-             const AtmField&,
-             const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(ExhaustiveVectorView, const AtmField&, const AtmKeyVal&)>
+      set_state{[](ExhaustiveVectorView x,
+                   const AtmField& atm,
+                   const AtmKeyVal& key) {
+        ARTS_USER_ERROR_IF(not atm.contains(key),
+                           "Atmosphere does not contain key value ",
+                           key)
+
+        auto xn = atm[key].flat_view();
+
+        ARTS_USER_ERROR_IF(
+            atm[key].flat_view().size() not_eq x.size(),
+            "Problem with sizes.  \n"
+            "Did you change your atmosphere since you set the jacobian targets?\n"
+            "Did you forget to finalize the JacobianTargets?")
+
+        x = xn;
+      }};
 
   std::function<void(
-      ExhaustiveVectorView, const AtmField&, const ExhaustiveConstVectorView&)>
-      unset{[](VectorView xnew,
-               const AtmField&,
-               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+      AtmField&, const AtmKeyVal&, const ExhaustiveConstVectorView)>
+      set_model{[](AtmField& atm,
+                   const AtmKeyVal& key,
+                   const ExhaustiveConstVectorView x) {
+        ARTS_USER_ERROR_IF(not atm.contains(key),
+                           "Atmosphere does not contain key value ",
+                           key)
+
+        auto xn = atm[key].flat_view();
+
+        ARTS_USER_ERROR_IF(
+            atm[key].flat_view().size() not_eq x.size(),
+            "Problem with sizes.  \n"
+            "Did you change your atmosphere since you set the jacobian targets?\n"
+            "Did you forget to finalize the JacobianTargets?")
+
+        xn = x;
+      }};
 
   friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target);
 
@@ -52,19 +79,43 @@ struct SurfaceTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(ExhaustiveVectorView,
-                     const SurfaceField&,
-                     const ExhaustiveConstVectorView&)>
-      set{[](ExhaustiveVectorView xnew,
-             const SurfaceField&,
-             const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(
+      ExhaustiveVectorView, const SurfaceField&, const SurfaceKeyVal&)>
+      set_state{[](ExhaustiveVectorView x,
+                   const SurfaceField& surf,
+                   const SurfaceKeyVal& key) {
+        ARTS_USER_ERROR_IF(
+            not surf.contains(key), "Surface does not contain key value ", key)
 
-  std::function<void(ExhaustiveVectorView,
-                     const SurfaceField&,
-                     const ExhaustiveConstVectorView&)>
-      unset{[](VectorView xnew,
-               const SurfaceField&,
-               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+        auto xn = surf[key].flat_view();
+
+        ARTS_USER_ERROR_IF(
+            xn.size() not_eq x.size(),
+            "Problem with sizes.\n"
+            "Did you change your surface since you set the jacobian targets?\n"
+            "Did you forget to finalize the JacobianTargets?")
+
+        x = xn;
+      }};
+
+  std::function<void(
+      SurfaceField&, const SurfaceKeyVal&, const ExhaustiveConstVectorView)>
+      set_model{[](SurfaceField& surf,
+                   const SurfaceKeyVal& key,
+                   const ExhaustiveConstVectorView x) {
+        ARTS_USER_ERROR_IF(
+            not surf.contains(key), "Surface does not contain key value ", key)
+
+        auto xn = surf[key].flat_view();
+
+        ARTS_USER_ERROR_IF(
+            xn.size() not_eq x.size(),
+            "Problem with sizes.\n"
+            "Did you change your surface since you set the jacobian targets?\n"
+            "Did you forget to finalize the JacobianTargets?")
+
+        xn = x;
+      }};
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const SurfaceTarget& target);
@@ -85,19 +136,20 @@ struct LineTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(ExhaustiveVectorView,
-                     const ArrayOfAbsorptionBand&,
-                     const ExhaustiveConstVectorView&)>
-      set{[](ExhaustiveVectorView xnew,
-             const ArrayOfAbsorptionBand&,
-             const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(
+      ExhaustiveVectorView, const ArrayOfAbsorptionBand&, const LblLineKey&)>
+      set_state{[](ExhaustiveVectorView x,
+                   const ArrayOfAbsorptionBand& bands,
+                   const LblLineKey& key) { x = key.get_value(bands); }};
 
-  std::function<void(ExhaustiveVectorView,
-                     const ArrayOfAbsorptionBand&,
-                     const ExhaustiveConstVectorView&)>
-      unset{[](VectorView xnew,
-               const ArrayOfAbsorptionBand&,
-               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+  std::function<void(ArrayOfAbsorptionBand&,
+                     const LblLineKey&,
+                     const ExhaustiveConstVectorView)>
+      set_model{[](ArrayOfAbsorptionBand& bands,
+                   const LblLineKey& key,
+                   const ExhaustiveConstVectorView x) {
+        ExhaustiveVectorView{key.get_value(bands)} = x;
+      }};
 
   friend std::ostream& operator<<(std::ostream& os, const LineTarget&);
 
