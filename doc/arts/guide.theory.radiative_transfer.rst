@@ -126,7 +126,7 @@ This can be seen if we expand the last term in the Jacobian, starting from the f
     \frac{\partial I_{2}}{\partial\vec{x}} &=&\frac{\partial J_{1}}{\partial\vec{x}} &+&\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &-&T_{1} \frac{\partial J_{1}}{\partial\vec{x}} &&&+&T_{1} \frac{\partial I_{1}}{\partial\vec{x}} \\
     &=&\frac{\partial J_{1}}{\partial\vec{x}} &+&\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &-&T_{1} \frac{\partial J_{1}}{\partial\vec{x}} &+&T_{1} \left(\frac{\partial J_{0}}{\partial\vec{x}} +\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) -T_{0} \frac{\partial J_{0}}{\partial\vec{x}}\right) &+&T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}}\\
     \frac{\partial I_{3}}{\partial\vec{x}} &=&\frac{\partial J_{2}}{\partial\vec{x}} &+&\frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &-&T_{2} \frac{\partial J_{2}}{\partial\vec{x}} &&&+&T_{2} \frac{\partial I_{2}}{\partial\vec{x}} \\
-    &=&\frac{\partial J_{2}}{\partial\vec{x}} &+&\frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &-&T_{2} \frac{\partial J_{2}}{\partial\vec{x}} &+&T_{2} \left(\frac{\partial J_{1}}{\partial\vec{x}} +\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) -T_{1} \frac{\partial J_{1}}{\partial\vec{x}} +T_{1} \left(\frac{\partial J_{0}}{\partial\vec{x}} +\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) -T_{0} \frac{\partial J_{0}}{\partial\vec{x}}\right)\right) &+&T_{2}T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}} \\
+    &=&\frac{\partial J_{2}}{\partial\vec{x}} &+&\frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &-&T_{2} \frac{\partial J_{2}}{\partial\vec{x}} &+&T_{2} \left(\frac{\partial J_{1}}{\partial\vec{x}} +\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) +T_{1} \left(\frac{\partial J_{0}}{\partial\vec{x}} +\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) -T_{0} \frac{\partial J_{0}}{\partial\vec{x}} -  \frac{\partial J_{1}}{\partial\vec{x}}\right)\right) &+&T_{2}T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}} \\
     &\cdots\\\frac{\partial I_{N}}{\partial\vec{x}} &=&\frac{\partial J_{N-1}}{\partial\vec{x}} &+&\frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1}\right) &-&T_{N-1} \frac{\partial J_{N-1}}{\partial\vec{x}} &&&+&T_{N-1} \frac{\partial I_{N-1}}{\partial\vec{x}} \\
     &=&\frac{\partial J_{N-1}}{\partial\vec{x}} &+&\frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1}\right) &-&T_{N-1} \frac{\partial J_{N-1}}{\partial\vec{x}} &+&T_{N-1} \left(\cdots\right) &+&T_{N-1}T_{N-2} \cdots T_{2}T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}}
   \end{array}
@@ -148,7 +148,7 @@ Defining the partial *partial* derivatives as
     \frac{\partial J_{1}}{\partial\vec{x}} &+&
     \frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &+&
     T_{1} \left(\frac{\partial I_{1}'}{\partial\vec{x}} - \frac{\partial J_{1}}{\partial\vec{x}}\right) \\
-    \frac{\partial I_{3}}{\partial\vec{x}} &=&
+    \frac{\partial I_{3}'}{\partial\vec{x}} &=&
     \frac{\partial J_{2}}{\partial\vec{x}} &+&
     \frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &+&
     T_{2} \left(\frac{\partial I_{2}'}{\partial\vec{x}} - \frac{\partial J_{2}}{\partial\vec{x}}\right) \\

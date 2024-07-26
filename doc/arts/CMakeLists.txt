@@ -8,6 +8,10 @@ set(files
   develop.classes.formatter.rst
 )
 
-foreach(fil ${files})
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${fil} ${CMAKE_BINARY_DIR}/python/doc/source/${fil} COPYONLY)
-endforeach(fil ${files})
+add_custom_target(
+  guide_develop_doc 
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/python/doc/source/
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${files} ${CMAKE_BINARY_DIR}/python/doc/source/
+  DEPENDS ${files}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
