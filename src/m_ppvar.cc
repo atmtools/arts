@@ -6,8 +6,13 @@
 #include <surf.h>
 #include <workspace.h>
 
+#include <ranges>
+#include <stdexcept>
+
 #include "arts_conversions.h"
+#include "auto_wsm.h"
 #include "debug.h"
+#include "rtepack.h"
 #include "sorted_grid.h"
 
 void ray_path_spectral_radianceCalcTransmission(
@@ -262,6 +267,74 @@ void ray_path_spectral_radiance_sourceFromPropmat(
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+ArrayOfMuelmatVector left_cumulative(
+    const ArrayOfMuelmatVector &ray_path_transmission_matrix) {
+  // For derivatives, we need GT_m0 and GT_nm.
+  // GT_m0 = PROD(i=0; i->0) T_i = T_m * T_(m-1) * ... * T_1 * T_0
+  // GT_nm = PROD(i=n; i->m) T_i = T_n * T_(n-1) * ... * T_(m+1) * T_m
+  // The former is had from workspace method ray_path_transmission_matrix_cumulativeForward
+
+  const Size n = ray_path_transmission_matrix.size();
+
+  ArrayOfMuelmatVector lhs = ray_path_transmission_matrix;
+
+  if (n < 2) return lhs;
+
+  const Index nf = lhs.front().size();
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          ray_path_transmission_matrix, Cmp::ne(nf), &MuelmatVector::size),
+      "Bad size of ray_path_transmission_matrix")
+
+  for (Size m = 1; m < n; m++) {
+    for (Index iv = 0; iv < nf; iv++) {
+      lhs[m][iv] = lhs[m - 1][iv] * lhs[m][iv];
+    }
+  }
+
+  return lhs;
+}
+
+void ray_path_transmission(
+    ArrayOfMuelmatVector &ray_path_transmission_matrix_cumulative,
+    ArrayOfMuelmatMatrix &ray_path_transmission_matrix_cumulative_jacobian,
+    const ArrayOfMuelmatVector &ray_path_transmission_matrix,
+    const ArrayOfArrayOfMuelmatMatrix &ray_path_transmission_matrix_jacobian) {
+  const Size n = ray_path_transmission_matrix.size();
+
+  ARTS_USER_ERROR_IF(ray_path_transmission_matrix_jacobian.size() != n,
+                     "Bad size of ray_path_transmission_matrix_jacobian");
+
+  ray_path_transmission_matrix_cumulativeForward(
+      ray_path_transmission_matrix_cumulative, ray_path_transmission_matrix);
+  const auto lhs = left_cumulative(ray_path_transmission_matrix);
+
+  if (n == 0) return;
+
+  const Index nf = ray_path_transmission_matrix.front().size();
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          ray_path_transmission_matrix, Cmp::ne(nf), &MuelmatVector::size),
+      "Bad size of ray_path_transmission_matrix_cumulative")
+
+  for (auto &r : ray_path_transmission_matrix_cumulative) {
+    r.resize(nf);
+  }
+
+  ArrayOfMuelmatVector cumtran_lh(n);
+  ArrayOfMuelmatVector cumtran_rh(n);
+
+  cumtran_lh.front() = ray_path_transmission_matrix.front();
+  for (Size i = 1; i < n; i++) {
+    cumtran_lh[i] = cumtran_lh[i - 1];
+    for (Index iv = 0; iv < nf; iv++) {
+      cumtran_lh[i][iv] =
+          ray_path_transmission_matrix[i][iv] * cumtran_lh[i][iv];
+    }
+  }
+}
 
 void ray_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector &ray_path_transmission_matrix,

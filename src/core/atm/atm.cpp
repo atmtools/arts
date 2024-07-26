@@ -25,7 +25,6 @@ std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
 }
 
 namespace Atm {
-
 Point::Point(const IsoRatioOption isots_key) {
   switch (isots_key) {
     case IsoRatioOption::Builtin: {
@@ -361,12 +360,13 @@ Array<std::array<std::pair<Index, Numeric>, 8>> tvec_interpgrid_weights(
     const Vector &lon) {
   const auto interpolater = tvec_interpgrid<poly_alt, poly_lat, poly_lon>(
       alt_grid, lat_grid, lon_grid, alt, lat, lon);
+
   constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
   constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
   Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
 
-  const Index n = alt_grid.size();
-  const Index m = lat_grid.size();
+  const Index n = lat_grid.size();
+  const Index m = lon_grid.size();
 
   for (Index i = 0; i < alt.size(); i++) {
     const Index alt0 = interpolater.lags_alt[i].pos * m * n;
@@ -564,41 +564,6 @@ Vector vec_interp(const Data &data,
 }
 }  // namespace detail
 
-void Field::at(std::vector<Point> &out,
-               const Vector &alt,
-               const Vector &lat,
-               const Vector &lon) const {
-  ARTS_USER_ERROR_IF(
-      std::any_of(alt.begin(), alt.end(), Cmp::gt(top_of_atmosphere)),
-      "Cannot get values above the top of the atmosphere, which is at: ",
-      top_of_atmosphere,
-      " m.\nYour max input altitude is: ",
-      max(alt),
-      " m.")
-
-  const auto n = static_cast<Index>(out.size());
-  ARTS_ASSERT(n == alt.size() and n == lat.size() and n == lon.size())
-
-  const auto compute = [&](const auto &key, const Data &data) {
-    const Vector field_val = data.at(alt, lat, lon);
-    for (Index i = 0; i < n; i++) out[i][key] = field_val[i];
-  };
-
-  for (auto &&key : keys()) compute(key, operator[](key));
-
-  for (auto &atm : out) {
-    atm.check_and_fix();
-  }
-}
-
-std::vector<Point> Field::at(const Vector &alt,
-                             const Vector &lat,
-                             const Vector &lon) const {
-  std::vector<Point> out(alt.size());
-  at(out, alt, lat, lon);
-  return out;
-}
-
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
@@ -629,10 +594,6 @@ void Data::rescale(Numeric x) {
         }
       },
       data);
-}
-
-Vector Data::at(const Vector &alt, const Vector &lat, const Vector &lon) const {
-  return detail::vec_interp(*this, alt, lat, lon);
 }
 
 void Point::check_and_fix() try {
@@ -748,65 +709,94 @@ ExhaustiveVectorView Data::flat_view() {
       data);
 }
 
-Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(const Numeric &,
-                                                              const Vector &alt,
-                                                              const Vector &,
-                                                              const Vector &) {
-  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  constexpr std::array v{v1, v0, v0, v0, v0, v0, v0, v0};
-  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
-  return out;
+namespace interp {
+using altlag1 = my_interp::Lagrange<1>;
+using altlag0 = my_interp::Lagrange<0>;
+
+using latlag1 = my_interp::Lagrange<1>;
+using latlag0 = my_interp::Lagrange<0>;
+
+using lonlag1 =
+    my_interp::Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag0 =
+    my_interp::Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+
+using altlags = std::variant<altlag0, altlag1>;
+using latlags = std::variant<latlag0, latlag1>;
+using lonlags = std::variant<lonlag0, lonlag1>;
+
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &gf3,
+                                                      const Numeric alt,
+                                                      const Numeric lat,
+                                                      const Numeric lon) {
+  if (not gf3.ok()) throw std::runtime_error("bad field");
+
+  const Index nalt = gf3.grid<0>().size();
+  const Index nlat = gf3.grid<1>().size();
+  const Index nlon = gf3.grid<2>().size();
+
+  return std::visit(
+      [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
+          const ALT &al, const LAT &la, const LON &lo) {
+        const auto x = interpweights(al, la, lo);
+        constexpr std::pair<Index, Numeric> v0{0, 0.0};
+        std::array<std::pair<Index, Numeric>, 8> out{
+            v0, v0, v0, v0, v0, v0, v0, v0};
+
+        Index m = 0;
+        for (Index i = 0; i < al.size(); i++) {
+          for (Index j = 0; j < la.size(); j++) {
+            for (Index k = 0; k < lo.size(); k++, ++m) {
+              out[m] = {{(al.pos + i) * NN + (la.pos + j) * N + lo.pos + k},
+                        x(i, j, k)};
+            }
+          }
+        }
+        return out;
+      },
+      nalt == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
+                : altlags{gf3.lag<0, altlag1>(alt)},
+      nlat == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
+                : latlags{gf3.lag<1, latlag1>(lat)},
+      nlon == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
+                : lonlags{gf3.lag<2, lonlag1>(lon)});
+}
+}  // namespace interp
+
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &data,
+                                                      Numeric alt,
+                                                      Numeric lat,
+                                                      Numeric lon) {
+  return interp::flat_weight_(data, alt, lat, lon);
 }
 
-Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
-    const FunctionalData &, const Vector &alt, const Vector &, const Vector &) {
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
-  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
-  return out;
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(Numeric,
+                                                      Numeric,
+                                                      Numeric,
+                                                      Numeric) {
+  constexpr std::pair<Index, Numeric> v0{0, 0.0};
+  constexpr std::pair<Index, Numeric> v1{0, 1.0};
+  return {v1, v0, v0, v0, v0, v0, v0, v0};
 }
 
-Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
-    const GriddedField3 &v,
-    const Vector &alt,
-    const Vector &lat,
-    const Vector &lon) {
-  const bool d1 = v.shape()[0] == 1;
-  const bool d2 = v.shape()[1] == 1;
-  const bool d3 = v.shape()[2] == 1;
-
-  using namespace detail;
-  if (d1 and d2 and d3) return flat_weights_(Numeric{}, alt, lat, lon);
-  if (d1 and d2)
-    return tvec_interpgrid_weights<0, 0, 1>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d1 and d3)
-    return tvec_interpgrid_weights<0, 1, 0>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d2 and d3)
-    return tvec_interpgrid_weights<1, 0, 0>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d1)
-    return tvec_interpgrid_weights<0, 1, 1>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d2)
-    return tvec_interpgrid_weights<1, 0, 1>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d3)
-    return tvec_interpgrid_weights<1, 1, 0>(
-        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  return tvec_interpgrid_weights<1, 1, 1>(
-      v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(const FunctionalData &,
+                                                      Numeric,
+                                                      Numeric,
+                                                      Numeric) {
+  constexpr std::pair<Index, Numeric> v0{0, 0.0};
+  return {v0, v0, v0, v0, v0, v0, v0, v0};
 }
 
 //! Flat weights for the positions in an atmosphere
-Array<std::array<std::pair<Index, Numeric>, 8>> Data::flat_weights(
-    const Vector &alt, const Vector &lat, const Vector &lon) const {
-  ARTS_USER_ERROR_IF(alt.size() != lat.size() or alt.size() != lon.size(),
-                     "alt, lat, and lon must have the same size")
-  return std::visit([&](auto &v) { return flat_weights_(v, alt, lat, lon); },
+std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
+    const Numeric alt, const Numeric lat, const Numeric lon) const {
+  return std::visit([&](auto &v) { return flat_weight_(v, alt, lat, lon); },
                     data);
+}
+
+std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
+    const Vector3 pos) const {
+  return flat_weight(pos[0], pos[1], pos[2]);
 }
 }  // namespace Atm
 
@@ -862,21 +852,6 @@ std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
 
 namespace Atm {
 namespace interp {
-using altlag1 = my_interp::Lagrange<1>;
-using altlag0 = my_interp::Lagrange<0>;
-
-using latlag1 = my_interp::Lagrange<1>;
-using latlag0 = my_interp::Lagrange<0>;
-
-using lonlag1 =
-    my_interp::Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-using lonlag0 =
-    my_interp::Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-
-using altlags = std::variant<altlag0, altlag1>;
-using latlags = std::variant<latlag0, latlag1>;
-using lonlags = std::variant<lonlag0, lonlag1>;
-
 Numeric get(const GriddedField3 &gf3,
             const Numeric alt,
             const Numeric lat,
@@ -955,6 +930,8 @@ Numeric Data::at(const Numeric alt,
   return interp::get_optional_limit(*this, alt, lat, lon)
       .value_or(interp::PositionalNumeric{data, alt, lat, lon});
 }
+
+Numeric Data::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
 
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
     try {

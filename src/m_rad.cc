@@ -62,40 +62,39 @@ void spectral_radiance_jacobianAddPathPropagation(
   const auto np = propagation_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
   const auto nf = spectral_radiance_jacobian.ncols();
+  const auto nt = jacobian_targets.target_count();
+
+  if (nt == 0) return;
 
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_jacobian.nrows()) !=
           jacobian_targets.x_size(),
-      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets")
+      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets. Sizes: ",
+      spectral_radiance_jacobian.nrows(),
+      " != ",
+      jacobian_targets.x_size())
 
   ARTS_USER_ERROR_IF(
       propagation_path.size() != np,
-      "propagation_path must have same size as the size of propagation_path_spectral_radiance_jacobian")
+      "propagation_path must have same size as the size of propagation_path_spectral_radiance_jacobian.  Sizes: ",
+      propagation_path.size(),
+      " != ",
+      np)
 
   for (auto &dr : propagation_path_spectral_radiance_jacobian) {
     ARTS_USER_ERROR_IF(
-        dr.nrows() != nj,
+        dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
         "propagation_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
-        "jacobian_targets")
-    ARTS_USER_ERROR_IF(
-        dr.ncols() != nf,
-        "propagation_path_spectral_radiance_jacobian elements must have same number of columns as the size of "
-        "cumulative_transmission")
+        "jacobian_targets.  Sizes: ",
+        dr.shape(),
+        " != ",
+        nt,
+        ", ",
+        nf)
   }
 
   //! Checks that the jacobian_targets can be used and throws if not
   jacobian_targets.throwing_check(nj);
-
-  //! The altitude, latitude and longitude vectors must be copied because of how atmospheric_field works
-  const auto [alt, lat, lon] = [&]() {
-    std::array<Vector, 3> g{Vector(np), Vector(np), Vector(np)};
-    for (Size i = 0; i < np; i++) {
-      g[0][i] = propagation_path[i].pos[0];
-      g[1][i] = propagation_path[i].pos[1];
-      g[2][i] = propagation_path[i].pos[2];
-    }
-    return g;
-  }();
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jacobian_targets.atm()) {
@@ -104,19 +103,17 @@ void spectral_radiance_jacobianAddPathPropagation(
                        atm_block.type,
                        " in atmospheric_field but in jacobian_targets")
     const auto &data = atmospheric_field[atm_block.type];
-    const auto weights = data.flat_weights(alt, lat, lon);
-    ARTS_ASSERT(weights.size() == np)
-
-    for (Size j = 0; j < np; j++) {
-      for (auto &w : weights[j]) {
+    for (Size ip = 0; ip < np; ip++) {
+      const auto weights = data.flat_weight(propagation_path[ip].pos);
+      for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
           ARTS_ASSERT(i < static_cast<Size>(nj))
           std::transform(
-              propagation_path_spectral_radiance_jacobian[j]
+              propagation_path_spectral_radiance_jacobian[ip]
                                                          [atm_block.target_pos]
                                                              .begin(),
-              propagation_path_spectral_radiance_jacobian[j]
+              propagation_path_spectral_radiance_jacobian[ip]
                                                          [atm_block.target_pos]
                                                              .end(),
               spectral_radiance_jacobian[i].begin(),
@@ -193,7 +190,7 @@ void measurement_vectorFromSensor(
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
-    const String& spectral_radiance_unit,
+    const String &spectral_radiance_unit,
     const Agenda &spectral_radiance_observer_agenda,
     const Index &exhaustive_) try {
   //! Flag whether or not all frequency and pos-los grids are to be assumed the same

@@ -2,8 +2,10 @@
 #include <atm.h>
 #include <atm_path.h>
 #include <debug.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
@@ -17,7 +19,8 @@
 
 namespace Python {
 void py_atm(py::module_ &m) try {
-  py::class_<ParticulatePropertyTag> ppt = py::class_<ParticulatePropertyTag>(m, "ParticulatePropertyTag");
+  py::class_<ParticulatePropertyTag> ppt =
+      py::class_<ParticulatePropertyTag>(m, "ParticulatePropertyTag");
   workspace_group_interface(ppt);
   ppt.def_rw("name", &ParticulatePropertyTag::name);
   ppt.def(py::init_implicit<String>());
@@ -34,6 +37,14 @@ void py_atm(py::module_ &m) try {
       .def_rw("lat_low", &Atm::Data::lat_low)
       .def_rw("lon_upp", &Atm::Data::lon_upp)
       .def_rw("lon_low", &Atm::Data::lon_low)
+      .def("at",
+           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+             return d.at(alt, lat, lon);
+           })
+      .def("ws",
+           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+             return d.flat_weight(alt, lat, lon);
+           })
       .def_prop_ro("data_type", &Atm::Data::data_type)
       .def("__call__",
            [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
@@ -267,11 +278,6 @@ void py_atm(py::module_ &m) try {
            [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
              atm[x] = data;
            })
-      .def("at",
-           [](const AtmField &atm,
-              const Vector &h,
-              const Vector &lat,
-              const Vector &lon) { return atm.at(h, lat, lon); })
       .def("at",
            [](const AtmField &atm,
               const Numeric &h,

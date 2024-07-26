@@ -173,6 +173,8 @@ struct targets_t {
 
   std::tuple<std::vector<Targets>...> targets{};
 
+  bool finalized{false};
+
   template <valid_target<Targets...> T>
   constexpr auto& target() {
     return std::get<std::vector<T>>(targets);
@@ -210,6 +212,8 @@ struct targets_t {
   }
 
   [[nodiscard]] constexpr Size x_size() const {
+    ARTS_USER_ERROR_IF(not finalized, "Not finalized.")
+
     const auto sz = [](const auto& x) { return x.x_size; };
     return (std::transform_reduce(target<Targets>().begin(),
                                   target<Targets>().end(),

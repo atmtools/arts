@@ -86,6 +86,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
   ARTS_ASSERT(target_count() == (natm + nsurf + nline));
 
   Size last_size = 0;
+
   for (Size i = 0; i < natm; i++) {
     AtmTarget& t = atm()[i];
     ARTS_USER_ERROR_IF(
@@ -122,6 +123,8 @@ void Targets::finalize(const AtmField& atmospheric_field,
     last_size += t.x_size;
   }
 
+  finalized = true;
+
   throwing_check(last_size);
 }
 
@@ -130,9 +133,11 @@ std::ostream& operator<<(std::ostream& os, const Targets& targets) {
   for (const auto& t : targets.atm()) {
     os << "  " << t << '\n';
   }
+
   for (const auto& t : targets.surf()) {
     os << "  " << t << '\n';
   }
+
   for (const auto& t : targets.line()) {
     os << "  " << t << '\n';
   }

@@ -1,6 +1,7 @@
 set(files
   guide.rst
   guide.theory.rst
+  guide.theory.radiative_transfer.rst
   guide.user.rst
   develop.rst
   develop.classes.rst
