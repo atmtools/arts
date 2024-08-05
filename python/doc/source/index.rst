@@ -7,6 +7,11 @@ ARTS
 This is the documentation for ARTS version |release|. Other versions, scientific publications, and related tools
 are available on the `ARTS website <https://www.radiativetransfer.org>`_.
 
+.. warning::
+
+    This is the documentation for the development version of ARTS. The documentation for the latest stable version is available at
+    `ARTS 2.6 <https://atmtools.github.io/arts-docs-2.6/>`_.
+
 .. image:: _images/arts-logo-dark-bg.svg
    :width: 400
    :align: center
