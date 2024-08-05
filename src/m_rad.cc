@@ -55,11 +55,11 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_radiance_jacobianAddPathPropagation(
     StokvecMatrix &spectral_radiance_jacobian,
-    const ArrayOfStokvecMatrix &propagation_path_spectral_radiance_jacobian,
+    const ArrayOfStokvecMatrix &ray_path_spectral_radiance_jacobian,
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
-    const ArrayOfPropagationPathPoint &propagation_path) try {
-  const auto np = propagation_path_spectral_radiance_jacobian.size();
+    const ArrayOfPropagationPathPoint &ray_path) try {
+  const auto np = ray_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
   const auto nf = spectral_radiance_jacobian.ncols();
   const auto nt = jacobian_targets.target_count();
@@ -75,16 +75,16 @@ void spectral_radiance_jacobianAddPathPropagation(
       jacobian_targets.x_size())
 
   ARTS_USER_ERROR_IF(
-      propagation_path.size() != np,
-      "propagation_path must have same size as the size of propagation_path_spectral_radiance_jacobian.  Sizes: ",
-      propagation_path.size(),
+      ray_path.size() != np,
+      "ray_path must have same size as the size of ray_path_spectral_radiance_jacobian.  Sizes: ",
+      ray_path.size(),
       " != ",
       np)
 
-  for (auto &dr : propagation_path_spectral_radiance_jacobian) {
+  for (auto &dr : ray_path_spectral_radiance_jacobian) {
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
-        "propagation_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
+        "ray_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
         "jacobian_targets.  Sizes: ",
         dr.shape(),
         " != ",
@@ -104,16 +104,16 @@ void spectral_radiance_jacobianAddPathPropagation(
                        " in atmospheric_field but in jacobian_targets")
     const auto &data = atmospheric_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
-      const auto weights = data.flat_weight(propagation_path[ip].pos);
+      const auto weights = data.flat_weight(ray_path[ip].pos);
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
           ARTS_ASSERT(i < static_cast<Size>(nj))
           std::transform(
-              propagation_path_spectral_radiance_jacobian[ip]
+              ray_path_spectral_radiance_jacobian[ip]
                                                          [atm_block.target_pos]
                                                              .begin(),
-              propagation_path_spectral_radiance_jacobian[ip]
+              ray_path_spectral_radiance_jacobian[ip]
                                                          [atm_block.target_pos]
                                                              .end(),
               spectral_radiance_jacobian[i].begin(),
@@ -128,10 +128,10 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceFromPathPropagation(
     StokvecVector &spectral_radiance,
-    const ArrayOfStokvecVector &propagation_path_spectral_radiance) try {
-  ARTS_USER_ERROR_IF(propagation_path_spectral_radiance.empty(),
-                     "Empty propagation_path_spectral_radiance")
-  spectral_radiance = propagation_path_spectral_radiance.front();
+    const ArrayOfStokvecVector &ray_path_spectral_radiance) try {
+  ARTS_USER_ERROR_IF(ray_path_spectral_radiance.empty(),
+                     "Empty ray_path_spectral_radiance")
+  spectral_radiance = ray_path_spectral_radiance.front();
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -139,7 +139,7 @@ void spectral_radiance_jacobianApplyUnit(
     StokvecMatrix &spectral_radiance_jacobian,
     const StokvecVector &spectral_radiance,
     const AscendingGrid &frequency_grid,
-    const PropagationPathPoint &propagation_path_point,
+    const PropagationPathPoint &ray_path_point,
     const String &spectral_radiance_unit) try {
   ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
                      "spectral_radiance must have same size as frequency_grid")
@@ -150,7 +150,7 @@ void spectral_radiance_jacobianApplyUnit(
 
   const auto dF = rtepack::dunit_converter(
       to<SpectralRadianceUnitType>(spectral_radiance_unit),
-      propagation_path_point.nreal);
+      ray_path_point.nreal);
 
   //! Must apply the unit to the spectral radiance jacobian first
   for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
@@ -166,13 +166,13 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radianceApplyUnit(
     StokvecVector &spectral_radiance,
     const AscendingGrid &frequency_grid,
-    const PropagationPathPoint &propagation_path_point,
+    const PropagationPathPoint &ray_path_point,
     const String &spectral_radiance_unit) try {
   ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
                      "spectral_radiance must have same size as frequency_grid")
   const auto F = rtepack::unit_converter(
       to<SpectralRadianceUnitType>(spectral_radiance_unit),
-      propagation_path_point.nreal);
+      ray_path_point.nreal);
 
   std::transform(spectral_radiance.begin(),
                  spectral_radiance.end(),

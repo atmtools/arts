@@ -195,6 +195,7 @@ add_library (artsworkspace STATIC
   m_select.cc
   m_sensor.cc
   m_sizes.cc
+  m_spectral_radiance.cc
   m_sun.cc
   m_surf.cc
   m_surface.cc

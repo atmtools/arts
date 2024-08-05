@@ -212,7 +212,7 @@ struct targets_t {
   }
 
   [[nodiscard]] constexpr Size x_size() const {
-    ARTS_USER_ERROR_IF(not finalized, "Not finalized.")
+    ARTS_USER_ERROR_IF(target_count() != 0 and not finalized, "Not finalized.")
 
     const auto sz = [](const auto& x) { return x.x_size; };
     return (std::transform_reduce(target<Targets>().begin(),

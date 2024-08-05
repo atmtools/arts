@@ -44,7 +44,7 @@ Note that both :math:`x_0` and :math:`x_1` are covered by :math:`\vec{x}`.  This
 Multiple steps
 --------------
 
-Now we are not always interested in the radiation at level 0, but quite often in the radiation
+We are not always interested in the radiation at level 1, but quite often in the radiation
 at the end of the atmospheric path.  This, and the radiation at intermittent levels, can be computed
 as
 
@@ -114,90 +114,128 @@ This can be computed following
   \frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1} \right) +
   T_{N-1} \left( \frac{\partial I_{N-1}}{\partial\vec{x}} - \frac{\partial J_{N-1}}{\partial\vec{x}}\right)
 
-The only complicated term hese is the last one, which depends on the entire state of the atmosphere.
-If we propagate the derivatives through the steps, we need 
-:math:`\frac{\partial I_{0}}{\partial\vec{x}}` to start the process.
-This can be seen if we expand the last term in the Jacobian, starting from the first step:
+As we know that the solution can be written as a sum of terms, we can expand the last term as
 
 .. math::
 
-  \begin{array}{lclclclclcr}
-    \frac{\partial I_{1}}{\partial\vec{x}} &=&\frac{\partial J_{0}}{\partial\vec{x}} &+&\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) &-&T_{0} \frac{\partial J_{0}}{\partial\vec{x}} &&&+&T_{0} \frac{\partial I_{0}}{\partial\vec{x}} \\
-    \frac{\partial I_{2}}{\partial\vec{x}} &=&\frac{\partial J_{1}}{\partial\vec{x}} &+&\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &-&T_{1} \frac{\partial J_{1}}{\partial\vec{x}} &&&+&T_{1} \frac{\partial I_{1}}{\partial\vec{x}} \\
-    &=&\frac{\partial J_{1}}{\partial\vec{x}} &+&\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &-&T_{1} \frac{\partial J_{1}}{\partial\vec{x}} &+&T_{1} \left(\frac{\partial J_{0}}{\partial\vec{x}} +\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) -T_{0} \frac{\partial J_{0}}{\partial\vec{x}}\right) &+&T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}}\\
-    \frac{\partial I_{3}}{\partial\vec{x}} &=&\frac{\partial J_{2}}{\partial\vec{x}} &+&\frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &-&T_{2} \frac{\partial J_{2}}{\partial\vec{x}} &&&+&T_{2} \frac{\partial I_{2}}{\partial\vec{x}} \\
-    &=&\frac{\partial J_{2}}{\partial\vec{x}} &+&\frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &-&T_{2} \frac{\partial J_{2}}{\partial\vec{x}} &+&T_{2} \left(\frac{\partial J_{1}}{\partial\vec{x}} +\frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) +T_{1} \left(\frac{\partial J_{0}}{\partial\vec{x}} +\frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) -T_{0} \frac{\partial J_{0}}{\partial\vec{x}} -  \frac{\partial J_{1}}{\partial\vec{x}}\right)\right) &+&T_{2}T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}} \\
-    &\cdots\\\frac{\partial I_{N}}{\partial\vec{x}} &=&\frac{\partial J_{N-1}}{\partial\vec{x}} &+&\frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1}\right) &-&T_{N-1} \frac{\partial J_{N-1}}{\partial\vec{x}} &&&+&T_{N-1} \frac{\partial I_{N-1}}{\partial\vec{x}} \\
-    &=&\frac{\partial J_{N-1}}{\partial\vec{x}} &+&\frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1}\right) &-&T_{N-1} \frac{\partial J_{N-1}}{\partial\vec{x}} &+&T_{N-1} \left(\cdots\right) &+&T_{N-1}T_{N-2} \cdots T_{2}T_{1}T_{0} \frac{\partial I_{0}}{\partial\vec{x}}
+  \begin{array}{llrl}
+    \frac{\partial I_N}{\partial \vec{x}} &= T_{N-1}T_{N-2} \cdots T_1T_0\frac{\partial I_0}{\partial \vec{x}} + \frac{\partial J_{N-1}}{\partial \vec{x}}& \\
+            &+& \left[
+    \begin{array}{rrcrr}
+      \frac{\partial T_{N-1}T_{N-2} \cdots T_1T_0}{\partial \vec{x}} &
+      \frac{\partial T_{N-1}T_{N-2} \cdots T_2T_1}{\partial \vec{x}} &
+      \cdots &
+      \frac{\partial T_{N-1}T_{N-2}}{\partial \vec{x}} &
+      \frac{\partial T_{N-1}}{\partial \vec{x}}
+    \end{array}
+     \right] &\left[
+    \begin{array}{lcl}
+      I_0 &-& J_0         \\
+      J_0 &-& J_1         \\
+      &\cdots&            \\
+      J_{N-3} &-& J_{N-2} \\
+      J_{N-2} &-& J_{N-1}
+    \end{array} \right] \\
+    &+&  \left[
+    \begin{array}{rrcrr}
+      T_{N-1}T_{N-2} \cdots T_1T_0 & T_{N-1}T_{N-2} \cdots T_2T_1 & \cdots & T_{N-1}T_{N-2} & T_{N-1}
+    \end{array}
+    \right] &\left[
+    \begin{array}{lcl}
+      &-& \frac{\partial J_0 }{\partial \vec{x}}        \\
+      \frac{\partial J_0}{\partial \vec{x}} &-& \frac{\partial J_1}{\partial \vec{x}}         \\
+      &\cdots&            \\
+      \frac{\partial J_{N-3}}{\partial \vec{x}} &-& \frac{\partial J_{N-2}}{\partial \vec{x}} \\
+      \frac{\partial J_{N-2}}{\partial \vec{x}} &-& \frac{\partial J_{N-1}}{\partial \vec{x}}
+    \end{array} \right]
   \end{array}
 
-As can be seen, as long as we can determine
-:math:`\frac{\partial I_{0}}{\partial\vec{x}}` at the start of the solver,
-we can compute the Jacobian at the end of the solver.
-
-Defining the partial *partial* derivatives as
-
-.. math::
-
-  \begin{array}{lclclcl}
-    \frac{\partial I_{1}'}{\partial\vec{x}} &=&
-    \frac{\partial J_{0}}{\partial\vec{x}}  &+&
-    \frac{\partial T_{0}}{\partial\vec{x}} \left(I_{0} - J_{0}\right) &-&
-    T_{0} \frac{\partial J_{0}}{\partial\vec{x}} \\
-    \frac{\partial I_{2}'}{\partial\vec{x}} &=&
-    \frac{\partial J_{1}}{\partial\vec{x}} &+&
-    \frac{\partial T_{1}}{\partial\vec{x}} \left(I_{1} - J_{1}\right) &+&
-    T_{1} \left(\frac{\partial I_{1}'}{\partial\vec{x}} - \frac{\partial J_{1}}{\partial\vec{x}}\right) \\
-    \frac{\partial I_{3}'}{\partial\vec{x}} &=&
-    \frac{\partial J_{2}}{\partial\vec{x}} &+&
-    \frac{\partial T_{2}}{\partial\vec{x}} \left(I_{2} - J_{2}\right) &+&
-    T_{2} \left(\frac{\partial I_{2}'}{\partial\vec{x}} - \frac{\partial J_{2}}{\partial\vec{x}}\right) \\
-    &\cdots\\
-    \frac{\partial I_{N}'}{\partial\vec{x}} &=&
-    \frac{\partial J_{N-1}}{\partial\vec{x}} &+&
-    \frac{\partial T_{N-1}}{\partial\vec{x}} \left(I_{N-1} - J_{N-1}\right) &+&
-    T_{N-1} \left(\frac{\partial I_{N-1}'}{\partial\vec{x}} - \frac{\partial J_{N-1}}{\partial\vec{x}}\right)
-  \end{array}
-
-
-The only other terms are :math:`J_i` and :math:`T_i`.  These can be computed from the state of atmosphere or from the state of the model.
-As mentioned before, we have :math:`J_i = J(x_i, x_{i+1})` and :math:`T_i = T(x_i, x_{i+1})`, where the :math:`x_i` are levels in the model.
-Note that :math:`x_i` does not necessarily need to be a part of :math:`\vec{x}`, but that there must be a way to map :math:`x_i` back to :math:`\vec{x}`.
-
-This significantly simplifies the expressions as we just need to compute 
-:math:`\frac{\partial I_{N}'}{\partial x_i}`, and since
-:math:`x_0` only affects :math:`J_0` and :math:`T_0`,
-:math:`x_1` only affects :math:`J_0`, :math:`T_0`, :math:`J_1`, and :math:`T_1`,
-and so on, we can compute the Jacobian by just computing the partial derivatives
-of the source and transmittance functions in the local coordinate system.
-
-In short:
+Remember we already defined that that
+:math:`J_i` and :math:`T_i` depends on values at levels :math:`x_i` and :math:`x_{i+1}`.
+These are part of :math:`\vec{x}` only via mapping, :math:`\vec{x}` covers both :math:`x_i` and :math:`x_{i+1}`.
+Thus, the :math:`\frac{\partial I_{0}}{\partial\vec{x}}`-term has been lifted from the above expression,
+as the other terms may be computed on a separate grid before being mapped back to :math:`\vec{x}`.
+This mapping is not discussed here in details.  Introducing an alternative notation to make the expressions below
+more compact,
 
 .. math::
-
+  
+  \Pi_{n}^{m} = \left\{
   \begin{array}{ll}
-    \frac{\partial I_0}{\partial x_0} &=\left(1 - T_{0}\right) \frac{\partial}{\partial x_{0}} J_{0} - \frac{\partial}{\partial x_{0}} T_{0} J_{0}\\
-    \frac{\partial I_1}{\partial x_0} &=T_{1} \frac{\partial}{\partial x_{0}} I_{0}\\
-    \frac{\partial I_2}{\partial x_0} &=T_{2} \frac{\partial}{\partial x_{0}} I_{1}\\
-    \frac{\partial I_3}{\partial x_0} &=T_{3} \frac{\partial}{\partial x_{0}} I_{2}\\
-    \cdots\\
-    \frac{\partial I_0}{\partial x_1} &=\left(1 - T_{0}\right) \frac{\partial}{\partial x_{1}} J_{0} - \frac{\partial}{\partial x_{1}} T_{0} J_{0}\\
-    \frac{\partial I_1}{\partial x_1} &=T_{1} \frac{\partial}{\partial x_{1}} I_{0} - T_{1} \frac{\partial}{\partial x_{1}} J_{1} + \frac{\partial}{\partial x_{1}} J_{1} + \frac{\partial}{\partial x_{1}} T_{1} I_{0} - \frac{\partial}{\partial x_{1}} T_{1} J_{1}\\
-    \frac{\partial I_2}{\partial x_1} &=T_{2} \frac{\partial}{\partial x_{1}} I_{1}\\
-    \frac{\partial I_3}{\partial x_1} &=T_{3} \frac{\partial}{\partial x_{1}} I_{2}\\
-    \cdots\\
-    \frac{\partial I_0}{\partial x_2} &=0\\
-    \frac{\partial I_1}{\partial x_2} &=- T_{1} \frac{\partial}{\partial x_{2}} J_{1} + \frac{\partial}{\partial x_{2}} J_{1} + \frac{\partial}{\partial x_{2}} T_{1} J_{0} - \frac{\partial}{\partial x_{2}} T_{1} J_{1} - \frac{\partial}{\partial x_{2}} T_{1} T_{0} J_{0}\\
-    \frac{\partial I_2}{\partial x_2} &=T_{2} \frac{\partial}{\partial x_{2}} I_{1} - T_{2} \frac{\partial}{\partial x_{2}} J_{2} + \frac{\partial}{\partial x_{2}} J_{2} + \frac{\partial}{\partial x_{2}} T_{2} I_{1} - \frac{\partial}{\partial x_{2}} T_{2} J_{2}\\
-    \frac{\partial I_3}{\partial x_2} &=T_{3} \frac{\partial}{\partial x_{2}} I_{2}\\
-    \cdots\\
-    \frac{\partial I_0}{\partial x_3} &=0\\
-    \frac{\partial I_1}{\partial x_3} &=0\\
-    \frac{\partial I_2}{\partial x_3} &=- T_{2} \frac{\partial}{\partial x_{3}} J_{2} + \frac{\partial}{\partial x_{3}} J_{2} + \frac{\partial}{\partial x_{3}} T_{2} J_{1} - \frac{\partial}{\partial x_{3}} T_{2} J_{2} + \frac{\partial}{\partial x_{3}} T_{2} T_{1} J_{0} - \frac{\partial}{\partial x_{3}} T_{2} T_{1} J_{1} - \frac{\partial}{\partial x_{3}} T_{2} T_{1} T_{0} J_{0}\\
-    \frac{\partial I_3}{\partial x_3} &=T_{3} \frac{\partial}{\partial x_{3}} I_{2} - T_{3} \frac{\partial}{\partial x_{3}} J_{3} + \frac{\partial}{\partial x_{3}} J_{3} + \frac{\partial}{\partial x_{3}} T_{3} I_{2} - \frac{\partial}{\partial x_{3}} T_{3} J_{3}\\
-    \cdots\\
-    \frac{\partial I_0}{\partial x_4} &=0\\
-    \frac{\partial I_1}{\partial x_4} &=0\\
-    \frac{\partial I_2}{\partial x_4} &=0\\
-    \frac{\partial I_3}{\partial x_4} &=- T_{3} \frac{\partial}{\partial x_{4}} J_{3} + \frac{\partial}{\partial x_{4}} J_{3} + \frac{\partial}{\partial x_{4}} T_{3} J_{2} - \frac{\partial}{\partial x_{4}} T_{3} J_{3} + \frac{\partial}{\partial x_{4}} T_{3} T_{2} J_{1} - \frac{\partial}{\partial x_{4}} T_{3} T_{2} J_{2} + \frac{\partial}{\partial x_{4}} T_{3} T_{2} T_{1} J_{0} - \frac{\partial}{\partial x_{4}} T_{3} T_{2} T_{1} J_{1} - \frac{\partial}{\partial x_{4}} T_{3} T_{2} T_{1} T_{0} J_{0}\\
+    \prod_{i=n}^m T_i = T_n T_{n-1} \cdots T_{m+1} T_m & n \geq m \\
+    1 & n < m
+  \end{array}\right.
+
+where it is imporant to note that all :math:`T_i` are only functions of :math:`x_i` and :math:`x_{i+1}`.
+
+For sake of keeping the expressions short, we add :math:`T_N=1` and assume :math:`N>>0` below.
+We can extract the two dot products and expand them to see what the Jacobian looks like.
+For the source partial derivatives:
+
+.. math::
+
+  \begin{array}{llll}
+    \frac{\partial I_N^{(1)}}{\partial x_0} &=& &&
+    \left(\Pi_N^1 - \Pi_N^0\right) &\frac{\partial J_0}{\partial x_0}
+    \\
+    \frac{\partial I_N^{(1)}}{\partial x_1} &=&
+    \left(\Pi_N^1 - \Pi_N^0\right) &\frac{\partial J_0}{\partial x_1} &+&
+    \left(\Pi_N^2 - \Pi_N^1\right) &\frac{\partial J_1}{\partial x_1}
+    \\
+    \frac{\partial I_N^{(1)}}{\partial x_2} &=&
+    \left(\Pi_N^2 - \Pi_N^1\right) &\frac{\partial J_1}{\partial x_2} &+&
+    \left(\Pi_N^3 - \Pi_N^2\right) &\frac{\partial J_2}{\partial x_2}
+    \\
+    \cdots
+    \\
+    \frac{\partial I_N^{(1)}}{\partial x_{N-2}} &=&
+    \left(\Pi_N^{N-2} - \Pi_N^{N-3}\right) &\frac{\partial J_{N-3}}{\partial x_{N-2}} &+&
+    \left(\Pi_N^{N-1} - \Pi_N^{N-2}\right) &\frac{\partial J_{N-2}}{\partial x_{N-2}}
+    \\
+    \frac{\partial I_N^{(1)}}{\partial x_{N-1}} &=&
+    \left(\Pi_N^{N-1} - \Pi_N^{N-2}\right) &\frac{\partial J_{N-2}}{\partial x_{N-1}} &-&
+    \Pi_N^{N-1}&\frac{\partial J_{N-1}}{\partial x_{N-1}}
   \end{array}
+
+and for the transmittance partial derivatives:
+
+.. math::
+
+  \begin{array}{rrrrrrrrrrrrrrrrrr}
+    \frac{\partial I_N^{(2)}}{\partial x_0} &=&
+    \Pi_{N}^{1} &\Bigl[& \frac{\partial T_{0}}{\partial x_{0}} \left(I_0 - J_0\right) &\Bigr]
+    \\
+    \frac{\partial I_N^{(2)}}{\partial x_1} &=&
+    \Pi_{N}^{2}
+    &\Bigl[&
+    \left(\frac{\partial T_1}{\partial x_1}T_{0} + T_{1}\frac{\partial T_{0}}{\partial x_{1}}\right) \left(I_0 - J_0\right) &+&
+    \frac{\partial T_{1}}{\partial x_{1}} \left(J_0 - J_1\right)&\Bigr]
+    \\
+    \cdots
+    \\
+    \frac{\partial I_N^{(2)}}{\partial x_{N-1}} &=&
+    T_{N}
+    &\Bigl[&
+    \left(\frac{\partial T_{N-1}}{\partial x_{N-1}}T_{N-2} + T_{N-1}\frac{\partial T_{N-2}}{\partial x_{N-1}}\right) \Pi_{N-3}^{0} \left(I_0 - J_0\right) &+&
+    \left(\frac{\partial T_{N-1}}{\partial x_{N-1}}T_{N-2} + T_{N-1}\frac{\partial T_{N-2}}{\partial x_{N-1}}\right) \Pi_{N-3}^{1} \left(J_0 - J_1\right) &+&
+    \cdots &+&
+    \left(\frac{\partial T_{N-1}}{\partial x_{N-1}}T_{N-2} + T_{N-1}\frac{\partial T_{N-2}}{\partial x_{N-1}}\right) \Pi_{N-3}^{N-2} \left(J_{N-3} - J_{N-2}\right) &+&
+    \frac{\partial T_{N-1}}{\partial x_{N-1}} \left(J_{N-2} - J_{N-1}\right)&\Bigr]
+  \end{array}
+
+The expression in the grid of :math:`\vec{x}` is then the following:
+
+.. math::
+
+  \frac{\partial I_{N}}{\partial \vec{x}} =
+  \Pi_N^0\frac{\partial I_0}{\partial \vec{x}} +
+  f
+  \left(
+  \frac{\partial I_N^{(1)}}{\partial \vec{x}_i} +
+  \frac{\partial I_N^{(2)}}{\partial \vec{x}_i} +
+  \frac{\partial J_{N-1}}{\partial \vec{x}_i}
+  \right)
+
+where the last term is 0 for all but :math:`i=N` and :math:`i=N-1`
+and where the function :math:`f` is defined as
+the map from :math:`\vec{x}_i\rightarrow\vec{x}`.

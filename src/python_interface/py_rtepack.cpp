@@ -1,11 +1,16 @@
 #include <enums.h>
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <rtepack.h>
 
+#include <algorithm>
+
+#include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
@@ -13,6 +18,20 @@
 namespace Python {
 template <typename T, Index M, size_t... N>
 void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
+  c.def(
+      "__init__",
+      [](matpack::matpack_data<T, M> *y,
+         const matpack::matpack_data<Numeric, M> &x) {
+        new (y) matpack::matpack_data<T, M>(x.shape());
+        std::transform(x.elem_begin(),
+                       x.elem_end(),
+                       y->elem_begin(),
+                       [](const Numeric &z) { return T(z); });
+      },
+      "x"_a);
+  py::implicitly_convertible<matpack::matpack_data<Numeric, M>,
+                             matpack::matpack_data<T, M>>();
+
   c.def(
       "__array__",
       [](matpack::matpack_data<T, M> &v, py::object dtype, py::object copy) {
@@ -49,6 +68,7 @@ void py_rtepack(py::module_ &m) try {
            [](Stokvec *s, const String &p) {
              new (s) Stokvec{rtepack::to_stokvec(to<PolarizationChoice>(p))};
            })
+      .def(py::init_implicit<std::array<Numeric, 4>>())
       .def_static(
           "linpol",
           [](const Numeric angle) {
@@ -87,6 +107,8 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
   py::implicitly_convertible<String, Stokvec>();
 
+  py::bind_vector<std::vector<Stokvec>>(m, "ArrayOfStokvec");
+
   py::class_<StokvecVector> vsv(m, "StokvecVector");
   vsv.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Stokvec>>());
@@ -122,6 +144,7 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
+      .def(py::init_implicit<std::array<Numeric, 7>>())
       .def(
           "__array__",
           [](Propmat &x, py::object dtype, py::object copy) {
@@ -140,6 +163,8 @@ void py_rtepack(py::module_ &m) try {
           [](Propmat &x, Propmat &y) { x = y; });
   common_ndarray(pm);
   workspace_group_interface(pm);
+
+  py::bind_vector<std::vector<Propmat>>(m, "ArrayOfPropmat");
 
   py::class_<PropmatVector> vpm(m, "PropmatVector");
   vpm.def(py::init_implicit<std::vector<Numeric>>())
@@ -169,6 +194,7 @@ void py_rtepack(py::module_ &m) try {
                     Numeric,
                     Numeric,
                     Numeric>())
+      .def(py::init_implicit<std::array<Numeric, 16>>())
       .def(
           "__array__",
           [](Muelmat &x, py::object dtype, py::object copy) {
@@ -188,6 +214,8 @@ void py_rtepack(py::module_ &m) try {
   common_ndarray(mm);
   workspace_group_interface(mm);
 
+  py::bind_vector<std::vector<Muelmat>>(m, "ArrayOfMuelmat");
+
   py::class_<MuelmatVector> vmm(m, "MuelmatVector");
   vmm.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Muelmat>>());
@@ -197,6 +225,10 @@ void py_rtepack(py::module_ &m) try {
   py::class_<MuelmatMatrix> mmm(m, "MuelmatMatrix");
   rtepack_array<Muelmat, 2, 4, 4>(mmm);
   workspace_group_interface(mmm);
+
+  py::class_<MuelmatTensor3> mt3(m, "MuelmatTensor3");
+  rtepack_array<Muelmat, 3, 4, 4>(mt3);
+  workspace_group_interface(mt3);
 
   auto a1 =
       py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(
@@ -239,6 +271,11 @@ void py_rtepack(py::module_ &m) try {
       m, "ArrayOfArrayOfMuelmatMatrix");
   workspace_group_interface(b4);
   vector_interface(b4);
+  auto b5 =
+      py::bind_vector<ArrayOfMuelmatTensor3, py::rv_policy::reference_internal>(
+          m, "ArrayOfMuelmatTensor3");
+  workspace_group_interface(b5);
+  vector_interface(b5);
 
   auto c1 =
       py::bind_vector<ArrayOfStokvecVector, py::rv_policy::reference_internal>(
@@ -260,7 +297,52 @@ void py_rtepack(py::module_ &m) try {
       m, "ArrayOfArrayOfStokvecMatrix");
   workspace_group_interface(c4);
   vector_interface(c4);
+  auto c5 =
+      py::bind_vector<ArrayOfStokvecTensor3, py::rv_policy::reference_internal>(
+          m, "ArrayOfStokvecTensor3");
+  workspace_group_interface(c5);
+  vector_interface(c5);
 
+  auto rtepack = m.def_submodule("rtepack");
+  rtepack.def(
+      "two_level_exp",
+      [](const ArrayOfPropmatVector &K,
+         const ArrayOfPropmatMatrix &dK,
+         const Vector &r,
+         const Tensor3 &dr) {
+        ArrayOfMuelmatVector T;
+        ArrayOfMuelmatTensor3 dT;
+
+        rtepack::two_level_exp(T, dT, K, dK, r, dr);
+
+        return std::pair{T, dT};
+      },
+      "K"_a,
+      "dK"_a,
+      "r"_a,
+      "dr"_a);
+
+  rtepack.def(
+      "two_level_radiative_transfer",
+      [](const ArrayOfMuelmatVector &Ts,
+         const ArrayOfMuelmatTensor3 &dTs,
+         const ArrayOfStokvecVector &Js,
+         const ArrayOfStokvecMatrix &dJs,
+         const StokvecVector &I0) {
+        StokvecVector I;
+        ArrayOfStokvecMatrix dI;
+
+        const auto Pi = forward_cumulative_transmission(Ts);
+        rtepack::two_level_linear_emission_step(
+            I, dI, Ts, Pi, dTs, Js, dJs, I0);
+
+        return std::pair{I, dI};
+      },
+      "Ts"_a,
+      "dTs"_a,
+      "Js"_a,
+      "dJs"_a,
+      "I0"_a);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

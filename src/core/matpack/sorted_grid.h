@@ -86,10 +86,10 @@ class grid {
     return *this;
   }
 
-  grid() = default;
-  grid(grid&&) = default;
-  grid(const grid&) = default;
-  grid& operator=(grid&&) = default;
+  grid()                       = default;
+  grid(grid&&)                 = default;
+  grid(const grid&)            = default;
+  grid& operator=(grid&&)      = default;
   grid& operator=(const grid&) = default;
 
   operator const Vector&() const { return x; }
@@ -123,6 +123,10 @@ class grid {
                : x.emplace_back(v);
   }
 
+  [[nodiscard]] constexpr std::array<Index, 1> shape() const {
+    return x.shape();
+  }
+
   void unsafe_resize(const Index n) { x.resize(n); }
   [[nodiscard]] constexpr auto unsafe_begin() { return x.begin(); }
   [[nodiscard]] constexpr auto unsafe_end() { return x.end(); }
@@ -140,9 +144,9 @@ class grid {
 };
 }  // namespace matpack
 
-using AscendingGrid = matpack::grid<std::less_equal<>>;
-using AscendingGridView = matpack::grid_view<std::less_equal<>>;
-using DescendingGrid = matpack::grid<std::greater_equal<>>;
+using AscendingGrid        = matpack::grid<std::less_equal<>>;
+using AscendingGridView    = matpack::grid_view<std::less_equal<>>;
+using DescendingGrid       = matpack::grid<std::greater_equal<>>;
 using ArrayOfAscendingGrid = Array<AscendingGrid>;
 
 namespace matpack {

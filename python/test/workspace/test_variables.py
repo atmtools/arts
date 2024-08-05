@@ -194,7 +194,7 @@ class TestVariables:
                     ok_anyways = True
 
                 if not ok_anyways:
-                    bad_vars.append(var)
+                    bad_vars.append(f"{var}")
 
         bad_vars.sort()
         assert len(bad_vars) == 0, (
@@ -206,4 +206,4 @@ class TestVariables:
 if __name__ == "__main__":
     ta = TestVariables()
     ta.setup_method()
-    ta.test_array_of_index_transfer()
+    ta.test_method_agenda_variables_io()

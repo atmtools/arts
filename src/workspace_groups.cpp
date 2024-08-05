@@ -763,6 +763,12 @@ of this term multiplied by a negative distance.
       .is_simple_contiguous = true,
   };
 
+  wsg_data["MuelmatTensor3"] = {
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor3* of *Muelmat*.\n",
+      .is_simple_contiguous = true,
+  };
+
   wsg_data["StokvecMatrix"] = {
       .file                 = "rtepack.h",
       .desc                 = "A matrix of *Stokvec*.\n",
@@ -829,9 +835,21 @@ of this term multiplied by a negative distance.
       .array_depth = 1,
   };
 
+  wsg_data["ArrayOfMuelmatTensor3"] = {
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatTensor3*.\n",
+      .array_depth = 1,
+  };
+
   wsg_data["ArrayOfStokvecMatrix"] = {
       .file        = "rtepack.h",
       .desc        = "A list of *StokvecMatrix*.\n",
+      .array_depth = 1,
+  };
+
+  wsg_data["ArrayOfStokvecTensor3"] = {
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecTensor3*.\n",
       .array_depth = 1,
   };
 

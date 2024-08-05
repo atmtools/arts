@@ -19,20 +19,32 @@ configure_file(
   @ONLY
 )
 
-file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/pyarts/ ${CMAKE_CURRENT_SOURCE_DIR}/pyarts/)
+file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/pyarts/*.py")
 add_custom_target(
   pyarts_copy_python_source_files
   COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different pyarts ${CMAKE_CURRENT_BINARY_DIR}/pyarts
+  COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/pyarts/__init__.py.in
   DEPENDS ${PYTHON_PYARTS_FILES}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Copying python/pyarts *.py files"
 )
 
-file(GLOB_RECURSE PYTHON_PYARTS_TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/test/ ${CMAKE_CURRENT_SOURCE_DIR}/test/)
+file(GLOB_RECURSE PYTHON_PYARTS_TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/test/*")
 add_custom_target(
   pyarts_copy_test_python_source_files
   COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different test ${CMAKE_CURRENT_BINARY_DIR}/test
   DEPENDS ${PYTHON_PYARTS_TEST_FILES}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Copying python/test files"
+)
+
+file(GLOB_RECURSE PYTHON_PYARTS_BIN_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/bin/*")
+add_custom_target(
+  pyarts_copy_bin_python_source_files
+  COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different bin ${CMAKE_CURRENT_BINARY_DIR}/bin
+  DEPENDS ${PYTHON_PYARTS_BIN_FILES}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Copying python/bin files"
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/controlfiles/)
@@ -45,7 +57,7 @@ configure_file(MANIFEST.in MANIFEST.in)
 
 add_custom_target(pyarts
   ALL
-  DEPENDS pyarts_cpp pyarts_copy_python_source_files pyarts_copy_test_python_source_files
+  DEPENDS pyarts_cpp pyarts_copy_python_source_files pyarts_copy_test_python_source_files pyarts_copy_bin_python_source_files
   COMMENT "Updating ARTS python package.")
 add_custom_target(pyarts-package
   ALL

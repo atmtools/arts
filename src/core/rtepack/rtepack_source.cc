@@ -38,17 +38,17 @@ void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
 
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
-      J[i] = 0.0;
+      J[i]         = 0.0;
       dJ(joker, i) = 0.0;
     } else {
       const auto invK = inv(K[i]);
-      const auto src = a[i] * B[i] + S[i] + J_add[i];
-      J[i] = invK * src;
+      const auto src  = a[i] * B[i] + S[i] + J_add[i];
+      J[i]            = invK * src;
 
       // TODO: Add jacobians dJ_add of additional source
       for (Index j = 0; j < M; j++) {
         const auto dsrc = dS(j, i) + da(j, i) * B[i] + a[i] * dB(j, i);
-        dJ(j, i) = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
+        dJ(j, i)        = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
       }
     }
   }
@@ -83,16 +83,16 @@ void level_nlte_and_scattering(stokvec_vector_view J,
 
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
-      J[i] = 0.0;
+      J[i]         = 0.0;
       dJ(joker, i) = 0.0;
     } else {
       const auto invK = inv(K[i]);
-      const auto src = a[i] * B[i] + S[i];
-      J[i] = invK * src;
+      const auto src  = a[i] * B[i] + S[i];
+      J[i]            = invK * src;
 
       for (Index j = 0; j < M; j++) {
         const auto dsrc = dS(j, i) + da(j, i) * B[i] + a[i] * dB(j, i);
-        dJ(j, i) = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
+        dJ(j, i)        = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
       }
     }
   }
@@ -122,8 +122,8 @@ void level_nlte(stokvec_vector_view J,
                 const propmat_matrix_const_view &dK,
                 const stokvec_matrix_const_view &dS,
                 const ExhaustiveConstVectorView &f,
-                const Numeric& t,
-                const Index& it) {
+                const Numeric &t,
+                const Index &it) {
   const Index N = J.nelem();
   ARTS_ASSERT(N == dJ.ncols())
   ARTS_ASSERT(N == K.nelem())
@@ -139,17 +139,16 @@ void level_nlte(stokvec_vector_view J,
 
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
-      J[i] = 0.0;
+      J[i]         = 0.0;
       dJ(joker, i) = 0.0;
     } else {
+      const auto b    = stokvec{planck(f[i], t), 0, 0, 0};
       const auto invK = inv(K[i]);
-      const auto b = stokvec{planck(f[i], t), 0, 0, 0};
-      J[i] = b + invK * S[i];
+      J[i]            = b + invK * S[i];
 
       for (Index j = 0; j < M; j++) {
-        const auto db = stokvec{it == j ? dplanck_dt(f[i], t) : 0, 0, 0, 0};
-        const auto JB = stokvec{J[i].I() + b.I(), J[i].Q(), J[i].U(), J[i].V()};
-        dJ(j, i) = 0.5 * (db + invK * (dS(j, i) - dK(j, i) * JB));
+        dJ(j, i)  = {it == j ? dplanck_dt(f[i], t) : 0, 0, 0, 0};
+        dJ(j, i) -= invK * (dK(j, i) * invK * S[i] - dS(j, i));
       }
     }
   }

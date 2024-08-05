@@ -5,8 +5,8 @@
 
 namespace rtepack {
 void two_level_exp(muelmat &t,
-                   muelmat_vector_view &dt1,
-                   muelmat_vector_view &dt2,
+                   muelmat_vector_view dt1,
+                   muelmat_vector_view dt2,
                    const propmat &k1,
                    const propmat &k2,
                    const propmat_vector_const_view &dk1,
@@ -15,9 +15,9 @@ void two_level_exp(muelmat &t,
                    const ExhaustiveConstVectorView &dr1,
                    const ExhaustiveConstVectorView &dr2);
 
-void two_level_exp(muelmat_vector_view &t,
-                   muelmat_matrix_view &dt1,
-                   muelmat_matrix_view &dt2,
+void two_level_exp(muelmat_vector_view t,
+                   muelmat_matrix_view dt1,
+                   muelmat_matrix_view dt2,
                    const propmat_vector_const_view &k1,
                    const propmat_vector_const_view &k2,
                    const propmat_matrix_const_view &dk1,
@@ -28,8 +28,15 @@ void two_level_exp(muelmat_vector_view &t,
 
 muelmat exp (propmat k, Numeric r=1.0);
 
-void two_level_exp(muelmat_vector_view &t,
+void two_level_exp(muelmat_vector_view t,
                    const propmat_vector_const_view &k1,
                    const propmat_vector_const_view &k2,
                    const Numeric r);
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_tensor3> &dT,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr);
 }  // namespace rtepack

@@ -46,6 +46,7 @@ using StokvecGriddedField6 = matpack::gridded_data<Stokvec,
                                                    AscendingGrid>;
 using ArrayOfStokvecVector = Array<StokvecVector>;
 using ArrayOfStokvecMatrix = Array<StokvecMatrix>;
+using ArrayOfStokvecTensor3 = Array<StokvecTensor3>;
 using ArrayOfArrayOfStokvecVector = Array<ArrayOfStokvecVector>;
 using ArrayOfArrayOfStokvecMatrix = Array<ArrayOfStokvecMatrix>;
 
@@ -54,10 +55,12 @@ using MuelmatVector = rtepack::muelmat_vector;
 using MuelmatVectorView = rtepack::muelmat_vector_view;
 using MuelmatConstVectorView = rtepack::muelmat_vector_const_view;
 using MuelmatMatrix = rtepack::muelmat_matrix;
+using MuelmatTensor3 = rtepack::muelmat_tensor3;
 using MuelmatMatrixView = rtepack::muelmat_matrix_view;
 using MuelmatConstMatrixView = rtepack::muelmat_matrix_const_view;
 using ArrayOfMuelmatVector = Array<MuelmatVector>;
 using ArrayOfMuelmatMatrix = Array<MuelmatMatrix>;
+using ArrayOfMuelmatTensor3 = Array<MuelmatTensor3>;
 using ArrayOfArrayOfMuelmatVector = Array<ArrayOfMuelmatVector>;
 using ArrayOfArrayOfMuelmatMatrix = Array<ArrayOfMuelmatMatrix>;
 

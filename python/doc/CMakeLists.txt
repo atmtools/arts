@@ -18,35 +18,18 @@ if(SPHINX_FOUND)
     pyarts 
     gen_pyarts_arts_rst 
     gen_arts_overview_rst
-    guide_develop_doc
-    copy_python_source_files_pydocs
-    copy_rst_files_pydocs
-    copy_misc_files_pydocs
+    pyarts_docs_copy_guide
+    pyarts_docs_copy_python
     gen_examples_rst
   )
 
-  file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.py")
+  file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/source/*")
   add_custom_target(
-    copy_python_source_files_pydocs
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PYTHON_SOURCE_FILES} ${CMAKE_CURRENT_BINARY_DIR}
+    pyarts_docs_copy_python
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different source/ ${CMAKE_CURRENT_BINARY_DIR}/source/
     DEPENDS ${PYTHON_SOURCE_FILES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
-
-  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
-  add_custom_target(
-    copy_rst_files_pydocs
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${RST_FILES} ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${RST_FILES}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
-
-  file(GLOB_RECURSE MISC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.css" "*.svg" "*.png" "*.ico")
-  add_custom_target(
-    copy_misc_files_pydocs
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MISC_FILES} ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${MISC_FILES}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Copying python docmentation structure"
   )
 
   configure_file(build/.nojekyll build/.nojekyll @ONLY)
