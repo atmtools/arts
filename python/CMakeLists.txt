@@ -19,6 +19,12 @@ configure_file(
   @ONLY
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/setup.py
+  @ONLY
+)
+
 file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/pyarts/*.py")
 add_custom_target(
   pyarts_copy_python_source_files
