@@ -32,12 +32,21 @@ if(SPHINX_FOUND)
     COMMENT "Copying python docmentation structure"
   )
 
+  file(GLOB PYTHON_DOC_GENERATORS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.py)
+  add_custom_target(
+    pyarts_docs_gen_copy_python
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PYTHON_DOC_GENERATORS} ${CMAKE_CURRENT_BINARY_DIR}/
+    DEPENDS ${PYTHON_DOC_GENERATORS}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Copying python docmentation generation structure"
+  )
+
   configure_file(build/.nojekyll build/.nojekyll @ONLY)
 
   add_custom_target(gen_pyarts_arts_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_rst.py > ${CMAKE_CURRENT_BINARY_DIR}/source/pyarts.arts.rst
   )
-  add_dependencies(gen_pyarts_arts_rst pyarts)
+  add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python)
 
   add_custom_target(gen_arts_overview_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Agendas > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.agendas.auto.rst
@@ -45,12 +54,12 @@ if(SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Groups > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.groups.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Methods > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.methods.auto.rst
   )
-  add_dependencies(gen_arts_overview_rst pyarts)
+  add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python)
 
   add_custom_target(gen_examples_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/examples examples source
   )
-  add_dependencies(gen_examples_rst pyarts)
+  add_dependencies(gen_examples_rst pyarts pyarts_docs_gen_copy_python)
 
   #
   # Clean
