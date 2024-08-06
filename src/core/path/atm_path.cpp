@@ -115,31 +115,21 @@ void extract1D(ArrayOfAtmPoint &atm_path,
                const Vector &lon_grid) {
   const Index n = atm_path.size();
 
-  const auto correct_size = [n](const auto &x) {
-    const Index m = x->nelem();
-    return m == 1 or m == n;
+  ARTS_USER_ERROR_IF(n < 1, "Empty path")
+  ARTS_USER_ERROR_IF(z_grid.size() != 1 and z_grid.size() != n,
+                     "Bad altitude grid")
+  ARTS_USER_ERROR_IF(lat_grid.size() != 1 and lat_grid.size() != n,
+                     "Bad latitude grid")
+  ARTS_USER_ERROR_IF(lon_grid.size() != 1 and lon_grid.size() != n,
+                     "Bad longitude grid")
+
+  const auto at = [](const Vector &x, const Index i) {
+    return x.size() > 0 ? x[i] : x.front();
   };
-  const std::array<const Vector *, 3> d{&z_grid, &lat_grid, &lon_grid};
-  ARTS_USER_ERROR_IF(not std::ranges::all_of(d, correct_size),
-                     "All grids must be 1- or n-long"
-                     "\nz_grid: ",
-                     z_grid,
-                     "\nlat_grid: ",
-                     lat_grid,
-                     "\nlon_grid: ",
-                     lon_grid)
 
-  std::array<std::shared_ptr<Vector>, 3> grids;
-  for (Index i = 0; i < 3; ++i) {
-    if (d[i]->size() == 1) {
-      grids[i] =
-          std::shared_ptr<Vector>(const_cast<Vector *>(d[i]), [](void *) {});
-    } else {
-      grids[i] = std::make_shared<Vector>(n, (*d[i])[0]);
-    }
+  for (Index i = 0; i < n; i++) {
+    atm_path[i] = atm_field.at(at(z_grid, i), at(lat_grid, i), at(lon_grid, i));
   }
-
-  atm_field.at(atm_path, *grids[0].get(), *grids[1].get(), *grids[2].get());
 }
 
 ArrayOfAtmPoint extract1D(const AtmField &atm_field,
@@ -150,26 +140,9 @@ ArrayOfAtmPoint extract1D(const AtmField &atm_field,
   const Index m = lat_grid.size();
   const Index l = lon_grid.size();
 
-  ArrayOfAtmPoint atm_point(std::max({n, m, l}));
-  if (m == l and n == m) {
-    atm_field.at(atm_point, z_grid, lat_grid, lon_grid);
-  } else if (m == 1 and l == 1) {
-    atm_field.at(atm_point,
-                 z_grid,
-                 Vector(n, lat_grid.front()),
-                 Vector(n, lon_grid.front()));
-  } else if (m == n and l == 1) {
-    atm_field.at(atm_point, z_grid, lat_grid, Vector(n, lon_grid.front()));
-  } else if (m == 1 and l == n) {
-    atm_field.at(atm_point, z_grid, Vector(n, lat_grid.front()), lon_grid);
-  } else {
-    ARTS_USER_ERROR(
-        "lat_grid and lon_grid must either be of size 1 or of size z_grid.size()\nz_grid: ",
-        z_grid,
-        "\nlat_grid: ",
-        lat_grid,
-        "\nlon_grid: ",
-        lon_grid)
-  }
-  return atm_point;
+  ArrayOfAtmPoint atm_path(std::max({n, m, l}));
+  
+  extract1D(atm_path, atm_field, z_grid, lat_grid, lon_grid);
+
+  return atm_path;
 }

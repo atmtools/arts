@@ -954,16 +954,111 @@ void xml_write_to_stream(std::ostream &os_xml,
   os_xml << '\n';
 }
 
+//=== MuelmatTensor3 ================================================================
+
+//! Reads MuelmatTensor3 from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      MuelmatTensor3 return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream &is_xml,
+                          MuelmatTensor3 &pmt3,
+                          bifstream *pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("MuelmatTensor3");
+
+  Index nr, nc, np;
+  tag.get_attribute_value("npages", np);
+  tag.get_attribute_value("nrows", nr);
+  tag.get_attribute_value("ncols", nc);
+
+  pmt3.resize(np, nr, nc);
+  for (auto &&pmm : pmt3) {
+    for (auto &&pmv : pmm) {
+      for (auto &pm : pmv) {
+        if (pbifs)
+          pbifs->readDoubleArray(pm.data.data(), 16);
+        else
+          is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
+              pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
+              pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >>
+              pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
+      }
+    }
+  }
+  tag.read_from_stream(is_xml);
+  tag.check_name("/MuelmatTensor3");
+}
+
+//! Writes MuelmatTensor3 to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      MuelmatTensor3
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream &os_xml,
+                         const MuelmatTensor3 &pmt3,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("MuelmatTensor3");
+  open_tag.add_attribute("npages", pmt3.npages());
+  open_tag.add_attribute("nrows", pmt3.nrows());
+  open_tag.add_attribute("ncols", pmt3.ncols());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  for (const auto &pmm : pmt3) {
+    for (const auto &pmv : pmm) {
+      for (const auto &pm : pmv) {
+        if (pbofs)
+          *pbofs << pm.data[0] << pm.data[1] << pm.data[2] << pm.data[3]
+                 << pm.data[4] << pm.data[5] << pm.data[6] << pm.data[7]
+                 << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
+                 << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
+        else
+          os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
+                 << ' ' << pm.data[3] << '\n'
+                 << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
+                 << ' ' << pm.data[7] << '\n'
+                 << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
+                 << ' ' << pm.data[11] << '\n'
+                 << ' ' << pm.data[12] << ' ' << pm.data[13] << ' '
+                 << pm.data[14] << ' ' << pm.data[15] << '\n';
+      }
+    }
+  }
+
+  close_tag.set_name("/MuelmatTensor3");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 // arrays
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropmatVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropmatMatrix)
+
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfStokvecVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfStokvecMatrix)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfStokvecTensor3)
+
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfMuelmatVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfMuelmatMatrix)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfMuelmatTensor3)
+
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfPropmatVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfPropmatMatrix)
+
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfStokvecVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfStokvecMatrix)
+
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfMuelmatVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfMuelmatMatrix)

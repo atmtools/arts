@@ -316,16 +316,10 @@ Shape: NFREQ
       .type = "StokvecVector",
   };
 
-  wsv_data["background_transmittance"] = {
+  wsv_data["transmission_matrix_background"] = {
       .desc = R"--(Transmittance from the background
 )--",
       .type = "MuelmatVector",
-  };
-
-  wsv_data["ray_path_spectral_radiance"] = {
-      .desc = R"--(Spectral radiance along the propagation path
-)--",
-      .type = "ArrayOfStokvecVector",
   };
 
   wsv_data["ray_path_spectral_radiance_scattering"] = {
@@ -384,7 +378,13 @@ Shape: NFREQ
   };
 
   wsv_data["ray_path_transmission_matrix"] = {
-      .desc = R"--(Transmission matrices along the propagation path
+      .desc = R"--(Transmission matrices along the propagation path.
+
+The outer dimension is the number of layers.
+
+The inner dimension is the number of frequency points.
+
+The order of the elements is such that index zero is closest to the obeserver.
 )--",
       .type = "ArrayOfMuelmatVector",
   };
@@ -396,9 +396,18 @@ Shape: NFREQ
   };
 
   wsv_data["ray_path_transmission_matrix_jacobian"] = {
-      .desc = R"--(Transmission derivative matrices along the propagation path
+      .desc = R"--(Transmission derivative matrices along the propagation path.
+
+The outer dimension is the number of layers.
+
+The inner dimensions are the number of level derivatives,
+the number of jacbian targets, and the number of frequency points.
+The required number of level derivatives is determined by the appropriate
+method (a common value is 2, for the 2 levels surrounding a layer).
+
+The order of the elements is such that index zero is closest to the obeserver.
 )--",
-      .type = "ArrayOfArrayOfMuelmatMatrix",
+      .type = "ArrayOfMuelmatTensor3",
   };
 
   wsv_data["surface_field"] = {
@@ -523,6 +532,28 @@ It provides several methods to get the path of the spectral
 radiance.
 )--",
       .type = "SpectralRadianceOperator",
+  };
+
+  wsv_data["model_state_vector"] = {
+      .desc = R"(A state vector of the model.
+
+In classical ``F(x) = y``-notation, this is the ``x``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector"] = {
+      .desc = R"(The measurment vector for, e.g., a sensor.
+
+In classical ``F(x) = y``-notation, this is the ``y``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector_jacobian"] = {
+      .desc = R"(The partial derivatives of the *measurement_vector*.
+)",
+      .type = "Matrix",
   };
 
   wsv_data["measurement_vector_sensor"] = {

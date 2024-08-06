@@ -22,13 +22,13 @@ struct tran {
   constexpr tran() = default;
 
   tran(const propmat &k1, const propmat &k2, const Numeric r) {
-    a = -0.5 * r * (k1.A() + k2.A());
-    b = -0.5 * r * (k1.B() + k2.B());
-    c = -0.5 * r * (k1.C() + k2.C());
-    d = -0.5 * r * (k1.D() + k2.D());
-    u = -0.5 * r * (k1.U() + k2.U());
-    v = -0.5 * r * (k1.V() + k2.V());
-    w = -0.5 * r * (k1.W() + k2.W());
+    a     = -0.5 * r * (k1.A() + k2.A());
+    b     = -0.5 * r * (k1.B() + k2.B());
+    c     = -0.5 * r * (k1.C() + k2.C());
+    d     = -0.5 * r * (k1.D() + k2.D());
+    u     = -0.5 * r * (k1.U() + k2.U());
+    v     = -0.5 * r * (k1.V() + k2.V());
+    w     = -0.5 * r * (k1.W() + k2.W());
     exp_a = std::exp(a);
 
     unpolarized =
@@ -68,17 +68,17 @@ struct tran {
     */
     x2 = std::sqrt(0.5 * (S - B));
     y2 = std::sqrt(0.5 * (S + B));
-    x = std::sqrt(x2);
-    y = std::sqrt(y2);
+    x  = std::sqrt(x2);
+    y  = std::sqrt(y2);
 
     cy = std::cos(y);
     sy = std::sin(y);
     cx = std::cosh(x);
     sx = std::sinh(x);
 
-    x_zero = x < lower_is_considered_zero_for_sinc_likes;
-    y_zero = y < lower_is_considered_zero_for_sinc_likes;
-    both_zero = y_zero and x_zero;
+    x_zero      = x < lower_is_considered_zero_for_sinc_likes;
+    y_zero      = y < lower_is_considered_zero_for_sinc_likes;
+    both_zero   = y_zero and x_zero;
     either_zero = y_zero or x_zero;
 
     /* Using:
@@ -163,12 +163,12 @@ struct tran {
       return {da * exp_a};
     }
 
-    const Numeric db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B())),
-                  dc = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C())),
-                  dd = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D())),
-                  du = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U())),
-                  dv = -0.5 * (r * dk.V() + dr * (k1.V() + k2.V())),
-                  dw = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
+    const Numeric db  = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B())),
+                  dc  = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C())),
+                  dd  = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D())),
+                  du  = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U())),
+                  dv  = -0.5 * (r * dk.V() + dr * (k1.V() + k2.V())),
+                  dw  = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
     const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c, dd2 = 2 * dd * d,
                   du2 = 2 * du * u, dv2 = 2 * dv * v, dw2 = 2 * dw * w;
 
@@ -184,15 +184,15 @@ struct tran {
 
     const Numeric dx2 = 0.25 * (dS - dB) / x2;
     const Numeric dy2 = 0.25 * (dS + dB) / y2;
-    const Numeric dx = 0.5 * dx2 / x;
-    const Numeric dy = 0.5 * dy2 / y;
+    const Numeric dx  = 0.5 * dx2 / x;
+    const Numeric dy  = 0.5 * dy2 / y;
 
-    const Numeric dcy = -sy * dy;
-    const Numeric dsy = cy * dy;
-    const Numeric dcx = sx * dx;
-    const Numeric dsx = cx * dx;
-    const Numeric dix = -dx * ix * ix;
-    const Numeric diy = -dy * iy * iy;
+    const Numeric dcy    = -sy * dy;
+    const Numeric dsy    = cy * dy;
+    const Numeric dcx    = sx * dx;
+    const Numeric dsx    = cx * dx;
+    const Numeric dix    = -dx * ix * ix;
+    const Numeric diy    = -dy * iy * iy;
     const Numeric dx2dy2 = dx2 + dy2;
 
     const Numeric dC0 =
@@ -351,8 +351,8 @@ struct tran {
 };
 
 void two_level_exp(muelmat &t,
-                   muelmat_vector_view &dt1,
-                   muelmat_vector_view &dt2,
+                   muelmat_vector_view dt1,
+                   muelmat_vector_view dt2,
                    const propmat &k1,
                    const propmat &k2,
                    const propmat_vector_const_view &dk1,
@@ -374,9 +374,9 @@ void two_level_exp(muelmat &t,
   std::transform(dk2.begin(), dk2.end(), dr2.begin(), dt2.begin(), deriv);
 }
 
-void two_level_exp(muelmat_vector_view &tv,
-                   muelmat_matrix_view &dt1v,
-                   muelmat_matrix_view &dt2v,
+void two_level_exp(muelmat_vector_view tv,
+                   muelmat_matrix_view dt1v,
+                   muelmat_matrix_view dt2v,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const propmat_matrix_const_view &dk1v,
@@ -412,11 +412,9 @@ void two_level_exp(muelmat_vector_view &tv,
   }
 }
 
-muelmat exp (propmat k, Numeric r) {
-  return tran(k, k, r)();
-}
+muelmat exp(propmat k, Numeric r) { return tran(k, k, r)(); }
 
-void two_level_exp(muelmat_vector_view &tv,
+void two_level_exp(muelmat_vector_view tv,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const Numeric rv) {
@@ -429,5 +427,81 @@ void two_level_exp(muelmat_vector_view &tv,
       k2v.begin(),
       tv.begin(),
       [rv](const propmat &a, const propmat &b) { return tran(a, b, rv)(); });
+}
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_tensor3> &dT,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr) {
+  const Size N = K.size();
+
+  ARTS_USER_ERROR_IF(
+      N != dK.size(), "Must have same number of levels (", N, ") in K and dK");
+
+  ARTS_USER_ERROR_IF(N != static_cast<Size>(r.size()),
+                     "Must have same number of levels (",
+                     N,
+                     ") in K and r");
+
+  ARTS_USER_ERROR_IF(N != static_cast<Size>(dr.nrows()),
+                     "Must have same number of levels (",
+                     N,
+                     ") in K and dr");
+
+  T.resize(N);
+
+  dT.resize(N);
+
+  if (N == 0) return;
+
+  const Index nv = K[0].size();
+  const Index nq = dr.ncols();
+
+  for (auto &x : T) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : dT) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  ARTS_USER_ERROR_IF(std::ranges::any_of(K, Cmp::ne(nv), &propmat_vector::size),
+                     "Must have same number of frequency elements (",
+                     nv,
+                     ") in all K:s as in K[0]");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(dK, Cmp::ne(nv), &propmat_matrix::ncols),
+      "Must have same number of frequency elements (",
+      nv,
+      ") in all dK:s as in K[0]");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
+      "Must have same number of derivative elements (",
+      nq,
+      ") in all dK:s as in dr");
+
+  ARTS_USER_ERROR_IF(
+      dr.npages() != 2,
+      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got ",
+      dr.npages());
+
+  for (Size i = 1; i < N; i++) {
+    two_level_exp(T[i],
+                  dT[i - 1][0],
+                  dT[i][1],
+                  K[i - 1],
+                  K[i],
+                  dK[i - 1],
+                  dK[i],
+                  r[i],
+                  dr[0][i],
+                  dr[1][i]);
+  }
 }
 }  // namespace rtepack

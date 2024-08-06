@@ -74,6 +74,32 @@ Wsv from_py(ValueHolder<T> wsv) {
 }
 
 Wsv from_py(const PyWSV& wsv);
+
+template <typename T>
+concept SharedFromPyable = requires(const std::shared_ptr<T>& x) {
+  { from_py(x) } -> std::same_as<Wsv>;
+} or requires(const std::shared_ptr<T>& x) {
+  { from_py(*x) } -> std::same_as<Wsv>;
+};
+
+template <SharedFromPyable ... T>
+Wsv from(const std::variant<std::shared_ptr<T>...> * const x)  {
+  if (not x) throw std::runtime_error("Cannot convert None to workspace variable.");
+
+  return std::visit([]<typename U>(const std::shared_ptr<U>& y) -> Wsv {
+    if constexpr (WorkspaceGroup<U>) return from_py(y);
+    else return from_py(*y);
+  }, *x);
+}
+
+template <SharedFromPyable ... T>
+std::string type(const std::variant<std::shared_ptr<T>...> * const x)  {
+  if (not x) throw std::runtime_error("Cannot convert None to workspace variable.");
+
+  return std::visit([]<typename U>(const std::shared_ptr<U>& y) -> std::string {
+    return type(y.get());
+  }, *x);
+}
 }  // namespace Python
 
 )--";
@@ -84,7 +110,7 @@ Wsv from_py(const PyWSV& wsv);
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
-NB_MAKE_OPAQUE(SpeciesEnum)
+#include "py_auto_options.h"
 
 namespace Python {
 )--";

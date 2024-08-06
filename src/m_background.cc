@@ -173,21 +173,21 @@ void spectral_radianceSurfaceBlackbody(
   }
 }
 
-void background_transmittanceFromPathPropagationBack(
-    MuelmatVector& background_transmittance,
+void transmission_matrix_backgroundFromPathPropagationBack(
+    MuelmatVector& transmission_matrix_background,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  background_transmittance = ray_path_transmission_matrix_cumulative.back();
+  transmission_matrix_background = ray_path_transmission_matrix_cumulative.back();
 }
 ARTS_METHOD_ERROR_CATCH
 
-void background_transmittanceFromPathPropagationFront(
-    MuelmatVector& background_transmittance,
+void transmission_matrix_backgroundFromPathPropagationFront(
+    MuelmatVector& transmission_matrix_background,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  background_transmittance = ray_path_transmission_matrix_cumulative.front();
+  transmission_matrix_background = ray_path_transmission_matrix_cumulative.front();
 }
 ARTS_METHOD_ERROR_CATCH
 

@@ -145,126 +145,60 @@ for setting in settings:
         id=bandkey,
         line_index=il,
         parameter="G0",
-        coefficient="X0",
         species="O2",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="G0",
-        coefficient="X1",
-        species="O2",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="G0",
-        coefficient="X0",
-        species="Bath",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="G0",
-        coefficient="X1",
         species="Bath",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="Y",
-        coefficient="X0",
         species="O2",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="Y",
-        coefficient="X1",
-        species="O2",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X2",
-        species="O2",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X3",
-        species="O2",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X0",
-        species="Bath",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X1",
-        species="Bath",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X2",
-        species="Bath",
-    )
-    ws.jacobian_targetsAddLineParameter(
-        id=bandkey,
-        line_index=il,
-        parameter="Y",
-        coefficient="X3",
         species="Bath",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="D0",
-        coefficient="X0",
         species="O2",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="D0",
-        coefficient="X0",
         species="Bath",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="DV",
-        coefficient="X0",
         species="O2",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="DV",
-        coefficient="X0",
         species="Bath",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="G",
-        coefficient="X0",
         species="O2",
     )
     ws.jacobian_targetsAddLineParameter(
         id=bandkey,
         line_index=il,
         parameter="G",
-        coefficient="X0",
         species="Bath",
     )
 

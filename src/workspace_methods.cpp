@@ -195,7 +195,9 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   return os.str();
 } catch (std::exception& e) {
   throw std::runtime_error(var_string("Error in meta-function header(",
-                                      '"', name, '"',
+                                      '"',
+                                      name,
+                                      '"',
                                       ", ",
                                       overload,
                                       "):\n\n",
@@ -827,21 +829,21 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_desc  = {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
   };
 
-  wsm_data["background_transmittanceFromPathPropagationBack"] = {
+  wsm_data["transmission_matrix_backgroundFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *background_transmittance* to back of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to back of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"background_transmittance"},
+      .out    = {"transmission_matrix_background"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
-  wsm_data["background_transmittanceFromPathPropagationFront"] = {
+  wsm_data["transmission_matrix_backgroundFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *background_transmittance* to front of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to front of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"background_transmittance"},
+      .out    = {"transmission_matrix_background"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
@@ -980,18 +982,9 @@ call of *absorption_lookup_table_dataAdapt*.
       .in     = {"ray_path", "atmospheric_field"},
   };
 
-  wsm_data["ray_path_transmission_matrix_cumulativeForward"] = {
+  wsm_data["ray_path_transmission_matrix_cumulativeFromPath"] = {
       .desc =
           R"--(Sets *ray_path_transmission_matrix_cumulative* by forward iteration of *ray_path_transmission_matrix*
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_transmission_matrix_cumulative"},
-      .in     = {"ray_path_transmission_matrix"},
-  };
-
-  wsm_data["ray_path_transmission_matrix_cumulativeReverse"] = {
-      .desc =
-          R"--(Sets *ray_path_transmission_matrix_cumulative* by reverse iteration of *ray_path_transmission_matrix*
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_transmission_matrix_cumulative"},
@@ -1069,34 +1062,6 @@ The calculations are in parallel if the program is not in parallel already.
                  "ray_path_propagation_matrix"},
   };
 
-  wsm_data["ray_path_spectral_radianceCalcEmission"] = {
-      .desc =
-          R"--(Gets the radiation along the path by linear emission calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance",
-                 "ray_path_spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background",
-                 "ray_path_spectral_radiance_source",
-                 "ray_path_spectral_radiance_source_jacobian",
-                 "ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian"},
-  };
-
-  wsm_data["ray_path_spectral_radianceCalcTransmission"] = {
-      .desc =
-          R"--(Gets the radiation along the path by linear transmission calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance",
-                 "ray_path_spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background",
-                 "ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian"},
-  };
-
   wsm_data["ray_path_spectral_radiance_sourceFromPropmat"] = {
       .desc   = R"--(Gets the source term along the path.
 )--",
@@ -1110,27 +1075,6 @@ The calculations are in parallel if the program is not in parallel already.
                  "ray_path_frequency_grid",
                  "ray_path_atmospheric_point",
                  "jacobian_targets"},
-  };
-
-  wsm_data["ray_path_transmission_matrixFromPath"] = {
-      .desc      = R"--(Gets the transmission matrix in layers along the path.
-
-A layer is defined as made up by the average of 2 levels, thus the outer-most size
-of the derivatives out of this function is 2.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_transmission_matrix",
-                    "ray_path_transmission_matrix_jacobian"},
-      .in        = {"ray_path_propagation_matrix",
-                    "ray_path_propagation_matrix_jacobian",
-                    "ray_path",
-                    "ray_path_atmospheric_point",
-                    "surface_field",
-                    "jacobian_targets"},
-      .gin       = {"hse_derivative"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
   wsm_data["absorption_predefined_model_dataAddWaterMTCKD400"] = {
@@ -2122,7 +2066,7 @@ Size : (*jacobian_targets*, *frequency_grid*)
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
       .in     = {"spectral_radiance_background_jacobian",
-                 "background_transmittance"},
+                 "transmission_matrix_background"},
   };
 
   wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
@@ -2171,15 +2115,6 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
                  "spectral_radiance_unit"},
   };
 
-  wsm_data["spectral_radianceFromPathPropagation"] = {
-      .desc =
-          R"--(Sets *spectral_radiance* from front of *ray_path_spectral_radiance*
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"ray_path_spectral_radiance"},
-  };
-
   wsm_data["propagation_matrixAddLines"] = {
       .desc      = R"--(Modern line-by-line calculations
 )--",
@@ -2218,7 +2153,10 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atmospheric_field"},
+      .in     = {"jacobian_targets",
+                 "atmospheric_field",
+                 "surface_field",
+                 "absorption_bands"},
   };
 
   wsm_data["jacobian_targetsAddTemperature"] = {
@@ -2291,10 +2229,40 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"String", "Numeric"},
+      .gin_type  = {"SpeciesEnum,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
-          {"The species of interest (short or long name)",
+          {"The species of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["jacobian_targetsAddAtmosphere"] = {
+      .desc   = R"--(Sets an atmospheric target
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
+      .gin    = {"target", "d"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
+           "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["jacobian_targetsAddSurface"] = {
+      .desc      = R"--(Sets a surface target
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
 
@@ -2307,7 +2275,7 @@ See *SpeciesIsotope* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"SpeciesIsotope", "Numeric"},
+      .gin_type  = {"SpeciesIsotope,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The species isotopologue of interest",
@@ -2315,37 +2283,27 @@ See *SpeciesIsotope* for valid ``species``
   };
 
   wsm_data["jacobian_targetsAddLineParameter"] = {
-      .desc   = R"--(Set line parameter derivative
+      .desc      = R"--(Set line parameter derivative
 
-See *LineByLineVariable* for valid ``parameter``.
+See *LineByLineVariable* and *LineShapeModelVariable* for valid ``parameter``.
 
 See *SpeciesEnum* for valid ``species``.
 
-See *LineShapeModelCoefficient* for valid ``coefficient``.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "absorption_bands"},
-      .gin = {"id", "line_index", "parameter", "species", "coefficient", "d"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "absorption_bands"},
+      .gin       = {"id", "line_index", "parameter", "species"},
       .gin_type  = {"QuantumIdentifier",
                     "Index",
-                    "String",
-                    "String",
-                    "String",
-                    "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String{""},
-                    String{""},
-                    Numeric{0.1}},
+                    "LineByLineVariable,LineShapeModelVariable",
+                    "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{"None"}},
       .gin_desc =
           {"The quantum identifier of the band",
            "The index of the line in the band",
            "The parameter to compute the derivative for (see options in error message)",
-           "The coefficient in question (if non-empty, ``parameter`` refers to be a line shape parameter, otherwise, ``parameter`` referes to a standard absorption line parameter)",
-           "The species of interest (long or short name; error message shows only valid long names)",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+           "The species of interest (only for *LineShapeModelVariable* overload)"},
   };
 
   wsm_data["absorption_bandsSelectFrequency"] = {
@@ -3092,9 +3050,7 @@ See *SpeciesIsotope* for valid ``species``
 The core calculations happens inside the *spectral_radiance_operator*.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector"},
-      .gout_type = {"Vector"},
-      .gout_desc = {"The measurement vector"},
+      .out       = {"measurement_vector"},
       .in        = {"measurement_vector_sensor",
                     "spectral_radiance_operator",
                     "ray_path_observer_agenda"},
@@ -3115,10 +3071,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 User choices of *spectral_radiance_unit* does not adversely affect this method.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector", "measurement_vector_jacobian"},
-      .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"The measurement vector",
-                    "The measurement vector's associated Jacobian"},
+      .out       = {"measurement_vector", "measurement_vector_jacobian"},
       .in        = {"measurement_vector_sensor",
                     "jacobian_targets",
                     "atmospheric_field",
@@ -3355,6 +3308,142 @@ have sorted *suns* by distance before running this code.
            R"--(The depolarization factor to use.)--",
            "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
+  };
+
+  wsm_data["atmospheric_fieldFromModelState"] = {
+      .desc   = R"--(Sets *atmospheric_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["surface_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surface_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_field"},
+      .in     = {"surface_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["absorption_bandsFromModelState"] = {
+      .desc   = R"--(Sets *absorption_bands* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_bands"},
+      .in     = {"absorption_bands", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorSize"] = {
+      .desc =
+          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+
+Warning:
+
+    Does not zero out existing data. Use *model_state_vectorZero* if that is desired.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorZero"] = {
+      .desc   = R"--(Sets *model_state_vector* to 0.0
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector"},
+  };
+
+  wsm_data["model_state_vectorFromAtmosphere"] = {
+      .desc   = R"--(Sets *model_state_vector*'s atmospheric part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "atmospheric_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromSurface"] = {
+      .desc   = R"--(Sets *model_state_vector*'s surface part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "surface_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromBands"] = {
+      .desc   = R"--(Sets *model_state_vector*'s absorption line part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "absorption_bands", "jacobian_targets"},
+  };
+
+  wsm_data["ray_path_transmission_matrixFromPath"] = {
+      .desc      = R"--(Gets the transmission matrix in layers along the path.
+
+The assumption is that each path variable forms a layer from the 
+ray path.  So there is a reduction in size by one.  A demand therefore
+is that there are at least 2 points in the path.
+
+The derivatives first dimensions are also 2, the first for the derivative wrt
+the level before and one for the level after.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_transmission_matrix",
+                    "ray_path_transmission_matrix_jacobian"},
+      .in        = {"ray_path_propagation_matrix",
+                    "ray_path_propagation_matrix_jacobian",
+                    "ray_path",
+                    "ray_path_atmospheric_point",
+                    "surface_field",
+                    "jacobian_targets"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
+  };
+
+  wsm_data["spectral_radianceStepByStep"] = {
+      .desc   = R"--(Gets the spectral radiance from the path.
+
+This uses a step-by-step solver to propagate background radiation along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_spectral_radiance_source",
+                 "spectral_radiance_background"},
+  };
+
+  wsm_data["spectral_radianceCumulativeEmission"] = {
+      .desc   = R"--(Gets the spectral radiance from the path emission.
+
+Also get the Jacobian of the spectral radiance with regards to the
+path parameters.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_transmission_matrix_cumulative",
+                 "ray_path_transmission_matrix_jacobian",
+                 "ray_path_spectral_radiance_source",
+                 "ray_path_spectral_radiance_source_jacobian",
+                 "spectral_radiance_background"},
+  };
+
+  wsm_data["spectral_radianceCumulativeTransmission"] = {
+      .desc   = R"--(Gets the spectral radiance from the path transmission.
+
+Also get the Jacobian of the spectral radiance with regards to the
+path parameters.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_transmission_matrix_cumulative",
+                 "ray_path_transmission_matrix_jacobian",
+                 "spectral_radiance_background"},
   };
 
   /*

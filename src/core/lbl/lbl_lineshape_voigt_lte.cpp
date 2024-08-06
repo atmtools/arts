@@ -1,5 +1,7 @@
 #include "lbl_lineshape_voigt_lte.h"
 
+#include <atm.h>
+#include <enums.h>
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
@@ -7,15 +9,11 @@
 
 #include <Faddeeva/Faddeeva.hh>
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <numeric>
 
-#include "atm.h"
-#include "enums.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
-#include "species.h"
 
 namespace lbl::voigt::lte {
 Complex line_strength_calc(const Numeric inv_gd,
@@ -1858,8 +1856,8 @@ void compute_derivative(PropmatVectorView dpm,
       "Does not support 0 for isotopologue ratios (may be added upon request)")
 
   for (Index i = 0; i < f_grid.size(); i++) {
-    dpm[i] += zeeman::scale(com_data.npm,
-                            com_data.scl[i] * com_data.shape[i] / isorat);
+    const auto dF  = com_data.scl[i] * com_data.shape[i] / isorat;
+    dpm[i]        += zeeman::scale(com_data.npm, dF);
   }
 }
 
