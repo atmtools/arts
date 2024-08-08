@@ -132,7 +132,7 @@ void spectral_radiance_disortClearskyDisort(
   std::transform(dis.mu().begin(),
                  dis.mu().end(),
                  disort_quadrature_angles.begin(),
-                 [](const Numeric& mu) { return Conversion::rad2deg(mu); });
+                 [](const Numeric& mu) { return Conversion::acosd(mu); });
 
   disort_quadrature_weights = dis.weights();
 

@@ -36,28 +36,52 @@ ws.spectral_radiance_unit = "Tb"
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
-# %% Core calculations
+# %% Core geometry
 NQuad = 40
 ws.ray_pathGeometricUplooking(latitude=0.0, longitude=0.0, max_step=1000.0)
 ws.ray_path_atmospheric_pointFromPath()
 ws.ray_path_frequency_gridFromPath()
 ws.ray_path_propagation_matrixFromPath()
 
-ten = pyarts.arts.Tensor3()
-mu = pyarts.arts.Vector()
-w = pyarts.arts.Vector()
-ws.spectral_radiance_disortClearskyDisort(ten, mu, w, NQuad=NQuad, NLeg=1)
+# %% Disort calculations
+ws.spectral_radiance_disortClearskyDisort(NQuad=NQuad, NLeg=1)
 
-ws.ray_pathGeometric(pos=[101e3, 0, 0], los=[180, 0], max_step=1000.0)
+# %% Equivalent ARTS calculations
+ws.ray_pathGeometric(
+    pos=[100e3, 0, 0],
+    los=[180, 0],
+    max_step=1000.0,
+)
 ws.spectral_radianceClearskyEmission()
+
+# %% Plot results
 
 plt.semilogy(
     ws.frequency_grid - line_f0, ws.spectral_radiance[:, 0], "k--", lw=5
 )
 plt.semilogy(
-    ws.frequency_grid - line_f0, ten[:, -1, (NQuad // 2) :], label="disort"
+    ws.frequency_grid - line_f0,
+    ws.spectral_radiance_disort[:, -1, (NQuad // 2) :],
+    label="disort",
 )
-plt.semilogy(ws.frequency_grid - line_f0, ten[:, -1, NQuad // 2], "g:", lw=3)
-plt.semilogy(ws.frequency_grid - line_f0, ten[:, -1, -1], "m:", lw=3)
+plt.semilogy(
+    ws.frequency_grid - line_f0,
+    ws.spectral_radiance_disort[:, -1, NQuad // 2],
+    "g:",
+    lw=3,
+)
+plt.semilogy(
+    ws.frequency_grid - line_f0,
+    ws.spectral_radiance_disort[:, -1, -1],
+    "m:",
+    lw=3,
+)
 plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
 plt.xlabel("Dirac frequency [index count]")
+
+# %% The last test should be that we are close to the correct values
+
+assert np.allclose(
+    ws.spectral_radiance_disort[:, -1, -1] / ws.spectral_radiance[:, 0],
+    1, rtol=1e-3,
+), "Bad results, clearsky calculations are not close between DISORT and ARTS"
