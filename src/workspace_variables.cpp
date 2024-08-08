@@ -542,6 +542,14 @@ In classical ``F(x) = y``-notation, this is the ``x``.
       .type = "Vector",
   };
 
+  wsv_data["model_state_vector_apriori"] = {
+      .desc = R"(An apriori state vector of the model.
+
+In classical ``F(x) = y``-notation, this is the ``x``.
+)",
+      .type = "Vector",
+  };
+
   wsv_data["measurement_vector"] = {
       .desc = R"(The measurment vector for, e.g., a sensor.
 
@@ -550,13 +558,51 @@ In classical ``F(x) = y``-notation, this is the ``y``.
       .type = "Vector",
   };
 
-  wsv_data["measurement_vector_jacobian"] = {
+  wsv_data["measurement_vector_fitted"] = {
+      .desc = R"(As *measurement_vector*, but fitted to the model.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["inversion_iterate_agenda_counter"] =
+      {
+          .desc          = R"(A counter for the inversion iterate agenda.
+)",
+          .type          = "Index",
+          .default_value = Index{0},
+      };
+
+  wsv_data["inversion_iterate_agenda_do_jacobian"] =
+      {
+          .desc          = R"(A boolean for if Jacobian calculations should be done.
+)",
+          .type          = "Index",
+          .default_value = Index{1},
+      };
+
+  wsv_data["measurement_vector_error_covariance_matrix"] =
+      {
+          .desc          = R"(Covariance matrix for observation uncertainties.
+)",
+          .type          = "CovarianceMatrix",
+      };
+
+  wsv_data["model_state_covariance_matrix"] =
+      {
+          .desc          = R"(Covariance matrix of a priori distribution.
+)",
+          .type          = "CovarianceMatrix",
+      };
+
+  wsv_data["measurement_jacobian"] = {
       .desc = R"(The partial derivatives of the *measurement_vector*.
+
+The size of this variable should be the size *measurement_vector* times the size of *model_state_vector*.
 )",
       .type = "Matrix",
   };
 
-  wsv_data["measurement_vector_sensor"] = {
+  wsv_data["measurement_sensor"] = {
       .desc = R"(A list of sensor elements.
 
 Size is number of elements of the sensor.

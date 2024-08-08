@@ -205,8 +205,8 @@ void measurement_vectorFromSensor(
   measurement_vector.resize(measurement_vector_sensor.size());
   measurement_vector = 0.0;
 
-  measurement_vector_jacobian.resize(jacobian_targets.x_size(),
-                                     measurement_vector_sensor.size());
+  measurement_vector_jacobian.resize(measurement_vector_sensor.size(), jacobian_targets.x_size()
+                                     );
   measurement_vector_jacobian = 0.0;
 
   if (measurement_vector_sensor.empty()) return;

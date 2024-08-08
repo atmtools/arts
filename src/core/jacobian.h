@@ -5,6 +5,7 @@
 #include <matpack.h>
 #include <surf.h>
 
+#include <concepts>
 #include <functional>
 #include <limits>
 #include <numeric>
@@ -158,8 +159,16 @@ struct LineTarget {
   void update(Vector&, const ArrayOfAbsorptionBand&) const;
 };
 
+template <typename T>
+concept target_type = requires(T a) {
+  { a.d } -> std::same_as<Numeric&>;
+  { a.target_pos } -> std::same_as<Size&>;
+  { a.x_start } -> std::same_as<Size&>;
+  { a.x_size } -> std::same_as<Size&>;
+};
+
 template <typename U, typename T>
-concept target_comparable = requires(T a, U b) {
+concept target_comparable = target_type<T> and requires(T a, U b) {
   a.type == b;
   b == a.type;
 };
@@ -167,7 +176,7 @@ concept target_comparable = requires(T a, U b) {
 template <typename U, typename... T>
 concept valid_target = (std::same_as<U, T> or ...);
 
-template <typename... Targets>
+template <target_type... Targets>
 struct targets_t {
   static constexpr Size N = sizeof...(Targets);
 

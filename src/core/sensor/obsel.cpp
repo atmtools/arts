@@ -260,7 +260,7 @@ void sumup(Vector& out,
 
         out[iel] += scl * in[iv];
         for (Index ijac = 0; ijac < njac; ijac++) {
-          out_jac(ijac, iel) += scl * in_jac(ijac, iv);
+          out_jac(iel, ijac) += scl * in_jac(ijac, iv);
         }
       }
     }
@@ -290,7 +290,7 @@ void sumup(Vector& out,
 
           out[iel] += scl * in[iv];
           for (Index ijac = 0; ijac < njac; ijac++) {
-            out_jac(ijac, iel) += scl * in_jac(ijac, iv);
+            out_jac(iel, ijac) += scl * in_jac(ijac, iv);
           }
         }
       } catch (std::exception& e) {
@@ -358,7 +358,7 @@ void exhaustive_sumup(Vector& out,
 
         out[iel] += scl * in[iv];
         for (Index ijac = 0; ijac < njac; ijac++) {
-          out_jac(ijac, iel) += scl * in_jac(ijac, iv);
+          out_jac(iel, ijac) += scl * in_jac(ijac, iv);
         }
       }
     }
@@ -373,7 +373,7 @@ void exhaustive_sumup(Vector& out,
 
           out[iel] += scl * in[iv];
           for (Index ijac = 0; ijac < njac; ijac++) {
-            out_jac(ijac, iel) += scl * in_jac(ijac, iv);
+            out_jac(iel, ijac) += scl * in_jac(ijac, iv);
           }
         } catch (std::exception& e) {
 #pragma omp critical
