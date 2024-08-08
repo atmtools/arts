@@ -113,8 +113,9 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "UpdateModelStates",
-      .desc    = "Update state of the model in preparation for a forward model run",
+      .name = "UpdateModelStates",
+      .desc =
+          "Update state of the model in preparation for a forward model run",
       .author  = {"Richard Larsson"},
       .methods = {"absorption_bandsFromModelState",
                   "surface_fieldFromModelState",
@@ -132,6 +133,15 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "model_state_vectorFromSurface",
                   "model_state_vectorFromBands"},
       .out     = {"model_state_vector"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "model_state_vector_aprioriFromData",
+      .desc    = "Get *model_state_vector_apriori* from available data",
+      .author  = {"Richard Larsson"},
+      .methods = {"model_state_vectorFromData",
+                  "model_state_vector_aprioriFromState"},
+      .out     = {"model_state_vector_apriori"},
   });
 
   return out;

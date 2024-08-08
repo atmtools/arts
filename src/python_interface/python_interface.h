@@ -6,6 +6,8 @@
 #include <py_auto_wsg.h>
 #include <workspace.h>
 
+#include "workspace_class.h"
+
 using ssize_t = Py_ssize_t;
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
@@ -30,17 +32,13 @@ T& select_out(ValueHolder<T>* const x, Workspace& ws, const char* const name) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T>
-T& select_gout(T* const x, const char* const name) {
-  return x ? *x
-           : throw std::runtime_error(
-                 var_string("Unknown ouput: ", '"', name, '"'));
+T& select_gout(T* const x, Workspace& ws, const char* const name) {
+  return x ? *x : ws.get_or<T>(name);
 }
 
 template <WorkspaceGroup T>
-T& select_gout(ValueHolder<T>* const x, const char* const name) {
-  return x ? static_cast<T&>(*x)
-           : throw std::runtime_error(
-                 var_string("Unknown ouput: ", '"', name, '"'));
+T& select_gout(ValueHolder<T>* const x, Workspace& ws, const char* const name) {
+  return x ? static_cast<T&>(*x) : ws.get_or<T>(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

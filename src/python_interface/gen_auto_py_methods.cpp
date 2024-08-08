@@ -132,8 +132,8 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
          << "\\\"\");\n";
     } else {
       os << "        auto& " << wsm.gout[i] << " = select_gout<"
-         << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", \"" << wsm.gout[i]
-         << "\");\n";
+         << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", _ws, \""
+         << wsm.gout[i] << "\");\n";
     }
   }
 
@@ -721,19 +721,19 @@ std::string method_argument_documentation(
 
   bool first = true;
 
-  for (auto& t : wsm.out) {
+  for (const auto& t : wsm.out) {
     if (not first) os << ",\n    ";
     first = false;
     os << "\"" << t << "\"_a.noconvert().none() = py::none()";
   }
 
-  for (auto& t : wsm.gout) {
+  for (const auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "\"" << t << "\"_a.none() = py::none()";
+    os << "\"" << t << "\"_a.noconvert().none() = py::none()";
   }
 
-  for (auto& t : wsm.in) {
+  for (const auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;

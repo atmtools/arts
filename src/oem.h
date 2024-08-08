@@ -12,7 +12,6 @@
 #ifndef _ARTS_OEM_H_
 #define _ARTS_OEM_H_
 
-#include <stdexcept>
 #include <type_traits>
 
 #include "invlib/algebra.h"
@@ -22,8 +21,6 @@
 #include "invlib/map.h"
 #include "invlib/optimization.h"
 #include "jacobian.h"
-
-#include <workspace.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Type Aliases
@@ -39,7 +36,7 @@ using Matrix = invlib::Matrix<ArtsMatrix>;
 using MatrixReference = invlib::Matrix<ArtsMatrixReference<::Matrix>>;
 /** invlib wrapper type for ARTS the ARTS covariance class.*/
 using CovarianceMatrix = invlib::Matrix<ArtsCovarianceMatrixWrapper>;
-using Identity = invlib::MatrixIdentity<Matrix>;
+using Identity         = invlib::MatrixIdentity<Matrix>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // OEM Formulations
@@ -138,9 +135,9 @@ class NormalizingSolver : SolverType {
     if (apply_) {
       typename VectorType::ResultType vv = trans_ * v;
       auto &&ww = SolverType::solve(trans_ * A * trans_, vv);
-      w = trans_ * ww;
+      w         = trans_ * ww;
     } else {
-      w = SolverType::solve(A, v);
+      w            = SolverType::solve(A, v);
       VectorType u = v - A * w;
     }
     return w;
@@ -214,8 +211,8 @@ struct OptimizerLog<
       size_t i) {
     std::string lambda = std::to_string(g.get_lambda());
     std::string out(15 - std::min<size_t>(lambda.size(), 15), ' ');
-    out += lambda;
-    gamma_history_[i] = g.get_lambda();
+    out               += lambda;
+    gamma_history_[i]  = g.get_lambda();
     return out;
   }
 };
@@ -259,11 +256,11 @@ class ArtsLog {
   /** Finalizes log output if necessary.*/
   ~ArtsLog() {
     if ((verbosity_ >= 1) && (!finalized_)) {
-      std::cout << invlib::separator() << '\n' << '\n';
-      std::cout << "Error during OEM computation." << '\n';
-      std::cout << '\n';
-      std::cout << invlib::center("----") << '\n';
-      std::cout << '\n';
+      std::cout << invlib::separator() << std::endl << std::endl;
+      std::cout << "Error during OEM computation." << std::endl;
+      std::cout << std::endl;
+      std::cout << invlib::center("----") << std::endl;
+      std::cout << std::endl;
     }
   }
 
@@ -273,27 +270,27 @@ class ArtsLog {
    * output. Prints general information on the OEM settings.
    */
   template <typename... Params>
-  void init(Params &... params) {
+  void init(Params &...params) {
     if (verbosity_ >= 1) {
       std::tuple<Params &...> tuple(params...);
 
-      auto &y = std::get<4>(tuple);
-      scaling_factor_ = 1.0 / static_cast<Numeric>(y.size());
-      std::cout << '\n';
-      std::cout << invlib::center("MAP Computation") << '\n';
+      auto &y         = std::get<4>(tuple);
+      scaling_factor_ = 1.0 / static_cast<Numeric>(y.nelem());
+      std::cout << std::endl;
+      std::cout << invlib::center("MAP Computation") << std::endl;
 
       // Print formulation.
       int formulation = static_cast<int>(std::get<6>(tuple));
       switch (formulation) {
         case 0:
-          std::cout << "Formulation: Standard" << '\n';
+          std::cout << "Formulation: Standard" << std::endl;
           break;
         case 1:
-          std::cout << "Formulation: N-Form" << '\n';
+          std::cout << "Formulation: N-Form" << std::endl;
           break;
 
         case 2:
-          std::cout << "Formulation: M-Form" << '\n';
+          std::cout << "Formulation: M-Form" << std::endl;
           break;
       }
 
@@ -302,14 +299,14 @@ class ArtsLog {
           typename std::tuple_element<5, decltype(tuple)>::type>::type;
       std::cout << "Method:      "
                 << invlib::OptimizerLog<OptimizationType>::name;
-      std::cout << '\n';
+      std::cout << std::endl;
 
-      std::cout << '\n';
+      std::cout << std::endl;
       std::cout << std::setw(5) << "Step" << std::setw(15) << "Total Cost";
       std::cout << std::setw(15) << "x-Cost" << std::setw(15) << "y-Cost";
       std::cout << std::setw(15) << "Conv. Crit.";
       std::cout << std::setw(15) << OptimizerLog<OptimizationType>::header();
-      std::cout << '\n' << invlib::separator() << '\n';
+      std::cout << std::endl << invlib::separator() << std::endl;
     }
   }
 
@@ -319,7 +316,7 @@ class ArtsLog {
    * line.
    */
   template <typename... Params>
-  void step(const Params &... params) {
+  void step(const Params &...params) {
     if (verbosity_ >= 1) {
       std::tuple<const Params &...> tuple(params...);
       using OptimizationType = typename std::decay<
@@ -341,7 +338,7 @@ class ArtsLog {
       }
       std::cout << OptimizerLog<OptimizationType>::log(
           std::get<5>(tuple), gamma_history_, std::get<0>(tuple));
-      std::cout << '\n';
+      std::cout << std::endl;
     }
   }
 
@@ -351,25 +348,25 @@ class ArtsLog {
    * output.
    */
   template <typename... Params>
-  void finalize(const Params &... params) {
+  void finalize(const Params &...params) {
     if (verbosity_ >= 1) {
-      std::cout << invlib::separator() << '\n';
+      std::cout << invlib::separator() << std::endl;
 
       std::tuple<const Params &...> tuple(params...);
-      std::cout << '\n';
+      std::cout << std::endl;
 
       std::cout << "Total number of steps:            ";
-      std::cout << std::get<1>(tuple) << '\n';
+      std::cout << std::get<1>(tuple) << std::endl;
       std::cout << "Final scaled cost function value: ";
-      std::cout << std::get<2>(tuple) * scaling_factor_ << '\n';
+      std::cout << std::get<2>(tuple) * scaling_factor_ << std::endl;
 
       bool converged = std::get<0>(tuple);
       if (converged) {
-        std::cout << "OEM computation converged." << '\n';
+        std::cout << "OEM computation converged." << std::endl;
       } else if (linear_) {
-        std::cout << "Linear OEM computation finished." << '\n';
+        std::cout << "Linear OEM computation finished." << std::endl;
       } else {
-        std::cout << "OEM computation DID NOT converge!" << '\n';
+        std::cout << "OEM computation DID NOT converge!" << std::endl;
       }
     }
 
@@ -378,20 +375,20 @@ class ArtsLog {
 
   /** Print timing information to command line.*/
   template <typename... Params>
-  void time(const Params &... params) {
+  void time(const Params &...params) {
     if (verbosity_ >= 1) {
       std::tuple<const Params &...> tuple(params...);
-      std::cout << '\n';
+      std::cout << std::endl;
       std::cout << "Elapsed Time for Retrieval:                       ";
-      std::cout << std::get<0>(tuple) << '\n';
+      std::cout << std::get<0>(tuple) << std::endl;
       std::cout << "Time in inversion_iterate Agenda (No Jacobian):   ";
-      std::cout << std::get<1>(tuple) << '\n';
+      std::cout << std::get<1>(tuple) << std::endl;
       std::cout << "Time in inversion_iterate Agenda (With Jacobian): ";
-      std::cout << std::get<2>(tuple) << '\n';
+      std::cout << std::get<2>(tuple) << std::endl;
 
-      std::cout << '\n';
-      std::cout << invlib::center("----") << '\n';
-      std::cout << '\n';
+      std::cout << std::endl;
+      std::cout << invlib::center("----") << std::endl;
+      std::cout << std::endl;
     }
   }
 
@@ -483,7 +480,7 @@ class AgendaWrapper {
    * \param[in] inversion_iterate_agenda Pointer to the x argument of the agenda
    * execution function.
    */
-  AgendaWrapper(Workspace *ws,
+  AgendaWrapper(const Workspace *const ws,
                 unsigned int measurement_space_dimension,
                 unsigned int state_space_dimension,
                 ::Matrix &arts_jacobian,
@@ -495,7 +492,7 @@ class AgendaWrapper {
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
-                        (arts_jacobian.ncols() != 0) && (arts_y.size() != 0)),
+                        (arts_jacobian.ncols() != 0) && (arts_y.nelem() != 0)),
         ws_(ws),
         yi_(arts_y) {}
 
@@ -505,10 +502,10 @@ class AgendaWrapper {
    */
   ArtsVector get_measurement_vector() { return yi_; }
 
-  AgendaWrapper(const AgendaWrapper &) = delete;
-  AgendaWrapper(AgendaWrapper &&) = delete;
+  AgendaWrapper(const AgendaWrapper &)            = delete;
+  AgendaWrapper(AgendaWrapper &&)                 = delete;
   AgendaWrapper &operator=(const AgendaWrapper &) = delete;
-  AgendaWrapper &operator=(AgendaWrapper &&) = delete;
+  AgendaWrapper &operator=(AgendaWrapper &&)      = delete;
 
   /** Evaluate forward model and compute Jacobian.
    *
@@ -521,16 +518,20 @@ class AgendaWrapper {
    * \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
    * \param[in] x The current state vector x.
    */
-  MatrixReference Jacobian(const Vector &/*xi*/, Vector &yi) {
+  MatrixReference Jacobian(const Vector &xi, Vector &yi) {
     if (!reuse_jacobian_) {
-      throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
-      // inversion_iterate_agendaExecute(
-      //     *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
-      yi = yi_;
+      inversion_iterate_agendaExecute(*ws_,
+                                      yi_,
+                                      jacobian_,
+                                      xi,
+                                      1,
+                                      iteration_counter_,
+                                      *inversion_iterate_agenda_);
+      yi                  = yi_;
       iteration_counter_ += 1;
     } else {
       reuse_jacobian_ = false;
-      yi = yi_;
+      yi              = yi_;
     }
     return jacobian_;
   }
@@ -544,17 +545,16 @@ class AgendaWrapper {
    * @return The observation vector y contained in the yf WSV after
    *   executing the inversion_iterate_agenda.
    */
-  Vector evaluate(const Vector &/*xi*/) {
+  Vector evaluate(const Vector &xi) {
     if (!reuse_jacobian_) {
       Matrix dummy;
-       throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
-      // inversion_iterate_agendaExecute(*ws_,
-      //                                 yi_,
-      //                                 dummy,
-      //                                 xi,
-      //                                 0,
-      //                                 iteration_counter_,
-      //                                 *inversion_iterate_agenda_);
+      inversion_iterate_agendaExecute(*ws_,
+                                      yi_,
+                                      dummy,
+                                      xi,
+                                      0,
+                                      iteration_counter_,
+                                      *inversion_iterate_agenda_);
     } else {
       reuse_jacobian_ = false;
     }
@@ -570,12 +570,11 @@ class AgendaWrapper {
   /** Flag whether to reuse Jacobian from previous calculation. */
   bool reuse_jacobian_;
   /** Pointer to current ARTS workspace */
-  Workspace *ws_;
+  const Workspace *const ws_;
   /** Cached simulation result. */
   Vector yi_;
 };
 }  // namespace oem
-
 
 /** Clip Tensor4
  *
@@ -584,24 +583,28 @@ class AgendaWrapper {
  * @param[in] limit_low Lower limit below which to clip values.
  * @param[in] limit_high Upper limit below which to clip values.
  */
-void Tensor4Clip(Tensor4& x,
-                 const Index& iq,
-                 const Numeric& limit_low,
-                 const Numeric& limit_high) {
+void Tensor4Clip(Tensor4 &x,
+                 const Index &iq,
+                 const Numeric &limit_low,
+                 const Numeric &limit_high) {
   // Sizes
   const Index nq = x.nbooks();
 
-  ARTS_USER_ERROR_IF (iq < -1, "Argument *iq* must be >= -1.");
-  ARTS_USER_ERROR_IF (iq >= nq,
-      "Argument *iq* is too high.\n"
-      "You have selected index: ", iq, "\n"
-      "but the number of quantities is only: ", nq, "\n"
-      "(Note that zero-based indexing is used)\n")
+  ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
+  ARTS_USER_ERROR_IF(iq >= nq,
+                     "Argument *iq* is too high.\n"
+                     "You have selected index: ",
+                     iq,
+                     "\n"
+                     "but the number of quantities is only: ",
+                     nq,
+                     "\n"
+                     "(Note that zero-based indexing is used)\n")
 
   Index ifirst = 0, ilast = nq - 1;
   if (iq > -1) {
     ifirst = iq;
-    ilast = iq;
+    ilast  = iq;
   }
 
   if (!std::isinf(limit_low)) {
@@ -649,7 +652,7 @@ void Tensor4Clip(Tensor4& x,
  * @param[in] y The observation vector to fit.
  * @param[in] covmat_se The observation error covariance matrix. Checked to
  * by square and consistent with y.
- * @param[in] jacobian_quantities: The Jacobian quantities array checked to
+ * @param[in] jacobian_targets: The Jacobian quantities array checked to
  * be consistent with jacobian_indices
  * @param[in] method The method string. Checked to be a valid OEM method
  * string.
@@ -665,99 +668,100 @@ void Tensor4Clip(Tensor4& x,
  * @param display_progress Whether or not to display iteration progress. Checked
  * to be 1 or 0.
  */
-void OEM_checks(const Workspace&,// ws,
-                Vector& x,
-                Vector& yf,
-                Matrix& jacobian,
-                const Agenda&,// inversion_iterate_agenda,
-                const Vector& xa,
-                const CovarianceMatrix& covmat_sx,
-                const Vector& y,
-                const CovarianceMatrix& covmat_se,
-                //const ArrayOfRetrievalQuantity& jacobian_quantities,
-                const String& method,
-                const Vector& x_norm,
-                const Index& max_iter,
-                const Numeric& stop_dx,
-                const Vector& lm_ga_settings,
-                const Index& clear_matrices,
-                const Index& display_progress) {
-  // const Index nq = jacobian_quantities.size();
-  const Index n = xa.size();
-  const Index m = y.size();
+void OEM_checks(const Workspace &ws,
+                Vector &x,
+                Vector &yf,
+                Matrix &jacobian,
+                const Agenda &inversion_iterate_agenda,
+                const Vector &xa,
+                const CovarianceMatrix &covmat_sx,
+                const Vector &y,
+                const CovarianceMatrix &covmat_se,
+                const JacobianTargets &jacobian_targets,
+                const String &method,
+                const Vector &x_norm,
+                const Index &max_iter,
+                const Numeric &stop_dx,
+                const Vector &lm_ga_settings,
+                const Index &clear_matrices,
+                const Index &display_progress) {
+  const Index nq = jacobian_targets.target_count();
+  const Index n  = xa.nelem();
+  const Index m  = y.nelem();
 
-  ARTS_USER_ERROR_IF ((x.size() != n) && (x.size() != 0),
-                      "The length of *x* must be either the same as *xa* or 0.");
-  ARTS_USER_ERROR_IF (covmat_sx.ncols() != covmat_sx.nrows(),
-                      "*covmat_sx* must be a square matrix.");
-  ARTS_USER_ERROR_IF (covmat_sx.ncols() != n,
-                      "Inconsistency in size between *x* and *covmat_sx*.");
-  ARTS_USER_ERROR_IF ((yf.size() != m) && (yf.size() != 0),
-                      "The length of *yf* must be either the same as *y* or 0.");
-  ARTS_USER_ERROR_IF (covmat_se.ncols() != covmat_se.nrows(),
-                      "*covmat_se* must be a square matrix.");
-  ARTS_USER_ERROR_IF (covmat_se.ncols() != m,
-                      "Inconsistency in size between *y* and *covmat_se*.");
-  ARTS_USER_ERROR_IF ((jacobian.nrows() != m) && (!jacobian.empty()),
-                      "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
-  ARTS_USER_ERROR_IF ((jacobian.ncols() != n) && (!jacobian.empty()),
-                      "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
+  ARTS_USER_ERROR_IF((x.nelem() != n) && (x.nelem() != 0),
+                     "The length of *x* must be either the same as *xa* or 0.");
+  ARTS_USER_ERROR_IF(covmat_sx.ncols() != covmat_sx.nrows(),
+                     "*covmat_sx* must be a square matrix.");
+  ARTS_USER_ERROR_IF(covmat_sx.ncols() != n,
+                     "Inconsistency in size between *x* and *covmat_sx*.");
+  ARTS_USER_ERROR_IF((yf.nelem() != m) && (yf.nelem() != 0),
+                     "The length of *yf* must be either the same as *y* or 0.");
+  ARTS_USER_ERROR_IF(covmat_se.ncols() != covmat_se.nrows(),
+                     "*covmat_se* must be a square matrix.");
+  ARTS_USER_ERROR_IF(covmat_se.ncols() != m,
+                     "Inconsistency in size between *y* and *covmat_se*.");
+  ARTS_USER_ERROR_IF(
+      (jacobian.nrows() != m) && (!jacobian.empty()),
+      "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
+  ARTS_USER_ERROR_IF(
+      (jacobian.ncols() != n) && (!jacobian.empty()),
+      "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
 
-  ArrayOfArrayOfIndex jacobian_indices;
-  //bool any_affine;
-  // jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  // ARTS_USER_ERROR_IF (jacobian_indices.size() != static_cast<Size>(nq),
-  //       "Different number of elements in *jacobian_quantities* "
+  // ArrayOfArrayOfIndex jacobian_indices;
+  // bool any_affine;
+  //jac_ranges_indices(jacobian_indices, any_affine, jacobian_targets);
+  // ARTS_USER_ERROR_IF (jacobian_indices.nelem() != nq,
+  //       "Different number of elements in *jacobian_targets* "
   //       "and *jacobian_indices*.");
   // ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
   //       "Size of *covmat_sx* do not agree with Jacobian "
   //       "information (*jacobian_indices*).");
 
   // Check GINs
-  ARTS_USER_ERROR_IF (!(method == "li" || method == "gn" || method == "li_m" ||
-                        method == "gn_m" || method == "ml" || method == "lm" ||
-                        method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
-                        method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg"),
-        "Valid options for *method* are \"nl\", \"gn\" and "
-        "\"ml\" or \"lm\".");
+  ARTS_USER_ERROR_IF(
+      !(method == "li" || method == "gn" || method == "li_m" ||
+        method == "gn_m" || method == "ml" || method == "lm" ||
+        method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
+        method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg"),
+      "Valid options for *method* are \"nl\", \"gn\" and "
+      "\"ml\" or \"lm\".");
 
-  ARTS_USER_ERROR_IF (!(x_norm.size() == 0 || x_norm.size() == n),
-        "The vector *x_norm* must have length 0 or match "
-        "*covmat_sx*.");
+  ARTS_USER_ERROR_IF(!(x_norm.nelem() == 0 || x_norm.nelem() == n),
+                     "The vector *x_norm* must have length 0 or match "
+                     "*covmat_sx*.");
 
-  ARTS_USER_ERROR_IF (x_norm.size() > 0 && min(x_norm) <= 0,
-                      "All values in *x_norm* must be > 0.");
+  ARTS_USER_ERROR_IF(x_norm.nelem() > 0 && min(x_norm) <= 0,
+                     "All values in *x_norm* must be > 0.");
 
-  ARTS_USER_ERROR_IF (max_iter <= 0,
-                      "The argument *max_iter* must be > 0.");
+  ARTS_USER_ERROR_IF(max_iter <= 0, "The argument *max_iter* must be > 0.");
 
-  ARTS_USER_ERROR_IF (stop_dx <= 0,
-                      "The argument *stop_dx* must be > 0.");
+  ARTS_USER_ERROR_IF(stop_dx <= 0, "The argument *stop_dx* must be > 0.");
 
   if ((method == "ml") || (method == "lm") || (method == "lm_cg") ||
       (method == "ml_cg")) {
-    ARTS_USER_ERROR_IF (lm_ga_settings.size() != 6,
-          "When using \"ml\", *lm_ga_setings* must be a "
-          "vector of length 6.");
-    ARTS_USER_ERROR_IF (min(lm_ga_settings) < 0,
-          "The vector *lm_ga_setings* can not contain any "
-          "negative value.");
+    ARTS_USER_ERROR_IF(lm_ga_settings.nelem() != 6,
+                       "When using \"ml\", *lm_ga_setings* must be a "
+                       "vector of length 6.");
+    ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
+                       "The vector *lm_ga_setings* can not contain any "
+                       "negative value.");
   }
 
-  ARTS_USER_ERROR_IF (clear_matrices < 0 || clear_matrices > 1,
-                      "Valid options for *clear_matrices* are 0 and 1.");
-  ARTS_USER_ERROR_IF (display_progress < 0 || display_progress > 1,
-                      "Valid options for *display_progress* are 0 and 1.");
+  ARTS_USER_ERROR_IF(clear_matrices < 0 || clear_matrices > 1,
+                     "Valid options for *clear_matrices* are 0 and 1.");
+  ARTS_USER_ERROR_IF(display_progress < 0 || display_progress > 1,
+                     "Valid options for *display_progress* are 0 and 1.");
 
   // If necessary compute yf and jacobian.
-  if (x.size() == 0) {
-    x = xa; throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
-    // inversion_iterate_agendaExecute(
-    //     ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
+  if (x.nelem() == 0) {
+    x = xa;
+    inversion_iterate_agendaExecute(
+        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
-  if ((yf.size() == 0) || (jacobian.empty())) { throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
-    // inversion_iterate_agendaExecute(
-    //     ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
+  if ((yf.nelem() == 0) || (jacobian.empty())) {
+    inversion_iterate_agendaExecute(
+        ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
   }
 }
 

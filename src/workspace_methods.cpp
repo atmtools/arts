@@ -3051,7 +3051,7 @@ The core calculations happens inside the *spectral_radiance_operator*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_vector"},
-      .in        = {"measurement_vector_sensor",
+      .in        = {"measurement_sensor",
                     "spectral_radiance_operator",
                     "ray_path_observer_agenda"},
       .gin       = {"exhaustive"},
@@ -3071,8 +3071,8 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 User choices of *spectral_radiance_unit* does not adversely affect this method.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector", "measurement_vector_jacobian"},
-      .in        = {"measurement_vector_sensor",
+      .out       = {"measurement_vector", "measurement_jacobian"},
+      .in        = {"measurement_sensor",
                     "jacobian_targets",
                     "atmospheric_field",
                     "surface_field",
@@ -3086,7 +3086,7 @@ User choices of *spectral_radiance_unit* does not adversely affect this method.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_vector_sensorSimple"] = {
+  wsm_data["measurement_sensorSimple"] = {
       .desc =
           R"--(Sets a simple sensor
 
@@ -3095,7 +3095,7 @@ Sets one measurement vector sensor element entry per frequency in *frequency_gri
 The resulting vector of sensor elements is not to be considered exhaustive by future calculations.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector_sensor"},
+      .out       = {"measurement_sensor"},
       .in        = {"frequency_grid"},
       .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
@@ -3108,7 +3108,7 @@ The resulting vector of sensor elements is not to be considered exhaustive by fu
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_vector_sensorGaussianFrequencyGrid"] = {
+  wsm_data["measurement_sensorGaussianFrequencyGrid"] = {
       .desc =
           R"--(Sets a sensor with a Gaussian channel opening on a fixed frequency grid
 
@@ -3129,7 +3129,7 @@ the weight cutoff is non-positive and all half width half maximums are positive.
 Otherwise the vector is not exhaustive.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_sensor"},
+      .out    = {"measurement_sensor"},
       .in     = {"frequency_grid"},
       .gin    = {"f0_fwhm", "weight_cutoff", "pos", "los", "pol"},
       .gin_type =
@@ -3147,7 +3147,7 @@ Otherwise the vector is not exhaustive.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_vector_sensorGaussian"] = {
+  wsm_data["measurement_sensorGaussian"] = {
       .desc =
           R"--(Sets a sensor with a Gaussian channel opening on a computed frequency grid
 
@@ -3163,7 +3163,7 @@ than ``weight_cutoff``.  This keeps (:math:`f_0`) in the resulting frequency gri
 The resulting vector of sensor elements cannot be considered exhaustive in future calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_sensor"},
+      .out    = {"measurement_sensor"},
       .gin    = {"f0_fwhm_df", "weight_cutoff", "pos", "los", "pol"},
       .gin_type =
           {"ArrayOfVector3", "Numeric", "Vector3", "Vector2", "Stokvec"},
@@ -3444,6 +3444,230 @@ path parameters.
                  "ray_path_transmission_matrix_cumulative",
                  "ray_path_transmission_matrix_jacobian",
                  "spectral_radiance_background"},
+  };
+
+  wsm_data["OEM"] = {
+      .desc   = R"(Inversion by the so called optimal estimation method (OEM).
+
+Work in progress ...
+
+The cost function to minimise, including a normalisation with length"
+of *measurement_vector*, is::
+
+cost = cost_y + cost_x
+
+where::
+
+cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
+cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+
+The current implementation provides 3 methods for the minimization of
+the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
+The Gauss-Newton minimizer attempts to find a minimum solution by 
+fitting a quadratic function to the cost functional. The linear minimizer
+is a special case of the Gauss-Newton method, since for a linear forward
+model the exact solution of the minimization problem is obtained after
+the first step. The Levenberg-Marquardt method adaptively constrains the
+search region for the next iteration step by means of the so-called gamma-factor.
+This makes the method more suitable for strongly non-linear problems.
+If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method
+are identical. Each minimization method (li,gn,lm) has an indirect
+variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver
+for the linear system that has to be solved in each minimzation step.
+This of advantage for very large problems, that would otherwise require
+the computation of expensive matrix products.
+
+Description of the special input arguments:
+
+- ``method``: One of the following:
+
+- ``"li"``: A linear problem is assumed and a single iteration is performed.
+- ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
+- ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
+- ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
+- ``"lm"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
+- ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
+
+- ``max_start_cost``:
+No inversion is done if the cost matching the a priori state is above
+this value. If set to a negative value, all values are accepted.
+This argument also controls if the start cost is calculated. If
+set to <= 0, the start cost in ``oem_diagnostics`` is set to NaN
+when using "li" and "gn".
+- ``x_norm``:
+A normalisation vector for *model_state_vector*. A normalisation of *model_state_vector* can be needed
+due to limited numerical precision. If this vector is set to be empty
+no normalisation is done (defualt case). Otherwise, this must be a
+vector with same length as *model_state_vector*, just having values above zero.
+Elementwise division between *model_state_vector* and ``x_norm`` (x./x_norm) shall give
+a vector where all values are in the order of unity. Maybe the best
+way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
+- ``max_iter``:
+Maximum number of iterations to perform. No effect for "li".
+- ``stop_dx``:\n"
+Iteration stop criterion. The criterion used is the same as given
+in Rodgers\' "Inverse Methods for Atmospheric Sounding"
+- ``lm_ga_settings``:
+Settings controlling the gamma factor, part of the "LM" method.
+This is a vector of length 6, having the elements (0-based index):
+
+    0. Start value.
+    1. Fractional decrease after succesfull iteration.
+    2. Fractional increase after unsuccessful iteration.
+    3. Maximum allowed value. If the value is passed, the inversion
+        is halted.
+    4. Lower treshold. If the threshold is passed, gamma is set to zero.
+        If gamma must be increased from zero, gamma is set to this value.
+    5. Gamma limit. This is an additional stop criterion. Convergence
+        is not considered until there has been one succesful iteration
+        having a gamma <= this value.
+
+The default setting triggers an error if "lm" is selected.
+- ``clear matrices``:
+    With this flag set to 1, *measurement_jacobian* and ``measurement_gain_matrix`` are returned as empty
+    matrices.
+- ``display_progress``:
+    Controls if there is any screen output. The overall report level
+    is ignored by this WSM.
+)",
+      .author = {"Patrick Eriksson"},
+      .out =
+          {
+              "model_state_vector",
+              "measurement_vector_fitted",
+              "measurement_jacobian",
+          },
+      .gout =
+          {
+              "measurement_gain_matrix",
+              "oem_diagnostics",
+              "lm_ga_history",
+              "errors",
+          },
+      .gout_type =
+          {
+              "Matrix",
+              "Vector",
+              "Vector",
+              "ArrayOfString",
+          },
+      .gout_desc =
+          {
+              "Contribution function (or gain) matrix",
+              "Basic diagnostics of an OEM type inversion",
+              "The series of gamma values for a Marquardt-levenberg inversion",
+              "Errors encountered during OEM execution",
+          },
+      .in =
+          {
+              "model_state_vector",
+              "measurement_vector_fitted",
+              "measurement_jacobian",
+              "model_state_vector_apriori",
+              "model_state_covariance_matrix",
+              "measurement_vector",
+              "measurement_vector_error_covariance_matrix",
+              "jacobian_targets",
+              "inversion_iterate_agenda",
+          },
+      .gin =
+          {
+              "method",
+              "max_start_cost",
+              "model_state_covariance_matrix_normalization",
+              "max_iter",
+              "stop_dx",
+              "lm_ga_settings",
+              "clear_matrices",
+              "display_progress",
+          },
+      .gin_type =
+          {
+              "String",
+              "Numeric",
+              "Vector",
+              "Index",
+              "Numeric",
+              "Vector",
+              "Index",
+              "Index",
+          },
+      .gin_value =
+          {
+              std::nullopt,
+              Numeric{std::numeric_limits<Numeric>::infinity()},
+              Vector{},
+              Index{10},
+              Numeric{0.01},
+              Vector{},
+              Index{0},
+              Index{0},
+          },
+      .gin_desc =
+          {
+              "Iteration method. For this and all options below, see further above",
+              "Maximum allowed value of cost function at start",
+              "Normalisation of Sx",
+              "Maximum number of iterations",
+              "Stop criterion for iterative inversions",
+              "Settings associated with the ga factor of the LM method",
+              "An option to save memory",
+              "Flag to control if inversion diagnostics shall be printed on the screen",
+          },
+      .pass_workspace = true,
+  };
+
+  wsm_data["model_state_vector_aprioriFromState"] = {
+      .desc =
+          R"(Sets the a priori state of the model state vector to the current state.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector_apriori"},
+      .in     = {"model_state_vector"},
+  };
+
+  wsm_data["measurement_vector_fittedFromMeasurement"] = {
+      .desc =
+          R"(Sets the fitted measurement vector to the current measurement vector.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_vector_fitted"},
+      .in     = {"measurement_vector"},
+  };
+
+  wsm_data["model_state_covariance_matrixInit"] = {
+      .desc =
+          R"(Initialises the model state covariance matrix to the identity matrix.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_covariance_matrix"},
+  };
+
+  wsm_data["model_state_covariance_matrixAddSpeciesVMR"] = {
+      .desc =
+          R"(Set a species model state covariance matrix element.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"model_state_covariance_matrix"},
+      .in        = {"model_state_covariance_matrix", "jacobian_targets"},
+      .gin       = {"species", "data"},
+      .gin_type  = {"SpeciesEnum", "Matrix,Sparse"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The species to set the covariance matrix for",
+                    "The data to set the covariance matrix to"},
+  };
+
+  wsm_data["measurement_vector_error_covariance_matrixConstant"] = {
+      .desc =
+          R"(Sets a constant measurement vector error covariance matrix.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_vector_error_covariance_matrix"},
+      .in        = {"measurement_sensor"},
+      .gin       = {"value"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
   /*
