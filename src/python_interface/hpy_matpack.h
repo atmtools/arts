@@ -188,9 +188,8 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& gd, py::object dtype_, py::object copy) {
-        auto np = py::module_::import_("numpy");
-        return np.attr("asarray")(gd.data, "dtype"_a = dtype_, "copy"_a = copy);
+      [](py::object& gd, py::object dtype_, py::object copy) {
+        return gd.attr("data").attr("__array__")("dtype"_a = dtype_, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());

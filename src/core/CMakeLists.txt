@@ -47,6 +47,7 @@ add_library(artscore STATIC
   geodetic.cc
   igrf13.cc
   interpolation.cc
+  jacobian.cc
   jpl_species.cc
   lineshapemodel.cc
   mc_antenna.cc

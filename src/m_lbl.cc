@@ -299,24 +299,23 @@ void absorption_bandsSelectFrequency(ArrayOfAbsorptionBand& absorption_bands,
     if (absorption_bands[i].data.lines.front().f0 > fmax or
         absorption_bands[i].data.lines.back().f0 < fmin) {
       to_remove.push_back(i);
-
-      if (static_cast<bool>(by_line)) {
-        while (absorption_bands[i].data.size() and
-               absorption_bands[i].data.lines.front().f0 < fmin) {
-          absorption_bands[i].data.lines.erase(
-              absorption_bands[i].data.lines.begin());
-        }
-
-        while (absorption_bands[i].data.size() and
-               absorption_bands[i].data.lines.back().f0 > fmax) {
-          absorption_bands[i].data.lines.pop_back();
-        }
-      }
     }
   }
 
   for (auto i : to_remove | std::views::reverse) {
     absorption_bands.erase(absorption_bands.begin() + i);
+  }
+
+  if (by_line) {
+    for (auto& band : absorption_bands) {
+      auto& lines = band.data.lines;
+      lines.erase(std::remove_if(lines.begin(),
+                                 lines.end(),
+                                 [fmin, fmax](const lbl::line& l) {
+                                   return l.f0 < fmin or l.f0 > fmax;
+                                 }),
+                  lines.end());
+    }
   }
 }
 ARTS_METHOD_ERROR_CATCH

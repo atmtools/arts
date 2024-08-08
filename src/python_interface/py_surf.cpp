@@ -12,6 +12,16 @@
 #include "hpy_arts.h"
 namespace Python {
 void py_surf(py::module_ &m) try {
+  py::class_<SurfacePropertyTag> spt = py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
+  workspace_group_interface(spt);
+  spt.def_rw("name", &SurfacePropertyTag::name);
+  spt.def(py::init_implicit<String>());
+
+  py::class_<SurfaceTypeTag> stt = py::class_<SurfaceTypeTag>(m, "SurfaceTypeTag");
+  workspace_group_interface(stt);
+  stt.def_rw("name", &SurfaceTypeTag::name);
+  stt.def(py::init_implicit<String>());
+
   py::class_<Surf::Data>(m, "SurfData")
       .def(py::init<>())
       .def(py::init_implicit<GriddedField2>())

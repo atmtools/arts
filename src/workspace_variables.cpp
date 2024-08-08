@@ -316,16 +316,10 @@ Shape: NFREQ
       .type = "StokvecVector",
   };
 
-  wsv_data["background_transmittance"] = {
+  wsv_data["transmission_matrix_background"] = {
       .desc = R"--(Transmittance from the background
 )--",
       .type = "MuelmatVector",
-  };
-
-  wsv_data["ray_path_spectral_radiance"] = {
-      .desc = R"--(Spectral radiance along the propagation path
-)--",
-      .type = "ArrayOfStokvecVector",
   };
 
   wsv_data["ray_path_spectral_radiance_scattering"] = {
@@ -384,7 +378,13 @@ Shape: NFREQ
   };
 
   wsv_data["ray_path_transmission_matrix"] = {
-      .desc = R"--(Transmission matrices along the propagation path
+      .desc = R"--(Transmission matrices along the propagation path.
+
+The outer dimension is the number of layers.
+
+The inner dimension is the number of frequency points.
+
+The order of the elements is such that index zero is closest to the obeserver.
 )--",
       .type = "ArrayOfMuelmatVector",
   };
@@ -396,9 +396,18 @@ Shape: NFREQ
   };
 
   wsv_data["ray_path_transmission_matrix_jacobian"] = {
-      .desc = R"--(Transmission derivative matrices along the propagation path
+      .desc = R"--(Transmission derivative matrices along the propagation path.
+
+The outer dimension is the number of layers.
+
+The inner dimensions are the number of level derivatives,
+the number of jacbian targets, and the number of frequency points.
+The required number of level derivatives is determined by the appropriate
+method (a common value is 2, for the 2 levels surrounding a layer).
+
+The order of the elements is such that index zero is closest to the obeserver.
 )--",
-      .type = "ArrayOfArrayOfMuelmatMatrix",
+      .type = "ArrayOfMuelmatTensor3",
   };
 
   wsv_data["surface_field"] = {
@@ -525,7 +534,75 @@ radiance.
       .type = "SpectralRadianceOperator",
   };
 
-  wsv_data["measurement_vector_sensor"] = {
+  wsv_data["model_state_vector"] = {
+      .desc = R"(A state vector of the model.
+
+In classical ``F(x) = y``-notation, this is the ``x``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["model_state_vector_apriori"] = {
+      .desc = R"(An apriori state vector of the model.
+
+In classical ``F(x) = y``-notation, this is the ``x``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector"] = {
+      .desc = R"(The measurment vector for, e.g., a sensor.
+
+In classical ``F(x) = y``-notation, this is the ``y``.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector_fitted"] = {
+      .desc = R"(As *measurement_vector*, but fitted to the model.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["inversion_iterate_agenda_counter"] =
+      {
+          .desc          = R"(A counter for the inversion iterate agenda.
+)",
+          .type          = "Index",
+          .default_value = Index{0},
+      };
+
+  wsv_data["inversion_iterate_agenda_do_jacobian"] =
+      {
+          .desc          = R"(A boolean for if Jacobian calculations should be done.
+)",
+          .type          = "Index",
+          .default_value = Index{1},
+      };
+
+  wsv_data["measurement_vector_error_covariance_matrix"] =
+      {
+          .desc          = R"(Covariance matrix for observation uncertainties.
+)",
+          .type          = "CovarianceMatrix",
+      };
+
+  wsv_data["model_state_covariance_matrix"] =
+      {
+          .desc          = R"(Covariance matrix of a priori distribution.
+)",
+          .type          = "CovarianceMatrix",
+      };
+
+  wsv_data["measurement_jacobian"] = {
+      .desc = R"(The partial derivatives of the *measurement_vector*.
+
+The size of this variable should be the size *measurement_vector* times the size of *model_state_vector*.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["measurement_sensor"] = {
       .desc = R"(A list of sensor elements.
 
 Size is number of elements of the sensor.

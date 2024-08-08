@@ -1,6 +1,7 @@
 #include "lbl_temperature_model.h"
 
 #include <limits>
+#include <utility>
 
 #include "debug.h"
 #include "double_imanip.h"
@@ -34,29 +35,24 @@ Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * (1 + X2 * log(T / T0));
 }
 
-Numeric dT2_dX0(
-    Numeric, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT2_dX0(Numeric, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X1) * (1 + X2 * log(T / T0));
 }
 
-Numeric dT2_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT2_dX1(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) * log(T0 / T);
 }
 
-Numeric dT2_dX2(
-    Numeric X0, Numeric X1, Numeric, Numeric T0, Numeric T) {
+Numeric dT2_dX2(Numeric X0, Numeric X1, Numeric, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) * log(T / T0);
 }
 
-Numeric dT2_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT2_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * X1 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) / T0 -
          X0 * X2 * pow(T0 / T, X1) / T0;
 }
 
-Numeric dT2_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT2_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return -X0 * X1 * pow(T0 / T, X1) * (X2 * log(T / T0) + 1.) / T +
          X0 * X2 * pow(T0 / T, X1) / T;
 }
@@ -73,19 +69,16 @@ Numeric dT4_dX1(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X2) * (T0 / T - 1.);
 }
 
-Numeric dT4_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT4_dX2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1)) * log(T0 / T);
 }
 
-Numeric dT4_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT4_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X2 * pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T0 +
          X1 * pow(T0 / T, X2) / T;
 }
 
-Numeric dT4_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+Numeric dT4_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return -X2 * pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T -
          T0 * X1 * pow(T0 / T, X2) / (T * T);
 }
@@ -110,17 +103,12 @@ Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return -X0 * pow(T0 / T, 1.5 * X1 + 0.25) * (1.5 * X1 + 0.25) / T;
 }
 
-Numeric DPL(Numeric X0,
-            Numeric X1,
-            Numeric X2,
-            Numeric X3,
-            Numeric T0,
-            Numeric T) {
+Numeric DPL(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return X0 * pow(T0 / T, X1) + X2 * pow(T0 / T, X3);
 }
 
-Numeric dDPL_dX0(
-    Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
+Numeric dDPL_dX0(Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
   return pow(T0 / T, X1);
 }
 
@@ -129,8 +117,7 @@ Numeric dDPL_dX1(
   return X0 * pow(T0 / T, X1) * log(T0 / T);
 }
 
-Numeric dDPL_dX2(
-    Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) {
+Numeric dDPL_dX2(Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) {
   return pow(T0 / T, X3);
 }
 
@@ -139,21 +126,13 @@ Numeric dDPL_dX3(
   return X2 * pow(T0 / T, X3) * log(T0 / T);
 }
 
-Numeric dDPL_dT0(Numeric X0,
-                 Numeric X1,
-                 Numeric X2,
-                 Numeric X3,
-                 Numeric T0,
-                 Numeric T) {
+Numeric dDPL_dT0(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return X0 * X1 * pow(T0 / T, X1) / T0 + X2 * X3 * pow(T0 / T, X3) / T0;
 }
 
-Numeric dDPL_dT(Numeric X0,
-                Numeric X1,
-                Numeric X2,
-                Numeric X3,
-                Numeric T0,
-                Numeric T) {
+Numeric dDPL_dT(
+    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return -X0 * X1 * pow(T0 / T, X1) / T + -X2 * X3 * pow(T0 / T, X3) / T;
 }
 
@@ -179,7 +158,7 @@ Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) {
 }  // namespace model
 
 Numeric data::operator()(Numeric T0, Numeric T) const {
-#define SWITCHCASE(mod) \
+#define SWITCHCASE(mod)         \
   case LineShapeModelType::mod: \
     return operator()<LineShapeModelType::mod>(T0, T)
 
@@ -200,25 +179,25 @@ Numeric data::operator()(Numeric T0, Numeric T) const {
 #undef SWITCHCASE
 }
 
-#define SWITCHCASE(name, mod) \
-  case LineShapeModelType::mod:       \
+#define SWITCHCASE(name, mod)   \
+  case LineShapeModelType::mod: \
     return d##name<LineShapeModelType::mod>(T0, T)
 
-#define DERIVATIVES(name)                                            \
+#define DERIVATIVES(name)                              \
   Numeric data::d##name(Numeric T0, Numeric T) const { \
-    switch (t) {                                                     \
-      SWITCHCASE(name, T0);                                          \
-      SWITCHCASE(name, T1);                                          \
-      SWITCHCASE(name, T2);                                          \
-      SWITCHCASE(name, T3);                                          \
-      SWITCHCASE(name, T4);                                          \
-      SWITCHCASE(name, T5);                                          \
-      SWITCHCASE(name, AER);                                         \
-      SWITCHCASE(name, DPL);                                         \
-      SWITCHCASE(name, POLY);                                        \
-    }                                                                \
-                                                                     \
-    return std::numeric_limits<Numeric>::quiet_NaN();                \
+    switch (t) {                                       \
+      SWITCHCASE(name, T0);                            \
+      SWITCHCASE(name, T1);                            \
+      SWITCHCASE(name, T2);                            \
+      SWITCHCASE(name, T3);                            \
+      SWITCHCASE(name, T4);                            \
+      SWITCHCASE(name, T5);                            \
+      SWITCHCASE(name, AER);                           \
+      SWITCHCASE(name, DPL);                           \
+      SWITCHCASE(name, POLY);                          \
+    }                                                  \
+                                                       \
+    return std::numeric_limits<Numeric>::quiet_NaN();  \
   }
 
 DERIVATIVES(X0)
@@ -259,6 +238,28 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
 LineShapeModelType data::Type() const { return t; }
 
 const Vector& data::X() const { return x; }
+
+Numeric& data::X(LineShapeModelCoefficient coeff) {
+  switch (coeff) {
+    case LineShapeModelCoefficient::X0:
+      ARTS_USER_ERROR_IF(x.size() < 1, "No X0 value in data.");
+      return x[0];
+    case LineShapeModelCoefficient::X1:
+      ARTS_USER_ERROR_IF(x.size() < 2, "No X1 value in data.");
+      return x[1];
+    case LineShapeModelCoefficient::X2:
+      ARTS_USER_ERROR_IF(x.size() < 3, "No X2 value in data.");
+      return x[2];
+    case LineShapeModelCoefficient::X3:
+      ARTS_USER_ERROR_IF(x.size() < 4, "No X3 value in data.");
+      return x[3];
+  }
+  std::unreachable();
+}
+
+const Numeric& data::X(LineShapeModelCoefficient coeff) const {
+  return const_cast<data*>(this)->X(coeff);
+}
 
 bool data::is_zero() const {
   switch (t) {

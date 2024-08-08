@@ -2,6 +2,7 @@
 #include <jacobian.h>
 
 #include <iterator>
+#include <limits>
 
 #include "configtypes.h"
 #include "debug.h"
@@ -15,8 +16,66 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 }
 
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
-                              const AtmField& atm_field) {
-  jacobian_targets.finalize(atm_field);
+                              const AtmField& atmospheric_field,
+                              const SurfaceField& surface_field,
+                              const ArrayOfAbsorptionBand& absorption_bands) {
+  jacobian_targets.finalize(atmospheric_field, surface_field, absorption_bands);
+}
+
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfaceKey& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfaceTypeTag& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
+                                const SurfacePropertyTag& key,
+                                const Numeric& d) {
+  jacobian_targets.target<Jacobian::SurfaceTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const AtmKey& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const SpeciesEnum& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const SpeciesIsotope& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const QuantumIdentifier& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
+                                   const ParticulatePropertyTag& key,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      key, d, jacobian_targets.target_count());
 }
 
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
@@ -72,12 +131,16 @@ void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
 }
 
 void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
+                                   const SpeciesEnum& species,
+                                   const Numeric& d) {
+  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
+      species, d, jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
                                    const String& species,
                                    const Numeric& d) {
-  const SpeciesEnum s = to<SpeciesEnum>(species);
-
-  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      s, d, jacobian_targets.target_count());
+  jacobian_targetsAddSpeciesVMR(jacobian_targets, to<SpeciesEnum>(species), d);
 }
 
 void jacobian_targetsAddSpeciesIsotopologueRatio(
@@ -94,18 +157,21 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
       species, d, jacobian_targets.target_count());
 }
 
+void jacobian_targetsAddSpeciesIsotopologueRatio(
+    JacobianTargets& jacobian_targets,
+    const String& species,
+    const Numeric& d) {
+  jacobian_targetsAddSpeciesIsotopologueRatio(
+      jacobian_targets, SpeciesIsotope{species}, d);
+}
+
 void jacobian_targetsAddLineParameter(
     JacobianTargets& jacobian_targets,
     const ArrayOfAbsorptionBand& absorption_bands,
     const QuantumIdentifier& qid,
     const Index& line_index,
-    const String& parameter,
-    const String& species,
-    const String& coefficient,
-    const Numeric& d) {
-  lbl::line_key key{qid};
-  key.line = static_cast<Size>(line_index);
-
+    const LineByLineVariable& parameter,
+    const String&) {
   const AbsorptionBand& band = [&]() {
     auto ptr = std::ranges::find(absorption_bands, qid, &lbl::band::key);
     ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
@@ -114,6 +180,9 @@ void jacobian_targetsAddLineParameter(
     return *ptr;
   }();
 
+  lbl::line_key key{qid};
+  key.line = static_cast<Size>(line_index);
+
   ARTS_USER_ERROR_IF(key.line >= band.data.lines.size() or line_index < 0,
                      "Line index out of range: ",
                      line_index,
@@ -121,29 +190,80 @@ void jacobian_targetsAddLineParameter(
                      band.data.lines.size(),
                      " absorption lines.");
 
-  if (coefficient.empty()) {
-    key.var = to<LineByLineVariable>(parameter);
-  } else {
-    key.ls_var   = to<LineShapeModelVariable>(parameter);
-    key.ls_coeff = to<LineShapeModelCoefficient>(coefficient);
-    key.spec     = [&]() {
-      auto ptr = std::ranges::find(
-          band.data.lines[line_index].ls.single_models,
-          [](const String& spec) { return to<SpeciesEnum>(spec); }(species),
-          &lbl::line_shape::species_model::species);
-      ARTS_USER_ERROR_IF(
-          ptr == band.data.lines[line_index].ls.single_models.end(),
-          "No species model for species: \"",
-          species,
-          "\" in line: ",
-          band.data.lines[line_index],
-          " for quantum identifier: ",
-          qid);
-      return std::distance(band.data.lines[line_index].ls.single_models.begin(),
-                           ptr);
-    }();
-  }
+  key.var = parameter;
 
   jacobian_targets.target<Jacobian::LineTarget>().emplace_back(
-      key, d, jacobian_targets.target_count());
+      key,
+      std::numeric_limits<Numeric>::quiet_NaN(),
+      jacobian_targets.target_count());
+}
+
+void jacobian_targetsAddLineParameter(
+    JacobianTargets& jacobian_targets,
+    const ArrayOfAbsorptionBand& absorption_bands,
+    const QuantumIdentifier& qid,
+    const Index& line_index,
+    const LineShapeModelVariable& parameter,
+    const String& species) {
+  const AbsorptionBand& band = [&]() {
+    auto ptr = std::ranges::find(absorption_bands, qid, &lbl::band::key);
+    ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
+                       "No band with quantum identifier: ",
+                       qid);
+    return *ptr;
+  }();
+
+  lbl::line_key key{qid};
+  key.line = static_cast<Size>(line_index);
+
+  ARTS_USER_ERROR_IF(key.line >= band.data.lines.size() or line_index < 0,
+                     "Line index out of range: ",
+                     line_index,
+                     " band has ",
+                     band.data.lines.size(),
+                     " absorption lines.");
+
+  const auto& lineshape_data = band.data.lines[line_index].ls.single_models;
+
+  key.ls_var = parameter;
+  key.spec   = [&]() {
+    auto ptr = std::ranges::find(lineshape_data,
+                                 to<SpeciesEnum>(species),
+                                 &lbl::line_shape::species_model::species);
+    ARTS_USER_ERROR_IF(
+        ptr == band.data.lines[line_index].ls.single_models.end(),
+        "No species model for species: \"",
+        species,
+        "\" in line: ",
+        band.data.lines[line_index],
+        " for quantum identifier: ",
+        qid);
+    return std::distance(band.data.lines[line_index].ls.single_models.begin(),
+                         ptr);
+  }();
+
+  const auto& lsdata = lineshape_data[key.spec].data;
+  const auto lsptr   = std::ranges::find_if(
+      lsdata, [parameter](const auto& x) { return x.first == parameter; });
+
+  ARTS_USER_ERROR_IF(lsptr == lsdata.end(),
+                     "No line shape parameter: \"",
+                     parameter,
+                     "\" for species: \"",
+                     species,
+                     "\" in line: ",
+                     band.data.lines[line_index],
+                     " for quantum identifier: ",
+                     qid);
+
+  const auto& specdata = lsptr->second;
+
+  for (Index i = 0; i < specdata.X().size(); i++) {
+    key.ls_coeff = enumtyps::LineShapeModelCoefficientTypes[i];
+
+    jacobian_targets.target<Jacobian::LineTarget>().emplace_back(
+        key,
+        std::numeric_limits<Numeric>::quiet_NaN(),
+        jacobian_targets.target_count());
+  }
 }

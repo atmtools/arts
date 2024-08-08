@@ -297,15 +297,15 @@ String method_docs(const String& name) try {
     const auto& varname  = method.gout[i];
     const String io      = is_ginput(varname) ? "INOUT" : "OUT";
     const auto& grpname  = compose_generic_groups(method.gout_type[i]);
-    out                 += var_string('\n',
-                      varname,
-                      " : ",
-                      grpname,
-                      "\n    ",
-                      unwrap_stars(until_first_newline(method.gout_desc[i])),
-                      " **[",
-                      io,
-                      "]**");
+    out                 += std::format(R"(
+{} : {}
+    {}  Defaults to create and/or use ``self.{}`` : :class:`{}`. **[{}]**)",
+                       varname,
+                       grpname,
+                       unwrap_stars(until_first_newline(method.gout_desc[i])),
+                       varname,
+                       grpname,
+                       io);
   }
 
   for (auto&& varname : method.in) {

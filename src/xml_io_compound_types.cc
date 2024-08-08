@@ -12,7 +12,6 @@
 #include <workspace.h>
 
 #include <algorithm>
-#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -30,8 +29,6 @@
 #include "mystring.h"
 #include "path_point.h"
 #include "sorted_grid.h"
-#include "species.h"
-#include "species_tags.h"
 #include "xml_io.h"
 #include "xml_io_base.h"
 #include "xml_io_general_types.h"
@@ -2684,7 +2681,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 #include <iostream>
 void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
   const tag stag{is_xml, "SpeciesIsotope", "isot"};
-  std::cout << stag.get("isot") << '\n';
   s = stag.get<SpeciesIsotope>("isot");
 }
 

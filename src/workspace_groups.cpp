@@ -225,6 +225,31 @@ about the isotopologue, the absorption scheme, and the frequency limits
       .skip_pyinit = true,
   };
 
+  wsg_data["ParticulatePropertyTag"] = {
+      .file = "atm.h",
+      .desc = R"--(An particulate property key
+)--",
+  };
+
+  wsg_data["SurfaceKey"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface key
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["SurfaceTypeTag"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface type
+)--",
+  };
+
+  wsg_data["SurfacePropertyTag"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A surface property
+)--",
+  };
+
   wsg_data["ArrayOfSpeciesEnum"] = {
       .file        = "species.h",
       .desc        = R"--(A list of *SpeciesEnum*
@@ -233,8 +258,29 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["SpeciesEnum"] = {
-      .file        = "species.h",
+      .file        = "enums.h",
       .desc        = R"--(An atmospheric species
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["AtmKey"] = {
+      .file        = "enums.h",
+      .desc        = R"--(An atmospheric key
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["LineShapeModelVariable"] = {
+      .file        = "enums.h",
+      .desc        = R"--(A line shape model parameter
+)--",
+      .skip_pyinit = true,
+  };
+
+  wsg_data["LineByLineVariable"] = {
+      .file        = "enums.h",
+      .desc        = R"--(An line-by-line variable parameter
 )--",
       .skip_pyinit = true,
   };
@@ -717,6 +763,12 @@ of this term multiplied by a negative distance.
       .is_simple_contiguous = true,
   };
 
+  wsg_data["MuelmatTensor3"] = {
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor3* of *Muelmat*.\n",
+      .is_simple_contiguous = true,
+  };
+
   wsg_data["StokvecMatrix"] = {
       .file                 = "rtepack.h",
       .desc                 = "A matrix of *Stokvec*.\n",
@@ -783,9 +835,21 @@ of this term multiplied by a negative distance.
       .array_depth = 1,
   };
 
+  wsg_data["ArrayOfMuelmatTensor3"] = {
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatTensor3*.\n",
+      .array_depth = 1,
+  };
+
   wsg_data["ArrayOfStokvecMatrix"] = {
       .file        = "rtepack.h",
       .desc        = "A list of *StokvecMatrix*.\n",
+      .array_depth = 1,
+  };
+
+  wsg_data["ArrayOfStokvecTensor3"] = {
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecTensor3*.\n",
       .array_depth = 1,
   };
 

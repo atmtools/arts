@@ -27,18 +27,18 @@ void gaussian(Vector& w,
                  });
 }
 
-void measurement_vector_sensorSimple(
-    ArrayOfSensorObsel& measurement_vector_sensor,
+void measurement_sensorSimple(
+    ArrayOfSensorObsel& measurement_sensor,
     const AscendingGrid& frequency_grid,
     const Vector3& pos,
     const Vector2& los,
     const Stokvec& pol) try {
-  measurement_vector_sensor.resize(frequency_grid.size());
+  measurement_sensor.resize(frequency_grid.size());
 
   std::transform(
       frequency_grid.begin(),
       frequency_grid.end(),
-      measurement_vector_sensor.begin(),
+      measurement_sensor.begin(),
       [pos, los, pol](const auto& f) {
         return SensorObsel{
             .f_grid_w      = Vector{1},
@@ -50,8 +50,8 @@ void measurement_vector_sensorSimple(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vector_sensorGaussianFrequencyGrid(
-    ArrayOfSensorObsel& measurement_vector_sensor,
+void measurement_sensorGaussianFrequencyGrid(
+    ArrayOfSensorObsel& measurement_sensor,
     const AscendingGrid& frequency_grid,
     const ArrayOfVector2& f0_fwmh,
     const Numeric& weight_cutoff,
@@ -61,11 +61,11 @@ void measurement_vector_sensorGaussianFrequencyGrid(
   const Index n = frequency_grid.size();
   ARTS_USER_ERROR_IF(n < 2, "Must have a frequency grid")
 
-  measurement_vector_sensor.resize(0);
-  measurement_vector_sensor.reserve(f0_fwmh.size());
+  measurement_sensor.resize(0);
+  measurement_sensor.reserve(f0_fwmh.size());
 
   for (const auto [f0, fwhm] : f0_fwmh) {
-    auto& obsel = measurement_vector_sensor.emplace_back(SensorObsel{
+    auto& obsel = measurement_sensor.emplace_back(SensorObsel{
         .f_grid_w      = Vector(n, 1.0 / static_cast<Numeric>(n)),
         .f_grid        = frequency_grid,
         .poslos_grid_w = MuelmatVector{1},
@@ -106,8 +106,8 @@ void measurement_vector_sensorGaussianFrequencyGrid(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vector_sensorGaussian(
-    ArrayOfSensorObsel& measurement_vector_sensor,
+void measurement_sensorGaussian(
+    ArrayOfSensorObsel& measurement_sensor,
     const ArrayOfVector3& f0_fwmh_df,
     const Numeric& weight_cutoff,
     const Vector3& pos,
@@ -118,8 +118,8 @@ void measurement_vector_sensorGaussian(
 
   const Numeric wc = std::sqrt(-2.0 * std::log(weight_cutoff));
 
-  measurement_vector_sensor.resize(0);
-  measurement_vector_sensor.reserve(f0_fwmh_df.size());
+  measurement_sensor.resize(0);
+  measurement_sensor.reserve(f0_fwmh_df.size());
 
   for (auto& guass_params : f0_fwmh_df) {
     const Numeric f0 = guass_params[0], fwhm = guass_params[1],
@@ -134,7 +134,7 @@ void measurement_vector_sensorGaussian(
       f_grid[i + n] = f0 + static_cast<Numeric>(i) * df;
     }
 
-    auto& obsel = measurement_vector_sensor.emplace_back(SensorObsel{
+    auto& obsel = measurement_sensor.emplace_back(SensorObsel{
         .f_grid_w      = Vector(2 * n + 1),
         .f_grid        = std::move(f_grid),
         .poslos_grid_w = MuelmatVector{1},

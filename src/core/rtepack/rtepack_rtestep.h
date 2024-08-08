@@ -91,4 +91,20 @@ void two_level_linear_transmission_step(stokvec_vector_view I,
                                         const muelmat_vector_const_view &PiT,
                                         const muelmat_matrix_const_view &dT1,
                                         const muelmat_matrix_const_view &dT2);
+
+void two_level_linear_emission_step(stokvec_vector &I,
+                                    std::vector<stokvec_matrix> &dI,
+                                    const std::vector<muelmat_vector> &Ts,
+                                    const std::vector<muelmat_vector> &Pi,
+                                    const std::vector<muelmat_tensor3> &dTs,
+                                    const std::vector<stokvec_vector> &Js,
+                                    const std::vector<stokvec_matrix> &dJs,
+                                    const stokvec_vector &I0);
+
+void two_level_linear_transmission_step(stokvec_vector &I,
+                                        std::vector<stokvec_matrix> &dI,
+                                        const std::vector<muelmat_vector> &Ts,
+                                        const std::vector<muelmat_vector> &Pi,
+                                        const std::vector<muelmat_tensor3> &dTs,
+                                        const stokvec_vector &I0);
 }  // namespace rtepack

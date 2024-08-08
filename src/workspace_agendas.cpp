@@ -97,5 +97,19 @@ The output must be sized as:
                  "surface_field"},
   };
 
+  wsa_data["inversion_iterate_agenda"] = {
+      .desc   = R"--(Work in progress ...
+
+The WSV *measurement_jacobian* is both in- and output. As input variable, *measurement_jacobian*
+is assumed to be valid for the previous iteration. For the first iteration
+the input *measurement_jacobian* shall be set to have size zero, to flag that there
+is not yet any calculated Jacobian.
+)--",
+      .output = {"measurement_vector_fitted", "measurement_jacobian"},
+      .input  = {"model_state_vector",
+                 "inversion_iterate_agenda_do_jacobian",
+                 "inversion_iterate_agenda_counter"},
+  };
+
   return wsa_data;
 }

@@ -14,6 +14,8 @@ struct propmat final : vec7 {
                     Numeric w = 0.0)
       : vec7{a, b, c, d, u, v, w} {}
 
+  constexpr propmat(std::array<Numeric, 7> data) noexcept : vec7{data} {}
+
   [[nodiscard]] constexpr decltype(auto) A() const { return data[0]; }
   [[nodiscard]] constexpr decltype(auto) B() const { return data[1]; }
   [[nodiscard]] constexpr decltype(auto) C() const { return data[2]; }

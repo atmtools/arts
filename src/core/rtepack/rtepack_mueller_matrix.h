@@ -28,6 +28,8 @@ struct muelmat final : mat44 {
                     Numeric p) noexcept
       : mat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
 
+  constexpr muelmat(std::array<Numeric, 16> data) noexcept : mat44{data} {}
+
   //! The identity matrix
   static constexpr muelmat id() { return muelmat{1.0}; }
 
@@ -216,8 +218,8 @@ using muelmat_tensor3_view = matpack::matpack_view<muelmat, 3, false, false>;
 using muelmat_tensor3_const_view =
     matpack::matpack_view<muelmat, 3, true, false>;
 
-Array<muelmat_vector> reverse_cumulative_transmission(
-    const Array<muelmat_vector> &T);
+void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
+                                     const Array<muelmat_vector> &T);
 
 Array<muelmat_vector> forward_cumulative_transmission(
     const Array<muelmat_vector> &T);

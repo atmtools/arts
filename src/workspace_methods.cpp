@@ -829,21 +829,21 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_desc  = {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
   };
 
-  wsm_data["background_transmittanceFromPathPropagationBack"] = {
+  wsm_data["transmission_matrix_backgroundFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *background_transmittance* to back of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to back of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"background_transmittance"},
+      .out    = {"transmission_matrix_background"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
-  wsm_data["background_transmittanceFromPathPropagationFront"] = {
+  wsm_data["transmission_matrix_backgroundFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *background_transmittance* to front of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to front of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"background_transmittance"},
+      .out    = {"transmission_matrix_background"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
@@ -982,18 +982,9 @@ call of *absorption_lookup_table_dataAdapt*.
       .in     = {"ray_path", "atmospheric_field"},
   };
 
-  wsm_data["ray_path_transmission_matrix_cumulativeForward"] = {
+  wsm_data["ray_path_transmission_matrix_cumulativeFromPath"] = {
       .desc =
           R"--(Sets *ray_path_transmission_matrix_cumulative* by forward iteration of *ray_path_transmission_matrix*
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_transmission_matrix_cumulative"},
-      .in     = {"ray_path_transmission_matrix"},
-  };
-
-  wsm_data["ray_path_transmission_matrix_cumulativeReverse"] = {
-      .desc =
-          R"--(Sets *ray_path_transmission_matrix_cumulative* by reverse iteration of *ray_path_transmission_matrix*
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_transmission_matrix_cumulative"},
@@ -1071,34 +1062,6 @@ The calculations are in parallel if the program is not in parallel already.
                  "ray_path_propagation_matrix"},
   };
 
-  wsm_data["ray_path_spectral_radianceCalcEmission"] = {
-      .desc =
-          R"--(Gets the radiation along the path by linear emission calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance",
-                 "ray_path_spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background",
-                 "ray_path_spectral_radiance_source",
-                 "ray_path_spectral_radiance_source_jacobian",
-                 "ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian"},
-  };
-
-  wsm_data["ray_path_spectral_radianceCalcTransmission"] = {
-      .desc =
-          R"--(Gets the radiation along the path by linear transmission calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance",
-                 "ray_path_spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background",
-                 "ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian"},
-  };
-
   wsm_data["ray_path_spectral_radiance_sourceFromPropmat"] = {
       .desc   = R"--(Gets the source term along the path.
 )--",
@@ -1112,27 +1075,6 @@ The calculations are in parallel if the program is not in parallel already.
                  "ray_path_frequency_grid",
                  "ray_path_atmospheric_point",
                  "jacobian_targets"},
-  };
-
-  wsm_data["ray_path_transmission_matrixFromPath"] = {
-      .desc      = R"--(Gets the transmission matrix in layers along the path.
-
-A layer is defined as made up by the average of 2 levels, thus the outer-most size
-of the derivatives out of this function is 2.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_transmission_matrix",
-                    "ray_path_transmission_matrix_jacobian"},
-      .in        = {"ray_path_propagation_matrix",
-                    "ray_path_propagation_matrix_jacobian",
-                    "ray_path",
-                    "ray_path_atmospheric_point",
-                    "surface_field",
-                    "jacobian_targets"},
-      .gin       = {"hse_derivative"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
   wsm_data["absorption_predefined_model_dataAddWaterMTCKD400"] = {
@@ -2124,7 +2066,7 @@ Size : (*jacobian_targets*, *frequency_grid*)
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
       .in     = {"spectral_radiance_background_jacobian",
-                 "background_transmittance"},
+                 "transmission_matrix_background"},
   };
 
   wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
@@ -2173,15 +2115,6 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
                  "spectral_radiance_unit"},
   };
 
-  wsm_data["spectral_radianceFromPathPropagation"] = {
-      .desc =
-          R"--(Sets *spectral_radiance* from front of *ray_path_spectral_radiance*
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"ray_path_spectral_radiance"},
-  };
-
   wsm_data["propagation_matrixAddLines"] = {
       .desc      = R"--(Modern line-by-line calculations
 )--",
@@ -2220,7 +2153,10 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atmospheric_field"},
+      .in     = {"jacobian_targets",
+                 "atmospheric_field",
+                 "surface_field",
+                 "absorption_bands"},
   };
 
   wsm_data["jacobian_targetsAddTemperature"] = {
@@ -2293,10 +2229,40 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"String", "Numeric"},
+      .gin_type  = {"SpeciesEnum,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
-          {"The species of interest (short or long name)",
+          {"The species of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["jacobian_targetsAddAtmosphere"] = {
+      .desc   = R"--(Sets an atmospheric target
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
+      .gin    = {"target", "d"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
+           "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["jacobian_targetsAddSurface"] = {
+      .desc      = R"--(Sets a surface target
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
 
@@ -2309,7 +2275,7 @@ See *SpeciesIsotope* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"species", "d"},
-      .gin_type  = {"SpeciesIsotope", "Numeric"},
+      .gin_type  = {"SpeciesIsotope,String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The species isotopologue of interest",
@@ -2317,37 +2283,27 @@ See *SpeciesIsotope* for valid ``species``
   };
 
   wsm_data["jacobian_targetsAddLineParameter"] = {
-      .desc   = R"--(Set line parameter derivative
+      .desc      = R"--(Set line parameter derivative
 
-See *LineByLineVariable* for valid ``parameter``.
+See *LineByLineVariable* and *LineShapeModelVariable* for valid ``parameter``.
 
 See *SpeciesEnum* for valid ``species``.
 
-See *LineShapeModelCoefficient* for valid ``coefficient``.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "absorption_bands"},
-      .gin = {"id", "line_index", "parameter", "species", "coefficient", "d"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "absorption_bands"},
+      .gin       = {"id", "line_index", "parameter", "species"},
       .gin_type  = {"QuantumIdentifier",
                     "Index",
-                    "String",
-                    "String",
-                    "String",
-                    "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String{""},
-                    String{""},
-                    Numeric{0.1}},
+                    "LineByLineVariable,LineShapeModelVariable",
+                    "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{"None"}},
       .gin_desc =
           {"The quantum identifier of the band",
            "The index of the line in the band",
            "The parameter to compute the derivative for (see options in error message)",
-           "The coefficient in question (if non-empty, ``parameter`` refers to be a line shape parameter, otherwise, ``parameter`` referes to a standard absorption line parameter)",
-           "The species of interest (long or short name; error message shows only valid long names)",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+           "The species of interest (only for *LineShapeModelVariable* overload)"},
   };
 
   wsm_data["absorption_bandsSelectFrequency"] = {
@@ -3106,10 +3062,8 @@ See *SpeciesIsotope* for valid ``species``
 The core calculations happens inside the *spectral_radiance_operator*.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector"},
-      .gout_type = {"Vector"},
-      .gout_desc = {"The measurement vector"},
-      .in        = {"measurement_vector_sensor",
+      .out       = {"measurement_vector"},
+      .in        = {"measurement_sensor",
                     "spectral_radiance_operator",
                     "ray_path_observer_agenda"},
       .gin       = {"exhaustive"},
@@ -3129,11 +3083,8 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 User choices of *spectral_radiance_unit* does not adversely affect this method.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"measurement_vector", "measurement_vector_jacobian"},
-      .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"The measurement vector",
-                    "The measurement vector's associated Jacobian"},
-      .in        = {"measurement_vector_sensor",
+      .out       = {"measurement_vector", "measurement_jacobian"},
+      .in        = {"measurement_sensor",
                     "jacobian_targets",
                     "atmospheric_field",
                     "surface_field",
@@ -3147,7 +3098,7 @@ User choices of *spectral_radiance_unit* does not adversely affect this method.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_vector_sensorSimple"] = {
+  wsm_data["measurement_sensorSimple"] = {
       .desc =
           R"--(Sets a simple sensor
 
@@ -3156,7 +3107,7 @@ Sets one measurement vector sensor element entry per frequency in *frequency_gri
 The resulting vector of sensor elements is not to be considered exhaustive by future calculations.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector_sensor"},
+      .out       = {"measurement_sensor"},
       .in        = {"frequency_grid"},
       .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
@@ -3169,7 +3120,7 @@ The resulting vector of sensor elements is not to be considered exhaustive by fu
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_vector_sensorGaussianFrequencyGrid"] = {
+  wsm_data["measurement_sensorGaussianFrequencyGrid"] = {
       .desc =
           R"--(Sets a sensor with a Gaussian channel opening on a fixed frequency grid
 
@@ -3190,7 +3141,7 @@ the weight cutoff is non-positive and all half width half maximums are positive.
 Otherwise the vector is not exhaustive.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_sensor"},
+      .out    = {"measurement_sensor"},
       .in     = {"frequency_grid"},
       .gin    = {"f0_fwhm", "weight_cutoff", "pos", "los", "pol"},
       .gin_type =
@@ -3208,7 +3159,7 @@ Otherwise the vector is not exhaustive.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_vector_sensorGaussian"] = {
+  wsm_data["measurement_sensorGaussian"] = {
       .desc =
           R"--(Sets a sensor with a Gaussian channel opening on a computed frequency grid
 
@@ -3224,7 +3175,7 @@ than ``weight_cutoff``.  This keeps (:math:`f_0`) in the resulting frequency gri
 The resulting vector of sensor elements cannot be considered exhaustive in future calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_sensor"},
+      .out    = {"measurement_sensor"},
       .gin    = {"f0_fwhm_df", "weight_cutoff", "pos", "los", "pol"},
       .gin_type =
           {"ArrayOfVector3", "Numeric", "Vector3", "Vector2", "Stokvec"},
@@ -3395,6 +3346,366 @@ have sorted *suns* by distance before running this code.
           {"Number of quadrature angles to use",
            "Number of internal Legendre polynomials to use (-1 defaults to NQuad).",
            "Number of internal Fourier modes to use (-1 defaults to NLeg)"},
+  };
+
+  wsm_data["atmospheric_fieldFromModelState"] = {
+      .desc   = R"--(Sets *atmospheric_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["surface_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surface_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_field"},
+      .in     = {"surface_field", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["absorption_bandsFromModelState"] = {
+      .desc   = R"--(Sets *absorption_bands* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_bands"},
+      .in     = {"absorption_bands", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorSize"] = {
+      .desc =
+          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+
+Warning:
+
+    Does not zero out existing data. Use *model_state_vectorZero* if that is desired.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorZero"] = {
+      .desc   = R"--(Sets *model_state_vector* to 0.0
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector"},
+  };
+
+  wsm_data["model_state_vectorFromAtmosphere"] = {
+      .desc   = R"--(Sets *model_state_vector*'s atmospheric part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "atmospheric_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromSurface"] = {
+      .desc   = R"--(Sets *model_state_vector*'s surface part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "surface_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromBands"] = {
+      .desc   = R"--(Sets *model_state_vector*'s absorption line part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "absorption_bands", "jacobian_targets"},
+  };
+
+  wsm_data["ray_path_transmission_matrixFromPath"] = {
+      .desc      = R"--(Gets the transmission matrix in layers along the path.
+
+The assumption is that each path variable forms a layer from the 
+ray path.  So there is a reduction in size by one.  A demand therefore
+is that there are at least 2 points in the path.
+
+The derivatives first dimensions are also 2, the first for the derivative wrt
+the level before and one for the level after.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_transmission_matrix",
+                    "ray_path_transmission_matrix_jacobian"},
+      .in        = {"ray_path_propagation_matrix",
+                    "ray_path_propagation_matrix_jacobian",
+                    "ray_path",
+                    "ray_path_atmospheric_point",
+                    "surface_field",
+                    "jacobian_targets"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
+  };
+
+  wsm_data["spectral_radianceStepByStep"] = {
+      .desc   = R"--(Gets the spectral radiance from the path.
+
+This uses a step-by-step solver to propagate background radiation along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_spectral_radiance_source",
+                 "spectral_radiance_background"},
+  };
+
+  wsm_data["spectral_radianceCumulativeEmission"] = {
+      .desc   = R"--(Gets the spectral radiance from the path emission.
+
+Also get the Jacobian of the spectral radiance with regards to the
+path parameters.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_transmission_matrix_cumulative",
+                 "ray_path_transmission_matrix_jacobian",
+                 "ray_path_spectral_radiance_source",
+                 "ray_path_spectral_radiance_source_jacobian",
+                 "spectral_radiance_background"},
+  };
+
+  wsm_data["spectral_radianceCumulativeTransmission"] = {
+      .desc   = R"--(Gets the spectral radiance from the path transmission.
+
+Also get the Jacobian of the spectral radiance with regards to the
+path parameters.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .in     = {"ray_path_transmission_matrix",
+                 "ray_path_transmission_matrix_cumulative",
+                 "ray_path_transmission_matrix_jacobian",
+                 "spectral_radiance_background"},
+  };
+
+  wsm_data["OEM"] = {
+      .desc   = R"(Inversion by the so called optimal estimation method (OEM).
+
+Work in progress ...
+
+The cost function to minimise, including a normalisation with length"
+of *measurement_vector*, is::
+
+cost = cost_y + cost_x
+
+where::
+
+cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
+cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+
+The current implementation provides 3 methods for the minimization of
+the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
+The Gauss-Newton minimizer attempts to find a minimum solution by 
+fitting a quadratic function to the cost functional. The linear minimizer
+is a special case of the Gauss-Newton method, since for a linear forward
+model the exact solution of the minimization problem is obtained after
+the first step. The Levenberg-Marquardt method adaptively constrains the
+search region for the next iteration step by means of the so-called gamma-factor.
+This makes the method more suitable for strongly non-linear problems.
+If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method
+are identical. Each minimization method (li,gn,lm) has an indirect
+variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver
+for the linear system that has to be solved in each minimzation step.
+This of advantage for very large problems, that would otherwise require
+the computation of expensive matrix products.
+
+Description of the special input arguments:
+
+- ``method``: One of the following:
+
+- ``"li"``: A linear problem is assumed and a single iteration is performed.
+- ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
+- ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
+- ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
+- ``"lm"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
+- ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
+
+- ``max_start_cost``:
+No inversion is done if the cost matching the a priori state is above
+this value. If set to a negative value, all values are accepted.
+This argument also controls if the start cost is calculated. If
+set to <= 0, the start cost in ``oem_diagnostics`` is set to NaN
+when using "li" and "gn".
+- ``x_norm``:
+A normalisation vector for *model_state_vector*. A normalisation of *model_state_vector* can be needed
+due to limited numerical precision. If this vector is set to be empty
+no normalisation is done (defualt case). Otherwise, this must be a
+vector with same length as *model_state_vector*, just having values above zero.
+Elementwise division between *model_state_vector* and ``x_norm`` (x./x_norm) shall give
+a vector where all values are in the order of unity. Maybe the best
+way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
+- ``max_iter``:
+Maximum number of iterations to perform. No effect for "li".
+- ``stop_dx``:\n"
+Iteration stop criterion. The criterion used is the same as given
+in Rodgers\' "Inverse Methods for Atmospheric Sounding"
+- ``lm_ga_settings``:
+Settings controlling the gamma factor, part of the "LM" method.
+This is a vector of length 6, having the elements (0-based index):
+
+    0. Start value.
+    1. Fractional decrease after succesfull iteration.
+    2. Fractional increase after unsuccessful iteration.
+    3. Maximum allowed value. If the value is passed, the inversion
+        is halted.
+    4. Lower treshold. If the threshold is passed, gamma is set to zero.
+        If gamma must be increased from zero, gamma is set to this value.
+    5. Gamma limit. This is an additional stop criterion. Convergence
+        is not considered until there has been one succesful iteration
+        having a gamma <= this value.
+
+The default setting triggers an error if "lm" is selected.
+- ``clear matrices``:
+    With this flag set to 1, *measurement_jacobian* and ``measurement_gain_matrix`` are returned as empty
+    matrices.
+- ``display_progress``:
+    Controls if there is any screen output. The overall report level
+    is ignored by this WSM.
+)",
+      .author = {"Patrick Eriksson"},
+      .out =
+          {
+              "model_state_vector",
+              "measurement_vector_fitted",
+              "measurement_jacobian",
+          },
+      .gout =
+          {
+              "measurement_gain_matrix",
+              "oem_diagnostics",
+              "lm_ga_history",
+              "errors",
+          },
+      .gout_type =
+          {
+              "Matrix",
+              "Vector",
+              "Vector",
+              "ArrayOfString",
+          },
+      .gout_desc =
+          {
+              "Contribution function (or gain) matrix",
+              "Basic diagnostics of an OEM type inversion",
+              "The series of gamma values for a Marquardt-levenberg inversion",
+              "Errors encountered during OEM execution",
+          },
+      .in =
+          {
+              "model_state_vector",
+              "measurement_vector_fitted",
+              "measurement_jacobian",
+              "model_state_vector_apriori",
+              "model_state_covariance_matrix",
+              "measurement_vector",
+              "measurement_vector_error_covariance_matrix",
+              "jacobian_targets",
+              "inversion_iterate_agenda",
+          },
+      .gin =
+          {
+              "method",
+              "max_start_cost",
+              "model_state_covariance_matrix_normalization",
+              "max_iter",
+              "stop_dx",
+              "lm_ga_settings",
+              "clear_matrices",
+              "display_progress",
+          },
+      .gin_type =
+          {
+              "String",
+              "Numeric",
+              "Vector",
+              "Index",
+              "Numeric",
+              "Vector",
+              "Index",
+              "Index",
+          },
+      .gin_value =
+          {
+              std::nullopt,
+              Numeric{std::numeric_limits<Numeric>::infinity()},
+              Vector{},
+              Index{10},
+              Numeric{0.01},
+              Vector{},
+              Index{0},
+              Index{0},
+          },
+      .gin_desc =
+          {
+              "Iteration method. For this and all options below, see further above",
+              "Maximum allowed value of cost function at start",
+              "Normalisation of Sx",
+              "Maximum number of iterations",
+              "Stop criterion for iterative inversions",
+              "Settings associated with the ga factor of the LM method",
+              "An option to save memory",
+              "Flag to control if inversion diagnostics shall be printed on the screen",
+          },
+      .pass_workspace = true,
+  };
+
+  wsm_data["model_state_vector_aprioriFromState"] = {
+      .desc =
+          R"(Sets the a priori state of the model state vector to the current state.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector_apriori"},
+      .in     = {"model_state_vector"},
+  };
+
+  wsm_data["measurement_vector_fittedFromMeasurement"] = {
+      .desc =
+          R"(Sets the fitted measurement vector to the current measurement vector.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_vector_fitted"},
+      .in     = {"measurement_vector"},
+  };
+
+  wsm_data["model_state_covariance_matrixInit"] = {
+      .desc =
+          R"(Initialises the model state covariance matrix to the identity matrix.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_covariance_matrix"},
+  };
+
+  wsm_data["model_state_covariance_matrixAddSpeciesVMR"] = {
+      .desc =
+          R"(Set a species model state covariance matrix element.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"model_state_covariance_matrix"},
+      .in        = {"model_state_covariance_matrix", "jacobian_targets"},
+      .gin       = {"species", "data"},
+      .gin_type  = {"SpeciesEnum", "Matrix,Sparse"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The species to set the covariance matrix for",
+                    "The data to set the covariance matrix to"},
+  };
+
+  wsm_data["measurement_vector_error_covariance_matrixConstant"] = {
+      .desc =
+          R"(Sets a constant measurement vector error covariance matrix.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_vector_error_covariance_matrix"},
+      .in        = {"measurement_sensor"},
+      .gin       = {"value"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
   /*

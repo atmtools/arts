@@ -173,6 +173,8 @@ struct band {
   friend std::ostream& operator<<(std::ostream& os, const band&);
 };
 
+
+
 struct line_pos {
   Size line;
   Size spec{std::numeric_limits<Size>::max()};
@@ -187,30 +189,33 @@ struct line_key {
   //! The line count within the band
   Size line{std::numeric_limits<Size>::max()};
 
-  //! The species index if (ls_var is not FINAL)
+  //! The species index if (ls_var is not invalid)
   Size spec{std::numeric_limits<Size>::max()};
 
   /* The variable to be used for the line shape derivative
 
-  If ls_var is FINAL, then the var variable is used for the line
-  parameter.  ls_var and var are not both allowed to be FINAL.
+  If ls_var is invalid, then the var variable is used for the line
+  parameter.  ls_var and var are not both allowed to be invalid.
   */
   LineShapeModelVariable ls_var{static_cast<LineShapeModelVariable>(-1)};
 
-  //! The line shape coefficient if ls_var is not FINAL
+  //! The line shape coefficient if ls_var is not invalid
   LineShapeModelCoefficient ls_coeff{
       static_cast<LineShapeModelCoefficient>(-1)};
 
   /* The line parameter to be used for the line shape derivative
   
-  If var is FINAL, then the ls_var variable is used for the line shape
-  parameter.  ls_var and var are not both allowed to be FINAL.
+  If var is invalid, then the ls_var variable is used for the line shape
+  parameter.  ls_var and var are not both allowed to be invalid.
   */
   LineByLineVariable var{static_cast<LineByLineVariable>(-1)};
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const line_key& x);
+
+  [[nodiscard]] Numeric& get_value(std::vector<lbl::band>&) const;
+  [[nodiscard]] const Numeric& get_value(const std::vector<lbl::band>&) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);

@@ -14,6 +14,8 @@ struct stokvec final : vec4 {
                                   Numeric d = 0.0)
       : vec4{a, b, c, d} {}
 
+  constexpr stokvec(std::array<Numeric, 4> data) noexcept : vec4{data} {}
+
   constexpr stokvec &operator=(Numeric a) {
     data = {a, 0., 0., 0.};
     return *this;
@@ -43,6 +45,10 @@ struct stokvec final : vec4 {
     U() -= b.U();
     V() -= b.V();
     return *this;
+  }
+
+  [[nodiscard]] constexpr bool is_zero() const {
+    return I() == 0.0 && Q() == 0.0 && U() == 0.0 && V() == 0.0;
   }
 };
 

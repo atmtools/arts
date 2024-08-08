@@ -45,15 +45,29 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   std::ostringstream os;
 
+  const auto generics = wsm.generic_overloads();
+
   os << "    Workspace& _ws [[maybe_unused]]";
   for (auto& v : wsm.out) {
     os << ",\n    py" << wsvs.at(v).type << "* const _" << v;
   }
 
+  // NB: This is untested code because we do not have any methods with generic outputs at time of writing
   for (Size i = 0; i < wsm.gout.size(); i++) {
     const auto& v = wsm.gout.at(i);
-    const auto& g = wsm.gout_type.at(i);
-    os << ",\n    py" << g << "* const _" << v;
+
+    if (generics[i].size() == 1) {
+      const auto& g = wsm.gout_type.at(i);
+      os << ",\n    py" << g << "* const _" << v;
+    } else {
+      const auto& v          = wsm.gin.at(i);
+      std::string_view comma = "";
+      os << ",\n    std::variant<";
+      for (auto& arg : generics[i]) {
+        os << std::exchange(comma, ", ") << "std::shared_ptr<py" << arg << ">";
+      }
+      os << "> * const _" << v;
+    }
   }
 
   const auto not_out = [&wsm](const auto& v) {
@@ -64,16 +78,31 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
     os << ",\n    const py" << wsvs.at(v).type << "* const _" << v;
   }
 
-  const auto not_gout = [&wsm](const auto& v) {
-    return std::ranges::none_of(wsm.gout, Cmp::eq(v));
+  const auto is_gout = [&wsm](const auto& v) {
+    return std::ranges::any_of(wsm.gout, Cmp::eq(v));
   };
 
+  // NB: This is partly untested code because we do not have any methods with generic input+output at time of writing
+  Size index = wsm.gout.size();
   for (Size i = 0; i < wsm.gin.size(); i++) {
     const auto& v = wsm.gin.at(i);
-    const auto& g = wsm.gin_type.at(i);
-    if (not_gout(v)) {
+
+    if (is_gout(v)) continue;
+
+    if (generics[index].size() == 1) {
+      const auto& g = wsm.gin_type.at(i);
       os << ",\n    const py" << g << "* const _" << v;
+    } else {
+      const auto& v          = wsm.gin.at(i);
+      std::string_view comma = "";
+      os << ",\n    const std::variant<";
+      for (auto& arg : generics[index]) {
+        os << std::exchange(comma, ", ") << "std::shared_ptr<py" << arg << ">";
+      }
+      os << "> * const _" << v;
     }
+
+    index++;
   }
 
   return os.str();
@@ -103,8 +132,8 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
          << "\\\"\");\n";
     } else {
       os << "        auto& " << wsm.gout[i] << " = select_gout<"
-         << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", \"" << wsm.gout[i]
-         << "\");\n";
+         << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", _ws, \""
+         << wsm.gout[i] << "\");\n";
     }
   }
 
@@ -692,19 +721,19 @@ std::string method_argument_documentation(
 
   bool first = true;
 
-  for (auto& t : wsm.out) {
+  for (const auto& t : wsm.out) {
     if (not first) os << ",\n    ";
     first = false;
     os << "\"" << t << "\"_a.noconvert().none() = py::none()";
   }
 
-  for (auto& t : wsm.gout) {
+  for (const auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "\"" << t << "\"_a.none() = py::none()";
+    os << "\"" << t << "\"_a.noconvert().none() = py::none()";
   }
 
-  for (auto& t : wsm.in) {
+  for (const auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;
@@ -865,6 +894,9 @@ void methods(int nfiles) {
 #include <m_ignore.h>
 #include <m_xml.h>
 #include <workspace.h>
+
+#include <nanobind/stl/variant.h>
+#include <nanobind/stl/shared_ptr.h>
 
 namespace Python {
 void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"

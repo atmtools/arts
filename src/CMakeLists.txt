@@ -172,6 +172,7 @@ add_library (artsworkspace STATIC
   m_lbl.cc
   m_linemixing.cc
   m_microphysics.cc
+  m_model_state.cc
   m_montecarlo.cc
   m_nc.cc
   m_nlte.cc
@@ -189,12 +190,14 @@ add_library (artsworkspace STATIC
   m_raw.cc
   m_reduce.cc
   m_refraction.cc
+  m_retrieval.cc
   m_rad.cc
   m_rt4.cc
   m_rte.cc
   m_select.cc
   m_sensor.cc
   m_sizes.cc
+  m_spectral_radiance.cc
   m_sun.cc
   m_surf.cc
   m_surface.cc

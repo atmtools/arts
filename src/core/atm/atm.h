@@ -23,6 +23,7 @@
 #include "enums.h"
 #include "fieldmap.h"
 #include "isotopologues.h"
+#include "matpack_constexpr.h"
 #include "species.h"
 
 //! A type to name particulates (and let them be type-independent)
@@ -309,23 +310,24 @@ struct Data {
     return *out;
   }
 
-  void rescale(Numeric);
-
-  [[nodiscard]] Vector at(const Vector &alt,
-                          const Vector &lat,
-                          const Vector &lon) const;
+  void rescale(Numeric x);
 
   [[nodiscard]] Numeric at(const Numeric alt,
                            const Numeric lat,
                            const Numeric lon) const;
+
+  [[nodiscard]] Numeric at(const Vector3 pos) const;
 
   [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
 
   [[nodiscard]] ExhaustiveVectorView flat_view();
 
   //! Flat weights for the positions in an atmosphere
-  [[nodiscard]] Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights(
-      const Vector &alt, const Vector &lat, const Vector &lon) const;
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
+      const Numeric alt, const Numeric lat, const Numeric lon) const;
+
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
+      const Vector3 pos) const;
 };
 
 template <typename T>
@@ -362,17 +364,6 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
-
-  //! Compute the values at a single point in place
-  void at(std::vector<Point> &out,
-          const Vector &alt,
-          const Vector &lat,
-          const Vector &lon) const;
-
-  //! Compute the values at a single point
-  [[nodiscard]] std::vector<Point> at(const Vector &alt,
-                                      const Vector &lat,
-                                      const Vector &lon) const;
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
