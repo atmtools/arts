@@ -35,49 +35,10 @@ void mathscr_v(auto&& um,
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 
-  // for (Index c = 0; c < n; c++) {
-  //   data.cvec[c] = std::pow(tau, n - c);
-  // }
-  // data.cvec.back() = 1.0;
-
-  // // e.g., for Nc=2, [0, 0], [1, 0], [1, 1]
-  // data.src = 0;
-  // for (Index i = 0; i < Nc; i++) {
-  //   const Numeric fi = Legendre::factorial(n - i);
-  //   for (Index j = 0; j <= i; j++) {
-  //     const Numeric fj = Legendre::factorial(n - j);
-  //     const Numeric sj = source_poly_coeffs[n - j];
-
-  //     for (Index k = 0; k < Nk; k++) {
-  //       data.src(k, i) += (fj / fi) * std::pow(K[k], -1 - i + j) * sj;
-  //     }
-  //   }
-  // }
-
-  // Numeric sum = 0.0;
-  // for (Index i = 0; i < Nc; i++) {
-  //   const Numeric taun = std::pow(tau, n - i);
-  //   const Numeric fi   = Legendre::factorial(n - i);
-
-  //   Numeric sum2 = 0.0;
-  //   for (Index j = 0; j <= i; j++) {
-  //     const Numeric f = Legendre::factorial(n - j) / fi;
-  //     for (Index k = 0; k < Nk; k++) {
-  //       if (j == i) {
-  //         sum2 += f * source_poly_coeffs[n - j] / K[k];
-  //       } else if ((j - i) == 1) {
-  //         sum2 += f * source_poly_coeffs[n - j];
-  //       } else {
-  //         sum2 += f * source_poly_coeffs[n - j] * std::pow(K[k], j - i - 1);
-  //       }
-  //     }
-  //   }
-  //   sum += taun * sum2;
-  // }
-
-  for (Index i = 0; i < Nc; i++) {
+  for (Index i = 0; i < n; i++) {
     data.cvec[i] = std::pow(tau, n - i);
   }
+  data.cvec.back() = 1.0;
 
   for (Index k = 0; k < Nk; k++) {
     Numeric sum2 = 0.0;
@@ -144,20 +105,20 @@ void main_data::solve_for_coefs() {
 
         if (is_multilayer) {
           for (Index l = 0; l < ln; l++) {
-            mathscr_v(RHS(Range(l + N, NQuad, ln)),
-                      comp_data,
-                      tau_arr[l],
-                      source_poly_coeffs[l],
-                      G_collect_m[l],
-                      K_collect_m[l],
-                      inv_mu_arr);
-
-            mathscr_v(RHS(Range(l + N, NQuad, ln)),
+            mathscr_v(RHS(Range(l * NQuad + N, NQuad)),
                       comp_data,
                       tau_arr[l],
                       source_poly_coeffs[l + 1],
                       G_collect_m[l + 1],
                       K_collect_m[l + 1],
+                      inv_mu_arr);
+
+            mathscr_v(RHS(Range(l * NQuad + N, NQuad)),
+                      comp_data,
+                      tau_arr[l],
+                      source_poly_coeffs[l],
+                      G_collect_m[l],
+                      K_collect_m[l],
                       inv_mu_arr,
                       0,
                       -1.0,
@@ -172,10 +133,19 @@ void main_data::solve_for_coefs() {
                   G_collect_m[ln],
                   K_collect_m[ln],
                   inv_mu_arr,
-                  N);
+                  0,
+                  -1.0);
 
+        //FIXME: This is not aligned with the original code
         if (NBDRF > 0) {
-          jvec = RHS.slice(n - N, N);
+          mathscr_v(jvec,
+                    comp_data,
+                    tau_arr.back(),
+                    source_poly_coeffs[ln],
+                    G_collect_m[ln],
+                    K_collect_m[ln],
+                    inv_mu_arr,
+                    N);
           mult(RHS.slice(n - N, N), R, jvec, 1.0, 1.0);
         }
       } else {

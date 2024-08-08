@@ -2,15 +2,11 @@
 #include <workspace.h>
 
 #include <algorithm>
-#include <iostream>
 #include <numeric>
 #include <vector>
 
-#include "atm.h"
-#include "enums.h"
-#include "physics_funcs.h"
-#include "rtepack.h"
-#include "sorted_grid.h"
+#include <arts_conversions.h>
+#include <arts_omp.h>
 
 ArrayOfAscendingGrid ray_path_tau_arrFromPath(
     const ArrayOfPropagationPathPoint& ray_path,
@@ -70,8 +66,10 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
       false);
 }
 
-void disort_intensitiesClearskyDisort(
-    Tensor3& disort_intensities,
+void spectral_radiance_disortClearskyDisort(
+    Tensor3& spectral_radiance_disort,
+    Vector& disort_quadrature_angles,
+    Vector& disort_quadrature_weights,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
@@ -109,8 +107,8 @@ void disort_intensitiesClearskyDisort(
                           }),
       "No implementation for polarized propagation matrices.");
 
-  disort_intensities.resize(nv, N - 1, NQuad);
-  disort_intensities = 0.0;
+  spectral_radiance_disort.resize(nv, N - 1, NQuad);
+  spectral_radiance_disort = 0.0;
 
   // Altitude is increasing
   ARTS_USER_ERROR_IF(
@@ -129,6 +127,15 @@ void disort_intensitiesClearskyDisort(
   constexpr Index Nscoeffs = 2;
   disort::main_data dis(N - 1, NQuad, NLeg, NFourier, Nscoeffs, NLeg, 1);
 
+  disort_quadrature_angles.resize(NQuad);
+
+  std::transform(dis.mu().begin(),
+                 dis.mu().end(),
+                 disort_quadrature_angles.begin(),
+                 [](const Numeric& mu) { return Conversion::rad2deg(mu); });
+
+  disort_quadrature_weights = dis.weights();
+
   dis.solar_zenith()                  = 1.0;
   dis.beam_azimuth()                  = 0.0;
   dis.omega()                         = 0.0;
@@ -145,7 +152,7 @@ void disort_intensitiesClearskyDisort(
   const ArrayOfAscendingGrid ray_path_tau_arr =
       ray_path_tau_arrFromPath(ray_path, ray_path_propagation_matrix);
 
-  //#pragma omp parallel for firstprivate(dis)
+#pragma omp parallel for firstprivate(dis) if (not arts_omp_in_parallel())
   for (Index iv = 0; iv < nv; iv++) {
     dis.tau() = ray_path_tau_arr[iv];
     for (Size i = 0; i < N - 1; i++) {
@@ -158,25 +165,17 @@ void disort_intensitiesClearskyDisort(
       const Numeric y0 = planck(f0, t0);
       const Numeric y1 = planck(f1, t1);
 
-      if constexpr (Nscoeffs == 1) {
-        dis.source_poly()(i, 0) = std::midpoint(y0, y1);
-      } else {
-        const Numeric x0 = i == 0 ? 0.0 : ray_path_tau_arr[iv][i - 1];
-        const Numeric x1 = ray_path_tau_arr[iv][i];
-        const Numeric b  = (y1 - y0) / (x1 - x0);
+      const Numeric x0 = i == 0 ? 0.0 : ray_path_tau_arr[iv][i - 1];
+      const Numeric x1 = ray_path_tau_arr[iv][i];
 
-        dis.source_poly()(i, 0) = y0 - b * x0;
-        dis.source_poly()(i, 1) = b;
-      }
-
-      // std::cout << y0 - b * x0 << ' ' << y1 - b * x1 << '\n';
+      const Numeric b  = (y1 - y0) / (x1 - x0);
+      dis.source_poly()(i, 0) = y0 - b * x0;
+      dis.source_poly()(i, 1) = b;
     }
-
-    //const disort::main_data cdis = dis;
-    // std::cout << std::format("src[{}] = np.array({:B,}).reshape(N, 2);\ntau[{}] = np.array({:B,})\n", iv, dis.source_poly(), iv, cdis.tau());
 
     dis.update_all(0.0);
 
-    dis.gridded_u(disort_intensities[iv].reshape_as(N - 1, 1, NQuad), {0.0});
+    dis.gridded_u(spectral_radiance_disort[iv].reshape_as(N - 1, 1, NQuad),
+                  {0.0});
   }
 }

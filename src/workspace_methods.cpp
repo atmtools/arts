@@ -2473,13 +2473,13 @@ variables are not considered
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
-      .desc     = R"--(Wraps *ray_pathGeometric* for straight uplooking paths
+      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths
 )--",
-      .author   = {"Richard Larsson"},
-      .out      = {"ray_path"},
-      .in       = {"atmospheric_field", "surface_field"},
-      .gin      = {"latitude", "longitude", "max_step"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"atmospheric_field", "surface_field"},
+      .gin       = {"latitude", "longitude", "max_step"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
       .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
   };
@@ -3371,14 +3371,19 @@ have sorted *suns* by distance before running this code.
       .pass_workspace = true,
   };
 
-  wsm_data["disort_intensitiesClearskyDisort"] = {
-      .desc      = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+  wsm_data["spectral_radiance_disortClearskyDisort"] = {
+      .desc =
+          R"--(Computes the spectral radiance using DISORT in clearsky settings.
 )--",
       .author    = {"Richard Larsson"},
-      .gout      = {"disort_intensities"},
-      .gout_type = {"Tensor3"},
+      .gout      = {"spectral_radiance_disort",
+                    "disort_quadrature_angles",
+                    "disort_quadrature_weights"},
+      .gout_type = {"Tensor3", "Vector", "Vector"},
       .gout_desc =
-          {"Tensor3 of disort intensities [(ray_path - 1) x frequency_grid x NQuad]"},
+          {"Tensor3 of disort intensities [(ray_path - 1) x frequency_grid x NQuad]",
+           "Disort quadrature angles [NQuad]",
+           "Disort quadrature weights [NQuad / 2] - only the positive half, the negative half is the same"},
       .in        = {"ray_path",
                     "ray_path_atmospheric_point",
                     "ray_path_propagation_matrix",
