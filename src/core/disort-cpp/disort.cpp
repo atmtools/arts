@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <iostream>
-#include <ranges>
 #include <vector>
 
 #include "arts_constants.h"
@@ -146,7 +144,7 @@ void main_data::solve_for_coefs() {
                     K_collect_m[ln],
                     inv_mu_arr,
                     N);
-          mult(RHS.slice(n - N, N), R, jvec, 1.0, 1.0);
+          mult(RHS.slice(n - N, N), R, jvec.slice(0, N), 1.0, 1.0);
         }
       } else {
         RHS = 0.0;
@@ -361,7 +359,7 @@ void main_data::diagonalize() {
           solve_inplace(jvec, Gml, solve_work);
 
           for (Index j = 0; j < NQuad; j++) {
-            jvec[j] = jvec[j] * mu0 + jvec[j] / K[j];
+            jvec[j] *= mu0  / (1.0 + K[j] * mu0);
           }
 
           mult(Bm[l], G, jvec, -1);

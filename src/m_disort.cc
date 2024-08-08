@@ -1,3 +1,5 @@
+#include <arts_conversions.h>
+#include <arts_omp.h>
 #include <disort.h>
 #include <workspace.h>
 
@@ -5,8 +7,7 @@
 #include <numeric>
 #include <vector>
 
-#include <arts_conversions.h>
-#include <arts_omp.h>
+#include "debug.h"
 
 ArrayOfAscendingGrid ray_path_tau_arrFromPath(
     const ArrayOfPropagationPathPoint& ray_path,
@@ -152,30 +153,39 @@ void spectral_radiance_disortClearskyDisort(
   const ArrayOfAscendingGrid ray_path_tau_arr =
       ray_path_tau_arrFromPath(ray_path, ray_path_propagation_matrix);
 
+  ArrayOfString errors;
+
 #pragma omp parallel for firstprivate(dis) if (not arts_omp_in_parallel())
   for (Index iv = 0; iv < nv; iv++) {
-    dis.tau() = ray_path_tau_arr[iv];
-    for (Size i = 0; i < N - 1; i++) {
-      const Numeric& f0 = ray_path_frequency_grid[i + 0][iv];
-      const Numeric& f1 = ray_path_frequency_grid[i + 1][iv];
+    try {
+      dis.tau() = ray_path_tau_arr[iv];
+      for (Size i = 0; i < N - 1; i++) {
+        const Numeric& f0 = ray_path_frequency_grid[i + 0][iv];
+        const Numeric& f1 = ray_path_frequency_grid[i + 1][iv];
 
-      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
+        const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
+        const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
 
-      const Numeric y0 = planck(f0, t0);
-      const Numeric y1 = planck(f1, t1);
+        const Numeric y0 = planck(f0, t0);
+        const Numeric y1 = planck(f1, t1);
 
-      const Numeric x0 = i == 0 ? 0.0 : ray_path_tau_arr[iv][i - 1];
-      const Numeric x1 = ray_path_tau_arr[iv][i];
+        const Numeric x0 = i == 0 ? 0.0 : ray_path_tau_arr[iv][i - 1];
+        const Numeric x1 = ray_path_tau_arr[iv][i];
 
-      const Numeric b  = (y1 - y0) / (x1 - x0);
-      dis.source_poly()(i, 0) = y0 - b * x0;
-      dis.source_poly()(i, 1) = b;
+        const Numeric b         = (y1 - y0) / (x1 - x0);
+        dis.source_poly()(i, 0) = y0 - b * x0;
+        dis.source_poly()(i, 1) = b;
+      }
+
+      dis.update_all(0.0);
+
+      dis.gridded_u(spectral_radiance_disort[iv].reshape_as(N - 1, 1, NQuad),
+                    {0.0});
+    } catch (const std::exception& e) {
+#pragma omp critical
+      errors.emplace_back(e.what());
     }
-
-    dis.update_all(0.0);
-
-    dis.gridded_u(spectral_radiance_disort[iv].reshape_as(N - 1, 1, NQuad),
-                  {0.0});
   }
+
+  ARTS_USER_ERROR_IF(errors.size(), "Errors occurred in disort:\n", errors);
 }
