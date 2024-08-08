@@ -41,7 +41,7 @@ ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_vector_sensorGaussian(
+ws.measurement_sensorGaussian(
     f0_fwhm_df=[[f, 1e5, 1e4] for f in ws.frequency_grid],
     pos=pos,
     los=los,
@@ -90,7 +90,7 @@ assert np.allclose(
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_vector_sensorGaussianFrequencyGrid(
+ws.measurement_sensorGaussianFrequencyGrid(
     f0_fwhm=[[f, 1e5] for f in ws.frequency_grid],
     pos=pos,
     los=los,
