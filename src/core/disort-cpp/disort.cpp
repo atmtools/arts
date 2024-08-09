@@ -134,9 +134,8 @@ void main_data::solve_for_coefs() {
                   0,
                   -1.0);
 
-        //FIXME: This is not aligned with the original code
         if (NBDRF > 0) {
-          mathscr_v(jvec,
+          mathscr_v(jvec.slice(0, N),
                     comp_data,
                     tau_arr.back(),
                     source_poly_coeffs[ln],
