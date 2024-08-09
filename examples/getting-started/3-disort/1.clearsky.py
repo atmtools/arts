@@ -46,12 +46,10 @@ ws.ray_path_propagation_matrixFromPath()
 
 # %% Disort calculations
 
-print("DISORT Calculations")
 ws.spectral_radiance_disortClearskyDisort(NQuad=NQuad, NLeg=1)
 
 # %% Equivalent ARTS calculations
 
-print("ARTS Calculations")
 ws.ray_pathGeometric(
     pos=[100e3, 0, 0],
     los=[180, 0],
