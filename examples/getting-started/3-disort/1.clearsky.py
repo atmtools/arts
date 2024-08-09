@@ -57,12 +57,12 @@ ws.spectral_radianceClearskyEmission()
 # %% Plot results
 
 plt.semilogy(
-    ws.frequency_grid - line_f0, ws.spectral_radiance[:, 0], "k--", lw=5
-)
-plt.semilogy(
     ws.frequency_grid - line_f0,
     ws.spectral_radiance_disort[:, -1, (NQuad // 2) :],
     label="disort",
+)
+plt.semilogy(
+    ws.frequency_grid - line_f0, ws.spectral_radiance[:, 0], "k--", lw=3
 )
 plt.semilogy(
     ws.frequency_grid - line_f0,

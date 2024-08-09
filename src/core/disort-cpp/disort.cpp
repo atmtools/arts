@@ -14,7 +14,7 @@
 #include "matpack_view.h"
 
 namespace disort {
-void mathscr_v(auto&& um,
+void mathscr_v(ExhaustiveVectorView um,
                mathscr_v_data& data,
                const Numeric tau,
                const ExhaustiveConstVectorView& source_poly_coeffs,
@@ -103,7 +103,7 @@ void main_data::solve_for_coefs() {
 
         if (is_multilayer) {
           for (Index l = 0; l < ln; l++) {
-            mathscr_v(RHS(Range(l * NQuad + N, NQuad)),
+            mathscr_v(RHS.slice(l * NQuad + N, NQuad),
                       comp_data,
                       tau_arr[l],
                       source_poly_coeffs[l + 1],
@@ -111,7 +111,7 @@ void main_data::solve_for_coefs() {
                       K_collect_m[l + 1],
                       inv_mu_arr);
 
-            mathscr_v(RHS(Range(l * NQuad + N, NQuad)),
+            mathscr_v(RHS.slice(l * NQuad + N, NQuad),
                       comp_data,
                       tau_arr[l],
                       source_poly_coeffs[l],
