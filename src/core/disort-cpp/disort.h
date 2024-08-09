@@ -4,6 +4,7 @@
 
 #include <functional>
 
+#include "format_tags.h"
 #include "lin_alg.h"
 #include "matpack_view.h"
 #include "sorted_grid.h"
@@ -41,10 +42,10 @@ struct mathscr_v_data {
 
   mathscr_v_data(const Index Nk = 0, const Index Nc = 0)
       : src(Nk, Nc), G(Nk, Nk), solve_work(Nk), k1(Nk), k2(Nk), cvec(Nc) {}
-  mathscr_v_data(const mathscr_v_data&) = default;
-  mathscr_v_data(mathscr_v_data&&) = default;
+  mathscr_v_data(const mathscr_v_data&)            = default;
+  mathscr_v_data(mathscr_v_data&&)                 = default;
   mathscr_v_data& operator=(const mathscr_v_data&) = default;
-  mathscr_v_data& operator=(mathscr_v_data&&) = default;
+  mathscr_v_data& operator=(mathscr_v_data&&)      = default;
 
   void resize(const Index Nk, const Index Nc) {
     src.resize(Nk, Nc);
@@ -178,11 +179,13 @@ class main_data {
   mathscr_v_data comp_data{};
 
  public:
-  main_data() = default;
-  main_data(const main_data&) = default;
-  main_data(main_data&&) = default;
+  friend struct std::formatter<main_data>;
+
+  main_data()                            = default;
+  main_data(const main_data&)            = default;
+  main_data(main_data&&)                 = default;
   main_data& operator=(const main_data&) = default;
-  main_data& operator=(main_data&&) = default;
+  main_data& operator=(main_data&&)      = default;
 
   main_data(const Index NLayers,
             const Index NQuad,
@@ -582,3 +585,105 @@ class main_data {
   }
 };
 }  // namespace disort
+
+template <>
+struct std::formatter<disort::main_data> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const disort::main_data& v,
+                              FmtContext& ctx) const {
+    const auto sep = tags.sep(true);
+    std::format_to(
+        ctx.out(),
+        "NLayers: {}, NQuad: {}, NLeg: {}, NFourier: {}, N: {}, Nscoeffs: {}, NLeg_all: {}, NBDRF: {}{}",
+        v.NLayers,
+        v.NQuad,
+        v.NLeg,
+        v.NFourier,
+        v.N,
+        v.Nscoeffs,
+        v.NLeg_all,
+        v.NBDRF,
+        sep);
+    std::format_to(ctx.out(),
+                   "Has source: {}, Is multilayer: {}, Has beam source: {}{}",
+                   v.has_source_poly,
+                   v.is_multilayer,
+                   v.has_beam_source,
+                   sep);
+    tags.format(ctx, "tau_arr: "sv, v.tau_arr, sep);
+    tags.format(ctx, "omega_arr: "sv, v.omega_arr, sep);
+    tags.format(ctx, "f_arr: "sv, v.f_arr, sep);
+    tags.format(ctx, "source_poly_coeffs: "sv, v.source_poly_coeffs, sep);
+    tags.format(ctx, "Leg_coeffs_all: "sv, v.Leg_coeffs_all, sep);
+    tags.format(ctx, "b_pos: "sv, v.b_pos, sep);
+    tags.format(ctx, "b_neg: "sv, v.b_neg, sep);
+    tags.format(ctx,
+                "brdf_fourier_modes: "sv,
+                // v.brdf_fourier_modes,
+                sep);
+    tags.format(ctx, "mu0: "sv, v.mu0, sep);
+    tags.format(ctx, "I0: "sv, v.I0, sep);
+    tags.format(ctx, "phi0: "sv, v.phi0, sep);
+    tags.format(ctx, "scale_tau: "sv, v.scale_tau, sep);
+    tags.format(ctx, "scaled_omega_arr: "sv, v.scaled_omega_arr, sep);
+    tags.format(ctx, "scaled_tau_arr_with_0: "sv, v.scaled_tau_arr_with_0, sep);
+    tags.format(ctx, "mu_arr: "sv, v.mu_arr, sep);
+    tags.format(ctx, "inv_mu_arr: "sv, v.inv_mu_arr, sep);
+    tags.format(ctx, "W: "sv, v.W, sep);
+    tags.format(
+        ctx, "Leg_coeffs_residue_avg: "sv, v.Leg_coeffs_residue_avg, sep);
+    tags.format(ctx,
+                "weighted_scaled_Leg_coeffs: "sv,
+                v.weighted_scaled_Leg_coeffs,
+                sep);
+    tags.format(
+        ctx, "weighted_Leg_coeffs_all: "sv, v.weighted_Leg_coeffs_all, sep);
+    tags.format(ctx, "GC_collect: "sv, v.GC_collect, sep);
+    tags.format(ctx, "G_collect: "sv, v.G_collect, sep);
+    tags.format(ctx, "K_collect: "sv, v.K_collect, sep);
+    tags.format(ctx, "B_collect: "sv, v.B_collect, sep);
+    tags.format(ctx, "I0_orig: "sv, v.I0_orig, sep);
+    tags.format(ctx, "f_avg: "sv, v.f_avg, sep);
+    tags.format(ctx, "omega_avg: "sv, v.omega_avg, sep);
+    tags.format(ctx, "scaled_mu0: "sv, v.scaled_mu0, sep);
+    tags.format(ctx, "n: "sv, v.n, sep);
+    tags.format(ctx, "RHS: "sv, v.RHS, sep);
+    tags.format(ctx, "jvec: "sv, v.jvec, sep);
+    tags.format(ctx, "fac: "sv, v.fac, sep);
+    tags.format(ctx,
+                "weighted_asso_Leg_coeffs_l: "sv,
+                v.weighted_asso_Leg_coeffs_l,
+                sep);
+    tags.format(ctx, "asso_leg_term_mu0: "sv, v.asso_leg_term_mu0, sep);
+    tags.format(ctx, "X_temp: "sv, v.X_temp, sep);
+    tags.format(ctx, "mathscr_X_pos: "sv, v.mathscr_X_pos, sep);
+    tags.format(ctx, "E_Lm1L: "sv, v.E_Lm1L, sep);
+    tags.format(ctx, "E_lm1l: "sv, v.E_lm1l, sep);
+    tags.format(ctx, "E_llp1: "sv, v.E_llp1, sep);
+    tags.format(ctx, "BDRF_RHS_contribution: "sv, v.BDRF_RHS_contribution, sep);
+    tags.format(ctx, "Gml: "sv, v.Gml, sep);
+    tags.format(ctx, "BDRF_LHS: "sv, v.BDRF_LHS, sep);
+    tags.format(ctx, "R: "sv, v.R, sep);
+    tags.format(ctx, "mathscr_D_neg: "sv, v.mathscr_D_neg, sep);
+    tags.format(ctx, "D_pos: "sv, v.D_pos, sep);
+    tags.format(ctx, "D_neg: "sv, v.D_neg, sep);
+    tags.format(ctx, "apb: "sv, v.apb, sep);
+    tags.format(ctx, "amb: "sv, v.amb, sep);
+    tags.format(ctx, "sqr: "sv, v.sqr, sep);
+    tags.format(ctx, "asso_leg_term_pos: "sv, v.asso_leg_term_pos, sep);
+    tags.format(ctx, "asso_leg_term_neg: "sv, v.asso_leg_term_neg, sep);
+    tags.format(ctx, "D_temp: "sv, v.D_temp);
+
+    return ctx.out();
+  }
+};

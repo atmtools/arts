@@ -398,21 +398,28 @@ struct TwoLevelValueHolder {
 [[nodiscard]] constexpr ValueDescription value_holder(Rational r_) {
   const Rational r = reduce_by_gcd(r_);
 
+  ValueDescription x{QuantumNumberValueType::H};
+
   // We must now have a half-integer or not
   if (r.denom == 2) {
-    ValueDescription x{QuantumNumberValueType::H};
     x.val.h.x = r.numer;
     return x;
   }
 
   if (r.denom == 1) {
-    ValueDescription x{QuantumNumberValueType::I};
+    x.type    = QuantumNumberValueType::I;
     x.val.i.x = r.numer;
     return x;
   }
 
-  ValueDescription x{QuantumNumberValueType::I};
+  x.type    = QuantumNumberValueType::I;
   x.val.i.x = quantum_number_error_value;
+  return x;
+}
+
+[[nodiscard]] constexpr ValueDescription value_holder(std::string_view s) {
+  ValueDescription x{QuantumNumberValueType::S};
+  x.val.s = StringValue(s);
   return x;
 }
 
@@ -526,15 +533,10 @@ struct TwoLevelValueHolder {
                                                       QuantumNumberType t) {
   switch (common_value_type(t)) {
     case QuantumNumberValueType::I:
-    case QuantumNumberValueType::H: {
-      const Rational r = cast_qnrat(s);
-      return value_holder(r);
-    }
-    case QuantumNumberValueType::S: {
-      ValueDescription x{QuantumNumberValueType::S};
-      x.val.s = StringValue(s);
-      return x;
-    }
+    case QuantumNumberValueType::H:
+      return value_holder(cast_qnrat(s));
+    case QuantumNumberValueType::S:
+      return value_holder(s);
   }
   std::unreachable();
 }

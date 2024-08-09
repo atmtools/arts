@@ -208,9 +208,9 @@ void mult(VectorView y,
           const ConstVectorView &x,
           Numeric alpha,
           Numeric beta) {
-  ARTS_ASSERT(y.nelem() == M.nrows());
-  ARTS_ASSERT(M.ncols() == x.nelem());
-  ARTS_ASSERT(not M.empty());
+  assert(y.nelem() == M.nrows());
+  assert(M.ncols() == x.nelem());
+  assert(not M.empty());
 
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
     char trans;

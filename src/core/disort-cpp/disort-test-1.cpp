@@ -1,5 +1,7 @@
 #include <disort-test.h>
 
+#include <cstdlib>
+
 void test_1a() {
   const AscendingGrid tau_arr{0.03125};
   const Vector omega_arr{0.2};
@@ -7,12 +9,12 @@ void test_1a() {
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
 
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
+  const Numeric mu0  = 0.1;
+  const Numeric I0   = Constant::pi / mu0;
   const Numeric phi0 = 0;
 
   // Optional (unused)
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -184,11 +186,11 @@ void test_1b() {
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0;
+  const Numeric mu0    = 0.1;
+  const Numeric I0     = Constant::pi / mu0;
+  const Numeric phi0   = 0;
 
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -359,11 +361,11 @@ void test_1c() {
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0;
+  const Numeric mu0    = 0.1;
+  const Numeric I0     = Constant::pi / mu0;
+  const Numeric phi0   = 0;
 
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -536,11 +538,11 @@ void test_1d() {
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0;
+  const Numeric mu0    = 0.1;
+  const Numeric I0     = Constant::pi / mu0;
+  const Numeric phi0   = 0;
 
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -713,11 +715,11 @@ void test_1e() {
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0;
+  const Numeric mu0    = 0.1;
+  const Numeric I0     = Constant::pi / mu0;
+  const Numeric phi0   = 0;
 
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -890,11 +892,11 @@ void test_1f() {
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
   Leg_coeffs_all(0, 0) = 1;
-  const Numeric mu0 = 0.1;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0;
+  const Numeric mu0    = 0.1;
+  const Numeric I0     = Constant::pi / mu0;
+  const Numeric phi0   = 0;
 
-  const Index NLeg = NQuad;
+  const Index NLeg     = NQuad;
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
@@ -1061,11 +1063,16 @@ void test_1f() {
           false);
 }
 
-int main() {
+int main() try {
   test_1a();
   test_1b();
   test_1c();
   test_1d();
   test_1e();
   test_1f();
+
+  return EXIT_SUCCESS;
+} catch (const std::exception& e) {
+  std::cerr << e.what() << std::endl;
+  return EXIT_FAILURE;
 }

@@ -769,6 +769,14 @@ class matpack_view {
    * @return matpack_view<T, N, constant, strided> Slice of the view
    */
   matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
+    ARTS_ASSERT(extent(0) >= i0 + nelem,
+                "Cannot get range ",
+                i0,
+                ":",
+                i0 + nelem,
+                " for first dimension of [",
+                shape(),
+                "]");
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
@@ -783,6 +791,14 @@ class matpack_view {
    * @return matpack_view<T, N, true, strided> Slice of the view
    */
   matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
+    ARTS_ASSERT(extent(0) >= i0 + nelem,
+                "Cannot get range ",
+                i0,
+                ":",
+                i0 + nelem,
+                " for first dimension of [",
+                shape(),
+                "]");
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 

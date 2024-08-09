@@ -191,15 +191,19 @@ QuantumIdentifier global_quantumidentifier(const Array<QuantumNumberType>& qns,
 Array<QuantumNumberType> string2vecqn(std::string_view qnstr) {
   using namespace Quantum::Number;
 
+  Array<QuantumNumberType> nums;
+
   if (qnstr == "DEFAULT_GLOBAL") {
-    return Array<QuantumNumberType>(global_types.begin(), global_types.end());
+    std::ranges::copy(global_types, std::back_inserter(nums));
+    return nums;
   }
   if (qnstr == "DEFAULT_LOCAL") {
-    return Array<QuantumNumberType>(local_types.begin(), local_types.end());
+    std::ranges::copy(local_types, std::back_inserter(nums));
+    return nums;
   }
 
   const Index N = count_items(qnstr);
-  Array<QuantumNumberType> nums(N);
+  nums.resize(N);
   for (Index i = 0; i < N; i++) {
     nums[i] = to<QuantumNumberType>(items(qnstr, i));
   }
