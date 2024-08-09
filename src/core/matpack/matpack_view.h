@@ -783,6 +783,7 @@ class matpack_view {
    * @return matpack_view<T, N, true, strided> Slice of the view
    */
   matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
+    assert (extent(0) >= i0 + nelem);
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
