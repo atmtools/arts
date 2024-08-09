@@ -6,13 +6,11 @@ PLOT = False
 
 ws = pyarts.Workspace()
 
-ws = pyarts.workspace.Workspace()
-
 # %% Sampled frequency range
+
 line_f0 = 118750348044.712
 ws.frequency_grid = [line_f0]
 ws.frequency_grid = np.linspace(-2e6, 2e6, 101) + line_f0
-
 
 # %% Species and line absorption
 
@@ -39,6 +37,7 @@ ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core geometry
+
 NQuad = 40
 ws.ray_pathGeometricUplooking(latitude=0.0, longitude=0.0, max_step=1000.0)
 ws.ray_path_atmospheric_pointFromPath()
@@ -46,10 +45,12 @@ ws.ray_path_frequency_gridFromPath()
 ws.ray_path_propagation_matrixFromPath()
 
 # %% Disort calculations
+
 print("DISORT Calculations")
 ws.spectral_radiance_disortClearskyDisort(NQuad=NQuad, NLeg=1)
 
 # %% Equivalent ARTS calculations
+
 print("ARTS Calculations")
 ws.ray_pathGeometric(
     pos=[100e3, 0, 0],
