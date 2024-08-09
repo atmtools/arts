@@ -2,6 +2,8 @@ import pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+PLOT = False
+
 ws = pyarts.Workspace()
 
 ws = pyarts.workspace.Workspace()
@@ -44,9 +46,11 @@ ws.ray_path_frequency_gridFromPath()
 ws.ray_path_propagation_matrixFromPath()
 
 # %% Disort calculations
+print("DISORT Calculations")
 ws.spectral_radiance_disortClearskyDisort(NQuad=NQuad, NLeg=1)
 
 # %% Equivalent ARTS calculations
+print("ARTS Calculations")
 ws.ray_pathGeometric(
     pos=[100e3, 0, 0],
     los=[180, 0],
@@ -56,28 +60,29 @@ ws.spectral_radianceClearskyEmission()
 
 # %% Plot results
 
-plt.semilogy(
-    ws.frequency_grid - line_f0,
-    ws.spectral_radiance_disort[:, -1, (NQuad // 2) :],
-    label="disort",
-)
-plt.semilogy(
-    ws.frequency_grid - line_f0, ws.spectral_radiance[:, 0], "k--", lw=3
-)
-plt.semilogy(
-    ws.frequency_grid - line_f0,
-    ws.spectral_radiance_disort[:, -1, NQuad // 2],
-    "g:",
-    lw=3,
-)
-plt.semilogy(
-    ws.frequency_grid - line_f0,
-    ws.spectral_radiance_disort[:, -1, -1],
-    "m:",
-    lw=3,
-)
-plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
-plt.xlabel("Dirac frequency [index count]")
+if PLOT:
+    plt.semilogy(
+        ws.frequency_grid - line_f0,
+        ws.spectral_radiance_disort[:, -1, (NQuad // 2) :],
+        label="disort",
+    )
+    plt.semilogy(
+        ws.frequency_grid - line_f0, ws.spectral_radiance[:, 0], "k--", lw=3
+    )
+    plt.semilogy(
+        ws.frequency_grid - line_f0,
+        ws.spectral_radiance_disort[:, -1, NQuad // 2],
+        "g:",
+        lw=3,
+    )
+    plt.semilogy(
+        ws.frequency_grid - line_f0,
+        ws.spectral_radiance_disort[:, -1, -1],
+        "m:",
+        lw=3,
+    )
+    plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
+    plt.xlabel("Dirac frequency [index count]")
 
 # %% The last test should be that we are close to the correct values
 
