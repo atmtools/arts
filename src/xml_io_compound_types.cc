@@ -2823,3 +2823,29 @@ void xml_write_to_stream(std::ostream& os_xml,
     xml_write_to_stream(os_xml, i, pbofs, "poslos");
   }
 }
+
+//! DisortBDRF
+
+void xml_read_from_stream(std::istream&, DisortBDRF&, bifstream*) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const DisortBDRF&,
+                         bofstream*,
+                         const String&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//! MatrixOfDisortBDRF
+
+void xml_read_from_stream(std::istream&, MatrixOfDisortBDRF&, bifstream*) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const MatrixOfDisortBDRF&,
+                         bofstream*,
+                         const String&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}

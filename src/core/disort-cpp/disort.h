@@ -2,10 +2,13 @@
 
 #include <matpack.h>
 
+#include <format>
 #include <functional>
+#include <ostream>
 
 #include "format_tags.h"
 #include "lin_alg.h"
+#include "matpack_data.h"
 #include "matpack_view.h"
 #include "sorted_grid.h"
 
@@ -30,6 +33,10 @@ struct BDRF {
     Matrix x(a.size(), b.size());
     f(x, a, b);
     return x;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const BDRF&) {
+    return os << "BDRF";
   }
 };
 
@@ -518,10 +525,10 @@ class main_data {
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
   [[nodiscard]] auto&& all_legendre_coeffs() const { return Leg_coeffs_all; }
 
-  //! Positive Fourier coefficients of the beam source - 1 x 1 or N x NFourier
+  //! Positive Fourier coefficients of the beam source - NFourier x N
   [[nodiscard]] auto&& positive_boundary() const { return b_pos; }
 
-  //! Negative Fourier coefficients of the beam source - 1 x 1 or N x NFourier
+  //! Negative Fourier coefficients of the beam source - NFourier x N
   [[nodiscard]] auto&& negative_boundary() const { return b_neg; }
 
   //! Fourier modes of the BRDF - NBDRF
@@ -555,10 +562,10 @@ class main_data {
     return ExhaustiveMatrixView{Leg_coeffs_all};
   }
 
-  //! Positive Fourier coefficients of the beam source - 1 x 1 or N x NFourier
+  //! Positive Fourier coefficients of the beam source - NFourier x N
   [[nodiscard]] auto positive_boundary() { return ExhaustiveMatrixView{b_pos}; }
 
-  //! Negative Fourier coefficients of the beam source - 1 x 1 or N x NFourier
+  //! Negative Fourier coefficients of the beam source - NFourier x N
   [[nodiscard]] auto negative_boundary() { return ExhaustiveMatrixView{b_neg}; }
 
   //! Fourier modes of the BRDF - NBDRF
@@ -585,6 +592,26 @@ class main_data {
   }
 };
 }  // namespace disort
+
+using DisortBDRF         = disort::BDRF;
+using MatrixOfDisortBDRF = matpack::matpack_data<DisortBDRF, 2>;
+
+template <>
+struct std::formatter<DisortBDRF> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+  template <class FmtContext>
+  FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
+    return std::format_to(ctx.out(), "BDRF"sv);
+  }
+};
 
 template <>
 struct std::formatter<disort::main_data> {

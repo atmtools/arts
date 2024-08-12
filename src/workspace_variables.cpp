@@ -564,35 +564,31 @@ In classical ``F(x) = y``-notation, this is the ``y``.
       .type = "Vector",
   };
 
-  wsv_data["inversion_iterate_agenda_counter"] =
-      {
-          .desc          = R"(A counter for the inversion iterate agenda.
+  wsv_data["inversion_iterate_agenda_counter"] = {
+      .desc          = R"(A counter for the inversion iterate agenda.
 )",
-          .type          = "Index",
-          .default_value = Index{0},
-      };
+      .type          = "Index",
+      .default_value = Index{0},
+  };
 
-  wsv_data["inversion_iterate_agenda_do_jacobian"] =
-      {
-          .desc          = R"(A boolean for if Jacobian calculations should be done.
+  wsv_data["inversion_iterate_agenda_do_jacobian"] = {
+      .desc = R"(A boolean for if Jacobian calculations should be done.
 )",
-          .type          = "Index",
-          .default_value = Index{1},
-      };
+      .type = "Index",
+      .default_value = Index{1},
+  };
 
-  wsv_data["measurement_vector_error_covariance_matrix"] =
-      {
-          .desc          = R"(Covariance matrix for observation uncertainties.
+  wsv_data["measurement_vector_error_covariance_matrix"] = {
+      .desc = R"(Covariance matrix for observation uncertainties.
 )",
-          .type          = "CovarianceMatrix",
-      };
+      .type = "CovarianceMatrix",
+  };
 
-  wsv_data["model_state_covariance_matrix"] =
-      {
-          .desc          = R"(Covariance matrix of a priori distribution.
+  wsv_data["model_state_covariance_matrix"] = {
+      .desc = R"(Covariance matrix of a priori distribution.
 )",
-          .type          = "CovarianceMatrix",
-      };
+      .type = "CovarianceMatrix",
+  };
 
   wsv_data["measurement_jacobian"] = {
       .desc = R"(The partial derivatives of the *measurement_vector*.
@@ -640,6 +636,175 @@ Size is number of path points for the sun.
 Dimensions: *ray_path* x *suns* x *sun_path*
 )",
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["disort_optical_thicknesses"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that every row must be convertible to an *AscendingGrid*.
+
+Size is *frequency_grid* times (*ray_path* - 1).
+
+*ray_path* - 1 is the number of layers.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["disort_single_scattering_albedo"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes.
+
+Size is *frequency_grid* times (*ray_path* - 1).
+
+*ray_path* - 1 is the number of layers.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["disort_fractional_scattering"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes.
+
+Size is *frequency_grid* times (*ray_path* - 1).
+
+*ray_path* - 1 is the number of layers.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["disort_legendre_coefficients"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes except in the first polynomial,
+which should be all ones.
+
+Size is *frequency_grid* times (*ray_path* - 1) times
+all Legendre polynomials.
+
+*ray_path* - 1 is the number of layers.
+)",
+      .type = "Tensor3",
+  };
+
+  wsv_data["disort_positive_boundary_condition"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes.
+
+Size is *frequency_grid* times number of Fourier modes times directional-quadratures.
+
+.. note:: 
+
+    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
+    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
+    must match.
+)",
+      .type = "Tensor3",
+  };
+
+  wsv_data["disort_negative_boundary_condition"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes.
+
+Size is *frequency_grid* times number of Fourier modes times directional-quadratures.
+
+.. note::
+
+    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
+    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
+    must match.
+)",
+      .type = "Tensor3",
+  };
+
+  wsv_data["disort_source_polynomial"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means that the last dimension size is zero.
+
+Size is *frequency_grid* times (*ray_path* - 1) times
+source function polynomial order.
+
+A first order polynomial gives the source function as:
+
+.. math::
+
+    B = s_{1} + s_{0} \tau 
+
+.. note:: 
+
+    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
+    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
+    must match.
+
+*ray_path* - 1 is the number of layers.
+)",
+      .type = "Tensor3",
+  };
+
+  wsv_data["disort_solar_zenith_angle"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Unit is in degrees.  Note that there's an error if the solar zenith
+angle overlaps with one of the fixed DISORT quadrature angles.
+
+Size is *frequency_grid*.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["disort_solar_azimuth_angle"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Unit is in degrees.
+
+Size is *frequency_grid*.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["disort_solar_source"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means all zeroes.
+
+Size is *frequency_grid*.
+
+.. note:: 
+
+    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
+    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
+    must match.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["disort_bidirectional_reflectance_distribution_functions"] = {
+      .desc = R"(A list of single scattering albedos for DISORT.
+
+Note that "turned-off" means the column dimension size is zero.
+
+Size is *frequency_grid* time number of Fourier modes for the BDRF:s.
+)",
+      .type = "MatrixOfDisortBDRF",
+  };
+
+  wsv_data["disort_spectral_radiance_field"] = {
+      .desc = "The spectral radiance field from DISORT.\n",
+      .type = "Tensor3",
+  };
+
+  wsv_data["disort_quadrature_angles"] = {
+      .desc = "The quadrature angles for DISORT.\n",
+      .type = "Vector",
+  };
+
+  wsv_data["disort_quadrature_weights"] = {
+      .desc = "The quadrature weights for DISORT.\n",
+      .type = "Vector",
   };
 
   return wsv_data;

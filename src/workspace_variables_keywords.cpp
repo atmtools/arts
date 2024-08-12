@@ -13,7 +13,8 @@ static constexpr std::array keywords{"absorption",
                                      "scattering",
                                      "grid",
                                      "measurement",
-                                     "model_state"};
+                                     "model_state",
+                                     "disort"};
 
 bool workspace_variables_keywords_match(const std::string_view some_wsv,
                                         const std::string_view this_name) {

@@ -3055,6 +3055,15 @@ See *SpeciesIsotope* for valid ``species``
       .in     = {"ray_path"},
   };
 
+  wsm_data["ray_path_pointLowestFromPath"] = {
+      .desc =
+          R"(Sets *ray_path_point* to the lowest point of *ray_path*.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_point"},
+      .in     = {"ray_path"},
+  };
+
   wsm_data["measurement_vectorFromOperatorPath"] = {
       .desc =
           R"--(Sets measurement vector by looping over all sensor elements
@@ -3320,32 +3329,6 @@ have sorted *suns* by distance before running this code.
            R"--(The depolarization factor to use.)--",
            "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
-  };
-
-  wsm_data["spectral_radiance_disortClearskyDisort"] = {
-      .desc =
-          R"--(Computes the spectral radiance using DISORT in clearsky settings.
-)--",
-      .author    = {"Richard Larsson"},
-      .gout      = {"spectral_radiance_disort",
-                    "disort_quadrature_angles",
-                    "disort_quadrature_weights"},
-      .gout_type = {"Tensor3", "Vector", "Vector"},
-      .gout_desc =
-          {"Tensor3 of disort intensities [(ray_path - 1) x frequency_grid x NQuad]",
-           "Disort quadrature angles [NQuad]",
-           "Disort quadrature weights [NQuad / 2] - only the positive half, the negative half is the same"},
-      .in        = {"ray_path",
-                    "ray_path_atmospheric_point",
-                    "ray_path_propagation_matrix",
-                    "ray_path_frequency_grid"},
-      .gin       = {"NQuad", "NLeg", "NFourier"},
-      .gin_type  = {"Index", "Index", "Index"},
-      .gin_value = {Index{4}, Index{-1}, Index{-1}},
-      .gin_desc =
-          {"Number of quadrature angles to use",
-           "Number of internal Legendre polynomials to use (-1 defaults to NQuad).",
-           "Number of internal Fourier modes to use (-1 defaults to NLeg)"},
   };
 
   wsm_data["atmospheric_fieldFromModelState"] = {
@@ -3706,6 +3689,178 @@ The default setting triggers an error if "lm" is selected.
       .gin_type  = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The value of the covariance matrix diagonal"},
+  };
+
+  wsm_data["disort_solar_sourceTurnOff"] = {
+      .desc   = R"(Turns off solar radiation in DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_solar_source",
+                 "disort_solar_zenith_angle",
+                 "disort_solar_azimuth_angle"},
+      .in     = {"frequency_grid"},
+  };
+
+  wsm_data["disort_source_polynomialTurnOff"] = {
+      .desc   = R"(Turns off source radiation in DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_source_polynomial"},
+      .in     = {"ray_path", "frequency_grid"},
+  };
+
+  wsm_data["disort_source_polynomialLinearInTau"] = {
+      .desc =
+          R"(Use a source function that changes linearly in optical thickness.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_source_polynomial"},
+      .in     = {"disort_optical_thicknesses",
+                 "ray_path_atmospheric_point",
+                 "frequency_grid"},
+  };
+
+  wsm_data["disort_negative_boundary_conditionTurnOff"] = {
+      .desc   = R"(Turns boundary condition from space for DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_negative_boundary_condition"},
+      .in     = {"frequency_grid"},
+      .gin = {"disort_quadrature_dimension", "disort_fourier_mode_dimension"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The number of quadrature points",
+                    "The number of Fourier modes"},
+  };
+
+  wsm_data["disort_positive_boundary_conditionCosmicBackgroundRadiation"] = {
+      .desc =
+          R"(Space radiation into DISORT is isotropic cosmic background radiation.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_positive_boundary_condition"},
+      .in     = {"frequency_grid"},
+      .gin = {"disort_quadrature_dimension", "disort_fourier_mode_dimension"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The number of quadrature points",
+                    "The number of Fourier modes"},
+  };
+
+  wsm_data["disort_positive_boundary_conditionTurnOff"] = {
+      .desc = R"(Turns boundary condition from surface for DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_positive_boundary_condition"},
+      .in     = {"frequency_grid"},
+      .gin = {"disort_quadrature_dimension", "disort_fourier_mode_dimension"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The number of quadrature points",
+                    "The number of Fourier modes"},
+  };
+
+  wsm_data["disort_negative_boundary_conditionSurfaceTemperature"] = {
+      .desc =
+          R"(Surface radiation into DISORT is isotropic from surface temperature.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_negative_boundary_condition"},
+      .in     = {"frequency_grid", "ray_path_point", "surface_field"},
+      .gin = {"disort_quadrature_dimension", "disort_fourier_mode_dimension"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"The number of quadrature points",
+                    "The number of Fourier modes"},
+  };
+
+  wsm_data["disort_legendre_coefficientsTurnOff"] = {
+      .desc      = R"(Turns off Legendre coefficients in DISORT calculations.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_legendre_coefficients"},
+      .in        = {"ray_path", "frequency_grid"},
+      .gin       = {"disort_legendre_polynomial_dimension"},
+      .gin_type  = {"Index"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The size of the Legendre polynomial"},
+  };
+
+  wsm_data["disort_fractional_scatteringTurnOff"] = {
+      .desc   = R"(Turns off fractional scattering in DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_fractional_scattering"},
+      .in     = {"ray_path", "frequency_grid"},
+  };
+
+  wsm_data["disort_single_scattering_albedoTurnOff"] = {
+      .desc   = R"(Turns off single albedo scattering in DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_single_scattering_albedo"},
+      .in     = {"ray_path", "frequency_grid"},
+  };
+
+  wsm_data["disort_optical_thicknessesFromPath"] = {
+      .desc   = R"(Get optical thickness from path.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_optical_thicknesses"},
+      .in     = {"ray_path", "ray_path_propagation_matrix"},
+  };
+
+  wsm_data["disort_bidirectional_reflectance_distribution_functionsTurnOff"] = {
+      .desc   = R"(Turns off BDRF in DISORT calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_bidirectional_reflectance_distribution_functions"},
+      .in     = {"frequency_grid"},
+  };
+
+  wsm_data
+      ["disort_bidirectional_reflectance_distribution_functionsLambertianConstant"] =
+          {
+              .desc   = R"(Turns off BDRF in DISORT calculations.
+)",
+              .author = {"Richard Larsson"},
+              .out =
+                  {"disort_bidirectional_reflectance_distribution_functions"},
+              .in        = {"frequency_grid"},
+              .gin       = {"value"},
+              .gin_type  = {"Numeric"},
+              .gin_value = {std::nullopt},
+              .gin_desc  = {"The value of the BDRF in all directions"},
+  };
+
+  wsm_data["disort_spectral_radiance_fieldCalc"] = {
+      .desc   = R"(Perform DISORT calculations for spectral radiance.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_spectral_radiance_field",
+                 "disort_quadrature_angles",
+                 "disort_quadrature_weights"},
+      .in     = {"disort_optical_thicknesses",
+                 "disort_single_scattering_albedo",
+                 "disort_fractional_scattering",
+                 "disort_legendre_coefficients",
+                 "disort_source_polynomial",
+                 "disort_positive_boundary_condition",
+                 "disort_negative_boundary_condition",
+                 "disort_bidirectional_reflectance_distribution_functions",
+                 "disort_solar_zenith_angle",
+                 "disort_solar_azimuth_angle",
+                 "disort_solar_source"},
+  };
+
+  wsm_data["spectral_radianceIntegrateDisort"] = {
+      .desc   = R"(Integrate DISORT spectral radiance.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in     = {"disort_spectral_radiance_field",
+                 "disort_quadrature_angles",
+                 "disort_quadrature_weights"},
   };
 
   /*
