@@ -10,11 +10,10 @@
 
 #include "configtypes.h"
 #include "debug.h"
+#include "hpy_arts.h"
 #include "matpack_iter.h"
 #include "sorted_grid.h"
 #include "sorting.h"
-
-NB_MAKE_OPAQUE(std::vector<disort::BDRF>);
 
 namespace Python {
 using bdrf_func = std::function<Matrix(const Vector&, const Vector&)>;
@@ -22,14 +21,14 @@ using bdrf_func = std::function<Matrix(const Vector&, const Vector&)>;
 void py_disort(py::module_& m) try {
   auto disort_nm = m.def_submodule("disort");
 
-  py::class_<disort::BDRF>(disort_nm, "bdrf")
-      .def(py::init<>())
+  py::class_<DisortBDRF> disbdrf(m, "DisortBDRF");
+  disbdrf
       .def(
           "__init__",
-          [](disort::BDRF* b, const bdrf_func& f) {
-            new (b) disort::BDRF([f](ExhaustiveMatrixView mat,
-                                     const ExhaustiveConstVectorView& a,
-                                     const ExhaustiveConstVectorView& b) {
+          [](DisortBDRF* b, const bdrf_func& f) {
+            new (b) DisortBDRF([f](ExhaustiveMatrixView mat,
+                                   const ExhaustiveConstVectorView& a,
+                                   const ExhaustiveConstVectorView& b) {
               const Matrix out = f(Vector{a}, Vector{b});
               if (out.shape() != mat.shape()) {
                 throw std::runtime_error(
@@ -43,14 +42,18 @@ void py_disort(py::module_& m) try {
           },
           py::keep_alive<0, 1>())
       .def("__call__",
-           [](const disort::BDRF& bdrf, const Vector& a, const Vector& b) {
+           [](const DisortBDRF& bdrf, const Vector& a, const Vector& b) {
              Matrix out(a.size(), b.size());
              bdrf(out, a, b);
              return out;
            });
-  py::implicitly_convertible<bdrf_func, disort::BDRF>();
+  workspace_group_interface(disbdrf);
+  py::implicitly_convertible<bdrf_func, DisortBDRF>();
 
-  py::bind_vector<std::vector<disort::BDRF>, py::rv_policy::reference_internal>(
+  py::class_<MatrixOfDisortBDRF> mat_disbdrf(m, "MatrixOfDisortBDRF");
+  workspace_group_interface(mat_disbdrf);
+
+  py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(
       disort_nm, "ArrayOfBDRF");
 
   py::class_<disort::main_data> x(m, "cppdisort");
@@ -69,7 +72,7 @@ void py_disort(py::module_& m) try {
          const std::optional<Matrix>& b_pos,
          const std::optional<Matrix>& b_neg,
          const std::optional<Vector>& f_arr,
-         const std::vector<disort::BDRF>& bdrf,
+         const std::vector<DisortBDRF>& bdrf,
          const std::optional<Matrix>& s_poly_coeffs) {
         const Index NFourier = NFourier_.value_or(NQuad);
         const Index NLeg     = NLeg_.value_or(NQuad);
@@ -104,7 +107,7 @@ void py_disort(py::module_& m) try {
       "b_pos"_a.none()         = py::none(),
       "b_neg"_a.none()         = py::none(),
       "f_arr"_a.none()         = py::none(),
-      "BDRF_Fourier_modes"_a   = std::vector<disort::BDRF>{},
+      "BDRF_Fourier_modes"_a   = std::vector<DisortBDRF>{},
       "s_poly_coeffs"_a.none() = py::none());
   x.def(
        "u",

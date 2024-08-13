@@ -802,6 +802,8 @@ class TestGroups:
             "SingleScatteringData",
             "JacobianTargets",
             "SpectralRadianceOperator",
+            "DisortBDRF",
+            "MatrixOfDisortBDRF",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())

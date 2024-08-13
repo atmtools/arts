@@ -239,14 +239,14 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["SurfaceTypeTag"] = {
-      .file        = "enums.h",
-      .desc        = R"--(A surface type
+      .file = "enums.h",
+      .desc = R"--(A surface type
 )--",
   };
 
   wsg_data["SurfacePropertyTag"] = {
-      .file        = "enums.h",
-      .desc        = R"--(A surface property
+      .file = "enums.h",
+      .desc = R"--(A surface property
 )--",
   };
 
@@ -552,6 +552,16 @@ Both the data and the grid may be named
       .file                 = "matpack.h",
       .desc                 = "A 2 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
+  };
+
+  wsg_data["DisortBDRF"] = {
+      .file = "disort.h",
+      .desc = "A bidirectional reflectance function\n",
+  };
+
+  wsg_data["MatrixOfDisortBDRF"] = {
+      .file = "disort.h",
+      .desc = "A 2 dimensional array of *DisortBDRF*\n",
   };
 
   wsg_data["Numeric"] = {

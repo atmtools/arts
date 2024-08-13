@@ -648,8 +648,8 @@ void opt_prop_sptFromScat_data(  // Output and Input:
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  ARTS_ASSERT(ext_mat_spt.size() == TotalNumberOfElements(scat_data));
-  ARTS_ASSERT(abs_vec_spt.size() == TotalNumberOfElements(scat_data));
+  ARTS_ASSERT(static_cast<Index>(ext_mat_spt.size()) == TotalNumberOfElements(scat_data));
+  ARTS_ASSERT(static_cast<Index>(abs_vec_spt.size()) == TotalNumberOfElements(scat_data));
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, 4, 4]
@@ -1890,8 +1890,8 @@ void opt_prop_sptFromMonoData(  // Output and Input:
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  ARTS_ASSERT(ext_mat_spt.size() == TotalNumberOfElements(scat_data_mono));
-  ARTS_ASSERT(abs_vec_spt.size() == TotalNumberOfElements(scat_data_mono));
+  ARTS_ASSERT(static_cast<Index>(ext_mat_spt.size()) == TotalNumberOfElements(scat_data_mono));
+  ARTS_ASSERT(static_cast<Index>(abs_vec_spt.size()) == TotalNumberOfElements(scat_data_mono));
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same

@@ -346,7 +346,7 @@ void handle_opt(const char* c, bool& print, Index& N) {
 }
 
 int main(int argc, char** argv) {
-  bool print = false;
+  bool print = true;
   Index N    = 100;
   Index argi = 1;
   while (argc > argi) {
@@ -355,7 +355,9 @@ int main(int argc, char** argv) {
   }
 
   if (print) {
+    std::cout << "OLD:\n";
     oldimpl(print);
+    std::cout << "NEW:\n";
     newimpl(print);
   } else {
     Array<Timing> ts1;

@@ -13,9 +13,6 @@
 
 using namespace std::literals;
 
-inline constexpr Index short_str_v_stp = 3;
-inline constexpr Index short_str_v_cut = 8;
-
 struct format_tags;
 template <typename T>
 concept arts_inner_fmt =
@@ -255,7 +252,7 @@ struct std::formatter<std::vector<T, Allocator>> {
     const auto n = v.size();
 
     inner_fmt().tags.add_if_bracket(ctx, '[');
-    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
+    if (inner_fmt().tags.short_str and n > 8) {
       const auto sep = inner_fmt().tags.sep();
       inner_fmt().tags.format(ctx,
                               v[0],
@@ -304,7 +301,7 @@ struct std::formatter<std::array<T, N>> {
     const auto n = v.size();
 
     inner_fmt().tags.add_if_bracket(ctx, '[');
-    if (inner_fmt().tags.short_str and n > short_str_v_cut) {
+    if (inner_fmt().tags.short_str and n > 8) {
       const auto sep = inner_fmt().tags.sep();
       inner_fmt().tags.format(ctx,
                               v[0],

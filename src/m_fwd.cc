@@ -30,24 +30,24 @@ void spectral_radiance_operatorClearsky1D(
     const Index& cia_robust) {
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
 
-  using lines_t = ArrayOfAbsorptionBand;
-  using cia_t = ArrayOfCIARecord;
-  using xsec_t = ArrayOfXsecRecord;
+  using lines_t  = ArrayOfAbsorptionBand;
+  using cia_t    = ArrayOfCIARecord;
+  using xsec_t   = ArrayOfXsecRecord;
   using predef_t = PredefinedModelData;
 
-  const String lines_str = "absorption_bands";
-  const String cia_str = "absorption_cia_data";
-  const String xsec_str = "absorption_xsec_fit_data";
+  const String lines_str  = "absorption_bands";
+  const String cia_str    = "absorption_cia_data";
+  const String xsec_str   = "absorption_xsec_fit_data";
   const String predef_str = "absorption_predefined_model_data";
 
-  auto lines = ws.wsv_and_contains(lines_str)
-                   ? ws.share(lines_str)->share<lines_t>()
-                   : std::shared_ptr<lines_t>{};
-  auto cia = ws.wsv_and_contains(cia_str) ? ws.share(cia_str)->share<cia_t>()
-                                          : std::shared_ptr<cia_t>{};
-  auto xsec = ws.wsv_and_contains(xsec_str)
-                  ? ws.share(xsec_str)->share<xsec_t>()
-                  : std::shared_ptr<xsec_t>{};
+  auto lines  = ws.wsv_and_contains(lines_str)
+                    ? ws.share(lines_str)->share<lines_t>()
+                    : std::shared_ptr<lines_t>{};
+  auto cia    = ws.wsv_and_contains(cia_str) ? ws.share(cia_str)->share<cia_t>()
+                                             : std::shared_ptr<cia_t>{};
+  auto xsec   = ws.wsv_and_contains(xsec_str)
+                    ? ws.share(xsec_str)->share<xsec_t>()
+                    : std::shared_ptr<xsec_t>{};
   auto predef = ws.wsv_and_contains(predef_str)
                     ? ws.share(predef_str)->share<predef_t>()
                     : std::shared_ptr<predef_t>{};
@@ -71,20 +71,20 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
-  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
-  const AscendingGrid& latitude_grid = spectral_radiance_operator.latitude();
+  const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
+  const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
   const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
 
-  const Index nza = zenith_grid.size();
-  const Index naa = azimuth_grid.size();
-  const Index nalt = altitude_grid.size();
-  const Index nlat = latitude_grid.size();
-  const Index nlon = longitude_grid.size();
+  const Index nza   = zenith_grid.size();
+  const Index naa   = azimuth_grid.size();
+  const Index nalt  = altitude_grid.size();
+  const Index nlat  = latitude_grid.size();
+  const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
   spectral_radiance_field = StokvecGriddedField6{
       .data_name = "Spectral Radiance Field",
-      .data = StokvecTensor6(
+      .data      = StokvecTensor6(
           nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
       .grid_names = {"Zenith angle",
                      "Azimuth angle",
@@ -92,22 +92,22 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
                      "Latitude",
                      "Longitude",
                      "Frequency"},
-      .grids = {zenith_grid,
-                azimuth_grid,
-                altitude_grid,
-                latitude_grid,
-                longitude_grid,
-                frequency_grid}};
+      .grids      = {zenith_grid,
+                     azimuth_grid,
+                     altitude_grid,
+                     latitude_grid,
+                     longitude_grid,
+                     frequency_grid}};
 
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
   ARTS_USER_ERROR_IF(latitude_grid.size() != 1, "Latitude must be scalar")
   ARTS_USER_ERROR_IF(longitude_grid.size() != 1, "Longitude must be scalar")
   ARTS_USER_ERROR_IF(std::ranges::binary_search(zenith_grid, 90.0),
                      "Zenith angle must not be 90 degrees")
-  const Numeric alt_low = altitude_grid.front();
+  const Numeric alt_low  = altitude_grid.front();
   const Numeric alt_high = altitude_grid.back();
-  const Numeric lat = latitude_grid[0];
-  const Numeric lon = longitude_grid[0];
+  const Numeric lat      = latitude_grid[0];
+  const Numeric lon      = longitude_grid[0];
 
   const std::vector<fwd::path> upwards =
       spectral_radiance_operator.geometric_planar({alt_low, lat, lon},
@@ -117,12 +117,12 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
 
   const auto pathstep = [&upwards, &downwards](const Numeric za,
                                                const Numeric az) {
-    auto path = (za > 90.0) ? upwards : downwards;
+    auto path         = (za > 90.0) ? upwards : downwards;
     const Numeric scl = std::abs(1.0 / Conversion::cosd(za));
     for (auto& pp : path) {
-      pp.point.azimuth() = az;
-      pp.point.zenith() = za;
-      pp.distance *= scl;
+      pp.point.azimuth()  = az;
+      pp.point.zenith()   = za;
+      pp.distance        *= scl;
     }
     return path;
   };
@@ -131,13 +131,15 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
                             const Numeric freq,
                             const Numeric za,
                             const std::vector<fwd::path>& path) {
+    StokvecVector srad;
     if (za < 90.0) {
-      return spectral_radiance_operator(
+      srad = spectral_radiance_operator(
           freq, path, SpectralRadianceOperator::as_vector{});
+    } else {
+      srad = spectral_radiance_operator(
+          freq, path, SpectralRadianceOperator::as_vector{});
+      std::ranges::reverse(srad);
     }
-    auto srad = spectral_radiance_operator(
-        freq, path, SpectralRadianceOperator::as_vector{});
-    std::ranges::reverse(srad);
     return srad;
   };
 
@@ -182,20 +184,20 @@ void spectral_radiance_fieldFromOperatorPath(
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
-  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
-  const AscendingGrid& latitude_grid = spectral_radiance_operator.latitude();
+  const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
+  const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
   const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
 
-  const Index nza = zenith_grid.size();
-  const Index naa = azimuth_grid.size();
-  const Index nalt = altitude_grid.size();
-  const Index nlat = latitude_grid.size();
-  const Index nlon = longitude_grid.size();
+  const Index nza   = zenith_grid.size();
+  const Index naa   = azimuth_grid.size();
+  const Index nalt  = altitude_grid.size();
+  const Index nlat  = latitude_grid.size();
+  const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
   spectral_radiance_field = StokvecGriddedField6{
       .data_name = "Spectral Radiance Field",
-      .data = StokvecTensor6(
+      .data      = StokvecTensor6(
           nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
       .grid_names = {"Zenith angle",
                      "Azimuth angle",
@@ -203,12 +205,12 @@ void spectral_radiance_fieldFromOperatorPath(
                      "Latitude",
                      "Longitude",
                      "Frequency"},
-      .grids = {zenith_grid,
-                azimuth_grid,
-                altitude_grid,
-                latitude_grid,
-                longitude_grid,
-                frequency_grid}};
+      .grids      = {zenith_grid,
+                     azimuth_grid,
+                     altitude_grid,
+                     latitude_grid,
+                     longitude_grid,
+                     frequency_grid}};
 
   if (arts_omp_in_parallel()) {
     for (Index iza = 0; iza < nza; ++iza) {

@@ -109,7 +109,7 @@ macro (COLLECT_TEST_SUBDIR SUBDIR)
 endmacro ()
 
 macro (SETUP_ARTS_CHECKS)
-  set(CTEST_ARGS ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS})
+  set(CTEST_ARGS ${CMAKE_CTEST_COMMAND} ${ARTS_CTEST_USER_OPTIONS} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS})
 
   add_custom_target(check-deps)
 

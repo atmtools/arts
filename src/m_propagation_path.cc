@@ -94,3 +94,14 @@ void ray_path_pointForeground(PropagationPathPoint& ray_path_point,
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
   ray_path_point = ray_path.front();
 }
+
+void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
+                                  const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+
+  ray_path_point = *std::ranges::min_element(
+      ray_path,
+      [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
+        return a.altitude() < b.altitude();
+      });
+}

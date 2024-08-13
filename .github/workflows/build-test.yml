@@ -127,7 +127,7 @@ jobs:
       - name: Configure
         shell: bash -l {0}
         run: |
-          cmake --preset=${{ matrix.preset }}
+          cmake --preset=${{ matrix.preset }} -DARTS_CTEST_USER_OPTIONS="-V"
 
       - name: Build ARTS Workspace
         shell: bash -l {0}
