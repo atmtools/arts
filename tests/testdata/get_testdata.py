@@ -31,7 +31,7 @@ def download_file(url, destination):
         return False
 
 
-def download_file_retry(url, destination, retries=5, delay=10):
+def download_file_retry(url, destination, retries=30, delay=10):
     """Download a file from a URL to a destination file with retries."""
     x = 0
     for i in range(retries):
