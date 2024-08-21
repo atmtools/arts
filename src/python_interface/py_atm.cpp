@@ -80,7 +80,7 @@ void py_atm(py::module_ &m) try {
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
-  py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
+  py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
   workspace_group_interface(pnt);

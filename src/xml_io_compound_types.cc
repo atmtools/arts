@@ -33,6 +33,7 @@
 #include "mystring.h"
 #include "path_point.h"
 #include "sorted_grid.h"
+#include "surf.h"
 #include "xml_io.h"
 #include "xml_io_base.h"
 #include "xml_io_general_types.h"
@@ -1620,7 +1621,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data = Numeric{};
   else if (type == "FunctionalData")
     data.data =
-        Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
+        Atm::FunctionalData{Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
 
@@ -1630,7 +1631,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
                                    Atm::FunctionalData>) {
           String x;
           xml_read_from_stream(is_xml, x, pbifs);
-          v = Atm::FunctionalDataAlwaysThrow{x};
+          v = Atm::FunctionalData{Atm::FunctionalDataAlwaysThrow{x}};
         } else {
           xml_read_from_stream(is_xml, v, pbifs);
         }
@@ -1908,7 +1909,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data = Numeric{};
   else if (type == "FunctionalData")
     data.data =
-        Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
+        Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
 
@@ -1918,7 +1919,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
                                    Surf::FunctionalData>) {
           String x;
           xml_read_from_stream(is_xml, x, pbifs);
-          v = Surf::FunctionalDataAlwaysThrow{x};
+          v = Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{x}};
         } else {
           xml_read_from_stream(is_xml, v, pbifs);
         }

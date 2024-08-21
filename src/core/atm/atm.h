@@ -8,6 +8,7 @@
 #include <fieldmap.h>
 #include <isotopologues.h>
 #include <matpack.h>
+#include <operators.h>
 #include <quantum_numbers.h>
 #include <species.h>
 
@@ -175,7 +176,7 @@ struct Point {
 
 //! All the field data; if these types grow too much we might want to
 //! reconsider...
-using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
+using FunctionalData = NumericTernaryOperator;
 using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
