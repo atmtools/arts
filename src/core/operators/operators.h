@@ -18,7 +18,9 @@ struct CustomOperator {
   using func_t = std::function<R(Args...)>;
   func_t f;
 
-  friend std::ostream &operator<<(std::ostream &os, const CustomOperator &);
+  friend std::ostream &operator<<(std::ostream &os, const CustomOperator &) {
+    return os << "custom-operator";
+  }
 
   R operator()(Args... args) const {
     if (f) return f(args...);
@@ -31,8 +33,8 @@ struct CustomOperator {
 #pragma GCC diagnostic pop
 #endif
 
-using NumericUnaryOperator = CustomOperator<Numeric, Numeric>;
-
+using NumericUnaryOperator  = CustomOperator<Numeric, Numeric>;
+using NumericBinaryOperator = CustomOperator<Numeric, Numeric, Numeric>;
 using NumericTernaryOperator =
     CustomOperator<Numeric, Numeric, Numeric, Numeric>;
 
@@ -51,6 +53,6 @@ struct std::formatter<CustomOperator<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const CustomOperator<WTs...> &,
                               FmtContext &ctx) const {
-    return std::format_to(ctx.out(), "?=f(?)"sv);
+    return std::format_to(ctx.out(), "custom-operator"sv);
   }
 };

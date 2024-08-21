@@ -2468,6 +2468,21 @@ void xml_write_to_stream(std::ostream&,
   ARTS_USER_ERROR("Method not implemented!");
 }
 
+//=== NumericBinaryOperator =========================================
+
+void xml_read_from_stream(std::istream&,
+                          NumericBinaryOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const NumericBinaryOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
 //=== NumericTernaryOperator =========================================
 
 void xml_read_from_stream(std::istream&,
