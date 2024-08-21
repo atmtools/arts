@@ -579,48 +579,6 @@ std::vector<EnumeratedOption> internal_options_create() {
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "GuiXScaling",
-      .desc = R"(X-scaling in the GUI.
-)",
-      .values_and_desc =
-          {
-              Value{"Hz", "No scaling"},
-              Value{"GHz", "Scaling by 1e-9"},
-              Value{"THz", "Scaling by 1e-12"},
-              Value{"Angcm", "Scaling to wavenumbers"},
-              Value{"Kaycm", "Scale to Kaysers"},
-              Value{"m", "Scale to meter wavelengths"},
-              Value{"nm", "Scale to nanometer wavelengths"},
-              Value{"Angfreq", "Scale to angular frequency"},
-          },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name = "GuiPropmatScaling",
-      .desc = R"(Propagation matrix scaling in the GUI.
-)",
-      .values_and_desc =
-          {
-              Value{"None", "No scaling"},
-              Value{"Normalize",
-                    "Scaling by normalizing the maximum one value to 1"},
-              Value{"CrossSection",
-                    "Scaling by outputting in units of cross section"},
-          },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name = "GuiTramatScaling",
-      .desc = R"(Transmission matrix scaling in the GUI.
-)",
-      .values_and_desc =
-          {
-              Value{"None", "No scaling"},
-              Value{"dB", "Scaling by showing absorption in decibel"},
-          },
-  });
-
-  opts.emplace_back(EnumeratedOption{
       .name = "MissingFieldComponentError",
       .desc = R"(What kind of error is it to miss a field component?
 )",
@@ -762,18 +720,6 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
               Value{"unit",
                     "1",
                     "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
-          },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name = "GuiVMR",
-      .desc = R"(The type of VMR scaling in the GUI.
-)",
-      .values_and_desc =
-          {
-              Value{"exact", "No scaling"},
-              Value{"percent", "Scaling by percent"},
-              Value{"ppmv", "Scaling by ppmv"},
           },
   });
 

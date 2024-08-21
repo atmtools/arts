@@ -45,9 +45,6 @@ Build Prerequisites (provided by Miniforge3):
     scipy
     setuptools
     xarray
-- GUI (optional)
-    glfw
-    glew
 
 To build the documentation you also need:
 

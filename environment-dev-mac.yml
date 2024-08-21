@@ -22,8 +22,8 @@ dependencies:
         - ninja
         - numpy>=2
         - pkg-config
-        - pybind11
         - pytest
+        - requests
         - scipy
         - sphinx
         - sphinx-favicon
