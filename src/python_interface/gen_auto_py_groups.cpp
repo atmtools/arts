@@ -60,7 +60,7 @@ PyWSV from(std::shared_ptr<T> wsv) {
     return wsv;
 }
 
-PyWSV from(const std::shared_ptr<Wsv>& wsv);
+PyWSV from(const Wsv& wsv);
 
 template <WorkspaceGroup T>
 Wsv from_py(std::shared_ptr<T> wsv) {
@@ -165,8 +165,8 @@ std::string type(const py::object * const x) {
   return py::cast<std::string>(py::str(py::type_name(*x)));
 }
 
-PyWSV from(const std::shared_ptr<Wsv>& wsv) {
-  return std::visit([](auto v) { return from(std::move(v)); }, wsv->value);
+PyWSV from(const Wsv& wsv) {
+  return std::visit([](auto v) { return from(std::move(v)); }, wsv.value);
 }
 
 Wsv from_py(const PyWSV& wsv) {

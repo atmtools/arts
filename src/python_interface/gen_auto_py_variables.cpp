@@ -35,9 +35,9 @@ std::string variable(const std::string& name,
     [](Workspace& w, )--"
      << share_type(wsv.type) << R"--( val) -> void {
       w.set(")--"
-     << name << R"--(", std::make_shared<Wsv>(std::move(val)--";
+     << name << R"--(", Wsv{std::move(val)--";
   if (wsgs.at(wsv.type).value_type) os << ".val";
-  os << R"--()));
+  os << R"--()});
 )--";
 
   if (wsv.type == "Agenda")

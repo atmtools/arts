@@ -212,9 +212,9 @@ void Method::operator()(Workspace& ws) const try {
       wsv.get_unsafe<CallbackOperator>()(ws);
     } else {
       if (overwrite_setval) {
-        ws.overwrite(name, std::make_shared<Wsv>(wsv.copy()));
+        ws.overwrite(name, wsv.copy());
       } else {
-        ws.set(name, std::make_shared<Wsv>(wsv.copy()));
+        ws.set(name, wsv.copy());
       }
     }
   } else {

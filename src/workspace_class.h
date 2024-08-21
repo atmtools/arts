@@ -9,48 +9,59 @@
 enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
 
 class Workspace {
-  std::unordered_map<std::string, std::shared_ptr<Wsv>> wsv;
+  std::unordered_map<std::string, Wsv> wsv;
 
  public:
   Workspace(WorkspaceInitialization how_to_initialize =
                 WorkspaceInitialization::FromGlobalDefaults);
 
   //! Returns a shared pointer to the workspace variable with the given name.
-  [[nodiscard]] const std::shared_ptr<Wsv>& share(
-      const std::string& name) const;
+  [[nodiscard]] const Wsv& share(const std::string& name) const;
 
   //! Returns a copy of the workspace variable with the given name.
-  [[nodiscard]] std::shared_ptr<Wsv> copy(const std::string& name) const;
+  [[nodiscard]] Wsv copy(const std::string& name) const;
 
   //! Sets the workspace variable with the given name to the given value.
-  void set(const std::string& name, const std::shared_ptr<Wsv>& data);
+  void set(const std::string& name, const Wsv& data);
 
   //! Copy the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, const T& data);
+  void set(const std::string& name, const T& data) {
+    set(name, Wsv{data});
+  }
 
   //! Move the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, T&& data);
+  void set(const std::string& name, T&& data) {
+    set(name, Wsv{std::move(data)});
+  }
 
   //! Borrows the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, T* data);
+  void set(const std::string& name, T* data) {
+    set(name, Wsv{data});
+  }
 
   //! Overwrites a variable with another variable of the same type
-  void overwrite(const std::string& name, const std::shared_ptr<Wsv>& data);
+  void overwrite(const std::string& name, const Wsv& data);
 
   //! Copy the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, const T& data);
+  void overwrite(const std::string& name, const T& data) {
+    overwrite(name, Wsv{data});
+  }
 
   //! Move the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, T&& data);
+  void overwrite(const std::string& name, T&& data) {
+    overwrite(name, Wsv{std::move(data)});
+  }
 
   //! Borrows the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, T* data);
+  void overwrite(const std::string& name, T* data) {
+    overwrite(name, Wsv{data});
+  }
 
   //! Returns a type directly based on the name of the workspace variable.
   template <WorkspaceGroup T>
@@ -58,7 +69,7 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
-  [[nodiscard]] const std::shared_ptr<T>& share_or(const std::string& name);
+  [[nodiscard]] std::shared_ptr<T> share_or(const std::string& name);
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
@@ -104,7 +115,7 @@ struct std::formatter<Workspace> {
 
     tags.add_if_bracket(ctx, '{');
     for (auto& [name, wsv] : v) {
-      tags.format(ctx, quote, name, quote, ": "sv, *wsv, sep);
+      tags.format(ctx, quote, name, quote, ": "sv, wsv, sep);
     }
     tags.add_if_bracket(ctx, '}');
 
