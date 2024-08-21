@@ -59,7 +59,13 @@ void py_agenda(py::module_& m) try {
             const std::function<void(const std::shared_ptr<Workspace>&)>& f,
             const std::vector<std::string>& i,
             const std::vector<std::string>& o) {
-           new (cb) CallbackOperator(f, i, o);
+           new (cb) CallbackOperator(
+               [f](const std::shared_ptr<Workspace>& ws) {
+                 py::gil_scoped_acquire gil{};
+                 f(ws);
+               },
+               i,
+               o);
          },
          "f"_a,
          "inputs"_a  = std::vector<std::string>{},
