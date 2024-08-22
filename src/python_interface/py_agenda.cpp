@@ -15,6 +15,7 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
+#include "nanobind/nanobind.h"
 #include "python_interface.h"
 
 extern Parameters parameters;
@@ -56,11 +57,11 @@ void py_agenda(py::module_& m) try {
   cbd.def(
          "__init__",
          [](CallbackOperator* cb,
-            const std::function<void(const std::shared_ptr<Workspace>&)>& f,
+            const std::function<void(Workspace&)>& f,
             const std::vector<std::string>& i,
             const std::vector<std::string>& o) {
            new (cb) CallbackOperator(
-               [f](const std::shared_ptr<Workspace>& ws) {
+               [f](Workspace& ws) {
                  py::gil_scoped_acquire gil{};
                  f(ws);
                },

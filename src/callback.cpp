@@ -1,5 +1,5 @@
 #include "callback.h"
-#include "compare.h"
+#include "workspace_class.h"
 
 #include <exception>
 #include <stdexcept>
@@ -21,21 +21,19 @@ std::ostream& operator<<(std::ostream& os, const CallbackOperator& op) {
 void CallbackOperator::operator()(Workspace& ws_in) const try {
   ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n", *this);
   
-  auto ws = std::make_shared<Workspace>(WorkspaceInitialization::Empty);
+  Workspace ws(WorkspaceInitialization::Empty);
 
-  for (auto& n : inputs) {
-    if (std::ranges::any_of(outputs, Cmp::eq(n))) {
-      ws -> set(n, ws_in.share(n));
+  for (auto& n : inputs) ws.set(n, ws_in.share(n));
+  for (auto& n : outputs) {
+    if (ws_in.contains(n)) {
+      ws.set(n, ws_in.share(n));
     } else {
-      ws -> set(n, ws_in.copy(n));
+      ws.init(n);
+      ws_in.set(n, ws.share(n));
     }
   }
-
   callback(ws);
-
-  for (auto& n : outputs) {
-    if (std::ranges::none_of(inputs, Cmp::eq(n))) ws_in.set(n, ws -> share(n));
-  }
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in callback operator:\n", *this, '\n', e.what()));
+  throw std::runtime_error(
+      var_string("Error in callback operator:\n", *this, '\n', e.what()));
 }

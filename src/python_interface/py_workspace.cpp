@@ -84,7 +84,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
             new (w) Workspace{WorkspaceInitialization::Empty};
         },
         "with_defaults"_a = true)
-      .def(py::init<Workspace>())
       .def("__copy__", [](Workspace& w) { return w; })
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w.deepcopy(); })
       .def(
