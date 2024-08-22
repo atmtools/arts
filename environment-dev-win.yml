@@ -5,8 +5,6 @@ dependencies:
         - cmake
         - docutils
         - eigen
-        - glew
-        - glfw
         - lark-parser
         - libcxx
         - matplotlib

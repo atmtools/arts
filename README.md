@@ -27,30 +27,7 @@ Dependencies
 
 Build Prerequisites (provided by Miniforge3):
 
-- gcc/g++ >=12 (or llvm/clang >=16)
-- cmake (>=3.18)
-- zlib
-- openblas
-- libc++ (only for clang)
-- libmicrohttpd (>=0.9, optional, for documentation server)
-- netcdf (optional)
-- Python3 (3.9, 3.10, 3.11, 3.12)
-  - required modules:
-    docutils
-    lark-parser
-    matplotlib
-    netCDF4
-    numpy
-    pytest
-    scipy
-    setuptools
-    xarray
-
-To build the documentation you also need:
-
-- pdflatex (optional)
-- doxygen (optional)
-- graphviz (optional)
+See the platform-dependent `environment-dev-{linux,mac,win}.yml` file for all requirements.
 
 
 Building ARTS
@@ -59,13 +36,13 @@ Building ARTS
 The following instructions assume that you are using Miniforge3 as a build environment.  The installer is available at
 [the project's Github page](https://github.com/conda-forge/miniforge#miniforge).
 
-Use the provided `environment-dev-{linux,mac}.yml` files to install
+Use the provided `environment-dev-{linux,mac,win}.yml` files to install
 all required dependencies into your current conda environment.
 
 Optionally, a separate environment for development can be created, if you want to keep your current environment clean:
 
 ```
-mamba create -n pyarts-dev python=3.10
+mamba create -n pyarts-dev
 mamba activate pyarts-dev
 ```
 
@@ -79,10 +56,15 @@ Install dependencies on macOS:
 mamba env update -f environment-dev-mac.yml
 ```
 
+Install dependencies on Windows:
+```
+mamba env update -f environment-dev-win.yml
+```
+
 Next, follow these steps to use `cmake` to build ARTS:
 ```
 cd arts
-cmake --preset=default-gcc-conda  # On macOS use default-clang-conda
+cmake --preset=default-gcc-conda  # On macOS use default-clang-conda, on windows use default-msvc-conda
 cmake --build build -jX
 ```
 

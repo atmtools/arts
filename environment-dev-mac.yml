@@ -9,8 +9,6 @@ dependencies:
         - doxygen
         - eigen
         - gfortran
-        - glew
-        - glfw
         - lark-parser
         - libclang
         - libcxx
