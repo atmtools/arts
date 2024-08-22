@@ -111,5 +111,36 @@ is not yet any calculated Jacobian.
                  "inversion_iterate_agenda_counter"},
   };
 
+  wsa_data["disort_settings_agenda"] = {
+      .desc = R"--(An agenda for setting up Disort.
+
+The only intent of this Agenda is to simplify the setup of Disort for different
+scenarios.  The output of this Agenda is a set of WSVs that are used by Disort.
+
+There is intentionally no input to this Agenda beyond the dimensionality of the
+Disort model.  All other input is to be provided by the global workspace.
+)--",
+      .output =
+          {
+              "disort_optical_thicknesses",
+              "disort_single_scattering_albedo",
+              "disort_fractional_scattering",
+              "disort_legendre_coefficients",
+              "disort_source_polynomial",
+              "disort_positive_boundary_condition",
+              "disort_negative_boundary_condition",
+              "disort_bidirectional_reflectance_distribution_functions",
+              "disort_solar_zenith_angle",
+              "disort_solar_azimuth_angle",
+              "disort_solar_source",
+          },
+      .input =
+          {
+              "disort_quadrature_dimension",
+              "disort_fourier_mode_dimension",
+              "disort_legendre_polynomial_dimension",
+          },
+  };
+
   return wsa_data;
 }

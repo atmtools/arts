@@ -43,8 +43,8 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 # %% Core Disort calculations
 
 ws.disort_spectral_radiance_fieldClearsky(
-    longitude=lat,
-    latitude=lon,
+    longitude=lon,
+    latitude=lat,
     disort_quadrature_dimension=NQuad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -66,19 +66,19 @@ if PLOT:
 
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, (NQuad // 2) :],
+        ws.disort_spectral_radiance_field[:, -1, 0, (NQuad // 2) :],
         label="disort",
     )
     plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, NQuad // 2],
+        ws.disort_spectral_radiance_field[:, -1, 0,NQuad // 2],
         "g:",
         lw=3,
     )
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, -1],
+        ws.disort_spectral_radiance_field[:, -1, 0, -1],
         "m:",
         lw=3,
     )
@@ -89,7 +89,7 @@ if PLOT:
 # %% The last test should be that we are close to the correct values
 
 assert np.allclose(
-    ws.disort_spectral_radiance_field[:, -1, -1] / ws.spectral_radiance[:, 0],
+    ws.disort_spectral_radiance_field[:, -1, 0,-1] / ws.spectral_radiance[:, 0],
     1,
     rtol=1e-3,
 ), "Bad results, clearsky calculations are not close between DISORT and ARTS"
