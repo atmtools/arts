@@ -344,9 +344,9 @@ void call_function(std::ostream& os,
 
     os << "\n        );\n      }, ";
     if (any_out) {
-      os << "ws.share(out[" << first_any << "]) -> value);\n    }";
+      os << "ws.share(out[" << first_any << "]).value);\n    }";
     } else {
-      os << "ws.share(in[" << first_any << "]) -> value);\n    }";
+      os << "ws.share(in[" << first_any << "]).value);\n    }";
     }
 
   } else if (wsmr.has_overloads()) {
@@ -395,7 +395,7 @@ void call_function(std::ostream& os,
                       wsmr.gout_type[garg].end(),
                       Cmp::eq(','))) {
         if (not final_first) os << ", \", \", ";
-        os << "ws.share(out[" << garg + wsmr.out.size() << "]) -> type_name()";
+        os << "ws.share(out[" << garg + wsmr.out.size() << "]).type_name()";
         final_first = false;
       }
     }
@@ -404,7 +404,7 @@ void call_function(std::ostream& os,
                       wsmr.gin_type[garg].end(),
                       Cmp::eq(','))) {
         if (not final_first) os << ", \", \", ";
-        os << "ws.share(in[" << garg + wsmr.in.size() << "]) -> type_name()";
+        os << "ws.share(in[" << garg + wsmr.in.size() << "]).type_name()";
         final_first = false;
       }
     }

@@ -4,6 +4,5 @@ add_subdirectory(fastem)
 add_subdirectory(tmatrix)
 add_subdirectory(wigner)
 add_subdirectory(Faddeeva)
-add_subdirectory(gui)
 add_subdirectory(cdisort)
 

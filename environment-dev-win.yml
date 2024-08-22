@@ -5,8 +5,6 @@ dependencies:
         - cmake
         - docutils
         - eigen
-        - glew
-        - glfw
         - lark-parser
         - libcxx
         - matplotlib
@@ -16,8 +14,8 @@ dependencies:
         - numpy>=2
         - openblas
         - pkg-config
-        - pybind11
         - pytest
+        - requests
         - scipy
         - sphinx
         - sphinx-favicon

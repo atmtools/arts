@@ -160,16 +160,16 @@ void agenda_add_inner_logic(Workspace& out,
                             WorkspaceAgendaBoolHandler handle) {
 startover:
   for (auto& var : out) {
-    if (var.second->holds<Agenda>()) {
+    if (var.second.holds<Agenda>()) {
       if (not handle.has(var.first)) {
-        auto& ag = var.second->get<Agenda>();
+        auto& ag = var.second.get<Agenda>();
         handle.set(var.first);
         ag.copy_workspace(out, in, true);
         goto startover;
       }
-    } else if (var.second->holds<ArrayOfAgenda>()) {
+    } else if (var.second.holds<ArrayOfAgenda>()) {
       if (not handle.has(var.first)) {
-        auto& aag = var.second->get<ArrayOfAgenda>();
+        auto& aag = var.second.get<ArrayOfAgenda>();
         handle.set(var.first);
         for (auto& ag : aag) {
           ag.copy_workspace(out, in, true);

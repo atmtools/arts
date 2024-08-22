@@ -41,15 +41,15 @@ void spectral_radiance_operatorClearsky1D(
   const String predef_str = "absorption_predefined_model_data";
 
   auto lines  = ws.wsv_and_contains(lines_str)
-                    ? ws.share(lines_str)->share<lines_t>()
+                    ? ws.share(lines_str).share<lines_t>()
                     : std::shared_ptr<lines_t>{};
-  auto cia    = ws.wsv_and_contains(cia_str) ? ws.share(cia_str)->share<cia_t>()
+  auto cia    = ws.wsv_and_contains(cia_str) ? ws.share(cia_str).share<cia_t>()
                                              : std::shared_ptr<cia_t>{};
   auto xsec   = ws.wsv_and_contains(xsec_str)
-                    ? ws.share(xsec_str)->share<xsec_t>()
+                    ? ws.share(xsec_str).share<xsec_t>()
                     : std::shared_ptr<xsec_t>{};
   auto predef = ws.wsv_and_contains(predef_str)
-                    ? ws.share(predef_str)->share<predef_t>()
+                    ? ws.share(predef_str).share<predef_t>()
                     : std::shared_ptr<predef_t>{};
 
   spectral_radiance_operator = SpectralRadianceOperator(altitude_grid,

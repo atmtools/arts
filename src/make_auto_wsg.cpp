@@ -313,25 +313,25 @@ void auto_workspace(std::ostream& os) {
 )--";
 
   for (auto& group : groups()) {
-    os << "template<> const std::shared_ptr<" << group
-       << ">& Workspace::share_or<" << group
+    os << "template<> std::shared_ptr<" << group
+       << "> Workspace::share_or<" << group
        << ">(const std::string& name) {\n"
           "  if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {\n"
-          "    return ptr->second->template share<"
+          "    return ptr->second.template share<"
        << group
        << ">();\n"
           "  }\n"
           "\n";
-    os << "  std::shared_ptr<Wsv> out = std::make_shared<Wsv>(" << group;
+    os << "  Wsv out = " << group;
     if (group == "Agenda") {
       os << "{name}";
     } else {
       os << "{}";
     }
-    os << ");\n"
+    os << ";\n"
           "\n"
           "  set(name, out);\n"
-          "  return out->share_unsafe<"
+          "  return out.share_unsafe<"
        << group
        << ">();\n"
           "}\n\n";
@@ -340,7 +340,7 @@ void auto_workspace(std::ostream& os) {
        << ">(const std::string& name) {\n  return *share_or<" << group
        << ">(name);\n}\n\n";
     os << "template <> " << group << "& Workspace::get<" << group
-       << ">(const std::string& name) const try {\n  return wsv.at(name) -> "
+       << ">(const std::string& name) const try {\n  return wsv.at(name)."
           "get<"
        << group
        << ">();\n} catch (std::out_of_range&) {\n"
@@ -348,30 +348,6 @@ void auto_workspace(std::ostream& os) {
           "} catch (std::exception& e) {\n"
           "  throw std::runtime_error(var_string(\"Error getting workspace variable \", '\"', name, '\"', \":\\n\", e.what()));\n"
           "}\n\n";
-
-    os << "template<> void Workspace::overwrite<" << group
-       << ">(const std::string& name, const " << group
-       << "& data) { overwrite(name, std::make_shared<Wsv>(data)); }\n\n";
-
-    os << "template<> void Workspace::overwrite<" << group
-       << ">(const std::string& name, " << group
-       << "&& data) { overwrite(name, std::make_shared<Wsv>(std::move(data))); }\n\n";
-
-    os << "template<> void Workspace::overwrite<" << group
-       << ">(const std::string& name, " << group
-       << "* data) { overwrite(name, std::make_shared<Wsv>(data)); }\n\n";
-
-    os << "template<> void Workspace::set<" << group
-       << ">(const std::string& name, const " << group
-       << "& data) { set(name, std::make_shared<Wsv>(data)); }\n\n";
-
-    os << "template<> void Workspace::set<" << group
-       << ">(const std::string& name, " << group
-       << "&& data) { set(name, std::make_shared<Wsv>(std::move(data))); }\n\n";
-
-    os << "template<> void Workspace::set<" << group
-       << ">(const std::string& name, " << group
-       << "* data) { set(name, std::make_shared<Wsv>(data)); }\n\n";
   }
 }
 

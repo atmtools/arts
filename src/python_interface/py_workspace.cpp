@@ -101,7 +101,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
               throw std::domain_error(var_string(
                   "Workspace variable ", '"', n, '"', " exists."));
 
-            w.set(n, std::make_shared<Wsv>(Wsv::from_named_type(t)));
+            w.set(n, Wsv::from_named_type(t));
           },
           "name"_a,
           "typename"_a)
@@ -112,28 +112,28 @@ void py_workspace(py::class_<Workspace>& ws) try {
               throw std::domain_error(var_string(
                   "Workspace variable ", '"', n, '"', " does not exist."));
 
-            auto wsv = std::make_shared<Wsv>(from_py(x));
+            Wsv wsv = from_py(x);
 
-            if (wsv->value.index() != w.share(n)->value.index())
+            if (wsv.value.index() != w.share(n).value.index())
               throw std::domain_error(
                   var_string("Type mismatch: ",
                              '"', n, '"',
                              " is of type \"",
-                             w.share(n)->type_name(),
+                             w.share(n).type_name(),
                              "\", cannot be set to \"",
-                             wsv->type_name(),'"'));
+                             wsv.type_name(),'"'));
 
             w.overwrite(n, wsv);
 
             auto& ptr = w.share(n);
-            if (ptr->holds<Agenda>()) {
-              auto& ag = ptr->get_unsafe<Agenda>();
+            if (ptr.holds<Agenda>()) {
+              auto& ag = ptr.get_unsafe<Agenda>();
               if (not ag.is_checked()) {
                 ag.set_name(n);
                 ag.finalize();
               }
-            } else if (ptr->holds<ArrayOfAgenda>()) {
-              auto& ags = ptr->get_unsafe<ArrayOfAgenda>();
+            } else if (ptr.holds<ArrayOfAgenda>()) {
+              auto& ags = ptr.get_unsafe<ArrayOfAgenda>();
               for (auto& ag : ags) {
                 if (not ag.is_checked()) {
                   ag.set_name(n);

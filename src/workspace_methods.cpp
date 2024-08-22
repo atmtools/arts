@@ -1681,24 +1681,6 @@ To perform absorption lookupo table calculation, call:
            R"--(Uses lookup calculations if true, ignores methods that can be part of the lookup table)--"},
   };
 
-  wsm_data["propagation_matrix_agendaGUI"] = {
-      .desc      = R"--(Opens a GUI for running the propagation matrix agenda
-
-Note that this is not thread-safe and should be executed on the main workspace
-
-The values of all non-control flow are automatically loaded from the workspace
-if they are defined.  Otherwise some values are just selected
-)--",
-      .author    = {"Richard Larsson"},
-      .in        = {"propagation_matrix_agenda", "absorption_species"},
-      .gin       = {"load"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc  = {R"--(Load non-logical variables from workspace if true)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["propagation_matrix_agendaSet"] = {
       .desc      = R"--(Sets *propagation_matrix_agenda* to a default value
 

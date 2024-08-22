@@ -108,20 +108,6 @@ add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
 )
 target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
 
-#####
-
-set(ARTS_GUI_FILES)
-if (ENABLE_GUI)
-  set(ARTS_GUI_FILES
-    gui_error.cc
-    gui.cc
-    gui_menu.cc
-    gui_plot.cc
-    gui_propmat.cc
-    gui_workspace.cc
-  )
-endif()
-
 ########### next target ###############
 
 add_library (artsworkspace STATIC
@@ -139,7 +125,6 @@ add_library (artsworkspace STATIC
   auto_version.cc
   compile_time_tests.cc
   doit.cc
-  guim_propmat.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
@@ -221,7 +206,6 @@ add_library (artsworkspace STATIC
   xml_io_compound_types.cc
   xml_io_rtepack.cc
   xml_operators.cc
-  ${ARTS_GUI_FILES}
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
@@ -236,16 +220,6 @@ if (ENABLE_PCH)
 endif()
 
 target_link_libraries(artsworkspace PUBLIC auto_partfun xmliobase artscore workspace_internals)
-
-if (ENABLE_GUI)
-  target_link_libraries (artsworkspace PUBLIC imgui implot)
-  target_compile_definitions(artsworkspace PUBLIC ARTS_GUI_ENABLED)
-  target_include_directories(artsworkspace PUBLIC
-    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
-    ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
-    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
-  )
-endif()
 
 if (NETCDF_FOUND)
   target_link_libraries (artsworkspace PUBLIC ${NETCDF_LIBRARIES})
