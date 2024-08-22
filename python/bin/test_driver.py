@@ -8,8 +8,6 @@ from subprocess import Popen, PIPE, PIPE
 from io import StringIO
 from tqdm import tqdm
 
-import arts
-from arts.parser import convert_to_python
 
 parser = argparse.ArgumentParser(description='Run ARTS test scripts.')
 parser.add_argument('basedir', metavar='basedir', type=str, nargs=1,
