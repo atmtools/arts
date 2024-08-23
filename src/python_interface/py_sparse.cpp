@@ -2,13 +2,17 @@
 #include <nanobind/eigen/sparse.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/variant.h>
 
 #include <memory>
 #include <utility>
 #include <variant>
 
+#include "covariance_matrix.h"
 #include "hpy_arts.h"
+#include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "nanobind/nanobind.h"
 #include "py_macros.h"
 #include "python_interface.h"
 
@@ -80,20 +84,6 @@ arr : numpy.ndarray
   workspace_group_interface(a1);
   vector_interface(a1);
 
-  py::enum_<Block::MatrixType>(m, "BlockMatrixType")
-      .value("dense", Block::MatrixType::dense, "Dense matrix block")
-      .value("sparse", Block::MatrixType::sparse, "Sparse matrix block")
-      .PythonInterfaceCopyValue(Block::MatrixType)
-      .def("__getstate__",
-           [](const Block::MatrixType& self) {
-             return std::tuple<Index>{static_cast<Index>(self)};
-           })
-      .def("__setstate__",
-           [](Block::MatrixType* self, const std::tuple<Index>& state) {
-             new (self) Block::MatrixType{
-                 static_cast<Block::MatrixType>(std::get<0>(state))};
-           });
-
   py::class_<Block>(m, "Block")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(),
            "By value, dense")
@@ -103,8 +93,7 @@ arr : numpy.ndarray
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {
-            if (x.get_matrix_type() == Block::MatrixType::dense)
-              return &x.get_dense();
+            if (x.is_dense()) return &x.get_dense();
             return &x.get_sparse();
           },
           [](Block& x, std::variant<Matrix*, Sparse*> y) {
@@ -119,7 +108,7 @@ arr : numpy.ndarray
           ":class:`~pyarts.arts.Matrix` or :class:`~pyarts.arts.Sparse` The matrix held inside the instance")
       .def("__getstate__",
            [](const Block& self) {
-             if (self.get_matrix_type() == Block::MatrixType::sparse)
+             if (self.is_sparse())
                return std::
                    tuple<Range, Range, IndexPair, std::variant<Matrix, Sparse>>{
                        self.get_row_range(),
@@ -156,6 +145,57 @@ arr : numpy.ndarray
                                std::make_shared<Matrix>(std::get<Matrix>(mat)));
           })
       .doc() = "A single block matrix";
+
+  py::class_<BlockMatrix> bm(m, "BlockMatrix");
+  bm.def(py::init_implicit<Matrix>());
+  bm.def(py::init_implicit<Sparse>());
+  bm.def(
+      "__init__",
+      [](BlockMatrix* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
+        new (s) BlockMatrix{};
+        *s = py::cast<Sparse>(py::type<Sparse>()(es));
+      },
+      "From :class:`scipy.sparse.csr_matrix`");
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
+                             BlockMatrix>();
+  bm.def(
+      "__init__",
+      [](BlockMatrix* v,
+         const py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>& a) {
+        new (v) BlockMatrix{};
+        *v = py::cast<Matrix>(py::type<Matrix>()(a));
+      },
+      "a"_a);
+  py::implicitly_convertible<py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>,
+                             BlockMatrix>();
+  bm.def_prop_rw(
+      "matrix",
+      [](BlockMatrix& bm) -> std::variant<Matrix, Sparse> {
+        if (bm.not_null()) {
+          if (bm.is_dense()) return bm.dense();
+          return bm.sparse();
+        }
+
+        return Matrix{};
+      },
+      [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) {
+        std::visit([&bm](auto& m) { bm = m; }, mat);
+      });
+  bm.def(
+      "__array__",
+      [](py::object& v, py::object dtype, py::object copy) {
+        return v.attr("matrix").attr("__array__")(dtype, copy);
+      },
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none());
+  bm.def_prop_rw(
+      "value",
+      [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
+      [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) {
+        std::visit([&a](auto& c) { a = c; }, b);
+      });
+  common_ndarray(bm);
+  workspace_group_interface(bm);
 
   py::class_<CovarianceMatrix> covm(m, "CovarianceMatrix");
   workspace_group_interface(covm);

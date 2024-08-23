@@ -405,6 +405,11 @@ units of m^5 molec^(-2)
       .desc = "Used to inject custom code into *Agenda*\n",
   };
 
+  wsg_data["BlockMatrix"] = {
+      .file = "covariance_matrix.h",
+      .desc = "A block matrix for the covariance matrix\n",
+  };
+
   wsg_data["CovarianceMatrix"] = {
       .file = "covariance_matrix.h",
       .desc = "A covariance matrix\n",

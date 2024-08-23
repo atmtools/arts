@@ -19,6 +19,7 @@
 
 #include "atm.h"
 #include "cloudbox.h"
+#include "covariance_matrix.h"
 #include "debug.h"
 #include "double_imanip.h"
 #include "enums.h"
@@ -109,6 +110,70 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== BlockMatrix =========================================================
+
+//! Reads BlockMatrix from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    BlockMatrix
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          BlockMatrix& bm,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("BlockMatrix");
+
+  String type;
+  tag.get_attribute_value("type", type);
+
+  if (type == "Matrix") {
+    Matrix m;
+    xml_read_from_stream(is_xml, m, pbifs);
+    bm = std::make_shared<Matrix>(std::move(m));
+  } else {
+    Sparse s;
+    xml_read_from_stream(is_xml, s, pbifs);
+    bm = std::make_shared<Sparse>(std::move(s));
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/BlockMatrix");
+}
+
+//! Write BlockMatrix to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    BlockMatrix
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const BlockMatrix& bm,
+                         bofstream* pbofs,
+                         const String& name [[maybe_unused]]) {
+  ArtsXMLTag covmat_tag;
+  ArtsXMLTag close_tag;
+
+  covmat_tag.set_name("BlockMatrix");
+  covmat_tag.add_attribute("type", bm.is_dense() ? String{"Matrix"} : String{"Sparse"});
+  covmat_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  if (bm.is_dense()) {
+    xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
+  } else {
+    xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
+  }  
+
+  os_xml << '\n';
+  close_tag.set_name("/BlockMatrix");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== CovarianceMatrix =========================================================
+
 //! Reads CovarianceMatrix from XML input stream
 /*!
   \param is_xml    XML Input stream
@@ -183,8 +248,6 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.check_name("/CovarianceMatrix");
 }
 
-//=== CovarianceMatrix =========================================================
-
 //! Write CovarianceMatrix to XML output stream
 /*!
   \param os_xml    XML output stream
@@ -220,7 +283,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     block_tag.add_attribute("column_start", column_range.offset);
     block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(0));
-    if (c.get_matrix_type() == Block::MatrixType::dense) {
+    if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
       os_xml << '\n';
@@ -251,7 +314,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     block_tag.add_attribute("column_start", column_range.offset);
     block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(1));
-    if (c.get_matrix_type() == Block::MatrixType::dense) {
+    if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
       os_xml << '\n';

@@ -9,6 +9,8 @@
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace Jacobian {
@@ -292,6 +294,13 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
 
   friend std::ostream& operator<<(std::ostream& os, const Targets& targets);
 };
+
+struct TargetType {
+  using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey>;
+  variant_t target;
+
+  constexpr bool operator==(const TargetType&) const = default;
+};
 }  // namespace Jacobian
 
 inline Numeric field_perturbation(const auto& f) {
@@ -303,7 +312,15 @@ inline Numeric field_perturbation(const auto& f) {
       [](auto& m) { return m.first ? m.second->d : 0.0; });
 }
 
-using JacobianTargets = Jacobian::Targets;
+using JacobianTargets    = Jacobian::Targets;
+using JacobianTargetType = Jacobian::TargetType;
+
+template<>struct
+std::hash<JacobianTargetType>{
+std::size_t operator()(const JacobianTargetType& g) const {
+    return std::hash<JacobianTargetType::variant_t>{}(g.target);
+  }
+};
 
 template <>
 struct std::formatter<Jacobian::AtmTarget> {
