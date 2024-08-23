@@ -494,6 +494,27 @@ std::vector<EnumeratedOption> internal_options_create() {
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agendaPredefined",
+      .desc = R"(The types of predefined *disort_settings_agenda*.
+)",
+      .values_and_desc =
+          {
+              Value{"Clearsky", R"(
+
+  - *disort_optical_thicknessesFromPath*
+  - *disort_source_polynomialLinearInTau*
+  - *disort_negative_boundary_conditionSurfaceTemperature*
+  - *disort_positive_boundary_conditionCosmicBackgroundRadiation*
+  - *disort_bidirectional_reflectance_distribution_functionsTurnOff*
+  - *disort_single_scattering_albedoTurnOff*
+  - *disort_fractional_scatteringTurnOff*
+  - *disort_legendre_coefficientsTurnOff*
+  - *disort_solar_sourceTurnOff*
+)"},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "spectral_radiance_space_agendaPredefined",
       .desc = R"(The types of predefined *spectral_radiance_space_agenda*.
 )",

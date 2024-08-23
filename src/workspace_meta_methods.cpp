@@ -14,8 +14,31 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "disort_spectral_flux_fieldClearsky",
+      .desc = "Use Disort for clearsky calculations of spectral flux field",
+      .author = {"Richard Larsson"},
+      .methods =
+          {"ray_pathGeometricUplooking",
+           "ray_path_atmospheric_pointFromPath",
+           "ray_path_frequency_gridFromPath",
+           "ray_path_propagation_matrixFromPath",
+           "ray_path_pointLowestFromPath",
+           "disort_optical_thicknessesFromPath",
+           "disort_source_polynomialLinearInTau",
+           "disort_negative_boundary_conditionSurfaceTemperature",
+           "disort_positive_boundary_conditionCosmicBackgroundRadiation",
+           "disort_bidirectional_reflectance_distribution_functionsTurnOff",
+           "disort_single_scattering_albedoTurnOff",
+           "disort_fractional_scatteringTurnOff",
+           "disort_legendre_coefficientsTurnOff",
+           "disort_solar_sourceTurnOff",
+           "disort_spectral_flux_fieldCalc"},
+      .out = {"disort_spectral_flux_field"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_radiance_fieldClearsky",
-      .desc = "Use DISORT for clearsky calculations of spectral radiance field",
+      .desc = "Use Disort for clearsky calculations of spectral radiance field",
       .author = {"Richard Larsson"},
       .methods =
           {"ray_pathGeometricUplooking",

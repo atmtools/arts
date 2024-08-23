@@ -639,7 +639,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
   };
 
   wsv_data["disort_optical_thicknesses"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The layer optical thicknesses for Disort.
 
 Note that every row must be convertible to an *AscendingGrid*.
 
@@ -651,7 +651,7 @@ Size is *frequency_grid* times (*ray_path* - 1).
   };
 
   wsv_data["disort_single_scattering_albedo"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The single scattering albedos for Disort.
 
 Note that "turned-off" means all zeroes.
 
@@ -663,7 +663,7 @@ Size is *frequency_grid* times (*ray_path* - 1).
   };
 
   wsv_data["disort_fractional_scattering"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The fractional scattering for Disort.
 
 Note that "turned-off" means all zeroes.
 
@@ -675,13 +675,13 @@ Size is *frequency_grid* times (*ray_path* - 1).
   };
 
   wsv_data["disort_legendre_coefficients"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The Legendre coefficients for Disort.
 
 Note that "turned-off" means all zeroes except in the first polynomial,
 which should be all ones.
 
 Size is *frequency_grid* times (*ray_path* - 1) times
-all Legendre polynomials.
+*disort_legendre_polynomial_dimension*.
 
 *ray_path* - 1 is the number of layers.
 )",
@@ -689,11 +689,12 @@ all Legendre polynomials.
   };
 
   wsv_data["disort_positive_boundary_condition"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The positive boundary conditions for Disort.
 
 Note that "turned-off" means all zeroes.
 
-Size is *frequency_grid* times number of Fourier modes times directional-quadratures.
+Size is *frequency_grid* times *disort_fourier_mode_dimension* times
+*disort_quadrature_dimension* / 2.
 
 .. note:: 
 
@@ -705,11 +706,12 @@ Size is *frequency_grid* times number of Fourier modes times directional-quadrat
   };
 
   wsv_data["disort_negative_boundary_condition"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The negative boundary conditions for Disort.
 
 Note that "turned-off" means all zeroes.
 
-Size is *frequency_grid* times number of Fourier modes times directional-quadratures.
+Size is *frequency_grid* times *disort_fourier_mode_dimension* times
+*disort_quadrature_dimension* / 2.
 
 .. note::
 
@@ -721,7 +723,7 @@ Size is *frequency_grid* times number of Fourier modes times directional-quadrat
   };
 
   wsv_data["disort_source_polynomial"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The source function polynomial for Disort.
 
 Note that "turned-off" means that the last dimension size is zero.
 
@@ -746,10 +748,10 @@ A first order polynomial gives the source function as:
   };
 
   wsv_data["disort_solar_zenith_angle"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The solar zenith angles for Disort.
 
 Unit is in degrees.  Note that there's an error if the solar zenith
-angle overlaps with one of the fixed DISORT quadrature angles.
+angle overlaps with one of the fixed Disort quadrature angles.
 
 Size is *frequency_grid*.
 )",
@@ -757,7 +759,7 @@ Size is *frequency_grid*.
   };
 
   wsv_data["disort_solar_azimuth_angle"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The solar azimuth angles for Disort.
 
 Unit is in degrees.
 
@@ -767,7 +769,7 @@ Size is *frequency_grid*.
   };
 
   wsv_data["disort_solar_source"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The solar source for Disort.
 
 Note that "turned-off" means all zeroes.
 
@@ -783,7 +785,7 @@ Size is *frequency_grid*.
   };
 
   wsv_data["disort_bidirectional_reflectance_distribution_functions"] = {
-      .desc = R"(A list of single scattering albedos for DISORT.
+      .desc = R"(The surface bidirectional reflectances for Disort.
 
 Note that "turned-off" means the column dimension size is zero.
 
@@ -792,19 +794,63 @@ Size is *frequency_grid* time number of Fourier modes for the BDRF:s.
       .type = "MatrixOfDisortBDRF",
   };
 
-  wsv_data["disort_spectral_radiance_field"] = {
-      .desc = "The spectral radiance field from DISORT.\n",
-      .type = "Tensor3",
-  };
-
   wsv_data["disort_quadrature_angles"] = {
-      .desc = "The quadrature angles for DISORT.\n",
+      .desc = R"(The quadrature angles for Disort.
+
+Unit is in degrees.
+
+Size is *disort_quadrature_dimension*.
+)",
       .type = "Vector",
   };
 
   wsv_data["disort_quadrature_weights"] = {
-      .desc = "The quadrature weights for DISORT.\n",
+      .desc = R"(The quadrature weights for Disort.
+
+These weights are symmetric for uplooking and downlooking.
+
+In essence, the matching *disort_quadrature_angles* for the weights can
+be found as [*disort_quadrature_weights*, *disort_quadrature_weights*].
+
+Size is *disort_quadrature_dimension* / 2
+)",
       .type = "Vector",
+  };
+
+  wsv_data["disort_quadrature_dimension"] = {
+      .desc = R"(The quadrature size for Disort.)",
+      .type = "Index",
+  };
+
+  wsv_data["disort_fourier_mode_dimension"] = {
+      .desc = R"(The number of Fourier modes for Disort.
+)",
+      .type = "Index",
+  };
+
+  wsv_data["disort_legendre_polynomial_dimension"] = {
+      .desc = R"(The number of input Legendre polynimials for Disort.
+)",
+      .type = "Index",
+  };
+
+  wsv_data["disort_spectral_radiance_field"] = {
+      .desc = R"(The spectral radiance field from Disort.
+
+Size is *frequency_grid* times *ray_path* - 1 times azimuthal angles
+times *disort_quadrature_dimension*.
+)",
+      .type = "Tensor4",
+  };
+
+  wsv_data["disort_spectral_flux_field"] = {
+      .desc = R"(The spectral flux field from Disort.
+
+Size is *frequency_grid* times 3 times *ray_path* - 1.
+
+The inner "3" is in order: upwelling, diffuse downwelling, and direct downwelling.
+)",
+      .type = "Tensor3",
   };
 
   return wsv_data;

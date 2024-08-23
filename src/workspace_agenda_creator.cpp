@@ -144,3 +144,25 @@ Agenda get_ray_path_observer_agenda(const std::string& option) {
 
   return std::move(agenda).finalize();
 }
+
+Agenda get_disort_settings_agenda(const std::string& option) {
+  AgendaCreator agenda("disort_settings_agenda");
+
+  using enum disort_settings_agendaPredefined;
+  switch (to<disort_settings_agendaPredefined>(option)) {
+    case Clearsky:
+      agenda.add("disort_optical_thicknessesFromPath");
+      agenda.add("disort_source_polynomialLinearInTau");
+      agenda.add("disort_negative_boundary_conditionSurfaceTemperature");
+      agenda.add("disort_positive_boundary_conditionCosmicBackgroundRadiation");
+      agenda.add(
+          "disort_bidirectional_reflectance_distribution_functionsTurnOff");
+      agenda.add("disort_single_scattering_albedoTurnOff");
+      agenda.add("disort_fractional_scatteringTurnOff");
+      agenda.add("disort_legendre_coefficientsTurnOff");
+      agenda.add("disort_solar_sourceTurnOff");
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}

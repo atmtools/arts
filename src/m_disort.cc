@@ -4,317 +4,38 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <format>
 #include <numeric>
 #include <vector>
 
 #include "arts_constants.h"
+#include "auto_wsa.h"
 #include "auto_wsm.h"
+#include "configtypes.h"
 #include "debug.h"
 #include "matpack_data.h"
 #include "matpack_view.h"
 #include "mh_checks.h"
 #include "mystring.h"
-#include "path_point.h"
-#include "physics_funcs.h"
 #include "sorted_grid.h"
-#include "surf.h"
+#include "workspace_agenda_class.h"
+#include "workspace_class.h"
 
-void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
-                                const AtmField& atmospheric_field,
-                                const SurfaceField& surface_field,
-                                const Numeric& latitude,
-                                const Numeric& longitude,
-                                const Numeric& max_step) {
-  ray_pathGeometric(
-      ray_path,
-      atmospheric_field,
-      surface_field,
-      {surface_field.single_value(SurfaceKey::h, latitude, longitude),
-       latitude,
-       longitude},
-      {0, 0},
-      max_step,
-      1.0,
-      true,
-      false,
-      true,
-      true,
-      false);
-}
+////////////////////////////////////////////////////////////////////////
+// Core Disort
+////////////////////////////////////////////////////////////////////////
 
-void disort_solar_sourceTurnOff(Vector& disort_solar_source,
-                                Vector& disort_solar_zenith_angle,
-                                Vector& disort_solar_azimuth_angle,
-                                const AscendingGrid& frequency_grid) {
-  const auto n = frequency_grid.size();
+struct disort_sizes {
+  Index nv;
+  Index np;
+  Index nquad;
+  Index nleg;
+  Index nfou;
+  Index nsource;
+  Index nbdrf;
+};
 
-  disort_solar_source.resize(n);
-  disort_solar_zenith_angle.resize(n);
-  disort_solar_azimuth_angle.resize(n);
-
-  disort_solar_source        = 0.0;
-  disort_solar_zenith_angle  = 0.0;
-  disort_solar_azimuth_angle = 0.0;
-}
-
-void disort_source_polynomialTurnOff(
-    Tensor3& disort_source_polynomial,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid) {
-  disort_source_polynomial.resize(
-      frequency_grid.size(), ray_path.size() - 1, 0);
-}
-
-void disort_source_polynomialLinearInTau(
-    Tensor3& disort_source_polynomial,
-    const Matrix& disort_optical_thicknesses,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
-    const AscendingGrid& frequency_grid) {
-  const auto nv = frequency_grid.size();
-  const auto N  = ray_path_atmospheric_point.size();
-
-  disort_source_polynomial.resize(nv, N - 1, 2);
-
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array<Index, 2>{nv, static_cast<Index>(N) - 1},
-                     disort_optical_thicknesses),
-      "Incorrect shape for optical thicknesses.");
-
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
-    const Numeric& f = frequency_grid[iv];
-
-    for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
-
-      const Numeric y0 = planck(f, t0);
-      const Numeric y1 = planck(f, t1);
-
-      const Numeric x0 = i == 0 ? 0.0 : disort_optical_thicknesses(iv, i - 1);
-      const Numeric x1 = disort_optical_thicknesses(iv, i);
-
-      const Numeric b                    = (y1 - y0) / (x1 - x0);
-      disort_source_polynomial(iv, i, 0) = y0 - b * x0;
-      disort_source_polynomial(iv, i, 1) = b;
-    }
-  }
-}
-
-void disort_negative_boundary_conditionTurnOff(
-    Tensor3& disort_negative_boundary_condition,
-    const AscendingGrid& frequency_grid,
-    const Index& disort_quadrature_dimension,
-    const Index& disort_fourier_mode_dimension) {
-  ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
-                     disort_quadrature_dimension)
-  ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
-                     disort_fourier_mode_dimension)
-
-  disort_negative_boundary_condition.resize(frequency_grid.size(),
-                                            disort_fourier_mode_dimension,
-                                            disort_quadrature_dimension / 2);
-  disort_negative_boundary_condition = 0.0;
-}
-
-void disort_positive_boundary_conditionTurnOff(
-    Tensor3& disort_positive_boundary_condition,
-    const AscendingGrid& frequency_grid,
-    const Index& disort_quadrature_dimension,
-    const Index& disort_fourier_mode_dimension) {
-  ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
-                     disort_quadrature_dimension)
-  ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
-                     disort_fourier_mode_dimension)
-
-  disort_positive_boundary_condition.resize(frequency_grid.size(),
-                                            disort_fourier_mode_dimension,
-                                            disort_quadrature_dimension / 2);
-  disort_positive_boundary_condition = 0.0;
-}
-
-void disort_positive_boundary_conditionCosmicBackgroundRadiation(
-    Tensor3& disort_positive_boundary_condition,
-    const AscendingGrid& frequency_grid,
-    const Index& disort_quadrature_dimension,
-    const Index& disort_fourier_mode_dimension) {
-  ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
-                     disort_quadrature_dimension)
-  ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
-                     disort_fourier_mode_dimension)
-
-  const auto nv = frequency_grid.size();
-  disort_positive_boundary_condition.resize(
-      nv, disort_fourier_mode_dimension, disort_quadrature_dimension / 2);
-  disort_positive_boundary_condition = 0.0;
-
-  for (Index iv = 0; iv < nv; iv++) {
-    disort_positive_boundary_condition(iv, 0, joker) = planck(
-        frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
-  }
-}
-
-void disort_negative_boundary_conditionSurfaceTemperature(
-    Tensor3& disort_negative_boundary_condition,
-    const AscendingGrid& frequency_grid,
-    const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const Index& disort_quadrature_dimension,
-    const Index& disort_fourier_mode_dimension) {
-  ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
-                     disort_quadrature_dimension)
-  ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
-                     disort_fourier_mode_dimension)
-
-  const auto nv = frequency_grid.size();
-  disort_negative_boundary_condition.resize(
-      nv, disort_fourier_mode_dimension, disort_quadrature_dimension / 2);
-  disort_negative_boundary_condition = 0.0;
-
-  const Numeric T = surface_field.single_value(
-      SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
-
-  for (Index iv = 0; iv < nv; iv++) {
-    disort_negative_boundary_condition(iv, 0, joker) =
-        planck(frequency_grid[iv], T);
-  }
-}
-
-void disort_legendre_coefficientsTurnOff(
-    Tensor3& disort_legendre_coefficients,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid,
-    const Index& disort_legendre_polynomial_dimension) {
-  ARTS_USER_ERROR_IF(disort_legendre_polynomial_dimension < 0,
-                     "Legendre polynomial must be positive: ",
-                     disort_legendre_polynomial_dimension)
-
-  const Size N   = ray_path.size();
-  const Index nv = frequency_grid.size();
-
-  disort_legendre_coefficients.resize(
-      nv, N - 1, disort_legendre_polynomial_dimension);
-
-  disort_legendre_coefficients                  = 0.0;
-  disort_legendre_coefficients(joker, joker, 0) = 1.0;
-}
-
-void disort_fractional_scatteringTurnOff(
-    Matrix& disort_fractional_scattering,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid) {
-  const Size N   = ray_path.size();
-  const Index nv = frequency_grid.size();
-
-  disort_fractional_scattering.resize(nv, N - 1);
-  disort_fractional_scattering = 0.0;
-}
-
-void disort_single_scattering_albedoTurnOff(
-    Matrix& disort_single_scattering_albedo,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid) {
-  const Size N   = ray_path.size();
-  const Index nv = frequency_grid.size();
-
-  disort_single_scattering_albedo.resize(nv, N - 1);
-  disort_single_scattering_albedo = 0.0;
-}
-
-void disort_optical_thicknessesFromPath(
-    Matrix& disort_optical_thicknesses,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix) {
-  const Size N = ray_path.size();
-  ARTS_USER_ERROR_IF(N < 1, "Must have a non-empty ray path.")
-
-  ARTS_USER_ERROR_IF(
-      not all_same_size(ray_path, ray_path_propagation_matrix),
-      "Propagation matrices and frequency grids must have the same size.")
-
-  const Index nv = ray_path_propagation_matrix.front().size();
-
-  ARTS_USER_ERROR_IF(
-      not all_same_shape(std::array{nv}, ray_path_propagation_matrix),
-      "Propagation matrices and frequency grids must have the same shape.")
-
-  // No polarization allowed
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_propagation_matrix,
-                          [](const PropmatVector& pms) {
-                            return std::ranges::any_of(
-                                pms, Cmp::eq(true), &Propmat::is_polarized);
-                          }),
-      "No implementation for polarized propagation matrices.");
-
-  // Altitude is increasing
-  ARTS_USER_ERROR_IF(
-      std::ranges::is_sorted(
-          ray_path,
-          [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
-            return a.altitude() > b.altitude();
-          }),
-      "Ray path points must be sorted by increasing altitude.");
-
-  const Vector r = [n = N - 1, &ray_path]() {
-    Vector out(n);
-    for (Size i = 0; i < n; i++) {
-      out[i] = ray_path[i + 1].altitude() - ray_path[i].altitude();
-    }
-
-    return out;
-  }();
-
-  disort_optical_thicknesses.resize(nv, N - 1);
-
-  for (Index iv = 0; iv < nv; iv++) {
-    for (Size i = 0; i < N - 1; i++) {
-      disort_optical_thicknesses(iv, i) =
-          r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
-                               ray_path_propagation_matrix[i + 0][iv].A());
-      if (i > 0) {
-        disort_optical_thicknesses(iv, i) +=
-            disort_optical_thicknesses(iv, i - 1);
-      }
-    }
-  }
-}
-
-void disort_bidirectional_reflectance_distribution_functionsTurnOff(
-    MatrixOfDisortBDRF& disort_bidirectional_reflectance_distribution_functions,
-    const AscendingGrid& frequency_grid) {
-  const auto nv = frequency_grid.size();
-  disort_bidirectional_reflectance_distribution_functions.resize(nv, 0);
-}
-
-void disort_bidirectional_reflectance_distribution_functionsLambertianConstant(
-    MatrixOfDisortBDRF& disort_bidirectional_reflectance_distribution_functions,
-    const AscendingGrid& frequency_grid,
-    const Numeric& value) {
-  const auto nv = frequency_grid.size();
-
-  disort_bidirectional_reflectance_distribution_functions.resize(nv, 1);
-
-  const auto f =
-      DisortBDRF{[value](ExhaustiveMatrixView x,
-                         const ExhaustiveConstVectorView&,
-                         const ExhaustiveConstVectorView&) { x = value; }};
-
-  disort_bidirectional_reflectance_distribution_functions = f;
-}
-
-void disort_spectral_radiance_fieldCalc(
-    Tensor3& disort_spectral_radiance_field,
-    Vector& disort_quadrature_angles,
-    Vector& disort_quadrature_weights,
+disort_sizes disort_get_and_check_sizes(
     const Matrix& disort_optical_thicknesses,
     const Matrix& disort_single_scattering_albedo,
     const Matrix& disort_fractional_scattering,
@@ -379,7 +100,6 @@ disort_legendre_coefficients.shape() = {:B,}
 
   const Index nfou       = disort_negative_boundary_condition.nrows();
   const Index nquad_half = disort_negative_boundary_condition.ncols();
-  const Index nquad      = nquad_half * 2;
 
   ARTS_USER_ERROR_IF(not same_shape(std::array{nv, nfou, nquad_half},
                                     disort_negative_boundary_condition,
@@ -426,7 +146,56 @@ disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
           disort_bidirectional_reflectance_distribution_functions.shape(),
           disort_bidirectional_reflectance_distribution_functions.shape()))
 
-  disort_spectral_radiance_field.resize(nv, np, nquad);
+  return {.nv      = nv,
+          .np      = np,
+          .nquad   = nquad_half * 2,
+          .nleg    = nleg,
+          .nfou    = nfou,
+          .nsource = nsource,
+          .nbdrf   = nbdrf};
+}
+
+void disort_spectral_radiance_fieldCalc(
+    Tensor4& disort_spectral_radiance_field,
+    Vector& disort_quadrature_angles,
+    Vector& disort_quadrature_weights,
+    const Matrix& disort_optical_thicknesses,
+    const Matrix& disort_single_scattering_albedo,
+    const Matrix& disort_fractional_scattering,
+    const Tensor3& disort_legendre_coefficients,
+    const Tensor3& disort_source_polynomial,
+    const Tensor3& disort_positive_boundary_condition,
+    const Tensor3& disort_negative_boundary_condition,
+    const MatrixOfDisortBDRF&
+        disort_bidirectional_reflectance_distribution_functions,
+    const Vector& disort_solar_zenith_angle,
+    const Vector& disort_solar_azimuth_angle,
+    const Vector& disort_solar_source,
+    const Vector& phis) {
+  using Conversion::acosd, Conversion::cosd, Conversion::deg2rad;
+
+  const auto sizes = disort_get_and_check_sizes(
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source);
+
+  const Index nv      = sizes.nv;
+  const Index np      = sizes.np;
+  const Index nquad   = sizes.nquad;
+  const Index nleg    = sizes.nleg;
+  const Index nfou    = sizes.nfou;
+  const Index nsource = sizes.nsource;
+  const Index nbdrf   = sizes.nbdrf;
+
+  disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
 
   const Index nleg_reduced = nleg;
   disort::main_data dis(np, nquad, nleg, nfou, nsource, nleg_reduced, nbdrf);
@@ -437,7 +206,7 @@ disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
   std::transform(dis.mu().begin(),
                  dis.mu().end(),
                  disort_quadrature_angles.begin(),
-                 [](const Numeric& mu) { return Conversion::acosd(mu); });
+                 [](const Numeric& mu) { return acosd(mu); });
 
   String error;
 
@@ -449,11 +218,11 @@ disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
             disort_bidirectional_reflectance_distribution_functions(iv, i);
       }
 
-      dis.solar_zenith() = Conversion::cosd(disort_solar_zenith_angle[iv]);
-      dis.beam_azimuth() = Conversion::deg2rad(disort_solar_azimuth_angle[iv]);
-      dis.tau()          = disort_optical_thicknesses[iv];
-      dis.omega()        = disort_single_scattering_albedo[iv];
-      dis.f()            = disort_fractional_scattering[iv];
+      dis.solar_zenith()        = cosd(disort_solar_zenith_angle[iv]);
+      dis.beam_azimuth()        = deg2rad(disort_solar_azimuth_angle[iv]);
+      dis.tau()                 = disort_optical_thicknesses[iv];
+      dis.omega()               = disort_single_scattering_albedo[iv];
+      dis.f()                   = disort_fractional_scattering[iv];
       dis.all_legendre_coeffs() = disort_legendre_coefficients[iv];
       dis.positive_boundary()   = disort_positive_boundary_condition[iv];
       dis.negative_boundary()   = disort_negative_boundary_condition[iv];
@@ -461,8 +230,7 @@ disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
 
       dis.update_all(disort_solar_source[iv]);
 
-      dis.gridded_u(disort_spectral_radiance_field[iv].reshape_as(np, 1, nquad),
-                    {0.0});
+      dis.gridded_u(disort_spectral_radiance_field[iv], phis);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -472,10 +240,217 @@ disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
   ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
 }
 
+void disort_spectral_flux_fieldCalc(
+    Tensor3& disort_spectral_flux_field,
+    const Matrix& disort_optical_thicknesses,
+    const Matrix& disort_single_scattering_albedo,
+    const Matrix& disort_fractional_scattering,
+    const Tensor3& disort_legendre_coefficients,
+    const Tensor3& disort_source_polynomial,
+    const Tensor3& disort_positive_boundary_condition,
+    const Tensor3& disort_negative_boundary_condition,
+    const MatrixOfDisortBDRF&
+        disort_bidirectional_reflectance_distribution_functions,
+    const Vector& disort_solar_zenith_angle,
+    const Vector& disort_solar_azimuth_angle,
+    const Vector& disort_solar_source) {
+  using Conversion::acosd, Conversion::cosd, Conversion::deg2rad;
+
+  const auto sizes = disort_get_and_check_sizes(
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source);
+
+  const Index nv      = sizes.nv;
+  const Index np      = sizes.np;
+  const Index nquad   = sizes.nquad;
+  const Index nleg    = sizes.nleg;
+  const Index nfou    = sizes.nfou;
+  const Index nsource = sizes.nsource;
+  const Index nbdrf   = sizes.nbdrf;
+
+  disort_spectral_flux_field.resize(nv, 3, np);
+
+  const Index nleg_reduced = nleg;
+  disort::main_data dis(np, nquad, nleg, nfou, nsource, nleg_reduced, nbdrf);
+
+  String error;
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis)
+  for (Index iv = 0; iv < nv; iv++) {
+    try {
+      for (Index i = 0; i < nbdrf; i++) {
+        dis.brdf_modes()[i] =
+            disort_bidirectional_reflectance_distribution_functions(iv, i);
+      }
+
+      dis.solar_zenith()        = cosd(disort_solar_zenith_angle[iv]);
+      dis.beam_azimuth()        = deg2rad(disort_solar_azimuth_angle[iv]);
+      dis.tau()                 = disort_optical_thicknesses[iv];
+      dis.omega()               = disort_single_scattering_albedo[iv];
+      dis.f()                   = disort_fractional_scattering[iv];
+      dis.all_legendre_coeffs() = disort_legendre_coefficients[iv];
+      dis.positive_boundary()   = disort_positive_boundary_condition[iv];
+      dis.negative_boundary()   = disort_negative_boundary_condition[iv];
+      dis.source_poly()         = disort_source_polynomial[iv];
+
+      dis.update_all(disort_solar_source[iv]);
+
+      dis.gridded_flux(disort_spectral_flux_field(iv, 0, joker),
+                       disort_spectral_flux_field(iv, 1, joker),
+                       disort_spectral_flux_field(iv, 2, joker));
+    } catch (const std::exception& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
+}
+
+////////////////////////////////////////////////////////////////////////
+// Integrate functions
+////////////////////////////////////////////////////////////////////////
+
 void spectral_radianceIntegrateDisort(
     StokvecVector& /*spectral_radiance*/,
-    const Tensor3& /*disort_spectral_radiance_field*/,
+    const Tensor4& /*disort_spectral_radiance_field*/,
     const Vector& /*disort_quadrature_angles*/,
     const Vector& /*disort_quadrature_weights*/) {
   ARTS_USER_ERROR("Not implemented")
+}
+
+void SpectralFluxDisort(Matrix& spectral_flux_field_up,
+                        Matrix& spectral_flux_field_down,
+                        const Tensor3& disort_spectral_flux_field) {
+  ARTS_USER_ERROR_IF(
+      disort_spectral_flux_field.nrows() != 3,
+      std::format("Must have shape (*, 3, *), but got shape {:B,}",
+                  disort_spectral_flux_field.shape()))
+
+  spectral_flux_field_up    = disort_spectral_flux_field(joker, 0, joker);
+  spectral_flux_field_down  = disort_spectral_flux_field(joker, 1, joker);
+  spectral_flux_field_down += disort_spectral_flux_field(joker, 2, joker);
+}
+
+////////////////////////////////////////////////////////////////////////
+// Disort Agenda wrappers
+////////////////////////////////////////////////////////////////////////
+
+void disort_spectral_radiance_fieldFromAgenda(
+    const Workspace& ws,
+    Tensor4& disort_spectral_radiance_field,
+    Vector& disort_quadrature_angles,
+    Vector& disort_quadrature_weights,
+    const Agenda& disort_settings_agenda,
+    const Index& disort_quadrature_dimension,
+    const Index& disort_fourier_mode_dimension,
+    const Index& disort_legendre_polynomial_dimension,
+    const Vector& phis) {
+  Matrix disort_optical_thicknesses;
+  Matrix disort_single_scattering_albedo;
+  Matrix disort_fractional_scattering;
+  Tensor3 disort_legendre_coefficients;
+  Tensor3 disort_source_polynomial;
+  Tensor3 disort_positive_boundary_condition;
+  Tensor3 disort_negative_boundary_condition;
+  MatrixOfDisortBDRF disort_bidirectional_reflectance_distribution_functions;
+  Vector disort_solar_zenith_angle;
+  Vector disort_solar_azimuth_angle;
+  Vector disort_solar_source;
+
+  disort_settings_agendaExecute(
+      ws,
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source,
+      disort_quadrature_dimension,
+      disort_fourier_mode_dimension,
+      disort_legendre_polynomial_dimension,
+      disort_settings_agenda);
+
+  disort_spectral_radiance_fieldCalc(
+      disort_spectral_radiance_field,
+      disort_quadrature_angles,
+      disort_quadrature_weights,
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source,
+      phis);
+}
+
+void disort_spectral_flux_fieldFromAgenda(
+    const Workspace& ws,
+    Tensor3& disort_spectral_flux_field,
+    const Agenda& disort_settings_agenda,
+    const Index& disort_quadrature_dimension,
+    const Index& disort_fourier_mode_dimension,
+    const Index& disort_legendre_polynomial_dimension) {
+  Matrix disort_optical_thicknesses;
+  Matrix disort_single_scattering_albedo;
+  Matrix disort_fractional_scattering;
+  Tensor3 disort_legendre_coefficients;
+  Tensor3 disort_source_polynomial;
+  Tensor3 disort_positive_boundary_condition;
+  Tensor3 disort_negative_boundary_condition;
+  MatrixOfDisortBDRF disort_bidirectional_reflectance_distribution_functions;
+  Vector disort_solar_zenith_angle;
+  Vector disort_solar_azimuth_angle;
+  Vector disort_solar_source;
+
+  disort_settings_agendaExecute(
+      ws,
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source,
+      disort_quadrature_dimension,
+      disort_fourier_mode_dimension,
+      disort_legendre_polynomial_dimension,
+      disort_settings_agenda);
+
+  disort_spectral_flux_fieldCalc(
+      disort_spectral_flux_field,
+      disort_optical_thicknesses,
+      disort_single_scattering_albedo,
+      disort_fractional_scattering,
+      disort_legendre_coefficients,
+      disort_source_polynomial,
+      disort_positive_boundary_condition,
+      disort_negative_boundary_condition,
+      disort_bidirectional_reflectance_distribution_functions,
+      disort_solar_zenith_angle,
+      disort_solar_azimuth_angle,
+      disort_solar_source);
 }
