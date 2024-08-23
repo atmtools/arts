@@ -3666,12 +3666,12 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"model_state_covariance_matrix"},
       .in        = {"model_state_covariance_matrix", "jacobian_targets"},
-      .gin       = {"species", "forward", "inverse"},
+      .gin       = {"species", "matrix", "inverse"},
       .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}},
       .gin_desc  = {"The species to set the covariance matrix for",
-                    "The covariance matrix data",
-                    "The inverse covariance matrix data"},
+                    "The covariance diagoinal block matrix",
+                    "The inverse covariance diagoinal block matrix"},
   };
 
   wsm_data["measurement_vector_error_covariance_matrixConstant"] = {

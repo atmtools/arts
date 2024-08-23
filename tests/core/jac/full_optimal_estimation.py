@@ -84,7 +84,7 @@ for i in range(LIMIT):
 
     ws.model_state_covariance_matrixInit()
     ws.model_state_covariance_matrixAddSpeciesVMR(
-        species="O2", data=np.diag(np.ones((3)) * 5)
+        species="O2", matrix=np.diag(np.ones((3)) * 5)
     )
 
     noise = 0.1

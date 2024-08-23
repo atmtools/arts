@@ -156,16 +156,21 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag covmat_tag;
   ArtsXMLTag close_tag;
 
+  const String t = (bm.is_dense() or not bm.not_null()) ? String{"Matrix"}
+                                                        : String{"Sparse"};
+
   covmat_tag.set_name("BlockMatrix");
-  covmat_tag.add_attribute("type", bm.is_dense() ? String{"Matrix"} : String{"Sparse"});
+  covmat_tag.add_attribute("type", t);
   covmat_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  if (bm.is_dense()) {
+  if (not bm.not_null()) {
+    xml_write_to_stream(os_xml, Matrix{}, pbofs, "");
+  } else if (bm.is_dense()) {
     xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
   } else {
     xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
-  }  
+  }
 
   os_xml << '\n';
   close_tag.set_name("/BlockMatrix");
