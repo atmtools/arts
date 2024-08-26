@@ -17,8 +17,8 @@ pyarts.cat.cia
 
    hitran2arts
 
-pyarts.utils.download
----------------------
+pyarts.cat.download
+-------------------
 
 .. automodule:: pyarts.cat.download
 
