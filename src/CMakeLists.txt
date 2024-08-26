@@ -36,7 +36,11 @@ add_library(workspace_group STATIC
 )
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
-add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
+add_custom_command(OUTPUT
+  auto_wsg.h
+  auto_wsg_init.cpp
+  auto_wsg_share.cpp
+  auto_workspace.cpp
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -60,7 +64,8 @@ add_library(workspace_internals STATIC
   workspace_wsv_move_set.cpp
   workspace_wsv_copy_fn.cpp
   workspace_wsv_other_fn.cpp
-  auto_wsg.cpp
+  auto_wsg_init.cpp
+  auto_wsg_share.cpp
 )
 target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
