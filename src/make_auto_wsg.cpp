@@ -191,13 +191,6 @@ void implementation(std::ostream& os) {
 #include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
 
-Wsv::Wsv() : value(std::make_shared<Any>()) {}
-Wsv::Wsv(const Wsv&) = default;
-Wsv::Wsv(Wsv&&) noexcept = default;
-Wsv& Wsv::operator=(const Wsv&) = default;
-Wsv& Wsv::operator=(Wsv&&) noexcept = default;
-Wsv::~Wsv() = default;
-
 )--";
 
   for (auto&& group : groups()) {
@@ -230,18 +223,6 @@ Wsv::~Wsv() = default;
   os << R"--(  };
   return std::binary_search(val.begin(), val.end(), x);
 }
-
-std::size_t Wsv::index() const {return value.index();}
-
-bool Wsv::holds_same(const Wsv& other) const {return index() == other.index();}
-
-Wsv Wsv::copy() const {
-  return std::visit([](const auto& val) -> Wsv {
-    return Wsv{*val};
-  }, value);
-}
-
-const std::string_view Wsv::type_name() const { return name_wsg(value); }
 
 Wsv Wsv::from_named_type(const std::string& type) {
 )--";
@@ -313,8 +294,8 @@ void auto_workspace(std::ostream& os) {
 )--";
 
   for (auto& group : groups()) {
-    os << "template<> std::shared_ptr<" << group
-       << "> Workspace::share_or<" << group
+    os << "template<> std::shared_ptr<" << group << "> Workspace::share_or<"
+       << group
        << ">(const std::string& name) {\n"
           "  if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {\n"
           "    return ptr->second.template share<"
