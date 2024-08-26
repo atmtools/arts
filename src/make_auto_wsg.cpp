@@ -134,16 +134,16 @@ struct Wsv {
   WsvValue value;
 
   //! Move value into the workspace variable
-  template <WorkspaceGroup T> Wsv(T&& x);
+  template <WorkspaceGroup T> Wsv(T&& x) noexcept;
 
   //! Copy value into the workspace variable
   template <WorkspaceGroup T> Wsv(const T& x);
 
   //! Borrow value as workspace variable
-  template <WorkspaceGroup T> Wsv(T* x);
+  template <WorkspaceGroup T> Wsv(T* x) noexcept;
 
   //! Share value as workspace variable
-  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x);
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x) noexcept;
 
   //! Must declare destructor to avoid incomplete type error
   Wsv();
@@ -194,14 +194,14 @@ void implementation(std::ostream& os) {
 )--";
 
   for (auto&& group : groups()) {
-    os << "template <> Wsv::Wsv(" << group << "&& x) : value(std::make_shared<"
-       << group << ">(std::move(x))) {}\n";
+    os << "template <> Wsv::Wsv(" << group << "&& x)  noexcept : value(std::shared_ptr<"
+       << group << ">(new " << group << "{std::move(x)})) {}\n";
     os << "template <> Wsv::Wsv(const " << group
-       << "& x) : value(std::make_shared<" << group << ">(x)) {}\n";
-    os << "template <> Wsv::Wsv(" << group << "* x) : value(std::shared_ptr<"
+       << "& x) : value(std::shared_ptr<" << group << ">(new " << group << "{x})) {}\n";
+    os << "template <> Wsv::Wsv(" << group << "* x)  noexcept : value(std::shared_ptr<"
        << group << ">(x, [](void*){})) {}\n";
     os << "template <> Wsv::Wsv(std::shared_ptr<" << group
-       << ">&& x) : value(std::move(x)) {}\n\n";
+       << ">&& x)  noexcept : value(std::move(x)) {}\n\n";
   }
 
   os << "std::string_view name_wsg(const WsvValue& x) {\n  const static std::unordered_map<std::size_t, std::string> val {\n";
