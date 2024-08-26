@@ -12,6 +12,8 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <concepts>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -26,6 +28,7 @@
 #include "enums.h"
 #include "gridded_data.h"
 #include "isotopologues.h"
+#include "jacobian.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "mystring.h"
@@ -2927,4 +2930,384 @@ void xml_write_to_stream(std::ostream&,
                          bofstream*,
                          const String&) {
   ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== AtmKeyVal =========================================================
+
+//! Reads AtmKeyVal from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    AtmKeyVal
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          AtmKeyVal& atmt,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("AtmKeyVal");
+
+  String type;
+  tag.get_attribute_value("type", type);
+
+  if (type == "AtmKey"s) {
+    atmt = AtmKey{};
+  } else if (type == "SpeciesEnum"s) {
+    atmt = SpeciesEnum{};
+  } else if (type == "SpeciesIsotope"s) {
+    atmt = SpeciesIsotope{};
+  } else if (type == "QuantumIdentifier"s) {
+    atmt = QuantumIdentifier{};
+  } else if (type == "ParticulatePropertyTag"s) {
+    atmt = ParticulatePropertyTag{};
+  } else {
+    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+  }
+
+  std::visit(
+      [&](auto& data_type) { xml_read_from_stream(is_xml, data_type, pbifs); },
+      atmt);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/AtmKeyVal");
+}
+
+//! Write AtmKeyVal to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    AtmKeyVal
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const AtmKeyVal& atmt,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("AtmKeyVal");
+  open_tag.add_attribute(
+      "type",
+      std::visit(
+          []<typename T>(const T&) {
+            if constexpr (std::same_as<T, AtmKey>)
+              return "AtmKey"s;
+            else if constexpr (std::same_as<T, SpeciesEnum>)
+              return "SpeciesEnum"s;
+            else if constexpr (std::same_as<T, SpeciesIsotope>)
+              return "SpeciesIsotope"s;
+            else if constexpr (std::same_as<T, QuantumIdentifier>)
+              return "QuantumIdentifier"s;
+            else if constexpr (std::same_as<T, ParticulatePropertyTag>)
+              return "ParticulatePropertyTag"s;
+            else
+              return "UnknownType"s;
+          },
+          atmt));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  std::visit(
+      [&](const auto& data_type) {
+        xml_write_to_stream(os_xml, data_type, pbofs, name);
+      },
+      atmt);
+
+  close_tag.set_name("/AtmKeyVal");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== SurfaceKeyVal =========================================================
+
+//! Reads SurfaceKeyVal from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    SurfaceKeyVal
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          SurfaceKeyVal& surft,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("SurfaceKeyVal");
+
+  String type;
+  tag.get_attribute_value("type", type);
+
+  if (type == "SurfaceKey"s) {
+    surft = SurfaceKey{};
+  } else if (type == "SurfaceTypeTag"s) {
+    surft = SurfaceTypeTag{};
+  } else if (type == "SurfacePropertyTag"s) {
+    surft = SurfacePropertyTag{};
+  } else {
+    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+  }
+
+  std::visit(
+      [&](auto& data_type) { xml_read_from_stream(is_xml, data_type, pbifs); },
+      surft);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SurfaceKeyVal");
+}
+
+//! Write SurfaceKeyVal to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    SurfaceKeyVal
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SurfaceKeyVal& surft,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SurfaceKeyVal");
+  open_tag.add_attribute(
+      "type",
+      std::visit(
+          []<typename T>(const T&) {
+            if constexpr (std::same_as<T, SurfaceKey>)
+              return "SurfaceKey"s;
+            else if constexpr (std::same_as<T, SurfaceTypeTag>)
+              return "SurfaceTypeTag"s;
+            else if constexpr (std::same_as<T, SurfacePropertyTag>)
+              return "SurfacePropertyTag"s;
+            else
+              return "UnknownType"s;
+          },
+          surft));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  std::visit(
+      [&](const auto& data_type) {
+        xml_write_to_stream(os_xml, data_type, pbofs, name);
+      },
+      surft);
+
+  close_tag.set_name("/SurfaceKeyVal");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== LblLineKey =========================================================
+
+//! Reads LblLineKey from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    LblLineKey
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          LblLineKey& lblt,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("LblLineKey");
+
+  String var;
+  tag.get_attribute_value("ls_var", var);
+  if (var == "UnknownVariable"s) {
+    lblt.ls_var = static_cast<LineShapeModelVariable>(-1);
+  } else {
+    lblt.ls_var = to<LineShapeModelVariable>(var);
+  }
+
+  tag.add_attribute("ls_coeff", var);
+  if (var == "UnknownVariable"s) {
+    lblt.ls_coeff = static_cast<LineShapeModelCoefficient>(-1);
+  } else {
+    lblt.ls_coeff = to<LineShapeModelCoefficient>(var);
+  }
+
+  tag.add_attribute("var", var);
+  if (var == "UnknownVariable"s) {
+    lblt.var = static_cast<LineByLineVariable>(-1);
+  } else {
+    lblt.var = to<LineByLineVariable>(var);
+  }
+
+  xml_read_from_stream(is_xml, lblt.band, pbifs);
+  Index line;
+  xml_read_from_stream(is_xml, line, pbifs);
+  lblt.line = static_cast<Size>(line);
+  Index spec;
+  xml_read_from_stream(is_xml, spec, pbifs);
+  lblt.spec = static_cast<Size>(spec);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/LblLineKey");
+}
+
+//! Write LblLineKey to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    LblLineKey
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const LblLineKey& lblt,
+                         bofstream* pbofs,
+                         const String& name [[maybe_unused]]) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  const auto goodenum = [](auto x) -> String {
+    return good_enum(x) ? String{toString(x)} : "UnknownVariable"s;
+  };
+
+  open_tag.set_name("LblLineKey");
+  open_tag.add_attribute("ls_var", goodenum(lblt.ls_var));
+  open_tag.add_attribute("ls_coeff", goodenum(lblt.ls_coeff));
+  open_tag.add_attribute("var", goodenum(lblt.var));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  const auto sz = [](Size x) -> Index {
+    return (x < std::numeric_limits<Index>::max()) ? static_cast<Index>(x)
+                                                   : Index{-1};
+  };
+
+  xml_write_to_stream(os_xml, lblt.band, pbofs, "");
+  xml_write_to_stream(os_xml, sz(lblt.line), pbofs, "");
+  xml_write_to_stream(os_xml, sz(lblt.spec), pbofs, "");
+
+  close_tag.set_name("/LblLineKey");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== JacobianTargetType =========================================================
+
+//! Reads JacobianTargetType from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    JacobianTargetType
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          JacobianTargetType& jtt,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("JacobianTargetType");
+
+  String type;
+  tag.get_attribute_value("type", type);
+  if (type == "AtmKeyVal"s) {
+    jtt.target = AtmKeyVal{};
+  } else if (type == "SurfaceKeyVal"s) {
+    jtt.target = SurfaceKeyVal{};
+  } else if (type == "LblLineKey"s) {
+    jtt.target = LblLineKey{};
+  } else {
+    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+  }
+
+  std::visit(
+      [&](auto& data_type) { xml_read_from_stream(is_xml, data_type, pbifs); },
+      jtt.target);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/JacobianTargetType");
+}
+
+//! Write JacobianTargetType to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    JacobianTargetType
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const JacobianTargetType& jtt,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("JacobianTargetType");
+  open_tag.add_attribute("type", jtt.type());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  std::visit(
+      [&](const auto& data_type) {
+        xml_write_to_stream(os_xml, data_type, pbofs, name);
+      },
+      jtt.target);
+
+  close_tag.set_name("/JacobianTargetType");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== JacobianTargetsDiagonalCovarianceMatrixMap =========================================================
+
+//! Reads JacobianTargetsDiagonalCovarianceMatrixMap from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    JacobianTargetsDiagonalCovarianceMatrixMap
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          JacobianTargetsDiagonalCovarianceMatrixMap& jtmap,
+                          bifstream* pbifs) {
+  jtmap.map.clear();
+
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("JacobianTargetsDiagonalCovarianceMatrixMap");
+
+  Index size;
+  tag.get_attribute_value("size", size);
+
+  for (Index i = 0; i < size; i++) {
+    JacobianTargetType key;
+    BlockMatrix matrix;
+    BlockMatrix inverse;
+
+    xml_read_from_stream(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, matrix, pbifs);
+    xml_read_from_stream(is_xml, inverse, pbifs);
+
+    jtmap.set(key, matrix, inverse);
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/JacobianTargetsDiagonalCovarianceMatrixMap");
+}
+
+//! Write JacobianTargetsDiagonalCovarianceMatrixMap to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    JacobianTargetsDiagonalCovarianceMatrixMap
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const JacobianTargetsDiagonalCovarianceMatrixMap& jtmap,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("JacobianTargetsDiagonalCovarianceMatrixMap");
+  open_tag.add_attribute("size", static_cast<Index>(jtmap.map.size()));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (const auto& [key, value] : jtmap) {
+    xml_write_to_stream(os_xml, key, pbofs, "key");
+    xml_write_to_stream(os_xml, value.first, pbofs, "matrix");
+    xml_write_to_stream(os_xml, value.second, pbofs, "inverse");
+  }
+
+  close_tag.set_name("/JacobianTargetsDiagonalCovarianceMatrixMap");
+  close_tag.write_to_stream(os_xml);
 }

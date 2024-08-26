@@ -931,6 +931,21 @@ when computing the Jacobian matrix or partial derivatives.
 )--",
   };
 
+  wsg_data["JacobianTargetType"] = {
+      .file = "jacobian.h",
+      .desc = R"--(A type of target for use in Jacobian Matrix calculations
+)--",
+    };
+
+  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
+      .file = "retrieval_target.h",
+      .desc = R"--(A map target types to matrix and inverse matrix pairs of *BloackMatrix*
+
+The intended use of this type is to store required *BlockMatrix* objects so that
+the user-interface for setting up retrieval targets can be simplified.
+)--",
+    };
+
   wsg_data["PropagationPathPoint"] = {
       .file = "path_point.h",
       .desc = R"--(A simple path-point of a propagation path

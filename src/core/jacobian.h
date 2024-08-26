@@ -9,6 +9,7 @@
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <sstream>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -299,7 +300,39 @@ struct TargetType {
   using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey>;
   variant_t target;
 
+  template <class AtmKeyValFunc, class SurfaceKeyValFunc, class LblLineKeyFunc>
+  [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
+                                     const SurfaceKeyValFunc& ifsurf,
+                                     const LblLineKeyFunc& ifline) const {
+    return std::visit(
+        [&](const auto& t) {
+          using T = std::decay_t<decltype(t)>;
+          if constexpr (std::same_as<T, AtmKeyVal>) {
+            return ifatm(t);
+          } else if constexpr (std::same_as<T, SurfaceKeyVal>) {
+            return ifsurf(t);
+          } else if constexpr (std::same_as<T, LblLineKey>) {
+            return ifline(t);
+          }
+        },
+        target);
+  }
+
   constexpr bool operator==(const TargetType&) const = default;
+
+  [[nodiscard]] std::string type() const {
+    return apply([](auto&) { return "AtmKeyVal"s; },
+                 [](auto&) { return "SurfaceKeyVal"s; },
+                 [](auto&) { return "LblLineKey"s; });
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const TargetType& tt) {
+    tt.apply(
+        [&os](const AtmKeyVal& key) { os << "AtmKeyVal::" << key; },
+        [&os](const SurfaceKeyVal& key) { os << "SurfaceKeyVal::" << key; },
+        [&os](const LblLineKey& key) { os << "LblLineKey::" << key; });
+    return os;
+  }
 };
 }  // namespace Jacobian
 
@@ -315,10 +348,40 @@ inline Numeric field_perturbation(const auto& f) {
 using JacobianTargets    = Jacobian::Targets;
 using JacobianTargetType = Jacobian::TargetType;
 
-template<>struct
-std::hash<JacobianTargetType>{
-std::size_t operator()(const JacobianTargetType& g) const {
+template <>
+struct std::hash<JacobianTargetType> {
+  std::size_t operator()(const JacobianTargetType& g) const {
     return std::hash<JacobianTargetType::variant_t>{}(g.target);
+  }
+};
+
+template <>
+struct std::formatter<JacobianTargetType> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const JacobianTargetType& jtt,
+                              FmtContext& ctx) const {
+    jtt.apply(
+        [this, &ctx](const AtmKeyVal& key) {
+          tags.format(ctx, "AtmKeyVal::"sv, key);
+        },
+        [this, &ctx](const SurfaceKeyVal& key) {
+          tags.format(ctx, "SurfaceKeyVal::"sv, key);
+        },
+        [this, &ctx](const LblLineKey& key) {
+          tags.format(ctx, "LblLineKey::"sv, key);
+        });
+
+    return ctx.out();
   }
 };
 

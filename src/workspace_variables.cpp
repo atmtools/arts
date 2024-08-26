@@ -853,6 +853,12 @@ The inner "3" is in order: upwelling, diffuse downwelling, and direct downwellin
       .type = "Tensor3",
   };
 
+  wsv_data["covariance_matrix_diagonal_blocks"] = {
+      .desc = R"(A helper map for setting the covariance matrix.
+)",
+      .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
+  };
+
   return wsv_data;
 }
 

@@ -7,6 +7,7 @@ PLOT = False  # Plot for debug
 LIMIT = 50  # Rerun limit for finding a fit
 ATOL = 0.01
 NFREQ = 1001
+noise = 0.1
 
 ws = pyarts.workspace.Workspace()
 
@@ -60,9 +61,10 @@ ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
 
 # %% Jacobian
 
-ws.jacobian_targetsInit()
-ws.jacobian_targetsAddSpeciesVMR(species="O2")
-ws.jacobian_targetsFinalize()
+ws.RetrievalInit()
+ws.RetrievalAddSpeciesVMR(species="O2", matrix=np.diag(np.ones((3)) * 5))
+ws.RetrievalFinalizeDiagonal()
+
 
 # %% Core calculations
 
@@ -82,12 +84,6 @@ for i in range(LIMIT):
     ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
     ws.model_state_vector_aprioriFromData()
 
-    ws.model_state_covariance_matrixInit()
-    ws.model_state_covariance_matrixAddSpeciesVMR(
-        species="O2", matrix=np.diag(np.ones((3)) * 5)
-    )
-
-    noise = 0.1
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
     ws.measurement_vector += np.random.normal(0, noise, NFREQ)
 
