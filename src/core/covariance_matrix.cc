@@ -49,7 +49,7 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B) {
 }
 
 void mult(MatrixView C, const Block &A, ConstMatrixView B) {
-  ARTS_ASSERT((A.get_sparse() != nullptr) || (A.get_dense() != nullptr));
+  ARTS_ASSERT(A.not_null());
 
   MatrixView CView(C(A.get_row_range(), joker));
   MatrixView CTView(C(A.get_column_range(), joker));
