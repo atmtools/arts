@@ -19,7 +19,7 @@
 // Correlations
 //------------------------------------------------------------------------------
 void mult(MatrixView C, ConstMatrixView A, const Block &B) {
-  ARTS_ASSERT((B.sparse_ != nullptr) || (B.dense_ != nullptr));
+  ARTS_ASSERT(B.not_null());
 
   MatrixView CView(C(joker, B.get_column_range()));
   MatrixView CTView(C(joker, B.get_row_range()));
@@ -29,37 +29,37 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B) {
   Index i, j;
   std::tie(i, j) = B.get_indices();
 
-  if (B.matrix_type_ == Block::MatrixType::dense) {
-    mult(CView, AView, *B.dense_);
+  if (B.is_dense()) {
+    mult(CView, AView, B.get_dense());
   } else {
-    mult(CView, AView, *B.sparse_);
+    mult(CView, AView, B.get_sparse());
   }
 
   // Only upper blocks are stored, so if the correlation is between different RQs
   // we also need to account for the implicit lower block.
   if (i != j) {
-    if (B.matrix_type_ == Block::MatrixType::dense) {
-      mult(CTView, ATView, transpose(*B.dense_));
+    if (B.is_dense()) {
+      mult(CTView, ATView, transpose(B.get_dense()));
     } else {
       Matrix D(CTView.ncols(), CTView.nrows());
-      mult(D, *B.sparse_, transpose(ATView));
+      mult(D, B.get_sparse(), transpose(ATView));
       CTView += transpose(D);
     }
   }
 }
 
 void mult(MatrixView C, const Block &A, ConstMatrixView B) {
-  ARTS_ASSERT((A.sparse_ != nullptr) || (A.dense_ != nullptr));
+  ARTS_ASSERT(A.not_null());
 
   MatrixView CView(C(A.get_row_range(), joker));
   MatrixView CTView(C(A.get_column_range(), joker));
   ConstMatrixView BView(B(A.get_column_range(), joker));
   ConstMatrixView BTView(B(A.get_row_range(), joker));
 
-  if (A.matrix_type_ == Block::MatrixType::dense) {
-    mult(CView, *A.dense_, BView);
+  if (A.is_dense()) {
+    mult(CView, A.get_dense(), BView);
   } else {
-    mult(CView, *A.sparse_, BView);
+    mult(CView, A.get_sparse(), BView);
   }
 
   Index i, j;
@@ -68,11 +68,11 @@ void mult(MatrixView C, const Block &A, ConstMatrixView B) {
   // Only upper blocks are stored, so if the correlation is between different RQs
   // we also need to account for the implicit lower block.
   if (i != j) {
-    if (A.matrix_type_ == Block::MatrixType::dense) {
-      mult(CTView, transpose(*A.dense_), BTView);
+    if (A.is_dense()) {
+      mult(CTView, transpose(A.get_dense()), BTView);
     } else {
       Matrix D(CTView.ncols(), CTView.nrows());
-      mult(D, transpose(BTView), *A.sparse_);
+      mult(D, transpose(BTView), A.get_sparse());
       CTView += transpose(D);
     }
   }
@@ -82,20 +82,20 @@ void mult(VectorView w, const Block &A, ConstVectorView v) {
   VectorView wview(w[A.get_row_range()]), wtview(w[A.get_column_range()]);
   ConstVectorView vview(v[A.get_column_range()]), vtview(v[A.get_row_range()]);
 
-  if (A.matrix_type_ == Block::MatrixType::dense) {
-    mult(wview, *A.dense_, vview);
+  if (A.is_dense()) {
+    mult(wview, A.get_dense(), vview);
   } else {
-    mult(wview, *A.sparse_, vview);
+    mult(wview, A.get_sparse(), vview);
   }
 
   Index i, j;
   std::tie(i, j) = A.get_indices();
 
   if (i != j) {
-    if (A.matrix_type_ == Block::MatrixType::dense) {
-      mult(wtview, transpose(*A.dense_), vtview);
+    if (A.is_dense()) {
+      mult(wtview, transpose(A.get_dense()), vtview);
     } else {
-      transpose_mult(wtview, *A.sparse_, vtview);
+      transpose_mult(wtview, A.get_sparse(), vtview);
     }
   }
 }
@@ -103,7 +103,7 @@ void mult(VectorView w, const Block &A, ConstVectorView v) {
 MatrixView operator+=(MatrixView A, const Block &B) {
   MatrixView Aview(A(B.get_row_range(), B.get_column_range()));
   MatrixView ATview(A(B.get_column_range(), B.get_row_range()));
-  if (B.get_matrix_type() == Block::MatrixType::dense) {
+  if (B.is_dense()) {
     Aview += B.get_dense();
   } else {
     Aview += static_cast<const Matrix>(B.get_sparse());
@@ -113,7 +113,7 @@ MatrixView operator+=(MatrixView A, const Block &B) {
   std::tie(i, j) = B.get_indices();
 
   if (i != j) {
-    if (B.get_matrix_type() == Block::MatrixType::dense) {
+    if (B.is_dense()) {
       ATview += transpose(B.get_dense());
     } else {
       ATview += transpose(static_cast<const Matrix>(B.get_sparse()));
@@ -132,7 +132,7 @@ CovarianceMatrix::operator Matrix() const {
 
   for (const Block &c : correlations_) {
     MatrixView Aview = A(c.get_row_range(), c.get_column_range());
-    if (c.get_matrix_type() == Block::MatrixType::dense) {
+    if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
       Aview = static_cast<const Matrix>(c.get_sparse());
@@ -142,7 +142,7 @@ CovarianceMatrix::operator Matrix() const {
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
       MatrixView ATview = A(c.get_column_range(), c.get_row_range());
-      if (c.get_matrix_type() == Block::MatrixType::dense) {
+      if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
         ATview = transpose(static_cast<const Matrix>(c.get_sparse()));
@@ -159,7 +159,7 @@ Matrix CovarianceMatrix::get_inverse() const {
 
   for (const Block &c : inverses_) {
     MatrixView Aview = A(c.get_row_range(), c.get_column_range());
-    if (c.get_matrix_type() == Block::MatrixType::dense) {
+    if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
       Aview = static_cast<const Matrix>(c.get_sparse());
@@ -169,7 +169,7 @@ Matrix CovarianceMatrix::get_inverse() const {
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
       MatrixView ATview = A(c.get_column_range(), c.get_row_range());
-      if (c.get_matrix_type() == Block::MatrixType::dense) {
+      if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
         ATview = transpose(static_cast<const Matrix>(c.get_sparse()));
@@ -456,7 +456,7 @@ void CovarianceMatrix::invert_correlation_block(
     Range column_range(block_start_cont[cj], block_extent_cont[cj]);
     MatrixView A_view = A(row_range, column_range);
 
-    if (blocks[i]->get_matrix_type() == Block::MatrixType::dense) {
+    if (blocks[i]->is_dense()) {
       A_view = blocks[i]->get_dense();
     } else {
       A_view = static_cast<const Matrix>(blocks[i]->get_sparse());

@@ -405,6 +405,11 @@ units of m^5 molec^(-2)
       .desc = "Used to inject custom code into *Agenda*\n",
   };
 
+  wsg_data["BlockMatrix"] = {
+      .file = "covariance_matrix.h",
+      .desc = "A block matrix for the covariance matrix\n",
+  };
+
   wsg_data["CovarianceMatrix"] = {
       .file = "covariance_matrix.h",
       .desc = "A covariance matrix\n",
@@ -925,6 +930,21 @@ This type flags the type of calculations that should be performed
 when computing the Jacobian matrix or partial derivatives.
 )--",
   };
+
+  wsg_data["JacobianTargetType"] = {
+      .file = "jacobian.h",
+      .desc = R"--(A type of target for use in Jacobian Matrix calculations
+)--",
+    };
+
+  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
+      .file = "retrieval_target.h",
+      .desc = R"--(A map target types to matrix and inverse matrix pairs of *BloackMatrix*
+
+The intended use of this type is to store required *BlockMatrix* objects so that
+the user-interface for setting up retrieval targets can be simplified.
+)--",
+    };
 
   wsg_data["PropagationPathPoint"] = {
       .file = "path_point.h",

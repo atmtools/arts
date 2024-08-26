@@ -19,6 +19,7 @@
 #include <mystring.h>
 
 #include <memory>
+#include <ostream>
 #include <utility>
 
 class CovarianceMatrix;
@@ -28,6 +29,102 @@ class CovarianceMatrix;
 //------------------------------------------------------------------------------
 
 using IndexPair = std::pair<Index, Index>;
+
+class BlockMatrix {
+ public:
+  using variant_t =
+      std::variant<std::shared_ptr<Matrix>, std::shared_ptr<Sparse>>;
+
+ private:
+  variant_t data;
+
+ public:
+  BlockMatrix()                               = default;
+  BlockMatrix(const BlockMatrix &)            = default;
+  BlockMatrix(BlockMatrix &&)                 = default;
+  BlockMatrix &operator=(const BlockMatrix &) = default;
+  BlockMatrix &operator=(BlockMatrix &&)      = default;
+
+  BlockMatrix(std::shared_ptr<Matrix> dense) : data(std::move(dense)) {}
+  BlockMatrix(std::shared_ptr<Sparse> sparse) : data(std::move(sparse)) {}
+  BlockMatrix(const Matrix &dense) : data(std::make_shared<Matrix>(dense)) {}
+  BlockMatrix(const Sparse &sparse) : data(std::make_shared<Sparse>(sparse)) {}
+
+  BlockMatrix &operator=(std::shared_ptr<Matrix> dense) {
+    data = std::move(dense);
+    return *this;
+  }
+
+  BlockMatrix &operator=(std::shared_ptr<Sparse> sparse) {
+    data = std::move(sparse);
+    return *this;
+  }
+
+  BlockMatrix &operator=(const Matrix &dense) {
+    data = std::make_shared<Matrix>(dense);
+    return *this;
+  }
+
+  BlockMatrix &operator=(const Sparse &sparse) {
+    data = std::make_shared<Sparse>(sparse);
+    return *this;
+  }
+
+  [[nodiscard]] bool not_null() const {
+    if (is_dense()) return std::get<std::shared_ptr<Matrix>>(data) != nullptr;
+    return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
+  }
+
+  [[nodiscard]] bool is_dense() const {
+    return std::holds_alternative<std::shared_ptr<Matrix>>(data);
+  }
+
+  [[nodiscard]] bool is_sparse() const { return not is_dense(); }
+
+  [[nodiscard]] Matrix &dense() {
+    ARTS_ASSERT(is_dense());
+    return *std::get<std::shared_ptr<Matrix>>(data);
+  }
+
+  [[nodiscard]] const Matrix &dense() const {
+    ARTS_ASSERT(is_dense());
+    return *std::get<std::shared_ptr<Matrix>>(data);
+  }
+
+  [[nodiscard]] Sparse &sparse() {
+    ARTS_ASSERT(is_sparse());
+    return *std::get<std::shared_ptr<Sparse>>(data);
+  }
+
+  [[nodiscard]] const Sparse &sparse() const {
+    ARTS_ASSERT(is_sparse());
+    return *std::get<std::shared_ptr<Sparse>>(data);
+  }
+
+  [[nodiscard]] Vector diagonal() const {
+    if (is_dense()) return ::diagonal(*std::get<std::shared_ptr<Matrix>>(data));
+    return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
+  }
+
+  [[nodiscard]] Index ncols() const {
+    if (is_dense()) return dense().ncols();
+    return sparse().ncols();
+  }
+
+  [[nodiscard]] Index nrows() const {
+    if (is_dense()) return dense().nrows();
+    return sparse().nrows();
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
+    if (m.is_dense()) {
+      os << m.dense();
+    } else {
+      os << m.sparse();
+    }
+    return os;
+  }
+};
 
 //------------------------------------------------------------------------------
 // Block
@@ -44,12 +141,6 @@ using IndexPair = std::pair<Index, Index>;
 class Block {
  public:
   /*
-    * Enum class representing the type of the matrix representing the block, i.e.
-    * whether its of type Matrix (dense) or of type Sparse(sparse).
-    */
-  enum class MatrixType { dense, sparse };
-
-  /*
      * Create a correlation block from given row_range, column_range and shared_ptr
      * to a dense matrix.
      *
@@ -62,36 +153,11 @@ class Block {
   Block(Range row_range,
         Range column_range,
         IndexPair indices,
-        std::shared_ptr<Matrix> dense)
+        BlockMatrix matrix)
       : row_range_(row_range),
         column_range_(column_range),
         indices_(std::move(indices)),
-        matrix_type_(MatrixType::dense),
-        dense_(std::move(dense)),
-        sparse_(nullptr) {
-    // Nothing to do here.
-  }
-
-  /*
-     * Create a correlation block from given row_range, column_range and shared_ptr
-     * to a sparse matrix.
-     *
-     * @param row_range The range of element-rows covered by the block
-     * @param column_range The range of element-column covered by the block
-     * @param indices The pair of block-indices that identifies the block in the
-     *        covariance matrix.
-     * @param dense A shared pointer to a den matrix of type Sparse
-     */
-  Block(Range row_range,
-        Range column_range,
-        IndexPair indices,
-        std::shared_ptr<Sparse> sparse)
-      : row_range_(row_range),
-        column_range_(column_range),
-        indices_(std::move(indices)),
-        matrix_type_(MatrixType::sparse),
-        dense_(nullptr),
-        sparse_(std::move(sparse)) {
+        matrix_(std::move(matrix)) {
     // Nothing to do here.
   }
 
@@ -118,23 +184,12 @@ class Block {
   Range &get_column_range() { return column_range_; }
 
   void set_matrix(std::shared_ptr<Sparse> sparse) {
-    sparse_      = std::move(sparse);
-    dense_       = nullptr;
-    matrix_type_ = MatrixType::sparse;
+    matrix_ = std::move(sparse);
   }
-  void set_matrix(std::shared_ptr<Matrix> dense) {
-    dense_       = std::move(dense);
-    sparse_      = nullptr;
-    matrix_type_ = MatrixType::dense;
-  }
+  void set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
 
   /*! Return the diagonal as a vector.*/
-  [[nodiscard]] Vector diagonal() const {
-    if (dense_) {
-      return ::diagonal(*dense_);
-    }
-    return sparse_->diagonal();
-  }
+  [[nodiscard]] Vector diagonal() const { return matrix_.diagonal(); }
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   [[nodiscard]] IndexPair get_indices() const { return indices_; }
@@ -142,28 +197,15 @@ class Block {
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   void set_indices(Index f, Index s) { indices_ = {f, s}; }
 
-  /*! Return the type of the matrix holding the correlation coefficients. */
-  [[nodiscard]] MatrixType get_matrix_type() const { return matrix_type_; }
+  [[nodiscard]] bool not_null() const { return matrix_.not_null(); }
+  [[nodiscard]] bool is_dense() const { return matrix_.is_dense(); }
+  [[nodiscard]] bool is_sparse() const { return matrix_.is_sparse(); }
 
-  [[nodiscard]] const Matrix &get_dense() const {
-    ARTS_ASSERT(dense_);
-    return *dense_;
-  }
+  [[nodiscard]] const Matrix &get_dense() const { return matrix_.dense(); }
+  Matrix &get_dense() { return matrix_.dense(); }
 
-  Matrix &get_dense() {
-    ARTS_ASSERT(dense_);
-    return *dense_;
-  }
-
-  [[nodiscard]] const Sparse &get_sparse() const {
-    ARTS_ASSERT(sparse_);
-    return *sparse_;
-  }
-
-  Sparse &get_sparse() {
-    ARTS_ASSERT(sparse_);
-    return *sparse_;
-  }
+  [[nodiscard]] const Sparse &get_sparse() const { return matrix_.sparse(); }
+  Sparse &get_sparse() { return matrix_.sparse(); }
 
   // Friend declarations.
   friend void mult(MatrixView, ConstMatrixView, const Block &);
@@ -176,10 +218,7 @@ class Block {
   Range row_range_, column_range_;
   IndexPair indices_;
 
-  MatrixType matrix_type_;
-
-  std::shared_ptr<Matrix> dense_;
-  std::shared_ptr<Sparse> sparse_;
+  BlockMatrix matrix_;
 };
 
 void mult(MatrixView, ConstMatrixView, const Block &);
@@ -400,6 +439,29 @@ void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
 MatrixView operator+=(MatrixView, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
+
+template <>
+struct std::formatter<BlockMatrix> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const BlockMatrix &v, FmtContext &ctx) const {
+    if (v.not_null())
+      return v.is_dense() ? tags.format(ctx, v.dense())
+                          : tags.format(ctx, v.sparse());
+    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
 
 template <>
 struct std::formatter<CovarianceMatrix> {

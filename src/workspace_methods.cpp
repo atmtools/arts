@@ -3666,11 +3666,12 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"model_state_covariance_matrix"},
       .in        = {"model_state_covariance_matrix", "jacobian_targets"},
-      .gin       = {"species", "data"},
-      .gin_type  = {"SpeciesEnum", "Matrix,Sparse"},
-      .gin_value = {std::nullopt, std::nullopt},
+      .gin       = {"species", "matrix", "inverse"},
+      .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix"},
+      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}},
       .gin_desc  = {"The species to set the covariance matrix for",
-                    "The data to set the covariance matrix to"},
+                    "The covariance diagoinal block matrix",
+                    "The inverse covariance diagoinal block matrix"},
   };
 
   wsm_data["measurement_vector_error_covariance_matrixConstant"] = {
@@ -3907,6 +3908,42 @@ The default setting triggers an error if "lm" is selected.
       .in     = {"disort_spectral_radiance_field",
                  "disort_quadrature_angles",
                  "disort_quadrature_weights"},
+  };
+
+  wsm_data["RetrievalInit"] = {
+      .desc   = R"(Initialize the retrieval setup.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets",
+                 "model_state_covariance_matrix",
+                 "covariance_matrix_diagonal_blocks"},
+  };
+
+  wsm_data["RetrievalAddSpeciesVMR"] = {
+      .desc      = R"(Add species VMR to the retrieval setup.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .gin       = {"species", "matrix", "inverse", "dvmr"},
+      .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
+      .gin_desc  = {"The species added to the retrieval system",
+                    "The covariance diagonal block matrix",
+                    "The inverse covariance diagonal block matrix",
+                    "The delta VMR"},
+  };
+
+  wsm_data["RetrievalFinalizeDiagonal"] = {
+      .desc   = R"(Add species VMR to the retrieval setup.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_covariance_matrix", "jacobian_targets"},
+      .in     = {"jacobian_targets",
+                 "covariance_matrix_diagonal_blocks",
+                 "atmospheric_field",
+                 "surface_field",
+                 "absorption_bands"},
   };
 
   /*
