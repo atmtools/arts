@@ -57,6 +57,8 @@ struct std::formatter<Wsv> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const Wsv& wsv) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const Wsv& v, FmtContext& ctx) const {
     if (tags.short_str) {
@@ -64,11 +66,7 @@ struct std::formatter<Wsv> {
           ctx.out(), "{}{}{}", tags.quote(), v.type_name(), tags.quote());
     }
 
-    return std::visit(
-        [*this, &ctx]<typename T>(const std::shared_ptr<T>& x) {
-          return tags.format(ctx, *x);
-        },
-        v.value);
+    return tags.format(ctx, to_string(v));
   }
 };
 
@@ -140,8 +138,13 @@ struct std::formatter<Agenda> {
     const std::string_view quote = tags.quote();
 
     if (tags.names) {
-      tags.format(
-          ctx, quote, v.get_name(), quote, " (checked: "sv, v.is_checked(), ')');
+      tags.format(ctx,
+                  quote,
+                  v.get_name(),
+                  quote,
+                  " (checked: "sv,
+                  v.is_checked(),
+                  ')');
     }
 
     tags.format(ctx,

@@ -40,6 +40,13 @@ struct format_tags {
   bool quoted    = false;
   bool short_str = false;
 
+  constexpr std::string get_format_args() const {
+    return "{:" + std::string(names ? "N" : "") +
+           std::string(comma ? "," : "") + std::string(bracket ? "B" : "") +
+           std::string(quoted ? "q" : "") + std::string(short_str ? "s" : "") +
+           "}";
+  }
+
   template <typename T>
   constexpr void compat(std::formatter<T>& x) const {
     if constexpr (requires { x.inner_fmt().tags = *this; }) {
