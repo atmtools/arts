@@ -19,6 +19,7 @@
 
 #include "atm.h"
 #include "cloudbox.h"
+#include "configtypes.h"
 #include "covariance_matrix.h"
 #include "debug.h"
 #include "double_imanip.h"
@@ -125,17 +126,24 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("BlockMatrix");
 
-  String type;
-  tag.get_attribute_value("type", type);
+  Index not_null;
+  tag.get_attribute_value("not_null", not_null);
 
-  if (type == "Matrix") {
-    Matrix m;
-    xml_read_from_stream(is_xml, m, pbifs);
-    bm = std::make_shared<Matrix>(std::move(m));
+  if (not_null) {
+    String type;
+    tag.get_attribute_value("type", type);
+
+    if (type == "Matrix") {
+      Matrix m;
+      xml_read_from_stream(is_xml, m, pbifs);
+      bm = std::make_shared<Matrix>(std::move(m));
+    } else {
+      Sparse s;
+      xml_read_from_stream(is_xml, s, pbifs);
+      bm = std::make_shared<Sparse>(std::move(s));
+    }
   } else {
-    Sparse s;
-    xml_read_from_stream(is_xml, s, pbifs);
-    bm = std::make_shared<Sparse>(std::move(s));
+    bm = BlockMatrix{};
   }
 
   tag.read_from_stream(is_xml);
@@ -156,23 +164,26 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag covmat_tag;
   ArtsXMLTag close_tag;
 
-  const String t = (bm.is_dense() or not bm.not_null()) ? String{"Matrix"}
-                                                        : String{"Sparse"};
-
   covmat_tag.set_name("BlockMatrix");
-  covmat_tag.add_attribute("type", t);
-  covmat_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  covmat_tag.add_attribute("not_null", Index(bm.not_null()));
 
-  if (not bm.not_null()) {
-    xml_write_to_stream(os_xml, Matrix{}, pbofs, "");
-  } else if (bm.is_dense()) {
-    xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
+  if (bm.not_null()) {
+    const String t = bm.is_dense() ? String{"Matrix"} : String{"Sparse"};
+    covmat_tag.add_attribute("type", t);
+    covmat_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    if (bm.is_dense()) {
+      xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
+    } else {
+      xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
+    }
+    os_xml << '\n';
   } else {
-    xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
+    covmat_tag.write_to_stream(os_xml);
+    os_xml << '\n';
   }
 
-  os_xml << '\n';
   close_tag.set_name("/BlockMatrix");
   close_tag.write_to_stream(os_xml);
 }

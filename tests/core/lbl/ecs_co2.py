@@ -97,7 +97,10 @@ def adaptband(band, T, p, second_order=False):
     return band
 
 
-i = 4
+# WARNING: If arts-cat-data has been updated, this maybe should change
+# it offsets the band so that we hit an "adaptable" band with less than N lines
+di = 1
+N = 60
 
 ws = pyarts.Workspace()
 ws.absorption_speciesSet(species=["CO2-626"])
@@ -124,9 +127,12 @@ ws.ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 
-y = pyarts.arts.ArrayOfAbsorptionBand(ws.absorption_bands)
+# This is a speed-up thing
+for i in range(len(ws.absorption_bands)):
+    if len(ws.absorption_bands[i].data.lines) < N:
+        band = pyarts.arts.AbsorptionBand(ws.absorption_bands[i + di])
+        break
 
-band = y[i]
 ws.absorption_bands = [band]
 ws.frequency_grid = np.linspace(
     ws.absorption_bands[0].data.lines[0].f0 * 0.9,

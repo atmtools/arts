@@ -5,7 +5,7 @@
 #include "covariance_matrix.h"
 #include "jacobian.h"
 
-struct JacobianTargetCovarianceMap {
+struct JacobianTargetsDiagonalCovarianceMatrixMap {
   std::unordered_map<JacobianTargetType, std::pair<BlockMatrix, BlockMatrix>>
       map;
 
