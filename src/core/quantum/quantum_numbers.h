@@ -1,6 +1,11 @@
 #pragma once
 
-#include <enums.h>
+#include <array.h>
+#include <debug.h>
+#include <enumsQuantumNumberType.h>
+#include <isotopologues.h>
+#include <nonstd.h>
+#include <rational.h>
 
 #include <algorithm>
 #include <compare>
@@ -11,12 +16,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "array.h"
-#include "debug.h"
-#include "isotopologues.h"
-#include "nonstd.h"
-#include "rational.h"
 
 constexpr Index quantum_number_error_value = -999'999'999;
 

@@ -1,7 +1,15 @@
 #pragma once
 
+#include <compare.h>
+#include <debug.h>
+#include <enumsAtmKey.h>
+#include <enumsInterpolationExtrapolation.h>
+#include <enumsIsoRatioOption.h>
+#include <fieldmap.h>
+#include <isotopologues.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
+#include <species.h>
 
 #include <algorithm>
 #include <cmath>
@@ -17,14 +25,6 @@
 #include <unordered_map>
 #include <utility>
 #include <variant>
-
-#include "compare.h"
-#include "debug.h"
-#include "enums.h"
-#include "fieldmap.h"
-#include "isotopologues.h"
-#include "matpack_constexpr.h"
-#include "species.h"
 
 //! A type to name particulates (and let them be type-independent)
 struct ParticulatePropertyTag {
@@ -433,20 +433,19 @@ template <>
 struct std::formatter<AtmKeyVal> {
   format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
 
-  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+  [[nodiscard]] constexpr const auto &inner_fmt() const { return *this; }
 
   constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+      std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  [[nodiscard]] std::string to_string(const AtmKeyVal& v) const;
+  [[nodiscard]] std::string to_string(const AtmKeyVal &v) const;
 
   template <class FmtContext>
-  FmtContext::iterator format(const AtmKeyVal& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const AtmKeyVal &v, FmtContext &ctx) const {
     tags.format(ctx, to_string(v));
     return ctx.out();
   }

@@ -3,7 +3,7 @@
 
 #include <auto_partfun.h>
 
-#include <enums.h>
+#include <enumsSpeciesEnum.h>
 
 #include <isotopologues.h>
 

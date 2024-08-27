@@ -1,7 +1,7 @@
 #pragma once
 
 #include <compare.h>
-#include <enums.h>
+#include <enumsSpeciesEnum.h>
 #include <mystring.h>
 #include <nonstd.h>
 

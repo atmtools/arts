@@ -1,23 +1,25 @@
 #pragma once
 
+#include <array.h>
+#include <bifstream.h>
+#include <bofstream.h>
+#include <enumsAbsorptionCutoffTypeOld.h>
+#include <enumsAbsorptionMirroringTypeOld.h>
+#include <enumsAbsorptionNormalizationTypeOld.h>
+#include <enumsAbsorptionPopulationTypeOld.h>
 #include <format_tags.h>
 #include <jacobian.h>
+#include <lineshapemodel.h>
 #include <matpack.h>
+#include <quantum_numbers.h>
+#include <species_tags.h>
+#include <zeemandata.h>
 
 #include <format>
 #include <istream>
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "array.h"
-#include "bifstream.h"
-#include "bofstream.h"
-#include "enums.h"
-#include "lineshapemodel.h"
-#include "quantum_numbers.h"
-#include "species_tags.h"
-#include "zeemandata.h"
 
 constexpr std::string_view mirroringtype2metadatastring(
     AbsorptionMirroringTypeOld in) noexcept {

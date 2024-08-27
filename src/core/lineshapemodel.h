@@ -1,14 +1,17 @@
 #pragma once
 
+#include <arts_conversions.h>
+#include <atm.h>
+#include <enumsLineShapeTemperatureModelOld.h>
+#include <enumsLineShapeTypeOld.h>
+#include <enumsLineShapeVariableOld.h>
+#include <format_tags.h>
+#include <species_tags.h>
+
 #include <algorithm>
 #include <string_view>
 #include <utility>
 
-#include "arts_conversions.h"
-#include "atm.h"
-#include "enums.h"
-#include "format_tags.h"
-#include "species_tags.h"
 /** Turns selected Type into a human readable string
  * 
  * This function takes the input Type

@@ -1,12 +1,11 @@
 #pragma once
 
+#include <debug.h>
+#include <enumsLineShapeModelCoefficient.h>
+#include <enumsLineShapeModelType.h>
 #include <matpack.h>
 
 #include <limits>
-
-#include "debug.h"
-#include "enums.h"
-#include "matpack_view.h"
 
 namespace lbl::temperature {
 inline constexpr std::size_t LineShapeModelTypeSize = 9;

@@ -1,16 +1,16 @@
 #pragma once
 
+#include <enumsInterpolationExtrapolation.h>
+#include <enumsSurfaceKey.h>
+#include <fieldmap.h>
 #include <matpack.h>
+#include <mystring.h>
 
 #include <limits>
 #include <ostream>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
-
-#include "enums.h"
-#include "fieldmap.h"
-#include "mystring.h"
 
 struct SurfaceTypeTag {
   String name;

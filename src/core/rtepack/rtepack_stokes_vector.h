@@ -1,6 +1,7 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsPolarizationChoice.h>
+#include <enumsSpectralRadianceUnitType.h>
 
 #include <utility>
 

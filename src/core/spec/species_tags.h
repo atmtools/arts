@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsSpeciesTagType.h>
 #include <isotopologues.h>
 #include <matpack.h>
 #include <mystring.h>

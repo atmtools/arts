@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <array>
 
-#include "enums.h"
-#include "matpack_data.h"
+#include <enumsPartitionFunctionsType.h>
+#include <matpack_data.h>
 
 namespace PartitionFunctions {
 struct Data {
