@@ -1,7 +1,5 @@
 #include "workspace_class.h"
 
-#include <__format/format_functions.h>
-
 #include <format>
 #include <iomanip>
 #include <iterator>
