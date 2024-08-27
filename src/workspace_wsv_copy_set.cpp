@@ -1,3 +1,3 @@
 #include "auto_wsg.h"
 
-Wsv& Wsv::operator=(const Wsv&) = default;
+WsvValue& WsvValue::operator=(const WsvValue&) = default;

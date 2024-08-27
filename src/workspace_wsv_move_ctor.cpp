@@ -1,3 +1,3 @@
 #include "auto_wsg.h"
 
-Wsv::Wsv(Wsv&&) noexcept = default;
+WsvValue::WsvValue(WsvValue&&) noexcept = default;

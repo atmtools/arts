@@ -117,7 +117,7 @@ template <typename T> struct WorkspaceGroupInfo {
     os << "};\n\n";
   }
 
-  os << "using WsvValue = std::variant<";
+  os << "using _WsvValue = std::variant<";
   bool first = true;
   for (auto& group : groups()) {
     if (not first) os << ',';
@@ -125,31 +125,44 @@ template <typename T> struct WorkspaceGroupInfo {
     os << "\n  std::shared_ptr<" << group << ">";
   }
   os << ">;\n\n";
-  os << "[[nodiscard]] bool valid_wsg(const std::string_view&);\n\n";
+  os << "[[nodiscard]] bool valid_wsg(const std::string_view&);\n";
 
   os << R"--(
-struct Wsv {
-  WsvValue value;
-
+struct WsvValue : _WsvValue {
   //! Move value into the workspace variable
-  template <WorkspaceGroup T> Wsv(T&& x) noexcept;
+  template <WorkspaceGroup T> WsvValue(T&& x) noexcept;
 
   //! Copy value into the workspace variable
-  template <WorkspaceGroup T> Wsv(const T& x);
+  template <WorkspaceGroup T> WsvValue(const T& x);
 
   //! Borrow value as workspace variable
-  template <WorkspaceGroup T> Wsv(T* x) noexcept;
+  template <WorkspaceGroup T> WsvValue(T* x) noexcept;
 
   //! Share value as workspace variable
-  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x) noexcept;
+  template <WorkspaceGroup T> WsvValue(std::shared_ptr<T>&& x) noexcept;
 
   //! Must declare destructor to avoid incomplete type error
-  Wsv();
-  Wsv(const Wsv&);
-  Wsv(Wsv&&) noexcept;
-  Wsv& operator=(const Wsv&);
-  Wsv& operator=(Wsv&&) noexcept;
-  ~Wsv();
+  WsvValue();
+  WsvValue(const WsvValue&);
+  WsvValue(WsvValue&&) noexcept;
+  WsvValue& operator=(const WsvValue&);
+  WsvValue& operator=(WsvValue&&) noexcept;
+  ~WsvValue();
+};
+
+struct Wsv {
+  WsvValue value;
+  
+  Wsv()                          = default;
+  Wsv(const Wsv&)                = default;
+  Wsv(Wsv&&) noexcept            = default;
+  Wsv& operator=(const Wsv&)     = default;
+  Wsv& operator=(Wsv&&) noexcept = default;
+
+  template <WorkspaceGroup T> Wsv(T&& x) noexcept                  : value(std::forward<T>(x)) {}
+  template <WorkspaceGroup T> Wsv(const T& x)                      : value(x) {}
+  template <WorkspaceGroup T> Wsv(T* x) noexcept                   : value(x) {}
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x) noexcept : value(std::move(x)) {}
 
   [[nodiscard]] Wsv copy() const;
 
@@ -192,17 +205,17 @@ void implementation_init(std::ostream& os) {
 )--";
 
   for (auto&& group : groups()) {
-    os << "template <> Wsv::Wsv(" << group
-       << "&& x)  noexcept : value(std::shared_ptr<" << group << ">(new "
+    os << "template <> WsvValue::WsvValue(" << group
+       << "&& x)  noexcept : _WsvValue(std::shared_ptr<" << group << ">(new "
        << group << "{std::move(x)})) {}\n";
-    os << "template <> Wsv::Wsv(const " << group
-       << "& x) : value(std::shared_ptr<" << group << ">(new " << group
+    os << "template <> WsvValue::WsvValue(const " << group
+       << "& x) : _WsvValue(std::shared_ptr<" << group << ">(new " << group
        << "{x})) {}\n";
-    os << "template <> Wsv::Wsv(" << group
-       << "* x)  noexcept : value(std::shared_ptr<" << group
+    os << "template <> WsvValue::WsvValue(" << group
+       << "* x)  noexcept : _WsvValue(std::shared_ptr<" << group
        << ">(x, [](void*){})) {}\n";
-    os << "template <> Wsv::Wsv(std::shared_ptr<" << group
-       << ">&& x)  noexcept : value(std::move(x)) {}\n\n";
+    os << "template <> WsvValue::WsvValue(std::shared_ptr<" << group
+       << ">&& x)  noexcept : _WsvValue(std::move(x)) {}\n\n";
   }
 }
 
@@ -226,7 +239,7 @@ void implementation_share(std::ostream& os) {
   for (auto& group : groups()) {
     os << "    case " << i << ":\n";
     os << "      static_assert(std::same_as<std::shared_ptr<" << group
-       << ">, std::variant_alternative_t<" << i << ", WsvValue>>, \"Wrong type "
+       << ">, std::variant_alternative_t<" << i << ", _WsvValue>>, \"Wrong type "
        << group << "\");\n      return \"" << group << "\";\n";
     i++;
   }
