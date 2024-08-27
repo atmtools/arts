@@ -21,7 +21,6 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "gridded_data.h"
 #include "isotopologues.h"
 #include "lbl_data.h"

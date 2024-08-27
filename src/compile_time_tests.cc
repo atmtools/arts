@@ -1,4 +1,3 @@
-#include "enums.h"
 #include "isotopologues.h"
 #include "quantum_numbers.h"
 

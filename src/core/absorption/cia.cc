@@ -18,7 +18,6 @@
 
 #include "arts_constants.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "file.h"
 #include "interp.h"
 #include "matpack_concepts.h"

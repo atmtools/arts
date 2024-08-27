@@ -1,7 +1,5 @@
 #include "isotopologues.h"
 
-#include "enums.h"
-
 namespace Species {
 ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 #define deal_with_spec(SPEC)                                      \

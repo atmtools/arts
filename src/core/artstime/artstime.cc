@@ -8,6 +8,8 @@
 
 #include "artstime.h"
 
+#include <enumsTimeStepType.h>
+
 #include <charconv>
 #include <chrono>
 #include <cstdlib>
@@ -16,7 +18,6 @@
 #include <iostream>
 
 #include "debug.h"
-#include "enums.h"
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
@@ -125,7 +126,9 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_mon.ec) or
                          std::make_error_code(res_day.ec),
                      "Cannot understand time point for year-month-day: ",
-                     '"', ymd, '"')
+                     '"',
+                     ymd,
+                     '"')
   ARTS_USER_ERROR_IF(year < 1900,
                      "We cannot yet support times before the year 1900")
 
@@ -142,7 +145,9 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_min.ec) or
                          std::make_error_code(res_sec.ec),
                      "Cannot understand time point for hour:minute:second in: ",
-                     '"', hms, '"')
+                     '"',
+                     hms,
+                     '"')
 
   std::tm tm_struct{};
   tm_struct.tm_year  = year - 1900;

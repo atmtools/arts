@@ -7,7 +7,6 @@
 
 #include "arts_omp.h"
 #include "debug.h"
-#include "enums.h"
 #include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
 #include "matpack_constexpr.h"

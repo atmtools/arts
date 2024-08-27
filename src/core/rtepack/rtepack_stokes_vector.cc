@@ -1,6 +1,5 @@
 #include "rtepack_stokes_vector.h"
 
-#include <enums.h>
 #include <physics_funcs.h>
 
 #include <utility>

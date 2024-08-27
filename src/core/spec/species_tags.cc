@@ -13,7 +13,6 @@
 #include <string_view>
 #include <system_error>
 
-#include "enums.h"
 #include "species.h"
 
 namespace Species {

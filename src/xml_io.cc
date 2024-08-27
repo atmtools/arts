@@ -18,7 +18,6 @@
 #include "bofstream.h"
 #include "config.h"
 #include "debug.h"
-#include "enums.h"
 #include "file.h"
 #include "parameters.h"
 

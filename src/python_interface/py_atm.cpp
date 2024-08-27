@@ -12,7 +12,6 @@
 #include <quantum_numbers.h>
 #include <species_tags.h>
 
-#include "enums.h"
 #include "hpy_arts.h"
 #include "isotopologues.h"
 #include "physics_funcs.h"

@@ -13,7 +13,6 @@
 
 #include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "wigner_functions.h"
 
 #pragma GCC diagnostic push

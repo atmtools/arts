@@ -8,6 +8,7 @@
 
 #include "m_absorptionlines.h"
 
+#include <enumsHitranType.h>
 #include <workspace.h>
 
 #include <algorithm>
@@ -19,7 +20,6 @@
 #include "array.h"
 #include "arts_omp.h"
 #include "debug.h"
-#include "enums.h"
 #include "file.h"
 #include "lineshapemodel.h"
 #include "m_xml.h"
@@ -214,7 +214,8 @@ Array<QuantumNumberType> string2vecqn(std::string_view qnstr) {
 bool check_local(const Array<QuantumNumberType>& local_state) {
   using namespace Quantum::Number;
   for (auto qn : local_state)
-    if (common_value_type(common_value_type(qn), QuantumNumberValueType::H) not_eq
+    if (common_value_type(common_value_type(qn),
+                          QuantumNumberValueType::H) not_eq
         QuantumNumberValueType::H)
       return false;
   return true;
@@ -252,9 +253,9 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
   std::istream& is_xml = *ifs;
-  auto a = FileType::ascii;
-  auto b = NUMERIC_TYPE_DOUBLE;
-  auto c = ENDIAN_TYPE_LITTLE;
+  auto a               = FileType::ascii;
+  auto b               = NUMERIC_TYPE_DOUBLE;
+  auto c               = ENDIAN_TYPE_LITTLE;
   xml_read_header_from_stream(is_xml, a, b, c);
 
   tag.read_from_stream(is_xml);
@@ -291,7 +292,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                        version)
 
     bool go_on = true;
-    Index n = 0;
+    Index n    = 0;
     while (n < size) {
       n++;
 
@@ -391,9 +392,9 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
   std::istream& is_xml = *ifs;
-  auto a = FileType::ascii;
-  auto b = NUMERIC_TYPE_DOUBLE;
-  auto c = ENDIAN_TYPE_LITTLE;
+  auto a               = FileType::ascii;
+  auto b               = NUMERIC_TYPE_DOUBLE;
+  auto c               = ENDIAN_TYPE_LITTLE;
   xml_read_header_from_stream(is_xml, a, b, c);
 
   tag.read_from_stream(is_xml);
@@ -422,7 +423,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                      version)
 
   bool go_on = true;
-  Index n = 0;
+  Index n    = 0;
   ArrayOfAbsorptionLines local_bands(0);
   while (n < size) {
     n++;
@@ -587,8 +588,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                      "Can only have non-string values in the local state")
 
   // HITRAN type
-  const HitranType hitran_version =
-      to<HitranType>(hitran_type);
+  const HitranType hitran_version = to<HitranType>(hitran_type);
 
   // Hitran data
   std::ifstream is;
@@ -820,7 +820,7 @@ void abs_linesWriteSpeciesSplitCatalog(const ArrayOfAbsorptionLines& abs_lines,
 
   // Save the arrays
   for (Size i = 0; i < specs.size(); i++) {
-    auto& name = specs[i];
+    auto& name  = specs[i];
     auto& lines = alps[i];
 
     WriteXML(output_format, lines, true_basename + name + ".xml", 0);
@@ -900,7 +900,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(
 
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
   for (std::size_t ispec = 0; ispec < unique_species.size(); ispec++) {
-    const auto i = arts_omp_get_thread_num();
+    const auto i     = arts_omp_get_thread_num();
     const auto& spec = *std::next(unique_species.cbegin(), ispec);
     const auto isots = Species::isotopologues(spec);
 
@@ -1285,7 +1285,7 @@ void abs_linesCutoff(ArrayOfAbsorptionLines& abs_lines,
                      const Numeric& x) {
   auto t = to<AbsorptionCutoffTypeOld>(type);
   for (auto& lines : abs_lines) {
-    lines.cutoff = t;
+    lines.cutoff     = t;
     lines.cutofffreq = x;
   }
 }
@@ -1308,7 +1308,7 @@ void abs_linesCutoffMatch(ArrayOfAbsorptionLines& abs_lines,
   for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
-      band.cutoff = t;
+      band.cutoff     = t;
       band.cutofffreq = x;
     }
   }
@@ -1978,8 +1978,8 @@ void abs_linesLineShapeModelParametersMatchingLines(
 
   // Set the spec index if possible
   const SpeciesEnum spec = do_self   ? static_cast<SpeciesEnum>(-1)
-                                : do_bath ? SpeciesEnum::Bath
-                                          : SpeciesTag(species).Spec();
+                           : do_bath ? SpeciesEnum::Bath
+                                     : SpeciesTag(species).Spec();
 
   const LineShapeVariableOld var = to<LineShapeVariableOld>(parameter);
 
@@ -1993,10 +1993,10 @@ void abs_linesLineShapeModelParametersMatchingLines(
 
   LineShape::ModelParameters newdata;
   newdata.type = to<LineShapeTemperatureModelOld>(temperaturemodel);
-  newdata.X0 = new_values[0];
-  newdata.X1 = new_values[1];
-  newdata.X2 = new_values[2];
-  newdata.X3 = new_values[3];
+  newdata.X0   = new_values[0];
+  newdata.X1   = new_values[1];
+  newdata.X2   = new_values[2];
+  newdata.X3   = new_values[3];
 
   for (auto& band : abs_lines) {
     for (Index k = 0; k < band.NumLines(); k++) {
@@ -2368,8 +2368,8 @@ std::vector<T> linspace(T s,
     return ls;
   }
   const T step = (e - s) / T(count - 1);
-  ls.front() = s;
-  ls.back() = e;
+  ls.front()   = s;
+  ls.back()    = e;
   for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
     ls[i] = s + step * T(i);
   return ls;
@@ -2553,8 +2553,8 @@ void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines) {
     for (auto& line : band.lines) {
       for (auto& slsm : line.lineshape) {
         // Set the line mixing stuff to empty
-        slsm.Y() = LineShape::ModelParameters();
-        slsm.G() = LineShape::ModelParameters();
+        slsm.Y()  = LineShape::ModelParameters();
+        slsm.G()  = LineShape::ModelParameters();
         slsm.DV() = LineShape::ModelParameters();
       }
     }

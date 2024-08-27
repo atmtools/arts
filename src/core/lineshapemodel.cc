@@ -18,7 +18,6 @@
 #include "atm.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "species.h"

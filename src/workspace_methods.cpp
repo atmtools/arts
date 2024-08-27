@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "enums.h"
 #include "workspace_agendas.h"
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"

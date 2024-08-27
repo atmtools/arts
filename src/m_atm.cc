@@ -1,3 +1,6 @@
+#include <enumsHydrostaticPressureOption.h>
+#include <enumsIsoRatioOption.h>
+#include <enumsMissingFieldComponentError.h>
 #include <workspace.h>
 #include <zconf.h>
 
@@ -13,7 +16,6 @@
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "enums.h"
 #include "igrf13.h"
 #include "interp.h"
 #include "interpolation.h"
@@ -128,16 +130,19 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
 
   using enum AtmKey;
 
-  ARTS_USER_ERROR_IF(not atmospheric_field.has(p) and
-                         not static_cast<bool>(allow_missing_pressure),
-                     "Pressure is missing from the read atmospheric field at \"",
-                     basename, '"')
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.has(p) and
+          not static_cast<bool>(allow_missing_pressure),
+      "Pressure is missing from the read atmospheric field at \"",
+      basename,
+      '"')
 
   ARTS_USER_ERROR_IF(
       not atmospheric_field.has(t) and
           not static_cast<bool>(allow_missing_temperature),
       "Temperature is missing from the read atmospheric field at \"",
-      basename,'"')
+      basename,
+      '"')
 
   switch (to<MissingFieldComponentError>(deal_with_field_component)) {
     case MissingFieldComponentError::Throw:

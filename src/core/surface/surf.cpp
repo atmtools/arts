@@ -9,7 +9,6 @@
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
 #include "debug.h"
-#include "enums.h"
 #include "interp.h"
 #include "matpack_math.h"
 

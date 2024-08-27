@@ -14,7 +14,6 @@
 
 #include "atm.h"
 #include "debug.h"
-#include "enums.h"
 #include "gas_abs_lookup.h"
 #include "interp.h"
 #include "jacobian.h"

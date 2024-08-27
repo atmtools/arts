@@ -17,6 +17,15 @@
   === External declarations
   ===========================================================================*/
 
+#include <enumsEarthEllipsoid.h>
+#include <enumsEuropaEllipsoid.h>
+#include <enumsGanymedeEllipsoid.h>
+#include <enumsIoEllipsoid.h>
+#include <enumsJupiterEllipsoid.h>
+#include <enumsMarsEllipsoid.h>
+#include <enumsMoonEllipsoid.h>
+#include <enumsPlanetOrMoonType.h>
+#include <enumsVenusEllipsoid.h>
 #include <workspace.h>
 
 #include <cmath>
@@ -27,7 +36,6 @@
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
-#include "enums.h"
 #include "operators.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
