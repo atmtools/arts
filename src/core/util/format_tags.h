@@ -40,11 +40,21 @@ struct format_tags {
   bool quoted    = false;
   bool short_str = false;
 
-  constexpr std::string get_format_args() const {
-    return "{:" + std::string(names ? "N" : "") +
-           std::string(comma ? "," : "") + std::string(bracket ? "B" : "") +
-           std::string(quoted ? "q" : "") + std::string(short_str ? "s" : "") +
-           "}";
+  [[nodiscard]] constexpr std::string get_format_args() const {
+    std::string out{'{'};
+    if (names or comma or bracket or quoted or short_str) {
+      out += ':';
+    }
+    if (names) out += 'N';
+    if (comma) out += ',';
+    if (quoted) out += 'q';
+    if (short_str) out += 's';
+    if (bracket) out += 'B';
+    out += '}';
+
+    out.shrink_to_fit();
+
+    return out;
   }
 
   template <typename T>

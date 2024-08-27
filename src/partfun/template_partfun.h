@@ -11,10 +11,6 @@ namespace PartitionFunctions {
 struct Data {
   PartitionFunctionsType type;
   Matrix data;
-  
-  friend std::ostream& operator<<(std::ostream& os, const Data& d) {
-    return os << d.data << '\n';
-  }
 };
 
 enum class Derivatives : bool {No, Yes};

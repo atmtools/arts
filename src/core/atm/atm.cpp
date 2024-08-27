@@ -24,6 +24,53 @@ std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
   return os;
 }
 
+template <>
+const Atm::Data &
+FieldMap::Map<Atm::Data,
+              AtmKey,
+              SpeciesEnum,
+              SpeciesIsotope,
+              QuantumIdentifier,
+              ParticulatePropertyTag>::operator[](const KeyVal &k) const try {
+  return std::visit(
+      [this](auto &key) -> const Atm::Data & {
+        return this->map<decltype(key)>().at(key);
+      },
+      k);
+} catch (std::out_of_range &) {
+  throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+} catch (...) {
+  throw;
+}
+
+template <>
+Atm::Data &
+FieldMap::Map<Atm::Data,
+              AtmKey,
+              SpeciesEnum,
+              SpeciesIsotope,
+              QuantumIdentifier,
+              ParticulatePropertyTag>::operator[](const KeyVal &k) try {
+  return std::visit(
+      [this](auto &key) -> Atm::Data & {
+        return const_cast<Map *>(this)->map<decltype(key)>()[key];
+      },
+      k);
+}
+ARTS_METHOD_ERROR_CATCH
+
+template <>
+bool FieldMap::Map<Atm::Data,
+                   AtmKey,
+                   SpeciesEnum,
+                   SpeciesIsotope,
+                   QuantumIdentifier,
+                   ParticulatePropertyTag>::contains(const KeyVal &key) const {
+  return std::visit(
+      [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
+      key);
+}
+
 namespace Atm {
 Point::Point(const IsoRatioOption isots_key) {
   switch (isots_key) {
@@ -955,3 +1002,12 @@ Point Field::at(const Vector3 pos) const try {
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace Atm
+
+std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal& v) const {
+  std::string out;
+  return std::visit(
+      [fmt = tags.get_format_args()](const auto& val) {
+        return std::vformat(fmt.c_str(), std::make_format_args(val));
+      },
+      v);
+}

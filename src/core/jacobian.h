@@ -294,7 +294,7 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
 };
 }  // namespace Jacobian
 
-inline Numeric field_perturbation(const auto& f) {
+Numeric field_perturbation(const auto& f) {
   return std::transform_reduce(
       f.begin(),
       f.end(),

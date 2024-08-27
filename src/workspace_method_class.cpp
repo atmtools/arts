@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "callback.h"
+#include "format_tags.h"
 #include "workspace_agenda_class.h"
 #include "workspace_class.h"
 
@@ -250,10 +251,9 @@ Method::Method(const std::string& n,
       overwrite_setval(overwrite) {}
 
 std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
-  std::string out;
   return std::visit(
-      [fmt = tags.get_format_args()](const auto& val) {
-        return std::vformat(fmt.c_str(), std::make_format_args(*val));
+      []<typename T>(const std::shared_ptr<T>& val) {
+        return std::format("{}", *val);
       },
       wsv.value);
 }

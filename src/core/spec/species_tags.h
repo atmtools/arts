@@ -113,17 +113,7 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
   ArrayOfSpeciesTag(std::string_view text);
 
   friend std::ostream& operator<<(std::ostream& os,
-                                  const ArrayOfSpeciesTag& ot) {
-    bool first = true;
-    for (auto& x : ot) {
-      if (not first)
-        os << ' ';
-      else
-        first = false;
-      os << x;
-    }
-    return os;
-  }
+                                  const ArrayOfSpeciesTag& ot);
 
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
   [[nodiscard]] SpeciesEnum Species() const ARTS_NOEXCEPT {

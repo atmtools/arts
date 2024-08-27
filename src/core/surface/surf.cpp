@@ -13,13 +13,48 @@
 #include "interp.h"
 #include "matpack_math.h"
 
+template <>
+const Surf::Data &FieldMap::
+    Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::operator[](
+        const KeyVal &k) const try {
+  return std::visit(
+      [this](auto &key) -> const Surf::Data & {
+        return this->map<decltype(key)>().at(key);
+      },
+      k);
+} catch (std::out_of_range &) {
+  throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+} catch (...) {
+  throw;
+}
+
+template <>
+Surf::Data &FieldMap::
+    Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::operator[](
+        const KeyVal &k) try {
+  return std::visit(
+      [this](auto &key) -> Surf::Data & {
+        return const_cast<Map *>(this)->map<decltype(key)>()[key];
+      },
+      k);
+}
+ARTS_METHOD_ERROR_CATCH
+
+template <>
+bool FieldMap::Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::
+    contains(const KeyVal &key) const {
+  return std::visit(
+      [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
+      key);
+}
+
 namespace geodetic {
 Vector3 to_xyz(Vector2 ell, Vector3 pos) {
   using Conversion::cosd;
   using Conversion::sind;
   using Math::pow2;
 
-  const auto [a, b] = ell;
+  const auto [a, b]          = ell;
   const auto [alt, lat, lon] = pos;
 
   const Numeric e = std::sqrt(1 - pow2(b / a));
@@ -38,11 +73,11 @@ Vector2 from_xyz_dxyz(Vector3 xyz, Vector3 dxyz) {
   using Conversion::sind;
   using std::hypot;
 
-  const auto [x, y, z] = xyz;
+  const auto [x, y, z]    = xyz;
   const auto [dx, dy, dz] = dxyz;
 
-  const Numeric r = hypot(z, y, x);
-  const Vector3 rll = {r, asind(z / r), atan2d(y, x)};
+  const Numeric r          = hypot(z, y, x);
+  const Vector3 rll        = {r, asind(z / r), atan2d(y, x)};
   const auto [_, lat, lon] = rll;
 
   const auto norm = hypot(dz, dy, dx);
@@ -310,7 +345,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   const Numeric lat2 = lat, lon2 = lon + offset,
                 alt2 = detail::interpolation_function(lat2, lon2)(z);
 
-  const Vector3 xyz = geodetic::to_xyz(ellipsoid, {alt, lat, lon});
+  const Vector3 xyz  = geodetic::to_xyz(ellipsoid, {alt, lat, lon});
   const Vector3 xyz1 = geodetic::to_xyz(ellipsoid, {alt1, lat1, lon1});
   const Vector3 xyz2 = geodetic::to_xyz(ellipsoid, {alt2, lat2, lon2});
   const Vector3 r1{xyz1[0] - xyz[0], xyz1[1] - xyz[1], xyz1[2] - xyz[2]};
@@ -456,8 +491,8 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
   using LatLag = my_interp::Lagrange<1>;
 
   const auto slon = v.shape()[1];
-  const bool d1 = v.shape()[0] == 1;
-  const bool d2 = slon == 1;
+  const bool d1   = v.shape()[0] == 1;
+  const bool d2   = slon == 1;
 
   constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
   constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
@@ -504,6 +539,16 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
   return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
 }
 }  // namespace Surf
+
+std::string std::formatter<SurfaceKeyVal>::to_string(
+    const SurfaceKeyVal &v) const {
+  std::string out;
+  return std::visit(
+      [fmt = tags.get_format_args()](const auto &val) {
+        return std::vformat(fmt.c_str(), std::make_format_args(val));
+      },
+      v);
+}
 
 std::ostream &operator<<(std::ostream &os, const SurfaceTypeTag &ppt) {
   return os << ppt.name;

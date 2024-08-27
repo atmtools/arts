@@ -315,3 +315,15 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
+  bool first = true;
+  for (auto& x : ot) {
+    if (not first)
+      os << ' ';
+    else
+      first = false;
+    os << x;
+  }
+  return os;
+}
