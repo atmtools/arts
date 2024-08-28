@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsSpeciesTagType.h>
 #include <isotopologues.h>
 #include <matpack.h>
 #include <mystring.h>
@@ -52,9 +52,7 @@ struct Tag {
 
   [[nodiscard]] Numeric dQdT(Numeric T) const;
 
-  [[nodiscard]] String FullName() const noexcept {
-    return Isotopologue().FullName();
-  }
+  [[nodiscard]] String FullName() const noexcept;
 
   [[nodiscard]] constexpr SpeciesEnum Spec() const noexcept {
     return Isotopologue().spec;
@@ -90,76 +88,34 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
       : Array<SpeciesTag>(std::move(x)) {}
 
   // Assignment operators:
-  ArrayOfSpeciesTag& operator=(SpeciesTag x) {
-    std::fill(this->begin(), this->end(), x);
-    return *this;
-  }
+  ArrayOfSpeciesTag& operator=(SpeciesTag x);
 
-  ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A) {
-    this->resize(A.size());
-    std::copy(A.begin(), A.end(), this->begin());
-    return *this;
-  }
+  ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A);
 
-  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept {
-    Array<SpeciesTag>::operator=(std::move(A));
-    return *this;
-  }
+  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept ;
 
-  [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const {
-    return std::ranges::equal(*this, x);
-  }
+  [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const;
 
   ArrayOfSpeciesTag(std::string_view text);
 
   friend std::ostream& operator<<(std::ostream& os,
-                                  const ArrayOfSpeciesTag& ot) {
-    bool first = true;
-    for (auto& x : ot) {
-      if (not first)
-        os << ' ';
-      else
-        first = false;
-      os << x;
-    }
-    return os;
-  }
+                                  const ArrayOfSpeciesTag& ot);
 
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesEnum Species() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(size() not_eq 0,
-                "Invalid ArrayOfSpeciesTag without any species")
-    return operator[](0).Spec();
-  }
+  [[nodiscard]] SpeciesEnum Species() const ARTS_NOEXCEPT ;
 
   //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesTagType Type() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(size() not_eq 0,
-                "Invalid ArrayOfSpeciesTag without any species")
-    return operator[](0).Type();
-  }
+  [[nodiscard]] SpeciesTagType Type() const ARTS_NOEXCEPT;
 
   [[nodiscard]] String Name() const;
 
-  [[nodiscard]] bool Plain() const noexcept {
-    return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Type() == SpeciesTagType::Plain;
-    });
-  }
+  [[nodiscard]] bool Plain() const noexcept ;
 
-  [[nodiscard]] bool RequireLines() const noexcept { return Plain(); }
+  [[nodiscard]] bool RequireLines() const noexcept ;
 
-  [[nodiscard]] bool FreeElectrons() const noexcept {
-    return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Spec() == SpeciesEnum::free_electrons;
-    });
-  }
+  [[nodiscard]] bool FreeElectrons() const noexcept ;
 
-  [[nodiscard]] bool Particles() const noexcept {
-    return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Spec() == SpeciesEnum::particles;
-    });
-  }
+  [[nodiscard]] bool Particles() const noexcept ;
 };
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;

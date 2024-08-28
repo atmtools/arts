@@ -15,11 +15,9 @@
 #include <ostream>
 #include <string>
 
-#include "absorption.h"
 #include "arts_conversions.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "hitran_species.h"
 #include "jpl_species.h"
 #include "lineshapemodel.h"
@@ -27,6 +25,198 @@
 #include "quantum_numbers.h"
 #include "rational.h"
 #include "wigner_functions.h"
+
+
+/** Turns selected Type into a human readable string
+ * 
+ * This function takes the input Type
+ * and returns it as a string
+ *  
+ * @param[in] type The LineShapeTypeOld
+ * 
+ * @return std::string_view of LineShapeTypeOld
+ */
+constexpr std::string_view shapetype2metadatastring(
+    LineShapeTypeOld type) noexcept {
+  switch (type) {
+    case LineShapeTypeOld::DP:
+      return "The line shape type is the Doppler profile\n";
+    case LineShapeTypeOld::LP:
+      return "The line shape type is the Lorentz profile.\n";
+    case LineShapeTypeOld::VP:
+      return "The line shape type is the Voigt profile.\n";
+    case LineShapeTypeOld::SDVP:
+      return "The line shape type is the speed-dependent Voigt profile.\n";
+    case LineShapeTypeOld::HTP:
+      return "The line shape type is the Hartmann-Tran profile.\n";
+    case LineShapeTypeOld::SplitLP:
+      return "The line shape type is the Lorentz profile per broadener.\n";
+    case LineShapeTypeOld::SplitVP:
+      return "The line shape type is the Voigt profile per broadener.\n";
+    case LineShapeTypeOld::SplitSDVP:
+      return "The line shape type is the speed-dependent Voigt profile per broadener.\n";
+    case LineShapeTypeOld::SplitHTP:
+      return "The line shape type is the Hartmann-Tran profile per broadener.\n";
+  }
+  return "There's an error.\n";
+}
+
+constexpr LineShape::ModelParameters modelparameterGetEmpty(
+    const LineShapeTemperatureModelOld t) noexcept {
+  switch (t) {
+    case LineShapeTemperatureModelOld::None:  // 0
+      return {LineShapeTemperatureModelOld::None, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::T0:  // Constant, X0
+      return {LineShapeTemperatureModelOld::T0, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
+      return {LineShapeTemperatureModelOld::T1, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::
+        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return {LineShapeTemperatureModelOld::T2, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
+      return {LineShapeTemperatureModelOld::T3, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::
+        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return {LineShapeTemperatureModelOld::T4, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return {LineShapeTemperatureModelOld::T5, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::
+        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return {LineShapeTemperatureModelOld::LM_AER, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::
+        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return {LineShapeTemperatureModelOld::DPL, 0, 0, 0, 0};
+    case LineShapeTemperatureModelOld::POLY:
+      return {LineShapeTemperatureModelOld::POLY, 0, 0, 0, 0};
+  }
+  return {LineShapeTemperatureModelOld::None, 0, 0, 0, 0};
+}
+
+constexpr std::string_view mirroringtype2metadatastring(
+    AbsorptionMirroringTypeOld in) noexcept {
+  switch (in) {
+    case AbsorptionMirroringTypeOld::None:
+      return "These lines are not mirrored at 0 Hz.\n";
+    case AbsorptionMirroringTypeOld::Lorentz:
+      return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
+    case AbsorptionMirroringTypeOld::SameAsLineShape:
+      return "These line are mirrored around 0 Hz using the original line shape.\n";
+    case AbsorptionMirroringTypeOld::Manual:
+      return "There are manual line entries in the catalog to mirror this line.\n";
+  }
+  return "There's an error";
+}
+
+constexpr std::string_view normalizationtype2metadatastring(
+    AbsorptionNormalizationTypeOld in) {
+  switch (in) {
+    case AbsorptionNormalizationTypeOld::None:
+      return "No re-normalization in the far wing will be applied.\n";
+    case AbsorptionNormalizationTypeOld::VVH:
+      return "van Vleck and Huber far-wing renormalization will be applied, "
+             "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
+    case AbsorptionNormalizationTypeOld::VVW:
+      return "van Vleck and Weisskopf far-wing renormalization will be applied, "
+             "i.e. F ~ (f/f0)^2\n";
+    case AbsorptionNormalizationTypeOld::RQ:
+      return "Rosenkranz quadratic far-wing renormalization will be applied, "
+             "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
+    case AbsorptionNormalizationTypeOld::SFS:
+      return "Simple frequency scaling of the far-wings will be applied, "
+             "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
+  }
+  return "There's an error";
+}
+
+constexpr std::string_view populationtype2metadatastring(
+    AbsorptionPopulationTypeOld in) {
+  switch (in) {
+    case AbsorptionPopulationTypeOld::LTE:
+      return "The lines are considered as in pure LTE.\n";
+    case AbsorptionPopulationTypeOld::ByMakarovFullRelmat:
+      return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
+    case AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing:
+      return "The lines requires relaxation matrix calculations in LTE - Hartmann, Boulet, Robert, 2008, 1st edition method.\n";
+    case AbsorptionPopulationTypeOld::ByHITRANFullRelmat:
+      return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
+    case AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat:
+      return "The lines requires Relaxation matrix calculations in LTE - HITRAN Rosenkranz method.\n";
+    case AbsorptionPopulationTypeOld::VibTemps:
+      return "The lines are considered as in NLTE by vibrational temperatures.\n";
+    case AbsorptionPopulationTypeOld::NLTE:
+      return "The lines are considered as in pure NLTE.\n";
+  }
+  return "There's an error";
+}
+
+constexpr bool relaxationtype_relmat(AbsorptionPopulationTypeOld in) noexcept {
+  return in == AbsorptionPopulationTypeOld::ByHITRANFullRelmat or
+         in == AbsorptionPopulationTypeOld::ByMakarovFullRelmat or
+         in == AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat or
+         in == AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
+}
+
+Absorption::Lines::Lines(bool selfbroadening_,
+                         bool bathbroadening_,
+                         AbsorptionCutoffTypeOld cutoff_,
+                         AbsorptionMirroringTypeOld mirroring_,
+                         AbsorptionPopulationTypeOld population_,
+                         AbsorptionNormalizationTypeOld normalization_,
+                         LineShapeTypeOld lineshapetype_,
+                         Numeric T0_,
+                         Numeric cutofffreq_,
+                         Numeric linemixinglimit_,
+                         QuantumIdentifier quantumidentity_,
+                         ArrayOfSpeciesEnum broadeningspecies_,
+                         Array<SingleLine> lines_)
+    : selfbroadening(selfbroadening_),
+      bathbroadening(bathbroadening_),
+      cutoff(cutoff_),
+      mirroring(mirroring_),
+      population(population_),
+      normalization(normalization_),
+      lineshapetype(lineshapetype_),
+      T0(T0_),
+      cutofffreq(cutofffreq_),
+      linemixinglimit(linemixinglimit_),
+      quantumidentity(std::move(quantumidentity_)),
+      broadeningspecies(std::move(broadeningspecies_)),
+      lines(std::move(lines_)) {
+  if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
+  if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
+}
+
+Absorption::Lines::Lines(bool selfbroadening_,
+                         bool bathbroadening_,
+                         size_t nlines,
+                         AbsorptionCutoffTypeOld cutoff_,
+                         AbsorptionMirroringTypeOld mirroring_,
+                         AbsorptionPopulationTypeOld population_,
+                         AbsorptionNormalizationTypeOld normalization_,
+                         LineShapeTypeOld lineshapetype_,
+                         Numeric T0_,
+                         Numeric cutofffreq_,
+                         Numeric linemixinglimit_,
+                         QuantumIdentifier quantumidentity_,
+                         ArrayOfSpeciesEnum broadeningspecies_,
+                         const Quantum::Number::LocalState& metalocalquanta,
+                         const LineShape::Model& metamodel)
+    : selfbroadening(selfbroadening_),
+      bathbroadening(bathbroadening_),
+      cutoff(cutoff_),
+      mirroring(mirroring_),
+      population(population_),
+      normalization(normalization_),
+      lineshapetype(lineshapetype_),
+      T0(T0_),
+      cutofffreq(cutofffreq_),
+      linemixinglimit(linemixinglimit_),
+      quantumidentity(std::move(quantumidentity_)),
+      broadeningspecies(std::move(broadeningspecies_)),
+      lines(nlines, SingleLine(metalocalquanta, metamodel)) {
+  if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
+  if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
+}
 
 LineShape::Output Absorption::Lines::ShapeParameters(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
@@ -123,7 +313,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
 
   LineShape::Output out{};
   if (pos >= 0) {
-    out = lineshape[pos].at(T, T0, P);
+    out              = lineshape[pos].at(T, T0, P);
     const Index bath = lineshape.size() - 1;
     if (bathbroadening and pos not_eq bath) {
       out -= lineshape[bath].at(T, T0, P);
@@ -138,7 +328,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This always contains the rest of the line to parse. At the
@@ -254,7 +444,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(
     if (tgam != data.T0) {
       agam = agam * pow(tgam / data.T0, nair);
       sgam = sgam * pow(tgam / data.T0, nself);
-      psf = psf * pow(tgam / data.T0, (Numeric).25 + (Numeric)1.5 * nair);
+      psf  = psf * pow(tgam / data.T0, (Numeric).25 + (Numeric)1.5 * nair);
     }
 
     // Set line shape computer
@@ -272,7 +462,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = false;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -584,7 +774,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
   data.species[1] = SpeciesEnum::Bath;
 
@@ -634,7 +824,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
 
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso);
-  data.species[0] = data.quantumidentity.Species();
+  data.species[0]      = data.quantumidentity.Species();
 
   // Position.
   {
@@ -718,7 +908,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
     extract(data.line.E0, line, 10);
 
     // Convert to Joule:
-    data.line.E0 = wavenumber_to_joule(data.line.E0);
+    data.line.E0 = Conversion::kaycm2joule(data.line.E0);
   }
 
   // Temperature coefficient of broadening parameters.
@@ -848,7 +1038,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
   data.species[1] = SpeciesEnum::Bath;
 
@@ -898,7 +1088,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
 
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso);
-  data.species[0] = data.quantumidentity.Species();
+  data.species[0]      = data.quantumidentity.Species();
 
   // Position.
   {
@@ -982,7 +1172,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
     extract(data.line.E0, line, 10);
 
     // Convert to Joule:
-    data.line.E0 = wavenumber_to_joule(data.line.E0);
+    data.line.E0 = Conversion::kaycm2joule(data.line.E0);
   }
 
   // Temperature coefficient of broadening parameters.
@@ -1119,7 +1309,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
   data.species[1] = SpeciesEnum::Bath;
 
@@ -1169,7 +1359,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
 
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso);
-  data.species[0] = data.quantumidentity.Species();
+  data.species[0]      = data.quantumidentity.Species();
 
   // Position.
   {
@@ -1257,7 +1447,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
     extract(data.line.E0, line, 10);
 
     // Convert to Joule:
-    data.line.E0 = wavenumber_to_joule(data.line.E0);
+    data.line.E0 = Conversion::kaycm2joule(data.line.E0);
   }
 
   // Temperature coefficient of broadening parameters.
@@ -1358,7 +1548,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This contains the rest of the line to parse. At the beginning the
@@ -1497,7 +1687,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
     extract(data.line.E0, line, 10);
 
     // Convert to Joule:
-    data.line.E0 = wavenumber_to_joule(data.line.E0);
+    data.line.E0 = Conversion::kaycm2joule(data.line.E0);
   }
 
   // Temperature coefficient of broadening parameters.
@@ -1759,7 +1949,7 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(
         local_id.val.set(sle.quantumidentity.val[qn]);
 
     // Set the line
-    auto line = sle.line;
+    auto line        = sle.line;
     line.localquanta = local_id;
 
     // Either find a line like this in the list of lines or start a new Lines
@@ -1947,7 +2137,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShapeTypeOld::VP;
+  data.lineshapetype  = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This contains the rest of the line to parse. At the beginning the
@@ -2040,7 +2230,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
     extract(data.line.E0, line, 10);
 
     // Convert to Joule:
-    data.line.E0 = wavenumber_to_joule(data.line.E0);
+    data.line.E0 = Conversion::kaycm2joule(data.line.E0);
   }
 
   // Upper state degeneracy
@@ -2086,7 +2276,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
   // not considered.
   Numeric nair, nself;
   {
-    nair = 0.75;
+    nair  = 0.75;
     nself = 0.0;
   }
 
@@ -2332,7 +2522,8 @@ Index Lines::NumLocalQuanta() const noexcept {
 
 bool Lines::OnTheFlyLineMixing() const noexcept {
   return population == AbsorptionPopulationTypeOld::ByMakarovFullRelmat or
-         population == AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
+         population ==
+             AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
 }
 
 bool Lines::DoLineMixing(Numeric P) const noexcept {
@@ -2422,9 +2613,7 @@ Numeric Lines::F_mean(const ConstVectorView& wgts) const noexcept {
   return val / div;
 }
 
-Numeric Lines::F_mean(Numeric) const noexcept {
-  return 0.0;
-}
+Numeric Lines::F_mean(Numeric) const noexcept { return 0.0; }
 
 Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
   switch (cutoff) {
@@ -2487,7 +2676,7 @@ void Lines::MakeLineShapeModelCommon() {
       // Set the common type
       for (auto& line : lines) {
         if (auto& data = line.lineshape[j].Data()[i]; data.type not_eq t) {
-          data = LineShape::modelparameterGetEmpty(t);
+          data = modelparameterGetEmpty(t);
         }
       }
     }
@@ -2673,7 +2862,8 @@ std::ostream& operator<<(std::ostream& os,
       [[fallthrough]];
     case AbsorptionMirroringTypeOld::Manual:
       os << "    Manual:"
-         << spaces(req_spaces(AbsorptionMirroringTypeOld::Manual)) << val.Manual;
+         << spaces(req_spaces(AbsorptionMirroringTypeOld::Manual))
+         << val.Manual;
   }
   return os;
 }
@@ -2690,20 +2880,22 @@ std::ostream& operator<<(std::ostream& os,
          << '\n';
       [[fallthrough]];
     case AbsorptionNormalizationTypeOld::VVH:
-      os << "    VVH:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVH))
-         << val.VVH << '\n';
+      os << "    VVH:"
+         << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVH)) << val.VVH
+         << '\n';
       [[fallthrough]];
     case AbsorptionNormalizationTypeOld::VVW:
-      os << "    VVW:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVW))
-         << val.VVW << '\n';
+      os << "    VVW:"
+         << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVW)) << val.VVW
+         << '\n';
       [[fallthrough]];
     case AbsorptionNormalizationTypeOld::RQ:
       os << "    RQ:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::RQ))
          << val.RQ << '\n';
       [[fallthrough]];
     case AbsorptionNormalizationTypeOld::SFS:
-      os << "    SFS:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::SFS))
-         << val.SFS;
+      os << "    SFS:"
+         << spaces(req_spaces(AbsorptionNormalizationTypeOld::SFS)) << val.SFS;
   }
   return os;
 }
@@ -2771,8 +2963,8 @@ std::ostream& operator<<(std::ostream& os,
          << '\n';
       [[fallthrough]];
     case LineShapeTypeOld::SDVP:
-      os << "    SDVP:" << spaces(req_spaces(LineShapeTypeOld::SDVP)) << val.SDVP
-         << '\n';
+      os << "    SDVP:" << spaces(req_spaces(LineShapeTypeOld::SDVP))
+         << val.SDVP << '\n';
       [[fallthrough]];
     case LineShapeTypeOld::HTP:
       os << "    HTP:" << spaces(req_spaces(LineShapeTypeOld::HTP)) << val.HTP
@@ -2847,7 +3039,7 @@ Rational Lines::max(QuantumNumberType x) const {
     ARTS_USER_ERROR_IF(
         not line.localquanta.val.has(x), "No ", x, " in some line(s)")
     auto& val = line.localquanta.val[x];
-    out = std::max(std::max(val.low(), val.upp()), out);
+    out       = std::max(std::max(val.low(), val.upp()), out);
   }
   return out;
 }

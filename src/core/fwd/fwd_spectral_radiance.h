@@ -76,78 +76,20 @@ struct spectral_radiance {
   void from_path(std::vector<path>& out,
                  const ArrayOfPropagationPathPoint& propagation_path) const;
 
-  [[nodiscard]] constexpr std::array<weighted_position, 8> pos_weights(
-      const path& pp) const {
-    std::array<weighted_position, 8> out;
-    auto ptr = out.begin();
-    for (Size i : {0, 1}) {
-      for (Size j : {0, 1}) {
-        for (Size k : {0, 1}) {
-          ptr->i = pp.alt_index + i;
-          ptr->j = pp.lat_index + j;
-          ptr->k = pp.lon_index + k;
-          ptr->w = (i == 0 ? pp.alt_weight : 1.0 - pp.alt_weight) *
-                   (j == 0 ? pp.lat_weight : 1.0 - pp.lat_weight) *
-                   (k == 0 ? pp.lon_weight : 1.0 - pp.lon_weight);
-          ptr++;
-        }
-      }
-    }
-    return out;
-  }
+  [[nodiscard]] std::array<weighted_position, 8> pos_weights(
+      const path& pp) const;
 
-  template <Size N>
-  [[nodiscard]] constexpr Stokvec B(
-      const Numeric f, const std::array<weighted_position, N>& pos) const {
-    Numeric out = 0.0;
+  [[nodiscard]] Stokvec B(const Numeric f,
+                          const std::array<weighted_position, 8>& pos) const;
 
-    for (const auto& p : pos) {
-      if (p.w == 0.0) continue;
-      out += p.w * planck(f, atm(p.i, p.j, p.k)->temperature);
-    }
+  [[nodiscard]] Stokvec Iback(const Numeric f,
+                              const std::array<weighted_position, 8>& pos,
+                              const path& pp) const;
 
-    return {out, 0.0, 0.0, 0.0};
-  }
-
-  template <Size N>
-  [[nodiscard]] constexpr Stokvec Iback(
+  [[nodiscard]] std::pair<Propmat, Stokvec> PM(
       const Numeric f,
-      const std::array<weighted_position, N>& pos,
-      const path& pp) const {
-    Stokvec out{0.0, 0.0, 0.0, 0.0};
-
-    if (pp.point.los_type == PathPositionType::space) {
-      for (const auto& p : pos) {
-        if (p.w == 0.0) continue;
-        out += p.w * spectral_radiance_space(p.j, p.k)(f, pp.point.los);
-      }
-    } else if (pp.point.los_type == PathPositionType::surface) {
-      for (const auto& p : pos) {
-        if (p.w == 0.0) continue;
-        out += p.w * spectral_radiance_surface(p.j, p.k)(f, pp.point.los);
-      }
-    }
-
-    return out;
-  }
-
-  template <Size N>
-  constexpr std::pair<Propmat, Stokvec> PM(
-      const Numeric f,
-      const std::array<weighted_position, N>& pos,
-      const path& pp) const {
-    std::pair<Propmat, Stokvec> out{Propmat{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                                    Stokvec{0.0, 0.0, 0.0, 0.0}};
-
-    for (const auto& p : pos) {
-      if (p.w == 0.0) continue;
-      const auto [propmat, stokvec]  = pm(p.i, p.j, p.k)(f, pp.point.los);
-      out.first                     += p.w * propmat;
-      out.second                    += p.w * stokvec;
-    }
-
-    return out;
-  }
+      const std::array<weighted_position, 8>& pos,
+      const path& pp) const;
 };
 }  // namespace fwd
 

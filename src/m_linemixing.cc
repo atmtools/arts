@@ -13,7 +13,6 @@
 #include <matpack.h>
 
 #include <stdexcept>
-#include "enums.h"
 
 #include <lbl.h>
 

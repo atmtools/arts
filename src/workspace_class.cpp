@@ -1,11 +1,10 @@
 #include "workspace_class.h"
 
-#include <iomanip>
 #include <ranges>
 #include <stdexcept>
 #include <type_traits>
 
-#include "auto_wsv.h"
+#include <auto_wsv.h>
 #include "debug.h"
 
 const auto& wsv_data = workspace_variables();
@@ -97,32 +96,7 @@ void Workspace::overwrite(const std::string& name, const Wsv& data) try {
 }
 
 std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
-  os << "Workspace containing:";
-
-  const std::vector<std::string> names = [](const Workspace& w) {
-    std::vector<std::string> n;
-    n.reserve(w.wsv.size());
-    for (const auto& [name, _] : w.wsv) n.push_back(name);
-    std::sort(n.begin(), n.end());
-    return n;
-  }(ws);
-
-  for (auto& name : names) {
-    const Wsv& wsv = ws.wsv.at(name);
-
-    os << "\n  " << name << " : " << wsv.type_name() << " = ";
-
-    std::string varvalue =
-        std::visit([](auto& val) { return var_string(*val); }, wsv.value);
-    constexpr std::size_t len = 50;
-    const bool is_long        = varvalue.size() > len;
-    if (is_long) varvalue = varvalue.substr(0, len);
-    std::replace(varvalue.begin(), varvalue.end(), '\n', ' ');
-
-    os << varvalue;
-    if (is_long) os << "...";
-  }
-  return os;
+  return os << std::format("{:s,}", ws);
 }
 
 bool Workspace::contains(const std::string& name) const {

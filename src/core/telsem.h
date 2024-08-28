@@ -54,23 +54,18 @@ class TelsemAtlas {
      */
   TelsemAtlas(String filename);
 
-  void set_month(Index m) { month = m; }
-  Index get_month() const { return month; }
+  void set_month(Index m) ;
+  Index get_month() const ;
 
-  const Tensor3 &get_correl() const { return correl; }
-  void set_correl(const Tensor3 &t) { correl = t; }
+  const Tensor3 &get_correl() const ;
+  void set_correl(const Tensor3 &t);
 
   /*! Check if cell is contained in atlas.
      *
      * @param cellnumber The cellnumber for given coordinates obtained from
      * calc cellnum.
      */
-  bool contains(Size cellnumber) const {
-    if (cellnumber >= correspondence.size()) {
-      return false;
-    }
-    return correspondence[cellnumber] >= 0;
-  }
+  bool contains(Size cellnumber) const ;
 
   /*! Class of a given cell.
      * Return the class1 value of the given cell. Indexed by cellnumber
@@ -82,13 +77,7 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for which to lookup the class.
      * @return The index representing the class1 value of the cell.
      */
-  Index get_class1(Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    }
-    return classes1[ind];
-  }
+  Index get_class1(Index cellnumber) const ;
 
   /*! Class of a given cell.
      * Return the class2 value of the given cell. Indexed by cellnumber
@@ -100,13 +89,7 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for which to lookup the class.
      * @return The index representing the class2 value of the cell.
      */
-  Index get_class2(Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    }
-    return classes2[ind];
-  }
+  Index get_class2(Index cellnumber) const ;
 
   /*! Verically polarized emissivities at 19, 37 and 85 GHz.
      *
@@ -117,18 +100,7 @@ class TelsemAtlas {
      * @param cellnum The atlas' cellunmber from which to extract the emissivities.
      * @return 3-element vector containing the emissivities.
      */
-  Vector get_emis_v(Index i) const {
-    Index ind = correspondence[i];
-    Vector e_v(3);
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      e_v[0] = emis(ind, 0);
-      e_v[1] = emis(ind, 3);
-      e_v[2] = emis(ind, 5);
-    }
-    return e_v;
-  }
+  Vector get_emis_v(Index i) const ;
 
   /*! Horizontally polarized emissivities at 19, 37 and 85 GHz.
      *
@@ -139,18 +111,7 @@ class TelsemAtlas {
      * @param cellnum The atlas' cellunmber from which to extract the emissivities.
      * @return 3-element vector containing the emissivities.
      */
-  Vector get_emis_h(Index cellnum) const {
-    Index ind = correspondence[cellnum];
-    Vector e_h(3);
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      e_h[0] = emis(ind, 1);
-      e_h[1] = emis(ind, 4);
-      e_h[2] = emis(ind, 6);
-    }
-    return e_h;
-  }
+  Vector get_emis_h(Index cellnum) const;
 
   /*! ConstVectorView on emissivities at given index.
      *
@@ -163,14 +124,7 @@ class TelsemAtlas {
      * @param The cellnumber
      * @return The ConstVectorView on the emissivities.
      */
-  ConstVectorView operator[](Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      return emis(ind, joker);
-    }
-  }
+  ConstVectorView operator[](Index cellnumber) const;
 
   /*! Read Telsem Atlas from input stream.
      */
@@ -304,19 +258,19 @@ class TelsemAtlas {
   ArrayOfIndex &Correspondance() { return correspondence; }
 
   // Regression coefficients.
-  Numeric A0_K0(Index i) { return a0_k0[i]; }
-  Numeric A0_K1(Index i) { return a0_k1[i]; }
-  Numeric A0_K2(Index i) { return a0_k2[i]; }
-  Numeric A0_EVEH(Index i) { return a0_eveh[i]; }
-  Numeric A1_EVEH(Index i) { return a1_eveh[i]; }
-  Numeric A2_EVEH(Index i) { return a2_eveh[i]; }
-  Numeric A3_EVEH(Index i) { return a3_eveh[i]; }
-  Numeric B0_EVEH(Index i) { return b0_eveh[i]; }
-  Numeric B1_EVEH(Index i) { return b1_eveh[i]; }
-  Numeric B2_EVEH(Index i) { return b2_eveh[i]; }
-  Numeric B3_EVEH(Index i) { return b3_eveh[i]; }
-  Numeric RAPPORT43_32(Index i) { return rapport43_32[i]; }
-  Numeric RAPPORT54_43(Index i) { return rapport54_43[i]; }
+  static constexpr Numeric A0_K0(Index i) { return a0_k0[i]; }
+  static constexpr Numeric A0_K1(Index i) { return a0_k1[i]; }
+  static constexpr Numeric A0_K2(Index i) { return a0_k2[i]; }
+  static constexpr Numeric A0_EVEH(Index i) { return a0_eveh[i]; }
+  static constexpr Numeric A1_EVEH(Index i) { return a1_eveh[i]; }
+  static constexpr Numeric A2_EVEH(Index i) { return a2_eveh[i]; }
+  static constexpr Numeric A3_EVEH(Index i) { return a3_eveh[i]; }
+  static constexpr Numeric B0_EVEH(Index i) { return b0_eveh[i]; }
+  static constexpr Numeric B1_EVEH(Index i) { return b1_eveh[i]; }
+  static constexpr Numeric B2_EVEH(Index i) { return b2_eveh[i]; }
+  static constexpr Numeric B3_EVEH(Index i) { return b3_eveh[i]; }
+  static constexpr Numeric RAPPORT43_32(Index i) { return rapport43_32[i]; }
+  static constexpr Numeric RAPPORT54_43(Index i) { return rapport54_43[i]; }
 
  private:
   // Number of lines in the Atlas.

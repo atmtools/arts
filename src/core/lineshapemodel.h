@@ -1,47 +1,16 @@
 #pragma once
 
+#include <arts_conversions.h>
+#include <atm.h>
+#include <enumsLineShapeTemperatureModelOld.h>
+#include <enumsLineShapeTypeOld.h>
+#include <enumsLineShapeVariableOld.h>
+#include <format_tags.h>
+#include <species_tags.h>
+
 #include <algorithm>
 #include <string_view>
 #include <utility>
-
-#include "arts_conversions.h"
-#include "atm.h"
-#include "enums.h"
-#include "format_tags.h"
-#include "species_tags.h"
-/** Turns selected Type into a human readable string
- * 
- * This function takes the input Type
- * and returns it as a string
- *  
- * @param[in] type The LineShapeTypeOld
- * 
- * @return std::string_view of LineShapeTypeOld
- */
-constexpr std::string_view shapetype2metadatastring(
-    LineShapeTypeOld type) noexcept {
-  switch (type) {
-    case LineShapeTypeOld::DP:
-      return "The line shape type is the Doppler profile\n";
-    case LineShapeTypeOld::LP:
-      return "The line shape type is the Lorentz profile.\n";
-    case LineShapeTypeOld::VP:
-      return "The line shape type is the Voigt profile.\n";
-    case LineShapeTypeOld::SDVP:
-      return "The line shape type is the speed-dependent Voigt profile.\n";
-    case LineShapeTypeOld::HTP:
-      return "The line shape type is the Hartmann-Tran profile.\n";
-    case LineShapeTypeOld::SplitLP:
-      return "The line shape type is the Lorentz profile per broadener.\n";
-    case LineShapeTypeOld::SplitVP:
-      return "The line shape type is the Voigt profile per broadener.\n";
-    case LineShapeTypeOld::SplitSDVP:
-      return "The line shape type is the speed-dependent Voigt profile per broadener.\n";
-    case LineShapeTypeOld::SplitHTP:
-      return "The line shape type is the Hartmann-Tran profile per broadener.\n";
-  }
-  return "There's an error.\n";
-}
 
 /** Is the Type independent per broadener?
  * 
@@ -225,97 +194,7 @@ String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
  */
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type);
 
-constexpr ModelParameters modelparameterGetEmpty(
-    const LineShapeTemperatureModelOld t) noexcept {
-  switch (t) {
-    case LineShapeTemperatureModelOld::None:  // 0
-      return {LineShapeTemperatureModelOld::None, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T0:  // Constant, X0
-      return {LineShapeTemperatureModelOld::T0, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
-      return {LineShapeTemperatureModelOld::T1, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::
-        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
-      return {LineShapeTemperatureModelOld::T2, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
-      return {LineShapeTemperatureModelOld::T3, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::
-        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
-      return {LineShapeTemperatureModelOld::T4, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
-      return {LineShapeTemperatureModelOld::T5, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::
-        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
-      return {LineShapeTemperatureModelOld::LM_AER, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::
-        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
-      return {LineShapeTemperatureModelOld::DPL, 0, 0, 0, 0};
-    case LineShapeTemperatureModelOld::POLY:
-      return {LineShapeTemperatureModelOld::POLY, 0, 0, 0, 0};
-  }
-  return {LineShapeTemperatureModelOld::None, 0, 0, 0, 0};
-}
-
-constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
-  switch (mp.type) {
-    case LineShapeTemperatureModelOld::None:  // 0
-      return true;
-    case LineShapeTemperatureModelOld::T0:  // Constant, X0
-      return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
-      return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::
-        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
-      return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
-      return (mp.X0 == 0 and mp.X1 == 0);
-    case LineShapeTemperatureModelOld::
-        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
-      return (mp.X0 == 0 and mp.X1 == 0);
-    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
-      return (mp.X0 == 0);
-    case LineShapeTemperatureModelOld::
-        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
-      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
-    case LineShapeTemperatureModelOld::
-        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
-      return (mp.X0 == 0 and mp.X2 == 0);
-    case LineShapeTemperatureModelOld::POLY:
-      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
-  }
-  return true;
-}
-
-constexpr Numeric modelparameterFirstExponent(
-    const ModelParameters mp) noexcept {
-  switch (mp.type) {
-    case LineShapeTemperatureModelOld::None:  // 0
-      return 0;
-    case LineShapeTemperatureModelOld::T0:  // Constant, X0
-      return 0;
-    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
-      return mp.X1;
-    case LineShapeTemperatureModelOld::
-        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
-      return mp.X1;
-    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
-      return 0;
-    case LineShapeTemperatureModelOld::
-        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
-      return mp.X2;
-    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
-      return (0.25 + 1.5 * mp.X1);
-    case LineShapeTemperatureModelOld::
-        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
-      return 0;
-    case LineShapeTemperatureModelOld::
-        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
-      return mp.X1;
-    case LineShapeTemperatureModelOld::POLY:
-      return 0;
-  }
-  return std::numeric_limits<Numeric>::quiet_NaN();
-}
+bool modelparameterEmpty(const ModelParameters mp) noexcept;
 
 /** Current max number of line shape variables */
 constexpr Index nVars = 9;
@@ -869,34 +748,6 @@ std::istream& from_pressurebroadeningdata(std::istream& data,
 
 /** Legacy dealing with reading old LineFunctionData */
 namespace LegacyLineFunctionData {
-/** Length per variable for temperature model */
-constexpr Index temperaturemodel2legacysize(
-    LineShapeTemperatureModelOld type) noexcept {
-  switch (type) {
-    case LineShapeTemperatureModelOld::None:
-      return 0;
-    case LineShapeTemperatureModelOld::T0:
-      return 1;
-    case LineShapeTemperatureModelOld::T1:
-      return 2;
-    case LineShapeTemperatureModelOld::T2:
-      return 3;
-    case LineShapeTemperatureModelOld::T3:
-      return 2;
-    case LineShapeTemperatureModelOld::T4:
-      return 3;
-    case LineShapeTemperatureModelOld::T5:
-      return 2;
-    case LineShapeTemperatureModelOld::LM_AER:
-      return 12;
-    case LineShapeTemperatureModelOld::DPL:
-      return 4;
-    case LineShapeTemperatureModelOld::POLY:
-      return 4;
-  }
-  return -1;
-}
-
 /** Line shape models from string */
 std::vector<LineShapeVariableOld> lineshapetag2variablesvector(String type);
 
@@ -918,25 +769,6 @@ enum class TypeLM {
 
 /** Line mixing types from string */
 LegacyLineMixingData::TypeLM string2typelm(String type);
-
-/** Line mixing types to number */
-constexpr Index typelm2size(LegacyLineMixingData::TypeLM type) {
-  switch (type) {
-    case TypeLM::LM_NONE:  // The standard case
-      return 0;
-    case TypeLM::LM_LBLRTM:  // The LBLRTM case
-      return 12;
-    case TypeLM::LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
-      return 1;
-    case TypeLM::LM_2NDORDER:  // The 2nd order case
-      return 10;
-    case TypeLM::LM_1STORDER:  // The 2nd order case
-      return 3;
-    case TypeLM::LM_BYBAND:  // The band class
-      return 1;
-  }
-  return -1;
-}
 
 /** LineShape::Model from legacy input vector */
 Model vector2modellm(Vector x, LegacyLineMixingData::TypeLM type);
@@ -963,21 +795,6 @@ LegacyPressureBroadeningData::TypePB string2typepb(String type);
 /** Pressure broadening if self exist */
 Index self_listed(const QuantumIdentifier& qid,
                   LegacyPressureBroadeningData::TypePB t);
-
-/** Pressure broadening types to number of elements */
-constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type) {
-  switch (type) {
-    case TypePB::PB_NONE:
-      return 0;
-    case TypePB::PB_AIR_BROADENING:
-      return 10;
-    case TypePB::PB_AIR_AND_WATER_BROADENING:
-      return 9;
-    case TypePB::PB_PLANETARY_BROADENING:
-      return 20;
-  }
-  return -1;
-}
 
 /** LineShape::Model from legacy input vector */
 void vector2modelpb(LineShapeTypeOld& mtype,

@@ -16,7 +16,6 @@
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
-#include "enums.h"
 #include "interpolation.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"

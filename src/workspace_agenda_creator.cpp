@@ -1,5 +1,13 @@
 #include "workspace_agenda_creator.h"
 
+#include <enumsdisort_settings_agendaPredefined.h>
+#include <enumspropagation_matrix_agendaPredefined.h>
+#include <enumspropagation_matrix_scattering_agendaPredefined.h>
+#include <enumsray_path_observer_agendaPredefined.h>
+#include <enumsspectral_radiance_observer_agendaPredefined.h>
+#include <enumsspectral_radiance_space_agendaPredefined.h>
+#include <enumsspectral_radiance_surface_agendaPredefined.h>
+
 #include <string>
 #include <unordered_map>
 

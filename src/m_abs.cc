@@ -22,7 +22,6 @@
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
-#include "enums.h"
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"

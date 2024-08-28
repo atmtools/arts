@@ -232,20 +232,20 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["SurfaceKey"] = {
-      .file        = "enums.h",
+      .file        = "enumsSurfaceKey.h",
       .desc        = R"--(A surface key
 )--",
       .skip_pyinit = true,
   };
 
   wsg_data["SurfaceTypeTag"] = {
-      .file = "enums.h",
+      .file = "surf.h",
       .desc = R"--(A surface type
 )--",
   };
 
   wsg_data["SurfacePropertyTag"] = {
-      .file = "enums.h",
+      .file = "surf.h",
       .desc = R"--(A surface property
 )--",
   };
@@ -258,28 +258,28 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["SpeciesEnum"] = {
-      .file        = "enums.h",
+      .file        = "enumsSpeciesEnum.h",
       .desc        = R"--(An atmospheric species
 )--",
       .skip_pyinit = true,
   };
 
   wsg_data["AtmKey"] = {
-      .file        = "enums.h",
+      .file        = "enumsAtmKey.h",
       .desc        = R"--(An atmospheric key
 )--",
       .skip_pyinit = true,
   };
 
   wsg_data["LineShapeModelVariable"] = {
-      .file        = "enums.h",
+      .file        = "enumsLineShapeModelVariable.h",
       .desc        = R"--(A line shape model parameter
 )--",
       .skip_pyinit = true,
   };
 
   wsg_data["LineByLineVariable"] = {
-      .file        = "enums.h",
+      .file        = "enumsLineByLineVariable.h",
       .desc        = R"--(An line-by-line variable parameter
 )--",
       .skip_pyinit = true,

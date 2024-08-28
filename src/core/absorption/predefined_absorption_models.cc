@@ -23,6 +23,13 @@
 #include "species.h"
 
 namespace Absorption::PredefinedModel {
+VMRS::VMRS(const AtmPoint& atm)
+    : CO2(atm[species[0]]),
+      O2(atm[species[1]]),
+      N2(atm[species[2]]),
+      H2O(atm[species[3]]),
+      LWC(atm[species[4]]) {}
+
 /** Compute the selected model and returns if it can be computed
  *
  * Remember to use the "if constexpr (not check_exist)" statement
@@ -293,7 +300,7 @@ void compute(
 
     if (do_temp_jac) {
       const Numeric d = temp_jac.second->d;
-      const auto iq = temp_jac.second->target_pos;
+      const auto iq   = temp_jac.second->target_pos;
       ARTS_ASSERT(d not_eq 0)
 
       dpm = 0;
@@ -304,15 +311,15 @@ void compute(
                                rtp_temperature + d,
                                vmr,
                                predefined_model_data);
-      dpm -= pm;
-      dpm /= d;
+      dpm                      -= pm;
+      dpm                      /= d;
       dpropmat_clearsky_dx[iq] += dpm;
     }
 
     for (auto& j : freq_jac) {
       if (j.first) {
         const Numeric d = j.second->d;
-        const auto iq = j.second->target_pos;
+        const auto iq   = j.second->target_pos;
         ARTS_ASSERT(d not_eq 0)
 
         Vector f_grid_d{f_grid};
@@ -326,8 +333,8 @@ void compute(
                                  rtp_temperature,
                                  vmr,
                                  predefined_model_data);
-        dpm -= pm;
-        dpm /= d;
+        dpm                      -= pm;
+        dpm                      /= d;
         dpropmat_clearsky_dx[iq] += dpm;
       }
     }
@@ -335,7 +342,7 @@ void compute(
     for (auto& j : vmrs_jac) {
       if (j.first) {
         const Numeric d = j.second->d;
-        const auto iq = j.second->target_pos;
+        const auto iq   = j.second->target_pos;
         compute_vmr_deriv(dpm,
                           pm,
                           model,

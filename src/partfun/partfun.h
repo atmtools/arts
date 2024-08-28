@@ -3,14 +3,13 @@
 
 #include <auto_partfun.h>
 
-#include <enums.h>
+#include <enumsSpeciesEnum.h>
 
 #include <isotopologues.h>
 
 #include <matpack.h>
 
 namespace PartitionFunctions {
-
 namespace detail {
 template <Derivatives d>
 Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {

@@ -1,7 +1,5 @@
 #include "isotopologues.h"
 
-#include "enums.h"
-
 namespace Species {
 ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 #define deal_with_spec(SPEC)                                      \
@@ -186,6 +184,15 @@ std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(
 }
 
 Isotope::Isotope(const std::string_view name) { *this = select(name); }
+
+String Isotope::FullName() const {
+  return joker() ? String{toString<1>(spec)}
+                 : var_string(toString<1>(spec), '-', isotname);
+}
+
+std::ostream& operator<<(std::ostream& os, const Isotope& ir) {
+  return os << ir.FullName();
+}
 
 std::ostream& operator<<(std::ostream& os, const std::vector<Isotope>& isots) {
   for (const auto& i : isots) os << i << ' ';

@@ -15,6 +15,77 @@
 #include "rtepack.h"
 
 namespace fwd {
+Stokvec spectral_radiance::B(
+    const Numeric f,
+    const std::array<spectral_radiance::weighted_position, 8>& pos) const {
+  Numeric out = 0.0;
+
+  for (const auto& p : pos) {
+    if (p.w == 0.0) continue;
+    out += p.w * planck(f, atm(p.i, p.j, p.k)->temperature);
+  }
+
+  return {out, 0.0, 0.0, 0.0};
+}
+
+Stokvec spectral_radiance::Iback(
+    const Numeric f,
+    const std::array<spectral_radiance::weighted_position, 8>& pos,
+    const path& pp) const {
+  Stokvec out{0.0, 0.0, 0.0, 0.0};
+
+  if (pp.point.los_type == PathPositionType::space) {
+    for (const auto& p : pos) {
+      if (p.w == 0.0) continue;
+      out += p.w * spectral_radiance_space(p.j, p.k)(f, pp.point.los);
+    }
+  } else if (pp.point.los_type == PathPositionType::surface) {
+    for (const auto& p : pos) {
+      if (p.w == 0.0) continue;
+      out += p.w * spectral_radiance_surface(p.j, p.k)(f, pp.point.los);
+    }
+  }
+
+  return out;
+}
+
+std::pair<Propmat, Stokvec> spectral_radiance::PM(
+    const Numeric f,
+    const std::array<spectral_radiance::weighted_position, 8>& pos,
+    const path& pp) const {
+  std::pair<Propmat, Stokvec> out{Propmat{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                                  Stokvec{0.0, 0.0, 0.0, 0.0}};
+
+  for (const auto& p : pos) {
+    if (p.w == 0.0) continue;
+    const auto [propmat, stokvec]  = pm(p.i, p.j, p.k)(f, pp.point.los);
+    out.first                     += p.w * propmat;
+    out.second                    += p.w * stokvec;
+  }
+
+  return out;
+}
+
+std::array<spectral_radiance::weighted_position, 8>
+spectral_radiance::pos_weights(const path& pp) const {
+  std::array<weighted_position, 8> out;
+  auto ptr = out.begin();
+  for (Size i : {0, 1}) {
+    for (Size j : {0, 1}) {
+      for (Size k : {0, 1}) {
+        ptr->i = pp.alt_index + i;
+        ptr->j = pp.lat_index + j;
+        ptr->k = pp.lon_index + k;
+        ptr->w = (i == 0 ? pp.alt_weight : 1.0 - pp.alt_weight) *
+                 (j == 0 ? pp.lat_weight : 1.0 - pp.lat_weight) *
+                 (k == 0 ? pp.lon_weight : 1.0 - pp.lon_weight);
+        ptr++;
+      }
+    }
+  }
+  return out;
+}
+
 spectral_radiance::spectral_radiance(
     AscendingGrid alt_,
     AscendingGrid lat_,
@@ -34,7 +105,8 @@ spectral_radiance::spectral_radiance(
       pm(atm.shape()),
       spectral_radiance_surface(lat.size(), lon.size()),
       spectral_radiance_space(
-          spectral_radiance_surface.shape(), [](Numeric f, Vector2) -> Stokvec {
+          spectral_radiance_surface.shape(),
+          [](Numeric f, Vector2) -> Stokvec {
             return planck(f, Constant::cosmic_microwave_background_temperature);
           }),
       ellipsoid(surf.ellipsoid) {
@@ -99,8 +171,9 @@ spectral_radiance::spectral_radiance(
   }
 }
 
-Stokvec spectral_radiance::operator()(
-    const Numeric f, const std::vector<path>& path_points, const Numeric cutoff_transmission) const {
+Stokvec spectral_radiance::operator()(const Numeric f,
+                                      const std::vector<path>& path_points,
+                                      const Numeric cutoff_transmission) const {
   using std::views::drop;
 
   ARTS_ASSERT(path_points.size() > 0, "No path points")
@@ -113,7 +186,7 @@ Stokvec spectral_radiance::operator()(
   }
 
   auto [K, N] = PM(f, pos, path_points.front());
-  Stokvec J = inv(K) * N + B(f, pos);
+  Stokvec J   = inv(K) * N + B(f, pos);
   Muelmat T{1.0};
   Stokvec I{0.0, 0.0, 0.0, 0.0};
 
@@ -124,7 +197,7 @@ Stokvec spectral_radiance::operator()(
       return I += T * Iback(f, pos, pp);
     }
 
-    auto [Ki, Ni] = PM(f, pos, pp);
+    auto [Ki, Ni]    = PM(f, pos, pp);
     const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
     const Muelmat Ti = T * exp(avg(Ki, K), pp.distance);
 
@@ -159,15 +232,15 @@ StokvecVector spectral_radiance::operator()(
   out.emplace_back(Iback(f, pos, path_points.back()));
 
   auto [K, N] = PM(f, pos, path_points.back());
-  Stokvec J = inv(K) * N + B(f, pos);
-  Numeric r = path_points.back().distance;
+  Stokvec J   = inv(K) * N + B(f, pos);
+  Numeric r   = path_points.back().distance;
 
   for (auto& pp : reverse_view(path_points) | drop(1)) {
     pos = pos_weights(pp);
 
-    auto [Ki, Ni] = PM(f, pos, pp);
+    auto [Ki, Ni]    = PM(f, pos, pp);
     const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
-    const Muelmat T = exp(avg(Ki, K), r);
+    const Muelmat T  = exp(avg(Ki, K), r);
 
     out.emplace_back(T * (out.back() - avg(J, Ji)) + avg(J, Ji));
 
@@ -190,13 +263,16 @@ std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 
-void spectral_radiance::from_path(std::vector<path>& out,
+void spectral_radiance::from_path(
+    std::vector<path>& out,
     const ArrayOfPropagationPathPoint& propagation_path) const {
-  return fwd::path_from_propagation_path(out, propagation_path, alt, lat, lon, ellipsoid);
+  return fwd::path_from_propagation_path(
+      out, propagation_path, alt, lat, lon, ellipsoid);
 }
 
 std::vector<path> spectral_radiance::from_path(
     const ArrayOfPropagationPathPoint& propagation_path) const {
-  return fwd::path_from_propagation_path(propagation_path, alt, lat, lon, ellipsoid);
+  return fwd::path_from_propagation_path(
+      propagation_path, alt, lat, lon, ellipsoid);
 }
 }  // namespace fwd

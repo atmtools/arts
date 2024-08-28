@@ -2,7 +2,6 @@
 #define predefined_predef_data_h
 
 #include <debug.h>
-#include <enums.h>
 #include <isotopologues.h>
 #include <matpack.h>
 
@@ -13,8 +12,6 @@
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include "matpack_data.h"
 
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {

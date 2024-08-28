@@ -23,21 +23,11 @@ struct BDRF {
 
   void operator()(ExhaustiveMatrixView x,
                   const ExhaustiveConstVectorView& a,
-                  const ExhaustiveConstVectorView& b) const {
-    ARTS_ASSERT(x.nrows() == a.size());
-    ARTS_ASSERT(x.ncols() == b.size());
-    f(x, a, b);
-  }
+                  const ExhaustiveConstVectorView& b) const;
 
-  Matrix operator()(const Vector& a, const Vector& b) const {
-    Matrix x(a.size(), b.size());
-    f(x, a, b);
-    return x;
-  }
+  Matrix operator()(const Vector& a, const Vector& b) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const BDRF&) {
-    return os << "BDRF";
-  }
+  friend std::ostream& operator<<(std::ostream& os, const BDRF&);
 };
 
 struct mathscr_v_data {

@@ -20,7 +20,6 @@
 #include "debug.h"
 #include "file.h"
 #include "jacobian.h"
-#include "m_general.h"
 #include "physics_funcs.h"
 #include "species.h"
 #include "species_tags.h"

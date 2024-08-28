@@ -1,7 +1,15 @@
 #pragma once
 
+#include <compare.h>
+#include <debug.h>
+#include <enumsAtmKey.h>
+#include <enumsInterpolationExtrapolation.h>
+#include <enumsIsoRatioOption.h>
+#include <fieldmap.h>
+#include <isotopologues.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
+#include <species.h>
 
 #include <algorithm>
 #include <cmath>
@@ -17,14 +25,6 @@
 #include <unordered_map>
 #include <utility>
 #include <variant>
-
-#include "compare.h"
-#include "debug.h"
-#include "enums.h"
-#include "fieldmap.h"
-#include "isotopologues.h"
-#include "matpack_constexpr.h"
-#include "species.h"
 
 //! A type to name particulates (and let them be type-independent)
 struct ParticulatePropertyTag {
@@ -103,85 +103,17 @@ struct Point {
   Point &operator=(const Point &) = default;
   Point &operator=(Point &&)      = default;
 
-  template <KeyType T>
-  constexpr Numeric operator[](T &&x) const try {
-    if constexpr (isSpecies<T>) {
-      return specs.at(std::forward<T>(x));
-    } else if constexpr (isSpeciesIsotope<T>) {
-      return isots.at(std::forward<T>(x));
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp.at(std::forward<T>(x));
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte.at(std::forward<T>(x));
-    } else {
-      switch (std::forward<T>(x)) {
-        case AtmKey::t:
-          return temperature;
-        case AtmKey::p:
-          return pressure;
-        case AtmKey::wind_u:
-          return wind[0];
-        case AtmKey::wind_v:
-          return wind[1];
-        case AtmKey::wind_w:
-          return wind[2];
-        case AtmKey::mag_u:
-          return mag[0];
-        case AtmKey::mag_v:
-          return mag[1];
-        case AtmKey::mag_w:
-          return mag[2];
-      }
-      ARTS_USER_ERROR("Cannot reach")
-    }
-  } catch (std::out_of_range &) {
-    if constexpr (isSpecies<T>) {
-      ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
-    } else if constexpr (isSpeciesIsotope<T>) {
-      ARTS_USER_ERROR("Isotopologue ration not found: \"", x.FullName(), '"')
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
-    } else if constexpr (isQuantumIdentifier<T>) {
-      ARTS_USER_ERROR("Non-LTE level ratio not found: ", x)
-    } else {
-      ARTS_USER_ERROR("Key not found: \"", x, '"')
-    }
-  } catch (std::exception &) {
-    throw;
-  }
+  Numeric operator[](SpeciesEnum x) const;
+  Numeric operator[](const SpeciesIsotope &x) const;
+  Numeric operator[](const QuantumIdentifier &x) const;
+  Numeric operator[](const ParticulatePropertyTag &x) const;
+  Numeric operator[](AtmKey x) const;
 
-  template <KeyType T>
-  constexpr Numeric &operator[](T &&x) {
-    if constexpr (isSpecies<T>) {
-      return specs[std::forward<T>(x)];
-    } else if constexpr (isSpeciesIsotope<T>) {
-      return isots[std::forward<T>(x)];
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte[std::forward<T>(x)];
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp[std::forward<T>(x)];
-    } else {
-      switch (std::forward<T>(x)) {
-        case AtmKey::t:
-          return temperature;
-        case AtmKey::p:
-          return pressure;
-        case AtmKey::wind_u:
-          return wind[0];
-        case AtmKey::wind_v:
-          return wind[1];
-        case AtmKey::wind_w:
-          return wind[2];
-        case AtmKey::mag_u:
-          return mag[0];
-        case AtmKey::mag_v:
-          return mag[1];
-        case AtmKey::mag_w:
-          return mag[2];
-      }
-      return temperature;  // CANNOT REACH
-    }
-  }
+  Numeric &operator[](SpeciesEnum x);
+  Numeric &operator[](const SpeciesIsotope &x);
+  Numeric &operator[](const QuantumIdentifier &x);
+  Numeric &operator[](const ParticulatePropertyTag &x);
+  Numeric &operator[](AtmKey x);
 
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
@@ -231,9 +163,7 @@ struct Point {
   [[nodiscard]] bool is_lte() const noexcept;
 
   [[nodiscard]] std::pair<Numeric, Numeric> levels(
-      const QuantumIdentifier &band) const {
-    return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
-  }
+      const QuantumIdentifier &band) const;
 
   void check_and_fix();
 
@@ -426,6 +356,28 @@ struct std::formatter<ParticulatePropertyTag> {
                               FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
     return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
+  }
+};
+
+template <>
+struct std::formatter<AtmKeyVal> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  [[nodiscard]] std::string to_string(const AtmKeyVal &v) const;
+
+  template <class FmtContext>
+  FmtContext::iterator format(const AtmKeyVal &v, FmtContext &ctx) const {
+    tags.format(ctx, to_string(v));
+    return ctx.out();
   }
 };
 

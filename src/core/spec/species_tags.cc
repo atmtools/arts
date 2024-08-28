@@ -13,7 +13,6 @@
 #include <string_view>
 #include <system_error>
 
-#include "enums.h"
 #include "species.h"
 
 namespace Species {
@@ -95,6 +94,10 @@ constexpr void check(std::string_view text, std::string_view orig) {
       '"')
 }
 }  // namespace detail
+
+String SpeciesTag::FullName() const noexcept {
+  return Isotopologue().FullName();
+}
 
 SpeciesTag parse_tag(std::string_view text) {
   using namespace detail;
@@ -180,6 +183,57 @@ std::ostream& operator<<(std::ostream& os, const Tag& ot) {
  */
 String Tag::Name() const { return var_string(*this); }
 }  // namespace Species
+
+ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(SpeciesTag x) {
+  std::fill(this->begin(), this->end(), x);
+  return *this;
+}
+
+ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(const ArrayOfSpeciesTag& A) {
+  this->resize(A.size());
+  std::copy(A.begin(), A.end(), this->begin());
+  return *this;
+}
+
+ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(
+    ArrayOfSpeciesTag&& A) noexcept {
+  Array<SpeciesTag>::operator=(std::move(A));
+  return *this;
+}
+
+bool ArrayOfSpeciesTag::operator==(const ArrayOfSpeciesTag& x) const {
+  return std::ranges::equal(*this, x);
+}
+
+SpeciesEnum ArrayOfSpeciesTag::Species() const ARTS_NOEXCEPT {
+  ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+  return operator[](0).Spec();
+}
+
+SpeciesTagType ArrayOfSpeciesTag::Type() const ARTS_NOEXCEPT {
+  ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+  return operator[](0).Type();
+}
+
+bool ArrayOfSpeciesTag::Plain() const noexcept {
+  return std::any_of(cbegin(), cend(), [](auto& spec) {
+    return spec.Type() == SpeciesTagType::Plain;
+  });
+}
+
+bool ArrayOfSpeciesTag::RequireLines() const noexcept { return Plain(); }
+
+bool ArrayOfSpeciesTag::FreeElectrons() const noexcept {
+  return std::any_of(cbegin(), cend(), [](auto& spec) {
+    return spec.Spec() == SpeciesEnum::free_electrons;
+  });
+}
+
+bool ArrayOfSpeciesTag::Particles() const noexcept {
+  return std::any_of(cbegin(), cend(), [](auto& spec) {
+    return spec.Spec() == SpeciesEnum::particles;
+  });
+}
 
 ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
     : ArrayOfSpeciesTag(Species::parse_tags(text)){ARTS_USER_ERROR_IF(
@@ -313,5 +367,17 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
   for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
+  bool first = true;
+  for (auto& x : ot) {
+    if (not first)
+      os << ' ';
+    else
+      first = false;
+    os << x;
+  }
   return os;
 }

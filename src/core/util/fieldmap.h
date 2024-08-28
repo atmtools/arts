@@ -89,27 +89,6 @@ struct Map {
     return map<Key>()[k];
   }
 
-  [[nodiscard]] constexpr const T &operator[](const KeyVal &k) const try {
-    return std::visit(
-        [this](auto &key) -> const T & {
-          return this->map<decltype(key)>().at(key);
-        },
-        k);
-  } catch (std::out_of_range &) {
-    throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
-  } catch (...) {
-    throw;
-  }
-
-  [[nodiscard]] constexpr T &operator[](const KeyVal &k) try {
-    return std::visit(
-        [this](auto &key) -> T & {
-          return const_cast<Map *>(this)->map<decltype(key)>()[key];
-        },
-        k);
-  }
-  ARTS_METHOD_ERROR_CATCH
-
   template <one_of<Keys...> Key>
   constexpr void erase(Key &&k) {
     map<Key>().erase(std::forward<Key>(k));
@@ -120,13 +99,52 @@ struct Map {
     return map<Key>().contains(std::forward<Key>(key));
   }
 
-  constexpr bool contains(const KeyVal &key) const {
-    return std::visit(
-        [this](auto &k) -> bool {
-          return this->map<decltype(k)>().contains(k);
-        },
-        key);
-  }
+  /*
+  WARNING: If you are reading this, you are probably looking for a way to
+  stop a linker error.  The error is caused by the fact that the compiler
+  cannot see the definition of the function.  The reason for this is that
+  we do not want "std::visit" in header files as we have seen that this
+  destroys compile-time.  The solution is to move the definition of the
+  compiled file (cpp/cc).  You should be able to copy-paste the below to
+  make this work, removing the extra comment block and adjusting the
+  template parameters as needed  (as seen in the cpp/cc file).  Do not
+  put this in a header file without checking compile times.  Note also
+  that it must not be placed inside any namespace as written.
+  */
+  [[nodiscard]] const T &operator[](const KeyVal &k) const;
+  [[nodiscard]] T &operator[](const KeyVal &k);
+  bool contains(const KeyVal &key) const;
+  // template<>
+  // const T &FieldMap::Map<T, Keys...>::operator[](const KeyVal &k) const try {
+  //   return std::visit(
+  //       [this](auto &key) -> const T & {
+  //         return this->map<decltype(key)>().at(key);
+  //       },
+  //       k);
+  // } catch (std::out_of_range &) {
+  //   throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+  // } catch (...) {
+  //   throw;
+  // }
+  //
+  // template<>
+  // T &FieldMap::Map<T, Keys...>::operator[](const KeyVal &k) try {
+  //   return std::visit(
+  //       [this](auto &key) -> T & {
+  //         return const_cast<Map *>(this)->map<decltype(key)>()[key];
+  //       },
+  //       k);
+  // }
+  // ARTS_METHOD_ERROR_CATCH
+  //
+  // template<>
+  // bool FieldMap::Map<T, Keys...>::contains(const KeyVal &key) const {
+  //   return std::visit(
+  //       [this](auto &k) -> bool {
+  //         return this->map<decltype(k)>().contains(k);
+  //       },
+  //       key);
+  // }
 
   template <field_key... MultipleKeys>
   constexpr bool has(MultipleKeys &&...key) const {

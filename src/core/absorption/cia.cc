@@ -18,12 +18,75 @@
 
 #include "arts_constants.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "file.h"
 #include "interp.h"
 #include "matpack_concepts.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
+
+CIARecord::CIARecord(ArrayOfGriddedField2 data,
+                     SpeciesEnum spec1,
+                     SpeciesEnum spec2)
+    : mdata(std::move(data)), mspecies({spec1, spec2}) {}
+
+std::array<SpeciesEnum, 2> CIARecord::TwoSpecies() const { return mspecies; }
+
+std::array<SpeciesEnum, 2>& CIARecord::TwoSpecies() { return mspecies; }
+
+Numeric CIARecord::Extract(const Numeric& frequency,
+                           const Numeric& temperature,
+                           const Numeric& T_extrapolfac,
+                           const Index& robust) const {
+  Vector result(1);
+  const Vector freqvec(1, frequency);
+
+  Extract(result, freqvec, temperature, T_extrapolfac, robust);
+
+  return result[0];
+}
+
+Index CIARecord::DatasetCount() const { return mdata.size(); }
+
+const ArrayOfGriddedField2& CIARecord::Data() const { return mdata; }
+
+/** Return CIA data.
+   */
+ArrayOfGriddedField2& CIARecord::Data() { return mdata; }
+
+/** Set CIA species.
+     \param[in] first CIA Species.
+     \param[in] second CIA Species.
+     */
+void CIARecord::SetSpecies(const SpeciesEnum first, const SpeciesEnum second) {
+  mspecies[0] = first;
+  mspecies[1] = second;
+}
+
+SpeciesEnum CIARecord::Species(const Index i) const {
+  // Assert that i is 0 or 1:
+  ARTS_ASSERT(i >= 0);
+  ARTS_ASSERT(i <= 1);
+
+  return mspecies[i];
+}
+
+ExhaustiveConstVectorView CIARecord::FrequencyGrid(Size dataset) const {
+  ARTS_ASSERT(dataset < mdata.size());
+
+  return mdata[dataset].grid<0>();
+}
+
+ExhaustiveConstVectorView CIARecord::TemperatureGrid(Size dataset) const {
+  ARTS_ASSERT(dataset < mdata.size());
+
+  return mdata[dataset].grid<1>();
+}
+
+const GriddedField2& CIARecord::Dataset(Size dataset) const {
+  ARTS_ASSERT(dataset < mdata.size());
+
+  return mdata[dataset];
+}
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x) {
   for (auto& a : x) os << a << '\n';
@@ -309,7 +372,8 @@ void CIARecord::ReadFromCIA(const String& filename) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
          << filename << '\n'
-         << "Header line unexpectedly short: " << '\n' << line;
+         << "Header line unexpectedly short: " << '\n'
+         << line;
 
       throw std::runtime_error(os.str());
     }
@@ -326,7 +390,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
     // Data for current set
     Index set_npoints;
-    Numeric set_temp = NAN;
+    Numeric set_temp     = NAN;
     Numeric set_wave_min = NAN;
     Numeric set_wave_max = NAN;
 
@@ -354,7 +418,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
       ndataset++;
       wave_min = set_wave_min;
       wave_max = set_wave_max;
-      nset = 0;
+      nset     = 0;
       freq.resize(set_npoints);
       temp.resize(0);
       cia.resize(0);
@@ -388,7 +452,8 @@ void CIARecord::ReadFromCIA(const String& filename) {
       if (std::isnan(w) || std::isnan(c) || is.bad() || istr.bad()) {
         std::ostringstream os;
         os << "Error in line " << nline << " reading CIA catalog file "
-           << filename << ":" << '\n' << line;
+           << filename << ":" << '\n'
+           << line;
 
         throw std::runtime_error(os.str());
       }
@@ -429,12 +494,12 @@ void CIARecord::AppendDataset(const Vector& freq,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.nelem(), temp.nelem());
-  dataset.grid<0>() = freq;
+  dataset.grid<0>()     = freq;
   dataset.gridname<0>() = "Frequency";
 
   Vector temp_t;
-  temp_t = temp;
-  dataset.grid<1>() = temp_t;
+  temp_t                = temp;
+  dataset.grid<1>()     = temp_t;
   dataset.gridname<1>() = "Temperature";
 
   for (Index t = 0; t < temp.nelem(); t++) dataset.data(joker, t) = cia[t];

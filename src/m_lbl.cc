@@ -1,4 +1,5 @@
 #include <absorptionlines.h>
+#include <enumsAbsorptionBandSortingOption.h>
 #include <lbl.h>
 #include <partfun.h>
 
@@ -13,10 +14,8 @@
 #include <unordered_map>
 
 #include "arts_omp.h"
-#include "auto_wsm.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "enums.h"
 #include "isotopologues.h"
 #include "jacobian.h"
 #include "lbl_data.h"
@@ -536,7 +535,7 @@ void absorption_bandsSetZeeman(ArrayOfAbsorptionBand& absorption_bands,
                                const Numeric& fmax,
                                const Index& _on) try {
   const bool on = static_cast<bool>(_on);
-  
+
   for (auto& [key, band] : absorption_bands) {
     if (key.Isotopologue() != species) continue;
 

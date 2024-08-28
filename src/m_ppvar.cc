@@ -10,7 +10,6 @@
 #include <stdexcept>
 
 #include "arts_conversions.h"
-#include "auto_wsm.h"
 #include "debug.h"
 #include "rtepack.h"
 #include "rtepack_mueller_matrix.h"

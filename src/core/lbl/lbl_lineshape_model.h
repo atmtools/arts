@@ -1,14 +1,16 @@
 #pragma once
 
+#include <array.h>
+#include <atm.h>
+#include <enumsLineShapeModelCoefficient.h>
+#include <enumsLineShapeModelVariable.h>
+#include <enumsSpeciesEnum.h>
 #include <matpack.h>
 
 #include <format>
 #include <ostream>
 #include <vector>
 
-#include "array.h"
-#include "atm.h"
-#include "enums.h"
 #include "lbl_temperature_model.h"
 
 namespace lbl::line_shape {

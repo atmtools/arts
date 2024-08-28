@@ -1,87 +1,25 @@
 #pragma once
 
+#include <array.h>
+#include <bifstream.h>
+#include <bofstream.h>
+#include <enumsAbsorptionCutoffTypeOld.h>
+#include <enumsAbsorptionMirroringTypeOld.h>
+#include <enumsAbsorptionNormalizationTypeOld.h>
+#include <enumsAbsorptionPopulationTypeOld.h>
 #include <format_tags.h>
 #include <jacobian.h>
+#include <lineshapemodel.h>
 #include <matpack.h>
+#include <quantum_numbers.h>
+#include <species_tags.h>
+#include <zeemandata.h>
 
 #include <format>
 #include <istream>
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#include "array.h"
-#include "bifstream.h"
-#include "bofstream.h"
-#include "enums.h"
-#include "lineshapemodel.h"
-#include "quantum_numbers.h"
-#include "species_tags.h"
-#include "zeemandata.h"
-
-constexpr std::string_view mirroringtype2metadatastring(
-    AbsorptionMirroringTypeOld in) noexcept {
-  switch (in) {
-    case AbsorptionMirroringTypeOld::None:
-      return "These lines are not mirrored at 0 Hz.\n";
-    case AbsorptionMirroringTypeOld::Lorentz:
-      return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
-    case AbsorptionMirroringTypeOld::SameAsLineShape:
-      return "These line are mirrored around 0 Hz using the original line shape.\n";
-    case AbsorptionMirroringTypeOld::Manual:
-      return "There are manual line entries in the catalog to mirror this line.\n";
-  }
-  return "There's an error";
-}
-
-constexpr std::string_view normalizationtype2metadatastring(
-    AbsorptionNormalizationTypeOld in) {
-  switch (in) {
-    case AbsorptionNormalizationTypeOld::None:
-      return "No re-normalization in the far wing will be applied.\n";
-    case AbsorptionNormalizationTypeOld::VVH:
-      return "van Vleck and Huber far-wing renormalization will be applied, "
-             "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
-    case AbsorptionNormalizationTypeOld::VVW:
-      return "van Vleck and Weisskopf far-wing renormalization will be applied, "
-             "i.e. F ~ (f/f0)^2\n";
-    case AbsorptionNormalizationTypeOld::RQ:
-      return "Rosenkranz quadratic far-wing renormalization will be applied, "
-             "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
-    case AbsorptionNormalizationTypeOld::SFS:
-      return "Simple frequency scaling of the far-wings will be applied, "
-             "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
-  }
-  return "There's an error";
-}
-
-constexpr std::string_view populationtype2metadatastring(
-    AbsorptionPopulationTypeOld in) {
-  switch (in) {
-    case AbsorptionPopulationTypeOld::LTE:
-      return "The lines are considered as in pure LTE.\n";
-    case AbsorptionPopulationTypeOld::ByMakarovFullRelmat:
-      return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
-    case AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing:
-      return "The lines requires relaxation matrix calculations in LTE - Hartmann, Boulet, Robert, 2008, 1st edition method.\n";
-    case AbsorptionPopulationTypeOld::ByHITRANFullRelmat:
-      return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
-    case AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat:
-      return "The lines requires Relaxation matrix calculations in LTE - HITRAN Rosenkranz method.\n";
-    case AbsorptionPopulationTypeOld::VibTemps:
-      return "The lines are considered as in NLTE by vibrational temperatures.\n";
-    case AbsorptionPopulationTypeOld::NLTE:
-      return "The lines are considered as in pure NLTE.\n";
-  }
-  return "There's an error";
-}
-
-constexpr bool relaxationtype_relmat(AbsorptionPopulationTypeOld in) noexcept {
-  return in == AbsorptionPopulationTypeOld::ByHITRANFullRelmat or
-         in == AbsorptionPopulationTypeOld::ByMakarovFullRelmat or
-         in == AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat or
-         in == AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
-}
 
 String cutofftype2metadatastring(AbsorptionCutoffTypeOld in, Numeric cutoff);
 
@@ -296,23 +234,7 @@ struct Lines {
       Numeric linemixinglimit_              = -1,
       QuantumIdentifier quantumidentity_    = QuantumIdentifier(),
       ArrayOfSpeciesEnum broadeningspecies_ = {},
-      Array<SingleLine> lines_              = {})
-      : selfbroadening(selfbroadening_),
-        bathbroadening(bathbroadening_),
-        cutoff(cutoff_),
-        mirroring(mirroring_),
-        population(population_),
-        normalization(normalization_),
-        lineshapetype(lineshapetype_),
-        T0(T0_),
-        cutofffreq(cutofffreq_),
-        linemixinglimit(linemixinglimit_),
-        quantumidentity(std::move(quantumidentity_)),
-        broadeningspecies(std::move(broadeningspecies_)),
-        lines(std::move(lines_)) {
-    if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
-    if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
-  }
+      Array<SingleLine> lines_              = {});
 
   /** XML-tag initialization
    * 
@@ -346,23 +268,7 @@ struct Lines {
         QuantumIdentifier quantumidentity_,
         ArrayOfSpeciesEnum broadeningspecies_,
         const Quantum::Number::LocalState& metalocalquanta,
-        const LineShape::Model& metamodel)
-      : selfbroadening(selfbroadening_),
-        bathbroadening(bathbroadening_),
-        cutoff(cutoff_),
-        mirroring(mirroring_),
-        population(population_),
-        normalization(normalization_),
-        lineshapetype(lineshapetype_),
-        T0(T0_),
-        cutofffreq(cutofffreq_),
-        linemixinglimit(linemixinglimit_),
-        quantumidentity(std::move(quantumidentity_)),
-        broadeningspecies(std::move(broadeningspecies_)),
-        lines(nlines, SingleLine(metalocalquanta, metamodel)) {
-    if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
-    if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
-  }
+        const LineShape::Model& metamodel);
 
   /** Appends a single line to the absorption lines
    * 

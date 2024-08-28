@@ -5,7 +5,7 @@
 #include <arts_conversions.h>
 #include <compare.h>
 #include <debug.h>
-#include <enums.h>
+#include <enumsGridType.h>
 #include <nonstd.h>
 
 #include <algorithm>

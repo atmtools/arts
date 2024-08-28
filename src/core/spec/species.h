@@ -2,8 +2,7 @@
 
 #include <array.h>
 #include <format_tags.h>
-
-#include "enums.h"
+#include <enumsSpeciesEnum.h>
 
 using ArrayOfSpeciesEnum        = Array<SpeciesEnum>;
 using ArrayOfArrayOfSpeciesEnum = Array<ArrayOfSpeciesEnum>;

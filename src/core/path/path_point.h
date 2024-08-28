@@ -1,13 +1,11 @@
 #pragma once
 
 #include <atm.h>
-#include <enums.h>
+#include <enumsPathPositionType.h>
 #include <matpack.h>
 #include <surf.h>
 
 #include <format>
-
-#include "matpack_constexpr.h"
 
 namespace path {
 

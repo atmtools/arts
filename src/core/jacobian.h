@@ -336,7 +336,7 @@ struct TargetType {
 };
 }  // namespace Jacobian
 
-inline Numeric field_perturbation(const auto& f) {
+Numeric field_perturbation(const auto& f) {
   return std::transform_reduce(
       f.begin(),
       f.end(),

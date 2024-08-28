@@ -8,6 +8,8 @@
 
 #include "artstime.h"
 
+#include <enumsTimeStepType.h>
+
 #include <charconv>
 #include <chrono>
 #include <cstdlib>
@@ -16,7 +18,86 @@
 #include <iostream>
 
 #include "debug.h"
-#include "enums.h"
+
+Time::Time() : time(std::chrono::system_clock::now()) {}
+
+Time::Time(std::time_t t) : time(std::chrono::system_clock::from_time_t(t)) {}
+
+Time::Time(std::tm t) : Time(std::mktime(&t)) {}
+
+// Conversions
+std::time_t Time::toTimeT() const {
+  return std::chrono::system_clock::to_time_t(time);
+}
+
+std::tm Time::toStruct() const {
+  std::time_t x = toTimeT();
+  std::tm y;
+#ifdef _MSC_VER
+  errno_t err = localtime_s(&y, &x);
+  ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
+#else
+  tm* z = localtime_r(&x, &y);
+  ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+#endif
+  return y;
+}
+
+std::tm Time::toGMTStruct() const {
+  std::time_t x = toTimeT();
+  std::tm y;
+#ifdef _MSC_VER
+  errno_t err = gmtime_s(&y, &x);
+  ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
+#else
+  tm* z = gmtime_r(&x, &y);
+  ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+#endif
+  return y;
+}
+
+TimeStep Time::seconds_into_day() const {
+  std::tm x = toStruct();
+  return TimeStep(x.tm_hour * 3600 + x.tm_min * 60 + x.tm_sec + PartOfSecond());
+}
+
+Time::InternalTimeStep Time::EpochTime() const { return time.time_since_epoch(); }
+
+// Operations
+Time::InternalTimeStep Time::operator-(const Time& t) const noexcept {
+  return time - t.time;
+}
+
+bool Time::operator<(const Time& t) const noexcept { return time < t.time; }
+
+bool Time::operator==(const Time& t) const noexcept { return time == t.time; }
+
+bool Time::operator!=(const Time& t) const noexcept {
+  return not this->operator==(t);
+}
+
+bool Time::operator<=(const Time& t) const noexcept {
+  return this->operator<(t) or this->operator==(t);
+}
+
+bool Time::operator>(const Time& t) const noexcept {
+  return not this->operator<=(t);
+}
+
+bool Time::operator>=(const Time& t) const noexcept {
+  return this->operator>(t) or this->operator==(t);
+}
+
+// helpers
+Numeric Time::Seconds() const {
+  return std::chrono::duration_cast<TimeStep>(time.time_since_epoch()).count();
+}
+
+void Time::Seconds(Numeric x) { operator+=(TimeStep(x - Seconds())); }
+Numeric Time::PartOfSecond() const { return std::fmod(Seconds(), 1.0); }
+
+// Conversion
+Time::operator Numeric() const { return Seconds(); }
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
@@ -125,7 +206,9 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_mon.ec) or
                          std::make_error_code(res_day.ec),
                      "Cannot understand time point for year-month-day: ",
-                     '"', ymd, '"')
+                     '"',
+                     ymd,
+                     '"')
   ARTS_USER_ERROR_IF(year < 1900,
                      "We cannot yet support times before the year 1900")
 
@@ -142,7 +225,9 @@ std::istream& operator>>(std::istream& is, Time& t) {
                          std::make_error_code(res_min.ec) or
                          std::make_error_code(res_sec.ec),
                      "Cannot understand time point for hour:minute:second in: ",
-                     '"', hms, '"')
+                     '"',
+                     hms,
+                     '"')
 
   std::tm tm_struct{};
   tm_struct.tm_year  = year - 1900;

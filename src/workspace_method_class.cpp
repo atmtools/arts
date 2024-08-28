@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "callback.h"
+#include "format_tags.h"
 #include "workspace_agenda_class.h"
 #include "workspace_class.h"
 
@@ -178,8 +179,9 @@ Method::Method(const std::string& n,
     if (inargs[i].front() == '_' and not wsms.at(n).defs.contains(inargs[i])) {
       throw std::runtime_error(
           var_string("Missing required generic input argument ",
-                   '"', std::string_view(inargs[i].begin() + 1,
-                                                  inargs[i].end()), '"'));
+                     '"',
+                     std::string_view(inargs[i].begin() + 1, inargs[i].end()),
+                     '"'));
     }
   }
 } catch (std::out_of_range&) {
@@ -192,9 +194,8 @@ Method::Method(const std::string& n,
 Method::Method(std::string n, const Wsv& wsv, bool overwrite)
     : name(std::move(n)), setval(wsv), overwrite_setval(overwrite) {
   if (not setval) {
-    throw std::runtime_error(var_string("Cannot set workspace variable ",
-                                       '"', name, '"',
-                                        " to empty value"));
+    throw std::runtime_error(var_string(
+        "Cannot set workspace variable ", '"', name, '"', " to empty value"));
   }
 
   if (wsv.holds<CallbackOperator>()) {
@@ -221,7 +222,7 @@ void Method::operator()(Workspace& ws) const try {
     wsms.at(name).func(ws, outargs, inargs);
   }
 } catch (std::out_of_range&) {
-  throw std::runtime_error(var_string("No method named ",'"', name, '"'));
+  throw std::runtime_error(var_string("No method named ", '"', name, '"'));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Error in method ", *this, "\n", e.what()));
@@ -248,3 +249,11 @@ Method::Method(const std::string& n,
       inargs(ins),
       setval(wsv),
       overwrite_setval(overwrite) {}
+
+std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T>& val) {
+        return std::format("{}", *val);
+      },
+      wsv.value);
+}

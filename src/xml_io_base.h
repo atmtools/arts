@@ -13,9 +13,11 @@
 #ifndef xml_io_base_h
 #define xml_io_base_h
 
+#include <config.h>
+#include <enumsFileType.h>
+
 #include <memory>
 
-#include "config.h"
 #include "xml_io_general_types.h"
 
 #ifdef ENABLE_ZLIB
@@ -55,20 +57,20 @@ class XMLTag {
   void add_attribute(const String& aname, String value);
 
   void add_attribute(const String& aname, const Index& value);
-  
+
   /** Adds value of attribute as type Numeric to tag
    * 
    * @param[in] aname Attribute name
    * @param[in] value Set value
    */
   void add_attribute(const String& aname, const Numeric& value);
-  
+
   void check_attribute(const String& aname, const String& value);
 
   void get_attribute_value(const String& aname, String& value);
-  
+
   void get_attribute_value(const String& aname, Index& value);
-  
+
   /** Returns value of attribute as type Numeric
    * 
    * Searches for the matching attribute and returns it value. If no
@@ -79,11 +81,11 @@ class XMLTag {
    * @param[out] value Return value
    */
   void get_attribute_value(const String& aname, Numeric& value);
-  
+
   void read_from_stream(std::istream& is);
 
   void write_to_stream(std::ostream& os);
-  
+
   /** Returns if the attribute exists or not
    * 
    * @param[in] aname Attribute name
@@ -108,11 +110,9 @@ void xml_set_stream_precision(std::ostream& os);
 
 void parse_xml_tag_content_as_string(std::istream& is_xml, String& content);
 
-void xml_parse_from_stream(
-    std::istream &, Vector &, bifstream *, XMLTag &);
+void xml_parse_from_stream(std::istream&, Vector&, bifstream*, XMLTag&);
 
-void xml_parse_from_stream(
-    std::istream &, ArrayOfString &, bifstream *, XMLTag &);
+void xml_parse_from_stream(std::istream&, ArrayOfString&, bifstream*, XMLTag&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -146,8 +146,7 @@ void xml_read_footer_from_stream(std::istream& is);
   \param os     Output stream
   \param ftype  File type
 */
-void xml_write_header_to_stream(std::ostream& os,
-                                FileType ftype);
+void xml_write_header_to_stream(std::ostream& os, FileType ftype);
 
 //! Write closing root tag
 /*!
@@ -162,8 +161,7 @@ void xml_write_footer_to_stream(std::ostream& os);
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(std::ifstream& ifs,
-                         const String& name);
+void xml_open_input_file(std::ifstream& ifs, const String& name);
 
 //! Open file for XML output
 /*!
@@ -183,8 +181,7 @@ void xml_open_output_file(std::ofstream& file, const String& name);
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(igzstream& ifs,
-                         const String& name);
+void xml_open_input_file(igzstream& ifs, const String& name);
 
 //! Open file for zipped XML output
 /*!
@@ -195,7 +192,7 @@ void xml_open_input_file(igzstream& ifs,
 */
 void xml_open_output_file(ogzstream& file, const String& name);
 
-#endif // ENABLE_ZLIB
+#endif  // ENABLE_ZLIB
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -210,17 +207,14 @@ void xml_open_output_file(ogzstream& file, const String& name);
   \param type Generic return value
 */
 template <typename T>
-void xml_read_from_file_base(const String& filename,
-                        T& type) {
+void xml_read_from_file_base(const String& filename, T& type) {
   // Open input stream:
   std::unique_ptr<std::istream> ifs;
-  if (filename.size() > 2 &&
-      filename.substr(filename.length() - 3, 3) == ".gz")
+  if (filename.size() > 2 && filename.substr(filename.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
   {
     ifs = std::make_unique<igzstream>();
-    xml_open_input_file(
-        *static_cast<igzstream*>(ifs.get()), filename);
+    xml_open_input_file(*static_cast<igzstream*>(ifs.get()), filename);
   }
 #else
   {
@@ -231,8 +225,7 @@ void xml_read_from_file_base(const String& filename,
 #endif /* ENABLE_ZLIB */
   else {
     ifs = std::make_unique<std::ifstream>();
-    xml_open_input_file(
-        *static_cast<std::ifstream*>(ifs.get()), filename);
+    xml_open_input_file(*static_cast<std::ifstream*>(ifs.get()), filename);
   }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -248,7 +241,7 @@ void xml_read_from_file_base(const String& filename,
 
     xml_read_header_from_stream(*ifs, ftype, ntype, etype);
     if (ftype == FileType::ascii) {
-      xml_read_from_stream(*ifs, type, static_cast<bifstream *>(nullptr));
+      xml_read_from_stream(*ifs, type, static_cast<bifstream*>(nullptr));
     } else {
       String bfilename = filename + ".bin";
       bifstream bifs(bfilename.c_str());
@@ -299,7 +292,7 @@ void xml_write_to_file_base(const String& filename,
   try {
     xml_write_header_to_stream(*ofs, ftype);
     if (ftype == FileType::ascii or ftype == FileType::zascii) {
-      xml_write_to_stream(*ofs, type, static_cast<bofstream *>(nullptr), "");
+      xml_write_to_stream(*ofs, type, static_cast<bofstream*>(nullptr), "");
     } else {
       String bfilename = filename + ".bin";
       bofstream bofs(bfilename.c_str());

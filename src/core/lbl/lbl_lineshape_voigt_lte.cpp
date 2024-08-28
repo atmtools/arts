@@ -1,7 +1,6 @@
 #include "lbl_lineshape_voigt_lte.h"
 
 #include <atm.h>
-#include <enums.h>
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>

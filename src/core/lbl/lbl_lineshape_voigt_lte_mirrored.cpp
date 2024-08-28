@@ -12,7 +12,6 @@
 #include <numeric>
 
 #include "atm.h"
-#include "enums.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
 #include "species.h"

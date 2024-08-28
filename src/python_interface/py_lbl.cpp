@@ -7,7 +7,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include "enums.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"

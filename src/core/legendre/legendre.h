@@ -14,12 +14,10 @@ struct SphericalField {
   Numeric E{0};
 
   //! Returns the total strength of the field
-  [[nodiscard]] Numeric total() const noexcept { return std::hypot(U, S, E); }
+  [[nodiscard]] Numeric total() const noexcept;
 
   //! Returns the total strength of the field
-  [[nodiscard]] Numeric total_horizontal() const noexcept {
-    return std::hypot(S, E);
-  }
+  [[nodiscard]] Numeric total_horizontal() const noexcept;
 
   //! Always construct to zeroes explicitly
   constexpr SphericalField() noexcept = default;

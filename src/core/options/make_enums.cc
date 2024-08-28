@@ -3,10 +3,9 @@
 
 #include "arts_options.h"
 
-void create_header(std::ostream& os) try {
-  const auto& opts = internal_options();
-
-  os << R"--(#pragma once
+void create_headers() {
+  std::ofstream common("enums-common-helper.h");
+  common << R"--(#pragma once
 
 #include <algorithm>
 #include <array>
@@ -22,39 +21,47 @@ using namespace std::literals;
 class bifstream;
 class bofstream;
 
-)--";
-
-  for (const auto& opt : opts) {
-    os << opt.head() << '\n';
-  }
-
-  os << R"--(template <typename T>
-concept ValidArtsOption = false)--";
-
-  for (const auto& opt : opts) {
-    os << "\n  or std::same_as<T, " << opt.name << ">";
-  }
-
-  os << R"--(;
-
-template <ValidArtsOption T> constexpr bool good_enum(T x) noexcept;
-template <ValidArtsOption T> constexpr T to(const std::string_view x);
+template <typename T> constexpr bool good_enum(T x) noexcept = delete;
+template <typename T> constexpr T to(const std::string_view x) = delete;
 
 namespace enumstrs {
-    template <ValidArtsOption T, int N> struct enum_str_data;
+    template <typename T, int N> struct enum_str_data;
 }  // namespace enumstrs
+)--";
+
+  for (auto& opt : internal_options()) {
+    std::ofstream os("enums" + opt.name + ".h");
+    os << R"--(#pragma once
+
+#include "enums-common-helper.h"
+)--";
+
+    os << opt.head() << '\n';
+    os << opt.tail() << '\n';
+  }
+}
+
+void create_header() try {
+  std::ofstream os("enums.h");
+  const auto& opts = internal_options();
+
+  os << R"--(#pragma once
+
+#include "enums-common-helper.h"
 
 )--";
 
   for (const auto& opt : opts) {
-    os << opt.tail() << '\n';
+    os << "#include \"enums" << opt.name << ".h\"\n";
   }
 } catch (const std::exception& e) {
   std::cerr << "Error creating enum header: " << e.what() << '\n';
   throw;
 }
 
-void create_cc(std::ostream& os) {
+void create_cc() {
+  std::ofstream os("enums.cpp");
+
   const auto& opts = internal_options();
 
   os << "#include \"enums.h\"\n\n";
@@ -65,12 +72,9 @@ void create_cc(std::ostream& os) {
 }
 
 int main() try {
-  std::ofstream header("enums.h");
-  std::ofstream cc("enums.cpp");
-
-  create_header(header);
-  create_cc(cc);
-
+  create_header();
+  create_headers();
+  create_cc();
 } catch (const std::exception& e) {
   std::cerr << "Error: " << e.what() << '\n';
   return 1;

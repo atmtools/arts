@@ -19,9 +19,139 @@
 #include "interp.h"
 #include "isotopologues.h"
 
+Numeric AtmPoint::operator[](SpeciesEnum x) const try {
+  return specs.at(x);
+} catch (std::out_of_range &) {
+  ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
+}
+
+Numeric AtmPoint::operator[](const SpeciesIsotope &x) const try {
+  return isots.at(x);
+} catch (std::out_of_range &) {
+  ARTS_USER_ERROR("Isotopologue ratio not found: \"", x, '"')
+}
+
+Numeric AtmPoint::operator[](const QuantumIdentifier &x) const try {
+  return nlte.at(x);
+} catch (std::out_of_range &) {
+  ARTS_USER_ERROR("QuantumIdentifier not found: \"", x, '"')
+}
+
+Numeric AtmPoint::operator[](const ParticulatePropertyTag &x) const try {
+  return partp.at(x);
+} catch (std::out_of_range &) {
+  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"", x, '"')
+}
+
+Numeric AtmPoint::operator[](AtmKey x) const {
+  switch (x) {
+    case AtmKey::t:
+      return temperature;
+    case AtmKey::p:
+      return pressure;
+    case AtmKey::wind_u:
+      return wind[0];
+    case AtmKey::wind_v:
+      return wind[1];
+    case AtmKey::wind_w:
+      return wind[2];
+    case AtmKey::mag_u:
+      return mag[0];
+    case AtmKey::mag_v:
+      return mag[1];
+    case AtmKey::mag_w:
+      return mag[2];
+  }
+  ARTS_USER_ERROR("Cannot reach")
+}
+
+Numeric &AtmPoint::operator[](SpeciesEnum x) { return specs[x]; }
+
+Numeric &AtmPoint::operator[](const SpeciesIsotope &x) { return isots[x]; }
+
+Numeric &AtmPoint::operator[](const QuantumIdentifier &x) { return nlte[x]; }
+
+Numeric &AtmPoint::operator[](const ParticulatePropertyTag &x) {
+  return partp[x];
+}
+
+Numeric &AtmPoint::operator[](AtmKey x) {
+  switch (x) {
+    case AtmKey::t:
+      return temperature;
+    case AtmKey::p:
+      return pressure;
+    case AtmKey::wind_u:
+      return wind[0];
+    case AtmKey::wind_v:
+      return wind[1];
+    case AtmKey::wind_w:
+      return wind[2];
+    case AtmKey::mag_u:
+      return mag[0];
+    case AtmKey::mag_v:
+      return mag[1];
+    case AtmKey::mag_w:
+      return mag[2];
+  }
+  ARTS_USER_ERROR("Cannot reach")
+}
+
+std::pair<Numeric, Numeric> AtmPoint::levels(
+    const QuantumIdentifier &band) const {
+  return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
+}
+
 std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
   std::visit([&os](const auto &k) { os << k; }, key);
   return os;
+}
+
+template <>
+const Atm::Data &
+FieldMap::Map<Atm::Data,
+              AtmKey,
+              SpeciesEnum,
+              SpeciesIsotope,
+              QuantumIdentifier,
+              ParticulatePropertyTag>::operator[](const KeyVal &k) const try {
+  return std::visit(
+      [this](auto &key) -> const Atm::Data & {
+        return this->map<decltype(key)>().at(key);
+      },
+      k);
+} catch (std::out_of_range &) {
+  throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+} catch (...) {
+  throw;
+}
+
+template <>
+Atm::Data &
+FieldMap::Map<Atm::Data,
+              AtmKey,
+              SpeciesEnum,
+              SpeciesIsotope,
+              QuantumIdentifier,
+              ParticulatePropertyTag>::operator[](const KeyVal &k) try {
+  return std::visit(
+      [this](auto &key) -> Atm::Data & {
+        return const_cast<Map *>(this)->map<decltype(key)>()[key];
+      },
+      k);
+}
+ARTS_METHOD_ERROR_CATCH
+
+template <>
+bool FieldMap::Map<Atm::Data,
+                   AtmKey,
+                   SpeciesEnum,
+                   SpeciesIsotope,
+                   QuantumIdentifier,
+                   ParticulatePropertyTag>::contains(const KeyVal &key) const {
+  return std::visit(
+      [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
+      key);
 }
 
 namespace Atm {
@@ -656,14 +786,13 @@ void Point::check_and_fix() try {
 ARTS_METHOD_ERROR_CATCH
 
 Numeric Point::operator[](const KeyVal &k) const {
-  return std::visit(
-      [this](auto &key) { return this->template operator[](key); }, k);
+  return std::visit([this](auto &key) { return this->operator[](key); }, k);
 }
 
 Numeric &Point::operator[](const KeyVal &k) {
   return std::visit(
       [this](auto &key) -> Numeric & {
-        return const_cast<Point *>(this)->template operator[](key);
+        return const_cast<Point *>(this)->operator[](key);
       },
       k);
 }
@@ -955,3 +1084,12 @@ Point Field::at(const Vector3 pos) const try {
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace Atm
+
+std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal &v) const {
+  std::string out;
+  return std::visit(
+      [fmt = tags.get_format_args()](const auto &val) {
+        return std::vformat(fmt.c_str(), std::make_format_args(val));
+      },
+      v);
+}

@@ -9,7 +9,6 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "absorption.h"
 #include "interp.h"
 #include "matpack_data.h"
 #include "species_tags.h"

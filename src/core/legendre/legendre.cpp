@@ -9,6 +9,12 @@
 #include "fastgl.h"
 
 namespace Legendre {
+Numeric SphericalField::total() const noexcept { return std::hypot(U, S, E); }
+
+Numeric SphericalField::total_horizontal() const noexcept {
+  return std::hypot(S, E);
+}
+
 //! Clamps the longitude in the range [-180, 180)
 constexpr Numeric longitude_clamp(Numeric lon) {
   while (lon <= -180) lon += 360;

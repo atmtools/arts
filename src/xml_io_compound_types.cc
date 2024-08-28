@@ -25,7 +25,6 @@
 #include "covariance_matrix.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "gridded_data.h"
 #include "isotopologues.h"
 #include "jacobian.h"

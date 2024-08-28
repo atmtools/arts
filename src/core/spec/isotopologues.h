@@ -1,7 +1,7 @@
 #pragma once
 
 #include <compare.h>
-#include <enums.h>
+#include <enumsSpeciesEnum.h>
 #include <mystring.h>
 #include <nonstd.h>
 
@@ -38,14 +38,9 @@ struct Isotope {
 
   [[nodiscard]] constexpr bool joker() const { return isotname == Joker; }
   [[nodiscard]] constexpr bool OK() const { return good_enum(spec); }
-  [[nodiscard]] String FullName() const {
-    return joker() ? String{toString<1>(spec)}
-                   : var_string(toString<1>(spec), '-', isotname);
-  }
+  [[nodiscard]] String FullName() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Isotope& ir) {
-    return os << ir.FullName();
-  }
+  friend std::ostream& operator<<(std::ostream& os, const Isotope& ir);
 
   constexpr auto operator==(const Isotope& that) const {
     return std::tie(spec, isotname) == std::tie(that.spec, that.isotname);

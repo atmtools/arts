@@ -1,5 +1,5 @@
-#include <enums.h>
 #include <jacobian.h>
+#include <enumsFieldComponent.h>
 
 #include <iterator>
 #include <limits>

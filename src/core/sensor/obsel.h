@@ -15,27 +15,22 @@ struct PosLos {
   Vector3 pos;
   Vector2 los;
 
-  constexpr auto operator==(const PosLos& other) const {
-    return std::tie(pos, los) == std::tie(other.pos, other.los);
-  };
+  constexpr bool operator==(const PosLos& other) const = default;
+  constexpr bool operator!=(const PosLos& other) const = default;
 
-  constexpr auto operator!=(const PosLos& other) const {
-    return std::tie(pos, los) != std::tie(other.pos, other.los);
-  };
-
-  constexpr auto operator<=(const PosLos& other) const {
+  constexpr bool operator<=(const PosLos& other) const {
     return std::tie(pos, los) <= std::tie(other.pos, other.los);
   };
 
-  constexpr auto operator>=(const PosLos& other) const {
+  constexpr bool operator>=(const PosLos& other) const {
     return std::tie(pos, los) >= std::tie(other.pos, other.los);
   };
 
-  constexpr auto operator<(const PosLos& other) const {
+  constexpr bool operator<(const PosLos& other) const {
     return std::tie(pos, los) < std::tie(other.pos, other.los);
   };
 
-  constexpr auto operator>(const PosLos& other) const {
+  constexpr bool operator>(const PosLos& other) const {
     return std::tie(pos, los) > std::tie(other.pos, other.los);
   };
 

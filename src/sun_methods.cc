@@ -13,7 +13,6 @@
 #include "arts_conversions.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "enums.h"
 #include "matpack_constexpr.h"
 #include "sun.h"
 #include "workspace_class.h"

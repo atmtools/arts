@@ -1,17 +1,22 @@
 #pragma once
 
+#include <array.h>
+#include <configtypes.h>
+#include <enumsLineByLineCutoffType.h>
+#include <enumsLineByLineLineshape.h>
+#include <enumsLineByLineVariable.h>
+#include <enumsLineShapeModelCoefficient.h>
+#include <enumsLineShapeModelVariable.h>
+#include <enumsQuantumNumberType.h>
 #include <matpack.h>
+#include <quantum_numbers.h>
 
 #include <format>
 #include <limits>
 #include <vector>
 
-#include "array.h"
-#include "configtypes.h"
-#include "enums.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
-#include "quantum_numbers.h"
 
 namespace lbl {
 struct line {
@@ -172,8 +177,6 @@ struct band {
 
   friend std::ostream& operator<<(std::ostream& os, const band&);
 };
-
-
 
 struct line_pos {
   Size line;
