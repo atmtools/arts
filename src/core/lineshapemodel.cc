@@ -22,6 +22,97 @@
 #include "matpack_math.h"
 #include "species.h"
 
+bool LineShape::modelparameterEmpty(const ModelParameters mp) noexcept {
+  switch (mp.type) {
+    case LineShapeTemperatureModelOld::None:  // 0
+      return true;
+    case LineShapeTemperatureModelOld::T0:  // Constant, X0
+      return (mp.X0 == 0);
+    case LineShapeTemperatureModelOld::T1:  // Standard, X0 * (T0/T) ^ X1
+      return (mp.X0 == 0);
+    case LineShapeTemperatureModelOld::
+        T2:  // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return (mp.X0 == 0);
+    case LineShapeTemperatureModelOld::T3:  // X0 + X1 * (T - T0)
+      return (mp.X0 == 0 and mp.X1 == 0);
+    case LineShapeTemperatureModelOld::
+        T4:  // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return (mp.X0 == 0 and mp.X1 == 0);
+    case LineShapeTemperatureModelOld::T5:  // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return (mp.X0 == 0);
+    case LineShapeTemperatureModelOld::
+        LM_AER:  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
+    case LineShapeTemperatureModelOld::
+        DPL:  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return (mp.X0 == 0 and mp.X2 == 0);
+    case LineShapeTemperatureModelOld::POLY:
+      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
+  }
+  return true;
+}
+
+/** Line mixing types to number */
+constexpr Index typelm2size(LineShape::LegacyLineMixingData::TypeLM type) {
+  switch (type) {
+    case LineShape::LegacyLineMixingData::TypeLM::LM_NONE:  // The standard case
+      return 0;
+    case LineShape::LegacyLineMixingData::TypeLM::LM_LBLRTM:  // The LBLRTM case
+      return 12;
+    case LineShape::LegacyLineMixingData::TypeLM::LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
+      return 1;
+    case LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER:  // The 2nd order case
+      return 10;
+    case LineShape::LegacyLineMixingData::TypeLM::LM_1STORDER:  // The 2nd order case
+      return 3;
+    case LineShape::LegacyLineMixingData::TypeLM::LM_BYBAND:  // The band class
+      return 1;
+  }
+  return -1;
+}
+
+/** Pressure broadening types to number of elements */
+constexpr Index typepb2size(LineShape::LegacyPressureBroadeningData::TypePB type) {
+  switch (type) {
+    case LineShape::LegacyPressureBroadeningData::TypePB::PB_NONE:
+      return 0;
+    case LineShape::LegacyPressureBroadeningData::TypePB::PB_AIR_BROADENING:
+      return 10;
+    case LineShape::LegacyPressureBroadeningData::TypePB::PB_AIR_AND_WATER_BROADENING:
+      return 9;
+    case LineShape::LegacyPressureBroadeningData::TypePB::PB_PLANETARY_BROADENING:
+      return 20;
+  }
+  return -1;
+}
+/** Length per variable for temperature model */
+constexpr Index temperaturemodel2legacysize(
+    LineShapeTemperatureModelOld type) noexcept {
+  switch (type) {
+    case LineShapeTemperatureModelOld::None:
+      return 0;
+    case LineShapeTemperatureModelOld::T0:
+      return 1;
+    case LineShapeTemperatureModelOld::T1:
+      return 2;
+    case LineShapeTemperatureModelOld::T2:
+      return 3;
+    case LineShapeTemperatureModelOld::T3:
+      return 2;
+    case LineShapeTemperatureModelOld::T4:
+      return 3;
+    case LineShapeTemperatureModelOld::T5:
+      return 2;
+    case LineShapeTemperatureModelOld::LM_AER:
+      return 12;
+    case LineShapeTemperatureModelOld::DPL:
+      return 4;
+    case LineShapeTemperatureModelOld::POLY:
+      return 4;
+  }
+  return -1;
+}
+
 std::istream& LineShape::from_artscat4(std::istream& is,
                                        LineShapeTypeOld& mtype,
                                        bool& self,
@@ -151,8 +242,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
         data >> s;  // Should contain a temperature tag
 
         const auto type = to<LineShapeTemperatureModelOld>(s);
-        const Index ntemp =
-            LegacyLineFunctionData::temperaturemodel2legacysize(type);
+        const Index ntemp = temperaturemodel2legacysize(type);
 
         m.mdata[i].Data()[Index(param)].type = type;
         if (ntemp <= ModelParameters::N) {
@@ -207,7 +297,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   data >> s;
 
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
-  const auto n = LegacyPressureBroadeningData::typepb2size(type);
+  const auto n = typepb2size(type);
   const auto self_in_list =
       LegacyPressureBroadeningData::self_listed(qid, type);
 
@@ -226,7 +316,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   data >> s;
 
   const auto type = LegacyLineMixingData::string2typelm(s);
-  const auto n = LegacyLineMixingData::typelm2size(type);
+  const auto n = typelm2size(type);
 
   Vector x(n);
   for (auto& num : x) data >> double_imanip() >> num;

@@ -24,6 +24,10 @@
 #include <Eigen/Dense>
 #pragma GCC diagnostic pop
 
+bool ZeemanModel::empty() const noexcept {
+    return std::isnan(mdata.gu) and std::isnan(mdata.gl);
+  }
+
 constexpr Numeric get_lande_spin_constant(
     const SpeciesEnum species) noexcept {
   switch (species) {

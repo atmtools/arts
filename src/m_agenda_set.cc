@@ -1,5 +1,4 @@
 #include <workspace.h>
-#include "auto_wsa.h"
 
 void propagation_matrix_agendaSet(Agenda& out, const String& option) {
   out = get_propagation_matrix_agenda(option);

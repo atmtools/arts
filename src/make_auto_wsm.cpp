@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "auto_wsv.h"
+#include <auto_wsv.h>
 #include "debug.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
@@ -552,7 +552,6 @@ void implementation(std::ostream& os, const int n) try {
 
 #include <m_copy.h>
 #include <m_delete.h>
-#include <m_general.h>
 #include <m_ignore.h>
 #include <m_xml.h>
 

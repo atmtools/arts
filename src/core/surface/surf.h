@@ -75,56 +75,14 @@ struct Point {
   std::unordered_map<SurfaceTypeTag, Numeric> type;
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
-  template <KeyType Key>
-  Numeric &operator[](Key &&x) {
-    if constexpr (isSurfaceKey<Key>) {
-      switch (std::forward<Key>(x)) {
-        case SurfaceKey::h:
-          return elevation;
-        case SurfaceKey::t:
-          return temperature;
-        case SurfaceKey::wind_u:
-          return wind[0];
-        case SurfaceKey::wind_v:
-          return wind[1];
-        case SurfaceKey::wind_w:
-          return wind[2];
-      }
-    } else if constexpr (isSurfaceTypeTag<Key>) {
-      return type[std::forward<Key>(x)];
-    } else if constexpr (isSurfacePropertyTag<Key>) {
-      return prop[std::forward<Key>(x)];
-    }
-
-    return temperature;
-  }
-
-  template <KeyType Key>
-  Numeric operator[](Key &&x) const {
-    if constexpr (isSurfaceKey<Key>) {
-      switch (std::forward<Key>(x)) {
-        case SurfaceKey::h:
-          return elevation;
-        case SurfaceKey::t:
-          return temperature;
-        case SurfaceKey::wind_u:
-          return wind[0];
-        case SurfaceKey::wind_v:
-          return wind[1];
-        case SurfaceKey::wind_w:
-          return wind[2];
-      }
-    } else if constexpr (isSurfaceTypeTag<Key>) {
-      return type.at(std::forward<Key>(x));
-    } else if constexpr (isSurfacePropertyTag<Key>) {
-      return prop.at(std::forward<Key>(x));
-    }
-
-    return 0.0;
-  }
-
+  Numeric &operator[](SurfaceKey x);
+  Numeric &operator[](const SurfaceTypeTag &x);
+  Numeric &operator[](const SurfacePropertyTag &x);
   Numeric &operator[](const SurfaceKeyVal &x);
-
+  
+  Numeric operator[](SurfaceKey x) const;
+  Numeric operator[](const SurfaceTypeTag &x) const;
+  Numeric operator[](const SurfacePropertyTag &x) const;
   Numeric operator[](const SurfaceKeyVal &x) const;
 
   [[nodiscard]] std::vector<SurfaceKeyVal> keys() const;

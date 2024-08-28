@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "auto_wsv.h"
+#include <auto_wsv.h>
 #include "debug.h"
 
 const auto& wsv_data = workspace_variables();

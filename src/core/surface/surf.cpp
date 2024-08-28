@@ -4,13 +4,59 @@
 #include <exception>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 #include <variant>
 
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
 #include "debug.h"
+#include "enumsSurfaceKey.h"
 #include "interp.h"
 #include "matpack_math.h"
+
+Numeric &Surf::Point::operator[](SurfaceKey x) {
+  switch (x) {
+    case SurfaceKey::h:
+      return elevation;
+    case SurfaceKey::t:
+      return temperature;
+    case SurfaceKey::wind_u:
+      return wind[0];
+    case SurfaceKey::wind_v:
+      return wind[1];
+    case SurfaceKey::wind_w:
+      return wind[2];
+  }
+  std::unreachable();
+}
+
+Numeric &Surf::Point::operator[](const SurfaceTypeTag &x) { return type[x]; }
+
+Numeric &Surf::Point::operator[](const SurfacePropertyTag &x) {
+  return prop[x];
+}
+
+Numeric Surf::Point::operator[](SurfaceKey x) const{
+  switch (x) {
+    case SurfaceKey::h:
+      return elevation;
+    case SurfaceKey::t:
+      return temperature;
+    case SurfaceKey::wind_u:
+      return wind[0];
+    case SurfaceKey::wind_v:
+      return wind[1];
+    case SurfaceKey::wind_w:
+      return wind[2];
+  }
+  std::unreachable();
+}
+
+Numeric Surf::Point::operator[](const SurfaceTypeTag &x) const{ return type.at(x);; }
+
+Numeric Surf::Point::operator[](const SurfacePropertyTag &x) const{
+  return prop.at(x);;
+}
 
 template <>
 const Surf::Data &FieldMap::

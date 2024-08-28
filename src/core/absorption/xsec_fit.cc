@@ -14,6 +14,45 @@
 #include "debug.h"
 #include "interp.h"
 
+const SpeciesEnum& XsecRecord::Species() const { return mspecies; };
+
+/** Set species name */
+void XsecRecord::SetSpecies(const SpeciesEnum species) { mspecies = species; };
+
+const Vector& XsecRecord::FitMinPressures() const { return mfitminpressures; };
+
+/** Get maximum pressures from fit */
+const Vector& XsecRecord::FitMaxPressures() const { return mfitmaxpressures; };
+
+/** Get mininum temperatures from fit */
+const Vector& XsecRecord::FitMinTemperatures() const {
+  return mfitmintemperatures;
+};
+
+/** Get maximum temperatures */
+const Vector& XsecRecord::FitMaxTemperatures() const {
+  return mfitmaxtemperatures;
+};
+
+/** Get coefficients */
+const ArrayOfGriddedField1Named& XsecRecord::FitCoeffs() const {
+  return mfitcoeffs;
+};
+
+Vector& XsecRecord::FitMinPressures() { return mfitminpressures; };
+
+/** Get maximum pressures from fit */
+Vector& XsecRecord::FitMaxPressures() { return mfitmaxpressures; };
+
+/** Get mininum temperatures from fit */
+Vector& XsecRecord::FitMinTemperatures() { return mfitmintemperatures; };
+
+/** Get maximum temperatures */
+Vector& XsecRecord::FitMaxTemperatures() { return mfitmaxtemperatures; };
+
+/** Get coefficients */
+ArrayOfGriddedField1Named& XsecRecord::FitCoeffs() { return mfitcoeffs; };
+
 void RemoveNegativeXsec(Vector& xsec) {
   Numeric sum_xsec{};
   Numeric sum_xsec_non_negative{};
@@ -54,16 +93,16 @@ void XsecRecord::Extract(VectorView result,
   const Index ndatasets = mfitcoeffs.size();
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].grid<0>();
-    const Numeric data_fmin = data_f_grid[0];
-    const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
+    const Numeric data_fmin   = data_f_grid[0];
+    const Numeric data_fmax   = data_f_grid[data_f_grid.nelem() - 1];
 
     // We want to return result zero for all f_grid points that are outside the
     // data_f_grid, because xsec datasets are defined only where the absorption
     // was measured. So, we have to find out which part of f_grid is inside
     // data_f_grid.
     const Numeric* f_grid_begin = f_grid.data_handle();
-    const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
-    const Index i_fstart = std::distance(
+    const Numeric* f_grid_end   = f_grid_begin + f_grid.nelem();
+    const Index i_fstart        = std::distance(
         f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
     const Index i_fstop =
         std::distance(

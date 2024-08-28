@@ -1,10 +1,10 @@
 #pragma once
 
+#include <auto_wsg.h>
+#include <format_tags.h>
+
 #include <memory>
 #include <unordered_map>
-
-#include "auto_wsg.h"
-#include "format_tags.h"
 
 enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
 

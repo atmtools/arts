@@ -16,11 +16,11 @@ namespace Minimize {
 //! Functor for minimizing X0 + X1 * X + X2 * X**2 + ... XN * X**N - Y
 struct Polynom {
   // typedef needed by the functional-style optimizer
-  typedef Numeric Scalar;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> InputType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> ValueType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> JacobianType;
-  typedef Eigen::ColPivHouseholderQR<JacobianType> QRSolver;
+  using Scalar = Numeric;
+  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
   
   // Size: The number of parameters to optimize towards
   const int m_inputs;
@@ -35,10 +35,10 @@ struct Polynom {
   const ConstVectorView& Y;
   
   //! Size: The number of inputs required by the 
-  int inputs() const { return m_inputs; }
+  [[nodiscard]] int inputs() const { return m_inputs; }
   
   //! Size: The number of inputs required by the 
-  int values() const { return m_values; }
+  [[nodiscard]] int values() const { return m_values; }
   
   /*! The only constructor
     * 
@@ -69,17 +69,17 @@ struct Polynom {
   int df(const InputType& p, JacobianType& J) const;
   
   //! start values helper function, operator()(...) must be not too bad
-  InputType x0() const;
+  [[nodiscard]] InputType x0() const;
 };
 
 //! Functor for minimizing (X0 + X1 (T0 / T - 1)) * (T0 / T) ** X2 - Y
 struct T4 {
   // typedef needed by the functional-style optimizer
-  typedef Numeric Scalar;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> InputType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> ValueType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> JacobianType;
-  typedef Eigen::ColPivHouseholderQR<JacobianType> QRSolver;
+  using Scalar = Numeric;
+  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
   
   // Size: The number of parameters to optimize towards
   static constexpr int m_inputs=3;
@@ -103,7 +103,7 @@ struct T4 {
   static constexpr int inputs() { return m_inputs; }
   
   //! Size: The number of inputs required by the 
-  int values() const { return m_values; }
+  [[nodiscard]] int values() const { return m_values; }
   
   /*! The only constructor
     * 
@@ -135,18 +135,18 @@ struct T4 {
   int df(const InputType& p, JacobianType& J) const;
   
   //! start values helper function, operator()(...) must be not too bad
-  InputType x0() const;
+  [[nodiscard]] InputType x0() const;
 };
 
 
 //! Functor for minimizing X0 * (T0 / T) ** X1 + X2 * (T0 / T) ** X3 - Y
 struct DPL {
   // typedef needed by the functional-style optimizer
-  typedef Numeric Scalar;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> InputType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> ValueType;
-  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> JacobianType;
-  typedef Eigen::ColPivHouseholderQR<JacobianType> QRSolver;
+  using Scalar = Numeric;
+  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
   
   // Size: The number of parameters to optimize towards
   static constexpr int m_inputs=4;
@@ -170,7 +170,7 @@ struct DPL {
   static constexpr int inputs() { return m_inputs; }
   
   //! Size: The number of inputs required by the 
-  int values() const { return m_values; }
+  [[nodiscard]] int values() const { return m_values; }
   
   /*! The only constructor
     * 
@@ -202,7 +202,7 @@ struct DPL {
   int df(const InputType& p, JacobianType& J) const;
   
   //! start values helper function, operator()(...) must be not too bad
-  InputType x0() const;
+  [[nodiscard]] InputType x0() const;
 };
 
 /*! Returns wether or not the Eigen minimize call worked

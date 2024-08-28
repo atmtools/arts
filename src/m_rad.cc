@@ -10,8 +10,6 @@
 #include <exception>
 
 #include "arts_omp.h"
-#include "auto_wsa.h"
-#include "auto_wsm.h"
 #include "debug.h"
 #include "fwd.h"
 #include "rtepack_stokes_vector.h"

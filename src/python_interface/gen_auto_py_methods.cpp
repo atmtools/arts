@@ -890,7 +890,6 @@ void methods(int nfiles) {
 
 #include <m_copy.h>
 #include <m_delete.h>
-#include <m_general.h>
 #include <m_ignore.h>
 #include <m_xml.h>
 #include <workspace.h>

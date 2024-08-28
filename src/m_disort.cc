@@ -9,17 +9,9 @@
 #include <vector>
 
 #include "arts_constants.h"
-#include "auto_wsa.h"
-#include "auto_wsm.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 #include "mh_checks.h"
-#include "mystring.h"
-#include "sorted_grid.h"
-#include "workspace_agenda_class.h"
-#include "workspace_class.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Core Disort

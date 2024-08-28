@@ -14,6 +14,22 @@
 #include "matpack_view.h"
 
 namespace disort {
+void BDRF::operator()(ExhaustiveMatrixView x,
+                      const ExhaustiveConstVectorView& a,
+                      const ExhaustiveConstVectorView& b) const {
+  ARTS_ASSERT(x.nrows() == a.size());
+  ARTS_ASSERT(x.ncols() == b.size());
+  f(x, a, b);
+}
+
+Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
+  Matrix x(a.size(), b.size());
+  f(x, a, b);
+  return x;
+}
+
+std::ostream& operator<<(std::ostream& os, const BDRF&) { return os << "BDRF"; }
+
 void mathscr_v(ExhaustiveVectorView um,
                mathscr_v_data& data,
                const Numeric tau,
@@ -358,7 +374,7 @@ void main_data::diagonalize() {
           solve_inplace(jvec, Gml, solve_work);
 
           for (Index j = 0; j < NQuad; j++) {
-            jvec[j] *= mu0  / (1.0 + K[j] * mu0);
+            jvec[j] *= mu0 / (1.0 + K[j] * mu0);
           }
 
           mult(Bm[l], G, jvec, -1);

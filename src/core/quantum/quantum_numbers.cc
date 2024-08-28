@@ -22,6 +22,41 @@ std::ostream& operator<<(std::ostream& os, QuantumNumberValueType x) {
   return os;
 }
 
+std::string_view StringValue::val() const noexcept {
+  // Look for the first \0 or return everything
+  for (std::size_t i = 0; i < N; i++)
+    if (x[i] == '\0') return {x.data(), i};
+  return {x.data(), N};
+}
+
+StringValue::StringValue(std::string_view s) {
+  const std::size_t n = s.size();
+
+  /** This means that we will need to either redesign quantum numbers
+      or make an exception for the type, e.g., is \tilde{X} perhaps OK as ~X?
+      We have no opinion at this moment */
+  ARTS_USER_ERROR_IF(n > N,
+                     "The value \"",
+                     s,
+                     "\" is too long.  Can be only ",
+                     N,
+                     " chars but is ",
+                     n)
+
+  // Fill with correct values or zero characters
+  std::size_t i = 0;
+  for (; i < n; i++) x[i] = s[i];
+  if (i < N) x[i] = '\0';
+}
+
+std::strong_ordering StringValue::operator<=>(const StringValue& sv) const {
+  for (std::size_t i = 0; i < N; i++) {
+    if (x[i] < sv.x[i]) return std::strong_ordering::less;
+    if (sv.x[i] < x[i]) return std::strong_ordering::greater;
+  }
+  return std::strong_ordering::equal;
+}
+
 std::ostream& operator<<(std::ostream& os, ValueDescription x) {
   os << x.type << ' ';
   switch (x.type) {
@@ -33,6 +68,549 @@ std::ostream& operator<<(std::ostream& os, ValueDescription x) {
       return os << Rational(x.val.h.x, 2);
   }
   return os;
+}
+
+QuantumNumberValueType common_value_type(QuantumNumberType type) noexcept {
+  switch (type) {
+    case QuantumNumberType::alpha:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::config:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::ElecStateLabel:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::F:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F1:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F10:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F11:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F12:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F2:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F3:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F4:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F5:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F6:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F7:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F8:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F9:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::I:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::J:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::K:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Ka:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Kc:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::L:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Lambda:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::N:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Omega:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::S:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::Sigma:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::SpinComponentLabel:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::asSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecInv:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecRefl:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::kronigParity:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::l:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l1:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l10:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l11:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l12:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l2:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l3:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l4:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l5:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l6:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l7:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l8:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l9:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::n:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::parity:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::r:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::rotSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::rovibSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::sym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::tau:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::term:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::v:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v1:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v10:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v11:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v12:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v2:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v3:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v4:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v5:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v6:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v7:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v8:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v9:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::vibInv:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::vibRefl:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::vibSym:
+      return QuantumNumberValueType::S;
+  }
+  std::unreachable();
+}
+
+QuantumNumberValueType common_value_type(QuantumNumberValueType a,
+                                         QuantumNumberValueType b) noexcept {
+  // Same is same, H is I, a has both:
+  if (a == b or
+      (a == QuantumNumberValueType::H and b == QuantumNumberValueType::I))
+    return a;
+
+  // H is I:
+  if (b == QuantumNumberValueType::H and a == QuantumNumberValueType::I)
+    return QuantumNumberValueType::H;
+
+  return static_cast<QuantumNumberValueType>(-1);
+}
+
+ValueHolder::ValueHolder(QuantumNumberValueType t) noexcept
+    : s(StringValue{"NODEF"}) {
+  switch (t) {
+    case QuantumNumberValueType::H:
+      h = HalfIntegerValue{0};
+      break;
+    case QuantumNumberValueType::I:
+      i = IntegerValue{0};
+      break;
+    default: {
+    }
+  }
+}
+
+ValueHolder::ValueHolder(QuantumNumberType t) noexcept
+    : ValueHolder(common_value_type(t)) {}
+
+TwoLevelValueHolder::TwoLevelValueHolder(ValueDescription u,
+                                         ValueDescription l,
+                                         QuantumNumberType t)
+    : upp(u.val), low(l.val) {
+  auto ct = common_value_type(t);
+  if (u.type not_eq ct) {
+    ARTS_USER_ERROR_IF(u.type not_eq QuantumNumberValueType::I,
+                       "Cannot convert from ",
+                       u.type,
+                       " to ",
+                       ct)
+    upp.h.x = 2 * u.val.i.x;
+  }
+
+  if (l.type not_eq ct) {
+    ARTS_USER_ERROR_IF(l.type not_eq QuantumNumberValueType::I,
+                       "Cannot convert from ",
+                       l.type,
+                       " to ",
+                       ct)
+    low.h.x = 2 * l.val.i.x;
+  }
+}
+
+std::strong_ordering TwoLevelValueHolder::order(
+    const TwoLevelValueHolder& tv, QuantumNumberValueType t) const {
+  switch (t) {
+    case QuantumNumberValueType::S:
+      return cmp(upp.s <=> tv.upp.s, low.s <=> tv.low.s);
+    case QuantumNumberValueType::I:
+      return cmp(upp.i <=> tv.upp.i, low.i <=> tv.low.i);
+    case QuantumNumberValueType::H:
+      return cmp(upp.h <=> tv.upp.h, low.h <=> tv.low.h);
+  }
+  return std::strong_ordering::equal;
+}
+
+ValueDescription value_holder(Rational r_) {
+  const Rational r = reduce_by_gcd(r_);
+
+  ValueDescription x{QuantumNumberValueType::H};
+
+  // We must now have a half-integer or not
+  if (r.denom == 2) {
+    x.val.h.x = r.numer;
+    return x;
+  }
+
+  if (r.denom == 1) {
+    x.type    = QuantumNumberValueType::I;
+    x.val.i.x = r.numer;
+    return x;
+  }
+
+  x.type    = QuantumNumberValueType::I;
+  x.val.i.x = quantum_number_error_value;
+  return x;
+}
+ValueDescription value_holder(std::string_view s) {
+  ValueDescription x{QuantumNumberValueType::S};
+  x.val.s = StringValue(s);
+  return x;
+}
+
+Rational cast_qnrat(std::string_view s) noexcept {
+  // Counts for divides, decimals, and existence
+  int div = 0, dot = 0, any = 0, minus = false;
+  const std::size_t n = s.size();
+
+  // Counts relevant items
+  for (std::size_t i = 0; i < n; i++) {
+    auto x = s[i];
+    if (x == '-') {
+      minus = true;
+      if (i) return RATIONAL_UNDEFINED;
+    } else if (x == '+') {
+      if (i) return RATIONAL_UNDEFINED;
+    } else if (x == '/')
+      div++;  // Count divs because we can have at most one
+    else if (x == '.')
+      dot++;  // Count dots for the same reason
+    else if (not nonstd::isdigit(x))
+      return RATIONAL_UNDEFINED;  // Error!
+
+    // There is a value!
+    any++;
+  }
+
+  // Can only have one of div or dot and need some data
+  if ((div + dot) > 1 or any == 0) return RATIONAL_UNDEFINED;
+
+  // We have a rational!  Lets see which we have got
+
+  // We have a simple rational
+  if (div) {
+    Index num = 0, den = 0;
+    std::size_t i = 0;
+
+    // Numerator
+    for (; s[i] not_eq '/'; ++i) {
+      if (s[i] == '-' or s[i] == '+') continue;
+      num *= 10;
+      num += s[i] - '0';
+    }
+
+    // Denominator
+    i++;
+    for (; i < s.size(); ++i) {
+      den *= 10;
+      den += s[i] - '0';
+    }
+
+    // Guard for QN style rationals
+    return Rational(minus ? -num : num, den);
+  }
+
+  // We have a decimal number
+  if (dot) {
+    Index f = 0, d = 0;
+    std::size_t i = 0;
+
+    // The integer part
+    for (; s[i] not_eq '.'; ++i) {
+      if (s[i] == '-' or s[i] == '+') continue;
+      f *= 10;
+      f += s[i] - '0';
+    }
+
+    // The decimal part
+    i++;
+    for (; i < s.size(); ++i) {
+      d *= 10;
+      d += s[i] - '0';
+    }
+
+    if (d == 0) return minus ? -f : f;
+    if (d == 5) return Rational((minus ? -1 : 1) * (2 * f + 1), 2);
+    return RATIONAL_UNDEFINED;
+  }
+
+  std::size_t num = 0;
+  for (auto x : s) {
+    if (x == '-' or x == '+') continue;
+    num *= 10;
+    num += x - '0';
+  }
+  return minus ? -num : num;
+}
+
+ValueDescription value_holder(std::string_view s, QuantumNumberType t) {
+  switch (common_value_type(t)) {
+    case QuantumNumberValueType::I:
+    case QuantumNumberValueType::H:
+      return value_holder(cast_qnrat(s));
+    case QuantumNumberValueType::S:
+      return value_holder(s);
+  }
+  std::unreachable();
+}
+
+Index count_items(std::string_view s) noexcept {
+  // Checks if we are in-between items, we start true as we are inbetween items
+  bool last_space = true;
+
+  Index count = 0;
+  for (auto& x : s) {
+    const bool this_space = nonstd::isspace(x);
+
+    // If we had a space and now no longer do, we are in an item
+    if (last_space and not this_space) count++;
+
+    // The current state must be remembere
+    last_space = this_space;
+  }
+  return count;
+}
+
+std::string_view rstrip(std::string_view x) {
+  while (not x.empty() and nonstd::isspace(x.back())) x.remove_suffix(1);
+  return x;
+}
+
+std::string_view lstrip(std::string_view x) {
+  while (not x.empty() and nonstd::isspace(x.front())) x.remove_prefix(1);
+  return x;
+}
+
+std::string_view strip(std::string_view x) { return rstrip(lstrip(x)); }
+
+std::string_view items(std::string_view s, std::size_t i, std::size_t n) noexcept {  
+  bool last_space = true;
+
+  std::size_t beg = 0, count = 0, end = s.size();
+  if (end == 0) return s;
+
+  for (std::size_t ind = 0; ind < end; ind++) {
+    const bool this_space = nonstd::isspace(s[ind]);
+
+    // Return when we find the end of the final item
+    if (this_space and count == i + n) return {&s[beg], ind - beg};
+
+    // If we had a space and now no longer do, we are in an item
+    if (last_space and not this_space) {
+      count++;
+
+      // If that is our first item, we are good!
+      if (count - 1 == i) beg = ind;
+    }
+
+    // Count up the beginning until we have found the first item
+    if (count - 1 < i) beg = ind;
+
+    // The current state must be remembere
+    last_space = this_space;
+  }
+
+  // Remove spaces at the end to be sure
+  while (nonstd::isspace(s[end - 1]) and end > beg) end--;
+  return {&s[beg], end - beg};
+}
+
+std::strong_ordering Value::operator<=>(const Value& v) const {
+  if (type < v.type) return std::strong_ordering::less;
+  if (v.type < type) return std::strong_ordering::greater;
+  return qn.order(v.qn, common_value_type(type));
+}
+
+Value::Value(QuantumNumberType t, Rational upp_, Rational low_) : Value(t) {
+  Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
+
+  if (common_value_type(type) == QuantumNumberValueType::H) {
+    ARTS_ASSERT(upp.denom <= 2 and low.denom <= 2)
+    if (upp.denom not_eq 2) upp *= 2;
+    if (low.denom not_eq 2) low *= 2;
+    qn.upp.h.x = upp.numer;
+    qn.low.h.x = low.numer;
+  } else if (common_value_type(type) == QuantumNumberValueType::I) {
+    ARTS_ASSERT(upp.denom == 1 and low.denom == 1)
+    qn.upp.i.x = upp.numer;
+    qn.low.i.x = low.numer;
+  } else {
+    ARTS_USER_ERROR(
+        t, " is a string-type, so cannot be constructed from rationals")
+  }
+}
+
+Value::Value(std::string_view s) : Value(to<QuantumNumberType>(items(s, 0))) {
+  ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
+                     "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
+                     s,
+                     '\'')
+
+  // Get values and ensure they are good types
+  auto upv = value_holder(items(s, 1), type);
+  auto lov = value_holder(items(s, 2), type);
+
+  // Deal with errors while setting the level values
+  qn = TwoLevelValueHolder(upv, lov, type);
+}
+
+Rational Value::upp() const noexcept {
+  switch (common_value_type(type)) {
+    case QuantumNumberValueType::I:
+      return qn.upp.i.val();
+    case QuantumNumberValueType::H:
+      return qn.upp.h.val();
+    default: {
+    }
+  }
+  return RATIONAL_UNDEFINED;
+}
+
+Rational Value::low() const noexcept {
+  switch (common_value_type(type)) {
+    case QuantumNumberValueType::I:
+      return qn.low.i.val();
+    case QuantumNumberValueType::H:
+      return qn.low.h.val();
+    default: {
+    }
+  }
+  return RATIONAL_UNDEFINED;
+}
+
+void Value::set(std::string_view s, bool upp) {
+  const ValueDescription v = value_holder(s, type);
+  const TwoLevelValueHolder nqn(v, v, type);
+  if (upp) {
+    qn.upp = nqn.upp;
+  } else {
+    qn.low = nqn.low;
+  }
+}
+
+LevelMatch Value::level_match(Value other) const noexcept {
+  if (type == other.type) {
+    switch (common_value_type(type)) {
+      case QuantumNumberValueType::I:
+      case QuantumNumberValueType::H:
+        return {upp() == other.upp(), low() == other.low()};
+      case QuantumNumberValueType::S:
+        return {qn.upp.s.x == other.qn.upp.s.x, qn.low.s.x == other.qn.low.s.x};
+    }
+  }
+  return {false, false};
+}
+
+bool Value::good() const { return level_match(*this); }
+
+CheckValue update(CheckValue val, CheckValue res) noexcept {
+  if (val == CheckValue::Miss) return val;
+  if (val == CheckValue::Full) return res;
+  if (res == CheckValue::Miss) return res;
+  if (res == CheckValue::Full) return val;
+  if (val == res) return val;
+  return CheckValue::Miss;
+}
+
+CheckMatch update(CheckMatch val, CheckValue res) noexcept {
+  return {update(val.upp, res), update(val.low, res)};
+}
+
+CheckMatch update(CheckMatch val, CheckMatch res) noexcept {
+  return {update(val.upp, res.upp), update(val.low, res.low)};
+}
+
+ValueList::ValueList(Array<Value> values_) : values(std::move(values_)) {
+  finalize();
+}
+
+std::strong_ordering LocalState::operator<=>(const LocalState& l) const {
+  return val <=> l.val;
+}
+
+bool LocalState::operator==(const LocalState& l) const {
+  return std::strong_ordering::equal == (*this <=> l);
+}
+
+bool LocalState::operator!=(const LocalState& l) const {
+  return std::strong_ordering::equal != (*this <=> l);
+}
+
+std::strong_ordering GlobalState::operator<=>(const GlobalState& g) const {
+  if (isotopologue_index < g.isotopologue_index)
+    return std::strong_ordering::less;
+  if (g.isotopologue_index < isotopologue_index)
+    return std::strong_ordering::greater;
+  return val <=> g.val;
+}
+
+bool GlobalState::operator==(const GlobalState& g) const {
+  return std::strong_ordering::equal == (*this <=> g);
+}
+
+bool GlobalState::operator!=(const GlobalState& g) const {
+  return std::strong_ordering::equal != (*this <=> g);
+}
+
+bool StateMatch::operator==(StateMatchType x) const noexcept {
+  return x == type;
+}
+
+bool StateMatch::operator!=(StateMatchType x) const noexcept {
+  return not((*this) == x);
 }
 
 String Value::str_upp() const noexcept {
@@ -121,10 +699,10 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
   if (not legacy) {
     ARTS_USER_ERROR_IF(
         n % 3, "Must have multiple of three items, got ", n, " in:\n", s)
-    for (Index i = 0; i < n; i += 3) values.emplace_back(Value(items<3>(s, i)));
+    for (Index i = 0; i < n; i += 3) values.emplace_back(Value(items(s, i, 3)));
   } else {
     ARTS_USER_ERROR_IF(n < 2, "Must have two items:\n", s)
-    Index i = 0;
+    Index i       = 0;
     auto key_type = items(s, i);
     if (key_type == "ALL") return;
     if (key_type == "NONE") return;
@@ -169,7 +747,7 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 
       for (; i < n; i += 2) {
         auto [key, val] = fix_legacy(items(s, i), items(s, i + 1));
-        auto t = to<QuantumNumberType>(key);
+        auto t          = to<QuantumNumberType>(key);
 
         if (has(t)) {
           auto valptr = std::find_if(
@@ -203,7 +781,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
 
   for (Index i = 0; i < nu; i += 2) {
     auto [k, val] = fix_legacy(items(upp, i), items(upp, i + 1));
-    auto key = to<QuantumNumberType>(k);
+    auto key      = to<QuantumNumberType>(k);
 
     auto ptr =
         std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
@@ -218,7 +796,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
 
   for (Index i = 0; i < nl; i += 2) {
     auto [k, val] = fix_legacy(items(low, i), items(low, i + 1));
-    auto key = to<QuantumNumberType>(k);
+    auto key      = to<QuantumNumberType>(k);
 
     auto ptr =
         std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
@@ -256,9 +834,9 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
 
   upp = strip(upp);
   while (not upp.empty()) {
-    auto sep = upp.find(';');
+    auto sep    = upp.find(';');
     auto [t, v] = split_hitran_qn(upp.substr(0, sep));
-    auto type = to<QuantumNumberType>(t);
+    auto type   = to<QuantumNumberType>(t);
     ARTS_USER_ERROR_IF(
         out.has(type),
         "Type ",
@@ -272,9 +850,9 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
 
   low = strip(low);
   while (not low.empty()) {
-    auto sep = low.find(';');
+    auto sep    = low.find(';');
     auto [t, v] = split_hitran_qn(low.substr(0, sep));
-    auto type = to<QuantumNumberType>(t);
+    auto type   = to<QuantumNumberType>(t);
     if (out.has(type)) {
       Value val = out[type];
       val.set(v, false);
@@ -1057,20 +1635,20 @@ GlobalState GlobalState::UpperLevel() const {
 void Value::swap_values(Value& x) {
   // Make copies
   Value _this = *this;
-  Value _x = x;
+  Value _x    = x;
 
   // Copy values from the other part
   _this.qn = x.qn;
-  _x.qn = qn;
+  _x.qn    = qn;
 
   // Assign by reinterpreting the data using standard operations
   *this = Value(var_string(_this));
-  x = Value(var_string(_x));
+  x     = Value(var_string(_x));
 }
 
 GlobalState::GlobalState(std::string_view s, Index v) {
-  auto n = count_items(s);
-  auto specname = items(s, 0);
+  auto n             = count_items(s);
+  auto specname      = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
 
   if (isotopologue_index < 0)

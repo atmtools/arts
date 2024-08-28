@@ -16,70 +16,31 @@ struct Time {
   using InternalTimeStep = decltype(time)::duration;
 
   // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
-  [[nodiscard]] Index Version() const noexcept { return 1; }
+  [[nodiscard]] static constexpr Index Version() noexcept { return 1; }
 
   // Construction
-  Time() : time(std::chrono::system_clock::now()) {}
-  explicit Time(std::time_t t)
-      : time(std::chrono::system_clock::from_time_t(t)) {}
-  explicit Time(std::tm t) : Time(std::mktime(&t)) {}
+  Time();
+  explicit Time(std::time_t t);
+  explicit Time(std::tm t);
   explicit Time(const String& t);
 
   // Conversions
-  [[nodiscard]] std::time_t toTimeT() const {
-    return std::chrono::system_clock::to_time_t(time);
-  }
-  [[nodiscard]] std::tm toStruct() const {
-    std::time_t x = toTimeT();
-    std::tm y;
-#ifdef _MSC_VER
-    errno_t err = localtime_s(&y, &x);
-    ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
-#else
-    tm* z = localtime_r(&x, &y);
-    ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
-#endif
-    return y;
-  }
-  [[nodiscard]] std::tm toGMTStruct() const {
-    std::time_t x = toTimeT();
-    std::tm y;
-#ifdef _MSC_VER
-    errno_t err = gmtime_s(&y, &x);
-    ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
-#else
-    tm* z = gmtime_r(&x, &y);
-    ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
-#endif
-    return y;
-  }
-  [[nodiscard]] TimeStep seconds_into_day() const {
-    std::tm x = toStruct();
-    return TimeStep(x.tm_hour * 3600 + x.tm_min * 60 + x.tm_sec +
-                    PartOfSecond());
-  }
-  [[nodiscard]] InternalTimeStep EpochTime() const {
-    return time.time_since_epoch();
-  }
+  [[nodiscard]] std::time_t toTimeT() const;
+  [[nodiscard]] std::tm toStruct() const;
+  [[nodiscard]] std::tm toGMTStruct() const;
+
+  [[nodiscard]] TimeStep seconds_into_day() const;
+
+  [[nodiscard]] InternalTimeStep EpochTime() const;
 
   // Operations
-  InternalTimeStep operator-(const Time& t) const noexcept {
-    return time - t.time;
-  }
-  bool operator<(const Time& t) const noexcept { return time < t.time; }
-  bool operator==(const Time& t) const noexcept { return time == t.time; }
-  bool operator!=(const Time& t) const noexcept {
-    return not this->operator==(t);
-  }
-  bool operator<=(const Time& t) const noexcept {
-    return this->operator<(t) or this->operator==(t);
-  }
-  bool operator>(const Time& t) const noexcept {
-    return not this->operator<=(t);
-  }
-  bool operator>=(const Time& t) const noexcept {
-    return this->operator>(t) or this->operator==(t);
-  }
+  InternalTimeStep operator-(const Time& t) const noexcept;
+  bool operator<(const Time& t) const noexcept;
+  bool operator==(const Time& t) const noexcept;
+  bool operator!=(const Time& t) const noexcept;
+  bool operator<=(const Time& t) const noexcept;
+  bool operator>(const Time& t) const noexcept;
+  bool operator>=(const Time& t) const noexcept;
   template <typename T, typename R>
   Time& operator+=(const std::chrono::duration<T, R>& dt) {
     time += std::chrono::duration_cast<InternalTimeStep>(dt);
@@ -100,17 +61,12 @@ struct Time {
   }
 
   // helpers
-  [[nodiscard]] Numeric Seconds() const {
-    return std::chrono::duration_cast<TimeStep>(time.time_since_epoch())
-        .count();
-  }
-  void Seconds(Numeric x) { operator+=(TimeStep(x - Seconds())); }
-  [[nodiscard]] Numeric PartOfSecond() const {
-    return std::fmod(Seconds(), 1.0);
-  }
+  [[nodiscard]] Numeric Seconds() const;
+  void Seconds(Numeric x);
+  [[nodiscard]] Numeric PartOfSecond() const;
 
   // Conversion
-  explicit operator Numeric() const { return Seconds(); }
+  explicit operator Numeric() const;
 
   friend std::ostream& operator<<(std::ostream& os, const Time& t);
 

@@ -83,58 +83,37 @@ class CIARecord {
      \param[in] i Must be either 0 or 1. Then the first or second species index
      is returned.
      */
-  [[nodiscard]] SpeciesEnum Species(const Index i) const {
-    // Assert that i is 0 or 1:
-    ARTS_ASSERT(i >= 0);
-    ARTS_ASSERT(i <= 1);
-
-    return mspecies[i];
-  }
+  [[nodiscard]] SpeciesEnum Species(const Index i) const;
 
   /** Return number of datasets in this record.
      */
-  [[nodiscard]] Index DatasetCount() const { return mdata.size(); }
+  [[nodiscard]] Index DatasetCount() const;
 
   /** Return frequency grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView FrequencyGrid(Size dataset) const {
-    ARTS_ASSERT(dataset < mdata.size());
-
-    return mdata[dataset].grid<0>();
-  }
+  [[nodiscard]] ExhaustiveConstVectorView FrequencyGrid(Size dataset) const;
 
   /** Return temperatur grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView TemperatureGrid(Size dataset) const {
-    ARTS_ASSERT(dataset < mdata.size());
-
-    return mdata[dataset].grid<1>();
-  }
+  [[nodiscard]] ExhaustiveConstVectorView TemperatureGrid(Size dataset) const;
 
   /** Return CIA dataset.
      */
-  [[nodiscard]] const GriddedField2& Dataset(Size dataset) const {
-    ARTS_ASSERT(dataset < mdata.size());
-
-    return mdata[dataset];
-  }
+  [[nodiscard]] const GriddedField2& Dataset(Size dataset) const;
 
   /** Return CIA data.
      */
-  [[nodiscard]] const ArrayOfGriddedField2& Data() const { return mdata; }
+  [[nodiscard]] const ArrayOfGriddedField2& Data() const;
 
   /** Return CIA data.
    */
-  ArrayOfGriddedField2& Data() { return mdata; }
+  ArrayOfGriddedField2& Data();
 
   /** Set CIA species.
      \param[in] first CIA Species.
      \param[in] second CIA Species.
      */
-  void SetSpecies(const SpeciesEnum first, const SpeciesEnum second) {
-    mspecies[0] = first;
-    mspecies[1] = second;
-  }
+  void SetSpecies(const SpeciesEnum first, const SpeciesEnum second);
 
   /** Vector version of extract.
 
@@ -167,14 +146,7 @@ class CIARecord {
   [[nodiscard]] Numeric Extract(const Numeric& frequency,
                                 const Numeric& temperature,
                                 const Numeric& T_extrapolfac,
-                                const Index& robust) const {
-    Vector result(1);
-    const Vector freqvec(1, frequency);
-
-    Extract(result, freqvec, temperature, T_extrapolfac, robust);
-
-    return result[0];
-  }
+                                const Index& robust) const;
 
   /** Read CIA catalog file. */
   void ReadFromCIA(const String& filename);
@@ -186,15 +158,12 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
-  [[nodiscard]] std::array<SpeciesEnum, 2> TwoSpecies() const {
-    return mspecies;
-  }
-  std::array<SpeciesEnum, 2>& TwoSpecies() { return mspecies; }
+  [[nodiscard]] std::array<SpeciesEnum, 2> TwoSpecies() const;
+  std::array<SpeciesEnum, 2>& TwoSpecies();
 
   CIARecord() = default;
 
-  CIARecord(ArrayOfGriddedField2 data, SpeciesEnum spec1, SpeciesEnum spec2)
-      : mdata(std::move(data)), mspecies({spec1, spec2}) {}
+  CIARecord(ArrayOfGriddedField2 data, SpeciesEnum spec1, SpeciesEnum spec2);
 
   friend std::ostream& operator<<(std::ostream& os, const CIARecord& cr);
 

@@ -103,85 +103,17 @@ struct Point {
   Point &operator=(const Point &) = default;
   Point &operator=(Point &&)      = default;
 
-  template <KeyType T>
-  constexpr Numeric operator[](T &&x) const try {
-    if constexpr (isSpecies<T>) {
-      return specs.at(std::forward<T>(x));
-    } else if constexpr (isSpeciesIsotope<T>) {
-      return isots.at(std::forward<T>(x));
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp.at(std::forward<T>(x));
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte.at(std::forward<T>(x));
-    } else {
-      switch (std::forward<T>(x)) {
-        case AtmKey::t:
-          return temperature;
-        case AtmKey::p:
-          return pressure;
-        case AtmKey::wind_u:
-          return wind[0];
-        case AtmKey::wind_v:
-          return wind[1];
-        case AtmKey::wind_w:
-          return wind[2];
-        case AtmKey::mag_u:
-          return mag[0];
-        case AtmKey::mag_v:
-          return mag[1];
-        case AtmKey::mag_w:
-          return mag[2];
-      }
-      ARTS_USER_ERROR("Cannot reach")
-    }
-  } catch (std::out_of_range &) {
-    if constexpr (isSpecies<T>) {
-      ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
-    } else if constexpr (isSpeciesIsotope<T>) {
-      ARTS_USER_ERROR("Isotopologue ration not found: \"", x.FullName(), '"')
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
-    } else if constexpr (isQuantumIdentifier<T>) {
-      ARTS_USER_ERROR("Non-LTE level ratio not found: ", x)
-    } else {
-      ARTS_USER_ERROR("Key not found: \"", x, '"')
-    }
-  } catch (std::exception &) {
-    throw;
-  }
+  Numeric operator[](SpeciesEnum x) const;
+  Numeric operator[](const SpeciesIsotope &x) const;
+  Numeric operator[](const QuantumIdentifier &x) const;
+  Numeric operator[](const ParticulatePropertyTag &x) const;
+  Numeric operator[](AtmKey x) const;
 
-  template <KeyType T>
-  constexpr Numeric &operator[](T &&x) {
-    if constexpr (isSpecies<T>) {
-      return specs[std::forward<T>(x)];
-    } else if constexpr (isSpeciesIsotope<T>) {
-      return isots[std::forward<T>(x)];
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte[std::forward<T>(x)];
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp[std::forward<T>(x)];
-    } else {
-      switch (std::forward<T>(x)) {
-        case AtmKey::t:
-          return temperature;
-        case AtmKey::p:
-          return pressure;
-        case AtmKey::wind_u:
-          return wind[0];
-        case AtmKey::wind_v:
-          return wind[1];
-        case AtmKey::wind_w:
-          return wind[2];
-        case AtmKey::mag_u:
-          return mag[0];
-        case AtmKey::mag_v:
-          return mag[1];
-        case AtmKey::mag_w:
-          return mag[2];
-      }
-      return temperature;  // CANNOT REACH
-    }
-  }
+  Numeric &operator[](SpeciesEnum x);
+  Numeric &operator[](const SpeciesIsotope &x);
+  Numeric &operator[](const QuantumIdentifier &x);
+  Numeric &operator[](const ParticulatePropertyTag &x);
+  Numeric &operator[](AtmKey x);
 
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
@@ -231,9 +163,7 @@ struct Point {
   [[nodiscard]] bool is_lte() const noexcept;
 
   [[nodiscard]] std::pair<Numeric, Numeric> levels(
-      const QuantumIdentifier &band) const {
-    return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
-  }
+      const QuantumIdentifier &band) const;
 
   void check_and_fix();
 

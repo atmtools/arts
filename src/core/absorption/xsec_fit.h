@@ -25,16 +25,16 @@
 class XsecRecord {
  public:
   /** Return species index */
-  [[nodiscard]] const SpeciesEnum& Species() const { return mspecies; };
+  [[nodiscard]] const SpeciesEnum& Species() const;
+
+  /** Set species name */
+  void SetSpecies(const SpeciesEnum species);
 
   /** Return species name */
   [[nodiscard]] String SpeciesName() const;
 
-  /** Set species name */
-  void SetSpecies(const SpeciesEnum species) { mspecies = species; };
-
   /** Return species index */
-  [[nodiscard]] Index Version() const { return mversion; };
+  [[nodiscard]] static constexpr Index Version() { return mversion; };
 
   /** Set species name */
   void SetVersion(Index version);
@@ -56,44 +56,34 @@ class XsecRecord {
 
   /************ VERSION 2 *************/
   /** Get mininum pressures from fit */
-  [[nodiscard]] const Vector& FitMinPressures() const {
-    return mfitminpressures;
-  };
+  [[nodiscard]] const Vector& FitMinPressures() const ;
 
   /** Get maximum pressures from fit */
-  [[nodiscard]] const Vector& FitMaxPressures() const {
-    return mfitmaxpressures;
-  };
+  [[nodiscard]] const Vector& FitMaxPressures() const;
 
   /** Get mininum temperatures from fit */
-  [[nodiscard]] const Vector& FitMinTemperatures() const {
-    return mfitmintemperatures;
-  };
+  [[nodiscard]] const Vector& FitMinTemperatures() const ;
 
   /** Get maximum temperatures */
-  [[nodiscard]] const Vector& FitMaxTemperatures() const {
-    return mfitmaxtemperatures;
-  };
+  [[nodiscard]] const Vector& FitMaxTemperatures() const ;
 
   /** Get coefficients */
-  [[nodiscard]] const ArrayOfGriddedField1Named& FitCoeffs() const {
-    return mfitcoeffs;
-  };
+  [[nodiscard]] const ArrayOfGriddedField1Named& FitCoeffs() const ;
 
   /** Get mininum pressures from fit */
-  [[nodiscard]] Vector& FitMinPressures() { return mfitminpressures; };
+  [[nodiscard]] Vector& FitMinPressures();
 
   /** Get maximum pressures from fit */
-  [[nodiscard]] Vector& FitMaxPressures() { return mfitmaxpressures; };
+  [[nodiscard]] Vector& FitMaxPressures();
 
   /** Get mininum temperatures from fit */
-  [[nodiscard]] Vector& FitMinTemperatures() { return mfitmintemperatures; };
+  [[nodiscard]] Vector& FitMinTemperatures();
 
   /** Get maximum temperatures */
-  [[nodiscard]] Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
+  [[nodiscard]] Vector& FitMaxTemperatures();
 
   /** Get coefficients */
-  [[nodiscard]] ArrayOfGriddedField1Named& FitCoeffs() { return mfitcoeffs; };
+  [[nodiscard]] ArrayOfGriddedField1Named& FitCoeffs();
 
   friend std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 

@@ -21,6 +21,72 @@ inline constexpr Numeric PI=Constant::pi;
 // TelsemAtlas Class
 ////////////////////////////////////////////////////////////////////////////////
 
+
+
+  void TelsemAtlas::set_month(Index m) { month = m; }
+  Index TelsemAtlas::get_month() const { return month; }
+
+  const Tensor3 &TelsemAtlas::get_correl() const { return correl; }
+  void TelsemAtlas::set_correl(const Tensor3 &t) { correl = t; }
+
+  bool TelsemAtlas::contains(Size cellnumber) const {
+    if (cellnumber >= correspondence.size()) {
+      return false;
+    }
+    return correspondence[cellnumber] >= 0;
+  }
+
+   Index TelsemAtlas::get_class1(Index cellnumber) const {
+    Index ind = correspondence[cellnumber];
+    if (ind < 0) {
+      throw std::runtime_error("The cell is not contained in the atlas.");
+    }
+    return classes1[ind];
+  }
+
+    Index TelsemAtlas::get_class2(Index cellnumber) const {
+    Index ind = correspondence[cellnumber];
+    if (ind < 0) {
+      throw std::runtime_error("The cell is not contained in the atlas.");
+    }
+    return classes2[ind];
+  }
+
+  Vector TelsemAtlas::get_emis_v(Index i) const {
+    Index ind = correspondence[i];
+    Vector e_v(3);
+    if (ind < 0) {
+      throw std::runtime_error("The cell is not contained in the atlas.");
+    } else {
+      e_v[0] = emis(ind, 0);
+      e_v[1] = emis(ind, 3);
+      e_v[2] = emis(ind, 5);
+    }
+    return e_v;
+  }
+
+  Vector TelsemAtlas::get_emis_h(Index cellnum) const {
+    Index ind = correspondence[cellnum];
+    Vector e_h(3);
+    if (ind < 0) {
+      throw std::runtime_error("The cell is not contained in the atlas.");
+    } else {
+      e_h[0] = emis(ind, 1);
+      e_h[1] = emis(ind, 4);
+      e_h[2] = emis(ind, 6);
+    }
+    return e_h;
+  }
+
+  ConstVectorView TelsemAtlas::operator[](Index cellnumber) const {
+    Index ind = correspondence[cellnumber];
+    if (ind < 0) {
+      throw std::runtime_error("The cell is not contained in the atlas.");
+    } else {
+      return emis(ind, joker);
+    }
+  }
+
 TelsemAtlas::TelsemAtlas(String filename) {
   std::ifstream ifs(filename, std::ifstream::in);
   read(ifs);

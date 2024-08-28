@@ -224,7 +224,7 @@ target_include_directories(artsworkspace PUBLIC
 add_dependencies(artsworkspace auto_version_cc)
 
 if(ENABLE_PCH)
-  target_precompile_headers(artsworkspace PRIVATE pch_artsworkspace.h)
+  target_precompile_headers(artsworkspace PRIVATE workspace.h)
 endif()
 
 target_link_libraries(artsworkspace PUBLIC auto_partfun xmliobase artscore workspace_internals)

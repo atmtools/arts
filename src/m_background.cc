@@ -7,8 +7,6 @@
 
 #include <algorithm>
 
-#include "auto_wsa.h"
-#include "auto_wsm.h"
 #include "debug.h"
 
 void spectral_radiance_backgroundAgendasAtEndOfPath(

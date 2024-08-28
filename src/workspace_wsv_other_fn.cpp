@@ -1,4 +1,4 @@
-#include "auto_wsg.h"
+#include <auto_wsg.h>
 
 std::size_t Wsv::index() const { return value.index(); }
 

@@ -14,7 +14,6 @@
 #include <unordered_map>
 
 #include "arts_omp.h"
-#include "auto_wsm.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "isotopologues.h"
