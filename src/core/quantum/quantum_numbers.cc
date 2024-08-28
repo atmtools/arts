@@ -817,7 +817,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
  * @param x A string
  * @return constexpr std::pair<std::string_view, std::string_view> 
  */
-constexpr std::pair<std::string_view, std::string_view> split_hitran_qn(
+std::pair<std::string_view, std::string_view> split_hitran_qn(
     std::string_view x) {
   auto eq = x.find('=');
   std::pair<std::string_view, std::string_view> out{strip(x.substr(0, eq)),
