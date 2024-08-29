@@ -193,7 +193,7 @@ arr : numpy.ndarray
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) {
         std::visit([&a](auto& c) { a = c; }, b);
-      });
+      }, "A :class:`~numpy.ndarray` or :class:`scipy.sparse.csr_matrix` of the object.");
   common_ndarray(bm);
   workspace_group_interface(bm);
 

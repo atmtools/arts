@@ -41,9 +41,8 @@ void py_basic(py::module_& m) try {
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-          [](ValueHolder<Numeric>& a, const ValueHolder<Numeric>& b) {
-            a = b;
-          });
+          [](ValueHolder<Numeric>& a, const ValueHolder<Numeric>& b) { a = b; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(num);
 
   py::class_<ValueHolder<Index>> ind(m, "Index");
@@ -64,7 +63,8 @@ void py_basic(py::module_& m) try {
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-          [](ValueHolder<Index>& a, const ValueHolder<Index>& b) { a = b; });
+          [](ValueHolder<Index>& a, const ValueHolder<Index>& b) { a = b; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(ind);
 
   auto aos = py::class_<ArrayOfString>(m, "ArrayOfString");
@@ -87,7 +87,8 @@ void py_basic(py::module_& m) try {
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-          [](ArrayOfIndex& a, const ArrayOfIndex& b) { a = b; });
+          [](ArrayOfIndex& a, const ArrayOfIndex& b) { a = b; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(aoi);
   value_holder_vector_interface(aoi);
   workspace_group_interface(aoi);
@@ -109,7 +110,8 @@ void py_basic(py::module_& m) try {
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-          [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; });
+          [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(aon);
   value_holder_vector_interface(aon);
 

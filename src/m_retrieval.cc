@@ -152,7 +152,7 @@ void RetrievalInit(JacobianTargets& jacobian_targets,
                    JacobianTargetsDiagonalCovarianceMatrixMap&
                        covariance_matrix_diagonal_blocks) {
   model_state_covariance_matrixInit(model_state_covariance_matrix);
-  jacobian_targets.clear();
+  jacobian_targetsInit(jacobian_targets);
   covariance_matrix_diagonal_blocks.clear();
 }
 

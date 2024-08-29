@@ -17,7 +17,7 @@ void common_ndarray(auto& c) {
   c.def(
       "__abs__",
       [](py::object& self) { return self.attr("value").attr("__abs__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__abs__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__abs__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -27,7 +27,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__add__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__add__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__add__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -37,7 +37,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__and__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__and__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__and__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -47,7 +47,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__contains__")(key_);
       },
       "key"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__contains__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__contains__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -57,7 +57,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__divmod__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__divmod__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__divmod__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -67,14 +67,14 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__eq__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__eq__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__eq__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__float__",
       [](py::object& self) { return self.attr("value").attr("__float__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__float__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__float__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -84,7 +84,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__floordiv__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__floordiv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__floordiv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -94,7 +94,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__ge__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ge__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ge__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -104,7 +104,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__getitem__")(key_);
       },
       "key"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__getitem__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__getitem__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -114,7 +114,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__gt__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__gt__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__gt__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -125,7 +125,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__iadd__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__iadd__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -136,7 +136,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__iand__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__iand__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -147,7 +147,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ifloordiv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ifloordiv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -158,7 +158,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ilshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ilshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -169,7 +169,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__imatmul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__imatmul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -180,7 +180,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__imod__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__imod__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -191,28 +191,28 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__imul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__imul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__index__",
       [](py::object& self) { return self.attr("value").attr("__index__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__index__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__index__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__int__",
       [](py::object& self) { return self.attr("value").attr("__int__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__int__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__int__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__invert__",
       [](py::object& self) { return self.attr("value").attr("__invert__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__invert__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__invert__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -223,7 +223,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ior__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ior__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -234,7 +234,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ipow__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ipow__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -245,7 +245,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__irshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__irshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -257,14 +257,14 @@ void common_ndarray(auto& c) {
       },
       py::rv_policy::reference_internal,
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__isub__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__isub__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__iter__",
       [](py::object& self) { return self.attr("value").attr("__iter__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__iter__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__iter__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -275,7 +275,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__itruediv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__itruediv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -286,7 +286,7 @@ void common_ndarray(auto& c) {
         return self;
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ixor__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ixor__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -296,14 +296,14 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__le__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__le__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__le__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__len__",
       [](py::object& self) { return self.attr("value").attr("__len__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__len__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__len__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -313,7 +313,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__lshift__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__lshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__lshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -323,7 +323,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__lt__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__lt__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__lt__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -333,7 +333,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__matmul__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__matmul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__matmul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -343,7 +343,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__mod__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__mod__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__mod__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -353,7 +353,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__mul__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__mul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__mul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -363,14 +363,14 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__ne__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ne__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ne__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__neg__",
       [](py::object& self) { return self.attr("value").attr("__neg__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__neg__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__neg__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -380,14 +380,14 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__or__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__or__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__or__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "__pos__",
       [](py::object& self) { return self.attr("value").attr("__pos__")(); },
-      "Wrapper for :attr:`~numpy.ndarray.__pos__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__pos__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -398,7 +398,7 @@ void common_ndarray(auto& c) {
       },
       "value"_a,
       "mod"_a = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.__pow__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__pow__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -408,7 +408,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__radd__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__radd__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__radd__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -418,7 +418,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rand__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rand__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rand__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -428,7 +428,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rdivmod__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rdivmod__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rdivmod__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -438,7 +438,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rfloordiv__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rfloordiv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rfloordiv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -448,7 +448,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rlshift__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rlshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rlshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -458,7 +458,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rmatmul__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rmatmul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rmatmul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -468,7 +468,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rmod__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rmod__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rmod__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -478,7 +478,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rmul__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rmul__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rmul__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -488,7 +488,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__ror__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__ror__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__ror__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -499,7 +499,7 @@ void common_ndarray(auto& c) {
       },
       "value"_a,
       "mod"_a = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.__rpow__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rpow__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -509,7 +509,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rrshift__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rrshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rrshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -519,7 +519,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rshift__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rshift__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rshift__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -529,7 +529,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rsub__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rsub__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rsub__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -539,7 +539,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rtruediv__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rtruediv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rtruediv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -549,7 +549,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__rxor__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__rxor__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__rxor__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -560,7 +560,7 @@ void common_ndarray(auto& c) {
       },
       "key"_a,
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__setitem__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__setitem__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -570,7 +570,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__sub__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__sub__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__sub__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -580,7 +580,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__truediv__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__truediv__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__truediv__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -590,14 +590,14 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("__xor__")(value_);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.__xor__` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.__xor__` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def_prop_ro(
       "T",
       [](py::object& self) { return py::object(self.attr("value").attr("T")); },
-      "Wrapper for :attr:`~numpy.ndarray.T` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.T` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -608,7 +608,7 @@ void common_ndarray(auto& c) {
         return py::object(self.attr("value").attr("base"));
       },
       py::keep_alive<0, 1>{},
-      "Wrapper for :attr:`~numpy.ndarray.base` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.base` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -619,7 +619,7 @@ void common_ndarray(auto& c) {
         return py::object(self.attr("value").attr("data"));
       },
       py::keep_alive<0, 1>{},
-      "Wrapper for :attr:`~numpy.ndarray.data` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.data` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -628,7 +628,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("dtype"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.dtype` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.dtype` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -639,7 +639,7 @@ void common_ndarray(auto& c) {
         return py::object(self.attr("value").attr("flat"));
       },
       py::keep_alive<0, 1>{},
-      "Wrapper for :attr:`~numpy.ndarray.flat` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.flat` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -649,7 +649,7 @@ void common_ndarray(auto& c) {
         return py::object(self.attr("value").attr("imag"));
       },
       py::keep_alive<0, 1>{},
-      "Wrapper for :attr:`~numpy.ndarray.imag` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.imag` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -658,7 +658,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("itemsize"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.itemsize` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.itemsize` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -667,7 +667,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("nbytes"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.nbytes` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.nbytes` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -676,7 +676,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("ndim"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.ndim` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.ndim` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -686,7 +686,7 @@ void common_ndarray(auto& c) {
         return py::object(self.attr("value").attr("real"));
       },
       py::keep_alive<0, 1>{},
-      "Wrapper for :attr:`~numpy.ndarray.real` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.real` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -695,7 +695,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("shape"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.shape` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.shape` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -704,7 +704,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("size"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.size` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.size` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -713,7 +713,7 @@ void common_ndarray(auto& c) {
       [](py::object& self) {
         return py::object(self.attr("value").attr("strides"));
       },
-      "Wrapper for :attr:`~numpy.ndarray.strides` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.strides` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -723,7 +723,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("flatten")(order);
       },
       "order"_a = 'C',
-      "Wrapper for :attr:`~numpy.ndarray.flatten` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.flatten` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -733,7 +733,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("copy")(order);
       },
       "order"_a = 'C',
-      "Wrapper for :attr:`~numpy.ndarray.copy` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.copy` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -743,35 +743,35 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("fill")(value);
       },
       "value"_a,
-      "Wrapper for :attr:`~numpy.ndarray.fill` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.fill` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "tolist",
       [](py::object& self) { return self.attr("value").attr("tolist")(); },
-      "Wrapper for :attr:`~numpy.ndarray.tolist` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.tolist` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "conj",
       [](py::object& self) { return self.attr("value").attr("conj")(); },
-      "Wrapper for :attr:`~numpy.ndarray.conj` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.conj` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "conjugate",
       [](py::object& self) { return self.attr("value").attr("conjugate")(); },
-      "Wrapper for :attr:`~numpy.ndarray.conjugate` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.conjugate` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
   c.def(
       "nonzero",
       [](py::object& self) { return self.attr("value").attr("nonzero")(); },
-      "Wrapper for :attr:`~numpy.ndarray.nonzero` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.nonzero` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -786,7 +786,7 @@ void common_ndarray(auto& c) {
       "axis"_a  = py::none(),
       "dtype"_a = py::none(),
       "out"_a   = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.cumprod` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.cumprod` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -801,7 +801,7 @@ void common_ndarray(auto& c) {
       "axis"_a  = py::none(),
       "dtype"_a = py::none(),
       "out"_a   = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.cumsum` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.cumsum` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -816,7 +816,7 @@ void common_ndarray(auto& c) {
       "offset"_a = 0,
       "axis1"_a  = 0,
       "axis2"_a  = 1,
-      "Wrapper for :attr:`~numpy.ndarray.diagonal` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.diagonal` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -831,7 +831,7 @@ void common_ndarray(auto& c) {
       "axis"_a     = py::none(),
       "out"_a      = py::none(),
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.max` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.max` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -848,7 +848,7 @@ void common_ndarray(auto& c) {
       "dtype"_a    = py::none(),
       "out"_a      = py::none(),
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.mean` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.mean` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -863,7 +863,7 @@ void common_ndarray(auto& c) {
       "axis"_a     = py::none(),
       "out"_a      = py::none(),
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.min` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.min` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -880,7 +880,7 @@ void common_ndarray(auto& c) {
       "dtype"_a    = py::none(),
       "out"_a      = py::none(),
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.prod` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.prod` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -890,7 +890,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("ravel")(order);
       },
       "order"_a,
-      "Wrapper for :attr:`~numpy.ndarray.ravel` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.ravel` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -901,7 +901,7 @@ void common_ndarray(auto& c) {
       },
       "repeats"_a,
       "axis"_a = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.repeat` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.repeat` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -912,7 +912,7 @@ void common_ndarray(auto& c) {
       },
       "shape"_a,
       "order"_a = 'C',
-      "Wrapper for :attr:`~numpy.ndarray.reshape` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.reshape` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -923,7 +923,7 @@ void common_ndarray(auto& c) {
       },
       "decimals"_a = 0,
       "out"_a      = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.round` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.round` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -933,7 +933,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("squeeze")(axis);
       },
       "axis"_a = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.squeeze` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.squeeze` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -952,7 +952,7 @@ void common_ndarray(auto& c) {
       "out"_a      = py::none(),
       "ddof"_a     = 0,
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.std` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.std` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -969,7 +969,7 @@ void common_ndarray(auto& c) {
       "dtype"_a    = py::none(),
       "out"_a      = py::none(),
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.sum` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.sum` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -989,7 +989,7 @@ void common_ndarray(auto& c) {
       "axis2"_a  = 1,
       "dtype"_a  = py::none(),
       "out"_a    = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.trace` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.trace` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -999,7 +999,7 @@ void common_ndarray(auto& c) {
         return self.attr("value").attr("transpose")(axes);
       },
       "axes"_a = py::none(),
-      "Wrapper for :attr:`~numpy.ndarray.transpose` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.transpose` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 
@@ -1018,7 +1018,7 @@ void common_ndarray(auto& c) {
       "out"_a      = py::none(),
       "ddof"_a     = 0,
       "keepdims"_a = false,
-      "Wrapper for :attr:`~numpy.ndarray.var` using ARTS types."
+      "Wrapper for :attr:`numpy.ndarray.var` using ARTS types."
       "\n\n"
       "Use the original for greater control and more functionality.");
 }

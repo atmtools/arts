@@ -51,7 +51,8 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
       [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
       [](matpack::matpack_data<T, M> &x, matpack::matpack_data<T, M> &y) {
         x = y;
-      });
+      },
+      "A :class:`~numpy.ndarray` of the object.");
 
   common_ndarray(c);
 }
@@ -100,7 +101,8 @@ void py_rtepack(py::module_ &m) try {
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
-          [](Stokvec &x, Stokvec &y) { x = y; });
+          [](Stokvec &x, Stokvec &y) { x = y; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(sv);
   workspace_group_interface(sv);
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
@@ -159,7 +161,8 @@ void py_rtepack(py::module_ &m) try {
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
-          [](Propmat &x, Propmat &y) { x = y; });
+          [](Propmat &x, Propmat &y) { x = y; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(pm);
   workspace_group_interface(pm);
 
@@ -209,7 +212,8 @@ void py_rtepack(py::module_ &m) try {
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
-          [](Muelmat &x, Muelmat &y) { x = y; });
+          [](Muelmat &x, Muelmat &y) { x = y; },
+          "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(mm);
   workspace_group_interface(mm);
 

@@ -30,7 +30,8 @@ void py_sensor(py::module_& m) try {
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-          [](SensorPosLos& a, const SensorPosLos& b) { a = b; })
+          [](SensorPosLos& a, const SensorPosLos& b) { a = b; },
+          "A :class:`~numpy.ndarray` of the object.")
       .def(py::init<Vector3, Vector2>(), "From pos and los")
       .def_rw("pos", &SensorPosLos::pos, "Position")
       .def_rw("los", &SensorPosLos::los, "Line of sight");
@@ -64,7 +65,7 @@ void py_sensor(py::module_& m) try {
                                   .los = {row[3], row[4]}};
             });
           },
-          ":class:`~pyarts.arts.Matrix`")
+          "A :class:`~numpy.ndarray` of the object.")
       .def("__getstate__",
            [](const py::object& self) {
              return py::make_tuple(self.attr("value"));
