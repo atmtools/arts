@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "pydocs.h"
+
 void groups(const std::string& fname) {
   const auto& wsgs = internal_workspace_groups();
 
@@ -176,4 +178,38 @@ Wsv from_py(const PyWSV& wsv) {
 )--";
 }
 
-int main() { groups("py_auto_wsg"); }
+void groupdocs(const std::string& fname) {
+  const auto& wsgs = internal_workspace_groups();
+
+  std::ofstream os(fname);
+
+  os << R"(#pragma once
+
+#include <workspace.h>
+
+template <typename T>
+struct PythonWorkspaceGroupInfo {constexpr static const char* desc = "Unknown";};
+)";
+
+  for (auto& [group, wsg] : wsgs) {
+    const auto info =
+        unwrap_stars(var_string(wsg.desc,
+                                '\n',
+                                Python::group_generics_inout(group),
+                                Python::group_workspace_types(group)));
+
+    os << R"(
+template <>
+struct PythonWorkspaceGroupInfo<)"
+       << group << R"(> {
+  constexpr static const char* desc = R"-X-()"
+       << info << R"()-X-";
+};
+)";
+  }
+}
+
+int main() {
+  groups("py_auto_wsg");
+  groupdocs("py_auto_wsgdocs.h");
+}

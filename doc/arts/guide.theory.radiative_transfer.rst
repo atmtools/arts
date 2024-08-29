@@ -1,11 +1,13 @@
+.. _Sec Radiative Transfer:
+
 Radiative Transfer
-==================
+##################
 
 The step-by-step equation of ARTS radiative transfer calculation is described in this section.
-The key variables to look out for are :attr:`~pyarts.Workspace.spectral_radiance` and :attr:`~pyarts.Workspace.spectral_radiance_jacobian`.
+The key variables to look out for are :attr:`~pyarts.workspace.Workspace.spectral_radiance` and :attr:`~pyarts.workspace.Workspace.spectral_radiance_jacobian`.
 
 A single step
--------------
+*************
 
 A single step of the radiative transfer calculation in ARTS solvers assume to follow from
 
@@ -42,7 +44,7 @@ where :math:`x_0`, :math:`x_1` the levels above and below the layer, and :math:`
 Note that both :math:`x_0` and :math:`x_1` are covered by :math:`\vec{x}`.  This will matter when we compute the Jacobian.
 
 Multiple steps
---------------
+**************
 
 We are not always interested in the radiation at level 1, but quite often in the radiation
 at the end of the atmospheric path.  This, and the radiation at intermittent levels, can be computed
@@ -102,7 +104,7 @@ the step-by-step equations, but the matrix above
 may help offer important insights about potential optimizations in the future.
 
 Partial derivatives
--------------------
+*******************
 
 The Jacobian after the last step is important for the retrieval of the state of the atmosphere.
 This can be computed following

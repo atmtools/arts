@@ -31,7 +31,8 @@ void matpack_common_interface(py::class_<mtype>& c) {
   c.def_prop_rw(
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-      [](mtype& a, const mtype& b) { a = b; });
+      [](mtype& a, const mtype& b) { a = b; },
+      "A :class:`~numpy.ndarray` of the object.");
 
   c.def("__getstate__",
         [](const py::object& v) { return std::tuple{v.attr("__array__")()}; });
@@ -189,7 +190,8 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
   c.def(
       "__array__",
       [](py::object& gd, py::object dtype_, py::object copy) {
-        return gd.attr("data").attr("__array__")("dtype"_a = dtype_, "copy"_a = copy);
+        return gd.attr("data").attr("__array__")("dtype"_a = dtype_,
+                                                 "copy"_a  = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none());
@@ -197,7 +199,8 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
   c.def_prop_rw(
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-      [](mtype& a, const mtype& b) { a = b; });
+      [](mtype& a, const mtype& b) { a = b; },
+      "A :class:`~numpy.ndarray` of the object.");
 
   c.def("to_dict", [](const py::object& gd) {
     py::dict out;

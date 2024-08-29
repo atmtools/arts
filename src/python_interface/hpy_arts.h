@@ -3,13 +3,13 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
+#include <py_auto_wsgdocs.h>
 #include <xml_io.h>
 
 #include <concepts>
 #include <format>
 #include <iomanip>
 
-#include "auto_wsg.h"
 #include "python_interface_value_type.h"
 
 namespace Python {
@@ -202,6 +202,8 @@ void workspace_group_interface(py::class_<T>& c) {
 
   str_interface(c);
   xml_interface<T>(c);
+
+  c.doc() = PythonWorkspaceGroupInfo<T>::desc;
 }
 
 template <WorkspaceGroup T>
@@ -217,5 +219,7 @@ void workspace_group_interface(py::class_<ValueHolder<T>>& c) {
 
   str_interface(c);
   xml_interface<U, T>(c);
+
+  c.doc() = PythonWorkspaceGroupInfo<T>::desc;
 }
 }  // namespace Python

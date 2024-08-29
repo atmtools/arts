@@ -254,10 +254,10 @@ void py_lbl(py::module_& m) try {
   workspace_group_interface(absd);
   absd.def_rw("data",
               &AbsorptionBand::data,
-              ":class:`~pyarts.arts.AbsorptionBandData`")
+              ":class:`~pyarts.arts.AbsorptionBandData` The band data")
       .def_rw("key",
               &AbsorptionBand::key,
-              ":class:`~pyarts.arts.QuantumIdentifier`");
+              ":class:`~pyarts.arts.QuantumIdentifier` The key to the band");
 
   auto aoab =
       py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(
