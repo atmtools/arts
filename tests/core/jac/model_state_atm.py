@@ -97,21 +97,22 @@ ws.jacobian_targetsAddSpeciesIsotopologueRatio(species=isot)
 
 # %% Line center and Einstein and G0 and Y
 
-key = ws.absorption_bands[0].key
-ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
-ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="a")
-ws.jacobian_targetsAddLineParameter(
-    id=key, line_index=0, parameter="G0", species="O2"
-)
-ws.jacobian_targetsAddLineParameter(
-    id=key, line_index=0, parameter="Y", species="O2"
-)
-ws.jacobian_targetsAddLineParameter(
-    id=key, line_index=0, parameter="G0", species="AIR"
-)
-ws.jacobian_targetsAddLineParameter(
-    id=key, line_index=0, parameter="Y", species="AIR"
-)
+# FIXME: Make a better interface!
+# key = ws.absorption_bands[0].key
+# ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
+# ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="a")
+# ws.jacobian_targetsAddLineParameter(
+#     id=key, line_index=0, parameter="G0", species="O2"
+# )
+# ws.jacobian_targetsAddLineParameter(
+#     id=key, line_index=0, parameter="Y", species="O2"
+# )
+# ws.jacobian_targetsAddLineParameter(
+#     id=key, line_index=0, parameter="G0", species="AIR"
+# )
+# ws.jacobian_targetsAddLineParameter(
+#     id=key, line_index=0, parameter="Y", species="AIR"
+# )
 
 
 # %% Surface temperature and altitude
