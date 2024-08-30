@@ -31,16 +31,6 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: linux-reldeb-gcc
-            os: ubuntu-22.04
-            preset: relnondebug-gcc-conda
-            pyarts: "yes"
-            check: "no"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 4
-            jcheck: 2
-
           - name: linux-nofortran-gcc
             os: ubuntu-22.04
             preset: nofortran-gcc-conda
@@ -74,16 +64,6 @@ jobs:
           - name: macm1-default-clang
             os: macos-14
             preset: default-clang-conda
-            pyarts: "yes"
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-mac.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: macm1-debug-clang
-            os: macos-14
-            preset: debug-clang-conda
             pyarts: "yes"
             check: "yes"
             doc: "no"
