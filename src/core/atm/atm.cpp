@@ -15,9 +15,32 @@
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
+#include "enumsFieldComponent.h"
 #include "hitran_species.h"
 #include "interp.h"
 #include "isotopologues.h"
+
+AtmKey to_wind(const String& x) {
+  switch(to<FieldComponent>(x)) {
+    case FieldComponent::u:
+      return AtmKey::wind_u;
+    case FieldComponent::v:
+      return AtmKey::wind_v;
+    case FieldComponent::w:
+      return AtmKey::wind_w;
+  }
+}
+
+AtmKey to_mag(const String& x) {
+  switch(to<FieldComponent>(x)) {
+    case FieldComponent::u:
+      return AtmKey::mag_u;
+    case FieldComponent::v:
+      return AtmKey::mag_v;
+    case FieldComponent::w:
+      return AtmKey::mag_w;
+  }
+}
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try {
   return specs.at(x);

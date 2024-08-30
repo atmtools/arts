@@ -148,6 +148,7 @@ add_library(artsworkspace STATIC
   m_cloudbox.cc
   m_cloudradar.cc
   m_conversion.cc
+  m_covmat.cc
   m_disort.cc
   m_disort_settings.cc
   m_doit.cc

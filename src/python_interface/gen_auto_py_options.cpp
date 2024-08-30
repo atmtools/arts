@@ -100,7 +100,9 @@ void enum_options(const std::string& fname) {
   cc << R"-x-(#include "python_interface.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 
 #include <hpy_arts.h>
 

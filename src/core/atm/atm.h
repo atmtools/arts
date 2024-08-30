@@ -26,6 +26,9 @@
 #include <utility>
 #include <variant>
 
+AtmKey to_wind(const String&);
+AtmKey to_mag(const String&);
+
 //! A type to name particulates (and let them be type-independent)
 struct ParticulatePropertyTag {
   String name;
