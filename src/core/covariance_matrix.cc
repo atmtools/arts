@@ -6,14 +6,97 @@
   \brief  Implementation of CovarianceMatrix class.
 */
 
+#include "covariance_matrix.h"
+
 #include <queue>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-#include "covariance_matrix.h"
 #include "lin_alg.h"
 #include "matpack_math.h"
+
+BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
+  data = std::move(dense);
+  return *this;
+}
+
+BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Sparse> sparse) {
+  data = std::move(sparse);
+  return *this;
+}
+
+BlockMatrix &BlockMatrix::operator=(const Matrix &dense) {
+  data = std::make_shared<Matrix>(dense);
+  return *this;
+}
+
+BlockMatrix &BlockMatrix::operator=(const Sparse &sparse) {
+  data = std::make_shared<Sparse>(sparse);
+  return *this;
+}
+
+bool BlockMatrix::not_null() const {
+  if (is_dense()) return std::get<std::shared_ptr<Matrix>>(data) != nullptr;
+  return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
+}
+
+bool BlockMatrix::is_dense() const {
+  return std::holds_alternative<std::shared_ptr<Matrix>>(data);
+}
+
+bool BlockMatrix::is_sparse() const { return not is_dense(); }
+
+Matrix &BlockMatrix::dense() {
+  ARTS_ASSERT(is_dense());
+  return *std::get<std::shared_ptr<Matrix>>(data);
+}
+
+const Matrix &BlockMatrix::dense() const {
+  ARTS_ASSERT(is_dense());
+  return *std::get<std::shared_ptr<Matrix>>(data);
+}
+
+Sparse &BlockMatrix::sparse() {
+  ARTS_ASSERT(is_sparse());
+  return *std::get<std::shared_ptr<Sparse>>(data);
+}
+
+const Sparse &BlockMatrix::sparse() const {
+  ARTS_ASSERT(is_sparse());
+  return *std::get<std::shared_ptr<Sparse>>(data);
+}
+
+Vector BlockMatrix::diagonal() const {
+  if (is_dense()) return ::diagonal(*std::get<std::shared_ptr<Matrix>>(data));
+  return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
+}
+
+Index BlockMatrix::ncols() const {
+  if (is_dense()) return dense().ncols();
+  return sparse().ncols();
+}
+
+Index BlockMatrix::nrows() const {
+  if (is_dense()) return dense().nrows();
+  return sparse().nrows();
+}
+
+std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
+  if (m.is_dense()) {
+    os << m.dense();
+  } else {
+    os << m.sparse();
+  }
+  return os;
+}
+
+std::array<Index, 2> BlockMatrix::shape() const {
+  if (is_dense()) {
+    return dense().shape();
+  }
+  return {sparse().nrows(), sparse().ncols()};
+}
 
 //------------------------------------------------------------------------------
 // Correlations
@@ -218,16 +301,16 @@ Index CovarianceMatrix::ndiagblocks() const {
 }
 
 Index CovarianceMatrix::ninvdiagblocks() const {
-    Index m = 0;
+  Index m = 0;
 
-    for (const Block &c : inverses_) {
-        Index i, j;
-        std::tie(i, j) = c.get_indices();
-        if (i == j) {
-            ++m;
-        }
+  for (const Block &c : inverses_) {
+    Index i, j;
+    std::tie(i, j) = c.get_indices();
+    if (i == j) {
+      ++m;
     }
-    return m;
+  }
+  return m;
 }
 
 Index CovarianceMatrix::nblocks() const { return correlations_.size(); }
@@ -281,17 +364,16 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     Index i, j;
     std::tie(i, j) = b.get_indices();
 
-    Index row_start = jis[i][0];
+    Index row_start  = jis[i][0];
     Index row_extent = jis[i][1] - jis[i][0] + 1;
-    Range row_range = b.get_row_range();
-    if ((row_range.offset != row_start) ||
-        (row_range.extent != row_extent)) {
+    Range row_range  = b.get_row_range();
+    if ((row_range.offset != row_start) || (row_range.extent != row_extent)) {
       return false;
     }
 
-    Index column_start = jis[j][0];
+    Index column_start  = jis[j][0];
     Index column_extent = jis[j][1] - jis[j][0] + 1;
-    Range column_range = b.get_column_range();
+    Range column_range  = b.get_column_range();
     if ((column_range.offset != column_start) ||
         (column_range.extent != column_extent)) {
       return false;
@@ -434,8 +516,7 @@ void CovarianceMatrix::invert_correlation_block(
 
     if (ci == cj) {
       Index extent = blocks[i]->get_row_range().extent;
-      block_start.insert(
-          std::make_pair(ci, blocks[i]->get_row_range().offset));
+      block_start.insert(std::make_pair(ci, blocks[i]->get_row_range().offset));
       block_extent.insert(
           std::make_pair(ci, blocks[i]->get_row_range().extent));
       block_start_cont.insert(std::make_pair(ci, n));
@@ -618,8 +699,7 @@ std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
   for (const Block &b : covmat.correlations_) {
     Index i, j;
     std::tie(i, j) = b.get_indices();
-    os << "\ti = " << i << ", j = " << j << ": "
-       << b.get_row_range().extent;
+    os << "\ti = " << i << ", j = " << j << ": " << b.get_row_range().extent;
     os << " x " << b.get_column_range().extent;
     os << ", has inverse: "
        << (covmat.has_inverse(std::make_pair(i, j)) ? "yes" : "no");

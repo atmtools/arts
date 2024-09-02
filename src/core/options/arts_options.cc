@@ -65,14 +65,14 @@ std::vector<EnumeratedOption> internal_options_create() {
                        .desc = R"(A key to identify an atmospheric property.
 )",
                        .values_and_desc = {
-                           Value{"t", "Temperature [K]"},
-                           Value{"p", "Pressure [Pa]"},
-                           Value{"wind_u", "Wind field U-component [m/s]"},
-                           Value{"wind_v", "Wind field V-component [m/s]"},
-                           Value{"wind_w", "Wind field W-component [m/s]"},
-                           Value{"mag_u", "Magnetic field U-component [T]"},
-                           Value{"mag_v", "Magnetic field V-component [T]"},
-                           Value{"mag_w", "Magnetic field W-component [T]"},
+                           Value{"t", "temperature", "Temperature [K]"},
+                           Value{"p", "pressure", "Pressure [Pa]"},
+                           Value{"wind_u", "WindU", "Wind field U-component [m/s]"},
+                           Value{"wind_v", "WindV", "Wind field V-component [m/s]"},
+                           Value{"wind_w", "WindW", "Wind field W-component [m/s]"},
+                           Value{"mag_u", "MagU", "Magnetic field U-component [T]"},
+                           Value{"mag_v", "MagV", "Magnetic field V-component [T]"},
+                           Value{"mag_w", "MagW", "Magnetic field W-component [T]"},
                        }});
 
   opts.emplace_back(EnumeratedOption{
