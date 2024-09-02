@@ -1,7 +1,4 @@
-"""Visualize an absorption lookup table.
-
-Author: oliver.lemke@uni-hamburg.de
-"""
+"""Visualize an absorption lookup table."""
 import re
 from itertools import zip_longest
 
