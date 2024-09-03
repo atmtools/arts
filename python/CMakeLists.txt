@@ -63,7 +63,7 @@ configure_file(MANIFEST.in MANIFEST.in)
 
 add_custom_target(pyarts
   ALL
-  DEPENDS pyarts_cpp pyarts_copy_python_source_files pyarts_copy_test_python_source_files pyarts_copy_bin_python_source_files
+  DEPENDS pyarts_cpp pyarts_cpp_stub pyarts_copy_python_source_files pyarts_copy_test_python_source_files pyarts_copy_bin_python_source_files
   COMMENT "Updating ARTS python package.")
 add_custom_target(pyarts-package
   ALL
