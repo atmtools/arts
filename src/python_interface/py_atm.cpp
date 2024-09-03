@@ -210,6 +210,10 @@ void py_atm(py::module_ &m) try {
            [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
              atm[x.Species()] = data;
            })
+      .def("__setitem__",
+           [](AtmPoint &atm, const ScatteringSpeciesProperty &x, Numeric data) {
+             atm[x] = data;
+           })
       .def("keys", &AtmPoint::keys, "Available keys")
       .def(
           "no_isotopologues",
@@ -310,6 +314,10 @@ void py_atm(py::module_ &m) try {
            [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
              atm[x] = data;
            })
+      .def("__setitem__",
+           [](AtmField &atm,
+              const ScatteringSpeciesProperty &x,
+              const Atm::Data &data) { atm[x] = data; })
       .def(
           "at",
           [](const AtmField &atm,
