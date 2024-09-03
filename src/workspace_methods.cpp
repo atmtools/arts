@@ -3395,15 +3395,18 @@ the level before and one for the level after.
       .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
-  wsm_data["spectral_radianceStepByStep"] = {
+  wsm_data["spectral_radianceStepByStepEmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path.
 
 This uses a step-by-step solver to propagate background radiation along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
+      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
       .in     = {"ray_path_transmission_matrix",
+                 "ray_path_transmission_matrix_cumulative",
+                 "ray_path_transmission_matrix_jacobian",
                  "ray_path_spectral_radiance_source",
+                 "ray_path_spectral_radiance_source_jacobian",
                  "spectral_radiance_background"},
   };
 

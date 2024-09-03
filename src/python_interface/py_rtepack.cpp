@@ -13,6 +13,7 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "rtepack_rtestep.h"
 
 namespace Python {
 template <typename T, Index M, size_t... N>
@@ -336,7 +337,7 @@ void py_rtepack(py::module_ &m) try {
         ArrayOfStokvecMatrix dI;
 
         const auto Pi = forward_cumulative_transmission(Ts);
-        rtepack::two_level_linear_emission_step(
+        rtepack::two_level_linear_emission_step_by_step_full(
             I, dI, Ts, Pi, dTs, Js, dJs, I0);
 
         return std::pair{I, dI};
