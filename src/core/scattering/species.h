@@ -10,9 +10,30 @@
 #include <iostream>
 #include <variant>
 
+#include "properties.h"
+#include "psd.h"
+
 namespace Scattering {
 
-class ScatteringHabit {};
+using PSD = std::variant<MGDSingleMoment>;
+
+class ParticleHabit {
+ public:
+  ParticleHabit(){};
+  ParticleHabit(std::string scattering_data){};
+};
+
+class ScatteringHabit {
+ public:
+  ScatteringHabit(){};
+  ScatteringHabit(ParticleHabit particle_habit_, PSD psd_)
+      : particle_habit(particle_habit), psd(psd){};
+
+ private:
+  ParticleHabit particle_habit;
+  PSD psd;
+};
+
 class HenyeyGreenstein {
   Numeric g = 0.0;
 
@@ -47,6 +68,9 @@ inline std::ostream& operator<<(std::ostream& os,
 }
 
 using HenyeyGreenstein = Scattering::HenyeyGreenstein;
+using ParticleHabit = Scattering::ParticleHabit;
+using ScatteringHabit = Scattering::ScatteringHabit;
+using PSD = Scattering::PSD;
 
 std::ostream& operator<<(
     std::ostream& os,

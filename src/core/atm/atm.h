@@ -10,6 +10,7 @@
 #include <matpack.h>
 #include <operators.h>
 #include <quantum_numbers.h>
+#include <scattering/properties.h>
 #include <species.h>
 
 #include <algorithm>
@@ -29,29 +30,10 @@
 AtmKey to_wind(const String&);
 AtmKey to_mag(const String&);
 
-//! A type to name particulates (and let them be type-independent)
-struct ParticulatePropertyTag {
-  String name;
-
-  auto operator<=>(const ParticulatePropertyTag &) const = default;
-
-  friend std::ostream &operator<<(std::ostream &,
-                                  const ParticulatePropertyTag &);
-};
-
-namespace std {
-template <>
-struct hash<ParticulatePropertyTag> {
-  std::size_t operator()(const ParticulatePropertyTag &pp) const {
-    return std::hash<String>{}(pp.name);
-  }
-};
-}  // namespace std
-
 namespace Atm {
 template <typename T>
-concept isParticulatePropertyTag =
-    std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
+concept isScatteringSpeciesProperty =
+    std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
 
 template <typename T>
 concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
@@ -68,32 +50,36 @@ template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
-                  isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
+concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+                  isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
                             SpeciesEnum,
                             SpeciesIsotope,
                             QuantumIdentifier,
-                            ParticulatePropertyTag>;
+                            ScatteringSpeciesProperty>;
 
 template <typename T>
 concept ListKeyType = requires(T a) {
-  { a.size() } -> matpack::integral;
-  { a[0] } -> KeyType;
-};
+                        { a.size() } -> matpack::integral;
+                        { a[0] } -> KeyType;
+                      };
 
 template <typename T>
 concept ListOfNumeric = requires(T a) {
-  { matpack::mdshape(a) } -> std::same_as<std::array<Index, 1>>;
-  { matpack::mdvalue(a, {Index{0}}) } -> std::same_as<Numeric>;
-};
+                          {
+                            matpack::mdshape(a)
+                            } -> std::same_as<std::array<Index, 1>>;
+                          {
+                            matpack::mdvalue(a, {Index{0}})
+                            } -> std::same_as<Numeric>;
+                        };
 
 struct Point {
   std::unordered_map<SpeciesEnum, Numeric> specs{};
   std::unordered_map<SpeciesIsotope, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
-  std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
+  std::unordered_map<ScatteringSpeciesProperty, Numeric> partp{};
 
   Numeric pressure{NAN};
   Numeric temperature{NAN};
@@ -111,12 +97,14 @@ struct Point {
   Numeric operator[](const QuantumIdentifier &x) const;
   Numeric operator[](const ParticulatePropertyTag &x) const;
   Numeric operator[](AtmKey x) const;
+  Numeric &operator[](ScatteringSpeciesProperty x) const;
 
   Numeric &operator[](SpeciesEnum x);
   Numeric &operator[](const SpeciesIsotope &x);
   Numeric &operator[](const QuantumIdentifier &x);
   Numeric &operator[](const ParticulatePropertyTag &x);
   Numeric &operator[](AtmKey x);
+  Numeric &operator[](ScatteringSpeciesProperty x);
 
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
@@ -274,7 +262,7 @@ struct Field final : FieldMap::Map<Data,
                                    SpeciesEnum,
                                    SpeciesIsotope,
                                    QuantumIdentifier,
-                                   ParticulatePropertyTag> {
+                                   ScatteringSpeciesProperty> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
@@ -288,6 +276,10 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD:src/core/atm/atm.h
+>>>>>>> b6762b9bd (Prototype of PSD class.)
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
       const;
@@ -297,6 +289,17 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
+=======
+  [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
+      &partp() const;
+
+  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
+  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
+  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
+  [[nodiscard]] std::unordered_map<Key, Data> &other();
+  [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &partp();
+>>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
@@ -323,6 +326,18 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
+<<<<<<< HEAD:src/core/atm/atm.h
+=======
+
+bool operator==(const KeyVal &, Key);
+bool operator==(Key, const KeyVal &);
+bool operator==(const KeyVal &, const Species::Species &);
+bool operator==(const Species::Species &, const KeyVal &);
+bool operator==(const KeyVal &, const QuantumIdentifier &);
+bool operator==(const QuantumIdentifier &, const KeyVal &);
+bool operator==(const KeyVal &, const ScatteringSpeciesProperty &);
+bool operator==(const ScatteringSpeciesProperty &, const KeyVal &);
+>>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 }  // namespace Atm
 
 using AtmKeyVal         = Atm::KeyVal;
