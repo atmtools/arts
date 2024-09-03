@@ -8,6 +8,7 @@ dependencies:
         - doxygen
         - docutils
         - eigen
+        - fftw
         - gcc
         - gfortran
         - gmp

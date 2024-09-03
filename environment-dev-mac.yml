@@ -7,6 +7,7 @@ dependencies:
         - docutils
         - doxygen
         - eigen
+        - fftw
         - gfortran
         - lark-parser
         - libclang
