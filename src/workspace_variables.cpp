@@ -535,11 +535,12 @@ radiance.
   };
 
   wsv_data["model_state_vector"] = {
-      .desc = R"(A state vector of the model.
+      .desc          = R"(A state vector of the model.
 
 In classical ``F(x) = y``-notation, this is the ``x``.
 )",
-      .type = "Vector",
+      .type          = "Vector",
+      .default_value = Vector{},
   };
 
   wsv_data["model_state_vector_apriori"] = {
@@ -559,9 +560,32 @@ In classical ``F(x) = y``-notation, this is the ``y``.
   };
 
   wsv_data["measurement_vector_fitted"] = {
-      .desc = R"(As *measurement_vector*, but fitted to the model.
+      .desc          = R"(As *measurement_vector*, but fitted to the model.
 )",
-      .type = "Vector",
+      .type          = "Vector",
+      .default_value = Vector{},
+  };
+
+  wsv_data["measurement_gain_matrix"] = {
+      .desc =
+          "Contribution function (or gain) matrix.\n"
+          "\n"
+          "This matrix is the partial derivative of the retrieved state vector\n"
+          "with respect to the *measurement_vector*).\n"
+          "\n"
+          "Usage: Used and set by inversion methods. \n",
+      .type = "Matrix",
+  };
+
+  wsv_data["measurement_averaging_kernel"] = {
+      .desc =
+          "Averaging kernel matrix.\n"
+          "\n"
+          "This matrix is the partial derivative of the retrieved state vector\n"
+          "with respect to the *measurement_vector*.\n"
+          "\n"
+          "Usage: Used and set by inversion methods. \n",
+      .type = "Matrix",
   };
 
   wsv_data["inversion_iterate_agenda_counter"] = {

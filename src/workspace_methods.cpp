@@ -3522,90 +3522,101 @@ The default setting triggers an error if "lm" is selected.
     is ignored by this WSM.
 )",
       .author = {"Patrick Eriksson"},
-      .out =
-          {
-              "model_state_vector",
-              "measurement_vector_fitted",
-              "measurement_jacobian",
-          },
-      .gout =
-          {
-              "measurement_gain_matrix",
-              "oem_diagnostics",
-              "lm_ga_history",
-              "errors",
-          },
-      .gout_type =
-          {
-              "Matrix",
-              "Vector",
-              "Vector",
-              "ArrayOfString",
-          },
+      .out    = {"model_state_vector",
+                 "measurement_vector_fitted",
+                 "measurement_jacobian",
+                 "measurement_gain_matrix"},
+      .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
+      .gout_type = {"Vector", "Vector", "ArrayOfString"},
       .gout_desc =
-          {
-              "Contribution function (or gain) matrix",
-              "Basic diagnostics of an OEM type inversion",
-              "The series of gamma values for a Marquardt-levenberg inversion",
-              "Errors encountered during OEM execution",
-          },
-      .in =
-          {
-              "model_state_vector",
-              "measurement_vector_fitted",
-              "measurement_jacobian",
-              "model_state_vector_apriori",
-              "model_state_covariance_matrix",
-              "measurement_vector",
-              "measurement_vector_error_covariance_matrix",
-              "jacobian_targets",
-              "inversion_iterate_agenda",
-          },
-      .gin =
-          {
-              "method",
-              "max_start_cost",
-              "model_state_covariance_matrix_normalization",
-              "max_iter",
-              "stop_dx",
-              "lm_ga_settings",
-              "clear_matrices",
-              "display_progress",
-          },
-      .gin_type =
-          {
-              "String",
-              "Numeric",
-              "Vector",
-              "Index",
-              "Numeric",
-              "Vector",
-              "Index",
-              "Index",
-          },
-      .gin_value =
-          {
-              std::nullopt,
-              Numeric{std::numeric_limits<Numeric>::infinity()},
-              Vector{},
-              Index{10},
-              Numeric{0.01},
-              Vector{},
-              Index{0},
-              Index{0},
-          },
+          {"Basic diagnostics of an OEM type inversion",
+           "The series of gamma values for a Marquardt-levenberg inversion",
+           "Errors encountered during OEM execution"},
+      .in        = {"model_state_vector",
+                    "measurement_vector_fitted",
+                    "measurement_jacobian",
+                    "model_state_vector_apriori",
+                    "model_state_covariance_matrix",
+                    "measurement_vector",
+                    "measurement_vector_error_covariance_matrix",
+                    "inversion_iterate_agenda"},
+      .gin       = {"method",
+                    "max_start_cost",
+                    "model_state_covariance_matrix_normalization",
+                    "max_iter",
+                    "stop_dx",
+                    "lm_ga_settings",
+                    "clear_matrices",
+                    "display_progress"},
+      .gin_type  = {"String",
+                    "Numeric",
+                    "Vector",
+                    "Index",
+                    "Numeric",
+                    "Vector",
+                    "Index",
+                    "Index"},
+      .gin_value = {std::nullopt,
+                    Numeric{std::numeric_limits<Numeric>::infinity()},
+                    Vector{},
+                    Index{10},
+                    Numeric{0.01},
+                    Vector{},
+                    Index{0},
+                    Index{0}},
       .gin_desc =
-          {
-              "Iteration method. For this and all options below, see further above",
-              "Maximum allowed value of cost function at start",
-              "Normalisation of Sx",
-              "Maximum number of iterations",
-              "Stop criterion for iterative inversions",
-              "Settings associated with the ga factor of the LM method",
-              "An option to save memory",
-              "Flag to control if inversion diagnostics shall be printed on the screen",
-          },
+          {"Iteration method. For this and all options below, see further above",
+           "Maximum allowed value of cost function at start",
+           "Normalisation of Sx",
+           "Maximum number of iterations",
+           "Stop criterion for iterative inversions",
+           "Settings associated with the ga factor of the LM method",
+           "An option to save memory",
+           "Flag to control if inversion diagnostics shall be printed on the screen"},
       .pass_workspace = true,
+  };
+
+  wsm_data["measurement_vector_error_covariance_matrix_observation_systemCalc"] = {
+      .desc =
+          "Calculates the covariance matrix describing the error due to uncertainties\n"
+          "in the observation system.\n\nThe uncertainties of the observation system are\n"
+          "described by *measurement_vector_error_covariance_matrix*, which must be set by the user to include the\n"
+          "relevant contributions from the measurement and the forward model.\n"
+          "\n"
+          "Prerequisite for the calculation of ``measurement_vector_error_covariance_matrix_observation_system`` is a successful OEM\n"
+          "computation where also the gain matrix has been computed.\n",
+      .author = {"Simon Pfreundschuh"},
+      .gout = {"measurement_vector_error_covariance_matrix_observation_system"},
+      .gout_type = {"Matrix"},
+      .gout_desc =
+          {"Covariance matrix describing the retrieval error due to uncertainties of the observation system."},
+      .in = {"measurement_gain_matrix",
+             "measurement_vector_error_covariance_matrix"},
+  };
+
+  wsm_data["model_state_covariance_matrix_smoothing_errorCalc"] = {
+      .desc =
+          "Calculates the covariance matrix describing the error due to smoothing.\n"
+          "\n"
+          "The calculation of ``model_state_covariance_matrix_smoothing_error`` also requires the averaging kernel matrix *measurement_averaging_kernel*\n"
+          "to be computed after a successful OEM calculation.\n",
+      .author    = {"Simon Pfreundschuh"},
+      .gout      = {"model_state_covariance_matrix_smoothing_error"},
+      .gout_type = {"Matrix"},
+      .gout_desc =
+          {"Covariance matrix describing the retrieval error due to smoothing."},
+      .in = {"measurement_averaging_kernel", "model_state_covariance_matrix"},
+  };
+
+  wsm_data["measurement_averaging_kernelCalc"] = {
+      .desc =
+          "Calculate the averaging kernel matrix.\n\nThis is done by describing the sensitivity of the\n"
+          "OEM retrieval with respect to the true state of the system. A prerequisite\n"
+          "for the calculation of the averaging kernel matrix is a successful OEM\n"
+          "calculation in which the *measurement_jacobian* and the gain matrix *measurement_gain_matrix* have been calculated.\n",
+      .author = {"Simon Pfreundschuh"},
+      .out    = {"measurement_averaging_kernel"},
+      .in     = {"measurement_gain_matrix", "measurement_jacobian"},
   };
 
   wsm_data["model_state_vector_aprioriFromState"] = {
@@ -3895,22 +3906,22 @@ The default setting triggers an error if "lm" is selected.
   };
 
   wsm_data["RetrievalAddSurface"] = {
-      .desc   = R"(Add surface property the retrieval setup.
+      .desc      = R"(Add surface property the retrieval setup.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in     = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin    = {"species", "matrix", "inverse", "dvmr"},
-      .gin_type =
-          {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag",
-           "BlockMatrix",
-           "BlockMatrix",
-           "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .gin       = {"species", "matrix", "inverse", "dvmr"},
+      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag",
+                    "BlockMatrix",
+                    "BlockMatrix",
+                    "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The property added to the retrieval system",
-                    "The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The property added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddAtmosphere"] = {
@@ -3926,10 +3937,11 @@ The default setting triggers an error if "lm" is selected.
            "BlockMatrix",
            "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The property added to the retrieval system",
-                    "The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The property added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddSpeciesVMR"] = {
@@ -3941,10 +3953,11 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"species", "matrix", "inverse", "dvmr"},
       .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The species added to the retrieval system",
-                    "The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The species added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddSpeciesIsotopologueRatio"] = {
@@ -3956,10 +3969,11 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"species", "matrix", "inverse", "dvmr"},
       .gin_type  = {"SpeciesIsotope", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The isotopologue ratio added to the retrieval system",
-                    "The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The isotopologue ratio added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddMagneticField"] = {
@@ -3971,10 +3985,11 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"component", "matrix", "inverse", "dvmr"},
       .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc = {"The magnetic field component added to the retrieval system",
-                   "The covariance diagonal block matrix",
-                   "The inverse covariance diagonal block matrix",
-                   "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The magnetic field component added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddWindField"] = {
@@ -3986,10 +4001,11 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"component", "matrix", "inverse", "dvmr"},
       .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc = {"The magnetic field component added to the retrieval system",
-                   "The covariance diagonal block matrix",
-                   "The inverse covariance diagonal block matrix",
-                   "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The magnetic field component added to the retrieval system",
+           "The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddTemperature"] = {
@@ -4001,9 +4017,10 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"matrix", "inverse", "dvmr"},
       .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalAddPressure"] = {
@@ -4015,9 +4032,10 @@ The default setting triggers an error if "lm" is selected.
       .gin       = {"matrix", "inverse", "dvmr"},
       .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc  = {"The covariance diagonal block matrix",
-                    "The inverse covariance diagonal block matrix",
-                    "The delta of the value incase manual perturbation is needed"},
+      .gin_desc =
+          {"The covariance diagonal block matrix",
+           "The inverse covariance diagonal block matrix",
+           "The delta of the value incase manual perturbation is needed"},
   };
 
   wsm_data["RetrievalFinalizeDiagonal"] = {

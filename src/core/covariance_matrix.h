@@ -50,80 +50,37 @@ class BlockMatrix {
   BlockMatrix(const Matrix &dense) : data(std::make_shared<Matrix>(dense)) {}
   BlockMatrix(const Sparse &sparse) : data(std::make_shared<Sparse>(sparse)) {}
 
-  BlockMatrix &operator=(std::shared_ptr<Matrix> dense) {
-    data = std::move(dense);
-    return *this;
-  }
+  BlockMatrix &operator=(std::shared_ptr<Matrix> dense);
 
-  BlockMatrix &operator=(std::shared_ptr<Sparse> sparse) {
-    data = std::move(sparse);
-    return *this;
-  }
+  BlockMatrix &operator=(std::shared_ptr<Sparse> sparse);
 
-  BlockMatrix &operator=(const Matrix &dense) {
-    data = std::make_shared<Matrix>(dense);
-    return *this;
-  }
+  BlockMatrix &operator=(const Matrix &dense);
 
-  BlockMatrix &operator=(const Sparse &sparse) {
-    data = std::make_shared<Sparse>(sparse);
-    return *this;
-  }
+  BlockMatrix &operator=(const Sparse &sparse);
 
-  [[nodiscard]] bool not_null() const {
-    if (is_dense()) return std::get<std::shared_ptr<Matrix>>(data) != nullptr;
-    return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
-  }
+  [[nodiscard]] bool not_null() const;
 
-  [[nodiscard]] bool is_dense() const {
-    return std::holds_alternative<std::shared_ptr<Matrix>>(data);
-  }
+  [[nodiscard]] bool is_dense() const;
 
-  [[nodiscard]] bool is_sparse() const { return not is_dense(); }
+  [[nodiscard]] bool is_sparse() const;
 
-  [[nodiscard]] Matrix &dense() {
-    ARTS_ASSERT(is_dense());
-    return *std::get<std::shared_ptr<Matrix>>(data);
-  }
+  [[nodiscard]] Matrix &dense();
 
-  [[nodiscard]] const Matrix &dense() const {
-    ARTS_ASSERT(is_dense());
-    return *std::get<std::shared_ptr<Matrix>>(data);
-  }
+  [[nodiscard]] const Matrix &dense() const;
 
-  [[nodiscard]] Sparse &sparse() {
-    ARTS_ASSERT(is_sparse());
-    return *std::get<std::shared_ptr<Sparse>>(data);
-  }
+  [[nodiscard]] Sparse &sparse();
 
-  [[nodiscard]] const Sparse &sparse() const {
-    ARTS_ASSERT(is_sparse());
-    return *std::get<std::shared_ptr<Sparse>>(data);
-  }
+  [[nodiscard]] const Sparse &sparse() const;
 
-  [[nodiscard]] Vector diagonal() const {
-    if (is_dense()) return ::diagonal(*std::get<std::shared_ptr<Matrix>>(data));
-    return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
-  }
+  [[nodiscard]] Vector diagonal() const;
 
-  [[nodiscard]] Index ncols() const {
-    if (is_dense()) return dense().ncols();
-    return sparse().ncols();
-  }
+  [[nodiscard]] Index ncols() const;
 
-  [[nodiscard]] Index nrows() const {
-    if (is_dense()) return dense().nrows();
-    return sparse().nrows();
-  }
+  [[nodiscard]] Index nrows() const;
 
-  friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
-    if (m.is_dense()) {
-      os << m.dense();
-    } else {
-      os << m.sparse();
-    }
-    return os;
-  }
+  friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m);
+
+  [[nodiscard]] std::array<Index, 2> shape() const;
 };
 
 //------------------------------------------------------------------------------

@@ -677,7 +677,6 @@ void OEM_checks(const Workspace &ws,
                 const CovarianceMatrix &covmat_sx,
                 const Vector &y,
                 const CovarianceMatrix &covmat_se,
-                const JacobianTargets &jacobian_targets,
                 const String &method,
                 const Vector &x_norm,
                 const Index &max_iter,
@@ -685,7 +684,6 @@ void OEM_checks(const Workspace &ws,
                 const Vector &lm_ga_settings,
                 const Index &clear_matrices,
                 const Index &display_progress) {
-  const Index nq = jacobian_targets.target_count();
   const Index n  = xa.nelem();
   const Index m  = y.nelem();
 
@@ -707,16 +705,6 @@ void OEM_checks(const Workspace &ws,
   ARTS_USER_ERROR_IF(
       (jacobian.ncols() != n) && (!jacobian.empty()),
       "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
-
-  // ArrayOfArrayOfIndex jacobian_indices;
-  // bool any_affine;
-  //jac_ranges_indices(jacobian_indices, any_affine, jacobian_targets);
-  // ARTS_USER_ERROR_IF (jacobian_indices.nelem() != nq,
-  //       "Different number of elements in *jacobian_targets* "
-  //       "and *jacobian_indices*.");
-  // ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
-  //       "Size of *covmat_sx* do not agree with Jacobian "
-  //       "information (*jacobian_indices*).");
 
   // Check GINs
   ARTS_USER_ERROR_IF(

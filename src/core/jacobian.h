@@ -168,6 +168,7 @@ concept target_type = requires(T a) {
   { a.target_pos } -> std::same_as<Size&>;
   { a.x_start } -> std::same_as<Size&>;
   { a.x_size } -> std::same_as<Size&>;
+  a.type;
 };
 
 template <typename U, typename T>

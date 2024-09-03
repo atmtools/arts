@@ -96,7 +96,6 @@ void OEM(const Workspace& ws,
          const CovarianceMatrix& model_state_covariance_matrix,
          const Vector& measurement_vector,
          const CovarianceMatrix& measurement_vector_error_covariance_matrix,
-         const JacobianTargets& jacobian_targets,
          const Agenda& inversion_iterate_agenda,
          const String& method,
          const Numeric& max_start_cost,
@@ -123,7 +122,6 @@ void OEM(const Workspace& ws,
              model_state_covariance_matrix,
              measurement_vector,
              measurement_vector_error_covariance_matrix,
-             jacobian_targets,
              method,
              model_state_covariance_matrix_normalization,
              max_iter,
@@ -384,4 +382,76 @@ void OEM(const Workspace& ws,
       mult(measurement_gain_matrix, tmp3, tmp1);
     }
   }
+}
+
+void measurement_vector_error_covariance_matrix_observation_systemCalc(
+    Matrix& measurement_vector_error_covariance_matrix_observation_system,
+    const Matrix& measurement_gain_matrix,
+    const CovarianceMatrix& measurement_vector_error_covariance_matrix) {
+  Index n(measurement_gain_matrix.nrows()), m(measurement_gain_matrix.ncols());
+  Matrix tmp1(m, n);
+
+  ARTS_USER_ERROR_IF(
+      (m == 0) || (n == 0),
+      "The gain matrix *measurement_gain_matrix* is required to compute the observation error covariance matrix.");
+  ARTS_USER_ERROR_IF(
+      (measurement_vector_error_covariance_matrix.nrows() != m) ||
+          (measurement_vector_error_covariance_matrix.ncols() != m),
+      "The covariance matrix measurement_vector_error_covariance_matrix has invalid dimensions.");
+
+  measurement_vector_error_covariance_matrix_observation_system.resize(n, n);
+  mult(tmp1,
+       measurement_vector_error_covariance_matrix,
+       transpose(measurement_gain_matrix));
+  mult(measurement_vector_error_covariance_matrix_observation_system,
+       measurement_gain_matrix,
+       tmp1);
+}
+
+void model_state_covariance_matrix_smoothing_errorCalc(
+    Matrix& model_state_covariance_matrix_smoothing_error,
+    const Matrix& measurement_averaging_kernel,
+    const CovarianceMatrix& model_state_covariance_matrix) {
+  Index n(measurement_averaging_kernel.ncols());
+  Matrix tmp1(n, n), tmp2(n, n);
+
+  ARTS_USER_ERROR_IF(
+      n == 0,
+      "The averaging kernel matrix *measurement_gain_matrix* is required to compute the smoothing error covariance matrix.");
+  ARTS_USER_ERROR_IF((model_state_covariance_matrix.nrows() != n) ||
+                         (model_state_covariance_matrix.ncols() != n),
+                     "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
+
+  model_state_covariance_matrix_smoothing_error.resize(n, n);
+
+  // Sign doesn't matter since we're dealing with a quadratic form.
+  id_mat(tmp1);
+  tmp1 -= measurement_averaging_kernel;
+
+  mult(tmp2, model_state_covariance_matrix, transpose(tmp1));
+  mult(model_state_covariance_matrix_smoothing_error, tmp1, tmp2);
+}
+
+void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
+                                      const Matrix& measurement_gain_matrix,
+                                      const Matrix& measurement_jacobian) {
+  Index m(measurement_jacobian.nrows()), n(measurement_jacobian.ncols());
+
+  ARTS_USER_ERROR_IF(measurement_jacobian.empty(),
+                     "The Jacobian matrix is empty.");
+
+  ARTS_USER_ERROR_IF((measurement_gain_matrix.shape() != std::array{n, m}),
+                     std::format(
+                         R"(Matrices have inconsistent sizes.
+
+measurement_gain_matrix: {:B,},
+measurement_jacobian:    {:B,}
+)",
+                         measurement_gain_matrix.shape(),
+                         measurement_jacobian.shape()));
+
+  measurement_averaging_kernel.resize(n, n);
+  mult(measurement_averaging_kernel,
+       measurement_gain_matrix,
+       measurement_jacobian);
 }
