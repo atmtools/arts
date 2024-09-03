@@ -50,7 +50,7 @@ template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
                   isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
@@ -95,55 +95,6 @@ struct Point {
   Numeric operator[](SpeciesEnum x) const;
   Numeric operator[](const SpeciesIsotope &x) const;
   Numeric operator[](const QuantumIdentifier &x) const;
-  Numeric operator[](const ParticulatePropertyTag &x) const;
-  Numeric operator[](AtmKey x) const;
-  Numeric &operator[](ScatteringSpeciesProperty x) const;
-
-  Numeric &operator[](SpeciesEnum x);
-  Numeric &operator[](const SpeciesIsotope &x);
-  Numeric &operator[](const QuantumIdentifier &x);
-  Numeric &operator[](const ParticulatePropertyTag &x);
-  Numeric &operator[](AtmKey x);
-  Numeric &operator[](ScatteringSpeciesProperty x);
-
-  Numeric operator[](const KeyVal &) const;
-  Numeric &operator[](const KeyVal &);
-
-  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
-  constexpr bool has(T &&key, Ts &&...keys) const {
-    const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
-      if constexpr (isSpecies<T>)
-        return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
-      else if constexpr (isSpeciesIsotope<T>)
-        return x.isots.end() not_eq x.isots.find(std::forward<T>(k));
-      else if constexpr (isAtmKey<T>)
-        return true;
-      else if constexpr (isQuantumIdentifier<T>)
-        return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
-      else if constexpr (isScatteringSpeciesProperty<T>)
-        return x.partp.end() not_eq x.partp.find(std::forward<T>(k));
-    };
-
-    if constexpr (N > 0)
-      return has_(*this, std::forward<T>(key)) and
-             has(std::forward<Ts>(keys)...);
-    else
-      return has_(*this, std::forward<T>(key));
-  }
-
-  [[nodiscard]] Numeric mean_mass() const;
-  [[nodiscard]] Numeric mean_mass(SpeciesEnum) const;
-
-  [[nodiscard]] std::vector<KeyVal> keys() const;
-
-  [[nodiscard]] Index size() const;
-  [[nodiscard]] Index nspec() const;
-  [[nodiscard]] Index nisot() const;
-  [[nodiscard]] Index npart() const;
-  [[nodiscard]] Index nnlte() const;
-  [[nodiscard]] static constexpr Index nother() {
-    return static_cast<Index>(enumsize::AtmKeySize);
-  }
 
   [[nodiscard]] constexpr bool zero_wind() const noexcept {
     return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
@@ -278,30 +229,15 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD:src/core/atm/atm.h
->>>>>>> b6762b9bd (Prototype of PSD class.)
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
-      const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
+      &partp() const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
-  [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
-=======
-  [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
-      &partp() const;
-
-  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
-  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
-  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
-  [[nodiscard]] std::unordered_map<Key, Data> &other();
   [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &partp();
->>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
@@ -328,18 +264,6 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
-<<<<<<< HEAD:src/core/atm/atm.h
-=======
-
-bool operator==(const KeyVal &, Key);
-bool operator==(Key, const KeyVal &);
-bool operator==(const KeyVal &, const Species::Species &);
-bool operator==(const Species::Species &, const KeyVal &);
-bool operator==(const KeyVal &, const QuantumIdentifier &);
-bool operator==(const QuantumIdentifier &, const KeyVal &);
-bool operator==(const KeyVal &, const ScatteringSpeciesProperty &);
-bool operator==(const ScatteringSpeciesProperty &, const KeyVal &);
->>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 }  // namespace Atm
 
 using AtmKeyVal         = Atm::KeyVal;
@@ -354,8 +278,7 @@ bool operator==(const AtmKeyVal &, const SpeciesEnum &);
 bool operator==(const SpeciesEnum &, const AtmKeyVal &);
 bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
 bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
-bool operator==(const AtmKeyVal &, const ParticulatePropertyTag &);
-bool operator==(const ParticulatePropertyTag &, const AtmKeyVal &);
+bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
 std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
 

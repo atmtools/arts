@@ -242,7 +242,9 @@ const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
 const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
   return map<SpeciesIsotope>();
 }
-const std::unordered_map<Key, Data> &Field::other() const { return map<Key>(); }
+const std::unordered_map<AtmKey, Data> &Field::other() const {
+  return map<AtmKey>();
+}
 
 const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::partp()
     const {
@@ -977,7 +979,6 @@ bool operator==(const SpeciesIsotope &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-<<<<<<< HEAD:src/core/atm/atm.cpp
 bool operator==(const AtmKeyVal &keyval, const QuantumIdentifier &key) {
   return cmp(keyval, key);
 }
@@ -986,16 +987,12 @@ bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const ParticulatePropertyTag &key) {
+bool operator==(const AtmKeyVal &keyval, const ScatteringSpeciesProperty &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const ParticulatePropertyTag &key, const AtmKeyVal &keyval) {
+bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
-}
-
-std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
-  return os << ppt.name;
 }
 
 namespace Atm {
@@ -1099,15 +1096,6 @@ Point Field::at(const Vector3 pos) const try {
   return at(pos[0], pos[1], pos[2]);
 }
 ARTS_METHOD_ERROR_CATCH
-=======
-bool operator==(const KeyVal &keyval, const ScatteringSpeciesProperty &key) {
-  return cmp(keyval, key);
-}
-
-bool operator==(const ScatteringSpeciesProperty &key, const KeyVal &keyval) {
-  return cmp(keyval, key);
-}
->>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.cc
 }  // namespace Atm
 
 std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal &v) const {

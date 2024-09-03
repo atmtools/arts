@@ -1045,6 +1045,23 @@ radiation).
            Value{"Irhc", "RC", "Right circular polarization [1, 0, 0, 1]."}},
   });
 
+  opts.emplace_back(EnumeratedOption{
+      .name = "ParticulateProperty",
+      .desc = R"(Numerical properties used to descript particle populations.
+)",
+      .values_and_desc =
+          {Value{"MassDensity", "m", "Mass density in kg/m^{-3}"},
+           Value{"NumberDensity", "n", "Number density in m^{-3}"},
+           Value{"DMax", "dmax", "Maximum particle diameter in m."},
+           Value{"DVeq", "dveq", "Volume-equivalent diameter in m."},
+           Value{"ShapeParameter",
+                 "ShapeParameter",
+                 "PSD shape parmeter in arbitary units."},
+           Value{"IntercepParameter",
+                 "InterceptParameter",
+                 "PSD intercept parameter in arbitary units."}},
+  });
+
   return opts;
 }
 

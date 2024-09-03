@@ -10,20 +10,6 @@
 #include "enums.h"
 #include "mystring.h"
 
-/** Particulate properties
- *
- * Represents the physical quantities used to represent properties of scattering
- * particles.
- */
-ENUMCLASS(ParticulateProperty,
-          unsigned char,
-          MassDensity,
-          NumberDensity,
-          DMax,
-          DVeq,
-          ShapeParameter,
-          InterceptParameter)
-
 /*** ScatteringSpeciesProperty
  *
  * Used to uniquely identify an atmospheric field that holds properties
