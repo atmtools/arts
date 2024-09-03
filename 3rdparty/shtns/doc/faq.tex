@@ -1,0 +1,31 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\begin{document}
+	\title{Frequently asked questions}
+	
+	\section{FAQ 01: Noisy divergence-free velocity field despite}
+	Under special circumstances, initialization of a velocity field in grid space can lead to artificial oscillations with the spectral transformation.
+	Such a velocity field can be found in \cite{nair2010} and is e.g.\,given by
+	\begin{eqnarray}
+		u(\lambda,\theta) &=& \sin^2(\lambda/2) \sin(2\theta)\\
+		v(\lambda,\theta) &=& 1/2 \sin(\lambda) \cos(\theta)\\
+		\psi(\lambda,\theta) &=& \sin^2(\lambda/2) \cos^2(\theta).
+	\end{eqnarray}
+	Setting this up in velocity space $(u,v)^T$ field results in a non-divergence free field.
+This particular field of Case-1 is not smooth at the poles (not infinitely differentiable).
+This means that it is  not bandwidth limited: it can be described accurately only by an infinite expansion of SH.
+In this case, an SH truncation breaks the divergence freeness.
+It is as if the divergence freeness is ensured by ever adding an addition
+An example is provided in folder \texttt{faq\_01\_divergence\_freeness}.
+	
+
+\begin{thebibliography}{9}
+	\bibitem{nair2010}{Nair, R. D., \& Lauritzen, P. H. (2010). A class of deformational flow test cases for linear transport problems on the sphere. Journal of Computational Physics, 229(23), 8868–8887. https://doi.org/10.1016/j.jcp.2010.08.014}
+\end{thebibliography}
+
+\end{document}

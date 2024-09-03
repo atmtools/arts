@@ -316,6 +316,12 @@ if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
+########## FFTW #########
+include(FindFFTW)
+if (NOT NO_FFTW AND NOT FFTW_FOUND)
+  message (FATAL_ERROR "fftw library not found.")
+endif ()
+
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
