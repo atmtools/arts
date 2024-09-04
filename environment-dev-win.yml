@@ -8,7 +8,7 @@ dependencies:
         - lark-parser
         - libcxx
         - matplotlib
-        - nanobind
+        - nanobind>=2.1.0
         - netcdf4
         - ninja
         - numpy>=2
