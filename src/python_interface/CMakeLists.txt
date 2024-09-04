@@ -160,3 +160,12 @@ target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(
     pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${ARTS_BINARY_DIR}/python/pyarts/")
+
+nanobind_add_stub(
+    pyarts_cpp_stub
+    MODULE arts
+    OUTPUT ${ARTS_BINARY_DIR}/python/pyarts/arts.pyi
+    PYTHON_PATH ${ARTS_BINARY_DIR}/python/pyarts
+    DEPENDS pyarts_cpp
+)
+

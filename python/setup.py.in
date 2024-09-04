@@ -1,4 +1,4 @@
-""" PyARTS, the Python interface for ARTS
+"""PyARTS, the Python interface for ARTS
 
 PyARTS provides:
 
@@ -7,20 +7,13 @@ PyARTS provides:
 - reading and writing of ARTS XML data files
 """
 
-import logging
-import sys
-import subprocess
-import shutil
-
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages, Distribution
 
 # To use a consistent encoding
 from codecs import open
-from os import remove, listdir
-from os.path import abspath, dirname, isfile, join, splitext
+from os.path import abspath, dirname, join
 
-import builtins
 
 DOCLINES = (__doc__ or "").split("\n")
 __version__ = open(join("@ARTS_SRC_DIR@", "VERSION")).read().strip()
@@ -30,10 +23,13 @@ STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 
 here = abspath(dirname(__file__))
 
+
 class BinaryDistribution(Distribution):
     """Distribution which always forces a binary package with platform name"""
+
     def has_ext_modules(foo):
         return True
+
 
 setup(
     name="pyarts",
@@ -63,9 +59,15 @@ setup(
     ],
     extras_require={
         "docs": ["sphinx_rtd_theme"],
-        "tests": ["pytest", "pint", "gdal",],
+        "tests": [
+            "pytest",
+            "pint",
+            "gdal",
+        ],
     },
-    package_data={"": ["*.so", "*.pyd"],},
+    package_data={
+        "": ["*.so", "*.pyd"],
+    },
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,

@@ -25,7 +25,7 @@ _group_types = tuple(eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups
 _wsvs = cxx.globals.workspace_variables()
 
 
-class Workspace(cxx._Workspace):
+class Workspace(cxx.CxxWorkspace):
     """
     A wrapper for the C++ workspace object
     """

@@ -65,7 +65,7 @@ void py_retrieval(py::module_& m);
  */
 NB_MODULE(arts, m) try {
   m.doc() = "Interface directly to the C++ types via python";
-  py::class_<Workspace> ws(m, "_Workspace");
+  py::class_<Workspace> ws(m, "CxxWorkspace");
 
   static bool init = true;
   if (init) {

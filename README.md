@@ -77,7 +77,7 @@ don't use more than 6-8 cores. With 8GB, don't use more than 2-3 cores.
 Development install of the PyARTS Python package:
 
 ```
-python3 -m pip install --user -e build/python
+python3 -m pip install --use-pep517 --config-settings editable_mode=compat --user -e build/python
 ```
 
 You only have to do the python package install once.
