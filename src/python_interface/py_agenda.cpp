@@ -33,7 +33,7 @@ std::filesystem::path correct_include_path(
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
                      "Cannot find file: ",
-                     path_copy.c_str(),
+                     path_copy.string(),
                      '\n',
                      "Search path: ",
                      parameters.includepath)
