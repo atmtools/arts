@@ -1982,7 +1982,7 @@ See *SpeciesEnum* for valid ``species``
       .in     = {"jacobian_targets"},
       .gin    = {"target", "d"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
            "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
@@ -3686,7 +3686,7 @@ Note that you must have set the optical thickness before calling this.
       .in     = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .gin    = {"species", "matrix", "inverse", "d"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
            "BlockMatrix",
            "BlockMatrix",
            "Numeric"},

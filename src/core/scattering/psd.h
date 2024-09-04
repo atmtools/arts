@@ -40,7 +40,9 @@ struct MGDSingleMoment {
         mu(mu_),
         gamma(gamma_),
         t_min(t_min_),
-        t_max(t_max_) {}
+        t_max(t_max_),
+    picky(picky_)
+  {}
 
   MGDSingleMoment(ScatteringSpeciesProperty moment_,
                   std::string name,

@@ -100,17 +100,6 @@ void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
       {.target = AtmKeyVal{key}}, matrix, inverse);
 }
 
-void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
-                            JacobianTargetsDiagonalCovarianceMatrixMap&
-                                covariance_matrix_diagonal_blocks,
-                            const ParticulatePropertyTag& key,
-                            const BlockMatrix& matrix,
-                            const BlockMatrix& inverse,
-                            const Numeric& d) {
-  jacobian_targetsAddAtmosphere(jacobian_targets, key, d);
-  covariance_matrix_diagonal_blocks.set(
-      {.target = AtmKeyVal{key}}, matrix, inverse);
-}
 
 void RetrievalAddSpeciesVMR(JacobianTargets& jacobian_targets,
                             JacobianTargetsDiagonalCovarianceMatrixMap&

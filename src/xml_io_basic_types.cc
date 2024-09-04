@@ -570,49 +570,31 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== ParticulatePropertyTag ================================================================
 
-//! Reads ParticulatePropertyTag from XML input stream
+//=== ScatteringSpeciesProperty ================================================================
+
+//! Reads ScatteringSpeciesProperty from XML input stream
 /*!
  *  \param is_xml  XML Input stream
- *  \param vib     ParticulatePropertyTag return value
+ *  \param vib     ScatteringSpeciesProperty return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
 void xml_read_from_stream(std::istream& is_xml,
-                          ParticulatePropertyTag& s,
+                          ScatteringSpeciesProperty& s,
                           bifstream* pbifs [[maybe_unused]]) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("ParticulatePropertyTag");
-  xml_read_from_stream(is_xml, s.name, pbifs);
-  tag.read_from_stream(is_xml);
-  tag.check_name("/ParticulatePropertyTag");
 }
 
-//! Writes ParticulatePropertyTag to XML output stream
+//! Writes ScatteringSpeciesProperty to XML output stream
 /*!
  *  \param os_xml  XML Output stream
- *  \param vib     ParticulatePropertyTag
+ *  \param vib     ScatteringSpeciesProperty
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
 void xml_write_to_stream(std::ostream& os_xml,
-                         const ParticulatePropertyTag& s,
+                         const ScatteringSpeciesProperty& s,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("ParticulatePropertyTag");
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, s.name, pbofs, "");
-
-  close_tag.set_name("/ParticulatePropertyTag");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
 }
 
 ////////////////////////////////////////////////////////////////////////////

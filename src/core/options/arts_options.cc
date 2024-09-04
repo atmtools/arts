@@ -1047,7 +1047,7 @@ radiation).
 
   opts.emplace_back(EnumeratedOption{
       .name = "ParticulateProperty",
-      .desc = R"(Numerical properties used to descript particle populations.
+      .desc = R"(Numerical properties used to numerically represent particle populations.
 )",
       .values_and_desc =
           {Value{"MassDensity", "m", "Mass density in kg/m^{-3}"},

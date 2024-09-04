@@ -38,7 +38,7 @@ class ScatteringHabit {
  public:
   ScatteringHabit(){};
   ScatteringHabit(ParticleHabit particle_habit_, PSD psd_)
-      : particle_habit(particle_habit), psd(psd){};
+      : particle_habit(particle_habit_), psd(psd_){};
 
  private:
   ParticleHabit particle_habit;
@@ -77,6 +77,26 @@ inline std::ostream& operator<<(std::ostream& os,
   os << "An array of scattering species." << std::endl;
   return os;
 }
+
+template<>
+struct std::formatter<ArrayOfScatteringSpecies> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ArrayOfScatteringSpecies& v,
+                              FmtContext& ctx) const {
+
+    return ctx.out();
+  }
+};
 
 using HenyeyGreenstein = Scattering::HenyeyGreenstein;
 using ParticleHabit = Scattering::ParticleHabit;

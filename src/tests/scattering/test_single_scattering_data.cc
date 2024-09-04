@@ -6,9 +6,8 @@
 
 bool test_single_scattering_data_from_legacy_tro() {
   SingleScatteringData legacy;
-  std::string path =
-      "/home/simonpf/src/arts/controlfiles/testdata/"
-      "scatData/MieAtmlab_Liquid_72.9um.xml.gz";
+  std::string path = "../../../tests/testdata/arts-xml-data/"
+      "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml";
   xml_read_from_file(path, legacy);
 
   using SingleScatteringData =

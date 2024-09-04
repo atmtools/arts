@@ -49,6 +49,7 @@ else()
         planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-f_grid.xml
         planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-quadrature_weights.xml
         planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-quadrature_weights.xml
+        scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml
     )
 endif()
 

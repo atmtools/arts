@@ -71,13 +71,6 @@ void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
       key, d, jacobian_targets.target_count());
 }
 
-void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const ParticulatePropertyTag& key,
-                                   const Numeric& d) {
-  jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      key, d, jacobian_targets.target_count());
-}
-
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
                                     const Numeric& d) {
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(

@@ -229,12 +229,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
       .skip_pyinit = true,
   };
 
-  wsg_data["ParticulatePropertyTag"] = {
-      .file = "atm.h",
-      .desc = R"--(An particulate property key
-)--",
-  };
-
   wsg_data["SurfaceKey"] = {
       .file        = "enumsSurfaceKey.h",
       .desc        = R"--(A surface key
