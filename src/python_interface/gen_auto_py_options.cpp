@@ -10,6 +10,7 @@
 #include "pydocs.h"
 
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
+  os << "void enum_" << wso.name << "(py::module_& m) {\n";
   os << "  py::class_<" << wso.name << "> _g" << wso.name << "(m, \""
      << wso.name << "\");\n";
 
@@ -88,7 +89,8 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
 
   os << "      .doc() = R\"-x-(" << unwrap_stars(wso.docs()) << ")-x-\";\n";
 
-  os << "  py::implicitly_convertible<std::string, " << wso.name << ">();\n\n";
+  os << "  py::implicitly_convertible<std::string, " << wso.name << ">();\n";
+  os << "}\n\n";
 }
 
 void enum_options(const std::string& fname) {
@@ -116,14 +118,14 @@ void enum_options(const std::string& fname) {
     hh << "NB_MAKE_OPAQUE(" << wso.name << ");\n";
   }
 
-  cc << R"-x-(
-
-namespace Python {
-void py_auto_options(py::module_& m) try {
-)-x-";
+  cc << "namespace Python {\n";
 
   for (auto& opt : wsos) {
     enum_option(cc, opt);
+  }
+  cc << "void py_auto_options(py::module_& m) try {\n";
+  for (auto& opt : wsos) {
+    cc << "  enum_" << opt.name << "(m);\n";
   }
   cc << R"-x-(} catch (std::exception& e) {
   throw std::runtime_error(
