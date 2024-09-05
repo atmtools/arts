@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
     } else {
       os << m.name;
       std::string var =
-          std::visit([](auto& v) { return var_string(*v); }, wsv.value);
+          std::visit([](auto& v) { return var_string(*v); }, wsv.value());
       constexpr std::size_t maxsize = 50;
       if (var.size() > maxsize) {
         var = std::string(var.begin(), var.begin() + maxsize) + "...";
@@ -255,5 +255,5 @@ std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
       []<typename T>(const std::shared_ptr<T>& val) {
         return std::format("{}", *val);
       },
-      wsv.value);
+      wsv.value());
 }

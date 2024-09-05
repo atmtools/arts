@@ -113,7 +113,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
 
             Wsv wsv = from_py(x);
 
-            if (wsv.value.index() != w.share(n).value.index())
+            if (wsv.index() != w.share(n).index())
               throw std::domain_error(
                   var_string("Type mismatch: ",
                              '"', n, '"',

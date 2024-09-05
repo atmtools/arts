@@ -2150,7 +2150,7 @@ void xml_read_from_stream(std::istream& is_xml, Wsv& wsv, bifstream* pbifs) {
 
   wsv = Wsv::from_named_type(type);
   std::visit([&](auto& x) { xml_read_from_stream(is_xml, *x, pbifs); },
-             wsv.value);
+             wsv.value());
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -2170,7 +2170,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   std::visit([&](auto& x) { xml_write_to_stream(os_xml, *x, pbofs, ""); },
-             wsv.value);
+             wsv.value());
 
   close_tag.set_name("/Wsv");
   close_tag.write_to_stream(os_xml);

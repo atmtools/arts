@@ -1,6 +1,6 @@
 #pragma once
 
-#include <auto_wsg.h>
+#include <workspace_wsv.h>
 
 #include <optional>
 #include <string>

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "auto_wsg.h"
+#include "workspace_wsv.h"
 #include "format_tags.h"
 
 class Method {

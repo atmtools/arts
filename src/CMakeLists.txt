@@ -56,14 +56,7 @@ add_library(workspace_internals STATIC
   workspace_methods.cpp
   workspace_variables.cpp
   workspace_variables_keywords.cpp
-  workspace_wsv_ctor.cpp
-  workspace_wsv_dtor.cpp
-  workspace_wsv_copy_ctor.cpp
-  workspace_wsv_move_ctor.cpp
-  workspace_wsv_copy_set.cpp
-  workspace_wsv_move_set.cpp
-  workspace_wsv_copy_fn.cpp
-  workspace_wsv_other_fn.cpp
+  workspace_wsv.cpp
   auto_wsg_init.cpp
   auto_wsg_share.cpp
 )

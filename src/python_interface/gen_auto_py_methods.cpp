@@ -276,7 +276,7 @@ std::string method_resolution_any(const std::string& name,
     }
   }
 
-  os << ");\n          }, _any1.value);\n";
+  os << ");\n          }, _any1.value());\n";
   os << "        } catch (std::bad_variant_access&) {\n";
 
   const auto* const spaces = "                                              ";
@@ -488,7 +488,7 @@ std::string method_resolution_variadic(
        << "\"Otherwise, the desired type combination is not available for this method.\"";
     os << "));\n"
           "        }, "
-       << var << ".value);\n";
+       << var << ".value());\n";
   } else {
     os << "      ";
     for (auto& generics : supergenerics) {

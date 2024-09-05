@@ -344,9 +344,9 @@ void call_function(std::ostream& os,
 
     os << "\n        );\n      }, ";
     if (any_out) {
-      os << "ws.share(out[" << first_any << "]).value);\n    }";
+      os << "ws.share(out[" << first_any << "]).value());\n    }";
     } else {
-      os << "ws.share(in[" << first_any << "]).value);\n    }";
+      os << "ws.share(in[" << first_any << "]).value());\n    }";
     }
 
   } else if (wsmr.has_overloads()) {

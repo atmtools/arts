@@ -43,9 +43,9 @@ void Workspace::set(const std::string& name, const Wsv& data) try {
     std::visit(
         [&data](auto& v) {
           // std::get may throw std::bad_variant_access
-          *v = *std::get<std::remove_cvref_t<decltype(v)>>(data.value);
+          *v = *std::get<std::remove_cvref_t<decltype(v)>>(data.value());
         },
-        ptr->second.value);
+        ptr->second.value());
   }
 } catch (const std::bad_variant_access&) {
   throw std::runtime_error(var_string("Workspace variable ",

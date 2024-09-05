@@ -94,7 +94,7 @@ void py_agenda(py::module_& m) try {
           [](Method* me, const std::string& n, const PyWSV& v) {
             new (me) Method{n,
                             std::visit([](auto a) { return Wsv(std::move(a)); },
-                                       from_py(v).value)};
+                                       from_py(v).value())};
           },
           "name"_a,
           "wsv"_a,
@@ -120,7 +120,7 @@ void py_agenda(py::module_& m) try {
                          []<WorkspaceGroup T>(std::shared_ptr<T>& x) {
                            return from<T>(x);
                          },
-                         v.value);
+                         v.value());
                    })
       .def(
           "__str__",

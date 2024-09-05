@@ -171,7 +171,7 @@ std::string type(const py::object * const x) {
 }
 
 PyWSV from(const Wsv& wsv) {
-  return std::visit([](auto v) { return from(std::move(v)); }, wsv.value);
+  return std::visit([](auto v) { return from(std::move(v)); }, wsv.value());
 }
 
 Wsv from_py(const PyWSV& wsv) {

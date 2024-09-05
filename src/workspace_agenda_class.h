@@ -7,7 +7,7 @@
 
 class Method;
 class Workspace;
-struct Wsv;
+class Wsv;
 
 class Agenda {
   std::string name{};

@@ -210,11 +210,11 @@ String compose_generic_groups(const String& grps) {
   return var_string("~pyarts.arts.", grps);
 }
 
-String to_defval_str(const Wsv& wsv) {
+String to_defval_str(const Wsv& wsv) try {
   const auto& group = wsv.type_name();
 
   std::string out =
-      std::visit([](auto& a) { return var_string(*a); }, wsv.value);
+      std::visit([](auto& a) { return var_string(*a); }, wsv.value());
 
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();
@@ -236,6 +236,11 @@ String to_defval_str(const Wsv& wsv) {
   }
 
   return out;
+} catch (std::bad_variant_access&) {
+  throw std::runtime_error("Cannot convert to defval string");
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Error in to_defval_str: ", e.what(), '\n'));
 }
 
 String method_docs(const String& name) try {
