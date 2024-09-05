@@ -8,51 +8,6 @@
 
 #include "mh_checks.h"
 
-void spectral_radianceStepByStep(
-    StokvecVector& spectral_radiance,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix,
-    const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
-    const StokvecVector& spectral_radiance_background) try {
-  ARTS_USER_ERROR_IF(not all_same_shape(spectral_radiance_background.shape(),
-                                        ray_path_spectral_radiance_source,
-                                        ray_path_transmission_matrix),
-                     std::format(
-                         R"(Not same inner shape: {:B,}
-
-Variables: spectral_radiance_background
-           ray_path_spectral_radiance_source
-           ray_path_transmission_matrix_cumulative)",
-                         spectral_radiance_background.shape()));
-
-  const Size N   = ray_path_transmission_matrix.size();
-  const Index nv = spectral_radiance_background.size();
-
-  ARTS_USER_ERROR_IF(ray_path_spectral_radiance_source.size() != N,
-                     std::format(
-                         R"(Size mismatch.
-
-ray_path_spectral_radiance_source.size() = {},
-ray_path_transmission_matrix.size()      = {})",
-                         ray_path_spectral_radiance_source.size(),
-                         ray_path_transmission_matrix.size()));
-
-  constexpr auto step = [](Stokvec I0, Stokvec J, Muelmat T) {
-    return J + T * (I0 - J);
-  };
-
-  spectral_radiance = spectral_radiance_background;
-  for (Size i = N - 2; i < N; i--) {
-    for (Index iv = 0; iv < nv; iv++) {
-      spectral_radiance[iv] =
-          step(spectral_radiance[iv],
-               0.5 * (ray_path_spectral_radiance_source[i][iv] +
-                      ray_path_spectral_radiance_source[i + 1][iv]),
-               ray_path_transmission_matrix[i + 1][iv]);
-    }
-  }
-}
-ARTS_METHOD_ERROR_CATCH
-
 void ray_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector& ray_path_transmission_matrix,
     ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
@@ -123,6 +78,27 @@ ray_path_atmospheric_point.size()           = {})",
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radianceStepByStepEmission(
+    StokvecVector& spectral_radiance,
+    ArrayOfStokvecMatrix& ray_path_spectral_radiance_jacobian,
+    const ArrayOfMuelmatVector& ray_path_transmission_matrix,
+    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative,
+    const ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
+    const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
+    const ArrayOfStokvecMatrix& ray_path_spectral_radiance_source_jacobian,
+    const StokvecVector& spectral_radiance_background) try {
+  rtepack::two_level_linear_emission_step_by_step_full(
+      spectral_radiance,
+      ray_path_spectral_radiance_jacobian,
+      ray_path_transmission_matrix,
+      ray_path_transmission_matrix_cumulative,
+      ray_path_transmission_matrix_jacobian,
+      ray_path_spectral_radiance_source,
+      ray_path_spectral_radiance_source_jacobian,
+      spectral_radiance_background);
+}
+ARTS_METHOD_ERROR_CATCH
+
 void spectral_radianceCumulativeEmission(
     StokvecVector& spectral_radiance,
     ArrayOfStokvecMatrix& ray_path_spectral_radiance_jacobian,
@@ -132,7 +108,7 @@ void spectral_radianceCumulativeEmission(
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const ArrayOfStokvecMatrix& ray_path_spectral_radiance_source_jacobian,
     const StokvecVector& spectral_radiance_background) try {
-  rtepack::two_level_linear_emission_step(
+  rtepack::two_level_linear_emission_cumulative_full(
       spectral_radiance,
       ray_path_spectral_radiance_jacobian,
       ray_path_transmission_matrix,
