@@ -155,12 +155,13 @@ void two_level_linear_emission_step_by_step_full(
 
       for (Index iq = 0; iq < nq; iq++) {
         dI[i](iq, iv) +=
-            Pi[i][iv] * (dTs[i](0, iq, iv) * Iv +
-                         (dJs[i](iq, iv) - Ts[i + 1][iv] * dJs[i](iq, iv)));
+            Pi[i][iv] *
+            (dTs[i](0, iq, iv) * Iv +
+             0.5 * (dJs[i](iq, iv) - Ts[i + 1][iv] * dJs[i](iq, iv)));
         dI[i + 1](iq, iv) +=
             Pi[i][iv] *
             (dTs[i + 1](1, iq, iv) * Iv +
-             (dJs[i + 1](iq, iv) - Ts[i + 1][iv] * dJs[i + 1](iq, iv)));
+             0.5 * (dJs[i + 1](iq, iv) - Ts[i + 1][iv] * dJs[i + 1](iq, iv)));
       }
 
       Iv = Ts[i + 1][iv] * Iv + Jv;
