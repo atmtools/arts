@@ -737,9 +737,9 @@ void Data::rescale(Numeric x) {
       [x](auto &v) {
         using T = decltype(v);
         if constexpr (isFunctionalDataType<T>) {
-          v = [x, f = v](Numeric alt, Numeric lat, Numeric lon) -> Numeric {
+          v = FunctionalData{[x, f = v](Numeric alt, Numeric lat, Numeric lon) -> Numeric {
             return x * f(alt, lat, lon);
-          };
+          }};
         } else if constexpr (isGriddedField3<T>) {
           v.data *= x;
         } else {

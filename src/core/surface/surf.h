@@ -5,6 +5,7 @@
 #include <fieldmap.h>
 #include <matpack.h>
 #include <mystring.h>
+#include <operators.h>
 
 #include <limits>
 #include <ostream>
@@ -112,7 +113,7 @@ struct Point {
   friend std::ostream &operator<<(std::ostream &, const Point &);
 };
 
-using FunctionalData = std::function<Numeric(Numeric, Numeric)>;
+using FunctionalData = NumericBinaryOperator;
 using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {

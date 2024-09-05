@@ -210,8 +210,16 @@ void Agenda::copy_workspace(Workspace& out,
     agenda_add_inner_logic(out, in, handle);
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Cannot get value from\n\n", in, "\ninto\n\n", out, '\n', e.what()));
+  throw std::runtime_error(std::format(
+      R"(
+Error with workspace copying in Agenda
+
+Workspace contains:
+{:s}
+
+{})",
+      in,
+      e.what()));
 }
 
 Workspace Agenda::copy_workspace(const Workspace& in) const {

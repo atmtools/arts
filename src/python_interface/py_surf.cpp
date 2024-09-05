@@ -55,6 +55,10 @@ void py_surf(py::module_ &m) try {
              s->lon_low = std::get<3>(state);
              s->lon_upp = std::get<4>(state);
            });
+  py::implicitly_convertible<GriddedField2, Surf::Data>();
+  py::implicitly_convertible<Numeric, Surf::Data>();
+  py::implicitly_convertible<Index, Surf::Data>();
+  py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
 
   auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint");
   workspace_group_interface(pnt);

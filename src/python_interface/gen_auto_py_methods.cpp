@@ -769,7 +769,8 @@ std::string method(const std::string& name,
   os << method_error(name, wsm);
   os << "      }\n";
   os << "    },\n    " << method_argument_documentation(wsm) << "R\""
-     << method_docs(name) << "\");\n\n";
+     << method_docs(name) << "\",\n";
+  os << "    py::call_guard<py::gil_scoped_release>());\n\n";
   return os.str();
 }
 
@@ -872,7 +873,8 @@ std::string method(const std::string& name,
   os << "R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
      << get_agenda_io(name) << name << " : ~pyarts.arts.";
   if (wsm.array) os << "ArrayOf";
-  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\");\n\n";
+  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\",\n";
+  os << "    py::call_guard<py::gil_scoped_release>());\n\n";
   return os.str();
 }
 

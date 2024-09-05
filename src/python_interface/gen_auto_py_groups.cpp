@@ -121,6 +121,7 @@ namespace Python {
 
 Wsv from(const py::object * const x) {
   if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+  py::gil_scoped_acquire gil{};
   
 )--";
 
@@ -142,6 +143,7 @@ Wsv from(const py::object * const x) {
 
 Wsv from(py::object * const x) {
   if (not x or x -> is_none()) throw std::runtime_error("Cannot have None as workspace variable.");
+  py::gil_scoped_acquire gil{};
 )--";
 
   for (auto& [group, wsg] : wsgs) {
@@ -163,6 +165,7 @@ Wsv from(py::object * const x) {
 
 std::string type(const py::object * const x) {
   if (not x or x -> is_none()) return "NoneType";
+  py::gil_scoped_acquire gil{};
 
   return py::cast<std::string>(py::str(py::type_name(*x)));
 }

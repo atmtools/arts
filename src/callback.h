@@ -6,14 +6,13 @@ class Workspace;
 #include <format_tags.h>
 
 #include <functional>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <string_view>
 #include <vector>
 
 struct CallbackOperator {
-  std::function<void(const std::shared_ptr<Workspace>&)> callback{};
+  std::function<void(Workspace&)> callback{};
   std::vector<std::string> inputs{};
   std::vector<std::string> outputs{};
 

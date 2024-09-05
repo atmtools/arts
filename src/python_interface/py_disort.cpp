@@ -5,27 +5,46 @@
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
-#include <memory>
 #include <optional>
 
 #include "configtypes.h"
 #include "debug.h"
 #include "hpy_arts.h"
-#include "matpack_iter.h"
+#include "matpack_data.h"
+#include "matpack_view.h"
+#include "operators.h"
 #include "sorted_grid.h"
 #include "sorting.h"
 
 namespace Python {
-using bdrf_func = std::function<Matrix(const Vector&, const Vector&)>;
+using DisortBDRFOperator =
+    CustomOperator<Matrix, const Vector&, const Vector&>;
+using bdrf_func = DisortBDRFOperator::func_t;
 
 void py_disort(py::module_& m) try {
   auto disort_nm = m.def_submodule("disort");
 
+  py::class_<DisortBDRFOperator> bdrfop(m, "DisortBDRFOperator");
+  bdrfop.def("__init__", [](DisortBDRFOperator* op, DisortBDRFOperator::func_t f){
+    new (op) DisortBDRFOperator([f](const Vector& x, const Vector& y){
+      py::gil_scoped_acquire gil{};
+      return f(x, y);
+    });
+  })
+      .def(
+          "__call__",
+          [](DisortBDRFOperator& f, const Vector& x, const Vector& y) {
+            return f.f(x, y);
+          },
+          "x"_a,
+          "y"_a);
+  // workspace_group_interface(bdrfop);  // FIXME OLE
+  py::implicitly_convertible<DisortBDRFOperator::func_t, DisortBDRFOperator>();
   py::class_<DisortBDRF> disbdrf(m, "DisortBDRF");
   disbdrf
       .def(
           "__init__",
-          [](DisortBDRF* b, const bdrf_func& f) {
+          [](DisortBDRF* b, const DisortBDRFOperator& f) {
             new (b) DisortBDRF([f](ExhaustiveMatrixView mat,
                                    const ExhaustiveConstVectorView& a,
                                    const ExhaustiveConstVectorView& b) {

@@ -798,6 +798,7 @@ class TestGroups:
         ignore_groups = [
             "CallbackOperator",
             "NumericUnaryOperator",
+            "NumericBinaryOperator",
             "NumericTernaryOperator",
             "SingleScatteringData",
             "JacobianTargets",
@@ -922,7 +923,7 @@ class TestGroups:
             raise Exception(f"There are {len(fail)} tests failing")
 
     def test_copy(self):
-        ignore_groups = ["NumericUnaryOperator", "NumericTernaryOperator"]
+        ignore_groups = ["NumericUnaryOperator", "NumericBinaryOperator", "NumericTernaryOperator"]
 
         groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()

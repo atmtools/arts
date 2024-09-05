@@ -11,30 +11,18 @@ _group_types = [eval(f"cxx.{x}") for x in
                 list(cxx.globals.workspace_groups().keys())]
 
 
-def safe_set(ws, attr, val):
-    if ws.has(attr):
-        t = type(ws.get(attr))
-        if not isinstance(val, t):
-            val = t(val)
-        ws.set(attr, val)
-    elif type(val) in _group_types:
-        ws.set(attr, val)
-    else:
-        setattr(ws, attr, val)
-
-
 def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
     def fn(ws):
         try:
             out = func(*[ws.get(x) for x in ins])
 
             if len(outs) == 1:
-                safe_set(ws, outs[0], out)
+                setattr(ws, outs[0], out)
             elif len(outs) > 1:
                 for i in range(len(outs)):
                     attr = outs[i]
                     val = out[i]
-                    safe_set(ws, attr, val)
+                    setattr(ws, attr, val)
         except Exception as e:
             raise RuntimeError(
                 f"Raised internal error:\n{e}\n\n"

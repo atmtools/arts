@@ -1,24 +1,87 @@
 """
 Test handling of agendas of the Python interface.
 """
-import os
+
 import numpy as np
-import pytest
-import scipy as sp
-import pyarts
 from pyarts.workspace import Workspace, arts_agenda
-from pyarts.xml import load, save
 
 
-class TestAgendas:
+def _input_only(frequency_grid):
+    assert np.allclose(frequency_grid, [1, 2, 3])
+
+
+def _return_only():
+    frequency_grid = [4, 5, 6]
+    return frequency_grid
+
+
+def _input_output(frequency_grid):
+    assert np.allclose(frequency_grid, [1, 2, 3])
+    frequency_grid = [4, 5, 6]
+    return frequency_grid
+
+
+def _check_return_value(frequency_grid):
+    assert np.allclose(frequency_grid, [4, 5, 6])
+
+
+class TestAgendaPythonCalls:
     """
-    Tests the calling of ARTS workspace methods.
+    Tests that test correct behaviour of calling Python
+    functions inside an Agenda.
     """
-    
-    def test_empty(self):
-        pass
+
+    def init_spectral(self, ws):
+        ws.spectral_radiance_observer_position = [1, 2, 3]
+        ws.spectral_radiance_observer_line_of_sight = [1, 2]
+
+    def test_python_function_return_only(self):
+        ws = Workspace()
+
+        @arts_agenda(ws=ws, fix=True)
+        def ray_path_observer_agenda(ws):
+            _return_only()
+            _check_return_value()
+
+        ws.ray_path_observer_agenda = ray_path_observer_agenda
+        self.init_spectral(ws)
+
+        ws.frequency_grid = [1, 2, 3]
+        ws.ray_path_observer_agendaExecute()
+        assert np.allclose(ws.frequency_grid, [1, 2, 3])
+
+    def test_python_function_input_only(self):
+        ws = Workspace()
+
+        @arts_agenda(ws=ws, fix=True)
+        def ray_path_observer_agenda(ws):
+            _input_only()
+
+        ws.ray_path_observer_agenda = ray_path_observer_agenda
+        self.init_spectral(ws)
+
+        ws.frequency_grid = [1, 2, 3]
+        ws.ray_path_observer_agendaExecute()
+        assert np.allclose(ws.frequency_grid, [1, 2, 3])
+
+    def test_python_function_input_output(self):
+        ws = Workspace()
+
+        @arts_agenda(ws=ws, fix=True)
+        def ray_path_observer_agenda(ws):
+            _input_output()
+            _check_return_value()
+
+        ws.ray_path_observer_agenda = ray_path_observer_agenda
+        self.init_spectral(ws)
+
+        ws.frequency_grid = [1, 2, 3]
+        ws.ray_path_observer_agendaExecute()
+        assert np.allclose(ws.frequency_grid, [1, 2, 3])
 
 
 if __name__ == "__main__":
-    x = TestAgendas()
-    x.test_empty()
+    x = TestAgendaPythonCalls()
+    x.test_python_function_input_only()
+    x.test_python_function_input_output()
+    x.test_python_function_return_only()

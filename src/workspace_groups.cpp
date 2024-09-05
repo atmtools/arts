@@ -913,6 +913,15 @@ to produce another *Numeric*.
 )--",
   };
 
+  wsg_data["NumericBinaryOperator"] = {
+      .file = "operators.h",
+      .desc = R"--(A simple functional type.
+
+This type will work as a function pointer that takes two *Numeric*
+to produce another *Numeric*.
+)--",
+  };
+
   wsg_data["NumericTernaryOperator"] = {
       .file = "operators.h",
       .desc = R"--(A simple functional type.
