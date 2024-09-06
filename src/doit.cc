@@ -32,8 +32,8 @@
 #include "sorting.h"
 #include "special_interp.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI      = Constant::pi;
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 
 //FIXME function name of 'rte_step_doit_replacement' should be replaced by
 //proper name
@@ -55,20 +55,21 @@ void rte_step_doit_replacement(  //Output and Input:
   }
 
   stokes_vec = rtepack::linear_step(
-      trans_mat, stokes_vec,
+      trans_mat,
+      stokes_vec,
       inv(ext_mat_av) * (abs_vec_av * rtp_planck_value + sca_vec_av));
 }
 
-void cloud_fieldsCalc(const Workspace&,// ws,
+void cloud_fieldsCalc(const Workspace&,  // ws,
                       // Output and Input:
                       Tensor5View ext_mat_field,
                       Tensor4View abs_vec_field,
                       // Input:
-                      const Agenda&,// spt_calc_agenda,
-                      const Index&,// za_index,
-                      const Index&,/// aa_index,
+                      const Agenda&,  // spt_calc_agenda,
+                      const Index&,   // za_index,
+                      const Index&,   /// aa_index,
                       const ArrayOfIndex& cloudbox_limits,
-                      ConstTensor3View,// t_field,
+                      ConstTensor3View,  // t_field,
                       ConstTensor4View pnd_field) {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
@@ -76,7 +77,7 @@ void cloud_fieldsCalc(const Workspace&,// ws,
   const Index N_se = pnd_field.nbooks();
 
   ARTS_ASSERT(ext_mat_field.ncols() == ext_mat_field.nrows() &&
-         ext_mat_field.ncols() == abs_vec_field.ncols());
+              ext_mat_field.ncols() == abs_vec_field.ncols());
 
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
@@ -90,8 +91,10 @@ void cloud_fieldsCalc(const Workspace&,// ws,
   // Initialize ext_mat(_spt), abs_vec(_spt)
   // Resize and initialize variables for storing optical properties
   // of all scattering elements.
-  ArrayOfStokvecVector abs_vec_spt_local(N_se, StokvecVector{1, Stokvec{0, 0, 0, 0}});
-  ArrayOfPropmatVector ext_mat_spt_local(N_se, PropmatVector{1, Propmat{0, 0, 0, 0, 0, 0, 0}});
+  ArrayOfStokvecVector abs_vec_spt_local(N_se,
+                                         StokvecVector{1, Stokvec{0, 0, 0, 0}});
+  ArrayOfPropmatVector ext_mat_spt_local(
+      N_se, PropmatVector{1, Propmat{0, 0, 0, 0, 0, 0, 0}});
 
   StokvecVector abs_vec_local;
   PropmatVector ext_mat_local;
@@ -161,11 +164,16 @@ void cloud_fieldsCalc(const Workspace&,// ws,
         // Store coefficients in arrays for the whole cloudbox.
         auto mmat = rtepack::to_muelmat(ext_mat_local[0]);
         for (Index i = 0; i < 4; i++) {
-          abs_vec_field(scat_p_index_local, scat_lat_index_local,
-                        scat_lon_index_local, i) = abs_vec_local[0].data[i];
+          abs_vec_field(scat_p_index_local,
+                        scat_lat_index_local,
+                        scat_lon_index_local,
+                        i) = abs_vec_local[0].data[i];
           for (Index j = 0; j < 4; j++) {
-            ext_mat_field(scat_p_index_local, scat_lat_index_local,
-                          scat_lon_index_local, i, j) = mmat(i, j);
+            ext_mat_field(scat_p_index_local,
+                          scat_lat_index_local,
+                          scat_lon_index_local,
+                          i,
+                          j) = mmat(i, j);
           }
         }
       }
@@ -174,9 +182,9 @@ void cloud_fieldsCalc(const Workspace&,// ws,
 }
 
 void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
-                                 const ArrayOfTensor6& acceleration_input,
-                                 const Index& accelerated) {
-  const Index N_p = cloudbox_field_mono.nvitrines();
+                                   const ArrayOfTensor6& acceleration_input,
+                                   const Index& accelerated) {
+  const Index N_p  = cloudbox_field_mono.nvitrines();
   const Index N_za = cloudbox_field_mono.npages();
 
   // Loop over 4 components of Stokes Vector
@@ -190,29 +198,29 @@ void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
     Matrix Q1;
     Matrix Q2;
     Matrix Q3;
-    Numeric A1 = 0;
+    Numeric A1   = 0;
     Numeric A2B1 = 0;
-    Numeric B2 = 0;
-    Numeric C1 = 0;
-    Numeric C2 = 0;
-    Numeric NGA = 0;
-    Numeric NGB = 0;
+    Numeric B2   = 0;
+    Numeric C1   = 0;
+    Numeric C2   = 0;
+    Numeric NGA  = 0;
+    Numeric NGB  = 0;
 
     // Q1 = -2*S3 + S4 + S2
 
-    Q1 = S3;
+    Q1  = S3;
     Q1 *= -2;
     Q1 += S4;
     Q1 += S2;
 
     // Q2 = S4 - S3 - S2 + S1
-    Q2 = S4;
+    Q2  = S4;
     Q2 -= S3;
     Q2 -= S2;
     Q2 += S1;
 
     //Q3 = S4 - S3
-    Q3 = S4;
+    Q3  = S4;
     Q3 -= S3;
 
     for (Index p_index = 0; p_index < N_p; ++p_index) {
@@ -285,7 +293,7 @@ void za_gridOpt(  //Output:
     za_reduced.resize(idx.size());
     cloudbox_field_opt.resize(N_p, idx.size());
     max_diff_za = 0.;
-    max_diff_p = 0.;
+    max_diff_p  = 0.;
 
     // Interpolate reduced intensity field on fine za_grid for
     // all pressure levels
@@ -319,19 +327,19 @@ void za_gridOpt(  //Output:
                              i_approx_interp[i_za]);
         if (diff_vec[i_za] > max_diff_za[i_p]) {
           max_diff_za[i_p] = diff_vec[i_za];
-          ind_za[i_p] = i_za;
+          ind_za[i_p]      = i_za;
         }
       }
       // Take maximum value of max_diff_za
       if (max_diff_za[i_p] > max_diff_p) {
         max_diff_p = max_diff_za[i_p];
-        ind_p = i_p;
+        ind_p      = i_p;
       }
     }
 
     //Transform in %
-    max_diff =
-        max_diff_p / cloudbox_field_mono(ind_p, 0, 0, ind_za[ind_p], 0, 0) * 100.;
+    max_diff = max_diff_p /
+               cloudbox_field_mono(ind_p, 0, 0, ind_za[ind_p], 0, 0) * 100.;
 
     idx.push_back(ind_za[ind_p]);
     idx_unsorted = idx;
@@ -349,7 +357,8 @@ void za_gridOpt(  //Output:
   cloudbox_field_opt.resize(N_p, idx.size());
   for (Size i = 0; i < idx.size(); i++) {
     za_grid_opt[i] = za_grid_fine[idx[i]];
-    cloudbox_field_opt(joker, i) = cloudbox_field_mono(joker, 0, 0, idx[i], 0, 0);
+    cloudbox_field_opt(joker, i) =
+        cloudbox_field_mono(joker, 0, 0, idx[i], 0, 0);
   }
 }
 
@@ -364,28 +373,24 @@ void doit_scat_fieldNormalize(const Workspace& ws,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
                               const Index& norm_debug) {
-  ARTS_USER_ERROR ("Only 1D is supported here for now");
+  ARTS_USER_ERROR("Only 1D is supported here for now");
 
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
 
-  ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[Nza - 1] != 180.,
-                      "The range of *za_grid* must [0 180].");
+  ARTS_USER_ERROR_IF(za_grid[0] != 0. || za_grid[Nza - 1] != 180.,
+                     "The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
   const Index Naa = aa_grid.nelem();
 
-  ARTS_USER_ERROR_IF (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.),
-                      "The range of *aa_grid* must [0 360].");
+  ARTS_USER_ERROR_IF(Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.),
+                     "The range of *aa_grid* must [0 360].");
 
   // To use special interpolation functions for atmospheric fields we
   // use ext_mat_field and abs_vec_field:
-  Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1,
-                        1,
-                        1,
-                        4,
-                        4,
-                        0.);
+  Tensor5 ext_mat_field(
+      cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, 4, 4, 0.);
   Tensor4 abs_vec_field(
       cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, 4, 0.);
 
@@ -401,8 +406,7 @@ void doit_scat_fieldNormalize(const Workspace& ws,
   Index aa_index_local = 0;
 
   // Calculate scattering extinction field
-  for (Index za_index_local = 0; za_index_local < Nza;
-       za_index_local++) {
+  for (Index za_index_local = 0; za_index_local < Nza; za_index_local++) {
     // This function has to be called inside the angular loop, as
     // spt_calc_agenda takes *za_index* and *aa_index*
     // from the workspace.
@@ -432,7 +436,7 @@ void doit_scat_fieldNormalize(const Workspace& ws,
     }
   }
 
-  Numeric corr_max = .0;
+  Numeric corr_max       = .0;
   Index corr_max_p_index = -1;
 
   for (Index p_index = 0; p_index < Np; p_index++) {
@@ -451,15 +455,17 @@ void doit_scat_fieldNormalize(const Workspace& ws,
     // inf or nan. We just don't apply it for those cases.
     if (!std::isnan(corr_factor) && !std::isinf(corr_factor)) {
       if (abs(corr_factor) > abs(corr_max)) {
-        corr_max = corr_factor;
+        corr_max         = corr_factor;
         corr_max_p_index = p_index;
       }
       if (norm_debug) {
       }
-      ARTS_USER_ERROR_IF (abs(1. - corr_factor) > norm_error_threshold,
-          "ERROR: DOIT correction factor exceeds threshold (=",
-          norm_error_threshold, "): ",
-          1. - corr_factor, " at p_index ", p_index, "\n")
+      ARTS_USER_ERROR_IF(
+          abs(1. - corr_factor) > norm_error_threshold,
+          "ERROR: DOIT correction factor exceeds threshold (={}): {} at p_index {}\n",
+          norm_error_threshold,
+          1. - corr_factor,
+          p_index)
       if (abs(1. - corr_factor) > norm_error_threshold / 2.) {
       }
 

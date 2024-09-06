@@ -20,7 +20,7 @@ std::ostream& operator<<(std::ostream& os, const CallbackOperator& op) {
 }
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {
-  ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n", *this);
+  ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n{}", *this);
   
   Workspace ws(WorkspaceInitialization::Empty);
 
@@ -36,5 +36,5 @@ void CallbackOperator::operator()(Workspace& ws_in) const try {
   callback(ws);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in callback operator:\n", *this, '\n', e.what()));
+      var_string("Error in callback operator:\n{}\n{}", *this, e.what()));
 }

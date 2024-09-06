@@ -72,11 +72,9 @@ std::string artsformat(std::format_string<Args...> fmt, Args&&... args)
   return std::format(fmt, std::forward<Args>(args)...);
 }
 
-constexpr std::string artsformat(std::format_string<> fmt) {
-  return std::format(fmt);
-}
+std::string artsformat(std::format_string<> fmt);
 
-constexpr std::string artsformat() { return ""; }
+std::string artsformat();
 
 #if __cpp_lib_source_location >= 201907L
 #include <iomanip>

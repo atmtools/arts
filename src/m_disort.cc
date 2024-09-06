@@ -229,7 +229,7 @@ void disort_spectral_radiance_fieldCalc(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
 
 void disort_spectral_flux_fieldCalc(
@@ -305,7 +305,7 @@ void disort_spectral_flux_fieldCalc(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
 
 ////////////////////////////////////////////////////////////////////////

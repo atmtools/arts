@@ -59,7 +59,7 @@ std::variant<T...> read_variant(const std::variant<T...> &_,
     return read_variant<I + 1, T...>(_, filename);
   }
 
-  ARTS_USER_ERROR("Could not read valid data from file: ", filename)
+  ARTS_USER_ERROR("Could not read valid data from file: {}", filename)
 }
 
 template <typename T>
@@ -96,10 +96,9 @@ void append_data(
       } else {
         ARTS_USER_ERROR_IF(
             not atmospheric_field.contains(key),
-            "Filename: \"",
+            "Filename: \"{}\" does not exist"
+            " and no options for workarounds are given.  Cannot populate atmospheric_field with key: {}",
             filename,
-            "\" does not exist",
-            " and no options for workarounds are given.  Cannot populate atmospheric_field with key: ",
             to_string(key))
       }
     }
@@ -133,41 +132,34 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
   ARTS_USER_ERROR_IF(
       not atmospheric_field.has(p) and
           not static_cast<bool>(allow_missing_pressure),
-      "Pressure is missing from the read atmospheric field at \"",
-      basename,
-      '"')
+      "Pressure is missing from the read atmospheric field at \"{}\"",
+      basename)
 
   ARTS_USER_ERROR_IF(
       not atmospheric_field.has(t) and
           not static_cast<bool>(allow_missing_temperature),
-      "Temperature is missing from the read atmospheric field at \"",
-      basename,
-      '"')
+      "Temperature is missing from the read atmospheric field at \"{}\"",
+      basename)
 
   switch (to<MissingFieldComponentError>(deal_with_field_component)) {
     case MissingFieldComponentError::Throw:
       if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
           atmospheric_field.has(wind_w)) {
-        ARTS_USER_ERROR_IF(not atmospheric_field.has(wind_u, wind_v, wind_w),
-                           "Need all wind components, has [u: ",
-                           atmospheric_field.has(wind_u),
-                           ", v: ",
-                           atmospheric_field.has(wind_v),
-                           ", w: ",
-                           atmospheric_field.has(wind_w),
-                           "]");
+        ARTS_USER_ERROR_IF(
+            not atmospheric_field.has(wind_u, wind_v, wind_w),
+            "Need all wind components, has [u: {}, v: {}, w: {}]",
+            atmospheric_field.has(wind_u),
+            atmospheric_field.has(wind_v),
+            atmospheric_field.has(wind_w));
       }
 
       if (atmospheric_field.has(mag_u) or atmospheric_field.has(mag_v) or
           atmospheric_field.has(mag_w)) {
         ARTS_USER_ERROR_IF(not atmospheric_field.has(mag_u, mag_v, mag_w),
-                           "Need all mag components, has [u: ",
+                           "Need all mag components, has [u: {}, v: {}, w: {}]",
                            atmospheric_field.has(mag_u),
-                           ", v: ",
                            atmospheric_field.has(mag_v),
-                           ", w: ",
-                           atmospheric_field.has(mag_w),
-                           "]");
+                           atmospheric_field.has(mag_w));
       }
       break;
     case MissingFieldComponentError::Zero:
@@ -658,7 +650,7 @@ void atmospheric_fieldHydrostaticPressure(
           p0.grid_names[1] not_eq "Longitude" or not p0.ok(),
       "Bad gridded field, must have right size.\n"
       "Must also have \"Latitude\" as first grid and \"Longitude\" as second grid.\n"
-      "Field:\n",
+      "Field:{}\n",
       p0)
 
   const bool has_def_t = fixed_atm_temperature > 0;

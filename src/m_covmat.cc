@@ -79,7 +79,7 @@ void model_state_covariance_matrixAdd(
   }
 
   ARTS_USER_ERROR_IF(
-      not found, "No target found for atmospheric target : ", new_target);
+      not found, "No target found for atmospheric target : {}", new_target);
 }
 
 void model_state_covariance_matrixAdd(
@@ -102,7 +102,7 @@ void model_state_covariance_matrixAdd(
   }
 
   ARTS_USER_ERROR_IF(
-      not found, "No target found for surface target : ", new_target);
+      not found, "No target found for surface target : {}", new_target);
 }
 
 void model_state_covariance_matrixAdd(
@@ -125,7 +125,7 @@ void model_state_covariance_matrixAdd(
   }
 
   ARTS_USER_ERROR_IF(
-      not found, "No target found for surface target : ", new_target);
+      not found, "No target found for surface target : {}", new_target);
 }
 
 void model_state_covariance_matrixAddAtmosphere(

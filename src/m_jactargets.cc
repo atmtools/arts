@@ -143,9 +143,8 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
     const Numeric& d) {
   ARTS_USER_ERROR_IF(
       std::ranges::none_of(Species::Isotopologues, Cmp::eq(species)),
-      "Unknown isotopologue: \"",
-      species.FullName(),
-      '"');
+      "Unknown isotopologue: \"{}\"",
+      species.FullName());
 
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
       species, d, jacobian_targets.target_count());

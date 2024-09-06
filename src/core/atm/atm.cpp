@@ -9,6 +9,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -30,6 +31,7 @@ AtmKey to_wind(const String& x) {
     case FieldComponent::w:
       return AtmKey::wind_w;
   }
+  std::unreachable();
 }
 
 AtmKey to_mag(const String& x) {
@@ -41,30 +43,31 @@ AtmKey to_mag(const String& x) {
     case FieldComponent::w:
       return AtmKey::mag_w;
   }
+  std::unreachable();
 }
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try {
   return specs.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
+  ARTS_USER_ERROR("Species VMR not found: \"{}\"", toString<1>(x))
 }
 
 Numeric AtmPoint::operator[](const SpeciesIsotope &x) const try {
   return isots.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Isotopologue ratio not found: \"", x, '"')
+  ARTS_USER_ERROR("Isotopologue ratio not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](const QuantumIdentifier &x) const try {
   return nlte.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("QuantumIdentifier not found: \"", x, '"')
+  ARTS_USER_ERROR("QuantumIdentifier not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](const ParticulatePropertyTag &x) const try {
   return partp.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"", x, '"')
+  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](AtmKey x) const {
@@ -118,7 +121,7 @@ Numeric &AtmPoint::operator[](AtmKey x) {
     case AtmKey::mag_w:
       return mag[2];
   }
-  ARTS_USER_ERROR("Cannot reach")
+  std::unreachable();
 }
 
 std::pair<Numeric, Numeric> AtmPoint::levels(

@@ -542,22 +542,22 @@ void xml_read_from_stream_gf(std::istream& is_xml,
 
       if constexpr (std::same_as<U, Vector>) {
         ARTS_USER_ERROR_IF(
-            tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
+            tag.get_name() != "Vector", "Must be Vector, is {}", tag.get_name());
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Vector");
       } else if constexpr (std::same_as<U, ArrayOfString>) {
         ARTS_USER_ERROR_IF(
-            tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
+            tag.get_name() != "Array", "Must be Array, is {}", tag.get_name());
         String s;
         tag.get_attribute_value("type", s);
         ARTS_USER_ERROR_IF(
-            s != "String", "Must be Array<String>, is Array<", s, '>');
+            s != "String", "Must be Array<String>, is Array<{}>", s);
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Array");
       } else {
-        ARTS_USER_ERROR("Unknown grid type: ", tag.get_name());
+        ARTS_USER_ERROR("Unknown grid type: {}", tag.get_name());
       }
     };
 

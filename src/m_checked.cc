@@ -35,7 +35,7 @@ void atmfields_checkedCalc(Index& atmfields_checked,
   ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::t), "No temperature field")
   for (auto& spec : abs_species)
     ARTS_USER_ERROR_IF(
-        not atm_field.has(spec.Species()), "No \"", spec, "\" field")
+        not atm_field.has(spec.Species()), "No \"{}\" field", spec)
 
     {
       const bool u = atm_field.has(AtmKey::mag_u),
@@ -44,12 +44,10 @@ void atmfields_checkedCalc(Index& atmfields_checked,
       ARTS_USER_ERROR_IF(
           (u or v or w) and (not u or not v or not w),
           "If any magnetic field component exist, all three must.\n The "
-          "following component exists (1) and does not exist (0):\n",
-          "U: ",
+          "following component exists (1) and does not exist (0):\n"
+          "U: {} V: {} W: {}",
           static_cast<int>(u),
-          "V: ",
           static_cast<int>(v),
-          "W: ",
           static_cast<int>(w))
     }
 
@@ -60,12 +58,10 @@ void atmfields_checkedCalc(Index& atmfields_checked,
     ARTS_USER_ERROR_IF(
         (u or v or w) and (not u or not v or not w),
         "If any wind field component exist, all three must.\n The "
-        "following component exists (1) and does not exist (0):\n",
-        "U: ",
+        "following component exists (1) and does not exist (0):\n"
+        "U: {} V: {} W: {}",
         static_cast<int>(u),
-        "V: ",
         static_cast<int>(v),
-        "W: ",
         static_cast<int>(w))
   }
 
@@ -116,15 +112,12 @@ void atmgeom_checkedCalc(
               z_surface(row, col) >= z_field(z_field.npages() - 1, row, col),
           "The surface altitude (*z_surface*) cannot be outside\n"
           "of the altitudes in *z_field*.\n"
-          "z_surface: ",
+          "z_surface: {}\n"
+          "min of z_field: {}\n"
+          "max of z_field: {}\n{}\n{}",
           z_surface(row, col),
-          "\n"
-          "min of z_field: ",
           z_field(0, row, col),
-          "\n"
-          "max of z_field: ",
           z_field(z_field.npages() - 1, row, col),
-          "\n",
           (3 > 1) ? var_string("\nThis was found to be the case for:\n",
                                "latitude ",
                                lat_grid[row])
@@ -209,10 +202,10 @@ void scat_data_checkedCalc(Index& scat_data_checked,
 {
   // Prevent the user from producing nonsense by using too much freedom in
   // setting the single freq validity threshold...
-  ARTS_USER_ERROR_IF(dfrel_threshold > 0.5,
-                     "*dfrel_threshold* too large (max. allowed: 0.5, your's: ",
-                     dfrel_threshold,
-                     ").")
+  ARTS_USER_ERROR_IF(
+      dfrel_threshold > 0.5,
+      "*dfrel_threshold* too large (max. allowed: 0.5, your's: {}).",
+      dfrel_threshold)
 
   // freq range of calc covered?
   ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
@@ -230,50 +223,42 @@ void scat_data_checkedCalc(Index& scat_data_checked,
       Index nf_se = scat_data[i_ss][i_se].f_grid.nelem();
       if (nf_se != 1) {
         ARTS_USER_ERROR_IF(nf_se != nf,
-                           "*scat_data* must have either one or *f_grid* (=",
-                           nf,
+                           "*scat_data* must have either one or *f_grid* (={}) "
                            ") frequency entries,\n"
-                           "but scattering element #",
+                           "but scattering element #{} has {}."
+                           " in scattering species #{}",
+                           nf,
                            i_se,
-                           " in scattering species #",
                            i_ss,
-                           " has ",
-                           nf_se,
-                           ".")
+                           nf_se)
         for (Index f = 0; f < nf_se; f++) {
           ARTS_USER_ERROR_IF(
               !is_same_within_epsilon(
                   scat_data[i_ss][i_se].f_grid[f], f_grid[f], 0.5e-9),
               "*scat_data* frequency grid has to be identical to *f_grid*\n"
               "(or contain only a single entry),\n"
-              "but scattering element #",
+              "but scattering element #{} in scattering species #{} deviates for f_index {}.",
               i_se,
-              " in scattering species #",
               i_ss,
-              " deviates for f_index ",
-              f,
-              ".")
+              f)
         }
       } else {
-        ARTS_USER_ERROR_IF((abs(1. - scat_data[i_ss][i_se].f_grid[0] /
-                                         f_grid[0]) > dfrel_threshold) or
-                               (abs(1. - scat_data[i_ss][i_se].f_grid[0] /
-                                             f_grid[nf - 1]) > dfrel_threshold),
-                           "Frequency entry (f=",
-                           scat_data[i_ss][i_se].f_grid[0],
-                           "Hz) of scattering element #",
-                           i_se,
-                           "\n"
-                           "in scattering species #",
-                           i_ss,
-                           " is too far (>",
-                           dfrel_threshold * 1e2,
-                           "%) from one or more\n"
-                           "of the f_grid limits (fmin=",
-                           f_grid[0],
-                           "Hz, fmax=",
-                           f_grid[nf - 1],
-                           "Hz).")
+        ARTS_USER_ERROR_IF(
+            (abs(1. - scat_data[i_ss][i_se].f_grid[0] / f_grid[0]) >
+             dfrel_threshold) or
+                (abs(1. - scat_data[i_ss][i_se].f_grid[0] / f_grid[nf - 1]) >
+                 dfrel_threshold),
+            "Frequency entry (f={}"
+            "Hz) of scattering element #{}"
+            "\nin scattering species #{}"
+            " is too far (>{}"
+            "%) from one or more\nof the f_grid limits (fmin={}Hz, fmax={}Hz).",
+            scat_data[i_ss][i_se].f_grid[0],
+            i_se,
+            i_ss,
+            dfrel_threshold * 1e2,
+            f_grid[0],
+            f_grid[nf - 1])
       }
 
       // check that the freq dimension of sca_mat, ext_mat, and abs_vec is
@@ -373,12 +358,9 @@ void sensor_checkedCalc(Index& sensor_checked,
                      "For 3D, sensor_los shall have two columns.");
   ARTS_USER_ERROR_IF(sensor_los.nrows() != nmblock,
                      "The number of rows of sensor_pos and sensor_los must be "
-                     "identical, but sensor_pos has ",
+                     "identical, but sensor_pos has {} rows,\nwhile sensor_los has {} rows.",
                      nmblock,
-                     " rows,\n"
-                     "while sensor_los has ",
-                     sensor_los.nrows(),
-                     " rows.")
+                     sensor_los.nrows())
   ARTS_USER_ERROR_IF(
       max(sensor_los(joker, 0)) > 180,
       "First column of *sensor_los* is not allowed to have values above 180.");
@@ -439,16 +421,15 @@ void sensor_checkedCalc(Index& sensor_checked,
           n1y != sensor_response_dlos.nrows(),
       "Sensor auxiliary variables do not have the correct size.\n"
       "The following variables should all have same size:\n"
-      "length of y for one block     : ",
-      n1y,
+      "length of y for one block     : {}"
       "\n"
-      "sensor_response_f.nelem()     : ",
+      "sensor_response_f.nelem()     : {}"
+      "\nsensor_response_pol.nelem() : {}"
+      "\nsensor_response_dlos.nrows(): {}\n",
+      n1y,
       sensor_response_f.nelem(),
-      "\nsensor_response_pol.nelem() : ",
       sensor_response_pol.size(),
-      "\nsensor_response_dlos.nrows(): ",
-      sensor_response_dlos.nrows(),
-      "\n")
+      sensor_response_dlos.nrows())
 
   // If here, all OK
   sensor_checked = 1;

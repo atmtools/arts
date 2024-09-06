@@ -53,7 +53,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
         break;
       }
     }
-    ARTS_USER_ERROR_IF(iq < 0, "Could not find ", species, " in abs_species.\n")
+    ARTS_USER_ERROR_IF(iq < 0, "Could not find {} in abs_species.\n", species)
   }
 
   Tensor4Clip(vmr_field, iq, limit_low, limit_high);
@@ -64,11 +64,10 @@ void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
                                      const Vector& retrieval_values) {
   ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
                      sz not_eq static_cast<Size>(retrieval_values.size()),
-                     "Mismatch between size expected of jacobian_targets (",
+                     "Mismatch between size expected of jacobian_targets ("
+                     "{}) and retrieval_values ({})",
                      sz,
-                     ") and retrieval_values (",
-                     retrieval_values.size(),
-                     ')')
+                     retrieval_values.size())
 
   for (auto& target : jacobian_targets.atm()) {
     target.update(atm_field, retrieval_values);
@@ -164,12 +163,12 @@ void OEM(const Workspace& ws,
   ARTS_USER_ERROR_IF(
       measurement_vector_fitted.nelem() not_eq measurement_vector.nelem(),
       "Mismatch between simulated y and input y.\n"
-      "Input y is size ",
-      measurement_vector.nelem(),
-      " but simulated y is ",
-      measurement_vector_fitted.nelem(),
+      "Input y is size {}"
+      " but simulated y is {}"
       "\n"
-      "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n")
+      "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n",
+      measurement_vector.nelem(),
+      measurement_vector_fitted.nelem())
 
   // TODO: Get this from invlib log.
   // Start value of cost function

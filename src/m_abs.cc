@@ -109,7 +109,7 @@ void AbsInputFromAtmFields(  // WS Output:
     const Tensor4& vmr_field) {
   // First, make sure that we really have a 1D atmosphere:
   ARTS_USER_ERROR_IF(
-      1 != 3, "Atmospheric dimension must be 1D, but 3 is ", 3, ".")
+      1 != 3, "Atmospheric dimension must be 1D, but 3 is 3")
 
   abs_p = p_grid;
   abs_t = t_field(joker, 0, 0);
@@ -302,12 +302,9 @@ void propagation_matrixAddParticles(
   ARTS_USER_ERROR_IF(
       ns != np,
       "Number of 'particles' entries in absorption_species and of elements in\n"
-      "*scat_data* needs to be identical. But you have ",
+      "*scat_data* needs to be identical. But you have {} 'particles' entries\nand {} *scat_data* elements.\n",
       np,
-      " 'particles' entries\n"
-      "and ",
-      ns,
-      " *scat_data* elements.\n")
+      ns)
 
   const auto jac_temperature =
       jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
@@ -368,22 +365,17 @@ void propagation_matrixAddParticles(
           atm_point[absorption_species[sp].Species()] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
-          "scat species #",
+          "scat species #{}, scat elem #{} (vmr_field entry #{})\n",
           i_ss,
-          ", scat elem #",
           i_se,
-          " (vmr_field entry #",
-          sp,
-          ")\n")
+          sp)
 
       if (atm_point[absorption_species[sp].Species()] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
-                           "scat species #",
+                           "scat species #{}, scat elem #{}\n",
                            i_ss,
-                           ", scat elem #",
-                           i_se,
-                           "\n")
+                           i_se)
         if (use_abs_as_ext) {
           for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 0);
@@ -407,11 +399,9 @@ void propagation_matrixAddParticles(
       // For temperature derivatives (so we don't need to check it in jac loop)
       ARTS_USER_ERROR_IF(jac_temperature.first and t_ok(i_se_flat, 1) < 0.,
                          "Temperature interpolation error (in perturbation):\n"
-                         "scat species #",
+                         "scat species #{}, scat elem #{}\n",
                          i_ss,
-                         ", scat elem #",
-                         i_se,
-                         "\n")
+                         i_se)
 
       if (jac_temperature.first) {
         const auto iq = jac_temperature.second->target_pos;

@@ -38,7 +38,7 @@ LineByLineLineshape toLineshape(const LineShapeTypeOld old_ls,
   }
 
   ARTS_USER_ERROR(
-      "New code does not support combination of ", old_ls, " and ", old_pop)
+      "New code does not support combination of {} and {}", old_ls, old_pop)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -192,7 +192,7 @@ toLineshapeAndPolpulation(LineByLineLineshape x) try {
     return {LineShapeTypeOld::VP, AbsorptionPopulationTypeOld::LTE};
   }
 
-  ARTS_USER_ERROR("Old code does not support conversion from ", x)
+  ARTS_USER_ERROR("Old code does not support conversion from {}", x)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -327,7 +327,7 @@ void absorption_bandsRemoveID(ArrayOfAbsorptionBand& absorption_bands,
       return;
     }
   }
-  ARTS_USER_ERROR("Did not find band of ID: ", id)
+  ARTS_USER_ERROR("Did not find band of ID: {}", id)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -409,7 +409,7 @@ void absorption_bandsKeepID(ArrayOfAbsorptionBand& absorption_bands,
       if (line >= 0) {
         ARTS_USER_ERROR_IF(static_cast<Size>(line) >=
                                absorption_bands.front().data.lines.size(),
-                           "Line index out of range: ",
+                           "Line index out of range: {}",
                            line)
         absorption_bands[0].data.lines = {
             absorption_bands.front().data.lines[line]};
