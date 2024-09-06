@@ -2439,66 +2439,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 //       they cannot be completely restructured by the data they own.
 //       If you need them to be, consider a redesign of them
 
-//=== CallbackOperator =========================================
-
-void xml_read_from_stream(std::istream&,
-                          CallbackOperator&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(std::ostream&,
-                         const CallbackOperator&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-//=== NumericUnaryOperator =========================================
-
-void xml_read_from_stream(std::istream&,
-                          NumericUnaryOperator&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(std::ostream&,
-                         const NumericUnaryOperator&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-//=== NumericBinaryOperator =========================================
-
-void xml_read_from_stream(std::istream&,
-                          NumericBinaryOperator&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(std::ostream&,
-                         const NumericBinaryOperator&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-//=== NumericTernaryOperator =========================================
-
-void xml_read_from_stream(std::istream&,
-                          NumericTernaryOperator&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(std::ostream&,
-                         const NumericTernaryOperator&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
 //=== JacobianTargets =========================================
 
 void xml_read_from_stream(std::istream&,
