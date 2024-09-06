@@ -1,5 +1,9 @@
+#pragma once
+
 #include <sun.h>
-#include <workspace.h>
+
+class Agenda;
+class Workspace;
 
 /*===========================================================================
   === Functions in sun.h

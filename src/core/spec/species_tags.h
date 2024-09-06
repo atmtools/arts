@@ -38,7 +38,7 @@ struct Tag {
     return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
   }
 
-  constexpr void Isotopologue(const SpeciesIsotope& ir) ARTS_NOEXCEPT {
+  constexpr void Isotopologue(const SpeciesIsotope& ir)  {
     Index ind = find_species_index(ir);
     ARTS_ASSERT(ind < 0, "Bad species extracted from: ", ir)
     spec_ind = ind;
@@ -65,7 +65,7 @@ struct Tag {
   [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept =
       default;
 
-  [[nodiscard]] constexpr bool is_joker() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr bool is_joker() const  {
     ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;
   }
 };
@@ -102,10 +102,10 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
                                   const ArrayOfSpeciesTag& ot);
 
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesEnum Species() const ARTS_NOEXCEPT ;
+  [[nodiscard]] SpeciesEnum Species() const  ;
 
   //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesTagType Type() const ARTS_NOEXCEPT;
+  [[nodiscard]] SpeciesTagType Type() const ;
 
   [[nodiscard]] String Name() const;
 
@@ -185,7 +185,7 @@ namespace Species {
  */
 Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Vector& rtp_vmr,
-                  const SpeciesEnum spec) ARTS_NOEXCEPT;
+                  const SpeciesEnum spec) ;
 
 /** Parse a list of species tags into an Array<Tag>
  *

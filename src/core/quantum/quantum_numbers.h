@@ -10,9 +10,8 @@
 #include <algorithm>
 #include <compare>
 #include <cstddef>
-#include <istream>
+#include <iosfwd>
 #include <limits>
-#include <ostream>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -386,14 +385,14 @@ struct ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index size() const ARTS_NOEXCEPT { return values.size(); }
+  [[nodiscard]] Index size() const  { return values.size(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
-  [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
+  [[nodiscard]] bool perpendicular(const ValueList& that) const ;
 
   //! Returns whether all the Types are part of the list, the types must be sorted
   template <typename... Types>
-  [[nodiscard]] bool has(Types... ts) const ARTS_NOEXCEPT {
+  [[nodiscard]] bool has(Types... ts) const  {
     static_assert(sizeof...(Types) > 0);
 
     ARTS_ASSERT(is_sorted(std::array{QuantumNumberType(ts)...}))
@@ -408,7 +407,7 @@ struct ValueList {
   }
 
   //! Returns the value of the Type (assumes it exist)
-  const Value& operator[](QuantumNumberType t) const ARTS_NOEXCEPT;
+  const Value& operator[](QuantumNumberType t) const ;
 
   //! Legacy manipulation operator access
   Value& operator[](Index i) { return values.at(i); }
@@ -427,7 +426,7 @@ struct ValueList {
 
   //! Returns upper and lower matching status
   [[nodiscard]] CheckMatch check_match(const ValueList& other) const
-      ARTS_NOEXCEPT;
+      ;
 
   //! ouptut stream if all values
   friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
@@ -578,7 +577,7 @@ enum class VAMDC : char {
  * @return true If it can belong to the VAMDC type
  * @return false If it cannot belong to the VAMDC type
  */
-bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
+bool vamdcCheck(const ValueList& l, VAMDC type) ;
 
 //! A default state of global quantum numbers
 [[maybe_unused]] inline constexpr std::array global_types{

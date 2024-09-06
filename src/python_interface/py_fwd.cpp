@@ -47,7 +47,7 @@ void py_fwd(py::module_& m) try {
                  }
                }
 
-               ARTS_USER_ERROR_IF(not error.empty(), error)
+               ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
              }
              return out;
            })

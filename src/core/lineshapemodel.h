@@ -65,7 +65,7 @@ struct ModelParameters {
 
   template <typename VectorType>
   constexpr ModelParameters(LineShapeTemperatureModelOld intype,
-                            VectorType&& v) ARTS_NOEXCEPT
+                            VectorType&& v) 
       : ModelParameters(intype) {
     const auto n = std::size(v);
     ARTS_ASSERT(n <= N, "Must have at most ", N, " inputs, got: ", n)
@@ -430,7 +430,7 @@ constexpr Output differenceOutput(Output y, Output x) noexcept {
  */
 Vector vmrs(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-            const ArrayOfSpeciesEnum& lineshape_species) ARTS_NOEXCEPT;
+            const ArrayOfSpeciesEnum& lineshape_species) ;
 
 /** Returns a VMR vector for a list of Species from a point in the atmosphere
  * 
@@ -440,7 +440,7 @@ Vector vmrs(const ConstVectorView& atmospheric_vmrs,
  * @param[in] lineshape_species Species affecting lineshape
  */
 Vector vmrs(const AtmPoint& atm_point,
-            const ArrayOfSpeciesEnum& lineshape_species) ARTS_NOEXCEPT;
+            const ArrayOfSpeciesEnum& lineshape_species) ;
 
 /** Returns a mass vector for this model's main calculations
  * 
@@ -459,7 +459,7 @@ Vector vmrs(const AtmPoint& atm_point,
 Vector mass(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
             const ArrayOfSpeciesEnum& lineshape_species,
-            const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT;
+            const SpeciesIsotopologueRatios& ir) ;
 
 /** Name for bath broadening in printing and reading user input */
 inline constexpr std::string_view bath_broadening = "AIR";
@@ -627,76 +627,76 @@ class Model {
   [[nodiscard]] Numeric G0(Numeric T,
                            Numeric T0,
                            Numeric P,
-                           const Vector& vmrs) const ARTS_NOEXCEPT;
+                           const Vector& vmrs) const ;
   [[nodiscard]] Numeric D0(Numeric T,
                            Numeric T0,
                            Numeric P,
-                           const Vector& vmrs) const ARTS_NOEXCEPT;
+                           const Vector& vmrs) const ;
   [[nodiscard]] Numeric G2(Numeric T,
                            Numeric T0,
                            Numeric P,
-                           const Vector& vmrs) const ARTS_NOEXCEPT;
+                           const Vector& vmrs) const ;
   [[nodiscard]] Numeric D2(Numeric T,
                            Numeric T0,
                            Numeric P,
-                           const Vector& vmrs) const ARTS_NOEXCEPT;
+                           const Vector& vmrs) const ;
   [[nodiscard]] Numeric ETA(Numeric T,
                             Numeric T0,
                             Numeric P,
-                            const Vector& vmrs) const ARTS_NOEXCEPT;
+                            const Vector& vmrs) const ;
   [[nodiscard]] Numeric FVC(Numeric T,
                             Numeric T0,
                             Numeric P,
-                            const Vector& vmrs) const ARTS_NOEXCEPT;
+                            const Vector& vmrs) const ;
   [[nodiscard]] Numeric Y(Numeric T,
                           Numeric T0,
                           Numeric P,
-                          const Vector& vmrs) const ARTS_NOEXCEPT;
+                          const Vector& vmrs) const ;
   [[nodiscard]] Numeric G(Numeric T,
                           Numeric T0,
                           Numeric P,
-                          const Vector& vmrs) const ARTS_NOEXCEPT;
+                          const Vector& vmrs) const ;
   [[nodiscard]] Numeric DV(Numeric T,
                            Numeric T0,
                            Numeric P,
-                           const Vector& vmrs) const ARTS_NOEXCEPT;
+                           const Vector& vmrs) const ;
 
   [[nodiscard]] Numeric dG0dT(Numeric T,
                               Numeric T0,
                               Numeric P,
-                              const Vector& vmrs) const ARTS_NOEXCEPT;
+                              const Vector& vmrs) const ;
   [[nodiscard]] Numeric dD0dT(Numeric T,
                               Numeric T0,
                               Numeric P,
-                              const Vector& vmrs) const ARTS_NOEXCEPT;
+                              const Vector& vmrs) const ;
   [[nodiscard]] Numeric dG2dT(Numeric T,
                               Numeric T0,
                               Numeric P,
-                              const Vector& vmrs) const ARTS_NOEXCEPT;
+                              const Vector& vmrs) const ;
   [[nodiscard]] Numeric dD2dT(Numeric T,
                               Numeric T0,
                               Numeric P,
-                              const Vector& vmrs) const ARTS_NOEXCEPT;
+                              const Vector& vmrs) const ;
   [[nodiscard]] Numeric dETAdT(Numeric T,
                                Numeric T0,
                                Numeric P,
-                               const Vector& vmrs) const ARTS_NOEXCEPT;
+                               const Vector& vmrs) const ;
   [[nodiscard]] Numeric dFVCdT(Numeric T,
                                Numeric T0,
                                Numeric P,
-                               const Vector& vmrs) const ARTS_NOEXCEPT;
+                               const Vector& vmrs) const ;
   [[nodiscard]] Numeric dYdT(Numeric T,
                              Numeric T0,
                              Numeric P,
-                             const Vector& vmrs) const ARTS_NOEXCEPT;
+                             const Vector& vmrs) const ;
   [[nodiscard]] Numeric dGdT(Numeric T,
                              Numeric T0,
                              Numeric P,
-                             const Vector& vmrs) const ARTS_NOEXCEPT;
+                             const Vector& vmrs) const ;
   [[nodiscard]] Numeric dDVdT(Numeric T,
                               Numeric T0,
                               Numeric P,
-                              const Vector& vmrs) const ARTS_NOEXCEPT;
+                              const Vector& vmrs) const ;
 };  // Model;
 
 Model hitran_model(

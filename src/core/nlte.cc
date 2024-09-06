@@ -266,7 +266,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 }
 
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
-                                 const ArrayOfIndex& lower) ARTS_NOEXCEPT {
+                                 const ArrayOfIndex& lower) {
   for (const Index& l : lower) {
     if (std::find(upper.cbegin(), upper.cend(), l) == upper.cend()) return l;
   }
@@ -282,14 +282,14 @@ void check_collision_line_identifiers(
                        auto& x) { return isot not_eq x.Isotopologue(); });
   ARTS_USER_ERROR_IF(
       p not_eq collision_line_identifiers.cend(),
-      *p,
-      "\n"
+      "{} \n"
       "does not match the requirements for a line identifier\n"
-      "Your list of species is:\n",
-      collision_line_identifiers,
+      "Your list of species is:\n{}"
       "\n"
       "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
-      "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n")
+      "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n",
+      *p,
+      collision_line_identifiers)
 }
 
 std::pair<Numeric, Numeric> VibrationalEnergyLevels::lower_upper(

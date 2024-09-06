@@ -352,7 +352,7 @@ void absorption_cia_dataReadFromXML(  // WS Output:
         first = false;
       os << missing_tags[i];
     }
-    ARTS_USER_ERROR(os.str());
+    ARTS_USER_ERROR("{}", os.str());
   }
 }
 

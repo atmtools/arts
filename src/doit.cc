@@ -14,8 +14,6 @@
 
 #include "doit.h"
 
-#include <workspace.h>
-
 #include <cmath>
 #include <cstdlib>
 #include <iostream>

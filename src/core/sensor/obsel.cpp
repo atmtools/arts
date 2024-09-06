@@ -222,7 +222,7 @@ void sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -333,7 +333,7 @@ void exhaustive_sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -382,7 +382,7 @@ void exhaustive_sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH

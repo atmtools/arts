@@ -39,14 +39,13 @@ void spectral_radiance_operatorClearsky1D(
   const String xsec_str   = "absorption_xsec_fit_data";
   const String predef_str = "absorption_predefined_model_data";
 
-  auto lines  = ws.wsv_and_contains(lines_str)
-                    ? ws.share(lines_str).share<lines_t>()
-                    : std::shared_ptr<lines_t>{};
-  auto cia    = ws.wsv_and_contains(cia_str) ? ws.share(cia_str).share<cia_t>()
-                                             : std::shared_ptr<cia_t>{};
-  auto xsec   = ws.wsv_and_contains(xsec_str)
-                    ? ws.share(xsec_str).share<xsec_t>()
-                    : std::shared_ptr<xsec_t>{};
+  auto lines = ws.wsv_and_contains(lines_str)
+                   ? ws.share(lines_str).share<lines_t>()
+                   : std::shared_ptr<lines_t>{};
+  auto cia   = ws.wsv_and_contains(cia_str) ? ws.share(cia_str).share<cia_t>()
+                                            : std::shared_ptr<cia_t>{};
+  auto xsec = ws.wsv_and_contains(xsec_str) ? ws.share(xsec_str).share<xsec_t>()
+                                            : std::shared_ptr<xsec_t>{};
   auto predef = ws.wsv_and_contains(predef_str)
                     ? ws.share(predef_str).share<predef_t>()
                     : std::shared_ptr<predef_t>{};
@@ -171,7 +170,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 
@@ -278,7 +277,7 @@ void spectral_radiance_fieldFromOperatorPath(
       }
     }
 
-    ARTS_USER_ERROR_IF(not errors.empty(), errors)
+    ARTS_USER_ERROR_IF(not errors.empty(), "{}", errors)
   }
 }
 
@@ -345,7 +344,7 @@ void measurement_vectorFromOperatorPath(
         }
       }
 
-      ARTS_USER_ERROR_IF(not error.empty(), error)
+      ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
     }
 
     if (exhaustive) {

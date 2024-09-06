@@ -779,7 +779,7 @@ struct IsotopologueRatios {
     for (auto& x : data) x = std::numeric_limits<Numeric>::quiet_NaN();
   }
 
-  constexpr Numeric operator[](const Index spec_ind) const ARTS_NOEXCEPT {
+  constexpr Numeric operator[](const Index spec_ind) const  {
     ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
     return data[spec_ind];
   }

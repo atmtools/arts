@@ -18,8 +18,8 @@
 #include <matpack.h>
 #include <mystring.h>
 
+#include <iosfwd>
 #include <memory>
-#include <ostream>
 #include <utility>
 
 class CovarianceMatrix;

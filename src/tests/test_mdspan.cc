@@ -46,7 +46,7 @@ void test_view() {
     for (auto a : y)
       for (auto b : a)
         for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, c, ' ', d);
+          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
           d += 1.0;
         }
   }
@@ -68,7 +68,7 @@ void test_view() {
     for (const auto& a : y)
       for (auto b : a)
         for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, c, ' ', d);
+          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
           d += 1.0;
         }
   }
@@ -90,7 +90,7 @@ void test_view() {
     for (auto a : y)
       for (auto b : a)
         for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, c, ' ', d);
+          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
           d += 1.0;
         }
   }
@@ -112,7 +112,7 @@ void test_view() {
     for (const auto& a : y)
       for (auto b : a)
         for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, c, ' ', d);
+          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
           d += 1.0;
         }
   }
@@ -269,7 +269,7 @@ void test_eigen() {
     ARTS_USER_ERROR_IF(
         z != std::transform_reduce(
                  x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}),
-        z)
+        "{}",z)
   }
 
   {
@@ -328,7 +328,7 @@ void test_complex() {
   {
     Complex x{0, 0};
     const Complex y{0, 0};
-    ARTS_USER_ERROR_IF(x != y, x, ' ', y)
+    ARTS_USER_ERROR_IF(x != y, "{} {}", x, y)
     ARTS_ASSERT(real_val(x) == real_val(y))
     ARTS_ASSERT(imag_val(x) == imag_val(y))
   }
@@ -498,7 +498,7 @@ void test_mult() {
 
     Vector eig_x{A * y};
     mult(x, A, y);
-    ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
+    ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
   }
   {
     ComplexMatrix A(4, 4, 1);
@@ -509,7 +509,7 @@ void test_mult() {
 
     ComplexVector eig_x{A * y};
     mult(x, A, y);
-    ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
+    ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
   }
 }
 

@@ -473,7 +473,7 @@ Vector2 enu2los(const Vector3 enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
-  ARTS_ASSERT(nonstd::abs(twonorm - 1.0) < 1e-6, enu);
+  ARTS_ASSERT(nonstd::abs(twonorm - 1.0) < 1e-6, "{:B,}", enu);
   return {Conversion::acosd(enu[2] / twonorm),
           Conversion::atan2d(enu[0], enu[1])};
 }

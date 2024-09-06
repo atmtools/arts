@@ -242,7 +242,7 @@ namespace matpack {
 template <strict_rank_matpack_type<1> VECONE,
           strict_rank_matpack_type<1> VECTWO>
 constexpr auto operator*(const VECONE &x, const VECTWO &y) {
-  ARTS_ASSERT(x.size() == y.size(), x.size(), " vs ", y.size())
+  ARTS_ASSERT(x.size() == y.size(), "{} vs {}", x.size(), y.size())
   using T = std::remove_cvref_t<decltype(x[0] * y[0])>;
   return std::transform_reduce(
       x.elem_begin(), x.elem_end(), y.elem_begin(), T{0});

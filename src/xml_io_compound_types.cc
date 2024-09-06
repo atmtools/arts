@@ -2976,7 +2976,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "ParticulatePropertyTag"s) {
     atmt = ParticulatePropertyTag{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(
@@ -3058,7 +3058,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "SurfacePropertyTag"s) {
     surft = SurfacePropertyTag{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(
@@ -3222,7 +3222,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "LblLineKey"s) {
     jtt.target = LblLineKey{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(

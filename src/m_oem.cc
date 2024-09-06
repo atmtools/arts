@@ -243,7 +243,7 @@ void OEM(const Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
-        ARTS_USER_ERROR(method, " is not supported")
+        ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
@@ -268,7 +268,7 @@ void OEM(const Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
-        ARTS_USER_ERROR(method, " is not supported")
+        ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, (unsigned int)max_iter, s);
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
@@ -418,9 +418,10 @@ void model_state_covariance_matrix_smoothing_errorCalc(
   ARTS_USER_ERROR_IF(
       n == 0,
       "The averaging kernel matrix *measurement_gain_matrix* is required to compute the smoothing error covariance matrix.");
-  ARTS_USER_ERROR_IF((model_state_covariance_matrix.nrows() != n) ||
-                         (model_state_covariance_matrix.ncols() != n),
-                     "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
+  ARTS_USER_ERROR_IF(
+      (model_state_covariance_matrix.nrows() != n) ||
+          (model_state_covariance_matrix.ncols() != n),
+      "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
 
   model_state_covariance_matrix_smoothing_error.resize(n, n);
 
@@ -441,14 +442,13 @@ void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
                      "The Jacobian matrix is empty.");
 
   ARTS_USER_ERROR_IF((measurement_gain_matrix.shape() != std::array{n, m}),
-                     std::format(
-                         R"(Matrices have inconsistent sizes.
+                     R"(Matrices have inconsistent sizes.
 
 measurement_gain_matrix: {:B,},
 measurement_jacobian:    {:B,}
 )",
-                         measurement_gain_matrix.shape(),
-                         measurement_jacobian.shape()));
+                     measurement_gain_matrix.shape(),
+                     measurement_jacobian.shape());
 
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel,

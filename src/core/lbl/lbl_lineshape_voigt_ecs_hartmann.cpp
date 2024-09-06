@@ -40,7 +40,7 @@ std::function<Numeric(Rational)> erot_selection(const SpeciesIsotope& isot) {
     };
   }
 
-  ARTS_USER_ERROR(isot.FullName(), " has no rotational energies in ARTS")
+  ARTS_USER_ERROR("{} has no rotational energies in ARTS", isot.FullName())
   return [](const Rational J) -> Numeric {
     return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();
   };

@@ -49,12 +49,10 @@ void sunBlackbody(Sun& sun,
                   const Numeric& longitude) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun (",
+                     "The distance to the center of the sun ({} m) \n"
+                     " is smaller than the radius of the sun ( m )",
                      distance,
-                     " m) \n"
-                     " is smaller than the radius of the sun (",
-                     radius,
-                     " m )")
+                     radius)
 
   // spectrum
   sun.spectrum = Matrix(frequency_grid.nelem(), 4, 0.);
@@ -140,7 +138,7 @@ void ray_path_sun_pathFromPathObserver(
       }
     }
 
-    ARTS_USER_ERROR_IF(error.size(), error)
+    ARTS_USER_ERROR_IF(error.size(), "{}", error)
   }
 }
 
@@ -200,7 +198,7 @@ void ray_path_suns_pathFromPathObserver(
       }
     }
 
-    ARTS_USER_ERROR_IF(error.size(), error)
+    ARTS_USER_ERROR_IF(error.size(), "{}", error)
   }
 }
 
@@ -276,7 +274,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
       }
     }
 
-    ARTS_USER_ERROR_IF(error.size(), error)
+    ARTS_USER_ERROR_IF(error.size(), "{}", error)
   }
 }
 
@@ -489,6 +487,6 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), error)
+  ARTS_USER_ERROR_IF(error.size(), "{}", error)
 }
 ARTS_METHOD_ERROR_CATCH

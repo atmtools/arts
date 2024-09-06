@@ -58,16 +58,6 @@ void StringJoin(String& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Error(const String& msg) {
-  ARTS_USER_ERROR(msg);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Exit() {
-  std::exit(EXIT_SUCCESS);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void GetEnvironmentVariable(  // WS Generic Output:
     String& str,
     // WS Generic Input:

@@ -436,7 +436,9 @@ std::string_view lstrip(std::string_view x) {
 
 std::string_view strip(std::string_view x) { return rstrip(lstrip(x)); }
 
-std::string_view items(std::string_view s, std::size_t i, std::size_t n) noexcept {  
+std::string_view items(std::string_view s,
+                       std::size_t i,
+                       std::size_t n) noexcept {
   bool last_space = true;
 
   std::size_t beg = 0, count = 0, end = s.size();
@@ -489,7 +491,7 @@ Value::Value(QuantumNumberType t, Rational upp_, Rational low_) : Value(t) {
     qn.low.i.x = low.numer;
   } else {
     ARTS_USER_ERROR(
-        t, " is a string-type, so cannot be constructed from rationals")
+        "{} is a string-type, so cannot be constructed from rationals", t)
   }
 }
 
@@ -876,7 +878,7 @@ void ValueList::finalize() {
                      "] contains copies of types")
 }
 
-bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
+bool ValueList::perpendicular(const ValueList& that) const  {
   ARTS_ASSERT(has_unique_increasing_types())
   ARTS_ASSERT(that.has_unique_increasing_types())
 
@@ -893,7 +895,7 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
   return true;
 }
 
-CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
+CheckMatch ValueList::check_match(const ValueList& other) const  {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
   for (const QuantumNumberType t : enumtyps::QuantumNumberTypeTypes) {
@@ -912,7 +914,7 @@ CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   return status;
 }
 
-const Value& ValueList::operator[](QuantumNumberType t) const ARTS_NOEXCEPT {
+const Value& ValueList::operator[](QuantumNumberType t) const  {
   auto val =
       std::find_if(cbegin(), cend(), [t](auto& x) { return x.type == t; });
   ARTS_ASSERT(val not_eq cend())
@@ -1036,7 +1038,7 @@ std::istream& operator>>(std::istream& is, GlobalState& gs) {
   return is;
 }
 
-bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT {
+bool vamdcCheck(const ValueList& l, VAMDC type)  {
   switch (type) {
     case VAMDC::asymcs:
       if (l.has(QuantumNumberType::K)) return false;

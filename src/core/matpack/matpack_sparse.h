@@ -21,7 +21,7 @@
 #ifndef matpackII_h
 #define matpackII_h
 
-#include <ostream>
+#include <iosfwd>
 #include <utility>
 
 #ifndef _MSC_VER

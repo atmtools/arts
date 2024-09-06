@@ -6,7 +6,6 @@
 
 #include <limits>
 #include <source_location>
-#include <sstream>
 #include <tuple>
 #include <type_traits>
 #include <utility>

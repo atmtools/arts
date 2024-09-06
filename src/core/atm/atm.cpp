@@ -12,6 +12,7 @@
 #include <variant>
 #include <vector>
 
+
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"

@@ -13,7 +13,7 @@
 
 #include <algorithm>
 #include <array>
-#include <ostream>
+#include <iosfwd>
 
 #include "rational.h"
 

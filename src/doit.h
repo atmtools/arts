@@ -16,7 +16,10 @@
 #ifndef doit_h
 #define doit_h
 
-#include <workspace.h>
+#include <rtepack.h>
+
+class Agenda;
+class Workspace;
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.
 /*!

@@ -3,7 +3,7 @@
 #include <matpack.h>
 
 #include <functional>
-#include <ostream>
+#include <iosfwd>
 
 #include "debug.h"
 

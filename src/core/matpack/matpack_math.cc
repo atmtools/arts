@@ -48,19 +48,19 @@ void mult(MatrixView A,
     // Check if C (arts) is transposed.
     if (C.stride(0) == 1) {
       transa = 'T';
-      lda = (int)C.stride(1);
+      lda    = (int)C.stride(1);
     } else {
       transa = 'N';
-      lda = (int)C.stride(0);
+      lda    = (int)C.stride(0);
     }
 
     // Check if B (arts) is transposed.
     if (B.stride(0) == 1) {
       transb = 'T';
-      ldb = (int)B.stride(1);
+      ldb    = (int)B.stride(1);
     } else {
       transb = 'N';
-      ldb = (int)B.stride(0);
+      ldb    = (int)B.stride(0);
     }
 
     // In case B (arts) has only one column, column and row stride are 1.
@@ -68,13 +68,13 @@ void mult(MatrixView A,
     // least k / m if A is non-transposed / transposed.
     if ((B.stride(1) == 1) && (B.stride(0) == 1)) {
       transb = 'N';
-      ldb = k;
+      ldb    = k;
     }
 
     // The same holds for C (arts).
     if ((C.stride(1) == 1) && (C.stride(0) == 1)) {
       transa = 'N';
-      lda = m;
+      lda    = m;
     }
 
     ldc = (int)A.stride(0);
@@ -101,7 +101,7 @@ void mult(MatrixView A,
     if (beta == 0.0) {
       matpack::eigen::as_eigen(A).noalias() = alpha * B * C;
     } else {
-      A *= beta;
+      A                                     *= beta;
       matpack::eigen::as_eigen(A).noalias() += alpha * B * C;
     }
   }
@@ -148,19 +148,19 @@ void mult(ComplexMatrixView A,
     // Check if C (arts) is transposed.
     if (C.stride(0) == 1) {
       transa = 'T';
-      lda = (int)C.stride(1);
+      lda    = (int)C.stride(1);
     } else {
       transa = 'N';
-      lda = (int)C.stride(0);
+      lda    = (int)C.stride(0);
     }
 
     // Check if B (arts) is transposed.
     if (B.stride(0) == 1) {
       transb = 'T';
-      ldb = (int)B.stride(1);
+      ldb    = (int)B.stride(1);
     } else {
       transb = 'N';
-      ldb = (int)B.stride(0);
+      ldb    = (int)B.stride(0);
     }
 
     // In case B (arts) has only one column, column and row stride are 1.
@@ -168,13 +168,13 @@ void mult(ComplexMatrixView A,
     // least k / m if A is non-transposed / transposed.
     if ((B.stride(1) == 1) && (B.stride(0) == 1)) {
       transb = 'N';
-      ldb = k;
+      ldb    = k;
     }
 
     // The same holds for C (arts).
     if ((C.stride(1) == 1) && (C.stride(0) == 1)) {
       transa = 'N';
-      lda = m;
+      lda    = m;
     }
 
     ldc = (int)A.stride(0);
@@ -219,14 +219,14 @@ void mult(VectorView y,
 
     if (M.stride(1) != 1) {
       trans = 'n';
-      m = (int)M.nrows();
-      n = (int)M.ncols();
-      LDA = (int)M.stride(1);
+      m     = (int)M.nrows();
+      n     = (int)M.ncols();
+      LDA   = (int)M.stride(1);
     } else {
       trans = 't';
-      m = (int)M.ncols();
-      n = (int)M.nrows();
-      LDA = (int)M.stride(0);
+      m     = (int)M.ncols();
+      n     = (int)M.nrows();
+      LDA   = (int)M.stride(0);
       if (M.stride(0) == 1) LDA = m;
     }
 
@@ -252,7 +252,7 @@ void mult(VectorView y,
     if (beta == 0.0) {
       matpack::eigen::as_eigen(y).noalias() = alpha * M * x;
     } else {
-      y *= beta;
+      y                                     *= beta;
       matpack::eigen::as_eigen(y).noalias() += alpha * M * x;
     }
   }
@@ -269,19 +269,19 @@ void mult(ComplexVectorView y,
     char trans;
     int m, n;
     std::complex<double> zero = 0.0;
-    std::complex<double> one = 1.0;
+    std::complex<double> one  = 1.0;
     int LDA, incx, incy;
 
     if (M.stride(1) != 1) {
       trans = 'n';
-      m = (int)M.nrows();
-      n = (int)M.ncols();
-      LDA = (int)M.stride(1);
+      m     = (int)M.nrows();
+      n     = (int)M.ncols();
+      LDA   = (int)M.stride(1);
     } else {
       trans = 't';
-      m = (int)M.ncols();
-      n = (int)M.nrows();
-      LDA = (int)M.stride(0);
+      m     = (int)M.ncols();
+      n     = (int)M.nrows();
+      LDA   = (int)M.stride(0);
       if (M.stride(0) == 1) LDA = m;
     }
 
@@ -311,8 +311,8 @@ void mult(ComplexVectorView y,
 Vector uniform_grid(Numeric x0, Index N, Numeric dx) {
   Vector out(N);
   std::generate(out.begin(), out.end(), [x = x0, dx]() mutable {
-    auto xd = x;
-    x += dx;
+    auto xd  = x;
+    x       += dx;
     return xd;
   });
   return out;
@@ -321,8 +321,8 @@ Vector uniform_grid(Numeric x0, Index N, Numeric dx) {
 ComplexVector uniform_grid(Complex x0, Index N, Complex dx) {
   ComplexVector out(N);
   std::generate(out.begin(), out.end(), [x = x0, dx]() mutable {
-    auto xd = x;
-    x += dx;
+    auto xd  = x;
+    x       += dx;
     return xd;
   });
   return out;
@@ -334,9 +334,9 @@ Vector diagonal(const ConstMatrixView &A) {
 }
 
 void cross3(VectorView c, const ConstVectorView &a, const ConstVectorView &b) {
-  ARTS_ASSERT(a.nelem() == 3, a.nelem(), " vs 3");
-  ARTS_ASSERT(b.nelem() == 3, b.nelem(), " vs 3");
-  ARTS_ASSERT(c.nelem() == 3, c.nelem(), " vs 3");
+  ARTS_ASSERT(a.nelem() == 3, "{} vs 3", a.nelem());
+  ARTS_ASSERT(b.nelem() == 3, "{} vs 3", b.nelem());
+  ARTS_ASSERT(c.nelem() == 3, "{} vs 3", c.nelem());
 
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];
@@ -346,9 +346,9 @@ void cross3(VectorView c, const ConstVectorView &a, const ConstVectorView &b) {
 void cross3(ComplexVectorView c,
             const ConstComplexVectorView &a,
             const ConstComplexVectorView &b) {
-  ARTS_ASSERT(a.nelem() == 3, a.nelem(), " vs 3");
-  ARTS_ASSERT(b.nelem() == 3, b.nelem(), " vs 3");
-  ARTS_ASSERT(c.nelem() == 3, c.nelem(), " vs 3");
+  ARTS_ASSERT(a.nelem() == 3, "{} vs 3", a.nelem());
+  ARTS_ASSERT(b.nelem() == 3, "{} vs 3", b.nelem());
+  ARTS_ASSERT(c.nelem() == 3, "{} vs 3", c.nelem());
 
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];

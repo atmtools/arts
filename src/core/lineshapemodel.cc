@@ -489,7 +489,7 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
 
 Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                       const ArrayOfSpeciesEnum& lineshape_species) ARTS_NOEXCEPT {
+                       const ArrayOfSpeciesEnum& lineshape_species)  {
   ARTS_ASSERT(
       atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()),
       "Bad atmospheric inputs");
@@ -532,7 +532,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 }
 
 Vector LineShape::vmrs(const AtmPoint& atm_point,
-                       const ArrayOfSpeciesEnum& lineshape_species) ARTS_NOEXCEPT {
+                       const ArrayOfSpeciesEnum& lineshape_species)  {
   const Index n = lineshape_species.size();
 
   // We need to know if bath is an actual species
@@ -562,7 +562,7 @@ Vector LineShape::vmrs(const AtmPoint& atm_point,
 Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpeciesEnum& lineshape_species,
-                       const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT {
+                       const SpeciesIsotopologueRatios& ir)  {
   ARTS_ASSERT(
       atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()),
       "Bad atmospheric inputs");
@@ -1041,7 +1041,7 @@ Output SingleSpeciesModel::dT0(Numeric T,
 #define FUNC(X, PVAR)                                                        \
   Numeric Model::X(                                                          \
       Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
-      const ARTS_NOEXCEPT {                                                  \
+      const  {                                                  \
     ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                    \
                                                                              \
     return PVAR * std::transform_reduce(begin(),                             \
@@ -1067,7 +1067,7 @@ FUNC(DV, P* P)
 #define FUNC(X, PVAR)                                                        \
   Numeric Model::d##X##dT(                                                   \
       Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
-      const ARTS_NOEXCEPT {                                                  \
+      const  {                                                  \
     ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                    \
                                                                              \
     return PVAR * std::transform_reduce(begin(),                             \

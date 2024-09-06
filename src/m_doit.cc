@@ -1098,7 +1098,7 @@ void DoitCalc(const Workspace&,  // ws,
       }
     }
 
-    ARTS_USER_ERROR_IF(failed, fail_msg);
+    ARTS_USER_ERROR_IF(failed, "{}", fail_msg);
   }
 }
 

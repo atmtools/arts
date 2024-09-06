@@ -2,7 +2,7 @@
 
 #include <fast_float/fast_float.h>
 
-#include <ios>
+#include <istream>
 #include <system_error>
 
 #include "debug.h"
@@ -41,4 +41,13 @@ routine
   }
 
   return *this;
+}
+
+std::istream& double_imanip::operator>>(const double_imanip&) const {
+  return *in;
+}
+
+const double_imanip& operator>>(std::istream& in, const double_imanip& dm) {
+  dm.in = &in;
+  return dm;
 }

@@ -1243,8 +1243,8 @@ constexpr void interpweights(
   requires(N > 0 and matpack_assignable<decltype(out), Numeric>)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
+                     "{:B,} vs {:B,}",
                      std::array{lag.size()...},
-                     " vs ",
                      out.shape())
 
   const auto in = matpack::elemwise{lag.lx...};

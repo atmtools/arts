@@ -89,7 +89,6 @@ model_statec_vector_targets = [vmrs, temps]
 
 # %% Retrieval agenda
 
-
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
@@ -117,7 +116,6 @@ def condition(x, xas):
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
 works = False
 
 for i in range(LIMIT):

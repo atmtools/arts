@@ -8,7 +8,7 @@
 #include <operators.h>
 
 #include <limits>
-#include <ostream>
+#include <iosfwd>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
@@ -118,7 +118,7 @@ using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric) const { ARTS_USER_ERROR(error) }
+  Numeric operator()(Numeric, Numeric) const { ARTS_USER_ERROR("{}", error) }
 };
 
 //! Hold all atmospheric data

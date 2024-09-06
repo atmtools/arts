@@ -289,13 +289,13 @@ void scat_data_checkedCalc(Index& scat_data_checked,
             << i_ss << " is ";
         Index nf_sd = scat_data[i_ss][i_se].pha_mat_data.nlibraries();
         ARTS_USER_ERROR_IF(
-            nf_sd != nf_se, bs1.str(), "pha_mat_data", bs2.str(), nf_se, ".")
+            nf_sd != nf_se, "{}pha_mat_data{}{}.", bs1.str(), bs2.str(), nf_se)
         nf_sd = scat_data[i_ss][i_se].ext_mat_data.nshelves();
         ARTS_USER_ERROR_IF(
-            nf_sd != nf_se, bs1.str(), "ext_mat_data", bs2.str(), nf_se, ".")
+            nf_sd != nf_se, "{}ext_mat_data{}{}.", bs1.str(), bs2.str(), nf_se)
         nf_sd = scat_data[i_ss][i_se].abs_vec_data.nshelves();
         ARTS_USER_ERROR_IF(
-            nf_sd != nf_se, bs1.str(), "abs_vec_data", bs2.str(), nf_se, ".")
+            nf_sd != nf_se, "{}abs_vec_data{}{}.", bs1.str(), bs2.str(), nf_se)
       }
 
       // check that the temp dimension of K and a is ssd.T_grid.nelem(). For Z
@@ -310,17 +310,16 @@ void scat_data_checkedCalc(Index& scat_data_checked,
             << " in scattering species #" << i_ss << " it is ";
         Index nt_sd = scat_data[i_ss][i_se].pha_mat_data.nvitrines();
         ARTS_USER_ERROR_IF(nt_sd != nt_se and nt_sd != 1,
+                           "{}pha_mat_data{}{}.",
                            bs1.str(),
-                           "pha_mat_data",
                            bs2.str(),
-                           nt_sd,
-                           ".")
+                           nt_sd)
         nt_sd = scat_data[i_ss][i_se].ext_mat_data.nbooks();
         ARTS_USER_ERROR_IF(
-            nt_sd != nt_se, bs1.str(), "ext_mat_data", bs2.str(), nt_se, ".")
+            nt_sd != nt_se, "{}ext_mat_data{}{}.", bs1.str(), bs2.str(), nt_se)
         nt_sd = scat_data[i_ss][i_se].abs_vec_data.nbooks();
         ARTS_USER_ERROR_IF(
-            nt_sd != nt_se, bs1.str(), "abs_vec_data", bs2.str(), nt_se, ".")
+            nt_sd != nt_se, "{}abs_vec_data{}{}", bs1.str(), bs2.str(), nt_se)
       }
     }
   }

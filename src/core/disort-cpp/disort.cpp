@@ -494,49 +494,43 @@ void main_data::set_beam_source(const Numeric I0_) {
 
 void main_data::check_input_size() const {
   ARTS_USER_ERROR_IF(
-      tau_arr.size() != NLayers, tau_arr.size(), " vs ", NLayers);
+      tau_arr.size() != NLayers, "{} vs {}", tau_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF(
-      omega_arr.size() != NLayers, omega_arr.size(), " vs ", NLayers);
+      omega_arr.size() != NLayers, "{} vs {}", omega_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF(
       (source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
+      "{:B,} vs [{}, {}]",
       source_poly_coeffs.shape(),
-      " vs (",
       NLayers,
-      ", ",
-      Nscoeffs,
-      ')');
+      Nscoeffs);
 
-  ARTS_USER_ERROR_IF(f_arr.size() != NLayers, f_arr.size(), " vs ", NLayers);
+  ARTS_USER_ERROR_IF(
+      f_arr.size() != NLayers, "{} vs {}", f_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
-                     " vs (",
+                     "{:B,} vs [{}, {}]",
+                     Leg_coeffs_all.shape(),
                      NLayers,
-                     ", ",
-                     NLeg_all,
-                     ")");
+                     NLeg_all);
 
   ARTS_USER_ERROR_IF((b_pos.shape() != std::array{NFourier, N}),
+                     "{:B,} vs [{}, {}]",
                      b_pos.shape(),
-                     " vs (",
                      NFourier,
-                     ", ",
-                     N,
-                     ')')
+                     N)
 
   ARTS_USER_ERROR_IF((b_neg.shape() != std::array{NFourier, N}),
+                     "{:B,} vs [{}, {}]",
                      b_neg.shape(),
-                     " vs (",
                      NFourier,
-                     ", ",
-                     N,
-                     ')')
+                     N)
 
   ARTS_USER_ERROR_IF(
       brdf_fourier_modes.size() != static_cast<std::size_t>(NBDRF),
+      "{} vs {}",
       brdf_fourier_modes.size(),
-      " vs ",
       NBDRF);
 }
 
@@ -1384,5 +1378,9 @@ void main_data::ungridded_u(ExhaustiveTensor3View out,
         "On Failure, the einsum has been changed to not use optimal path");
     einsum<"pi", "im", "pm">(out[il], transpose(um), cp);
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const main_data&) {
+  return os << "Not implemented, output stream operator\n";
 }
 }  // namespace disort

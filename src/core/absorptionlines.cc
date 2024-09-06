@@ -14,6 +14,7 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <istream>
 
 #include "arts_conversions.h"
 #include "debug.h"
@@ -219,7 +220,7 @@ Absorption::Lines::Lines(bool selfbroadening_,
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const  {
   auto& lineshape = lines[k].lineshape;
 
   using namespace LineShape;
@@ -236,7 +237,7 @@ LineShape::Output Absorption::Lines::ShapeParameters(
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
+    size_t k, Numeric T, Numeric P, size_t pos) const  {
   auto& lineshape = lines[k].lineshape[pos];
 
   return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
@@ -258,7 +259,7 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const  {
   auto& lineshape = lines[k].lineshape;
 
   using namespace LineShape;
@@ -275,14 +276,14 @@ LineShape::Output Absorption::Lines::ShapeParameters_dT(
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
-    size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
+    size_t k, Numeric T, Numeric P, size_t pos) const  {
   auto& lineshape = lines[k].lineshape[pos];
 
   return lineshape.dT(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
 Index Absorption::Lines::LineShapePos(const SpeciesEnum spec) const
-    ARTS_NOEXCEPT {
+     {
   // Is always first if this is self and self broadening exists
   if (selfbroadening and spec == quantumidentity.Species()) {
     return 0;
@@ -306,7 +307,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     size_t k,
     Numeric T,
     Numeric P,
-    const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
+    const QuantumIdentifier& vmr_qid) const  {
   auto& lineshape = lines[k].lineshape;
 
   const Index pos = LineShapePos(vmr_qid.Species());
@@ -2306,7 +2307,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
   return data;
 }
 
-bool Absorption::Lines::OK() const ARTS_NOEXCEPT {
+bool Absorption::Lines::OK() const  {
   const Index nb = broadeningspecies.size();
 
   // Check that the isotopologue is ok
@@ -2427,7 +2428,7 @@ void Lines::AppendSingleLine(const SingleLine& sl) {
 
 bool Lines::MatchWithExternal(const SingleLineExternal& sle,
                               const QuantumIdentifier& qid) const
-    ARTS_NOEXCEPT {
+     {
   if (sle.bad) return false;
   if (sle.selfbroadening not_eq selfbroadening) return false;
   if (sle.bathbroadening not_eq bathbroadening) return false;
@@ -2512,7 +2513,7 @@ SpeciesIsotope Lines::Isotopologue() const noexcept {
 
 Index Lines::NumLines() const noexcept { return Index(lines.size()); }
 
-Index Lines::NumBroadeners() const ARTS_NOEXCEPT {
+Index Lines::NumBroadeners() const  {
   return Index(broadeningspecies.size());
 }
 
@@ -2561,7 +2562,7 @@ Index Lines::BroadeningSpeciesPosition(SpeciesEnum spec) const noexcept {
 }
 
 const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
-    ARTS_NOEXCEPT {
+     {
   ARTS_ASSERT(qns.val.has(QuantumNumberType::F) or
               qns.val.has(QuantumNumberType::J))
   return qns.val.has(QuantumNumberType::F) ? qns.val[QuantumNumberType::F]
@@ -2569,7 +2570,7 @@ const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
 }
 
 Index Lines::ZeemanCount(size_t k,
-                         Zeeman::Polarization type) const ARTS_NOEXCEPT {
+                         Zeeman::Polarization type) const  {
   if (type == Zeeman::Polarization::None) return 1;
 
   // Select F before J but assume one of them exist
@@ -2579,7 +2580,7 @@ Index Lines::ZeemanCount(size_t k,
 
 Numeric Lines::ZeemanStrength(size_t k,
                               Zeeman::Polarization type,
-                              Index i) const ARTS_NOEXCEPT {
+                              Index i) const  {
   if (type == Zeeman::Polarization::None) return 1.0;
 
   // Select F before J but assume one of them exist
@@ -2589,7 +2590,7 @@ Numeric Lines::ZeemanStrength(size_t k,
 
 Numeric Lines::ZeemanSplitting(size_t k,
                                Zeeman::Polarization type,
-                               Index i) const ARTS_NOEXCEPT {
+                               Index i) const  {
   if (type == Zeeman::Polarization::None) return 0.0;
 
   // Select F before J but assume one of them exist

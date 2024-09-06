@@ -3,7 +3,7 @@
 #include <fast_float/fast_float.h>
 
 #include <charconv>
-#include <sstream>
+#include <iosfwd>
 #include <string>
 #include <string_view>
 

@@ -9,7 +9,7 @@
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <sstream>
+#include <iosfwd>
 #include <unordered_map>
 #include <variant>
 #include <vector>

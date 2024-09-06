@@ -1,7 +1,6 @@
 #pragma once
 
 #include <matpack.h>
-#include "sorted_grid.h"
 
 void Select(Vector& needles,
             const Vector& haystack,

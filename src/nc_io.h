@@ -12,7 +12,10 @@
 #pragma once
 
 #include <netcdf.h>
-#include <workspace.h>
+
+#include <matpack.h>
+#include <mystring.h>
+#include <species_tags.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names

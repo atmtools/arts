@@ -4,7 +4,7 @@
 #include <physics_funcs.h>
 
 #include <memory>
-#include <ostream>
+#include <iosfwd>
 
 #include "atm.h"
 #include "fwd_path.h"

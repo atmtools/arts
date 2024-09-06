@@ -6,7 +6,7 @@
 #include <rtepack.h>
 
 #include <limits>
-#include <ostream>
+#include <iosfwd>
 #include <vector>
 
 #include "lbl_data.h"

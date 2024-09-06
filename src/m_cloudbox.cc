@@ -366,7 +366,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
-    ARTS_USER_ERROR(os.str());
+    ARTS_USER_ERROR("{}", os.str());
   }
 
   // check if arrays have same size

@@ -11,35 +11,89 @@
 
 #include <cassert>
 #include <format>
-#include <string>
 #include <version>
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename... Args>
 std::string var_string(const Args&... args) {
-  if constexpr (sizeof...(Args) not_eq 0) {
-    return (std::format("{}", args) + ...);
+  constexpr auto N = sizeof...(Args);
+  if constexpr (N not_eq 0) {
+    if constexpr (N == 1)
+      return std::format("{}", args...);
+    else if constexpr (N == 2)
+      return std::format("{}{}", args...);
+    else if constexpr (N == 3)
+      return std::format("{}{}{}", args...);
+    else if constexpr (N == 4)
+      return std::format("{}{}{}{}", args...);
+    else if constexpr (N == 5)
+      return std::format("{}{}{}{}{}", args...);
+    else if constexpr (N == 6)
+      return std::format("{}{}{}{}{}{}", args...);
+    else if constexpr (N == 7)
+      return std::format("{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 8)
+      return std::format("{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 9)
+      return std::format("{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 10)
+      return std::format("{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 11)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 12)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 13)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 14)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 15)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 16)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 17)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 18)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 19)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else if constexpr (N == 20)
+      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
+    else
+      return (std::format("{}", args) + ...);
   } else {
     return "";
   }
 }
 
+template <typename... Args>
+std::string artsformat(std::format_string<Args...> fmt, Args&&... args)
+  requires(sizeof...(Args) > 0)
+{
+  return std::format(fmt, std::forward<Args>(args)...);
+}
+
+constexpr std::string artsformat(std::format_string<> fmt) {
+  return std::format(fmt);
+}
+
+constexpr std::string artsformat() { return ""; }
+
 #if __cpp_lib_source_location >= 201907L
 #include <iomanip>
 #include <source_location>
 
-#define CURRENT_SOURCE_LOCATION                               \
-  var_string("Filename:      ",                               \
-             std::source_location::current().file_name(),     \
-             '\n',                                            \
-             "Function Name: ",                               \
-             std::source_location::current().function_name(), \
-             '\n',                                            \
-             "Line Number:   ",                               \
-             std::source_location::current().line(),          \
-             '\n',                                            \
-             "Column Number: ",                               \
-             std::source_location::current().column())
+#define CURRENT_SOURCE_LOCATION                        \
+  std::format(                                         \
+      R"(                                              \
+Filename:      {}                                      \
+Function Name: {}                                      \
+Line Number:   {}                                      \
+Column Number: {}                                      \
+)",                                                    \
+      std::source_location::current().file_name(),     \
+      std::source_location::current().function_name(), \
+      std::source_location::current().line(),          \
+      std::source_location::current().column())
 
 #else
 
@@ -71,28 +125,32 @@ std::string var_string(const Args&... args) {
 #ifndef NDEBUG
 #include <exception>
 
-/*! Turn off noexcept */
-#define ARTS_NOEXCEPT noexcept(false)
+#ifdef ARTS_ASSERT_USE_C
 
-/*! Condition should be true to pass internal check */
-#define ARTS_ASSERT(condition, ...)                                            \
-  {                                                                            \
-    if (not(condition)) {                                                      \
-      throw std::logic_error(                                                  \
-          var_string("Failed Internal Assert: " #condition "\n"                \
-                     "This is a bug!  Bug is found at:\n",                     \
-                     CURRENT_SOURCE_LOCATION,                                  \
-                     "\nPlease contact"                                        \
-                     " ARTS developers so we can fix "                         \
-                     "our error(s) via:\n\t"                                   \
-                     "github.com/atmtools/arts\n" __VA_OPT__(, __VA_ARGS__))); \
-    }                                                                          \
-  }
+#define ARTS_ASSERT(condition, ...) \
+  { assert(condition); }
 
 #else
 
-/*! Turn on noexcept explicitly */
-#define ARTS_NOEXCEPT noexcept(true)
+/*! Condition should be true to pass internal check */
+#define ARTS_ASSERT(condition, ...)                                     \
+  {                                                                     \
+    if (not(condition)) {                                               \
+      throw std::logic_error(                                           \
+          std::format("Failed Internal Assert: {}\n"                    \
+                      "This is a bug!  Bug is found at:\n{}\n"          \
+                      "\nPlease contact ARTS developers so we can fix " \
+                      "our error(s) via:\n\t"                           \
+                      "github.com/atmtools/arts\n{}",                   \
+                      #condition,                                       \
+                      CURRENT_SOURCE_LOCATION,                          \
+                      artsformat(__VA_OPT__(__VA_ARGS__))));            \
+    }                                                                   \
+  }
+
+#endif
+
+#else
 
 /*! Condition should be true to pass internal check, lets hope it is! */
 #define ARTS_ASSERT(condition, ...) \
@@ -100,55 +158,45 @@ std::string var_string(const Args&... args) {
 
 #endif /* NDEBUG */
 
-#ifdef NO_ARTS_USER_ERRORS
-
-/*! Turn on noexcept for user-facing functions */
-#define ARTS_USER_NOEXCEPT noexcept(true)
-
-/*! Condition should be false to pass external check, lets hope it is!  */
-#define ARTS_USER_ERROR_IF(condition, ...) \
-  {}
-
-/*! An error has occured, should throw the error, but will instead ignore */
-#define ARTS_USER_ERROR(...) \
-  {}
-
-#else  // NO_ARTS_USER_ERRORS == 0
-
-/*! Turn off noexcept for user-facing functions */
-#define ARTS_USER_NOEXCEPT noexcept(false)
+/*! An error has occured, will throw the error */
+#define ARTS_USER_ERROR(...)                                  \
+  {                                                           \
+    static_assert(false __VA_OPT__(or true),                  \
+                  "Must have an error message in user-"       \
+                  "facing code in " __FILE__);                \
+    if constexpr (false __VA_OPT__(or true))                  \
+      throw std::runtime_error(                               \
+          std::format(R"(User error found at:                 \
+{}                                                            \
+                                                              \
+Please follow these instructions to correct the error:        \
+{}                                                            \
+)",                                                           \
+                      CURRENT_SOURCE_LOCATION,                \
+                      std::format(__VA_OPT__(__VA_ARGS__)))); \
+  }
 
 /*! Condition should be false to pass external check */
-#define ARTS_USER_ERROR_IF(condition, ...)                               \
-  {                                                                      \
-    static_assert(false __VA_OPT__(or true),                             \
-                  "Must have an error message in user-"                  \
-                  "facing code in " __FILE__);                           \
-    if (condition) {                                                     \
-      throw std::runtime_error(                                          \
-          var_string("User Error: " #condition "\nError is found at:\n", \
-                     CURRENT_SOURCE_LOCATION,                            \
-                     "\nPlease follow "                                  \
-                     "these instructions to correct your "               \
-                     "error:\n" __VA_OPT__(, __VA_ARGS__)));             \
-    }                                                                    \
+#define ARTS_USER_ERROR_IF(condition, ...)                      \
+  {                                                             \
+    if (condition) {                                            \
+      static_assert(false __VA_OPT__(or true),                  \
+                    "Must have an error message in user-"       \
+                    "facing code in " __FILE__);                \
+      if constexpr (false __VA_OPT__(or true))                  \
+        throw std::runtime_error(                               \
+            std::format(R"(Fail check: {}                       \
+                                                                \
+User error found at:                                            \
+{}                                                              \
+                                                                \
+Please follow these instructions to correct the error:          \
+{}                                                              \
+)",                                                             \
+                        #condition,                             \
+                        CURRENT_SOURCE_LOCATION,                \
+                        std::format(__VA_OPT__(__VA_ARGS__)))); \
+    }                                                           \
   }
-
-/*! An error has occured, will throw the error */
-#define ARTS_USER_ERROR(...)                               \
-  {                                                        \
-    static_assert(false __VA_OPT__(or true),               \
-                  "Must have an error message in user-"    \
-                  "facing code in " __FILE__);             \
-    throw std::runtime_error(                              \
-        var_string("User Error:\n"                         \
-                   "Error is found at:\n",                 \
-                   CURRENT_SOURCE_LOCATION,                \
-                   "\nPlease follow "                      \
-                   "these instructions to correct your "   \
-                   "error:\n" __VA_OPT__(, __VA_ARGS__))); \
-  }
-
-#endif  // NO_ARTS_USER_ERRORS
 
 #endif /* debug_h */

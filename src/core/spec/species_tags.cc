@@ -205,12 +205,12 @@ bool ArrayOfSpeciesTag::operator==(const ArrayOfSpeciesTag& x) const {
   return std::ranges::equal(*this, x);
 }
 
-SpeciesEnum ArrayOfSpeciesTag::Species() const ARTS_NOEXCEPT {
+SpeciesEnum ArrayOfSpeciesTag::Species() const  {
   ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
   return operator[](0).Spec();
 }
 
-SpeciesTagType ArrayOfSpeciesTag::Type() const ARTS_NOEXCEPT {
+SpeciesTagType ArrayOfSpeciesTag::Type() const  {
   ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
   return operator[](0).Type();
 }
@@ -310,7 +310,7 @@ std::set<SpeciesEnum> lbl_species(
 
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
-                           const SpeciesEnum spec) ARTS_NOEXCEPT {
+                           const SpeciesEnum spec)  {
   ARTS_ASSERT(abs_species.size() == static_cast<Size>(rtp_vmr.size()))
 
   auto pos =
