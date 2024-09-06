@@ -93,3 +93,8 @@ target_link_libraries(artscore PUBLIC
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
+if(ENABLE_PCH)
+  target_precompile_headers(artscore PRIVATE <matpack.h>)
+endif()
+
