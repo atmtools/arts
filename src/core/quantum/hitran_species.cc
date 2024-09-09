@@ -427,11 +427,11 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
     }
   }
   ARTS_USER_ERROR(
-      "Species ",
-      molnum, ' ', isonum,
+      "Species {} {}"
       " does not exist in ARTS' HITRAN implementation\n"
       "If you are using a new version of HITRAN that has added the species, please consider\n"
-      "contacting the ARTS developers so we can append the species to our list and make this work.\n");
+      "contacting the ARTS developers so we can append the species to our list and make this work.\n",
+      molnum, isonum);
 }
 
 QuantumIdentifier id_from_lookup(Index mol, char isochar) {

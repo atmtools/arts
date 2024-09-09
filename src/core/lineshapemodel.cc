@@ -59,11 +59,14 @@ constexpr Index typelm2size(LineShape::LegacyLineMixingData::TypeLM type) {
       return 0;
     case LineShape::LegacyLineMixingData::TypeLM::LM_LBLRTM:  // The LBLRTM case
       return 12;
-    case LineShape::LegacyLineMixingData::TypeLM::LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
+    case LineShape::LegacyLineMixingData::TypeLM::
+        LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
       return 1;
-    case LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER:  // The 2nd order case
+    case LineShape::LegacyLineMixingData::TypeLM::
+        LM_2NDORDER:  // The 2nd order case
       return 10;
-    case LineShape::LegacyLineMixingData::TypeLM::LM_1STORDER:  // The 2nd order case
+    case LineShape::LegacyLineMixingData::TypeLM::
+        LM_1STORDER:  // The 2nd order case
       return 3;
     case LineShape::LegacyLineMixingData::TypeLM::LM_BYBAND:  // The band class
       return 1;
@@ -72,15 +75,18 @@ constexpr Index typelm2size(LineShape::LegacyLineMixingData::TypeLM type) {
 }
 
 /** Pressure broadening types to number of elements */
-constexpr Index typepb2size(LineShape::LegacyPressureBroadeningData::TypePB type) {
+constexpr Index typepb2size(
+    LineShape::LegacyPressureBroadeningData::TypePB type) {
   switch (type) {
     case LineShape::LegacyPressureBroadeningData::TypePB::PB_NONE:
       return 0;
     case LineShape::LegacyPressureBroadeningData::TypePB::PB_AIR_BROADENING:
       return 10;
-    case LineShape::LegacyPressureBroadeningData::TypePB::PB_AIR_AND_WATER_BROADENING:
+    case LineShape::LegacyPressureBroadeningData::TypePB::
+        PB_AIR_AND_WATER_BROADENING:
       return 9;
-    case LineShape::LegacyPressureBroadeningData::TypePB::PB_PLANETARY_BROADENING:
+    case LineShape::LegacyPressureBroadeningData::TypePB::
+        PB_PLANETARY_BROADENING:
       return 20;
   }
   return -1;
@@ -121,9 +127,9 @@ std::istream& LineShape::from_artscat4(std::istream& is,
                                        ArrayOfSpeciesEnum& species,
                                        const QuantumIdentifier& qid) {
   // Set or reset variables
-  mtype = LineShapeTypeOld::VP;
-  self = true;
-  bath = false;
+  mtype   = LineShapeTypeOld::VP;
+  self    = true;
+  bath    = false;
   m.mdata = std::vector<SingleSpeciesModel>(7);
   species = ArrayOfSpeciesEnum(7);
 
@@ -161,13 +167,13 @@ std::istream& LineShape::from_artscat4(std::istream& is,
           m.mdata.front().G0().X0 not_eq m.mdata[k].G0().X0 or
               m.mdata.front().G0().X1 not_eq m.mdata[k].G0().X1 or
               m.mdata.front().D0().X1 not_eq m.mdata[k].D0().X1,
-          "Species is ",
-          qid.Isotopologue(),
+          "Species is {}"
           " and this is a broadening species in ARTSCAT-4.\n"
-          "Despite this, values representing self and ",
-          qid.Isotopologue(),
+          "Despite this, values representing self and {}"
           " does not match "
-          "in input string\n")
+          "in input string\n",
+          qid.Isotopologue(),
+          qid.Isotopologue())
       m.mdata.front().D0().X0 = m.mdata[k].D0().X0;
       m.Remove(k, species);
       break;
@@ -220,7 +226,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
                          "Self broadening must be first, it is not\n");
     } else if (s == bath_broadening) {
       // If the species is air, then we need to flag this
-      bath = true;
+      bath       = true;
       species[i] = SpeciesEnum::Bath;
       ARTS_USER_ERROR_IF(i not_eq specs - 1,
                          "Air/bath broadening must be last, it is not\n");
@@ -229,11 +235,11 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
       species[i] = to<SpeciesEnum>(s);
       ARTS_USER_ERROR_IF(
           not good_enum(species[i]),
-          "Encountered ",
-          s,
+          "Encountered {}"
           " in a position where a species should have been "
           "defined.\nPlease check your pressure broadening data structure and ensure "
-          "that it follows the correct conventions.\n")
+          "that it follows the correct conventions.\n",
+          s)
     }
 
     // For all parameters
@@ -241,7 +247,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
       for (auto& param : params) {
         data >> s;  // Should contain a temperature tag
 
-        const auto type = to<LineShapeTemperatureModelOld>(s);
+        const auto type   = to<LineShapeTemperatureModelOld>(s);
         const Index ntemp = temperaturemodel2legacysize(type);
 
         m.mdata[i].Data()[Index(param)].type = type;
@@ -297,7 +303,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   data >> s;
 
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
-  const auto n = typepb2size(type);
+  const auto n    = typepb2size(type);
   const auto self_in_list =
       LegacyPressureBroadeningData::self_listed(qid, type);
 
@@ -316,7 +322,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   data >> s;
 
   const auto type = LegacyLineMixingData::string2typelm(s);
-  const auto n = typelm2size(type);
+  const auto n    = typelm2size(type);
 
   Vector x(n);
   for (auto& num : x) data >> double_imanip() >> num;
@@ -342,13 +348,13 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
     case TypePB::PB_NONE:
       mtype = LineShapeTypeOld::DP;
       self = bath = false;
-      m = Model();
+      m           = Model();
       species.resize(0);
       return;
     case TypePB::PB_AIR_BROADENING:
       mtype = LineShapeTypeOld::VP;
       self = bath = true;
-      m = Model(x[0], x[1], x[2], x[3], x[4]);
+      m           = Model(x[0], x[1], x[2], x[3], x[4]);
       species.resize(2);
       species[0] = self_spec;
       species[1] = SpeciesEnum::Bath;
@@ -356,8 +362,8 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
     case TypePB::PB_AIR_AND_WATER_BROADENING:
       if (self_in_list) {
         mtype = LineShapeTypeOld::VP;
-        self = false;
-        bath = true;
+        self  = false;
+        bath  = true;
         m.Data().resize(2);
         m.Data()[0].G0() = {LineShapeTemperatureModelOld::T1, x[0], x[1], 0, 0};
         m.Data()[0].D0() = {LineShapeTemperatureModelOld::T5, x[2], x[1], 0, 0};
@@ -389,17 +395,27 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         self = bath = false;
         m.Data().resize(6);
         m.Data()[0].G0() = {LineShapeTemperatureModelOld::T1, x[1], x[8], 0, 0};
-        m.Data()[0].D0() = {LineShapeTemperatureModelOld::T5, x[14], x[8], 0, 0};
+        m.Data()[0].D0() = {
+            LineShapeTemperatureModelOld::T5, x[14], x[8], 0, 0};
         m.Data()[1].G0() = {LineShapeTemperatureModelOld::T1, x[2], x[9], 0, 0};
-        m.Data()[1].D0() = {LineShapeTemperatureModelOld::T5, x[15], x[9], 0, 0};
-        m.Data()[2].G0() = {LineShapeTemperatureModelOld::T1, x[3], x[10], 0, 0};
-        m.Data()[2].D0() = {LineShapeTemperatureModelOld::T5, x[16], x[10], 0, 0};
-        m.Data()[3].G0() = {LineShapeTemperatureModelOld::T1, x[4], x[11], 0, 0};
-        m.Data()[3].D0() = {LineShapeTemperatureModelOld::T5, x[17], x[11], 0, 0};
-        m.Data()[4].G0() = {LineShapeTemperatureModelOld::T1, x[5], x[12], 0, 0};
-        m.Data()[4].D0() = {LineShapeTemperatureModelOld::T5, x[18], x[12], 0, 0};
-        m.Data()[5].G0() = {LineShapeTemperatureModelOld::T1, x[6], x[13], 0, 0};
-        m.Data()[5].D0() = {LineShapeTemperatureModelOld::T5, x[19], x[13], 0, 0};
+        m.Data()[1].D0() = {
+            LineShapeTemperatureModelOld::T5, x[15], x[9], 0, 0};
+        m.Data()[2].G0() = {
+            LineShapeTemperatureModelOld::T1, x[3], x[10], 0, 0};
+        m.Data()[2].D0() = {
+            LineShapeTemperatureModelOld::T5, x[16], x[10], 0, 0};
+        m.Data()[3].G0() = {
+            LineShapeTemperatureModelOld::T1, x[4], x[11], 0, 0};
+        m.Data()[3].D0() = {
+            LineShapeTemperatureModelOld::T5, x[17], x[11], 0, 0};
+        m.Data()[4].G0() = {
+            LineShapeTemperatureModelOld::T1, x[5], x[12], 0, 0};
+        m.Data()[4].D0() = {
+            LineShapeTemperatureModelOld::T5, x[18], x[12], 0, 0};
+        m.Data()[5].G0() = {
+            LineShapeTemperatureModelOld::T1, x[6], x[13], 0, 0};
+        m.Data()[5].D0() = {
+            LineShapeTemperatureModelOld::T5, x[19], x[13], 0, 0};
         species = {to<SpeciesEnum>("N2"),
                    to<SpeciesEnum>("O2"),
                    to<SpeciesEnum>("H2O"),
@@ -409,23 +425,33 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         return;
       } else {
         mtype = LineShapeTypeOld::VP;
-        self = true;
-        bath = false;
+        self  = true;
+        bath  = false;
         m.Data().resize(7);
         m.Data()[0].G0() = {LineShapeTemperatureModelOld::T1, x[0], x[7], 0, 0};
         //          ssm[0].D0() = ...
         m.Data()[1].G0() = {LineShapeTemperatureModelOld::T1, x[1], x[8], 0, 0};
-        m.Data()[1].D0() = {LineShapeTemperatureModelOld::T5, x[14], x[8], 0, 0};
+        m.Data()[1].D0() = {
+            LineShapeTemperatureModelOld::T5, x[14], x[8], 0, 0};
         m.Data()[2].G0() = {LineShapeTemperatureModelOld::T1, x[2], x[9], 0, 0};
-        m.Data()[2].D0() = {LineShapeTemperatureModelOld::T5, x[15], x[9], 0, 0};
-        m.Data()[3].G0() = {LineShapeTemperatureModelOld::T1, x[3], x[10], 0, 0};
-        m.Data()[3].D0() = {LineShapeTemperatureModelOld::T5, x[16], x[10], 0, 0};
-        m.Data()[4].G0() = {LineShapeTemperatureModelOld::T1, x[4], x[11], 0, 0};
-        m.Data()[4].D0() = {LineShapeTemperatureModelOld::T5, x[17], x[11], 0, 0};
-        m.Data()[5].G0() = {LineShapeTemperatureModelOld::T1, x[5], x[12], 0, 0};
-        m.Data()[5].D0() = {LineShapeTemperatureModelOld::T5, x[18], x[12], 0, 0};
-        m.Data()[6].G0() = {LineShapeTemperatureModelOld::T1, x[6], x[13], 0, 0};
-        m.Data()[6].D0() = {LineShapeTemperatureModelOld::T5, x[19], x[13], 0, 0};
+        m.Data()[2].D0() = {
+            LineShapeTemperatureModelOld::T5, x[15], x[9], 0, 0};
+        m.Data()[3].G0() = {
+            LineShapeTemperatureModelOld::T1, x[3], x[10], 0, 0};
+        m.Data()[3].D0() = {
+            LineShapeTemperatureModelOld::T5, x[16], x[10], 0, 0};
+        m.Data()[4].G0() = {
+            LineShapeTemperatureModelOld::T1, x[4], x[11], 0, 0};
+        m.Data()[4].D0() = {
+            LineShapeTemperatureModelOld::T5, x[17], x[11], 0, 0};
+        m.Data()[5].G0() = {
+            LineShapeTemperatureModelOld::T1, x[5], x[12], 0, 0};
+        m.Data()[5].D0() = {
+            LineShapeTemperatureModelOld::T5, x[18], x[12], 0, 0};
+        m.Data()[6].G0() = {
+            LineShapeTemperatureModelOld::T1, x[6], x[13], 0, 0};
+        m.Data()[6].D0() = {
+            LineShapeTemperatureModelOld::T5, x[19], x[13], 0, 0};
         species.resize(7);
         species[0] = self_spec;
         species[1] = to<SpeciesEnum>("N2");
@@ -449,37 +475,37 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
     case TypeLM::LM_LBLRTM:
       y.Data().front().Y().type = LineShapeTemperatureModelOld::LM_AER;
       y.Data().front().G().type = LineShapeTemperatureModelOld::LM_AER;
-      y.Data().front().Y().X0 = x[4];
-      y.Data().front().Y().X1 = x[5];
-      y.Data().front().Y().X2 = x[6];
-      y.Data().front().Y().X3 = x[7];
-      y.Data().front().G().X0 = x[8];
-      y.Data().front().G().X1 = x[9];
-      y.Data().front().G().X2 = x[10];
-      y.Data().front().G().X3 = x[11];
+      y.Data().front().Y().X0   = x[4];
+      y.Data().front().Y().X1   = x[5];
+      y.Data().front().Y().X2   = x[6];
+      y.Data().front().Y().X3   = x[7];
+      y.Data().front().G().X0   = x[8];
+      y.Data().front().G().X1   = x[9];
+      y.Data().front().G().X2   = x[10];
+      y.Data().front().G().X3   = x[11];
       break;
     case TypeLM::LM_LBLRTM_O2NonResonant:
       y.Data().front().G().type = LineShapeTemperatureModelOld::T0;
-      y.Data().front().G().X0 = x[0];
+      y.Data().front().G().X0   = x[0];
       break;
     case TypeLM::LM_2NDORDER:
-      y.Data().front().Y().type = LineShapeTemperatureModelOld::T4;
-      y.Data().front().Y().X0 = x[0];
-      y.Data().front().Y().X1 = x[1];
-      y.Data().front().Y().X2 = x[7];
-      y.Data().front().G().type = LineShapeTemperatureModelOld::T4;
-      y.Data().front().G().X0 = x[2];
-      y.Data().front().G().X1 = x[3];
-      y.Data().front().G().X2 = x[8];
+      y.Data().front().Y().type  = LineShapeTemperatureModelOld::T4;
+      y.Data().front().Y().X0    = x[0];
+      y.Data().front().Y().X1    = x[1];
+      y.Data().front().Y().X2    = x[7];
+      y.Data().front().G().type  = LineShapeTemperatureModelOld::T4;
+      y.Data().front().G().X0    = x[2];
+      y.Data().front().G().X1    = x[3];
+      y.Data().front().G().X2    = x[8];
       y.Data().front().DV().type = LineShapeTemperatureModelOld::T4;
-      y.Data().front().DV().X0 = x[4];
-      y.Data().front().DV().X1 = x[5];
-      y.Data().front().DV().X2 = x[9];
+      y.Data().front().DV().X0   = x[4];
+      y.Data().front().DV().X1   = x[5];
+      y.Data().front().DV().X2   = x[9];
       break;
     case TypeLM::LM_1STORDER:
       y.Data().front().Y().type = LineShapeTemperatureModelOld::T1;
-      y.Data().front().Y().X0 = x[1];
-      y.Data().front().Y().X1 = x[2];
+      y.Data().front().Y().X0   = x[1];
+      y.Data().front().Y().X1   = x[2];
       break;
     case TypeLM::LM_BYBAND:
       break;
@@ -489,7 +515,7 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
 
 Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                       const ArrayOfSpeciesEnum& lineshape_species)  {
+                       const ArrayOfSpeciesEnum& lineshape_species) {
   ARTS_ASSERT(
       atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()),
       "Bad atmospheric inputs");
@@ -532,7 +558,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 }
 
 Vector LineShape::vmrs(const AtmPoint& atm_point,
-                       const ArrayOfSpeciesEnum& lineshape_species)  {
+                       const ArrayOfSpeciesEnum& lineshape_species) {
   const Index n = lineshape_species.size();
 
   // We need to know if bath is an actual species
@@ -562,7 +588,7 @@ Vector LineShape::vmrs(const AtmPoint& atm_point,
 Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpeciesEnum& lineshape_species,
-                       const SpeciesIsotopologueRatios& ir)  {
+                       const SpeciesIsotopologueRatios& ir) {
   ARTS_ASSERT(
       atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()),
       "Bad atmospheric inputs");
@@ -641,9 +667,9 @@ Model MetaData2ModelShape(const String& s) {
 
   std::istringstream str(s);
   String part;
-  LineShapeVariableOld var = LineShapeVariableOld::ETA;
+  LineShapeVariableOld var        = LineShapeVariableOld::ETA;
   LineShapeTemperatureModelOld tm = LineShapeTemperatureModelOld::None;
-  Index i = -100000;
+  Index i                         = -100000;
 
   std::vector<SingleSpeciesModel> ssms(0);
   while (not str.eof()) {
@@ -651,7 +677,7 @@ Model MetaData2ModelShape(const String& s) {
     if (std::any_of(names.cbegin(), names.cend(), [part](auto x) {
           return part == x;
         })) {
-      i = -1;
+      i   = -1;
       var = to<LineShapeVariableOld>(part);
     } else {
       i++;
@@ -756,10 +782,11 @@ Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   if (type == "X1") return mp.X1;
   if (type == "X2") return mp.X2;
   if (type == "X3") return mp.X3;
-  ARTS_USER_ERROR("Type: ",
-                  type,
-                  ", is not accepted.  "
-                  "See documentation for accepted types\n")
+  ARTS_USER_ERROR(
+      "Type: {}"
+      ", is not accepted.  "
+      "See documentation for accepted types\n",
+      type)
 }
 #pragma GCC diagnostic pop
 
@@ -1041,7 +1068,7 @@ Output SingleSpeciesModel::dT0(Numeric T,
 #define FUNC(X, PVAR)                                                        \
   Numeric Model::X(                                                          \
       Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
-      const  {                                                  \
+      const {                                                                \
     ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                    \
                                                                              \
     return PVAR * std::transform_reduce(begin(),                             \
@@ -1067,7 +1094,7 @@ FUNC(DV, P* P)
 #define FUNC(X, PVAR)                                                        \
   Numeric Model::d##X##dT(                                                   \
       Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
-      const  {                                                  \
+      const {                                                                \
     ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                    \
                                                                              \
     return PVAR * std::transform_reduce(begin(),                             \
@@ -1094,7 +1121,7 @@ std::pair<bool, bool> SingleSpeciesModel::MatchTypes(
     const SingleSpeciesModel& other) const noexcept {
   bool match = true, nullable = true;
   for (Index i = 0; i < nVars; i++) {
-    match = match and other.X[i].type == X[i].type;
+    match    = match and other.X[i].type == X[i].type;
     nullable = nullable and
                (modelparameterEmpty(other.X[i]) or modelparameterEmpty(X[i]) or
                 other.X[i].type == X[i].type);
@@ -1139,26 +1166,26 @@ Model::Model(Numeric sgam,
         return x not_eq 0;
       })) {
     mdata.front().Y().type = LineShapeTemperatureModelOld::LM_AER;
-    mdata.front().Y().X0 = aer_interp[4];
-    mdata.front().Y().X1 = aer_interp[5];
-    mdata.front().Y().X2 = aer_interp[6];
-    mdata.front().Y().X3 = aer_interp[7];
+    mdata.front().Y().X0   = aer_interp[4];
+    mdata.front().Y().X1   = aer_interp[5];
+    mdata.front().Y().X2   = aer_interp[6];
+    mdata.front().Y().X3   = aer_interp[7];
     mdata.front().G().type = LineShapeTemperatureModelOld::LM_AER;
-    mdata.front().G().X0 = aer_interp[8];
-    mdata.front().G().X1 = aer_interp[9];
-    mdata.front().G().X2 = aer_interp[10];
-    mdata.front().G().X3 = aer_interp[11];
+    mdata.front().G().X0   = aer_interp[8];
+    mdata.front().G().X1   = aer_interp[9];
+    mdata.front().G().X2   = aer_interp[10];
+    mdata.front().G().X3   = aer_interp[11];
 
     mdata.back().Y().type = LineShapeTemperatureModelOld::LM_AER;
-    mdata.back().Y().X0 = aer_interp[4];
-    mdata.back().Y().X1 = aer_interp[5];
-    mdata.back().Y().X2 = aer_interp[6];
-    mdata.back().Y().X3 = aer_interp[7];
+    mdata.back().Y().X0   = aer_interp[4];
+    mdata.back().Y().X1   = aer_interp[5];
+    mdata.back().Y().X2   = aer_interp[6];
+    mdata.back().Y().X3   = aer_interp[7];
     mdata.back().G().type = LineShapeTemperatureModelOld::LM_AER;
-    mdata.back().G().X0 = aer_interp[8];
-    mdata.back().G().X1 = aer_interp[9];
-    mdata.back().G().X2 = aer_interp[10];
-    mdata.back().G().X3 = aer_interp[11];
+    mdata.back().G().X0   = aer_interp[8];
+    mdata.back().G().X1   = aer_interp[9];
+    mdata.back().G().X2   = aer_interp[10];
+    mdata.back().G().X3   = aer_interp[11];
   }
 }
 
@@ -1193,26 +1220,26 @@ Model lblrtm_model(Numeric sgam,
         return x not_eq 0;
       })) {
     m.Data().front().Y().type = LineShapeTemperatureModelOld::LM_AER;
-    m.Data().front().Y().X0 = aer_interp[4];
-    m.Data().front().Y().X1 = aer_interp[5];
-    m.Data().front().Y().X2 = aer_interp[6];
-    m.Data().front().Y().X3 = aer_interp[7];
+    m.Data().front().Y().X0   = aer_interp[4];
+    m.Data().front().Y().X1   = aer_interp[5];
+    m.Data().front().Y().X2   = aer_interp[6];
+    m.Data().front().Y().X3   = aer_interp[7];
     m.Data().front().G().type = LineShapeTemperatureModelOld::LM_AER;
-    m.Data().front().G().X0 = aer_interp[8];
-    m.Data().front().G().X1 = aer_interp[9];
-    m.Data().front().G().X2 = aer_interp[10];
-    m.Data().front().G().X3 = aer_interp[11];
+    m.Data().front().G().X0   = aer_interp[8];
+    m.Data().front().G().X1   = aer_interp[9];
+    m.Data().front().G().X2   = aer_interp[10];
+    m.Data().front().G().X3   = aer_interp[11];
 
     m.Data().back().Y().type = LineShapeTemperatureModelOld::LM_AER;
-    m.Data().back().Y().X0 = aer_interp[4];
-    m.Data().back().Y().X1 = aer_interp[5];
-    m.Data().back().Y().X2 = aer_interp[6];
-    m.Data().back().Y().X3 = aer_interp[7];
+    m.Data().back().Y().X0   = aer_interp[4];
+    m.Data().back().Y().X1   = aer_interp[5];
+    m.Data().back().Y().X2   = aer_interp[6];
+    m.Data().back().Y().X3   = aer_interp[7];
     m.Data().back().G().type = LineShapeTemperatureModelOld::LM_AER;
-    m.Data().back().G().X0 = aer_interp[8];
-    m.Data().back().G().X1 = aer_interp[9];
-    m.Data().back().G().X2 = aer_interp[10];
-    m.Data().back().G().X3 = aer_interp[11];
+    m.Data().back().G().X0   = aer_interp[8];
+    m.Data().back().G().X1   = aer_interp[9];
+    m.Data().back().G().X2   = aer_interp[10];
+    m.Data().back().G().X3   = aer_interp[11];
   }
 
   return m;
@@ -1222,8 +1249,8 @@ bool Model::OK(LineShapeTypeOld type,
                bool self,
                bool bath,
                const std::size_t nspecies) const noexcept {
-  Index n = mdata.size();
-  Index m = Index(self) + Index(bath);
+  Index n        = mdata.size();
+  Index m        = Index(self) + Index(bath);
   bool needs_any = type not_eq LineShapeTypeOld::DP;
   return not(n not_eq Index(nspecies) or m > n or (needs_any and not n));
 }
@@ -1240,8 +1267,8 @@ void Model::Remove(Index i, ArrayOfSpeciesEnum& specs) {
 
 void Model::SetLineMixingModel(SingleSpeciesModel x) {
   for (auto& ssm : mdata) {
-    ssm.Y() = x.Y();
-    ssm.G() = x.G();
+    ssm.Y()  = x.Y();
+    ssm.G()  = x.G();
     ssm.DV() = x.DV();
   }
 }
@@ -1253,8 +1280,8 @@ std::pair<bool, bool> Model::Match(const Model& other) const noexcept {
   bool match = true, nullable = true;
   for (Size i = 0; i < n; i++) {
     const auto x = mdata[i].MatchTypes(other[i]);
-    match = match and x.first;
-    nullable = nullable and x.second;
+    match        = match and x.first;
+    nullable     = nullable and x.second;
   }
 
   return {match, nullable};
@@ -1273,10 +1300,15 @@ bofstream& Model::write(bofstream& bof) const {
 namespace LegacyLineFunctionData {
 std::vector<LineShapeVariableOld> lineshapetag2variablesvector(String type) {
   if (type == String("DP")) return {};
-  if (type == String("LP")) return {LineShapeVariableOld::G0, LineShapeVariableOld::D0};
-  if (type == String("VP")) return {LineShapeVariableOld::G0, LineShapeVariableOld::D0};
+  if (type == String("LP"))
+    return {LineShapeVariableOld::G0, LineShapeVariableOld::D0};
+  if (type == String("VP"))
+    return {LineShapeVariableOld::G0, LineShapeVariableOld::D0};
   if (type == String("SDVP"))
-    return {LineShapeVariableOld::G0, LineShapeVariableOld::D0, LineShapeVariableOld::G2, LineShapeVariableOld::D2};
+    return {LineShapeVariableOld::G0,
+            LineShapeVariableOld::D0,
+            LineShapeVariableOld::G2,
+            LineShapeVariableOld::D2};
   if (type == String("HTP"))
     return {LineShapeVariableOld::G0,
             LineShapeVariableOld::D0,
@@ -1284,22 +1316,27 @@ std::vector<LineShapeVariableOld> lineshapetag2variablesvector(String type) {
             LineShapeVariableOld::D2,
             LineShapeVariableOld::FVC,
             LineShapeVariableOld::ETA};
-  ARTS_USER_ERROR("Type: ",
-                  type,
-                  ", is not accepted.  "
-                  "See documentation for accepted types\n")
+  ARTS_USER_ERROR(
+      "Type: {}"
+      ", is not accepted.  "
+      "See documentation for accepted types\n",
+      type)
 }
 
 std::vector<LineShapeVariableOld> linemixingtag2variablesvector(String type) {
   if (type == "#") return {};
   if (type == "LM1") return {LineShapeVariableOld::Y};
-  if (type == "LM2") return {LineShapeVariableOld::Y, LineShapeVariableOld::G, LineShapeVariableOld::DV};
+  if (type == "LM2")
+    return {LineShapeVariableOld::Y,
+            LineShapeVariableOld::G,
+            LineShapeVariableOld::DV};
   if (type == "INT") return {};
   if (type == "ConstG") return {LineShapeVariableOld::G};
-  ARTS_USER_ERROR("Type: ",
-                  type,
-                  ", is not accepted.  "
-                  "See documentation for accepted types\n")
+  ARTS_USER_ERROR(
+      "Type: {}"
+      ", is not accepted.  "
+      "See documentation for accepted types\n",
+      type)
 }
 }  // namespace LegacyLineFunctionData
 
@@ -1317,10 +1354,10 @@ LegacyLineMixingData::TypeLM string2typelm(String type) {
     return TypeLM::LM_1STORDER;
   if (type == "BB")  // The band class
     return TypeLM::LM_BYBAND;
-  ARTS_USER_ERROR("Type: ",
-                  type,
+  ARTS_USER_ERROR("Type: {}"
                   ", is not accepted.  "
-                  "See documentation for accepted types\n")
+                  "See documentation for accepted types\n",
+                  type)
 }
 }  // namespace LegacyLineMixingData
 
@@ -1334,10 +1371,10 @@ LegacyPressureBroadeningData::TypePB string2typepb(String type) {
     return TypePB::PB_AIR_AND_WATER_BROADENING;
   if (type == "AP")  // Planetary broadening
     return TypePB::PB_PLANETARY_BROADENING;
-  ARTS_USER_ERROR("Type: ",
-                  type,
+  ARTS_USER_ERROR("Type: {}"
                   ", is not accepted.  "
-                  "See documentation for accepted types\n")
+                  "See documentation for accepted types\n",
+                  type)
 }
 
 Index self_listed(const QuantumIdentifier& qid,

@@ -76,7 +76,7 @@ String XsecRecord::SpeciesName() const {
 void XsecRecord::SetVersion(const Index version) {
   if (version != mversion) {
     ARTS_USER_ERROR(
-        "Invalid version ", version, ", only version ", mversion, " supported")
+        "Invalid version {}, only version {} supported", version, mversion)
   }
 }
 

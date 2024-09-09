@@ -68,7 +68,7 @@ struct ModelParameters {
                             VectorType&& v) 
       : ModelParameters(intype) {
     const auto n = std::size(v);
-    ARTS_ASSERT(n <= N, "Must have at most ", N, " inputs, got: ", n)
+    ARTS_ASSERT(n <= N, "Must have at most {} inputs, got: {}", N, n)
     switch (n) {
       case 4:
         X3 = v[3];

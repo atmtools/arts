@@ -67,11 +67,10 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
 void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
   ARTS_USER_ERROR_IF (nx.nelem() != net.nb_inputs,
     "Tessem NN requires ", net.nb_inputs,
-    " values, but input vector has ", nx.nelem(), " element.")
+    " values, but input vector has {} elements", nx.nelem())
 
   ARTS_USER_ERROR_IF (ny.nelem() != net.nb_outputs,
-    "Tessem NN generates ", net.nb_outputs,
-    " values, but output vector has ", ny.nelem(), " element.")
+    "Tessem NN generates {} values, but output vector has {} element.", net.nb_outputs, ny.nelem())
 
   // preprocessing
   Vector new_x(nx);

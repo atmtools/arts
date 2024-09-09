@@ -250,7 +250,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
 
     const auto& rovib_data_it = rovib_data.find(spec);
     ARTS_USER_ERROR_IF(
-        rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
+        rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
     vmrs[i] = spec == SpeciesEnum::Bath ? 1 - sum(vmrs) : atm[spec];
 
@@ -269,7 +269,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
       hartmann::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
-      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE ", bnd.lineshape)
+      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)
     }
 
     Ws[i].imag() = Wimag;
@@ -377,7 +377,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
 
     const auto& rovib_data_it = rovib_data.find(spec);
     ARTS_USER_ERROR_IF(
-        rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
+        rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
     const Numeric this_vmr =
         spec == SpeciesEnum::Bath ? 1 - vmr : atm[spec];
@@ -395,7 +395,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       hartmann::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
-      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE ", bnd.lineshape)
+      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)
     }
 
     for (Size ir = 0; ir < n; ir++) {

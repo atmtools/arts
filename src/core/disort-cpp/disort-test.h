@@ -99,15 +99,15 @@ inline void compare(const std::string_view name,
       flux_down_diffuse_arts,
       flux_down_direct_arts);
 
-  ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test ", name);
-  ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test ", name);
+  ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test {}", name);
+  ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test {}", name);
   ARTS_USER_ERROR_IF(
-      not is_good(flux_up_arts, flux_up), "Failed flux_up in test ", name);
+      not is_good(flux_up_arts, flux_up), "Failed flux_up in test {}", name);
   ARTS_USER_ERROR_IF(not is_good(flux_down_diffuse_arts, flux_down_diffuse),
-                     "Failed flux_down_diffuse in test ",
+                     "Failed flux_down_diffuse in test {}",
                      name);
   ARTS_USER_ERROR_IF(not is_good(flux_down_direct_arts, flux_down_direct),
-                     "Failed flux_down_direct in test ",
+                     "Failed flux_down_direct in test {}",
                      name);
 };
 

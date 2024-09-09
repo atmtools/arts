@@ -135,7 +135,7 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {
   
 #undef deal_with_spec
   
-  ARTS_USER_ERROR("This is not a valid IsotopeRecord:\n", ir)
+  ARTS_USER_ERROR("This is not a valid IsotopeRecord:\n{}", ir)
 }
 
 extern template Numeric partfun_impl<Derivatives::Yes>(

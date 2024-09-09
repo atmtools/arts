@@ -56,7 +56,7 @@ class grid {
 
   static void assert_sorted(const Vector& x) {
     ARTS_USER_ERROR_IF(
-        not std::ranges::is_sorted(x, Compare{}), "Wrong sorting:\n", x);
+        not std::ranges::is_sorted(x, Compare{}), "Wrong sorting:\n{:B,}", x);
   }
 
   //! Unsafe constructor

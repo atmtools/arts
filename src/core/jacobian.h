@@ -31,7 +31,7 @@ struct AtmTarget {
                    const AtmField& atm,
                    const AtmKeyVal& key) {
         ARTS_USER_ERROR_IF(not atm.contains(key),
-                           "Atmosphere does not contain key value ",
+                           "Atmosphere does not contain key value {}",
                            key)
 
         auto xn = atm[key].flat_view();
@@ -51,7 +51,7 @@ struct AtmTarget {
                    const AtmKeyVal& key,
                    const ExhaustiveConstVectorView x) {
         ARTS_USER_ERROR_IF(not atm.contains(key),
-                           "Atmosphere does not contain key value ",
+                           "Atmosphere does not contain key value {}",
                            key)
 
         auto xn = atm[key].flat_view();
@@ -89,7 +89,7 @@ struct SurfaceTarget {
                    const SurfaceField& surf,
                    const SurfaceKeyVal& key) {
         ARTS_USER_ERROR_IF(
-            not surf.contains(key), "Surface does not contain key value ", key)
+            not surf.contains(key), "Surface does not contain key value {}", key)
 
         auto xn = surf[key].flat_view();
 
@@ -108,7 +108,7 @@ struct SurfaceTarget {
                    const SurfaceKeyVal& key,
                    const ExhaustiveConstVectorView x) {
         ARTS_USER_ERROR_IF(
-            not surf.contains(key), "Surface does not contain key value ", key)
+            not surf.contains(key), "Surface does not contain key value {}", key)
 
         auto xn = surf[key].flat_view();
 
@@ -253,18 +253,16 @@ struct targets_t {
          target<Targets>(),
          [&](auto& a) {
            ARTS_USER_ERROR_IF((a.x_start + a.x_size) > xsize,
-                              "The target ",
+                              "The target {}"
+                              " is out of bounds of the x-vector.  (xsize: {})",
                               a,
-                              " is out of bounds of the x-vector.  (xsize: ",
-                              xsize,
-                              ')')
+                              xsize)
            ARTS_USER_ERROR_IF(
                t_size <= a.target_pos,
-               "The target ",
+               "The target {}"
+               " is out of bounds of the target vector.  (t_size: {})",
                a,
-               " is out of bounds of the target vector.  (t_size: ",
-               t_size,
-               ')')
+               t_size)
          })),
      ...);
   }

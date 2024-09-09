@@ -178,19 +178,19 @@ void xml_read_from_stream(std::istream& is_xml,
   ARTS_USER_ERROR_IF(
       version < AbsorptionLines::version - 1 or
           (pbifs and version not_eq AbsorptionLines::version),
-      "Using descoped version of the catalog; version: ",
-      version,
-      '\n',
-      "We only ever support limited number of versions. Your compilation supports versions ",
-      AbsorptionLines::version,
-      " and ",
-      AbsorptionLines::version - 1,
-      " in ascii but only version ",
-      AbsorptionLines::version,
-      " in binary\n\n",
+      "Using descoped version of the catalog; version: {}"
+      "\n"
+      "We only ever support limited number of versions. Your compilation supports versions {}"
+      " and {}"
+      " in ascii but only version {}"
+      " in binary\n\n"
       "To update from versions, please check-out the following branch, compile, and save your catalog again (as ascii):\n"
       "0 to 1: 3b6565fb93702308c4cdd660ec63c71d63dcaf26\n"
-      "1 to 2: Current version\n")
+      "1 to 2: Current version\n",
+      version,
+      AbsorptionLines::version,
+      AbsorptionLines::version - 1,
+      AbsorptionLines::version)
 
   // Number of lines
   Index nlines;
@@ -207,7 +207,7 @@ void xml_read_from_stream(std::istream& is_xml,
     tag.get_attribute_value("species", spec);
 
     Index spec_ind = Species::find_species_index(spec);
-    ARTS_USER_ERROR_IF(spec_ind < 0, "Bad species index for: ", spec)
+    ARTS_USER_ERROR_IF(spec_ind < 0, "Bad species index for: {}", spec)
     id.isotopologue_index = spec_ind;
   }
 
@@ -270,9 +270,8 @@ void xml_read_from_stream(std::istream& is_xml,
                        Quantum::Number::QuantumNumberValueType::H) not_eq
                    Quantum::Number::QuantumNumberValueType::H;
           }),
-      "Quantum number list contains a string type, this is not allowed: [",
-      qn_key,
-      ']')
+      "Quantum number list contains a string type, this is not allowed: [{}]",
+      qn_key)
   meta_localstate.set_unsorted_qns(qn_key);
 
   /** Catalog ID */
@@ -480,7 +479,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-
 //=== SurfaceTypeTag ================================================================
 
 //! Reads SurfaceTypeTag from XML input stream
@@ -526,7 +524,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-
 //=== SurfacePropertyTag ================================================================
 
 //! Reads SurfacePropertyTag from XML input stream
@@ -571,7 +568,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
-
 
 //=== ParticulatePropertyTag ================================================================
 

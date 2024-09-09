@@ -50,7 +50,7 @@ void sunBlackbody(Sun& sun,
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun ({} m) \n"
-                     " is smaller than the radius of the sun ( m )",
+                     " is smaller than the radius of the sun ({} m)",
                      distance,
                      radius)
 

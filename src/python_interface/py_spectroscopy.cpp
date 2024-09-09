@@ -91,7 +91,7 @@ void py_spectroscopy(py::module_& m) try {
     if (c == "Pi") return Zeeman::Polarization::Pi;
     if (c == "SigmaPlus") return Zeeman::Polarization::SigmaPlus;
     if (c == "None") return Zeeman::Polarization::None;
-    ARTS_USER_ERROR("Bad enum value ", c);
+    ARTS_USER_ERROR("Bad enum value {}", c);
   };
   py::class_<Zeeman::Polarization>(m, "ZeemanPolarization")
       .def(
@@ -552,9 +552,9 @@ void py_spectroscopy(py::module_& m) try {
           ARTS_USER_ERROR_IF(
               broadeningspecies.size() <
                   static_cast<std::size_t>(selfbroadening + bathbroadening),
-              "Must have atleast ",
-              (selfbroadening + bathbroadening),
-              " broadening species to support settings")
+              "Must have atleast {}"
+              " broadening species to support settings",
+              (selfbroadening + bathbroadening))
           new (a) AbsorptionLines(selfbroadening,
                                   bathbroadening,
                                   cutoff,
@@ -666,9 +666,9 @@ void py_spectroscopy(py::module_& m) try {
             ARTS_USER_ERROR_IF(
                 static_cast<Size>(VMR.size()) not_eq
                     band.broadeningspecies.size(),
-                "Mismatch between VMRs and broadening species.\nVMR: ",
+                "Mismatch between VMRs and broadening species.\nVMR: {:B,}"
+                "\nSpecies: {:B,}",
                 VMR,
-                "\nSpecies: ",
                 band.broadeningspecies)
             if (line >= band.lines.size())
               throw std::out_of_range("Line index out of range");

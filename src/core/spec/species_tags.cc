@@ -49,13 +49,12 @@ constexpr Index isot(SpeciesEnum species,
                      std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
   ARTS_USER_ERROR_IF(spec_ind < 0,
-                     "Bad isotopologue: \"",
+                     "Bad isotopologue: \"{}"
+                     "\"\nValid options are:\n{}"
+                     "\nThe original tag reads \"{}\"",
                      isot,
-                     "\"\nValid options are:\n",
                      species,
-                     "\nThe original tag reads \"",
-                     orig,
-                     '"')
+                     orig)
   return spec_ind;
 }
 
@@ -68,17 +67,15 @@ constexpr Numeric freq(std::string_view part,
     auto err =
         fast_float::from_chars(part.data(), part.data() + part.size(), f);
     ARTS_USER_ERROR_IF(err.ec == std::errc::invalid_argument,
-                       "Invalid argument: \"",
+                       "Invalid argument: \"{}",
+                       "\"\nThe original tag reads \"{}\"",
                        part,
-                       "\"\nThe original tag reads \"",
-                       orig,
-                       '"');
+                       orig);
     ARTS_USER_ERROR_IF(err.ec == std::errc::result_out_of_range,
-                       "Out-of-range: \"",
+                       "Out-of-range: \"{}"
+                       "\"\nThe original tag reads \"{}\"",
                        part,
-                       "\"\nThe original tag reads \"",
-                       orig,
-                       '"');
+                       orig);
   }
   return f;
 }
@@ -86,12 +83,11 @@ constexpr Numeric freq(std::string_view part,
 constexpr void check(std::string_view text, std::string_view orig) {
   ARTS_USER_ERROR_IF(
       text.size(),
-      "Parsing error.  The text \"",
-      text,
+      "Parsing error.  The text \"{}\""
       "\" remains to be parsed at end of a complete species tag\n"
-      "The original tag reads \"",
-      orig,
-      '"')
+      "The original tag reads \"{}\"",
+      text,
+      orig)
 }
 }  // namespace detail
 
@@ -205,12 +201,12 @@ bool ArrayOfSpeciesTag::operator==(const ArrayOfSpeciesTag& x) const {
   return std::ranges::equal(*this, x);
 }
 
-SpeciesEnum ArrayOfSpeciesTag::Species() const  {
+SpeciesEnum ArrayOfSpeciesTag::Species() const {
   ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
   return operator[](0).Spec();
 }
 
-SpeciesTagType ArrayOfSpeciesTag::Type() const  {
+SpeciesTagType ArrayOfSpeciesTag::Type() const {
   ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
   return operator[](0).Type();
 }
@@ -244,11 +240,10 @@ ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
                                    return tag.Spec() not_eq front_species;
                                  }),
           "All species in a group of tags must be the same\n"
-          "Your list of tags have been parsed as: ",
+          "Your list of tags have been parsed as: {}",
+          "\nThe original tags-list read \"{}\"",
           *this,
-          "\nThe original tags-list read \"",
-          text,
-          '"')}
+          text)}
 
       Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
                               SpeciesEnum spec,
@@ -310,7 +305,7 @@ std::set<SpeciesEnum> lbl_species(
 
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
-                           const SpeciesEnum spec)  {
+                           const SpeciesEnum spec) {
   ARTS_ASSERT(abs_species.size() == static_cast<Size>(rtp_vmr.size()))
 
   auto pos =

@@ -14,9 +14,8 @@ void WignerInit(const Index& fast_wigner_stored_symbols,
                 const Index& largest_wigner_symbol_parameter,
                 const Index& symbol_type) {
   ARTS_USER_ERROR_IF(symbol_type != 3 and symbol_type != 6,
-                     "Invalid symbol type: ",
-                     symbol_type,
-                     " (must be 3 or 6)");
+                     "Invalid symbol type: {} (must be 3 or 6)",
+                     symbol_type);
 
   WignerInformation(static_cast<int>(largest_wigner_symbol_parameter),
                     static_cast<int>(fast_wigner_stored_symbols),

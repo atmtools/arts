@@ -71,7 +71,7 @@ std::istream& operator>>(std::istream& is, line& x) {
   is >> x.z >> x.ls >> s;
   x.qn.val.reserve(s);
   for (Size i = 0; i < s; i++) is >> x.qn.val.emplace_back();
-  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in ", x.qn)
+  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}", x.qn)
 
   return is;
 }
@@ -144,40 +144,40 @@ auto local_get_value(T& absorption_bands, const line_key& type)
         auto ptr =
             std::ranges::find(absorption_bands, type.band, &lbl::band::key);
         ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
-                           "No band with quantum identifier: ",
+                           "No band with quantum identifier: {}",
                            type.band);
         return ptr;
       }()
           ->data;
 
   ARTS_USER_ERROR_IF(type.line >= band.lines.size(),
-                     "Line index out of range: ",
+                     "Line index out of range: {}"
+                     " band has {}"
+                     " absorption lines. Band: {}",
                      type.line,
-                     " band has ",
                      band.lines.size(),
-                     " absorption lines. Band: ",
                      type.band);
   auto& line = band.lines[type.line];
 
   if (good_enum(type.ls_var)) {
     auto& line_ls_data = line.ls.single_models;
     ARTS_USER_ERROR_IF(type.spec >= line_ls_data.size(),
-                       "Not enough line data for line: ",
+                       "Not enough line data for line: {}"
+                       " for quantum identifier: {}",
                        line,
-                       " for quantum identifier: ",
                        type.band);
 
     auto& ls_data = line_ls_data[type.spec].data;
     auto ls_ptr   = std::ranges::find_if(
         ls_data, [var = type.ls_var](auto& x) { return x.first == var; });
     ARTS_USER_ERROR_IF(ls_ptr == ls_data.end(),
-                       "No line shape parameter: \"",
+                       "No line shape parameter: \"{}"
+                       "\" for species: \"{}"
+                       "\" in line: {}"
+                       " for quantum identifier: {}",
                        type.ls_var,
-                       "\" for species: \"",
                        line_ls_data[type.spec].species,
-                       "\" in line: ",
                        line,
-                       " for quantum identifier: ",
                        type.band);
 
     return ls_ptr->second.X(type.ls_coeff);

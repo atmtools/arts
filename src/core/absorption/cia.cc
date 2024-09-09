@@ -317,7 +317,7 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
   // Function species_index_from_species_name returns -1 if the species does
   // not exist. Check this:
   ARTS_USER_ERROR_IF(
-      not good_enum(spec_ind), "Species does not exist in ARTS: ", name)
+      not good_enum(spec_ind), "Species does not exist in ARTS: {}", name)
 
   // Assign species:
   mspecies[i] = spec_ind;

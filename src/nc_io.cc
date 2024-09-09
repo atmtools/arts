@@ -527,7 +527,7 @@ bool nca_put_var(const int ncid, const int varid, const Tensor4 &t) {
  */
 
 void nca_error(const int e, const std::string_view s) {
-  ARTS_USER_ERROR("NetCDF error: ", s, ", ", e, "\nCheck your input file.");
+  ARTS_USER_ERROR("NetCDF error: {}m {}" "\nCheck your input file.", s, e);
 }
 
 // We can't do the instantiation at the beginning of this file, because the

@@ -1,10 +1,11 @@
 #include "workspace_class.h"
 
+#include <auto_wsv.h>
+
 #include <ranges>
 #include <stdexcept>
 #include <type_traits>
 
-#include <auto_wsv.h>
 #include "debug.h"
 
 const auto& wsv_data = workspace_variables();
@@ -107,10 +108,8 @@ bool Workspace::wsv_and_contains(const std::string& name) const {
   ARTS_USER_ERROR_IF(
       std::ranges::none_of(wsv_data | std::views::keys,
                            [&name](const auto& n) { return n == name; }),
-      "Invalid workspace variable: ",
-      '"',
-      name,
-      '"')
+      "Invalid workspace variable: \"{}\"",
+      name)
   return contains(name);
 }
 
@@ -118,7 +117,7 @@ void Workspace::init(const std::string& name) try {
   set(name, Wsv::from_named_type(workspace_variables().at(name).type));
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      var_string("Undefined workspace variable ", '"', name, '"'));
+      artsformat("Undefined workspace variable \"{}\"", name));
 }
 
 Workspace Workspace::deepcopy() const {

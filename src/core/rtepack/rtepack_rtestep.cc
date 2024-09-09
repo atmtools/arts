@@ -88,17 +88,14 @@ void two_level_linear_emission_step_by_step_full(
   const Size N   = Ts.size();
 
   ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels (",
-                     N,
-                     ") in Ts and dTs");
+                     "Must have same number of levels ({}) in Ts and dTs",
+                     N);
 
   ARTS_USER_ERROR_IF(
-      N != Js.size(), "Must have same number of levels (", N, ") in Ts and Js");
+      N != Js.size(), "Must have same number of levels ({}) in Ts and Js", N);
 
   ARTS_USER_ERROR_IF(N != dJs.size(),
-                     "Must have same number of levels (",
-                     N,
-                     ") in Ts and dJs");
+                     "Must have same number of levels ({}) in Ts and dJs", N);
 
   I = I0;
   dI.resize(N);
@@ -112,36 +109,26 @@ void two_level_linear_emission_step_by_step_full(
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all Ts:s");
+      "Must have same number of frequency elements ({}) in all Ts:s", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Js, Cmp::ne(nv), &stokvec_vector::size),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all Js:s");
+      "Must have same number of frequency elements ({}) in all Js:s", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
-      "Must have same number of derivative elements (",
-      2,
-      ", ",
+      "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
       nq,
-      ", ",
-      nv,
-      ") in all dTs:s");
+      nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dJs, Cmp::ne(nv), &stokvec_matrix::ncols) or
           std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
-      "Must have same number of derivative elements (",
+      "Must have same number of derivative elements ({}, {}) in all dJs:s",
       nq,
-      ", ",
-      nv,
-      ") in all dJs:s");
+      nv);
 
   if (N == 0) return;
 
@@ -182,17 +169,14 @@ void two_level_linear_emission_cumulative_full(
   const Size N   = Ts.size();
 
   ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels (",
-                     N,
-                     ") in Ts and dTs");
+                     "Must have same number of levels ({}) in Ts and dTs",
+                     N);
 
   ARTS_USER_ERROR_IF(
-      N != Js.size(), "Must have same number of levels (", N, ") in Ts and Js");
+      N != Js.size(), "Must have same number of levels ({}) in Ts and Js", N);
 
   ARTS_USER_ERROR_IF(N != dJs.size(),
-                     "Must have same number of levels (",
-                     N,
-                     ") in Ts and dJs");
+                     "Must have same number of levels ({}) in Ts and dJs", N);
 
   I.resize(nv);
   dI.resize(N);
@@ -206,36 +190,26 @@ void two_level_linear_emission_cumulative_full(
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all Ts:s");
+      "Must have same number of frequency elements ({}) in all Ts:s", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Js, Cmp::ne(nv), &stokvec_vector::size),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all Js:s");
+      "Must have same number of frequency elements ({}) in all Js:s", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
-      "Must have same number of derivative elements (",
-      2,
-      ", ",
+      "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
       nq,
-      ", ",
-      nv,
-      ") in all dTs:s");
+      nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dJs, Cmp::ne(nv), &stokvec_matrix::ncols) or
           std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
-      "Must have same number of derivative elements (",
+      "Must have same number of derivative elements ({}, {}) in all dJs:s",
       nq,
-      ", ",
-      nv,
-      ") in all dJs:s");
+      nv);
 
   if (N == 0) {
     I = I0;
@@ -325,9 +299,8 @@ void two_level_linear_transmission_step(stokvec_vector &I,
   const Size N   = Ts.size();
 
   ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels (",
-                     N,
-                     ") in Ts and dTs");
+                     "Must have same number of levels ({}) in Ts and dTs",
+                     N);
 
   I.resize(nv);
   dI.resize(N);
@@ -341,21 +314,15 @@ void two_level_linear_transmission_step(stokvec_vector &I,
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all Ts:s");
+      "Must have same number of frequency elements ({}) in all Ts:s", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
-      "Must have same number of derivative elements (",
-      2,
-      ", ",
+      "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
       nq,
-      ", ",
-      nv,
-      ") in all dTs:s");
+      nv);
 
   if (N == 0) {
     I = I0;

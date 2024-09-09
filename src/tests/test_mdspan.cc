@@ -269,7 +269,7 @@ void test_eigen() {
     ARTS_USER_ERROR_IF(
         z != std::transform_reduce(
                  x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}),
-        "{}",z)
+        "{}", z)
   }
 
   {

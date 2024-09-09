@@ -48,7 +48,7 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
       absorption_xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
       ARTS_USER_ERROR(
-          "Error reading coefficients file:\n", filename, "\n", e.what());
+          "Error reading coefficients file:\n{}\n{}", filename, e.what());
     }
   }
 } ARTS_METHOD_ERROR_CATCH

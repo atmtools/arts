@@ -787,9 +787,8 @@ struct IsotopologueRatios {
   constexpr Numeric operator[](const Isotope& ir) const {
     const Index spec_ind = find_species_index(ir);
     ARTS_USER_ERROR_IF(spec_ind >= maxsize or spec_ind < 0,
-                       "Cannot understand: ",
-                       ir.FullName(),
-                       " as a valid species")
+                       "Cannot understand: {} as a valid species",
+                       ir.FullName())
     return data[spec_ind];
   }
 

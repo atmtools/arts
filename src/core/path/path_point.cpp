@@ -362,17 +362,13 @@ Numeric find_crossing_with_surface_z(const Vector3 pos,
     if (pos[0] < z_surf - surface_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
-          "The sensor altitude is at ",
+          "The sensor altitude is at {} m\n"
+          "The surface altitude is {} m\n"
+          "The position is (lat, lon): ({}, {})",
           pos[0],
-          " m\n"
-          "The surface altitude is ",
           z_surf,
-          " m\n"
-          "The position is (lat,lon): (",
           pos[1],
-          ",",
-          pos[2],
-          ")");
+          pos[2]);
   }
 
   // Constant surface altitude (in comparison to *surface_search_accuracy*)
@@ -722,11 +718,11 @@ Intersections pair_line_ellipsoid_intersect(
       surf_h_max > atm_field.top_of_atmosphere,
       "The top of the atmosphere must be above the surface. "
       "This is not the case for the current surface and atmospheric fields. "
-      "The maximum altitude of the surface is ",
+      "The maximum altitude of the surface is {}"
+      " m, while the top of the atmosphere is at {}"
+      " m. This is not allowed.",
       surf_h_max,
-      " m, while the top of the atmosphere is at ",
-      atm_field.top_of_atmosphere,
-      " m. This is not allowed.");
+      atm_field.top_of_atmosphere);
 
   const auto looking_los = mirror(path.los);
   const auto x =
@@ -1053,11 +1049,9 @@ PropagationPathPoint find_geometric_limb(
       geodetic2ecef(pre_limb_point->pos, surface_field.ellipsoid);
   const Numeric distance = ecef_distance(pre_ecef, post_ecef);
   ARTS_USER_ERROR_IF(distance == 0,
-                     "Distance between points is zero: ",
+                     "Distance between points is zero: {:B,} and {:B,}.",
                      post_ecef,
-                     " and ",
-                     pre_ecef,
-                     ".");
+                     pre_ecef);
 
   const Vector3 decef{(post_ecef[0] - pre_ecef[0]) / distance,
                       (post_ecef[1] - pre_ecef[1]) / distance,

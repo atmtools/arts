@@ -1003,14 +1003,10 @@ struct Lagrange {
                 : xi[0] + extrapol * nonstd::abs(xi[1] - xi[0]);
         ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
                            "Interpolation setup has failed!\n"
-                           "\tThe new grid has limits: ",
+                           "\tThe new grid has limits: {} {}\n\tThe old grid has limits: {} {}",
                            x.first,
-                           ' ',
                            x.second,
-                           '\n',
-                           "\tThe old grid has limits: ",
                            xmin,
-                           ' ',
                            xmax)
       }
     }
@@ -1269,8 +1265,8 @@ constexpr void dinterpweights(
            dlx < N)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
+                     "{:B,} vs {:B,}",
                      std::array{lag.size()...},
-                     " vs ",
                      out.shape())
 
   const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(

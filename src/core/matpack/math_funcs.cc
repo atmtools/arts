@@ -15,22 +15,22 @@
  *****************************************************************************/
 
 #include "math_funcs.h"
-#include "matpack_math.h"
+
+#include <array.h>
+#include <arts_constants.h>
+#include <arts_conversions.h>
+#include <mystring.h>
 
 #include <cmath>
 
-#include <arts_constants.h>
-#include <arts_conversions.h>
-
-#include <array.h>
-#include <mystring.h>
+#include "matpack_math.h"
 
 #ifndef NDEBUG
 #include "logic.h"
 #endif
 
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric PI      = Constant::pi;
 
 /*****************************************************************************
  *** The functions (in alphabetical order)
@@ -107,16 +107,20 @@ Numeric LagrangeInterpol4(ConstVectorView x,
   // Check that dimensions of x and y vector agree
   const Index n_x = x.size();
   const Index n_y = y.size();
-  ARTS_USER_ERROR_IF ((n_x != 4) || (n_y != 4),
+  ARTS_USER_ERROR_IF(
+      (n_x != 4) || (n_y != 4),
       "The vectors x and y must all have the same length of 4 elements!\n"
       "Actual lengths:\n"
-      "x:", n_x, ", "
-      "y:", n_y, ".")
+      "x: {}, "
+      "y: {}.",
+      n_x,
+      n_y)
 
   // assure that x1 =< a < x2 holds
-  ARTS_USER_ERROR_IF ((a < x[1]) || (a > x[2]),
-    "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
-    "No interpolation can be calculated.\n")
+  ARTS_USER_ERROR_IF(
+      (a < x[1]) || (a > x[2]),
+      "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
+      "No interpolation can be calculated.\n")
 
   // calculate the Lagrange polynomial coefficients for a polynomial of the order of 3
   Numeric b[4];
@@ -257,9 +261,9 @@ void nlogspace(Vector& x,
   ARTS_ASSERT(0 < stop);
 
   x.resize(n);
-  Numeric a = log(start);
+  Numeric a    = log(start);
   Numeric step = (log(stop) - a) / ((double)n - 1);
-  x[0] = start;
+  x[0]         = start;
   for (Index i = 1; i < n - 1; i++) x[i] = exp(a + (double)i * step);
   x[n - 1] = stop;
 }
@@ -276,15 +280,12 @@ void nlogspace(Vector& x,
     \author Patrick Eriksson
     \date 2022-03-06
 */
-Numeric trapz(ConstVectorView x,
-              ConstVectorView y)
-{
+Numeric trapz(ConstVectorView x, ConstVectorView y) {
   const Index n = x.size();
   ARTS_ASSERT(y.size() == n);
   Numeric sum = 0.0;
-  for (Index i=1; i<n; ++i)
-    sum += (x[i]-x[i-1]) * (y[i]+y[i-1]);
-  return sum/2.0;
+  for (Index i = 1; i < n; ++i) sum += (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
+  return sum / 2.0;
 }
 
 //! cumsum
@@ -299,14 +300,11 @@ Numeric trapz(ConstVectorView x,
     \author Patrick Eriksson
     \date 2022-12-22
 */
-void cumsum(VectorView csum,
-            ConstVectorView x)
-{
+void cumsum(VectorView csum, ConstVectorView x) {
   const Index n = x.size();
   ARTS_ASSERT(csum.size() == n);
   csum[0] = x[0];
-  for (Index i=1; i<n; ++i)
-    csum[i] = csum[i-1] + x[i];
+  for (Index i = 1; i < n; ++i) csum[i] = csum[i - 1] + x[i];
 }
 
 //! AngIntegrate_trapezoid
@@ -370,8 +368,8 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView grid_stepsize) {
   Numeric res = 0;
   if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0)) {
-    Index n = za_grid.size();
-    Index m = aa_grid.size();
+    Index n             = za_grid.size();
+    Index m             = aa_grid.size();
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
     Vector res1(n);
@@ -384,9 +382,9 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
       for (Index j = 1; j < m - 1; j++) {
         temp += Integrand(i, j) * 2;
       }
-      temp += Integrand(i, m - 1);
-      temp *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
-      res1[i] = temp;
+      temp    += Integrand(i, m - 1);
+      temp    *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
+      res1[i]  = temp;
     }
 
     res = res1[0];
@@ -469,24 +467,19 @@ Numeric sign(const Numeric& x) {
     \author Patrick Eriksson 
     \date   2022-09-29
 */
-Index sign(const Index& x) {
-  return (x > 0) - (x < 0);
-}
+Index sign(const Index& x) { return (x > 0) - (x < 0); }
 
-Numeric min_geq(const Numeric n1,
-                const Numeric n2,
-                const Numeric limit) {
-  if (n1<limit) {
-    if (n2<limit)
-      return limit-1;
+Numeric min_geq(const Numeric n1, const Numeric n2, const Numeric limit) {
+  if (n1 < limit) {
+    if (n2 < limit)
+      return limit - 1;
     else
       return n2;
-  } else if (n2<limit) {
-    if (n1<limit)
-      return limit-1;
+  } else if (n2 < limit) {
+    if (n1 < limit) return limit - 1;
     return n1;
   } else {
-    return std::min(n1,n2);
+    return std::min(n1, n2);
   }
 }
 
@@ -508,7 +501,6 @@ Index int_at_step(const Numeric gp, const Index step) {
     return Index(std::ceil(gp)) + step;
   }
 }
-
 
 /*! Modified gamma distribution
  *  
@@ -544,33 +536,36 @@ void mgd(VectorView psd,
       // Exponential distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
-        psd[ix] = n0 * eterm;
+        psd[ix]             = n0 * eterm;
       }
     } else {
-      ARTS_USER_ERROR_IF (mu > 10,
-          "Given mu is ", mu, '\n',
-          "Seems unreasonable. Have you mixed up the inputs?")
+      ARTS_USER_ERROR_IF(mu > 10,
+                         "Given mu is {}\n"
+                         "Seems unreasonable. Have you mixed up the inputs?",
+                         mu)
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         const Numeric xterm = pow(x[ix], mu);
-        psd[ix] = n0 * xterm * eterm;
-        psd[ix] = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
+        psd[ix]             = n0 * xterm * eterm;
+        psd[ix]             = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
       }
     }
   } else {
     // Complete MGD
-    ARTS_USER_ERROR_IF (mu > 10,
-        "Given mu is ", mu, '\n',
-        "Seems unreasonable. Have you mixed up the inputs?")
-    ARTS_USER_ERROR_IF (ga > 10,
-        "Given gamma is ", ga, '\n',
-        "Seems unreasonable. Have you mixed up the inputs?")
+    ARTS_USER_ERROR_IF(mu > 10,
+                       "Given mu is {}\n"
+                       "Seems unreasonable. Have you mixed up the inputs?",
+                       mu)
+    ARTS_USER_ERROR_IF(ga > 10,
+                       "Given gamma is {}\n"
+                       "Seems unreasonable. Have you mixed up the inputs?",
+                       ga)
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
       const Numeric xterm = pow(x[ix], mu);
-      psd[ix] = n0 * xterm * eterm;
+      psd[ix]             = n0 * xterm * eterm;
     }
   }
 }
@@ -621,7 +616,7 @@ void mgd_with_derivatives(VectorView psd,
       // Exponential distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
-        psd[ix] = n0 * eterm;
+        psd[ix]             = n0 * eterm;
         if (do_n0_jac) {
           jac_data(0, ix) = eterm;
         }
@@ -630,14 +625,15 @@ void mgd_with_derivatives(VectorView psd,
         }
       }
     } else {
-      ARTS_USER_ERROR_IF (mu > 10,
-          "Given mu is ", mu, '\n',
-          "Seems unreasonable. Have you mixed up the inputs?")
+      ARTS_USER_ERROR_IF(mu > 10,
+                         "Given mu is {}\n"
+                         "Seems unreasonable. Have you mixed up the inputs?",
+                         mu)
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         const Numeric xterm = pow(x[ix], mu);
-        psd[ix] = n0 * xterm * eterm;
+        psd[ix]             = n0 * xterm * eterm;
         if (do_n0_jac) {
           jac_data(0, ix) = xterm * eterm;
         }
@@ -652,17 +648,19 @@ void mgd_with_derivatives(VectorView psd,
     }
   } else {
     // Complete MGD
-    ARTS_USER_ERROR_IF (mu > 10,
-        "Given mu is ", mu, '\n',
-        "Seems unreasonable. Have you mixed up the inputs?")
-    ARTS_USER_ERROR_IF (ga > 10,
-        "Given gamma is ", ga, '\n',
-        "Seems unreasonable. Have you mixed up the inputs?")
+      ARTS_USER_ERROR_IF(mu > 10,
+                         "Given mu is {}\n"
+                         "Seems unreasonable. Have you mixed up the inputs?",
+                         mu)
+      ARTS_USER_ERROR_IF(ga > 10,
+                         "Given gamma is {}\n"
+                         "Seems unreasonable. Have you mixed up the inputs?",
+                         ga)
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
       const Numeric xterm = pow(x[ix], mu);
-      psd[ix] = n0 * xterm * eterm;
+      psd[ix]             = n0 * xterm * eterm;
       if (do_n0_jac) {
         jac_data(0, ix) = xterm * eterm;
       }
@@ -684,16 +682,16 @@ void delanoe_shape_with_derivative(VectorView psd,
                                    const Vector& x,
                                    const Numeric& alpha,
                                    const Numeric& beta) {
-  Numeric f_c = tgamma(4.0) / 256.0;
-  f_c *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
-  f_c /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
+  Numeric f_c  = tgamma(4.0) / 256.0;
+  f_c         *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
+  f_c         /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
 
-  Numeric f_d = tgamma((alpha + 5.0) / beta);
-  f_d /= tgamma((alpha + 4.0) / beta);
+  Numeric f_d  = tgamma((alpha + 5.0) / beta);
+  f_d         /= tgamma((alpha + 4.0) / beta);
 
   for (Index i = 0; i < x.size(); ++i) {
     Numeric xi = x[i];
-    psd[i] = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
+    psd[i]     = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
     jac_data(0, i) =
         psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
   }
@@ -723,14 +721,23 @@ Numeric mod_gamma_dist(
 
     return dN;
   } else {
-    ARTS_USER_ERROR (
-      "At least one argument is zero or negative.\n"
-      "Modified gamma distribution can not be calculated.\n"
-      "x      = ", x, "\n"
-      "N0     = ", N0, "\n"
-      "lambda = ", Lambda, "\n"
-      "mu     = ", mu, "\n"
-      "gamma  = ", gamma, "\n")
+    ARTS_USER_ERROR(
+        "At least one argument is zero or negative.\n"
+        "Modified gamma distribution can not be calculated.\n"
+        "x      = {}"
+        "\n"
+        "N0     = {}"
+        "\n"
+        "lambda = {}"
+        "\n"
+        "mu     = {}"
+        "\n"
+        "gamma  = {}\n",
+        x,
+        N0,
+        Lambda,
+        mu,
+        gamma)
   }
 }
 
@@ -772,8 +779,8 @@ void flat(VectorView x, ConstMatrixView X) {
 
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
-      x[i] = X(r, c);
-      i += 1;
+      x[i]  = X(r, c);
+      i    += 1;
     }
   }
 }
@@ -799,8 +806,8 @@ void flat(VectorView x, ConstTensor3View X) {
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
       for (Index p = 0; p < X.npages(); p++) {
-        x[i] = X(p, r, c);
-        i += 1;
+        x[i]  = X(p, r, c);
+        i    += 1;
       }
     }
   }
@@ -827,8 +834,8 @@ void reshape(Tensor3View X, ConstVectorView x) {
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
       for (Index p = 0; p < X.npages(); p++) {
-        X(p, r, c) = x[i];
-        i += 1;
+        X(p, r, c)  = x[i];
+        i          += 1;
       }
     }
   }
@@ -854,8 +861,8 @@ void reshape(MatrixView X, ConstVectorView x) {
 
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
-      X(r, c) = x[i];
-      i += 1;
+      X(r, c)  = x[i];
+      i       += 1;
     }
   }
 }
@@ -890,20 +897,17 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
 }
 
 void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
-
-  ARTS_USER_ERROR_IF(x.size() <1, "Grid needs at least 2 points." );
+  ARTS_USER_ERROR_IF(x.size() < 1, "Grid needs at least 2 points.");
 
   Index N = x.size();
 
   w.resize(N);
 
-  w[0] = (x[1] - x[0])/2;
-  if (N>2){
-
-    for (Index i = 1; i < N-1; i++ ){
-      w[i] = (x[i+1] - x[i-1])/2;
+  w[0] = (x[1] - x[0]) / 2;
+  if (N > 2) {
+    for (Index i = 1; i < N - 1; i++) {
+      w[i] = (x[i + 1] - x[i - 1]) / 2;
     }
-
   }
-  w[N-1] = (x[N-1] - x[N-2])/2;
+  w[N - 1] = (x[N - 1] - x[N - 2]) / 2;
 }

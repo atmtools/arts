@@ -438,17 +438,13 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   const Size N = K.size();
 
   ARTS_USER_ERROR_IF(
-      N != dK.size(), "Must have same number of levels (", N, ") in K and dK");
+      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
 
   ARTS_USER_ERROR_IF(N != static_cast<Size>(r.size()),
-                     "Must have same number of levels (",
-                     N,
-                     ") in K and r");
+                     "Must have same number of levels ({}) in K and r", N);
 
   ARTS_USER_ERROR_IF(N != static_cast<Size>(dr.nrows()),
-                     "Must have same number of levels (",
-                     N,
-                     ") in K and dr");
+                     "Must have same number of levels ({}) in K and dr", N);
 
   T.resize(N);
 
@@ -470,25 +466,19 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   }
 
   ARTS_USER_ERROR_IF(std::ranges::any_of(K, Cmp::ne(nv), &propmat_vector::size),
-                     "Must have same number of frequency elements (",
-                     nv,
-                     ") in all K:s as in K[0]");
+                     "Must have same number of frequency elements ({}) in all K:s as in K[0]", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dK, Cmp::ne(nv), &propmat_matrix::ncols),
-      "Must have same number of frequency elements (",
-      nv,
-      ") in all dK:s as in K[0]");
+      "Must have same number of frequency elements ({}) in all dK:s as in K[0]", nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
-      "Must have same number of derivative elements (",
-      nq,
-      ") in all dK:s as in dr");
+      "Must have same number of derivative elements ({}) in all dK:s as in dr", nq);
 
   ARTS_USER_ERROR_IF(
       dr.npages() != 2,
-      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got ",
+      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
       dr.npages());
 
   for (Size i = 1; i < N; i++) {

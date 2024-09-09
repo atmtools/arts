@@ -74,7 +74,7 @@ void ray_pathGeometricTangentAltitude(ArrayOfPropagationPathPoint& ray_path,
       std::ranges::any_of(
           ray_path,
           [](const auto& p) { return p.has(PathPositionType::surface); }),
-      "Path extremes contain surface point(s):\n",
+      "Path extremes contain surface point(s):\n{}",
       ray_path);
 
   path::fill_geometric_stepwise(ray_path, surface_field, max_step);

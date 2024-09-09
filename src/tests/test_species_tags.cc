@@ -5,7 +5,7 @@
 #include "species_tags.h"
 
 int main(int argc, char ** argv) try {
-  ARTS_USER_ERROR_IF(argc not_eq 2, "Call as ", argv[0], " SPECIES_STRING");
+  ARTS_USER_ERROR_IF(argc not_eq 2, "Call as {} SPECIES_STRING", argv[0]);
   
   const ArrayOfSpeciesTag tags(argv[1]);
   for (auto& x: tags) {

@@ -95,12 +95,11 @@ void compute(PropmatVector& propmat_clearsky,
   // Check limits of suspended water droplet density ("vmr") [kg/m³]
   ARTS_USER_ERROR_IF(((lwc < low_lim_den) || (lwc > high_lim_den)),
                      "ERROR in ELL07WaterDropletAbs:\n"
-                     "Valid range is ",
-                     low_lim_den,
-                     "-",
-                     high_lim_den,
+                     "Valid range is {}-{}"
                      "kg/m3,\n"
-                     "but found a value = ",
+                     "but found a value = {}",
+                     low_lim_den,
+                     high_lim_den,
                      lwc)
 
   ARTS_USER_ERROR_IF(std::any_of(f_grid.begin(), f_grid.end(), gt(25e12)),
@@ -109,9 +108,8 @@ void compute(PropmatVector& propmat_clearsky,
 
   ARTS_USER_ERROR_IF(
       t < 210 or t > 373,
-      "Only valid for temperatures 210-373 K, not for your value of ",
-      t,
-      " K")
+      "Only valid for temperatures 210-373 K, not for your value of {} K",
+      t)
 
   // Temperature in celsius
   const Numeric t_cels = t - 273.15;

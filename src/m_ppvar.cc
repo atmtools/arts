@@ -171,7 +171,7 @@ void ray_path_propagation_matrixFromPath(
     }
 
     ARTS_USER_ERROR_IF(
-        do_abort, "Error messages from failed cases:\n", fail_msg)
+        do_abort, "Error messages from failed cases:\n{}", fail_msg)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -256,15 +256,14 @@ void ray_path_spectral_radiance_sourceFromPropmat(
       {
         do_abort = true;
         fail_msg.push_back(
-            var_string("Runtime-error in source calculation at index ",
+            var_string("Runtime-error in source calculation at index {}:\n{}",
                        ip,
-                       ": \n",
                        e.what()));
       }
     }
   }
 
-  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n{}", fail_msg)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -372,16 +371,15 @@ void ray_path_transmission_matrixFromPath(
         {
           do_abort = true;
           fail_msg.push_back(
-              var_string("Runtime-error in transmission calculation at index ",
+              var_string("Runtime-error in transmission calculation at index {}:\n{}",
                          ip,
-                         ": \n",
                          e.what()));
         }
       }
     }
 
     ARTS_USER_ERROR_IF(
-        do_abort, "Error messages from failed cases:\n", fail_msg)
+        do_abort, "Error messages from failed cases:\n{}", fail_msg)
   }
 }
 ARTS_METHOD_ERROR_CATCH

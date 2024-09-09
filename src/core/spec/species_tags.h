@@ -40,7 +40,7 @@ struct Tag {
 
   constexpr void Isotopologue(const SpeciesIsotope& ir)  {
     Index ind = find_species_index(ir);
-    ARTS_ASSERT(ind < 0, "Bad species extracted from: ", ir)
+    ARTS_ASSERT(ind < 0, "Bad species extracted from: {}", ir)
     spec_ind = ind;
   }
 
