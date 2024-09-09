@@ -233,17 +233,17 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
             atm_field[abs_species.back().Species()] = tmp[0];
           } else {
             ARTS_USER_ERROR(
-                "The file ",
-                pnd_field_files[i],
+                "The file {}"
                 "\n"
-                "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
+                "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n",
+                pnd_field_files[i])
           }
         } catch (...) {
           ARTS_USER_ERROR(
-              "The file ",
-              pnd_field_files[i],
+              "The file {}"
               " does not exist or\n"
-              "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
+              "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n",
+              pnd_field_files[i])
         }
       }
 
@@ -309,9 +309,8 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
               "Allowed are "
               "*.meta.xml from *.xml and "
               "*scat_meta* from *scat_data*\n"
-              "Scattering meta data file not found: ",
+              "Scattering meta data file not found: {}\n{}",
               scat_meta_file,
-              "\n",
               e.what())
         }
       }
@@ -366,7 +365,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
-    ARTS_USER_ERROR(os.str());
+    ARTS_USER_ERROR("{}", os.str());
   }
 
   // check if arrays have same size
@@ -396,13 +395,12 @@ void ScatElementsSelect(  //WS Output:
       "Number of scattering species specified by scat_species does\n"
       "not agree with number of scattering species in\n"
       "scat_data_raw or scat_meta:\n"
-      "scat_species has ",
+      "scat_species has {}"
+      " entries, while scat_data_raw has {}"
+      " and scat_meta has {}.",
       nspecies,
-      " entries, while scat_data_raw has ",
       scat_data_raw.size(),
-      " and scat_meta has ",
-      scat_meta.size(),
-      ".")
+      scat_meta.size())
 
   // create temporary containers for selected elements
   ArrayOfSingleScatteringData scat_data_raw_tmp;
@@ -417,9 +415,8 @@ void ScatElementsSelect(  //WS Output:
     if (partfield_name == species) i_ss = i;
   }
   ARTS_USER_ERROR_IF(i_ss < 0,
-                     "Scattering species ",
-                     species,
-                     " not found among scat_species.")
+                     "Scattering species {} not found among scat_species.",
+                     species)
 
   // choosing the specified SingleScatteringData and ScatteringMetaData
   if (sizeparam == "diameter_max")
@@ -461,7 +458,7 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else {
-    ARTS_USER_ERROR("Size parameter ", sizeparam, "is unknown.")
+    ARTS_USER_ERROR("Size parameter {} is unknown", sizeparam)
   }
 
   // To use a particle species field without associated scattering element
@@ -469,12 +466,12 @@ void ScatElementsSelect(  //WS Output:
   // unlikely what the user intends. Hence throw error.
   ARTS_USER_ERROR_IF(
       scat_meta_tmp.size() < 1,
-      "For scattering species ",
-      species,
+      "For scattering species {}"
       " no scattering "
       "element matching the requested size range found.\n"
       "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
-      "selection!")
+      "selection!",
+      species)
 
   scat_meta[i_ss] = std::move(scat_meta_tmp);
   scat_data_raw[i_ss] = std::move(scat_data_raw_tmp);
@@ -512,11 +509,9 @@ void ScatSpeciesExtendTemperature(  //WS Output:
           nspecies != scat_data_raw.size(),
           "Number of scattering species specified by scat_species does\n"
           "not agree with number of scattering species in *scat_data*:\n"
-          "scat_species has ",
+          "scat_species has {} entries, while *scat_data* has {}.",
           nspecies,
-          " entries, while *scat_data* has ",
-          scat_data_raw.size(),
-          ".")
+          scat_data_raw.size())
       String partfield_name;
       //find the species to handle: compare 'species' to 'partfield' part of
       //scat_species tags
@@ -526,9 +521,8 @@ void ScatSpeciesExtendTemperature(  //WS Output:
         if (partfield_name == species) i_ss = i;
       }
       ARTS_USER_ERROR_IF(i_ss < 0,
-                         "Scattering species ",
-                         species,
-                         " not found among scat_species.")
+                         "Scattering species {} not found among scat_species.",
+                         species)
     }
 
     for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {

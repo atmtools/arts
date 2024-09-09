@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <auto_wsg.h>
+#include "workspace_wsv.h"
 
 struct WorkspaceVariableInternalRecord {
   std::string desc{};

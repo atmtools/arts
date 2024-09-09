@@ -17,7 +17,12 @@
   === External declarations
   ===========================================================================*/
 
-#include <workspace.h>
+class Workspace;
+class Agenda;
+
+#include <jacobian.h>
+#include <path_point.h>
+
 #include "interpolation.h"
 #include "sorted_grid.h"
 
@@ -130,17 +135,16 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @author Richard Larsson 
  * @date   2017-09-21
  */
-void get_stepwise_clearsky_propmat(
-    const Workspace& ws,
-    PropmatVector& K,
-    StokvecVector& S,
-    PropmatMatrix& dK_dx,
-    StokvecMatrix& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const JacobianTargets& jacobian_targets,
-    const AscendingGrid& ppath_f_grid,
-    const PropagationPathPoint& path_point,
-    const AtmPoint& atm_point);
+void get_stepwise_clearsky_propmat(const Workspace& ws,
+                                   PropmatVector& K,
+                                   StokvecVector& S,
+                                   PropmatMatrix& dK_dx,
+                                   StokvecMatrix& dS_dx,
+                                   const Agenda& propmat_clearsky_agenda,
+                                   const JacobianTargets& jacobian_targets,
+                                   const AscendingGrid& ppath_f_grid,
+                                   const PropagationPathPoint& path_point,
+                                   const AtmPoint& atm_point);
 
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component
@@ -192,8 +196,8 @@ void get_stepwise_transmission_matrix(
     const Numeric& ppath_distance,
     const bool& first_level,
     const Numeric& dr_dT_close = 0,
-    const Numeric& dr_dT_far = 0,
-    const Index& it = -1);
+    const Numeric& dr_dT_far   = 0,
+    const Index& it            = -1);
 
 /** Multiplicates iy_transmittance with transmissions.
 
@@ -219,8 +223,8 @@ void get_stepwise_transmission_matrix(
     @date   2009-10-06
 */
 void iy_transmittance_mult(Tensor3& iy_trans_total,
-                          const ConstTensor3View& iy_trans_old,
-                          const ConstTensor3View& iy_trans_new);
+                           const ConstTensor3View& iy_trans_old,
+                           const ConstTensor3View& iy_trans_new);
 
 /** Multiplicates iy_transmittance with iy-variable.
 
@@ -260,8 +264,7 @@ void iy_transmittance_mult(Matrix& iy_new,
     @author Patrick Eriksson 
     @date   2011-07-15
 */
-void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los);
+void mirror_los(Vector& los_mirrored, const ConstVectorView& los);
 
 //! mueller_modif2stokes
 /*!
@@ -291,8 +294,7 @@ void mueller_modif2stokes(Matrix& Cs);
    \author Patrick Eriksson
    \date   2021-12-22
 */
-void mueller_rotation(Matrix& L,
-                      const Numeric& rotangle);
+void mueller_rotation(Matrix& L, const Numeric& rotangle);
 
 //! mueller_stokes2modif
 /*!

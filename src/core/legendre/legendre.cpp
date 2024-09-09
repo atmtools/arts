@@ -27,8 +27,8 @@ constexpr Numeric longitude_clamp(Numeric lon) {
 
 std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) {
   ARTS_USER_ERROR_IF(
-      theta < 0 or theta > Constant::pi, "Theta=", theta, " must be in [0, pi]")
-  ARTS_USER_ERROR_IF(nmax <= 0, "nmax=", nmax, " must be > 0")
+      theta < 0 or theta > Constant::pi, "Theta={} must be in [0, pi]", theta)
+  ARTS_USER_ERROR_IF(nmax <= 0, "nmax={} must be > 0", nmax)
 
   const Index N = 1 + nmax;
 
@@ -80,7 +80,7 @@ Vector3 schmidt_fieldcalc(const Matrix& g,
   const auto [r, lat, lon] = pos;
 
   ARTS_USER_ERROR_IF(
-      lat < -90 and lat > 90, "Latitude is ", lat, " should be in [-90, 90]")
+      lat < -90 and lat > 90, "Latitude is {} should be in [-90, 90]", lat)
 
   const Index N = h.nrows();
 
@@ -132,7 +132,7 @@ constexpr Numeric next(Numeric p0, Numeric p1, Numeric ni, Numeric x) {
 Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x) {
   using boost::math::legendre_next;
 
-  ARTS_USER_ERROR_IF(x < -1 or x > 1, "x=", x, " must be in [-1, 1]")
+  ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
 
   const Index n = s.nelem();
   if (n == 0) return 0.0;

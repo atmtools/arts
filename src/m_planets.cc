@@ -296,15 +296,13 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
   };
 
   ARTS_USER_ERROR_IF(surface_field.ellipsoid[0] <= 0,
-                     "Ellipsoid has bad semi-major axis [",
-                     surface_field.ellipsoid,
-                     ']')
+                     "Ellipsoid has bad semi-major axis {:B,}",
+                     surface_field.ellipsoid)
   ARTS_USER_ERROR_IF(
       surface_field.ellipsoid[1] <= 0 or
           surface_field.ellipsoid[1] > surface_field.ellipsoid[0],
-      "Ellipsoid has bad semi-minor axis [",
-      surface_field.ellipsoid,
-      ']')
+      "Ellipsoid has bad semi-minor axis {:B,}",
+      surface_field.ellipsoid)
 
   gravity_operator = NumericTernaryOperator{
       Gravity{Constant::G * mass,

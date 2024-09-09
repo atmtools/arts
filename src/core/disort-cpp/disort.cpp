@@ -494,49 +494,43 @@ void main_data::set_beam_source(const Numeric I0_) {
 
 void main_data::check_input_size() const {
   ARTS_USER_ERROR_IF(
-      tau_arr.size() != NLayers, tau_arr.size(), " vs ", NLayers);
+      tau_arr.size() != NLayers, "{} vs {}", tau_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF(
-      omega_arr.size() != NLayers, omega_arr.size(), " vs ", NLayers);
+      omega_arr.size() != NLayers, "{} vs {}", omega_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF(
       (source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
+      "{:B,} vs [{}, {}]",
       source_poly_coeffs.shape(),
-      " vs (",
       NLayers,
-      ", ",
-      Nscoeffs,
-      ')');
+      Nscoeffs);
 
-  ARTS_USER_ERROR_IF(f_arr.size() != NLayers, f_arr.size(), " vs ", NLayers);
+  ARTS_USER_ERROR_IF(
+      f_arr.size() != NLayers, "{} vs {}", f_arr.size(), NLayers);
 
   ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
-                     " vs (",
+                     "{:B,} vs [{}, {}]",
+                     Leg_coeffs_all.shape(),
                      NLayers,
-                     ", ",
-                     NLeg_all,
-                     ")");
+                     NLeg_all);
 
   ARTS_USER_ERROR_IF((b_pos.shape() != std::array{NFourier, N}),
+                     "{:B,} vs [{}, {}]",
                      b_pos.shape(),
-                     " vs (",
                      NFourier,
-                     ", ",
-                     N,
-                     ')')
+                     N)
 
   ARTS_USER_ERROR_IF((b_neg.shape() != std::array{NFourier, N}),
+                     "{:B,} vs [{}, {}]",
                      b_neg.shape(),
-                     " vs (",
                      NFourier,
-                     ", ",
-                     N,
-                     ')')
+                     N)
 
   ARTS_USER_ERROR_IF(
       brdf_fourier_modes.size() != static_cast<std::size_t>(NBDRF),
+      "{} vs {}",
       brdf_fourier_modes.size(),
-      " vs ",
       NBDRF);
 }
 
@@ -768,12 +762,12 @@ main_data::main_data(const Index NQuad_,
   const Index l =
       std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
   ARTS_USER_ERROR_IF(
-      l == NLayers, "tau (", tau, ") must be at most ", tau_arr.back());
+      l == NLayers, "tau ({}) must be at most {}", tau, tau_arr.back());
   return l;
 }
 
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
 
@@ -835,7 +829,7 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
 }
 
 void main_data::u0(u0_data& data, const Numeric tau) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
 
@@ -908,7 +902,7 @@ void calculate_nu(Vector& nu,
 void main_data::TMS(tms_data& data,
                     const Numeric tau,
                     const Numeric phi) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
 
@@ -984,7 +978,7 @@ void main_data::TMS(tms_data& data,
 }
 
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   ims.resize(N);
   for (Index i = 0; i < N; i++) {
@@ -1019,13 +1013,11 @@ void main_data::u_corr(u_data& u_data,
 }
 
 Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
-  ARTS_USER_ERROR_IF(tau > tau_arr.back(),
-                     "tau (",
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  ARTS_USER_ERROR_IF(tau < 0,
+                     "tau ({}) must be less than the last layer ({})",
                      tau,
-                     ") must be less than the last layer (",
-                     tau_arr.back(),
-                     ")");
+                     tau_arr.back());
 
   const Index l = tau_index(tau);
 
@@ -1075,13 +1067,11 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
 
 std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
                                                  const Numeric tau) const {
-  ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
-  ARTS_USER_ERROR_IF(tau > tau_arr.back(),
-                     "tau (",
+  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  ARTS_USER_ERROR_IF(tau < 0,
+                     "tau ({}) must be less than the last layer ({})",
                      tau,
-                     ") must be less than the last layer (",
-                     tau_arr.back(),
-                     ")");
+                     tau_arr.back());
 
   const Index l = tau_index(tau);
 
@@ -1248,13 +1238,11 @@ void main_data::ungridded_flux(ExhaustiveVectorView flux_up,
                                ExhaustiveVectorView flux_do,
                                ExhaustiveVectorView flux_dd,
                                const AscendingGrid& tau) const {
-  ARTS_USER_ERROR_IF(tau.front() < 0, "tau (", tau, ") must be positive");
-  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
-                     "tau (",
+  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
+  ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
+                     "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
-                     ") must be no more than the last layer (",
-                     tau_arr.back(),
-                     ")");
+                     tau_arr.back());
 
   Vector u0(NQuad);
   Vector exponent(NQuad, 1);
@@ -1315,13 +1303,11 @@ void main_data::ungridded_flux(ExhaustiveVectorView flux_up,
 void main_data::ungridded_u(ExhaustiveTensor3View out,
                             const AscendingGrid& tau,
                             const Vector& phi) const {
-  ARTS_USER_ERROR_IF(tau.front() < 0, "tau (", tau, ") must be positive");
-  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
-                     "tau (",
+  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
+  ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
+                     "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
-                     ") must be no more than the last layer (",
-                     tau_arr.back(),
-                     ")");
+                     tau_arr.back());
 
   Matrix exponent(NFourier, NQuad, 1);
   Matrix um(NFourier, NQuad);
@@ -1384,5 +1370,9 @@ void main_data::ungridded_u(ExhaustiveTensor3View out,
         "On Failure, the einsum has been changed to not use optimal path");
     einsum<"pi", "im", "pm">(out[il], transpose(um), cp);
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const main_data&) {
+  return os << "Not implemented, output stream operator\n";
 }
 }  // namespace disort

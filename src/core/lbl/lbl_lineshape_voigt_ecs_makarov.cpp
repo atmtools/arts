@@ -100,7 +100,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
   using Conversion::kelvin2joule;
 
   ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
-                     "Bad isotopologue.")
+                     "Bad isotopologue: {}", bnd_qid.Isotopologue())
 
   if (bnd.size() == 0) return;
 

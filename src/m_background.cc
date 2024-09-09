@@ -55,26 +55,23 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 
   ARTS_USER_ERROR_IF(
       spectral_radiance_background.nelem() not_eq frequency_grid.nelem(),
-      "Bad size spectral_radiance_background (",
+      "Bad size spectral_radiance_background ({}"
+      ").  It should have the same size as frequency_grid ({})",
       spectral_radiance_background.nelem(),
-      ").  It should have the same size as frequency_grid (",
-      frequency_grid.nelem(),
-      ")");
+      frequency_grid.nelem());
 
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_background_jacobian.nrows()) not_eq
               jacobian_targets.x_size() or
           spectral_radiance_background_jacobian.ncols() not_eq
               frequency_grid.nelem(),
-      "Bad size of spectral_radiance_background_jacobian (",
+      "Bad size of spectral_radiance_background_jacobian ({}x{}"
+      ").  It should have the same size as jacobian_targets ({}"
+      ") and frequency_grid ({})",
       spectral_radiance_background_jacobian.nrows(),
-      'x',
       spectral_radiance_background_jacobian.ncols(),
-      ").  It should have the same size as jacobian_targets (",
       jacobian_targets.x_size(),
-      ") and frequency_grid (",
-      frequency_grid.nelem(),
-      ")");
+      frequency_grid.nelem());
 }
 ARTS_METHOD_ERROR_CATCH
 

@@ -58,7 +58,7 @@ template <bubble_sorting_function SortFn,
           bubble_sortable... Ts>
 void bubble_sort_by(const SortFn& sort_fn,
                     T& data_0,
-                    Ts&... data_n) ARTS_NOEXCEPT {
+                    Ts&... data_n)  {
   const Size n = static_cast<Size>(data_0.size());
   ARTS_ASSERT((... and (n == static_cast<Size>(data_n.size()))),
               "All data must have the same size.");

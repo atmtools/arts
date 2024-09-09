@@ -16,7 +16,7 @@
 #include <zeemandata.h>
 
 #include <format>
-#include <istream>
+#include <iosfwd>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -103,7 +103,7 @@ struct SingleLine {
   }
 
   /** Number of lower quantum numbers */
-  [[nodiscard]] Index LocalQuantumElems() const ARTS_NOEXCEPT {
+  [[nodiscard]] Index LocalQuantumElems() const  {
     return localquanta.val.size();
   }
 
@@ -305,7 +305,7 @@ struct Lines {
    */
   [[nodiscard]] bool MatchWithExternal(
       const SingleLineExternal& sle,
-      const QuantumIdentifier& quantumidentity) const ARTS_NOEXCEPT;
+      const QuantumIdentifier& quantumidentity) const ;
 
   /** Checks if another line list matches this structure
    * 
@@ -340,7 +340,7 @@ struct Lines {
   void MakeLineShapeModelCommon();
 
   /** Number of broadening species */
-  [[nodiscard]] Index NumBroadeners() const ARTS_NOEXCEPT;
+  [[nodiscard]] Index NumBroadeners() const ;
 
   /** Number of broadening species */
   [[nodiscard]] Index NumLocalQuanta() const noexcept;
@@ -351,7 +351,7 @@ struct Lines {
    * @param[in] type Type of Zeeman polarization
    */
   [[nodiscard]] Index ZeemanCount(size_t k, Zeeman::Polarization type) const
-      ARTS_NOEXCEPT;
+      ;
 
   /** Returns the strength of a Zeeman split line
    * 
@@ -361,7 +361,7 @@ struct Lines {
    */
   [[nodiscard]] Numeric ZeemanStrength(size_t k,
                                        Zeeman::Polarization type,
-                                       Index i) const ARTS_NOEXCEPT;
+                                       Index i) const ;
 
   /** Returns the splitting of a Zeeman split line
    * 
@@ -371,7 +371,7 @@ struct Lines {
    */
   [[nodiscard]] Numeric ZeemanSplitting(size_t k,
                                         Zeeman::Polarization type,
-                                        Index i) const ARTS_NOEXCEPT;
+                                        Index i) const ;
 
   /** Set Zeeman effect for all lines that have the correct quantum numbers */
   void SetAutomaticZeeman() noexcept;
@@ -415,7 +415,7 @@ struct Lines {
    * @return Line shape parameters
    */
   [[nodiscard]] LineShape::Output ShapeParameters(
-      size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+      size_t k, Numeric T, Numeric P, const Vector& vmrs) const ;
 
   /** Line shape parameters
    * 
@@ -426,7 +426,7 @@ struct Lines {
    * @return Line shape parameters
    */
   [[nodiscard]] LineShape::Output ShapeParameters(
-      size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
+      size_t k, Numeric T, Numeric P, size_t pos) const ;
 
   /** Line shape parameters
    * 
@@ -448,7 +448,7 @@ struct Lines {
    * @return Line shape parameters temperature derivatives
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dT(
-      size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+      size_t k, Numeric T, Numeric P, const Vector& vmrs) const ;
 
   /** Line shape parameters temperature derivatives
    * 
@@ -459,14 +459,14 @@ struct Lines {
    * @return Line shape parameters temperature derivatives
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dT(
-      size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
+      size_t k, Numeric T, Numeric P, size_t pos) const ;
 
   /** Position among broadening species or -1
    * 
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const SpeciesEnum spec) const ARTS_NOEXCEPT;
+  [[nodiscard]] Index LineShapePos(const SpeciesEnum spec) const ;
 
   /** Line shape parameters vmr derivative
    * 
@@ -480,7 +480,7 @@ struct Lines {
       size_t k,
       Numeric T,
       Numeric P,
-      const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT;
+      const QuantumIdentifier& vmr_qid) const ;
 
   /** Returns cutoff frequency or maximum value
    * 
@@ -560,7 +560,7 @@ struct Lines {
   /** Binary write for Lines */
   bofstream& write(bofstream& os) const;
 
-  [[nodiscard]] bool OK() const ARTS_NOEXCEPT;
+  [[nodiscard]] bool OK() const ;
 
   [[nodiscard]] Numeric DopplerConstant(Numeric T) const noexcept;
 

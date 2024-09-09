@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ostream>
+#include <iosfwd>
 #include <unordered_map>
 
 #include "isotopologues.h"

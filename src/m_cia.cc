@@ -61,14 +61,13 @@ void propagation_matrixAddCIA(  // WS Output:
   // Jacobian overhead START
   const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(
       AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
-  const auto jac_temps =
-      jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
+  const auto jac_temps = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
 
   const bool do_wind_jac =
       std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
   const bool do_temp_jac = jac_temps.first;
-  const Numeric dt = field_perturbation(std::span{&jac_temps, 1});
-  const Numeric df = field_perturbation(std::span{jac_freqs});
+  const Numeric dt       = field_perturbation(std::span{&jac_temps, 1});
+  const Numeric df       = field_perturbation(std::span{jac_freqs});
 
   Vector dfreq;
   Vector dabs_t{atm_point.temperature + dt};
@@ -82,10 +81,10 @@ void propagation_matrixAddCIA(  // WS Output:
       dxsec_temp_dT(do_temp_jac ? f_grid.nelem() : 0);
 
   ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df),
-                     "df must be >0 and not NaN or Inf: ",
+                     "df must be >0 and not NaN or Inf: {}",
                      df)
   ARTS_USER_ERROR_IF(do_temp_jac and !std::isnormal(dt),
-                     "dt must be >0 and not NaN or Inf: ",
+                     "dt must be >0 and not NaN or Inf: {}",
                      dt)
   // Jacobian overhead END
 
@@ -135,11 +134,9 @@ void propagation_matrixAddCIA(  // WS Output:
                          ignore_errors);
       }
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR("Problem with CIA species ",
+      ARTS_USER_ERROR("Problem with CIA species {}-{}:\n{}",
                       this_cia.MoleculeName(0),
-                      '-',
                       this_cia.MoleculeName(1),
-                      ":\n",
                       e.what())
     }
 
@@ -176,14 +173,14 @@ void propagation_matrixAddCIA(  // WS Output:
       if (const auto j =
               jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(0));
           j.first) {
-        const auto iq = j.second->target_pos;
+        const auto iq                            = j.second->target_pos;
         propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
       }
 
       if (const auto j =
               jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(1));
           j.first) {
-        const auto iq = j.second->target_pos;
+        const auto iq                            = j.second->target_pos;
         propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
@@ -199,10 +196,10 @@ void CIARecordReadFromFile(  // WS GOutput:
   SpeciesTag species(species_tag);
 
   ARTS_USER_ERROR_IF(species.Type() != SpeciesTagType::Cia,
-                     "Invalid species tag ",
-                     species_tag,
+                     "Invalid species tag {}"
                      ".\n"
-                     "This is not recognized as a CIA type.\n")
+                     "This is not recognized as a CIA type.\n",
+                     species_tag)
 
   cia_record.SetSpecies(species.Spec(), species.cia_2nd_species);
   cia_record.ReadFromCIA(filename);
@@ -257,8 +254,8 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
           String(toString<1>(abs_species[sp][iso].cia_2nd_species)));
 
       cia_names.push_back(
-          String(toString<1>(abs_species[sp][iso].cia_2nd_species)) +
-          "-" + String(toString<1>(abs_species[sp][iso].Spec())));
+          String(toString<1>(abs_species[sp][iso].cia_2nd_species)) + "-" +
+          String(toString<1>(abs_species[sp][iso].Spec())));
 
       ArrayOfString checked_dirs;
 
@@ -285,7 +282,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
           if (files.size()) {
             CIARecord ciar;
 
-            found = true;
+            found          = true;
             String catfile = *(checked_dirs.end() - 1) + files[0];
 
             ciar.SetSpecies(abs_species[sp][iso].Spec(),
@@ -298,10 +295,10 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
       }
 
       ARTS_USER_ERROR_IF(!found,
-                         "Error: No data file found for CIA species ",
-                         cia_names[0],
+                         "Error: No data file found for CIA species {}"
                          "\n"
-                         "Looked in directories: ",
+                         "Looked in directories: {}",
+                         cia_names[0],
                          checked_dirs)
     }
   }
@@ -352,7 +349,7 @@ void absorption_cia_dataReadFromXML(  // WS Output:
         first = false;
       os << missing_tags[i];
     }
-    ARTS_USER_ERROR(os.str());
+    ARTS_USER_ERROR("{}", os.str());
   }
 }
 
@@ -365,10 +362,9 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
       if (tag.type == SpeciesTagType::Cia) {
-        names.emplace_back(
-            var_string(toString<1>(tag.Spec()),
-                       "-CIA-",
-                       toString<1>(tag.cia_2nd_species)));
+        names.emplace_back(var_string(toString<1>(tag.Spec()),
+                                      "-CIA-",
+                                      toString<1>(tag.cia_2nd_species)));
       }
     }
   }
@@ -391,9 +387,10 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
 
     ARTS_USER_ERROR_IF(
         robust == 0 and absorption_cia_data.back().DatasetCount() == 0,
-        "Cannot find any data for \"",
+        "Cannot find any data for \"{}"
+        "\" in file at {}",
         name,
-        "\" in file at ",
         fil.string())
   }
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH

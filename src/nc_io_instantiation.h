@@ -45,7 +45,7 @@ void nca_write_to_file(const String& filename, const T& type) {
   }
 
   if (fail)
-    ARTS_USER_ERROR("Error writing file: ", efilename, '\n', fail_msg);
+    ARTS_USER_ERROR("Error writing file: {}\n{}", efilename, fail_msg);
 }
 
 template <WorkspaceGroup T>
@@ -72,7 +72,7 @@ void nca_read_from_file(const String &filename, T &type) {
   }
 
   if (fail)
-    ARTS_USER_ERROR("Error reading file: ", efilename, '\n', fail_msg);
+    ARTS_USER_ERROR("Error reading file: {}\n{}", efilename, fail_msg);
 }
 
 #define TMPL_NC_READ_WRITE_FILE(what)                                \

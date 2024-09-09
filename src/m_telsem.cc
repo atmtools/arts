@@ -38,8 +38,8 @@ void atlasReadAscii(TelsemAtlas &atlas,
                     const String &filename_pattern) {
   const Size imonth = filename_pattern.find("@MM@");
   ARTS_USER_ERROR_IF(imonth == String::npos,
-                     "Substring '@MM@' not found in filename_pattern for\n",
-                     "month number replacement: ",
+                     "Substring '@MM@' not found in filename_pattern for\n"
+                     "month number replacement: {}",
                      filename_pattern)
 
   std::ifstream is;
@@ -82,8 +82,8 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
                              const String &filename_pattern) {
   const Size imonth = filename_pattern.find("@MM@");
   ARTS_USER_ERROR_IF(imonth == String::npos,
-                     "Substring '@MM@' not found in filename_pattern for\n",
-                     "month number replacement: ",
+                     "Substring '@MM@' not found in filename_pattern for\n"
+                     "month number replacement: {}",
                      filename_pattern)
 
   telsem_atlases.resize(12);

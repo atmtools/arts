@@ -85,10 +85,10 @@ void disort_negative_boundary_conditionTurnOff(
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension) {
   ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
+                     "Quadratures must be positive: {}",
                      disort_quadrature_dimension)
   ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
+                     "Fourier modes must be positive: {}",
                      disort_fourier_mode_dimension)
 
   disort_negative_boundary_condition.resize(frequency_grid.size(),
@@ -105,10 +105,10 @@ void disort_negative_boundary_conditionSurfaceTemperature(
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension) {
   ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
+                     "Quadratures must be positive: {}",
                      disort_quadrature_dimension)
   ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
+                     "Fourier modes must be positive: {}",
                      disort_fourier_mode_dimension)
 
   const auto nv = frequency_grid.size();
@@ -135,10 +135,10 @@ void disort_positive_boundary_conditionTurnOff(
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension) {
   ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
+                     "Quadratures must be positive: {}",
                      disort_quadrature_dimension)
   ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
+                     "Fourier modes must be positive: {}",
                      disort_fourier_mode_dimension)
 
   disort_positive_boundary_condition.resize(frequency_grid.size(),
@@ -153,10 +153,10 @@ void disort_positive_boundary_conditionCosmicBackgroundRadiation(
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension) {
   ARTS_USER_ERROR_IF(disort_quadrature_dimension < 0,
-                     "Quadratures must be positive: ",
+                     "Quadratures must be positive: {}",
                      disort_quadrature_dimension)
   ARTS_USER_ERROR_IF(disort_fourier_mode_dimension < 0,
-                     "Fourier modes must be positive: ",
+                     "Fourier modes must be positive: {}",
                      disort_fourier_mode_dimension)
 
   const auto nv = frequency_grid.size();
@@ -180,7 +180,7 @@ void disort_legendre_coefficientsTurnOff(
     const AscendingGrid& frequency_grid,
     const Index& disort_legendre_polynomial_dimension) {
   ARTS_USER_ERROR_IF(disort_legendre_polynomial_dimension < 0,
-                     "Legendre polynomial must be positive: ",
+                     "Legendre polynomial must be positive: {}",
                      disort_legendre_polynomial_dimension)
 
   const Size N   = ray_path.size();

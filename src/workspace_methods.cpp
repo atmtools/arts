@@ -3914,7 +3914,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "dvmr"},
+      .gin       = {"species", "matrix", "inverse", "d"},
       .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag",
                     "BlockMatrix",
                     "BlockMatrix",
@@ -3933,7 +3933,7 @@ The default setting triggers an error if "lm" is selected.
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in     = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin    = {"species", "matrix", "inverse", "dvmr"},
+      .gin    = {"species", "matrix", "inverse", "d"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ParticulatePropertyTag",
            "BlockMatrix",
@@ -3953,7 +3953,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "dvmr"},
+      .gin       = {"species", "matrix", "inverse", "d"},
       .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
@@ -3969,7 +3969,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "dvmr"},
+      .gin       = {"species", "matrix", "inverse", "d"},
       .gin_type  = {"SpeciesIsotope", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
@@ -3985,7 +3985,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"component", "matrix", "inverse", "dvmr"},
+      .gin       = {"component", "matrix", "inverse", "d"},
       .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
@@ -4001,7 +4001,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"component", "matrix", "inverse", "dvmr"},
+      .gin       = {"component", "matrix", "inverse", "d"},
       .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
@@ -4017,7 +4017,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"matrix", "inverse", "dvmr"},
+      .gin       = {"matrix", "inverse", "d"},
       .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
@@ -4032,7 +4032,7 @@ The default setting triggers an error if "lm" is selected.
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
       .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"matrix", "inverse", "dvmr"},
+      .gin       = {"matrix", "inverse", "d"},
       .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
       .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =

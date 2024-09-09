@@ -171,13 +171,12 @@ class data {
     ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
                        n != std::numeric_limits<Size>::max() and
                            n != static_cast<Size>(x.size()),
-                       "Invalid number of parameters for model ",
+                       "Invalid number of parameters for model {}"
+                       "\nExpected {}"
+                       " parameters but got {} parameters.",
                        t,
-                       "\nExpected ",
                        n,
-                       " parameters but got ",
-                       x.size(),
-                       " parameters.")
+                       x.size())
   }
 
   template <LineShapeModelType mod>

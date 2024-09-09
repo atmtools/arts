@@ -143,7 +143,7 @@ void calculate(PropmatVectorView pm,
                                              const zeeman::pol pol) {
     auto it = ecs_data.find(bnd_key.Isotopologue());
     if (it == ecs_data.end()) {
-      ARTS_USER_ERROR("No ECS data for isotopologue ", bnd_key.Isotopologue());
+      ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.Isotopologue());
     }
 
     voigt::ecs::calculate(pm,

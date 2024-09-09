@@ -12,6 +12,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <ostream>
 
 #include "lin_alg.h"
 #include "matpack_math.h"

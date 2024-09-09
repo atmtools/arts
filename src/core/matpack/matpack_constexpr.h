@@ -55,8 +55,8 @@ struct matpack_constant_view {
     requires(not constant and sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
+                "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
-                " vs ",
                 shape())
     return view(i...);
   }
@@ -66,8 +66,8 @@ struct matpack_constant_view {
     requires(sizeof...(index) == N)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
+                "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
-                " vs ",
                 shape())
     return view(i...);
   }
@@ -77,7 +77,7 @@ struct matpack_constant_view {
     requires(not constant and sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
-    ARTS_ASSERT(i < view.extent(0), i, " vs ", extent(0))
+    ARTS_ASSERT(i < view.extent(0), "{} vs {}", i, extent(0))
     return stdx::submdspan(view, i, v...);
   }
 
@@ -87,7 +87,7 @@ struct matpack_constant_view {
     requires(sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
-    ARTS_ASSERT(i < extent(0), i, " vs ", extent(0))
+    ARTS_ASSERT(i < extent(0), "{} vs {}", i, extent(0))
     return stdx::submdspan(view, i, v...);
   }
 
@@ -95,7 +95,7 @@ struct matpack_constant_view {
       -> std::conditional_t<N == 1, T &, inner_view<false>>
     requires(not constant)
   {
-    ARTS_ASSERT(i < extent(0), i, " vs ", extent(0))
+    ARTS_ASSERT(i < extent(0), "{} vs {}", i, extent(0))
     if constexpr (N == 1)
       return view[i];
     else
@@ -104,7 +104,7 @@ struct matpack_constant_view {
 
   [[nodiscard]] constexpr auto operator[](Index i) const
       -> std::conditional_t<N == 1, const T &, inner_view<true>> {
-    ARTS_ASSERT(i < extent(0), i, " vs ", extent(0))
+    ARTS_ASSERT(i < extent(0), "{} vs {}", i, extent(0))
     if constexpr (N == 1)
       return view[i];
     else

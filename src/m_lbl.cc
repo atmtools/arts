@@ -38,7 +38,7 @@ LineByLineLineshape toLineshape(const LineShapeTypeOld old_ls,
   }
 
   ARTS_USER_ERROR(
-      "New code does not support combination of ", old_ls, " and ", old_pop)
+      "New code does not support combination of {} and {}", old_ls, old_pop)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -47,8 +47,8 @@ void absorption_bandsFromAbsorbtionLines(
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) try {
   ARTS_USER_ERROR_IF(absorption_species.size() != abs_lines_per_species.size(),
+                     "{} != {}",
                      absorption_species.size(),
-                     " != ",
                      abs_lines_per_species.size())
 
   absorption_bands.resize(0);
@@ -192,7 +192,7 @@ toLineshapeAndPolpulation(LineByLineLineshape x) try {
     return {LineShapeTypeOld::VP, AbsorptionPopulationTypeOld::LTE};
   }
 
-  ARTS_USER_ERROR("Old code does not support conversion from ", x)
+  ARTS_USER_ERROR("Old code does not support conversion from {}", x)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -327,7 +327,7 @@ void absorption_bandsRemoveID(ArrayOfAbsorptionBand& absorption_bands,
       return;
     }
   }
-  ARTS_USER_ERROR("Did not find band of ID: ", id)
+  ARTS_USER_ERROR("Did not find band of ID: {}", id)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -409,7 +409,7 @@ void absorption_bandsKeepID(ArrayOfAbsorptionBand& absorption_bands,
       if (line >= 0) {
         ARTS_USER_ERROR_IF(static_cast<Size>(line) >=
                                absorption_bands.front().data.lines.size(),
-                           "Line index out of range: ",
+                           "Line index out of range: {}",
                            line)
         absorption_bands[0].data.lines = {
             absorption_bands.front().data.lines[line]};
@@ -458,7 +458,7 @@ void absorption_bandsReadSpeciesSplitCatalog(
                               std::make_move_iterator(other.begin()),
                               std::make_move_iterator(other.end()));
     } else {
-      ARTS_USER_ERROR("File " + filename + " not found")
+      ARTS_USER_ERROR("File {} not found", filename)
     }
   }
 }
@@ -490,7 +490,7 @@ void absorption_bandsReadSplit(ArrayOfAbsorptionBand& absorption_bands,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error)
+  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 
   absorption_bands.reserve(std::transform_reduce(
       splitbands.begin(),
@@ -599,7 +599,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH

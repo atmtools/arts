@@ -542,22 +542,22 @@ void xml_read_from_stream_gf(std::istream& is_xml,
 
       if constexpr (std::same_as<U, Vector>) {
         ARTS_USER_ERROR_IF(
-            tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
+            tag.get_name() != "Vector", "Must be Vector, is {}", tag.get_name());
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Vector");
       } else if constexpr (std::same_as<U, ArrayOfString>) {
         ARTS_USER_ERROR_IF(
-            tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
+            tag.get_name() != "Array", "Must be Array, is {}", tag.get_name());
         String s;
         tag.get_attribute_value("type", s);
         ARTS_USER_ERROR_IF(
-            s != "String", "Must be Array<String>, is Array<", s, '>');
+            s != "String", "Must be Array<String>, is Array<{}>", s);
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Array");
       } else {
-        ARTS_USER_ERROR("Unknown grid type: ", tag.get_name());
+        ARTS_USER_ERROR("Unknown grid type: {}", tag.get_name());
       }
     };
 
@@ -616,7 +616,7 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     ArrayOfString gridnames;
     xml_read_from_stream(is_xml, gridnames, pbifs);
     ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
-                       "Bad number of grid names:\n",
+                       "Bad number of grid names:\n{}",
                        gridnames);
     std::ranges::move(gridnames, gfield.grid_names.begin());
 
@@ -624,7 +624,7 @@ void xml_read_from_stream_gf(std::istream& is_xml,
 
     xml_read_from_stream(is_xml, gfield.data, pbifs);
   } else {
-    ARTS_USER_ERROR("Unknown version: ", version)
+    ARTS_USER_ERROR("Unknown version: {}", version)
   }
 }
 
@@ -646,7 +646,7 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     tag.read_from_stream(is_xml);                                        \
     tag.check_name("/" #GF);                                             \
                                                                          \
-    ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n", gfield); \
+    ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n{}", gfield); \
   }
 
 template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
@@ -824,7 +824,7 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/QuantumIdentifier");
 } catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error reading QuantumIdentifier: ", e.what())
+  ARTS_USER_ERROR("Error reading QuantumIdentifier: {}", e.what())
 }
 
 //! Writes QuantumIdentifier to XML output stream
@@ -1121,9 +1121,9 @@ void xml_read_from_stream(std::istream& is_xml,
         Species::find_species_index(Species::Tag(name).Isotopologue());
     ARTS_USER_ERROR_IF(
         i < 0 or i >= iso_rat.maxsize,
-        "Species: ",
-        name,
-        " cannot be understood as a species by your compiled version of ARTS")
+        "Species: {}"
+        " cannot be understood as a species by your compiled version of ARTS",
+        name)
 
     iso_rat.data[i] = val;
   }
@@ -1409,7 +1409,7 @@ void xml_read_from_stream(std::istream& is_xml,
   for (const auto& fitcoeffs : xd.FitCoeffs()) {
     const Index ncoeff = fitcoeffs.data.ncols();
     ARTS_USER_ERROR_IF(
-        ncoeff != 4, "Wrong number of coefficients, expected 4, found ", ncoeff)
+        ncoeff != 4, "Wrong number of coefficients, expected 4, found {}", ncoeff)
   }
 
   tag.read_from_stream(is_xml);
@@ -1484,7 +1484,7 @@ void xml_read_from_stream(std::istream& is_xml,
     internal_open_tag.get_attribute_value("key", key_str);
     SpeciesIsotope isot{key_str};
     ARTS_USER_ERROR_IF(
-        not isot.OK(), "Cannot understand key: ", '"', key_str, '"')
+        not isot.OK(), "Cannot understand key: \"{}\"", key_str)
 
     String sizes_str;
     internal_open_tag.get_attribute_value("sizes", sizes_str);
@@ -1613,7 +1613,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (keytype == "QuantumIdentifier")
     key_val = QuantumIdentifier(key);
   else
-    ARTS_USER_ERROR("Cannot understand the keytype: ", '"', keytype, '"')
+    ARTS_USER_ERROR("Cannot understand the keytype: \"{}\"", keytype)
 
   if (type == "GriddedField3")
     data.data = GriddedField3{};
@@ -1623,7 +1623,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data =
         Atm::FunctionalData{Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
-    ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
+    ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
   std::visit(
       [&](auto& v) {
@@ -1901,7 +1901,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (keytype == "SurfaceTypeTag")
     key_val = SurfaceTypeTag{key};
   else
-    ARTS_USER_ERROR("Cannot understand the keytype: ", '"', keytype, '"')
+    ARTS_USER_ERROR("Cannot understand the keytype: \"{}\"", keytype)
 
   if (type == "GriddedField2")
     data.data = GriddedField2{};
@@ -1911,7 +1911,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data =
         Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
-    ARTS_USER_ERROR("Cannot understand the data type: ", '"', type, '"')
+    ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
   std::visit(
       [&](auto& v) {
@@ -2150,7 +2150,7 @@ void xml_read_from_stream(std::istream& is_xml, Wsv& wsv, bifstream* pbifs) {
 
   wsv = Wsv::from_named_type(type);
   std::visit([&](auto& x) { xml_read_from_stream(is_xml, *x, pbifs); },
-             wsv.value);
+             wsv.value());
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -2170,7 +2170,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   std::visit([&](auto& x) { xml_write_to_stream(os_xml, *x, pbofs, ""); },
-             wsv.value);
+             wsv.value());
 
   close_tag.set_name("/Wsv");
   close_tag.write_to_stream(os_xml);
@@ -2205,7 +2205,7 @@ void xml_read_from_stream(std::istream& is_xml, Method& m, bifstream* pbifs) {
 
     m = Method{name, wsv, static_cast<bool>(overwrite)};
   } else {
-    ARTS_USER_ERROR("Bad type: ", '"', type, '"')
+    ARTS_USER_ERROR("Bad type: \"{}\"", type)
   }
 
   ArtsXMLTag close_tag;
@@ -2916,7 +2916,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "ParticulatePropertyTag"s) {
     atmt = ParticulatePropertyTag{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(
@@ -2998,7 +2998,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "SurfacePropertyTag"s) {
     surft = SurfacePropertyTag{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(
@@ -3162,7 +3162,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else if (type == "LblLineKey"s) {
     jtt.target = LblLineKey{};
   } else {
-    ARTS_USER_ERROR(std::format(R"(Cannot understand type: "{}")", type));
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
 
   std::visit(

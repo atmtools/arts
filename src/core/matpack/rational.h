@@ -16,7 +16,7 @@
 #include <mystring.h>
 
 #include <numeric>
-#include <ostream>
+#include <iosfwd>
 
 using std::gcd;
 

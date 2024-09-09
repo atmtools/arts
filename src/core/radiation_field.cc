@@ -13,7 +13,7 @@
 void error_in_integrate(const String& error_msg,
                         const Numeric& value_that_should_be_unity) {
   ARTS_USER_ERROR_IF (std::abs(value_that_should_be_unity - 1.0) > 1e-4,
-    "Failure in normalization:\n", error_msg, "\n")
+    "Failure in normalization:\n{}\n", error_msg)
 }
 
 Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> &F,

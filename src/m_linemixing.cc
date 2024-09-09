@@ -22,7 +22,7 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
   ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(),
                      "Mismatch dimension of vmrs and specs")
   ARTS_USER_ERROR_IF(
-      std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: ", vmrs)
+      std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs)
 
   auto set = [](const lbl::temperature::data& data1,
                 const lbl::temperature::data& data2,
@@ -37,9 +37,8 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
 
     v += data2.X();
     ARTS_USER_ERROR_IF(data1.Type() != data2.Type(),
-                       "Type error in species temperature type for ",
+                       "Type error in species temperature type for {} and {}",
                        data1.Type(),
-                       " and ",
                        data2.Type())
     return {data1.Type(), v};
   };
@@ -64,13 +63,12 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
         first = false;
       } catch (std::out_of_range&) {
         ARTS_USER_ERROR(
-            "Missing species ", spec, " in ecs_data of isotopologue ", isot)
+            "Missing species {} in ecs_data of isotopologue {}", spec, isot)
       } catch (std::exception& e) {
-        ARTS_USER_ERROR("Error for species ",
+        ARTS_USER_ERROR("Error for species {}"
+                        " in ecs_data of isotopologue {}:\n{}",
                         spec,
-                        " in ecs_data of isotopologue ",
                         isot,
-                        ":\n",
                         e.what())
       }
     }

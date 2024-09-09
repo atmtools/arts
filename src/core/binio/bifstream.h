@@ -33,7 +33,7 @@ class bifstream final : public binistream, public std::ifstream {
       : std::ifstream(name, mode) {
     // Open a second file descriptor for fast array reading
     if (!(this->mfilep = fopen(name, "rb"))) {
-      ARTS_USER_ERROR("Failed to open ", name);
+      ARTS_USER_ERROR("Failed to open {}", name);
     }
   }
 

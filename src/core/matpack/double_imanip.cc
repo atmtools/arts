@@ -2,7 +2,7 @@
 
 #include <fast_float/fast_float.h>
 
-#include <ios>
+#include <istream>
 #include <system_error>
 
 #include "debug.h"
@@ -21,14 +21,15 @@ const double_imanip& double_imanip::operator>>(double& x) const {
 
   // Error (only std::errc::invalid_argument possible)
   ARTS_USER_ERROR_IF(res.ec == std::errc::invalid_argument,
-                     "The argument: \n\n'",
-                     buf,
-                     R"--('
+                     R"--(The argument:
+
+`{}`
 
 is not convertible to a valid double.  At the very least it
 cannot be converted to one using the standard string-to-double
 routine
-)--")
+)--",
+                     buf)
 
   if (!is.eof() && is.tellg() != -1) {
     is.seekg(std::distance(buf.c_str(), res.ptr) - buf.size(),
@@ -41,4 +42,13 @@ routine
   }
 
   return *this;
+}
+
+std::istream& double_imanip::operator>>(const double_imanip&) const {
+  return *in;
+}
+
+const double_imanip& operator>>(std::istream& in, const double_imanip& dm) {
+  dm.in = &in;
+  return dm;
 }

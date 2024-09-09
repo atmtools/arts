@@ -38,7 +38,7 @@ inline constexpr Numeric PI = Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void HydrotableCalc(const Workspace&,// ws,
+void HydrotableCalc(const Workspace&,  // ws,
                     NamedGriddedField3& hydrotable,
                     const ArrayOfAgenda& pnd_agenda_array,
                     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
@@ -50,9 +50,9 @@ void HydrotableCalc(const Workspace&,// ws,
                     const Vector& wc_grid) {
   // Sizes
   const Index nss = scat_data.size();
-  const Index nf = f_grid.nelem();
-  const Index nt = T_grid.nelem();
-  const Index nw = wc_grid.nelem();
+  const Index nf  = f_grid.nelem();
+  const Index nt  = T_grid.nelem();
+  const Index nw  = wc_grid.nelem();
 
   ARTS_USER_ERROR_IF(pnd_agenda_array.size() != static_cast<Size>(nss),
                      "*scat_data* and *pnd_agenda_array* are inconsistent "
@@ -74,16 +74,16 @@ void HydrotableCalc(const Workspace&,// ws,
   hydrotable.data.resize(4, nf, nt, nw);
   //
   hydrotable.grid_names[0] = "Quantity";
-  hydrotable.grid<0>() = {"Extinction [m-1]",
-                          "Single scattering albedo [-]",
-                          "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]"};
+  hydrotable.grid<0>()     = {"Extinction [m-1]",
+                              "Single scattering albedo [-]",
+                              "Asymmetry parameter [-]",
+                              "Radar reflectivity [m2]"};
   hydrotable.grid_names[1] = "Frequency [Hz]";
-  hydrotable.grid<1>() = f_grid;
+  hydrotable.grid<1>()     = f_grid;
   hydrotable.grid_names[2] = "Temperature [K]";
-  hydrotable.grid<2>() = T_grid;
+  hydrotable.grid<2>()     = T_grid;
   hydrotable.grid_names[3] = "Particle content [kg/m3]";
-  hydrotable.grid<3>() = wc_grid;
+  hydrotable.grid<3>()     = wc_grid;
 
   // Scattering angle grid
   const Index nsa = 361;
@@ -98,7 +98,7 @@ void HydrotableCalc(const Workspace&,// ws,
   Matrix ext(nf, nt);
   Matrix abs(nf, nt);
   Tensor3 pfun(nf, nt, nsa);
-  const Numeric fourpi = 4.0 * PI;
+  const Numeric fourpi     = 4.0 * PI;
   ArrayOfIndex cbox_limits = {0, nt - 1};
 
   // Loop and fill table
@@ -116,8 +116,8 @@ void HydrotableCalc(const Workspace&,// ws,
     //                         pnd_agenda_array);
 
     // Calculate extinsion, absorbtion and phase function
-    ext = 0.0;
-    abs = 0.0;
+    ext  = 0.0;
+    abs  = 0.0;
     pfun = 0.0;
     ext_abs_pfun_from_tro(ext,
                           abs,
@@ -157,12 +157,11 @@ void particle_massesFromMetaDataSingleCategory(
                              scat_meta[i_ss][i_se].mass <= 0 ||
                              scat_meta[i_ss][i_se].mass > 1.,
                          "A presumably incorrect value found for "
-                         "scat_meta[",
+                         "scat_meta[{}][{}]"
+                         ".mass.\n"
+                         "The value is {}",
                          i_ss,
-                         "][",
                          i_se,
-                         "].mass.\n"
-                         "The value is ",
                          scat_meta[i_ss][i_se].mass)
 
       particle_masses(i_se_flat, 0) = scat_meta[i_ss][i_se].mass;
@@ -189,12 +188,11 @@ void particle_massesFromMetaData(  //WS Output:
                              scat_meta[i_ss][i_se].mass <= 0 ||
                              scat_meta[i_ss][i_se].mass > 1.,
                          "A presumably incorrect value found for "
-                         "scat_meta[",
+                         "scat_meta[{}][{}]"
+                         ".mass.\n"
+                         "The value is {}",
                          i_ss,
-                         "][",
                          i_se,
-                         "].mass.\n"
-                         "The value is ",
                          scat_meta[i_ss][i_se].mass)
 
       particle_masses(i_se_flat, i_ss) = scat_meta[i_ss][i_se].mass;
@@ -212,9 +210,9 @@ void pndFromPsdBasic(Matrix& pnd_data,
                      const Vector& pnd_size_grid,
                      const Index& quad_order) {
   // Some sizes
-  const Index np = psd_data.nrows();
-  const Index ng = psd_size_grid.nelem();
-  Index ndx = 0;
+  const Index np   = psd_data.nrows();
+  const Index ng   = psd_size_grid.nelem();
+  Index ndx        = 0;
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
@@ -291,9 +289,9 @@ void pndFromPsd(Matrix& pnd_data,
                 const Numeric& threshold_bext,
                 const Numeric& threshold_rpnd) {
   // Some sizes
-  const Index np = psd_data.nrows();
-  const Index ng = psd_size_grid.nelem();
-  Index ndx = 0;
+  const Index np   = psd_data.nrows();
+  const Index ng   = psd_size_grid.nelem();
+  Index ndx        = 0;
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
@@ -369,8 +367,8 @@ void pndFromPsd(Matrix& pnd_data,
   }
 
   ArrayOfSingleScatteringData sds = scat_data[scat_index];
-  Index fstart = 0;
-  Index nf = f_grid.nelem();
+  Index fstart                    = 0;
+  Index nf                        = f_grid.nelem();
   Matrix bulkext(np, nf, 0.);
   Vector ext(nf), ext_s0(nf), ext_s1(nf), ext_l0(nf), ext_l1(nf);
 
@@ -474,29 +472,29 @@ void pndFromPsd(Matrix& pnd_data,
                       ext_s1[f] * abs(psd_data(ip, intarr[1])),
               "  Bin-width normalized extinction (ext*psd) not decreasing"
               " at small size edge\n"
-              "  at atm level #",
-              ip,
-              " and freq point #",
-              f,
+              "  at atm level #{}"
+              " and freq point #{}"
               ".\n"
-              "  ext_s0=",
-              ext_s0[f],
-              ", psd_s0=",
-              abs(psd_data(ip, intarr[0])),
-              ", ext_s0*psd_s0=",
-              ext_s0[f] * abs(psd_data(ip, intarr[0])),
+              "  ext_s0={}"
+              ", psd_s0={}"
+              ", ext_s0*psd_s0={}"
               "\n    LARGER EQUAL\n"
-              "  ext_s1=",
+              "  ext_s1={}"
+              ", psd_s1={}"
+              ", ext_s1*psd_s1={}"
+              "\n"
+              "    Total bulk ext = {}"
+              "\n"
+              "  Need to add smaller sized particles!\n",
+              ip,
+              f,
+              ext_s0[f],
+              abs(psd_data(ip, intarr[0])),
+              ext_s0[f] * abs(psd_data(ip, intarr[0])),
               ext_s1[f],
-              ", psd_s1=",
               abs(psd_data(ip, intarr[1])),
-              ", ext_s1*psd_s1=",
               ext_s1[f] * abs(psd_data(ip, intarr[1])),
-              "\n"
-              "    Total bulk ext = ",
-              abs(bulkext(ip, f)),
-              "\n"
-              "  Need to add smaller sized particles!\n")
+              abs(bulkext(ip, f)))
 
           ARTS_USER_ERROR_IF(
               abs(psd_data(ip, intarr[ng - 1])) > 0. and
@@ -504,29 +502,29 @@ void pndFromPsd(Matrix& pnd_data,
                       ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
               "Bin-width normalized extinction (ext*psd) not decreasing"
               " at large size edge\n"
-              "at atm level #",
-              ip,
-              " and freq point #",
-              f,
+              "at atm level #{}"
+              " and freq point #{}"
               ".\n"
-              "  ext_l0=",
-              ext_l0[f],
-              ", psd_l0=",
-              abs(psd_data(ip, intarr[ng - 1])),
-              ", ext_l0*psd_l0=",
-              ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])),
+              "  ext_l0={}"
+              ", psd_l0={}"
+              ", ext_l0*psd_l0={}"
               "\n    LARGER EQUAL\n"
-              "  ext_l1=",
+              "  ext_l1={}"
+              ", psd_l1={}"
+              ", ext_l1*psd_l1={}"
+              "\n"
+              "    Total bulk ext = {}"
+              "\n"
+              "  Need to add larger sized particles!\n",
+              ip,
+              f,
+              ext_l0[f],
+              abs(psd_data(ip, intarr[ng - 1])),
+              ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])),
               ext_l1[f],
-              ", psd_l1=",
               abs(psd_data(ip, intarr[ng - 2])),
-              ", ext_l1*psd_l1=",
               ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
-              "\n"
-              "    Total bulk ext = ",
-              abs(bulkext(ip, f)),
-              "\n"
-              "  Need to add larger sized particles!\n")
+              abs(bulkext(ip, f)))
         }
 
         // check that contribution of edge bins to total extinction is
@@ -542,18 +540,18 @@ void pndFromPsd(Matrix& pnd_data,
                 abs(pnd_data(ip, intarr[0])) * ext_s0[f] >
                     threshold_rsec * abs(bulkext(ip, f)),
                 "Contribution of edge bin to total extinction too high"
-                " (",
-                contrib * 1e2,
-                "% of ",
-                abs(bulkext(ip, f)),
+                " ({}",
+                "% of {}"
                 ") at small size edge\n"
-                "at atm level #",
-                ip,
-                " and freq point #",
-                f,
+                "at atm level #{}"
+                " and freq point #{}"
                 ".\n"
                 "  Need to add smaller sized particles or refine the size"
-                " grid on the small size edge!\n")
+                " grid on the small size edge!\n",
+                contrib * 1e2,
+                abs(bulkext(ip, f)),
+                ip,
+                f)
           }
           if (abs(pnd_data(ip, intarr[ng - 1])) > threshold_rpnd * max1) {
             contrib = abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] /
@@ -565,18 +563,18 @@ void pndFromPsd(Matrix& pnd_data,
                 abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] >
                     threshold_rsec * abs(bulkext(ip, f)),
                 "Contribution of edge bin to total extinction too high"
-                " (",
-                contrib * 1e2,
-                "% of ",
-                abs(bulkext(ip, f)),
+                " ({}"
+                "% of {}"
                 ") at large size edge\n"
-                "at atm level #",
-                ip,
-                " and freq point #",
-                f,
+                "at atm level #{}"
+                " and freq point #{}"
                 ".\n"
                 "  Need to add larger sized particles or refine the size"
-                " grid on the large size edge!\n")
+                " grid on the large size edge!\n",
+                contrib * 1e2,
+                abs(bulkext(ip, f)),
+                ip,
+                f)
           }
         }
       }
@@ -598,12 +596,11 @@ void ScatSpeciesSizeMassInfo(Numeric& scat_species_a,
   const Index nss = scat_meta.size();
   ARTS_USER_ERROR_IF(nss == 0, "*scat_meta* is empty!");
   ARTS_USER_ERROR_IF(nss < species_index + 1,
-                     "Selected scattering species index is ",
+                     "Selected scattering species index is {}",
                      species_index,
                      " but this "
-                     "is not allowed since *scat_meta* has only ",
-                     nss,
-                     " elements.")
+                     "is not allowed since *scat_meta* has only {} elements.",
+                     nss)
   //
   const Index nse = scat_meta[species_index].size();
   ARTS_USER_ERROR_IF(nse < 2,

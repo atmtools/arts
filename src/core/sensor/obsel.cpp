@@ -222,7 +222,7 @@ void sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -333,7 +333,7 @@ void exhaustive_sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -382,7 +382,7 @@ void exhaustive_sumup(Vector& out,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -537,9 +537,8 @@ Vector lochain_central_frequencies(const DescendingGrid& f0s,
   ARTS_USER_ERROR_IF(M < 1, "Must have at least one central frequency")
   ARTS_USER_ERROR_IF(
       filter.size() != static_cast<Size>(M - 1),
-      "Filter must be one smaller than the number of central frequencies: \"",
+      "Filter must be one smaller than the number of central frequencies: \"{}\" vs {}",
       filter,
-      "\" vs ",
       M)
 
   const Index NF = [M]() {

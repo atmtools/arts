@@ -15,7 +15,7 @@
 #include "debug.h"
 #include "matpack_constexpr.h"
 #include "sun.h"
-#include "workspace_class.h"
+#include <workspace.h>
 
 Vector3 cart2sph_plain(const Vector3 cart) {
   using Conversion::asind;

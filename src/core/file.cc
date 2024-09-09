@@ -131,9 +131,8 @@ void open_input_file(std::ifstream& file, const std::string_view name) {
   // FIXME: This should not be necessary anymore in the future, when
   // g++ stream exceptions work properly.
   ARTS_USER_ERROR_IF(!file,
-                     "Cannot open input file: ",
-                     ename,
-                     "\nMaybe the file does not exist?");
+                     "Cannot open input file: {}"
+                     "\nMaybe the file does not exist?", ename);
 }
 
 /**
@@ -164,7 +163,7 @@ ArrayOfString read_text_from_stream(std::istream& is) {
   // Check for error:
   // FIXME: This should not be necessary anymore when stream
   // exceptions work properly.
-  ARTS_USER_ERROR_IF(!is.eof(), "Read Error. Last line read:\n", linebuffer);
+  ARTS_USER_ERROR_IF(!is.eof(), "Read Error. Last line read:\n{}", linebuffer);
 
   return text;
 }
@@ -194,7 +193,7 @@ ArrayOfString read_text_from_file(const std::string_view name) {
   try {
     text = read_text_from_stream(ifs);
   } catch (const std::runtime_error& x) {
-    ARTS_USER_ERROR("Error reading file: ", name, "\n", x.what());
+    ARTS_USER_ERROR("Error reading file: {}\n{}", name, x.what());
   }
 
   return text;
@@ -341,9 +340,8 @@ void find_xml_file(String& filename) {
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
 
   ARTS_USER_ERROR_IF(!matching_files.size(),
-                     "Cannot find input file: ",
+                     "Cannot find input file: {}\nSearch path: {:B,}",
                      filename,
-                     "\nSearch path: ",
                      allpaths);
 
   filename = matching_files[0];
@@ -454,7 +452,7 @@ String get_dirname(const std::string_view path) {
  */
 ArrayOfString list_directory(const std::string_view dirname) {
   ARTS_USER_ERROR_IF(!std::filesystem::is_directory(dirname),
-                     "Error accessing directory: ",
+                     "Error accessing directory: {}",
                      dirname)
 
   ArrayOfString files{};

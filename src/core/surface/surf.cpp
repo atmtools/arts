@@ -438,7 +438,7 @@ Point Field::at(Numeric lat, Numeric lon) const {
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ",
+      "Surface field does not possess the key: {}",
       key)
 
   const auto interp = detail::interpolation_function(lat, lon);
@@ -473,7 +473,7 @@ std::pair<Numeric, Numeric> Field::minmax_single_value(
 bool Field::constant_value(const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ",
+      "Surface field does not possess the key: {}",
       key)
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);

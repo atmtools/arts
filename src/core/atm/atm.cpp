@@ -9,6 +9,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -20,8 +21,8 @@
 #include "interp.h"
 #include "isotopologues.h"
 
-AtmKey to_wind(const String& x) {
-  switch(to<FieldComponent>(x)) {
+AtmKey to_wind(const String &x) {
+  switch (to<FieldComponent>(x)) {
     case FieldComponent::u:
       return AtmKey::wind_u;
     case FieldComponent::v:
@@ -29,10 +30,11 @@ AtmKey to_wind(const String& x) {
     case FieldComponent::w:
       return AtmKey::wind_w;
   }
+  std::unreachable();
 }
 
-AtmKey to_mag(const String& x) {
-  switch(to<FieldComponent>(x)) {
+AtmKey to_mag(const String &x) {
+  switch (to<FieldComponent>(x)) {
     case FieldComponent::u:
       return AtmKey::mag_u;
     case FieldComponent::v:
@@ -40,30 +42,31 @@ AtmKey to_mag(const String& x) {
     case FieldComponent::w:
       return AtmKey::mag_w;
   }
+  std::unreachable();
 }
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try {
   return specs.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Species VMR not found: \"", toString<1>(x), '"')
+  ARTS_USER_ERROR("Species VMR not found: \"{}\"", toString<1>(x))
 }
 
 Numeric AtmPoint::operator[](const SpeciesIsotope &x) const try {
   return isots.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Isotopologue ratio not found: \"", x, '"')
+  ARTS_USER_ERROR("Isotopologue ratio not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](const QuantumIdentifier &x) const try {
   return nlte.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("QuantumIdentifier not found: \"", x, '"')
+  ARTS_USER_ERROR("QuantumIdentifier not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](const ParticulatePropertyTag &x) const try {
   return partp.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"", x, '"')
+  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](AtmKey x) const {
@@ -117,7 +120,7 @@ Numeric &AtmPoint::operator[](AtmKey x) {
     case AtmKey::mag_w:
       return mag[2];
   }
-  ARTS_USER_ERROR("Cannot reach")
+  std::unreachable();
 }
 
 std::pair<Numeric, Numeric> AtmPoint::levels(
@@ -319,9 +322,8 @@ Numeric Point::mean_mass(SpeciesEnum s) const {
   }
 
   ARTS_USER_ERROR_IF(ratio == 0,
-                     "Cannot find a ratio for the mean mass of species \"",
-                     toString<1>(s),
-                     '"')
+                     "Cannot find a ratio for the mean mass of species \"{}\"",
+                     toString<1>(s))
 
   return mass / ratio;
 }
@@ -594,14 +596,12 @@ Vector vec_interp(const GriddedField3 &v,
 }
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
-  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
-                     "Altitude limit breaced.  Position (",
-                     lim.alt,
-                     ", ",
-                     lim.lat,
-                     ", ",
-                     lim.lon,
-                     ") is out-of-bounds when no extrapolation is wanted")
+  ARTS_USER_ERROR_IF(
+      lim.type == InterpolationExtrapolation::None,
+      "Altitude limit breaced.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
+      lim.alt,
+      lim.lat,
+      lim.lon)
 
   if (lim.type == InterpolationExtrapolation::Zero) return 0;
 
@@ -737,9 +737,10 @@ void Data::rescale(Numeric x) {
       [x](auto &v) {
         using T = decltype(v);
         if constexpr (isFunctionalDataType<T>) {
-          v = FunctionalData{[x, f = v](Numeric alt, Numeric lat, Numeric lon) -> Numeric {
-            return x * f(alt, lat, lon);
-          }};
+          v = FunctionalData{
+              [x, f = v](Numeric alt, Numeric lat, Numeric lon) -> Numeric {
+                return x * f(alt, lat, lon);
+              }};
         } else if constexpr (isGriddedField3<T>) {
           v.data *= x;
         } else {
@@ -759,7 +760,7 @@ void Point::check_and_fix() try {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
         "Cannot have partially missing wind field.  Consider setting the missing field to zero or add it completely.\n"
-        "Wind field [wind_u wind_v wind_w] is: ",
+        "Wind field [wind_u, wind_v, wind_w] is: {:B,}",
         wind)
   }
 
@@ -769,40 +770,36 @@ void Point::check_and_fix() try {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
         "Cannot have partially missing magnetic field.  Consider setting the missing field to zero or add it completely.\n"
-        "Magnetic field [mag_u mag_v mag_w] is: ",
+        "Magnetic field [mag_u, mag_v, mag_w] is: {:B,}",
         mag)
   }
 
   for (auto &spec : specs) {
     ARTS_USER_ERROR_IF(nonstd::isnan(spec.second) or spec.second < 0.0,
-                       "VMR for \"",
+                       "VMR for \"{}\" is {}",
                        toString<1>(spec.first),
-                       "\" is ",
                        spec.second)
   }
 
   for (auto &isot : isots) {
     //! Cannot check isnan because it is a valid state for isotopologue ratios
     ARTS_USER_ERROR_IF(isot.second < 0.0,
-                       "Isotopologue ratio for \"",
+                       "Isotopologue ratio for \"{}\" is {}",
                        isot.first.FullName(),
-                       "\" is ",
                        isot.second)
   }
 
   for (auto &nl : nlte) {
     ARTS_USER_ERROR_IF(nonstd::isnan(nl.second) or nl.second < 0.0,
-                       "Non-LTE ratio for \"",
+                       "Non-LTE ratio for \"{}\" is {}",
                        nl.first,
-                       "\" is ",
                        nl.second)
   }
 
   for (auto &pp : partp) {
     ARTS_USER_ERROR_IF(nonstd::isnan(pp.second),
-                       "Particulate Property Tag value for \"",
+                       "Particulate Property Tag value for \"{}\" is {}",
                        pp.first,
-                       "\" is ",
                        pp.second)
   }
 }
@@ -1058,14 +1055,12 @@ std::optional<Numeric> get_optional_limit(const Data &data,
       lat,
       lon);
 
-  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
-                     "Altitude limit breaced.  Position (",
-                     lim.alt,
-                     ", ",
-                     lim.lat,
-                     ", ",
-                     lim.lon,
-                     ") is out-of-bounds when no extrapolation is wanted")
+  ARTS_USER_ERROR_IF(
+      lim.type == InterpolationExtrapolation::None,
+      "Altitude limit breaced.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
+      lim.alt,
+      lim.lat,
+      lim.lon)
 
   if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
 
@@ -1089,11 +1084,10 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
     try {
   ARTS_USER_ERROR_IF(
       alt > top_of_atmosphere,
-      "Cannot get values above the top of the atmosphere, which is at: ",
+      "Cannot get values above the top of the atmosphere, which is at: {}"
+      " m.\nYour max input altitude is: {} m.",
       top_of_atmosphere,
-      " m.\nYour max input altitude is: ",
-      alt,
-      " m.")
+      alt)
 
   Point out;
   for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);

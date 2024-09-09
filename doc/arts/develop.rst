@@ -8,3 +8,4 @@ It contains design descriptions and guidelines for the development of ARTS.
    :maxdepth: 2
    
    develop.classes
+   develop.error

@@ -21,11 +21,12 @@
   === External declarations
   ===========================================================================*/
 
-#include <workspace.h>
+class Workspace;
 
 #include "check_input.h"
 #include "interpolation.h"
 #include "optproperties.h"
+#include "rng.h"
 
 /** clear_rt_vars_at_gp.
  *

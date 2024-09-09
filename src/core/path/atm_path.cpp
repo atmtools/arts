@@ -67,7 +67,7 @@ void forward_path_freq(AscendingGrid &path_freq,
       1.0 - (along_path_atm_speed + dot_prod()) / Constant::speed_of_light;
 
   ARTS_USER_ERROR_IF(
-      fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: ", fac)
+      fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
 
   std::transform(main_freq.begin(),
                  main_freq.end(),
@@ -104,7 +104,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 

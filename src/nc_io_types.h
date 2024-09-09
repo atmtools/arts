@@ -14,8 +14,6 @@
 #ifndef nc_io_types_h
 #define nc_io_types_h
 
-#include <workspace.h>
-
 #include "array.h"
 #include "gas_abs_lookup.h"
 #include "matpack_arrays.h"

@@ -3,9 +3,9 @@
 template <typename AoT, WorkspaceGroup T>
 void ArrayExtracter(T& e, const AoT& arr, const Index& index) {
   ARTS_USER_ERROR_IF(static_cast<Size>(index) >= arr.size() or index < 0,
-                     "The index ",
-                     index,
-                     " is outside the range of the array.")
+                     "The index {}"
+                     " is outside the range of the array.",
+                     index)
 
   e = arr[index];
 }
@@ -13,9 +13,9 @@ void ArrayExtracter(T& e, const AoT& arr, const Index& index) {
 template <typename AoT, WorkspaceGroup T>
 void MatpackExtracter(T& e, const AoT& arr, const Index& index) {
   ARTS_USER_ERROR_IF(index >= arr.shape()[0] or index < 0,
-                     "The index ",
-                     index,
-                     " is outside the range of the matpack type.")
+                     "The index {}"
+                     " is outside the range of the matpack type.",
+                     index)
 
   e = arr[index];
 }

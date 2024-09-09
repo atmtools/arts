@@ -85,7 +85,7 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
 }
 
 Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid)
-    ARTS_NOEXCEPT {
+     {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   return SimpleG(qid.val, GS, GL);
@@ -145,7 +145,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 }
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
-    ARTS_NOEXCEPT {
+     {
   if (qid.Isotopologue() == "O2-66"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
@@ -350,7 +350,7 @@ namespace Zeeman {
 Numeric Model::Strength(Rational Ju,
                         Rational Jl,
                         Zeeman::Polarization type,
-                        Index n) const ARTS_NOEXCEPT {
+                        Index n) const  {
   ARTS_ASSERT(type not_eq Zeeman::Polarization::None);
   using Math::pow2;
 

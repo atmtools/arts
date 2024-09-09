@@ -27,9 +27,9 @@
 #include "sensor.h"
 #include "sorting.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI        = Constant::pi;
+inline constexpr Numeric NAT_LOG_2 = Constant::ln_2;
+inline constexpr Numeric DEG2RAD   = Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions, besides the core integration and sum functions that are
@@ -46,7 +46,7 @@ void antenna1d_matrix(Sparse& H,
                       const Index do_norm) {
   // Number of input pencil beam directions and frequency
   const Index n_za = za_grid.size();
-  const Index n_f = f_grid.size();
+  const Index n_f  = f_grid.size();
 
   // Calculate number of antenna beams
   const Index n_ant = antenna_dza.size();
@@ -58,16 +58,13 @@ void antenna1d_matrix(Sparse& H,
   ARTS_ASSERT(do_norm >= 0 && do_norm <= 1);
 
   // Extract antenna_response grids
-  const Index n_ar_pol =
-      antenna_response.grid<0>().size();
-  ConstVectorView aresponse_f_grid =
-      antenna_response.grid<1>();
-  ConstVectorView aresponse_za_grid =
-      antenna_response.grid<2>();
+  const Index n_ar_pol              = antenna_response.grid<0>().size();
+  ConstVectorView aresponse_f_grid  = antenna_response.grid<1>();
+  ConstVectorView aresponse_za_grid = antenna_response.grid<2>();
 
   //
-  const Index n_ar_f = aresponse_f_grid.size();
-  const Index n_ar_za = aresponse_za_grid.size();
+  const Index n_ar_f   = aresponse_f_grid.size();
+  const Index n_ar_za  = aresponse_za_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -169,48 +166,54 @@ void antenna1d_matrix(Sparse& H,
   }
 }
 
-
-
 void antenna2d_gridded_dlos(Sparse& H,
                             const Index& antenna_dim [[maybe_unused]],
                             ConstMatrixView antenna_dlos,
                             const NamedGriddedField3& antenna_response,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
-                            const Index n_pol)
-{
+                            const Index n_pol) {
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
-  const Index n_f = f_grid.size();
+  const Index n_f    = f_grid.size();
 
   // Decompose mblock_dlos into za and aa grids, including checking
-  ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 2 ,
-                      "For the gridded_dlos option, *mblock_dlos* "
-                      "must have two columns.");
-
+  ARTS_USER_ERROR_IF(mblock_dlos.ncols() != 2,
+                     "For the gridded_dlos option, *mblock_dlos* "
+                     "must have two columns.");
 
   Index nza = 1;
-  for(Index i=0; i<n_dlos-1 && mblock_dlos(i+1,0) > mblock_dlos(i,0); i++ ) {
+  for (Index i = 0; i < n_dlos - 1 && mblock_dlos(i + 1, 0) > mblock_dlos(i, 0);
+       i++) {
     nza++;
   }
   ARTS_USER_ERROR_IF(nza < 2,
                      "For the gridded_dlos option, the number of za angles "
                      "(among dlos directions) must be >= 2.");
-  ARTS_USER_ERROR_IF (n_dlos % nza > 0,
-                      "For the gridded_dlos option, the number of dlos angles "
-                      "must be a product of two integers.");
-  const Index naa = n_dlos / nza; 
-  const Vector za_grid{mblock_dlos(Range(0,nza),0)};
-  const Vector aa_grid{mblock_dlos(Range(0,naa,nza),1)};
-  for(Index i=0; i<n_dlos; i++ ) {
-    ARTS_USER_ERROR_IF(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ,
-        "Zenith angle of dlos ", i, " (0-based) differs to zenith " 
-        "angle of dlos ", i-nza, ", while they need to be equal "
-        "to form rectangular grid.")
-    ARTS_USER_ERROR_IF(abs(mblock_dlos(i,1)-aa_grid[i/nza]) > 1e-6,
-        "Azimuth angle of dlos ", i, " (0-based) differs to azimuth " 
-        "angle ", (i/nza)*nza , ", while they need to be equal "
-        "to form rectangular grid.")
+  ARTS_USER_ERROR_IF(n_dlos % nza > 0,
+                     "For the gridded_dlos option, the number of dlos angles "
+                     "must be a product of two integers.");
+  const Index naa = n_dlos / nza;
+  const Vector za_grid{mblock_dlos(Range(0, nza), 0)};
+  const Vector aa_grid{mblock_dlos(Range(0, naa, nza), 1)};
+  for (Index i = 0; i < n_dlos; i++) {
+    ARTS_USER_ERROR_IF(
+        i >= nza && abs(mblock_dlos(i, 0) - mblock_dlos(i - nza, 0)) > 1e-6,
+        "Zenith angle of dlos {}"
+        " (0-based) differs to zenith {}"
+        "angle of dlos"
+        ", while they need to be equal "
+        "to form rectangular grid.",
+        i,
+        i - nza)
+    ARTS_USER_ERROR_IF(abs(mblock_dlos(i, 1) - aa_grid[i / nza]) > 1e-6,
+                       "Azimuth angle of dlos {}",
+                       " (0-based) differs to azimuth "
+                       "angle {}"
+                       ", while they need to be equal "
+                       "to form rectangular grid.",
+                       i,
+                       (i / nza) * nza)
   }
 
   // Calculate number of antenna beams
@@ -222,18 +225,14 @@ void antenna2d_gridded_dlos(Sparse& H,
   ARTS_ASSERT(n_pol >= 1);
 
   // Extract antenna_response grids
-  const Index n_ar_pol =
-      antenna_response.grid<0>().size();
-  ConstVectorView aresponse_f_grid =
-      antenna_response.grid<1>();
-  ConstVectorView aresponse_za_grid =
-      antenna_response.grid<2>();
-  ConstVectorView aresponse_aa_grid =
-      antenna_response.grid<3>();
+  const Index n_ar_pol              = antenna_response.grid<0>().size();
+  ConstVectorView aresponse_f_grid  = antenna_response.grid<1>();
+  ConstVectorView aresponse_za_grid = antenna_response.grid<2>();
+  ConstVectorView aresponse_aa_grid = antenna_response.grid<3>();
   //
-  const Index n_ar_f = aresponse_f_grid.size();
-  const Index n_ar_za = aresponse_za_grid.size();
-  const Index n_ar_aa = aresponse_aa_grid.size();
+  const Index n_ar_f   = aresponse_f_grid.size();
+  const Index n_ar_za  = aresponse_za_grid.size();
+  const Index n_ar_aa  = aresponse_aa_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -241,20 +240,21 @@ void antenna2d_gridded_dlos(Sparse& H,
   ARTS_ASSERT(n_ar_f);
   ARTS_ASSERT(n_ar_za > 1);
   ARTS_ASSERT(n_ar_aa > 1);
-  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
-  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
-  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
-  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa);
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za);
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f);
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol);
 
   // Going from solid angle to (zz,aa) involves weighting with a cos(za)-term
   // Here we take that term into account by weighting of the antenna response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
-  for(Index i3=0; i3<n_ar_za; i3++) {
+  for (Index i3 = 0; i3 < n_ar_za; i3++) {
     const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
-    for(Index i4=0; i4<n_ar_aa; i4++) {
-      for(Index i2=0; i2<n_ar_f; i2++) {
-        for(Index i1=0; i1<n_ar_pol; i1++) {
-          aresponse_with_cos(i1,i2,i3,i4) = t * antenna_response.data(i1,i2,i3,i4);
+    for (Index i4 = 0; i4 < n_ar_aa; i4++) {
+      for (Index i2 = 0; i2 < n_ar_f; i2++) {
+        for (Index i1 = 0; i1 < n_ar_pol; i1++) {
+          aresponse_with_cos(i1, i2, i3, i4) =
+              t * antenna_response.data(i1, i2, i3, i4);
         }
       }
     }
@@ -272,7 +272,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
-  
+
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
     // Order of loops assumes that the antenna response more often
@@ -325,37 +325,41 @@ void antenna2d_gridded_dlos(Sparse& H,
 
         // Calculate response weights, by using grid positions and "itw"
         if (new_antenna) {
-          
           // za grid positions
           Vector zas{aresponse_za_grid};
           zas += antenna_dlos(ia, 0);
-          ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
-              "The zenith angle grid in *mblock_dlos* is too narrow. " 
-              "It must be extended downwards with at least ",
-              za_grid[0]-zas[0], " deg.")
-          ARTS_USER_ERROR_IF( zas[n_ar_za-1] > za_grid[nza-1],
-              "The zenith angle grid in *mblock_dlos* is too narrow. " 
-              "It must be extended upwards with at least ",
-              zas[n_ar_za-1] - za_grid[nza-1], " deg.")
-          
+          ARTS_USER_ERROR_IF(
+              zas[0] < za_grid[0],
+              "The zenith angle grid in *mblock_dlos* is too narrow. "
+              "It must be extended downwards with at least {} deg.",
+              za_grid[0] - zas[0])
+          ARTS_USER_ERROR_IF(
+              zas[n_ar_za - 1] > za_grid[nza - 1],
+              "The zenith angle grid in *mblock_dlos* is too narrow. "
+              "It must be extended upwards with at least {} deg.",
+              zas[n_ar_za - 1] - za_grid[nza - 1])
+
           ArrayOfGridPos gp_za(n_ar_za);
           gridpos(gp_za, za_grid, zas);
-          
+
           // aa grid positions
           Vector aas{aresponse_aa_grid};
-          if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
-          ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
-              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
-              "It must be extended downwards with at least ",
-              aa_grid[0]-aas[0], " deg.")
-          ARTS_USER_ERROR_IF( aas[n_ar_aa-1] > aa_grid[naa-1],
-              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
-              "It must be extended upwards with at least ",
-              aas[n_ar_aa-1] - aa_grid[naa-1], " deg.")
-          
+          if (antenna_dlos.ncols() > 1) {
+            aas += antenna_dlos(ia, 1);
+          }
+          ARTS_USER_ERROR_IF(
+              aas[0] < aa_grid[0],
+              "The azimuth angle grid in *mblock_dlos* is too narrow. "
+              "It must be extended downwards with at least {} deg.",
+              aa_grid[0] - aas[0])
+          ARTS_USER_ERROR_IF(
+              aas[n_ar_aa - 1] > aa_grid[naa - 1],
+              "The azimuth angle grid in *mblock_dlos* is too narrow. "
+              "It must be extended upwards with at least {} deg.",
+              aas[n_ar_aa - 1] - aa_grid[naa - 1])
+
           ArrayOfGridPos gp_aa(n_ar_aa);
           gridpos(gp_aa, aa_grid, aas);
-
 
           // Derive interpolation weights
           Tensor3 itw(n_ar_za, n_ar_za, 4);
@@ -363,28 +367,27 @@ void antenna2d_gridded_dlos(Sparse& H,
 
           // Convert iwt to weights for H
           //
-          hza = 0;   // Note that values in hza must be accumulated 
+          hza = 0;  // Note that values in hza must be accumulated
           //
           for (Index iaa = 0; iaa < n_ar_aa; iaa++) {
             const Index a = gp_aa[iaa].idx;
             const Index b = a + 1;
-            
-            for (Index iza = 0; iza < n_ar_za; iza++) {          
 
+            for (Index iza = 0; iza < n_ar_za; iza++) {
               const Index z = gp_za[iza].idx;
               const Index x = z + 1;
 
-              if( itw(iza,iaa,0) > 1e-9 ) {
-                hza[a*nza+z] += aresponse(iza,iaa) * itw(iza,iaa,0);
+              if (itw(iza, iaa, 0) > 1e-9) {
+                hza[a * nza + z] += aresponse(iza, iaa) * itw(iza, iaa, 0);
               }
-              if( itw(iza,iaa,1) > 1e-9 ) {
-                hza[b*nza+z] += aresponse(iza,iaa) * itw(iza,iaa,1);
+              if (itw(iza, iaa, 1) > 1e-9) {
+                hza[b * nza + z] += aresponse(iza, iaa) * itw(iza, iaa, 1);
               }
-              if( itw(iza,iaa,2) > 1e-9 ) {
-                hza[a*nza+x] += aresponse(iza,iaa) * itw(iza,iaa,2);
+              if (itw(iza, iaa, 2) > 1e-9) {
+                hza[a * nza + x] += aresponse(iza, iaa) * itw(iza, iaa, 2);
               }
-              if( itw(iza,iaa,3) > 1e-9 ) {
-                hza[b*nza+x] += aresponse(iza,iaa) * itw(iza,iaa,3);
+              if (itw(iza, iaa, 3) > 1e-9) {
+                hza[b * nza + x] += aresponse(iza, iaa) * itw(iza, iaa, 3);
               }
             }
           }
@@ -404,10 +407,8 @@ void antenna2d_gridded_dlos(Sparse& H,
         hrow = 0;
       }
     }
-  }  
+  }
 }
-
-
 
 void antenna2d_interp_response(Sparse& H,
                                const Index& antenna_dim [[maybe_unused]],
@@ -416,11 +417,10 @@ void antenna2d_interp_response(Sparse& H,
                                ConstMatrixView mblock_dlos,
                                ConstVectorView solid_angles,
                                ConstVectorView f_grid,
-                               const Index n_pol)
-{  
+                               const Index n_pol) {
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
-  const Index n_f = f_grid.size();
+  const Index n_f    = f_grid.size();
 
   // Calculate number of antenna beams
   const Index n_ant = antenna_dlos.nrows();
@@ -432,18 +432,14 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(n_dlos == solid_angles.size());
 
   // Extract antenna_response grids
-  const Index n_ar_pol =
-      antenna_response.grid<0>().size();
-  ConstVectorView aresponse_f_grid =
-      antenna_response.grid<1>();
-  ConstVectorView aresponse_za_grid =
-      antenna_response.grid<2>();
-  ConstVectorView aresponse_aa_grid =
-      antenna_response.grid<3>();
+  const Index n_ar_pol              = antenna_response.grid<0>().size();
+  ConstVectorView aresponse_f_grid  = antenna_response.grid<1>();
+  ConstVectorView aresponse_za_grid = antenna_response.grid<2>();
+  ConstVectorView aresponse_aa_grid = antenna_response.grid<3>();
   //
-  const Index n_ar_f = aresponse_f_grid.size();
-  const Index n_ar_za = aresponse_za_grid.size();
-  const Index n_ar_aa = aresponse_aa_grid.size();
+  const Index n_ar_f   = aresponse_f_grid.size();
+  const Index n_ar_za  = aresponse_za_grid.size();
+  const Index n_ar_aa  = aresponse_aa_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -451,24 +447,25 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(n_ar_f);
   ARTS_ASSERT(n_ar_za > 1);
   ARTS_ASSERT(n_ar_aa > 1);
-  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
-  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
-  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
-  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa);
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za);
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f);
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol);
 
   // Include cos(za)-term in response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
-  for(Index i3=0; i3<n_ar_za; i3++) {
+  for (Index i3 = 0; i3 < n_ar_za; i3++) {
     const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
-    for(Index i4=0; i4<n_ar_aa; i4++) {
-      for(Index i2=0; i2<n_ar_f; i2++) {
-        for(Index i1=0; i1<n_ar_pol; i1++) {
-          aresponse_with_cos(i1,i2,i3,i4) = t * antenna_response.data(i1,i2,i3,i4);
+    for (Index i4 = 0; i4 < n_ar_aa; i4++) {
+      for (Index i2 = 0; i2 < n_ar_f; i2++) {
+        for (Index i1 = 0; i1 < n_ar_pol; i1++) {
+          aresponse_with_cos(i1, i2, i3, i4) =
+              t * antenna_response.data(i1, i2, i3, i4);
         }
       }
     }
   }
-  
+
   // Some size(s)
   const Index nfpol = n_f * n_pol;
 
@@ -539,7 +536,7 @@ void antenna2d_interp_response(Sparse& H,
         if (new_antenna) {
           for (Index l = 0; l < n_dlos; l++) {
             const Numeric za = mblock_dlos(l, 0) - antenna_dlos(ia, 0);
-            Numeric aa = 0.0;
+            Numeric aa       = 0.0;
             if (mblock_dlos.ncols() > 1) {
               aa += mblock_dlos(l, 1);
             }
@@ -586,8 +583,6 @@ void antenna2d_interp_response(Sparse& H,
   }
 }
 
-
-
 void mixer_matrix(Sparse& H,
                   Vector& f_mixer,
                   const Numeric& lo,
@@ -630,7 +625,7 @@ void mixer_matrix(Sparse& H,
   */
 
   // Determine IF limits for new frequency grid
-  const Numeric lim_low = 0;
+  const Numeric lim_low  = 0;
   const Numeric lim_high = -filter_grid[0];
 
   // Convert sidebands to IF and use list to make a unique sorted
@@ -646,8 +641,7 @@ void mixer_matrix(Sparse& H,
   l_mixer.unique();
   f_mixer.resize((Index)l_mixer.size());
   Index e = 0;
-  for (auto li = l_mixer.begin(); li != l_mixer.end();
-       li++) {
+  for (auto li = l_mixer.begin(); li != l_mixer.end(); li++) {
     f_mixer[e] = *li;
     e++;
   }
@@ -677,39 +671,34 @@ void mixer_matrix(Sparse& H,
       for (Index a = 0; a < n_sp; a++) {
         // Distribute elements of row_temp to row_final.
         row_final = 0.0;
-        row_final[Range(
-            a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] = row_temp;
+        row_final[Range(a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] =
+            row_temp;
         H.insert_row(a * f_mixer.size() * n_pol + p + i * n_pol, row_final);
       }
     }
   }
 }
 
-
-
-
-void muellersparse_rotation(Sparse& H,
-                            const Numeric& rotangle) {
+void muellersparse_rotation(Sparse& H, const Numeric& rotangle) {
   ARTS_ASSERT(H.nrows() == 4);
   ARTS_ASSERT(H.ncols() == 4);
   ARTS_ASSERT(H(0, 1) == 0);
   ARTS_ASSERT(H(1, 0) == 0);
   //
-  H.rw(0, 0) = 1;
+  H.rw(0, 0)      = 1;
   const Numeric a = Conversion::cosd(2 * rotangle);
-  H.rw(1, 1) = a;
+  H.rw(1, 1)      = a;
   ARTS_ASSERT(H(2, 0) == 0);
   ARTS_ASSERT(H(0, 2) == 0);
 
   const Numeric b = Conversion::sind(2 * rotangle);
-  H.rw(1, 2) = b;
-  H.rw(2, 1) = -b;
-  H.rw(2, 2) = a;
+  H.rw(1, 2)      = b;
+  H.rw(2, 1)      = -b;
+  H.rw(2, 2)      = a;
   // More values should be checked, but to save time we just ARTS_ASSERT one
   ARTS_ASSERT(H(2, 3) == 0);
   H.rw(3, 3) = 1;
 }
-
 
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
@@ -750,7 +739,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       rot[i] = "none";
       pol[i] = mm_pol[i];
     } else {
-      ARTS_USER_ERROR ( "Unknown polarisation ", mm_pol[i])
+      ARTS_USER_ERROR("Unknown polarisation {}", mm_pol[i])
     }
   }
 
@@ -850,8 +839,6 @@ void met_mm_polarisation_hmatrix(Sparse& H,
   }
 }
 
-
-
 void sensor_aux_vectors(Vector& sensor_response_f,
                         ArrayOfIndex& sensor_response_pol,
                         Matrix& sensor_response_dlos,
@@ -859,10 +846,10 @@ void sensor_aux_vectors(Vector& sensor_response_f,
                         const ArrayOfIndex& sensor_response_pol_grid,
                         ConstMatrixView sensor_response_dlos_grid) {
   // Sizes
-  const Index nf = sensor_response_f_grid.size();
+  const Index nf   = sensor_response_f_grid.size();
   const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
-  const Index n = nf * npol * nlos;
+  const Index n    = nf * npol * nlos;
 
   // Allocate
   sensor_response_f.resize(n);
@@ -879,15 +866,13 @@ void sensor_aux_vectors(Vector& sensor_response_f,
       for (Index ip = 0; ip < npol; ip++) {
         const Index i = i3 + ip;
         //
-        sensor_response_f[i] = sensor_response_f_grid[ifr];
-        sensor_response_pol[i] = sensor_response_pol_grid[ip];
+        sensor_response_f[i]           = sensor_response_f_grid[ifr];
+        sensor_response_pol[i]         = sensor_response_pol_grid[ip];
         sensor_response_dlos(i, joker) = sensor_response_dlos_grid(ilos, joker);
       }
     }
   }
 }
-
-
 
 void spectrometer_matrix(Sparse& H,
                          ConstVectorView ch_f,
@@ -899,7 +884,8 @@ void spectrometer_matrix(Sparse& H,
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  ARTS_ASSERT(ch_response.size() == 1 || ch_response.size() == static_cast<Size>(ch_f.size()));
+  ARTS_ASSERT(ch_response.size() == 1 ||
+              ch_response.size() == static_cast<Size>(ch_f.size()));
   //
   Index freq_full = ch_response.size() > 1;
 
@@ -908,10 +894,10 @@ void spectrometer_matrix(Sparse& H,
 
   // Reisze H
   //
-  const Index nin_f = sensor_f.size();
+  const Index nin_f  = sensor_f.size();
   const Index nout_f = ch_f.size();
-  const Index nin = n_sp * nin_f * n_pol;
-  const Index nout = n_sp * nout_f * n_pol;
+  const Index nin    = n_sp * nin_f * n_pol;
+  const Index nout   = n_sp * nout_f * n_pol;
   //
   H.resize(nout, nin);
 
@@ -926,7 +912,7 @@ void spectrometer_matrix(Sparse& H,
     const Index irp = ifr * freq_full;
 
     //The spectrometer response is shifted for each centre frequency step
-    ch_response_f = ch_response[irp].grid<0>();
+    ch_response_f  = ch_response[irp].grid<0>();
     ch_response_f += ch_f[ifr];
 
     // Call *integration_func_by_vecmult* and store it in the temp vector
@@ -953,19 +939,15 @@ void spectrometer_matrix(Sparse& H,
   }
 }
 
-
-
-void stokes2pol(VectorView w,
-                const Index& ipol_1based,
-                const Numeric nv) {
+void stokes2pol(VectorView w, const Index& ipol_1based, const Numeric nv) {
   ARTS_ASSERT(w.size() == 4);
 
-  ARTS_USER_ERROR_IF (ipol_1based < 1 || ipol_1based > 10,
-                      "Valid polarization indices are 1 to 10 (1-based).");
+  ARTS_USER_ERROR_IF(ipol_1based < 1 || ipol_1based > 10,
+                     "Valid polarization indices are 1 to 10 (1-based).");
 
   ArrayOfVector s2p(10);
   //
-  s2p[0] = Vector{1};              // I
+  s2p[0] = Vector{1};        // I
   s2p[1] = {0, 1};           // Q
   s2p[2] = {0, 0, 1};        // U
   s2p[3] = {0, 0, 0, 1};     // V
@@ -977,10 +959,12 @@ void stokes2pol(VectorView w,
   s2p[9] = {nv, 0, 0, -nv};  // Irhc
 
   const Index l = s2p[ipol_1based - 1].size();
-  ARTS_USER_ERROR_IF (l > 4,
-    "You have selected polarization with 1-based index: ", ipol_1based,
-    "\n",
-    "but this polarization demands 4 >= ", l, "\n")
+  ARTS_USER_ERROR_IF(l > 4,
+                     "You have selected polarization with 1-based index: {}"
+                     "\n"
+                     "but this polarization demands 4 >= {}\n",
+                     ipol_1based,
+                     l)
 
   w[Range(0, l)] = s2p[ipol_1based - 1];
   if (l < 4) {
@@ -1074,25 +1058,29 @@ void find_effective_channel_boundaries(  // Output:
   // Checks on input quantities:
 
   // There must be at least one channel.
-  ARTS_USER_ERROR_IF (n_chan < 1,
-      "There must be at least one channel.\n"
-      "(The vector *f_backend* must have at least one element.)")
+  ARTS_USER_ERROR_IF(n_chan < 1,
+                     "There must be at least one channel.\n"
+                     "(The vector *f_backend* must have at least one element.)")
 
   // There must be a response function for each channel.
-  ARTS_USER_ERROR_IF (n_chan != backend_channel_response.size(),
+  ARTS_USER_ERROR_IF(
+      n_chan != backend_channel_response.size(),
       "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
       "must have same number of bands for each LO.")
 
   // Frequency grids for response functions must be strictly increasing.
   for (Size i = 0; i < n_chan; ++i) {
     // Frequency grid for this response function:
-    const Vector& backend_f_grid =
-        backend_channel_response[i].grid<0>();
+    const Vector& backend_f_grid = backend_channel_response[i].grid<0>();
 
-    ARTS_USER_ERROR_IF (!is_increasing(backend_f_grid),
+    ARTS_USER_ERROR_IF(
+        !is_increasing(backend_f_grid),
         "The frequency grid for the backend channel response of\n"
-        "channel ", i, " is not strictly increasing.\n"
-        "It is: ", backend_f_grid, "\n")
+        "channel {}"
+        " is not strictly increasing.\n"
+        "It is: {}\n",
+        i,
+        backend_f_grid)
   }
 
   // Start the actual work.
@@ -1116,11 +1104,12 @@ void find_effective_channel_boundaries(  // Output:
     }
   }
 
-  ARTS_USER_ERROR_IF (!numPB,
-        "No passbands found.\n"
-        "*backend_channel_response* must be zero around the passbands.\n"
-        "backend_channel_response.data = [0, >0, >0, 0]\n"
-        "Borders between passbands are identified as [...0,0...]");
+  ARTS_USER_ERROR_IF(
+      !numPB,
+      "No passbands found.\n"
+      "*backend_channel_response* must be zero around the passbands.\n"
+      "backend_channel_response.data = [0, >0, >0, 0]\n"
+      "Borders between passbands are identified as [...0,0...]");
 
   Vector fmin_pb(numPB);
   Vector fmax_pb(numPB);
@@ -1159,8 +1148,7 @@ void find_effective_channel_boundaries(  // Output:
     //
     // Isoz 2013-05-21: Added methods to ignore areas between passbands
     //
-    const Vector& backend_f_grid =
-        backend_channel_response[idx].grid<0>();
+    const Vector& backend_f_grid = backend_channel_response[idx].grid<0>();
     const Vector& backend_filter = backend_channel_response[idx].data;
     if (backend_filter.size() >=
         4)  // Is the passband frequency response given explicitly ? e.g. [0,>0,>0,0]
@@ -1231,8 +1219,6 @@ void find_effective_channel_boundaries(  // Output:
     }
   }
 }
-
-
 
 /*===========================================================================
   === Core integration and sum functions:
@@ -1305,7 +1291,7 @@ void integration_func_by_vecmult(VectorView h,
 
   // Initiate output vector, with equal size as x_g, with zeros.
   // Start calculations
-  h = 0.0;
+  h         = 0.0;
   Index i_f = 0;
   Index i_g = 0;
   Numeric dx, a0, b0, c0, a1, b1, c1, x3, x2, x1;
@@ -1349,7 +1335,7 @@ void integration_func_by_vecmult(VectorView h,
 
       // Calculate h[i] and h[i+1] increment
       // (df-factor to compensate for normalisation)
-      h[i_g] += df * (a0 * x3 + b0 * x2 + c0 * x1) / dx;
+      h[i_g]     += df * (a0 * x3 + b0 * x2 + c0 * x1) / dx;
       h[i_g + 1] += df * (a1 * x3 + b1 * x2 + c1 * x1) / dx;
     }
   }
@@ -1357,21 +1343,19 @@ void integration_func_by_vecmult(VectorView h,
   // Flip back if x_g was decreasing
   if (xg_reversed) {
     Vector tmp = reverse(h);  // Flip order
-    h = tmp;
+    h          = tmp;
   }
 
   // The expressions are sensitive to numerical issues if two points in x_ref
   // are very close compared to the values in x_ref. A test trying to warn when
   // this happens:
-  ARTS_USER_ERROR_IF (min(f) >= 0 && min(h) < -1e-15,
-        "Significant negative response value obtained, "
-        "despite sensor reponse is strictly positive. This "
-        "indicates numerical problems. Is there any very "
-        "small spacing of the sensor response grid?"
-        "Please, send a report to Patrick if you see this!");
+  ARTS_USER_ERROR_IF(min(f) >= 0 && min(h) < -1e-15,
+                     "Significant negative response value obtained, "
+                     "despite sensor reponse is strictly positive. This "
+                     "indicates numerical problems. Is there any very "
+                     "small spacing of the sensor response grid?"
+                     "Please, send a report to Patrick if you see this!");
 }
-
-
 
 void integration_bin_by_vecmult(VectorView h,
                                 ConstVectorView x_g_in,
@@ -1388,7 +1372,7 @@ void integration_bin_by_vecmult(VectorView h,
   // Handle possibly reversed x_g.
   const bool xg_reversed = is_decreasing(x_g_in);
   const Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
-  
+
   //
   ARTS_ASSERT(x_g[0] <= limit1);
   ARTS_ASSERT(x_g[ng - 1] >= limit2);
@@ -1419,21 +1403,21 @@ void integration_bin_by_vecmult(VectorView h,
     if (i == 0) {
       if (limit1 < x_g[1]) {
         inside = true;
-        x1 = limit1;
-        x2 = std::min(limit2, x_g[1]);
+        x1     = limit1;
+        x2     = std::min(limit2, x_g[1]);
       }
     } else if (i == ng - 1) {
       if (limit2 > x_g[ng - 2]) {
         inside = true;
-        x1 = std::max(limit1, x_g[ng - 2]);
-        x2 = limit2;
+        x1     = std::max(limit1, x_g[ng - 2]);
+        x2     = limit2;
       }
     } else {
       if ((limit1 < x_g[i + 1] && limit2 > x_g[i - 1]) ||
           (limit2 > x_g[i - 1] && limit1 < x_g[i + 1])) {
         inside = true;
-        x1 = std::max(limit1, x_g[i - 1]);
-        x2 = std::min(limit2, x_g[i + 1]);
+        x1     = std::max(limit1, x_g[i - 1]);
+        x2     = std::min(limit2, x_g[i + 1]);
       }
     }
 
@@ -1443,22 +1427,22 @@ void integration_bin_by_vecmult(VectorView h,
     } else {
       // Lower part
       if (x1 < x_g[i]) {
-        const Numeric r = 1.0 / (x_g[i] - x_g[i - 1]);
+        const Numeric r  = 1.0 / (x_g[i] - x_g[i - 1]);
         const Numeric y1 = r * (x1 - x_g[i - 1]);
         const Numeric dx = std::min(x2, x_g[i]) - x1;
         const Numeric y2 = y1 + r * dx;
-        h[i] = 0.5 * dx * (y1 + y2);
+        h[i]             = 0.5 * dx * (y1 + y2);
       } else {
         h[i] = 0.0;
       }
 
       // Upper part
       if (x2 > x_g[i]) {
-        const Numeric r = 1.0 / (x_g[i + 1] - x_g[i]);
-        const Numeric y2 = r * (x_g[i + 1] - x2);
-        const Numeric dx = x2 - std::max(x1, x_g[i]);
-        const Numeric y1 = y2 + r * dx;
-        h[i] += 0.5 * dx * (y1 + y2);
+        const Numeric r   = 1.0 / (x_g[i + 1] - x_g[i]);
+        const Numeric y2  = r * (x_g[i + 1] - x2);
+        const Numeric dx  = x2 - std::max(x1, x_g[i]);
+        const Numeric y1  = y2 + r * dx;
+        h[i]             += 0.5 * dx * (y1 + y2);
       }
     }
   }
@@ -1466,10 +1450,9 @@ void integration_bin_by_vecmult(VectorView h,
   // Flip back if x_g was decreasing
   if (xg_reversed) {
     Vector tmp = reverse(h);  // Flip order
-    h = tmp;
+    h          = tmp;
   }
 }
-
 
 void summation_by_vecmult(VectorView h,
                           ConstVectorView f,
@@ -1507,9 +1490,9 @@ void summation_by_vecmult(VectorView h,
   interp(ExhaustiveVectorView{f2}, itw2, f, gp2f);
 
   //Initialise h at zero and store calculated weighting components
-  h = 0.0;
-  h[gp1g[0].idx] += f1 * gp1g[0].fd[1];
+  h                   = 0.0;
+  h[gp1g[0].idx]     += f1 * gp1g[0].fd[1];
   h[gp1g[0].idx + 1] += f1 * gp1g[0].fd[0];
-  h[gp2g[0].idx] += f2 * gp2g[0].fd[1];
+  h[gp2g[0].idx]     += f2 * gp2g[0].fd[1];
   h[gp2g[0].idx + 1] += f2 * gp2g[0].fd[0];
 }

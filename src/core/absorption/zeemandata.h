@@ -334,7 +334,7 @@ class Model {
   [[nodiscard]] Numeric Strength(Rational Ju,
                                  Rational Jl,
                                  Polarization type,
-                                 Index n) const ARTS_NOEXCEPT;
+                                 Index n) const ;
 
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -382,7 +382,7 @@ class Model {
  * 
  * @return Zeeman model
  */
-Model GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
+Model GetSimpleModel(const QuantumIdentifier& qid) ;
 
 /** Returns an advanced Zeeman model 
  * 
@@ -395,7 +395,7 @@ Model GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
  * 
  * @return Zeeman model
  */
-Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
+Model GetAdvancedModel(const QuantumIdentifier& qid) ;
 
 /** Polarization vector for Zeeman Propagation Matrix
  * 

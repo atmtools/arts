@@ -58,16 +58,6 @@ void StringJoin(String& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Error(const String& msg) {
-  ARTS_USER_ERROR(msg);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Exit() {
-  std::exit(EXIT_SUCCESS);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void GetEnvironmentVariable(  // WS Generic Output:
     String& str,
     // WS Generic Input:
@@ -75,7 +65,7 @@ void GetEnvironmentVariable(  // WS Generic Output:
   char* cstr;
   cstr = std::getenv(envvar.c_str());
   ARTS_USER_ERROR_IF (cstr == NULL,
-    "Environment variable ", envvar, " does not exist.")
+    "Environment variable {} does not exist.", envvar)
   str = cstr != NULL ? String(cstr) : "";
 }
 
@@ -92,13 +82,13 @@ void GetEnvironmentVariable(  // WS Generic Output:
   char* cstr;
   cstr = std::getenv(envvar.c_str());
   ARTS_USER_ERROR_IF (cstr == NULL || std::strlen(cstr) == 0,
-    "Environment variable ", envvar, " "
-    "is empty or does not exist.")
+    "Environment variable {} "
+    "is empty or does not exist.",envvar)
   std::istringstream is(cstr);
   is >> i;
   ARTS_USER_ERROR_IF (!is.eof(),
-      "Cannot convert environment variable ", envvar, " "
-      "to Index: ", cstr)
+      "Cannot convert environment variable {} "
+      "to Index: {}", envvar, cstr)
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

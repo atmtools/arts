@@ -35,13 +35,12 @@ StringValue::StringValue(std::string_view s) {
   /** This means that we will need to either redesign quantum numbers
       or make an exception for the type, e.g., is \tilde{X} perhaps OK as ~X?
       We have no opinion at this moment */
-  ARTS_USER_ERROR_IF(n > N,
-                     "The value \"",
-                     s,
-                     "\" is too long.  Can be only ",
-                     N,
-                     " chars but is ",
-                     n)
+  ARTS_USER_ERROR_IF(
+      n > N,
+      "The value \"{}\" is too long.  Can be only {} chars but is {}",
+      s,
+      N,
+      n)
 
   // Fill with correct values or zero characters
   std::size_t i = 0;
@@ -254,18 +253,16 @@ TwoLevelValueHolder::TwoLevelValueHolder(ValueDescription u,
   auto ct = common_value_type(t);
   if (u.type not_eq ct) {
     ARTS_USER_ERROR_IF(u.type not_eq QuantumNumberValueType::I,
-                       "Cannot convert from ",
+                       "Cannot convert from {} to {}",
                        u.type,
-                       " to ",
                        ct)
     upp.h.x = 2 * u.val.i.x;
   }
 
   if (l.type not_eq ct) {
     ARTS_USER_ERROR_IF(l.type not_eq QuantumNumberValueType::I,
-                       "Cannot convert from ",
+                       "Cannot convert from {} to {}",
                        l.type,
-                       " to ",
                        ct)
     low.h.x = 2 * l.val.i.x;
   }
@@ -436,7 +433,9 @@ std::string_view lstrip(std::string_view x) {
 
 std::string_view strip(std::string_view x) { return rstrip(lstrip(x)); }
 
-std::string_view items(std::string_view s, std::size_t i, std::size_t n) noexcept {  
+std::string_view items(std::string_view s,
+                       std::size_t i,
+                       std::size_t n) noexcept {
   bool last_space = true;
 
   std::size_t beg = 0, count = 0, end = s.size();
@@ -489,15 +488,14 @@ Value::Value(QuantumNumberType t, Rational upp_, Rational low_) : Value(t) {
     qn.low.i.x = low.numer;
   } else {
     ARTS_USER_ERROR(
-        t, " is a string-type, so cannot be constructed from rationals")
+        "{} is a string-type, so cannot be constructed from rationals", t)
   }
 }
 
 Value::Value(std::string_view s) : Value(to<QuantumNumberType>(items(s, 0))) {
   ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
-                     "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
-                     s,
-                     '\'')
+                     "Must have ' TYPE UPPNUM LOWNUM ' but got: '{}'",
+                     s)
 
   // Get values and ensure they are good types
   auto upv = value_holder(items(s, 1), type);
@@ -690,7 +688,7 @@ std::pair<std::string_view, String> fix_legacy(std::string_view key,
   return {key, String{val}};
 
 error:
-  ARTS_USER_ERROR("Cannot read combination ", key, ' ', val)
+  ARTS_USER_ERROR("Cannot read combination {} {}", key, val)
 }
 
 ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
@@ -698,10 +696,10 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 
   if (not legacy) {
     ARTS_USER_ERROR_IF(
-        n % 3, "Must have multiple of three items, got ", n, " in:\n", s)
+        n % 3, "Must have multiple of three items, got {} in:\n{}", n, s)
     for (Index i = 0; i < n; i += 3) values.emplace_back(Value(items(s, i, 3)));
   } else {
-    ARTS_USER_ERROR_IF(n < 2, "Must have two items:\n", s)
+    ARTS_USER_ERROR_IF(n < 2, "Must have two items:\n{}", s)
     Index i       = 0;
     auto key_type = items(s, i);
     if (key_type == "ALL") return;
@@ -713,7 +711,7 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 
       i++;
       ARTS_USER_ERROR_IF(
-          items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n", s)
+          items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n{}", s)
       i++;
 
       bool upp = true;
@@ -772,11 +770,11 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
 
   ARTS_USER_ERROR_IF(
       nu % 2,
-      "Uneven count of items for legacy upper quantum number list: ",
+      "Uneven count of items for legacy upper quantum number list: {}",
       upp)
   ARTS_USER_ERROR_IF(
       nl % 2,
-      "Uneven count of items for legacy lower quantum number list: ",
+      "Uneven count of items for legacy lower quantum number list: {}",
       low)
 
   for (Index i = 0; i < nu; i += 2) {
@@ -839,9 +837,8 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
     auto type   = to<QuantumNumberType>(t);
     ARTS_USER_ERROR_IF(
         out.has(type),
-        "Type ",
-        t,
-        " already exist, this is a problem, there should be only one per level!")
+        "Type {} already exist, this is a problem, there should be only one per level!",
+        t)
     out.add(type).set(v, true);
 
     if (sep == upp.npos) break;
@@ -871,12 +868,11 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
 void ValueList::finalize() {
   sort_by_type();
   ARTS_USER_ERROR_IF(not has_unique_increasing_types(),
-                     "The quantum number list: [",
-                     *this,
-                     "] contains copies of types")
+                     "The quantum number list: {:B,} contains copies of types",
+                     *this)
 }
 
-bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
+bool ValueList::perpendicular(const ValueList& that) const {
   ARTS_ASSERT(has_unique_increasing_types())
   ARTS_ASSERT(that.has_unique_increasing_types())
 
@@ -893,7 +889,7 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
   return true;
 }
 
-CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
+CheckMatch ValueList::check_match(const ValueList& other) const {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
   for (const QuantumNumberType t : enumtyps::QuantumNumberTypeTypes) {
@@ -912,7 +908,7 @@ CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   return status;
 }
 
-const Value& ValueList::operator[](QuantumNumberType t) const ARTS_NOEXCEPT {
+const Value& ValueList::operator[](QuantumNumberType t) const {
   auto val =
       std::find_if(cbegin(), cend(), [t](auto& x) { return x.type == t; });
   ARTS_ASSERT(val not_eq cend())
@@ -1032,11 +1028,11 @@ std::istream& operator>>(std::istream& is, GlobalState& gs) {
   String spec;
   is >> spec >> gs.val;
   gs.isotopologue_index = Species::find_species_index(spec);
-  ARTS_USER_ERROR_IF(gs.isotopologue_index < 0, "Cannot read species: ", spec)
+  ARTS_USER_ERROR_IF(gs.isotopologue_index < 0, "Cannot read species: {}", spec)
   return is;
 }
 
-bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT {
+bool vamdcCheck(const ValueList& l, VAMDC type) {
   switch (type) {
     case VAMDC::asymcs:
       if (l.has(QuantumNumberType::K)) return false;
@@ -1666,7 +1662,7 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   } else if (v == 0 or v == 1) {
     val = ValueList(s.substr(specname.length() + 1), true);
   } else {
-    ARTS_USER_ERROR("Unknown version: ", v)
+    ARTS_USER_ERROR("Unknown version: {}", v)
   }
 }
 
@@ -1701,16 +1697,13 @@ void LocalState::set_unsorted_qns(const Array<QuantumNumberType>& vals) {
       upp = upp and v.str_upp() == qn.str_upp();
       low = low and v.str_low() == qn.str_low();
       ARTS_USER_ERROR_IF(any,
-                         "Repeated type: ",
+                         "Repeated type: {}\n"
+                         "From original key: {}\n"
+                         "With global key: {}\n"
+                         "With local key: {}",
                          qn.type,
-                         '\n',
-                         "From original key: ",
                          *this,
-                         '\n',
-                         "With global key: ",
                          g,
-                         '\n',
-                         "With local key: ",
                          l.val)
       any = true;
     }

@@ -344,9 +344,9 @@ void call_function(std::ostream& os,
 
     os << "\n        );\n      }, ";
     if (any_out) {
-      os << "ws.share(out[" << first_any << "]).value);\n    }";
+      os << "ws.share(out[" << first_any << "]).value());\n    }";
     } else {
-      os << "ws.share(in[" << first_any << "]).value);\n    }";
+      os << "ws.share(in[" << first_any << "]).value());\n    }";
     }
 
   } else if (wsmr.has_overloads()) {
@@ -550,8 +550,6 @@ void implementation(std::ostream& os, const int n) try {
 
 #include "workspace_class.h"
 
-#include <m_copy.h>
-#include <m_delete.h>
 #include <m_ignore.h>
 #include <m_xml.h>
 
@@ -633,7 +631,7 @@ int main(int argc, char** argv) try {
   std::ofstream impl("auto_wsm.cpp");
   std::ofstream of("auto_wsmmeta.cpp");
 
-  ARTS_USER_ERROR_IF(const auto err = scan_for_errors(); not err.empty(), err)
+  ARTS_USER_ERROR_IF(const auto err = scan_for_errors(); not err.empty(), "{}", err)
 
   header(head);
   implementation(impl, num_methods);

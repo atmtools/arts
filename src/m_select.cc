@@ -17,14 +17,13 @@ void MatpackSelect(T& needles,
                    const T& haystack,
                    const ArrayOfIndex& needleind) {
   auto sh = haystack.shape();
-  sh[0] = needleind.size();
+  sh[0]   = needleind.size();
   needles = T(sh);
 
   for (auto& i : needleind) {
     ARTS_USER_ERROR_IF(i < 0 || i >= haystack.shape()[0],
-                       "Index ",
-                       i,
-                       " out of range in Select.")
+                       "Index {} out of range in Select.",
+                       i)
     needles[i] = haystack[i];
   }
 }

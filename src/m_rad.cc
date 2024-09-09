@@ -67,27 +67,26 @@ void spectral_radiance_jacobianAddPathPropagation(
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_jacobian.nrows()) !=
           jacobian_targets.x_size(),
-      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets. Sizes: ",
+      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets. Sizes: "
+      "{} != {}",
       spectral_radiance_jacobian.nrows(),
-      " != ",
       jacobian_targets.x_size())
 
   ARTS_USER_ERROR_IF(
       ray_path.size() != np,
       "ray_path must have same size as the size of ray_path_spectral_radiance_jacobian.  Sizes: ",
+      "{} != {}",
       ray_path.size(),
-      " != ",
       np)
 
   for (auto &dr : ray_path_spectral_radiance_jacobian) {
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
         "ray_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
-        "jacobian_targets.  Sizes: ",
+        "jacobian_targets.  Sizes: "
+        "{:B,} != [{}, {}]",
         dr.shape(),
-        " != ",
         nt,
-        ", ",
         nf)
   }
 
@@ -97,9 +96,9 @@ void spectral_radiance_jacobianAddPathPropagation(
   //! The derivative part from the atmosphere
   for (auto &atm_block : jacobian_targets.atm()) {
     ARTS_USER_ERROR_IF(not atmospheric_field.contains(atm_block.type),
-                       "No ",
-                       atm_block.type,
-                       " in atmospheric_field but in jacobian_targets")
+                       "No {}"
+                       " in atmospheric_field but in jacobian_targets",
+                       atm_block.type)
     const auto &data = atmospheric_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);

@@ -288,7 +288,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     }
 
     ARTS_USER_ERROR_IF(artscat_version < 3 or artscat_version > 5,
-                       "Unknown ARTS line file version: ",
+                       "Unknown ARTS line file version: {}",
                        version)
 
     bool go_on = true;
@@ -312,7 +312,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
             ARTS_ASSERT(false, "Bad version!");
         }
 
-        ARTS_USER_ERROR_IF(sline.bad, "Cannot read line ", n)
+        ARTS_USER_ERROR_IF(sline.bad, "Cannot read line {}", n)
         if (sline.line.F0 < fmin) continue;
         if (sline.line.F0 > fmax) {
           go_on = false;
@@ -444,7 +444,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
           ARTS_ASSERT(false, "Bad version!");
       }
 
-      ARTS_USER_ERROR_IF(sline.bad, "Cannot read line ", n)
+      ARTS_USER_ERROR_IF(sline.bad, "Cannot read line {}", n)
       if (sline.line.F0 < fmin) continue;
       if (sline.line.F0 > fmax) {
         go_on = false;
@@ -552,7 +552,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       }
     } catch (const std::exception& e) {
       ARTS_USER_ERROR_IF(not ignore_missing,
-                         "Errors in calls by *propmat_clearskyAddZeeman*:\n",
+                         "Errors in calls by *propmat_clearskyAddZeeman*:\n{}",
                          e.what())
       continue;
     }
@@ -615,7 +615,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
     if (sline.bad) {
       if (is.eof()) break;
-      ARTS_USER_ERROR("Cannot read line ",
+      ARTS_USER_ERROR("Cannot read line {}",
                       size(abs_lines) + size(local_bands) + 1);
     }
     if (sline.line.F0 < fmin) continue;  // Skip this line
@@ -931,7 +931,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.load(), "Encountered ", errors.size(), ':', errors)
+  ARTS_USER_ERROR_IF(error.load(), "Encountered {}:{}", errors.size(), errors)
 
   const Index bands_found = size(par_abs_lines);
   ARTS_USER_ERROR_IF(not bands_found and not robust,
@@ -1142,9 +1142,8 @@ void CheckUnique(const ArrayOfAbsorptionLines& lines) {
           Quantum::Number::StateMatch(lines[i].quantumidentity,
                                       lines[j].quantumidentity) ==
               Quantum::Number::StateMatchType::Full,
-          "Not unique, these bands match:\n",
+          "Not unique, these bands match:\n{}\nand\n{}",
           lines[i],
-          "\nand\n",
           lines[j])
     }
   }
@@ -1164,11 +1163,9 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
                                       replacement.quantumidentity) ==
           Quantum::Number::StateMatchType::Full) {
         ARTS_USER_ERROR_IF(pos.band not_eq -1,
-                           "Duplicate band matches for replacement line:\n",
+                           "Duplicate band matches for replacement line:\n{}\nThese are for band indexes {} and {}",
                            replacement,
-                           "\nThese are for band indexes ",
                            pos.band,
-                           " and ",
                            i)
 
         pos.band = i;
@@ -1176,9 +1173,8 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
     }
 
     ARTS_USER_ERROR_IF(pos.band == -1,
-                       "There is no match for replacement band:\n",
-                       replacement,
-                       "\nYou need to append the entire band")
+                       "There is no match for replacement band:\n{}\nYou need to append the entire band",
+                       replacement)
     abs_lines[pos.band] = replacement;
   }
 }
@@ -1203,26 +1199,17 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
                                       replacement.quantumidentity) ==
           Quantum::Number::StateMatchType::Full) {
         ARTS_USER_ERROR_IF(pos.band not_eq -1,
-                           "Duplicate band matches for replacement line:\n",
+                           "Duplicate band matches for replacement line:\n{}"
+                           "\nThese are for band indexes {}"
+                           " and {}\nID {}: {}\nID {}: {}\nID target: {}\n",
                            replacement,
-                           "\nThese are for band indexes ",
                            pos.band,
-                           " and ",
                            i,
-                           '\n',
-                           "ID ",
                            i,
-                           ": ",
                            band.quantumidentity,
-                           '\n',
-                           "ID ",
                            pos.band,
-                           ": ",
                            abs_lines[pos.band].quantumidentity,
-                           '\n',
-                           "ID target: ",
-                           replacement.quantumidentity,
-                           '\n')
+                           replacement.quantumidentity)
 
         pos.band = i;
 
@@ -1236,9 +1223,8 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
                       std::any_of(pos.lines.begin(),
                                   pos.lines.end(),
                                   [k](auto& a) { return a == k; }),
-                  "Found multiple matches of lines in:\n",
+                  "Found multiple matches of lines in:\n{}\n\nin matching band:\n{}",
                   replacement,
-                  "\n\nin mathcing band:\n",
                   band)
 
               pos.lines[j] = k;
@@ -1252,9 +1238,8 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
         pos.band == -1 or std::any_of(pos.lines.begin(),
                                       pos.lines.end(),
                                       [](auto& a) { return a == -1; }),
-        "There is no match for replacement line:\n",
-        replacement,
-        "\nYou need to append the entire band")
+        "There is no match for replacement line:\n{}\nYou need to append the entire band",
+        replacement)
 
     // Add or change the line catalog
     auto& band = abs_lines[pos.band];
@@ -1412,9 +1397,8 @@ void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines) {
                      [&band](const AbsorptionLines& li) {
                        return band.Match(li).first;
                      }) not_eq abs_lines_copy.cend(),
-        "Dual bands with same setup is not allowed for mirroring of band:\n",
-        band,
-        '\n')
+        "Dual bands with same setup is not allowed for mirroring of band:\n{}\n",
+        band)
 
     for (auto& line : band.lines) {
       line.F0 *= -1;
@@ -1437,11 +1421,9 @@ void abs_lines_per_speciesManualMirroringSpecies(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& species) {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
-                     "Mismatch abs_species and abs_lines_per_species sizes [",
+                     "Mismatch abs_species and abs_lines_per_species, sizes {} vs {}, respectively",
                      abs_species.size(),
-                     " vs ",
-                     abs_lines_per_species.size(),
-                     ", respectively]")
+                     abs_lines_per_species.size())
 
   if (auto ind = std::distance(
           abs_species.cbegin(),
@@ -1449,11 +1431,9 @@ void abs_lines_per_speciesManualMirroringSpecies(
       static_cast<Size>(ind) not_eq abs_species.size()) {
     abs_linesManualMirroring(abs_lines_per_species[ind]);
   } else {
-    ARTS_USER_ERROR("Cannot find species: ",
+    ARTS_USER_ERROR("Cannot find species: {}\nIn abs_species: [{}]",
                     species,
-                    "\nIn abs_species: [",
-                    abs_species,
-                    ']')
+                    abs_species)
   }
 }
 
@@ -1824,9 +1804,8 @@ void abs_linesChangeBaseParameterForMatchingLines(
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -1925,9 +1904,8 @@ void abs_linesBaseParameterMatchingLines(ArrayOfAbsorptionLines& abs_lines,
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -1985,11 +1963,9 @@ void abs_linesLineShapeModelParametersMatchingLines(
 
   ARTS_USER_ERROR_IF(new_values.size() not_eq LineShape::ModelParameters::N,
                      "Mismatch between input and expected number of variables\n"
-                     "\tInput is: ",
+                     "\tInput is: {} long but expects: {} values\n",
                      new_values.size(),
-                     " long but expects: ",
-                     LineShape::ModelParameters::N,
-                     " values\n")
+                     LineShape::ModelParameters::N)
 
   LineShape::ModelParameters newdata;
   newdata.type = to<LineShapeTemperatureModelOld>(temperaturemodel);
@@ -2074,9 +2050,8 @@ void abs_linesChangeBaseParameterForMatchingLevel(
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -2097,9 +2072,8 @@ void abs_linesChangeBaseParameterForMatchingLevel(
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -2179,9 +2153,8 @@ void abs_linesBaseParameterMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -2196,9 +2169,8 @@ void abs_linesBaseParameterMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
             break;
           default: {
             ARTS_USER_ERROR(
-                "Usupported paramter_name\n",
-                parameter_name,
-                "\nSee method description for supported parameter names.\n")
+                "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",
+                parameter_name)
           }
         }
       }
@@ -2284,17 +2256,17 @@ void abs_lines_per_speciesPopulationNlteField(
       ARTS_USER_ERROR_IF(
           not(low == 0 or low == band.NumLines()) or
               not(upp == 0 or upp == band.NumLines()),
-          "The band with metadata:\n",
+          "The band with metadata:\n{}"
+          "\n\nwith lines:\n{}"
+          "\n\nThe number of levels don't add upp correctly.\n There are {}"
+          " lines but there are {}"
+          " lower level matches and {}"
+          " upper level matches.",
           band.MetaData(),
-          "\n\nwith lines:\n",
           band.lines,
-          "\n\nThe number of levels don't add upp correctly.\n There are ",
           band.NumLines(),
-          " lines but there are ",
           low,
-          " lower level matches and ",
-          upp,
-          " upper level matches.")
+          upp)
 
       if (upp or low) band.population = poptyp;
     }
@@ -2516,9 +2488,9 @@ void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines& abs_lines,
                                      const Index& safe,
                                      const Index& flip_flims) {
   ARTS_USER_ERROR_IF(
-      species.size() not_eq 1, "Must have a single species, got: ", species)
+      species.size() not_eq 1, "Must have a single species, got: {}", species)
   ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(),
-                     "Cannot give joker species, got: ",
+                     "Cannot give joker species, got: {}",
                      species)
 
   remove_impl(abs_lines,

@@ -4,7 +4,7 @@
 
 #include <format>
 #include <functional>
-#include <ostream>
+#include <iosfwd>
 
 #include "format_tags.h"
 #include "lin_alg.h"
@@ -577,9 +577,7 @@ class main_data {
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
 
-  friend std::ostream& operator<<(std::ostream& os, const main_data&) {
-    return os << "Not implemented, output stream operator\n";
-  }
+  friend std::ostream& operator<<(std::ostream& os, const main_data&);
 };
 }  // namespace disort
 

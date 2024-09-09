@@ -19,9 +19,8 @@
 #include <exception>
 #include <format>
 #include <functional>
-#include <iomanip>
+#include <iosfwd>
 #include <limits>
-#include <ostream>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -181,7 +180,7 @@ using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric, Numeric) const { ARTS_USER_ERROR(error) }
+  Numeric operator()(Numeric, Numeric, Numeric) const { ARTS_USER_ERROR("{}", error) }
 };
 
 template <typename T>

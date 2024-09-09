@@ -205,7 +205,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
  * @return Index Pos of unique element or len-1
  */
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
-                                 const ArrayOfIndex& lower) ARTS_NOEXCEPT;
+                                 const ArrayOfIndex& lower) ;
 
 /** Checks that a WSV is OK or throws a run-time error
  * 

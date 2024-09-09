@@ -5,8 +5,6 @@
 #include <matpack_math.h>
 
 #include <limits>
-#include <source_location>
-#include <sstream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -123,16 +121,14 @@ constexpr std::string shape(const auto&) { return "()"; }
 
 template <std::array... cs>
 std::string error_msg(const auto&... xs) {
-  std::ostringstream os;
-  os << "operands could not be broadcast together with shapes ";
-  ((os << shape(xs) << ' '), ...);
-  return os.str();
+  std::string out{"operands could not be broadcast together with shapes "};
+  return out + (std::format("{} ", shape(xs)) + ...);
 }
 
 template <std::array... cs>
 constexpr bool good_sizes(const auto&... xs) {
   constexpr char first_char = detail::find_first_char<cs...>();
-  const std::size_t n = detail::mddimsize<first_char, cs...>(xs...);
+  const std::size_t n       = detail::mddimsize<first_char, cs...>(xs...);
   return ((detail::mddimsize<first_char, cs>(xs) ==
                std::numeric_limits<std::size_t>::max() or
            n == detail::mddimsize<first_char, cs>(xs)) and
@@ -143,14 +139,14 @@ constexpr bool good_sizes(const auto&... xs) {
 template <typename T, std::array... cs>
 constexpr T einsum_reduce(const auto&... xs) {
   ARTS_ASSERT((detail::good_sizes<cs...>(xs...)),
-              "einsum_reduce: ",
+              "einsum_reduce: {}",
               detail::error_msg<cs...>(xs...))
 
   if constexpr ((detail::empty<cs>() and ...)) {
     return static_cast<T>((xs * ...));
   } else {
     constexpr char first_char = detail::find_first_char<cs...>();
-    const std::size_t n = detail::mddimsize<first_char, cs...>(xs...);
+    const std::size_t n       = detail::mddimsize<first_char, cs...>(xs...);
 
     T sum{};
     for (std::size_t i = 0; i < n; ++i) {
@@ -215,7 +211,7 @@ template <std::array cr, std::array... cs>
 constexpr void einsum_arr(auto&& xr, const auto&... xs) {
   assert((detail::good_sizes<cr, cs...>(xr, xs...)));
   ARTS_ASSERT((detail::good_sizes<cr, cs...>(xr, xs...)),
-              "einsum: ",
+              "einsum: {}",
               detail::error_msg<cr, cs...>(xr, xs...))
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
@@ -231,7 +227,7 @@ constexpr void einsum_arr(auto&& xr, const auto&... xs) {
 
   else {
     constexpr char first_char = find_first_char<cr>();
-    const std::size_t n = mddimsize<first_char, cr>(xr);
+    const std::size_t n       = mddimsize<first_char, cr>(xr);
     for (std::size_t i = 0; i < n; i++) {
       einsum_arr<reduce_charrank<first_char, cr>(),
                  reduce_charrank<first_char, cs>()...>(

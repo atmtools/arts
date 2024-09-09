@@ -92,7 +92,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
             atm() | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
-        "Multiple targets of the same type: ",
+        "Multiple targets of the same type: {}",
         t.type)
     t.x_start  = last_size;
     t.x_size   = atmospheric_field[t.type].flat_view().size();
@@ -104,7 +104,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
     ARTS_USER_ERROR_IF(std::ranges::any_of(surf() | std::views::drop(i + 1),
                                            Cmp::eq(t.type),
                                            &SurfaceTarget::type),
-                       "Multiple targets of the same type: ",
+                       "Multiple targets of the same type: {}",
                        t.type)
     t.x_start  = last_size;
     t.x_size   = surface_field[t.type].flat_view().size();
@@ -116,7 +116,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
     ARTS_USER_ERROR_IF(std::ranges::any_of(line() | std::views::drop(i + 1),
                                            Cmp::eq(t.type),
                                            &LineTarget::type),
-                       "Multiple targets of the same type: ",
+                       "Multiple targets of the same type: {}",
                        t.type)
     t.x_start  = last_size;
     t.x_size   = 1;

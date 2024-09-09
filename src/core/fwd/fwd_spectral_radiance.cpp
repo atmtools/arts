@@ -167,7 +167,7 @@ spectral_radiance::spectral_radiance(
       }
     }
 
-    ARTS_USER_ERROR_IF(not errors.empty(), errors)
+    ARTS_USER_ERROR_IF(not errors.empty(), "{}", errors)
   }
 }
 

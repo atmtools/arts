@@ -23,9 +23,9 @@
 #include "check_input.h"
 #include "matpack_complex.h"
 
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
-inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
+inline constexpr Numeric DEG2RAD  = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG  = Conversion::rad2deg(1);
+inline constexpr Numeric TEMP_0_C = Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -66,11 +66,11 @@ void complex_n_water_liebe93(Matrix& complex_n,
   // Implementation following epswater93.m (by C. Mätzler), part of Atmlab,
   // but numeric values strictly following the paper version (146, not 146.4)
   const Numeric theta = 1 - 300 / t;
-  const Numeric e0 = 77.66 - 103.3 * theta;
-  const Numeric e1 = 0.0671 * e0;
-  const Numeric f1 = 20.2 + 146 * theta + 316 * theta * theta;
-  const Numeric e2 = 3.52;
-  const Numeric f2 = 39.8 * f1;
+  const Numeric e0    = 77.66 - 103.3 * theta;
+  const Numeric e1    = 0.0671 * e0;
+  const Numeric f1    = 20.2 + 146 * theta + 316 * theta * theta;
+  const Numeric e2    = 3.52;
+  const Numeric f2    = 39.8 * f1;
 
   for (Index iv = 0; iv < nf; iv++) {
     const Complex ifGHz(0.0, f_grid[iv] / 1e9);
@@ -116,23 +116,23 @@ void complex_n_ice_matzler06(Matrix& complex_n,
   // some parametrization constants
   const Numeric B1 = 0.0207;
   const Numeric B2 = 1.16e-11;
-  const Numeric b = 335.;
+  const Numeric b  = 335.;
 
   const Numeric deltabeta = exp(-9.963 + 0.0372 * (t - 273));
-  const Numeric ebdt = exp(b / t);
-  const Numeric betam = (B1 / t) * ebdt / ((ebdt - 1.) * (ebdt - 1.));
+  const Numeric ebdt      = exp(b / t);
+  const Numeric betam     = (B1 / t) * ebdt / ((ebdt - 1.) * (ebdt - 1.));
 
   const Numeric theta = 300. / t - 1;
-  const Numeric alfa = (0.00504 + 0.0062 * theta) * exp(-22.1 * theta);
-  const Numeric reps = 3.1884 + 9.1e-4 * (t - 273);
+  const Numeric alfa  = (0.00504 + 0.0062 * theta) * exp(-22.1 * theta);
+  const Numeric reps  = 3.1884 + 9.1e-4 * (t - 273);
 
   for (Index iv = 0; iv < nf; iv++) {
-    Numeric f = f_grid[iv] / 1e9;
+    Numeric f    = f_grid[iv] / 1e9;
     Numeric beta = betam + B2 * f * f + deltabeta;
     Numeric ieps = alfa / f + beta * f;
 
     Complex eps(reps, ieps);
-    Complex n = sqrt(eps);
+    Complex n        = sqrt(eps);
     complex_n(iv, 0) = n.real();
     complex_n(iv, 1) = n.imag();
   }
@@ -147,39 +147,39 @@ void refractive_index_water_and_steam_VisNIR(Numeric& n,
   const Numeric wavelength = Conversion::freq2wavelen(frequency) * 1e6;  // [µm]
 
   //Reference values
-  const Numeric T_star = 273.15;      // [K]
-  const Numeric rho_star = 1000;      // [kg/m^3]
-  const Numeric lambda_star = 0.589;  // [µm]
+  const Numeric T_star      = 273.15;  // [K]
+  const Numeric rho_star    = 1000;    // [kg/m^3]
+  const Numeric lambda_star = 0.589;   // [µm]
 
   //check input
-  bool T_ok = (temperature > T_star - 12) && (temperature < T_star + 500);
+  bool T_ok   = (temperature > T_star - 12) && (temperature < T_star + 500);
   bool rho_ok = (density > 0) && (density < 1060);
   bool wvl_ok = (wavelength > 0.2) && (wavelength < 1.9);
 
   if (only_valid_range) {
     ARTS_USER_ERROR_IF(!T_ok,
                        "Refractive index is calculated outside range of "
-                       "validity \n",
-                       "Temperature must be between ",
-                       T_star - 12,
-                       "K and ",
-                       T_star + 500,
+                       "validity \n"
+                       "Temperature must be between {}"
+                       "K and {}"
                        "K\n"
-                       "Desired temperature: ",
-                       temperature,
-                       "K \n")
+                       "Desired temperature: {}"
+                       "K \n",
+                       T_star - 12,
+                       T_star + 500,
+                       temperature)
 
     ARTS_USER_ERROR_IF(!rho_ok,
                        "Refractive index is calculated outside range of "
-                       "validity \n",
-                       "Density must be between ",
-                       0,
-                       "kg m^-3 and ",
-                       1060,
+                       "validity \n"
+                       "Density must be between {}"
+                       "kg m^-3 and {}"
                        "kg m^-3\n"
-                       "Desired density: ",
-                       density,
-                       "kg m^-3 \n")
+                       "Desired density: {}"
+                       "kg m^-3 \n",
+                       0,
+                       1060,
+                       density)
 
     Numeric frq_upper_limit = Conversion::wavelen2freq(0.2 * 1e-6);
     Numeric frq_lower_limit = Conversion::wavelen2freq(1.9 * 1e-6);
@@ -187,14 +187,13 @@ void refractive_index_water_and_steam_VisNIR(Numeric& n,
     ARTS_USER_ERROR_IF(!wvl_ok,
                        "Refractive index is calculated outside range of "
                        "validity \n",
-                       "Frequency must be between ",
-                       frq_lower_limit,
-                       "Hz and ",
-                       frq_upper_limit,
+                       "Frequency must be between {}",
+                       "Hz and {}",
                        "Hz\n"
-                       "Desired density: ",
-                       frequency,
-                       "Hz \n")
+                       "Desired density: {}Hz\n",
+                       frq_lower_limit,
+                       frq_upper_limit,
+                       frequency)
   }
 
   //coefficients
@@ -211,27 +210,27 @@ void refractive_index_water_and_steam_VisNIR(Numeric& n,
   const Numeric lambda_ir = 5.432937;
 
   //normalize input variables
-  Numeric T_bar = temperature / T_star;
-  Numeric rho_bar = density / rho_star;
+  Numeric T_bar      = temperature / T_star;
+  Numeric rho_bar    = density / rho_star;
   Numeric lambda_bar = wavelength / lambda_star;
 
   //set up right hands side of eq A1
-  Numeric rhs = a0;
-  rhs += a1 * rho_bar;
-  rhs += a2 * T_bar;
-  rhs += a3 * lambda_bar * lambda_bar * T_bar;
-  rhs += a4 / (lambda_bar * lambda_bar);
-  rhs += a5 / (lambda_bar * lambda_bar - lambda_uv * lambda_uv);
-  rhs += a6 / (lambda_bar * lambda_bar - lambda_ir * lambda_ir);
-  rhs += a7 * rho_bar * rho_bar;
+  Numeric rhs  = a0;
+  rhs         += a1 * rho_bar;
+  rhs         += a2 * T_bar;
+  rhs         += a3 * lambda_bar * lambda_bar * T_bar;
+  rhs         += a4 / (lambda_bar * lambda_bar);
+  rhs         += a5 / (lambda_bar * lambda_bar - lambda_uv * lambda_uv);
+  rhs         += a6 / (lambda_bar * lambda_bar - lambda_ir * lambda_ir);
+  rhs         += a7 * rho_bar * rho_bar;
 
   Complex a;
   a = rho_bar * rhs;
 
   //solve Eq A1 (see paper in documentation after n
-  Complex n_cmplx = sqrt(-2 * a - 1);
-  n_cmplx /= sqrt(a - 1);
+  Complex n_cmplx  = sqrt(-2 * a - 1);
+  n_cmplx         /= sqrt(a - 1);
 
   //refractive index
-  n = - real(n_cmplx);
+  n = -real(n_cmplx);
 }

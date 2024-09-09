@@ -90,7 +90,7 @@ void WriteXML(  //WS Input:
     }
   }
 
-  ARTS_USER_ERROR_IF (errmsg.length(), errmsg);
+  ARTS_USER_ERROR_IF (errmsg.length(), "{}", errmsg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

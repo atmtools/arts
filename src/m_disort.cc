@@ -43,18 +43,18 @@ disort_sizes disort_get_and_check_sizes(
   ARTS_USER_ERROR_IF(not same_shape(disort_optical_thicknesses,
                                     disort_single_scattering_albedo,
                                     disort_fractional_scattering),
-                     std::format(R"(Bad shapes: {:B,} != {:B,} != {:B,}
+                     R"(Bad shapes: {:B,} != {:B,} != {:B,}
 
 disort_optical_thicknesses.shape()      = {:B,},
 disort_single_scattering_albedo.shape() = {:B,},
 disort_fractional_scattering.shape()    = {:B,}
 )",
-                                 disort_optical_thicknesses.shape(),
-                                 disort_single_scattering_albedo.shape(),
-                                 disort_fractional_scattering.shape(),
-                                 disort_optical_thicknesses.shape(),
-                                 disort_single_scattering_albedo.shape(),
-                                 disort_fractional_scattering.shape()))
+                     disort_optical_thicknesses.shape(),
+                     disort_single_scattering_albedo.shape(),
+                     disort_fractional_scattering.shape(),
+                     disort_optical_thicknesses.shape(),
+                     disort_single_scattering_albedo.shape(),
+                     disort_fractional_scattering.shape())
 
   const Index nv = disort_optical_thicknesses.nrows();
   const Index np = disort_optical_thicknesses.ncols();
@@ -63,32 +63,32 @@ disort_fractional_scattering.shape()    = {:B,}
                                     disort_solar_zenith_angle,
                                     disort_solar_azimuth_angle,
                                     disort_solar_source),
-                     std::format(R"(Bad shapes: [{}] != {:B,} != {:B,} != {:B,}
+                     R"(Bad shapes: [{}] != {:B,} != {:B,} != {:B,}
 
 disort_solar_zenith_angle.shape()  = {:B,},
 disort_solar_azimuth_angle.shape() = {:B,},
 disort_solar_source.shape()        = {:B,}
 )",
-                                 nv,
-                                 disort_solar_zenith_angle.shape(),
-                                 disort_solar_azimuth_angle.shape(),
-                                 disort_solar_source.shape(),
-                                 disort_solar_zenith_angle.shape(),
-                                 disort_solar_azimuth_angle.shape(),
-                                 disort_solar_source.shape()))
+                     nv,
+                     disort_solar_zenith_angle.shape(),
+                     disort_solar_azimuth_angle.shape(),
+                     disort_solar_source.shape(),
+                     disort_solar_zenith_angle.shape(),
+                     disort_solar_azimuth_angle.shape(),
+                     disort_solar_source.shape())
 
   const auto nleg = disort_legendre_coefficients.ncols();
   ARTS_USER_ERROR_IF(disort_legendre_coefficients.npages() != nv or
                          disort_legendre_coefficients.nrows() != np,
-                     std::format(R"(Bad shapes: [{}, {}, {}] != {:B,}
+                     R"(Bad shapes: [{}, {}, {}] != {:B,}
 
 disort_legendre_coefficients.shape() = {:B,}
 )",
-                                 nv,
-                                 np,
-                                 nleg,
-                                 disort_legendre_coefficients.shape(),
-                                 disort_legendre_coefficients.shape()))
+                     nv,
+                     np,
+                     nleg,
+                     disort_legendre_coefficients.shape(),
+                     disort_legendre_coefficients.shape())
 
   const Index nfou       = disort_negative_boundary_condition.nrows();
   const Index nquad_half = disort_negative_boundary_condition.ncols();
@@ -96,47 +96,47 @@ disort_legendre_coefficients.shape() = {:B,}
   ARTS_USER_ERROR_IF(not same_shape(std::array{nv, nfou, nquad_half},
                                     disort_negative_boundary_condition,
                                     disort_positive_boundary_condition),
-                     std::format(R"(Bad shapes: [{}, {}, {}] != {:B,} != {:B,}
+                     R"(Bad shapes: [{}, {}, {}] != {:B,} != {:B,}
 
 disort_negative_boundary_condition.shape() = {:B,},
 disort_positive_boundary_condition.shape() = {:B,}
 )",
-                                 nv,
-                                 nfou,
-                                 nquad_half,
-                                 disort_negative_boundary_condition.shape(),
-                                 disort_positive_boundary_condition.shape(),
-                                 disort_negative_boundary_condition.shape(),
-                                 disort_positive_boundary_condition.shape()))
+                     nv,
+                     nfou,
+                     nquad_half,
+                     disort_negative_boundary_condition.shape(),
+                     disort_positive_boundary_condition.shape(),
+                     disort_negative_boundary_condition.shape(),
+                     disort_positive_boundary_condition.shape())
 
   const Index nsource = disort_source_polynomial.ncols();
 
   ARTS_USER_ERROR_IF(disort_source_polynomial.npages() != nv or
                          disort_source_polynomial.nrows() != np,
-                     std::format(R"(Bad shapes: [{}, {}, {}] != {:B,}
+                     R"(Bad shapes: [{}, {}, {}] != {:B,}
 
 disort_source_polynomial.shape() = {:B,}
 )",
-                                 nv,
-                                 np,
-                                 nsource,
-                                 disort_source_polynomial.shape(),
-                                 disort_source_polynomial.shape()))
+                     nv,
+                     np,
+                     nsource,
+                     disort_source_polynomial.shape(),
+                     disort_source_polynomial.shape())
 
   const auto nbdrf =
       disort_bidirectional_reflectance_distribution_functions.ncols();
 
   ARTS_USER_ERROR_IF(
       disort_bidirectional_reflectance_distribution_functions.nrows() != nv,
-      std::format(
-          R"(Bad shapes: [{} {}] != {:B,}
+
+      R"(Bad shapes: [{} {}] != {:B,}
 
 disort_bidirectional_reflectance_distribution_functions.shape() = {:B,}
 )",
-          nv,
-          nbdrf,
-          disort_bidirectional_reflectance_distribution_functions.shape(),
-          disort_bidirectional_reflectance_distribution_functions.shape()))
+      nv,
+      nbdrf,
+      disort_bidirectional_reflectance_distribution_functions.shape(),
+      disort_bidirectional_reflectance_distribution_functions.shape())
 
   return {.nv      = nv,
           .np      = np,
@@ -229,7 +229,7 @@ void disort_spectral_radiance_fieldCalc(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
 
 void disort_spectral_flux_fieldCalc(
@@ -305,7 +305,7 @@ void disort_spectral_flux_fieldCalc(
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -323,10 +323,9 @@ void spectral_radianceIntegrateDisort(
 void SpectralFluxDisort(Matrix& spectral_flux_field_up,
                         Matrix& spectral_flux_field_down,
                         const Tensor3& disort_spectral_flux_field) {
-  ARTS_USER_ERROR_IF(
-      disort_spectral_flux_field.nrows() != 3,
-      std::format("Must have shape (*, 3, *), but got shape {:B,}",
-                  disort_spectral_flux_field.shape()))
+  ARTS_USER_ERROR_IF(disort_spectral_flux_field.nrows() != 3,
+                     "Must have shape (*, 3, *), but got shape {:B,}",
+                     disort_spectral_flux_field.shape())
 
   spectral_flux_field_up    = disort_spectral_flux_field(joker, 0, joker);
   spectral_flux_field_down  = disort_spectral_flux_field(joker, 1, joker);

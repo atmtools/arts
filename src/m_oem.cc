@@ -53,7 +53,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
         break;
       }
     }
-    ARTS_USER_ERROR_IF(iq < 0, "Could not find ", species, " in abs_species.\n")
+    ARTS_USER_ERROR_IF(iq < 0, "Could not find {} in abs_species.\n", species)
   }
 
   Tensor4Clip(vmr_field, iq, limit_low, limit_high);
@@ -64,11 +64,10 @@ void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
                                      const Vector& retrieval_values) {
   ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
                      sz not_eq static_cast<Size>(retrieval_values.size()),
-                     "Mismatch between size expected of jacobian_targets (",
+                     "Mismatch between size expected of jacobian_targets ("
+                     "{}) and retrieval_values ({})",
                      sz,
-                     ") and retrieval_values (",
-                     retrieval_values.size(),
-                     ')')
+                     retrieval_values.size())
 
   for (auto& target : jacobian_targets.atm()) {
     target.update(atm_field, retrieval_values);
@@ -164,12 +163,12 @@ void OEM(const Workspace& ws,
   ARTS_USER_ERROR_IF(
       measurement_vector_fitted.nelem() not_eq measurement_vector.nelem(),
       "Mismatch between simulated y and input y.\n"
-      "Input y is size ",
-      measurement_vector.nelem(),
-      " but simulated y is ",
-      measurement_vector_fitted.nelem(),
+      "Input y is size {}"
+      " but simulated y is {}"
       "\n"
-      "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n")
+      "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n",
+      measurement_vector.nelem(),
+      measurement_vector_fitted.nelem())
 
   // TODO: Get this from invlib log.
   // Start value of cost function
@@ -243,7 +242,7 @@ void OEM(const Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
-        ARTS_USER_ERROR(method, " is not supported")
+        ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
@@ -268,7 +267,7 @@ void OEM(const Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
-        ARTS_USER_ERROR(method, " is not supported")
+        ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, (unsigned int)max_iter, s);
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
@@ -418,9 +417,10 @@ void model_state_covariance_matrix_smoothing_errorCalc(
   ARTS_USER_ERROR_IF(
       n == 0,
       "The averaging kernel matrix *measurement_gain_matrix* is required to compute the smoothing error covariance matrix.");
-  ARTS_USER_ERROR_IF((model_state_covariance_matrix.nrows() != n) ||
-                         (model_state_covariance_matrix.ncols() != n),
-                     "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
+  ARTS_USER_ERROR_IF(
+      (model_state_covariance_matrix.nrows() != n) ||
+          (model_state_covariance_matrix.ncols() != n),
+      "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
 
   model_state_covariance_matrix_smoothing_error.resize(n, n);
 
@@ -441,14 +441,13 @@ void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
                      "The Jacobian matrix is empty.");
 
   ARTS_USER_ERROR_IF((measurement_gain_matrix.shape() != std::array{n, m}),
-                     std::format(
-                         R"(Matrices have inconsistent sizes.
+                     R"(Matrices have inconsistent sizes.
 
 measurement_gain_matrix: {:B,},
 measurement_jacobian:    {:B,}
 )",
-                         measurement_gain_matrix.shape(),
-                         measurement_jacobian.shape()));
+                     measurement_gain_matrix.shape(),
+                     measurement_jacobian.shape());
 
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel,

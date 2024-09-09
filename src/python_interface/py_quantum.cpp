@@ -62,7 +62,7 @@ void py_quantum(py::module_& m) try {
       .def(
           "get",
           [](QuantumNumberValueList& x, QuantumNumberType y) {
-            ARTS_USER_ERROR_IF(not x.has(y), "Out of range: ", y) return x[y];
+            ARTS_USER_ERROR_IF(not x.has(y), "Out of range: {}", y) return x[y];
           },
           "qt"_a,
           R"(Set a quantum number value
@@ -139,7 +139,7 @@ qn : ~pyarts.arts.QuantumNumberValue
           },
           [](QuantumIdentifier& qid, SpeciesIsotope& iso) {
             Index res = Species::find_species_index(iso);
-            ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
+            ARTS_USER_ERROR_IF(res < 0, "Bad species: {}", iso)
             qid.isotopologue_index = res;
           },
           ":class:`SpeciesIsotope` The isotopologue")

@@ -30,7 +30,7 @@ std::istream& operator>>(std::istream& is, Rational& a) {
   is >> s;
   a = Rational(s);
 
-  ARTS_USER_ERROR_IF(a.isUndefined(), "Cannot read ", s, " as a rational")
+  ARTS_USER_ERROR_IF(a.isUndefined(), "Cannot read {} as rational", s)
 
   return is;
 }
@@ -49,17 +49,15 @@ Rational::Rational(const String& s) {
       try {
         *this = Rational(std::stoi(a), std::stoi(b));
       } catch (...) {
-        ARTS_USER_ERROR("Cannot interpret either '",
+        ARTS_USER_ERROR("Cannot interpret either '{}' or '{}' as an integer (or neither)",
                         a,
-                        "' or '",
-                        b,
-                        "' as an integer (or both)");
+                        b);
       }
     } else {
       try {
         *this = Rational(std::stoi(s));
       } catch (...) {
-        ARTS_USER_ERROR("Cannot interpret '", s, "' as an integer");
+        ARTS_USER_ERROR("Cannot interpret '{}' as an integer", s);
       }
     }
   } else {

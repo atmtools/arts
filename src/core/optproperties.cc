@@ -19,21 +19,20 @@
 
 #include "optproperties.h"
 
+#include <array.h>
+#include <arts_conversions.h>
+#include <matpack.h>
+
 #include <cfloat>
 #include <cmath>
 
 #include "check_input.h"
 #include "interpolation.h"
 
-#include <array.h>
-#include <arts_conversions.h>
-#include <matpack.h>
-
-
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 using Constant::pi;
-inline constexpr Numeric PI=pi;
+inline constexpr Numeric PI = pi;
 
 #define F11 pha_mat_int[0]
 #define F12 pha_mat_int[1]
@@ -144,8 +143,8 @@ void opt_prop_ScatSpecBulk(   //Output
   ARTS_ASSERT(TotalNumberOfElements(abs_vec_se) == pnds.nrows());
   ARTS_ASSERT(ext_mat_se.size() == abs_vec_se.size());
 
-  const Index nT = pnds.ncols();
-  const Index nf = abs_vec_se[0][0].nbooks();
+  const Index nT   = pnds.ncols();
+  const Index nf   = abs_vec_se[0][0].nbooks();
   const Index nDir = abs_vec_se[0][0].nrows();
 
   const Index nss = ext_mat_se.size();
@@ -174,18 +173,18 @@ void opt_prop_ScatSpecBulk(   //Output
       for (Index Tind = 0; Tind < nT; Tind++) {
         if (pnds(i_se_flat, Tind) != 0.) {
           if (t_ok(i_se_flat, Tind) > 0.) {
-            ext_tmp = ext_mat_se[i_ss][i_se](joker, Tind, joker, joker, joker);
+            ext_tmp  = ext_mat_se[i_ss][i_se](joker, Tind, joker, joker, joker);
             ext_tmp *= pnds(i_se_flat, Tind);
             ext_mat[i_ss](joker, Tind, joker, joker, joker) += ext_tmp;
 
-            abs_tmp = abs_vec_se[i_ss][i_se](joker, Tind, joker, joker);
+            abs_tmp  = abs_vec_se[i_ss][i_se](joker, Tind, joker, joker);
             abs_tmp *= pnds(i_se_flat, Tind);
             abs_vec[i_ss](joker, Tind, joker, joker) += abs_tmp;
           } else {
-            ARTS_USER_ERROR (
-              "Interpolation error for (flat-array) scattering element #",
-              i_se_flat, "\n"
-              "at location/temperature point #", Tind, "\n")
+            ARTS_USER_ERROR(
+                "Interpolation error for (flat-array) scattering element #{}\nat location/temperature point #{}\n",
+                i_se_flat,
+                Tind)
           }
         }
       }
@@ -238,7 +237,7 @@ void opt_prop_NScatElems(            //Output
     const Index& t_interp_order) {
   Index f_start, nf;
   if (f_index < 0) {
-    nf = scat_data[0][0].ext_mat_data.nshelves();
+    nf      = scat_data[0][0].ext_mat_data.nshelves();
     f_start = 0;
     //f_end = f_start+nf;
   } else {
@@ -250,7 +249,7 @@ void opt_prop_NScatElems(            //Output
     //f_end = f_start+nf;
   }
 
-  const Index nT = T_array.size();
+  const Index nT   = T_array.size();
   const Index nDir = dir_array.nrows();
 
   const Index nss = scat_data.size();
@@ -312,11 +311,10 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
     ConstVectorView T_grid,
     const Vector& T_array,
     const Index& t_interp_order) {
-  const Index nTin = T_grid.size();
+  const Index nTin  = T_grid.size();
   const Index nTout = T_array.size();
 
   this_T_interp_order = -1;
-
 
   if (nTin > 1) {
     this_T_interp_order = std::min(t_interp_order, nTin - 1);
@@ -336,7 +334,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
     bool any_T_exceed = false;
     for (Index Tind = 0; Tind < nTout; Tind++) {
       if (T_array[Tind] < lowlim || T_array[Tind] > uplim) {
-        t_ok[Tind] = -1.;
+        t_ok[Tind]   = -1.;
         any_T_exceed = true;
       } else
         t_ok[Tind] = 1.;
@@ -366,7 +364,8 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
       }
       return T_lag;
     } else {
-      return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(T_array, T_grid, this_T_interp_order, extrapolfac);
+      return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          T_array, T_grid, this_T_interp_order, extrapolfac);
     }
   } else {
     t_ok = 1.;
@@ -453,11 +452,8 @@ void opt_prop_1ScatElem(  //Output
   // calculate them once).
   const Index nTin = ssd.T_grid.size();
   Index this_T_interp_order;
-  const auto T_lag =  ssd_tinterp_parameters(t_ok,
-                                             this_T_interp_order,
-                                             ssd.T_grid,
-                                             T_array,
-                                             t_interp_order);
+  const auto T_lag = ssd_tinterp_parameters(
+      t_ok, this_T_interp_order, ssd.T_grid, T_array, t_interp_order);
   const auto T_itw_lag = interpweights(T_lag);
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
@@ -481,7 +477,7 @@ void opt_prop_1ScatElem(  //Output
       for (Index Tind = 0; Tind < nTout; Tind++)
         for (Index dind = 0; dind < nDir; dind++) {
           ext_mat(joker, Tind, dind, joker, joker) = ext_mat_tmp;
-          abs_vec(joker, Tind, dind, joker) = abs_vec_tmp;
+          abs_vec(joker, Tind, dind, joker)        = abs_vec_tmp;
         }
     } else  // T-interpolation required (but not dir). To be done on the compact
             // ssd format.
@@ -494,7 +490,8 @@ void opt_prop_1ScatElem(  //Output
         for (Index nst = 0; nst < ext_mat_tmp_ssd.ncols(); nst++) {
           reinterp(ext_mat_tmp_ssd(joker, nst),
                    ssd.ext_mat_data(find + f_start, joker, 0, 0, nst),
-                   T_itw_lag, T_lag);
+                   T_itw_lag,
+                   T_lag);
         }
         for (Index Tind = 0; Tind < nTout; Tind++)
           if (t_ok[Tind] > 0.)
@@ -521,7 +518,7 @@ void opt_prop_1ScatElem(  //Output
 
       for (Index dind = 0; dind < nDir; dind++) {
         ext_mat(joker, joker, dind, joker, joker) = ext_mat_tmp;
-        abs_vec(joker, joker, dind, joker) = abs_vec_tmp;
+        abs_vec(joker, joker, dind, joker)        = abs_vec_tmp;
       }
     }
 
@@ -573,7 +570,7 @@ void opt_prop_1ScatElem(  //Output
 
       for (Index Tind = 0; Tind < nTout; Tind++) {
         ext_mat(joker, Tind, joker, joker, joker) = ext_mat_tmp;
-        abs_vec(joker, Tind, joker, joker) = abs_vec_tmp;
+        abs_vec(joker, Tind, joker, joker)        = abs_vec_tmp;
       }
     } else  // T- and dir-interpolation required. To be done on the compact ssd
             // format.
@@ -654,10 +651,10 @@ void ext_mat_SSD2Stokes(  //Output
   }
 
   if (ptype > PTYPE_TOTAL_RND) {
-        ext_mat_stokes(2, 3) = ext_mat_ssd[2];
-        ext_mat_stokes(3, 2) = -ext_mat_ssd[2];
-        ext_mat_stokes(0, 1) = ext_mat_ssd[1];
-        ext_mat_stokes(1, 0) = ext_mat_ssd[1];
+    ext_mat_stokes(2, 3) = ext_mat_ssd[2];
+    ext_mat_stokes(3, 2) = -ext_mat_ssd[2];
+    ext_mat_stokes(0, 1) = ext_mat_ssd[1];
+    ext_mat_stokes(1, 0) = ext_mat_ssd[1];
   }
 }
 
@@ -761,8 +758,8 @@ void pha_mat_ScatSpecBulk(    //Output
   ARTS_ASSERT(t_ok.ncols() == pnds.ncols());
   ARTS_ASSERT(TotalNumberOfElements(pha_mat_se) == pnds.nrows());
 
-  const Index nT = pnds.ncols();
-  const Index nf = pha_mat_se[0][0].nvitrines();
+  const Index nT    = pnds.ncols();
+  const Index nf    = pha_mat_se[0][0].nvitrines();
   const Index npDir = pha_mat_se[0][0].nbooks();
   const Index niDir = pha_mat_se[0][0].npages();
 
@@ -790,10 +787,10 @@ void pha_mat_ScatSpecBulk(    //Output
             pha_tmp *= pnds(i_se_flat, Tind);
             pha_mat[i_ss](joker, Tind, joker, joker, joker, joker) += pha_tmp;
           } else {
-            ARTS_USER_ERROR (
-              "Interpolation error for (flat-array) scattering element #",
-              i_se_flat, "\n"
-              "at location/temperature point #", Tind, "\n")
+            ARTS_USER_ERROR(
+                "Interpolation error for (flat-array) scattering element #{}\nat location/temperature point #{}\n",
+                i_se_flat,
+                Tind)
           }
         }
       }
@@ -839,7 +836,7 @@ void pha_mat_NScatElems(             //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    
+
     const Vector& T_array,
     const Matrix& pdir_array,
     const Matrix& idir_array,
@@ -847,7 +844,7 @@ void pha_mat_NScatElems(             //Output
     const Index& t_interp_order) {
   Index f_start, nf;
   if (f_index < 0) {
-    nf = scat_data[0][0].pha_mat_data.nlibraries();
+    nf      = scat_data[0][0].pha_mat_data.nlibraries();
     f_start = 0;
     //f_end = f_start+nf;
   } else {
@@ -859,7 +856,7 @@ void pha_mat_NScatElems(             //Output
     //f_end = f_start+nf;
   }
 
-  const Index nT = T_array.size();
+  const Index nT    = T_array.size();
   const Index npDir = pdir_array.nrows();
   const Index niDir = idir_array.nrows();
 
@@ -955,11 +952,8 @@ void pha_mat_1ScatElem(   //Output
   // calculate them once).
   const Index nTin = ssd.T_grid.size();
   Index this_T_interp_order;
-  const auto T_lag = ssd_tinterp_parameters(t_ok,
-                                            this_T_interp_order,
-                                            ssd.T_grid,
-                                            T_array,
-                                            t_interp_order);
+  const auto T_lag = ssd_tinterp_parameters(
+      t_ok, this_T_interp_order, ssd.T_grid, T_array, t_interp_order);
   const auto T_itw_lag = interpweights(T_lag);
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
@@ -1083,8 +1077,8 @@ void pha_mat_1ScatElem(   //Output
             (pdir_array(pdir, 1) - idir_array(idir, 1) < -180) * 360 -
             (pdir_array(pdir, 1) - idir_array(idir, 1) > 180) * 360;
         adelta_aa[j] = abs(delta_aa(pdir, idir));
-        pza_gp[j] = pza_gp_tmp[pdir];
-        iza_gp[j] = iza_gp_tmp[idir];
+        pza_gp[j]    = pza_gp_tmp[pdir];
+        iza_gp[j]    = iza_gp_tmp[idir];
         j++;
       }
     }
@@ -1368,11 +1362,11 @@ void ext_matTransform(  //Output and Input
 
       ext_mat_lab = 0.0;
 
-      Kjj = interp(itw, ext_mat_data(Range(joker), 0, 0), gp);
+      Kjj                = interp(itw, ext_mat_data(Range(joker), 0, 0), gp);
       ext_mat_lab[0].A() = Kjj;
-      K12 = interp(itw, ext_mat_data(Range(joker), 0, 1), gp);
+      K12                = interp(itw, ext_mat_data(Range(joker), 0, 1), gp);
       ext_mat_lab[0].B() = K12;
-      K34 = interp(itw, ext_mat_data(Range(joker), 0, 2), gp);
+      K34                = interp(itw, ext_mat_data(Range(joker), 0, 2), gp);
       ext_mat_lab[0].W() = K34;
       break;
     }
@@ -1441,7 +1435,7 @@ void pha_matTransform(  //Output
     }
     case PTYPE_TOTAL_RND: {
       // Calculate the scattering angle and interpolate the data in it:
-      Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
+      Numeric theta_rad   = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
       const Numeric theta = RAD2DEG * theta_rad;
 
       // Interpolation of the data on the scattering angle:
@@ -1482,7 +1476,7 @@ void pha_matTransform(  //Output
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        
+
         pha_mat_lab(0, 1) =
             interp(itw,
                    pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 1),
@@ -1501,7 +1495,7 @@ void pha_matTransform(  //Output
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        
+
         if (delta_aa >= 0) {
           pha_mat_lab(0, 2) = interp(
               itw,
@@ -1559,7 +1553,7 @@ void pha_matTransform(  //Output
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
-        
+
         if (delta_aa >= 0) {
           pha_mat_lab(0, 3) = interp(
               itw,
@@ -1720,10 +1714,10 @@ Numeric scat_angle(const Numeric& za_sca,
     if (theta_rad > PI) {
       theta_rad = 2 * PI - theta_rad;
     }
-  } else {theta_rad =
-      acos(Conversion::cosd(za_sca) * Conversion::cosd(za_inc) +
-           Conversion::sind(za_sca) * Conversion::sind(za_inc) *
-           Conversion::cosd(aa_sca - aa_inc));
+  } else {
+    theta_rad = acos(Conversion::cosd(za_sca) * Conversion::cosd(za_inc) +
+                     Conversion::sind(za_sca) * Conversion::sind(za_inc) *
+                         Conversion::cosd(aa_sca - aa_inc));
   }
   return theta_rad;
 }
@@ -1805,15 +1799,16 @@ void pha_mat_labCalc(  //Output:
     const Numeric& za_inc,
     const Numeric& aa_inc,
     const Numeric& theta_rad) {
-  ARTS_USER_ERROR_IF (std::isnan(F11),
-        "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
-        "input data contain NaNs? Please check with *scat_dataCheck*. If "
-        "input data are OK and you critically need the ongoing calculations, "
-        "try to change the observation LOS slightly. If you can reproduce "
-        "this error, please contact Patrick in order to help tracking down "
-        "the reason to this problem. If you see this message occasionally "
-        "when doing MC calculations, it should not be critical. This path "
-        "sampling will be rejected and replaced with a new one.");
+  ARTS_USER_ERROR_IF(
+      std::isnan(F11),
+      "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
+      "input data contain NaNs? Please check with *scat_dataCheck*. If "
+      "input data are OK and you critically need the ongoing calculations, "
+      "try to change the observation LOS slightly. If you can reproduce "
+      "this error, please contact Patrick in order to help tracking down "
+      "the reason to this problem. If you see this message occasionally "
+      "when doing MC calculations, it should not be critical. This path "
+      "sampling will be rejected and replaced with a new one.");
 
   pha_mat_lab(0, 0) = F11;
 
@@ -1831,12 +1826,14 @@ void pha_mat_labCalc(  //Output:
     // Several cases have to be considered:
     //
 
-    if ((abs(theta_rad) < ANGTOL_RAD)          // forward scattering
+    if ((abs(theta_rad) < ANGTOL_RAD)                    // forward scattering
         || (abs(theta_rad - Constant::pi) < ANGTOL_RAD)  // backward scattering
         ||
         (abs(aa_inc_rad - aa_sca_rad) < ANGTOL_RAD)  // inc and sca on meridian
-        || (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::two_pi) < ANGTOL_RAD)  //   "
-        || (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::pi) < ANGTOL_RAD)  //   "
+        || (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::two_pi) <
+            ANGTOL_RAD)  //   "
+        ||
+        (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::pi) < ANGTOL_RAD)  //   "
     ) {
       pha_mat_lab(0, 1) = F12;
       pha_mat_lab(1, 0) = F12;
@@ -1900,7 +1897,7 @@ void pha_mat_labCalc(  //Output:
           if (abs(s2 + 1) < ANGTOL_RAD) sigma2 = pi;
         }
       }
-    
+
       const Numeric C1 = cos(2 * sigma1);
       const Numeric C2 = cos(2 * sigma2);
 
@@ -1914,16 +1911,17 @@ void pha_mat_labCalc(  //Output:
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(0,1)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,0)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,1)));
-      ARTS_USER_ERROR_IF (std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
-          std::isnan(pha_mat_lab(1, 1)),
-            "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "
-            "input data contain NaNs? Please check with *scat_dataCheck*. If "
-            "input data are OK  and you critically need the ongoing calculations, "
-            "try to change the observation LOS slightly. If you can reproduce "
-            "this error, please contact Patrick in order to help tracking down "
-            "the reason to this problem. If you see this message occasionally "
-            "when doing MC calculations, it should not be critical. This path "
-            "sampling will be rejected and replaced with a new one.");
+      ARTS_USER_ERROR_IF(
+          std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
+              std::isnan(pha_mat_lab(1, 1)),
+          "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "
+          "input data contain NaNs? Please check with *scat_dataCheck*. If "
+          "input data are OK  and you critically need the ongoing calculations, "
+          "try to change the observation LOS slightly. If you can reproduce "
+          "this error, please contact Patrick in order to help tracking down "
+          "the reason to this problem. If you see this message occasionally "
+          "when doing MC calculations, it should not be critical. This path "
+          "sampling will be rejected and replaced with a new one.");
 
       {
         /*CPD: For skokes_dim > 2 some of the transformation formula
@@ -1969,7 +1967,8 @@ void pha_mat_labCalc(  //Output:
   }
 }
 
-std::ostream& operator<<(std::ostream& os, const SingleScatteringData& /*ssd*/) {
+std::ostream& operator<<(std::ostream& os,
+                         const SingleScatteringData& /*ssd*/) {
   os << "SingleScatteringData: Output operator not implemented";
   return os;
 }
@@ -2000,7 +1999,7 @@ void opt_prop_sum_propmat_clearsky(  //Output:
     StokvecVector& abs_vec,
     //Input:
     const PropmatVector& propmat_clearsky) {
-   const Index freq_dim = propmat_clearsky.size();
+  const Index freq_dim = propmat_clearsky.size();
 
   // old abs_vecInit
   abs_vec.resize(freq_dim);
@@ -2034,10 +2033,12 @@ PType PTypeFromString(const String& ptype_string) {
   else if (ptype_string == "azimuthally_random")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR (
-      "Unknown ptype: ", ptype_string, "\n"
-      "Valid types are: general, totally_random and "
-      "azimuthally_random.")
+    ARTS_USER_ERROR(
+        "Unknown ptype: {}"
+        "\n"
+        "Valid types are: general, totally_random and "
+        "azimuthally_random.",
+        ptype_string)
   }
 
   return ptype;
@@ -2063,10 +2064,12 @@ PType PType2FromString(const String& ptype_string) {
   else if (ptype_string == "horizontally_aligned")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR (
-      "Unknown ptype: ", ptype_string, "\n"
-       "Valid types are: general, macroscopically_isotropic and "
-       "horizontally_aligned.")
+    ARTS_USER_ERROR(
+        "Unknown ptype: {}"
+        "\n"
+        "Valid types are: general, macroscopically_isotropic and "
+        "horizontally_aligned.",
+        ptype_string)
   }
 
   return ptype;
@@ -2095,9 +2098,8 @@ String PTypeToString(const PType& ptype) {
       ptype_string = "azimuthally_random";
       break;
     default:
-      ARTS_USER_ERROR (
-                          "Internal error: Cannot map PType enum value ",
-                          ptype, " to String.")
+      ARTS_USER_ERROR(
+          "Internal error: Cannot map PType enum value {} to String.", ptype)
       break;
   }
 
@@ -2117,12 +2119,14 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // 1) Is za_grid symmetric and includes 90deg?
   Index nza = ssd.za_grid.size();
   for (Index i = 0; i < nza / 2; i++) {
-    ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+    ARTS_USER_ERROR_IF(
+        !is_same_within_epsilon(
             180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * DBL_EPSILON),
         "Zenith grid of azimuthally_random single scattering data\n"
         "is not symmetric with respect to 90degree.")
   }
-  ARTS_USER_ERROR_IF (!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * DBL_EPSILON),
+  ARTS_USER_ERROR_IF(
+      !is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * DBL_EPSILON),
       "Zenith grid of azimuthally_random single scattering data\n"
       "does not contain 90 degree grid point.")
 
@@ -2198,8 +2202,8 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
 
   // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
   // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
-  tmpT7(joker, joker, joker, joker, joker, joker, Range(2, 2)) *= -1.;
-  tmpT7(joker, joker, joker, joker, joker, joker, Range(6, 4)) *= -1.;
+  tmpT7(joker, joker, joker, joker, joker, joker, Range(2, 2))  *= -1.;
+  tmpT7(joker, joker, joker, joker, joker, joker, Range(6, 4))  *= -1.;
   tmpT7(joker, joker, joker, joker, joker, joker, Range(12, 2)) *= -1.;
 
   // For second half of incident polar angles (>90deg), we need to mirror the
@@ -2226,10 +2230,11 @@ ParticleSSDMethod ParticleSSDMethodFromString(
   if (particle_ssdmethod_string == "tmatrix")
     particle_ssdmethod = PARTICLE_SSDMETHOD_TMATRIX;
   else {
-    ARTS_USER_ERROR (
-                        "Unknown particle SSD method: ",
-                        particle_ssdmethod_string, "\n"
-                        "Valid methods: tmatrix")
+    ARTS_USER_ERROR(
+        "Unknown particle SSD method: {}"
+        "\n"
+        "Valid methods: tmatrix",
+        particle_ssdmethod_string)
   }
 
   return particle_ssdmethod;
@@ -2252,15 +2257,14 @@ String PTypeToString(const ParticleSSDMethod& particle_ssdmethod) {
       particle_ssdmethod_string = "tmatrix";
       break;
     default:
-      ARTS_USER_ERROR (
-        "Internal error: Cannot map ParticleSSDMethod enum value ",
-        particle_ssdmethod, " to String.")
+      ARTS_USER_ERROR(
+          "Internal error: Cannot map ParticleSSDMethod enum value {} to String.",
+          particle_ssdmethod)
       break;
   }
 
   return particle_ssdmethod_string;
 }
-
 
 //! Extinction, absorption and phase function for one scattering species, 1D and TRO
 /*!
@@ -2301,10 +2305,10 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstVectorView sa_grid,
                            const Index f_index) {
   // Sizes
-  const Index nse = scat_data.size();
+  const Index nse                 = scat_data.size();
   [[maybe_unused]] const Index nt = T_grid.size();
-  const Index nsa = sa_grid.size();
-  const Index ncl = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  const Index nsa                 = sa_grid.size();
+  const Index ncl                 = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index nf;
   if (f_index == -1) {
     nf = scat_data[0].f_grid.size();
@@ -2326,19 +2330,19 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   // Check that all data is TRO
   {
     bool all_totrand = true;
-    bool temp_const = false;
+    bool temp_const  = false;
     for (Index ie = 0; ie < nse; ie++) {
-      if (scat_data[ie].ptype != PTYPE_TOTAL_RND)
-        all_totrand = false;
+      if (scat_data[ie].ptype != PTYPE_TOTAL_RND) all_totrand = false;
 
       if (scat_data[ie].T_grid.size() == 1) {
         temp_const = true;
       }
     }
-    ARTS_USER_ERROR_IF (!all_totrand,
-                        "This method demands that all scat_data are TRO");
+    ARTS_USER_ERROR_IF(!all_totrand,
+                       "This method demands that all scat_data are TRO");
 
-    ARTS_USER_ERROR_IF( temp_const, "This method demands that the scat data \n"
+    ARTS_USER_ERROR_IF(temp_const,
+                       "This method demands that the scat data \n"
                        "must not be constant in temperature.");
   }
 
@@ -2346,26 +2350,33 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   const Index cl_start = cloudbox_limits[0];
   Vector T_values(ncl);
   ArrayOfIndex cboxlayer(ncl);
-  
+
   // Loop scattering elements
   for (Index ie = 0; ie < nse; ie++) {
     // Allowed temperature range
     const Index last = scat_data[ie].T_grid.size() - 1;
-    const Numeric tmin = 1.5*scat_data[ie].T_grid[0] -
-      0.5*scat_data[ie].T_grid[1];
-    const Numeric tmax = 1.5*scat_data[ie].T_grid[last] -
-      0.5*scat_data[ie].T_grid[last-1];
-    
+    const Numeric tmin =
+        1.5 * scat_data[ie].T_grid[0] - 0.5 * scat_data[ie].T_grid[1];
+    const Numeric tmax =
+        1.5 * scat_data[ie].T_grid[last] - 0.5 * scat_data[ie].T_grid[last - 1];
+
     Index nvals = 0;
-    for(Index icl=0; icl<ncl; ++icl){
+    for (Index icl = 0; icl < ncl; ++icl) {
       // Nothing to do if PND is zero
-      if (abs(pnd_data(ie,icl)) > 1e-3) {
+      if (abs(pnd_data(ie, icl)) > 1e-3) {
         const Numeric Tthis = T_grid[cl_start + icl];
-        ARTS_USER_ERROR_IF(Tthis < tmin || Tthis > tmax,
-          "Temperature interpolation error for scattering element ", ie,
-          " of species ", iss, "\nYour temperature: ", Tthis, " K\n"
-          "Allowed range of temperatures: ", tmin, " - ", tmax, " K");
-        T_values[nvals] = Tthis;
+        ARTS_USER_ERROR_IF(
+            Tthis < tmin || Tthis > tmax,
+            "Temperature interpolation error for scattering element {}"
+            " of species {} \n"
+            "Your temperature: {} K\n"
+            "Allowed range of temperatures: {} - {} K",
+            ie,
+            iss,
+            Tthis,
+            tmin,
+            tmax);
+        T_values[nvals]  = Tthis;
         cboxlayer[nvals] = icl;
         nvals++;
       }
@@ -2374,7 +2385,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
     if (nvals > 0) {
       // Temperature-only interpolation weights
       ArrayOfGridPos gp_t(nvals);
-      gridpos(gp_t, scat_data[ie].T_grid, T_values[Range(0,nvals)]);
+      gridpos(gp_t, scat_data[ie].T_grid, T_values[Range(0, nvals)]);
       Matrix itw1(nvals, 2);
       interpweights(itw1, gp_t);
 
@@ -2402,8 +2413,8 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
 
           // Add to container variables
           for (Index i = 0; i < nvals; i++) {
-            const Index ic = cboxlayer[i];
-            const Index it = cl_start + ic;
+            const Index ic    = cboxlayer[i];
+            const Index it    = cl_start + ic;
             ext_data(iv, it) += pnd_data(ie, ic) * ext1[i];
             abs_data(iv, it) += pnd_data(ie, ic) * abs1[i];
             for (Index ia = 0; ia < nsa; ia++) {
@@ -2431,8 +2442,8 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
 
         // Add to container variables
         for (Index i = 0; i < nvals; i++) {
-          const Index ic = cboxlayer[i];
-          const Index it = cl_start + ic;
+          const Index ic   = cboxlayer[i];
+          const Index it   = cl_start + ic;
           ext_data(0, it) += pnd_data(ie, ic) * ext1[i];
           abs_data(0, it) += pnd_data(ie, ic) * abs1[i];
           for (Index ia = 0; ia < nsa; ia++) {
@@ -2444,24 +2455,25 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   }
 }
 
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfSingleScatteringData& x) {
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfSingleScatteringData& x) {
   for (auto& a : x) os << a << '\n';
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSingleScatteringData& x) {
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfSingleScatteringData& x) {
   for (auto& a : x) os << a << '\n';
   return os;
 }
-
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfScatteringMetaData& x) {
   for (auto& a : x) os << a << '\n';
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfScatteringMetaData& x) {
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfScatteringMetaData& x) {
   for (auto& a : x) os << a << '\n';
   return os;
 }

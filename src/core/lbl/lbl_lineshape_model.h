@@ -8,7 +8,7 @@
 #include <matpack.h>
 
 #include <format>
-#include <ostream>
+#include <iosfwd>
 #include <vector>
 
 #include "lbl_temperature_model.h"

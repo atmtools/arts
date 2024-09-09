@@ -33,10 +33,9 @@ std::filesystem::path correct_include_path(
   }
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                     "Cannot find file: ",
+                     "Cannot find file: {}\n"
+                     "Search path: {}",
                      path_copy.string(),
-                     '\n',
-                     "Search path: ",
                      parameters.includepath)
 
   // Must add the direcory to include paths as controlfiles know where they are
@@ -94,7 +93,7 @@ void py_agenda(py::module_& m) try {
           [](Method* me, const std::string& n, const PyWSV& v) {
             new (me) Method{n,
                             std::visit([](auto a) { return Wsv(std::move(a)); },
-                                       from_py(v).value)};
+                                       from_py(v).value())};
           },
           "name"_a,
           "wsv"_a,
@@ -120,7 +119,7 @@ void py_agenda(py::module_& m) try {
                          []<WorkspaceGroup T>(std::shared_ptr<T>& x) {
                            return from<T>(x);
                          },
-                         v.value);
+                         v.value());
                    })
       .def(
           "__str__",
@@ -183,14 +182,10 @@ so Copy(a, out=b) will not even see the b variable.
                  ag_.get_name() not_eq va.front().get_name(),
                  "An ArrayOfAgenda must only consist of agendas with the same name\n"
                  "You have input a list of agendas that contains disimilar names.\n"
-                 "\nThe first item is named: \"",
+                 "\nThe first item is named: \"{}\"\n"
+                 "A later item in the list is names: \"{}\"\n",
                  va.front().get_name(),
-                 '"',
-                 '\n',
-                 "A later item in the list is names: \"",
-                 ag_.get_name(),
-                 '"',
-                 '\n')
+                 ag_.get_name())
            }
            new (a) ArrayOfAgenda(std::move(va));
          },

@@ -593,13 +593,13 @@ void Tensor4Clip(Tensor4 &x,
   ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
   ARTS_USER_ERROR_IF(iq >= nq,
                      "Argument *iq* is too high.\n"
-                     "You have selected index: ",
+                     "You have selected index: {}"
+                     "\n"
+                     "but the number of quantities is only: {}"
+                     "\n"
+                     "(Note that zero-based indexing is used)\n",
                      iq,
-                     "\n"
-                     "but the number of quantities is only: ",
-                     nq,
-                     "\n"
-                     "(Note that zero-based indexing is used)\n")
+                     nq)
 
   Index ifirst = 0, ilast = nq - 1;
   if (iq > -1) {

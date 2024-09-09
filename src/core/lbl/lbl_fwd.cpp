@@ -184,7 +184,7 @@ std::pair<Complex, Complex> lte::operator()(const Numeric frequency) const {
   const auto scl = [N = number_density(atm->pressure, atm->temperature),
                     T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r = (Constant::h * f) / (Constant::k * T);
+    const Numeric r     = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
@@ -197,7 +197,7 @@ std::pair<Complex, Complex> lte_mirror::operator()(
   const auto scl = [N = number_density(atm->pressure, atm->temperature),
                     T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r = (Constant::h * f) / (Constant::k * T);
+    const Numeric r     = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
@@ -215,7 +215,7 @@ std::pair<Complex, Complex> nlte::operator()(const Numeric frequency) const {
         return N * f * c;  // * std::expm1(-r); ??? It feels like LTE term...
       }(frequency);
 
-  auto [a, s] = lines(frequency);
+  auto [a, s]   = lines(frequency);
   auto [ac, sc] = cutoff_lines(cutoff, frequency);
 
   ARTS_ASSERT(a == s and ac == sc and (a == Complex{0.0, 0.0}))
@@ -271,8 +271,8 @@ void lte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
               std::shared_ptr<AtmPoint> atm_,
               zeeman::pol pol_) {
   bands = std::move(bands_);
-  atm = std::move(atm_);
-  pol = pol_;
+  atm   = std::move(atm_);
+  pol   = pol_;
   adapt();
 }
 
@@ -280,8 +280,8 @@ void lte_mirror::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
                      std::shared_ptr<AtmPoint> atm_,
                      zeeman::pol pol_) {
   bands = std::move(bands_);
-  atm = std::move(atm_);
-  pol = pol_;
+  atm   = std::move(atm_);
+  pol   = pol_;
   adapt();
 }
 
@@ -289,8 +289,8 @@ void nlte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
                std::shared_ptr<AtmPoint> atm_,
                zeeman::pol pol_) {
   bands = std::move(bands_);
-  atm = std::move(atm_);
-  pol = pol_;
+  atm   = std::move(atm_);
+  pol   = pol_;
   adapt();
 }
 }  // namespace models
@@ -303,9 +303,8 @@ line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
         band.lineshape != LineByLineLineshape::VP_LTE and
             band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
             band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
-        "Lineshape not supported ",
-        '"', band.lineshape, '"',
-        " for band: ",
+        "Lineshape not supported \"{}\" for band: {}",
+        band.lineshape,
         qid)
   }
 

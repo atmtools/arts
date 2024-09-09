@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <mutex>
-#include <ostream>
+#include <iosfwd>
 #include <random>
 #include <vector>
 

@@ -6,7 +6,6 @@ class Workspace;
 #include <format_tags.h>
 
 #include <functional>
-#include <ostream>
 #include <string>
 #include <string_view>
 #include <vector>

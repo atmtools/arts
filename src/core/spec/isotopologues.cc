@@ -126,7 +126,7 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 #undef deal_with_spec
 
   ;
-  ARTS_USER_ERROR("Cannot understand: ", spec)
+  ARTS_USER_ERROR("Cannot understand: {}", spec)
 }
 
 String isotopologues_names(SpeciesEnum spec) {

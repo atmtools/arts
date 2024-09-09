@@ -33,9 +33,9 @@ int main() {
   //! Ensure that the difference is within the machine epsilon
   for (auto& x : dense_y) {
     ARTS_USER_ERROR_IF(std::abs(x) > 10*std::numeric_limits<Numeric>::epsilon(),
-                       "Error in band matrix solver!\nOutput supposed to be: ",
+                       "Error in band matrix solver!\nOutput supposed to be: {}"
+                       "\nBut diff between dense and banded matrix solutions are: {}",
                        sparse_b,
-                       "\nBut diff between dense and banded matrix solutions are: ",
                        dense_y)
   }
 

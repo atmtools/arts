@@ -54,9 +54,9 @@ band_matrix::band_matrix(const Matrix& ab)
 
 Numeric& band_matrix::operator()(Index i, Index j) {
   ARTS_ASSERT(
-      i >= start_row(j), "Out of lower bound. limit: ", start_row(j), " vs ", i)
+      i >= start_row(j), "Out of lower bound. limit: {} vs {}", start_row(j), i)
   ARTS_ASSERT(
-      i < end_row(j), "Out of upper bound. limit: ", end_row(j), " vs ", i)
+      i < end_row(j), "Out of upper bound. limit: {} vs {}", end_row(j), i)
   return AB(j, KU + KL + i - j);
 }
 

@@ -61,7 +61,9 @@ TimeStep Time::seconds_into_day() const {
   return TimeStep(x.tm_hour * 3600 + x.tm_min * 60 + x.tm_sec + PartOfSecond());
 }
 
-Time::InternalTimeStep Time::EpochTime() const { return time.time_since_epoch(); }
+Time::InternalTimeStep Time::EpochTime() const {
+  return time.time_since_epoch();
+}
 
 // Operations
 Time::InternalTimeStep Time::operator-(const Time& t) const noexcept {
@@ -185,13 +187,10 @@ std::istream& operator>>(std::istream& is, Time& t) {
   ARTS_USER_ERROR_IF(
       YMD.size() not_eq 3 or HMS.size() not_eq 3,
       "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-      "\"year-month-day\"   looks like: \"",
+      "\"year-month-day\"   looks like: \"{}\"\n"
+      "\"hour:min:seconds\" looks like: \"{}\"",
       ymd,
-      '"',
-      '\n',
-      "\"hour:min:seconds\" looks like: \"",
-      hms,
-      '"');
+      hms);
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
   int year{}, month{}, day{};
@@ -205,10 +204,8 @@ std::istream& operator>>(std::istream& is, Time& t) {
   ARTS_USER_ERROR_IF(std::make_error_code(res_year.ec) or
                          std::make_error_code(res_mon.ec) or
                          std::make_error_code(res_day.ec),
-                     "Cannot understand time point for year-month-day: ",
-                     '"',
-                     ymd,
-                     '"')
+                     "Cannot understand time point for year-month-day: \"{}\"",
+                     ymd)
   ARTS_USER_ERROR_IF(year < 1900,
                      "We cannot yet support times before the year 1900")
 
@@ -221,13 +218,11 @@ std::istream& operator>>(std::istream& is, Time& t) {
   auto res_sec = fast_float::from_chars(
       HMS[2].c_str(), HMS[2].c_str() + HMS[2].size(), sec);
 
-  ARTS_USER_ERROR_IF(std::make_error_code(res_hour.ec) or
-                         std::make_error_code(res_min.ec) or
-                         std::make_error_code(res_sec.ec),
-                     "Cannot understand time point for hour:minute:second in: ",
-                     '"',
-                     hms,
-                     '"')
+  ARTS_USER_ERROR_IF(
+      std::make_error_code(res_hour.ec) or std::make_error_code(res_min.ec) or
+          std::make_error_code(res_sec.ec),
+      "Cannot understand time point for hour:minute:second in: \"{}\"",
+      hms)
 
   std::tm tm_struct{};
   tm_struct.tm_year  = year - 1900;
@@ -247,12 +242,12 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E) {
   if (e == -1) e = ts.size();
   ARTS_USER_ERROR_IF(
       e < 0 or e > static_cast<Index>(ts.size()),
-      "Bad last index, valid options are [-1, ts.nelem()], got: ",
+      "Bad last index, valid options are [-1, ts.nelem()], got: {}",
       E);
 
   ARTS_USER_ERROR_IF(
       s < 0 or s > static_cast<Index>(ts.size()),
-      "Bad first index, valid options are [0, ts.nelem()], got: ",
+      "Bad first index, valid options are [0, ts.nelem()], got: {}",
       s);
 
   Time::InternalTimeStep dt(0);

@@ -779,7 +779,7 @@ struct IsotopologueRatios {
     for (auto& x : data) x = std::numeric_limits<Numeric>::quiet_NaN();
   }
 
-  constexpr Numeric operator[](const Index spec_ind) const ARTS_NOEXCEPT {
+  constexpr Numeric operator[](const Index spec_ind) const  {
     ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
     return data[spec_ind];
   }
@@ -787,9 +787,8 @@ struct IsotopologueRatios {
   constexpr Numeric operator[](const Isotope& ir) const {
     const Index spec_ind = find_species_index(ir);
     ARTS_USER_ERROR_IF(spec_ind >= maxsize or spec_ind < 0,
-                       "Cannot understand: ",
-                       ir.FullName(),
-                       " as a valid species")
+                       "Cannot understand: {} as a valid species",
+                       ir.FullName())
     return data[spec_ind];
   }
 

@@ -4,9 +4,8 @@
 
 #include "configtypes.h"
 #include "debug.h"
-#include "rtepack.h"
-
 #include "mh_checks.h"
+#include "rtepack.h"
 
 void ray_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector& ray_path_transmission_matrix,
@@ -24,17 +23,16 @@ void ray_path_transmission_matrixFromPath(
                                        ray_path_propagation_matrix,
                                        ray_path_propagation_matrix_jacobian,
                                        ray_path_atmospheric_point),
-                     std::format(
-                         R"(Not same sizes:
+                     R"(Not same sizes:
 
 ray_path.size()                             = {},
 ray_path_propagation_matrix.size()          = {},
 ray_path_propagation_matrix_jacobian.size() = {},
 ray_path_atmospheric_point.size()           = {})",
-                         ray_path.size(),
-                         ray_path_propagation_matrix.size(),
-                         ray_path_propagation_matrix_jacobian.size(),
-                         ray_path_atmospheric_point.size()));
+                     ray_path.size(),
+                     ray_path_propagation_matrix.size(),
+                     ray_path_propagation_matrix_jacobian.size(),
+                     ray_path_atmospheric_point.size());
 
   // HSE variables
   const Index temperature_derivative_position =
