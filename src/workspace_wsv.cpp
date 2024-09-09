@@ -26,10 +26,8 @@ Wsv& Wsv::operator=(Wsv&& x) noexcept {
 }
 
 Wsv::~Wsv() {
-  if (data != nullptr) {
-    data->~WsvValueWrapper();
-    data = nullptr;
-  }
+  delete data;
+  data = nullptr;
 }
 
 Wsv Wsv::copy() const {
