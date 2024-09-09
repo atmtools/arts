@@ -20,13 +20,15 @@ Wsv& Wsv::operator=(const Wsv& x) {
 Wsv& Wsv::operator=(Wsv&& x) noexcept {
   if (data != x.data) this->~Wsv();
 
-  std::swap(data, x.data);
+  data = x.data;
+  x.data = nullptr;
 
   return *this;
 }
 
 Wsv::~Wsv() {
   delete data;
+
   data = nullptr;
 }
 
