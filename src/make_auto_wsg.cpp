@@ -86,11 +86,6 @@ template <typename T>
 concept WorkspaceGroupIsPrintable  = requires(T a) {
   std::ostringstream{} << a;
 };
-
-template <typename T>
-concept WorkspaceGroupIsFormattable  = requires(T a) {
-  std::format("{}", a);
-};
 )";
 
   os << '\n';
@@ -276,7 +271,6 @@ template <> {}& Wsv::get<{}>() const {{
 static_assert(WorkspaceGroupIsDefaultConstructible<{}>, "Must be default constructible");
 static_assert(WorkspaceGroupIsCopyable<{}>, "Must be possible to copy");
 static_assert(WorkspaceGroupIsPrintable<{}>, "Must be printable");
-static_assert(WorkspaceGroupIsFormattable<{}>, "Must be formattable");
 static_assert(arts_formattable_or_value_type<{}>, "Must be formattable according to ARTS rules");
 )-x-",
                       group,
