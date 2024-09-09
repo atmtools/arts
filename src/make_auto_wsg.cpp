@@ -60,15 +60,16 @@ void header(std::ostream& os) {
     for (const auto& group : groups) {
       os << group << ", ";
     }
-    os << "\n#include <" << file << ">\n\n";
+    os << std::format("\n#include <{}>\n\n", file);
   }
 
   os << "template <typename T>\nconcept WorkspaceGroup = false";
   for (auto& group : groups()) {
-    os << "\n  || std::is_same_v<T, " << group << ">";
+    os << std::format("\n  || std::is_same_v<T, {}>", group);
   }
-  os << "\n;\n\n";
-  os << "template <typename T>\nconcept QualifiedWorkspaceGroup = WorkspaceGroup<std::remove_cvref_t<T>>;\n\n";
+  os << "\n;\n\n"
+        "template <typename T>\nconcept QualifiedWorkspaceGroup "
+        "= WorkspaceGroup<std::remove_cvref_t<T>>;\n\n";
 
   os << R"(
 template <typename T>
@@ -86,14 +87,20 @@ concept WorkspaceGroupIsPrintable  = requires(T a) {
   std::ostringstream{} << a;
 };
 
+template <typename T>
+concept WorkspaceGroupIsFormattable  = requires(T a) {
+  std::format("{}", a);
+};
 )";
 
   os << '\n';
   for (auto& group : groups()) {
-    os << "void xml_read_from_stream(std::istream &, " << group
-       << " &, bifstream *);\n";
-    os << "void xml_write_to_stream(std::ostream &, const " << group
-       << " &, bofstream *, const String &);\n";
+    os << std::format(R"(
+void xml_read_from_stream(std::istream &, {}&, bifstream *);
+void xml_write_to_stream(std::ostream &, const {}&, bofstream *, const String &);
+)",
+                      group,
+                      group);
   }
 
   os << R"(
@@ -106,15 +113,19 @@ template <typename T> struct WorkspaceGroupInfo {
 
 )";
   for (auto& group : groups()) {
-    os << "template <> struct WorkspaceGroupInfo<" << group << "> {\n";
-    os << "  static constexpr std::string_view name = \"" << group << "\";\n";
-    os << "  static constexpr std::string_view file = \"" << data.at(group).file
-       << "\";\n";
-    os << "  static constexpr std::string_view desc = R\"--("
-       << data.at(group).desc << ")--\";\n";
-    os << "  static constexpr bool value_type = " << data.at(group).value_type
-       << ";\n";
-    os << "};\n\n";
+    os << std::format(R"(
+template <> struct WorkspaceGroupInfo<{}> {{
+  static constexpr std::string_view name = "{}";
+  static constexpr std::string_view file = "{}";
+  static constexpr std::string_view desc = R"--({})--";
+  static constexpr bool value_type = {};
+}};
+)",
+                      group,
+                      group,
+                      data.at(group).file,
+                      data.at(group).desc,
+                      data.at(group).value_type);
   }
 
   os << "using WsvValue = std::variant<";
@@ -122,7 +133,7 @@ template <typename T> struct WorkspaceGroupInfo {
   for (auto& group : groups()) {
     if (not first) os << ',';
     first = false;
-    os << "\n  std::shared_ptr<" << group << ">";
+    os << std::format("\n  std::shared_ptr<{}>", group);
   }
   os << ">;\n\n";
   os << "[[nodiscard]] bool valid_wsg(const std::string_view&);\n";
@@ -143,17 +154,20 @@ void implementation_init(std::ostream& os) {
 )--";
 
   for (auto&& group : groups()) {
-    os << "template <> Wsv::Wsv(" << group
-       << "&& x)  noexcept : data(new WsvValueWrapper{std::shared_ptr<" << group << ">(new "
-       << group << "{std::move(x)})}) {}\n";
-    os << "template <> Wsv::Wsv(const " << group
-       << "& x) : data(new WsvValueWrapper(std::shared_ptr<" << group << ">(new " << group
-       << "{x}))) {}\n";
-    os << "template <> Wsv::Wsv(" << group
-       << "* x)  noexcept : data(new WsvValueWrapper(std::shared_ptr<" << group
-       << ">(x, [](void*){}))) {}\n";
-    os << "template <> Wsv::Wsv(std::shared_ptr<" << group
-       << ">&& x)  noexcept : data(new WsvValueWrapper(std::move(x))) {}\n\n";
+    os << std::format(R"-x-(
+template <> Wsv::Wsv(std::shared_ptr<{}>&& x)  noexcept : data(new WsvValueWrapper(std::move(x))) {{}}
+template <> Wsv::Wsv({}&& x)  noexcept : Wsv(std::make_shared<{}>(std::forward<{}>(x))) {{}}
+template <> Wsv::Wsv(const {}& x) : Wsv(std::make_shared<{}>(x)) {{}}
+template <> Wsv::Wsv({}* x)  noexcept : Wsv(std::shared_ptr<{}>(x, [](void*){{}})) {{}}
+)-x-",
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group);
   }
 }
 
@@ -171,15 +185,21 @@ void implementation_share(std::ostream& os) {
 )--";
 
   os << R"(std::string_view Wsv::type_name() const {
-  switch(index()) {
-)";
+  switch(index()) {)";
 
   std::size_t i = 0;
   for (auto& group : groups()) {
-    os << "    case " << i << ":\n";
-    os << "      static_assert(std::same_as<std::shared_ptr<" << group
-       << ">, std::variant_alternative_t<" << i << ", WsvValue>>, \"Wrong type "
-       << group << "\");\n      return \"" << group << "\";\n";
+    os << std::format(R"(
+    case {}:
+      static_assert(std::same_as<std::shared_ptr<{}>,
+                                 std::variant_alternative_t<{}, WsvValue>>,
+                                 "Wrong type {}");
+      return "{}";)",
+                      i,
+                      group,
+                      i,
+                      group,
+                      group);
     i++;
   }
   os << R"--(  }
@@ -191,7 +211,7 @@ void implementation_share(std::ostream& os) {
 
   os << "bool valid_wsg(const std::string_view& x) {\n  constexpr static std::array val {\n";
   for (auto& group : groups()) {
-    os << "    \"" << group << "\", \n";
+    os << std::format("    \"{}\", \n", group);
   }
 
   os << R"--(  };
@@ -202,7 +222,7 @@ Wsv Wsv::from_named_type(const std::string& type) {
 )--";
 
   for (auto& group : groups()) {
-    os << "  if (type == \"" << group << "\") return " << group << "{};\n";
+    os << std::format("  if (type == \"{}\") return {}{{}};\n", group, group);
   }
 
   os << R"--( throw std::runtime_error(var_string("Unknown workspace group \"", type, '"'));
@@ -211,50 +231,59 @@ Wsv Wsv::from_named_type(const std::string& type) {
 )--";
 
   for (auto& group : groups()) {
-    os << "template <> bool Wsv::holds<" << group
-       << ">() const { return std::holds_alternative<std::shared_ptr<" << group
-       << ">>(value()); }\n\n";
+    os << std::format(R"-x-(
+template <> bool Wsv::holds<{}>() const {{
+  return std::holds_alternative<std::shared_ptr<{}>>(value());
+}}
+template <> const std::shared_ptr<{}>& Wsv::share_unsafe<{}>() const {{
+  return *std::get_if<std::shared_ptr<{}>>(data);
+}}
+template <> const std::shared_ptr<{}>& Wsv::share<{}>() const {{
+  ARTS_USER_ERROR_IF(not holds<{}>(),
+    R"(Cannot use workspace variable of workspace group "{{}}" as "{}")",
+    type_name());
 
-    os << "template <> const std::shared_ptr<" << group
-       << ">& Wsv::share_unsafe<" << group
-       << ">() const { return *std::get_if<std::shared_ptr<" << group
-       << ">>(data); }\n\n";
-
-    os << "template <> const std::shared_ptr<" << group << ">& Wsv::share<"
-       << group
-       << ">() const {\n"
-          "  if (not holds<"
-       << group
-       << ">()) {\n"
-          "    throw std::runtime_error(var_string(\"Cannot use workspace variable of workspace group \\\"\",\n"
-          "                                        type_name(),\n"
-          "                                        \"\\\" as \\\""
-       << group
-       << "\\\"\"));\n"
-          "  }\n"
-          "\n"
-          "  return share_unsafe<"
-       << group
-       << ">();\n"
-          "}\n\n";
-
-    os << "template <> " << group << "& Wsv::get_unsafe<" << group
-       << ">() const { return *share_unsafe<" << group << ">(); }\n\n";
-
-    os << "template <> " << group << "& Wsv::get<" << group
-       << ">() const { return *share<" << group << ">(); }\n\n";
+  return share_unsafe<{}>();
+}}
+template <> {}& Wsv::get_unsafe<{}>() const {{
+  return *share_unsafe<{}>();
+}}
+template <> {}& Wsv::get<{}>() const {{
+  return *share<{}>();
+}}
+)-x-",
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group);
   }
 
   // Static asserts
   for (auto& group : groups()) {
-    os << "static_assert(WorkspaceGroupIsDefaultConstructible<" << group
-       << ">, \"Must be default constructible\");\n";
-    os << "static_assert(WorkspaceGroupIsCopyable<" << group
-       << ">, \"Must be copyable\");\n";
-    os << "static_assert(WorkspaceGroupIsPrintable<" << group
-       << ">, \"Must be printable\");\n";
-    os << "static_assert(arts_formattable_or_value_type<" << group
-       << ">, \"Must be formattable according to ARTS rules\");\n";
+    os << std::format(R"-x-(
+static_assert(WorkspaceGroupIsDefaultConstructible<{}>, "Must be default constructible");
+static_assert(WorkspaceGroupIsCopyable<{}>, "Must be possible to copy");
+static_assert(WorkspaceGroupIsPrintable<{}>, "Must be printable");
+static_assert(WorkspaceGroupIsFormattable<{}>, "Must be formattable");
+static_assert(arts_formattable_or_value_type<{}>, "Must be formattable according to ARTS rules");
+)-x-",
+                      group,
+                      group,
+                      group,
+                      group,
+                      group);
   }
 }
 
@@ -269,41 +298,39 @@ void auto_workspace(std::ostream& os) {
 )--";
 
   for (auto& group : groups()) {
-    os << "template<> std::shared_ptr<" << group << "> Workspace::share_or<"
-       << group
-       << ">(const std::string& name) {\n"
-          "  if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {\n"
-          "    return ptr->second.template share<"
-       << group
-       << ">();\n"
-          "  }\n"
-          "\n";
-    os << "  Wsv out = " << group;
-    if (group == "Agenda") {
-      os << "{name}";
-    } else {
-      os << "{}";
-    }
-    os << ";\n"
-          "\n"
-          "  set(name, out);\n"
-          "  return out.share_unsafe<"
-       << group
-       << ">();\n"
-          "}\n\n";
+    os << std::format(R"(
+template<> std::shared_ptr<{}> Workspace::share_or<{}>(const std::string& name) {{
+  if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {{
+    return ptr->second.template share<{}>();
+  }}
 
-    os << "template <> " << group << "& Workspace::get_or<" << group
-       << ">(const std::string& name) {\n  return *share_or<" << group
-       << ">(name);\n}\n\n";
-    os << "template <> " << group << "& Workspace::get<" << group
-       << ">(const std::string& name) const try {\n  return wsv.at(name)."
-          "get<"
-       << group
-       << ">();\n} catch (std::out_of_range&) {\n"
-          "  throw std::runtime_error(var_string(\"Undefined workspace variable \", '\"', name, '\"'));\n"
-          "} catch (std::exception& e) {\n"
-          "  throw std::runtime_error(var_string(\"Error getting workspace variable \", '\"', name, '\"', \":\\n\", e.what()));\n"
-          "}\n\n";
+  Wsv out = {}{{}};
+
+  set(name, out);
+  return out.share_unsafe<{}>();
+}}
+template <> {}& Workspace::get_or<{}>(const std::string& name) {{
+  return *share_or<{}>(name);
+}}
+template <> {}& Workspace::get<{}>(const std::string& name) const try {{
+  return wsv.at(name).get<{}>();
+}} catch (std::out_of_range&) {{
+  throw std::runtime_error(var_string("Undefined workspace variable ", '"', name, '"'));
+}} catch (std::exception& e) {{
+  throw std::runtime_error(var_string("Error getting workspace variable ", '"', name, '"', ":\n", e.what()));
+}}
+)",
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group,
+                      group);
   }
 }
 
@@ -330,13 +357,14 @@ concept internally_consistent =
 )--";
 
   for (auto&& group : groups()) {
-    os << "static_assert(internally_consistent<" << group
-       << ">,\n     "
-          R"--(R"-x-("
+    os << std::format(R"(
+static_assert(internally_consistent<{}>,
+     R"-x-("
 This fails one of the following:
   1) It has either a value_type or a mapped_type templated type that is not a WSG (e.g., Array<NotWSG>)
-")-x-")--"
-       << ");\n";
+")-x-");
+)",
+                      group);
   }
 }
 

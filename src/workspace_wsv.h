@@ -15,14 +15,11 @@ class Wsv {
   Wsv& operator=(Wsv&&) noexcept;
   ~Wsv();
 
-  template <WorkspaceGroup T>
-  Wsv(T&&) noexcept;
-  template <WorkspaceGroup T>
-  Wsv(const T&);
-  template <WorkspaceGroup T>
-  Wsv(T*) noexcept;
-  template <WorkspaceGroup T>
-  Wsv(std::shared_ptr<T>&&) noexcept;
+  /* Auto-generated methods, see automatic functions for code */
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&&) noexcept;
+  template <WorkspaceGroup T> Wsv(T&&) noexcept;
+  template <WorkspaceGroup T> Wsv(T*) noexcept;
+  template <WorkspaceGroup T> Wsv(const T&);
 
   [[nodiscard]] Wsv copy() const;
 
@@ -30,7 +27,7 @@ class Wsv {
 
   [[nodiscard]] std::size_t index() const;
 
-  [[nodiscard]] bool holds_same(const Wsv& other) const;
+  [[nodiscard]] bool holds_same(const Wsv&) const;
 
   template <WorkspaceGroup T>
   [[nodiscard]] bool holds() const;
@@ -47,7 +44,7 @@ class Wsv {
   template <WorkspaceGroup T>
   [[nodiscard]] T& get() const;
 
-  [[nodiscard]] static Wsv from_named_type(const std::string& type);
+  [[nodiscard]] static Wsv from_named_type(const std::string&);
 
   [[nodiscard]] const WsvValue& value() const;
 
