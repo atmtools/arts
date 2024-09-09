@@ -18,7 +18,7 @@
         "ENABLE_ARTS_LGPL": "0",
         "ENABLE_FORTRAN": "1",
         "ENABLE_NETCDF": "1",
-        "ENABLE_PCH": "0",
+        "ENABLE_PCH": "1",
         "FASTWIGNER": "0",
         "NO_FASTEM": "0",
         "NO_OPENMP": "0",
