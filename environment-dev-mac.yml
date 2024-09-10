@@ -1,5 +1,4 @@
 dependencies:
-        - build
         - ccache
         - clang=16.*
         - clangxx
@@ -18,6 +17,7 @@ dependencies:
         - numpy
         - pkg-config
         - pytest
+        - python-build
         - scipy
         - sphinx
         - sphinx-favicon
