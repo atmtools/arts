@@ -25,10 +25,9 @@ String group_generics_inout(const String& group) try {
   String out;
 
   if (outdocs.first.size()) {
-    out += var_string("\nWorkspace methods that can generate ",
+    out += var_string("\n.. rubric:: Workspace methods that can generate ",
                       group,
                       "\n",
-                      String(36 + group.size(), '-'),
                       "\n\n.. hlist::\n    :columns: ",
                       hlist_num_cols(outdocs.first),
                       "\n");
@@ -38,10 +37,9 @@ String group_generics_inout(const String& group) try {
   out += '\n';
 
   if (outdocs.second.size()) {
-    out += var_string("\nWorkspace methods that require ",
+    out += var_string("\n.. rubric:: Workspace methods that require ",
                       group,
                       "\n",
-                      String(31 + group.size(), '-'),
                       "\n\n.. hlist::\n    :columns: ",
                       hlist_num_cols(outdocs.second),
                       "\n");
@@ -67,10 +65,9 @@ String group_workspace_types(const String& group) try {
 
   String out;
   if (vars.size()) {
-    out += var_string("\nWorkspace variables of type ",
+    out += var_string("\n.. rubric:: Workspace variables of type ",
                       group,
                       "\n",
-                      String(28 + group.size(), '-'),
                       "\n\n.. hlist::\n    :columns: ",
                       hlist_num_cols(vars),
                       "\n");

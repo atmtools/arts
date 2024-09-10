@@ -1,7 +1,8 @@
+{% if objname != 'pyarts.workspace.Workspace' %}
+{% if not module.startswith('pyarts.arts') %}
+
 {{ name }}
 {{ underline }}
-
-{% if not module.startswith('pyarts.arts') %}
 
 .. currentmodule:: {{ module }}
 
@@ -34,4 +35,5 @@
    {% endif %}
    {% endblock %}
 
+{% endif %}
 {% endif %}

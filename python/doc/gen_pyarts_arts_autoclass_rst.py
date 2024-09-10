@@ -1,3 +1,4 @@
+import pyarts
 import pyarts.arts as cxx
 import sys
 
@@ -33,7 +34,7 @@ def is_internal(name):
     return name.startswith("_") or name.endswith("__") or ":" in name
 
 
-def loop_over_class(cls, mod):
+def loop_over_class(cls, mod, pure_overview=False):
     attributes = {}
     functions = {}
     methods = {}
@@ -88,23 +89,36 @@ def loop_over_class(cls, mod):
     str += "  .. automethod:: __init__\n"
     str += "     :noindex:\n\n"
 
-    if len(methods):
-        str += "  .. rubric:: Methods\n\n"
+    if not pure_overview:
+      if len(methods):
+          str += "  .. rubric:: Methods\n\n"
+          for n in methods:
+              str += f"  .. automethod:: {cls.__name__}.{methods[n]['name']}\n"
+          str += "\n"
+
+      if len(functions):
+          str += "  .. rubric:: Static Methods\n\n"
+          for n in functions:
+              str += f"  .. automethod:: {cls.__name__}.{functions[n]['name']}\n"
+          str += "\n"
+
+      if len(attributes):
+          str += "  .. rubric:: Attributes\n\n"
+          for n in attributes:
+              str += f"  .. autoattribute:: {cls.__name__}.{attributes[n]['name']}\n"
+          str += "\n"
+    else:
+        str += ".. toctree::\n"
+        str += "  :hidden:\n\n"
+
         for n in methods:
-            str += f"  .. automethod:: {cls.__name__}.{methods[n]['name']}\n"
-        str += "\n"
+          str += f"  {mod}.{cls.__name__}.{n}\n"
 
-    if len(functions):
-        str += "  .. rubric:: Static Methods\n\n"
         for n in functions:
-            str += f"  .. automethod:: {cls.__name__}.{functions[n]['name']}\n"
-        str += "\n"
+          str += f"  {mod}.{cls.__name__}.{n}\n"
 
-    if len(attributes):
-        str += "  .. rubric:: Attributes\n\n"
         for n in attributes:
-            str += f"  .. autoattribute:: {cls.__name__}.{attributes[n]['name']}\n"
-        str += "\n"
+          str += f"  {mod}.{cls.__name__}.{n}\n"
 
     return str, short
 
@@ -236,4 +250,30 @@ def create_rst(data, path, mod):
             f.write(f"      - {repr(data["values"][n])}\n")
 
 
+def create_workspace_rst(path):
+    ws = pyarts.Workspace
+
+    data = loop_over_class(ws, "pyarts.workspace", True)
+    create_class_rst(data[0], path, f"pyarts.workspace.Workspace")
+
+    for name in dir(ws):
+        if is_internal(name): continue
+        
+        attr = getattr(ws, name)
+
+        if isinstance(attr, attr_t):
+            with open(f"{path}/pyarts.workspace.Workspace.{name}.rst", 'w') as f:
+                f.write(f"{name}\n{'='*len(name)}\n\n")
+                f.write(".. currentmodule:: pyarts.workspace\n\n")
+                f.write(".. autoattribute:: Workspace." + name + "\n\n")
+        elif isinstance(attr, method_t):
+            with open(f"{path}/pyarts.workspace.Workspace.{name}.rst", 'w') as f:
+                f.write(f"{name}\n{'='*len(name)}\n\n")
+                f.write(".. currentmodule:: pyarts.workspace\n\n")
+                f.write(".. automethod:: Workspace." + name + "\n\n")
+
+
 create_rst(data, sys.argv[1], "pyarts.arts")
+
+
+create_workspace_rst(sys.argv[1])

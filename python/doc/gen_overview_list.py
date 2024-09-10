@@ -50,7 +50,7 @@ def groups():
 """
     for var in vars:
         if var in existing:
-            txt += f"    * :attr:`~pyarts.arts.{var}`\n"
+            txt += f"    * :class:`~pyarts.arts.{var}`\n"
     return txt
 
 
