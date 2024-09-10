@@ -1,7 +1,6 @@
 dependencies:
         - binutils
         - boost
-        - build
         - ccache
         - clang
         - clangxx
@@ -24,6 +23,7 @@ dependencies:
         - numpy>=2
         - pkg-config
         - pytest
+        - python-build
         - requests
         - scipy
         - sphinx
