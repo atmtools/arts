@@ -774,110 +774,6 @@ std::string method(const std::string& name,
   return os.str();
 }
 
-std::string method(const std::string& name,
-                   const WorkspaceAgendaInternalRecord& wsm) {
-  const auto& wsvs = workspace_variables();
-
-  std::ostringstream os;
-
-  os << "  ws.def(\"" << name << "Execute\",";
-  os << "[](";
-  os << "\n    Workspace& _ws,";
-  for (auto& str : wsm.output) {
-    os << "\n    py" << wsvs.at(str).type << " * const _" << str << ",";
-  }
-  for (auto& str : wsm.input) {
-    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n     const py" << wsvs.at(str).type << " * const _" << str << ",";
-  }
-  os << "\n     const ";
-  if (wsm.array) os << "ArrayOf";
-  os << "Agenda * const _" << name << ") -> void {\n      try {\n";
-
-  for (auto& str : wsm.output) {
-    os << "\n      auto& " << str << " = select_";
-    if (std::ranges::any_of(wsm.input, Cmp::eq(str))) {
-      os << "in";
-    }
-    os << "out<" << wsvs.at(str).type << ">(_" << str << ", _ws, \"" << str
-       << "\");";
-  }
-  for (auto& str : wsm.input) {
-    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n      auto& " << str << " = select_in<" << wsvs.at(str).type
-       << ">(_" << str << ", _ws, \"" << str << "\");";
-  }
-  os << "\n      auto& " << name << " = select_in<";
-  if (wsm.array) os << "ArrayOf";
-  os << "Agenda>(_" << name << ", _ws, \"" << name << "\");";
-
-  os << "\n\n      " << name << "Execute(_ws,";
-  for (auto& str : wsm.output) {
-    os << "\n" << std::string(14 + name.size(), ' ') << str << ",";
-  }
-  for (auto& str : wsm.input) {
-    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n" << std::string(14 + name.size(), ' ') << str << ",";
-  }
-  os << "\n" << std::string(14 + name.size(), ' ') << name << ");\n";
-
-  os << "      } catch (std::exception& e) {\n";
-
-  os << "        throw std::runtime_error(\n          var_string(";
-  os << R"("Cannot execute method:\n\n",
-              ")";
-  os << name << "Execute" << '(';
-
-  const auto spaces = std::string(name.size() + 8, ' ');
-
-  bool first = true;
-  for (auto& t : wsm.output) {
-    if (not first) os << ",\\n" << spaces;
-    first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
-       << workspace_variables().at(t).type;
-    os << R"(, defaults to self.)" << t << R"()-x-"),
-              ")";
-  }
-
-  for (auto& t : wsm.input) {
-    if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
-    if (not first) os << ",\\n" << spaces;
-    first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
-       << workspace_variables().at(t).type;
-    os << R"(, defaults to self.)" << t << R"()-x-"),
-              ")";
-  }
-
-  os << ",\\n" << spaces << name << " : ";
-  if (wsm.array) os << "ArrayOf";
-  os << "Agenda"
-     << ")\", ";
-  os << "\"\\n\\n\", e.what()));\n";
-
-  os << "      }\n";
-  os << "    },\n    ";
-
-  for (auto& t : wsm.output) {
-    os << "\"" << t << "\"_a.noconvert().none() = py::none(),\n    ";
-  }
-  for (auto& t : wsm.input) {
-    if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
-    os << "\"" << t << "\"_a.none() = py::none(),\n    ";
-  }
-  os << "\"" << name << "\"_a.none() = py::none(),\n    ";
-
-  os << "R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
-     << get_agenda_io(name) << name << " : ~pyarts.arts.";
-  if (wsm.array) os << "ArrayOf";
-  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\",\n";
-  os << "    py::call_guard<py::gil_scoped_release>());\n\n";
-  return os.str();
-}
-
 void methods(int nfiles) {
   const auto& wsms = internal_workspace_methods();
   const auto wsas  = internal_workspace_agendas();
@@ -904,14 +800,6 @@ void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
 
   int ifile = 0;
   for (auto& [name, wsv] : wsms) {
-    try {
-      select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
-    }
-    ERRORAPPEND;
-  }
-
-  ifile = 0;
-  for (auto& [name, wsv] : wsas) {
     try {
       select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
     }

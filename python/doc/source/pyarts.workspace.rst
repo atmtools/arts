@@ -5,24 +5,19 @@ pyarts.workspace
 
 .. currentmodule:: pyarts.workspace
 
-Key functionality
------------------
+.. rubric:: The workspace object
+
+.. toctree::
+   :titlesonly:
+   
+   pyarts.workspace.Workspace
+
+.. rubric:: Creating an agenda
 
 .. autosummary::
    :toctree: stubs
 
    arts_agenda
-   Workspace
-
-pyarts.workspace.workspace
---------------------------
-
-.. automodule:: pyarts.workspace.workspace
-
-.. currentmodule:: pyarts.workspace.workspace
-
-.. autosummary::
-   :toctree: stubs
 
 pyarts.workspace.utility
 ------------------------

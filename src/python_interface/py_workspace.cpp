@@ -91,6 +91,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n) -> PyWSV {
             return from(w.share(n));
           },
+          "name"_a,
+          "Gets the value of the variable with the given name.",
           py::rv_policy::reference_internal)
       .def("init", &Workspace::init)
       .def(
@@ -103,7 +105,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
             w.set(n, Wsv::from_named_type(t));
           },
           "name"_a,
-          "typename"_a)
+          "typename"_a,
+          "Initiate the variable to the named type.")
       .def(
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
@@ -142,16 +145,20 @@ void py_workspace(py::class_<Workspace>& ws) try {
             }
           },
           "name"_a,
-          "value"_a.noconvert())
+          "value"_a.noconvert(),
+          "Set the variable to the new value.")
       .def("has",
-           [](Workspace& w, const std::string& n) { return w.contains(n); })
+           [](Workspace& w, const std::string& n) { return w.contains(n); },
+          "name"_a,
+          "Checks if the workspace contains the variable.")
       .def(
           "swap",
           [](Workspace& w1, Workspace& w2) {
             using std::swap;
             swap(w1, w2);
           },
-          "other"_a);
+          "other"_a,
+          "Swap the workspace for andother.");
 
   str_interface(ws);
   ws.def(
@@ -161,6 +168,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
             py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
       },
       py::rv_policy::reference_internal);
+
+  ws.doc() = "The core ARTS Workspace";
 
   py_auto_wsv(ws);
   py_auto_wsm(ws);

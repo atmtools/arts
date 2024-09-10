@@ -32,6 +32,7 @@ std::string docs_isotopes() {
 namespace Python {
 void py_species(py::module_& m) try {
   py::class_<SpeciesIsotopologueRatios> sirs(m, "SpeciesIsotopologueRatios");
+  sirs.doc() = "Isotopologue ratios for a species";
   sirs.def(
           "__init__",
           [](SpeciesIsotopologueRatios* sir) {
@@ -40,7 +41,7 @@ void py_species(py::module_& m) try {
           },
           "Builtin values")
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
-     // .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
+      // .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
                      ":class:`int` The max size of the data")
@@ -212,16 +213,20 @@ Returns
            [](py::object& s, py::object i, py::object v) {
              s.attr("_inner")().attr("__setitem__")(i, v);
            })
-      .def("append",
-           [](py::object& s, py::object v) {
-             s.attr("_inner")().attr("append")(v);
-           })
+      .def(
+          "append",
+          [](py::object& s, py::object v) {
+            s.attr("_inner")().attr("append")(v);
+          },
+          "value"_a,
+          "Appends a value to the end of the list")
       .def(
           "pop",
           [](py::object& s, py::object i) {
             return s.attr("_inner")().attr("pop")(i);
           },
-          "i"_a = -1)
+          "i"_a = -1,
+          "Pops an element from the list")
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def("__hash__",

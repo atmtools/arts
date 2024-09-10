@@ -21,7 +21,6 @@ void py_global(py::module_& m) try {
       .def_rw_static(
           "includepath",
           &parameters.includepath,
-
           ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
       .def_rw_static("datapath",
                      &parameters.datapath,
@@ -29,13 +28,13 @@ void py_global(py::module_& m) try {
       .def_rw_static(
           "numthreads",
           &parameters.numthreads,
-
           ":class:`~pyarts.arts.Index` Number of threads allowed to start")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
-      .def_ro("file", &WorkspaceGroupRecord::file)
-      .def_ro("desc", &WorkspaceGroupRecord::desc);
+      .def_ro("file", &WorkspaceGroupRecord::file, "File path")
+      .def_ro("desc", &WorkspaceGroupRecord::desc, "Description")
+      .doc() = "Workspace group records";
 
   global.def(
       "workspace_groups",
@@ -45,9 +44,12 @@ void py_global(py::module_& m) try {
       "\n    Map of variables");
 
   py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
-      .def_ro("default_value", &WorkspaceVariableRecord::default_value)
-      .def_ro("type", &WorkspaceVariableRecord::type)
-      .def_ro("desc", &WorkspaceVariableRecord::desc);
+      .def_ro("default_value",
+              &WorkspaceVariableRecord::default_value,
+              "Default value")
+      .def_ro("type", &WorkspaceVariableRecord::type, "Type")
+      .def_ro("desc", &WorkspaceVariableRecord::desc, "Description")
+      .doc() = "Workspace variable records";
 
   global.def(
       "workspace_variables",
@@ -58,18 +60,31 @@ void py_global(py::module_& m) try {
 
   py::class_<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
-      .def_ro("output", &WorkspaceMethodInternalRecord::out)
-      .def_ro("input", &WorkspaceMethodInternalRecord::in)
-      .def_ro("author", &WorkspaceMethodInternalRecord::author)
-      .def_ro("gout", &WorkspaceMethodInternalRecord::gout)
-      .def_ro("gout_type", &WorkspaceMethodInternalRecord::gout_type)
-      .def_ro("gout_desc", &WorkspaceMethodInternalRecord::gout_desc)
-      .def_ro("gin", &WorkspaceMethodInternalRecord::gin)
-      .def_ro("gin_type", &WorkspaceMethodInternalRecord::gin_type)
-      .def_ro("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
-      .def_ro("gin_value", &WorkspaceMethodInternalRecord::gin_value)
-      .def_ro("pass_workspace", &WorkspaceMethodInternalRecord::pass_workspace)
-      .def_ro("desc", &WorkspaceMethodInternalRecord::desc);
+      .def_ro("output", &WorkspaceMethodInternalRecord::out, "Outputs")
+      .def_ro("input", &WorkspaceMethodInternalRecord::in, "Inputs")
+      .def_ro("author", &WorkspaceMethodInternalRecord::author, "Authors")
+      .def_ro("gout", &WorkspaceMethodInternalRecord::gout, "Generic output")
+      .def_ro("gout_type",
+              &WorkspaceMethodInternalRecord::gout_type,
+              "Generic output type")
+      .def_ro("gout_desc",
+              &WorkspaceMethodInternalRecord::gout_desc,
+              "Generic output description")
+      .def_ro("gin", &WorkspaceMethodInternalRecord::gin, "Generic input")
+      .def_ro("gin_type",
+              &WorkspaceMethodInternalRecord::gin_type,
+              "Generic input type")
+      .def_ro("gin_desc",
+              &WorkspaceMethodInternalRecord::gin_desc,
+              "Generic input description")
+      .def_ro("gin_value",
+              &WorkspaceMethodInternalRecord::gin_value,
+              "Generic input default value")
+      .def_ro("pass_workspace",
+              &WorkspaceMethodInternalRecord::pass_workspace,
+              "Pass workspace")
+      .def_ro("desc", &WorkspaceMethodInternalRecord::desc, "Description")
+      .doc() = "Method records used as workspace variables";
 
   global.def(
       "workspace_methods",
@@ -80,10 +95,10 @@ void py_global(py::module_& m) try {
 
   py::class_<WorkspaceAgendaInternalRecord>(global,
                                             "WorkspaceAgendaInternalRecord")
-      .def_ro("desc", &WorkspaceAgendaInternalRecord::desc)
-      .def_ro("output", &WorkspaceAgendaInternalRecord::output)
-      .def_ro("input", &WorkspaceAgendaInternalRecord::input)
-      .def_ro("array", &WorkspaceAgendaInternalRecord::array)
+      .def_ro("desc", &WorkspaceAgendaInternalRecord::desc, "Description")
+      .def_ro("output", &WorkspaceAgendaInternalRecord::output, "Outputs")
+      .def_ro("input", &WorkspaceAgendaInternalRecord::input, "Inputs")
+      .def_ro("array", &WorkspaceAgendaInternalRecord::array, "Is array")
       .doc() = "Agenda records used as workspace variables";
 
   global.def(
@@ -96,7 +111,7 @@ void py_global(py::module_& m) try {
   global.def(
       "all_isotopologues",
       []() { return Species::Isotopologues; },
-      "List of all valid `~pyarts.arts.SpeciesIsotopeRecord`");
+      "List of all valid :class:`~pyarts.arts.SpeciesIsotopeRecord`");
 
 #ifdef _OPENMP
   global.def("omp_get_max_threads",

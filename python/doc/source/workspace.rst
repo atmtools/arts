@@ -38,13 +38,10 @@ for more information.
 .. toctree::
     :hidden:
 
-    workspace.groups
-    workspace.methods
     workspace.variables
+    workspace.methods
     workspace.agendas
-
-.. rubric:: Workspace Groups
-.. include:: workspace.groups.auto.rst
+    workspace.groups
 
 .. rubric:: Workspace Variables
 .. include:: workspace.variables.auto.rst
@@ -54,3 +51,6 @@ for more information.
 
 .. rubric:: Workspace Agendas
 .. include:: workspace.agendas.auto.rst
+
+.. rubric:: Workspace Groups
+.. include:: workspace.groups.auto.rst

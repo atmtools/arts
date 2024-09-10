@@ -90,6 +90,7 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
     cl.def(
           "append",
           [](Array<Value> &v, const Value &value) { v.push_back(value); },
+          "value"_a,
           "Append `arg` to the end of the list.")
 
         .def(

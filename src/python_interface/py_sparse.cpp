@@ -180,7 +180,7 @@ arr : numpy.ndarray
       },
       [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) {
         std::visit([&bm](auto& m) { bm = m; }, mat);
-      });
+      }, "The matrix of the block");
   bm.def(
       "__array__",
       [](py::object& v, py::object dtype, py::object copy) {

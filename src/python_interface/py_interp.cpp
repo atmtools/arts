@@ -28,10 +28,12 @@ void py_interp(py::module_& m) {
           "vec"_a,
           "polyorder"_a = Index{1},
           "Construct a Lagrange interpolation object")
-      .def_prop_ro("order",
-                   [](const LagrangeInterpolation& l) { return l.size() - 1; })
-      .def_rw("pos", &LagrangeInterpolation::pos)
-      .def_rw("weights", &LagrangeInterpolation::lx)
+      .def_prop_ro(
+          "order",
+          [](const LagrangeInterpolation& l) { return l.size() - 1; },
+          "The order of interpolation")
+      .def_rw("pos", &LagrangeInterpolation::pos, "The interpolation positions")
+      .def_rw("weights", &LagrangeInterpolation::lx, "The interpolation weights")
       .PythonInterfaceBasicRepresentation(LagrangeInterpolation)
       .def("__getstate__",
            [](const LagrangeInterpolation& self) {
@@ -66,12 +68,18 @@ void py_interp(py::module_& m) {
           "vec"_a,
           "polyorder"_a = Index{1},
           "Construct a Lagrange interpolation object")
-      .def_prop_ro("order",
-                   [](const LagrangeCyclic0to360Interpolation& l) {
-                     return l.size() - 1;
-                   })
-      .def_rw("pos", &LagrangeCyclic0to360Interpolation::pos)
-      .def_rw("weights", &LagrangeCyclic0to360Interpolation::lx)
+      .def_prop_ro(
+          "order",
+          [](const LagrangeCyclic0to360Interpolation& l) {
+            return l.size() - 1;
+          },
+          "The order of the polynomial interpolation")
+      .def_rw("pos",
+              &LagrangeCyclic0to360Interpolation::pos,
+              "The interpolation positions")
+      .def_rw("weights",
+              &LagrangeCyclic0to360Interpolation::lx,
+              "The interpolation weights")
       .PythonInterfaceBasicRepresentation(LagrangeCyclic0to360Interpolation)
       .PythonInterfaceBasicRepresentation(LagrangeCyclic0to360Interpolation)
       .def("__getstate__",
@@ -102,12 +110,18 @@ void py_interp(py::module_& m) {
           "vec"_a,
           "polyorder"_a = Index{1},
           "Construct a Lagrange interpolation object")
-      .def_prop_ro("order",
-                   [](const LagrangeCyclicPM180Interpolation& l) {
-                     return l.size() - 1;
-                   })
-      .def_rw("pos", &LagrangeCyclicPM180Interpolation::pos)
-      .def_rw("weights", &LagrangeCyclicPM180Interpolation::lx)
+      .def_prop_ro(
+          "order",
+          [](const LagrangeCyclicPM180Interpolation& l) {
+            return l.size() - 1;
+          },
+          "The order of the polynomial interpolation")
+      .def_rw("pos",
+              &LagrangeCyclicPM180Interpolation::pos,
+              "The interpolation positions")
+      .def_rw("weights",
+              &LagrangeCyclicPM180Interpolation::lx,
+              "The interpolation weights")
       .PythonInterfaceBasicRepresentation(LagrangeCyclicPM180Interpolation)
       .PythonInterfaceBasicRepresentation(LagrangeCyclicPM180Interpolation)
       .def("__getstate__",
@@ -125,10 +139,15 @@ void py_interp(py::module_& m) {
            })
       .doc() = "Cyclic [-180, 180] polynomial interpolation object";
 
-  interp.def("interp", [](const Vector& yi, const PythonLags& lag1) {
-    return std::visit([&yi](auto& l1) { return my_interp::interp(yi, l1); },
-                      lag1);
-  });
+  interp.def(
+      "interp",
+      [](const Vector& yi, const PythonLags& lag1) {
+        return std::visit([&yi](auto& l1) { return my_interp::interp(yi, l1); },
+                          lag1);
+      },
+      "yi"_a,
+      "lag1"_a,
+      "Interpolate a 1D vector");
 
   interp.def(
       "interp",
@@ -137,20 +156,30 @@ void py_interp(py::module_& m) {
             [&yi](auto& l1, auto& l2) { return my_interp::interp(yi, l1, l2); },
             lag1,
             lag2);
-      });
+      },
+      "yi"_a,
+      "lag1"_a,
+      "lag2"_a,
+      "Interpolate a 2D matrix");
 
-  interp.def("interp",
-             [](const Tensor3& yi,
-                const PythonLags& lag1,
-                const PythonLags& lag2,
-                const PythonLags& lag3) {
-               return std::visit(
-                   [&yi](auto& l1, auto& l2, auto& l3) {
-                     return my_interp::interp(yi, l1, l2, l3);
-                   },
-                   lag1,
-                   lag2,
-                   lag3);
-             });
+  interp.def(
+      "interp",
+      [](const Tensor3& yi,
+         const PythonLags& lag1,
+         const PythonLags& lag2,
+         const PythonLags& lag3) {
+        return std::visit(
+            [&yi](auto& l1, auto& l2, auto& l3) {
+              return my_interp::interp(yi, l1, l2, l3);
+            },
+            lag1,
+            lag2,
+            lag3);
+      },
+      "yi"_a,
+      "lag1"_a,
+      "lag2"_a,
+      "lag3"_a,
+      "Interpolate a 3D tensor");
 }
 }  // namespace Python

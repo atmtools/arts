@@ -1019,32 +1019,16 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const Vector& vector,
                          bofstream* pbofs,
                          const String& name) {
-  XMLTag open_tag;
-  XMLTag close_tag;
-  Index n = vector.nelem();
-  std::ostringstream v;
-
-  // Convert nelem to string
-  v << n;
-
-  open_tag.set_name("Vector");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", v.str());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::print(os_xml,
+             R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
+             vector.nelem(),
+             name,
+             pbofs ? Vector{} : vector);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
                   vector.size() * sizeof(Numeric));
-  } else {
-    os_xml << std::format("{}", vector) << '\n';
   }
-
-  close_tag.set_name("/Vector");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
 }
 
 // Begin templates for matpack::matpack_constant_data

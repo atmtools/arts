@@ -3445,15 +3445,15 @@ path parameters.
 
 Work in progress ...
 
-The cost function to minimise, including a normalisation with length"
-of *measurement_vector*, is::
+The cost function to minimise, including a normalisation with length
+of *measurement_vector*, is:
 
-cost = cost_y + cost_x
+    cost = cost_y + cost_x
 
-where::
+where:
 
-cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
-cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+    cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
+    cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
 
 The current implementation provides 3 methods for the minimization of
 the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
@@ -3473,56 +3473,62 @@ the computation of expensive matrix products.
 
 Description of the special input arguments:
 
-- ``method``: One of the following:
+    - ``method``:
 
-- ``"li"``: A linear problem is assumed and a single iteration is performed.
-- ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
-- ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
-- ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
-- ``"lm"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
-- ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
+        - ``"li"``: A linear problem is assumed and a single iteration is performed.
+        - ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
+        - ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
+        - ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
+        - ``"lm"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
+        - ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
 
-- ``max_start_cost``:
-No inversion is done if the cost matching the a priori state is above
-this value. If set to a negative value, all values are accepted.
-This argument also controls if the start cost is calculated. If
-set to <= 0, the start cost in ``oem_diagnostics`` is set to NaN
-when using "li" and "gn".
-- ``x_norm``:
-A normalisation vector for *model_state_vector*. A normalisation of *model_state_vector* can be needed
-due to limited numerical precision. If this vector is set to be empty
-no normalisation is done (defualt case). Otherwise, this must be a
-vector with same length as *model_state_vector*, just having values above zero.
-Elementwise division between *model_state_vector* and ``x_norm`` (x./x_norm) shall give
-a vector where all values are in the order of unity. Maybe the best
-way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
-- ``max_iter``:
-Maximum number of iterations to perform. No effect for "li".
-- ``stop_dx``:\n"
-Iteration stop criterion. The criterion used is the same as given
-in Rodgers\' "Inverse Methods for Atmospheric Sounding"
-- ``lm_ga_settings``:
-Settings controlling the gamma factor, part of the "LM" method.
-This is a vector of length 6, having the elements (0-based index):
+    - ``max_start_cost``:
 
-    0. Start value.
-    1. Fractional decrease after succesfull iteration.
-    2. Fractional increase after unsuccessful iteration.
-    3. Maximum allowed value. If the value is passed, the inversion
-        is halted.
-    4. Lower treshold. If the threshold is passed, gamma is set to zero.
-        If gamma must be increased from zero, gamma is set to this value.
-    5. Gamma limit. This is an additional stop criterion. Convergence
-        is not considered until there has been one succesful iteration
-        having a gamma <= this value.
+      No inversion is done if the cost matching the a priori state is above
+      this value. If set to a negative value, all values are accepted.
+      This argument also controls if the start cost is calculated. If
+      set to <= 0, the start cost in ``oem_diagnostics`` is set to NaN
+      when using "li" and "gn".
+    
+    - ``x_norm``:
 
-The default setting triggers an error if "lm" is selected.
-- ``clear matrices``:
-    With this flag set to 1, *measurement_jacobian* and ``measurement_gain_matrix`` are returned as empty
-    matrices.
-- ``display_progress``:
-    Controls if there is any screen output. The overall report level
-    is ignored by this WSM.
+      A normalisation vector for *model_state_vector*. A normalisation of *model_state_vector* can be needed
+      due to limited numerical precision. If this vector is set to be empty
+      no normalisation is done (defualt case). Otherwise, this must be a
+      vector with same length as *model_state_vector*, just having values above zero.
+      Elementwise division between *model_state_vector* and ``x_norm`` (x./x_norm) shall give
+      a vector where all values are in the order of unity. Maybe the best
+      way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
+
+    - ``max_iter``:
+
+      Maximum number of iterations to perform. No effect for "li".
+
+    - ``stop_dx``:\n"
+
+      Iteration stop criterion. The criterion used is the same as given in Rodgers\' "Inverse Methods for Atmospheric Sounding"
+
+    - ``lm_ga_settings``:
+
+      Settings controlling the gamma factor, part of the "LM" method.
+      This is a vector of length 6, having the elements (0-based index):
+
+            0. Start value.
+            1. Fractional decrease after succesfull iteration.
+            2. Fractional increase after unsuccessful iteration.
+            3. Maximum allowed value. If the value is passed, the inversion is halted.
+            4. Lower treshold. If the threshold is passed, gamma is set to zero. If gamma must be increased from zero, gamma is set to this value.
+            5. Gamma limit. This is an additional stop criterion. Convergence is not considered until there has been one succesful iteration having a gamma <= this value.
+      
+      The default setting triggers an error if "lm" is selected.
+
+    - ``clear matrices``:
+
+      With this flag set to 1, *measurement_jacobian* and *measurement_gain_matrix* are returned as empty matrices.
+
+    - ``display_progress``:
+
+      Controls if there is any screen output. The overall report level is ignored by this WSM.
 )",
       .author = {"Patrick Eriksson"},
       .out    = {"model_state_vector",

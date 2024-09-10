@@ -17,20 +17,22 @@
 #include "sorting.h"
 
 namespace Python {
-using DisortBDRFOperator =
-    CustomOperator<Matrix, const Vector&, const Vector&>;
-using bdrf_func = DisortBDRFOperator::func_t;
+using DisortBDRFOperator = CustomOperator<Matrix, const Vector&, const Vector&>;
+using bdrf_func          = DisortBDRFOperator::func_t;
 
 void py_disort(py::module_& m) try {
   auto disort_nm = m.def_submodule("disort");
 
   py::class_<DisortBDRFOperator> bdrfop(m, "DisortBDRFOperator");
-  bdrfop.def("__init__", [](DisortBDRFOperator* op, DisortBDRFOperator::func_t f){
-    new (op) DisortBDRFOperator([f](const Vector& x, const Vector& y){
-      py::gil_scoped_acquire gil{};
-      return f(x, y);
-    });
-  })
+  bdrfop.doc() = "A BDRF operator for DISORT";
+  bdrfop
+      .def("__init__",
+           [](DisortBDRFOperator* op, DisortBDRFOperator::func_t f) {
+             new (op) DisortBDRFOperator([f](const Vector& x, const Vector& y) {
+               py::gil_scoped_acquire gil{};
+               return f(x, y);
+             });
+           })
       .def(
           "__call__",
           [](DisortBDRFOperator& f, const Vector& x, const Vector& y) {
@@ -73,9 +75,10 @@ void py_disort(py::module_& m) try {
   workspace_group_interface(mat_disbdrf);
 
   py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(
-      disort_nm, "ArrayOfBDRF");
+      disort_nm, "ArrayOfBDRF").doc() = "An array of BDRF functions";
 
   py::class_<disort::main_data> x(m, "cppdisort");
+  x.doc() = "A DISORT object";
   x.def(
       "__init__",
       [](disort::main_data* n,
@@ -136,7 +139,7 @@ void py_disort(py::module_& m) try {
          return out;
        },
        "tau"_a,
-       "phi"_a)
+       "phi"_a, "Compute the intensity")
       .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {
@@ -144,7 +147,8 @@ void py_disort(py::module_& m) try {
             dis.ungridded_flux(out[0], out[1], out[2], tau);
             return out;
           },
-          "tau"_a)
+          "tau"_a,
+          "Compute the flux")
       .def(
           "pydisort_u",
           [](disort::main_data& dis, Vector tau_, const Vector& phi) {
@@ -166,7 +170,8 @@ void py_disort(py::module_& m) try {
             return out;
           },
           "tau"_a,
-          "phi"_a)
+          "phi"_a,
+          "Compute the intensity")
       .def(
           "pydisort_flux_up",
           [](disort::main_data& dis, Vector tau_) {
@@ -187,7 +192,8 @@ void py_disort(py::module_& m) try {
             }
             return out;
           },
-          "tau"_a)
+          "tau"_a,
+          "Compute the upward flux")
       .def(
           "pydisort_flux_down",
           [](disort::main_data& dis, Vector tau_) {
@@ -209,7 +215,8 @@ void py_disort(py::module_& m) try {
             }
             return out;
           },
-          "tau"_a);
+          "tau"_a,
+          "Compute the downward flux");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize disort\n", e.what()));

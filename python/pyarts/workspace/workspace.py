@@ -27,7 +27,7 @@ _wsvs = cxx.globals.workspace_variables()
 
 class Workspace(cxx.CxxWorkspace):
     """
-    A wrapper for the C++ workspace object
+    The workspace object containing all ARTS variables and methods
     """
 
     def __getattribute__(self, attr):
