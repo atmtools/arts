@@ -57,8 +57,7 @@ std::string variable(const std::string& name,
   }
 
   if (wsv.default_value) {
-    os << "\nDefault value\n"
-          "-------------\n\n``"
+    os << "\n.. rubric:: Default value\n\n``"
        << to_defval_str(*wsv.default_value) << "``\n\n";
   }
 

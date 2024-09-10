@@ -408,9 +408,6 @@ String variable_used_by(const String& name) {
 
   String val;
   if (usedocs.wsm_out.size() or usedocs.wsm_out.size()) {
-    val +=
-        var_string("\n\nRelated workspace methods\n", String(25, '-'), "\n\n");
-
     std::array<std::vector<std::string>, 3> io;
     for (auto& m : usedocs.wsm_out) {
       if (std::ranges::any_of(usedocs.wsm_in, Cmp::eq(m))) {
@@ -426,7 +423,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\nInput to\n========\n\n",
+      val += var_string("\n\n.. rubric:: Input to workspace methods\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[0]),
@@ -438,7 +435,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[1].size()) {
-      val += var_string("\n\nModified by\n===========\n\n",
+      val += var_string("\n\n.. rubric:: Modified by workspace methods\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[1]),
@@ -450,7 +447,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[2].size()) {
-      val += var_string("\n\nOutput from\n===========\n\n",
+      val += var_string("\n\n.. rubric:: Output from workspace methods\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[2]),
@@ -464,9 +461,6 @@ String variable_used_by(const String& name) {
   }
 
   if (usedocs.ag_out.size()) {
-    val +=
-        var_string("\n\nRelated workspace agendas\n", String(25, '-'), "\n\n");
-
     std::array<std::vector<std::string>, 3> io;
     for (auto& m : usedocs.ag_out) {
       if (std::ranges::any_of(usedocs.ag_in, Cmp::eq(m))) {
@@ -482,46 +476,45 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\nInput to\n========\n\n",
+      val += var_string("\n\n.. rubric:: Input to workspace agendas\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[0]),
                         "\n");
       for (auto& m : io[0]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
 
     if (io[1].size()) {
-      val += var_string("\n\nModified by\n===========\n\n",
+      val += var_string("\n\n.. rubric:: Modified by workspace agendas\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[1]),
                         "\n");
       for (auto& m : io[1]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
 
     if (io[2].size()) {
-      val += var_string("\n\nOutput from\n===========\n\n",
+      val += var_string("\n\n.. rubric:: Output from workspace agendas\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[2]),
                         "\n");
       for (auto& m : io[2]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
     val += "\n";
   }
 
   if (usedocs.wsvs.size()) {
-    val += var_string("\n\nRelated workspace variables\n",
-                      String(27, '-'),
+    val += var_string("\n\n.. rubric:: Related workspace variables\n",
                       "\n\n.. hlist::",
                       "\n    :columns: ",
                       hlist_num_cols(usedocs.wsvs),
