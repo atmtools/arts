@@ -1,6 +1,5 @@
 dependencies:
         - boost
-        - build
         - make
         - cmake
         - docutils
@@ -15,6 +14,7 @@ dependencies:
         - openblas
         - pkg-config
         - pytest
+        - python-build
         - requests
         - scipy
         - sphinx
