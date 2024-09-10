@@ -21,7 +21,7 @@ void py_atm(py::module_ &m) try {
   py::class_<ParticulatePropertyTag> ppt =
       py::class_<ParticulatePropertyTag>(m, "ParticulatePropertyTag");
   workspace_group_interface(ppt);
-  ppt.def_rw("name", &ParticulatePropertyTag::name);
+  ppt.def_rw("name", &ParticulatePropertyTag::name, "The name of the property");
   ppt.def(py::init_implicit<String>());
 
   py::class_<Atm::Data>(m, "AtmData")
@@ -29,22 +29,32 @@ void py_atm(py::module_ &m) try {
       .def(py::init<GriddedField3>())
       .def(py::init<Numeric>())
       .def(py::init<Atm::FunctionalData>())
-      .def_rw("data", &Atm::Data::data)
-      .def_rw("alt_upp", &Atm::Data::alt_upp)
-      .def_rw("alt_low", &Atm::Data::alt_low)
-      .def_rw("lat_upp", &Atm::Data::lat_upp)
-      .def_rw("lat_low", &Atm::Data::lat_low)
-      .def_rw("lon_upp", &Atm::Data::lon_upp)
-      .def_rw("lon_low", &Atm::Data::lon_low)
-      .def("at",
-           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-             return d.at(alt, lat, lon);
-           })
-      .def("ws",
-           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-             return d.flat_weight(alt, lat, lon);
-           })
-      .def_prop_ro("data_type", &Atm::Data::data_type)
+      .def_rw("data", &Atm::Data::data, "The data")
+      .def_rw("alt_upp", &Atm::Data::alt_upp, "Upper altitude limit")
+      .def_rw("alt_low", &Atm::Data::alt_low, "Lower altitude limit")
+      .def_rw("lat_upp", &Atm::Data::lat_upp, "Upper latitude limit")
+      .def_rw("lat_low", &Atm::Data::lat_low, "Lower latitude limit")
+      .def_rw("lon_upp", &Atm::Data::lon_upp, "Upper longitude limit")
+      .def_rw("lon_low", &Atm::Data::lon_low, "Lower longitude limit")
+      .def(
+          "at",
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            return d.at(alt, lat, lon);
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get a point of data at the position")
+      .def(
+          "ws",
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            return d.flat_weight(alt, lat, lon);
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the weights of neighbors at a position")
+      .def_prop_ro("data_type", &Atm::Data::data_type, "The data type")
       .def("__call__",
            [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
              return d.at(alt, lat, lon);
@@ -76,7 +86,7 @@ void py_atm(py::module_ &m) try {
              a->lat_upp = std::get<4>(state);
              a->lon_low = std::get<5>(state);
              a->lon_upp = std::get<6>(state);
-           });
+           }).doc() = "Atmospheric data";
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
@@ -88,41 +98,64 @@ void py_atm(py::module_ &m) try {
   auto fld = py::class_<AtmField>(m, "AtmField");
   workspace_group_interface(fld);
 
-  pnt.def_rw("temperature", &AtmPoint::temperature)
-      .def_rw("pressure", &AtmPoint::pressure)
-      .def_rw("mag", &AtmPoint::mag)
-      .def_rw("wind", &AtmPoint::wind)
-      .def("number_density",
-           [](AtmPoint &atm, SpeciesIsotope s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
-             if (not atm.has(s.spec))
-               throw py::key_error(var_string(s).c_str());
-             return atm[s] * atm[s.spec] *
-                    number_density(atm.pressure, atm.temperature);
-           })
-      .def("species_vmr",
-           [](AtmPoint &atm, SpeciesEnum s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
-             return atm[s];
-           })
-      .def("set_species_vmr",
-           [](AtmPoint &atm, SpeciesEnum s, Numeric x) { atm[s] = x; })
-      .def("isotopologue_ratio",
-           [](AtmPoint &atm, SpeciesIsotope s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
-             return atm[s];
-           })
-      .def("set_isotopologue_ratio",
-           [](AtmPoint &atm, SpeciesIsotope s, Numeric x) { atm[s] = x; })
-      .def("nlte_value",
-           [](AtmPoint &atm, const QuantumIdentifier &s) {
-             if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
-             return atm[s];
-           })
-      .def("set_nlte_value",
-           [](AtmPoint &atm, const QuantumIdentifier &s, Numeric x) {
-             atm[s] = x;
-           })
+  pnt.def_rw("temperature", &AtmPoint::temperature, "Temperature [K]")
+      .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]")
+      .def_rw("mag", &AtmPoint::mag, "Magnetic field [T]")
+      .def_rw("wind", &AtmPoint::wind, "Wind field [m/s]")
+      .def(
+          "number_density",
+          [](AtmPoint &atm, SpeciesIsotope s) {
+            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            if (not atm.has(s.spec)) throw py::key_error(var_string(s).c_str());
+            return atm[s] * atm[s.spec] *
+                   number_density(atm.pressure, atm.temperature);
+          },
+          "spec"_a,
+          "Get the number density of a species")
+      .def(
+          "species_vmr",
+          [](AtmPoint &atm, SpeciesEnum s) {
+            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            return atm[s];
+          },
+          "spec"_a,
+          "Get the VMR of the species")
+      .def(
+          "set_species_vmr",
+          [](AtmPoint &atm, SpeciesEnum s, Numeric x) { atm[s] = x; },
+          "spec"_a,
+          "x"_a,
+          "Set the VMR of the species")
+      .def(
+          "isotopologue_ratio",
+          [](AtmPoint &atm, SpeciesIsotope s) {
+            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            return atm[s];
+          },
+          "isot"_a,
+          "Get the isotopologue ratio")
+      .def(
+          "set_isotopologue_ratio",
+          [](AtmPoint &atm, SpeciesIsotope s, Numeric x) { atm[s] = x; },
+          "isot"_a,
+          "x"_a,
+          "Set the isotopologue ratio")
+      .def(
+          "nlte_value",
+          [](AtmPoint &atm, const QuantumIdentifier &s) {
+            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            return atm[s];
+          },
+          "qid"_a,
+          "Get the NLTE value")
+      .def(
+          "set_nlte_value",
+          [](AtmPoint &atm, const QuantumIdentifier &s, Numeric x) {
+            atm[s] = x;
+          },
+          "qid"_a,
+          "x"_a,
+          "Set the NLTE value")
       .def(
           "__getitem__",
           [](AtmPoint &atm, AtmKey x) {
@@ -177,7 +210,7 @@ void py_atm(py::module_ &m) try {
            [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
              atm[x.Species()] = data;
            })
-      .def("keys", &AtmPoint::keys)
+      .def("keys", &AtmPoint::keys, "Available keys")
       .def(
           "no_isotopologues",
           [](AtmPoint in) {
@@ -277,12 +310,19 @@ void py_atm(py::module_ &m) try {
            [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
              atm[x] = data;
            })
-      .def("at",
-           [](const AtmField &atm,
-              const Numeric &h,
-              const Numeric &lat,
-              const Numeric &lon) { return atm.at(h, lat, lon); })
-      .def_rw("top_of_atmosphere", &AtmField::top_of_atmosphere)
+      .def(
+          "at",
+          [](const AtmField &atm,
+             const Numeric &h,
+             const Numeric &lat,
+             const Numeric &lon) { return atm.at(h, lat, lon); },
+          "h"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data at a point")
+      .def_rw("top_of_atmosphere",
+              &AtmField::top_of_atmosphere,
+              "Top of the atmosphere [m]")
       .def("__getstate__",
            [](const AtmField &t) {
              auto k = t.keys();
@@ -312,19 +352,25 @@ void py_atm(py::module_ &m) try {
                   k[i]) = v[i];
           });
 
-  m.def("frequency_shift",
-        [](const AscendingGrid &frequency_grid,
-           const PropagationPathPoint &ray_path_point,
-           const AtmPoint &atmospheric_point,
-           const Numeric &rte_alonglos_v) {
-          AscendingGrid out = frequency_grid;
-          forward_path_freq(out,
-                            frequency_grid,
-                            ray_path_point,
-                            atmospheric_point,
-                            rte_alonglos_v);
-          return out;
-        });
+  m.def(
+      "frequency_shift",
+      [](const AscendingGrid &frequency_grid,
+         const PropagationPathPoint &ray_path_point,
+         const AtmPoint &atmospheric_point,
+         const Numeric &rte_alonglos_v) {
+        AscendingGrid out = frequency_grid;
+        forward_path_freq(out,
+                          frequency_grid,
+                          ray_path_point,
+                          atmospheric_point,
+                          rte_alonglos_v);
+        return out;
+      },
+      "frequency_grid"_a,
+      "ray_path_point"_a,
+      "atmospheric_point"_a,
+      "rte_alonglos_v"_a,
+      "Get the frequency shifted frequency grid at a point in the atmosphere");
 
   auto aap =
       py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(

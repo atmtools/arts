@@ -113,14 +113,14 @@ void py_agenda(py::module_& m) try {
       .doc() = "The method class of ARTS";
 
   py::class_<Wsv>(m, "WorkspaceVariable")
-      .def_prop_ro("value",
-                   [](Wsv& v) {
-                     return std::visit(
-                         []<WorkspaceGroup T>(std::shared_ptr<T>& x) {
-                           return from<T>(x);
-                         },
-                         v.value());
-                   })
+      .def_prop_ro(
+          "value",
+          [](Wsv& v) {
+            return std::visit([]<WorkspaceGroup T>(
+                                  std::shared_ptr<T>& x) { return from<T>(x); },
+                              v.value());
+          },
+          "A workspace variable")
       .def(
           "__str__",
           [](py::object& x) { return x.attr("value").attr("__str__")(); },
@@ -134,7 +134,8 @@ void py_agenda(py::module_& m) try {
           [](py::object& x, py::object& fmt) {
             return x.attr("value").attr("__format__")(fmt);
           },
-          py::is_operator());
+          py::is_operator())
+      .doc() = "A workspace variable";
 
   py::class_<Agenda> ag(m, "Agenda");
   workspace_group_interface(ag);

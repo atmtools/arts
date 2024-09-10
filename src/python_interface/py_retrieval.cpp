@@ -9,7 +9,7 @@ void py_retrieval(py::module_& m) try {
   workspace_group_interface(jtdcmm);
 
   py::class_<JacobianTargetType> jtt(m, "JacobianTargetType");
-  jtt.def_rw("value", &JacobianTargetType::target);
+  jtt.def_rw("value", &JacobianTargetType::target, "Target");
   workspace_group_interface(jtt);
 } catch (std::exception& e) {
   throw std::runtime_error(

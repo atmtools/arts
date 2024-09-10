@@ -1,6 +1,8 @@
 {{ name }}
 {{ underline }}
 
+{% if not module.startswith('pyarts.arts') %}
+
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
@@ -31,3 +33,5 @@
    {%- endfor %}
    {% endif %}
    {% endblock %}
+
+{% endif %}

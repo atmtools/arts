@@ -82,6 +82,7 @@ void py_matpack(py::module_& m) try {
       .doc() = "A range, used to select parts of a matpack type";
 
   py::class_<IndexVector> iv1(m, "IndexVector");
+  iv1.doc() = "A vector of indices";
   matpack_interface(iv1);
 
   py::class_<Vector> v1(m, "Vector");
@@ -186,6 +187,9 @@ void py_matpack(py::module_& m) try {
   py::class_<ComplexVector> comv1(m, "ComplexVector");
   py::class_<ComplexMatrix> comv2(m, "ComplexMatrix");
   py::class_<ComplexTensor3> comv3(m, "ComplexTensor3");
+  comv1.doc() = "A complex vector";
+  comv2.doc() = "A complex matrix";
+  comv3.doc() = "A complex tensor3";
   matpack_interface(comv1);
   matpack_interface(comv2);
   matpack_interface(comv3);

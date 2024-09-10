@@ -910,13 +910,13 @@ void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
     ERRORAPPEND;
   }
 
-  ifile = 0;
-  for (auto& [name, wsv] : wsas) {
-    try {
-      select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
-    }
-    ERRORAPPEND;
-  }
+  // ifile = 0;
+  // for (auto& [name, wsv] : wsas) {
+  //   try {
+  //     select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
+  //   }
+  //   ERRORAPPEND;
+  // }
 
   for (int i = 0; i < nfiles; i++) {
     select_ofstream(ofs, i) << "}\n}  // namespace Python\n";

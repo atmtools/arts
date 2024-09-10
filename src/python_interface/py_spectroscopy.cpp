@@ -180,43 +180,35 @@ void py_spectroscopy(py::module_& m) try {
            "From values")
       .PythonInterfaceCopyValue(LineShape::Output)
       .def_rw(
-
           "G0",
           &LineShape::Output::G0,
           ":class:`float`: Pressure broadening speed-independent")
       .def_rw(
-
           "D0",
           &LineShape::Output::D0,
           ":class:`float`: Pressure f-shifting speed-independent")
       .def_rw(
-
           "G2",
           &LineShape::Output::G2,
           ":class:`float`: Pressure broadening speed-dependent")
       .def_rw(
-
           "D2",
           &LineShape::Output::D2,
           ":class:`float`: Pressure f-shifting speed-dependent")
       .def_rw("ETA", &LineShape::Output::ETA, ":class:`float`: Correlation")
       .def_rw(
-
           "FVC",
           &LineShape::Output::FVC,
           ":class:`float`: Frequency of velocity-changing collisions")
       .def_rw(
-
           "Y",
           &LineShape::Output::Y,
           ":class:`float`: First order line mixing coefficient")
       .def_rw(
-
           "G",
           &LineShape::Output::G,
           ":class:`float`: Second order line mixing coefficient")
       .def_rw(
-
           "DV",
           &LineShape::Output::DV,
           ":class:`float`: Second order line mixing f-shifting")
@@ -440,32 +432,26 @@ void py_spectroscopy(py::module_& m) try {
       .def_rw(
           "E0", &AbsorptionSingleLine::E0, ":class:`float` Lower energy state")
       .def_rw(
-
           "glow",
           &AbsorptionSingleLine::glow,
           ":class:`float` Lower level statistical weight")
       .def_rw(
-
           "gupp",
           &AbsorptionSingleLine::gupp,
           ":class:`float` Upper level statistical weight")
       .def_rw(
-
           "A",
           &AbsorptionSingleLine::A,
           ":class:`float` Einstein spontaneous emission coefficient")
       .def_rw(
-
           "zeeman",
           &AbsorptionSingleLine::zeeman,
           ":class:`pyarts.arts.ZeemanModel` Zeeman model")
       .def_rw(
-
           "lineshape",
           &AbsorptionSingleLine::lineshape,
           ":class:`pyarts.arts.LineShapeModel` Line shape model")
       .def_rw(
-
           "localquanta",
           &AbsorptionSingleLine::localquanta,
           ":class:`pyarts.arts.QuantumNumberLocalState` Local quantum numbers")
@@ -584,42 +570,34 @@ void py_spectroscopy(py::module_& m) try {
         "lines"_a             = Array<AbsorptionSingleLine>{},
         "From values")
       .def_rw(
-
           "selfbroadening",
           &AbsorptionLines::selfbroadening,
           ":class:`bool` Does the line broadening have self broadening?")
       .def_rw(
-
           "bathbroadening",
           &AbsorptionLines::bathbroadening,
           ":class:`bool` Does the line broadening have bath broadening?")
       .def_rw(
-
           "cutoff",
           &AbsorptionLines::cutoff,
           ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
       .def_rw(
-
           "mirroring",
           &AbsorptionLines::mirroring,
           ":class:`~pyarts.arts.options.AbsorptionMirroringype` Mirroring type")
       .def_rw(
-
           "population",
           &AbsorptionLines::population,
           ":class:`~pyarts.arts.options.AbsorptionPopulationTypeOld` Line population distribution")
       .def_rw(
-
           "normalization",
           &AbsorptionLines::normalization,
           ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
       .def_rw(
-
           "lineshapetype",
           &AbsorptionLines::lineshapetype,
           ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
       .def_rw(
-
           "T0",
           &AbsorptionLines::T0,
           ":class:`float` Reference temperature for all parameters of the lines")
@@ -630,24 +608,20 @@ void py_spectroscopy(py::module_& m) try {
               &AbsorptionLines::linemixinglimit,
               ":class:`float` Linemixing limit")
       .def_rw(
-
           "quantumidentity",
           &AbsorptionLines::quantumidentity,
           ":class:`~pyarts.arts.QuantumIdentifier` Catalog ID")
       .def_rw(
-
           "broadeningspecies",
           &AbsorptionLines::broadeningspecies,
           ":class:`~pyarts.arts.ArrayOfSpecies` A list of broadening specie")
       .def_rw(
-
           "lines",
           &AbsorptionLines::lines,
           ":class:`~pyarts.arts.AbsorptionSingleLine` A list of individual lines")
       .def_prop_ro(
           "ok",
           &AbsorptionLines::OK,
-
           R"(:class:`bool` If False, the catalog cannot be used for any calculations)")
       .def_prop_ro("meta_data",
                    &AbsorptionLines::MetaData,

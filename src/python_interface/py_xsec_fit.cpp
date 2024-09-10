@@ -52,23 +52,23 @@ void py_xsec(py::module_& m) try {
           "f"_a,
           R"--(Computes the Hitran cross-section absorption in 1/m
 
-      Parameters
-      ----------
-      T : Numeric
-          Temperature [K]
-      P : Numeric
-          Pressure [Pa]
-      VMR : Numeric
-          VMR of species [-]
-      f : Vector
-          Frequency grid [Hz]
+Parameters
+----------
+T : Numeric
+    Temperature [K]
+P : Numeric
+    Pressure [Pa]
+VMR : Numeric
+    VMR of species [-]
+f : Vector
+    Frequency grid [Hz]
 
-      Returns
-      -------
-        abs : Vector
-          Absorption profile [1/m]
+Returns
+-------
+abs : Vector
+    Absorption profile [1/m]
 
-      )--")
+)--")
       .def("__getstate__",
            [](const XsecRecord& self) {
              return std::make_tuple(self.Version(),
@@ -177,7 +177,7 @@ void py_xsec(py::module_& m) try {
              out["attrs"]     = attrs;
              out["data_vars"] = data_vars;
              return out;
-           })
+           }, "Convert object to dict.")
       .def(
           "to_xarray",
           [](py::object& xr) {
@@ -251,7 +251,7 @@ void py_xsec(py::module_& m) try {
               }
             }
             return out;
-          })
+          }, "Create object from dict.")
       .def_static(
           "from_xarray",
           [](py::object& v) {

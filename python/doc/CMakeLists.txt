@@ -44,7 +44,7 @@ if(SPHINX_FOUND)
   configure_file(build/.nojekyll build/.nojekyll @ONLY)
 
   add_custom_target(gen_pyarts_arts_rst
-    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_rst.py > ${CMAKE_CURRENT_BINARY_DIR}/source/pyarts.arts.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_autoclass_rst.py source
   )
   add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python)
 

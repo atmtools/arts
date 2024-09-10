@@ -1177,34 +1177,37 @@ void py_predefined(py::module_& m) try {
   //! ARTS Workspace class, must live on the main (m) namespace
   py::class_<PredefinedModelData> pdmd(m, "PredefinedModelData");
   workspace_group_interface(pdmd);
-  pdmd.def_static("fromcatalog",
-                  [](const char* const basename,
-                     const ArrayOfArrayOfSpeciesTag& specs) {
-                    auto out = PredefinedModelData{};
-                    for (auto& spec : specs) {
-                      for (auto& mod : spec) {
-                        if (mod.type == SpeciesTagType::Predefined) {
-                          String filename =
-                              (std::filesystem::path(basename) /
-                               (mod.Isotopologue().FullName() + ".xml"))
-                                  .string();
-                          if (find_xml_file_existence(filename)) {
-                            PredefinedModelData data;
-                            xml_read_from_file(filename, data);
-                            std::visit(
-                                [&](auto& model) {
-                                  out.data[mod.Isotopologue()] = model;
-                                },
-                                data.data.at(mod.Isotopologue()));
-                          } else {
-                            out.data[mod.Isotopologue()] =
-                                Absorption::PredefinedModel::ModelName{};
-                          }
-                        }
-                      }
-                    }
-                    return out;
-                  })
+  pdmd.def_static(
+          "fromcatalog",
+          [](const char* const basename,
+             const ArrayOfArrayOfSpeciesTag& specs) {
+            auto out = PredefinedModelData{};
+            for (auto& spec : specs) {
+              for (auto& mod : spec) {
+                if (mod.type == SpeciesTagType::Predefined) {
+                  String filename = (std::filesystem::path(basename) /
+                                     (mod.Isotopologue().FullName() + ".xml"))
+                                        .string();
+                  if (find_xml_file_existence(filename)) {
+                    PredefinedModelData data;
+                    xml_read_from_file(filename, data);
+                    std::visit(
+                        [&](auto& model) {
+                          out.data[mod.Isotopologue()] = model;
+                        },
+                        data.data.at(mod.Isotopologue()));
+                  } else {
+                    out.data[mod.Isotopologue()] =
+                        Absorption::PredefinedModel::ModelName{};
+                  }
+                }
+              }
+            }
+            return out;
+          },
+          "basename"_a,
+          "specs"_a,
+          "Reads predefined models from catalog")
       .def("__getstate__",
            [](const PredefinedModelData& t) {
              const std::unordered_map<SpeciesIsotope,

@@ -111,7 +111,8 @@ void py_basic(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.").doc() =
+      "A list of :class:`~pyarts.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);
 

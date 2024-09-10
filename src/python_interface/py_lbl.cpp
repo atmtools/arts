@@ -21,12 +21,13 @@ void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
-  line_key.def_rw("band", &lbl::line_key::band);
-  line_key.def_rw("line", &lbl::line_key::line);
-  line_key.def_rw("spec", &lbl::line_key::spec);
-  line_key.def_rw("ls_var", &lbl::line_key::ls_var);
-  line_key.def_rw("ls_coeff", &lbl::line_key::ls_coeff);
-  line_key.def_rw("var", &lbl::line_key::var);
+  line_key.def_rw("band", &lbl::line_key::band, "The band");
+  line_key.def_rw("line", &lbl::line_key::line, "The line");
+  line_key.def_rw("spec", &lbl::line_key::spec, "The species");
+  line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable");
+  line_key.def_rw("ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient");
+  line_key.def_rw("var", &lbl::line_key::var, "The variable");
+  line_key.doc() = "A key for a line";
   str_interface(line_key);
 
   py::class_<lbl::temperature::data>(m, "TemperatureModel")
@@ -56,7 +57,8 @@ void py_lbl(py::module_& m) try {
            [](lbl::temperature::data& v,
               const std::tuple<LineShapeModelType, Vector>& x) {
              new (&v) lbl::temperature::data{std::get<0>(x), std::get<1>(x)};
-           });
+           })
+      .doc() = "Temperature model";
 
   using pair_vector_type =
       std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
@@ -86,6 +88,7 @@ void py_lbl(py::module_& m) try {
                  self.emplace_back(x, y);
                })
           .PythonInterfaceBasicRepresentation(pair_vector_type);
+  lsvtml.doc() = "A list of line shape models with temperature coefficients";
   vector_interface(lsvtml);
 
   py::class_<lbl::line_shape::species_model>(m, "LineShapeSpeciesModel")
@@ -154,13 +157,15 @@ void py_lbl(py::module_& m) try {
           "T0"_a,
           "T"_a,
           "P"_a)
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
+      .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model)
+      .doc() = "Line shape model for a species";
 
   using line_shape_model_list = std::vector<lbl::line_shape::species_model>;
   auto lsml =
       py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(
           m, "LineShapeModelList")
           .PythonInterfaceBasicRepresentation(line_shape_model_list);
+  lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
 
   py::class_<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
@@ -174,18 +179,24 @@ void py_lbl(py::module_& m) try {
       .def("G0", &lbl::line_shape::model::G0, "The G0 coefficient", "atm"_a)
       .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", "atm"_a)
       .def("D0", &lbl::line_shape::model::D0, "The D0 coefficient", "atm"_a)
-      .def("remove",
-           [](lbl::line_shape::model& self, LineShapeModelVariable x) {
-             for (auto& specmod : self.single_models) {
-               auto ptr = std::find_if(specmod.data.begin(),
-                                       specmod.data.end(),
-                                       [x](auto& y) { return y.first == x; });
-               if (ptr != specmod.data.end()) specmod.data.erase(ptr);
-             }
-           })
-      .def("remove_zeros",
-           [](lbl::line_shape::model& self) { self.clear_zeroes(); })
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
+      .def(
+          "remove",
+          [](lbl::line_shape::model& self, LineShapeModelVariable x) {
+            for (auto& specmod : self.single_models) {
+              auto ptr = std::find_if(specmod.data.begin(),
+                                      specmod.data.end(),
+                                      [x](auto& y) { return y.first == x; });
+              if (ptr != specmod.data.end()) specmod.data.erase(ptr);
+            }
+          },
+          "x"_a,
+          "Remove a variable")
+      .def(
+          "remove_zeros",
+          [](lbl::line_shape::model& self) { self.clear_zeroes(); },
+          "Remove zero coefficients")
+      .PythonInterfaceBasicRepresentation(lbl::line_shape::model)
+      .doc() = "Line shape model";
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
       .def_rw(
@@ -202,7 +213,8 @@ void py_lbl(py::module_& m) try {
           [](lbl::zeeman::model& z) { return z.gu(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
           ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
-      .PythonInterfaceBasicRepresentation(lbl::zeeman::model);
+      .PythonInterfaceBasicRepresentation(lbl::zeeman::model)
+      .doc() = "Zeeman model";
 
   py::class_<lbl::line>(m, "AbsorptionLine")
       .def_rw("a",
@@ -234,11 +246,13 @@ void py_lbl(py::module_& m) try {
           "T"_a,
           "Q"_a,
           "The line strength")
-      .PythonInterfaceBasicRepresentation(lbl::line);
+      .PythonInterfaceBasicRepresentation(lbl::line)
+      .doc() = "Data for an absorption line";
 
   auto ll = py::bind_vector<std::vector<lbl::line>,
                             py::rv_policy::reference_internal>(m, "LineList")
                 .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
+  ll.doc() = "A list of absorption lines";
   vector_interface(ll);
 
   py::class_<lbl::band_data>(m, "AbsorptionBandData")
@@ -248,7 +262,8 @@ void py_lbl(py::module_& m) try {
       .def_rw("cutoff_value",
               &lbl::band_data::cutoff_value,
               "The cutoff value [Hz]")
-      .PythonInterfaceBasicRepresentation(lbl::band_data);
+      .PythonInterfaceBasicRepresentation(lbl::band_data)
+      .doc() = "Data for an absorption band";
 
   py::class_<AbsorptionBand> absd(m, "AbsorptionBand");
   workspace_group_interface(absd);

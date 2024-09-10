@@ -109,7 +109,8 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
   py::implicitly_convertible<String, Stokvec>();
 
-  py::bind_vector<std::vector<Stokvec>>(m, "ArrayOfStokvec");
+  py::bind_vector<std::vector<Stokvec>>(m, "ArrayOfStokvec").doc() =
+      "A list of :class:`~pyarts.arts.Stokvec`";
 
   py::class_<StokvecVector> vsv(m, "StokvecVector");
   vsv.def(py::init_implicit<std::vector<Numeric>>())
@@ -167,7 +168,8 @@ void py_rtepack(py::module_ &m) try {
   common_ndarray(pm);
   workspace_group_interface(pm);
 
-  py::bind_vector<std::vector<Propmat>>(m, "ArrayOfPropmat");
+  py::bind_vector<std::vector<Propmat>>(m, "ArrayOfPropmat").doc() =
+      "A list of :class:`~pyarts.arts.Propmat`";
 
   py::class_<PropmatVector> vpm(m, "PropmatVector");
   vpm.def(py::init_implicit<std::vector<Numeric>>())
@@ -218,7 +220,8 @@ void py_rtepack(py::module_ &m) try {
   common_ndarray(mm);
   workspace_group_interface(mm);
 
-  py::bind_vector<std::vector<Muelmat>>(m, "ArrayOfMuelmat");
+  py::bind_vector<std::vector<Muelmat>>(m, "ArrayOfMuelmat").doc() =
+      "A list of :class:`~pyarts.arts.Muelmat`";
 
   py::class_<MuelmatVector> vmm(m, "MuelmatVector");
   vmm.def(py::init_implicit<std::vector<Numeric>>())
@@ -324,7 +327,8 @@ void py_rtepack(py::module_ &m) try {
       "K"_a,
       "dK"_a,
       "r"_a,
-      "dr"_a);
+      "dr"_a,
+      "Returns the two-level exponential of the input matrices");
 
   rtepack.def(
       "two_level_radiative_transfer",
@@ -346,7 +350,8 @@ void py_rtepack(py::module_ &m) try {
       "dTs"_a,
       "Js"_a,
       "dJs"_a,
-      "I0"_a);
+      "I0"_a,
+      "Returns the two-level radiative transfer of the input matrices");
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

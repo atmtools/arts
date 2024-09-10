@@ -16,17 +16,18 @@ NB_MAKE_OPAQUE(std::vector<Jacobian::LineTarget>)
 namespace Python {
 template <typename T>
 void target(py::class_<T>& cls) {
-  cls.def_ro("type", &T::type);
-  cls.def_ro("d", &T::d);
-  cls.def_ro("target_pos", &T::target_pos);
-  cls.def_ro("x_start", &T::x_start);
-  cls.def_ro("x_size", &T::x_size);
+  cls.def_ro("type", &T::type, "Type of target");
+  cls.def_ro("d", &T::d, "Perturbation magnitude");
+  cls.def_ro("target_pos", &T::target_pos, "Target position");
+  cls.def_ro("x_start", &T::x_start, "Start index of target in state vector");
+  cls.def_ro("x_size", &T::x_size, "Size of target in state vector");
 
   str_interface(cls);
 }
 
 void py_jac(py::module_& m) try {
   py::class_<Jacobian::AtmTarget> atm(m, "AtmTarget");
+  atm.doc() = "Atmospheric target";
   target(atm);
   atm.def(
       "model_state",
@@ -56,6 +57,7 @@ x : Vector
 )--");
 
   py::class_<Jacobian::SurfaceTarget> surf(m, "SurfaceTarget");
+  surf.doc() = "Surface target";
   target(surf);
   surf.def(
       "model_state",
@@ -85,6 +87,7 @@ x : Vector
 )--");
 
   py::class_<Jacobian::LineTarget> line(m, "LineTarget");
+  line.doc() = "Line target";
   target(line);
   line.def(
       "model_state",
@@ -113,10 +116,13 @@ x : Vector
     The local state vector
 )--");
 
-  py::bind_vector<std::vector<Jacobian::AtmTarget>>(m, "ArrayOfAtmTargets");
+  py::bind_vector<std::vector<Jacobian::AtmTarget>>(m, "ArrayOfAtmTargets")
+      .doc() = "List of atmospheric targets";
   py::bind_vector<std::vector<Jacobian::SurfaceTarget>>(m,
-                                                        "ArrayOfSurfaceTarget");
-  py::bind_vector<std::vector<Jacobian::LineTarget>>(m, "ArrayOfLineTarget");
+                                                        "ArrayOfSurfaceTarget")
+      .doc() = "List of surface targets";
+  py::bind_vector<std::vector<Jacobian::LineTarget>>(m, "ArrayOfLineTarget")
+      .doc() = "List of line targets";
 
   py::class_<JacobianTargets> jacs(m, "JacobianTargets");
   workspace_group_interface(jacs);

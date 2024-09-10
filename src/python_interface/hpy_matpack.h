@@ -97,7 +97,7 @@ void matpack_constant_interface(
       },
       "a"_a);
 
-  c.def_rw("data", &mtype::data);
+  c.def_rw("data", &mtype::data, "The data itself");
 
   c.def(
       "__array__",
@@ -172,13 +172,13 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
         "grid_names"_a = std::array<String, dim>{},
         "grids"_a);
 
-  c.def_rw("dataname", &mtype::data_name);
+  c.def_rw("dataname", &mtype::data_name, "Name of the data");
 
-  c.def_rw("data", &mtype::data);
+  c.def_rw("data", &mtype::data, "The data itself");
 
-  c.def_rw("gridnames", &mtype::grid_names);
+  c.def_rw("gridnames", &mtype::grid_names, "The grid names");
 
-  c.def_rw("grids", &mtype::grids);
+  c.def_rw("grids", &mtype::grids, "The grid of the data");
 
   c.def_prop_ro_static(
       "dim",
@@ -202,67 +202,80 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
       [](mtype& a, const mtype& b) { a = b; },
       "A :class:`~numpy.ndarray` of the object.");
 
-  c.def("to_dict", [](const py::object& gd) {
-    py::dict out;
+  c.def(
+      "to_dict",
+      [](const py::object& gd) {
+        py::dict out;
 
-    out["dims"]   = py::list{};
-    out["coords"] = py::dict{};
-    for (Size i = 0; i < mtype::dim; ++i) {
-      auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
-      auto grid     = gd.attr("grids").attr("__getitem__")(i);
+        out["dims"]   = py::list{};
+        out["coords"] = py::dict{};
+        for (Size i = 0; i < mtype::dim; ++i) {
+          auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
+          auto grid     = gd.attr("grids").attr("__getitem__")(i);
 
-      const auto n =
-          gridname ? gridname : py::str(var_string("dim", i).c_str());
-      out["dims"].attr("append")(n);
-      out["coords"][n]         = py::dict{};
-      out["coords"][n]["data"] = grid;
-      out["coords"][n]["dims"] = n;
-    }
+          const auto n =
+              gridname ? gridname : py::str(var_string("dim", i).c_str());
+          out["dims"].attr("append")(n);
+          out["coords"][n]         = py::dict{};
+          out["coords"][n]["data"] = grid;
+          out["coords"][n]["dims"] = n;
+        }
 
-    out["name"] = gd.attr("dataname");
-    out["data"] = gd.attr("data");
+        out["name"] = gd.attr("dataname");
+        out["data"] = gd.attr("data");
 
-    return out;
-  });
+        return out;
+      },
+      "Convert object to dict.");
 
-  c.def("to_xarray", [](const py::object& gd) {
-    py::module_ xarray = py::module_::import_("xarray");
-    return xarray.attr("DataArray").attr("from_dict")(gd.attr("to_dict")());
-  });
+  c.def(
+      "to_xarray",
+      [](const py::object& gd) {
+        py::module_ xarray = py::module_::import_("xarray");
+        return xarray.attr("DataArray").attr("from_dict")(gd.attr("to_dict")());
+      },
+      "Create :func:`xarray.DataArray` from the object.");
 
-  c.def_static("from_dict", [](const py::dict& d) {
-    if (not d.contains("coords"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'coords''");
-    if (not d.contains("dims"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'dims''");
-    if (not d.contains("data"))
-      throw std::invalid_argument(
-          "cannot convert dict without the key 'data''");
+  c.def_static(
+      "from_dict",
+      [](const py::dict& d) {
+        if (not d.contains("coords"))
+          throw std::invalid_argument(
+              "cannot convert dict without the key 'coords''");
+        if (not d.contains("dims"))
+          throw std::invalid_argument(
+              "cannot convert dict without the key 'dims''");
+        if (not d.contains("data"))
+          throw std::invalid_argument(
+              "cannot convert dict without the key 'data''");
 
-    auto gd = mtype{};
+        auto gd = mtype{};
 
-    gd.data = py::cast<dtype>(d["data"]);
+        gd.data = py::cast<dtype>(d["data"]);
 
-    if (d.contains("name")) {
-      gd.data_name = py::cast<std::string_view>(d["name"]);
-    }
+        if (d.contains("name")) {
+          gd.data_name = py::cast<std::string_view>(d["name"]);
+        }
 
-    gd.grid_names = py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
+        gd.grid_names =
+            py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
 
-    py::list coords{};
-    for (auto& n : gd.grid_names) {
-      coords.append(d["coords"][py::str(n.c_str())]["data"]);
-    }
-    gd.grids = py::cast<typename mtype::grids_t>(coords);
+        py::list coords{};
+        for (auto& n : gd.grid_names) {
+          coords.append(d["coords"][py::str(n.c_str())]["data"]);
+        }
+        gd.grids = py::cast<typename mtype::grids_t>(coords);
 
-    return gd;
-  });
+        return gd;
+      },
+      "Create object from dict.");
 
-  c.def_static("from_xarray", [](const py::object& xarray) {
-    return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")());
-  });
+  c.def_static(
+      "from_xarray",
+      [](const py::object& xarray) {
+        return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")());
+      },
+      "Create object from :func:`xarray.DataArray`.");
 
   c.def(
       "__eq__",
