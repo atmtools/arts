@@ -12,7 +12,7 @@ void py_star(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Sun)
       .PythonInterfaceFileIO(Sun)
       .def_readwrite("description", &Sun::description, ":class:`~pyarts.arts.String` Sun description")
-      .def_readwrite("spectrum", &Sun::spectrum, ":class:`~pyarts.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
+      .def_readwrite("spectrum", &Sun::spectrum, ":class:`~pyarts.arts.Matrix` Sun spectrum, spectral irradiance at the position of the sun")
       .def_readwrite("radius", &Sun::radius, ":class:`float` Sun radius")
       .def_readwrite("distance", &Sun::distance, ":class:`float` Sun distance")
       .def_readwrite("latitude", &Sun::latitude, ":class:`float` Sun latitude")
@@ -36,10 +36,9 @@ void py_star(py::module_& m) {
                              t[5].cast<Numeric>()});
           })).doc()=R"--(A single sun.
           
-Each sun is described by a struct with its spectrum, radius
-distance from center of planet to center of sun,
-temperature (if possible), latitude in the sky of the planet,
-longitude in the sky of the planet and the type )--";
+Each sun is described by a struct with its spectral irradiance, radius
+distance from center of planet to center of sun, latitude in the sky of the planet,
+and longitude in the sky of the planet.  Optionally, a free-form text description of the sun may be available. )--";
 
   PythonInterfaceWorkspaceArray(Sun);
 }
