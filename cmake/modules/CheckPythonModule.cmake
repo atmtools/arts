@@ -16,7 +16,7 @@ macro (CHECK_PYTHON_MODULES)
     xarray)
 
   set(PYPI_NAMES
-    build
+    python-build
     docutils
     lark-parser
     matplotlib
