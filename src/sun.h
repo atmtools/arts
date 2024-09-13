@@ -38,11 +38,11 @@ class Workspace;
 struct Sun {
   /** Sun description */
   String description;
-  /** Sun spectrum, monochrmatic radiance spectrum at the surface of the sun*/
+  /** Sun spectrum, spectral irradiance at the position of the sun */
   Matrix spectrum;
   /** Sun radius */
   Numeric radius;
-  /** distance from center of planet to center of sun*/
+  /** distance from center of planet to center of sun */
   Numeric distance;
   /** latitude of the sun in the sky of the planet */
   Numeric latitude;
