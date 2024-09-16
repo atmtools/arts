@@ -34,10 +34,10 @@ class FastFlux1D:
 
         self.ws.absorption_speciesSet(
             species=[
-                # "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
-                "O2, O2-CIAfunCKDMT100",
-                "N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-                "CO2, CO2-CKDMT252",
+                "H2O-161, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
+                "O2-66, O2-CIAfunCKDMT100",
+                "N2-44, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
+                "CO2-626, CO2-CKDMT252",
                 # "CH4",
                 # "O3",
                 "O3-XFIT",
@@ -139,7 +139,7 @@ class FastFlux1D:
         self.ws.disort_settingsOpticalThicknessFromPath()
         self.ws.disort_settingsNoLayerThermalEmission()
         self.ws.disort_settingsSurfaceEmissionByTemperature()
-        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
+        self.ws.disort_settingsNoSpaceEmission()
         self.ws.disort_settingsSurfaceLambertian(
             value=self.visibile_surface_reflectivity
         )
