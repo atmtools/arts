@@ -70,6 +70,8 @@ class FastFlux1D:
             max_step=max_level_step,
         )
 
+        self.ws.ray_path_atmospheric_pointFromPath()
+
         self.visf = pyarts.arts.AscendingGrid.fromxml(
             "planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-f_grid.xml"
         )
@@ -88,7 +90,6 @@ class FastFlux1D:
         tmp = pyarts.arts.GriddedField2.fromxml(
             "star/Sun/solar_spectrum_QUIET.xml"
         )
-        
         self.ws.sunFromGrid(
             frequency_grid=self.visf,
             sun_spectrum_raw=tmp,

@@ -41,6 +41,10 @@ else()
         planets/Earth/afgl/tropical/t.xml
         planets/Earth/afgl/tropical/p.xml
         planets/Earth/afgl/tropical/O2.xml
+        planets/Earth/afgl/tropical/CO2.xml
+        planets/Earth/afgl/tropical/H2O.xml
+        planets/Earth/afgl/tropical/O3.xml
+        planets/Earth/afgl/tropical/N2.xml
         star/Sun/solar_spectrum_May_2004.xml
     )
 endif()
