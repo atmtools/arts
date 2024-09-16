@@ -4,9 +4,15 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <workspace.h>
 
+#include <print>
+
+#include "debug.h"
+#include "enumsSurfaceKey.h"
 #include "mh_checks.h"
 #include "sorted_grid.h"
+#include "sun_methods.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Disort settings initialization
@@ -38,6 +44,46 @@ void disort_settingsNoSun(DisortSettings& disort_settings) {
   disort_settings.solar_azimuth_angle = 0.0;
 }
 
+void disort_settingsSetSun(DisortSettings& disort_settings,
+                           const AscendingGrid& frequency_grid,
+                           const SurfaceField& surface_field,
+                           const Sun& sun,
+                           const PropagationPathPoint& ray_path_point,
+                           const Index& in_radiance) {
+  const Numeric h =
+      surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
+
+  const Vector3 sun_pos{sun.distance - h, sun.latitude, sun.longitude};
+  const Vector2 los =
+      geometric_los(ray_path_point.pos, sun_pos, surface_field.ellipsoid);
+
+  const ArrayOfPropagationPathPoint sun_path{{.pos = sun_pos, .los = los},
+                                             ray_path_point};
+
+  StokvecVector spectral_radiance;
+  spectral_radianceSunOrCosmicBackground(
+      spectral_radiance, frequency_grid, sun_path, sun, surface_field);
+
+  ARTS_USER_ERROR_IF(
+      spectral_radiance.size() != disort_settings.solar_source.size(),
+      "Spectral radiance size does not match the solar source size: {} vs {}",
+      spectral_radiance.size(),
+      disort_settings.solar_source.size())
+
+  for (Index i = 0; i < spectral_radiance.size(); i++) {
+    disort_settings.solar_source[i] = spectral_radiance[i][0];
+  }
+
+  if (not in_radiance) {
+    disort_settings.solar_source *=
+        Constant::pi *
+        sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
+  }
+
+  disort_settings.solar_zenith_angle  = los[0];
+  disort_settings.solar_azimuth_angle = los[1];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Disort source polynomial
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +96,8 @@ void disort_settingsNoLayerThermalEmission(DisortSettings& disort_settings) {
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& frequency_grid,
+    const Index& in_radiance) {
   const auto nv = frequency_grid.size();
   const auto N  = ray_path_atmospheric_point.size();
 
@@ -83,6 +130,10 @@ void disort_settingsLayerThermalEmissionLinearInTau(
       disort_settings.source_polynomial(iv, i, 1) = b;
     }
   }
+
+  if (not in_radiance) {
+    disort_settings.source_polynomial *= Constant::pi;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +148,8 @@ void disort_settingsSurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
     const AscendingGrid& frequency_grid,
     const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field) {
+    const SurfaceField& surface_field,
+    const Index& in_radiance) {
   const auto nv = frequency_grid.size();
 
   const Numeric T = surface_field.single_value(
@@ -119,6 +171,10 @@ void disort_settingsSurfaceEmissionByTemperature(
     disort_settings.negative_boundary_condition(iv, 0, joker) =
         planck(frequency_grid[iv], T);
   }
+
+  if (not in_radiance) {
+    disort_settings.negative_boundary_condition *= Constant::pi;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +186,9 @@ void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
 }
 
 void disort_settingsCosmicMicrowaveBackgroundRadiation(
-    DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
+    DisortSettings& disort_settings,
+    const AscendingGrid& frequency_grid,
+    const Index& in_radiance) {
   const Index nv = frequency_grid.size();
 
   disort_settings.positive_boundary_condition = 0.0;
@@ -148,6 +206,10 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
   for (Index iv = 0; iv < nv; iv++) {
     disort_settings.positive_boundary_condition(iv, 0, joker) = planck(
         frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
+  }
+
+  if (not in_radiance) {
+    disort_settings.positive_boundary_condition *= Constant::pi;
   }
 }
 

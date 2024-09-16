@@ -14,8 +14,10 @@ class FastFlux1D:
         surface_temperature: float = 300.0,
         max_level_step: float = 1e3,
         NQuad: int = 16,
-        solar_zenith_angle: float = 0.0,
-        solar_azimuth_angle: float = 0.0,
+        atm_latitude: float = 0.0,
+        atm_longitude: float = 0.0,
+        solar_latitude: float = 0.0,
+        solar_longitude: float = 0.0,
     ):
         """Initialization
 
@@ -63,11 +65,10 @@ class FastFlux1D:
         )
 
         self.ws.ray_pathGeometricUplooking(
-            latitude=0, longitude=0, max_step=max_level_step
+            latitude=atm_latitude,
+            longitude=atm_longitude,
+            max_step=max_level_step,
         )
-
-        self.ws.ray_path_atmospheric_pointFromPath()
-        self.ws.ray_path_pointLowestFromPath()
 
         self.visf = pyarts.arts.AscendingGrid.fromxml(
             "planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-f_grid.xml"
@@ -87,17 +88,12 @@ class FastFlux1D:
         tmp = pyarts.arts.GriddedField2.fromxml(
             "star/Sun/solar_spectrum_QUIET.xml"
         )
-        self.solar_source = (
-            tmp.to_xarray()
-            .interp({"Frequencys": self.visf, "Stokes_dim": 1})
-            .data
-            * 2.16652020926776e-05
-        )
-        self.solar_zenith = pyarts.arts.Vector(
-            [solar_zenith_angle] * len(self.visf)
-        )
-        self.solar_azimuth = pyarts.arts.Vector(
-            [solar_azimuth_angle] * len(self.visf)
+        
+        self.ws.sunFromGrid(
+            frequency_grid=self.visf,
+            sun_spectrum_raw=tmp,
+            latitude=solar_latitude,
+            longitude=solar_longitude,
         )
 
     def __call__(
@@ -116,17 +112,18 @@ class FastFlux1D:
 
         N = len(self.ws.ray_path_atmospheric_point)
         for key in atmospheric_profile:
-            data = atmospheric_profile[key]
-            assert N == len(data) or isinstance(
-                data, (int, float)
-            ), f"Profile changing data must contain {N} elements or be a scalar"
+            data = np.atleast_1d(atmospheric_profile[key]).flatten()
 
-            if isinstance(data, (int, float)):
+            if len(data) == 1:
                 for i in range(N):
-                    self.ws.ray_path_atmospheric_point[i][key] = data
-            else:
+                    self.ws.ray_path_atmospheric_point[i][key] = data[0]
+            elif len(data) == N:
                 for i in range(N):
                     self.ws.ray_path_atmospheric_point[i][key] = data[i]
+            else:
+                assert (
+                    False
+                ), f"Key: {key}.  Neither size {N} nor 1.  Size: {len(data)}"
 
         # Visible
         self.ws.frequency_grid = self.visf
@@ -134,11 +131,12 @@ class FastFlux1D:
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.ray_path_frequency_gridFromPath()
         self.ws.ray_path_propagation_matrixFromPath()
-        self.ws.ray_path_pointLowestFromPath()
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()
         self.ws.disort_settingsNoLayerThermalEmission()
-        self.ws.disort_settingsSurfaceEmissionByTemperature()
+        self.ws.disort_settingsSurfaceEmissionByTemperature(
+            ray_path_point=self.ws.ray_path[0], in_radiance=0
+        )
         self.ws.disort_settingsNoSpaceEmission()
         self.ws.disort_settingsSurfaceLambertian(
             value=self.visibile_surface_reflectivity
@@ -146,9 +144,9 @@ class FastFlux1D:
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settings.solar_source = self.solar_source
-        self.ws.disort_settings.solar_zenith_angle = self.solar_zenith
-        self.ws.disort_settings.solar_azimuth_angle = self.solar_azimuth
+        self.ws.disort_settingsSetSun(
+            ray_path_point=self.ws.ray_path[-1], in_radiance=0
+        )
         self.ws.disort_spectral_flux_fieldCalc()
 
         self.SOLAR = np.einsum(
@@ -161,12 +159,15 @@ class FastFlux1D:
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.ray_path_frequency_gridFromPath()
         self.ws.ray_path_propagation_matrixFromPath()
-        self.ws.ray_path_pointLowestFromPath()
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()
-        self.ws.disort_settingsLayerThermalEmissionLinearInTau()
-        self.ws.disort_settingsSurfaceEmissionByTemperature()
-        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
+        self.ws.disort_settingsLayerThermalEmissionLinearInTau(in_radiance=0)
+        self.ws.disort_settingsSurfaceEmissionByTemperature(
+            ray_path_point=self.ws.ray_path[0], in_radiance=0
+        )
+        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation(
+            in_radiance=0
+        )
         self.ws.disort_settingsSurfaceLambertian(
             value=self.thermal_surface_reflectivity
         )

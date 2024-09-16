@@ -4,9 +4,12 @@ else()
     list(APPEND DOWNLOAD_CATDATA
         cia/O2-CIA-O2.xml
         lines/O2-66.xml
+        lines/N2-44.xml
         lines/CO2-626.xml
+        lines/H2O-161.xml
         predef/H2O-SelfContCKDMT400.xml
         predef/H2O-ForeignContCKDMT400.xml
+        xsec/O3-XFIT.xml
     )
 endif()
 

@@ -352,7 +352,6 @@ bool set_spectral_radiance_if_sun_intersection(
               surface_field.ellipsoid)
           .second) {
     //Here we assume that the sun radiates isotropically.
-    //Matrix sun_irradiance = sun.spectrum;
 
     for (Index iv = 0; iv < nf; ++iv) {
       for (Index is = 0; is < 4; ++is) {

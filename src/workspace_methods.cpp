@@ -3461,6 +3461,24 @@ Description of the special input arguments:
       .in     = {"disort_settings"},
   };
 
+  wsm_data["disort_settingsSetSun"] = {
+      .desc =
+          R"--(Uses Set the FOV to the sun input for Disort calculations.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings",
+                    "frequency_grid",
+                    "surface_field",
+                    "sun",
+                    "ray_path_point"},
+      .gin       = {"in_radiance"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"If true, the source function is the radiance, else it is in irradiance"},
+  };
+
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
       .desc   = R"(Turns off source radiation in Disort calculations.
 )",
@@ -3478,6 +3496,11 @@ Note that you must have set the optical thickness before calling this.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
+      .gin       = {"in_radiance"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoSpaceEmission"] = {
@@ -3493,9 +3516,14 @@ Note that you must have set the optical thickness before calling this.
       .desc =
           R"(Space radiation into Disort is isotropic cosmic background radiation.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings"},
-      .in     = {"disort_settings", "frequency_grid"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings", "frequency_grid"},
+      .gin       = {"in_radiance"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -3510,12 +3538,17 @@ Note that you must have set the optical thickness before calling this.
       .desc =
           R"(Surface radiation into Disort is isotropic from surface temperature.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "surface_field"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings",
+                    "frequency_grid",
+                    "ray_path_point",
+                    "surface_field"},
+      .gin       = {"in_radiance"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
