@@ -501,16 +501,22 @@ std::vector<EnumeratedOption> internal_options_create() {
           {
               Value{"Clearsky", R"(
 
-- *disort_settingsInit*
-- *disort_settingsOpticalThicknessFromPath*
-- *disort_settingsLayerThermalEmissionLinearInTau*
-- *disort_settingsSurfaceEmissionByTemperature*
-- *disort_settingsCosmicMicrowaveBackgroundRadiation*
-- *disort_settingsNoSurfaceScattering*
-- *disort_settingsNoSingleScatteringAlbedo*
-- *disort_settingsNoFractionalScattering*
-- *disort_settingsNoLegendre*
-- *disort_settingsNoSun*
+  - *jacobian_targetsInit*
+  - *jacobian_targetsFinalize*
+  - *ray_path_atmospheric_pointFromPath*
+  - *ray_path_frequency_gridFromPath*
+  - *ray_path_propagation_matrixFromPath*
+  - *ray_path_pointLowestFromPath*
+  - *disort_settingsInit*
+  - *disort_settingsOpticalThicknessFromPath*
+  - *disort_settingsLayerThermalEmissionLinearInTau*
+  - *disort_settingsSurfaceEmissionByTemperature*
+  - *disort_settingsCosmicMicrowaveBackgroundRadiation*
+  - *disort_settingsNoSurfaceScattering*
+  - *disort_settingsNoSingleScatteringAlbedo*
+  - *disort_settingsNoFractionalScattering*
+  - *disort_settingsNoLegendre*
+  - *disort_settingsNoSun*
 )"},
           },
   });
