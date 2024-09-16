@@ -1071,6 +1071,12 @@ well as the sampling device's polarization response.
       .array_depth = 1,
   };
 
+  wsg_data["DisortSettings"] = {
+      .file        = "disort.h",
+      .desc        = "The settings required to run Disort.\n",
+      .array_depth = 1,
+  };
+
   return wsg_data;
 }
 

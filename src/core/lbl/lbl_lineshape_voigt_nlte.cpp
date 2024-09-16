@@ -383,6 +383,11 @@ void zeeman_push_back(std::vector<single_shape>& lines,
     for (Size iz = 0; iz < nz; iz++) {
       lines.emplace_back(s.as_zeeman(H, pol, iz));
       pos.emplace_back(line_pos{.line = iline, .spec = ispec, .iz = iz});
+
+      if (lines.back().k == 0.0 and lines.back().e_ratio == 0.0) {
+        lines.pop_back();
+        pos.pop_back();
+      }
     }
   }
 }

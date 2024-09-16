@@ -128,22 +128,3 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
       true,
       false);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Disort single scattering albedo
-////////////////////////////////////////////////////////////////////////////////
-
-void disort_single_scattering_albedoTurnOff(
-    Matrix& disort_single_scattering_albedo,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid) {
-  const Size N   = ray_path.size();
-  const Index nv = frequency_grid.size();
-
-  disort_single_scattering_albedo.resize(nv, N - 1);
-  disort_single_scattering_albedo = 0.0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Disort source polynomial
-////////////////////////////////////////////////////////////////////////////////

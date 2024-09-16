@@ -39,8 +39,8 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
   absorption_xsec_fit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    const String filename{tmpbasename +
-                          String(toString<1>(species_name)) + ".xml"};
+    const String filename{
+        std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
 
     try {
       xml_read_from_file(filename, xsec_coeffs);
@@ -48,10 +48,11 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
       absorption_xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
       ARTS_USER_ERROR(
-          "Error reading coefficients file:\n{}\n{}", filename, e.what());
+          "Error reading coefficients file: \"{}\"\n{}", filename, e.what());
     }
   }
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddXsecFit(  // WS Output:
@@ -92,11 +93,11 @@ void propagation_matrixAddXsecFit(  // WS Output:
   const bool do_freq_jac =
       std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
   const bool do_temp_jac = temp_jac.first;
-  const Numeric df = field_perturbation(freq_jac);
-  const Numeric dt = temp_jac.first;
+  const Numeric df       = field_perturbation(freq_jac);
+  const Numeric dt       = temp_jac.first;
   if (do_freq_jac) {
     dfreq.resize(f_grid.size());
-    dfreq = f_grid;
+    dfreq  = f_grid;
     dfreq += df;
     dxsec_temp_dF.resize(f_grid.size());
   }
@@ -124,7 +125,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
       continue;
     if (do_abort) continue;
 
-    const Numeric vmr = atm_point[this_xdata.Species()];
+    const Numeric vmr       = atm_point[this_xdata.Species()];
     const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
     const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
 
@@ -164,7 +165,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
       if (const auto j =
               jacobian_targets.find<Jacobian::AtmTarget>(this_xdata.Species());
           j.first) {
-        const auto iq = j.second->target_pos;
+        const auto iq                           = j.second->target_pos;
         propagation_matrix_jacobian(iq, f).A() += xsec_temp[f] * nd * vmr;
       }
     }

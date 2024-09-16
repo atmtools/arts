@@ -276,9 +276,9 @@ model::model(const QuantumIdentifier& qid) noexcept {
 Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
   using Math::pow2;
 
-  auto ml = Ml(Ju, Jl, type, n);
-  auto mu = Mu(Ju, Jl, type, n);
-  auto dm = Rational(dM(type));
+  auto ml             = Ml(Ju, Jl, type, n);
+  auto mu             = Mu(Ju, Jl, type, n);
+  auto dm             = Rational(dM(type));
   return type == pol::no
              ? 1.0
              : polarization_factor(type) *
@@ -314,7 +314,7 @@ Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
     return zeeman::size(J.upp(), J.low(), type);
   }
 
-  return static_cast<Size>(type == pol::no);
+  return static_cast<Index>(type == pol::no);
 }
 
 std::ostream& operator<<(std::ostream& os, const model& m) {

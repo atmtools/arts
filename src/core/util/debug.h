@@ -77,17 +77,14 @@ std::string artsformat(std::format_string<> fmt);
 std::string artsformat();
 
 #if __cpp_lib_source_location >= 201907L
-#include <iomanip>
 #include <source_location>
 
 #define CURRENT_SOURCE_LOCATION                        \
   std::format(                                         \
-      R"(                                              \
-Filename:      {}                                      \
-Function Name: {}                                      \
-Line Number:   {}                                      \
-Column Number: {}                                      \
-)",                                                    \
+      "Filename:      {}\n"                            \
+      "Function Name: {}\n"                            \
+      "Line Number:   {}\n"                            \
+      "Column Number: {}\n",                           \
       std::source_location::current().file_name(),     \
       std::source_location::current().function_name(), \
       std::source_location::current().line(),          \
@@ -157,44 +154,46 @@ Column Number: {}                                      \
 #endif /* NDEBUG */
 
 /*! An error has occured, will throw the error */
-#define ARTS_USER_ERROR(...)                                  \
-  {                                                           \
-    static_assert(false __VA_OPT__(or true),                  \
-                  "Must have an error message in user-"       \
-                  "facing code in " __FILE__);                \
-    if constexpr (false __VA_OPT__(or true))                  \
-      throw std::runtime_error(                               \
-          std::format(R"(User error found at:                 \
-{}                                                            \
-                                                              \
-Please follow these instructions to correct the error:        \
-{}                                                            \
-)",                                                           \
-                      CURRENT_SOURCE_LOCATION,                \
-                      std::format(__VA_OPT__(__VA_ARGS__)))); \
+#define ARTS_USER_ERROR(...)                                         \
+  {                                                                  \
+    static_assert(false __VA_OPT__(or true),                         \
+                  "Must have an error message in user-"              \
+                  "facing code in " __FILE__);                       \
+    if constexpr (false __VA_OPT__(or true))                         \
+      throw std::runtime_error(std::format(                          \
+          "User error found at:\n"                                   \
+          "\n"                                                       \
+          "{}\n"                                                     \
+          "\n"                                                       \
+          "Please follow these instructions to correct the error:\n" \
+          "\n"                                                       \
+          "{}\n",                                                    \
+          CURRENT_SOURCE_LOCATION,                                   \
+          std::format(__VA_OPT__(__VA_ARGS__))));                    \
   }
 
 /*! Condition should be false to pass external check */
-#define ARTS_USER_ERROR_IF(condition, ...)                      \
-  {                                                             \
-    if (condition) {                                            \
-      static_assert(false __VA_OPT__(or true),                  \
-                    "Must have an error message in user-"       \
-                    "facing code in " __FILE__);                \
-      if constexpr (false __VA_OPT__(or true))                  \
-        throw std::runtime_error(                               \
-            std::format(R"(Fail check: {}                       \
-                                                                \
-User error found at:                                            \
-{}                                                              \
-                                                                \
-Please follow these instructions to correct the error:          \
-{}                                                              \
-)",                                                             \
-                        #condition,                             \
-                        CURRENT_SOURCE_LOCATION,                \
-                        std::format(__VA_OPT__(__VA_ARGS__)))); \
-    }                                                           \
+#define ARTS_USER_ERROR_IF(condition, ...)                             \
+  {                                                                    \
+    if (condition) {                                                   \
+      static_assert(false __VA_OPT__(or true),                         \
+                    "Must have an error message in user-"              \
+                    "facing code in " __FILE__);                       \
+      if constexpr (false __VA_OPT__(or true))                         \
+        throw std::runtime_error(std::format(                          \
+            "Fail check: {}\n"                                         \
+            "\n"                                                       \
+            "User error found at:\n"                                   \
+            "\n"                                                       \
+            "{}\n"                                                     \
+            "\n"                                                       \
+            "Please follow these instructions to correct the error:\n" \
+            "\n"                                                       \
+            "{}\n",                                                    \
+            #condition,                                                \
+            CURRENT_SOURCE_LOCATION,                                   \
+            std::format(__VA_OPT__(__VA_ARGS__))));                    \
+    }                                                                  \
   }
 
 #endif /* debug_h */

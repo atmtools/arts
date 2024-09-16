@@ -28,7 +28,6 @@
 #include "config.h"
 #include "debug.h"
 #include "jacobian.h"
-#include "surface.h"
 
 #pragma GCC diagnostic ignored "-Wconversion"
 

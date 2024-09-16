@@ -123,84 +123,40 @@ add_library(artsworkspace STATIC
   workspace_class.cpp
   auto_version.cc
   compile_time_tests.cc
-  doit.cc
   m_abs.cc
   m_absorptionlines.cc
-  m_abs_lookup.cc
   m_agenda_set.cc
-  m_append.cc
-  m_array.cc
-  m_artstime.cc
   m_atm.cc
   m_background.cc
-  m_basic_types.cc
-  m_batch.cc
   m_cat.cc
-  m_checked.cc
   m_cia.cc
-  m_cloudbox.cc
-  m_cloudradar.cc
-  m_conversion.cc
   m_covmat.cc
   m_disort.cc
   m_disort_settings.cc
-  m_doit.cc
-  m_extract.cc
-  m_fluxes.cc
   m_fwd.cc
-  m_gridded_fields.cc
   m_predefined_absorption_models.cc
-  m_gas_scattering.cc
-  m_general.cc
-  m_geodetic.cc
   m_xsec_fit.cc
   m_jactargets.cc
   m_lbl.cc
   m_linemixing.cc
-  m_microphysics.cc
   m_model_state.cc
-  m_montecarlo.cc
   m_nc.cc
-  m_nlte.cc
   m_obsel.cc
   m_oem.cc
   m_operators.cc
-  m_optproperties.cc
   m_partfun.cc
-  m_physics.cc
   m_planets.cc
   m_poslos.cc
   m_ppvar.cc
   m_propagation_path.cc
-  m_psd.cc
-  m_raw.cc
-  m_reduce.cc
-  m_refraction.cc
   m_retrieval.cc
   m_rad.cc
-  m_rt4.cc
-  m_rte.cc
-  m_select.cc
-  m_sensor.cc
-  m_sizes.cc
   m_spectral_radiance.cc
   m_sun.cc
   m_surf.cc
-  m_surface.cc
-  m_telsem.cc
-  m_tessem.cc
-  m_tmatrix.cc
-  m_transmitter.cc
   m_wigner.cc
   m_xml.cc
-  montecarlo.cc
-  psd.cc
-  rt4.cc
-  rte.cc
-  sourcetext.cc
   sun_methods.cc
-  surface.cc
-  variousZZZ.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -208,7 +164,7 @@ add_library(artsworkspace STATIC
   xml_io_rtepack.cc
   xml_operators.cc
   ${NETCDF_CC_FILES}
-  m_fluxes.cc)
+)
 
 target_include_directories(artsworkspace PUBLIC
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <format>
 #include <vector>
 
 #include "workspace_groups.h"
@@ -80,11 +81,6 @@ concept WorkspaceGroupIsDefaultConstructible = requires(T) {
 template <typename T>
 concept WorkspaceGroupIsCopyable = requires(T a) {
   T{a};
-};
-
-template <typename T>
-concept WorkspaceGroupIsPrintable  = requires(T a) {
-  std::ostringstream{} << a;
 };
 )";
 
@@ -270,7 +266,6 @@ template <> {}& Wsv::get<{}>() const {{
     os << std::format(R"-x-(
 static_assert(WorkspaceGroupIsDefaultConstructible<{}>, "Must be default constructible");
 static_assert(WorkspaceGroupIsCopyable<{}>, "Must be possible to copy");
-static_assert(WorkspaceGroupIsPrintable<{}>, "Must be printable");
 static_assert(arts_formattable_or_value_type<{}>, "Must be formattable according to ARTS rules");
 )-x-",
                       group,

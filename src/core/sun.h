@@ -31,7 +31,7 @@
 struct Sun {
   /** Sun description */
   String description;
-  /** Sun spectrum, monochrmatic radiance spectrum at the surface of the sun*/
+  /** Sun spectrum, monochromatic irradiance spectrum at the surface of the sun*/
   Matrix spectrum;
   /** Sun radius */
   Numeric radius;

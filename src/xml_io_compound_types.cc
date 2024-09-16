@@ -541,8 +541,9 @@ void xml_read_from_stream_gf(std::istream& is_xml,
       tag.get_attribute_value("name", name);
 
       if constexpr (std::same_as<U, Vector>) {
-        ARTS_USER_ERROR_IF(
-            tag.get_name() != "Vector", "Must be Vector, is {}", tag.get_name());
+        ARTS_USER_ERROR_IF(tag.get_name() != "Vector",
+                           "Must be Vector, is {}",
+                           tag.get_name());
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Vector");
@@ -628,24 +629,24 @@ void xml_read_from_stream_gf(std::istream& is_xml,
   }
 }
 
-#define GF_READ(GF)                                                      \
-  void xml_read_from_stream(                                             \
-      std::istream& is_xml, GF& gfield, bifstream* pbifs) {              \
-    ArtsXMLTag tag;                                                      \
-                                                                         \
-    tag.read_from_stream(is_xml);                                        \
-    tag.check_name(#GF);                                                 \
-                                                                         \
-    Index version = 0;                                                   \
-    if (tag.has_attribute("version"))                                    \
-      tag.get_attribute_value("version", version);                       \
-    tag.get_attribute_value("name", gfield.data_name);                   \
-                                                                         \
-    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);             \
-                                                                         \
-    tag.read_from_stream(is_xml);                                        \
-    tag.check_name("/" #GF);                                             \
-                                                                         \
+#define GF_READ(GF)                                                        \
+  void xml_read_from_stream(                                               \
+      std::istream& is_xml, GF& gfield, bifstream* pbifs) {                \
+    ArtsXMLTag tag;                                                        \
+                                                                           \
+    tag.read_from_stream(is_xml);                                          \
+    tag.check_name(#GF);                                                   \
+                                                                           \
+    Index version = 0;                                                     \
+    if (tag.has_attribute("version"))                                      \
+      tag.get_attribute_value("version", version);                         \
+    tag.get_attribute_value("name", gfield.data_name);                     \
+                                                                           \
+    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);               \
+                                                                           \
+    tag.read_from_stream(is_xml);                                          \
+    tag.check_name("/" #GF);                                               \
+                                                                           \
     ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n{}", gfield); \
   }
 
@@ -1408,8 +1409,9 @@ void xml_read_from_stream(std::istream& is_xml,
 
   for (const auto& fitcoeffs : xd.FitCoeffs()) {
     const Index ncoeff = fitcoeffs.data.ncols();
-    ARTS_USER_ERROR_IF(
-        ncoeff != 4, "Wrong number of coefficients, expected 4, found {}", ncoeff)
+    ARTS_USER_ERROR_IF(ncoeff != 4,
+                       "Wrong number of coefficients, expected 4, found {}",
+                       ncoeff)
   }
 
   tag.read_from_stream(is_xml);
@@ -1483,8 +1485,7 @@ void xml_read_from_stream(std::istream& is_xml,
     String key_str;
     internal_open_tag.get_attribute_value("key", key_str);
     SpeciesIsotope isot{key_str};
-    ARTS_USER_ERROR_IF(
-        not isot.OK(), "Cannot understand key: \"{}\"", key_str)
+    ARTS_USER_ERROR_IF(not isot.OK(), "Cannot understand key: \"{}\"", key_str)
 
     String sizes_str;
     internal_open_tag.get_attribute_value("sizes", sizes_str);
@@ -1620,8 +1621,8 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (type == "Numeric")
     data.data = Numeric{};
   else if (type == "FunctionalData")
-    data.data =
-        Atm::FunctionalData{Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
+    data.data = Atm::FunctionalData{
+        Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
@@ -1908,8 +1909,8 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (type == "Numeric")
     data.data = Numeric{};
   else if (type == "FunctionalData")
-    data.data =
-        Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
+    data.data = Surf::FunctionalData{
+        Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
@@ -2624,7 +2625,7 @@ struct tag {
     }
   }
 
-  ~tag() {
+  void close() {
     if constexpr (std::same_as<T, std::ostream>) {
       ArtsXMLTag close_tag;
       close_tag.set_name("/" + name);
@@ -2664,27 +2665,30 @@ void xml_read_from_stream(std::istream& is_xml,
                           bifstream* pbifs) {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
 
-  const tag rtag{is_xml, "LinemixingEcsData", "nelem"};
+  tag rtag{is_xml, "LinemixingEcsData", "nelem"};
   const auto nisot = rtag.get<Index>("nelem");
 
   // Get values
   ecsd.clear();
   ecsd.reserve(nisot);
   for (Index j = 0; j < nisot; j++) {
-    const tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
+    tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
     const auto nspec   = isot_tag.get<Index>("nelem");
     const auto isotkey = isot_tag.get<SpeciesIsotope>("isot");
 
     auto& spec_data_map = ecsd[isotkey];
     for (Index i = 0; i < nspec; i++) {
-      const tag spec_tag{is_xml, "specdata", "spec"};
+      tag spec_tag{is_xml, "specdata", "spec"};
       const auto speckey = spec_tag.get<SpeciesEnum>("spec");
 
       auto& spec_data = spec_data_map[speckey];
       is_xml >> spec_data.beta >> spec_data.collisional_distance >>
           spec_data.lambda >> spec_data.scaling;
+      spec_tag.close();
     }
+    isot_tag.close();
   }
+  rtag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
@@ -2693,39 +2697,43 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const String&) {
   ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
 
-  const tag rtag{os_xml,
-                 "LinemixingEcsData",
-                 meta_data{"nelem", static_cast<Index>(r.size())}};
+  tag rtag{os_xml,
+           "LinemixingEcsData",
+           meta_data{"nelem", static_cast<Index>(r.size())}};
 
   // Set values
   for (auto& [key, value] : r) {
-    const tag isot_tag{os_xml,
-                       "isotdata",
-                       meta_data{"nelem", static_cast<Index>(value.size())},
-                       meta_data{"isot", key.FullName()}};
+    tag isot_tag{os_xml,
+                 "isotdata",
+                 meta_data{"nelem", static_cast<Index>(value.size())},
+                 meta_data{"isot", key.FullName()}};
 
     for (auto& [ikey, ivalue] : value) {
-      const tag spec_tag{
-          os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
+      tag spec_tag{os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
 
       os_xml << ivalue.beta << ' ' << ivalue.collisional_distance << ' '
              << ivalue.lambda << ' ' << ivalue.scaling;
+      spec_tag.close();
     }
+    isot_tag.close();
   }
+  rtag.close();
 }
 
 //! SpeciesIsotope
 #include <iostream>
 void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
-  const tag stag{is_xml, "SpeciesIsotope", "isot"};
+  tag stag{is_xml, "SpeciesIsotope", "isot"};
   s = stag.get<SpeciesIsotope>("isot");
+  stag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SpeciesIsotope& s,
                          bofstream*,
                          const String&) {
-  const tag stag{os_xml, "SpeciesIsotope", meta_data{"isot", s.FullName()}};
+  tag stag{os_xml, "SpeciesIsotope", meta_data{"isot", s.FullName()}};
+  stag.close();
 }
 
 //! ArrayOfPropagationPathPoint
@@ -2733,7 +2741,8 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           PropagationPathPoint& ppp,
                           bifstream* pbifs) {
-  const tag stag{is_xml, "PropagationPathPoint", "pos_t", "los_t"};
+  tag stag{is_xml, "PropagationPathPoint", "pos_t", "los_t"};
+
   ppp.pos_type = stag.get<PathPositionType>("pos_t");
   ppp.los_type = stag.get<PathPositionType>("los_t");
 
@@ -2743,16 +2752,18 @@ void xml_read_from_stream(std::istream& is_xml,
   } else {
     pbifs->readDoubleArray(&ppp.pos[0], 7);
   }
+
+  stag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const PropagationPathPoint& ppp,
                          bofstream* pbofs,
                          const String&) {
-  const tag stag{os_xml,
-                 "PropagationPathPoint",
-                 meta_data{"pos_t", String{toString(ppp.pos_type)}},
-                 meta_data{"los_t", String{toString(ppp.los_type)}}};
+  tag stag{os_xml,
+           "PropagationPathPoint",
+           meta_data{"pos_t", String{toString(ppp.pos_type)}},
+           meta_data{"los_t", String{toString(ppp.los_type)}}};
 
   if (pbofs == nullptr) {
     os_xml << ppp.pos[0] << ' ' << ppp.pos[1] << ' ' << ppp.pos[2] << ' '
@@ -2762,25 +2773,32 @@ void xml_write_to_stream(std::ostream& os_xml,
     *pbofs << ppp.pos[0] << ppp.pos[1] << ppp.pos[2] << ppp.los[0] << ppp.los[1]
            << ppp.nreal << ppp.ngroup;
   }
+
+  stag.close();
 }
 
 //! AscendingGrid
 
 void xml_read_from_stream(std::istream& is_xml,
                           AscendingGrid& g,
-                          bifstream* pbifs) {
-  const tag stag{is_xml, "AscendingGrid"};
+                          bifstream* pbifs) try {
+  tag stag{is_xml, "AscendingGrid"};
+
   Vector x;
   xml_read_from_stream(is_xml, x, pbifs);
   g = std::move(x);
+
+  stag.close();
 }
+ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AscendingGrid& g,
                          bofstream* pbofs,
                          const String&) {
-  const tag stag{os_xml, "AscendingGrid"};
+  tag stag{os_xml, "AscendingGrid"};
   xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
+  stag.close();
 }
 
 //! SensorObsel
@@ -2788,24 +2806,30 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           SensorObsel& g,
                           bifstream* pbifs) {
-  const tag stag{is_xml, "SensorObsel"};
+  tag stag{is_xml, "SensorObsel"};
+
   xml_read_from_stream(is_xml, g.f_grid, pbifs);
   xml_read_from_stream(is_xml, g.f_grid_w, pbifs);
   xml_read_from_stream(is_xml, g.poslos_grid_w, pbifs);
   xml_read_from_stream(is_xml, g.poslos_grid, pbifs);
   xml_read_from_stream(is_xml, g.polarization, pbifs);
+
+  stag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorObsel& g,
                          bofstream* pbofs,
                          const String&) {
-  const tag stag{os_xml, "SensorObsel"};
+  tag stag{os_xml, "SensorObsel"};
+
   xml_write_to_stream(os_xml, g.f_grid, pbofs, "f_grid");
   xml_write_to_stream(os_xml, g.f_grid_w, pbofs, "f_grid_w");
   xml_write_to_stream(os_xml, g.poslos_grid_w, pbofs, "poslos_w");
   xml_write_to_stream(os_xml, g.poslos_grid, pbofs, "poslos");
   xml_write_to_stream(os_xml, g.polarization, pbofs, "polarization");
+
+  stag.close();
 }
 
 //! SensorPosLos
@@ -2813,7 +2837,8 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLos& g,
                           bifstream* pbifs) {
-  const tag stag{is_xml, "SensorPosLos"};
+  tag stag{is_xml, "SensorPosLos"};
+
   if (pbifs) {
     pbifs->readDoubleArray(g.pos.data.data(), 3);
     pbifs->readDoubleArray(g.los.data.data(), 2);
@@ -2821,19 +2846,24 @@ void xml_read_from_stream(std::istream& is_xml,
     is_xml >> double_imanip() >> g.pos[0] >> g.pos[1] >> g.pos[2] >> g.los[0] >>
         g.los[1];
   }
+
+  stag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLos& g,
                          bofstream* pbofs,
                          const String&) {
-  const tag stag{os_xml, "SensorPosLos"};
+  tag stag{os_xml, "SensorPosLos"};
+
   if (pbofs) {
     *pbofs << g.pos[0] << g.pos[1] << g.pos[2] << g.los[0] << g.los[1];
   } else {
     os_xml << g.pos[0] << ' ' << g.pos[1] << ' ' << g.pos[2] << ' ' << g.los[0]
            << ' ' << g.los[1];
   }
+
+  stag.close();
 }
 
 //! SensorPosLosVector
@@ -2841,24 +2871,30 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLosVector& g,
                           bifstream* pbifs) {
-  const tag stag{is_xml, "SensorPosLosVector", "nelem"};
+  tag stag{is_xml, "SensorPosLosVector", "nelem"};
+
   const auto n = stag.get<Index>("nelem");
   g.resize(n);
   for (auto& i : g) {
     xml_read_from_stream(is_xml, i, pbifs);
   }
+
+  stag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLosVector& g,
                          bofstream* pbofs,
                          const String&) {
-  const tag stag{os_xml,
-                 "SensorPosLosVector",
-                 meta_data{"nelem", static_cast<Index>(g.size())}};
+  tag stag{os_xml,
+           "SensorPosLosVector",
+           meta_data{"nelem", static_cast<Index>(g.size())}};
+
   for (const auto& i : g) {
     xml_write_to_stream(os_xml, i, pbofs, "poslos");
   }
+
+  stag.close();
 }
 
 //! DisortBDRF
@@ -2876,15 +2912,36 @@ void xml_write_to_stream(std::ostream&,
 
 //! MatrixOfDisortBDRF
 
-void xml_read_from_stream(std::istream&, MatrixOfDisortBDRF&, bifstream*) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_read_from_stream(std::istream&is_xml, MatrixOfDisortBDRF& x, bifstream*) {
+  x.resize(0, 0);
+
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("MatrixOfDisortBDRF");
+
+  Index n;
+  tag.get_attribute_value("ncols", n);
+  ARTS_USER_ERROR_IF(n != 0, "Only for zero size as workaround")
+  tag.get_attribute_value("nrows", n);
+  ARTS_USER_ERROR_IF(n != 0, "Only for zero size as workaround")
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/MatrixOfDisortBDRF");
 }
 
-void xml_write_to_stream(std::ostream&,
-                         const MatrixOfDisortBDRF&,
+void xml_write_to_stream(std::ostream& os_xml,
+                         const MatrixOfDisortBDRF& x,
                          bofstream*,
-                         const String&) {
-  ARTS_USER_ERROR("Method not implemented!");
+                         const String& name) {
+  if (x.size() == 0) {
+    os_xml << std::format(
+        R"(<MatrixOfDisortBDRF ncols="{}" nrows="{}" name="{}"> </MatrixOfDisortBDRF>)",
+        x.ncols(),
+        x.nrows(),
+        name);
+  } else {
+    ARTS_USER_ERROR("Cannot store BDRF data to XML")
+  }
 }
 
 //=== AtmKeyVal =========================================================
@@ -3245,10 +3302,11 @@ void xml_read_from_stream(std::istream& is_xml,
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Unused
 */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const JacobianTargetsDiagonalCovarianceMatrixMap& jtmap,
-                         bofstream* pbofs,
-                         const String&) {
+void xml_write_to_stream(
+    std::ostream& os_xml,
+    const JacobianTargetsDiagonalCovarianceMatrixMap& jtmap,
+    bofstream* pbofs,
+    const String&) {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -3264,5 +3322,97 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 
   close_tag.set_name("/JacobianTargetsDiagonalCovarianceMatrixMap");
+  close_tag.write_to_stream(os_xml);
+}
+
+//=== DisortSettings =========================================================
+
+//! Reads DisortSettings from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param v         DisortSettings
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          DisortSettings& v,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("DisortSettings");
+
+  xml_read_from_stream(is_xml, v.quadrature_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.legendre_polynomial_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.fourier_mode_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.nfreq, pbifs);
+  xml_read_from_stream(is_xml, v.nlay, pbifs);
+  xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
+  xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
+  xml_read_from_stream(is_xml, v.solar_source, pbifs);
+  xml_read_from_stream(
+      is_xml, v.bidirectional_reflectance_distribution_functions, pbifs);
+  xml_read_from_stream(is_xml, v.optical_thicknesses, pbifs);
+  xml_read_from_stream(is_xml, v.single_scattering_albedo, pbifs);
+  xml_read_from_stream(is_xml, v.fractional_scattering, pbifs);
+  xml_read_from_stream(is_xml, v.source_polynomial, pbifs);
+  xml_read_from_stream(is_xml, v.legendre_coefficients, pbifs);
+  xml_read_from_stream(is_xml, v.positive_boundary_condition, pbifs);
+  xml_read_from_stream(is_xml, v.negative_boundary_condition, pbifs);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/DisortSettings");
+}
+
+//! Write DisortSettings to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    DisortSettings
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const DisortSettings& v,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("DisortSettings");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(
+      os_xml, v.quadrature_dimension, pbofs, "quadrature_dimension");
+  xml_write_to_stream(os_xml,
+                      v.legendre_polynomial_dimension,
+                      pbofs,
+                      "legendre_polynomial_dimension");
+  xml_write_to_stream(
+      os_xml, v.fourier_mode_dimension, pbofs, "fourier_mode_dimension");
+  xml_write_to_stream(os_xml, v.nfreq, pbofs, "nfreq");
+  xml_write_to_stream(os_xml, v.nlay, pbofs, "nlay");
+  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solaz");
+  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solza");
+  xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");
+  xml_write_to_stream(os_xml,
+                      v.bidirectional_reflectance_distribution_functions,
+                      pbofs,
+                      "BRDF");
+  xml_write_to_stream(os_xml, v.optical_thicknesses, pbofs, "Tau");
+  xml_write_to_stream(os_xml, v.single_scattering_albedo, pbofs, "albedo");
+  xml_write_to_stream(
+      os_xml, v.fractional_scattering, pbofs, "fractional_scattering");
+  xml_write_to_stream(os_xml, v.source_polynomial, pbofs, "source_polynomial");
+  xml_write_to_stream(
+      os_xml, v.legendre_coefficients, pbofs, "legendre_coefficients");
+  xml_write_to_stream(os_xml,
+                      v.positive_boundary_condition,
+                      pbofs,
+                      "positive_boundary_condition");
+  xml_write_to_stream(os_xml,
+                      v.negative_boundary_condition,
+                      pbofs,
+                      "negative_boundary_condition");
+
+  close_tag.set_name("/DisortSettings");
   close_tag.write_to_stream(os_xml);
 }

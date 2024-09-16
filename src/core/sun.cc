@@ -57,17 +57,7 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
           std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) -
       1;
 
-  // Ignore band if all frequencies are below or above data_f_grid:
-  if (i_fstart == nf || i_fstop == -1) {
-  }
-
   const Index f_extent = i_fstop - i_fstart + 1;
-
-  // If f_extent is less than one, then the entire data_f_grid is between two
-  // grid points of f_grid. (So that we do not have any f_grid points inside
-  // data_f_grid.) Return also in this case.
-  if (f_extent < 1) {
-  }
 
   // This is the part of f_grid that lies inside the spectrum data band
   const ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];

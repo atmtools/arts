@@ -39,6 +39,36 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void sunFromGrid(Sun& sun,
+                 // Inputs:
+                 const AscendingGrid& f_grid,
+                 const GriddedField2& sun_spectrum_raw,
+                 const Numeric& radius,
+                 const Numeric& distance,
+                 const Numeric& temperature,
+                 const Numeric& latitude,
+                 const Numeric& longitude,
+                 const String& description) {
+  // some sanity checks
+  ARTS_USER_ERROR_IF(distance < radius,
+                     "The distance to the center of the sun (",
+                     distance,
+                     " m) \n"
+                     " is smaller than the radius of the sun (",
+                     radius,
+                     " m )")
+
+  // init sun
+  sun.spectrum = regrid_sun_spectrum(
+      sun_spectrum_raw, f_grid, temperature);  // set spectrum
+  sun.description = description;
+  sun.radius      = radius;
+  sun.distance    = distance;
+  sun.latitude    = latitude;
+  sun.longitude   = longitude;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sunBlackbody(Sun& sun,
                   // Inputs:
                   const AscendingGrid& frequency_grid,
@@ -61,10 +91,10 @@ void sunBlackbody(Sun& sun,
   sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 
   sun.description = "Blackbody sun";
-  sun.radius = radius;
-  sun.distance = distance;
-  sun.latitude = latitude;
-  sun.longitude = longitude;
+  sun.radius      = radius;
+  sun.distance    = distance;
+  sun.latitude    = latitude;
+  sun.longitude   = longitude;
 }
 
 void sunsAddSun(ArrayOfSun& suns, const Sun& sun) { suns.push_back(sun); }
@@ -154,7 +184,7 @@ void ray_path_suns_pathFromPathObserver(
     const Index& just_hit) {
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
-  const Size np = ray_path.size();
+  const Size np    = ray_path.size();
   const Size nsuns = suns.size();
 
   ray_path_suns_path.resize(np);
@@ -225,10 +255,10 @@ void propagation_matrix_scatteringAirSimple(
       number_density(atmospheric_point.pressure, atmospheric_point.temperature);
   for (Index f = 0; f < nf; f++) {
     const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
-    Numeric sum = 0;
-    Numeric pows = 1;
+    Numeric sum           = 0;
+    Numeric pows          = 1;
     for (auto& coef : coefficients) {
-      sum += coef * pows;
+      sum  += coef * pows;
       pows /= Math::pow2(wavelen);
     }
     propagation_matrix_scattering[f].A() +=
@@ -428,11 +458,11 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
       const auto& propagation_matrix_scattering =
           ray_path_propagation_matrix_scattering[ip];
       const auto& ray_path_point = ray_path[ip];
-      const auto& suns_path = ray_path_suns_path[ip];
+      const auto& suns_path      = ray_path_suns_path[ip];
 
       for (Size isun = 0; isun < nsuns; isun++) {
         const auto& sun_path = suns_path[isun];
-        const auto& sun = suns[isun];
+        const auto& sun      = suns[isun];
 
         spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
                                                frequency_grid,

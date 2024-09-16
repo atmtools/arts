@@ -33,7 +33,6 @@
 #include "nlte.h"
 #include "optproperties.h"
 #include "path_point.h"
-#include "rte.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -43,11 +42,59 @@
 #include "nc_io.h"
 #endif
 
+void mirror_los(Vector& los_mirrored,
+                const ConstVectorView& los) {
+  los_mirrored.resize(2);
+  los_mirrored[0] = 180 - los[0];
+  los_mirrored[1] = los[1] + 180;
+  if (los_mirrored[1] > 180) {
+    los_mirrored[1] -= 360;
+  }
+}
+
+Numeric dotprod_with_los(const ConstVectorView& los,
+                         const Numeric& u,
+                         const Numeric& v,
+                         const Numeric& w) {
+  // Strength of field
+  const Numeric f = sqrt(u * u + v * v + w * w);
+
+  // Zenith and azimuth angle for field (in radians)
+  const Numeric za_f = acos(w / f);
+  const Numeric aa_f = atan2(u, v);
+
+  // Zenith and azimuth angle for photon direction (in radians)
+  Vector los_p;
+  mirror_los(los_p, los);
+  const Numeric za_p = Conversion::deg2rad(1) * los_p[0];
+  const Numeric aa_p = Conversion::deg2rad(1) * los_p[1];
+
+  return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
+}
+
 inline constexpr Numeric ELECTRON_CHARGE = -Constant::elementary_charge;
 inline constexpr Numeric ELECTRON_MASS = Constant::electron_mass;
 inline constexpr Numeric PI = Constant::pi;
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void absorption_speciesSet(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& absorption_species,
+    // Control Parameters:
+    const ArrayOfString& names) try {
+  absorption_species.resize(names.size());
+
+  //cout << "Names: " << names << "\n";
+
+  // Each element of the array of Strings names defines one tag
+  // group. Let's work through them one by one.
+  for (Size i = 0; i < names.size(); ++i) {
+    // This part has now been moved to array_species_tag_from_string.
+    // Call this function.
+    absorption_species[i] = ArrayOfSpeciesTag(names[i]);
+  }
+} ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_speciesDefineAllInScenario(  // WS Output:
@@ -470,175 +517,6 @@ void isotopologue_ratiosInitFromHitran(
   isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
-#ifdef ENABLE_NETCDF
-/* Workspace method: Doxygen documentation will be auto-generated */
-/* Included by Claudia Emde, 20100707 */
-void WriteMolTau(  //WS Input
-    const Vector& frequency_grid,
-    const Tensor3& z_field,
-    const Tensor7& propagation_matrix_field,
-    //Keyword
-    const String& filename) {
-  int retval, ncid;
-  int nlev_dimid, nlyr_dimid, nwvl_dimid, stokes_dimid, none_dimid;
-  int dimids[4];
-  int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
-
-  ARTS_USER_ERROR_IF(3 != 1, "WriteMolTau can only be used for 3=1")
-#pragma omp critical(netcdf__critical_region)
-  {
-    // Open file
-    if ((retval = nc_create(filename.c_str(), NC_CLOBBER, &ncid)))
-      nca_error(retval, "nc_create");
-
-    // Define dimensions
-    if ((retval = nc_def_dim(ncid, "nlev", (int)z_field.npages(), &nlev_dimid)))
-      nca_error(retval, "nc_def_dim");
-
-    if ((retval =
-             nc_def_dim(ncid, "nlyr", (int)z_field.npages() - 1, &nlyr_dimid)))
-      nca_error(retval, "nc_def_dim");
-
-    if ((retval = nc_def_dim(
-             ncid, "nwvl", (int)frequency_grid.nelem(), &nwvl_dimid)))
-      nca_error(retval, "nc_def_dim");
-
-    if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
-      nca_error(retval, "nc_def_dim");
-
-    if ((retval = nc_def_dim(ncid,
-                             "nstk",
-                             (int)propagation_matrix_field.nbooks(),
-                             &stokes_dimid)))
-      nca_error(retval, "nc_def_dim");
-
-    // Define variables
-    if ((retval = nc_def_var(
-             ncid, "wvlmin", NC_DOUBLE, 1, &none_dimid, &wvlmin_varid)))
-      nca_error(retval, "nc_def_var wvlmin");
-
-    if ((retval = nc_def_var(
-             ncid, "wvlmax", NC_DOUBLE, 1, &none_dimid, &wvlmax_varid)))
-      nca_error(retval, "nc_def_var wvlmax");
-
-    if ((retval = nc_def_var(ncid, "z", NC_DOUBLE, 1, &nlev_dimid, &z_varid)))
-      nca_error(retval, "nc_def_var z");
-
-    if ((retval =
-             nc_def_var(ncid, "wvl", NC_DOUBLE, 1, &nwvl_dimid, &wvl_varid)))
-      nca_error(retval, "nc_def_var wvl");
-
-    dimids[0] = nlyr_dimid;
-    dimids[1] = nwvl_dimid;
-    dimids[2] = stokes_dimid;
-    dimids[3] = stokes_dimid;
-
-    if ((retval =
-             nc_def_var(ncid, "tau", NC_DOUBLE, 4, &dimids[0], &tau_varid)))
-      nca_error(retval, "nc_def_var tau");
-
-    // Units
-    if ((retval = nc_put_att_text(ncid, wvlmin_varid, "units", 2, "nm")))
-      nca_error(retval, "nc_put_att_text");
-
-    if ((retval = nc_put_att_text(ncid, wvlmax_varid, "units", 2, "nm")))
-      nca_error(retval, "nc_put_att_text");
-
-    if ((retval = nc_put_att_text(ncid, z_varid, "units", 2, "km")))
-      nca_error(retval, "nc_put_att_text");
-
-    if ((retval = nc_put_att_text(ncid, wvl_varid, "units", 2, "nm")))
-      nca_error(retval, "nc_put_att_text");
-
-    if ((retval = nc_put_att_text(ncid, tau_varid, "units", 1, "-")))
-      nca_error(retval, "nc_put_att_text");
-
-    // End define mode. This tells netCDF we are done defining
-    // metadata.
-    if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-
-    // Assign data
-    double wvlmin[1];
-    wvlmin[0] =
-        SPEED_OF_LIGHT / frequency_grid[frequency_grid.nelem() - 1] * 1e9;
-    if ((retval = nc_put_var_double(ncid, wvlmin_varid, &wvlmin[0])))
-      nca_error(retval, "nc_put_var");
-
-    double wvlmax[1];
-    wvlmax[0] = SPEED_OF_LIGHT / frequency_grid[0] * 1e9;
-    if ((retval = nc_put_var_double(ncid, wvlmax_varid, &wvlmax[0])))
-      nca_error(retval, "nc_put_var");
-
-    double z[z_field.npages()];
-    for (int iz = 0; iz < z_field.npages(); iz++)
-      z[iz] = z_field(z_field.npages() - 1 - iz, 0, 0) * 1e-3;
-
-    if ((retval = nc_put_var_double(ncid, z_varid, &z[0])))
-      nca_error(retval, "nc_put_var");
-
-    double wvl[frequency_grid.nelem()];
-    for (int iv = 0; iv < frequency_grid.nelem(); iv++)
-      wvl[iv] = SPEED_OF_LIGHT /
-                frequency_grid[frequency_grid.nelem() - 1 - iv] * 1e9;
-
-    if ((retval = nc_put_var_double(ncid, wvl_varid, &wvl[0])))
-      nca_error(retval, "nc_put_var");
-
-    const Index zfnp = z_field.npages() - 1;
-    const Index fgne = frequency_grid.nelem();
-    const Index amfnb = propagation_matrix_field.nbooks();
-
-    Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
-
-    // Calculate average tau for layers
-    for (int is = 0; is < propagation_matrix_field.nlibraries(); is++)
-      for (int iz = 0; iz < zfnp; iz++)
-        for (int iv = 0; iv < fgne; iv++)
-          for (int is1 = 0; is1 < amfnb; is1++)
-            for (int is2 = 0; is2 < amfnb; is2++)
-              // sum up all species
-              tau(iz, iv, is1, is2) +=
-                  0.5 *
-                  (propagation_matrix_field(is,
-                                            frequency_grid.nelem() - 1 - iv,
-                                            is1,
-                                            is2,
-                                            z_field.npages() - 1 - iz,
-                                            0,
-                                            0) +
-                   propagation_matrix_field(is,
-                                            frequency_grid.nelem() - 1 - iv,
-                                            is1,
-                                            is2,
-                                            z_field.npages() - 2 - iz,
-                                            0,
-                                            0)) *
-                  (z_field(z_field.npages() - 1 - iz, 0, 0) -
-                   z_field(z_field.npages() - 2 - iz, 0, 0));
-
-    if ((retval = nc_put_var_double(ncid, tau_varid, tau.unsafe_data_handle())))
-      nca_error(retval, "nc_put_var");
-
-    // Close the file
-    if ((retval = nc_close(ncid))) nca_error(retval, "nc_close");
-  }
-}
-
-#else
-
-void WriteMolTau(  //WS Input
-    const Vector& frequency_grid [[maybe_unused]],
-    const Tensor3& z_field [[maybe_unused]],
-    const Tensor7& propagation_matrix_field [[maybe_unused]],
-    //Keyword
-    const String& filename [[maybe_unused]]) {
-  ARTS_USER_ERROR_IF(true,
-                     "The workspace method WriteMolTau is not available"
-                     "because ARTS was compiled without NetCDF support.");
-}
-
-#endif /* ENABLE_NETCDF */
-
 void propagation_matrix_agendaAuto(  // Workspace reference:
     Agenda& propagation_matrix_agenda,
     // WS Input:
@@ -646,50 +524,37 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
     const ArrayOfAbsorptionBand& absorption_bands,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
-    const Numeric& extpolfac,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Index& ignore_errors,
-    const Index& no_negatives,
-    const Index& use_abs_lookup_ind) {
+    const Index& ignore_errors) {
   AgendaCreator agenda("propagation_matrix_agenda");
-
-  // Use bool because logic is easier
-  const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
 
   const SpeciesTagTypeStatus any_species(absorption_species);
 
   // propagation_matrixInit
   agenda.add("propagation_matrixInit");
 
-  // propagation_matrixAddFromLookup
-  if (use_abs_lookup) {
-    agenda.add("propagation_matrixAddFromLookup",
-               SetWsv{"extpolfac", extpolfac},
-               SetWsv{"no_negatives", no_negatives});
-  }
-
   // propagation_matrixAddLines
-  if (not use_abs_lookup and absorption_bands.size()) {
+  if (absorption_bands.size()) {
     agenda.add("propagation_matrixAddLines");
   }
 
   //propagation_matrixAddHitranXsec
-  if (not use_abs_lookup and any_species.XsecFit) {
+  if (any_species.XsecFit) {
     agenda.add("propagation_matrixAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
   }
 
   //propagation_matrixAddCIA
-  if (not use_abs_lookup and any_species.Cia) {
+  if (any_species.Cia) {
     agenda.add("propagation_matrixAddCIA",
                SetWsv{"T_extrapolfac", T_extrapolfac},
                SetWsv{"ignore_errors", ignore_errors});
   }
 
   //propagation_matrixAddPredefined
-  if (not use_abs_lookup and any_species.Predefined) {
+  if (any_species.Predefined) {
     agenda.add("propagation_matrixAddPredefined");
   }
 
