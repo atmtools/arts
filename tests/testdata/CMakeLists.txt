@@ -10,6 +10,7 @@ else()
         predef/H2O-SelfContCKDMT400.xml
         predef/H2O-ForeignContCKDMT400.xml
         xsec/O3-XFIT.xml
+        xsec/O3-XFIT.xml.bin
     )
 endif()
 
