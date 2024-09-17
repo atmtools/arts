@@ -126,11 +126,11 @@ void disort_settingsLayerThermalEmissionLinearInTau(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Disort negative boundary condition
+// Disort positive boundary condition
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
-  disort_settings.negative_boundary_condition = 0.0;
+  disort_settings.positive_boundary_condition = 0.0;
 }
 
 void disort_settingsSurfaceEmissionByTemperature(
@@ -143,36 +143,6 @@ void disort_settingsSurfaceEmissionByTemperature(
   const Numeric T = surface_field.single_value(
       SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
 
-  disort_settings.negative_boundary_condition = 0.0;
-
-  ARTS_USER_ERROR_IF(
-      nv != disort_settings.negative_boundary_condition.npages(),
-      "Frequency grid size does not match the negative boundary condition size: {} vs {}",
-      nv,
-      disort_settings.negative_boundary_condition.npages())
-
-  ARTS_USER_ERROR_IF(
-      disort_settings.negative_boundary_condition.nrows() < 1,
-      "Must have at least one fourier mode to use the negative boundary condition.")
-
-  for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.negative_boundary_condition(iv, 0, joker) =
-        planck(frequency_grid[iv], T);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Disort positive boundary condition
-////////////////////////////////////////////////////////////////////////////////
-
-void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
-  disort_settings.positive_boundary_condition = 0.0;
-}
-
-void disort_settingsCosmicMicrowaveBackgroundRadiation(
-    DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
-  const Index nv = frequency_grid.size();
-
   disort_settings.positive_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(
@@ -183,10 +153,40 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 
   ARTS_USER_ERROR_IF(
       disort_settings.positive_boundary_condition.nrows() < 1,
-      "Must have at leaat one fourier mode to use the positive boundary condition.")
+      "Must have at least one fourier mode to use the positive boundary condition.")
 
   for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.positive_boundary_condition(iv, 0, joker) = planck(
+    disort_settings.positive_boundary_condition(iv, 0, joker) =
+        planck(frequency_grid[iv], T);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Disort negative boundary condition
+////////////////////////////////////////////////////////////////////////////////
+
+void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
+  disort_settings.negative_boundary_condition = 0.0;
+}
+
+void disort_settingsCosmicMicrowaveBackgroundRadiation(
+    DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
+  const Index nv = frequency_grid.size();
+
+  disort_settings.negative_boundary_condition = 0.0;
+
+  ARTS_USER_ERROR_IF(
+      nv != disort_settings.negative_boundary_condition.npages(),
+      "Frequency grid size does not match the negative boundary condition size: {} vs {}",
+      nv,
+      disort_settings.negative_boundary_condition.npages())
+
+  ARTS_USER_ERROR_IF(
+      disort_settings.negative_boundary_condition.nrows() < 1,
+      "Must have at leaat one fourier mode to use the negative boundary condition.")
+
+  for (Index iv = 0; iv < nv; iv++) {
+    disort_settings.negative_boundary_condition(iv, 0, joker) = planck(
         frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
   }
 }
