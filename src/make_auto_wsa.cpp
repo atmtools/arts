@@ -297,8 +297,8 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
     os << " try {\n";
     agenda_checker(os, name, ag.array);
     workspace_setup_and_exec(os, name, ag);
-    os << "} catch(std::exception& e) {\n  throw std::runtime_error(var_string(R\"--(Error executing agenda "
-       << '"' << name << '"' << ":\n)--\", e.what()));\n}\n\n";
+    os << "} catch(std::exception& e) {\n  throw std::runtime_error(std::format(R\"--(Error executing agenda "
+       << '"' << name << '"' << ":\n{})--\", e.what()));\n}\n\n";
   }
 }
 

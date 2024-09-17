@@ -164,10 +164,10 @@ void ray_path_propagation_matrixFromPath(
         {
           do_abort = true;
           fail_msg.push_back(
-              var_string("Runtime-error in propagation radiative "
-                         "properties calculation at index {}:\n{}",
-                         ip,
-                         e.what()));
+              std::format("Runtime-error in propagation radiative "
+                          "properties calculation at index {}:\n{}",
+                          ip,
+                          e.what()));
         }
       }
     }

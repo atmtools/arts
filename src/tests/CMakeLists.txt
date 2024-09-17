@@ -89,10 +89,6 @@ add_executable(test_complex test_complex.cc)
 target_link_libraries(test_complex matpack)
 
 # ########## next testcase ###############
-add_executable(test_readpp test_readpp.cc)
-target_link_libraries(test_readpp artsworkspace)
-
-# ########## next testcase ###############
 add_executable(test_cia test_cia.cc)
 target_link_libraries(test_cia artsworkspace)
 
