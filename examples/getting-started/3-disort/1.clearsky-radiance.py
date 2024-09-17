@@ -78,7 +78,7 @@ if PLOT:
     )
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, 0, 0, NQuad // 2-1],
+        ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
         "m:",
         lw=3,
     )
