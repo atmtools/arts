@@ -64,7 +64,7 @@ class FastFlux1D:
             missing_is_zero=1,
         )
 
-        self.ws.ray_pathGeometricUplooking(
+        self.ws.ray_pathGeometricDownlooking(
             latitude=atm_latitude,
             longitude=atm_longitude,
             max_step=max_level_step,
@@ -135,9 +135,7 @@ class FastFlux1D:
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()
         self.ws.disort_settingsNoLayerThermalEmission()
-        self.ws.disort_settingsSurfaceEmissionByTemperature(
-            ray_path_point=self.ws.ray_path[0], in_radiance=0
-        )
+        self.ws.disort_settingsNoSurfaceEmission()
         self.ws.disort_settingsNoSpaceEmission()
         self.ws.disort_settingsSurfaceLambertian(
             value=self.visibile_surface_reflectivity
@@ -145,9 +143,7 @@ class FastFlux1D:
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(
-            ray_path_point=self.ws.ray_path[-1], in_radiance=0
-        )
+        self.ws.disort_settingsSetSun(ray_path_point=self.ws.ray_path[-1])
         self.ws.disort_spectral_flux_fieldCalc()
 
         self.SOLAR = np.einsum(
@@ -162,13 +158,11 @@ class FastFlux1D:
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()
-        self.ws.disort_settingsLayerThermalEmissionLinearInTau(in_radiance=0)
+        self.ws.disort_settingsLayerThermalEmissionLinearInTau()
         self.ws.disort_settingsSurfaceEmissionByTemperature(
-            ray_path_point=self.ws.ray_path[0], in_radiance=0
+            ray_path_point=self.ws.ray_path[0]
         )
-        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation(
-            in_radiance=0
-        )
+        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
         self.ws.disort_settingsSurfaceLambertian(
             value=self.thermal_surface_reflectivity
         )

@@ -128,3 +128,23 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
       true,
       false);
 }
+
+void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
+                                  const AtmField& atmospheric_field,
+                                  const SurfaceField& surface_field,
+                                  const Numeric& latitude,
+                                  const Numeric& longitude,
+                                  const Numeric& max_step) {
+  ray_pathGeometric(ray_path,
+                    atmospheric_field,
+                    surface_field,
+                    {atmospheric_field.top_of_atmosphere, latitude, longitude},
+                    {180, 0},
+                    max_step,
+                    1.0,
+                    true,
+                    false,
+                    true,
+                    true,
+                    false);
+}

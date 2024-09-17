@@ -15,10 +15,6 @@ add_executable(test_gridded_fields
 target_link_libraries(test_gridded_fields matpack)
 
 # ########## next testcase ###############
-add_executable(test_interpolation test_interpolation.cc)
-target_link_libraries(test_interpolation artsworkspace)
-
-# ########## next testcase ###############
 add_executable(test_linalg
   test_linalg.cc)
 
@@ -72,10 +68,6 @@ add_executable(test_poly test_poly.cc)
 target_link_libraries(test_poly matpack)
 
 # ########## next testcase ###############
-add_executable(test_tensor test_tensor.cc)
-target_link_libraries(test_tensor artsworkspace)
-
-# ########## next testcase ###############
 add_executable(test_matpack test_matpack.cc)
 target_link_libraries(test_matpack artscore test_utils)
 
@@ -95,10 +87,6 @@ target_include_directories(test_xml PRIVATE ${ARTS_SOURCE_DIR}/src)
 # ########## next testcase ###############
 add_executable(test_complex test_complex.cc)
 target_link_libraries(test_complex matpack)
-
-# ########## next testcase ###############
-add_executable(test_sorting test_sorting.cc)
-target_link_libraries(test_sorting artsworkspace)
 
 # ########## next testcase ###############
 add_executable(test_readpp test_readpp.cc)

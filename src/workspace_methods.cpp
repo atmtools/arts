@@ -2143,7 +2143,19 @@ variables are not considered
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
-      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths
+      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"atmospheric_field", "surface_field"},
+      .gin       = {"latitude", "longitude", "max_step"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
+      .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
+  };
+
+  wsm_data["ray_pathGeometricDownlooking"] = {
+      .desc      = R"--(Wraps *ray_pathGeometric* for straight downlooking paths from the top-of-the-atmosphere altitude
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -3472,11 +3484,6 @@ Description of the special input arguments:
                     "surface_field",
                     "sun",
                     "ray_path_point"},
-      .gin       = {"in_radiance"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
@@ -3496,11 +3503,6 @@ Note that you must have set the optical thickness before calling this.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
-      .gin       = {"in_radiance"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoSpaceEmission"] = {
@@ -3519,11 +3521,6 @@ Note that you must have set the optical thickness before calling this.
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
       .in        = {"disort_settings", "frequency_grid"},
-      .gin       = {"in_radiance"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -3544,11 +3541,6 @@ Note that you must have set the optical thickness before calling this.
                     "frequency_grid",
                     "ray_path_point",
                     "surface_field"},
-      .gin       = {"in_radiance"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {"If true, the source function is the radiance, else it is in irradiance"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
