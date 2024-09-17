@@ -47,6 +47,10 @@ else()
         planets/Earth/afgl/tropical/O3.xml
         planets/Earth/afgl/tropical/N2.xml
         star/Sun/solar_spectrum_May_2004.xml
+        planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-f_grid.xml
+        planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-f_grid.xml
+        planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-quadrature_weights.xml
+        planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-quadrature_weights.xml
     )
 endif()
 
