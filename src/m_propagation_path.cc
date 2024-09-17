@@ -129,21 +129,22 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
       false);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Disort single scattering albedo
-////////////////////////////////////////////////////////////////////////////////
-
-void disort_single_scattering_albedoTurnOff(
-    Matrix& disort_single_scattering_albedo,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const AscendingGrid& frequency_grid) {
-  const Size N   = ray_path.size();
-  const Index nv = frequency_grid.size();
-
-  disort_single_scattering_albedo.resize(nv, N - 1);
-  disort_single_scattering_albedo = 0.0;
+void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
+                                  const AtmField& atmospheric_field,
+                                  const SurfaceField& surface_field,
+                                  const Numeric& latitude,
+                                  const Numeric& longitude,
+                                  const Numeric& max_step) {
+  ray_pathGeometric(ray_path,
+                    atmospheric_field,
+                    surface_field,
+                    {atmospheric_field.top_of_atmosphere, latitude, longitude},
+                    {180, 0},
+                    max_step,
+                    1.0,
+                    true,
+                    false,
+                    true,
+                    true,
+                    false);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Disort source polynomial
-////////////////////////////////////////////////////////////////////////////////

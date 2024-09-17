@@ -115,6 +115,7 @@ void py_basic(py::module_& m) try {
       "A list of :class:`~pyarts.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);
+  str_interface(aon);
 
   auto a1 =
       py::bind_vector<ArrayOfArrayOfIndex, py::rv_policy::reference_internal>(

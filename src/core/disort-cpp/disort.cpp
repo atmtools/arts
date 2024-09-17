@@ -9,6 +9,7 @@
 
 #include "arts_constants.h"
 #include "compare.h"
+#include "debug.h"
 #include "legendre.h"
 #include "lin_alg.h"
 #include "matpack_view.h"
@@ -571,7 +572,7 @@ void main_data::check_input_value() const {
       "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0.");
 }
 
-void main_data::update_all(const Numeric I0_) {
+void main_data::update_all(const Numeric I0_) try {
   check_input_value();
 
   set_weighted_Leg_coeffs_all();
@@ -581,6 +582,7 @@ void main_data::update_all(const Numeric I0_) {
   diagonalize();
   solve_for_coefs();
 }
+ARTS_METHOD_ERROR_CATCH
 
 main_data::main_data(const Index NLayers_,
                      const Index NQuad_,
@@ -1128,7 +1130,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
 
 void main_data::gridded_flux(ExhaustiveVectorView flux_up,
                              ExhaustiveVectorView flux_do,
-                             ExhaustiveVectorView flux_dd) const {
+                             ExhaustiveVectorView flux_dd) const try {
   Vector u0(NQuad);
   Vector exponent(NQuad, 1);
   mathscr_v_data src(NQuad, Nscoeffs);
@@ -1176,6 +1178,7 @@ void main_data::gridded_flux(ExhaustiveVectorView flux_up,
     flux_dd[l] = I0_orig * I0 * direct_beam;
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void main_data::gridded_u(ExhaustiveTensor3View out, const Vector& phi) const {
   Matrix exponent(NFourier, NQuad, 1);
@@ -1238,7 +1241,8 @@ void main_data::ungridded_flux(ExhaustiveVectorView flux_up,
                                ExhaustiveVectorView flux_do,
                                ExhaustiveVectorView flux_dd,
                                const AscendingGrid& tau) const {
-  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
+  ARTS_USER_ERROR_IF(
+      tau.front() < 0, "the first tau ({}) must be positive", tau.front());
   ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
                      "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
@@ -1303,7 +1307,8 @@ void main_data::ungridded_flux(ExhaustiveVectorView flux_up,
 void main_data::ungridded_u(ExhaustiveTensor3View out,
                             const AscendingGrid& tau,
                             const Vector& phi) const {
-  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
+  ARTS_USER_ERROR_IF(
+      tau.front() < 0, "the first tau ({}) must be positive", tau.front());
   ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
                      "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
@@ -1376,3 +1381,104 @@ std::ostream& operator<<(std::ostream& os, const main_data&) {
   return os << "Not implemented, output stream operator\n";
 }
 }  // namespace disort
+
+void DisortSettings::resize(Index quadrature_dimension_,
+                            Index legendre_polynomial_dimension_,
+                            Index fourier_mode_dimension_,
+                            Index nfreq_,
+                            Index nlay_) {
+  quadrature_dimension          = quadrature_dimension_;
+  legendre_polynomial_dimension = legendre_polynomial_dimension_;
+  fourier_mode_dimension        = fourier_mode_dimension_;
+  nfreq                         = nfreq_;
+  nlay                          = nlay_;
+
+  solar_source.resize(nfreq);
+  solar_zenith_angle.resize(nfreq);
+  solar_azimuth_angle.resize(nfreq);
+  bidirectional_reflectance_distribution_functions.resize(nfreq, 0);
+  optical_thicknesses.resize(nfreq, nlay);
+  single_scattering_albedo.resize(nfreq, nlay);
+  fractional_scattering.resize(nfreq, nlay);
+  source_polynomial.resize(nfreq, nlay, 0);
+  legendre_coefficients.resize(nfreq, nlay, legendre_polynomial_dimension);
+  positive_boundary_condition.resize(
+      nfreq, fourier_mode_dimension, quadrature_dimension / 2);
+  negative_boundary_condition.resize(
+      nfreq, fourier_mode_dimension, quadrature_dimension / 2);
+}
+
+void DisortSettings::check() const {
+  ARTS_USER_ERROR_IF(
+      solar_source.shape() != std::array{nfreq} or
+          solar_zenith_angle.shape() != std::array{nfreq} or
+          solar_azimuth_angle.shape() != std::array{nfreq} or
+          (bidirectional_reflectance_distribution_functions.shape() !=
+           std::array{
+               nfreq,
+               bidirectional_reflectance_distribution_functions.ncols()}) or
+          (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
+          (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
+          (fractional_scattering.shape() != std::array{nfreq, nlay}) or
+          (source_polynomial.shape() !=
+           std::array{nfreq, nlay, source_polynomial.ncols()}) or
+          (legendre_coefficients.shape() !=
+           std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
+          (positive_boundary_condition.shape() !=
+           std::array{
+               nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
+          (negative_boundary_condition.shape() !=
+           std::array{
+               nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
+          legendre_polynomial_dimension > legendre_coefficients.ncols(),
+      R"-x-(Input is incorrect.
+
+{:s}
+
+Also note that the reduced Legendre polynomial dimension is {}.  It must be at most {}.
+)-x-",
+      *this,
+      legendre_polynomial_dimension,
+      legendre_coefficients.ncols());
+}
+
+disort::main_data DisortSettings::init() const try {
+  check();
+  return disort::main_data(
+      nlay,
+      quadrature_dimension,
+      legendre_coefficients.ncols(),
+      fourier_mode_dimension,
+      source_polynomial.ncols(),
+      legendre_polynomial_dimension,
+      bidirectional_reflectance_distribution_functions.ncols());
+}
+ARTS_METHOD_ERROR_CATCH
+
+disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
+    try {
+  using Conversion::cosd;
+  using Conversion::deg2rad;
+
+  for (Index i = 0;
+       i < bidirectional_reflectance_distribution_functions.ncols();
+       i++) {
+    dis.brdf_modes()[i] =
+        bidirectional_reflectance_distribution_functions(iv, i);
+  }
+
+  dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
+  dis.beam_azimuth()        = deg2rad(solar_azimuth_angle[iv]);
+  dis.tau()                 = optical_thicknesses[iv];
+  dis.omega()               = single_scattering_albedo[iv];
+  dis.f()                   = fractional_scattering[iv];
+  dis.all_legendre_coeffs() = legendre_coefficients[iv];
+  dis.positive_boundary()   = positive_boundary_condition[iv];
+  dis.negative_boundary()   = negative_boundary_condition[iv];
+  dis.source_poly()         = source_polynomial[iv];
+
+  dis.update_all(solar_source[iv]);
+
+  return dis;
+}
+ARTS_METHOD_ERROR_CATCH

@@ -52,9 +52,9 @@ ws.disort_spectral_radiance_fieldClearsky(
 
 # %% Equivalent ARTS calculations
 
-ws.ray_pathGeometric(
-    pos=[toa, lat, lon],
-    los=[180, 0],
+ws.ray_pathGeometricDownlooking(
+    latitude=lat,
+    longitude=lon,
     max_step=1000.0,
 )
 ws.spectral_radianceClearskyEmission()
@@ -66,19 +66,19 @@ if PLOT:
 
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, 0, (NQuad // 2) :],
+        ws.disort_spectral_radiance_field[:, 0, 0, : (NQuad // 2)],
         label="disort",
     )
     plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, 0,NQuad // 2],
+        ws.disort_spectral_radiance_field[:, 0, 0, 0],
         "g:",
         lw=3,
     )
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, -1, 0, -1],
+        ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
         "m:",
         lw=3,
     )
@@ -89,7 +89,8 @@ if PLOT:
 # %% The last test should be that we are close to the correct values
 
 assert np.allclose(
-    ws.disort_spectral_radiance_field[:, -1, 0,-1] / ws.spectral_radiance[:, 0],
+    ws.disort_spectral_radiance_field[:, 0, 0, NQuad // 2-1]
+    / ws.spectral_radiance[:, 0],
     1,
     rtol=1e-3,
 ), "Bad results, clearsky calculations are not close between DISORT and ARTS"

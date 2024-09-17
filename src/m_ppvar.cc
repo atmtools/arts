@@ -2,7 +2,6 @@
 #include <atm_path.h>
 #include <jacobian.h>
 #include <path_point.h>
-#include <rte.h>
 #include <surf.h>
 #include <workspace.h>
 
@@ -128,16 +127,18 @@ void ray_path_propagation_matrixFromPath(
 
   if (arts_omp_in_parallel()) {
     for (Size ip = 0; ip < np; ip++) {
-      get_stepwise_clearsky_propmat(ws,
-                                    ray_path_propagation_matrix[ip],
-                                    ray_path_source_vector_nonlte[ip],
-                                    ray_path_propagation_matrix_jacobian[ip],
-                                    ray_path_source_vector_nonlte_jacobian[ip],
-                                    propagation_matrix_agenda,
-                                    jacobian_targets,
-                                    ray_path_frequency_grid[ip],
-                                    ray_path[ip],
-                                    ray_path_atmospheric_point[ip]);
+      propagation_matrix_agendaExecute(
+          ws,
+          ray_path_propagation_matrix[ip],
+          ray_path_source_vector_nonlte[ip],
+          ray_path_propagation_matrix_jacobian[ip],
+          ray_path_source_vector_nonlte_jacobian[ip],
+          jacobian_targets,
+          {},
+          ray_path_frequency_grid[ip],
+          ray_path[ip],
+          ray_path_atmospheric_point[ip],
+          propagation_matrix_agenda);
     }
   } else {
     ArrayOfString fail_msg;
@@ -146,26 +147,27 @@ void ray_path_propagation_matrixFromPath(
     for (Size ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
-        get_stepwise_clearsky_propmat(
+        propagation_matrix_agendaExecute(
             ws,
             ray_path_propagation_matrix[ip],
             ray_path_source_vector_nonlte[ip],
             ray_path_propagation_matrix_jacobian[ip],
             ray_path_source_vector_nonlte_jacobian[ip],
-            propagation_matrix_agenda,
             jacobian_targets,
+            {},
             ray_path_frequency_grid[ip],
             ray_path[ip],
-            ray_path_atmospheric_point[ip]);
+            ray_path_atmospheric_point[ip],
+            propagation_matrix_agenda);
       } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
         {
           do_abort = true;
           fail_msg.push_back(
-              var_string("Runtime-error in propagation radiative "
-                         "properties calculation at index {}:\n{}",
-                         ip,
-                         e.what()));
+              std::format("Runtime-error in propagation radiative "
+                          "properties calculation at index {}:\n{}",
+                          ip,
+                          e.what()));
         }
       }
     }
@@ -263,7 +265,8 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     }
   }
 
-  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n{}", fail_msg)
+  ARTS_USER_ERROR_IF(
+      do_abort, "Error messages from failed cases:\n{}", fail_msg)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -370,10 +373,10 @@ void ray_path_transmission_matrixFromPath(
 #pragma omp critical(iyEmissionStandard_transmission)
         {
           do_abort = true;
-          fail_msg.push_back(
-              var_string("Runtime-error in transmission calculation at index {}:\n{}",
-                         ip,
-                         e.what()));
+          fail_msg.push_back(var_string(
+              "Runtime-error in transmission calculation at index {}:\n{}",
+              ip,
+              e.what()));
         }
       }
     }

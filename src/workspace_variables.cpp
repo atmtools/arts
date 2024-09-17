@@ -46,20 +46,6 @@ Units:
       .type = "ArrayOfCIARecord",
   };
 
-  wsv_data["absorption_lookup_table_data"] = {
-      .desc = R"--(An absorption lookup table.
-
-It holds an absorption lookup table, as well as all information that
-is necessary to use the table to extract absorption. Extraction
-routines are implemented as member functions. 
-
-It has quite a complicated structure. For details see the Arts User
-Guide section \"The gas absorption lookup table\" or the source code
-documentation in gas_abs_lookup.h.
-)--",
-      .type = "GasAbsLookup",
-  };
-
   wsv_data["absorption_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
@@ -86,14 +72,15 @@ extrapolation limitations on the field parameter itself, causing some or
 large swaths of the atmosphere to be inaccessible.
 
 The atmospheric field may, but does not have to, consist of the following:
-    Temperature                             - Kelvin
-    Pressure                                - Pascal
-    Wind                                    - Meters per second
-    Magnetic Field                          - Tesla
-    Species content                         - See user guide for relevant species
-    Isotopologue ratios                     - Unitless
-    Non-local thermodynamics ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
-    Scattering species content              - See user guide for relevant species
+
+  -  Temperature                             - Kelvin
+  -  Pressure                                - Pascal
+  -  Wind                                    - Meters per second
+  -  Magnetic Field                          - Tesla
+  -  Species content                         - See user guide for relevant species
+  -  Isotopologue ratios                     - Unitless
+  -  Non-local thermodynamics ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
+  -  Scattering species content              - See user guide for relevant species
 )--",
       .type = "AtmField",
   };
@@ -662,160 +649,10 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
-  wsv_data["disort_optical_thicknesses"] = {
-      .desc = R"(The layer optical thicknesses for Disort.
-
-Note that every row must be convertible to an *AscendingGrid*.
-
-Size is *frequency_grid* times (*ray_path* - 1).
-
-*ray_path* - 1 is the number of layers.
+  wsv_data["disort_settings"] = {
+      .desc = R"(Contains the full settings of spectral Disort calculations.
 )",
-      .type = "Matrix",
-  };
-
-  wsv_data["disort_single_scattering_albedo"] = {
-      .desc = R"(The single scattering albedos for Disort.
-
-Note that "turned-off" means all zeroes.
-
-Size is *frequency_grid* times (*ray_path* - 1).
-
-*ray_path* - 1 is the number of layers.
-)",
-      .type = "Matrix",
-  };
-
-  wsv_data["disort_fractional_scattering"] = {
-      .desc = R"(The fractional scattering for Disort.
-
-Note that "turned-off" means all zeroes.
-
-Size is *frequency_grid* times (*ray_path* - 1).
-
-*ray_path* - 1 is the number of layers.
-)",
-      .type = "Matrix",
-  };
-
-  wsv_data["disort_legendre_coefficients"] = {
-      .desc = R"(The Legendre coefficients for Disort.
-
-Note that "turned-off" means all zeroes except in the first polynomial,
-which should be all ones.
-
-Size is *frequency_grid* times (*ray_path* - 1) times
-*disort_legendre_polynomial_dimension*.
-
-*ray_path* - 1 is the number of layers.
-)",
-      .type = "Tensor3",
-  };
-
-  wsv_data["disort_positive_boundary_condition"] = {
-      .desc = R"(The positive boundary conditions for Disort.
-
-Note that "turned-off" means all zeroes.
-
-Size is *frequency_grid* times *disort_fourier_mode_dimension* times
-*disort_quadrature_dimension* / 2.
-
-.. note:: 
-
-    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
-    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
-    must match.
-)",
-      .type = "Tensor3",
-  };
-
-  wsv_data["disort_negative_boundary_condition"] = {
-      .desc = R"(The negative boundary conditions for Disort.
-
-Note that "turned-off" means all zeroes.
-
-Size is *frequency_grid* times *disort_fourier_mode_dimension* times
-*disort_quadrature_dimension* / 2.
-
-.. note::
-
-    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
-    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
-    must match.
-)",
-      .type = "Tensor3",
-  };
-
-  wsv_data["disort_source_polynomial"] = {
-      .desc = R"(The source function polynomial for Disort.
-
-Note that "turned-off" means that the last dimension size is zero.
-
-Size is *frequency_grid* times (*ray_path* - 1) times
-source function polynomial order.
-
-A first order polynomial gives the source function as:
-
-.. math::
-
-    B = s_{1} + s_{0} \tau 
-
-.. note:: 
-
-    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
-    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
-    must match.
-
-*ray_path* - 1 is the number of layers.
-)",
-      .type = "Tensor3",
-  };
-
-  wsv_data["disort_solar_zenith_angle"] = {
-      .desc = R"(The solar zenith angles for Disort.
-
-Unit is in degrees.  Note that there's an error if the solar zenith
-angle overlaps with one of the fixed Disort quadrature angles.
-
-Size is *frequency_grid*.
-)",
-      .type = "Vector",
-  };
-
-  wsv_data["disort_solar_azimuth_angle"] = {
-      .desc = R"(The solar azimuth angles for Disort.
-
-Unit is in degrees.
-
-Size is *frequency_grid*.
-)",
-      .type = "Vector",
-  };
-
-  wsv_data["disort_solar_source"] = {
-      .desc = R"(The solar source for Disort.
-
-Note that "turned-off" means all zeroes.
-
-Size is *frequency_grid*.
-
-.. note:: 
-
-    Physical unit of *disort_source_polynomial*, *disort_solar_source*,
-    *disort_negative_boundary_condition*, and *disort_positive_boundary_condition*
-    must match.
-)",
-      .type = "Vector",
-  };
-
-  wsv_data["disort_bidirectional_reflectance_distribution_functions"] = {
-      .desc = R"(The surface bidirectional reflectances for Disort.
-
-Note that "turned-off" means the column dimension size is zero.
-
-Size is *frequency_grid* time number of Fourier modes for the BDRF:s.
-)",
-      .type = "MatrixOfDisortBDRF",
+      .type = "DisortSettings",
   };
 
   wsv_data["disort_quadrature_angles"] = {

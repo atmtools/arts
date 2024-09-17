@@ -7,7 +7,17 @@
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
 
+#include "nanobind/nanobind.h"
 #include "python_interface.h"
+
+struct global_data {
+  static constexpr bool is_lgpl =
+#ifdef ARTS_LGPL
+      ARTS_LGPL ? true : false;
+#else
+      false;
+#endif
+};
 
 extern Parameters parameters;
 
@@ -140,6 +150,18 @@ Parameters
       "threads"_a = omp_get_max_threads();
 #endif
 
+  py::class_<global_data>(global, "data")
+      .def(py::init<>())
+      .def_ro_static("is_lgpl",
+                     &global_data::is_lgpl,
+                     "Whether the ARTS library is licensed under the LGPL")
+      .def("__repr__", [](const global_data&) {
+        return std::format(R"(Global state of ARTS:
+
+is_lgpl: {}
+)",
+                           global_data::is_lgpl);
+      }).doc() = "A set of global data that we might need from ARTS inside pyarts";
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize global\n", e.what()));

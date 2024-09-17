@@ -32,7 +32,7 @@ class SingleSpeciesAbsorption:
         Parameters
         ----------
         frequency_grid : ~pyarts.arts.AscendingGrid
-            A list of freqeuncy points.
+            A list of frequency points.
         atmospheric_point : ~pyarts.arts.AtmPoint
             The state of the atmosphere at the point of interest
 

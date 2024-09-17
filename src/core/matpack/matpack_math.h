@@ -19,8 +19,11 @@
  * @return A transpose view of that matpack type
  */
 template <matpack::strict_rank_matpack_type<2> MAT>
-auto transpose(const MAT &x) -> matpack::
-    matpack_view<matpack::matpack_value_type<MAT>, 2, MAT::is_const(), true> {
+auto transpose(const MAT &x)
+    -> matpack::matpack_view<matpack::matpack_value_type<MAT>,
+                             2,
+                             MAT::is_const(),
+                             true> {
   return matpack::strided_mdspan<matpack::matpack_value_type<MAT>, 2>{
       x.unsafe_data_handle(),
       {std::array{x.extent(1), x.extent(0)},
@@ -48,7 +51,7 @@ void mult(MatrixView A,
           const ConstMatrixView &B,
           const ConstMatrixView &C,
           Numeric alpha = 1.0,
-          Numeric beta = 0.0);
+          Numeric beta  = 0.0);
 
 /** Makes A = B * C
  * 
@@ -70,7 +73,7 @@ void mult(VectorView y,
           const ConstMatrixView &M,
           const ConstVectorView &x,
           Numeric alpha = 1.0,
-          Numeric beta = 0.0);
+          Numeric beta  = 0.0);
 
 /** Makes y = M * x
  * 
@@ -132,6 +135,17 @@ Vector uniform_grid(Numeric x0, Index N, Numeric dx);
  * @return Vector {x0, x0+dx, ... x0+(N-1)*dx}
  */
 ComplexVector uniform_grid(Complex x0, Index N, Complex dx);
+
+void gaussian_grid(Vector &y,
+                   const Vector &x,
+                   const Numeric &x0,
+                   const Numeric &si,
+                   const Numeric &fwhm);
+
+Vector gaussian_grid(Vector x,
+                     const Numeric &x0,
+                     const Numeric &si,
+                     const Numeric &fwhm);
 
 /** Sets out = f(in) for each element in in and out
  *
@@ -224,15 +238,13 @@ constexpr auto mean(const IN &in) {
  */
 template <matpack::any_matpack_type IN>
 constexpr auto nanmean(const IN &in) {
-  using T = matpack::matpack_value_type<IN>;
-  using pt = std::pair<Index, T>;
+  using T                 = matpack::matpack_value_type<IN>;
+  using pt                = std::pair<Index, T>;
   const auto [count, sum] = std::transform_reduce(
       in.elem_begin(),
       in.elem_end(),
       pt(0, 0),
-      [](pt a, pt b) {
-        return pt{a.first + b.first, a.second + b.second};
-      },
+      [](pt a, pt b) { return pt{a.first + b.first, a.second + b.second}; },
       [](T a) { return nonstd::isnan(a) ? pt(0, 0) : pt(1, a); });
   return sum / static_cast<T>(count);
 }

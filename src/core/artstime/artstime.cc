@@ -16,6 +16,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <print>
 
 #include "debug.h"
 
@@ -307,5 +308,5 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfTimeStep& a) {
 
 DebugTime::~DebugTime() {
 #pragma omp critical
-  std::cerr << msg << ':' << ' ' << Time{} - start << '\n';
+  std::print(stderr, "{}: {}\n", msg, Time{} - start);
 }

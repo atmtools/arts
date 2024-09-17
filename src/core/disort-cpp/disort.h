@@ -6,6 +6,7 @@
 #include <functional>
 #include <iosfwd>
 
+#include "configtypes.h"
 #include "format_tags.h"
 #include "lin_alg.h"
 #include "matpack_data.h"
@@ -584,6 +585,61 @@ class main_data {
 using DisortBDRF         = disort::BDRF;
 using MatrixOfDisortBDRF = matpack::matpack_data<DisortBDRF, 2>;
 
+struct DisortSettings {
+  Index quadrature_dimension{0};
+  Index legendre_polynomial_dimension{0};
+  Index fourier_mode_dimension{0};
+  Index nfreq{0};
+  Index nlay{0};
+
+  // nfreq
+  Vector solar_azimuth_angle{};
+
+  // nfreq
+  Vector solar_zenith_angle{};
+
+  // nfreq
+  Vector solar_source{};
+
+  // nfreq x nbrdf
+  MatrixOfDisortBDRF bidirectional_reflectance_distribution_functions{};
+
+  // nfreq x nlay
+  Matrix optical_thicknesses{};
+
+  // nfreq x nlay
+  Matrix single_scattering_albedo{};
+
+  // nfreq x nlay
+  Matrix fractional_scattering{};
+
+  // nfreq x nlay x nsrc
+  Tensor3 source_polynomial{};
+
+  // nfreq x nlay x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
+  Tensor3 legendre_coefficients{};
+
+  // nfreq x fourier_mode_dimension x quadrature_dimension / 2
+  Tensor3 positive_boundary_condition{};
+
+  // nfreq x fourier_mode_dimension x quadrature_dimension / 2.
+  Tensor3 negative_boundary_condition{};
+
+  DisortSettings() = default;
+
+  void resize(Index quadrature_dimension,
+              Index legendre_polynomial_dimension,
+              Index fourier_mode_dimension,
+              Index nfreq,
+              Index nlay);
+
+  [[nodiscard]] Index frequency_count() const { return nfreq; }
+
+  [[nodiscard]] disort::main_data init() const;
+  disort::main_data& set(disort::main_data&, Index iv) const;
+  void check() const;
+};
+
 template <>
 struct std::formatter<DisortBDRF> {
   format_tags tags;
@@ -698,6 +754,115 @@ struct std::formatter<disort::main_data> {
     tags.format(ctx, "asso_leg_term_pos: "sv, v.asso_leg_term_pos, sep);
     tags.format(ctx, "asso_leg_term_neg: "sv, v.asso_leg_term_neg, sep);
     tags.format(ctx, "D_temp: "sv, v.D_temp);
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct std::formatter<DisortSettings> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const DisortSettings& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      std::format_to(ctx.out(),
+                     R"-x-(quadrature_dimension:          {}
+legendre_polynomial_dimension: {}
+fourier_mode_dimension:        {}
+nfreq:                         {}
+nlay:                          {}
+nsrc:                          {}
+nbrdf:                         {}
+
+solar_source.shape():                                     {:B,} - should be nfreq.
+solar_zenith_angle.shape():                               {:B,} - should be nfreq.
+solar_azimuth_angle.shape():                              {:B,} - should be nfreq.
+bidirectional_reflectance_distribution_functions.shape(): {:B,} - should be nfreq x nbrdf.
+optical_thicknesses.shape():                              {:B,} - should be nfreq x nlay.
+single_scattering_albedo.shape():                         {:B,} - should be nfreq x nlay.
+fractional_scattering.shape():                            {:B,} - should be nfreq x nlay.
+source_polynomial.shape():                                {:B,} - should be nfreq x nlay x nsrc.
+legendre_coefficients.shape():                            {:B,} - should be nfreq x nlay x nleg.
+positive_boundary_condition.shape():                      {:B,} - should be nfreq x nlay x (quadrature_dimension / 2).
+negative_boundary_condition.shape():                      {:B,} - should be nfreq x nlay x (quadrature_dimension / 2).)-x-"sv,
+                     v.quadrature_dimension,
+                     v.legendre_polynomial_dimension,
+                     v.fourier_mode_dimension,
+                     v.nfreq,
+                     v.nlay,
+                     v.source_polynomial.ncols(),
+                     v.bidirectional_reflectance_distribution_functions.ncols(),
+                     v.solar_source.shape(),
+                     v.solar_zenith_angle.shape(),
+                     v.solar_azimuth_angle.shape(),
+                     v.bidirectional_reflectance_distribution_functions.shape(),
+                     v.optical_thicknesses.shape(),
+                     v.single_scattering_albedo.shape(),
+                     v.fractional_scattering.shape(),
+                     v.source_polynomial.shape(),
+                     v.legendre_coefficients.shape(),
+                     v.positive_boundary_condition.shape(),
+                     v.negative_boundary_condition.shape());
+    } else {
+      std::format_to(ctx.out(),
+                     R"-x-(quadrature_dimension:          {}
+legendre_polynomial_dimension: {}
+fourier_mode_dimension:        {}
+nfreq:                         {}
+nlay:                          {}
+nsrc:                          {}
+nbrdf:                         {}
+
+solar_source:
+{}
+solar_zenith_angle:
+{}
+solar_azimuth_angle:
+{}
+bidirectional_reflectance_distribution_functions:
+{}
+optical_thicknesses:
+{}
+single_scattering_albedo:
+{}
+fractional_scattering:
+{}
+source_polynomial:
+{}
+legendre_coefficients:
+{}
+positive_boundary_condition:
+{}
+negative_boundary_condition:
+{})-x-"sv,
+                     v.quadrature_dimension,
+                     v.legendre_polynomial_dimension,
+                     v.fourier_mode_dimension,
+                     v.nfreq,
+                     v.nlay,
+                     v.source_polynomial.ncols(),
+                     v.bidirectional_reflectance_distribution_functions.ncols(),
+                     v.solar_source,
+                     v.solar_zenith_angle,
+                     v.solar_azimuth_angle,
+                     v.bidirectional_reflectance_distribution_functions,
+                     v.optical_thicknesses,
+                     v.single_scattering_albedo,
+                     v.fractional_scattering,
+                     v.source_polynomial,
+                     v.legendre_coefficients,
+                     v.positive_boundary_condition,
+                     v.negative_boundary_condition);
+    }
 
     return ctx.out();
   }

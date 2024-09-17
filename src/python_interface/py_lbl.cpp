@@ -1,6 +1,9 @@
 #include <lbl.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/map.h>
 #include <nanobind/stl/pair.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
 #include <iomanip>
@@ -25,7 +28,8 @@ void py_lbl(py::module_& m) try {
   line_key.def_rw("line", &lbl::line_key::line, "The line");
   line_key.def_rw("spec", &lbl::line_key::spec, "The species");
   line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable");
-  line_key.def_rw("ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient");
+  line_key.def_rw(
+      "ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient");
   line_key.def_rw("var", &lbl::line_key::var, "The variable");
   line_key.doc() = "A key for a line";
   str_interface(line_key);
@@ -213,6 +217,32 @@ void py_lbl(py::module_& m) try {
           [](lbl::zeeman::model& z) { return z.gu(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
           ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
+      .def(
+          "strengths",
+          [](const lbl::zeeman::model& mod, const QuantumNumberLocalState& qn) {
+            std::map<std::string, std::vector<double>> out;
+
+            const Index Npi = mod.size(qn.val, lbl::zeeman::pol::pi);
+            for (Index i = 0; i < Npi; i++) {
+              out["pi"].push_back(
+                  mod.Strength(qn.val, lbl::zeeman::pol::pi, i));
+            }
+
+            const Index Nsp = mod.size(qn.val, lbl::zeeman::pol::sp);
+            for (Index i = 0; i < Nsp; i++) {
+              out["sp"].push_back(
+                  mod.Strength(qn.val, lbl::zeeman::pol::sp, i));
+            }
+
+            const Index Nsm = mod.size(qn.val, lbl::zeeman::pol::sm);
+            for (Index i = 0; i < Nsm; i++) {
+              out["sm"].push_back(
+                  mod.Strength(qn.val, lbl::zeeman::pol::sm, i));
+            }
+
+            return out;
+          },
+          "The number of Zeeman lines")
       .PythonInterfaceBasicRepresentation(lbl::zeeman::model)
       .doc() = "Zeeman model";
 

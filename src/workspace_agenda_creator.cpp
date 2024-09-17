@@ -159,16 +159,22 @@ Agenda get_disort_settings_agenda(const std::string& option) {
   using enum disort_settings_agendaPredefined;
   switch (to<disort_settings_agendaPredefined>(option)) {
     case Clearsky:
-      agenda.add("disort_optical_thicknessesFromPath");
-      agenda.add("disort_source_polynomialLinearInTau");
-      agenda.add("disort_negative_boundary_conditionSurfaceTemperature");
-      agenda.add("disort_positive_boundary_conditionCosmicBackgroundRadiation");
-      agenda.add(
-          "disort_bidirectional_reflectance_distribution_functionsTurnOff");
-      agenda.add("disort_single_scattering_albedoTurnOff");
-      agenda.add("disort_fractional_scatteringTurnOff");
-      agenda.add("disort_legendre_coefficientsTurnOff");
-      agenda.add("disort_solar_sourceTurnOff");
+      agenda.add("jacobian_targetsInit");
+      agenda.add("jacobian_targetsFinalize");
+      agenda.add("ray_path_atmospheric_pointFromPath");
+      agenda.add("ray_path_frequency_gridFromPath");
+      agenda.add("ray_path_propagation_matrixFromPath");
+      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("disort_settingsInit");
+      agenda.add("disort_settingsOpticalThicknessFromPath");
+      agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
+      agenda.add("disort_settingsSurfaceEmissionByTemperature");
+      agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation");
+      agenda.add("disort_settingsNoSurfaceScattering");
+      agenda.add("disort_settingsNoSingleScatteringAlbedo");
+      agenda.add("disort_settingsNoFractionalScattering");
+      agenda.add("disort_settingsNoLegendre");
+      agenda.add("disort_settingsNoSun");
       break;
   }
 

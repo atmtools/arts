@@ -12,6 +12,8 @@
 
 #include "xml_io_general_types.h"
 
+#include <print>
+
 #include "double_imanip.h"
 #include "matpack_constexpr.h"
 #include "xml_io_base.h"
@@ -1019,11 +1021,10 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const Vector& vector,
                          bofstream* pbofs,
                          const String& name) {
-  std::print(os_xml,
-             R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
-             vector.nelem(),
-             name,
-             pbofs ? Vector{} : vector);
+  os_xml << std::format(R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
+                        vector.nelem(),
+                        name,
+                        pbofs ? Vector{} : vector);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),

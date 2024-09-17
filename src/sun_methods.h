@@ -80,3 +80,5 @@ std::pair<Numeric, bool> beta_angle(const Workspace& ws,
                                     const Agenda& ray_path_observer_agenda,
                                     const SurfaceField& surface_field,
                                     const Numeric& angle_cut);
+
+Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell);

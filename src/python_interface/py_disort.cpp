@@ -75,7 +75,8 @@ void py_disort(py::module_& m) try {
   workspace_group_interface(mat_disbdrf);
 
   py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(
-      disort_nm, "ArrayOfBDRF").doc() = "An array of BDRF functions";
+      disort_nm, "ArrayOfBDRF")
+      .doc() = "An array of BDRF functions";
 
   py::class_<disort::main_data> x(m, "cppdisort");
   x.doc() = "A DISORT object";
@@ -139,7 +140,8 @@ void py_disort(py::module_& m) try {
          return out;
        },
        "tau"_a,
-       "phi"_a, "Compute the intensity")
+       "phi"_a,
+       "Compute the intensity")
       .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {
@@ -217,6 +219,53 @@ void py_disort(py::module_& m) try {
           },
           "tau"_a,
           "Compute the downward flux");
+
+  py::class_<DisortSettings> disort_settings(m, "DisortSettings");
+  workspace_group_interface(disort_settings);
+  disort_settings.def_rw("quadrature_dimension",
+                         &DisortSettings::quadrature_dimension,
+                         ":class:`Index`");
+  disort_settings.def_rw("legendre_polynomial_dimension",
+                         &DisortSettings::legendre_polynomial_dimension,
+                         ":class:`Index`");
+  disort_settings.def_rw("fourier_mode_dimension",
+                         &DisortSettings::fourier_mode_dimension,
+                         ":class:`Index`");
+  disort_settings.def_rw("nfreq", &DisortSettings::nfreq, ":class:`Index`");
+  disort_settings.def_rw("nlay", &DisortSettings::nlay, ":class:`Index`");
+  disort_settings.def_rw("solar_azimuth_angle",
+                         &DisortSettings::solar_azimuth_angle,
+                         ":class:`Vector`");
+  disort_settings.def_rw("solar_zenith_angle",
+                         &DisortSettings::solar_zenith_angle,
+                         ":class:`Vector`");
+  disort_settings.def_rw(
+      "solar_source", &DisortSettings::solar_source, ":class:`Vector`");
+  disort_settings.def_rw(
+      "bidirectional_reflectance_distribution_functions",
+      &DisortSettings::bidirectional_reflectance_distribution_functions,
+      ":class:`MatrixOfDisortBDRF`");
+  disort_settings.def_rw("optical_thicknesses",
+                         &DisortSettings::optical_thicknesses,
+                         ":class:`Matrix`");
+  disort_settings.def_rw("single_scattering_albedo",
+                         &DisortSettings::single_scattering_albedo,
+                         ":class:`Matrix`");
+  disort_settings.def_rw("fractional_scattering",
+                         &DisortSettings::fractional_scattering,
+                         ":class:`Matrix`");
+  disort_settings.def_rw("source_polynomial",
+                         &DisortSettings::source_polynomial,
+                         ":class:`Tensor3`");
+  disort_settings.def_rw("legendre_coefficients",
+                         &DisortSettings::legendre_coefficients,
+                         ":class:`Tensor3`");
+  disort_settings.def_rw("positive_boundary_condition",
+                         &DisortSettings::positive_boundary_condition,
+                         ":class:`Tensor3`");
+  disort_settings.def_rw("negative_boundary_condition",
+                         &DisortSettings::negative_boundary_condition,
+                         ":class:`Tensor3`");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize disort\n", e.what()));

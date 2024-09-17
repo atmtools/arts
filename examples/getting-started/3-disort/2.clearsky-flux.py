@@ -2,7 +2,6 @@ import pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
-PLOT = False
 toa = 100e3
 lat = 0
 lon = 0
@@ -44,7 +43,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 ws.disort_settings_agendaSet(option="Clearsky")
 
-ws.ray_pathGeometricUplooking(longitude=lon, latitude=lat, max_step=40_000)
+ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_step=40_000)
 ws.ray_path_atmospheric_pointFromPath()
 ws.ray_path_frequency_gridFromPath()
 ws.ray_path_propagation_matrixFromPath()
@@ -58,37 +57,39 @@ ws.disort_spectral_flux_fieldFromAgenda(
 
 assert np.allclose(
     ws.disort_spectral_flux_field[:, :2].flatten()
-    / [
-        9.59633877e-18,
-        9.57950338e-18,
-        9.57947235e-18,
-        2.68124574e-15,
-        2.68124078e-15,
-        2.68124078e-15,
-        1.00156763e-17,
-        9.99604747e-18,
-        9.99601259e-18,
-        2.95621931e-15,
-        2.95621356e-15,
-        2.95621353e-15,
-        1.04047833e-17,
-        1.03765939e-17,
-        1.03766146e-17,
-        3.22890938e-15,
-        3.22890135e-15,
-        3.22890140e-15,
-        1.07961162e-17,
-        1.07204281e-17,
-        1.07204267e-17,
-        3.44348175e-15,
-        3.44346269e-15,
-        3.44346269e-15,
-        3.32971703e-15,
-        1.90723245e-17,
-        1.10269829e-17,
-        3.45080504e-15,
-        2.56537096e-15,
-        2.56528602e-15,
-    ],
+    / np.array(
+        [
+            2.65884980e-15,
+            2.66123187e-15,
+            2.75440515e-15,
+            9.57958301e-18,
+            2.08163832e-17,
+            5.41861020e-16,
+            2.93041798e-15,
+            2.93324940e-15,
+            3.03918211e-15,
+            9.99616715e-18,
+            2.34556308e-17,
+            6.14497069e-16,
+            3.19240354e-15,
+            3.19640875e-15,
+            3.33784028e-15,
+            1.03768106e-17,
+            3.05931058e-17,
+            8.09137668e-16,
+            3.35237338e-15,
+            3.36061097e-15,
+            3.65036247e-15,
+            1.07209030e-17,
+            6.78813350e-17,
+            1.56228981e-15,
+            3.37235564e-15,
+            2.86991074e-15,
+            3.97673151e-15,
+            1.52461809e-15,
+            2.80896218e-15,
+            3.94568143e-15,
+        ]
+    ),
     1,
 ), "Mismatch from historical Disort spectral fluxes"

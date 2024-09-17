@@ -367,21 +367,6 @@ in *absorption_species*.
       .gin_desc  = {R"--(Basepath to the files)--"},
   };
 
-  wsm_data["tessem_nnReadAscii"] = {
-      .desc =
-          R"--(Reads the initialization data for the TESSEM NeuralNet from an ASCII file.
-)--",
-      .author    = {"Oliver Lemke"},
-      .gout      = {"tessem_nn"},
-      .gout_type = {"TessemNN"},
-      .gout_desc = {R"--(Tessem NeuralNet configuration.)--"},
-      .gin       = {"filename"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(NeuralNet parameters file as provided in the TESSEM 2 distribution.)--"},
-  };
-
   wsm_data["Touch"] = {
       .desc      = R"--(As *Ignore* but for agenda output.
 
@@ -619,86 +604,10 @@ common form of a predefined model.
       .gin_desc  = {R"--(Absorption lines per species)--"},
   };
 
-  wsm_data["absorption_lookup_table_dataAdapt"] = {
-      .desc =
-          R"--(Adapts a gas absorption lookup table to the current calculation.
-
-The lookup table can contain more species and more frequencies than
-are needed for the current calculation. This method cuts down the
-table in memory, so that it contains just what is needed. Also, the
-species in the table are brought in the same order as the species in
-the current calculation.
-
-Of course, the method also performs quite a lot of checks on the
-table. If something is not ok, a runtime error is thrown.
-)--",
-      .author = {"Stefan Buehler"},
-      .out    = {"absorption_lookup_table_data"},
-      .in     = {"absorption_lookup_table_data",
-                 "absorption_species",
-                 "frequency_grid"},
-  };
-
-  wsm_data["absorption_lookup_table_dataInit"] = {
-      .desc   = R"--(Creates an empty gas absorption lookup table.
-
-This is mainly there to help developers. For example, you can write
-the empty table to an XML file, to see the file format.
-)--",
-      .author = {"Stefan Buehler"},
-      .out    = {"absorption_lookup_table_data"},
-  };
-
-  wsm_data["absorption_speciesAdd"] = {
-      .desc   = R"--(Adds species tag groups to the list of absorption species.
-
-This WSM is similar to *absorption_speciesSet*, the only difference is that
-this method appends species to an existing list of absorption species instead
-of creating the whole list.
-
-See *absorption_speciesSet* for details on how tags are defined and examples of
-how to input them in the control file.
-)--",
-      .author = {"Stefan Buehler"},
-      .out    = {"absorption_species"},
-      .in     = {"absorption_species"},
-      .gin    = {"species"},
-      .gin_type  = {"ArrayOfString"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(Specify one String for each tag group that you want to add. Inside the String, separate the tags by commas (plus optional blanks).)--"},
-  };
-
   wsm_data["absorption_speciesDefineAll"] = {
       .desc   = R"--(Sets *absorption_species* [i][0] to all species in ARTS
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_species"},
-  };
-
-  wsm_data["absorption_speciesDefineAllInScenario"] = {
-      .desc =
-          R"--(Define one tag group for each species known to ARTS and included in an
-atmospheric scenario.
-
-You can use this as an alternative to *absorption_speciesSet* if you want to make an
-absorption calculation that is as complete as possible. The method
-goes through all defined species and tries to open the VMR file. If
-this works the tag is included, otherwise it is skipped.
-)--",
-      .author    = {"Stefan Buehler"},
-      .out       = {"absorption_species"},
-      .gin       = {"basename"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(The name and path of a particular atmospheric scenario. For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical)--"},
-  };
-
-  wsm_data["absorption_speciesInit"] = {
-      .desc   = R"--(Sets  *absorption_species* to be empty.
-)--",
-      .author = {"Stefan Buehler"},
       .out    = {"absorption_species"},
   };
 
@@ -718,16 +627,8 @@ weight, i.g., ``"O3-668"`` for the asymmetric ozone molecule including an
 oxygen 18 atom. Groups of transitions are specified by giving a lower
 and upper limit of a frequency range, e.g., ``"O3-666-500e9-501e9"``.
 
-To turn on Zeeman calculation for a species, ``"-Z"`` may be appended
-to its name: ``"O2-Z"`` or ``"O2-Z-66"``
-
 The symbol ``"*"`` acts as a wild card. Furthermore, frequency range or
 frequency range and isotopologue may be omitted.
-
-Finally, instead of the isotopologue the special letter ``"nl"`` may be given,
-e.g., ``"H2O-nl"``. This means that no absorption at all is associated
-with this tag. (It is not quite clear if this feature is useful for
-anything right now.)
 
 Example:
 
@@ -813,19 +714,6 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_type  = {"String"},
       .gin_value = {String{"Builtin"}},
       .gin_desc  = {"Default option for the isotopologue ratios"},
-  };
-
-  wsm_data["atmospheric_fieldRescalePopulationLevels"] = {
-      .desc =
-          R"--(Rescale NLTE field to expected total distribution amongst levels
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field"},
-      .gin       = {"s"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
   };
 
   wsm_data["transmission_matrix_backgroundFromPathPropagationBack"] = {
@@ -972,18 +860,6 @@ Sets N2 and O2 speces
       .gin_type  = {"Vector", "ArrayOfSpeciesEnum"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
-  };
-
-  wsm_data["frequency_gridFromGasAbsLookup"] = {
-      .desc =
-          R"--(Sets *frequency_grid* to the frequency grid of *absorption_lookup_table_data*.
-
-Must be called between importing/creating raw absorption table and
-call of *absorption_lookup_table_dataAdapt*.
-)--",
-      .author = {"Stefan Buehler"},
-      .out    = {"frequency_grid"},
-      .in     = {"absorption_lookup_table_data"},
   };
 
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
@@ -1191,71 +1067,6 @@ but adds further contributions.
                  "jacobian_targets",
                  "atmospheric_point",
                  "ray_path_point"},
-  };
-
-  wsm_data["propagation_matrixAddFromLookup"] = {
-      .desc   = R"--(Extract gas absorption coefficients from lookup table.
-
-This extracts the absorption coefficient for all species from the
-lookup table, and adds them to the propagation matrix. Extraction is
-for one specific atmospheric condition, i.e., a set of pressure,
-temperature, and VMR values.
-
-Some special species are ignored, for example Zeeman species and free
-electrons, since their absorption properties are not simple scalars
-and cannot be handled by the lookup table.
-
-The interpolation order in T and H2O is given by ``abs_t_interp_order``
-and ``abs_nls_interp_order``, respectively.
-
-Extraction is done for the frequencies in frequency_grid. Frequency
-interpolation is controlled by ``abs_f_interp_order``. If this is zero,
-then frequency_grid must either be the same as the internal frequency grid of
-the lookup table (for efficiency reasons, only the first and last
-element of frequency_grid are checked), or must have only a single element.
-If ``abs_f_interp_order`` is above zero, then frequency is interpolated
-along with the other interpolation dimensions. This is useful for
-calculations with Doppler shift.
-
-For Doppler calculations, you should generate the table with a
-somewhat larger frequency grid than the calculation itself has, since
-the Doppler shift will push the frequency grid out of the table range
-on one side.
-
-Some extrapolation is allowed. For pressure and frequency interpolation
-the standard extrapolation factor of 0.5 is applied. The factor is the
-default for temperature and VMR interpolation, but the extrapolation
-limit can here be adjusted by the ``extpolfac`` argument.
-)--",
-      .author = {"Stefan Buehler, Richard Larsson"},
-      .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in     = {"propagation_matrix",
-                 "propagation_matrix_jacobian",
-                 "absorption_lookup_table_data",
-                 "frequency_grid",
-                 "atmospheric_point",
-                 "jacobian_targets",
-                 "absorption_species",
-                 "propagation_matrix_select_species"},
-      .gin =
-          {
-              "extpolfac",
-              "no_negatives",
-              "abs_p_interp_order",
-              "abs_t_interp_order",
-              "abs_nls_interp_order",
-              "abs_f_interp_order",
-          },
-      .gin_type = {"Numeric", "Index", "Index", "Index", "Index", "Index"},
-      .gin_value =
-          {Numeric{0.5}, Index{1}, Index{5}, Index{7}, Index{5}, Index{0}},
-      .gin_desc =
-          {R"--(Extrapolation factor (for temperature and VMR grid edges).)--",
-           R"--(Boolean. If it is true negative values due to interpolation are set to zero.)--",
-           "The interpolation order to use when interpolating absorption between pressure levels.",
-           "The interpolation order to use when interpolating absorption between the temperature values given by ``abs_t_pert``.",
-           "The interpolation order to use when interpolating absorption between the H2O values given by ``abs_nls_pert``.",
-           "Frequency interpolation order for absorption lookup table."},
   };
 
   wsm_data["propagation_matrixAddPredefined"] = {
@@ -1603,7 +1414,7 @@ this method.
 
 This method must be used inside *propagation_matrix_scattering_agenda* and then be called first.
 )--",
-      .author = {"Oliver Lemke", "Richard Larsson"},
+      .author = {"Richard Larsson"},
       .out    = {"propagation_matrix_scattering"},
       .in     = {"frequency_grid"},
   };
@@ -1612,7 +1423,7 @@ This method must be used inside *propagation_matrix_scattering_agenda* and then 
       .desc =
           R"--(Add simple air to *propagation_matrix_scattering*.
 )--",
-      .author = {"Oliver Lemke", "Richard Larsson"},
+      .author = {"Jon Petersen", "Richard Larsson"},
       .out    = {"propagation_matrix_scattering"},
       .in     = {"propagation_matrix_scattering",
                  "frequency_grid",
@@ -1649,7 +1460,6 @@ The following methods are considered for addition:
 3) *propagation_matrixAddLines*
 4) *propagation_matrixAddFaraday*
 5) *propagation_matrixAddXsecFit*
-6) *propagation_matrixAddFromLookup*
 7) *propagation_matrixAddPredefined*
 
 To perform absorption lookupo table calculation, call:
@@ -1662,35 +1472,13 @@ To perform absorption lookupo table calculation, call:
       .author    = {"Richard Larsson"},
       .out       = {"propagation_matrix_agenda"},
       .in        = {"absorption_species", "absorption_bands"},
-      .gin       = {"T_extrapolfac",
-                    "extpolfac",
-                    "force_p",
-                    "force_t",
-                    "ignore_errors",
-                    "no_negatives",
-                    "use_absorption_lookup_table_data"},
-      .gin_type  = {"Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Index",
-                    "Index",
-                    "Index"},
-      .gin_value = {Numeric{0.5},
-                    Numeric{0.5},
-                    Numeric{-1},
-                    Numeric{-1},
-                    Index{0},
-                    Index{1},
-                    Index{0}},
-      .gin_desc =
-          {R"--(See *propagation_matrixAddCIA*)--",
-           R"--(See *propagation_matrixAddFromLookup*)--",
-           R"--(See *propagation_matrixAddXsecFit*)--",
-           R"--(See *propagation_matrixAddXsecFit*)--",
-           R"--(See *propagation_matrixAddCIA*)--",
-           R"--(See *propagation_matrixAddFromLookup*)--",
-           R"--(Uses lookup calculations if true, ignores methods that can be part of the lookup table)--"},
+      .gin       = {"T_extrapolfac", "force_p", "force_t", "ignore_errors"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value = {Numeric{0.5}, Numeric{-1}, Numeric{-1}, Index{0}},
+      .gin_desc  = {R"--(See *propagation_matrixAddCIA*)--",
+                    R"--(See *propagation_matrixAddXsecFit*)--",
+                    R"--(See *propagation_matrixAddXsecFit*)--",
+                    R"--(See *propagation_matrixAddCIA*)--"},
   };
 
   wsm_data["propagation_matrix_agendaSet"] = {
@@ -1856,50 +1644,6 @@ See *VenusEllipsoid* for valid ``model``.
       .gin_type  = {"String"},
       .gin_value = {String("Sphere")},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
-  };
-
-  wsm_data["emissivitiesTelsemAtlasLookup"] = {
-      .desc      = R"--(Lookup SSMI emissivities from Telsem Atlas.
-
-This returns the emissivities (indices [0,..,6])
-for the SSMI channels that are contained in
-the Telsem atlas.
-
-If given latitude and longitude are not in the atlas an empty
-vector is returned.
-)--",
-      .author    = {"Simon Pfreundschuh"},
-      .gout      = {"emissivities"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(The SSMI emissivities from the atlas)--"},
-      .gin       = {"lat", "lon", "atlas"},
-      .gin_type  = {"Numeric", "Numeric", "TelsemAtlas"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The latitude for which to compute the emissivities.)--",
-                   R"--(The latitude for which to compute the emissivities.)--",
-                   R"--(The Telsem atlas to use.)--"},
-  };
-
-  wsm_data["atlasReadAscii"] = {
-      .desc      = R"--(Reads single TELSEM atlas.
-
-'directory' needs to contain the original 12 Telsem atlas files
-and the correlations file. This WSM reads the atlas for the specified
-month and stores the result in the provided output atlas.
-)--",
-      .author    = {"Simon Pfreundschuh"},
-      .gout      = {"atlas"},
-      .gout_type = {"TelsemAtlas"},
-      .gout_desc = {R"--(The atlas into which to store the loaded atlas.)--"},
-      .gin       = {"directory", "month", "filename_pattern"},
-      .gin_type  = {"String", "Index", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    String("ssmi_mean_emis_climato_@MM@_cov_interpol_M2")},
-      .gin_desc =
-          {R"--(Directory with TELSEM 2 SSMI atlas files.)--",
-           R"--(The month for which the atlas should be read.)--",
-           R"--(Filename pattern (@MM@ gets replaced by month number))--"},
   };
 
   wsm_data["water_equivalent_pressure_operatorMK05"] = {
@@ -2399,7 +2143,19 @@ variables are not considered
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
-      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths
+      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"atmospheric_field", "surface_field"},
+      .gin       = {"latitude", "longitude", "max_step"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
+      .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
+  };
+
+  wsm_data["ray_pathGeometricDownlooking"] = {
+      .desc      = R"--(Wraps *ray_pathGeometric* for straight downlooking paths from the top-of-the-atmosphere altitude
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -2805,36 +2561,6 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
-      .desc =
-          R"--(Append species data to the atmospheric field based on species data
-
-This will look at the valid ``basename`` for files matching base
-data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
-
-See *InterpolationExtrapolation* for valid ``extrapolation``.
-
-The ``missing_is_zero`` sets missing data to zero.
-
-The ``replace_existing`` is used to determine if the data should be replaced if it already
-exists in the atmospheric field.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_lookup_table_data"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
-      .gin_type  = {"String", "String", "Index", "Index"},
-      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc  = {"The base name of the files",
-                    "The extrapolation to use.",
-                    "Whether or not to zero-out missing data",
-                    "Whether or not to replace existing data"},
-  };
-
   wsm_data["atmospheric_fieldAppendCIASpeciesData"] = {
       .desc =
           R"--(Append species data to the atmospheric field based on collision-induced data data
@@ -2937,7 +2663,7 @@ Wraps:
 - *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
 - *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
 - *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
-- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *absorption_species*
+- ``atmospheric_fieldAppendLookupTableSpeciesData`` if the workspace contains *absorption_species*
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
@@ -3268,6 +2994,63 @@ have sorted *suns* by distance before running this code.
            "Default is the temperature of our sun - 5772 Kelvin ",
            "The latitude or the zenith position of the sun in the sky. ",
            "The longitude or azimuthal position of the sun in the sky. "},
+  };
+
+  wsm_data["sunFromGrid"] = {
+      .desc =
+          R"(Extracts a sun spectrum from a field of such data.
+          
+The method allows to obtain the sun spectrum by
+interpolation from a field of such data. 
+The sun spectrum is expected to be stored as
+the irradiance at the suns photosphere.
+
+Unit:
+
+- GriddedField2: [W m-2 Hz-1]
+
+- Vector *frequency_grid* [Hz]
+- Vector ``stokes_dim`` [1]
+
+Dimensions: [*frequency_grid*, stokes_dim]
+
+This method performs an interpolation onto the *frequency_grid*.
+The point of *frequency_grid* that are outside the data frequency grid
+are initialized according to planck's law of the temperature variable.
+Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
+)",
+      .author    = {"Jon Petersen", "Richard Larsson"},
+      .out       = {"sun"},
+      .in        = {"frequency_grid"},
+      .gin       = {"sun_spectrum_raw",
+                    "radius",
+                    "distance",
+                    "temperature",
+                    "latitude",
+                    "longitude",
+                    "description"},
+      .gin_type  = {"GriddedField2",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "String"},
+      .gin_value = {std::nullopt,
+                    6.963242e8,
+                    1.495978707e11,
+                    5772.0,
+                    0.0,
+                    0.0,
+                    String{"A sun"}},
+      .gin_desc =
+          {"A raw spectrum",
+           "The radius of the sun in meter. Default is the radius of our sun. ",
+           "The average distance between the sun and the planet in meter. Default value is set to 1 a.u. ",
+           "The effective temperature of the suns photosphere in Kelvin. Default is the temperature of our sun - 5772 Kelvin ",
+           "The latitude or the zenith position of the sun in the sky. ",
+           "The longitude or azimuthal position of the sun in the sky. ",
+           "A description of the sun."},
   };
 
   wsm_data["sunsAddSun"] = {
@@ -3682,134 +3465,146 @@ Description of the special input arguments:
       .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
-  wsm_data["disort_solar_sourceTurnOff"] = {
+  wsm_data["disort_settingsNoSun"] = {
       .desc   = R"(Turns off solar radiation in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_solar_source",
-                 "disort_solar_zenith_angle",
-                 "disort_solar_azimuth_angle"},
-      .in     = {"frequency_grid"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_source_polynomialTurnOff"] = {
+  wsm_data["disort_settingsSetSun"] = {
+      .desc =
+          R"--(Uses Set the FOV to the sun input for Disort calculations.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings",
+                    "frequency_grid",
+                    "surface_field",
+                    "sun",
+                    "ray_path_point"},
+  };
+
+  wsm_data["disort_settingsNoLayerThermalEmission"] = {
       .desc   = R"(Turns off source radiation in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_source_polynomial"},
-      .in     = {"ray_path", "frequency_grid"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_source_polynomialLinearInTau"] = {
+  wsm_data["disort_settingsLayerThermalEmissionLinearInTau"] = {
       .desc =
           R"(Use a source function that changes linearly in optical thickness.
+
+Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_source_polynomial"},
-      .in     = {"disort_optical_thicknesses",
-                 "ray_path_atmospheric_point",
-                 "frequency_grid"},
+      .out    = {"disort_settings"},
+      .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
   };
 
-  wsm_data["disort_negative_boundary_conditionTurnOff"] = {
-      .desc   = R"(Turns boundary condition from space for Disort calculations.
+  wsm_data["disort_settingsNoSpaceEmission"] = {
+      .desc =
+          R"(Turns off boundary condition from space for Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_negative_boundary_condition"},
-      .in     = {"frequency_grid",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_positive_boundary_conditionCosmicBackgroundRadiation"] = {
+  wsm_data["disort_settingsCosmicMicrowaveBackgroundRadiation"] = {
       .desc =
           R"(Space radiation into Disort is isotropic cosmic background radiation.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_positive_boundary_condition"},
-      .in     = {"frequency_grid",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings", "frequency_grid"},
   };
 
-  wsm_data["disort_positive_boundary_conditionTurnOff"] = {
+  wsm_data["disort_settingsNoSurfaceEmission"] = {
       .desc = R"(Turns boundary condition from surface for Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_positive_boundary_condition"},
-      .in     = {"frequency_grid",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_negative_boundary_conditionSurfaceTemperature"] = {
+  wsm_data["disort_settingsSurfaceEmissionByTemperature"] = {
       .desc =
           R"(Surface radiation into Disort is isotropic from surface temperature.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_negative_boundary_condition"},
-      .in     = {"frequency_grid",
-                 "ray_path_point",
-                 "surface_field",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings",
+                    "frequency_grid",
+                    "ray_path_point",
+                    "surface_field"},
   };
 
-  wsm_data["disort_legendre_coefficientsTurnOff"] = {
+  wsm_data["disort_settingsNoLegendre"] = {
       .desc   = R"(Turns off Legendre coefficients in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_legendre_coefficients"},
-      .in     = {"ray_path",
-                 "frequency_grid",
-                 "disort_legendre_polynomial_dimension"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_fractional_scatteringTurnOff"] = {
+  wsm_data["disort_settingsNoFractionalScattering"] = {
       .desc   = R"(Turns off fractional scattering in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_fractional_scattering"},
-      .in     = {"ray_path", "frequency_grid"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_single_scattering_albedoTurnOff"] = {
+  wsm_data["disort_settingsNoSingleScatteringAlbedo"] = {
       .desc   = R"(Turns off single albedo scattering in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_single_scattering_albedo"},
-      .in     = {"ray_path", "frequency_grid"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data["disort_optical_thicknessesFromPath"] = {
+  wsm_data["disort_settingsOpticalThicknessFromPath"] = {
       .desc   = R"(Get optical thickness from path.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_optical_thicknesses"},
-      .in     = {"ray_path", "ray_path_propagation_matrix"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
   };
 
-  wsm_data["disort_bidirectional_reflectance_distribution_functionsTurnOff"] = {
+  wsm_data["disort_settingsNoSurfaceScattering"] = {
       .desc   = R"(Turns off BDRF in Disort calculations.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_bidirectional_reflectance_distribution_functions"},
-      .in     = {"frequency_grid"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
   };
 
-  wsm_data
-      ["disort_bidirectional_reflectance_distribution_functionsLambertianConstant"] =
-          {
-              .desc   = R"(Turns off BDRF in Disort calculations.
+  wsm_data["disort_settingsSurfaceLambertian"] = {
+      .desc      = R"(Turns off BDRF in Disort calculations.
 )",
-              .author = {"Richard Larsson"},
-              .out =
-                  {"disort_bidirectional_reflectance_distribution_functions"},
-              .in        = {"frequency_grid"},
-              .gin       = {"value"},
-              .gin_type  = {"Numeric"},
-              .gin_value = {std::nullopt},
-              .gin_desc  = {"The value of the BDRF in all directions"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"value"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The value of the BDRF in all directions"},
+  };
+
+  wsm_data["disort_settingsInit"] = {
+      .desc   = R"(Perform Disort calculations for spectral flux.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"frequency_grid",
+                 "ray_path",
+                 "disort_quadrature_dimension",
+                 "disort_fourier_mode_dimension",
+                 "disort_legendre_polynomial_dimension"},
   };
 
   wsm_data["disort_spectral_radiance_fieldCalc"] = {
@@ -3819,17 +3614,7 @@ Description of the special input arguments:
       .out       = {"disort_spectral_radiance_field",
                     "disort_quadrature_angles",
                     "disort_quadrature_weights"},
-      .in        = {"disort_optical_thicknesses",
-                    "disort_single_scattering_albedo",
-                    "disort_fractional_scattering",
-                    "disort_legendre_coefficients",
-                    "disort_source_polynomial",
-                    "disort_positive_boundary_condition",
-                    "disort_negative_boundary_condition",
-                    "disort_bidirectional_reflectance_distribution_functions",
-                    "disort_solar_zenith_angle",
-                    "disort_solar_azimuth_angle",
-                    "disort_solar_source"},
+      .in        = {"disort_settings"},
       .gin       = {"phis"},
       .gin_type  = {"Vector"},
       .gin_value = {Vector{0.0}},
@@ -3841,47 +3626,7 @@ Description of the special input arguments:
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_spectral_flux_field"},
-      .in     = {"disort_optical_thicknesses",
-                 "disort_single_scattering_albedo",
-                 "disort_fractional_scattering",
-                 "disort_legendre_coefficients",
-                 "disort_source_polynomial",
-                 "disort_positive_boundary_condition",
-                 "disort_negative_boundary_condition",
-                 "disort_bidirectional_reflectance_distribution_functions",
-                 "disort_solar_zenith_angle",
-                 "disort_solar_azimuth_angle",
-                 "disort_solar_source"},
-  };
-
-  wsm_data["disort_spectral_radiance_fieldFromAgenda"] = {
-      .desc           = R"(Perform Disort calculations for spectral radiance.
-)",
-      .author         = {"Richard Larsson"},
-      .out            = {"disort_spectral_radiance_field",
-                         "disort_quadrature_angles",
-                         "disort_quadrature_weights"},
-      .in             = {"disort_settings_agenda",
-                         "disort_quadrature_dimension",
-                         "disort_fourier_mode_dimension",
-                         "disort_legendre_polynomial_dimension"},
-      .gin            = {"phis"},
-      .gin_type       = {"Vector"},
-      .gin_value      = {Vector{0.0}},
-      .gin_desc       = {"The azimuthal angles"},
-      .pass_workspace = true,
-  };
-
-  wsm_data["disort_spectral_flux_fieldFromAgenda"] = {
-      .desc           = R"(Perform Disort calculations for spectral flux.
-)",
-      .author         = {"Richard Larsson"},
-      .out            = {"disort_spectral_flux_field"},
-      .in             = {"disort_settings_agenda",
-                         "disort_quadrature_dimension",
-                         "disort_fourier_mode_dimension",
-                         "disort_legendre_polynomial_dimension"},
-      .pass_workspace = true,
+      .in     = {"disort_settings"},
   };
 
   wsm_data["SpectralFluxDisort"] = {

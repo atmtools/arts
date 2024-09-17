@@ -36,9 +36,6 @@
 #include "interpolation.h"
 #include "lin_alg.h"
 #include "surf.h"
-#include "variousZZZ.h"
-
-#include "m_basic_types.h"
 
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -72,8 +69,7 @@ void dlosGauss(Matrix& dlos,
   Vector xp, cx;
   {
     linspace(xp, 0, 2.0*fwhm, 0.02*fwhm);
-    Vector gx;
-    VectorGaussian(gx, xp, 0, -1.0, fwhm);
+    Vector gx = gaussian_grid(xp, 0, -1.0, fwhm);
     gx *= xp;  // Weight with radius, no need to include pi
     const Index np = gx.nelem();
     cx.resize(np);
@@ -109,7 +105,7 @@ void dlosGauss(Matrix& dlos,
   // Otherwise, we need to divide with value of 2D Gauss for radius:
   Vector gv(npoints);
   if (!include_response_in_weight) {
-    VectorGaussian(gv, r, 0, -1.0, fwhm);
+    gaussian_grid(gv, r, 0, -1.0, fwhm);
   }
 
   // Calculate
