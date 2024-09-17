@@ -1,7 +1,4 @@
 import pyarts
-import matplotlib.pyplot as plt
 
-fop = pyarts.recipe.FastFlux1D()
-
-
-fop({})
+if not pyarts.arts.globals.data.is_lgpl:
+    fop = pyarts.recipe.FastFlux1D()
