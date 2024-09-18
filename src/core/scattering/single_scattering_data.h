@@ -38,7 +38,7 @@ template <std::floating_point Scalar,
 struct SingleScatteringData {
  public:
   static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded, 4>
-  from_legacy_tro(::SingleScatteringData ssd) {
+  from_legacy_tro(::SingleScatteringData ssd, ::ScatteringMetaData smd) {
     ARTS_USER_ERROR_IF(
         ssd.ptype != PType::PTYPE_TOTAL_RND,
         "Converting legacy ARTS single scattering data to TRO format requires"
@@ -77,14 +77,17 @@ struct SingleScatteringData {
 
     auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
     auto forwardscatter_matrix = phase_matrix.extract_forwardscatter_matrix();
-    return SingleScatteringData<Numeric,
-                                Format::TRO,
-                                Representation::Gridded,
-                                4>(phase_matrix,
-                                   extinction_matrix,
-                                   absorption_vector,
-                                   backscatter_matrix,
-                                   forwardscatter_matrix);
+
+    auto properties = ParticleProperties{
+      smd.description, smd.source, smd.refr_index, smd.mass, smd.diameter_volume_equ, smd.diameter_max
+    };
+
+    return SingleScatteringData<Numeric, Format::TRO, Representation::Gridded, 4>(properties,
+                                                                                  phase_matrix,
+                                                                                  extinction_matrix,
+                                                                                  absorption_vector,
+                                                                                  backscatter_matrix,
+                                                                                  forwardscatter_matrix);
   }
 
   /** Create SingleScatteringData container without particle propreties.
@@ -123,8 +126,8 @@ struct SingleScatteringData {
       ExtinctionMatrixData<Scalar, format, repr, stokes_dim> extinction_matrix_,
       AbsorptionVectorData<Scalar, format, repr, stokes_dim> absorption_vector_,
       BackscatterMatrixData<Scalar, format, stokes_dim> backscatter_matrix_,
-      ForwardscatterMatrixData<Scalar, format, stokes_dim>
-          forwardscatter_matrix_)
+      ForwardscatterMatrixData<Scalar, format, stokes_dim> forwardscatter_matrix_
+                       )
       : properties(properties_),
         phase_matrix(phase_matrix_),
         extinction_matrix(extinction_matrix_),

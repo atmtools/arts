@@ -155,7 +155,7 @@ if(ENABLE_PCH)
 endif()
 
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC artsworkspace arts_options)
+target_link_libraries(pyarts_cpp PUBLIC artsworkspace arts_options shtns)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(

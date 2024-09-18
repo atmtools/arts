@@ -5,33 +5,36 @@
 #include "xml_io.h"
 
 bool test_single_scattering_data_from_legacy_tro() {
-  SingleScatteringData legacy;
-  std::string path = "../../../tests/testdata/arts-xml-data/"
-      "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml";
-  xml_read_from_file(path, legacy);
+  std::string data_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/MieSphere_R5.00000e-01um.xml");
+  std::string meta_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/MieSphere_R5.00000e-01um.meta.xml");
+
+  SingleScatteringData legacy_data;
+  xml_read_from_file(data_path, legacy_data);
+  ScatteringMetaData legacy_meta;
+  xml_read_from_file(meta_path, legacy_meta);
 
   using SingleScatteringData =
       scattering::SingleScatteringData<Numeric,
                                        scattering::Format::TRO,
                                        scattering::Representation::Gridded,
                                        4>;
-  auto ssd = SingleScatteringData::from_legacy_tro(legacy);
+  auto ssd = SingleScatteringData::from_legacy_tro(legacy_data, legacy_meta);
 
   Numeric err = max_error<Tensor3View>(
       (*ssd.phase_matrix)(joker, 0, joker, joker),
-      legacy.pha_mat_data(0, joker, joker, 0, 0, 0, joker));
+      legacy_data.pha_mat_data(0, joker, joker, 0, 0, 0, joker));
   if (err > 0) {
     return false;
   }
 
   err = max_error<MatrixView>(ssd.extinction_matrix(0, joker, joker),
-                              legacy.ext_mat_data(joker, 0, 0, 0, joker));
+                              legacy_data.ext_mat_data(joker, 0, 0, 0, joker));
   if (err > 0) {
     return false;
   }
 
   err = max_error<MatrixView>(ssd.absorption_vector(joker, 0, joker),
-                              legacy.abs_vec_data(0, joker, 0, 0, joker));
+                              legacy_data.abs_vec_data(0, joker, 0, 0, joker));
   if (err > 0) {
     return false;
   }

@@ -6,6 +6,9 @@
 #include "matpack/matpack_view.h"
 #include "sht.h"
 
+
+#define TEST_DATA_PATH "@CMAKE_BINARY_DIR@/tests/testdata/"
+
 // Helper function to calculate factorial.
 template <typename Scalar>
 Scalar fac(Index n) {

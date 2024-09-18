@@ -398,7 +398,7 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
                                                                  f_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        for (Index i_s = 0; i_s = n_stokes_coeffs_new; ++i_s) {
+        for (Index i_s = 0; i_s < n_stokes_coeffs_new; ++i_s) {
           result(i_t, i_f, i_s) = this->operator()(i_t, i_f, i_s);
         }
       }
@@ -500,7 +500,7 @@ class BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-          for (Index i_s = 0; i_s = n_stokes_coeffs_new; ++i_s) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs_new; ++i_s) {
             result(i_t, i_f, i_za_inc, i_s) =
                 this->operator()(i_t, i_f, i_za_inc, i_s);
           }
@@ -702,7 +702,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) {
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
     ARTS_ASSERT(sht->get_n_longitudes() == 1);
     ARTS_ASSERT(sht->get_n_latitudes() == n_za_scat_);
 
@@ -718,7 +718,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     }
     return result;
   }
-  PhaseMatrixDataSpectral to_spectral() {
+  PhaseMatrixDataSpectral to_spectral() const {
     return to_spectral(sht::provider.get_instance_lonlat(1, n_za_scat_));
   }
 
@@ -871,16 +871,16 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_scat_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size()); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Index i_f = 0; i_f < static_cast<Index>(weights.f_grid_weights.size()); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
         for (Index i_za_scat = 0;
-             i_za_scat < weights.za_scat_grid_weights.size();
+             i_za_scat < static_cast<Index>(weights.za_scat_grid_weights.size());
              ++i_za_scat) {
           GridPos gp_za_scat = weights.za_scat_grid_weights[i_za_scat];
           Numeric w_za_scat_l = gp_za_scat.fd[1];

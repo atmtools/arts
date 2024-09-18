@@ -139,11 +139,11 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size()); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Index i_f = 0; i_f < static_cast<Index>(weights.f_grid_weights.size()); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
@@ -269,15 +269,15 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size()); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Index i_f = 0; i_f < static_cast<Index>(weights.f_grid_weights.size()); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
-        for (Index i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
+        for (Index i_za_inc = 0; i_za_inc < static_cast<Index>(weights.za_inc_grid_weights.size());
              ++i_za_inc) {
           GridPos gp_za_inc = weights.za_inc_grid_weights[i_za_inc];
           Numeric w_za_inc_l = gp_za_inc.fd[1];

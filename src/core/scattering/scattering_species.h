@@ -12,21 +12,12 @@
 
 #include "properties.h"
 #include "psd.h"
+#include "particle_habit.h"
 
-namespace Scattering {
+namespace scattering {
 
 using PSD = std::variant<MGDSingleMoment>;
 
-/*** A particle habit
- *
- * A particle habit represents a collection of scattering particles each with
- * a given size, mass, and specific scattering properties.
- */
-class ParticleHabit {
- public:
-  ParticleHabit(){};
-  ParticleHabit(std::string scattering_data){};
-};
 
 /*** A scattering habit
  *
@@ -37,8 +28,6 @@ class ParticleHabit {
 class ScatteringHabit {
  public:
   ScatteringHabit(){};
-  ScatteringHabit(ParticleHabit particle_habit_, PSD psd_)
-      : particle_habit(particle_habit_), psd(psd_){};
 
  private:
   ParticleHabit particle_habit;
@@ -65,11 +54,11 @@ using Species = std::variant<HenyeyGreenstein, ScatteringHabit>;
 
 }  // namespace Scattering
 
-using ScatteringSpecies = Scattering::Species;
+using ScatteringSpecies = scattering::Species;
 
-class ArrayOfScatteringSpecies : std::vector<Scattering::Species> {
+class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
  public:
-  void add(const Scattering::Species& species) { push_back(species); }
+  void add(const scattering::Species& species) { push_back(species); }
 };
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -98,12 +87,12 @@ struct std::formatter<ArrayOfScatteringSpecies> {
   }
 };
 
-using HenyeyGreenstein = Scattering::HenyeyGreenstein;
-using ParticleHabit = Scattering::ParticleHabit;
-using ScatteringHabit = Scattering::ScatteringHabit;
-using PSD = Scattering::PSD;
+using HenyeyGreenstein = scattering::HenyeyGreenstein;
+using ParticleHabit = scattering::ParticleHabit;
+using ScatteringHabit = scattering::ScatteringHabit;
+using PSD = scattering::PSD;
 
 std::ostream& operator<<(
     std::ostream& os,
     const std::variant<HenyeyGreenstein,
-                       Scattering::ScatteringHabit>& /*species*/);
+                       scattering::ScatteringHabit>& /*species*/);
