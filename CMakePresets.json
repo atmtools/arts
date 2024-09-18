@@ -51,7 +51,6 @@
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
         "ENABLE_FORTRAN": "0",
-        "ENABLE_ARTS_LGPL": "1",
         "NO_FASTEM": "1",
         "NO_OPENMP": "1",
         "NO_RT4": "1",
