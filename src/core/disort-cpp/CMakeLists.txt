@@ -44,7 +44,7 @@ add_dependencies(check-deps disort-cpp-test-9)
 add_dependencies(check-deps disort-cpp-test-11)
 add_dependencies(check-deps disort-test-clearsky-multilayer)
 
-if (NOT ENABLE_ARTS_LGPL)
+if (NOT ENABLE_ARTS_LGPL AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   add_executable(test-old-impl test-old-impl.cpp)
   target_link_libraries(test-old-impl disort-cpp artstime cdisort)
 endif ()
