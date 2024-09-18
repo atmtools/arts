@@ -51,10 +51,7 @@
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
         "ENABLE_FORTRAN": "0",
-        "NO_FASTEM": "1",
-        "NO_OPENMP": "1",
-        "NO_RT4": "1",
-        "NO_TMATRIX": "1"
+        "NO_OPENMP": "1"
       },
       "environment": {
         "CPPFLAGS": "$env{CFLAGS}",
