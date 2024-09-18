@@ -822,6 +822,9 @@ using ComplexMatrix = matpack::matpack_data<Complex, 2>;
 
 //! A tensor3 of Complex
 using ComplexTensor3 = matpack::matpack_data<Complex, 3>;
+//!
+// A tensor4 of Complex
+using ComplexTensor4 = matpack::matpack_data<Complex, 4>;
 
 //! A vector of Index
 using IndexVector = matpack::matpack_data<Index, 1>;
