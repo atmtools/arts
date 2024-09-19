@@ -44,7 +44,7 @@ if(DOWNLOAD_XMLDATA_DEPS)
 add_dependencies(test_single_scattering_data arts_testdata_folder_download_xml)
 endif()
 
-add_test(NAME "cpp.fast.scattering.test_single_scattering_data" COMMAND test_single_scattering_data)
+ARTS_TEST_RUN_EXE("fast.scattering.test_single_scattering_data" test_single_scattering_data)
 add_dependencies(check-deps test_single_scattering_data)
 
 add_executable(test_particle_habit test_particle_habit.cc)

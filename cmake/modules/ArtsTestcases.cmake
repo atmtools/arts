@@ -4,56 +4,36 @@ else()
   set(DELIM ":")
 endif()
 
-macro (ARTS_TEST_RUN_CTLFILE TESTNAME CTLFILE)
-  set(ARTS_TEST_INCLUDE_PATH "${ARTS_SOURCE_DIR}/controlfiles")
-
+macro (ARTS_TEST_RUN_EXE TESTNAME EXE)
   if (ARTS_DATA_DIR)
-    string(APPEND ARTS_TEST_INCLUDE_PATH "${DELIM}${ARTS_DATA_DIR}")
+    string(APPEND CPP_TEST_INCLUDE_PATH "${DELIM}${ARTS_DATA_DIR}")
   endif()
 
   if (ARTS_XML_DATA_DIR)
-    string(APPEND ARTS_TEST_INCLUDE_PATH ";ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR}")
+    string(APPEND CPP_TEST_INCLUDE_PATH ";ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR}")
   else()
-    string(APPEND ARTS_TEST_INCLUDE_PATH ";ARTS_XML_DATA_DIR=${ARTS_BINARY_DIR}/tests/testdata/arts-xml-data")
+    string(APPEND CPP_TEST_INCLUDE_PATH ";ARTS_XML_DATA_DIR=${ARTS_BINARY_DIR}/tests/testdata/arts-xml-data")
   endif()
 
   if (ARTS_CAT_DATA_DIR)
-    string(APPEND ARTS_TEST_INCLUDE_PATH ";ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR}")
+    string(APPEND CPP_TEST_INCLUDE_PATH ";ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR}")
   else()
-    string(APPEND ARTS_TEST_INCLUDE_PATH ";ARTS_CAT_DATA_DIR=${ARTS_BINARY_DIR}/tests/testdata/arts-cat-data")
+    string(APPEND CPP_TEST_INCLUDE_PATH ";ARTS_CAT_DATA_DIR=${ARTS_BINARY_DIR}/tests/testdata/arts-cat-data")
   endif()
 
-  string(REGEX REPLACE "/" "." TESTNAME_LONG ${CTLFILE})
-  string(REGEX REPLACE ".arts$" "" TESTNAME_LONG ${TESTNAME_LONG})
-  set(TESTNAME_LONG ctlfile.${TESTNAME}.${TESTNAME_LONG})
-  set(ARTS arts -r002 -I${CMAKE_CURRENT_SOURCE_DIR})
-  add_test(
-    NAME ${TESTNAME_LONG}
-    COMMAND ${ARTS} ${CMAKE_CURRENT_SOURCE_DIR}/${CTLFILE}
-  )
-  set_tests_properties(
-    ${TESTNAME_LONG} PROPERTIES
-    ENVIRONMENT "ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}${DELIM}${ARTS_TEST_INCLUDE_PATH}"
-  )
+  set(TESTNAME_LONG cpp.${TESTNAME})
 
-  string(REGEX REPLACE ".arts$" ".py" PYTHONCTLFILE ${CTLFILE})
-  string(REGEX REPLACE "^ctlfile" "converted" TESTNAME_LONG ${TESTNAME_LONG})
-  set(PYTHONCTLFILE "controlfiles/${PYTHONCTLFILE}")
-  get_filename_component(CFILESUBDIR ${CTLFILE} DIRECTORY)
   add_test(
     NAME ${TESTNAME_LONG}
-    COMMAND ${Python_EXECUTABLE} ${PYTHONCTLFILE}
+    COMMAND ${EXE}
     )
   set_tests_properties(
     ${TESTNAME_LONG} PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python;ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}${DELIM}${ARTS_TEST_INCLUDE_PATH}"
-    DEPENDS python_tests
+    ENVIRONMENT "ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CPP_TEST_INCLUDE_PATH}"
   )
-endmacro (ARTS_TEST_RUN_CTLFILE)
+endmacro()
 
 macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
-  set(PYARTS_TEST_INCLUDE_PATH "${ARTS_SOURCE_DIR}/controlfiles")
-
   if (ARTS_DATA_DIR)
     string(APPEND PYARTS_TEST_INCLUDE_PATH "${DELIM}${ARTS_DATA_DIR}")
   endif()
@@ -87,13 +67,6 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   )
 endmacro()
 
-macro (ARTS_TEST_CTLFILE_DEPENDS TESTNAME DEPENDNAME)
-  set_tests_properties(
-    ctlfile.${TESTNAME}
-    PROPERTIES DEPENDS ctlfile.${DEPENDNAME}
-    )
-endmacro (ARTS_TEST_CTLFILE_DEPENDS)
-
 macro (COLLECT_TEST_SUBDIR SUBDIR)
   file(GLOB_RECURSE PYFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SUBDIR}/*.py)
   get_filename_component(CURRENTDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -123,24 +96,14 @@ macro (SETUP_ARTS_CHECKS)
     -R \"\(^pyarts\)\"
     DEPENDS check-deps pyarts)
 
-  add_custom_target(check-controlfiles
-    COMMAND ${CTEST_ARGS}
-    -R \"\(^ctlfile\)\"
-    DEPENDS check-deps)
-
-  add_custom_target(check-conversion
-    COMMAND ${CTEST_ARGS}
-    -R \"\(^converted\)\"
-    DEPENDS check-deps python_conversion)
-
   add_custom_target(check-examples
     COMMAND ${CTEST_ARGS}
-    -R \"\(\\.examples\\.\)\" -E \"\(^converted\)\"
+    -R \"\(\\.examples\\.\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-tests
     COMMAND ${CTEST_ARGS}
-    -R \"\(\\.tests\\.\)\" -E \"\(^converted\)\"
+    -R \"\(\\.tests\\.\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-doc

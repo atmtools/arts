@@ -1,3 +1,5 @@
+#include <parameters.h>
+
 #include <iostream>
 
 #include "single_scattering_data.h"
@@ -5,8 +7,10 @@
 #include "xml_io.h"
 
 bool test_single_scattering_data_from_legacy_tro() {
-  std::string data_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/MieSphere_R5.00000e-01um.xml");
-  std::string meta_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/MieSphere_R5.00000e-01um.meta.xml");
+  std::string data_path = std::string(
+      "scattering/H2O_ice/MieSphere_R5.00000e-01um.xml");
+  std::string meta_path = std::string(
+      "scattering/H2O_ice/MieSphere_R5.00000e-01um.meta.xml");
 
   SingleScatteringData legacy_data;
   xml_read_from_file(data_path, legacy_data);
@@ -41,7 +45,17 @@ bool test_single_scattering_data_from_legacy_tro() {
   return true;
 }
 
+extern Parameters parameters;
+void parse_path_from_environment(String envvar, ArrayOfString& paths);
+
 int main() {
+  parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
+  parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
+  parse_path_from_environment("ARTS_CAT_DATA_DIR", parameters.datapath);
+  parse_path_from_environment("ARTS_XML_DATA_DIR", parameters.datapath);
+  parameters.includepath.insert(parameters.includepath.begin(), ".");
+  parameters.datapath.insert(parameters.datapath.begin(), ".");
+
   bool passed = false;
   std::cout << "Test conversion from legacy format (TRO): ";
   passed = test_single_scattering_data_from_legacy_tro();
