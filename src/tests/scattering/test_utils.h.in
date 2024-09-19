@@ -188,7 +188,7 @@ Numeric max_error(const A& a, const B& b) {
  */
 template <matpack::any_matpack_type Tensor, typename Fun>
 void generate(Tensor& tensor, Fun fun) {
-  constexpr Index rank = tensor.rank();
+  constexpr Index rank = Tensor::rank();
   std::array<Index, rank> coords;
   coords.fill(0);
   std::array<Index, rank> shape = tensor.shape();
