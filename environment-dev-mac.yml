@@ -16,6 +16,7 @@ dependencies:
         - llvm-openmp
         - matplotlib
         - nanobind
+        - nbsphinx
         - netcdf4
         - ninja
         - numpy>=2

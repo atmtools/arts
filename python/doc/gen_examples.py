@@ -40,6 +40,8 @@ def recursive_python_files(path):
             out[part] = recursive_python_files(part)
         elif part.endswith(".py"):
             out[part] = part
+        elif part.endswith(".ipynb"):
+            out[part] = part
 
     return out
 
@@ -97,9 +99,17 @@ def output_readme(rstfile, path):
 def combine_pyfiles(paths, origpath, extra, outpath):
     if len(paths) == 0:
         return
-
+    
     parentpath = os.path.dirname(paths[0])
     title = title_from_path(parentpath, origpath, extra)
+    
+    if any([x.endswith(".ipynb") for x in paths]):
+        assert len(paths) == 1, \
+            "Can only have one Python notebook, and no other files in an example"
+        print(f"Copying notebook {paths[0]}")
+        open(f"{os.path.join(outpath, title)}.ipynb", "w").write(open(paths[0], "r").read())
+        return
+
     rstfn = rstfn_from_title(title, outpath)
     print(f"Creating {rstfn} from {parentpath}")
     with open(rstfn, "w") as rstfile:
