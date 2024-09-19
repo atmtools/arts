@@ -1,4 +1,4 @@
-#ifndef SCATTTERING_MIE_H_
+#ifndef SCATTERING_MIE_H_
 #define SCATTERING_MIE_H_
 
 /** \file mie.h
