@@ -45,14 +45,16 @@ if(CCFLAG_NO_VZEROUPPER)
   target_compile_options(shtns PRIVATE -mno-vzeroupper)
 endif()
 
-target_compile_options(
-  shtns
-  PRIVATE
-  -ffast-math
-  -Wno-unused -Wno-shadow -Wno-unused-parameter
-  -Wno-conversion -Wno-sign-compare -Wno-switch -Wno-misleading-indentation
-  -Wno-uninitialized -Wno-implicit-fallthrough -Wno-unused-command-line-argument
-)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  target_compile_options(
+    shtns
+    PRIVATE
+    -ffast-math
+    -Wno-unused -Wno-shadow -Wno-unused-parameter
+    -Wno-conversion -Wno-sign-compare -Wno-switch -Wno-misleading-indentation
+    -Wno-uninitialized -Wno-implicit-fallthrough -Wno-unused-command-line-argument
+  )
+endif()
 target_compile_definitions(shtns PRIVATE _GNU_SOURCE SHTNS_GIT=\"ARTS\")
 target_include_directories(shtns PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
