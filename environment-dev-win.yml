@@ -5,6 +5,7 @@ dependencies:
         - docutils
         - eigen
         - fftw
+        - ipykernel
         - lark-parser
         - libcxx
         - matplotlib

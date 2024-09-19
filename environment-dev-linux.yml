@@ -13,6 +13,7 @@ dependencies:
         - gfortran
         - gmp
         - gxx
+        - ipykernel
         - lark-parser
         - libclang
         - libcxx
