@@ -122,6 +122,16 @@
       }
     },
     {
+      "name": "lgpl-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "ENABLE_ARTS_LGPL": "1",
+        "NO_FASTEM": "1",
+        "NO_RT4": "1",
+        "NO_TMATRIX": "1"
+      }
+    },
+    {
       "name": "macintel-clang-conda",
       "inherits": "default-clang-conda",
       "cacheVariables": {
