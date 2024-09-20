@@ -11,8 +11,6 @@
 #include "scattering/phase_matrix.h"
 #include "test_utils.h"
 
-constexpr Numeric pi = std::numbers::pi_v<Numeric>;
-
 using namespace scattering;
 
 template <Index stokes_dim>
@@ -42,8 +40,8 @@ PhaseMatrixTROGridded<stokes_dim> make_phase_matrix(
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const LatitudeGrid> za_scat_grid) {
   PhaseMatrixTROGridded<stokes_dim> phase_matrix(t_grid, f_grid, za_scat_grid);
-  Vector lats = *za_scat_grid;
-  lats *= Conversion::deg2rad(1.0);
+  Vector lats  = *za_scat_grid;
+  lats        *= Conversion::deg2rad(1.0);
   Vector lons(1);
   lons = 0.0;
 
@@ -97,10 +95,10 @@ PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
     std::shared_ptr<const LatitudeGrid> za_scat_grid) {
   PhaseMatrixAROGridded<stokes_dim> phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
-  Vector lons = *delta_aa_grid;
-  lons *= Conversion::deg2rad(1.0);
-  Vector lats = *za_scat_grid;
-  lats *= Conversion::deg2rad(1.0);
+  Vector lons  = *delta_aa_grid;
+  lons        *= Conversion::deg2rad(1.0);
+  Vector lats  = *za_scat_grid;
+  lats        *= Conversion::deg2rad(1.0);
 
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
@@ -118,9 +116,9 @@ PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
 }
 
 bool test_phase_matrix_tro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
       make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
@@ -132,7 +130,7 @@ bool test_phase_matrix_tro() {
   ComplexVector coeffs_ref(phase_matrix_spectral.extent(2));
   for (Index i_t = 0; i_t < phase_matrix_spectral.extent(0); ++i_t) {
     for (Index i_f = 0; i_f < phase_matrix_spectral.extent(1); ++i_f) {
-      coeffs_ref = std::complex<Numeric>(0.0, 0.0);
+      coeffs_ref      = std::complex<Numeric>(0.0, 0.0);
       coeffs_ref[i_f] = std::complex<Numeric>(1.0, 0.0);
       for (Index i_s = 0; i_s < phase_matrix_spectral.extent(3); ++i_s) {
         Numeric err = max_error<ComplexVector>(
@@ -172,9 +170,9 @@ bool test_phase_matrix_tro() {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
       // Backward scattering direction. Only two independent elements.
       // Off-diagonal elements must be close to 0.
-      auto pm_f = phase_matrix_lab(i_t, i_f, 0, 0, 0, joker);
+      auto pm_f           = phase_matrix_lab(i_t, i_f, 0, 0, 0, joker);
       Numeric coeff_max_f = pm_f[0];
-      auto pm_b = phase_matrix_lab(i_t, i_f, 0, 1, 0, joker);
+      auto pm_b           = phase_matrix_lab(i_t, i_f, 0, 1, 0, joker);
       Numeric coeff_max_b = pm_b[0];
 
       // For the forward direction we have:
@@ -213,7 +211,7 @@ bool test_phase_matrix_tro() {
 
   // Test extraction of backscatter matrix.
   auto backscatter_matrix = phase_matrix_liquid.extract_backscatter_matrix();
-  err = max_error<Tensor3>(
+  err                     = max_error<Tensor3>(
       backscatter_matrix,
       static_cast<Tensor3>(phase_matrix_liquid(joker, joker, 4, joker)));
   if (err > 1e-15) return false;
@@ -230,9 +228,9 @@ bool test_phase_matrix_tro() {
   auto phase_matrix_liquid_spectral = phase_matrix_liquid_sht.to_spectral(sht);
   auto backscatter_matrix_2 =
       phase_matrix_liquid_spectral.extract_backscatter_matrix();
-  err = max_error<Tensor3>(backscatter_matrix, backscatter_matrix_2);
-  Tensor3 delta = backscatter_matrix;
-  delta -= backscatter_matrix_2;
+  err            = max_error<Tensor3>(backscatter_matrix, backscatter_matrix_2);
+  Tensor3 delta  = backscatter_matrix;
+  delta         -= backscatter_matrix_2;
 
   if (err > 1e-15) return false;
 
@@ -243,7 +241,7 @@ bool test_phase_matrix_tro() {
 
   // Test reduction of stokes elements.
   auto phase_matrix_liquid_1 = phase_matrix_liquid.extract_stokes_coeffs<1>();
-  err = max_error<ConstTensor4View>(
+  err                        = max_error<ConstTensor4View>(
       phase_matrix_liquid_1,
       phase_matrix_liquid(joker, joker, joker, Range(0, 1)));
   // Extraction of stokes parameters should be exact.
@@ -261,9 +259,9 @@ bool test_phase_matrix_tro() {
 }
 
 bool test_phase_matrix_copy_const_tro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
       make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
@@ -297,9 +295,9 @@ bool test_phase_matrix_copy_const_tro() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_tro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
       make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
@@ -309,8 +307,8 @@ bool test_phase_matrix_regrid_tro() {
   // First test: Extract element at lowest temp, freq and za_scat angle.
   //
 
-  auto t_grid_new = std::make_shared<Vector>(Vector({210}));
-  auto f_grid_new = std::make_shared<Vector>(Vector({1e9}));
+  auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
+  auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
   auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(Vector({0}));
 
   ScatteringDataGrids grids{t_grid_new, f_grid_new, za_scat_grid};
@@ -348,10 +346,10 @@ bool test_phase_matrix_regrid_tro() {
   // along temperature, frequency and scattering zenith angle.
   //
 
-  (*t_grid_new)[0] = 230.0;
-  (*f_grid_new)[0] = 5.5e9;
+  (*t_grid_new)[0]       = 230.0;
+  (*f_grid_new)[0]       = 5.5e9;
   (*za_scat_grid_new)[0] = 0.5 * ((*za_scat_grid)[0] + (*za_scat_grid)[1]);
-  grids = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
@@ -410,10 +408,10 @@ bool test_phase_matrix_regrid_tro() {
   fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       phase_matrix_gridded));
 
-  (*t_grid_new)[0] = 1.2345;
-  (*f_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
   (*za_scat_grid_new)[0] = 1.2345;
-  grids = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid_inc, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
@@ -464,9 +462,9 @@ bool test_phase_matrix_regrid_tro() {
 }
 
 bool test_backscatter_matrix_regrid_tro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix = make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
@@ -475,8 +473,8 @@ bool test_backscatter_matrix_regrid_tro() {
   // First test: Extract element at lowest temp, freq and za_scat angle.
   //
 
-  auto t_grid_new = std::make_shared<Vector>(Vector({210}));
-  auto f_grid_new = std::make_shared<Vector>(Vector({1e9}));
+  auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
+  auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
   auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(Vector({0}));
 
   ScatteringDataGrids grids{t_grid_new, f_grid_new, za_scat_grid};
@@ -484,7 +482,7 @@ bool test_backscatter_matrix_regrid_tro() {
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
 
   auto backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  Numeric err = max_error(
+  Numeric err                    = max_error(
       static_cast<VectorView>(backscatter_matrix(0, 0, joker)),
       static_cast<VectorView>(backscatter_matrix_interp(0, 0, joker)));
   if (err > 0.0) {
@@ -503,10 +501,10 @@ bool test_backscatter_matrix_regrid_tro() {
   fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(
       backscatter_matrix));
 
-  (*t_grid_new)[0] = 1.2345;
-  (*f_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
   (*za_scat_grid_new)[0] = 1.2345;
-  grids = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
@@ -527,13 +525,13 @@ bool test_backscatter_matrix_regrid_tro() {
 }
 
 bool test_phase_matrix_aro() {
-  Index l_max = 128;
-  Index m_max = 128;
-  auto sht = sht::provider.get_instance_lonlat(l_max, m_max);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_inc_grid = std::make_shared<Vector>(Vector({20.0}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
+  Index l_max        = 128;
+  Index m_max        = 128;
+  auto sht           = sht::provider.get_instance_lonlat(l_max, m_max);
+  auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto za_inc_grid   = std::make_shared<Vector>(Vector({20.0}));
+  auto za_scat_grid  = sht->get_za_grid_ptr();
   auto delta_aa_grid = sht->get_aa_grid_ptr();
 
   auto phase_matrix_gridded = make_phase_matrix<4>(
@@ -546,9 +544,9 @@ bool test_phase_matrix_aro() {
   ComplexVector coeffs_ref(phase_matrix_spectral.extent(3));
   for (Index i_t = 0; i_t < phase_matrix_spectral.extent(0); ++i_t) {
     for (Index i_f = 0; i_f < phase_matrix_spectral.extent(1); ++i_f) {
-      Index l = i_t;
-      Index m = std::min(i_t, i_f);
-      coeffs_ref = std::complex<Numeric>(0.0, 0.0);
+      Index l                                = i_t;
+      Index m                                = std::min(i_t, i_f);
+      coeffs_ref                             = std::complex<Numeric>(0.0, 0.0);
       coeffs_ref[sht->get_coeff_index(l, m)] = std::complex<Numeric>(1.0, 0.0);
       for (Index i_za_inc = 0; i_za_inc < phase_matrix_spectral.extent(2);
            ++i_za_inc) {
@@ -582,7 +580,7 @@ bool test_phase_matrix_aro() {
   if (err > 1e-3) return false;
 
   auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs<1>();
-  err = max_error<Tensor6View>(
+  err                         = max_error<Tensor6View>(
       phase_matrix_gridded_1,
       phase_matrix_gridded(joker, joker, joker, joker, joker, Range(0, 1)));
   if (err > 0) return false;
@@ -598,11 +596,11 @@ bool test_phase_matrix_aro() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_aro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
-  auto za_inc_grid = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
+  auto sht           = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto za_scat_grid  = sht->get_za_grid_ptr();
+  auto za_inc_grid   = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
   auto delta_aa_grid = std::make_shared<Vector>(std::views::iota(0, 180));
   auto phase_matrix_gridded = make_phase_matrix<4>(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
@@ -612,9 +610,9 @@ bool test_phase_matrix_regrid_aro() {
   // First test: Extract element at lowest temp, freq and za_scat angle.
   //
 
-  auto t_grid_new = std::make_shared<Vector>(Vector({210}));
-  auto f_grid_new = std::make_shared<Vector>(Vector({1e9}));
-  auto za_inc_grid_new = std::make_shared<Vector>(Vector{0.0});
+  auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
+  auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
+  auto za_inc_grid_new  = std::make_shared<Vector>(Vector{0.0});
   auto aa_scat_grid_new = std::make_shared<Vector>(Vector({0.0}));
   auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(
       Vector{za_scat_grid->operator[](0)});
@@ -678,18 +676,18 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
       phase_matrix_gridded));
 
-  (*t_grid_new)[0] = 1.2345;
-  (*f_grid_new)[0] = 1.2345;
-  (*za_inc_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
+  (*za_inc_grid_new)[0]  = 1.2345;
   (*aa_scat_grid_new)[0] = 1.2345;
   (*za_scat_grid_new)[0] = 1.2345;
 
-  grids = ScatteringDataGrids{t_grid_new,
+  grids                       = ScatteringDataGrids{t_grid_new,
                               f_grid_new,
                               za_inc_grid_new,
                               aa_scat_grid_new,
                               za_scat_grid_new};
-  weights = calc_regrid_weights(t_grid,
+  weights                     = calc_regrid_weights(t_grid,
                                 f_grid,
                                 nullptr,
                                 za_inc_grid_inc,
@@ -772,11 +770,11 @@ bool test_phase_matrix_regrid_aro() {
 }
 
 bool test_backscatter_matrix_regrid_aro() {
-  auto sht = sht::provider.get_instance_lonlat(1, 32);
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
-  auto za_inc_grid = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
+  auto sht           = sht::provider.get_instance_lonlat(1, 32);
+  auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto za_scat_grid  = sht->get_za_grid_ptr();
+  auto za_inc_grid   = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
   auto delta_aa_grid = std::make_shared<Vector>(std::views::iota(0, 180));
   auto phase_matrix_gridded = make_phase_matrix<4>(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
@@ -786,9 +784,9 @@ bool test_backscatter_matrix_regrid_aro() {
   // First test: Extract element at lowest temp, freq and za_scat angle.
   //
 
-  auto t_grid_new = std::make_shared<Vector>(Vector({210}));
-  auto f_grid_new = std::make_shared<Vector>(Vector({1e9}));
-  auto za_inc_grid_new = std::make_shared<Vector>(Vector{0.0});
+  auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
+  auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
+  auto za_inc_grid_new  = std::make_shared<Vector>(Vector{0.0});
   auto aa_scat_grid_new = std::make_shared<Vector>(Vector({0.0}));
   auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(
       Vector{za_scat_grid->operator[](0)});
@@ -807,7 +805,7 @@ bool test_backscatter_matrix_regrid_aro() {
                                      grids);
 
   auto backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  Numeric err = max_error(
+  Numeric err                    = max_error(
       static_cast<VectorView>(backscatter_matrix(0, 0, 0, joker)),
       static_cast<VectorView>(backscatter_matrix_interp(0, 0, 0, joker)));
   if (err > 1e-10) {
@@ -832,18 +830,18 @@ bool test_backscatter_matrix_regrid_aro() {
   fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       backscatter_matrix));
 
-  (*t_grid_new)[0] = 1.2345;
-  (*f_grid_new)[0] = 1.2345;
-  (*za_inc_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
+  (*za_inc_grid_new)[0]  = 1.2345;
   (*aa_scat_grid_new)[0] = 1.2345;
   (*za_scat_grid_new)[0] = 1.2345;
 
-  grids = ScatteringDataGrids{t_grid_new,
+  grids                     = ScatteringDataGrids{t_grid_new,
                               f_grid_new,
                               za_inc_grid_new,
                               aa_scat_grid_new,
                               za_scat_grid_new};
-  weights = calc_regrid_weights(t_grid,
+  weights                   = calc_regrid_weights(t_grid,
                                 f_grid,
                                 nullptr,
                                 za_inc_grid_inc,

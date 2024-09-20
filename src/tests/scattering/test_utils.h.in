@@ -7,7 +7,6 @@
 #include "matpack/matpack_view.h"
 #include "sht.h"
 
-
 #define TEST_DATA_PATH "@CMAKE_BINARY_DIR@/tests/testdata/"
 
 // Helper function to calculate factorial.
@@ -32,14 +31,15 @@ Scalar fac(Index n) {
  * function with the latitudes oriented along columns and the
  * longitudes along rows.
  */
-Matrix evaluate_spherical_harmonic(Index l,
-                                   Index m,
-                                   const ConstVectorView& lons,
-                                   const ConstVectorView& lats) {
+inline Matrix evaluate_spherical_harmonic(Index l,
+                                          Index m,
+                                          const ConstVectorView& lons,
+                                          const ConstVectorView& lats) {
   auto n_lon = lons.size();
   auto n_lat = lats.size();
 
-  double norm = sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
+  double norm =
+      sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
   norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
 
   Matrix results{n_lon, n_lat};
@@ -48,7 +48,7 @@ Matrix evaluate_spherical_harmonic(Index l,
       auto clon = cos(static_cast<Numeric>(m) * lons[i]);
 
       auto clat = cos(lats[j]);
-      double p = 0.0;
+      double p  = 0.0;
       if (l == 0) {
         p = 1.0;
       } else if (l == 1) {
@@ -93,7 +93,9 @@ Matrix evaluate_spherical_harmonic(Index l,
  * sampled from the Gaussian distribution with the given mean
  * and std. dev.
  */
-Vector random_vector(Index size, Numeric mean = 0.0, Numeric sigma = 3.0) {
+inline Vector random_vector(Index size,
+                            Numeric mean  = 0.0,
+                            Numeric sigma = 3.0) {
   std::random_device rd{};
   std::mt19937 gen{rd()};
   std::normal_distribution<> d{mean, sigma};
@@ -115,9 +117,9 @@ Vector random_vector(Index size, Numeric mean = 0.0, Numeric sigma = 3.0) {
  * real and imaginary components sampled from the Gaussian distribution
  * with the given mean and std. dev.
  */
-ComplexVector random_complex_vector(Index size,
-                                    Numeric mean = 3.0,
-                                    Numeric sigma = 3.0) {
+inline ComplexVector random_complex_vector(Index size,
+                                           Numeric mean  = 3.0,
+                                           Numeric sigma = 3.0) {
   std::random_device rd{};
   std::mt19937 gen{rd()};
   std::normal_distribution<> d{mean, sigma};
@@ -139,7 +141,7 @@ ComplexVector random_complex_vector(Index size,
  *
  * @return A complex vector containing SHT coefficients.
  */
-ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
+inline ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
   auto n_coeffs = scattering::sht::SHT::calc_n_spectral_coeffs(l_max, m_max);
   ComplexVector coeffs = random_complex_vector(n_coeffs);
   // Imaginary part of coeffs with m == 0 must be 0.
@@ -163,9 +165,9 @@ ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
 template <typename A, typename B>
 Numeric max_error(const A& a, const B& b) {
   Numeric max = 0.0;
-  auto a_it = a.elem_begin();
-  auto b_it = b.elem_begin();
-  auto a_end = a.elem_end();
+  auto a_it   = a.elem_begin();
+  auto b_it   = b.elem_begin();
+  auto a_end  = a.elem_end();
   while (a_it != a_end) {
     Numeric delta = std::abs(*a_it - *b_it);
     if (delta > max) {

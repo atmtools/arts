@@ -579,8 +579,8 @@ void xml_write_to_stream(std::ostream& os_xml,
  *  \param vib     ScatteringSpeciesProperty return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(std::istream& is_xml,
-                          ScatteringSpeciesProperty& s,
+void xml_read_from_stream(std::istream& /*is_xml*/,
+                          ScatteringSpeciesProperty& /*s*/,
                           bifstream* pbifs [[maybe_unused]]) {
 }
 
@@ -591,8 +591,8 @@ void xml_read_from_stream(std::istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ScatteringSpeciesProperty& s,
+void xml_write_to_stream(std::ostream& /*os_xml*/,
+                         const ScatteringSpeciesProperty& /*s*/,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
 }

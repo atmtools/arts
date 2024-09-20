@@ -26,9 +26,7 @@ Vector MGDSingleMoment::evaluate(const AtmPoint& point,
   }
 
   // Negative wc?
-  Numeric psd_weight = 1.0;
   if (water_content < 0) {
-    psd_weight = -1.0;
     water_content *= -1.0;
   }
 

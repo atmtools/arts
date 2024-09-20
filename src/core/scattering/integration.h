@@ -365,6 +365,11 @@ class LatitudeGrid : public Vector {
   LatitudeGrid(const Vector& latitudes) : Vector(latitudes) {}
 
   virtual ~LatitudeGrid(){};
+  
+  LatitudeGrid(const LatitudeGrid&) = default;
+  LatitudeGrid& operator=(const LatitudeGrid&) = default;
+  LatitudeGrid(LatitudeGrid&&) = default;
+  LatitudeGrid& operator=(LatitudeGrid&&) = default;
 
   /// The latitude grid points in radians.
   virtual const Vector& get_colatitudes() const = 0;

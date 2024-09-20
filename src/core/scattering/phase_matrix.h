@@ -412,11 +412,11 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
     BackscatterMatrixData result(grids.t_grid, grids.f_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
@@ -516,15 +516,15 @@ class BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
     BackscatterMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
-        for (Index i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
+        for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
              ++i_za_inc) {
           GridPos gp_za_inc = weights.za_inc_grid_weights[i_za_inc];
           Numeric w_za_inc_l = gp_za_inc.fd[1];
@@ -1477,26 +1477,26 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
 
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
-        for (Index i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
+        for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
              ++i_za_inc) {
           GridPos gp_za_inc = weights.za_inc_grid_weights[i_za_inc];
           Numeric w_za_inc_l = gp_za_inc.fd[1];
           Numeric w_za_inc_r = gp_za_inc.fd[0];
-          for (Index i_aa_scat = 0;
+          for (Size i_aa_scat = 0;
                i_aa_scat < weights.aa_scat_grid_weights.size();
                ++i_aa_scat) {
             GridPos gp_aa_scat = weights.aa_scat_grid_weights[i_aa_scat];
             Numeric w_aa_scat_l = gp_aa_scat.fd[1];
             Numeric w_aa_scat_r = gp_aa_scat.fd[0];
-            for (Index i_za_scat = 0;
+            for (Size i_za_scat = 0;
                  i_za_scat < weights.za_scat_grid_weights.size();
                  ++i_za_scat) {
               GridPos gp_za_scat = weights.za_scat_grid_weights[i_za_scat];
@@ -1983,15 +1983,15 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
 
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];
-        for (Index i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
+        for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size();
              ++i_za_inc) {
           GridPos gp_za_inc = weights.za_inc_grid_weights[i_za_inc];
           Numeric w_za_inc_l = gp_za_inc.fd[1];
