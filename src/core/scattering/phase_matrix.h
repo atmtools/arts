@@ -1188,11 +1188,11 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
     PhaseMatrixData result(grids.t_grid, grids.f_grid, sht_);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
-    for (Index i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t = weights.t_grid_weights[i_t];
       Numeric w_t_l = gp_t.fd[1];
       Numeric w_t_r = gp_t.fd[0];
-      for (Index i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         GridPos gp_f = weights.f_grid_weights[i_f];
         Numeric w_f_l = gp_f.fd[1];
         Numeric w_f_r = gp_f.fd[0];

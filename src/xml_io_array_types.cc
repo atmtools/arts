@@ -174,9 +174,9 @@ void xml_write_to_stream(std::ostream& os_xml,
   \param astar   astar return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(std::istream& is_xml,
-                          ArrayOfScatteringSpecies& species,
-                          bifstream* pbifs) {
+void xml_read_from_stream(std::istream& /*is_xml*/,
+                          ArrayOfScatteringSpecies& /*species*/,
+                          bifstream* /*pbifs*/) {
   // Placeholder for now.
 }
 
@@ -187,10 +187,10 @@ void xml_read_from_stream(std::istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ArrayOfScatteringSpecies& species,
-                         bofstream* pbofs,
-                         const String& name) {
+void xml_write_to_stream(std::ostream& /*os_xml*/,
+                         const ArrayOfScatteringSpecies& /*species*/,
+                         bofstream* /*pbofs*/,
+                         const String& /*name*/) {
 }
 
 

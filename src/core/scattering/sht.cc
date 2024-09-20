@@ -7,7 +7,7 @@
 
 namespace scattering {
 namespace sht {
-ComplexVector SHT::transform(const ConstMatrixView &view) {
+ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -23,7 +23,8 @@ ComplexVector SHT::transform(const ConstMatrixView &view) {
 #endif
 }
 
-ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view) {
+ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
+                                   [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -39,7 +40,7 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view) {
 #endif
 }
 
-Matrix SHT::synthesize(const ConstComplexVectorView &view) {
+Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -55,7 +56,8 @@ Matrix SHT::synthesize(const ConstComplexVectorView &view) {
 #endif
 }
 
-ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view) {
+ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
+                                    [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -71,9 +73,9 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view) {
 #endif
 }
 
-Numeric SHT::evaluate(const ConstComplexVectorView &view,
-                      Numeric phi,
-                      Numeric theta) {
+Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
+                      Numeric phi [[maybe_unused]],
+                      Numeric theta [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -86,7 +88,8 @@ Numeric SHT::evaluate(const ConstComplexVectorView &view,
 #endif
 }
 
-Vector SHT::evaluate(const ComplexVectorView &view, const MatrixView &points) {
+Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
+                     const MatrixView &points [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -107,7 +110,8 @@ Vector SHT::evaluate(const ComplexVectorView &view, const MatrixView &points) {
 #endif
 }
 
-Vector SHT::evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
+Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
+                     const Vector &thetas [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -133,7 +137,7 @@ Vector SHT::evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
 /// Deleter function for use with smart pointers.
 struct FFTWDeleter {
   template <typename T>
-  void operator()(T *t) {
+  void operator()(T *t [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
     ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -270,6 +274,14 @@ ArrayOfIndex SHT::get_m_indices() {
   return result;
 #endif
 }
+
+SHT::LatGrid SHT::get_latitude_grid(Index n_lat, bool radians) {
+  SHT::LatGrid result(n_lat);
+  if (radians) {
+    result *= Conversion::deg2rad(1.0);
+  }
+  return result;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // SHTProvider

@@ -138,13 +138,7 @@ class SHT {
    * @param radians If true the latitude grid is returned in radians.
    * @return A vector containing the latitude grid in degree (or radians).
    */
-  static LatGrid get_latitude_grid(Index n_lat, bool radians = false) {
-    LatGrid result(n_lat);
-    if (radians) {
-      result *= Conversion::deg2rad(1.0);
-    }
-    return result;
-  }
+  static LatGrid get_latitude_grid(Index n_lat, bool radians = false);
 
   LatGrid get_latitude_grid(bool radians = false) const {
     return get_latitude_grid(n_lat_, radians);

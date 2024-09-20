@@ -175,7 +175,7 @@ template <std::floating_point Scalar,
           Index stokes_dim>
 std::ostream &operator<<(
     std::ostream &out,
-    SingleScatteringData<Scalar, format, repr, stokes_dim> ssd) {
+    SingleScatteringData<Scalar, format, repr, stokes_dim>) {
   out << "SingleScatteringData" << std::endl;
   out << "\t Format:          " << format << std::endl;
   out << "\t Representation:  " << repr << std::endl;

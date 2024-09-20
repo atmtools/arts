@@ -52,7 +52,7 @@ class HenyeyGreenstein {
 
 using Species = std::variant<HenyeyGreenstein, ScatteringHabit>;
 
-}  // namespace Scattering
+}  // namespace scattering
 
 using ScatteringSpecies = scattering::Species;
 
@@ -80,7 +80,7 @@ struct std::formatter<ArrayOfScatteringSpecies> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const ArrayOfScatteringSpecies& v,
+  FmtContext::iterator format(const ArrayOfScatteringSpecies&,
                               FmtContext& ctx) const {
 
     return ctx.out();
