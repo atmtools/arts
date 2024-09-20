@@ -1,7 +1,104 @@
 #include "sht.h"
 
+#include <fftw3.h>
+#include <shtns.h>
+
 namespace scattering {
 namespace sht {
+ComplexVector SHT::transform(const ConstMatrixView &view) {
+  if (is_trivial_) {
+    ComplexVector result(1);
+    result[0] = view(0, 0);
+    return result;
+  }
+  set_spatial_coeffs(view);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
+  return static_cast<ComplexVector>(get_spectral_coeffs());
+}
+
+ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view) {
+  if (is_trivial_) {
+    ComplexVector result(1);
+    result[0] = view(0, 0);
+    return result;
+  }
+  set_spatial_coeffs(view);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
+  return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
+}
+
+Matrix SHT::synthesize(const ConstComplexVectorView &view) {
+  if (is_trivial_) {
+    Matrix result(1, 1);
+    result = view[0].real();
+    return result;
+  }
+  set_spectral_coeffs(view);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
+  return static_cast<Matrix>(get_spatial_coeffs());
+}
+
+ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view) {
+  if (is_trivial_) {
+    ComplexMatrix result(1, 1);
+    result(0, 0) = view[0];
+    return result;
+  }
+  set_spectral_coeffs_cmplx(view);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
+  return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
+}
+
+Numeric SHT::evaluate(const ConstComplexVectorView &view,
+                      Numeric phi,
+                      Numeric theta) {
+  if (is_trivial_) {
+    return view[0].real();
+  }
+  set_spectral_coeffs(view);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  return SH_to_point(shtns, spectral_coeffs_, cos(theta), phi);
+}
+
+Vector SHT::evaluate(const ComplexVectorView &view, const MatrixView &points) {
+  if (is_trivial_) {
+    Vector results(points.nrows());
+    results = view[0].real();
+    return results;
+  }
+  set_spectral_coeffs(view);
+  auto n_points = points.nrows();
+  Vector result(n_points);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  for (auto i = 0; i < n_points; ++i) {
+    result[i] =
+        SH_to_point(shtns, spectral_coeffs_, cos(points(i, 1)), points(i, 0));
+  }
+  return result;
+}
+
+Vector SHT::evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
+  if (is_trivial_) {
+    Vector results(view.size());
+    for (Index i = 0; i < view.size(); ++i) {
+      results[i] = view[i].real();
+    }
+    return results;
+  }
+  ARTS_ASSERT(m_max_ == 0);
+  set_spectral_coeffs(view);
+  auto n_points = thetas.size();
+  Vector result(n_points);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  for (auto i = 0; i < n_points; ++i) {
+    result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
+  }
+  return result;
+}
 
 /// Deleter function for use with smart pointers.
 struct FFTWDeleter {
@@ -29,7 +126,7 @@ shtns_cfg ShtnsHandle::get(Index l_max, Index m_max, Index n_lon, Index n_lat) {
     return shtns_;
   } else {
     shtns_reset();
-    shtns_ = shtns_init(sht_reg_fast,
+    shtns_          = shtns_init(sht_reg_fast,
                         static_cast<int>(l_max),
                         static_cast<int>(m_max),
                         1,
@@ -40,7 +137,7 @@ shtns_cfg ShtnsHandle::get(Index l_max, Index m_max, Index n_lon, Index n_lat) {
   return shtns_;
 }
 
-shtns_cfg ShtnsHandle::shtns_ = nullptr;
+shtns_cfg ShtnsHandle::shtns_                     = nullptr;
 std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,22 +147,22 @@ std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 SHT::SHT(Index l_max, Index m_max, Index n_lon, Index n_lat)
     : l_max_(l_max), m_max_(m_max), n_lon_(n_lon), n_lat_(n_lat) {
   if (l_max == 0) {
-    is_trivial_ = true;
-    n_spectral_coeffs_ = 1;
+    is_trivial_              = true;
+    n_spectral_coeffs_       = 1;
     n_spectral_coeffs_cmplx_ = 1;
   } else {
     is_trivial_ = false;
     shtns_verbose(1);
     shtns_use_threads(0);
-    n_spectral_coeffs_ = calc_n_spectral_coeffs(l_max, m_max);
+    n_spectral_coeffs_       = calc_n_spectral_coeffs(l_max, m_max);
     n_spectral_coeffs_cmplx_ = calc_n_spectral_coeffs_cmplx(l_max, m_max);
     spectral_coeffs_ = sht::FFTWArray<std::complex<double>>(n_spectral_coeffs_);
     spectral_coeffs_cmplx_ =
         sht::FFTWArray<std::complex<double>>(n_spectral_coeffs_cmplx_);
-    spatial_coeffs_ = sht::FFTWArray<double>(n_lon * n_lat);
+    spatial_coeffs_       = sht::FFTWArray<double>(n_lon * n_lat);
     spatial_coeffs_cmplx_ = sht::FFTWArray<std::complex<double>>(n_lon * n_lat);
-    za_grid_ = std::make_shared<LatGrid>(get_latitude_grid());
-    aa_grid_ = std::make_shared<Vector>(get_longitude_grid());
+    za_grid_              = std::make_shared<LatGrid>(get_latitude_grid());
+    aa_grid_              = std::make_shared<Vector>(get_longitude_grid());
   }
 }
 

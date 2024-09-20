@@ -36,7 +36,6 @@
 #include <matpack/matpack_data.h>
 #include <matpack/matpack_view.h>
 #include <scattering/integration.h>
-#include <shtns.h>
 
 #include <complex>
 #include <iostream>
@@ -44,7 +43,7 @@
 #include <memory>
 #include <numbers>
 
-#include "fftw3.h"
+typedef struct shtns_info *shtns_cfg;
 
 namespace scattering {
 namespace sht {
@@ -457,17 +456,7 @@ class SHT {
    * longitudes (azimuth angle) and columns to latitudes (zenith angle).
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
-  ComplexVector transform(const ConstMatrixView &view) {
-    if (is_trivial_) {
-      ComplexVector result(1);
-      result[0] = view(0, 0);
-      return result;
-    }
-    set_spatial_coeffs(view);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
-    return static_cast<ComplexVector>(get_spectral_coeffs());
-  }
+  ComplexVector transform(const ConstMatrixView &view) ;
 
   /** Apply forward SHT Transform
    *
@@ -476,17 +465,7 @@ class SHT {
    * longitudes (azimuth angle) and columns to latitudes (zenith angle).
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
-  ComplexVector transform_cmplx(const ConstComplexMatrixView &view) {
-    if (is_trivial_) {
-      ComplexVector result(1);
-      result[0] = view(0, 0);
-      return result;
-    }
-    set_spatial_coeffs(view);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
-    return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
-  }
+  ComplexVector transform_cmplx(const ConstComplexMatrixView &view);
 
   /** Apply inverse SHT Transform
    *
@@ -497,17 +476,7 @@ class SHT {
    * representing the data.
    * @return GridCoeffs containing the spatial data.
    */
-  Matrix synthesize(const ConstComplexVectorView &view) {
-    if (is_trivial_) {
-      Matrix result(1, 1);
-      result = view[0].real();
-      return result;
-    }
-    set_spectral_coeffs(view);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
-    return static_cast<Matrix>(get_spatial_coeffs());
-  }
+  Matrix synthesize(const ConstComplexVectorView &view);
 
   /** Apply inverse SHT Transform for complex data.
    *
@@ -518,17 +487,7 @@ class SHT {
    * representing the data.
    * @return GridCoeffs containing the spatial data.
    */
-  ComplexMatrix synthesize_cmplx(const ConstComplexVectorView &view) {
-    if (is_trivial_) {
-      ComplexMatrix result(1, 1);
-      result(0, 0) = view[0];
-      return result;
-    }
-    set_spectral_coeffs_cmplx(view);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
-    return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
-  }
+  ComplexMatrix synthesize_cmplx(const ConstComplexVectorView &view);
 
   /** Evaluate spectral representation at given point.
    *
@@ -538,14 +497,7 @@ class SHT {
    */
   Numeric evaluate(const ConstComplexVectorView &view,
                    Numeric phi,
-                   Numeric theta) {
-    if (is_trivial_) {
-      return view[0].real();
-    }
-    set_spectral_coeffs(view);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    return SH_to_point(shtns, spectral_coeffs_, cos(theta), phi);
-  }
+                   Numeric theta);
 
   /** Evaluate spectral representation at given point.
    *
@@ -555,22 +507,7 @@ class SHT {
    * @return A vector containing the values corresponding to the points
    * in points.
    */
-  Vector evaluate(const ComplexVectorView &view, const MatrixView &points) {
-    if (is_trivial_) {
-      Vector results(points.nrows());
-      results = view[0].real();
-      return results;
-    }
-    set_spectral_coeffs(view);
-    auto n_points = points.nrows();
-    Vector result(n_points);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    for (auto i = 0; i < n_points; ++i) {
-      result[i] =
-          SH_to_point(shtns, spectral_coeffs_, cos(points(i, 1)), points(i, 0));
-    }
-    return result;
-  }
+  Vector evaluate(const ComplexVectorView &view, const MatrixView &points);
 
   /** Evaluate 1D spectral representation at given point.
    *
@@ -584,24 +521,7 @@ class SHT {
    * @return A vector containing the values corresponding to the points
    * in points.
    */
-  Vector evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
-    if (is_trivial_) {
-      Vector results(view.size());
-      for (Index i = 0; i < view.size(); ++i) {
-        results[i] = view[i].real();
-      }
-      return results;
-    }
-    ARTS_ASSERT(m_max_ == 0);
-    set_spectral_coeffs(view);
-    auto n_points = thetas.size();
-    Vector result(n_points);
-    auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-    for (auto i = 0; i < n_points; ++i) {
-      result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
-    }
-    return result;
-  }
+  Vector evaluate(const ConstComplexVectorView &view, const Vector &thetas);
 
   template <typename Vec1, typename Vec2>
   friend matpack::matpack_data<typename Vec1::value_type, 1> add_coeffs(
