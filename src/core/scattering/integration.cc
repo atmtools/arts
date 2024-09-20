@@ -1,8 +1,14 @@
-#include <fftw3.h>
 #include <integration.h>
+
+#ifndef ARTS_NO_SHTNS
+#include <fftw3.h>
+#endif
 
 namespace scattering {
 void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with FFTW support.");
+#else
   Index n = degree_ - 1;
   fftw_plan ifft;
   double* weights =
@@ -33,9 +39,13 @@ void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
   for (Index i = 0; i <= n; i++) {
     nodes_[i] = -cos(pi_v<Numeric> * static_cast<Numeric>(i) / n_f);
   }
+#endif
 }
 
 void FejerQuadrature::calculate_nodes_and_weights() {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with FFTW support.");
+#else
   const Index n = degree_;
   fftw_plan ifft;
   double* weights =
@@ -66,5 +76,6 @@ void FejerQuadrature::calculate_nodes_and_weights() {
     nodes_[i] = -cos(pi_v<Numeric> * (static_cast<double>(i) + 0.5) /
                      static_cast<double>(n));
   }
+#endif
 }
 }  // namespace scattering

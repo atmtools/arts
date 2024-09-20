@@ -880,6 +880,7 @@ bool test_backscatter_matrix_regrid_aro() {
 }
 
 int main() {
+#ifndef ARTS_NO_SHTNS
   bool passed = false;
   std::cout << "Testing phase matrix (TRO): ";
   passed = test_phase_matrix_tro();
@@ -943,6 +944,7 @@ int main() {
     std::cout << "FAILED." << std::endl;
     return 1;
   }
+#endif
 
   return 0;
 }

@@ -154,6 +154,8 @@ bool test_calculate_downsampling_weights() {
 }
 
 int main(int /*argc*/, const char** /*argv*/) {
+#ifndef ARTS_NO_SHTNS
+
   bool passed = true;
 
   std::cout << "Testing Gauss-Legendre quadrature: ";
@@ -218,6 +220,7 @@ int main(int /*argc*/, const char** /*argv*/) {
     std::cout << "FAILED" << std::endl;
     return 1;
   }
+#endif
 
   return 0;
 };

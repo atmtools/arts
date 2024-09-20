@@ -1,11 +1,16 @@
 #include "sht.h"
 
+#ifndef ARTS_NO_SHTNS
 #include <fftw3.h>
 #include <shtns.h>
+#endif
 
 namespace scattering {
 namespace sht {
 ComplexVector SHT::transform(const ConstMatrixView &view) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     ComplexVector result(1);
     result[0] = view(0, 0);
@@ -15,9 +20,13 @@ ComplexVector SHT::transform(const ConstMatrixView &view) {
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
   spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
   return static_cast<ComplexVector>(get_spectral_coeffs());
+#endif
 }
 
 ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     ComplexVector result(1);
     result[0] = view(0, 0);
@@ -27,9 +36,13 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view) {
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
   spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
   return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
+#endif
 }
 
 Matrix SHT::synthesize(const ConstComplexVectorView &view) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     Matrix result(1, 1);
     result = view[0].real();
@@ -39,9 +52,13 @@ Matrix SHT::synthesize(const ConstComplexVectorView &view) {
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
   SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
   return static_cast<Matrix>(get_spatial_coeffs());
+#endif
 }
 
 ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     ComplexMatrix result(1, 1);
     result(0, 0) = view[0];
@@ -51,20 +68,28 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view) {
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
   SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
   return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
+#endif
 }
 
 Numeric SHT::evaluate(const ConstComplexVectorView &view,
                       Numeric phi,
                       Numeric theta) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     return view[0].real();
   }
   set_spectral_coeffs(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
   return SH_to_point(shtns, spectral_coeffs_, cos(theta), phi);
+#endif
 }
 
 Vector SHT::evaluate(const ComplexVectorView &view, const MatrixView &points) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     Vector results(points.nrows());
     results = view[0].real();
@@ -79,9 +104,13 @@ Vector SHT::evaluate(const ComplexVectorView &view, const MatrixView &points) {
         SH_to_point(shtns, spectral_coeffs_, cos(points(i, 1)), points(i, 0));
   }
   return result;
+#endif
 }
 
 Vector SHT::evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     Vector results(view.size());
     for (Index i = 0; i < view.size(); ++i) {
@@ -98,29 +127,44 @@ Vector SHT::evaluate(const ConstComplexVectorView &view, const Vector &thetas) {
     result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
   }
   return result;
+#endif
 }
 
 /// Deleter function for use with smart pointers.
 struct FFTWDeleter {
   template <typename T>
   void operator()(T *t) {
+#ifdef ARTS_NO_SHTNS
+    ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
     if (t) {
       fftw_free(t);
       t = nullptr;
     }
+#endif
   }
 };
 
 template <typename Numeric>
-FFTWArray<Numeric>::FFTWArray(Index n) : ptr_(nullptr) {
+FFTWArray<Numeric>::FFTWArray(Index n [[maybe_unused]]) : ptr_(nullptr) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (n > 0) {
     ptr_ = std::shared_ptr<Numeric>(
         reinterpret_cast<Numeric *>(fftw_malloc(n * sizeof(Numeric))),
         FFTWDeleter());
   }
+#endif
 }
 
-shtns_cfg ShtnsHandle::get(Index l_max, Index m_max, Index n_lon, Index n_lat) {
+shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
+                           Index m_max [[maybe_unused]],
+                           Index n_lon [[maybe_unused]],
+                           Index n_lat [[maybe_unused]]) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   std::array<Index, 4> config = {l_max, m_max, n_lon, n_lat};
   if (config == current_config_) {
     return shtns_;
@@ -135,6 +179,7 @@ shtns_cfg ShtnsHandle::get(Index l_max, Index m_max, Index n_lon, Index n_lat) {
     current_config_ = config;
   }
   return shtns_;
+#endif
 }
 
 shtns_cfg ShtnsHandle::shtns_                     = nullptr;
@@ -146,6 +191,9 @@ std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 
 SHT::SHT(Index l_max, Index m_max, Index n_lon, Index n_lat)
     : l_max_(l_max), m_max_(m_max), n_lon_(n_lon), n_lat_(n_lat) {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (l_max == 0) {
     is_trivial_              = true;
     n_spectral_coeffs_       = 1;
@@ -156,14 +204,17 @@ SHT::SHT(Index l_max, Index m_max, Index n_lon, Index n_lat)
     shtns_use_threads(0);
     n_spectral_coeffs_       = calc_n_spectral_coeffs(l_max, m_max);
     n_spectral_coeffs_cmplx_ = calc_n_spectral_coeffs_cmplx(l_max, m_max);
-    spectral_coeffs_ = sht::FFTWArray<std::complex<double>>(n_spectral_coeffs_);
+    spectral_coeffs_ =
+        sht::FFTWArray<std::complex<double> >(n_spectral_coeffs_);
     spectral_coeffs_cmplx_ =
-        sht::FFTWArray<std::complex<double>>(n_spectral_coeffs_cmplx_);
-    spatial_coeffs_       = sht::FFTWArray<double>(n_lon * n_lat);
-    spatial_coeffs_cmplx_ = sht::FFTWArray<std::complex<double>>(n_lon * n_lat);
-    za_grid_              = std::make_shared<LatGrid>(get_latitude_grid());
-    aa_grid_              = std::make_shared<Vector>(get_longitude_grid());
+        sht::FFTWArray<std::complex<double> >(n_spectral_coeffs_cmplx_);
+    spatial_coeffs_ = sht::FFTWArray<double>(n_lon * n_lat);
+    spatial_coeffs_cmplx_ =
+        sht::FFTWArray<std::complex<double> >(n_lon * n_lat);
+    za_grid_ = std::make_shared<LatGrid>(get_latitude_grid());
+    aa_grid_ = std::make_shared<Vector>(get_longitude_grid());
   }
+#endif
 }
 
 SHT::SHT(Index l_max, Index m_max)
@@ -175,6 +226,9 @@ SHT::SHT(Index l_max, Index m_max)
 SHT::SHT(Index l_max) : SHT(l_max, l_max) {}
 
 Vector SHT::get_colatitude_grid() {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     return Vector(1, 0.0);
   }
@@ -182,9 +236,13 @@ Vector SHT::get_colatitude_grid() {
   Vector result(n_lat_);
   std::copy_n(shtns->ct, n_lat_, result.begin());
   return result;
+#endif
 }
 
 ArrayOfIndex SHT::get_l_indices() {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     return {0};
   }
@@ -194,9 +252,13 @@ ArrayOfIndex SHT::get_l_indices() {
     result[i] = shtns->li[i];
   }
   return result;
+#endif
 }
 
 ArrayOfIndex SHT::get_m_indices() {
+#ifdef ARTS_NO_SHTNS
+  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+#else
   if (is_trivial_) {
     return {0};
   }
@@ -206,6 +268,7 @@ ArrayOfIndex SHT::get_m_indices() {
     result[i] = shtns->mi[i];
   }
   return result;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
