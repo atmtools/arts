@@ -3,6 +3,7 @@
 
 #include <random>
 
+#include "arts_constants.h"
 #include "matpack/matpack_view.h"
 #include "sht.h"
 
@@ -38,7 +39,7 @@ Matrix evaluate_spherical_harmonic(Index l,
   auto n_lon = lons.size();
   auto n_lat = lats.size();
 
-  double norm = sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * M_PI));
+  double norm = sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
   norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
 
   Matrix results{n_lon, n_lat};

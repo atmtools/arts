@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "arts_constants.h"
 #include "interpolation.h"
 #include "matpack/matpack_data.h"
 #include "matpack/matpack_eigen.h"
@@ -36,7 +37,7 @@ constexpr Scalar save_acos(Scalar a, Scalar epsilon = 1e-6) {
     return 0.0;
   }
   if (equal(a, -1.0, epsilon)) {
-    return M_PI;
+    return Constant::pi;
   }
   return acos(a);
 }
