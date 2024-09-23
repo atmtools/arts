@@ -260,3 +260,5 @@ add_executable(test_band_matrix_solver test_band_matrix_solver.cc)
 target_link_libraries(test_band_matrix_solver PUBLIC matpack)
 add_test(NAME "cpp.fast.test_band_matrix_solver" COMMAND test_band_matrix_solver)
 add_dependencies(check-deps test_band_matrix_solver)
+
+add_subdirectory(scattering)

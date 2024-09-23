@@ -2970,8 +2970,8 @@ void xml_read_from_stream(std::istream& is_xml,
     atmt = SpeciesIsotope{};
   } else if (type == "QuantumIdentifier"s) {
     atmt = QuantumIdentifier{};
-  } else if (type == "ParticulatePropertyTag"s) {
-    atmt = ParticulatePropertyTag{};
+  } else if (type == "ScatteringSpeciesProperty") {
+    atmt = ScatteringSpeciesProperty{};
   } else {
     ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
@@ -3011,8 +3011,6 @@ void xml_write_to_stream(std::ostream& os_xml,
               return "SpeciesIsotope"s;
             else if constexpr (std::same_as<T, QuantumIdentifier>)
               return "QuantumIdentifier"s;
-            else if constexpr (std::same_as<T, ParticulatePropertyTag>)
-              return "ParticulatePropertyTag"s;
             else
               return "UnknownType"s;
           },

@@ -40,6 +40,8 @@ def recursive_python_files(path):
             out[part] = recursive_python_files(part)
         elif part.endswith(".py"):
             out[part] = part
+        elif part.endswith(".ipynb"):
+            out[part] = part
 
     return out
 
@@ -49,12 +51,12 @@ def title_to_heading(title):
     if pos == -1:
         ret = title[0].upper() + title[1:]
     else:
-        ret = title[pos + 1].upper() + title[pos + 2:]
+        ret = title[pos + 1].upper() + title[pos + 2 :]
     ret = re.sub(r"^(\d+)-", r"\1. ", ret)
     m = re.match(r"^\d+\. ", ret)
     if m:
         pos = len(m.group(0))
-        ret = ret[:pos] + ret[pos].upper() + ret[pos + 1:]
+        ret = ret[:pos] + ret[pos].upper() + ret[pos + 1 :]
     return ret.replace("-", " ")
 
 
@@ -95,8 +97,19 @@ def output_readme(rstfile, path):
 
 
 def combine_pyfiles(paths, origpath, extra, outpath):
+    if len(paths) == 0:
+        return
+    
     parentpath = os.path.dirname(paths[0])
     title = title_from_path(parentpath, origpath, extra)
+    
+    if any([x.endswith(".ipynb") for x in paths]):
+        assert len(paths) == 1, \
+            "Can only have one Python notebook, and no other files in an example"
+        print(f"Copying notebook {paths[0]}")
+        open(f"{os.path.join(outpath, title)}.ipynb", "w").write(open(paths[0], "r").read())
+        return
+
     rstfn = rstfn_from_title(title, outpath)
     print(f"Creating {rstfn} from {parentpath}")
     with open(rstfn, "w") as rstfile:
@@ -116,7 +129,7 @@ def combine_pyfiles(paths, origpath, extra, outpath):
             rstfile.write(f"    :name: {heading}\n")
             rstfile.write("    :linenos:\n\n")
             with open(path, "r") as pyfile:
-                for line in pyfile.read().split('\n'):
+                for line in pyfile.read().split("\n"):
                     rstfile.write(f"    {line}\n")
 
 
@@ -134,7 +147,7 @@ def print_pyfile(path, origpath, extra, outpath):
         rstfile.write(".. code-block:: python\n")
         rstfile.write("    :linenos:\n\n")
         with open(path, "r") as pyfile:
-            for line in pyfile.read().split('\n'):
+            for line in pyfile.read().split("\n"):
                 rstfile.write(f"    {line}\n")
 
 
@@ -162,8 +175,8 @@ def folders(paths, origpath, extra, outpath, depth=0):
             if os.path.isdir(key):
                 print(f"Processing {key}")
                 print(f"FolderDepth {depth}")
-                folders(paths[key], origpath, extra, outpath, depth+1)
-                if depth+1 < MAXDEPTH:
+                folders(paths[key], origpath, extra, outpath, depth + 1)
+                if depth + 1 < MAXDEPTH:
                     print_folder(key, paths[key], origpath, extra, outpath)
             else:
                 print_pyfile(paths[key], origpath, extra, outpath)

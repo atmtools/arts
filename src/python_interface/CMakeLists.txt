@@ -121,6 +121,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_sparse.cpp
     py_mcantenna.cpp
     py_scattering.cpp
+    py_scattering_species.cpp
     py_quantum.cpp
     py_physics.cpp
     py_spectroscopy.cpp
@@ -154,7 +155,7 @@ if(ENABLE_PCH)
 endif()
 
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC artsworkspace arts_options)
+target_link_libraries(pyarts_cpp PUBLIC scattering artsworkspace arts_options)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(

@@ -1,0 +1,249 @@
+#ifndef TEST_UTILS_H_
+#define TEST_UTILS_H_
+
+#include <random>
+
+#include "arts_constants.h"
+#include "matpack/matpack_view.h"
+#include "sht.h"
+
+#define TEST_DATA_PATH "@CMAKE_BINARY_DIR@/tests/testdata/"
+
+// Helper function to calculate factorial.
+template <typename Scalar>
+Scalar fac(Index n) {
+  if (n <= 0) {
+    return 1;
+  } else if (n == 1) {
+    return 1;
+  }
+  return static_cast<Scalar>(n) * fac<Scalar>(n - 1);
+}
+
+/** Evaluate spherical harmonic.
+ *
+ * @param l The l parameter
+ * @param m The m parameter
+ * @param lons The longitude grid.
+ * @param lats The latitude grid.
+ *
+ * @return A matrix containing the evaluated spherical harmonics
+ * function with the latitudes oriented along columns and the
+ * longitudes along rows.
+ */
+inline Matrix evaluate_spherical_harmonic(Index l,
+                                          Index m,
+                                          const ConstVectorView& lons,
+                                          const ConstVectorView& lats) {
+  auto n_lon = lons.size();
+  auto n_lat = lats.size();
+
+  double norm =
+      sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
+  norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
+
+  Matrix results{n_lon, n_lat};
+  for (Index i = 0; i < n_lon; ++i) {
+    for (Index j = 0; j < n_lat; ++j) {
+      auto clon = cos(static_cast<Numeric>(m) * lons[i]);
+
+      auto clat = cos(lats[j]);
+      double p  = 0.0;
+      if (l == 0) {
+        p = 1.0;
+      } else if (l == 1) {
+        if (m == -1) {
+          p = 1.0 * sqrt(1.0 - clat * clat);
+        } else if (m == 0) {
+          p = clat;
+        } else if (m == 1) {
+          p = -2.0 * sqrt(1.0 - clat * clat);
+        } else {
+          throw std::runtime_error("m must be within [-l, l].");
+        }
+      } else if (l == 2) {
+        if (m == -2) {
+          p = (1 - clat * clat) / 4;
+        } else if (m == -1) {
+          p = 1.0 * clat * sqrt(1.0 - clat * clat);
+        } else if (m == 0) {
+          p = 0.5 * (3 * clat * clat - 1);
+        } else if (m == 1) {
+          p = -6 * clat * sqrt(1.0 - clat * clat);
+        } else if (m == 2) {
+          p = 6 * (1 - clat * clat);
+        }
+      }
+      if (l > 2) {
+        throw std::runtime_error("l must be less than or equal to 1.");
+      }
+      results(i, j) = norm * p * clon;
+    }
+  }
+  return results;
+}
+
+/** A vector with Gaussian random numbers.
+ *
+ * @param size The size of the vector.
+ * @param mean The mean of the Gaussian distribution
+ * @param sigma The std. dev. of the Gaussian distribution
+ *
+ * @return A vector containing random  with iid. elements
+ * sampled from the Gaussian distribution with the given mean
+ * and std. dev.
+ */
+inline Vector random_vector(Index size,
+                            Numeric mean  = 0.0,
+                            Numeric sigma = 3.0) {
+  std::random_device rd{};
+  std::mt19937 gen{rd()};
+  std::normal_distribution<> d{mean, sigma};
+
+  Vector result(size);
+  for (auto& x : result) {
+    x = d(gen);
+  }
+  return result;
+}
+
+/** A complex vector with Gaussian random numbers.
+ *
+ * @param size The size of the vector.
+ * @param mean The mean of the Gaussian distribution
+ * @param sigma The std. dev. of the Gaussian distribution
+ *
+ * @return A vector containing random complex elements with iid.
+ * real and imaginary components sampled from the Gaussian distribution
+ * with the given mean and std. dev.
+ */
+inline ComplexVector random_complex_vector(Index size,
+                                           Numeric mean  = 3.0,
+                                           Numeric sigma = 3.0) {
+  std::random_device rd{};
+  std::mt19937 gen{rd()};
+  std::normal_distribution<> d{mean, sigma};
+
+  ComplexVector result(size);
+  for (auto& x : result) {
+    x = std::complex<Numeric>(d(gen), d(gen));
+  }
+  return result;
+}
+
+/** Create a random but valid vector of spectral SHT coefficients.
+ *
+ * Symmetry requirements for the elements corresponding to m == 0 to
+ * be real, which is enforced
+ *
+ * @param l_max: The maximum degree of SHT transform.
+ * @param m_max: The maximum order of the SHT transform.
+ *
+ * @return A complex vector containing SHT coefficients.
+ */
+inline ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
+  auto n_coeffs = scattering::sht::SHT::calc_n_spectral_coeffs(l_max, m_max);
+  ComplexVector coeffs = random_complex_vector(n_coeffs);
+  // Imaginary part of coeffs with m == 0 must be 0.
+  for (Index i = 0; i < l_max + 1; ++i) {
+    coeffs[i] = coeffs[i].real();
+  }
+  return coeffs;
+}
+
+/** Calculate maximum error between two tensors.
+ *
+ * Calculates the maximum of the absolute element-wise
+ * difference between two tensors A and B.
+ *
+ * @param The tensor A
+ * @param The tensor B
+ *
+ * @return The maximum absolute value of the element-wise difference
+ * of A and B.
+ */
+template <typename A, typename B>
+Numeric max_error(const A& a, const B& b) {
+  Numeric max = 0.0;
+  auto a_it   = a.elem_begin();
+  auto b_it   = b.elem_begin();
+  auto a_end  = a.elem_end();
+  while (a_it != a_end) {
+    Numeric delta = std::abs(*a_it - *b_it);
+    if (delta > max) {
+      max = delta;
+    }
+    ++a_it;
+    ++b_it;
+  }
+  return max;
+}
+
+/** Functional filling of tensor.
+ *
+ * Applies a given function mapping element coordinates to tensor
+ * element values to all elements of a tensor.
+ *
+ * @tparam Tensor The tensor type to be filled.
+ * @tparam Fun The function type applied to generate the elements.
+ * @tparam tensor The tensor to fill.
+ * @tparam fun The function to use to fill the tensor.
+ */
+template <matpack::any_matpack_type Tensor, typename Fun>
+void generate(Tensor& tensor, Fun fun) {
+  constexpr Index rank = Tensor::rank();
+  std::array<Index, rank> coords;
+  coords.fill(0);
+  std::array<Index, rank> shape = tensor.shape();
+  for (auto it = tensor.elem_begin(); it != tensor.elem_end(); ++it) {
+    *it = static_cast<typename Tensor::value_type>(std::apply(fun, coords));
+    for (Index i = rank - 1; i >= 0; --i) {
+      Index& coord = ++coords[i];
+      if (coord >= shape[i]) {
+        coord -= shape[i];
+      } else {
+        break;
+      }
+    }
+  }
+}
+
+/** Fill tensor with increasing values along axis.
+ *
+ * Fills a tensor with values so that each element contains
+ * the coordinate value of corresponding to the given axis.
+ *
+ * @tparam Index specifying axis along which to fill the tensor.
+ * @tparam Tensor The tensor type of the tensor to fill.
+ * @param t The tensor to fill.
+ */
+template <Index axis, matpack::any_matpack_type Tensor>
+void fill_along_axis(Tensor& t) {
+  auto get_coord = [](auto... params) {
+    return std::get<axis>(std::make_tuple(params...));
+  };
+  generate(t, get_coord);
+}
+
+/** Fill tensor with increasing values along axis.
+ *
+ * Fills a tensor with values so that each element contains
+ * the coordinate value of corresponding to the given axis.
+ *
+ * @tparam Index specifying axis along which to fill the tensor.
+ * @tparam Tensor The tensor type of the tensor to fill.
+ * @param t The tensor to fill.
+ */
+template <matpack::any_matpack_type Tensor>
+Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
+  Tensor tensor(shape);
+  std::random_device rd{};
+  std::mt19937 gen{rd()};
+  std::normal_distribution<> dist{0.0, 1.0};
+  auto fill_fun = [&dist, &gen](Numeric) { return dist(gen); };
+  std::transform(
+      tensor.elem_begin(), tensor.elem_end(), tensor.elem_begin(), fill_fun);
+  return tensor;
+}
+
+#endif  // TEST_UTILS_H_

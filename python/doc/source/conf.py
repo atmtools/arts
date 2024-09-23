@@ -41,6 +41,7 @@ extensions = [
     'sphinx_favicon',
     'sphinxcontrib.mermaid',
     'matplotlib.sphinxext.plot_directive',
+    'nbsphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

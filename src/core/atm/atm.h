@@ -10,6 +10,7 @@
 #include <matpack.h>
 #include <operators.h>
 #include <quantum_numbers.h>
+#include <scattering/properties.h>
 #include <species.h>
 
 #include <algorithm>
@@ -29,29 +30,12 @@
 AtmKey to_wind(const String&);
 AtmKey to_mag(const String&);
 
-//! A type to name particulates (and let them be type-independent)
-struct ParticulatePropertyTag {
-  String name;
-
-  auto operator<=>(const ParticulatePropertyTag &) const = default;
-
-  friend std::ostream &operator<<(std::ostream &,
-                                  const ParticulatePropertyTag &);
-};
-
-namespace std {
-template <>
-struct hash<ParticulatePropertyTag> {
-  std::size_t operator()(const ParticulatePropertyTag &pp) const {
-    return std::hash<String>{}(pp.name);
-  }
-};
-}  // namespace std
 
 namespace Atm {
+
 template <typename T>
-concept isParticulatePropertyTag =
-    std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
+concept isScatteringSpeciesProperty =
+    std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
 
 template <typename T>
 concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
@@ -69,31 +53,35 @@ concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
 concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
-                  isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
+                  isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
                             SpeciesEnum,
                             SpeciesIsotope,
                             QuantumIdentifier,
-                            ParticulatePropertyTag>;
+                            ScatteringSpeciesProperty>;
 
 template <typename T>
 concept ListKeyType = requires(T a) {
-  { a.size() } -> matpack::integral;
-  { a[0] } -> KeyType;
-};
+                        { a.size() } -> matpack::integral;
+                        { a[0] } -> KeyType;
+                      };
 
 template <typename T>
 concept ListOfNumeric = requires(T a) {
-  { matpack::mdshape(a) } -> std::same_as<std::array<Index, 1>>;
-  { matpack::mdvalue(a, {Index{0}}) } -> std::same_as<Numeric>;
-};
+                          {
+                            matpack::mdshape(a)
+                            } -> std::same_as<std::array<Index, 1>>;
+                          {
+                            matpack::mdvalue(a, {Index{0}})
+                            } -> std::same_as<Numeric>;
+                        };
 
 struct Point {
   std::unordered_map<SpeciesEnum, Numeric> specs{};
   std::unordered_map<SpeciesIsotope, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
-  std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
+  std::unordered_map<ScatteringSpeciesProperty, Numeric> ssprops{};
 
   Numeric pressure{NAN};
   Numeric temperature{NAN};
@@ -109,13 +97,13 @@ struct Point {
   Numeric operator[](SpeciesEnum x) const;
   Numeric operator[](const SpeciesIsotope &x) const;
   Numeric operator[](const QuantumIdentifier &x) const;
-  Numeric operator[](const ParticulatePropertyTag &x) const;
+  Numeric operator[](const ScatteringSpeciesProperty &x) const;
   Numeric operator[](AtmKey x) const;
 
   Numeric &operator[](SpeciesEnum x);
   Numeric &operator[](const SpeciesIsotope &x);
   Numeric &operator[](const QuantumIdentifier &x);
-  Numeric &operator[](const ParticulatePropertyTag &x);
+  Numeric &operator[](const ScatteringSpeciesProperty &x);
   Numeric &operator[](AtmKey x);
 
   Numeric operator[](const KeyVal &) const;
@@ -132,6 +120,8 @@ struct Point {
         return true;
       else if constexpr (isQuantumIdentifier<T>)
         return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
+      else if constexpr (isScatteringSpeciesProperty<T>)
+        return x.ssprops.end() not_eq x.ssprops.find(std::forward<T>(k));
     };
 
     if constexpr (N > 0)
@@ -274,7 +264,7 @@ struct Field final : FieldMap::Map<Data,
                                    SpeciesEnum,
                                    SpeciesIsotope,
                                    QuantumIdentifier,
-                                   ParticulatePropertyTag> {
+                                   ScatteringSpeciesProperty> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
@@ -289,14 +279,14 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
-      const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
+      &ssprops() const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
-  [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
+  [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &ssprops();
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
@@ -337,30 +327,10 @@ bool operator==(const AtmKeyVal &, const SpeciesEnum &);
 bool operator==(const SpeciesEnum &, const AtmKeyVal &);
 bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
 bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
-bool operator==(const AtmKeyVal &, const ParticulatePropertyTag &);
-bool operator==(const ParticulatePropertyTag &, const AtmKeyVal &);
+bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
 std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
 
-template <>
-struct std::formatter<ParticulatePropertyTag> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const ParticulatePropertyTag &v,
-                              FmtContext &ctx) const {
-    const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
-  }
-};
 
 template <>
 struct std::formatter<AtmKeyVal> {
@@ -427,8 +397,8 @@ struct std::formatter<AtmPoint> {
                   R"("QuantumIdentifier": )"sv,
                   v.nlte.size(),
                   sep,
-                  R"("ParticulatePropertyTag": )"sv,
-                  v.partp.size());
+                  R"("ScatteringSpeciesProperty": )"sv,
+                  v.ssprops.size());
 
     } else {
       tags.format(ctx,
@@ -441,8 +411,8 @@ struct std::formatter<AtmPoint> {
                   R"("QuantumIdentifier": )"sv,
                   v.nlte,
                   sep,
-                  R"("ParticulatePropertyTag": )"sv,
-                  v.partp);
+                  R"("ScatteringSpeciesProperty": )"sv,
+                  v.ssprops);
     }
 
     tags.add_if_bracket(ctx, '}');
@@ -541,8 +511,8 @@ struct std::formatter<AtmField> {
                   R"("QuantumIdentifier": )"sv,
                   v.nlte().size(),
                   sep,
-                  R"("ParticulatePropertyTag": )"sv,
-                  v.partp().size());
+                  R"("ScatteringSpeciesProperty": )"sv,
+                  v.ssprops().size());
     } else {
       const std::string_view sep = tags.sep(true);
 
@@ -562,8 +532,8 @@ struct std::formatter<AtmField> {
                   R"("QuantumIdentifier": )"sv,
                   v.nlte(),
                   sep,
-                  R"("ParticulatePropertyTag": )"sv,
-                  v.partp());
+                  R"("ScatteringSpeciesProperty": )"sv,
+                  v.ssprops());
     }
 
     tags.add_if_bracket(ctx, '}');

@@ -18,11 +18,6 @@
 
 namespace Python {
 void py_atm(py::module_ &m) try {
-  py::class_<ParticulatePropertyTag> ppt =
-      py::class_<ParticulatePropertyTag>(m, "ParticulatePropertyTag");
-  workspace_group_interface(ppt);
-  ppt.def_rw("name", &ParticulatePropertyTag::name, "The name of the property");
-  ppt.def(py::init_implicit<String>());
 
   py::class_<Atm::Data>(m, "AtmData")
       .def(py::init<Atm::Data>())
@@ -210,6 +205,10 @@ void py_atm(py::module_ &m) try {
            [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
              atm[x.Species()] = data;
            })
+      .def("__setitem__",
+           [](AtmPoint &atm, const ScatteringSpeciesProperty &x, Numeric data) {
+             atm[x] = data;
+           })
       .def("keys", &AtmPoint::keys, "Available keys")
       .def(
           "no_isotopologues",
@@ -310,6 +309,10 @@ void py_atm(py::module_ &m) try {
            [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
              atm[x] = data;
            })
+      .def("__setitem__",
+           [](AtmField &atm,
+              const ScatteringSpeciesProperty &x,
+              const Atm::Data &data) { atm[x] = data; })
       .def(
           "at",
           [](const AtmField &atm,

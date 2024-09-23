@@ -30,10 +30,10 @@
 #include "template_partfun.h"
 #include "xml_io_general_types.h"
 
-#define TMPL_XML_READ_WRITE_STREAM(what)                                       \
-  void xml_read_from_stream(std::istream &, what &, bifstream *);              \
-  void xml_write_to_stream(std::ostream &, const what &, bofstream *,          \
-                           const String &);
+#define TMPL_XML_READ_WRITE_STREAM(what)                          \
+  void xml_read_from_stream(std::istream &, what &, bifstream *); \
+  void xml_write_to_stream(                                       \
+      std::ostream &, const what &, bofstream *, const String &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
@@ -46,6 +46,7 @@ TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
 TMPL_XML_READ_WRITE_STREAM(Rational)
 TMPL_XML_READ_WRITE_STREAM(Time)
 TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
+TMPL_XML_READ_WRITE_STREAM(ScatteringSpecies)
 
 //=== Compound Types =======================================================
 
@@ -90,6 +91,7 @@ TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
 TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
 TMPL_XML_READ_WRITE_STREAM(AscendingGrid)
+TMPL_XML_READ_WRITE_STREAM(ScatteringSpeciesProperty)
 
 //=== Array Types ==========================================================
 
@@ -118,6 +120,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringSpecies)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesEnum)
@@ -145,7 +148,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector2)
-
 
 //=== Not storable Types ===================================================
 

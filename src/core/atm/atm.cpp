@@ -63,10 +63,10 @@ Numeric AtmPoint::operator[](const QuantumIdentifier &x) const try {
   ARTS_USER_ERROR("QuantumIdentifier not found: \"{}\"", x)
 }
 
-Numeric AtmPoint::operator[](const ParticulatePropertyTag &x) const try {
-  return partp.at(x);
+Numeric AtmPoint::operator[](const ScatteringSpeciesProperty &x) const try {
+  return ssprops.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("ParticulatePropertyTag not found: \"{}\"", x)
+  ARTS_USER_ERROR("ScatteringSpeciesProperty not found: \"", x, '"')
 }
 
 Numeric AtmPoint::operator[](AtmKey x) const {
@@ -97,8 +97,8 @@ Numeric &AtmPoint::operator[](const SpeciesIsotope &x) { return isots[x]; }
 
 Numeric &AtmPoint::operator[](const QuantumIdentifier &x) { return nlte[x]; }
 
-Numeric &AtmPoint::operator[](const ParticulatePropertyTag &x) {
-  return partp[x];
+Numeric &AtmPoint::operator[](const ScatteringSpeciesProperty &x) {
+  return ssprops[x];
 }
 
 Numeric &AtmPoint::operator[](AtmKey x) {
@@ -140,7 +140,7 @@ FieldMap::Map<Atm::Data,
               SpeciesEnum,
               SpeciesIsotope,
               QuantumIdentifier,
-              ParticulatePropertyTag>::operator[](const KeyVal &k) const try {
+              ScatteringSpeciesProperty>::operator[](const KeyVal &k) const try {
   return std::visit(
       [this](auto &key) -> const Atm::Data & {
         return this->map<decltype(key)>().at(key);
@@ -159,7 +159,7 @@ FieldMap::Map<Atm::Data,
               SpeciesEnum,
               SpeciesIsotope,
               QuantumIdentifier,
-              ParticulatePropertyTag>::operator[](const KeyVal &k) try {
+              ScatteringSpeciesProperty>::operator[](const KeyVal &k) try {
   return std::visit(
       [this](auto &key) -> Atm::Data & {
         return const_cast<Map *>(this)->map<decltype(key)>()[key];
@@ -174,7 +174,7 @@ bool FieldMap::Map<Atm::Data,
                    SpeciesEnum,
                    SpeciesIsotope,
                    QuantumIdentifier,
-                   ParticulatePropertyTag>::contains(const KeyVal &key) const {
+                   ScatteringSpeciesProperty>::contains(const KeyVal &key) const {
   return std::visit(
       [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
       key);
@@ -242,13 +242,13 @@ const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
 const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
   return map<SpeciesIsotope>();
 }
-
 const std::unordered_map<AtmKey, Data> &Field::other() const {
   return map<AtmKey>();
 }
 
-const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
-  return map<ParticulatePropertyTag>();
+const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops()
+    const {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
@@ -265,8 +265,8 @@ std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
 
 std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
 
-std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
-  return map<ParticulatePropertyTag>();
+std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops() {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::ostream &operator<<(std::ostream &os, const Point &atm) {
@@ -350,14 +350,14 @@ std::vector<KeyVal> Point::keys() const {
   for (auto &a : enumtyps::AtmKeyTypes) out.emplace_back(a);
   for (auto &a : specs) out.emplace_back(a.first);
   for (auto &a : nlte) out.emplace_back(a.first);
-  for (auto &a : partp) out.emplace_back(a.first);
+  for (auto &a : ssprops) out.emplace_back(a.first);
   for (auto &a : isots) out.emplace_back(a.first);
   return out;
 }
 
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
 
-Index Point::npart() const { return static_cast<Index>(partp.size()); }
+Index Point::npart() const { return static_cast<Index>(ssprops.size()); }
 
 Index Point::nisot() const { return static_cast<Index>(isots.size()); }
 
@@ -371,7 +371,7 @@ Index Field::nspec() const { return static_cast<Index>(specs().size()); }
 
 Index Field::nisot() const { return static_cast<Index>(isots().size()); }
 
-Index Field::npart() const { return static_cast<Index>(partp().size()); }
+Index Field::npart() const { return static_cast<Index>(ssprops().size()); }
 
 Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
 
@@ -796,9 +796,9 @@ void Point::check_and_fix() try {
                        nl.second)
   }
 
-  for (auto &pp : partp) {
+  for (auto &pp : ssprops) {
     ARTS_USER_ERROR_IF(nonstd::isnan(pp.second),
-                       "Particulate Property Tag value for \"{}\" is {}",
+                       "Scattering Species Property value for \"",
                        pp.first,
                        pp.second)
   }
@@ -987,16 +987,12 @@ bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const ParticulatePropertyTag &key) {
+bool operator==(const AtmKeyVal &keyval, const ScatteringSpeciesProperty &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const ParticulatePropertyTag &key, const AtmKeyVal &keyval) {
+bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
-}
-
-std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
-  return os << ppt.name;
 }
 
 namespace Atm {

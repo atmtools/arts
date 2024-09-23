@@ -180,19 +180,6 @@ void model_state_covariance_matrixAddAtmosphere(
                                    inverse);
 }
 
-void model_state_covariance_matrixAddAtmosphere(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const ParticulatePropertyTag& key,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{key},
-                                   matrix,
-                                   inverse);
-}
-
 void model_state_covariance_matrixAddSpeciesVMR(
     CovarianceMatrix& model_state_covariance_matrix,
     const JacobianTargets& jacobian_targets,

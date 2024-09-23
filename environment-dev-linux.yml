@@ -8,15 +8,18 @@ dependencies:
         - doxygen
         - docutils
         - eigen
+        - fftw
         - gcc
         - gfortran
         - gmp
         - gxx
+        - ipykernel
         - lark-parser
         - libclang
         - libcxx
         - llvm-openmp
         - nanobind
+        - nbsphinx
         - matplotlib
         - netcdf4
         - ninja

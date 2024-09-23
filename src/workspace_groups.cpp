@@ -196,6 +196,11 @@ internal_workspace_groups_creator() {
       .array_depth = 1,
   };
 
+  wsg_data["ArrayOfScatteringSpecies"] = {
+      .file = "scattering/scattering_species.h",
+      .desc = "Represents species of scattering paritlces in the atmosphere.",
+  };
+
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file        = "optproperties.h",
       .desc        = "A list of *ScatteringMetaData*\n",
@@ -223,12 +228,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
       .array_depth = 1,
       .skip_pyinit = true,
-  };
-
-  wsg_data["ParticulatePropertyTag"] = {
-      .file = "atm.h",
-      .desc = R"--(An particulate property key
-)--",
   };
 
   wsg_data["SurfaceKey"] = {
@@ -944,16 +943,17 @@ when computing the Jacobian matrix or partial derivatives.
       .file = "jacobian.h",
       .desc = R"--(A type of target for use in Jacobian Matrix calculations
 )--",
-    };
+  };
 
   wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
       .file = "retrieval_target.h",
-      .desc = R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
+      .desc =
+          R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
 
 The intended use of this type is to store required *BlockMatrix* objects so that
 the user-interface for setting up retrieval targets can be simplified.
 )--",
-    };
+  };
 
   wsg_data["PropagationPathPoint"] = {
       .file = "path_point.h",
@@ -1072,8 +1072,8 @@ well as the sampling device's polarization response.
   };
 
   wsg_data["DisortSettings"] = {
-      .file        = "disort.h",
-      .desc        = "The settings required to run Disort.\n",
+      .file = "disort.h",
+      .desc = "The settings required to run Disort.\n",
   };
 
   return wsg_data;
