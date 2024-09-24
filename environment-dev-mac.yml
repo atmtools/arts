@@ -1,6 +1,6 @@
 dependencies:
         - ccache
-        - clang=16.*
+        - clang
         - clangxx
         - cmake
         - docutils
@@ -8,7 +8,7 @@ dependencies:
         - glew
         - glfw
         - lark-parser
-        - libclang=16.*
+        - libclang
         - libcxx
         - libmicrohttpd
         - llvm-openmp
