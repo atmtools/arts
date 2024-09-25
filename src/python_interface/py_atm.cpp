@@ -18,7 +18,6 @@
 
 namespace Python {
 void py_atm(py::module_ &m) try {
-
   py::class_<Atm::Data>(m, "AtmData")
       .def(py::init<Atm::Data>())
       .def(py::init<GriddedField3>())
@@ -50,10 +49,15 @@ void py_atm(py::module_ &m) try {
           "lon"_a,
           "Get the weights of neighbors at a position")
       .def_prop_ro("data_type", &Atm::Data::data_type, "The data type")
-      .def("__call__",
-           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-             return d.at(alt, lat, lon);
-           })
+      .def(
+          "__call__",
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            return d.at(alt, lat, lon);
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get a point of data at the position")
       .def("__getstate__",
            [](const Atm::Data &t) {
              return std::make_tuple(t.data,
@@ -81,7 +85,8 @@ void py_atm(py::module_ &m) try {
              a->lat_upp = std::get<4>(state);
              a->lon_low = std::get<5>(state);
              a->lon_upp = std::get<6>(state);
-           }).doc() = "Atmospheric data";
+           })
+      .doc() = "Atmospheric data";
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
@@ -157,28 +162,32 @@ void py_atm(py::module_ &m) try {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmPoint &atm, const QuantumIdentifier &x) {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmPoint &atm, const SpeciesEnum &x) {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmPoint &atm, const SpeciesIsotope &x) {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
@@ -186,29 +195,42 @@ void py_atm(py::module_ &m) try {
               throw py::key_error(var_string(x).c_str());
             return atm[x.Species()];
           },
-          py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](AtmPoint &atm, AtmKey x, Numeric data) { atm[x] = data; })
-      .def("__setitem__",
-           [](AtmPoint &atm, const QuantumIdentifier &x, Numeric data) {
-             atm[x] = data;
-           })
-      .def("__setitem__",
-           [](AtmPoint &atm, const SpeciesEnum &x, Numeric data) {
-             atm[x] = data;
-           })
-      .def("__setitem__",
-           [](AtmPoint &atm, const SpeciesIsotope &x, Numeric data) {
-             atm[x] = data;
-           })
-      .def("__setitem__",
-           [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
-             atm[x.Species()] = data;
-           })
-      .def("__setitem__",
-           [](AtmPoint &atm, const ScatteringSpeciesProperty &x, Numeric data) {
-             atm[x] = data;
-           })
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, AtmKey x, Numeric data) { atm[x] = data; },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, const QuantumIdentifier &x, Numeric data) {
+            atm[x] = data;
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, const SpeciesEnum &x, Numeric data) {
+            atm[x] = data;
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, const SpeciesIsotope &x, Numeric data) {
+            atm[x] = data;
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
+            atm[x.Species()] = data;
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmPoint &atm, const ScatteringSpeciesProperty &x, Numeric data) {
+            atm[x] = data;
+          },
+          "Set the value of a key")
       .def("keys", &AtmPoint::keys, "Available keys")
       .def(
           "no_isotopologues",
@@ -265,21 +287,24 @@ void py_atm(py::module_ &m) try {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmField &atm, const SpeciesEnum &x) -> Atm::Data & {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmField &atm, const SpeciesIsotope &x) -> Atm::Data & {
             if (not atm.has(x)) throw py::key_error(var_string(x).c_str());
             return atm[x];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__getitem__",
           [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
@@ -287,15 +312,18 @@ void py_atm(py::module_ &m) try {
               throw py::key_error(var_string(x.Species()).c_str());
             return atm[x.Species()];
           },
-          py::rv_policy::reference_internal)
+          py::rv_policy::reference_internal,
+          "Get the value of a key")
       .def(
           "__setitem__",
-          [](AtmField &atm, AtmKey x, const Atm::Data &data) { atm[x] = data; })
+          [](AtmField &atm, AtmKey x, const Atm::Data &data) { atm[x] = data; },
+          "Set the value of a key")
       .def(
           "__setitem__",
           [](AtmField &atm, const QuantumIdentifier &x, const Atm::Data &data) {
             atm[x] = data;
-          })
+          },
+          "Set the value of a key")
       .def("__setitem__",
            [](AtmField &atm, const SpeciesEnum &x, const Atm::Data &data) {
              atm[x] = data;
@@ -304,15 +332,20 @@ void py_atm(py::module_ &m) try {
           "__setitem__",
           [](AtmField &atm, const ArrayOfSpeciesTag &x, const Atm::Data &data) {
             atm[x.Species()] = data;
-          })
-      .def("__setitem__",
-           [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
-             atm[x] = data;
-           })
-      .def("__setitem__",
-           [](AtmField &atm,
-              const ScatteringSpeciesProperty &x,
-              const Atm::Data &data) { atm[x] = data; })
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
+            atm[x] = data;
+          },
+          "Set the value of a key")
+      .def(
+          "__setitem__",
+          [](AtmField &atm,
+             const ScatteringSpeciesProperty &x,
+             const Atm::Data &data) { atm[x] = data; },
+          "Set the value of a key")
       .def(
           "at",
           [](const AtmField &atm,

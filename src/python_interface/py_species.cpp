@@ -229,10 +229,12 @@ Returns
           "Pops an element from the list")
       .def(py::self == py::self)
       .def(py::self != py::self)
-      .def("__hash__",
-           [](const ArrayOfSpeciesTag& x) {
-             return std::hash<ArrayOfSpeciesTag>{}(x);
-           })
+      .def(
+          "__hash__",
+          [](const ArrayOfSpeciesTag& x) {
+            return std::hash<ArrayOfSpeciesTag>{}(x);
+          },
+          "Allows hashing")
       .def(
           "__getstate",
           [](const ArrayOfSpeciesTag& x) {

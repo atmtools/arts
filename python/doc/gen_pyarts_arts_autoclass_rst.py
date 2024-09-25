@@ -13,6 +13,7 @@ enum_t = type(cxx.PType)
 def doc(x):
     return x.__doc__ if x.__doc__ else ""
 
+
 def short_doc(v):
     x = doc(v).split("\n")
     s = x[0]
@@ -23,15 +24,75 @@ def short_doc(v):
         i += 1
 
     if "->" in s or len(s) == 0:
-        print("WARNING: [ARTS DOC] No short doc found: ", v.__name__ if hasattr(v, "__name__") else v)
+        if not is_operator(v.__name__):
+            print(
+                f"WARNING [ARTS DOC] No short doc found: {v.__name__ if hasattr(v, "__name__") else v}"
+            )
 
     return s
+
 
 def func(name, var):
     return {"name": name, "short": short_doc(getattr(var, name))}
 
+
 def is_internal(name):
-    return name.startswith("_") or name.endswith("__") or ":" in name
+    return not is_operator(name) and (
+        name.startswith("_") or name.endswith("__") or ":" in name
+    )
+
+
+def is_operator(name):
+    operators = [
+        "__call__",
+        "__abs__",
+        "__add__",
+        "__and__",
+        "__contains__",
+        "__divmod__",
+        "__eq__",
+        "__floordiv__",
+        "__ge__",
+        "__getitem__",
+        "__gt__",
+        "__iadd__",
+        "__iand__",
+        "__ifloordiv__",
+        "__imatmul__",
+        "__imod__",
+        "__imul__",
+        "__ior__",
+        "__ipow__",
+        "__isub__",
+        "__iter__",
+        "__itruediv__",
+        "__le__",
+        "__len__",
+        "__lt__",
+        "__matmul__",
+        "__mod__",
+        "__mul__",
+        "__ne__",
+        "__hash__",
+        "__or__",
+        "__pow__",
+        "__radd__",
+        "__rand__",
+        "__rdivmod__",
+        "__rfloordiv__",
+        "__rmatmul__",
+        "__rmod__",
+        "__rmul__",
+        "__ror__",
+        "__rpow__",
+        "__rsub__",
+        "__rtruediv__",
+        "__setitem__",
+        "__delitem__",
+        "__truediv__",
+        "__array__",
+    ]
+    return name in operators
 
 
 def loop_over_class(cls, mod, pure_overview=False):
@@ -39,10 +100,13 @@ def loop_over_class(cls, mod, pure_overview=False):
     functions = {}
     methods = {}
     values = {}
+    operators = {}
     for name in dir(cls):
         var = getattr(cls, name)
         if is_internal(name):
             pass
+        elif is_operator(name):
+            operators[name] = func(name, cls)
         elif isinstance(var, attr_t):
             attributes[name] = func(name, cls)
         elif isinstance(var, func_t):
@@ -59,30 +123,41 @@ def loop_over_class(cls, mod, pure_overview=False):
     str += ".. currentmodule:: " + mod + "\n\n"
     str += ".. autoclass:: " + cls.__name__ + "\n\n"
 
-    if len(methods) or len(functions) or len(attributes) or len(values):
+    if (
+        len(methods)
+        or len(functions)
+        or len(attributes)
+        or len(values)
+        or len(operators)
+    ):
 
-      str += f"  .. rubric:: Overview\n\n"
-      str += f"  .. list-table::\n\n"
+        str += f"  .. rubric:: Overview\n\n"
+        str += f"  .. list-table::\n\n"
 
-      for n in methods:
-        str += f"    * - Method\n"
-        str += f"      - :func:`~{mod}.{cls.__name__}.{n}`\n"
-        str += f"      - {methods[n]['short']}\n"
+        for n in methods:
+            str += f"    * - Method\n"
+            str += f"      - :func:`~{mod}.{cls.__name__}.{n}`\n"
+            str += f"      - {methods[n]['short']}\n"
 
-      for n in functions:
-        str += f"    * - Static Method\n"
-        str += f"      - :func:`~{mod}.{cls.__name__}.{n}`\n"
-        str += f"      - {functions[n]['short']}\n"
+        for n in functions:
+            str += f"    * - Static Method\n"
+            str += f"      - :func:`~{mod}.{cls.__name__}.{n}`\n"
+            str += f"      - {functions[n]['short']}\n"
 
-      for n in attributes:
-        str += f"    * - Attribute\n"
-        str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
-        str += f"      - {attributes[n]['short']}\n"
+        for n in attributes:
+            str += f"    * - Attribute\n"
+            str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
+            str += f"      - {attributes[n]['short']}\n"
 
-      for n in values:
-        str += f"    * - Static Data\n"
-        str += f"      - ``{mod}.{cls.__name__}.{n}``\n"
-        str += f"      - {repr(values[n])} - :class:`~{type(values[n]).__name__}`\n"
+        for n in values:
+            str += f"    * - Static Data\n"
+            str += f"      - ``{mod}.{cls.__name__}.{n}``\n"
+            str += f"      - {repr(values[n])} - :class:`~{type(values[n]).__name__}`\n"
+
+        for n in operators:
+            str += f"    * - Operator\n"
+            str += f"      - :func:`~{mod}.{cls.__name__}.{n}`\n"
+            str += f"      - {operators[n]['short']}\n"
 
     str += "\n"
     str += "  .. rubric:: Constructors\n\n"
@@ -90,35 +165,46 @@ def loop_over_class(cls, mod, pure_overview=False):
     str += "     :noindex:\n\n"
 
     if not pure_overview:
-      if len(methods):
-          str += "  .. rubric:: Methods\n\n"
-          for n in methods:
-              str += f"  .. automethod:: {cls.__name__}.{methods[n]['name']}\n"
-          str += "\n"
+        if len(methods):
+            str += "  .. rubric:: Methods\n\n"
+            for n in methods:
+                str += (
+                    f"  .. automethod:: {cls.__name__}.{methods[n]['name']}\n"
+                )
+            str += "\n"
 
-      if len(functions):
-          str += "  .. rubric:: Static Methods\n\n"
-          for n in functions:
-              str += f"  .. automethod:: {cls.__name__}.{functions[n]['name']}\n"
-          str += "\n"
+        if len(functions):
+            str += "  .. rubric:: Static Methods\n\n"
+            for n in functions:
+                str += f"  .. automethod:: {cls.__name__}.{functions[n]['name']}\n"
+            str += "\n"
 
-      if len(attributes):
-          str += "  .. rubric:: Attributes\n\n"
-          for n in attributes:
-              str += f"  .. autoattribute:: {cls.__name__}.{attributes[n]['name']}\n"
-          str += "\n"
+        if len(attributes):
+            str += "  .. rubric:: Attributes\n\n"
+            for n in attributes:
+                str += f"  .. autoattribute:: {cls.__name__}.{attributes[n]['name']}\n"
+            str += "\n"
+
+        if len(operators):
+            str += "  .. rubric:: Operators\n\n"
+            for n in operators:
+                str += f"  .. automethod:: {cls.__name__}.{operators[n]['name']}\n"
+            str += "\n"
     else:
         str += ".. toctree::\n"
         str += "  :hidden:\n\n"
 
         for n in methods:
-          str += f"  {mod}.{cls.__name__}.{n}\n"
+            str += f"  {mod}.{cls.__name__}.{n}\n"
 
         for n in functions:
-          str += f"  {mod}.{cls.__name__}.{n}\n"
+            str += f"  {mod}.{cls.__name__}.{n}\n"
 
         for n in attributes:
-          str += f"  {mod}.{cls.__name__}.{n}\n"
+            str += f"  {mod}.{cls.__name__}.{n}\n"
+
+        for n in operators:
+            str += f"  {mod}.{cls.__name__}.{n}\n"
 
     return str, short
 
@@ -165,19 +251,21 @@ def loop_over_module(mod):
 
 data = loop_over_module(cxx)
 
+
 def create_func_rst(name, path, mod):
-    with open(f"{path}/{name}.rst", 'w') as f:
+    with open(f"{path}/{name}.rst", "w") as f:
         f.write(f"{name}\n{'='*len(name)}\n\n")
         f.write(f".. currentmodule:: {mod}\n\n")
         f.write(f".. automethod:: {name}\n\n")
 
+
 def create_class_rst(data, path, mod):
-    with open(f"{path}/{mod}.rst", 'w') as f:
+    with open(f"{path}/{mod}.rst", "w") as f:
         f.write(data)
-    
+
 
 def create_rst(data, path, mod):
-    with open(f"{path}/{mod}.rst", 'w') as f:
+    with open(f"{path}/{mod}.rst", "w") as f:
         f.write(f"{mod}\n{'='*len(mod)}\n\n")
 
         f.write(".. toctree::\n")
@@ -201,7 +289,7 @@ def create_rst(data, path, mod):
 
         for name in data["attributes"]:
             f.write(f"  {name}\n")
-        
+
         f.write(f"\n.. automodule:: {mod}\n\n")
 
         if len(data["modules"]):
@@ -242,12 +330,14 @@ def create_rst(data, path, mod):
                 f.write(f"    - {data['attributes'][name][1]}\n")
 
         if len(data["values"]):
-          f.write("\n.. rubric:: Static Data\n\n")
-          f.write("\n.. list-table::\n\n")
-          for n in data["values"]:
-            f.write(f"    * - ``{n}``\n")
-            f.write(f"      - :class:`~{type(data['values'][n]).__name__}`\n")
-            f.write(f"      - {repr(data["values"][n])}\n")
+            f.write("\n.. rubric:: Static Data\n\n")
+            f.write("\n.. list-table::\n\n")
+            for n in data["values"]:
+                f.write(f"    * - ``{n}``\n")
+                f.write(
+                    f"      - :class:`~{type(data['values'][n]).__name__}`\n"
+                )
+                f.write(f"      - {repr(data["values"][n])}\n")
 
 
 def create_workspace_rst(path):
@@ -257,17 +347,22 @@ def create_workspace_rst(path):
     create_class_rst(data[0], path, f"pyarts.workspace.Workspace")
 
     for name in dir(ws):
-        if is_internal(name): continue
-        
+        if is_internal(name):
+            continue
+
         attr = getattr(ws, name)
 
         if isinstance(attr, attr_t):
-            with open(f"{path}/pyarts.workspace.Workspace.{name}.rst", 'w') as f:
+            with open(
+                f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+            ) as f:
                 f.write(f"{name}\n{'='*len(name)}\n\n")
                 f.write(".. currentmodule:: pyarts.workspace\n\n")
                 f.write(".. autoattribute:: Workspace." + name + "\n\n")
         elif isinstance(attr, method_t):
-            with open(f"{path}/pyarts.workspace.Workspace.{name}.rst", 'w') as f:
+            with open(
+                f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+            ) as f:
                 f.write(f"{name}\n{'='*len(name)}\n\n")
                 f.write(".. currentmodule:: pyarts.workspace\n\n")
                 f.write(".. automethod:: Workspace." + name + "\n\n")

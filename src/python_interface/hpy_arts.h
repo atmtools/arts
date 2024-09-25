@@ -120,30 +120,46 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
   }
 
   if constexpr (std::same_as<String, T>) {
-    c.def("__int__",
-          [](const ValueHolder<T>& a) { return py::int_(std::stoi(*a.val)); });
-    c.def("__float__", [](const ValueHolder<T>& a) {
-      return py::float_(std::stod(*a.val));
-    });
-    c.def("__bool__",
-          [](const ValueHolder<T>& a) { return a.val->size() > 0; });
+    c.def(
+        "__int__",
+        [](const ValueHolder<T>& a) { return py::int_(std::stoi(*a.val)); },
+        "Allows conversion to int");
+    c.def(
+        "__float__",
+        [](const ValueHolder<T>& a) { return py::float_(std::stod(*a.val)); },
+        "Allows conversion to float");
+    c.def(
+        "__bool__",
+        [](const ValueHolder<T>& a) { return a.val->size() > 0; },
+        "Allows conversion to bool");
   } else {
-    c.def("__int__", [](const ValueHolder<T>& a) {
-      return py::int_(static_cast<Index>(*a.val));
-    });
-    c.def("__float__", [](const ValueHolder<T>& a) {
-      return py::float_(static_cast<Numeric>(*a.val));
-    });
+    c.def(
+        "__int__",
+        [](const ValueHolder<T>& a) {
+          return py::int_(static_cast<Index>(*a.val));
+        },
+        "Allows conversion to int");
+    c.def(
+        "__float__",
+        [](const ValueHolder<T>& a) {
+          return py::float_(static_cast<Numeric>(*a.val));
+        },
+        "Allows conversion to float");
     c.def("__complex__", [](const ValueHolder<T>& a) {
       return static_cast<Complex>(static_cast<Numeric>(*a.val));
     });
-    c.def("__bool__", [](const ValueHolder<T>& a) {
-      return static_cast<bool>(*a.val) and (*a.val == *a.val);
-    });
+    c.def(
+        "__bool__",
+        [](const ValueHolder<T>& a) {
+          return static_cast<bool>(*a.val) and (*a.val == *a.val);
+        },
+        "Allows conversion to bool");
   }
 
-  c.def("__hash__",
-        [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); });
+  c.def(
+      "__hash__",
+      [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); },
+      "Allows hashing");
 
   c.def("__getstate__",
         [](const ValueHolder<T>& self) { return std::make_tuple(*self.val); });
@@ -152,10 +168,16 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
   });
 
   if constexpr (std::same_as<String, T>) {
-    c.def("__len__", [](const ValueHolder<T>& a) { return a.val->size(); });
-    c.def("__getitem__", [](const ValueHolder<T>& a, const py::object& i) {
-      return py::str(String{a}.c_str()).attr("__getitem__")(i);
-    });
+    c.def(
+        "__len__",
+        [](const ValueHolder<T>& a) { return a.val->size(); },
+        "Length of the string");
+    c.def(
+        "__getitem__",
+        [](const ValueHolder<T>& a, const py::object& i) {
+          return py::str(String{a}.c_str()).attr("__getitem__")(i);
+        },
+        "Get item from string");
   }
 }
 

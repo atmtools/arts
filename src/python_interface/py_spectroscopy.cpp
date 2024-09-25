@@ -2,6 +2,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <python_interface.h>
 #include <zeemandata.h>
@@ -179,40 +180,32 @@ void py_spectroscopy(py::module_& m) try {
            "dv"_a  = 0,
            "From values")
       .PythonInterfaceCopyValue(LineShape::Output)
-      .def_rw(
-          "G0",
-          &LineShape::Output::G0,
-          ":class:`float`: Pressure broadening speed-independent")
-      .def_rw(
-          "D0",
-          &LineShape::Output::D0,
-          ":class:`float`: Pressure f-shifting speed-independent")
-      .def_rw(
-          "G2",
-          &LineShape::Output::G2,
-          ":class:`float`: Pressure broadening speed-dependent")
-      .def_rw(
-          "D2",
-          &LineShape::Output::D2,
-          ":class:`float`: Pressure f-shifting speed-dependent")
+      .def_rw("G0",
+              &LineShape::Output::G0,
+              ":class:`float`: Pressure broadening speed-independent")
+      .def_rw("D0",
+              &LineShape::Output::D0,
+              ":class:`float`: Pressure f-shifting speed-independent")
+      .def_rw("G2",
+              &LineShape::Output::G2,
+              ":class:`float`: Pressure broadening speed-dependent")
+      .def_rw("D2",
+              &LineShape::Output::D2,
+              ":class:`float`: Pressure f-shifting speed-dependent")
       .def_rw("ETA", &LineShape::Output::ETA, ":class:`float`: Correlation")
-      .def_rw(
-          "FVC",
-          &LineShape::Output::FVC,
-          ":class:`float`: Frequency of velocity-changing collisions")
-      .def_rw(
-          "Y",
-          &LineShape::Output::Y,
-          ":class:`float`: First order line mixing coefficient")
-      .def_rw(
-          "G",
-          &LineShape::Output::G,
-          ":class:`float`: Second order line mixing coefficient")
-      .def_rw(
-          "DV",
-          &LineShape::Output::DV,
-          ":class:`float`: Second order line mixing f-shifting")
-     // .PythonInterfaceBasicRepresentation(LineShape::Output)
+      .def_rw("FVC",
+              &LineShape::Output::FVC,
+              ":class:`float`: Frequency of velocity-changing collisions")
+      .def_rw("Y",
+              &LineShape::Output::Y,
+              ":class:`float`: First order line mixing coefficient")
+      .def_rw("G",
+              &LineShape::Output::G,
+              ":class:`float`: Second order line mixing coefficient")
+      .def_rw("DV",
+              &LineShape::Output::DV,
+              ":class:`float`: Second order line mixing f-shifting")
+      // .PythonInterfaceBasicRepresentation(LineShape::Output)
       .def("__getstate__",
            [](const LineShape::Output& t) {
              return std::tuple<Numeric,
@@ -431,26 +424,21 @@ void py_spectroscopy(py::module_& m) try {
           "I0", &AbsorptionSingleLine::I0, ":class:`float` Reference intensity")
       .def_rw(
           "E0", &AbsorptionSingleLine::E0, ":class:`float` Lower energy state")
-      .def_rw(
-          "glow",
-          &AbsorptionSingleLine::glow,
-          ":class:`float` Lower level statistical weight")
-      .def_rw(
-          "gupp",
-          &AbsorptionSingleLine::gupp,
-          ":class:`float` Upper level statistical weight")
-      .def_rw(
-          "A",
-          &AbsorptionSingleLine::A,
-          ":class:`float` Einstein spontaneous emission coefficient")
-      .def_rw(
-          "zeeman",
-          &AbsorptionSingleLine::zeeman,
-          ":class:`pyarts.arts.ZeemanModel` Zeeman model")
-      .def_rw(
-          "lineshape",
-          &AbsorptionSingleLine::lineshape,
-          ":class:`pyarts.arts.LineShapeModel` Line shape model")
+      .def_rw("glow",
+              &AbsorptionSingleLine::glow,
+              ":class:`float` Lower level statistical weight")
+      .def_rw("gupp",
+              &AbsorptionSingleLine::gupp,
+              ":class:`float` Upper level statistical weight")
+      .def_rw("A",
+              &AbsorptionSingleLine::A,
+              ":class:`float` Einstein spontaneous emission coefficient")
+      .def_rw("zeeman",
+              &AbsorptionSingleLine::zeeman,
+              ":class:`pyarts.arts.ZeemanModel` Zeeman model")
+      .def_rw("lineshape",
+              &AbsorptionSingleLine::lineshape,
+              ":class:`pyarts.arts.LineShapeModel` Line shape model")
       .def_rw(
           "localquanta",
           &AbsorptionSingleLine::localquanta,
@@ -569,14 +557,12 @@ void py_spectroscopy(py::module_& m) try {
         "broadeningspecies"_a = ArrayOfSpeciesEnum{},
         "lines"_a             = Array<AbsorptionSingleLine>{},
         "From values")
-      .def_rw(
-          "selfbroadening",
-          &AbsorptionLines::selfbroadening,
-          ":class:`bool` Does the line broadening have self broadening?")
-      .def_rw(
-          "bathbroadening",
-          &AbsorptionLines::bathbroadening,
-          ":class:`bool` Does the line broadening have bath broadening?")
+      .def_rw("selfbroadening",
+              &AbsorptionLines::selfbroadening,
+              ":class:`bool` Does the line broadening have self broadening?")
+      .def_rw("bathbroadening",
+              &AbsorptionLines::bathbroadening,
+              ":class:`bool` Does the line broadening have bath broadening?")
       .def_rw(
           "cutoff",
           &AbsorptionLines::cutoff,
@@ -593,10 +579,9 @@ void py_spectroscopy(py::module_& m) try {
           "normalization",
           &AbsorptionLines::normalization,
           ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
-      .def_rw(
-          "lineshapetype",
-          &AbsorptionLines::lineshapetype,
-          ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
+      .def_rw("lineshapetype",
+              &AbsorptionLines::lineshapetype,
+              ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
       .def_rw(
           "T0",
           &AbsorptionLines::T0,
@@ -607,10 +592,9 @@ void py_spectroscopy(py::module_& m) try {
       .def_rw("linemixinglimit",
               &AbsorptionLines::linemixinglimit,
               ":class:`float` Linemixing limit")
-      .def_rw(
-          "quantumidentity",
-          &AbsorptionLines::quantumidentity,
-          ":class:`~pyarts.arts.QuantumIdentifier` Catalog ID")
+      .def_rw("quantumidentity",
+              &AbsorptionLines::quantumidentity,
+              ":class:`~pyarts.arts.QuantumIdentifier` Catalog ID")
       .def_rw(
           "broadeningspecies",
           &AbsorptionLines::broadeningspecies,

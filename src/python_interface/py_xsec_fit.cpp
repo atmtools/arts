@@ -97,87 +97,89 @@ abs : Vector
              self->FitMaxTemperatures() = std::get<5>(state);
              self->FitCoeffs()          = std::get<6>(state);
            })
-      .def("to_dict",
-           [](py::object& self) {
-             auto np = py::module_::import_("numpy");
-             py::dict out;
+      .def(
+          "to_dict",
+          [](py::object& self) {
+            auto np = py::module_::import_("numpy");
+            py::dict out;
 
-             py::dict attrs;
-             attrs["creation_data"] = var_string(Time{});
-             attrs["version"]       = py::object(self.attr("version"));
-             attrs["species"]       = self.attr("species").attr("__format__")("");
+            py::dict attrs;
+            attrs["creation_data"] = var_string(Time{});
+            attrs["version"]       = py::object(self.attr("version"));
+            attrs["species"] = self.attr("species").attr("__format__")("");
 
-             auto fitcoeffs = py::object(self.attr("fitcoeffs"));
+            auto fitcoeffs = py::object(self.attr("fitcoeffs"));
 
-             std::vector<Size> r(py::len(fitcoeffs));
-             std::iota(r.begin(), r.end(), 0);
-             auto coords = py::dict{};
+            std::vector<Size> r(py::len(fitcoeffs));
+            std::iota(r.begin(), r.end(), 0);
+            auto coords = py::dict{};
 
-             coords["coeffs"]         = py::dict{};
-             coords["coeffs"]["dims"] = "coeffs";
-             coords["coeffs"]["data"] =
-                 std::vector<std::string>{"p00", "p10", "p01", "p20"};
+            coords["coeffs"]         = py::dict{};
+            coords["coeffs"]["dims"] = "coeffs";
+            coords["coeffs"]["data"] =
+                std::vector<std::string>{"p00", "p10", "p01", "p20"};
 
-             coords["bands"]         = py::dict{};
-             coords["bands"]["dims"] = "bands";
-             coords["bands"]["data"] = std::move(r);
+            coords["bands"]         = py::dict{};
+            coords["bands"]["dims"] = "bands";
+            coords["bands"]["data"] = std::move(r);
 
-             py::dict data_vars{};
-             data_vars["fitminpressures"]         = py::dict{};
-             data_vars["fitminpressures"]["dims"] = "bands";
-             data_vars["fitminpressures"]["data"] =
-                 py::object(self.attr("fitminpressures"));
+            py::dict data_vars{};
+            data_vars["fitminpressures"]         = py::dict{};
+            data_vars["fitminpressures"]["dims"] = "bands";
+            data_vars["fitminpressures"]["data"] =
+                py::object(self.attr("fitminpressures"));
 
-             data_vars["fitmaxpressures"]         = py::dict{};
-             data_vars["fitmaxpressures"]["dims"] = "bands";
-             data_vars["fitmaxpressures"]["data"] =
-                 py::object(self.attr("fitmaxpressures"));
+            data_vars["fitmaxpressures"]         = py::dict{};
+            data_vars["fitmaxpressures"]["dims"] = "bands";
+            data_vars["fitmaxpressures"]["data"] =
+                py::object(self.attr("fitmaxpressures"));
 
-             data_vars["fitmintemperatures"]         = py::dict{};
-             data_vars["fitmintemperatures"]["dims"] = "bands";
-             data_vars["fitmintemperatures"]["data"] =
-                 py::object(self.attr("fitmintemperatures"));
+            data_vars["fitmintemperatures"]         = py::dict{};
+            data_vars["fitmintemperatures"]["dims"] = "bands";
+            data_vars["fitmintemperatures"]["data"] =
+                py::object(self.attr("fitmintemperatures"));
 
-             data_vars["fitmaxtemperatures"]         = py::dict{};
-             data_vars["fitmaxtemperatures"]["dims"] = "bands";
-             data_vars["fitmaxtemperatures"]["data"] =
-                 py::object(self.attr("fitmaxtemperatures"));
+            data_vars["fitmaxtemperatures"]         = py::dict{};
+            data_vars["fitmaxtemperatures"]["dims"] = "bands";
+            data_vars["fitmaxtemperatures"]["data"] =
+                py::object(self.attr("fitmaxtemperatures"));
 
-             for (Size i = 0; i < py::len(fitcoeffs); ++i) {
-               const String band_fgrid    = var_string("band", i, "_fgrid");
-               const String band_coeffs   = var_string("band", i, "_coeffs");
-               const auto band_fgrid_key  = py::str(band_fgrid.c_str());
-               const auto band_coeffs_key = py::str(band_coeffs.c_str());
+            for (Size i = 0; i < py::len(fitcoeffs); ++i) {
+              const String band_fgrid    = var_string("band", i, "_fgrid");
+              const String band_coeffs   = var_string("band", i, "_coeffs");
+              const auto band_fgrid_key  = py::str(band_fgrid.c_str());
+              const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
-               coords[band_fgrid_key]          = py::dict{};
-               coords[band_fgrid_key]["attrs"] = py::dict{};
-               coords[band_fgrid_key]["dims"]  = band_fgrid;
-               coords[band_fgrid_key]["data"]  = fitcoeffs[i].attr("grids")[0];
-               coords[band_fgrid_key]["attrs"]["name"] =
-                   fitcoeffs[i].attr("gridnames")[0];
+              coords[band_fgrid_key]          = py::dict{};
+              coords[band_fgrid_key]["attrs"] = py::dict{};
+              coords[band_fgrid_key]["dims"]  = band_fgrid;
+              coords[band_fgrid_key]["data"]  = fitcoeffs[i].attr("grids")[0];
+              coords[band_fgrid_key]["attrs"]["name"] =
+                  fitcoeffs[i].attr("gridnames")[0];
 
-               data_vars[band_coeffs_key] = py::dict{};
-               data_vars[band_coeffs_key]["dims"] =
-                   std::vector<std::string>{band_fgrid, "coeffs"};
-               data_vars[band_coeffs_key]["data"] =
-                   py::object(fitcoeffs[i].attr("data"));
+              data_vars[band_coeffs_key] = py::dict{};
+              data_vars[band_coeffs_key]["dims"] =
+                  std::vector<std::string>{band_fgrid, "coeffs"};
+              data_vars[band_coeffs_key]["data"] =
+                  py::object(fitcoeffs[i].attr("data"));
 
-               data_vars[band_coeffs_key]["attrs"] = py::dict{};
-               data_vars[band_coeffs_key]["name"] =
-                   py::object(fitcoeffs[i].attr("dataname"));
+              data_vars[band_coeffs_key]["attrs"] = py::dict{};
+              data_vars[band_coeffs_key]["name"] =
+                  py::object(fitcoeffs[i].attr("dataname"));
 
-               if (i == 0) {
-                 coords["coeffs"]["attrs"] = py::dict{};
-                 coords["coeffs"]["attrs"]["name"] =
-                     fitcoeffs[i].attr("gridnames")[1];
-               }
-             }
+              if (i == 0) {
+                coords["coeffs"]["attrs"] = py::dict{};
+                coords["coeffs"]["attrs"]["name"] =
+                    fitcoeffs[i].attr("gridnames")[1];
+              }
+            }
 
-             out["coords"]    = coords;
-             out["attrs"]     = attrs;
-             out["data_vars"] = data_vars;
-             return out;
-           }, "Convert object to dict.")
+            out["coords"]    = coords;
+            out["attrs"]     = attrs;
+            out["data_vars"] = data_vars;
+            return out;
+          },
+          "Convert object to dict.")
       .def(
           "to_xarray",
           [](py::object& xr) {
@@ -251,7 +253,8 @@ abs : Vector
               }
             }
             return out;
-          }, "Create object from dict.")
+          },
+          "Create object from dict.")
       .def_static(
           "from_xarray",
           [](py::object& v) {
@@ -268,24 +271,28 @@ abs : Vector
                 xarray.attr("open_dataset")(v).attr("to_dict")());
           },
           R"--(Create an XsecRecord from a NetCDF file.)--")
-      .def("__eq__", [](const XsecRecord& self, const XsecRecord& other) {
-        return self.Version() == other.Version() and
-               self.Species() == other.Species() and
-               self.FitMinPressures() == other.FitMinPressures() and
-               self.FitMaxPressures() == other.FitMaxPressures() and
-               self.FitMinTemperatures() == other.FitMinTemperatures() and
-               self.FitMaxTemperatures() == other.FitMaxTemperatures() and
-               std::equal(
-                   self.FitCoeffs().begin(),
-                   self.FitCoeffs().end(),
-                   other.FitCoeffs().begin(),
-                   other.FitCoeffs().end(),
-                   [](const auto& a, const auto& b) {
-                     return a.template grid<0>() == b.template grid<0>() and
-                            a.template grid<1>() == b.template grid<1>() and
-                            a.data == b.data;
-                   });
-      });
+      .def(
+          "__eq__",
+          [](const XsecRecord& self, const XsecRecord& other) {
+            return self.Version() == other.Version() and
+                   self.Species() == other.Species() and
+                   self.FitMinPressures() == other.FitMinPressures() and
+                   self.FitMaxPressures() == other.FitMaxPressures() and
+                   self.FitMinTemperatures() == other.FitMinTemperatures() and
+                   self.FitMaxTemperatures() == other.FitMaxTemperatures() and
+                   std::equal(
+                       self.FitCoeffs().begin(),
+                       self.FitCoeffs().end(),
+                       other.FitCoeffs().begin(),
+                       other.FitCoeffs().end(),
+                       [](const auto& a, const auto& b) {
+                         return a.template grid<0>() == b.template grid<0>() and
+                                a.template grid<1>() == b.template grid<1>() and
+                                a.data == b.data;
+                       });
+          },
+          "value"_a,
+          "Allows `self == value`");
 
   auto a1 =
       py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(

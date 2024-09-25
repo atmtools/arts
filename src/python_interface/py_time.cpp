@@ -43,7 +43,9 @@ void py_time(py::module_& m) try {
             t2.Seconds(t.Seconds() + n);
             return t2;
           },
-          py::is_operator())
+          py::is_operator(),
+          "n"_a,
+          "Allows `self + n`")
       .def(
           "__radd__",
           [](Time& t, Numeric n) {
@@ -51,7 +53,9 @@ void py_time(py::module_& m) try {
             t2.Seconds(t.Seconds() + n);
             return t2;
           },
-          py::is_operator())
+          py::is_operator(),
+          "n"_a,
+          "Allows `n + self`")
       .def(
           "__sub__",
           [](Time& t, Numeric n) {
@@ -59,7 +63,9 @@ void py_time(py::module_& m) try {
             t2.Seconds(t.Seconds() - n);
             return t2;
           },
-          py::is_operator())
+          py::is_operator(),
+          "n"_a,
+          "Allows `self - n`")
       .def(
           "__rsub__",
           [](Time& t, Numeric n) {
@@ -67,7 +73,9 @@ void py_time(py::module_& m) try {
             t2.Seconds(n - t.Seconds());
             return t2;
           },
-          py::is_operator())
+          py::is_operator(),
+          "n"_a,
+          "Allows `n - self`")
       .def("__getstate__",
            [](const Time& t) { return std::tuple<std::string>{var_string(t)}; })
       .def("__setstate__", [](Time* t, const std::tuple<std::string>& state) {

@@ -166,8 +166,9 @@ arr : numpy.ndarray
         *v = py::cast<Matrix>(py::type<Matrix>()(a));
       },
       "a"_a);
-  py::implicitly_convertible<py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>,
-                             BlockMatrix>();
+  py::implicitly_convertible<
+      py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>,
+      BlockMatrix>();
   bm.def_prop_rw(
       "matrix",
       [](BlockMatrix& bm) -> std::variant<Matrix, Sparse> {
@@ -180,20 +181,23 @@ arr : numpy.ndarray
       },
       [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) {
         std::visit([&bm](auto& m) { bm = m; }, mat);
-      }, "The matrix of the block");
+      },
+      "The matrix of the block");
   bm.def(
       "__array__",
       [](py::object& v, py::object dtype, py::object copy) {
         return v.attr("matrix").attr("__array__")(dtype, copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Returns a :class:`~numpy.ndarray` of the object.");
   bm.def_prop_rw(
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) {
         std::visit([&a](auto& c) { a = c; }, b);
-      }, "A :class:`~numpy.ndarray` or :class:`scipy.sparse.csr_matrix` of the object.");
+      },
+      "A :class:`~numpy.ndarray` or :class:`scipy.sparse.csr_matrix` of the object.");
   common_ndarray(bm);
   workspace_group_interface(bm);
 
