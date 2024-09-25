@@ -413,12 +413,12 @@ class SHT {
   /**
    * @return The maximum degree l of the SHT transformation.
    */
-  Index get_l_max() { return l_max_; }
+  Index get_l_max() const { return l_max_; }
 
   /**
    * @return The maximum order m of the SHT transformation.
    */
-  Index get_m_max() { return m_max_; }
+  Index get_m_max() const { return m_max_; }
 
   /**
    * Return content of the array that holds spectral data for
@@ -683,6 +683,9 @@ matpack::matpack_data<T, 2> add_coeffs(
 }
 
 }  // namespace sht
+
+
 }  // namespace scattering
+
 
 #endif

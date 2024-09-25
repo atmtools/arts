@@ -135,6 +135,7 @@ class GaussLegendreQuadrature {
 
   static constexpr QuadratureType type = QuadratureType::GaussLegendre;
 
+  Index get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
@@ -178,6 +179,7 @@ class DoubleGaussQuadrature {
 
   static constexpr QuadratureType type = QuadratureType::DoubleGauss;
 
+  Index get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
@@ -261,6 +263,7 @@ class LobattoQuadrature {
 
   static constexpr QuadratureType type = QuadratureType::Lobatto;
 
+  Index get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
@@ -293,6 +296,7 @@ class ClenshawCurtisQuadrature {
 
   static constexpr QuadratureType type = QuadratureType::ClenshawCurtis;
 
+  Index get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
@@ -325,6 +329,7 @@ class FejerQuadrature {
     calculate_nodes_and_weights();
   }
 
+  Index get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
@@ -451,6 +456,8 @@ class QuadratureLatitudeGrid : public LatitudeGrid {
 
   QuadratureLatitudeGrid(Index n_points, Index /*unused*/)
       : QuadratureLatitudeGrid(n_points) {}
+
+  Index get_degree() const { return quadrature_.get_degree(); }
 
   /// The co-latitude grid points in radians.
   const Vector& get_colatitudes() const { return quadrature_.get_nodes(); }

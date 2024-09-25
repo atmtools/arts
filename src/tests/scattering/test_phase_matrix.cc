@@ -341,6 +341,7 @@ bool test_phase_matrix_regrid_tro() {
     return false;
   }
 
+  std::cout << " SPEC " << std::endl;
   //
   // Test interpolation at mid-point between first and second elements
   // along temperature, frequency and scattering zenith angle.
@@ -370,6 +371,7 @@ bool test_phase_matrix_regrid_tro() {
   if (err > 1e-15) {
     return false;
   }
+  std::cout << " SPEC " << std::endl;
 
   //
   // Do the same in spectral space.
@@ -396,6 +398,8 @@ bool test_phase_matrix_regrid_tro() {
   //
   // Test interpolation for arbitrary values along axes.
   //
+
+  std::cout << " ARB " << std::endl;
 
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);

@@ -199,7 +199,6 @@ void py_scattering_species(py::module_ &m) try {  //
   //
 
   py::class_<MGDSingleMoment>(m, "MGDSingleMoment");
-  py::class_<ParticleHabit>(m, "ParticleHabit");
   py::class_<ScatteringHabit>(m, "ScatteringHabit");
   py::class_<HenyeyGreenstein>(m, "HenyeyGreenstein")
       .def(py::init<>())
@@ -237,68 +236,68 @@ void py_scattering_species(py::module_ &m) try {  //
   bind_phase_matrix_data_tro_spectral<double, 4>(m,
                                                  "PhaseMatrixDataTROSpectral4");
 
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 1>(m, "AbsorptionVectorDataGriddedTRO1");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 2>(m, "AbsorptionVectorDataGriddedTRO2");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 3>(m, "AbsorptionVectorDataGriddedTRO3");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 4>(m, "AbsorptionVectorDataGriddedTRO4");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 1>(m, "AbsorptionVectorDataSpectralTRO1");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 2>(m, "AbsorptionVectorDataSpectralTRO2");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 3>(m, "AbsorptionVectorDataSpectralTRO3");
-  //bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 4>(m, "AbsorptionVectorDataSpectralTRO4");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 1>(m, "AbsorptionVectorDataGriddedARO1");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 2>(m, "AbsorptionVectorDataGriddedARO2");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 3>(m, "AbsorptionVectorDataGriddedARO3");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 4>(m, "AbsorptionVectorDataGriddedARO4");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 1>(m, "AbsorptionVectorDataSpectralARO1");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 2>(m, "AbsorptionVectorDataSpectralARO2");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 3>(m, "AbsorptionVectorDataSpectralARO3");
-  //bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 4>(m, "AbsorptionVectorDataSpectralARO4");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 1>(m, "AbsorptionVectorDataGriddedTRO1");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 2>(m, "AbsorptionVectorDataGriddedTRO2");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 3>(m, "AbsorptionVectorDataGriddedTRO3");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Gridded, 4>(m, "AbsorptionVectorDataGriddedTRO4");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 1>(m, "AbsorptionVectorDataSpectralTRO1");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 2>(m, "AbsorptionVectorDataSpectralTRO2");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 3>(m, "AbsorptionVectorDataSpectralTRO3");
+  bind_absorption_vector_data_tro<double, scattering::Representation::Spectral, 4>(m, "AbsorptionVectorDataSpectralTRO4");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 1>(m, "AbsorptionVectorDataGriddedARO1");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 2>(m, "AbsorptionVectorDataGriddedARO2");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 3>(m, "AbsorptionVectorDataGriddedARO3");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Gridded, 4>(m, "AbsorptionVectorDataGriddedARO4");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 1>(m, "AbsorptionVectorDataSpectralARO1");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 2>(m, "AbsorptionVectorDataSpectralARO2");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 3>(m, "AbsorptionVectorDataSpectralARO3");
+  bind_absorption_vector_data_aro<double, scattering::Representation::Spectral, 4>(m, "AbsorptionVectorDataSpectralARO4");
 
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 1>(m, "ExtinctionMatrixDataGriddedTRO1");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 2>(m, "ExtinctionMatrixDataGriddedTRO2");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 3>(m, "ExtinctionMatrixDataGriddedTRO3");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 4>(m, "ExtinctionMatrixDataGriddedTRO4");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 1>(m, "ExtinctionMatrixDataSpectralTRO1");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 2>(m, "ExtinctionMatrixDataSpectralTRO2");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 3>(m, "ExtinctionMatrixDataSpectralTRO3");
-  //bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 4>(m, "ExtinctionMatrixDataSpectralTRO4");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 1>(m, "ExtinctionMatrixDataGriddedARO1");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 2>(m, "ExtinctionMatrixDataGriddedARO2");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 3>(m, "ExtinctionMatrixDataGriddedARO3");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 4>(m, "ExtinctionMatrixDataGriddedARO4");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 1>(m, "ExtinctionMatrixDataSpectralARO1");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 2>(m, "ExtinctionMatrixDataSpectralARO2");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 3>(m, "ExtinctionMatrixDataSpectralARO3");
-  //bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 4>(m, "ExtinctionMatrixDataSpectralARO4");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 1>(m, "ExtinctionMatrixDataGriddedTRO1");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 2>(m, "ExtinctionMatrixDataGriddedTRO2");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 3>(m, "ExtinctionMatrixDataGriddedTRO3");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded, 4>(m, "ExtinctionMatrixDataGriddedTRO4");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 1>(m, "ExtinctionMatrixDataSpectralTRO1");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 2>(m, "ExtinctionMatrixDataSpectralTRO2");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 3>(m, "ExtinctionMatrixDataSpectralTRO3");
+  bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral, 4>(m, "ExtinctionMatrixDataSpectralTRO4");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 1>(m, "ExtinctionMatrixDataGriddedARO1");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 2>(m, "ExtinctionMatrixDataGriddedARO2");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 3>(m, "ExtinctionMatrixDataGriddedARO3");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded, 4>(m, "ExtinctionMatrixDataGriddedARO4");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 1>(m, "ExtinctionMatrixDataSpectralARO1");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 2>(m, "ExtinctionMatrixDataSpectralARO2");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 3>(m, "ExtinctionMatrixDataSpectralARO3");
+  bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral, 4>(m, "ExtinctionMatrixDataSpectralARO4");
 
-  //py::class_<scattering::ParticleProperties>(m, "ParticleProperties")
-  //  .def(py::init<>())
-  //  .def_rw("name", &scattering::ParticleProperties::name)
-  //  .def_rw("source", &scattering::ParticleProperties::source)
-  //  .def_rw("refractive_index", &scattering::ParticleProperties::refractive_index)
-  //  .def_rw("mass", &scattering::ParticleProperties::mass)
-  //  .def_rw("d_veq", &scattering::ParticleProperties::d_veq)
-  //  .def_rw("d_max", &scattering::ParticleProperties::d_max);
+  py::class_<scattering::ParticleProperties>(m, "ParticleProperties")
+    .def(py::init<>())
+    .def_rw("name", &scattering::ParticleProperties::name)
+    .def_rw("source", &scattering::ParticleProperties::source)
+    .def_rw("refractive_index", &scattering::ParticleProperties::refractive_index)
+    .def_rw("mass", &scattering::ParticleProperties::mass)
+    .def_rw("d_veq", &scattering::ParticleProperties::d_veq)
+    .def_rw("d_max", &scattering::ParticleProperties::d_max);
 
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 1>(m, "SingleScatteringDataTROGridded1");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 2>(m, "SingleScatteringDataTROGridded2");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 3>(m, "SingleScatteringDataTROGridded3");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 4>(m, "SingleScatteringDataTROGridded4");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 1>(m, "SingleScatteringDataAROGridded1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 2>(m, "SingleScatteringDataAROGridded1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 3>(m, "SingleScatteringDataAROGridded1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 4>(m, "SingleScatteringDataAROGridded1");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 1>(m, "SingleScatteringDataTROSpectral1");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 2>(m, "SingleScatteringDataTROSpectral2");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 3>(m, "SingleScatteringDataTROSpectral3");
-  //bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 4>(m, "SingleScatteringDataTROSpectral4");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 1>(m, "SingleScatteringDataAROSpectral1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 2>(m, "SingleScatteringDataAROSpectral1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 3>(m, "SingleScatteringDataAROSpectral1");
-  //bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 4>(m, "SingleScatteringDataAROSpectral1");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 1>(m, "SingleScatteringDataTROGridded1");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 2>(m, "SingleScatteringDataTROGridded2");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 3>(m, "SingleScatteringDataTROGridded3");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded, 4>(m, "SingleScatteringDataTROGridded4");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 1>(m, "SingleScatteringDataAROGridded1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 2>(m, "SingleScatteringDataAROGridded1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 3>(m, "SingleScatteringDataAROGridded1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded, 4>(m, "SingleScatteringDataAROGridded1");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 1>(m, "SingleScatteringDataTROSpectral1");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 2>(m, "SingleScatteringDataTROSpectral2");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 3>(m, "SingleScatteringDataTROSpectral3");
+  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral, 4>(m, "SingleScatteringDataTROSpectral4");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 1>(m, "SingleScatteringDataAROSpectral1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 2>(m, "SingleScatteringDataAROSpectral1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 3>(m, "SingleScatteringDataAROSpectral1");
+  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 4>(m, "SingleScatteringDataAROSpectral1");
 
-  //py::class_<ParticleHabit>(m, "ParticleHabit")
-  //.def_static("from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);
+  py::class_<ParticleHabit>(m, "ParticleHabit")
+  .def_static("from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);
 
 } catch (std::exception &e) {
   throw std::runtime_error(var_string(
