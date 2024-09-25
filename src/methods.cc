@@ -13844,6 +13844,20 @@ R"(
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(
+      create_mdrecord(NAME("ppvar_magFromPath"),
+                      DESCRIPTION("Sets *ppvar_mag* from *ppath*.\n"),
+                      AUTHORS("Patrick Eriksson"),
+                      OUT("ppvar_mag"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN("mag_u_field", "mag_v_field", "mag_w_field", "ppath"),
+                      GIN(),
+                      GIN_TYPE(),
+                      GIN_DEFAULT(),
+                      GIN_DESC()));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
@@ -24563,15 +24577,33 @@ Options are:
                       PASSWORKSPACE(true)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("zeeman_magnetic_fieldFromPath"),
-      DESCRIPTION(R"--(Get the magnetic field components used by the Zeeman calculations.
+      NAME("zeeman_magnetic_fieldCalc"),
+      DESCRIPTION(
+          R"--(Get the Zeeman internal magnetic field components from the magnetic field.
+
+The calculations induce *ppath_agenda* for every *sensor_los* / *sensor_pos* pair.
+These generated *ppath* are used to call *ppvar_magFromPath*, and its results
+are passed to the internal magnetic field component calculations of the Zeeman
+effect.
 )--"),
       AUTHORS("Richard Larsson"),
       OUT(),
-      GOUT("zeeman_magnetic_field"),
-      GOUT_TYPE("Matrix"),
-      GOUT_DESC("The magnetic field components for Zeeman effect [np, 3] - last axis is H, theta, eta"),
-      IN("ppath", "ppvar_mag"),
+      GOUT("zeeman_magnetic_field", "zeeman_magnetic_field_path"),
+      GOUT_TYPE("ArrayOfMatrix", "ArrayOfPpath"),
+      GOUT_DESC(
+          "The magnetic field components for Zeeman effect [paths][np, 12] - last axis is H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw, deta_du, deta_dv, deta_dw",
+          "The path matching the magnetic field components [paths]"),
+      IN("ppath_agenda",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "f_grid",
+         "cloudbox_on",
+         "ppath_inside_cloudbox_do",
+         "sensor_pos",
+         "sensor_los",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

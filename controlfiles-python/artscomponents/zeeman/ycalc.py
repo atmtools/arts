@@ -30,8 +30,6 @@ DO_SAVE = False
 
 CF_SAVE = True
 
-DO_PRINT_PPVAR = False
-
 # %% Optional imports
 
 if SHOW_PLOTS:
@@ -46,7 +44,7 @@ CENTRAL_LINE_FREQ = 118750348044.712
 SPECTROMETER_HW = 5e6
 
 # %% Silly ARTS-isms
-    
+
 arts.abs_f_interp_order = 100_000_000
 arts.Touch(arts.iy_aux_vars)
 arts.Touch(arts.surface_props_data)
@@ -55,36 +53,36 @@ arts.Touch(arts.transmitter_pos)
 
 # %% Agendas
 
+
 @pyarts.workspace.arts_agenda(ws=arts)
 def ppath_agenda_step_by_step(arts):
     arts.Ignore(arts.rte_pos2)
     arts.ppathStepByStep()
+
+
 arts.Copy(arts.ppath_agenda, ppath_agenda_step_by_step)
 
 arts.mat = pyarts.arts.Matrix()
 
-if DO_PRINT_PPVAR:
-    @pyarts.workspace.arts_agenda(ws=arts)
-    def iy_main_agenda_emission(arts):
-        arts.ppathCalc()
-        arts.iyEmissionStandard()
-        arts.zeeman_magnetic_fieldFromPath(arts.mat)
-        arts.Print(arts.mat, 0)
-        arts.VectorSet(arts.geo_pos, [])
-else:
-    @pyarts.workspace.arts_agenda(ws=arts)
-    def iy_main_agenda_emission(arts):
-        arts.ppathCalc()
-        arts.iyEmissionStandard()
-        arts.VectorSet(arts.geo_pos, [])
+@pyarts.workspace.arts_agenda(ws=arts)
+def iy_main_agenda_emission(arts):
+    arts.ppathCalc()
+    arts.iyEmissionStandard()
+    arts.VectorSet(arts.geo_pos, [])
+
+
 arts.Copy(arts.iy_main_agenda, iy_main_agenda_emission)
+
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def surface_rtprop_agenda(arts):
     arts.InterpSurfaceFieldToPosition(output=arts.surface_skin_t, field=arts.t_surface)
     arts.surfaceBlackbody()
+
+
 arts.Copy(arts.surface_rtprop_agenda, surface_rtprop_agenda)
- 
+
+
 @pyarts.workspace.arts_agenda(ws=arts)
 def ppath_step_agenda_geometric(arts):
     arts.Ignore(arts.t_field)
@@ -92,26 +90,37 @@ def ppath_step_agenda_geometric(arts):
     arts.Ignore(arts.f_grid)
     arts.Ignore(arts.ppath_lraytrace)
     arts.ppath_stepGeometric()
+
+
 arts.Copy(arts.ppath_step_agenda, ppath_step_agenda_geometric)
+
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def iy_space_agenda_cosmic_background(arts):
     arts.Ignore(arts.rtp_pos)
     arts.Ignore(arts.rtp_los)
     arts.MatrixCBR(arts.iy, arts.stokes_dim, arts.f_grid)
+
+
 arts.Copy(arts.iy_space_agenda, iy_space_agenda_cosmic_background)
+
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def iy_surface_agenda(arts):
     arts.SurfaceDummy()
     arts.iySurfaceRtpropAgenda()
+
+
 arts.Copy(arts.iy_surface_agenda, iy_surface_agenda)
+
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def water_psat_agenda(arts):
     arts.water_p_eq_fieldMK05()
+
+
 arts.Copy(arts.water_p_eq_agenda, water_psat_agenda)
-    
+
 # %% Calculations
 
 arts.jacobianOff()
@@ -125,27 +134,26 @@ arts.nlteOff()
 # %% Species and line absorption
 
 arts.abs_speciesSet(species=[f"O2-Z-66-{CENTRAL_LINE_FREQ-1}-{CENTRAL_LINE_FREQ+1}"])
-arts.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = os.path.join(LINEPATH, ""))
+arts.abs_lines_per_speciesReadSpeciesSplitCatalog(basename=os.path.join(LINEPATH, ""))
 arts.Wigner6Init()
 
 # %% Use the automatic agenda setter
-arts.propmat_clearsky_agendaAuto(manual_mag_field=not DYNMAG,
-                                         H=MAGSTR,
-                                         theta=MAGTHE,
-                                         eta=MAGETA)
+arts.propmat_clearsky_agendaAuto(
+    manual_mag_field=not DYNMAG, H=MAGSTR, theta=MAGTHE, eta=MAGETA
+)
 
 # %% Grids and planet
 
 arts.p_grid = np.logspace(np.log10(105000), np.log10(0.1))
 arts.lat_grid = np.linspace(-90, 90)
 arts.lon_grid = np.linspace(-180, 180)
-arts.refellipsoidEarth(model = "Sphere")
+arts.refellipsoidEarth(model="Sphere")
 arts.z_surfaceConstantAltitude(altitude=0.0)
 arts.t_surface = 293.15 + np.ones_like(arts.z_surface.value)
 
 # %% Atmosphere
 
-arts.AtmRawRead(basename = os.path.join(ATMPATH, ""))
+arts.AtmRawRead(basename=os.path.join(ATMPATH, ""))
 arts.AtmosphereSet3D()
 arts.AtmFieldsCalcExpand1D()
 arts.Touch(arts.wind_u_field)
@@ -184,7 +192,7 @@ arts.propmat_clearsky_agenda_checkedCalc()
 
 arts.yCalc()
 
-#%% Plot current
+# %% Plot current
 
 if SHOW_PLOTS:
     f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
@@ -192,69 +200,88 @@ if SHOW_PLOTS:
     plt.xlabel("Freq offset [MHz]")
     plt.ylabel("I [K]")
     plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
     plt.show()
-    
+
     plt.plot(f, arts.y.value[1::4].reshape(NR, NF).T)
     plt.xlabel("Freq offset [MHz]")
     plt.ylabel("Q [K]")
     plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
     plt.show()
-    
+
     plt.plot(f, arts.y.value[2::4].reshape(NR, NF).T)
     plt.xlabel("Freq offset [MHz]")
     plt.ylabel("U [K]")
     plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
     plt.show()
-    
+
     plt.plot(f, arts.y.value[3::4].reshape(NR, NF).T)
     plt.xlabel("Freq offset [MHz]")
     plt.ylabel("V [K]")
     plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
     plt.show()
 
 # %% Save and compare data
 
 if DO_SAVE:
-    pyarts.xml.save(arts.y.value, os.path.join(testdir, "refdata.xml"), precision='g')
+    pyarts.xml.save(arts.y.value, os.path.join(testdir, "refdata.xml"), precision="g")
 
 if CF_SAVE:
     arts.VectorCreate("yref")
     arts.ReadXML(arts.yref, "refdata.xml")
-    
+
     if SHOW_PLOTS:
         f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
         y = arts.yref.value
-        
+
         plt.plot(f, y[::4].reshape(NR, NF).T)
         plt.xlabel("Freq offset [MHz]")
         plt.ylabel("I [K]")
         plt.title("Downlooking at 0-longitude [REFERENCE]")
-        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
         plt.show()
-        
+
         plt.plot(f, y[1::4].reshape(NR, NF).T)
         plt.xlabel("Freq offset [MHz]")
         plt.ylabel("Q [K]")
         plt.title("Downlooking at 0-longitude [REFERENCE]")
-        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
         plt.show()
-        
+
         plt.plot(f, y[2::4].reshape(NR, NF).T)
         plt.xlabel("Freq offset [MHz]")
         plt.ylabel("U [K]")
         plt.title("Downlooking at 0-longitude [REFERENCE]")
-        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
         plt.show()
-        
+
         plt.plot(f, y[3::4].reshape(NR, NF).T)
         plt.xlabel("Freq offset [MHz]")
         plt.ylabel("V [K]")
         plt.title("Downlooking at 0-longitude [REFERENCE]")
-        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+        plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc="lower left")
         plt.show()
-    
+
     arts.CompareRelative(arts.yref, arts.y, 1e-5, "y reference validation failed")
+
+matx = pyarts.arts.ArrayOfMatrix()
+path = pyarts.arts.ArrayOfPpath()
+arts.zeeman_magnetic_fieldCalc(matx, path)
+
+assert np.allclose(
+    [x[0, 0] for x in matx],
+    [
+        4.414169339007655e-05,
+        2.924084795330217e-05,
+        2.3345231233672053e-05,
+        2.7087530308000868e-05,
+        3.015775010835977e-05,
+        3.4444079230109504e-05,
+        4.283875296168632e-05,
+        4.8730077343922454e-05,
+        5.253072559785391e-05,
+    ],
+), "Magnetic field strength incorrect"
