@@ -9,8 +9,10 @@
  * Zeeman effect calculations are implemented in this file
  */
 
+#include "auto_md.h"
 #include "debug.h"
 #include "global_data.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "ppath_struct.h"
 #include "propagationmatrix.h"
@@ -117,39 +119,134 @@ void abs_lines_per_speciesZeemanCoefficients(
   }
 }
 
-void zeeman_magnetic_fieldFromPath(Matrix& B,
-                                   const Ppath& ppath,
-                                   const Matrix& ppvar_mag,
-                                   const Verbosity&) {
+void ppvar_magFromPath(Matrix& ppvar_mag,
+                       const Tensor3& mag_u_field,
+                       const Tensor3& mag_v_field,
+                       const Tensor3& mag_w_field,
+                       const Ppath& ppath,
+                       const Verbosity&) {
   const Index np = ppath.np;
-  ARTS_USER_ERROR_IF(np != ppath.los.nrows(),
-                     "Inconsistent number of points in ppath, np: ",
-                     np,
-                     " ppath.los.nrows(): ",
-                     ppath.los.nrows());
-  ARTS_USER_ERROR_IF(ppath.los.ncols() != 2,
-                     "ppath.los must have 2 columns, have ",
-                     ppath.los.ncols());
-  ARTS_USER_ERROR_IF(np != ppvar_mag.ncols(),
-                     "Inconsistent number of points in ppvar_mag, np: ",
-                     np,
-                     " ppvar_mag.ncols(): ",
-                     ppvar_mag.ncols());
-  ARTS_USER_ERROR_IF(ppvar_mag.nrows() != 3,
-                     "ppvar_mag must have 3 columns, is ",
-                     ppvar_mag.nrows());
-  ARTS_USER_ERROR_IF(ppath.dim != 3, "ppath.dim must be 3, is ", ppath.dim);
+  const Index atmosphere_dim = ppath.dim;
 
-  B.resize(np, 3);
+  Matrix itw_field;
+  interp_atmfield_gp2itw(
+      itw_field, atmosphere_dim, ppath.gp_p, ppath.gp_lat, ppath.gp_lon);
 
-  for (Index ip = 0; ip < np; ip++) {
-    const auto X = Zeeman::FromGrids(ppvar_mag(0, ip),
-                                     ppvar_mag(1, ip),
-                                     ppvar_mag(2, ip),
-                                     Conversion::deg2rad(ppath.los(ip, 0)),
-                                     Conversion::deg2rad(ppath.los(ip, 1)));
-    B(ip, 0) = X.H;
-    B(ip, 1) = Conversion::rad2deg(X.theta);
-    B(ip, 2) = Conversion::rad2deg(X.eta);
+  // Magnetic field:
+  ppvar_mag.resize(3, np);
+  ppvar_mag = 0;
+  //
+  interp_atmfield_by_itw(ppvar_mag(0, joker),
+                         atmosphere_dim,
+                         mag_u_field,
+                         ppath.gp_p,
+                         ppath.gp_lat,
+                         ppath.gp_lon,
+                         itw_field);
+
+  interp_atmfield_by_itw(ppvar_mag(1, joker),
+                         atmosphere_dim,
+                         mag_v_field,
+                         ppath.gp_p,
+                         ppath.gp_lat,
+                         ppath.gp_lon,
+                         itw_field);
+
+  interp_atmfield_by_itw(ppvar_mag(2, joker),
+                         atmosphere_dim,
+                         mag_w_field,
+                         ppath.gp_p,
+                         ppath.gp_lat,
+                         ppath.gp_lon,
+                         itw_field);
+}
+
+void zeeman_magnetic_fieldCalc(Workspace& ws,
+                               ArrayOfMatrix& zeeman_magnetic_field,
+                               ArrayOfPpath& zeeman_magnetic_field_path,
+                               const Agenda& ppath_agenda,
+                               const Numeric& ppath_lmax,
+                               const Numeric& ppath_lraytrace,
+                               const Vector& f_grid,
+                               const Index& cloudbox_on,
+                               const Index& ppath_inside_cloudbox_do,
+                               const Matrix& sensor_pos,
+                               const Matrix& sensor_los,
+                               const Tensor3& mag_u_field,
+                               const Tensor3& mag_v_field,
+                               const Tensor3& mag_w_field,
+                               const Verbosity& verbosity) {
+  using Conversion::rad2deg, Conversion::deg2rad;
+
+  const Index npaths = sensor_pos.nrows();
+  ARTS_USER_ERROR_IF(npaths != sensor_los.nrows(),
+                     "Different path lengths in *sensor_pos* and *sensor_los*");
+  ARTS_USER_ERROR_IF(sensor_pos.ncols() != 3, "Inputs not matching in size");
+  ARTS_USER_ERROR_IF(sensor_los.ncols() != 2, "Inputs not matching in size");
+  ARTS_USER_ERROR_IF(mag_u_field.shape() != mag_v_field.shape() or
+                         mag_u_field.shape() != mag_w_field.shape() or
+                         mag_u_field.size() == 0,
+                     "Magnetic field sizes not correct");
+
+  zeeman_magnetic_field.resize(npaths);
+  zeeman_magnetic_field_path.resize(npaths);
+
+  for (Index ipath = 0; ipath < npaths; ipath++) {
+    Ppath& ppath = zeeman_magnetic_field_path[ipath];
+    const Vector rte_pos{sensor_pos[ipath]};
+    const Vector rte_los{sensor_los[ipath]};
+
+    ppath_agendaExecute(ws,
+                        ppath,
+                        ppath_lmax,
+                        ppath_lraytrace,
+                        rte_pos,
+                        rte_los,
+                        {},
+                        cloudbox_on,
+                        ppath_inside_cloudbox_do,
+                        f_grid,
+                        ppath_agenda);
+
+    ARTS_USER_ERROR_IF(ppath.dim != 3, "Only for 3D atmospheres");
+
+    Matrix ppvar_mag;
+    ppvar_magFromPath(
+        ppvar_mag, mag_u_field, mag_v_field, mag_w_field, ppath, verbosity);
+
+    zeeman_magnetic_field[ipath].resize(ppath.np, 12);
+    for (Index ip = 0; ip < ppath.np; ip++) {
+      Vector rtp_los;
+      mirror_los(rtp_los, ppath.los[ip], 3);
+
+      const auto [H,
+                  theta,
+                  eta,
+                  dH_du,
+                  dH_dv,
+                  dH_dw,
+                  dtheta_du,
+                  dtheta_dv,
+                  dtheta_dw,
+                  deta_du,
+                  deta_dv,
+                  deta_dw] = Zeeman::FromGrids(ppvar_mag(0, ip),
+                                               ppvar_mag(1, ip),
+                                               ppvar_mag(2, ip),
+                                               deg2rad(rtp_los[0]),
+                                               deg2rad(rtp_los[1]));
+      zeeman_magnetic_field[ipath](ip, 0) = H;
+      zeeman_magnetic_field[ipath](ip, 1) = rad2deg(theta);
+      zeeman_magnetic_field[ipath](ip, 2) = rad2deg(eta);
+      zeeman_magnetic_field[ipath](ip, 3) = dH_du;
+      zeeman_magnetic_field[ipath](ip, 4) = dH_dv;
+      zeeman_magnetic_field[ipath](ip, 5) = dH_dw;
+      zeeman_magnetic_field[ipath](ip, 6) = rad2deg(dtheta_du);
+      zeeman_magnetic_field[ipath](ip, 7) = rad2deg(dtheta_dv);
+      zeeman_magnetic_field[ipath](ip, 8) = rad2deg(dtheta_dw);
+      zeeman_magnetic_field[ipath](ip, 9) = rad2deg(deta_du);
+      zeeman_magnetic_field[ipath](ip, 10) = rad2deg(deta_dv);
+      zeeman_magnetic_field[ipath](ip, 11) = rad2deg(deta_dw);
+    }
   }
 }
