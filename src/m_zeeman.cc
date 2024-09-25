@@ -128,6 +128,12 @@ void ppvar_magFromPath(Matrix& ppvar_mag,
   const Index np = ppath.np;
   const Index atmosphere_dim = ppath.dim;
 
+  ARTS_USER_ERROR_IF(mag_u_field.shape() != mag_v_field.shape() or
+                         mag_u_field.shape() != mag_w_field.shape() or
+                         mag_u_field.size() == 0,
+                     "Magnetic field sizes not correct");
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "Only for 3D atmospheres");
+
   Matrix itw_field;
   interp_atmfield_gp2itw(
       itw_field, atmosphere_dim, ppath.gp_p, ppath.gp_lat, ppath.gp_lon);
