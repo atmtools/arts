@@ -46,7 +46,7 @@ if(SPHINX_FOUND)
   add_custom_target(gen_pyarts_arts_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_autoclass_rst.py source
   )
-  add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python)
+  add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_arts_overview_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Agendas > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.agendas.auto.rst
@@ -54,12 +54,12 @@ if(SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Groups > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.groups.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Methods > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.methods.auto.rst
   )
-  add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python)
+  add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_examples_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/examples examples source
   )
-  add_dependencies(gen_examples_rst pyarts pyarts_docs_gen_copy_python)
+  add_dependencies(gen_examples_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   #
   # Clean
