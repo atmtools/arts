@@ -59,7 +59,8 @@ void py_basic(py::module_& m) try {
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
-         "copy"_a.none()  = py::none())
+         "copy"_a.none()  = py::none(),
+         "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
@@ -106,13 +107,14 @@ void py_basic(py::module_& m) try {
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
-         "copy"_a.none()  = py::none())
+         "copy"_a.none()  = py::none(),
+         "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.").doc() =
-      "A list of :class:`~pyarts.arts.Numeric`";
+          "A :class:`~numpy.ndarray` of the object.")
+      .doc() = "A list of :class:`~pyarts.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);
   str_interface(aon);

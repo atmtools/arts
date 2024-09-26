@@ -45,7 +45,8 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Returns a :class:`~numpy.ndarray` of the object.");
 
   c.def_prop_rw(
       "value",
@@ -98,7 +99,8 @@ void py_rtepack(py::module_ &m) try {
             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
-          "copy"_a.none()  = py::none())
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
@@ -159,7 +161,8 @@ void py_rtepack(py::module_ &m) try {
             return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
-          "copy"_a.none()  = py::none())
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
@@ -211,7 +214,8 @@ void py_rtepack(py::module_ &m) try {
             return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
-          "copy"_a.none()  = py::none())
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },

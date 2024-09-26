@@ -76,7 +76,8 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Allows np.array to be called on the object.");
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -110,7 +111,8 @@ void matpack_constant_interface(
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Allows np.array to be called on the object.");
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -147,7 +149,8 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Allows np.array to be called on the object.");
 
   py::implicitly_convertible<nd, matpack::grid<Compare>>();
   py::implicitly_convertible<mtype, matpack::grid<Compare>>();
@@ -194,7 +197,8 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
                                                  "copy"_a  = copy);
       },
       "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none());
+      "copy"_a.none()  = py::none(),
+      "Allows np.array to be called on the object.");
 
   c.def_prop_rw(
       "value",
@@ -280,12 +284,16 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
   c.def(
       "__eq__",
       [](const mtype& a, const mtype& b) { return a == b; },
-      py::is_operator());
+      py::is_operator(),
+      "value"_a,
+      "Allows `self == value`");
 
   c.def(
       "__ne__",
       [](const mtype& a, const mtype& b) { return a != b; },
-      py::is_operator());
+      py::is_operator(),
+      "value"_a,
+      "Allows `self != value`");
 
   common_ndarray(c);
 

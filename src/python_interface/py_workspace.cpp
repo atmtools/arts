@@ -99,8 +99,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "init",
           [](Workspace& w, const std::string& n, const std::string& t) {
             if (w.contains(n))
-              throw std::domain_error(var_string(
-                  "Workspace variable ", '"', n, '"', " exists."));
+              throw std::domain_error(
+                  var_string("Workspace variable ", '"', n, '"', " exists."));
 
             w.set(n, Wsv::from_named_type(t));
           },
@@ -117,13 +117,15 @@ void py_workspace(py::class_<Workspace>& ws) try {
             Wsv wsv = from_py(x);
 
             if (wsv.index() != w.share(n).index())
-              throw std::domain_error(
-                  var_string("Type mismatch: ",
-                             '"', n, '"',
-                             " is of type \"",
-                             w.share(n).type_name(),
-                             "\", cannot be set to \"",
-                             wsv.type_name(),'"'));
+              throw std::domain_error(var_string("Type mismatch: ",
+                                                 '"',
+                                                 n,
+                                                 '"',
+                                                 " is of type \"",
+                                                 w.share(n).type_name(),
+                                                 "\", cannot be set to \"",
+                                                 wsv.type_name(),
+                                                 '"'));
 
             w.overwrite(n, wsv);
 
@@ -147,8 +149,9 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "name"_a,
           "value"_a.noconvert(),
           "Set the variable to the new value.")
-      .def("has",
-           [](Workspace& w, const std::string& n) { return w.contains(n); },
+      .def(
+          "has",
+          [](Workspace& w, const std::string& n) { return w.contains(n); },
           "name"_a,
           "Checks if the workspace contains the variable.")
       .def(
@@ -167,7 +170,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
         return py::make_iterator(
             py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
       },
-      py::rv_policy::reference_internal);
+      py::rv_policy::reference_internal,
+      "Allows `iter(self)`");
 
   ws.doc() = "The core ARTS Workspace";
 

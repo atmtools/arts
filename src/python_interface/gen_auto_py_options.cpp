@@ -26,7 +26,8 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
      << ">(x)};}, \"String constructor\")\n";
 
   os << "      .def(\"__hash__\", [](const " << wso.name
-     << "& x) {return std::hash<" << wso.name << ">{}(x);})\n";
+     << "& x) {return std::hash<" << wso.name
+     << ">{}(x);}, \"Allows hashing\")\n";
 
   os << "      .def(\"__copy__\", [](" << wso.name << " t) -> " << wso.name
      << " {return t;})\n";
@@ -34,12 +35,12 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
   os << "      .def(\"__deepcopy__\", [](" << wso.name << " t, py::dict&) -> "
      << wso.name << " { return t; })\n";
 
-  os << "      .def(py::self == py::self)\n";
-  os << "      .def(py::self != py::self)\n";
-  os << "      .def(py::self <= py::self)\n";
-  os << "      .def(py::self >= py::self)\n";
-  os << "      .def(py::self < py::self)\n";
-  os << "      .def(py::self > py::self)\n";
+  os << "      .def(py::self == py::self, \"`self == other`\")\n";
+  os << "      .def(py::self != py::self, \"`self != other`\")\n";
+  os << "      .def(py::self <= py::self, \"`self <= other`\")\n";
+  os << "      .def(py::self >= py::self, \"`self >= other`\")\n";
+  os << "      .def(py::self < py::self, \"`self < other`\")\n";
+  os << "      .def(py::self > py::self, \"`self > other`\")\n";
 
   os << "      .def(\"__getstate__\",\n        [](" << wso.name
      << "& t) {\n"

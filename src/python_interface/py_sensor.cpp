@@ -26,7 +26,8 @@ void py_sensor(py::module_& m) try {
             return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
-          "copy"_a.none()  = py::none())
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
@@ -51,7 +52,8 @@ void py_sensor(py::module_& m) try {
             return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
           },
           "dtype"_a.none() = py::none(),
-          "copy"_a.none()  = py::none())
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
           [](py::object& x) { return x.attr("__array__")("copy"_a = false); },

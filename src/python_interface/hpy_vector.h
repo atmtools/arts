@@ -46,7 +46,10 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
   cl.def(init<>(), "Default constructor")
 
-      .def("__len__", [](const Array<Value> &v) { return v.size(); })
+      .def(
+          "__len__",
+          [](const Array<Value> &v) { return v.size(); },
+          "Return the number of items in the list.")
 
       .def(
           "__bool__",
@@ -59,14 +62,17 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
             return make_iterator(
                 type<Array<Value>>(), "Iterator", v.begin(), v.end());
           },
-          keep_alive<0, 1>())
+          keep_alive<0, 1>(),
+          "Allows `iter(self)`")
 
       .def(
           "__getitem__",
           [](Array<Value> &v, Py_ssize_t i) -> ValueRef {
             return v[detail::wrap(i, v.size())];
           },
-          rv_policy::automatic_reference)
+          rv_policy::automatic_reference,
+          "i"_a,
+          "Return the i-th item.")
 
       .def(
           "clear",
@@ -120,29 +126,39 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
             },
             "Extend `self` by appending elements from `arg`.")
 
-        .def("__setitem__",
-             [](Array<Value> &v, Py_ssize_t i, const Value &value) {
-               v[detail::wrap(i, v.size())] = value;
-             })
+        .def(
+            "__setitem__",
+            [](Array<Value> &v, Py_ssize_t i, const Value &value) {
+              v[detail::wrap(i, v.size())] = value;
+            },
+            "i"_a,
+            "value"_a,
+            "Set the i-th item to `value`.")
 
-        .def("__delitem__",
-             [](Array<Value> &v, Py_ssize_t i) {
-               v.erase(v.begin() + detail::wrap(i, v.size()));
-             })
+        .def(
+            "__delitem__",
+            [](Array<Value> &v, Py_ssize_t i) {
+              v.erase(v.begin() + detail::wrap(i, v.size()));
+            },
+            "i"_a,
+            "Remove the i-th item from the list.")
 
-        .def("__getitem__",
-             [](const Array<Value> &v, const slice &slice) -> Array<Value> * {
-               auto [start, stop, step, length] = slice.compute(v.size());
-               auto *seq                        = new Array<Value>();
-               seq->reserve(length);
+        .def(
+            "__getitem__",
+            [](const Array<Value> &v, const slice &slice) -> Array<Value> * {
+              auto [start, stop, step, length] = slice.compute(v.size());
+              auto *seq                        = new Array<Value>();
+              seq->reserve(length);
 
-               for (size_t i = 0; i < length; ++i) {
-                 seq->push_back(v[start]);
-                 start += step;
-               }
+              for (size_t i = 0; i < length; ++i) {
+                seq->push_back(v[start]);
+                start += step;
+              }
 
-               return seq;
-             })
+              return seq;
+            },
+            "slice"_a,
+            "Return a slice of the list.")
 
         .def(
             "__setitem__",
@@ -158,40 +174,51 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
                 v[start]  = value[i];
                 start    += step;
               }
-            })
+            },
+            "slice"_a,
+            "value"_a,
+            "Set a slice of the list.")
 
-        .def("__delitem__", [](Array<Value> &v, const slice &slice) {
-          auto [start, stop, step, length] = slice.compute(v.size());
-          if (length == 0) return;
+        .def(
+            "__delitem__",
+            [](Array<Value> &v, const slice &slice) {
+              auto [start, stop, step, length] = slice.compute(v.size());
+              if (length == 0) return;
 
-          stop = start + (length - 1) * step;
-          if (start > stop) {
-            std::swap(start, stop);
-            step = -step;
-          }
+              stop = start + (length - 1) * step;
+              if (start > stop) {
+                std::swap(start, stop);
+                step = -step;
+              }
 
-          if (step == 1) {
-            v.erase(v.begin() + start, v.begin() + stop + 1);
-          } else {
-            for (size_t i = 0; i < length; ++i) {
-              v.erase(v.begin() + stop);
-              stop -= step;
-            }
-          }
-        });
+              if (step == 1) {
+                v.erase(v.begin() + start, v.begin() + stop + 1);
+              } else {
+                for (size_t i = 0; i < length; ++i) {
+                  v.erase(v.begin() + stop);
+                  stop -= step;
+                }
+              }
+            },
+            "slice"_a,
+            "Remove a slice of the list.");
   }
 
   if constexpr (detail::is_equality_comparable_v<Value>) {
-    cl.def(self == self)
-        .def(self != self)
+    cl.def(self == self, "`self == other`");
+    cl.def(self != self, "`self != other`");
 
-        .def("__contains__",
-             [](const Array<Value> &v, const Value &x) {
-               return std::find(v.begin(), v.end(), x) != v.end();
-             })
+    cl.def(
+          "__contains__",
+          [](const Array<Value> &v, const Value &x) {
+            return std::find(v.begin(), v.end(), x) != v.end();
+          },
+          "Return true if `arg` is in the list.")
 
-        .def("__contains__",  // fallback for incompatible types
-             [](const Array<Value> &, handle) { return false; })
+        .def(
+            "__contains__",  // fallback for incompatible types
+            [](const Array<Value> &, handle) { return false; },
+            "Return false.")
 
         .def(
             "count",
