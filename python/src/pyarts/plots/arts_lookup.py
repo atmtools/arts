@@ -319,7 +319,7 @@ def plot_arts_lookup(lookup,
         import matplotlib.pyplot as plt
         import pyarts
 
-        lookup_file = join(dirname(pyarts.__file__), '../test/plots/reference',
+        lookup_file = join(dirname(pyarts.__file__), '../../test/plots/reference',
                            'abs_lookup_small.xml')
         fig, ax = pyarts.plots.plot_arts_lookup(pyarts.xml.load(lookup_file))
 
@@ -335,7 +335,7 @@ def plot_arts_lookup(lookup,
         import pyarts
         from pyarts.arts import ArrayOfArrayOfSpeciesTag, SpeciesTag
 
-        lookup_file = join(dirname(pyarts.__file__), '../test/plots/reference',
+        lookup_file = join(dirname(pyarts.__file__), '../../test/plots/reference',
                            'abs_lookup_small.xml')
         fig, ax = pyarts.plots.plot_arts_lookup(
             pyarts.xml.load(lookup_file),

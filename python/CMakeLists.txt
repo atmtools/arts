@@ -14,25 +14,31 @@ endif()
 file(STRINGS ${ARTS_SOURCE_DIR}/VERSION ARTS_VERSION)
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/pyarts/__init__.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/pyarts/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts/__init__.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts/__init__.py
   @ONLY
 )
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/setup.py
+  ${ARTS_SOURCE_DIR}/LICENSE.txt
+  ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt
+  COPYONLY
+)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
   @ONLY
 )
 
-file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/pyarts/*.py")
+file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts/*.py")
 add_custom_target(
   pyarts_copy_python_source_files
-  COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different pyarts ${CMAKE_CURRENT_BINARY_DIR}/pyarts
-  COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/pyarts/__init__.py.in
+  COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different src ${CMAKE_CURRENT_BINARY_DIR}/src
+  COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts/__init__.py.in
   DEPENDS ${PYTHON_PYARTS_FILES}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMENT "Copying python/pyarts *.py files"
+  COMMENT "Copying python/src *.py files"
 )
 
 file(GLOB_RECURSE PYTHON_PYARTS_TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/test/*")
