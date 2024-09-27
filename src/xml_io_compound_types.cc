@@ -30,8 +30,11 @@
 #include "jacobian.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
+#include "matpack_data.h"
 #include "mystring.h"
+#include "obsel.h"
 #include "path_point.h"
+#include "rtepack.h"
 #include "sorted_grid.h"
 #include "surf.h"
 #include "xml_io.h"
@@ -2808,11 +2811,15 @@ void xml_read_from_stream(std::istream& is_xml,
                           bifstream* pbifs) {
   tag stag{is_xml, "SensorObsel"};
 
-  xml_read_from_stream(is_xml, g.f_grid, pbifs);
-  xml_read_from_stream(is_xml, g.f_grid_w, pbifs);
-  xml_read_from_stream(is_xml, g.poslos_grid_w, pbifs);
-  xml_read_from_stream(is_xml, g.poslos_grid, pbifs);
-  xml_read_from_stream(is_xml, g.polarization, pbifs);
+  AscendingGrid f_grid;
+  SensorPosLosVector poslos_grid;
+  StokvecMatrix weight_matrix;
+
+  xml_read_from_stream(is_xml, f_grid, pbifs);
+  xml_read_from_stream(is_xml, poslos_grid, pbifs);
+  xml_read_from_stream(is_xml, weight_matrix, pbifs);
+
+  g = SensorObsel{f_grid, poslos_grid, weight_matrix};
 
   stag.close();
 }
@@ -2823,11 +2830,9 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const String&) {
   tag stag{os_xml, "SensorObsel"};
 
-  xml_write_to_stream(os_xml, g.f_grid, pbofs, "f_grid");
-  xml_write_to_stream(os_xml, g.f_grid_w, pbofs, "f_grid_w");
-  xml_write_to_stream(os_xml, g.poslos_grid_w, pbofs, "poslos_w");
-  xml_write_to_stream(os_xml, g.poslos_grid, pbofs, "poslos");
-  xml_write_to_stream(os_xml, g.polarization, pbofs, "polarization");
+  xml_write_to_stream(os_xml, g.f_grid(), pbofs, "f_grid");
+  xml_write_to_stream(os_xml, g.poslos_grid(), pbofs, "poslos");
+  xml_write_to_stream(os_xml, g.weight_matrix(), pbofs, "weight_matrix");
 
   stag.close();
 }
@@ -2912,7 +2917,9 @@ void xml_write_to_stream(std::ostream&,
 
 //! MatrixOfDisortBDRF
 
-void xml_read_from_stream(std::istream&is_xml, MatrixOfDisortBDRF& x, bifstream*) {
+void xml_read_from_stream(std::istream& is_xml,
+                          MatrixOfDisortBDRF& x,
+                          bifstream*) {
   x.resize(0, 0);
 
   ArtsXMLTag tag;

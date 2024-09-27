@@ -2771,11 +2771,6 @@ The core calculations happens inside the *spectral_radiance_operator*.
       .in        = {"measurement_sensor",
                     "spectral_radiance_operator",
                     "ray_path_observer_agenda"},
-      .gin       = {"exhaustive"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {R"--(Boolean flag for whether or not the sensor elements are treated as exhaustive, i.e., all elements are understood to have the same frequency and pos-los grids)--"},
       .pass_workspace = true,
   };
 
@@ -2795,21 +2790,14 @@ User choices of *spectral_radiance_unit* does not adversely affect this method.
                     "surface_field",
                     "spectral_radiance_unit",
                     "spectral_radiance_observer_agenda"},
-      .gin       = {"exhaustive"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {R"--(Boolean flag for whether or not the sensor elements are treated as exhaustive, i.e., all elements are understood to have the same frequency and pos-los grids)--"},
       .pass_workspace = true,
   };
 
   wsm_data["measurement_sensorSimple"] = {
       .desc =
-          R"--(Sets a simple sensor
+          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
 
-Sets one measurement vector sensor element entry per frequency in *frequency_grid*, a single polarization and a single pair of positions plus line-of-sight.
-
-The resulting vector of sensor elements is not to be considered exhaustive by future calculations.
+All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
@@ -2825,73 +2813,26 @@ The resulting vector of sensor elements is not to be considered exhaustive by fu
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_sensorGaussianFrequencyGrid"] = {
+  wsm_data["measurement_sensorSimpleGaussian"] = {
       .desc =
-          R"--(Sets a sensor with a Gaussian channel opening on a fixed frequency grid
+          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
 
-Each element has a frequency grid, a single polarization and a single pair of positions and line-of-sight.
-The frequency grid may only consist of elements that are in the input frequency grid.
+All elements share position, line-of-sight, and frequency grid.
 
-The Gaussian distribution by each element is defined by the ``f0_fwhm`` list of *Vector2* values.
-In each *Vector2*, the first value is the frequency center (:math:`f_0`) and the second value is the full width at half maximum (:math:`\sigma`).
-The frequency center must be positive.  The half maximum width must be non-negative, where a zero value means that the channel
-is just the dirac delta function at the frequency center, which then must be in *frequency_grid*.
-
-The freqeuncy grid of each channel is cut when :math:`\exp\left(-0.5 \left[\frac{f - f_0}{\sigma}\right]^2\right)`
-is less than the value of ``weight_cutoff``.  Note that this means channels might end of with zero
-frequency points.
-
-The resulting vector of sensor elements can be considered exhaustive by future calculations if an only if
-the weight cutoff is non-positive and all half width half maximums are positive.
-Otherwise the vector is not exhaustive.
+Note that this means you only get "half" a Gaussian channel for the outermost channels.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor"},
       .in     = {"frequency_grid"},
-      .gin    = {"f0_fwhm", "weight_cutoff", "pos", "los", "pol"},
+      .gin    = {"fwhm", "pos", "los", "pol"},
       .gin_type =
-          {"ArrayOfVector2", "Numeric", "Vector3", "Vector2", "Stokvec"},
+          {"Vector, Numeric", "Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
-                    Numeric{1e-3},
                     std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I)},
       .gin_desc =
-          {"List of [f0, fwhm]",
-           "The weight cutoff",
-           "A position [alt, lat, lon]",
-           "A line of sight [zenith, azimuth]",
-           "The polarization whos dot-product with the spectral radiance becomes the measurement"},
-  };
-
-  wsm_data["measurement_sensorGaussian"] = {
-      .desc =
-          R"--(Sets a sensor with a Gaussian channel opening on a computed frequency grid
-
-Each element has a frequency grid, a single polarization and a single pair of positions and line-of-sight.
-
-The Gaussian distribution by each element is defined by the ``f0_fwmh_df`` list of *Vector3* values.
-In each *Vector3*, the first value is the frequency center (:math:`f_0`), the second value is the full width at half maximum (:math:`\sigma`),
-and the last value is the frequency stepping between points (:math:`'Delta f`). All values must be positive.
-
-The number of points per channel is :math:`1 + 2n` for the first :math:`n` that ensures that :math:`\exp\left(-0.5 \left[\frac{n\Delta f}{\sigma}\right]^2\right)` is less
-than ``weight_cutoff``.  This keeps (:math:`f_0`) in the resulting frequency grid.
-
-The resulting vector of sensor elements cannot be considered exhaustive in future calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor"},
-      .gin    = {"f0_fwhm_df", "weight_cutoff", "pos", "los", "pol"},
-      .gin_type =
-          {"ArrayOfVector3", "Numeric", "Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt,
-                    Numeric{1e-3},
-                    std::nullopt,
-                    std::nullopt,
-                    rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc =
-          {"List of [f0, fwhm, df]",
-           "The weight cutoff",
+          {"The full-width half-maximum of the channel(s)",
            "A position [alt, lat, lon]",
            "A line of sight [zenith, azimuth]",
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
