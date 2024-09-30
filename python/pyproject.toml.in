@@ -1,0 +1,30 @@
+[project]
+name = "pyarts"
+version = "@ARTS_VERSION@"
+requires-python = ">=3.10"
+license = { "file" = "LICENSE.txt" }
+authors=[ {"name" = "The ARTS developers"} ]
+classifiers=[
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "matplotlib",
+    "netCDF4>=1.1.1",
+    "numpy>=2.0",
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://radiativetransfer.org"
+Documentation = "https://atmtools.github.com/arts-docs-master/"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+

@@ -16,7 +16,7 @@ dependencies:
         - numpy>=2
         - openblas
         - pkg-config
-        - pytest
+        - pytest>=7
         - python-build
         - requests
         - scipy
