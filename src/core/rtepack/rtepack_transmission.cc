@@ -206,13 +206,14 @@ struct tran {
             : (dsy * x2 * iy + sy * dx2 * iy + sy * x2 * diy + dsx * y2 * ix +
                sx * dy2 * ix + sx * y2 * dix - C1 * dx2dy2) *
                   inv_x2y2;
-    const Numeric dC2 = both_zero ? 0.0 : (dcx - dcy - C2 * dx2dy2) * inv_x2y2;
+    const Numeric dC2 = both_zero ? 0.0
+                                  : ((x_zero ? 0.0 : (dcx - C2 * dx2)) -
+                                     (y_zero ? 0.0 : (dcy + C2 * dy2))) *
+                                        inv_x2y2;
     const Numeric dC3 =
         both_zero ? 0.0
-                  : ((x_zero   ? -dsy * iy - sy * diy
-                      : y_zero ? dsx * ix + sx * dix
-                               : dsx * ix + sx * dix - dsy * iy - sy * diy) -
-                     C3 * dx2dy2) *
+                  : ((x_zero ? 0.0 : (dsx * ix + sx * dix - C3 * dx2)) -
+                     (y_zero ? 0.0 : (dsy * iy + sy * diy + C3 * dy2))) *
                         inv_x2y2;
 
     return {
@@ -441,10 +442,12 @@ void two_level_exp(std::vector<muelmat_vector> &T,
       N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
 
   ARTS_USER_ERROR_IF(N != static_cast<Size>(r.size()),
-                     "Must have same number of levels ({}) in K and r", N);
+                     "Must have same number of levels ({}) in K and r",
+                     N);
 
   ARTS_USER_ERROR_IF(N != static_cast<Size>(dr.nrows()),
-                     "Must have same number of levels ({}) in K and dr", N);
+                     "Must have same number of levels ({}) in K and dr",
+                     N);
 
   T.resize(N);
 
@@ -465,16 +468,20 @@ void two_level_exp(std::vector<muelmat_vector> &T,
     x = 0.0;
   }
 
-  ARTS_USER_ERROR_IF(std::ranges::any_of(K, Cmp::ne(nv), &propmat_vector::size),
-                     "Must have same number of frequency elements ({}) in all K:s as in K[0]", nv);
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(K, Cmp::ne(nv), &propmat_vector::size),
+      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
+      nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dK, Cmp::ne(nv), &propmat_matrix::ncols),
-      "Must have same number of frequency elements ({}) in all dK:s as in K[0]", nv);
+      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
+      nv);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
-      "Must have same number of derivative elements ({}) in all dK:s as in dr", nq);
+      "Must have same number of derivative elements ({}) in all dK:s as in dr",
+      nq);
 
   ARTS_USER_ERROR_IF(
       dr.npages() != 2,
