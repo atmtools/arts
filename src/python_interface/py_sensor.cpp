@@ -78,82 +78,14 @@ void py_sensor(py::module_& m) try {
 
   py::class_<SensorObsel> so(m, "SensorObsel");
   workspace_group_interface(so);
-  so.def(py::init<Vector,
-                  AscendingGrid,
-                  MuelmatVector,
-                  SensorPosLosVector,
-                  Stokvec>(),
-         "From pos and los")
-      .def_rw("f_grid_w", &SensorObsel::f_grid_w, "Frequency weights")
-      .def_rw("f_grid", &SensorObsel::f_grid, "Frequency grid")
-      .def_rw("poslos_w",
-              &SensorObsel::poslos_grid_w,
-              "Position and line of sight weights")
-      .def_rw("poslos",
-              &SensorObsel::poslos_grid,
-              "Position and line of sight grid")
-      .def_rw(
-          "polarization", &SensorObsel::polarization, "Polarization sampling")
-      .def(
-          "set_frequency_gaussian",
-          [](SensorObsel& s,
-             const Numeric& f0,
-             const Numeric& fwhm,
-             const Index& Nfwhm,
-             const Index& Nhwhm) {
-            s.set_frequency_gaussian(f0, fwhm, Nfwhm, Nhwhm);
-          },
-          "f0"_a,
-          "fwhm"_a,
-          "Nfwhm"_a = Index{5},
-          "Nhwhm"_a = Index{3},
-          R"--(Gaussian frequency grid
-  
-Parameters
-----------
-f0 : float
-    Center frequency
-fwhm : float
-    Full width at half maximum
-Nfwhm : int
-    Number of fwhm to include
-Nhwhm : int
-    Number of half width at half maximum to include
-)--")
-      .def(
-          "set_frequency_lochain",
-          [](SensorObsel& s,
-             const Vector& f0s,
-             const Numeric& width,
-             const Index& N,
-             const String& filter) {
-            s.set_frequency_lochain(DescendingGrid{f0s}, width, N, filter);
-          },
-          "f0s"_a,
-          "width"_a,
-          "N"_a,
-          "filter"_a = String{},
-          R"--(Local oscillator style channel selection frequency grid
-  
-Parameters
-----------
-f0s : list of descending floats
-    Effectively, the local oscillator frequencies for the channels
-width : float
-    Boxcar width of each sub-channel
-N : int
-    Number of points per sub-channel
-filter : list of int, optional
-    Selection of sub-channels to include - one shorter than f0s
-    with each element being U for upper bandpass, L for lower bandpass,
-    or anything else for full bandpass.  Default is full bandpass.
-)--")
-      .def("ok", &SensorObsel::ok, "Check if the obsel is valid")
-      .def("cutoff_frequency_weights",
-           &SensorObsel::cutoff_frequency_weights,
-           "cutoff"_a,
-           "relative"_a = true,
-           "Cuts out parts of the frequency grid with low weights");
+  so.def(py::init<const AscendingGrid&,
+                  const SensorPosLosVector&,
+                  StokvecMatrix>())
+      .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid")
+      .def_prop_ro("weight_matrix", &SensorObsel::weight_matrix, "Weights matrix")
+      .def_prop_ro("poslos",
+                   &SensorObsel::poslos_grid,
+                   "Position and line of sight grid");
 
   auto a1 =
       py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(

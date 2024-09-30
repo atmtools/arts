@@ -41,12 +41,7 @@ ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_sensorGaussian(
-    f0_fwhm_df=[[f, 1e5, 1e4] for f in ws.frequency_grid],
-    pos=pos,
-    los=los,
-    pol="RC",
-)
+ws.measurement_sensorSimpleGaussian(fwhm=1e5, pos=pos, los=los, pol="RC")
 
 # %% Core calculations
 
@@ -63,73 +58,23 @@ plt.title(
     f"Zeeman effect of {round(line_f0/1e6)} MHz O$_2$ line with Gaussian channels on individual grids"
 )
 
-
 # %% Test
 
 assert np.allclose(
     result[::100],
     np.array(
         [
-            227.84323245,
-            230.93576779,
-            234.90145621,
-            240.50250701,
-            250.05423085,
-            209.93307663,
-            249.51412418,
-            240.22134231,
-            234.71314135,
-            230.79295502,
-            227.72696315,
-        ]
-    ),
-)
-
-
-# %% Set up a sensor with a fixed grid size
-
-pos = [100e3, 0, 0]
-los = [180.0, 0.0]
-ws.measurement_sensorGaussianFrequencyGrid(
-    f0_fwhm=[[f, 1e5] for f in ws.frequency_grid],
-    pos=pos,
-    los=los,
-    pol="RC",
-)
-
-# %% Core calculations
-
-result = pyarts.arts.Vector()
-result_jac = pyarts.arts.Matrix()
-ws.measurement_vectorFromSensor(result, result_jac)
-
-# %% Show results
-
-plt.plot((ws.frequency_grid - line_f0) / 1e6, result)
-plt.xlabel("Frequency offset [MHz]")
-plt.ylabel("Spectral radiance [K]")
-plt.title(
-    f"Zeeman effect of {round(line_f0/1e6)} MHz O$_2$ line with Gaussian channels on a single grid"
-)
-
-
-# %% Test
-
-assert np.allclose(
-    result[::100],
-    np.array(
-        [
-            227.85768946,
-            230.9357677,
-            234.90145604,
-            240.50250662,
-            250.05422954,
-            209.91116972,
-            249.51412294,
-            240.22134193,
-            234.71314118,
-            230.79295493,
-            227.74131132,
+            227.78791323,
+            230.8653163,
+            234.80800379,
+            240.3623207,
+            249.78397782,
+            207.61855855,
+            249.78344508,
+            240.36129972,
+            234.80653428,
+            230.86340781,
+            227.78557379,
         ]
     ),
 )

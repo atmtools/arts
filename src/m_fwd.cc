@@ -286,78 +286,43 @@ void measurement_vectorFromOperatorPath(
     Vector& measurement_vector,
     const ArrayOfSensorObsel& measurement_vector_sensor,
     const SpectralRadianceOperator& spectral_radiance_operator,
-    const Agenda& ray_path_observer_agenda,
-    const Index& exhaustive_) try {
-  //! Flag whether or not all frequency and pos-los grids are to be assumed the same
-  const bool exhaustive = static_cast<bool>(exhaustive_);
-
-  ARTS_USER_ERROR_IF(not all_ok(measurement_vector_sensor),
-                     "Measurement vector sensor infromation is not OK")
-  ARTS_USER_ERROR_IF(
-      exhaustive and not sensor::is_exhaustive_like(measurement_vector_sensor),
-      "Measurement vector sensor infromation is not exhaustive-like despite exhaustive flag")
-
+    const Agenda& ray_path_observer_agenda) try {
   measurement_vector.resize(measurement_vector_sensor.size());
   measurement_vector = 0.0;
   if (measurement_vector_sensor.empty()) return;
 
-  ArrayOfPropagationPathPoint ray_path;
-  AscendingGrid frequency_grid;
-  std::vector<fwd::path> path;
-  StokvecVector spectral_radiance;
+  //! Check the observational elements that their dimensions are correct
+  for (auto& obsel : measurement_vector_sensor) obsel.check();
 
-  if (exhaustive) {
-    frequency_grid = measurement_vector_sensor.front().f_grid;
-    spectral_radiance.resize(frequency_grid.size());
-  }
+  const SensorSimulations simulations =
+      collect_simulations(measurement_vector_sensor);
 
-  for (const auto poslos :
-       (exhaustive ? measurement_vector_sensor.front().poslos_grid
-                   : sensor::collect_poslos(measurement_vector_sensor))) {
-    ray_path_observer_agendaExecute(
-        ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
-    spectral_radiance_operator.from_path(path, ray_path);
+  for (auto& [f_grid_ptr, poslos_set] : simulations) {
+    for (auto& poslos_gs : poslos_set) {
+      for (Index ip = 0; ip < poslos_gs->size(); ++ip) {
+        ArrayOfPropagationPathPoint ray_path;
+        std::vector<fwd::path> path;
+        StokvecVector spectral_radiance;
 
-    if (not exhaustive) {
-      sensor::collect_f_grid(frequency_grid, measurement_vector_sensor, poslos);
-      spectral_radiance.resize(frequency_grid.size());
-    }
+        const SensorPosLos& poslos = (*poslos_gs)[ip];
 
-    if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
-      std::transform(frequency_grid.begin(),
-                     frequency_grid.end(),
-                     spectral_radiance.begin(),
-                     [&path, &spectral_radiance_operator](Numeric f) {
-                       return spectral_radiance_operator(f, path);
-                     });
-    } else {
-      String error{};
+        ray_path_observer_agendaExecute(
+            ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
+        spectral_radiance_operator.from_path(path, ray_path);
+        std::transform(f_grid_ptr->begin(),
+                       f_grid_ptr->end(),
+                       spectral_radiance.begin(),
+                       [&path, &spectral_radiance_operator](Numeric f) {
+                         return spectral_radiance_operator(f, path);
+                       });
 
-#pragma omp parallel for
-      for (Index i = 0; i < frequency_grid.size(); ++i) {
-        try {
-          spectral_radiance[i] =
-              spectral_radiance_operator(frequency_grid[i], path);
-        } catch (std::exception& e) {
-#pragma omp critical
-          error += e.what() + String{"\n"};
+        for (Size iv=0; iv<measurement_vector_sensor.size(); ++iv) {
+          const SensorObsel& obsel = measurement_vector_sensor[iv];
+          if (obsel.same_freqs(f_grid_ptr)) {
+            measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);
+          }
         }
       }
-
-      ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
-    }
-
-    if (exhaustive) {
-      sensor::exhaustive_sumup(measurement_vector,
-                               spectral_radiance,
-                               measurement_vector_sensor,
-                               poslos);
-    } else {
-      sensor::sumup(measurement_vector,
-                    spectral_radiance,
-                    frequency_grid,
-                    measurement_vector_sensor,
-                    poslos);
     }
   }
 }
