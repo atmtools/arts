@@ -28,3 +28,9 @@ pythonpath = [
     "src"
 ]
 
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+pyarts = ["*.so", "*.pyd"]
