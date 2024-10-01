@@ -24,7 +24,7 @@
  *
  * This file defines a grid classes representing specific quadratures. The
  * primary purpose is the integration of scattering properties over certain
- * latitude grid quadratures.
+ * zenith angle grid quadratures.
  *
  * @author Simon Pfreundschuh, 2020 - 2023
  */
@@ -357,71 +357,74 @@ class QuadratureProvider {
   std::map<Index, Quadrature> quadratures_;
 };
 
-/** Base class for latitude grids.
+namespace detail {
+/** Base class for zenith-angle grids.
 *
-* This class defines the basic interface for latitude grids.
-* It is used to store the co-latitude values of the grid points and,
+* This class defines the basic interface for zenith-angle grids.
+* It is used to store the cosine values of the grid points and,
 * in addition to that, the integration weights of the corresponding
 * quadrature.
 */
-class LatitudeGrid : public Vector {
+class ZenithAngleGrid : public Vector {
  public:
-  LatitudeGrid() : Vector() {}
-  LatitudeGrid(const Vector& latitudes) : Vector(latitudes) {}
+  ZenithAngleGrid() : Vector() {}
+  ZenithAngleGrid(const Vector& zenith_angles) : Vector(zenith_angles) {}
 
-  virtual ~LatitudeGrid(){};
-  
-  LatitudeGrid(const LatitudeGrid&) = default;
-  LatitudeGrid& operator=(const LatitudeGrid&) = default;
-  LatitudeGrid(LatitudeGrid&&) = default;
-  LatitudeGrid& operator=(LatitudeGrid&&) = default;
+  virtual ~ZenithAngleGrid(){};
 
-  /// The latitude grid points in radians.
-  virtual const Vector& get_colatitudes() const = 0;
-  /// The latitude grid points in radians.
-  virtual const Vector& get_latitudes() const { return *this; }
+  ZenithAngleGrid(const ZenithAngleGrid&) = default;
+  ZenithAngleGrid& operator=(const ZenithAngleGrid&) = default;
+  ZenithAngleGrid(ZenithAngleGrid&&) = default;
+  ZenithAngleGrid& operator=(ZenithAngleGrid&&) = default;
+
+  /// The cosine of the grid points.
+  virtual const Vector& get_angle_cosines() const = 0;
+  /// The grid points in radians.
+  virtual const Vector& get_angles() const { return *this; }
   /// The integration weights.
   virtual const Vector& get_weights() const = 0;
 
   /// The type of quadrature.
   virtual QuadratureType get_type() = 0;
 };
+}
 
-using LatitudeGridPtr = std::shared_ptr<LatitudeGrid>;
-using ConstLatitudeGridPtr = std::shared_ptr<const LatitudeGrid>;
 
-class IrregularLatitudeGrid : public LatitudeGrid {
+using ZenithAngleGridPtr = std::shared_ptr<detail::ZenithAngleGrid>;
+using ConstZenithAngleGridPtr = std::shared_ptr<const detail::ZenithAngleGrid>;
+
+class IrregularZenithAngleGrid : public detail::ZenithAngleGrid {
  public:
-  IrregularLatitudeGrid() {}
-  /** Create new latitude grid.
-  * @param latitudes Vector containing the latitude grid points in radians.
+  IrregularZenithAngleGrid() {}
+  /** Create new zenith-angle grid.
+  * @param zenith_angles Vector containing the zenith-angle grid points in radians.
   * @param weights The integration weight corresponding to each grid point.
   */
-  IrregularLatitudeGrid(const Vector& latitudes)
-      : LatitudeGrid(latitudes),
-        weights_(latitudes.size()),
-        colatitudes_(latitudes),
+  IrregularZenithAngleGrid(const Vector& zenith_angles)
+      : ZenithAngleGrid(zenith_angles),
+        weights_(zenith_angles.size()),
+        cos_theta_(zenith_angles),
         type_(QuadratureType::Trapezoidal) {
     std::transform(
-        colatitudes_.begin(),
-        colatitudes_.end(),
-        colatitudes_.begin(),
+        cos_theta_.begin(),
+        cos_theta_.end(),
+        cos_theta_.begin(),
         [](Numeric lat) { return -1.0 * cos(Conversion::deg2rad(lat)); });
     weights_ = 0.0;
     Index n = static_cast<Index>(Vector::size());
     for (Index i = 0; i < n - 1; ++i) {
-      auto dx = 0.5 * (colatitudes_[i + 1] - colatitudes_[i]);
+      auto dx = 0.5 * (cos_theta_[i + 1] - cos_theta_[i]);
       weights_[i] += dx;
       weights_[i + 1] += dx;
     }
-    weights_[0] += colatitudes_[0] + 1.0;
-    weights_[n - 1] += 1.0 - colatitudes_[n - 1];
+    weights_[0] += cos_theta_[0] + 1.0;
+    weights_[n - 1] += 1.0 - cos_theta_[n - 1];
   }
 
-  /// The latitude grid points in radians.
-  const Vector& get_colatitudes() const { return colatitudes_; }
+  /// The cosines of the zenith-angle grid points in radians.
+  const Vector& get_angle_cosines() const { return cos_theta_; }
 
-  /// The latitude grid points in radians.
+  /// The zenith-angle grid points in radians.
   const Vector& get_weights() const { return weights_; }
 
   /// The type of quadrature.
@@ -429,38 +432,39 @@ class IrregularLatitudeGrid : public LatitudeGrid {
 
  protected:
   Vector weights_;
-  Vector colatitudes_;
+  Vector cos_theta_;
   QuadratureType type_;
 };
 
 template <typename Quadrature>
-class QuadratureLatitudeGrid : public LatitudeGrid {
+class QuadratureZenithAngleGrid : public detail::ZenithAngleGrid {
  public:
-  /** Create new quadrature latitude grid with given number of points.
+  /** Create new quadrature zenith-angle grid with given number of points.
   *
-  * Creates a latitude grid using the nodes and weights of the given quadrature
+  * Creates a zenith-angle grid using the nodes and weights of the given quadrature
   * class as grid points.
   *
   * @tparam Quadrature The quadrature class to use to calculate the nodes and
   * weights of the quadrature.
   * @param degree The number of points of the quadrature.
   */
-  QuadratureLatitudeGrid() : LatitudeGrid() {}
-  QuadratureLatitudeGrid(Index n_points)
-      : LatitudeGrid(n_points), quadrature_(n_points) {
+  QuadratureZenithAngleGrid() : detail::ZenithAngleGrid() {}
+  QuadratureZenithAngleGrid(const QuadratureZenithAngleGrid&) = default;
+  QuadratureZenithAngleGrid(Index n_points)
+      : detail::ZenithAngleGrid(n_points), quadrature_(n_points) {
     auto nodes = quadrature_.get_nodes();
     std::transform(nodes.begin(), nodes.end(), begin(), [](Numeric x) {
       return Conversion::rad2deg(acos(-1.0 * x));
     });
   }
 
-  QuadratureLatitudeGrid(Index n_points, Index /*unused*/)
-      : QuadratureLatitudeGrid(n_points) {}
+  QuadratureZenithAngleGrid(Index n_points, Index /*unused*/)
+      : QuadratureZenithAngleGrid(n_points) {}
 
   Index get_degree() const { return quadrature_.get_degree(); }
 
-  /// The co-latitude grid points in radians.
-  const Vector& get_colatitudes() const { return quadrature_.get_nodes(); }
+  /// The cosines of the grid points in radians.
+  const Vector& get_angle_cosines() const { return quadrature_.get_nodes(); }
 
   /// The integration weights.
   const Vector& get_weights() const { return quadrature_.get_weights(); }
@@ -472,10 +476,10 @@ class QuadratureLatitudeGrid : public LatitudeGrid {
   Quadrature quadrature_;
 };
 
-using GaussLegendreGrid = QuadratureLatitudeGrid<GaussLegendreQuadrature>;
-using DoubleGaussGrid = QuadratureLatitudeGrid<DoubleGaussQuadrature>;
-using LobattoGrid = QuadratureLatitudeGrid<LobattoQuadrature>;
-using FejerGrid = QuadratureLatitudeGrid<FejerQuadrature>;
+using GaussLegendreGrid = QuadratureZenithAngleGrid<GaussLegendreQuadrature>;
+using DoubleGaussGrid = QuadratureZenithAngleGrid<DoubleGaussQuadrature>;
+using LobattoGrid = QuadratureZenithAngleGrid<LobattoQuadrature>;
+using FejerGrid = QuadratureZenithAngleGrid<FejerQuadrature>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Integration functions
@@ -484,13 +488,33 @@ using FejerGrid = QuadratureLatitudeGrid<FejerQuadrature>;
 static QuadratureProvider<FejerQuadrature> quadratures =
     QuadratureProvider<FejerQuadrature>();
 
+using ZenithAngleGrid = std::variant<
+  IrregularZenithAngleGrid,
+  GaussLegendreGrid,
+  LobattoGrid,
+  FejerGrid
+  >;
+
+  inline Index grid_size(const ZenithAngleGrid &grid) {
+    return std::visit([](const auto &grd) { return grd.size(); }, grid);
+  }
+
+  inline VectorView grid_vector(ZenithAngleGrid &grid) {
+    return std::visit([](auto &grd) { return static_cast<VectorView>(grd); }, grid);
+  }
+
+   inline ConstVectorView grid_vector(const ZenithAngleGrid &grid) {
+    return std::visit([](const auto &grd) { return static_cast<ConstVectorView>(grd); }, grid);
+  }
+
+
 template <typename VectorType>
-auto integrate_latitudes(VectorType&& vec, const LatitudeGrid& grid) {
+auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {
   typename std::remove_reference<decltype(vec[0])>::type result = vec[0];
   result *= 0.0;
   auto vec_it = vec.elem_begin();
   auto vec_end = vec.elem_end();
-  auto weights_it = grid.get_weights().begin();
+  auto weights_it = std::visit([](const auto &grd) {return grd.get_weights().begin();}, grid );
   for (; vec_it != vec_end; ++vec_it, ++weights_it) {
     result += *weights_it * *vec_it;
   }
@@ -499,35 +523,35 @@ auto integrate_latitudes(VectorType&& vec, const LatitudeGrid& grid) {
 
 /** Integrate the given data over a spherical surface.
  *
- * @param data: Matrix containing the field evaluated at the given longitude
- * and latitude coordinates.
- * @param longitude_grid: The longitude grid.
- * @param latitue_grid: The latitude grid.
+ * @param data: Matrix containing the field evaluated at the given azimuth
+ * and zenight-angle coordinates.
+ * @param azimuth_angle_grid: The azimuth-angle grid.
+ * @param zenith_angle_grid: The zenith-angle grid.
  *
  * @return The integral value.
  */
 template <typename MatrixType>
 Numeric integrate_sphere(MatrixType&& data,
-                         const Vector& longitude_grid,
-                         const LatitudeGrid& latitude_grid) {
+                         const Vector& azimuth_angle_grid,
+                         const ZenithAngleGrid& zenith_angle_grid) {
   Numeric result = 0.0;
-  Index n = longitude_grid.size();
+  Index n = azimuth_angle_grid.size();
 
-  Numeric latitude_integral_first =
-      integrate_latitudes(data.row(0), latitude_grid);
-  Numeric latitude_integral_left = latitude_integral_first;
-  Numeric latitude_integral_right = latitude_integral_first;
+  Numeric zenith_angle_integral_first =
+      integrate_zenith_angles(data.row(0), zenith_angle_grid);
+  Numeric zenith_angle_integral_left = zenith_angle_integral_first;
+  Numeric zenith_angle_integral_right = zenith_angle_integral_first;
 
   for (Index i = 0; i < n - 1; ++i) {
-    latitude_integral_right =
-        integrate_latitudes<Numeric>(data.row(i + 1), latitude_grid);
-    Numeric dl = longitude_grid[i + 1] - longitude_grid[i];
-    result += 0.5 * (latitude_integral_left + latitude_integral_right) * dl;
-    latitude_integral_left = latitude_integral_right;
+    zenith_angle_integral_right =
+        integrate_zenith_angles<Numeric>(data.row(i + 1), zenith_angle_grid);
+    Numeric dl = azimuth_angle_grid[i + 1] - azimuth_angle_grid[i];
+    result += 0.5 * (zenith_angle_integral_left + zenith_angle_integral_right) * dl;
+    zenith_angle_integral_left = zenith_angle_integral_right;
   }
 
-  Numeric dl = 2.0 * pi_v<Numeric> + longitude_grid[0] - longitude_grid[n - 1];
-  result += 0.5 * (latitude_integral_first + latitude_integral_right) * dl;
+  Numeric dl = 2.0 * pi_v<Numeric> + azimuth_angle_grid[0] - azimuth_angle_grid[n - 1];
+  result += 0.5 * (zenith_angle_integral_first + zenith_angle_integral_right) * dl;
 
   return result;
 }
@@ -607,6 +631,7 @@ Sparse calculate_downsampling_matrix(const VectorView& old_grid,
   result.insert_elements(nnz, row_inds, col_inds, comps);
   return result;
 }
+
 
 }  // namespace scattering
 

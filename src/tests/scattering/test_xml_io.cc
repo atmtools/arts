@@ -26,25 +26,25 @@ bool test_serialize_sht() {
   if (sht_other.get_m_max() != sht.get_m_max()) {
     return false;
   }
-  if (sht_other.get_n_longitudes() != sht.get_n_longitudes()) {
+  if (sht_other.get_n_azimuth_angles() != sht.get_n_azimuth_angles()) {
     return false;
   }
-  if (sht_other.get_n_latitudes() != sht.get_n_latitudes()) {
+  if (sht_other.get_n_zenith_angles() != sht.get_n_zenith_angles()) {
     return false;
   }
   return true;
 }
 
-bool test_serialize_irregular_latitude_grid() {
+bool test_serialize_irregular_zenith_angle_grid() {
 
   scattering::GaussLegendreQuadrature quad(3);
-  scattering::IrregularLatitudeGrid grid = quad.get_weights();
+  scattering::IrregularZenithAngleGrid grid = quad.get_weights();
 
   std::ostringstream ostrm;
   xml_write_to_stream(ostrm, grid, nullptr, "unused");
 
   std::istringstream istrm{ostrm.str()};
-  scattering::IrregularLatitudeGrid new_grid = quad.get_weights();
+  scattering::IrregularZenithAngleGrid new_grid = quad.get_weights();
   xml_read_from_stream(istrm, new_grid, nullptr);
 
   if (grid.size() != new_grid.size()) return false;
@@ -76,6 +76,24 @@ bool test_serialize_quadrature_grid() {
 }
 
 
+bool test_serialize_zenith_angle_grid() {
+
+  scattering::ZenithAngleGrid grid = scattering::GaussLegendreGrid(10);
+
+  std::ostringstream ostrm;
+  xml_write_to_stream(ostrm, grid, nullptr, "unused");
+  std::istringstream istrm{ostrm.str()};
+  scattering::ZenithAngleGrid new_grid{};
+  xml_read_from_stream(istrm, new_grid, nullptr);
+
+  if (grid_size(grid) != grid_size(new_grid)) return false;
+  auto error = max_error(grid_vector(grid), grid_vector(new_grid));
+  if (error > 1e-6) return false;
+
+  return true;
+}
+
+
 int main() {
 
   bool passed = false;
@@ -91,8 +109,8 @@ int main() {
   }
 #endif
 
-  std::cout << "Testing IrregularLatitudeGridSerialization: ";
-  passed = test_serialize_irregular_latitude_grid();
+  std::cout << "Testing IrregularZenithAngleGridSerialization: ";
+  passed = test_serialize_irregular_zenith_angle_grid();
   if (passed) {
     std::cout << "PASSED." << std::endl;
   } else {
@@ -129,6 +147,15 @@ int main() {
 
   std::cout << "Testing FejerGrid: ";
   passed = test_serialize_quadrature_grid<scattering::FejerGrid>();
+  if (passed) {
+    std::cout << "PASSED." << std::endl;
+  } else {
+    std::cout << "FAILED." << std::endl;
+    return 1;
+  }
+
+  std::cout << "Testing generic zenith angle grid: ";
+  passed = test_serialize_zenith_angle_grid();
   if (passed) {
     std::cout << "PASSED." << std::endl;
   } else {

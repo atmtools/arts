@@ -20,7 +20,7 @@ void bind_phase_matrix_data_tro_gridded(py::module_ &m,
   py::class_<PMD, matpack::matpack_data<Scalar, 4>>(m, class_name.c_str())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
-                    std::shared_ptr<const scattering::LatitudeGrid>>(),
+                    std::shared_ptr<const scattering::ZenithAngleGrid>>(),
            py::arg("t_grid"),
            py::arg("f_grid"),
            py::arg("za_scat_grid"))
@@ -98,7 +98,7 @@ void bind_absorption_vector_data_aro(py::module_ &m, const std::string &name) {
   py::class_<AVD, matpack::matpack_data<Scalar, 4>>(m, name.c_str())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
-                    std::shared_ptr<const scattering::LatitudeGrid>>(),
+                    std::shared_ptr<const scattering::ZenithAngleGrid>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a)
@@ -126,7 +126,7 @@ void bind_extinction_matrix_data_aro(py::module_ &m, const std::string &name) {
   py::class_<EMD, matpack::matpack_data<Scalar, 4>>(m, name.c_str())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
-                    std::shared_ptr<const scattering::LatitudeGrid>>(),
+                    std::shared_ptr<const scattering::ZenithAngleGrid>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a)

@@ -1,3 +1,4 @@
+#include <memory>
 #include "xml_io_scattering.h"
 
 void xml_write_to_stream(std::ostream &os_xml,
@@ -8,8 +9,8 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.set_name("SHT");
   open_tag.add_attribute("l_max", sht.get_m_max());
   open_tag.add_attribute("m_max", sht.get_l_max());
-  open_tag.add_attribute("n_lon", sht.get_n_longitudes());
-  open_tag.add_attribute("n_lat", sht.get_n_latitudes());
+  open_tag.add_attribute("n_aa", sht.get_n_azimuth_angles());
+  open_tag.add_attribute("n_lat", sht.get_n_zenith_angles());
   open_tag.write_to_stream(os_xml);
   close_tag.set_name("/SHT");
   close_tag.write_to_stream(os_xml);
@@ -24,37 +25,37 @@ void xml_read_from_stream(std::istream &is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("SHT");
 
-  Index l_max, m_max, n_lon, n_lat;
+  Index l_max, m_max, n_za, n_lat;
   tag.get_attribute_value("l_max", l_max);
   tag.get_attribute_value("m_max", m_max);
-  tag.get_attribute_value("n_lon", n_lon);
+  tag.get_attribute_value("n_za", n_za);
   tag.get_attribute_value("n_lat", n_lat);
 
-  sht = scattering::sht::SHT(l_max, m_max, n_lon, n_lat);
+  sht = scattering::sht::SHT(l_max, m_max, n_za, n_lat);
 }
 
 
 
 void xml_write_to_stream(std::ostream &os_xml,
-                         const scattering::IrregularLatitudeGrid& grid,
+                         const scattering::IrregularZenithAngleGrid& grid,
                          bofstream *pbofs [[maybe_unused]],
                          const String &name) {
   ArtsXMLTag open_tag, close_tag;
-  open_tag.set_name("IrregularLatitudeGrid");
+  open_tag.set_name("IrregularZenithAngleGrid");
   open_tag.write_to_stream(os_xml);
   xml_write_to_stream(os_xml, static_cast<const Vector&>(grid), pbofs, name);
-  close_tag.set_name("/IrregularLatitudeGrid");
+  close_tag.set_name("/IrregularZenithAngleGrid");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
 void xml_read_from_stream(std::istream &is_xml,
-                          scattering::IrregularLatitudeGrid& grid,
+                          scattering::IrregularZenithAngleGrid& grid,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
-  tag.check_name("IrregularLatitudeGrid");
+  tag.check_name("IrregularZenithAngleGrid");
   xml_read_from_stream(is_xml, static_cast<Vector&>(grid), pbifs);
 }
 
@@ -163,6 +164,60 @@ void xml_read_from_stream(std::istream &is_xml,
   grid = scattering::FejerGrid(n);
 }
 
+void xml_write_to_stream(std::ostream &os_xml,
+                         const scattering::ZenithAngleGrid &grid,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &name) {
+  ArtsXMLTag open_tag, close_tag;
+  std::visit(
+             [&](const auto& grd) {xml_write_to_stream(os_xml, grd, pbofs, name); },
+             grid
+             );
+}
+
+void xml_read_from_stream(std::istream &is_xml,
+                          scattering::ZenithAngleGrid& za_grid,
+                          bifstream *pbifs [[maybe_unused]]) {
+  try {
+    scattering::IrregularZenithAngleGrid il_grid{};
+    xml_read_from_stream(is_xml, il_grid, pbifs);
+    za_grid = il_grid;
+    return;
+  } catch (const std::runtime_error& e) {}
+
+  try {
+    scattering::GaussLegendreGrid gl_grid{};
+    xml_read_from_stream(is_xml, gl_grid, pbifs);
+    za_grid = gl_grid;
+    return;
+  } catch (const std::runtime_error& e) {}
+
+  try {
+    scattering::DoubleGaussGrid dg_grid{};
+    xml_read_from_stream(is_xml, dg_grid, pbifs);
+    za_grid = dg_grid;
+    return;
+  } catch (const std::runtime_error& e) {}
+
+  try {
+    scattering::LobattoGrid l_grid{};
+    xml_read_from_stream(is_xml, l_grid, pbifs);
+    za_grid = l_grid;
+    return;
+  } catch (const std::runtime_error& e) {}
+
+  try {
+    scattering::FejerGrid f_grid{};
+    xml_read_from_stream(is_xml, f_grid, pbifs);
+    za_grid = f_grid;
+    return;
+  } catch (const std::runtime_error& e) {}
+
+  xml_parse_error("Encountered unknown zenith angle grid.");
+}
+
+
+
 
 template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
 void xml_write_to_stream(std::ostream &os_xml,
@@ -190,4 +245,18 @@ void xml_write_to_stream(std::ostream &os_xml,
   //  }
   //
   //}
+}
+
+template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
+void xml_read_from_stream(std::istream &is_xml,
+                          scattering::FejerGrid& grid,
+                          bifstream *pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("FejerGrid");
+
+  Index n;
+  tag.get_attribute_value("n", n);
+  grid = scattering::FejerGrid(n);
 }

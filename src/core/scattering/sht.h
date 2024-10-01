@@ -69,7 +69,7 @@ class FFTWArray {
 
 class ShtnsHandle {
  public:
-  static shtns_cfg get(Index l_max, Index m_max, Index n_lon, Index n_lat);
+  static shtns_cfg get(Index l_max, Index m_max, Index n_aa, Index n_za);
 
  private:
   static std::array<Index, 4> current_config_;
@@ -87,15 +87,15 @@ class ShtnsHandle {
  * spatial and spectral coefficients.
  *
  * A specific SHT configuration is defined by its configuration which is
- * an array containing the numbers (l_max, m_max, n_lon, n_lat), which
+ * an array containing the numbers (l_max, m_max, n_aa, n_za), which
  * mean the following:
  *
  * - l_max: The degree of the spherical harmonics transform.
  * - m_max: The order of the spherical harmonics transform
- * - n_lon: The number of points in the azimuth-angle grid. Must satisfy
- *     n_lon > 2 * m_max + 1
- * - n_lat: The number of points in the zenith-angle grid. Must satisfy
- *     n_lat > 2 * l_max + 1
+ * - n_aa: The number of points in the azimuth-angle grid. Must satisfy
+ *     n_aa > 2 * m_max + 1
+ * - n_za: The number of points in the zenith-angle grid. Must satisfy
+ *     n_za > 2 * l_max + 1
  *
  * Note that the underlying shtns library only support one active configuration
  * at a time. Performing transforms with to distinct SHT objects therefore requires
@@ -106,22 +106,21 @@ class ShtnsHandle {
  */
 class SHT {
  public:
-  using LatGrid = QuadratureLatitudeGrid<FejerQuadrature>;
 
-  /** Return longitude grid used by the SH transform.
-   * @param The number of points in the latitude grid.
-   * @param radians If true the latitude grid is returned in radians.
-   * @return A vector containing the longitude grid in degree (or radians).
+  /** Return azimuth-angle grid used by the SH transform.
+   * @param The number of points in the zenith-angle grid.
+   * @param radians If true the zenith-angle grid is returned in radians.
+   * @return A vector containing the azimuth angles in degree (or radians).
    */
-  static Vector get_longitude_grid(Index n_lon, bool radians = false) {
-    if (n_lon == 1) {
+  static Vector get_azimuth_angle_grid(Index n_aa, bool radians = false) {
+    if (n_aa == 1) {
       Vector result(1);
       result = 0.0;
       return result;
     }
-    Vector result(n_lon);
-    double dx = 360.0 / static_cast<double>(n_lon);
-    for (Index i = 0; i < n_lon; ++i) {
+    Vector result(n_aa);
+    double dx = 360.0 / static_cast<double>(n_aa);
+    for (Index i = 0; i < n_aa; ++i) {
       result[i] = dx * static_cast<double>(i);
     }
     if (radians) {
@@ -133,19 +132,19 @@ class SHT {
   /// Pointer to the azimuth angle grid in degrees.
   std::shared_ptr<const Vector> get_aa_grid_ptr() const { return aa_grid_; }
 
-  /** Return latitude grid used by the SH transform.
-   * @param The number of points in the latitude grid.
-   * @param radians If true the latitude grid is returned in radians.
-   * @return A vector containing the latitude grid in degree (or radians).
+  /** Return zenith-angle grid used by the SH transform.
+   * @param The number of points in the zenith-angle grid.
+   * @param radians If true the zenith-angle grid is returned in radians.
+   * @return A vector containing the zenith-angle grid in degree (or radians).
    */
-  static LatGrid get_latitude_grid(Index n_lat, bool radians = false);
+  static FejerGrid get_zenith_angle_grid(Index n_pts, bool radians = false);
 
-  LatGrid get_latitude_grid(bool radians = false) const {
-    return get_latitude_grid(n_lat_, radians);
+  FejerGrid get_zenith_angle_grid(bool radians = false) const {
+    return get_zenith_angle_grid(n_za_, radians);
   }
 
   /// Pointer to the zenith angle grid in degrees.
-  std::shared_ptr<const LatitudeGrid> get_za_grid_ptr() const {
+  std::shared_ptr<const ZenithAngleGrid> get_za_grid_ptr() const {
     return za_grid_;
   }
 
@@ -184,29 +183,29 @@ class SHT {
   }
 
   /** SHT parameters for a spatial field of given size.
-   * @param n_lon: The size of the longitude (azimuth) grid.
-   * @param n_lat: The size of the latitude (zenith) grid.
+   * @param n_aa: The size of the azimuth-angle grid.
+   * @param n_za: The size of the zenith-angle  grid.
    * @return A 4-element array containing parameters l_max,
-   * m_max, n_lon and n_lat that are valid inputs to initialize
+   * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
-  static std::array<Index, 4> get_config_lonlat(Index n_lon, Index n_lat) {
-    if (n_lon > 1) {
-      n_lon -= n_lon % 2;
+  static std::array<Index, 4> get_config_lonlat(Index n_aa, Index n_za) {
+    if (n_aa > 1) {
+      n_aa -= n_aa % 2;
     }
-    n_lat -= n_lat % 2;
+    n_za -= n_za % 2;
 
-    Index l_max = (n_lat > 2) ? (n_lat / 2) - 1 : 0;
-    Index m_max = (n_lon > 2) ? (n_lon / 2) - 1 : 0;
+    Index l_max = (n_za > 2) ? (n_za / 2) - 1 : 0;
+    Index m_max = (n_aa > 2) ? (n_aa / 2) - 1 : 0;
     m_max = std::min(l_max, m_max);
-    return {l_max, m_max, n_lon, n_lat};
+    return {l_max, m_max, n_aa, n_za};
   }
 
   /** SHT parameters for given SHT maximum degree and order of SHT
    * @param l_max: The maximum degree l of the SHT.
    * @param m_lat: The maximum degree m of the SHT.
    * @return A 4-element array containing parameters l_max,
-   * m_max, n_lon and n_lat that are valid inputs to initialize
+   * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
   static std::array<Index, 4> get_config_lm(Index l_max, Index m_max) {
@@ -221,15 +220,15 @@ class SHT {
    *
    * @param l_max The maximum degree of the SHT.
    * @param m_max The maximum order of the SHT.
-   * @param n_lon The number of longitude grid points.
-   * @param n_lat The number of co-latitude grid points.
+   * @param n_aa The number of azimuth-angle grid points.
+   * @param n_za The number of zenith-angle grid points.
    */
-  SHT(Index l_max, Index m_max, Index n_lon, Index n_lat);
+  SHT(Index l_max, Index m_max, Index n_aa, Index n_za);
 
   /**
    * Create a spherical harmonics transformation object.
    *
-   * The values for n_lon and n_lat are set to 2 * l_max + 2 and
+   * The values for n_aa and n_za are set to 2 * l_max + 2 and
    * 2 * m_max + 2, respectively.
    *
    * @param l_max The maximum degree of the SHT.
@@ -241,7 +240,7 @@ class SHT {
    * Create a spherical harmonics transformation object.
    *
    * Create spherical harmonics transformation object with l_max == m_max
-   * and values for n_lon and n_lat set to 2 * l_max + 2 and
+   * and values for n_aa and n_za set to 2 * l_max + 2 and
    * 2 * m_max + 2, respectively.
    * @param l_max The maximum degree of the SHT.
    */
@@ -251,31 +250,31 @@ class SHT {
   std::ostream &serialize(std::ostream &output) const {
     output.write(reinterpret_cast<const char *>(&l_max_), sizeof(Index));
     output.write(reinterpret_cast<const char *>(&m_max_), sizeof(Index));
-    output.write(reinterpret_cast<const char *>(&n_lon_), sizeof(Index));
-    output.write(reinterpret_cast<const char *>(&n_lat_), sizeof(Index));
+    output.write(reinterpret_cast<const char *>(&n_aa_), sizeof(Index));
+    output.write(reinterpret_cast<const char *>(&n_za_), sizeof(Index));
     return output;
   }
 
   /// Deserialize SHT.
   static SHT deserialize(std::istream &input) {
-    Index l_max, m_max, n_lon, n_lat;
+    Index l_max, m_max, n_aa, n_za;
     input.read(reinterpret_cast<char *>(&l_max), sizeof(Index));
     input.read(reinterpret_cast<char *>(&m_max), sizeof(Index));
-    input.read(reinterpret_cast<char *>(&n_lon), sizeof(Index));
-    input.read(reinterpret_cast<char *>(&n_lat), sizeof(Index));
-    return SHT(l_max, m_max, n_lon, n_lat);
+    input.read(reinterpret_cast<char *>(&n_aa), sizeof(Index));
+    input.read(reinterpret_cast<char *>(&n_za), sizeof(Index));
+    return SHT(l_max, m_max, n_aa, n_za);
   }
 
-  /** Return the cosine of the latitude grid used by SHTns.
-   * @return A vector containing the co-latitude grid.
+  /** Return the cosine of the zenith-angle grid used by SHTns.
+   * @return A vector containing the cosine of the zenith-angle grid.
    */
-  Vector get_colatitude_grid();
+  Vector get_cos_za_grid();
 
-  /** Return longitude grid used by SHTns.
-   * @return A vector containing the longitude grid in radians.
+  /** Return azimuth-angle grid used by SHTns.
+   * @return A vector containing the azimuth grid in radians.
    */
-  Vector get_longitude_grid(bool radians = false) {
-    return SHT::get_longitude_grid(n_lon_, radians);
+  Vector get_azimuth_angle_grid(bool radians = false) {
+    return SHT::get_azimuth_angle_grid(n_aa_, radians);
   }
 
   /** L-indices of the SHT modes.
@@ -310,14 +309,14 @@ class SHT {
    * spherical harmonics computations.
    *
    * @param m Matrix or comparable providing read-only access
-   * to the input data. Row indices should correspond to longitudes
-   * (azimuth angle) and columns to latitudes (zenith angle).
+   * to the input data. Row indices should correspond to azimuth angles
+   * and columns to zenith angle.
    */
   template <typename T>
   void set_spatial_coeffs(
       const matpack::matpack_view<T, 2, true, true> &view) const {
-    ARTS_ASSERT(view.nrows() == n_lon_);
-    ARTS_ASSERT(view.ncols() == n_lat_);
+    ARTS_ASSERT(view.nrows() == n_aa_);
+    ARTS_ASSERT(view.ncols() == n_za_);
     Index index = 0;
     for (int i = 0; i < view.nrows(); ++i) {
       for (int j = 0; j < view.ncols(); ++j) {
@@ -336,8 +335,8 @@ class SHT {
    * real spherical harmonics computations.
    *
    * @param m Matrix or comparable providing read-only access
-   * to the input data. Row indices should correspond to longitudes
-   * (azimuth angle) and columns to latitudes (zenith angle).
+   * to the input data. Row indices should correspond to azimuth angles
+   * and columns to zenith angles.
    */
   void set_spectral_coeffs(
       const matpack::matpack_view<Complex, 1, true, true> &view) const {
@@ -373,11 +372,11 @@ class SHT {
    * spherical harmonics computations.
    *
    * @return  matrix containing the spatial field. Row indices should
-   * correspond to longitudes (azimuth angle) and columns to latitudes (zenith
+   * correspond to azimuth angles  and columns to zenith angles.
    * angle).
    */
   ExhaustiveConstMatrixView get_spatial_coeffs() const {
-    return ExhaustiveConstMatrixView(spatial_coeffs_, {n_lon_, n_lat_});
+    return ExhaustiveConstMatrixView(spatial_coeffs_, {n_aa_, n_za_});
   }
 
   /**
@@ -385,22 +384,22 @@ class SHT {
    * spherical harmonics computations.
    *
    * @return  matrix containing the complex spatial field. Row indices
-   * should correspond to longitudes (azimuth angle) and columns to latitudes
-   * (zenith angle).
+   * should correspond to azimuth angles and columns to zenith angles.
+   *
    */
   ExhaustiveConstComplexMatrixView get_spatial_coeffs_cmplx() const {
     return ExhaustiveConstComplexMatrixView(spatial_coeffs_cmplx_,
-                                            {n_lon_, n_lat_});
+                                            {n_aa_, n_za_});
   }
 
   /**
-   * @return The size of the co-latitude grid.
+   * @return The size of the zenith-angle grid.
    */
-  Index get_n_latitudes() const { return n_lat_; }
+  Index get_n_zenith_angles() const { return n_za_; }
   /**
-   * @return The size of the longitude grid.
+   * @return The size of the azimuth angle grid.
    */
-  Index get_n_longitudes() const { return n_lon_; }
+  Index get_n_azimuth_angles() const { return n_aa_; }
   /**
    * @return The number of spherical harmonics coefficients.
    */
@@ -447,7 +446,7 @@ class SHT {
   /** Apply forward SHT Transform *
    * Transforms discrete spherical data into spherical harmonics representation.
    * @param view GridCoeffs containing the data. Row indices should correspond to
-   * longitudes (azimuth angle) and columns to latitudes (zenith angle).
+   * azimuth angles and columns to zenith angles.
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
   ComplexVector transform(const ConstMatrixView &view) ;
@@ -456,7 +455,7 @@ class SHT {
    *
    * Transforms discrete spherical data into spherical harmonics representation.
    * @param view GridCoeffs containing the data. Row indices should correspond to
-   * longitudes (azimuth angle) and columns to latitudes (zenith angle).
+   * azimuth angles and columns to zenith angles.
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
   ComplexVector transform_cmplx(const ConstComplexMatrixView &view);
@@ -496,8 +495,8 @@ class SHT {
   /** Evaluate spectral representation at given point.
    *
    * @param view Spectral coefficient vector containing the SH coefficients.
-   * @param points 2-row matrix containing the points (lon, lat) at which
-   * to evaluate the function.
+   * @param points 2-row matrix containing the points (azimuth angle, zenith ange)
+   * at which to evaluate the function.
    * @return A vector containing the values corresponding to the points
    * in points.
    */
@@ -506,11 +505,11 @@ class SHT {
   /** Evaluate 1D spectral representation at given point.
    *
    * This method covers the special case of 1D data that varies
-   * only along latitudes. In this case the SH transform degenerates
+   * only along zenith angles. In this case the SH transform degenerates
    * to a Legendre transform.
    *
    * @param view Spectral coefficient vector containing the SH coefficients.
-   * @param Vector containing the latitudes within [0, PI] to evaluate the
+   * @param Vector containing the zenith angles within [0, PI] to evaluate the
    * function.
    * @return A vector containing the values corresponding to the points
    * in points.
@@ -535,14 +534,14 @@ class SHT {
 
  private:
   bool is_trivial_;
-  Index l_max_, m_max_, n_lon_, n_lat_, n_spectral_coeffs_,
+  Index l_max_, m_max_, n_aa_, n_za_, n_spectral_coeffs_,
       n_spectral_coeffs_cmplx_;
 
   sht::FFTWArray<std::complex<double>> spectral_coeffs_, spectral_coeffs_cmplx_,
       spatial_coeffs_cmplx_;
   sht::FFTWArray<double> spatial_coeffs_;
   std::shared_ptr<Vector> aa_grid_;
-  std::shared_ptr<LatitudeGrid> za_grid_;
+  std::shared_ptr<ZenithAngleGrid> za_grid_;
 };
 
 /** SHT instance provider.
@@ -557,7 +556,7 @@ class SHTProvider {
 
   /** Get SHT instance for given SHT parameters.
    * @arg params Length-4 array containing the parameters required to initialize
-   * the SHT transform: l_max, m_max, n_lon, n_lat. See documention of SHT class
+   * the SHT transform: l_max, m_max, n_aa, n_za. See documention of SHT class
    * for explanation of their significance.
    * @return shared pointer to SHT instance.
    */
@@ -569,8 +568,8 @@ class SHTProvider {
     return sht_instances_[params];
   }
 
-  std::shared_ptr<SHT> get_instance_lonlat(Index n_lon, Index n_lat) {
-    return get_instance(SHT::get_config_lonlat(n_lon, n_lat));
+  std::shared_ptr<SHT> get_instance(Index n_aa, Index n_za) {
+    return get_instance(SHT::get_config_lonlat(n_aa, n_za));
   }
 
   std::shared_ptr<SHT> get_instance_lm(Index l_max, Index m_max) {

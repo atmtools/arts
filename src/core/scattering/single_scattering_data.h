@@ -46,7 +46,7 @@ struct SingleScatteringData {
 
     auto t_grid = std::make_shared<Vector>(ssd.T_grid);
     auto f_grid = std::make_shared<Vector>(ssd.f_grid);
-    auto za_scat_grid = std::make_shared<IrregularLatitudeGrid>(ssd.za_grid);
+    auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(ssd.za_grid));
 
     PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, 4>
         phase_matrix(t_grid, f_grid, za_scat_grid);
@@ -57,7 +57,7 @@ struct SingleScatteringData {
 
     for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
       for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
-        for (Index i_za_scat = 0; i_za_scat < za_scat_grid->size();
+        for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid);
              ++i_za_scat) {
           for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
             phase_matrix(i_t, i_f, i_za_scat, i_s) =
