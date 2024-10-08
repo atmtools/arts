@@ -10,8 +10,8 @@ API Reference
    pyarts.environment
    pyarts.hitran
    pyarts.plots
+   pyarts.recipe
    pyarts.sensor
    pyarts.utils
    pyarts.workspace
    pyarts.xml
-

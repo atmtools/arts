@@ -2,7 +2,7 @@ import pyarts
 
 
 class SingleSpeciesAbsorption:
-    """Creates a propagation matrix operator from a species list."""
+    """Calculates absorption coefficients for a single absorbing species."""
 
     def __init__(
         self,
