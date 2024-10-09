@@ -4,9 +4,13 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
+#include <nanobind/stl/optional.h>
 
 #include "hpy_arts.h"
 #include "py_macros.h"
+
+NB_MAKE_OPAQUE(scattering::ZenithAngleGrid);
+
 namespace Python {
 
 template <typename Scalar, Index stokes_dim>
@@ -57,6 +61,7 @@ void bind_phase_matrix_data_tro_spectral(py::module_ &m,
                                           stokes_dim>;
   py::class_<PMD, matpack::matpack_data<std::complex<Scalar>, 4>>(
       m, class_name.c_str())
+      .def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
                     std::shared_ptr<scattering::SHT>>(),
@@ -70,7 +75,7 @@ void bind_phase_matrix_data_tro_spectral(py::module_ &m,
       .def("get_t_grid", &PMD::get_t_grid)
       .def("get_f_grid", &PMD::get_f_grid)
 
-      .def("to_gridded", [](const PMD &obj) { obj.to_gridded(); })
+      .def("to_gridded", [](const PMD &obj) { return obj.to_gridded(); })
       .def("integrate_phase_matrix", &PMD::integrate_phase_matrix)
       .def("extract_stokes_coeffs",
            &PMD::template extract_stokes_coeffs<
@@ -83,12 +88,12 @@ void bind_absorption_vector_data_tro(py::module_ &m, const std::string &name) {
   using AVD = scattering::
       AbsorptionVectorData<Scalar, scattering::Format::TRO, repr, stokes_dim>;
   py::class_<AVD, matpack::matpack_data<Scalar, 3>>(m, name.c_str())
+      .def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a)
-      .def("get_coeff_vector_view", &AVD::get_coeff_vector_view)
-      .def("regrid", &AVD::regrid, "grids"_a, "weights"_a);
+      .def("get_coeff_vector_view", &AVD::get_coeff_vector_view);
 }
 
 template <typename Scalar, scattering::Representation repr, Index stokes_dim>
@@ -96,9 +101,10 @@ void bind_absorption_vector_data_aro(py::module_ &m, const std::string &name) {
   using AVD = scattering::
       AbsorptionVectorData<Scalar, scattering::Format::ARO, repr, stokes_dim>;
   py::class_<AVD, matpack::matpack_data<Scalar, 4>>(m, name.c_str())
+      .def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
-                    std::shared_ptr<const scattering::ZenithAngleGrid>>(),
+                    std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a)
@@ -111,6 +117,7 @@ void bind_extinction_matrix_data_tro(py::module_ &m, const std::string &name) {
   using EMD = scattering::
       ExtinctionMatrixData<Scalar, scattering::Format::TRO, repr, stokes_dim>;
   py::class_<EMD, matpack::matpack_data<Scalar, 3>>(m, name.c_str())
+      .def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
@@ -124,9 +131,10 @@ void bind_extinction_matrix_data_aro(py::module_ &m, const std::string &name) {
   using EMD = scattering::
       ExtinctionMatrixData<Scalar, scattering::Format::ARO, repr, stokes_dim>;
   py::class_<EMD, matpack::matpack_data<Scalar, 4>>(m, name.c_str())
+      .def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
-                    std::shared_ptr<const scattering::ZenithAngleGrid>>(),
+                    std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a)
@@ -188,11 +196,25 @@ void bind_single_scattering_data(py::module_ &m, const std::string &name) {
       });
 }
 
+
+template <scattering::Format format, scattering::Representation repr, Index stokes_dim>
+void bind_bulk_scattering_properties(py::module_ &m, const std::string &name) {
+  py::class_<scattering::BulkScatteringProperties<format, repr, stokes_dim> >(m, name.c_str())
+    .def_rw("phase_matrix", &scattering::BulkScatteringProperties<format, repr, stokes_dim>::phase_matrix)
+    .def_rw("extinction_matrix", &scattering::BulkScatteringProperties<format, repr, stokes_dim>::extinction_matrix)
+    .def_rw("absorption_vector", &scattering::BulkScatteringProperties<format, repr, stokes_dim>::absorption_vector);
+}
+
 void py_scattering_species(py::module_ &m) try {  //
   // ScatSpeciesProperty
   //
 
-  py::class_<ScatteringSpeciesProperty> ssp(m, "ScatteringSpeciesProperty");
+  py::class_<ScatteringSpeciesProperty>(m, "ScatteringSpeciesProperty")
+    .def(py::init<std::string, ParticulateProperty>(), "Constructor")
+    .def_rw("species_name", &ScatteringSpeciesProperty::species_name)
+    .def_rw("pproperty", &ScatteringSpeciesProperty::pproperty);
+
+
 
   //
   // Modified gamma PSD
@@ -200,21 +222,38 @@ void py_scattering_species(py::module_ &m) try {  //
 
   py::class_<MGDSingleMoment>(m, "MGDSingleMoment");
   py::class_<ScatteringHabit>(m, "ScatteringHabit");
-  py::class_<HenyeyGreenstein>(m, "HenyeyGreenstein")
-      .def(py::init<>())
-      .def("evaluate_phase_function",
-           static_cast<Vector (HenyeyGreenstein::*)(const Vector &)>(
-               &HenyeyGreenstein::evaluate_phase_function),
-           "Evaluate the Henyey-Greenstein phase function.")
-      .def("evaluate_phase_function",
-           static_cast<Numeric (HenyeyGreenstein::*)(const Numeric &)>(
-               &HenyeyGreenstein::evaluate_phase_function),
-           "Evaluate the Henyey-Greenstein phase function.");
-  //.PythonInterfaceCopyValue(HenyeyGreenstein)
-  //.PythonInterfaceWorkspaceVariableConversion(HenyeyGreenstein)
-  //.PythonInterfaceFileIO(HenyeyGreenstein)
-  //.PythonInterfaceBasicRepresentation(HenyeyGreenstein)
-  //.PythonInterfaceWorkspaceDocumentation(HenyeyGreenstein);
+  py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
+    .def(py::init<>())
+    .def(py::init<ScatteringSpeciesProperty, ScatteringSpeciesProperty, Numeric>())
+    .def("get_bulk_scattering_properties_tro_spectral",
+         &HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral<1>,
+         "Calculate bulk scattering properties in spectral representation and TRO format.",
+         py::arg("atm_point"),
+         py::arg("l"))
+    .def("get_bulk_scattering_properties_tro_gridded",
+         &HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded<1>,
+         "Calculate bulk scattering properties in gridded representation and TRO format.",
+         py::arg("atm_point"),
+         py::arg("zenith_angle_grid"));
+
+
+  py::class_<scattering::IrregularZenithAngleGrid>(m, "IrregularZenithAngleGrid")
+    .def(py::init<Vector>());
+  py::class_<scattering::GaussLegendreGrid>(m, "GaussLegendreGrid")
+    .def(py::init<Index>());
+  py::class_<scattering::DoubleGaussGrid>(m, "DoubleGaussGrid")
+    .def(py::init<Index>());
+  py::class_<scattering::LobattoGrid>(m, "LobattoGrid")
+    .def(py::init<Index>());
+  py::class_<scattering::FejerGrid>(m, "FejerGrid")
+    .def(py::init<Index>());
+
+  py::class_<scattering::ZenithAngleGrid>(m, "ZenithAngleGrid")
+    .def(py::init<scattering::IrregularZenithAngleGrid>())
+    .def(py::init<scattering::GaussLegendreGrid>())
+    .def(py::init<scattering::DoubleGaussGrid>())
+    .def(py::init<scattering::LobattoGrid>())
+    .def(py::init<scattering::FejerGrid>());
 
   py::class_<ArrayOfScatteringSpecies> aoss(m, "ArrayOfScatteringSpecies");
   workspace_group_interface(aoss);
@@ -295,6 +334,15 @@ void py_scattering_species(py::module_ &m) try {  //
   bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 2>(m, "SingleScatteringDataAROSpectral1");
   bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 3>(m, "SingleScatteringDataAROSpectral1");
   bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral, 4>(m, "SingleScatteringDataAROSpectral1");
+
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Gridded, 1>(m, "BulkScatteringPropertiesAROGridded1");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Spectral, 1>(m, "BulkScatteringPropertiesAROSpectral1");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Gridded, 2>(m, "BulkScatteringPropertiesAROGridded2");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Spectral, 2>(m, "BulkScatteringPropertiesAROSpectral2");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Gridded, 3>(m, "BulkScatteringPropertiesAROGridded3");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Spectral, 3>(m, "BulkScatteringPropertiesAROSpectral3");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Gridded, 4>(m, "BulkScatteringPropertiesAROGridded4");
+  bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Spectral, 4>(m, "BulkScatteringPropertiesAROSpectral4");
 
   py::class_<ParticleHabit>(m, "ParticleHabit")
   .def_static("from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);

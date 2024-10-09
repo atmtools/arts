@@ -5,6 +5,7 @@ add_library(scattering STATIC
    psd.cc
    sht.cc
    phase_matrix.cc
+   henyey_greenstein.cc
 )
 
 target_include_directories(scattering PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -73,6 +73,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
       extinction::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  ExtinctionMatrixData() {};
   /** Create a new ExtinctionMatrixData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -195,6 +196,7 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
       extinction::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  ExtinctionMatrixData() {};
   /** Create a new ExtinctionMatrixData container.
    *
    * Creates a container to hold extinction matrix data for the

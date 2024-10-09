@@ -11,6 +11,7 @@
 #include <variant>
 
 #include "properties.h"
+#include "henyey_greenstein.h"
 #include "psd.h"
 #include "particle_habit.h"
 
@@ -34,23 +35,8 @@ class ScatteringHabit {
   PSD psd;
 };
 
-class HenyeyGreenstein {
-  Numeric g = 0.0;
 
- public:
-  HenyeyGreenstein(){};
-  HenyeyGreenstein(const Numeric& g_);
-  Numeric evaluate_phase_function(const Numeric& theta);
-  Vector evaluate_phase_function(const Vector& theta);
-
-  Numeric get_g() const { return g; };
-  void set_g(const Numeric& g_) { g = g_; };
-
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const HenyeyGreenstein& scatterer);
-};
-
-using Species = std::variant<HenyeyGreenstein, ScatteringHabit>;
+using Species = std::variant<HenyeyGreensteinScatterer, ScatteringHabit>;
 
 }  // namespace scattering
 
@@ -87,12 +73,12 @@ struct std::formatter<ArrayOfScatteringSpecies> {
   }
 };
 
-using HenyeyGreenstein = scattering::HenyeyGreenstein;
+using HenyeyGreensteinScatterer = scattering::HenyeyGreensteinScatterer;
 using ParticleHabit = scattering::ParticleHabit;
 using ScatteringHabit = scattering::ScatteringHabit;
 using PSD = scattering::PSD;
 
 std::ostream& operator<<(
     std::ostream& os,
-    const std::variant<HenyeyGreenstein,
+    const std::variant<HenyeyGreensteinScatterer,
                        scattering::ScatteringHabit>& /*species*/);

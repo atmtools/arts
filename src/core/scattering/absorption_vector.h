@@ -62,6 +62,8 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
       absorption::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  AbsorptionVectorData() {};
+
   /** Create a new AbsorptionVectorData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -158,6 +160,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
       absorption::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  AbsorptionVectorData() {};
   /** Create a new AbsorptionVectorData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -212,7 +215,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
 
   AbsorptionVectorData regrid(const ScatteringDataGrids& grids,
                               const RegridWeights& weights) {
-    AbsorptionVectorData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
+    AbsorptionVectorData result(grids.t_grid, grids.f_grid, std::make_shared<Vector>(grid_vector(*grids.za_inc_grid)));
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size()); ++i_t) {

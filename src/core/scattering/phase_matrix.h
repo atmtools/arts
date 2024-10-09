@@ -615,6 +615,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
       detail::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -981,6 +982,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
       detail::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1282,6 +1284,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
       detail::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1803,6 +1806,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
       detail::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
