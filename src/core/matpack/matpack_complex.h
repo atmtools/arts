@@ -382,14 +382,13 @@ struct std::formatter<std::complex<T>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::complex<T>& v, FmtContext& ctx) const {
-    const std::string_view j = tags.names ? "j"sv : ""sv;
     if (tags.comma) {
-      std::format_to(ctx.out(), "({},{}{})", v.real(), v.imag(), j);
+      std::format_to(ctx.out(), "({}, {}j)", v.real(), v.imag());
     } else {
-      if (v.imag() >= 0) {
-        std::format_to(ctx.out(), "{}+{}{}", v.real(), v.imag(), j);
+      if (v.imag() < 0) {
+        std::format_to(ctx.out(), "{}{}j", v.real(), v.imag());
       } else {
-        std::format_to(ctx.out(), "{}{}{}", v.real(), v.imag(), j);
+        std::format_to(ctx.out(), "{}+{}j", v.real(), v.imag());
       }
     }
 
