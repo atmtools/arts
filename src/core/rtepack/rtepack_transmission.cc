@@ -163,14 +163,19 @@ struct tran {
       return {da * exp_a};
     }
 
-    const Numeric db  = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B())),
-                  dc  = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C())),
-                  dd  = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D())),
-                  du  = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U())),
-                  dv  = -0.5 * (r * dk.V() + dr * (k1.V() + k2.V())),
-                  dw  = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
-    const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c, dd2 = 2 * dd * d,
-                  du2 = 2 * du * u, dv2 = 2 * dv * v, dw2 = 2 * dw * w;
+    const Numeric db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B()));
+    const Numeric dc = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C()));
+    const Numeric dd = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D()));
+    const Numeric du = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U()));
+    const Numeric dv = -0.5 * (r * dk.V() + dr * (k1.V() + k2.V()));
+    const Numeric dw = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
+
+    const Numeric db2 = 2 * db * b;
+    const Numeric dc2 = 2 * dc * c;
+    const Numeric dd2 = 2 * dd * d;
+    const Numeric du2 = 2 * du * u;
+    const Numeric dv2 = 2 * dv * v;
+    const Numeric dw2 = 2 * dw * w;
 
     /* Solve: 
         0 = L^4 + B L^2 + C
@@ -179,7 +184,7 @@ struct tran {
     */
     const Numeric dB = du2 + dv2 + dw2 - db2 - dc2 - dd2;
     const Numeric dC = -2 * (b * w - c * v + d * u) *
-                       (b * dw - c * dv + d * du + u * dd - v * dc + dw * db);
+                       (b * dw - c * dv + d * du + u * dd - v * dc + w * db);
     const Numeric dS = (B * dB - 2 * dC) / S;
 
     const Numeric dx2 = 0.25 * (dS - dB) / x2;
