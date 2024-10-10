@@ -155,6 +155,7 @@ NB_MODULE(arts, m) try {
   py_zeeman(m);
 
   py::set_leak_warnings(false);
+  py::set_implicit_cast_warnings(false);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
