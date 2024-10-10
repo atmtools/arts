@@ -789,7 +789,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_u *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -818,7 +818,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_v *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -847,7 +847,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_w *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
