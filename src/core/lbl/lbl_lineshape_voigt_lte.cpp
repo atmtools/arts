@@ -1296,7 +1296,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_u *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1325,7 +1325,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_v *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1354,7 +1354,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[pos[i].line].inv_gd * dH_dmag_w *
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w *
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
@@ -1798,11 +1798,10 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.dscl[i] * com_data.shape[i] +
                                     com_data.scl[i] * com_data.dshape[i]);
       }
-      break;
-    case p:
-      ARTS_USER_ERROR("Not implemented, pressure derivative");
-      break;
+      return;
+    case p: ARTS_USER_ERROR("Not implemented, pressure derivative"); break;
     case mag_u:
+      if (pol == zeeman::pol::no) return;
       com_data.dmag_u_core_calc(shape, bnd, f_grid, atm, pol);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
@@ -1810,8 +1809,9 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.scl[i] * com_data.shape[i],
                                 com_data.scl[i] * com_data.dshape[i]);
       }
-      break;
+      return;
     case mag_v:
+      if (pol == zeeman::pol::no) return;
       com_data.dmag_v_core_calc(shape, bnd, f_grid, atm, pol);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
@@ -1819,8 +1819,9 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.scl[i] * com_data.shape[i],
                                 com_data.scl[i] * com_data.dshape[i]);
       }
-      break;
+      return;
     case mag_w:
+      if (pol == zeeman::pol::no) return;
       com_data.dmag_w_core_calc(shape, bnd, f_grid, atm, pol);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
@@ -1828,7 +1829,7 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.scl[i] * com_data.shape[i],
                                 com_data.scl[i] * com_data.dshape[i]);
       }
-      break;
+      return;
     case wind_u:
     case wind_v:
     case wind_w:
@@ -1838,7 +1839,7 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.dscl[i] * com_data.shape[i] +
                                     com_data.scl[i] * com_data.dshape[i]);
       }
-      break;
+      return;
   }
 }
 
@@ -1928,14 +1929,10 @@ void compute_derivative(PropmatVectorView dpm,
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case LineShapeModelVariable::G2:
-      return;
-    case LineShapeModelVariable::D2:
-      return;
-    case LineShapeModelVariable::FVC:
-      return;
-    case LineShapeModelVariable::ETA:
-      return;
+    case LineShapeModelVariable::G2:  return;
+    case LineShapeModelVariable::D2:  return;
+    case LineShapeModelVariable::FVC: return;
+    case LineShapeModelVariable::ETA: return;
     case LineShapeModelVariable::Y:
       com_data.dY_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
