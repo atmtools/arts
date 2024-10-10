@@ -22,9 +22,9 @@ std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel) {
 }
 
 void Obsel::check() const {
-  ARTS_ASSERT(f_grid, "Must exist");
+  ARTS_ASSERT(f, "Must exist");
 
-  ARTS_ASSERT(poslos_grid, "Must exist");
+  ARTS_ASSERT(poslos, "Must exist");
 
   ARTS_USER_ERROR_IF(
       (w.shape() != std::array<Index, 2>{poslos->size(), f->size()}),
