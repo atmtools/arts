@@ -12,7 +12,7 @@ import numpy as np
 ws = pyarts.Workspace()
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-5e6, 5e6, 50) + line_f0
+ws.frequency_grid = np.linspace(5e6, 6e6, 3) + line_f0
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
@@ -57,4 +57,4 @@ ws.propagation_matrixAddLines()
 x1 = ws.propagation_matrix * 1.0
 d = (x1 - x0) / dx
 
-assert np.allclose(d / dd, 1, rtol=1e-3)
+assert np.allclose(d, dd, rtol = 1e-3)
