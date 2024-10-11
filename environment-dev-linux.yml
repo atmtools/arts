@@ -29,11 +29,13 @@ dependencies:
         - python-build
         - requests
         - scipy
-        - sphinx
+        - sphinx<8.1.0
         - sphinx-favicon
-        - sphinx_rtd_theme
+        - sphinxcontrib-jquery
         - sphinxcontrib-mermaid
         - xarray
         - zlib
+        - pip:
+          - sphinx-rtd-theme
 channels:
         - conda-forge
