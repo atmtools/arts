@@ -72,7 +72,7 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
         std::ranges::copy(v.shape(), shape.begin());
 
         auto np = py::module_::import_("numpy");
-        auto x  = nd(v.data_handle(), ndim, shape.data(), py::handle());
+        auto x  = nd(v.data_handle(), ndim, shape.data(), py::cast(v));
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
@@ -107,7 +107,7 @@ void matpack_constant_interface(
             static_cast<size_t>(ndim)...};
 
         auto np = py::module_::import_("numpy");
-        auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::handle());
+        auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(v));
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
@@ -145,7 +145,7 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
-        auto x  = nd(v.data_handle(), 1, shape.data(), py::handle());
+        auto x  = nd(v.data_handle(), 1, shape.data(), py::cast(v));
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),

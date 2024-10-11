@@ -16,7 +16,7 @@ dependencies:
         - libmicrohttpd
         - llvm-openmp
         - matplotlib
-        - nanobind=2.1.0
+        - nanobind
         - nbsphinx
         - netcdf4
         - ninja
