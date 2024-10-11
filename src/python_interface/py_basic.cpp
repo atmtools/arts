@@ -33,7 +33,7 @@ void py_basic(py::module_& m) try {
            std::array<size_t, 0> shape{};
 
            auto np = py::module_::import_("numpy");
-           auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
+           auto x  = nd(n.val.get(), 0, shape.data(), py::cast(n));
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
@@ -55,7 +55,7 @@ void py_basic(py::module_& m) try {
            std::array<size_t, 0> shape{};
 
            auto np = py::module_::import_("numpy");
-           auto x  = nd(n.val.get(), 0, shape.data(), py::handle());
+           auto x  = nd(n.val.get(), 0, shape.data(), py::cast(n));
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
@@ -80,7 +80,7 @@ void py_basic(py::module_& m) try {
            std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
            auto np = py::module_::import_("numpy");
-           auto x  = nd(v.data(), 1, shape.data(), py::handle());
+           auto x  = nd(v.data(), 1, shape.data(), py::cast(v));
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),
@@ -103,7 +103,7 @@ void py_basic(py::module_& m) try {
            std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
            auto np = py::module_::import_("numpy");
-           auto x  = nd(v.data(), 1, shape.data(), py::handle());
+           auto x  = nd(v.data(), 1, shape.data(), py::cast(v));
            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
          },
          "dtype"_a.none() = py::none(),

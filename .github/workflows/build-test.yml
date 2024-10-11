@@ -92,8 +92,6 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
-          channels: conda-forge
-          channel-priority: true
           activate-environment: arts
           environment-file: ${{ matrix.devenv }}
       - shell: bash -l {0}
