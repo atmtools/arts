@@ -13,9 +13,34 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "matpack_view.h"
 #include "rtepack_rtestep.h"
 
 namespace Python {
+void copy(Propmat &x, const ExhaustiveConstVectorView y) {
+  ARTS_ASSERT(y.size() == 7)
+  std::copy(y.begin(), y.end(), x.data.begin());
+}
+
+void copy(Stokvec &x, const ExhaustiveConstVectorView y) {
+  ARTS_ASSERT(y.size() == 4)
+  std::copy(y.begin(), y.end(), x.data.begin());
+}
+
+void copy(Muelmat &x, const ExhaustiveConstVectorView y) {
+  ARTS_ASSERT(y.size() == 16)
+  std::copy(y.begin(), y.end(), x.data.begin());
+}
+
+template <typename T, Index M>
+void copy(matpack::matpack_view<T, M, false, false> &&x,
+          matpack::matpack_view<Numeric, M + 1, true, false> &&y) {
+  ARTS_ASSERT(x.shape()[0] == y.shape()[0])
+  for (Index i = 0; i < x.shape()[0]; i++) {
+    copy(x[i], y[i]);
+  }
+}
+
 template <typename T, Index M, size_t... N>
 void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
   c.def(
@@ -30,6 +55,29 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
       },
       "x"_a);
   py::implicitly_convertible<matpack::matpack_data<Numeric, M>,
+                             matpack::matpack_data<T, M>>();
+  c.def(
+      "__init__",
+      [](matpack::matpack_data<T, M> *y,
+         const matpack::matpack_data<Numeric, M + 1> &x) {
+        if (x.size() != 0 and x.shape().back() != T::sz) {
+          throw std::invalid_argument(std::format(
+              "Last dimension of input must be equal to the size of the "
+              "underlying rtepack type.  "
+              "The shape is {:B,} and the size of the underlying rtepack type is {}",
+              x.shape(),
+              T::sz));
+        }
+
+        std::array<Index, M> shape{};
+        for (Size i = 0; i < M; i++) {
+          shape[i] = x.extent(i);
+        }
+        new (y) matpack::matpack_data<T, M>(shape);
+        copy(matpack::matpack_view<T, M, false, false>(*y), x);
+      },
+      "x"_a);
+  py::implicitly_convertible<matpack::matpack_data<Numeric, M + 1>,
                              matpack::matpack_data<T, M>>();
 
   c.def(
@@ -163,6 +211,10 @@ void py_rtepack(py::module_ &m) try {
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
+      .def(
+          "as_matrix",
+          [](Propmat &x) { return to_matrix(x); },
+          "Returns the Propmat as a matrix.")
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
