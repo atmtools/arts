@@ -22,6 +22,7 @@ using bdrf_func          = DisortBDRFOperator::func_t;
 
 void py_disort(py::module_& m) try {
   auto disort_nm = m.def_submodule("disort");
+  disort_nm.doc() = "DISORT solver internal types";
 
   py::class_<DisortBDRFOperator> bdrfop(m, "DisortBDRFOperator");
   bdrfop.doc() = "A BDRF operator for DISORT";

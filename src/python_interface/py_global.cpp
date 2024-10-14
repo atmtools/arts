@@ -49,9 +49,12 @@ void py_global(py::module_& m) try {
   global.def(
       "workspace_groups",
       []() { return internal_workspace_groups(); },
-      "Get a copy of all workspace variables\n\n"
-      "Return\n------\n:class:`dict`"
-      "\n    Map of variables");
+      R"(Get a copy of all workspace variables
+
+Return
+------
+:class:`dict`
+    Map of variables)");
 
   py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
       .def_ro("default_value",
@@ -64,9 +67,12 @@ void py_global(py::module_& m) try {
   global.def(
       "workspace_variables",
       []() { return workspace_variables(); },
-      "Get a copy of all workspace variables\n\n"
-      "Return\n------\n:class:`dict`"
-      "\n    Map of variables");
+      R"(Get a copy of all workspace variables
+
+Return
+------
+:class:`dict`
+    Map of variables)");
 
   py::class_<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
@@ -99,9 +105,12 @@ void py_global(py::module_& m) try {
   global.def(
       "workspace_methods",
       []() { return internal_workspace_methods(); },
-      "Get a copy of all workspace methods\n\n"
-      "Return\n------\n:class:`dict`"
-      "\n    Map of methods");
+      R"(Get a copy of all workspace methods
+
+Return
+------
+:class:`dict`
+    Map of methods)");
 
   py::class_<WorkspaceAgendaInternalRecord>(global,
                                             "WorkspaceAgendaInternalRecord")

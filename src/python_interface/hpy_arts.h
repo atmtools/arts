@@ -32,19 +32,15 @@ void xml_interface(py::class_<T>& c) {
       "file"_a.none(false),
       "type"_a.none(false) = "ascii",
       "clobber"_a          = true,
-      "Saves variable to file\n"
-      "\n"
-      "Parameters:\n"
-      "    file (str): The path to which the file is written."
-      " Note that several of the options might modify the"
-      " name or write more files\n"
-      "    type (str): Type of file to save (ascii. zascii,"
-      " or binary)\n"
-      "    clobber (bool): Overwrite existing files or add new"
-      " file with modified name?\n"
-      "\n"
-      "On Error:\n"
-      "    Throws RuntimeError for any failure to save");
+      R"(Saves variable to file
+
+Parameters:
+    file (str): The path to which the file is written. Note that several of the options might modify the name or write more files
+    type (str): Type of file to save.  See :class:`FileType` for options.
+    clobber (bool): Overwrite existing files or add new file with modified name?
+
+On Error:
+    Throws RuntimeError for any failure to save)");
 
   c.def(
       "readxml",
@@ -52,13 +48,13 @@ void xml_interface(py::class_<T>& c) {
         xml_read_from_file(file, static_cast<U&>(x));
       },
       "file"_a.none(false),
-      "Read variable from file\n"
-      "\n"
-      "Parameters:\n"
-      "    file (str): A file that can be read\n"
-      "\n"
-      "On Error:\n"
-      "    Throws RuntimeError for any failure to read");
+      R"(Read variable from file
+
+Parameters:
+    file (str): A file that can be read
+
+On Error:
+    Throws RuntimeError for any failure to read)");
 
   c.def_static(
       "fromxml",
@@ -68,13 +64,13 @@ void xml_interface(py::class_<T>& c) {
         return x;
       },
       "file"_a.none(false),
-      "Create variable from file\n"
-      "\n"
-      "Parameters:\n"
-      "    file (str): A file that can be read\n"
-      "\n"
-      "On Error:\n"
-      "    Throws RuntimeError for any failure to read");
+      R"(Create variable from file
+
+Parameters:
+    file (str): A file that can be read
+
+On Error:
+    Throws RuntimeError for any failure to read)");
 }
 
 static constexpr std::array binops{

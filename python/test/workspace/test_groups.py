@@ -4,7 +4,6 @@ Test handling of workspace groups of the Python interface.
 Each group has to have a test{GROUP} function in the main test class
 """
 
-
 import os
 import uuid
 import pickle
@@ -98,6 +97,18 @@ class TestGroups:
 
     def testAny(self):
         cxx.Any()
+
+    def testArrayOfAtmPoint(self):
+        x = cxx.ArrayOfAtmPoint.from_dict({"t": [1, 2, 3], "O2": [0, 1, 2]})
+        assert x[0]["t"] == 1
+        
+        y = x.to_dict()
+        
+        y["p"] = 5 + y[cxx.AtmKey.t]
+        y[cxx.AtmKey.t] += 2
+        x.update(y)
+        
+        assert x[1]["t"] == 4
 
     def testArrayOfAbsorptionLines(self):
         lineshapemodel = cxx.LineShapeModel(
@@ -923,7 +934,11 @@ class TestGroups:
             raise Exception(f"There are {len(fail)} tests failing")
 
     def test_copy(self):
-        ignore_groups = ["NumericUnaryOperator", "NumericBinaryOperator", "NumericTernaryOperator"]
+        ignore_groups = [
+            "NumericUnaryOperator",
+            "NumericBinaryOperator",
+            "NumericTernaryOperator",
+        ]
 
         groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
@@ -1012,4 +1027,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_print()
+    x.testArrayOfAtmPoint()

@@ -77,7 +77,7 @@ void matpack_interface(py::class_<matpack::matpack_data<T, ndim>>& c) {
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
-      "Allows np.array to be called on the object.");
+      "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -112,7 +112,7 @@ void matpack_constant_interface(
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
-      "Allows np.array to be called on the object.");
+      "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, mtype>();
 
@@ -150,7 +150,7 @@ void matpack_grid_interface(py::class_<matpack::grid<Compare>>& c) {
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
-      "Allows np.array to be called on the object.");
+      "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, matpack::grid<Compare>>();
   py::implicitly_convertible<mtype, matpack::grid<Compare>>();
@@ -198,7 +198,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
-      "Allows np.array to be called on the object.");
+      "Allows :func:`~numpy.array` to be called with the object.");
 
   c.def_prop_rw(
       "value",
@@ -230,7 +230,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
         return out;
       },
-      "Convert object to dict.");
+      "Convert object to :class:`dict`.");
 
   c.def(
       "to_xarray",
@@ -238,7 +238,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
         py::module_ xarray = py::module_::import_("xarray");
         return xarray.attr("DataArray").attr("from_dict")(gd.attr("to_dict")());
       },
-      "Create :func:`xarray.DataArray` from the object.");
+      "Create :class:`xarray.DataArray` from the object.");
 
   c.def_static(
       "from_dict",
@@ -272,14 +272,14 @@ void gridded_data_interface(py::class_<matpack::gridded_data<T, Grids...>>& c) {
 
         return gd;
       },
-      "Create object from dict.");
+      "Create object from :class:`dict`.");
 
   c.def_static(
       "from_xarray",
       [](const py::object& xarray) {
         return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")());
       },
-      "Create object from :func:`xarray.DataArray`.");
+      "Create object from :class:`xarray.DataArray`.");
 
   c.def(
       "__eq__",

@@ -1468,6 +1468,7 @@ To perform absorption lookupo table calculation, call:
 2) ``absorption_lookup_table_dataCalc``  FIXME: HOW TO COMPUTE IT
 3) *propagation_matrix_agendaAuto* (use_absorption_lookup_table_data=1)
 4) Perform other calculations
+
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"propagation_matrix_agenda"},

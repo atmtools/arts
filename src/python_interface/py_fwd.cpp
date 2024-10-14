@@ -7,8 +7,6 @@
 
 namespace Python {
 void py_fwd(py::module_& m) try {
-  auto fwd = m.def_submodule("fwd");
-
   py::class_<SpectralRadianceOperator> sro(m, "SpectralRadianceOperator");
   workspace_group_interface(sro);
   sro.def(
