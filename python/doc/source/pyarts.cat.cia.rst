@@ -1,7 +1,7 @@
-pyarts.plots
-============
+pyarts.cat.cia
+==============
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts.cat.cia
    :members:
    :imported-members:
    :undoc-members:

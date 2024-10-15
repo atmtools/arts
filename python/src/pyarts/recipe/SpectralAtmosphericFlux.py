@@ -100,11 +100,11 @@ class SpectralAtmosphericFlux:
         """Return the atmospheric field as a dictionary of python types.
 
         Args:
-            core (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            specs (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            nlte (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            ssprops (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            isots (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            core (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            specs (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            nlte (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            ssprops (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            isots (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
 
         Returns:
             dict: Atmospheric field dictionary
@@ -125,11 +125,11 @@ class SpectralAtmosphericFlux:
 
         Args:
             frequency_grid (pyarts.arts.AscendingGrid): The frequency grid
-            atmospheric_profile (dict, optional): _description_. Defaults to {}.
-            surface_temperature (float, optional): _description_. Defaults to None.
+            atmospheric_profile (dict, optional): The atmospheric profile. Defaults to {}.
+            surface_temperature (float, optional): The surface temperature. Defaults to None.
 
         Returns:
-            _type_: _description_
+            Flux, numpy.ndarray: Flux profile and average layer altitudes
         """
 
         if surface_temperature is not None:

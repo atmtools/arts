@@ -2,11 +2,7 @@ pyarts.recipe
 =============
 
 .. automodule:: pyarts.recipe
-
-.. currentmodule:: pyarts.recipe
-
-.. autosummary::
-   :toctree: stubs
-
-   FastFlux1D
-   SingleSpeciesAbsorption
+   :members:
+   :imported-members:
+   :undoc-members:
+   :special-members: __init__, __call__

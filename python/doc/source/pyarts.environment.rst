@@ -2,10 +2,7 @@ pyarts.environment
 ==================
 
 .. automodule:: pyarts.environment
-
-.. currentmodule:: pyarts.environment
-
-.. autosummary::
-   :toctree: stubs
-
-   environ
+   :members:
+   :imported-members:
+   :undoc-members:
+   :special-members: __init__, __call__

@@ -32,7 +32,7 @@ class AtmosphericFlux:
         atm_longitude: float = 0.0,
         solar_latitude: float = 0.0,
         solar_longitude: float = 0.0,
-        species=["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
+        species: list = ["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
     ):
         """Compute the total flux for a given atmospheric profile and surface temperature
 
@@ -118,11 +118,11 @@ class AtmosphericFlux:
         """Return the atmospheric field as a dictionary of python types.
 
         Args:
-            core (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            specs (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            nlte (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            ssprops (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            isots (bool, optional): See :method:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            core (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            specs (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            nlte (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            ssprops (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            isots (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
 
         Returns:
             dict: Atmospheric field dictionary
@@ -145,7 +145,7 @@ class AtmosphericFlux:
             surface_temperature (float, optional): A surface temperature. Defaults to None.
 
         Returns:
-            Flux, Flux, list: The solar and thermal fluxes and the center altitudes of the layers.
+            Flux, Flux, numpy.ndarray: The solar and thermal fluxes and the center altitudes of the layers.
         """
 
         if surface_temperature is not None:
@@ -202,8 +202,10 @@ class AtmosphericFlux:
         return (
             Flux("solar", *self.SOLAR),
             Flux("thermal", *self.THERMAL),
-            np.array([
-                0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])
-                for i in range(len(self.ws.ray_path) - 1)
-            ]),
+            np.array(
+                [
+                    0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])
+                    for i in range(len(self.ws.ray_path) - 1)
+                ]
+            ),
         )

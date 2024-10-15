@@ -1,7 +1,7 @@
-pyarts.plots
-============
+pyarts.cat.select
+=================
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts.cat.select
    :members:
    :imported-members:
    :undoc-members:
