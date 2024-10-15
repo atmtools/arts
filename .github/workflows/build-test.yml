@@ -122,6 +122,7 @@ jobs:
         if: matrix.doc == 'yes'
         shell: bash -l {0}
         run: |
+          python3 -m pip install build/python
           cmake --build build -j${{ matrix.jbuild }} --target apidoc pyarts_docs
           tar -zcf doxygen.tar.gz build/doc/doxygen/html
           tar -zcf sphinx.tar.gz build/python/doc/build
