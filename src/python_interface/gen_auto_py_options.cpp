@@ -10,54 +10,50 @@
 #include "pydocs.h"
 
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
-  os << "void enum_" << wso.name << "(py::module_& m) {\n";
-  os << "  py::class_<" << wso.name << "> _g" << wso.name << "(m, \""
-     << wso.name << "\");\n";
+os << std::format(R"-x-(
+void enum_{0}(py::module_& m) {{
+   py::class_<{0}> _g{0}(m, "{0}");
 
-  os << "  xml_interface(_g" << wso.name << ");\n";
-  os << "  str_interface(_g" << wso.name << ");\n";
+   _g{0}.doc() = R"-ENUMDOC-({1})-ENUMDOC-";
 
-  os << "  _g" << wso.name << ".def(py::init<>())\n";
+   xml_interface(_g{0});
+   
+   _g{0}.def("__str__", [](const {0}& x){{return std::format("{{}}", x);}});
+   _g{0}.def("__repr__", [](const {0}& x){{return std::format("\"{{}}\"", x);}});
 
-  os << "      .def(py::init<" << wso.name << ">())\n";
+   _g{0}.def(py::init<{0}>());
 
-  os << "      .def(\"__init__\", [](" << wso.name
-     << "*y, const std::string& x) {new (y) " << wso.name << "{to<" << wso.name
-     << ">(x)};}, \"String constructor\")\n";
+   _g{0}.def("__init__", []({0} *y, const std::string& x){{
+      new (y) {0}{{to<{0}>(x)}};
+   }});
+   py::implicitly_convertible<std::string, {0}>();
 
-  os << "      .def(\"__hash__\", [](const " << wso.name
-     << "& x) {return std::hash<" << wso.name
-     << ">{}(x);}, \"Allows hashing\")\n";
+   _g{0}.def("__hash__", [](const {0}& x){{return std::hash<{0}>{{}}(x);}}, "Allows hashing");
 
-  os << "      .def(\"__copy__\", [](" << wso.name << " t) -> " << wso.name
-     << " {return t;})\n";
+   _g{0}.def("__copy__", []({0} t) -> {0}{{return t;}});
 
-  os << "      .def(\"__deepcopy__\", [](" << wso.name << " t, py::dict&) -> "
-     << wso.name << " { return t; })\n";
+   _g{0}.def("__deepcopy__", []({0} t, py::dict&) -> {0}{{return t;}});
 
-  os << "      .def(py::self == py::self, \"`self == other`\")\n";
-  os << "      .def(py::self != py::self, \"`self != other`\")\n";
-  os << "      .def(py::self <= py::self, \"`self <= other`\")\n";
-  os << "      .def(py::self >= py::self, \"`self >= other`\")\n";
-  os << "      .def(py::self < py::self, \"`self < other`\")\n";
-  os << "      .def(py::self > py::self, \"`self > other`\")\n";
+   _g{0}.def(py::self == py::self, "`self == other`");
+   _g{0}.def(py::self != py::self, "`self != other`");
+   _g{0}.def(py::self <= py::self, "`self <= other`");
+   _g{0}.def(py::self >= py::self, "`self >= other`");
+   _g{0}.def(py::self < py::self, "`self < other`");
+   _g{0}.def(py::self > py::self, "`self > other`");
 
-  os << "      .def(\"__getstate__\",\n        [](" << wso.name
-     << "& t) {\n"
-        "          return std::tuple<std::string>{String{toString(t)}};\n"
-        "      })\n"
-        "      .def(\"__setstate__\",\n        []("
-     << wso.name
-     << "* e, const std::tuple<std::string>& state) {\n"
-        "           new (e) "
-     << wso.name << "{to<" << wso.name
-     << ">(std::get<0>(state))};\n"
-        "      })\n";
+   _g{0}.def("__getstate__", []({0}& t) {{
+      return std::tuple<std::string>{{String{{toString(t)}}}};
+   }});
 
-  os << "      .def_static(\"get_options\", [](){return enumtyps::" << wso.name
-     << "Types;}, \"Get a list of all options\")\n";
-  os << "      .def_static(\"get_options_as_strings\", [](){return enumstrs::"
-     << wso.name << "Names<>;}, \"Get a list of all options as strings\")\n";
+   _g{0}.def("__setstate__", []({0}* e, const std::tuple<std::string>& state) {{
+      new (e) {0}{{to<{0}>(std::get<0>(state))}};
+   }});
+
+   _g{0}.def_static("get_options", [](){{return enumtyps::{0}Types;}}, "Get a list of all options");
+
+   _g{0}.def_static("get_options_as_strings", [](){{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");
+
+)-x-", wso.name, unwrap_stars(wso.docs()));
 
   static std::array pykeywords{"None", "any", "all", "print"};
   constexpr std::string_view ignore_str =
@@ -76,22 +72,18 @@ void enum_option(std::ostream& os, const EnumeratedOption& wso) {
           std::ranges::any_of(value | std::views::take(i), Cmp::eq(x)))
         continue;
 
-      os << "      .def_prop_ro_static(\"" << x;
+      os << "  _g" << wso.name << ".def_prop_ro_static(\"" << x;
 
       if (std::ranges::any_of(pykeywords, Cmp::eq(x))) {
         os << '_';
       }
 
-      // .front is the actual value, .back the description
-      os << "\", [](py::object&){return " << wso.name << "::" << value.front()
-         << ";}, R\"-x-(" << value.back() << ")-x-\")\n";
+      os << std::format(R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
+)-x-", wso.name, value.front(), unwrap_stars(value.back()));
     }
   }
 
-  os << "      .doc() = R\"-x-(" << unwrap_stars(wso.docs()) << ")-x-\";\n";
-
-  os << "  py::implicitly_convertible<std::string, " << wso.name << ">();\n";
-  os << "}\n\n";
+  os << "}\n";
 }
 
 void enum_options(const std::string& fname) {
