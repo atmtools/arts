@@ -21,6 +21,8 @@ void enum_{0}(py::module_& m) {{
    _g{0}.def("__str__", [](const {0}& x){{return std::format("{{}}", x);}});
    _g{0}.def("__repr__", [](const {0}& x){{return std::format("\"{{}}\"", x);}});
 
+   _g{0}.def(py::init<>());
+
    _g{0}.def(py::init<{0}>());
 
    _g{0}.def("__init__", []({0} *y, const std::string& x){{
