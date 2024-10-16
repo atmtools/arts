@@ -2,13 +2,27 @@ import pyarts
 
 import numpy as np
 
+from dataclasses import dataclass
 
-class FastFlux1D:
+
+@dataclass(slots=True)
+class Flux:
+    name: str
+    up: np.ndarray
+    diffuse_down: np.ndarray
+    direct_down: np.ndarray
+
+    @property
+    def down(self):
+        return self.diffuse_down + self.direct_down
+
+
+class AtmosphericFlux:
     """Creates a Disort clearsky flux operator using the Czarnecki-scheme."""
 
     def __init__(
         self,
-        visibile_surface_reflectivity: float = 0.3,
+        visible_surface_reflectivity: float = 0.3,
         thermal_surface_reflectivity: float = 0.05,
         atmospheric_altitude: float = 50e3,
         surface_temperature: float = 300.0,
@@ -18,14 +32,27 @@ class FastFlux1D:
         atm_longitude: float = 0.0,
         solar_latitude: float = 0.0,
         solar_longitude: float = 0.0,
+        species: list = ["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
     ):
-        """Initialization
+        """Compute the total flux for a given atmospheric profile and surface temperature
 
-        Parameters
-        ----------
+        The operator allows you to change the
+
+        Args:
+            visible_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in visible. Defaults to 0.3.
+            thermal_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in thermal. Defaults to 0.05.
+            atmospheric_altitude (float, optional): The top-of-the-atmosphere altitude [m]. Defaults to 50e3.
+            surface_temperature (float, optional): The surface temperature [K]. Defaults to 300.0.
+            max_level_step (float, optional): The maximum thickness of layers [m]. Defaults to 1e3.
+            NQuad (int, optional): The number of quadratures used by Disort. Defaults to 16.
+            atm_latitude (float, optional): Latitude of profile [degrees]. Defaults to 0.0.
+            atm_longitude (float, optional): Longitude of profile [degrees]. Defaults to 0.0.
+            solar_latitude (float, optional): Latitude of sun [degrees]. Defaults to 0.0.
+            solar_longitude (float, optional): Longitude of sun [degrees]. Defaults to 0.0.
+            species (list, optional): The list of absorption species. Defaults to [ "H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT", ].
         """
 
-        self.visibile_surface_reflectivity = visibile_surface_reflectivity
+        self.visible_surface_reflectivity = visible_surface_reflectivity
         self.thermal_surface_reflectivity = thermal_surface_reflectivity
 
         self.ws = pyarts.Workspace()
@@ -34,17 +61,7 @@ class FastFlux1D:
         self.ws.disort_fourier_mode_dimension = 1
         self.ws.disort_legendre_polynomial_dimension = 1
 
-        self.ws.absorption_speciesSet(
-            species=[
-                "H2O-161, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
-                "O2-66, O2-CIAfunCKDMT100",
-                "N2-44, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-                "CO2-626, CO2-CKDMT252",
-                # "CH4",
-                # "O3",
-                "O3-XFIT",
-            ]
-        )
+        self.ws.absorption_speciesSet(species=species)
 
         self.ws.ReadCatalogData()
 
@@ -87,9 +104,7 @@ class FastFlux1D:
             "planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-quadrature_weights.xml"
         )
 
-        tmp = pyarts.arts.GriddedField2.fromxml(
-            "star/Sun/solar_spectrum_QUIET.xml"
-        )
+        tmp = pyarts.arts.GriddedField2.fromxml("star/Sun/solar_spectrum_QUIET.xml")
         self.ws.sunFromGrid(
             frequency_grid=self.visf,
             sun_spectrum_raw=tmp,
@@ -97,39 +112,49 @@ class FastFlux1D:
             longitude=solar_longitude,
         )
 
+    def get_atmosphere(
+        self, core=True, specs=True, nlte=False, ssprops=False, isots=False
+    ):
+        """Return the atmospheric field as a dictionary of python types.
+
+        Args:
+            core (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            specs (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
+            nlte (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            ssprops (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            isots (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+
+        Returns:
+            dict: Atmospheric field dictionary
+        """
+        return pyarts.arts.stringify_keys(
+            self.ws.ray_path_atmospheric_point.to_dict(
+                core=core, specs=specs, nlte=nlte, ssprops=ssprops, isots=isots
+            )
+        )
+
     def __call__(
         self,
-        atmospheric_profile: dict,
+        atmospheric_profile: dict = {},
         surface_temperature: float = None,
     ):
-        """Call operator to return a propagation matrix
+        """Get the total flux profile
 
-        Parameters
-        ----------
+        Args:
+            atmospheric_profile (dict, optional): A dictionary of atmospheric data. Defaults to {}.
+            surface_temperature (float, optional): A surface temperature. Defaults to None.
+
+        Returns:
+            Flux, Flux, numpy.ndarray: The solar and thermal fluxes and the center altitudes of the layers.
         """
 
         if surface_temperature is not None:
             self.ws.surface_field["t"] = surface_temperature
 
-        N = len(self.ws.ray_path_atmospheric_point)
-        for key in atmospheric_profile:
-            data = np.atleast_1d(atmospheric_profile[key]).flatten()
-
-            if len(data) == 1:
-                for i in range(N):
-                    self.ws.ray_path_atmospheric_point[i][key] = data[0]
-            elif len(data) == N:
-                for i in range(N):
-                    self.ws.ray_path_atmospheric_point[i][key] = data[i]
-            else:
-                assert (
-                    False
-                ), f"Key: {key}.  Neither size {N} nor 1.  Size: {len(data)}"
+        self.ws.ray_path_atmospheric_point.update(atmospheric_profile)
 
         # Visible
         self.ws.frequency_grid = self.visf
-        self.ws.ray_path_frequency_gridFromPath()
-        self.ws.ray_path_propagation_matrixFromPath()
         self.ws.ray_path_frequency_gridFromPath()
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.disort_settingsInit()
@@ -138,7 +163,7 @@ class FastFlux1D:
         self.ws.disort_settingsNoSurfaceEmission()
         self.ws.disort_settingsNoSpaceEmission()
         self.ws.disort_settingsSurfaceLambertian(
-            value=self.visibile_surface_reflectivity
+            value=self.visible_surface_reflectivity
         )
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
@@ -152,8 +177,6 @@ class FastFlux1D:
 
         # IR
         self.ws.frequency_grid = self.ir_f
-        self.ws.ray_path_frequency_gridFromPath()
-        self.ws.ray_path_propagation_matrixFromPath()
         self.ws.ray_path_frequency_gridFromPath()
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.disort_settingsInit()
@@ -176,4 +199,13 @@ class FastFlux1D:
             "i,ijk->jk", self.ir_w, self.ws.disort_spectral_flux_field
         )
 
-        return 0.0
+        return (
+            Flux("solar", *self.SOLAR),
+            Flux("thermal", *self.THERMAL),
+            np.array(
+                [
+                    0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])
+                    for i in range(len(self.ws.ray_path) - 1)
+                ]
+            ),
+        )

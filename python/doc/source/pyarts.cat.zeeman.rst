@@ -1,7 +1,7 @@
-pyarts.plots
-============
+pyarts.cat.zeeman
+=================
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts.cat.zeeman
    :members:
    :imported-members:
    :undoc-members:

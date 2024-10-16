@@ -9,11 +9,10 @@ if(SPHINX_FOUND)
   endif()
 
   add_custom_target(pyarts_docs
-    COMMAND
-    ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html
-    ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    ${CMAKE_COMMAND} -E env PYTHONPATH="${ARTS_BINARY_DIR}/python/src" ARTS_HEADLESS=1 ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR} ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR} -- ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
+
   add_dependencies(pyarts_docs
     pyarts 
     gen_pyarts_arts_rst 
@@ -21,6 +20,7 @@ if(SPHINX_FOUND)
     pyarts_docs_copy_guide
     pyarts_docs_copy_python
     gen_examples_rst
+    check-deps
   )
 
   file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/source/*")

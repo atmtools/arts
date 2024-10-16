@@ -1,7 +1,7 @@
-pyarts.plots
-============
+pyarts.cat.hitran
+=================
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts.cat.hitran
    :members:
    :imported-members:
    :undoc-members:

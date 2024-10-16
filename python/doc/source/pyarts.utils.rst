@@ -2,22 +2,7 @@ pyarts.utils
 ============
 
 .. automodule:: pyarts.utils
-
-.. currentmodule:: pyarts.utils
-
-pyarts.utils.common
--------------------
-
-.. automodule:: pyarts.utils.common
-
-.. currentmodule:: pyarts.utils.common
-
-.. autosummary::
-   :toctree: stubs
-
-   deprecated
-   unique
-   path_append
-   path_prepend
-   path_remove
-   TempFileHandler
+   :members:
+   :imported-members:
+   :undoc-members:
+   :special-members: __init__, __call__

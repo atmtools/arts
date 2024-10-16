@@ -311,6 +311,8 @@ highlight_language = 'python3'
 
 autosummary_generate = True
 
+nbsphinx_execute = "always"
+
 # -- Intersphinx configuration -------------------------------------------
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.11', None),

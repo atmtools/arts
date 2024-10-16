@@ -1,2 +1,3 @@
 from .SingleSpeciesAbsorption import SingleSpeciesAbsorption  # noqa
-from .FastFlux1D import FastFlux1D  # noqa
+from .SpectralAtmosphericFlux import SpectralAtmosphericFlux  # noqa
+from .AtmosphericFlux import AtmosphericFlux  # noqa

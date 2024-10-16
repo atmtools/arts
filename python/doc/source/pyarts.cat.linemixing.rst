@@ -1,7 +1,7 @@
-pyarts.plots
-============
+pyarts.cat.linemixing
+=====================
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts.cat.linemixing
    :members:
    :imported-members:
    :undoc-members:

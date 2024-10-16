@@ -2,12 +2,7 @@ pyarts.sensor
 =============
 
 .. automodule:: pyarts.sensor
-
-.. currentmodule:: pyarts.sensor
-
-.. autosummary::
-   :toctree: stubs
-
-   get_f_backend_rel_width
-   get_f_backend_const_width
-
+   :members:
+   :imported-members:
+   :undoc-members:
+   :special-members: __init__, __call__

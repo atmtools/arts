@@ -367,6 +367,7 @@ void py_rtepack(py::module_ &m) try {
   vector_interface(c5);
 
   auto rtepack = m.def_submodule("rtepack");
+  rtepack.doc() = "Interface to some of the core RTE functionality";
   rtepack.def(
       "two_level_exp",
       [](const ArrayOfPropmatVector &K,
