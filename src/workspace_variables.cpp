@@ -136,6 +136,19 @@ Unit:  Hz
       .type = "AscendingGrid",
   };
 
+  wsv_data["frequency_grid_wind_shift_jacobian"] = {
+      .desc =
+          R"--(The frequency grid wind shift Jacobian.
+
+Used because all methods inside *propagation_matrix_agenda* work on
+the frequency grid, not on the actual wind speed for the sake of
+wind shift Jacobian calculations.
+
+The order is ``[df_du, df_dv, df_fw]``
+)--",
+      .type = "Vector3",
+  };
+
   wsv_data["absorption_xsec_fit_data"] = {
       .desc = R"--(Fitting model coefficients for cross section species.
 

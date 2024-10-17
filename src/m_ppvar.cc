@@ -102,13 +102,14 @@ ARTS_METHOD_ERROR_CATCH
 
 void ray_path_propagation_matrixFromPath(
     const Workspace &ws,
+    ArrayOfAscendingGrid &ray_path_frequency_grid,
     ArrayOfPropmatVector &ray_path_propagation_matrix,
     ArrayOfStokvecVector &ray_path_source_vector_nonlte,
     ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
     ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
     const Agenda &propagation_matrix_agenda,
+    const AscendingGrid &frequency_grid,
     const JacobianTargets &jacobian_targets,
-    const ArrayOfAscendingGrid &ray_path_frequency_grid,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
   const Size np = ray_path.size();
@@ -125,17 +126,21 @@ void ray_path_propagation_matrixFromPath(
   ray_path_propagation_matrix_jacobian.resize(np);
   ray_path_source_vector_nonlte_jacobian.resize(np);
 
+  //! Prepare frequency grid
+  ray_path_frequency_grid.resize(np);
+  std::ranges::fill(ray_path_frequency_grid, frequency_grid);
+
   if (arts_omp_in_parallel()) {
     for (Size ip = 0; ip < np; ip++) {
       propagation_matrix_agendaExecute(
           ws,
+          ray_path_frequency_grid[ip],
           ray_path_propagation_matrix[ip],
           ray_path_source_vector_nonlte[ip],
           ray_path_propagation_matrix_jacobian[ip],
           ray_path_source_vector_nonlte_jacobian[ip],
           jacobian_targets,
           {},
-          ray_path_frequency_grid[ip],
           ray_path[ip],
           ray_path_atmospheric_point[ip],
           propagation_matrix_agenda);
@@ -149,13 +154,13 @@ void ray_path_propagation_matrixFromPath(
       try {
         propagation_matrix_agendaExecute(
             ws,
+            ray_path_frequency_grid[ip],
             ray_path_propagation_matrix[ip],
             ray_path_source_vector_nonlte[ip],
             ray_path_propagation_matrix_jacobian[ip],
             ray_path_source_vector_nonlte_jacobian[ip],
             jacobian_targets,
             {},
-            ray_path_frequency_grid[ip],
             ray_path[ip],
             ray_path_atmospheric_point[ip],
             propagation_matrix_agenda);
@@ -401,15 +406,13 @@ void ray_path_frequency_gridFromPath(
     ArrayOfAscendingGrid &ray_path_frequency_grid,
     const AscendingGrid &frequency_grid,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atmospheric_point,
-    const Numeric &rte_alonglos_v) try {
+    const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
   forward_path_freq(
       path_freq_resize(
           ray_path_frequency_grid, frequency_grid, ray_path_atmospheric_point),
       frequency_grid,
       ray_path,
-      ray_path_atmospheric_point,
-      rte_alonglos_v);
+      ray_path_atmospheric_point);
 }
 ARTS_METHOD_ERROR_CATCH
 

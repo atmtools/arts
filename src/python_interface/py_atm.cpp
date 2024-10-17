@@ -369,20 +369,15 @@ Parameters
 
   m.def(
       "frequency_shift",
-      [](const AscendingGrid &frequency_grid,
-         const PropagationPathPoint &ray_path_point,
+      [](AscendingGrid frequency_grid,
          const AtmPoint &atmospheric_point,
-         const Numeric &rte_alonglos_v) {
-        AscendingGrid out = frequency_grid;
-        forward_path_freq(out,
-                          frequency_grid,
-                          ray_path_point,
-                          atmospheric_point,
-                          rte_alonglos_v);
-        return out;
+         const PropagationPathPoint &ray_path_point) {
+        Vector3 x;
+        frequency_gridWindShift(
+            frequency_grid, x, atmospheric_point, ray_path_point);
+        return frequency_grid;
       },
       "frequency_grid"_a,
-      "ray_path_point"_a,
       "atmospheric_point"_a,
       "rte_alonglos_v"_a,
       R"(Get the frequency-shifted frequency grid at a point in the atmosphere.
@@ -643,38 +638,6 @@ Parameters
                   [&](auto &&key) -> Atm::Data & { return a->operator[](key); },
                   k[i]) = v[i];
           });
-
-  m.def(
-      "frequency_shift",
-      [](const AscendingGrid &frequency_grid,
-         const PropagationPathPoint &ray_path_point,
-         const AtmPoint &atmospheric_point,
-         const Numeric &rte_alonglos_v) {
-        AscendingGrid out = frequency_grid;
-        forward_path_freq(out,
-                          frequency_grid,
-                          ray_path_point,
-                          atmospheric_point,
-                          rte_alonglos_v);
-        return out;
-      },
-      "frequency_grid"_a,
-      "ray_path_point"_a,
-      "atmospheric_point"_a,
-      "rte_alonglos_v"_a,
-      R"(Get the frequency-shifted frequency grid at a point in the atmosphere.
-
-Parameters
-----------
-  frequency_grid : AscendingGrid
-    The frequency grid to shift.
-  ray_path_point : PropagationPathPoint
-    The point along the ray path.
-  atmospheric_point : AtmPoint
-    The point in the atmosphere.
-  rte_alonglos_v : Numeric
-    The along line of sight velocity.
-)");
 
   pnt.def(
       "to_dict",

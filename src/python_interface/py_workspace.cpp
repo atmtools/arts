@@ -8,6 +8,7 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <exception>
 #include <filesystem>
 #include <iomanip>
 #include <memory>
@@ -102,7 +103,12 @@ void py_workspace(py::class_<Workspace>& ws) try {
               throw std::domain_error(
                   var_string("Workspace variable ", '"', n, '"', " exists."));
 
-            w.set(n, Wsv::from_named_type(t));
+            try {
+              w.set(n, Wsv::from_named_type(t));
+            } catch (std::exception& e) {
+              throw std::runtime_error(
+                  std::format("Error setting '{}'\n{}", n, e.what()));
+            }
           },
           "name"_a,
           "typename"_a,

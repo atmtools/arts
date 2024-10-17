@@ -862,6 +862,16 @@ Sets N2 and O2 speces
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
 
+  wsm_data["frequency_gridWindShift"] = {
+      .desc   = R"--(Applies wind shift to the *frequency_grid*.
+
+Also sets *frequency_grid_wind_shift_jacobian*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
+      .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
+  };
+
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
       .desc   = R"--(Gets the atmospheric points along the path.
 )--",
@@ -880,16 +890,11 @@ Sets N2 and O2 speces
   };
 
   wsm_data["ray_path_frequency_gridFromPath"] = {
-      .desc      = R"--(Gets the frequency grid along the path.
+      .desc   = R"--(Gets the frequency grid along the path.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_frequency_grid"},
-      .in        = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
-      .gin       = {"rte_alonglos_v"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{0.0}},
-      .gin_desc =
-          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_frequency_grid"},
+      .in     = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
   };
 
   wsm_data["ray_path_propagation_matrixFromPath"] = {
@@ -897,15 +902,18 @@ Sets N2 and O2 speces
           R"--(Gets the propagation matrix and non-LTE source term along the path.
 
 The calculations are in parallel if the program is not in parallel already.
+
+Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_propagation_matrix",
+      .out            = {"ray_path_frequency_grid",
+                         "ray_path_propagation_matrix",
                          "ray_path_propagation_matrix_source_vector_nonlte",
                          "ray_path_propagation_matrix_jacobian",
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
       .in             = {"propagation_matrix_agenda",
+                         "frequency_grid",
                          "jacobian_targets",
-                         "ray_path_frequency_grid",
                          "ray_path",
                          "ray_path_atmospheric_point"},
       .pass_workspace = true,
@@ -1854,8 +1862,26 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
                  "spectral_radiance_unit"},
   };
 
+  wsm_data["propagation_matrix_jacobianWindFix"] = {
+      .desc   = R"--(Fix for the wind field derivative.
+
+The *propagation_matrix_agenda* will set the wind derivatives to 
+those of the frequency derivative if this method is not used.  This
+will cause the wind field to be treated as a frequency derivative,
+meaning no OEM or other functionality that requires the Jacobian
+matrix to be calculated will work.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"propagation_matrix_jacobian",
+                 "propagation_matrix_source_vector_nonlte_jacobian"},
+      .in     = {"propagation_matrix_jacobian",
+                 "propagation_matrix_source_vector_nonlte_jacobian",
+                 "jacobian_targets",
+                 "frequency_grid_wind_shift_jacobian"},
+  };
+
   wsm_data["propagation_matrixAddLines"] = {
-      .desc      = R"--(Modern line-by-line calculations
+      .desc      = R"--(Line-by-line calculations.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"propagation_matrix",
@@ -3075,26 +3101,24 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
   };
 
   wsm_data["ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh"] = {
-      .desc     = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+      .desc           = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
 )--",
-      .author   = {"Richard Larsson"},
-      .out      = {"ray_path_spectral_radiance_scattering"},
-      .in       = {"ray_path_propagation_matrix_scattering",
-                   "ray_path",
-                   "ray_path_suns_path",
-                   "suns",
-                   "jacobian_targets",
-                   "frequency_grid",
-                   "atmospheric_field",
-                   "surface_field",
-                   "propagation_matrix_agenda"},
-      .gin      = {"rte_alonglos_v", "depolarization_factor", "hse_derivative"},
-      .gin_type = {"Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{0.0}, Numeric{0.0}, Index{0}},
-      .gin_desc =
-          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
-           R"--(The depolarization factor to use.)--",
-           "Flag to compute the hypsometric distance derivatives"},
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_spectral_radiance_scattering"},
+      .in             = {"ray_path_propagation_matrix_scattering",
+                         "ray_path",
+                         "ray_path_suns_path",
+                         "suns",
+                         "jacobian_targets",
+                         "frequency_grid",
+                         "atmospheric_field",
+                         "surface_field",
+                         "propagation_matrix_agenda"},
+      .gin            = {"depolarization_factor", "hse_derivative"},
+      .gin_type       = {"Numeric", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{0}},
+      .gin_desc       = {R"--(The depolarization factor to use.)--",
+                         "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
   };
 

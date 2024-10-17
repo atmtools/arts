@@ -8,15 +8,19 @@ internal_workspace_agendas() {
       .desc =
           R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
 )--",
-      .output = {"propagation_matrix",
-                 "propagation_matrix_source_vector_nonlte",
-                 "propagation_matrix_jacobian",
-                 "propagation_matrix_source_vector_nonlte_jacobian"},
-      .input  = {"jacobian_targets",
-                 "propagation_matrix_select_species",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "atmospheric_point"},
+      .output =
+          {
+              "frequency_grid",
+              "propagation_matrix",
+              "propagation_matrix_source_vector_nonlte",
+              "propagation_matrix_jacobian",
+              "propagation_matrix_source_vector_nonlte_jacobian",
+          },
+      .input = {"frequency_grid",
+                "jacobian_targets",
+                "propagation_matrix_select_species",
+                "ray_path_point",
+                "atmospheric_point"},
   };
 
   wsa_data["propagation_matrix_scattering_agenda"] = {

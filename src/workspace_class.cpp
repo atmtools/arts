@@ -118,6 +118,8 @@ void Workspace::init(const std::string& name) try {
 } catch (std::out_of_range&) {
   throw std::runtime_error(
       artsformat("Undefined workspace variable \"{}\"", name));
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error setting '{}'\n{}",name, e.what()));
 }
 
 Workspace Workspace::deepcopy() const {

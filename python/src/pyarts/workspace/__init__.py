@@ -9,3 +9,4 @@ Contains many ways to manipulate the workspace object
 from pyarts.workspace.workspace import Workspace, arts_agenda # noqa
 from pyarts.workspace.callback import callback_operator # noqa
 from pyarts.workspace.compatible import compat # noqa
+from pyarts.workspace.python_workspace_methods import python_workspace_method # noqa
