@@ -6,7 +6,7 @@ API Reference
 
    pyarts.arts
    pyarts.cat
-   pyarts.common
+   pyarts.data
    pyarts.environment
    pyarts.hitran
    pyarts.plots
