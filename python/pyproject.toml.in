@@ -17,6 +17,7 @@ dependencies = [
     "netCDF4>=1.1.1",
     "numpy>=2.0",
     "scipy",
+    "tqdm",
 ]
 
 [project.urls]
