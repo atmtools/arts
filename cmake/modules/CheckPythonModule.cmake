@@ -13,6 +13,7 @@ macro (CHECK_PYTHON_MODULES)
     pytest
     scipy
     setuptools
+    tqdm
     xarray)
 
   set(PYPI_NAMES
@@ -25,6 +26,7 @@ macro (CHECK_PYTHON_MODULES)
     pytest
     scipy
     setuptools
+    tqdm
     xarray)
 
   list(LENGTH REQUIRED_MODULES len1)

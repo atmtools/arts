@@ -25,6 +25,7 @@ dependencies:
         - sphinx-rtd-theme=3
         - sphinxcontrib-jquery
         - sphinxcontrib-mermaid>=1.0.0
+        - tqdm
         - xarray
         - zlib
 channels:

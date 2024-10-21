@@ -6,9 +6,9 @@
 from pyarts import sensor  # noqa
 from pyarts import xml  # noqa
 from pyarts import arts  # noqa
+from pyarts import data  # noqa
 from pyarts import plots  # noqa
 from pyarts import workspace  # noqa
-from pyarts.common import *  # noqa
 from pyarts import hitran  # noqa
 from pyarts import cat  # noqa
 from pyarts import fields  # noqa
