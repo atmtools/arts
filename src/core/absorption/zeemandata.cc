@@ -15,14 +15,20 @@
 #include "double_imanip.h"
 #include "wigner_functions.h"
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
 #else
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
+#endif
+
 #include <Eigen/Dense>
+
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 bool ZeemanModel::empty() const noexcept {
     return std::isnan(mdata.gu) and std::isnan(mdata.gl);
@@ -429,8 +435,10 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
   return pv;
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
+#endif
 const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
                                              Polarization type) noexcept {
   switch (type) {
@@ -444,7 +452,9 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
       return data.sm;  //! This should never be reached
   }
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
                  const PolarizationVector &polvec) {

@@ -332,8 +332,10 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   return data;
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
+#endif
 void LineShape::LegacyPressureBroadeningData::vector2modelpb(
     LineShapeTypeOld& mtype,
     bool& self,
@@ -464,7 +466,9 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
       }
   }
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
     Vector x, LineShape::LegacyLineMixingData::TypeLM type) {
@@ -775,8 +779,10 @@ ArrayOfString ModelMetaDataArray(const LineShape::Model&,
   return as;
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
+#endif
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   if (type == "X0") return mp.X0;
   if (type == "X1") return mp.X1;
@@ -788,7 +794,9 @@ Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
       "See documentation for accepted types\n",
       type)
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 std::ostream& operator<<(std::ostream& os, const ModelParameters& mp) {
   os << mp.type << ' ' << mp.X0 << ' ' << mp.X1 << ' ' << mp.X2 << ' ' << mp.X3

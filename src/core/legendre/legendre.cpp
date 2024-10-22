@@ -22,8 +22,10 @@ constexpr Numeric longitude_clamp(Numeric lon) {
   return lon;
 }
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#endif
 
 std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) {
   ARTS_USER_ERROR_IF(
@@ -123,7 +125,9 @@ Vector3 schmidt_fieldcalc(const Matrix& g,
 
   return B;
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 constexpr Numeric next(Numeric p0, Numeric p1, Numeric ni, Numeric x) {
   return ((2.0 * ni + 1.0) * x * p1 - ni * p0) / (ni + 1.0);
