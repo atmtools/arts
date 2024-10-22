@@ -36,3 +36,4 @@ dependencies:
         - zlib
 channels:
         - conda-forge
+        - nodefaults
