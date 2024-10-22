@@ -11,8 +11,6 @@ else()
   set(ARTS_XML_DIR "")
 endif()
 
-file(STRINGS ${ARTS_SOURCE_DIR}/VERSION ARTS_VERSION)
-
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts/__init__.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts/__init__.py

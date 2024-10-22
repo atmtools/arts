@@ -1,6 +1,0 @@
-/**
-   The full ARTS version name.
- */
-
-#define ARTS_FULL_VERSION "arts-@VERSION@"
-
