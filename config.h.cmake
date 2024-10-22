@@ -1,5 +1,8 @@
 #define _GNU_SOURCE 1
 
+/* ARTS version */
+#cmakedefine ARTS_VERSION "${ARTS_VERSION}"
+
 /* Compile Flags */
 #cmakedefine COMPILE_FLAGS "${COMPILE_FLAGS}"
 

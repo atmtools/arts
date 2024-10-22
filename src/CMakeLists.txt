@@ -18,18 +18,6 @@ endif(ENABLE_MPI)
 file(GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 
-# ########## target to extract version number from ChangeLog ###############
-add_custom_target(auto_version_cc DEPENDS UpdateAutoVersion)
-
-add_custom_command(
-  OUTPUT auto_version.cc
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_cc.cmake
-  BYPRODUCTS auto_version_cc.txt
-  DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "Updating ARTS version number"
-)
-
 # ####
 add_library(workspace_group STATIC
   workspace_groups.cpp
@@ -121,7 +109,6 @@ add_library(artsworkspace STATIC
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
   workspace_class.cpp
-  auto_version.cc
   compile_time_tests.cc
   m_abs.cc
   m_absorptionlines.cc
@@ -157,6 +144,7 @@ add_library(artsworkspace STATIC
   m_wigner.cc
   m_xml.cc
   sun_methods.cc
+  version.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -170,8 +158,6 @@ target_include_directories(artsworkspace PUBLIC
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
   ${NETCDF_INCLUDE_DIR}
 )
-
-add_dependencies(artsworkspace auto_version_cc)
 
 if(ENABLE_PCH)
   target_precompile_headers(artsworkspace PRIVATE workspace.h)

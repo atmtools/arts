@@ -2,12 +2,17 @@ find_package (Doxygen)
 
 if (DOXYGEN_FOUND)
 
-add_custom_command (
-  OUTPUT Doxyfile
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_doxyfile.cmake
-  COMMAND ${CMAKE_COMMAND} -E touch Doxyfile
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-  )
+set (HAVE_DOT NO)
+if (ENABLE_DOT)
+  find_program(FOUND_DOT dot)
+
+  if (FOUND_DOT MATCHES "/dot$")
+    set (HAVE_DOT YES)
+  endif()
+endif()
+
+configure_file (${ARTS_SOURCE_DIR}/doc/doxygen/Doxyfile.in
+                ${ARTS_BINARY_DIR}/doc/doxygen/Doxyfile @ONLY)
 
 file(GLOB ARTS_SOURCE_FILES ${ARTS_SOURCE_DIR}/src/*.h ${ARTS_SOURCE_DIR}/src/*.cc)
 add_custom_command (
@@ -19,11 +24,10 @@ add_custom_command (
                            ${CMAKE_CURRENT_SOURCE_DIR}/../arts-splash.png html/
   COMMAND ${CMAKE_COMMAND} -E touch doxified
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
-  DEPENDS Doxyfile ${ARTS_BINARY_DIR}/auto_version.txt ${ARTS_SOURCE_FILES}
+  DEPENDS Doxyfile ${ARTS_SOURCE_FILES}
 )
 
 add_custom_target (apidoc ALL DEPENDS doxified)
-add_dependencies (apidoc UpdateAutoVersion)
 
 set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "html")
 

@@ -8,9 +8,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 13.5)
 
 project (ARTS VERSION 3.0.0 LANGUAGES C CXX)
 
-if (NOT RELEASE_ARTS)
-  set (ARTS_VERSION "${ARTS_VERSION}-dev")
-endif()
+set(ARTS_DEV_TAG "dev3")
+set (ARTS_VERSION "${ARTS_VERSION}${ARTS_DEV_TAG}")
+
 message(STATUS "ARTS version: ${ARTS_VERSION}")
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -449,13 +449,6 @@ set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/controlfiles")
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
-
-add_custom_target (
-  auto_version.txt
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
-)
-
-add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 
 
 ########### Tests ##########
