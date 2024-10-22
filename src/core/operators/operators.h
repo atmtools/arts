@@ -7,10 +7,12 @@
 
 #include "debug.h"
 
+#ifndef _MSC_VER
 #if defined(__clang__)
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnon-template-friend"
+#endif
 #endif
 
 template <typename R, typename... Args>
@@ -28,9 +30,11 @@ struct CustomOperator {
   }
 };
 
+#ifndef _MSC_VER
 #if defined(__clang__)
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 using NumericUnaryOperator  = CustomOperator<Numeric, Numeric>;

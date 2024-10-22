@@ -29,7 +29,9 @@
 #include "debug.h"
 #include "jacobian.h"
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic ignored "-Wconversion"
+#endif
 
 #ifdef OEM_SUPPORT
 #include "oem.h"

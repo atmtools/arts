@@ -5,12 +5,18 @@
 
 #include <matpack.h>
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
+#endif
+
 #include <unsupported/Eigen/NonLinearOptimization>
+
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 namespace Minimize {
 //! Functor for minimizing X0 + X1 * X + X2 * X**2 + ... XN * X**N - Y

@@ -1,13 +1,19 @@
 #pragma once
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
 #else
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
+#endif
+
 #include <Eigen/Dense>
+
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 #include "matpack_concepts.h"
 
