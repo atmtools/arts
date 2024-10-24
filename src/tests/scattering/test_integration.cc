@@ -112,14 +112,14 @@ bool test_fejer_quadrature() {
   return true;
 }
 
-bool test_latitude_integration() {
+bool test_zenith_angle_integration() {
   scattering::GaussLegendreGrid grid{2};
-  auto nodes = grid.get_colatitudes();
+  auto nodes = grid.get_angle_cosines();
 
   // GL quadrature of degree 2 must be exact for integrationg cos(x)^2.
   Vector y = {pow(nodes[0], 2.0), pow(nodes[1], 2.0)};
 
-  Numeric y_int = scattering::integrate_latitudes(y, grid);
+  Numeric y_int = scattering::integrate_zenith_angle(y, grid);
   if (fabs(y_int - 2.0 / 3.0) > 1e-6) return false;
   return true;
 }
@@ -203,8 +203,8 @@ int main(int /*argc*/, const char** /*argv*/) {
     return 1;
   }
 
-  std::cout << "Testing latitude integration: ";
-  passed &= test_latitude_integration();
+  std::cout << "Testing zenith-angle integration: ";
+  passed &= test_zenith_angle_integration();
   if (passed) {
     std::cout << "PASSED" << std::endl;
   } else {
@@ -212,7 +212,7 @@ int main(int /*argc*/, const char** /*argv*/) {
     return 1;
   }
 
-  std::cout << "Testing latitude integration: ";
+  std::cout << "Testing zenith-angle integration: ";
   passed &= test_calculate_downsampling_weights();
   if (passed) {
     std::cout << "PASSED" << std::endl;

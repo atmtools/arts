@@ -38,18 +38,18 @@ template <Index stokes_dim>
 PhaseMatrixTROGridded<stokes_dim> make_phase_matrix(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
-    std::shared_ptr<const LatitudeGrid> za_scat_grid) {
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
   PhaseMatrixTROGridded<stokes_dim> phase_matrix(t_grid, f_grid, za_scat_grid);
-  Vector lats  = *za_scat_grid;
-  lats        *= Conversion::deg2rad(1.0);
-  Vector lons(1);
-  lons = 0.0;
+  Vector za_grid  = Vector{grid_vector(*za_scat_grid)};
+  za_grid        *= Conversion::deg2rad(1.0);
+  Vector aa_grid(1);
+  aa_grid = 0.0;
 
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
       for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
         phase_matrix(i_t, Range(i_f, 1), joker, i_s) =
-            evaluate_spherical_harmonic(i_f, 0, lons, lats);
+            evaluate_spherical_harmonic(i_f, 0, aa_grid, za_grid);
       }
     }
   }
@@ -64,13 +64,13 @@ template <Index stokes_dim>
 PhaseMatrixTROGridded<stokes_dim> make_phase_matrix_liquid_sphere(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
-    std::shared_ptr<const LatitudeGrid> za_scat_grid) {
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
   PhaseMatrixTROGridded<stokes_dim> phase_matrix(t_grid, f_grid, za_scat_grid);
 
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
       auto scat_data = scattering::MieSphere<Numeric>::Liquid(
-          (*f_grid)[i_f], (*t_grid)[i_t], 1e-3, *za_scat_grid);
+          (*f_grid)[i_f], (*t_grid)[i_t], 1e-3, Vector(grid_vector(*za_scat_grid)));
       auto scat_matrix = scat_data.get_scattering_matrix_compact();
       for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
         phase_matrix(i_t, i_f, joker, i_s) = scat_matrix(joker, i_s);
@@ -92,13 +92,13 @@ PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const Vector> za_inc_grid,
     std::shared_ptr<const Vector> delta_aa_grid,
-    std::shared_ptr<const LatitudeGrid> za_scat_grid) {
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
   PhaseMatrixAROGridded<stokes_dim> phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
-  Vector lons  = *delta_aa_grid;
-  lons        *= Conversion::deg2rad(1.0);
-  Vector lats  = *za_scat_grid;
-  lats        *= Conversion::deg2rad(1.0);
+  Vector aa_grid  = *delta_aa_grid;
+  aa_grid        *= Conversion::deg2rad(1.0);
+  Vector za_grid  = Vector{grid_vector(*za_scat_grid)};
+  za_grid        *= Conversion::deg2rad(1.0);
 
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
@@ -107,7 +107,7 @@ PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
           Index l = i_t;
           Index m = std::min(i_t, i_f);
           phase_matrix(i_t, i_f, i_za_inc, joker, joker, i_s) =
-              evaluate_spherical_harmonic(l, m, lons, lats);
+              evaluate_spherical_harmonic(l, m, aa_grid, za_grid);
         }
       }
     }
@@ -116,10 +116,10 @@ PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
 }
 
 bool test_phase_matrix_tro() {
-  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto sht          = sht::provider.get_instance(1, 32);
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(*sht->get_za_grid_ptr());
   auto phase_matrix_gridded =
       make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
 
@@ -155,11 +155,11 @@ bool test_phase_matrix_tro() {
       std::make_shared<Vector>(Vector({0.0, 180}));
   std::shared_ptr<Vector> za_inc_grid =
       std::make_shared<Vector>(Vector({90.0}));
-  std::shared_ptr<LatitudeGrid> za_scat_grid_new =
-      std::make_shared<IrregularLatitudeGrid>(Vector({90.0}));
-  std::shared_ptr<LatitudeGrid> za_scat_grid_liquid =
-      std::make_shared<IrregularLatitudeGrid>(
-          Vector({0.0, 10, 20, 160, 180.0}));
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid_new =
+      std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({90.0})));
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid_liquid =
+      std::make_shared<ZenithAngleGrid>(
+          IrregularZenithAngleGrid(Vector({0.0, 10, 20, 160, 180.0})));
 
   auto phase_matrix_liquid =
       make_phase_matrix_liquid_sphere<4>(t_grid, f_grid, za_scat_grid_liquid);
@@ -259,10 +259,10 @@ bool test_phase_matrix_tro() {
 }
 
 bool test_phase_matrix_copy_const_tro() {
-  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto sht          = sht::provider.get_instance(1, 32);
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
       make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
   auto phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
@@ -295,7 +295,7 @@ bool test_phase_matrix_copy_const_tro() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_tro() {
-  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto sht          = sht::provider.get_instance(1, 32);
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
@@ -309,7 +309,7 @@ bool test_phase_matrix_regrid_tro() {
 
   auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
   auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
-  auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(Vector({0}));
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid_new = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0})));
 
   ScatteringDataGrids grids{t_grid_new, f_grid_new, za_scat_grid};
   auto weights = calc_regrid_weights(
@@ -348,7 +348,7 @@ bool test_phase_matrix_regrid_tro() {
 
   (*t_grid_new)[0]       = 230.0;
   (*f_grid_new)[0]       = 5.5e9;
-  (*za_scat_grid_new)[0] = 0.5 * ((*za_scat_grid)[0] + (*za_scat_grid)[1]);
+  grid_vector(*za_scat_grid_new)[0] = 0.5 * (grid_vector(*za_scat_grid)[0] + (grid_vector(*za_scat_grid))[1]);
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
@@ -377,7 +377,7 @@ bool test_phase_matrix_regrid_tro() {
 
   auto phase_matrix_interp =
       phase_matrix_spectral.regrid(grids, weights).to_gridded();
-  Matrix phase_matrix_spectral_ref(za_scat_grid->size(), 6);
+  Matrix phase_matrix_spectral_ref(grid_size(*za_scat_grid), 6);
   phase_matrix_spectral_ref = 0.0;
   for (Index i_t = 0; i_t < 2; ++i_t) {
     for (Index i_f = 0; i_f < 2; ++i_f) {
@@ -399,9 +399,8 @@ bool test_phase_matrix_regrid_tro() {
 
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);
-  std::shared_ptr<const LatitudeGrid> za_scat_grid_inc =
-      std::make_shared<IrregularLatitudeGrid>(
-          Vector{std::views::iota(0, za_scat_grid->size())});
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid_inc =
+      std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector(std::views::iota(0, grid_size(*za_scat_grid)))));
 
   // Test interpolation along temperature axis.
 
@@ -410,7 +409,7 @@ bool test_phase_matrix_regrid_tro() {
 
   (*t_grid_new)[0]       = 1.2345;
   (*f_grid_new)[0]       = 1.2345;
-  (*za_scat_grid_new)[0] = 1.2345;
+  grid_vector(*za_scat_grid_new)[0] = 1.2345;
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid_inc, grids);
@@ -462,10 +461,10 @@ bool test_phase_matrix_regrid_tro() {
 }
 
 bool test_backscatter_matrix_regrid_tro() {
-  auto sht          = sht::provider.get_instance_lonlat(1, 32);
+  auto sht          = sht::provider.get_instance(1, 32);
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = sht->get_za_grid_ptr();
+  auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(sht->get_zenith_angle_grid()));
   auto phase_matrix = make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
 
@@ -475,7 +474,7 @@ bool test_backscatter_matrix_regrid_tro() {
 
   auto t_grid_new       = std::make_shared<Vector>(Vector({210}));
   auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
-  auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(Vector({0}));
+  std::shared_ptr<ZenithAngleGrid> za_scat_grid_new = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0})));
 
   ScatteringDataGrids grids{t_grid_new, f_grid_new, za_scat_grid};
   auto weights = calc_regrid_weights(
@@ -503,7 +502,7 @@ bool test_backscatter_matrix_regrid_tro() {
 
   (*t_grid_new)[0]       = 1.2345;
   (*f_grid_new)[0]       = 1.2345;
-  (*za_scat_grid_new)[0] = 1.2345;
+  grid_vector(*za_scat_grid_new)[0] = 1.2345;
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
@@ -527,7 +526,7 @@ bool test_backscatter_matrix_regrid_tro() {
 bool test_phase_matrix_aro() {
   Index l_max        = 128;
   Index m_max        = 128;
-  auto sht           = sht::provider.get_instance_lonlat(l_max, m_max);
+  auto sht           = sht::provider.get_instance(l_max, m_max);
   auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_inc_grid   = std::make_shared<Vector>(Vector({20.0}));
@@ -596,7 +595,7 @@ bool test_phase_matrix_aro() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_aro() {
-  auto sht           = sht::provider.get_instance_lonlat(1, 32);
+  auto sht           = sht::provider.get_instance(1, 32);
   auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid  = sht->get_za_grid_ptr();
@@ -614,8 +613,8 @@ bool test_phase_matrix_regrid_aro() {
   auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
   auto za_inc_grid_new  = std::make_shared<Vector>(Vector{0.0});
   auto aa_scat_grid_new = std::make_shared<Vector>(Vector({0.0}));
-  auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(
-      Vector{za_scat_grid->operator[](0)});
+  auto za_scat_grid_new = std::make_shared<ZenithAngleGrid>(
+      IrregularZenithAngleGrid(Vector{grid_vector(*za_scat_grid)[0]}));
 
   ScatteringDataGrids grids{t_grid_new,
                             f_grid_new,
@@ -625,7 +624,7 @@ bool test_phase_matrix_regrid_aro() {
   auto weights = calc_regrid_weights(t_grid,
                                      f_grid,
                                      nullptr,
-                                     za_scat_grid,
+                                     std::make_shared<Vector>(grid_vector(*za_scat_grid)),
                                      delta_aa_grid,
                                      za_scat_grid,
                                      grids);
@@ -667,9 +666,10 @@ bool test_phase_matrix_regrid_aro() {
       Vector{std::views::iota(0, za_inc_grid->size())});
   std::shared_ptr<const Vector> aa_scat_grid_inc = std::make_shared<Vector>(
       Vector{std::views::iota(0, delta_aa_grid->size())});
-  std::shared_ptr<const LatitudeGrid> za_scat_grid_inc =
-      std::make_shared<IrregularLatitudeGrid>(
-          Vector{std::views::iota(0, za_scat_grid->size())});
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid_inc =
+      std::make_shared<ZenithAngleGrid>(
+          IrregularZenithAngleGrid(Vector{std::views::iota(0, grid_size(*za_scat_grid))})
+                                        );
 
   // Test interpolation along temperature axis.
 
@@ -680,7 +680,7 @@ bool test_phase_matrix_regrid_aro() {
   (*f_grid_new)[0]       = 1.2345;
   (*za_inc_grid_new)[0]  = 1.2345;
   (*aa_scat_grid_new)[0] = 1.2345;
-  (*za_scat_grid_new)[0] = 1.2345;
+  grid_vector(*za_scat_grid_new)[0] = 1.2345;
 
   grids                       = ScatteringDataGrids{t_grid_new,
                               f_grid_new,
@@ -770,7 +770,7 @@ bool test_phase_matrix_regrid_aro() {
 }
 
 bool test_backscatter_matrix_regrid_aro() {
-  auto sht           = sht::provider.get_instance_lonlat(1, 32);
+  auto sht           = sht::provider.get_instance(1, 32);
   auto t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid  = sht->get_za_grid_ptr();
@@ -788,8 +788,8 @@ bool test_backscatter_matrix_regrid_aro() {
   auto f_grid_new       = std::make_shared<Vector>(Vector({1e9}));
   auto za_inc_grid_new  = std::make_shared<Vector>(Vector{0.0});
   auto aa_scat_grid_new = std::make_shared<Vector>(Vector({0.0}));
-  auto za_scat_grid_new = std::make_shared<IrregularLatitudeGrid>(
-      Vector{za_scat_grid->operator[](0)});
+  auto za_scat_grid_new = std::make_shared<ZenithAngleGrid>(
+      IrregularZenithAngleGrid(Vector{grid_vector(*za_scat_grid)[0]}));
 
   ScatteringDataGrids grids{t_grid_new,
                             f_grid_new,
@@ -799,7 +799,7 @@ bool test_backscatter_matrix_regrid_aro() {
   auto weights = calc_regrid_weights(t_grid,
                                      f_grid,
                                      nullptr,
-                                     za_scat_grid,
+                                     std::make_shared<Vector>(grid_vector(*za_scat_grid)),
                                      delta_aa_grid,
                                      za_scat_grid,
                                      grids);
@@ -821,9 +821,9 @@ bool test_backscatter_matrix_regrid_aro() {
       Vector{std::views::iota(0, za_inc_grid->size())});
   std::shared_ptr<const Vector> aa_scat_grid_inc = std::make_shared<Vector>(
       Vector{std::views::iota(0, delta_aa_grid->size())});
-  std::shared_ptr<const LatitudeGrid> za_scat_grid_inc =
-      std::make_shared<IrregularLatitudeGrid>(
-          Vector{std::views::iota(0, za_scat_grid->size())});
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid_inc =
+      std::make_shared<ZenithAngleGrid>(
+          IrregularZenithAngleGrid(Vector{std::views::iota(0, grid_size(*za_scat_grid))}));
 
   // Test interpolation along temperature axis.
 
@@ -834,7 +834,7 @@ bool test_backscatter_matrix_regrid_aro() {
   (*f_grid_new)[0]       = 1.2345;
   (*za_inc_grid_new)[0]  = 1.2345;
   (*aa_scat_grid_new)[0] = 1.2345;
-  (*za_scat_grid_new)[0] = 1.2345;
+  grid_vector(*za_scat_grid_new)[0] = 1.2345;
 
   grids                     = ScatteringDataGrids{t_grid_new,
                               f_grid_new,

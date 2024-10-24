@@ -17,7 +17,7 @@ ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
     return result;
   }
   set_spatial_coeffs(view);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
   return static_cast<ComplexVector>(get_spectral_coeffs());
 #endif
@@ -34,7 +34,7 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
     return result;
   }
   set_spatial_coeffs(view);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
   return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
 #endif
@@ -50,7 +50,7 @@ Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
     return result;
   }
   set_spectral_coeffs(view);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
   return static_cast<Matrix>(get_spatial_coeffs());
 #endif
@@ -67,7 +67,7 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
     return result;
   }
   set_spectral_coeffs_cmplx(view);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
   return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
 #endif
@@ -83,7 +83,7 @@ Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
     return view[0].real();
   }
   set_spectral_coeffs(view);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   return SH_to_point(shtns, spectral_coeffs_, cos(theta), phi);
 #endif
 }
@@ -101,7 +101,7 @@ Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
   set_spectral_coeffs(view);
   auto n_points = points.nrows();
   Vector result(n_points);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   for (auto i = 0; i < n_points; ++i) {
     result[i] =
         SH_to_point(shtns, spectral_coeffs_, cos(points(i, 1)), points(i, 0));
@@ -126,7 +126,7 @@ Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
   set_spectral_coeffs(view);
   auto n_points = thetas.size();
   Vector result(n_points);
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   for (auto i = 0; i < n_points; ++i) {
     result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
   }
@@ -164,12 +164,12 @@ FFTWArray<Numeric>::FFTWArray(Index n [[maybe_unused]]) : ptr_(nullptr) {
 
 shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
                            Index m_max [[maybe_unused]],
-                           Index n_lon [[maybe_unused]],
-                           Index n_lat [[maybe_unused]]) {
+                           Index n_aa [[maybe_unused]],
+                           Index n_za [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
-  std::array<Index, 4> config = {l_max, m_max, n_lon, n_lat};
+  std::array<Index, 4> config = {l_max, m_max, n_aa, n_za};
   if (config == current_config_) {
     return shtns_;
   } else {
@@ -178,8 +178,8 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
                         static_cast<int>(l_max),
                         static_cast<int>(m_max),
                         1,
-                        static_cast<int>(n_lat),
-                        static_cast<int>(n_lon));
+                        static_cast<int>(n_za),
+                        static_cast<int>(n_aa));
     current_config_ = config;
   }
   return shtns_;
@@ -193,8 +193,8 @@ std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 // SHT
 ////////////////////////////////////////////////////////////////////////////////
 
-SHT::SHT(Index l_max, Index m_max, Index n_lon, Index n_lat)
-    : l_max_(l_max), m_max_(m_max), n_lon_(n_lon), n_lat_(n_lat) {
+SHT::SHT(Index l_max, Index m_max, Index n_aa, Index n_za)
+    : l_max_(l_max), m_max_(m_max), n_aa_(n_aa), n_za_(n_za) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -212,11 +212,11 @@ SHT::SHT(Index l_max, Index m_max, Index n_lon, Index n_lat)
         sht::FFTWArray<std::complex<double> >(n_spectral_coeffs_);
     spectral_coeffs_cmplx_ =
         sht::FFTWArray<std::complex<double> >(n_spectral_coeffs_cmplx_);
-    spatial_coeffs_ = sht::FFTWArray<double>(n_lon * n_lat);
+    spatial_coeffs_ = sht::FFTWArray<double>(n_aa * n_za);
     spatial_coeffs_cmplx_ =
-        sht::FFTWArray<std::complex<double> >(n_lon * n_lat);
-    za_grid_ = std::make_shared<LatGrid>(get_latitude_grid());
-    aa_grid_ = std::make_shared<Vector>(get_longitude_grid());
+        sht::FFTWArray<std::complex<double> >(n_aa * n_za);
+    za_grid_ = std::make_shared<ZenithAngleGrid>(get_zenith_angle_grid());
+    aa_grid_ = std::make_shared<Vector>(get_azimuth_angle_grid());
   }
 #endif
 }
@@ -229,16 +229,16 @@ SHT::SHT(Index l_max, Index m_max)
 
 SHT::SHT(Index l_max) : SHT(l_max, l_max) {}
 
-Vector SHT::get_colatitude_grid() {
+Vector SHT::get_cos_za_grid() {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     return Vector(1, 0.0);
   }
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
-  Vector result(n_lat_);
-  std::copy_n(shtns->ct, n_lat_, result.begin());
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+  Vector result(n_za_);
+  std::copy_n(shtns->ct, n_za_, result.begin());
   return result;
 #endif
 }
@@ -250,7 +250,7 @@ ArrayOfIndex SHT::get_l_indices() {
   if (is_trivial_) {
     return {0};
   }
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   ArrayOfIndex result(n_spectral_coeffs_);
   for (Index i = 0; i < n_spectral_coeffs_; ++i) {
     result[i] = shtns->li[i];
@@ -266,7 +266,7 @@ ArrayOfIndex SHT::get_m_indices() {
   if (is_trivial_) {
     return {0};
   }
-  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_lon_, n_lat_);
+  auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
   ArrayOfIndex result(n_spectral_coeffs_);
   for (Index i = 0; i < n_spectral_coeffs_; ++i) {
     result[i] = shtns->mi[i];
@@ -275,8 +275,8 @@ ArrayOfIndex SHT::get_m_indices() {
 #endif
 }
 
-SHT::LatGrid SHT::get_latitude_grid(Index n_lat, bool radians) {
-  SHT::LatGrid result(n_lat);
+FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
+  auto result = FejerGrid(n_za);
   if (radians) {
     result *= Conversion::deg2rad(1.0);
   }
