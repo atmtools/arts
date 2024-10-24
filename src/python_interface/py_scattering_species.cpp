@@ -205,6 +205,7 @@ void bind_bulk_scattering_properties(py::module_ &m, const std::string &name) {
     .def_rw("absorption_vector", &scattering::BulkScatteringProperties<format, repr, stokes_dim>::absorption_vector);
 }
 
+
 void py_scattering_species(py::module_ &m) try {  //
   // ScatSpeciesProperty
   //
@@ -220,21 +221,60 @@ void py_scattering_species(py::module_ &m) try {  //
   // Modified gamma PSD
   //
 
+  using BulkScatteringPropertiesTROSpectral = std::variant<
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral, 1>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral, 2>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral, 3>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral, 4>
+    >;
+  using BulkScatteringPropertiesTROGridded = std::variant<
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded, 1>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded, 2>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded, 3>,
+    scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded, 4>
+    >;
+  using BulkScatteringPropertiesAROSpectral = std::variant<
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral, 1>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral, 2>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral, 3>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral, 4>
+    >;
+  using BulkScatteringPropertiesAROGridded = std::variant<
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded, 1>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded, 2>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded, 3>,
+    scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded, 4>
+    >;
+
   py::class_<MGDSingleMoment>(m, "MGDSingleMoment");
   py::class_<ScatteringHabit>(m, "ScatteringHabit");
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
     .def(py::init<>())
     .def(py::init<ScatteringSpeciesProperty, ScatteringSpeciesProperty, Numeric>())
     .def("get_bulk_scattering_properties_tro_spectral",
-         &HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral<1>,
-         "Calculate bulk scattering properties in spectral representation and TRO format.",
-         py::arg("atm_point"),
-         py::arg("l"))
+         [](const HenyeyGreensteinScatterer& hg,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            Index l,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesTROSpectral{hg.get_bulk_scattering_properties_tro_spectral<1>(atm_point, f_grid, l)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesTROSpectral{hg.get_bulk_scattering_properties_tro_spectral<2>(atm_point, f_grid, l)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesTROSpectral{hg.get_bulk_scattering_properties_tro_spectral<3>(atm_point, f_grid, l)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesTROSpectral{hg.get_bulk_scattering_properties_tro_spectral<4>(atm_point, f_grid, l)};
+           throw std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+         })
     .def("get_bulk_scattering_properties_tro_gridded",
-         &HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded<1>,
-         "Calculate bulk scattering properties in gridded representation and TRO format.",
-         py::arg("atm_point"),
-         py::arg("zenith_angle_grid"));
+         [](const HenyeyGreensteinScatterer& hg,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            std::shared_ptr<scattering::ZenithAngleGrid> za_grid,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesTROGridded{hg.get_bulk_scattering_properties_tro_gridded<1>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesTROGridded{hg.get_bulk_scattering_properties_tro_gridded<2>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesTROGridded{hg.get_bulk_scattering_properties_tro_gridded<3>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesTROGridded{hg.get_bulk_scattering_properties_tro_gridded<4>(atm_point, f_grid, za_grid)};
+           throw std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+         });
 
 
   py::class_<scattering::IrregularZenithAngleGrid>(m, "IrregularZenithAngleGrid")
@@ -256,6 +296,63 @@ void py_scattering_species(py::module_ &m) try {  //
     .def(py::init<scattering::FejerGrid>());
 
   py::class_<ArrayOfScatteringSpecies> aoss(m, "ArrayOfScatteringSpecies");
+  aoss
+    .def(py::init<>())
+    .def("add", &ArrayOfScatteringSpecies::add)
+    .def("get_bulk_scattering_properties_tro_spectral",
+         [](const ArrayOfScatteringSpecies& aoss,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            Index l,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesTROSpectral{aoss.get_bulk_scattering_properties_tro_spectral<1>(atm_point, f_grid, l)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesTROSpectral{aoss.get_bulk_scattering_properties_tro_spectral<2>(atm_point, f_grid, l)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesTROSpectral{aoss.get_bulk_scattering_properties_tro_spectral<3>(atm_point, f_grid, l)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesTROSpectral{aoss.get_bulk_scattering_properties_tro_spectral<4>(atm_point, f_grid, l)};
+           throw std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+         })
+    .def("get_bulk_scattering_properties_tro_gridded",
+         [](const ArrayOfScatteringSpecies& aoss,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            std::shared_ptr<scattering::ZenithAngleGrid> za_grid,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesTROGridded{aoss.get_bulk_scattering_properties_tro_gridded<1>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesTROGridded{aoss.get_bulk_scattering_properties_tro_gridded<2>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesTROGridded{aoss.get_bulk_scattering_properties_tro_gridded<3>(atm_point, f_grid, za_grid)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesTROGridded{aoss.get_bulk_scattering_properties_tro_gridded<4>(atm_point, f_grid, za_grid)};
+           throw std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+         })
+    .def("get_bulk_scattering_properties_aro_gridded",
+         [](const ArrayOfScatteringSpecies& aoss,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            const Vector& za_inc_grid,
+            const Vector& delta_aa_grid,
+            std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesAROGridded{aoss.get_bulk_scattering_properties_aro_gridded<1>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesAROGridded{aoss.get_bulk_scattering_properties_aro_gridded<2>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesAROGridded{aoss.get_bulk_scattering_properties_aro_gridded<3>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesAROGridded{aoss.get_bulk_scattering_properties_aro_gridded<4>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid)};
+           throw std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+         })
+    .def("get_bulk_scattering_properties_aro_spectral",
+         [](const ArrayOfScatteringSpecies& aoss,
+            const AtmPoint& atm_point,
+            const Vector& f_grid,
+            const Vector& za_inc_grid,
+            Index l,
+            Index m,
+            const Index stokes_dim) {
+           if (stokes_dim == 1) return BulkScatteringPropertiesAROSpectral{aoss.get_bulk_scattering_properties_aro_spectral<1>(atm_point, f_grid, za_inc_grid, l, m)};
+           if (stokes_dim == 2) return BulkScatteringPropertiesAROSpectral{aoss.get_bulk_scattering_properties_aro_spectral<2>(atm_point, f_grid, za_inc_grid, l, m)};
+           if (stokes_dim == 3) return BulkScatteringPropertiesAROSpectral{aoss.get_bulk_scattering_properties_aro_spectral<3>(atm_point, f_grid, za_inc_grid, l, m)};
+           if (stokes_dim == 4) return BulkScatteringPropertiesAROSpectral{aoss.get_bulk_scattering_properties_aro_spectral<4>(atm_point, f_grid, za_inc_grid, l, m)};
+           std::runtime_error("Stokes dim must be one of 1, 2, 3, or 4.");
+           return BulkScatteringPropertiesAROSpectral{aoss.get_bulk_scattering_properties_aro_spectral<1>(atm_point, f_grid, za_inc_grid, l, m)};
+         });
+
   workspace_group_interface(aoss);
 
   bind_phase_matrix_data_tro_gridded<double, 1>(m,

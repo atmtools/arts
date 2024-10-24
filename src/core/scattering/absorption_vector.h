@@ -108,6 +108,25 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
         {this->extent(0), this->extent(1)});
   }
 
+  AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
+  to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) {
+    AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim> av_new{t_grid_, f_grid_, za_inc_grid};
+    for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+      for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+        for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
+          av_new(t_ind, f_ind, za_inc_ind, 0) = this->operator()(t_ind, f_ind, 0);
+        }
+      }
+    }
+    return av_new;
+  }
+
+  AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> to_spectral() {
+    AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> avd_new(t_grid_, f_grid_);
+    reinterpret_cast<matpack::matpack_data<Scalar, 3>&>(avd_new) = *this;
+    return avd_new;
+  }
+
   AbsorptionVectorData regrid(const ScatteringDataGrids grids,
                               const RegridWeights weights) {
     AbsorptionVectorData result(grids.t_grid, grids.f_grid);
@@ -211,6 +230,12 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
     return matpack::matpack_view<CoeffVector, 3, false, false>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2)});
+  }
+
+  AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> to_spectral() {
+    AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> avd_new(t_grid_, f_grid_, za_inc_grid_);
+    reinterpret_cast<matpack::matpack_data<Scalar, 4>&>(avd_new) = *this;
+    return avd_new;
   }
 
   AbsorptionVectorData regrid(const ScatteringDataGrids& grids,

@@ -724,6 +724,12 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     }
     return result;
   }
+
+  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const {
+    auto sht_ptr = sht::provider.get_instance_lm(degree, order);
+    return to_spectral(sht_ptr);
+  }
+
   PhaseMatrixDataSpectral to_spectral() const {
     return to_spectral(sht::provider.get_instance(1, n_za_scat_));
   }
@@ -731,7 +737,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
   PhaseMatrixDataLabFrame to_lab_frame(
       std::shared_ptr<const Vector> za_inc_grid,
       std::shared_ptr<const Vector> delta_aa_grid,
-      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) {
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const {
     PhaseMatrixDataLabFrame result(
         t_grid_, f_grid_, za_inc_grid, delta_aa_grid, za_scat_grid_new);
 
@@ -970,6 +976,8 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
                                                   Format::TRO,
                                                   Representation::Spectral,
                                                   stokes_dim>;
+  using PhaseMatrixDataLabFrame =
+      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>;
   using PhaseMatrixDataDoublySpectral =
       PhaseMatrixData<Scalar,
                       Format::TRO,
@@ -1100,6 +1108,12 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
     return result;
   }
 
+  PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector> za_inc_grid,
+                                       std::shared_ptr<const Vector> delta_aa_grid,
+                                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const {
+    return to_gridded().to_lab_frame(za_inc_grid, delta_aa_grid, za_scat_grid_new);
+  }
+
   BackscatterMatrixData<Scalar, Format::TRO, stokes_dim>
   extract_backscatter_matrix() const {
     BackscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
@@ -1183,7 +1197,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
   /// Conversion from doubly-spectral format to spectral is just a
   /// copy for TRO format.
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT>) { return *this; }
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT>) const { return *this; }
 
   /// Conversion from spectral to doubly-spectral format is just a copy for TRO format.
   PhaseMatrixDataDoublySpectral to_doubly_spectral(std::shared_ptr<SHT>) {
@@ -1365,7 +1379,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) {
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
     ARTS_ASSERT(sht->get_n_azimuth_angles() == n_delta_aa_);
     ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
 
@@ -1383,9 +1397,14 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
     }
     return result;
   }
-  PhaseMatrixDataSpectral to_spectral() {
-    return to_spectral(
-        sht::provider.get_instance(n_delta_aa_, n_za_scat_));
+
+  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const {
+    auto sht_ptr = sht::provider.get_instance_lm(degree, order);
+    return to_spectral(sht_ptr);
+  }
+
+  PhaseMatrixDataSpectral to_spectral() const {
+    return to_spectral(sht::provider.get_instance(n_delta_aa_, n_za_scat_));
   }
 
   BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
@@ -1893,6 +1912,25 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
       }
     }
     return result;
+  }
+
+  /** Transform
+   *
+   * @param Pointer to the SHT to use for the transformation.
+   */
+  PhaseMatrixData to_spectral(Index l_new, Index m_new) {
+    auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
+    PhaseMatrixData pm_new(t_grid_, f_grid_, sht_new);
+    for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+      for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+        for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid_->size(); ++za_inc_ind) {
+          for (Index coeff_ind = 0; coeff_ind < std::min(this->size(4), pm_new.size(4)); ++coeff_ind) {
+            pm_new(t_ind, f_ind, za_inc_ind, coeff_ind) = (*this)(t_ind, f_ind, za_inc_ind, coeff_ind);
+          }
+        }
+      }
+    }
+    return pm_new;
   }
 
   BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
