@@ -58,7 +58,7 @@ ensure that the line-by-line catalog has the correct size and that it has been
 set so that our automatic agenda routine can do its work
 
 """
-ws.absorption_bands = []
+ws.absorption_bands = {}
 
 """
 

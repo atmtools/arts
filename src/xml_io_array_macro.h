@@ -24,12 +24,11 @@ void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
 
   Index n;
   try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, at[n], pbifs);
+    for (n = 0; n < nelem; n++) xml_read_from_stream(is_xml, at[n], pbifs);
   } catch (const std::runtime_error &e) {
     std::ostringstream os;
-    os << "Error reading "
-       << WorkspaceGroupInfo<std::remove_cvref_t<T>>::name << ": "
+    os << "Error reading " << WorkspaceGroupInfo<std::remove_cvref_t<T>>::name
+       << ": "
        << "\n Element: " << n << "\n"
        << e.what();
     throw std::runtime_error(os.str());
@@ -41,11 +40,14 @@ void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
   throw std::runtime_error(
       var_string("Failed reading routine for ",
                  WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
-                 "\nError reads:\n", e.what()));
+                 "\nError reads:\n",
+                 e.what()));
 }
 
 template <array_of_group T>
-void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
+void xml_write(std::ostream &os_xml,
+               const T &at,
+               bofstream *pbofs,
                const String &name) try {
   const static String subtype{
       WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name};
@@ -54,8 +56,7 @@ void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
-  if (name.length())
-    open_tag.add_attribute("name", name);
+  if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", subtype);
   open_tag.add_attribute("nelem", static_cast<Index>(at.size()));
@@ -74,17 +75,19 @@ void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
   throw std::runtime_error(
       var_string("Failed saving routine for ",
                  WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
-                 "\nError reads:\n", e.what()));
+                 "\nError reads:\n",
+                 e.what()));
 }
 
 //! Helper macro for when both Array<T> and T are ARTS groups
-#define TMPL_XML_READ_WRITE_STREAM_ARRAY(T)                                    \
-  void xml_read_from_stream(std::istream &is_xml, T &at, bifstream *pbifs) {        \
-    xml_read(is_xml, at, pbifs);                                               \
-  }                                                                            \
-                                                                               \
-  void xml_write_to_stream(std::ostream &os_xml, const T &at, bofstream *pbofs,     \
-                           const String &name) {                               \
-    xml_write(os_xml, at, pbofs, name);                                        \
+#define TMPL_XML_READ_WRITE_STREAM_ARRAY(T)                                  \
+  void xml_read_from_stream(std::istream &is_xml, T &at, bifstream *pbifs) { \
+    xml_read(is_xml, at, pbifs);                                             \
+  }                                                                          \
+                                                                             \
+  void xml_write_to_stream(std::ostream &os_xml,                             \
+                           const T &at,                                      \
+                           bofstream *pbofs,                                 \
+                           const String &name) {                             \
+    xml_write(os_xml, at, pbofs, name);                                      \
   }
-  

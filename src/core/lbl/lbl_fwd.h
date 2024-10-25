@@ -12,7 +12,7 @@ namespace lbl::fwd {
 namespace models {
 class lte {
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfAbsorptionBand> bands{};
+  std::shared_ptr<AbsorptionBands> bands{};
   zeeman::pol pol{};
 
   voigt::lte::band_shape lines{};
@@ -25,16 +25,16 @@ class lte {
  public:
   std::pair<Complex, Complex> operator()(const Numeric frequency) const;
 
-  void set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands);
+  void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<ArrayOfAbsorptionBand> bands, std::shared_ptr<AtmPoint> atm,
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
   zeeman::pol pol);
 };
 
 class lte_mirror {
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfAbsorptionBand> bands{};
+  std::shared_ptr<AbsorptionBands> bands{};
   zeeman::pol pol{};
 
   voigt::lte_mirror::band_shape lines{};
@@ -47,16 +47,16 @@ class lte_mirror {
  public:
   std::pair<Complex, Complex> operator()(const Numeric frequency) const;
 
-  void set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands);
+  void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<ArrayOfAbsorptionBand> bands, std::shared_ptr<AtmPoint> atm,
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
   zeeman::pol pol);
 };
 
 class nlte {
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfAbsorptionBand> bands{};
+  std::shared_ptr<AbsorptionBands> bands{};
   zeeman::pol pol{};
 
   voigt::nlte::band_shape lines{};
@@ -69,17 +69,17 @@ class nlte {
  public:
   std::pair<Complex, Complex> operator()(const Numeric frequency) const;
 
-  void set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands);
+  void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<ArrayOfAbsorptionBand> bands, std::shared_ptr<AtmPoint> atm,
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
   zeeman::pol pol);
 };
 }  // namespace models
 
 class line_storage {
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfAbsorptionBand> bands{};
+  std::shared_ptr<AbsorptionBands> bands{};
 
   std::array<models::lte, 4> lte{};
   std::array<models::lte_mirror, 4> lte_mirror{};
@@ -93,11 +93,11 @@ class line_storage {
   line_storage& operator=(line_storage&&) = default;
 
   line_storage(std::shared_ptr<AtmPoint> atm,
-               std::shared_ptr<ArrayOfAbsorptionBand> bands);
+               std::shared_ptr<AbsorptionBands> bands);
 
   std::pair<Complex, Complex> operator()(const Numeric frequency, const zeeman::pol pol) const;
 
-  void set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands);
+  void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
 };  // struct frequency
 }  // namespace lbl::fwd

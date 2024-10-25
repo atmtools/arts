@@ -18,7 +18,7 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const AtmField& atmospheric_field,
                               const SurfaceField& surface_field,
-                              const ArrayOfAbsorptionBand& absorption_bands) {
+                              const AbsorptionBands& absorption_bands) {
   jacobian_targets.finalize(atmospheric_field, surface_field, absorption_bands);
 }
 

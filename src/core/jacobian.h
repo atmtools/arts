@@ -141,15 +141,15 @@ struct LineTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   std::function<void(
-      ExhaustiveVectorView, const ArrayOfAbsorptionBand&, const LblLineKey&)>
+      ExhaustiveVectorView, const AbsorptionBands&, const LblLineKey&)>
       set_state{[](ExhaustiveVectorView x,
-                   const ArrayOfAbsorptionBand& bands,
+                   const AbsorptionBands& bands,
                    const LblLineKey& key) { x = key.get_value(bands); }};
 
-  std::function<void(ArrayOfAbsorptionBand&,
+  std::function<void(AbsorptionBands&,
                      const LblLineKey&,
                      const ExhaustiveConstVectorView)>
-      set_model{[](ArrayOfAbsorptionBand& bands,
+      set_model{[](AbsorptionBands& bands,
                    const LblLineKey& key,
                    const ExhaustiveConstVectorView x) {
         ExhaustiveVectorView{key.get_value(bands)} = x;
@@ -157,9 +157,9 @@ struct LineTarget {
 
   friend std::ostream& operator<<(std::ostream& os, const LineTarget&);
 
-  void update(ArrayOfAbsorptionBand&, const Vector&) const;
+  void update(AbsorptionBands&, const Vector&) const;
 
-  void update(Vector&, const ArrayOfAbsorptionBand&) const;
+  void update(Vector&, const AbsorptionBands&) const;
 };
 
 template <typename T>
@@ -290,7 +290,7 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atmospheric_field,
                 const SurfaceField& surface_field,
-                const ArrayOfAbsorptionBand& absorption_bands);
+                const AbsorptionBands& absorption_bands);
 
   friend std::ostream& operator<<(std::ostream& os, const Targets& targets);
 };

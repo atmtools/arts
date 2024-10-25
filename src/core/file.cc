@@ -14,12 +14,15 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include "file.h"
+
+#include <debug.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <stdexcept>
 
-#include "file.h"
 #include "parameters.h"
 
 ////////////////////////////////////////////////////////////////////////////
@@ -132,7 +135,14 @@ void open_input_file(std::ifstream& file, const std::string_view name) {
   // g++ stream exceptions work properly.
   ARTS_USER_ERROR_IF(!file,
                      "Cannot open input file: {}"
-                     "\nMaybe the file does not exist?", ename);
+                     "\nMaybe the file does not exist?",
+                     ename);
+}
+
+std::ifstream open_input_file(const std::string_view name) {
+  std::ifstream file;
+  open_input_file(file, name);
+  return file;
 }
 
 /**
@@ -207,7 +217,9 @@ ArrayOfString read_text_from_file(const std::string_view name) {
     @param with The replacement.
 
     @author Stefan Buehler */
-void replace_all(String& s, const std::string_view what, const std::string_view with) {
+void replace_all(String& s,
+                 const std::string_view what,
+                 const std::string_view with) {
   Size j = s.find(what);
   while (j != s.npos) {
     s.replace(j, 1, with);
@@ -226,7 +238,7 @@ void replace_all(String& s, const std::string_view what, const std::string_view 
   @author Oliver Lemke
 */
 int check_newline(const std::string_view s) {
-  String d = String{s};
+  String d   = String{s};
   int result = 0;
 
   // Remove all whitespaces except \n
@@ -363,11 +375,11 @@ bool find_xml_file_existence(String& filename) {
   extern Parameters parameters;
   ArrayOfString allpaths = parameters.includepath;
   allpaths.insert(
-    allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
-  
+      allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
+
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
-  
+
   if (matching_files.size()) {
     filename = matching_files[0];
     return true;
@@ -456,8 +468,7 @@ ArrayOfString list_directory(const std::string_view dirname) {
                      dirname)
 
   ArrayOfString files{};
-  for (const auto& filename :
-       std::filesystem::directory_iterator{dirname}) {
+  for (const auto& filename : std::filesystem::directory_iterator{dirname}) {
     files.push_back(filename.path().string());
   }
 
@@ -476,7 +487,8 @@ ArrayOfString list_directory(const std::string_view dirname) {
  \author Oliver Lemke
  */
 
-String make_filename_unique(const std::string_view filename, const String& extension) {
+String make_filename_unique(const std::string_view filename,
+                            const String& extension) {
   String basename = String{filename};
   String extensionname;
 

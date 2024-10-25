@@ -1976,15 +1976,14 @@ See *SpeciesEnum* for valid ``species``
   };
 
   wsm_data["jacobian_targetsAddAtmosphere"] = {
-      .desc   = R"--(Sets an atmospheric target
+      .desc      = R"--(Sets an atmospheric target
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets"},
-      .gin    = {"target", "d"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
-           "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
+                    "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The target of interest",
@@ -2019,6 +2018,78 @@ See *SpeciesIsotope* for valid ``species``
       .gin_desc =
           {"The species isotopologue of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+
+  wsm_data["absorption_bandsReadHITRAN"] = {
+      .desc =
+          R"--(Reads HITRAN data from a file.
+
+The HITRAN file is assumed sorted in frequency, with each line record
+filling up one line of text.
+
+If the full 160-char line record is consumed without reaching the end of the line,
+qns' and qns'' are assumed appended with default HITRANonline format.
+
+You may pass an inclusive frequency range to limit what is read.  This will limit
+the data read to the range [fmin, fmax].  All data before fmin is limited to parsing
+just up until the frequency, and the database is returned if the fmax frequency is
+exceeded.
+
+The optional parameter ``einstein_coefficient`` is used to indicate if it is to
+be computed from the line strength, or simply read from the Hitran data.
+
+.. warning::
+   Several HITRAN lines has Einstein coefficients that will not reproduce the results
+   of pure line strength simulations.  If the option is set to read the Einstein
+   coefficicent ("A") instead of computing it ("S") the program will throw an error
+   if missing data is encountered.  For the computed Einstein coeffcient, if the upper
+   degeneracy is missing, it will be set to either - (2J+1) or -1 if J is not a local
+   quantum number.  Note that this will also make the Einstein coefficient negative.
+   This should not affect the simulation, but it is a warning that the data is not
+   complete.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_bands"},
+      .in        = {},
+      .gin       = {"file",
+                    "frequency_range",
+                    "line_strength_option",
+                    "compute_zeeman_parameters"},
+      .gin_type  = {"String", "Vector2", "String", "Index"},
+      .gin_value = {std::nullopt,
+                    Vector2{-std::numeric_limits<Numeric>::infinity(),
+                            std::numeric_limits<Numeric>::infinity()},
+                    String{"S"},
+                    Index{1}},
+      .gin_desc =
+          {"Filename",
+           "Frequency range selection",
+           "Whether the Hitran line strenght or the Hitran Einstein coefficient is used, the latter has historically been less reliable",
+           "Compute the Zeeman parameters from the HITRAN data (will not activate Zeeman calculations, this must be done manually afterwards)"},
+  };
+
+  wsm_data["absorption_bandsLineMixingAdaptation"] = {
+      .desc =
+          R"--(Adapts select band to use ordered Line mixing coefficients.
+
+This is an experimental feature and might not work.
+
+The computations of line mixing are done on the grid of temperatures provided.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_bands"},
+      .in        = {"absorption_bands", "ecs_data", "atmospheric_point"},
+      .gin       = {"temperatures",
+                    "band_key",
+                    "rosenkranz_fit_order",
+                    "polynomial_fit_degree"},
+      .gin_type  = {"AscendingGrid", "QuantumIdentifier", "Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Index{1}, Index{3}},
+      .gin_desc =
+          {"The temperatures to use for the internal fitting",
+           "The band to adapt",
+           "The degree of Rosenkranz coefficients (1 for just fitting y, 2 for fitting also g and dv)",
+           "The highest order of the polynomial fit (2 means square, 3 means cubic, etc)"},
   };
 
   wsm_data["absorption_bandsSelectFrequency"] = {
@@ -2144,7 +2215,8 @@ variables are not considered
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
-      .desc      = R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
+      .desc =
+          R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -2156,7 +2228,8 @@ variables are not considered
   };
 
   wsm_data["ray_pathGeometricDownlooking"] = {
-      .desc      = R"--(Wraps *ray_pathGeometric* for straight downlooking paths from the top-of-the-atmosphere altitude
+      .desc =
+          R"--(Wraps *ray_pathGeometric* for straight downlooking paths from the top-of-the-atmosphere altitude
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -2767,11 +2840,11 @@ See *SpeciesIsotope* for valid ``species``
 
 The core calculations happens inside the *spectral_radiance_operator*.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector"},
-      .in        = {"measurement_sensor",
-                    "spectral_radiance_operator",
-                    "ray_path_observer_agenda"},
+      .author         = {"Richard Larsson"},
+      .out            = {"measurement_vector"},
+      .in             = {"measurement_sensor",
+                         "spectral_radiance_operator",
+                         "ray_path_observer_agenda"},
       .pass_workspace = true,
   };
 
@@ -2783,14 +2856,14 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 
 User choices of *spectral_radiance_unit* does not adversely affect this method.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector", "measurement_jacobian"},
-      .in        = {"measurement_sensor",
-                    "jacobian_targets",
-                    "atmospheric_field",
-                    "surface_field",
-                    "spectral_radiance_unit",
-                    "spectral_radiance_observer_agenda"},
+      .author         = {"Richard Larsson"},
+      .out            = {"measurement_vector", "measurement_jacobian"},
+      .in             = {"measurement_sensor",
+                         "jacobian_targets",
+                         "atmospheric_field",
+                         "surface_field",
+                         "spectral_radiance_unit",
+                         "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
   };
 
@@ -2822,12 +2895,11 @@ All elements share position, line-of-sight, and frequency grid.
 
 Note that this means you only get "half" a Gaussian channel for the outermost channels.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor"},
-      .in     = {"frequency_grid"},
-      .gin    = {"fwhm", "pos", "los", "pol"},
-      .gin_type =
-          {"Vector, Numeric", "Vector3", "Vector2", "Stokvec"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"frequency_grid"},
+      .gin       = {"fwhm", "pos", "los", "pol"},
+      .gin_type  = {"Vector, Numeric", "Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
@@ -3419,13 +3491,13 @@ Description of the special input arguments:
       .desc =
           R"--(Uses Set the FOV to the sun input for Disort calculations.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings",
-                    "frequency_grid",
-                    "surface_field",
-                    "sun",
-                    "ray_path_point"},
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings",
+                 "frequency_grid",
+                 "surface_field",
+                 "sun",
+                 "ray_path_point"},
   };
 
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
@@ -3460,9 +3532,9 @@ Note that you must have set the optical thickness before calling this.
       .desc =
           R"(Space radiation into Disort is isotropic cosmic background radiation.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings", "frequency_grid"},
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "frequency_grid"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -3477,12 +3549,12 @@ Note that you must have set the optical thickness before calling this.
       .desc =
           R"(Surface radiation into Disort is isotropic from surface temperature.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings",
-                    "frequency_grid",
-                    "ray_path_point",
-                    "surface_field"},
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings",
+                 "frequency_grid",
+                 "ray_path_point",
+                 "surface_field"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
@@ -3621,17 +3693,16 @@ Note that you must have set the optical thickness before calling this.
   };
 
   wsm_data["RetrievalAddAtmosphere"] = {
-      .desc   = R"(Add atmospheric property the retrieval setup.
+      .desc      = R"(Add atmospheric property the retrieval setup.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in     = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin    = {"species", "matrix", "inverse", "d"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
-           "BlockMatrix",
-           "BlockMatrix",
-           "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
+      .gin       = {"species", "matrix", "inverse", "d"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
+                    "BlockMatrix",
+                    "BlockMatrix",
+                    "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
       .gin_desc =
           {"The property added to the retrieval system",

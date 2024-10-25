@@ -222,17 +222,17 @@ std::pair<Complex, Complex> nlte::operator()(const Numeric frequency) const {
   return {scl * (a + ac), scl * (s + sc)};
 }
 
-void lte::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
+void lte::set_model(std::shared_ptr<AbsorptionBands> bands_) {
   bands = std::move(bands_);
   adapt();
 }
 
-void lte_mirror::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
+void lte_mirror::set_model(std::shared_ptr<AbsorptionBands> bands_) {
   bands = std::move(bands_);
   adapt();
 }
 
-void nlte::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
+void nlte::set_model(std::shared_ptr<AbsorptionBands> bands_) {
   bands = std::move(bands_);
   adapt();
 }
@@ -267,7 +267,7 @@ void nlte::set_pol(zeeman::pol pol_) {
   adapt();
 }
 
-void lte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
+void lte::set(std::shared_ptr<AbsorptionBands> bands_,
               std::shared_ptr<AtmPoint> atm_,
               zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -276,7 +276,7 @@ void lte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
   adapt();
 }
 
-void lte_mirror::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
+void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
                      std::shared_ptr<AtmPoint> atm_,
                      zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -285,7 +285,7 @@ void lte_mirror::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
   adapt();
 }
 
-void nlte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
+void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
                std::shared_ptr<AtmPoint> atm_,
                zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -296,7 +296,7 @@ void nlte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
 }  // namespace models
 
 line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
-                           std::shared_ptr<ArrayOfAbsorptionBand> bands_)
+                           std::shared_ptr<AbsorptionBands> bands_)
     : atm(std::move(atm_)), bands(std::move(bands_)) {
   for (auto& [qid, band] : *bands) {
     ARTS_USER_ERROR_IF(
@@ -328,7 +328,7 @@ line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
   nlte[static_cast<Size>(zeeman::pol::no)].set(bands, atm, zeeman::pol::no);
 }
 
-void line_storage::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
+void line_storage::set_model(std::shared_ptr<AbsorptionBands> bands_) {
   for (auto& m : lte) m.set_model(bands_);
   for (auto& m : lte_mirror) m.set_model(bands_);
   for (auto& m : nlte) m.set_model(bands_);

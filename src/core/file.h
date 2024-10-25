@@ -35,6 +35,8 @@ void cleanup_output_file(std::ofstream& file, const std::string_view name);
 
 void open_input_file(std::ifstream& file, const std::string_view name);
 
+std::ifstream open_input_file(const std::string_view name);
+
 [[nodiscard]] ArrayOfString read_text_from_stream(std::istream& is);
 
 [[nodiscard]] ArrayOfString read_text_from_file(const std::string_view name);

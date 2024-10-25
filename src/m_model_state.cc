@@ -41,7 +41,7 @@ void model_state_vectorFromSurface(Vector& model_state_vector,
   }
 }
 
-void absorption_bandsFromModelState(ArrayOfAbsorptionBand& absorption_bands,
+void absorption_bandsFromModelState(AbsorptionBands& absorption_bands,
                                     const Vector& model_state_vector,
                                     const JacobianTargets& jacobian_targets) {
   for (auto& target : jacobian_targets.line()) {
@@ -50,7 +50,7 @@ void absorption_bandsFromModelState(ArrayOfAbsorptionBand& absorption_bands,
 }
 
 void model_state_vectorFromBands(Vector& model_state_vector,
-                                 const ArrayOfAbsorptionBand& absorption_bands,
+                                 const AbsorptionBands& absorption_bands,
                                  const JacobianTargets& jacobian_targets) {
   for (auto& target : jacobian_targets.line()) {
     target.update(model_state_vector, absorption_bands);

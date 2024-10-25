@@ -1,9 +1,11 @@
 #include <lbl.h>
+#include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
@@ -286,80 +288,98 @@ void py_lbl(py::module_& m) try {
   ll.doc() = "A list of absorption lines";
   vector_interface(ll);
 
-  py::class_<lbl::band_data>(m, "AbsorptionBandData")
-      .def_rw("lines", &lbl::band_data::lines, "The lines in the band")
+  py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
+  ab.def_rw("lines", &lbl::band_data::lines, "The lines in the band")
       .def_rw("lineshape", &lbl::band_data::lineshape, "The lineshape type")
       .def_rw("cutoff", &lbl::band_data::cutoff, "The cutoff type")
       .def_rw("cutoff_value",
               &lbl::band_data::cutoff_value,
-              "The cutoff value [Hz]")
-      .PythonInterfaceBasicRepresentation(lbl::band_data)
-      .doc() = "Data for an absorption band";
+              "The cutoff value [Hz]");
+  workspace_group_interface(ab);
 
-  py::class_<AbsorptionBand> absd(m, "AbsorptionBand");
-  workspace_group_interface(absd);
-  absd.def_rw("data",
-              &AbsorptionBand::data,
-              ":class:`~pyarts.arts.AbsorptionBandData` The band data")
-      .def_rw("key",
-              &AbsorptionBand::key,
-              ":class:`~pyarts.arts.QuantumIdentifier` The key to the band");
-
-  auto aoab =
-      py::bind_vector<ArrayOfAbsorptionBand, py::rv_policy::reference_internal>(
-          m, "ArrayOfAbsorptionBand");
+  auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
+      m, "AbsorptionBands");
   workspace_group_interface(aoab);
-  vector_interface(aoab);
-  aoab.def(
-          "__getitem__",
-          [](ArrayOfAbsorptionBand& x,
-             const QuantumIdentifier& key) -> std::shared_ptr<lbl::band_data> {
-            for (auto& v : x) {
-              if (v.key == key) {
-                return {&v.data, [](void*) {}};
-              }
-            }
-            return std::make_shared<lbl::band_data>();
-          },
-          py::rv_policy::reference_internal,
-          py::keep_alive<0, 1>(),
-          ":class:`~pyarts.arts.AbsorptionBandData`")
-      .def(
-          "__setitem__",
-          [](ArrayOfAbsorptionBand& x,
-             const QuantumIdentifier& key,
-             const lbl::band_data& y) {
-            for (auto& v : x) {
-              if (v.key == key) {
-                v.data = y;
-                return;
-              }
-            }
-            x.emplace_back(key, y);
-          },
-          py::rv_policy::reference_internal,
-          py::keep_alive<0, 1>(),
-          ":class:`~pyarts.arts.AbsorptionBandData`");
   aoab.def("__getitem__",
-           [](const ArrayOfAbsorptionBand& x,
-              const lbl::line_key& key) -> Numeric { return key.get_value(x); })
+           [](const AbsorptionBands& x, const lbl::line_key& key) -> Numeric {
+             return key.get_value(x);
+           })
       .def("__setitem__",
-           [](ArrayOfAbsorptionBand& x, const lbl::line_key& key, Numeric v) {
+           [](AbsorptionBands& x, const lbl::line_key& key, Numeric v) {
              key.get_value(x) = v;
            });
+  aoab.def(
+      "merge",
+      [](AbsorptionBands& self,
+         const AbsorptionBands& other) -> std::pair<Size, Size> {
+        Size added = 0, updated = 0;
+
+        for (const auto& [key, band] : other) {
+          auto [it, newband] = self.try_emplace(key, band);
+
+          if (newband) {
+            added += band.size();
+          } else {
+            for (auto& line : band.lines) {
+              if (it->second.merge(line)) {
+                added++;
+              } else {
+                updated++;
+              }
+            }
+          }
+        }
+        return {added, updated};
+      },
+      R"(Merge the other absorption bands into this
+
+If the key in the other absorption bands already exists in this, the lines with the same local
+quantum numbers are overwritten by those of the other absorption bands.
+
+Parameters
+----------
+other : AbsorptionBands
+    The other absorption bands to merge into this
+)",
+      "other"_a);
+  aoab.def(
+      "clear_linemixing",
+      [](AbsorptionBands& self) {
+        Size sum = 0;
+        for (auto& [_, band] : self) {
+          for (auto& line : band.lines) {
+            for (auto& lsm : line.ls.single_models) {
+              sum += lsm.remove_variables<LineShapeModelVariable::Y,
+                                          LineShapeModelVariable::G,
+                                          LineShapeModelVariable::DV>();
+            }
+          }
+        }
+        return sum;
+      },
+      R"(Clear the linemixing data from all bands by removing it from the inner line shape models
+
+Returns
+-------
+int : The number of removed variables
+)");
+
+  py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
+  workspace_group_interface(led);
 
   lbl.def(
       "equivalent_lines",
       [](const AbsorptionBand& band,
+         const QuantumIdentifier& qid,
          const LinemixingEcsData& ecs_data,
          const AtmPoint& atm,
          const Vector& T) {
         lbl::voigt::ecs::ComputeData com_data({}, atm);
 
-        const auto K = band.data.front().ls.one_by_one
-                           ? band.data.front().ls.single_models.size()
+        const auto K = band.front().ls.one_by_one
+                           ? band.front().ls.single_models.size()
                            : 1;
-        const auto N = band.data.size();
+        const auto N = band.size();
         const auto M = T.size();
 
         auto eqv_str = ComplexTensor3(M, K, N);
@@ -368,9 +388,9 @@ void py_lbl(py::module_& m) try {
         equivalent_values(eqv_str,
                           eqv_val,
                           com_data,
-                          band.key,
-                          band.data,
-                          ecs_data.data.at(band.key.Isotopologue()),
+                          qid,
+                          band,
+                          ecs_data.data.at(qid.Isotopologue()),
                           atm,
                           T);
 
@@ -378,22 +398,10 @@ void py_lbl(py::module_& m) try {
       },
       "Compute equivalent lines for a given band",
       "band"_a,
+      "qid"_a,
       "ecs_data"_a,
       "atm"_a,
       "T"_a);
-
-  lbl.def(
-      "Q",
-      [](py::object t, SpeciesIsotope isot) {
-        return vectorize(
-            [isot](Numeric T) { return PartitionFunctions::Q(T, isot); }, t);
-      },
-      "Partition function",
-      "T"_a,
-      "isotopologue"_a);
-
-  py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
-  workspace_group_interface(led);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));

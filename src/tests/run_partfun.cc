@@ -15,12 +15,12 @@ int main(int argn, char** argv) try {
 
   for (auto& spec: specs) {
     auto& v = Species::Isotopologues[Species::find_species_index(spec)];
-    std::cerr << v.FullName() << ' ';
-    std::cerr << PartitionFunctions::Q(T, v) << '\n';
+    std::cout << v.FullName() << ' ';
+    std::cout << PartitionFunctions::Q(T, v) << '\n';
   }
 
   return EXIT_SUCCESS;
-} catch(...) {
-  std::cerr << "FAILED\n";
+} catch(std::exception& e) {
+  std::cerr << "Failed with error:\n" << e.what() << '\n';
   return EXIT_FAILURE;
 }

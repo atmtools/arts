@@ -12,10 +12,20 @@ ws.absorption_bandsSelectFrequency(fmax=120e9)
 ws.absorption_bandsKeepID(id=bandkey)
 
 t = []
-for a in ws.absorption_bands[0].data.lines:
+for a in ws.absorption_bands[bandkey].lines:
     if a.f0 > 5e9 and a.f0 < 120e9:
         t.append(a)
-ws.absorption_bands[0].data.lines = t
+ws.absorption_bands[bandkey].lines = t
+
+
+def calc(ws, lineshape=None):
+    if lineshape is not None:
+        ws.absorption_bands[bandkey].lineshape = lineshape
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines()
+    ws.propagation_matrixAddPredefined()
+    return 1.0 * ws.propagation_matrix[:, 0]
+
 
 ws.WignerInit()
 ws.frequency_grid = np.linspace(20e9, 140e9, 10001)  # around the band
@@ -38,50 +48,52 @@ ws.ecs_dataInit()
 ws.ecs_dataAddMakarov2020()
 ws.ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
 
-ws.absorption_bands[0].data.lineshape = "VP_ECS_MAKAROV"
-ws.propagation_matrixInit()
-ws.propagation_matrixAddLines()
-ws.propagation_matrixAddPredefined()
 
 plt.clf()
-plt.semilogy(ws.frequency_grid/1e9, ws.propagation_matrix[:, 0])
 
-ws.ReadCatalogData()
+# Online data
+plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="Online", lw=3)
 
-bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bandsSelectFrequency(fmax=1200e9)
-ws.absorption_bandsKeepID(id=bandkey)
+# ECS data
+plt.semilogy(ws.frequency_grid / 1e9, calc(ws, "VP_ECS_MAKAROV"), label="ECS")
 
-t = []
-for a in ws.absorption_bands[0].data.lines:
-    if a.f0 > 5e9 and a.f0 < 120e9:
-        t.append(a)
-ws.absorption_bands[0].data.lines = t
+# Remove line mixing
+ws.absorption_bands.clear_linemixing()
+plt.semilogy(
+    ws.frequency_grid / 1e9, calc(ws, "VP_LTE"), label="No linemixing"
+)
 
-ws.propagation_matrixInit()
-ws.propagation_matrixAddLines()
-ws.propagation_matrixAddPredefined()
+# 1st order line mixing
+ws.absorption_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
+ws.absorption_bandsLineMixingAdaptation(
+    temperatures=np.linspace(200, 350, 16),
+    band_key=bandkey,
+    rosenkranz_fit_order=1,
+)
+plt.semilogy(
+    ws.frequency_grid / 1e9,
+    calc(ws, "VP_LTE"),
+    "--",
+    label="1st Order Rosenkranz",
+)
 
-plt.semilogy(ws.frequency_grid/1e9, ws.propagation_matrix[:, 0], ':')
+# 2nd order line mixing
+ws.absorption_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
+ws.absorption_bandsLineMixingAdaptation(
+    temperatures=np.linspace(200, 350, 16),
+    band_key=bandkey,
+    rosenkranz_fit_order=2,
+)
+plt.semilogy(
+    ws.frequency_grid / 1e9,
+    calc(ws, "VP_LTE"),
+    ":",
+    label="2nd Order Rosenkranz",
+)
 
-for line in ws.absorption_bands[0].data.lines:
-    line.ls.remove("Y")
-    line.ls.remove("G")
-    line.ls.remove("DV")
-
-ws.propagation_matrixInit()
-ws.propagation_matrixAddLines()
-ws.propagation_matrixAddPredefined()
-
-plt.semilogy(ws.frequency_grid/1e9, ws.propagation_matrix[:, 0])
-
-
+# Using PWR98
 ws.absorption_speciesSet(species=["O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
-ws.propagation_matrixInit()
-ws.propagation_matrixAddPredefined()
-plt.semilogy(ws.frequency_grid/1e9, ws.propagation_matrix[:, 0], ":")
+plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="PWR98")
 
-
-
-plt.legend(["ECS", "ONLINE", "NO-LM", "PWR"])
+plt.legend()

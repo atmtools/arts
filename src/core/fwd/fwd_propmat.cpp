@@ -8,7 +8,7 @@
 
 namespace fwd {
 propmat::propmat(std::shared_ptr<AtmPoint> atm_,
-                 std::shared_ptr<ArrayOfAbsorptionBand> lines_,
+                 std::shared_ptr<AbsorptionBands> lines_,
                  std::shared_ptr<ArrayOfCIARecord> cia_,
                  std::shared_ptr<ArrayOfXsecRecord> xsec_,
                  std::shared_ptr<PredefinedModelData> predef_,
@@ -68,7 +68,7 @@ void propmat::set_ciaextrap(Numeric extrap) { cia.set_extrap(extrap); }
 
 void propmat::set_ciarobust(Index robust) { cia.set_robust(robust); }
 
-void propmat::set_bands(std::shared_ptr<ArrayOfAbsorptionBand> lines_) {
+void propmat::set_bands(std::shared_ptr<AbsorptionBands> lines_) {
   lines.set_model(std::move(lines_));
 }
 
