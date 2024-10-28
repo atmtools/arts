@@ -118,7 +118,7 @@ table::table(const SpeciesEnum& species,
 
   ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 }
-ARTS_METHOD_ERROR_CATCH
+ARTS_METHD_ERROR_CATCH
 
 LagrangeInterpolation table::pressure_lagrange(
     const Numeric& pressure,

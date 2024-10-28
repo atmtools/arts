@@ -138,6 +138,7 @@ struct std::formatter<AbsorptionLookupTable> {
     tags.format(ctx, "\nw_pert: "sv);
     if (v.w_pert) tags.format(ctx, *v.w_pert);
     return tags.format(ctx,
+
                        "\nwater_atmref: "sv,
                        v.water_atmref,
                        "\nt_atmref: "sv,

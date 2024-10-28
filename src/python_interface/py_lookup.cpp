@@ -20,6 +20,7 @@ void py_lookup(py::module_& m) try {
   alt.def_rw(
       "w_pert",
       &AbsorptionLookupTable::w_pert,
+
       "The humidity perturbation grid in fractional units [any number of elements or empty for nothing]");
   alt.def_rw("water_atmref",
              &AbsorptionLookupTable::water_atmref,

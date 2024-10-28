@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <set>
 
 #include "mh_checks.h"
 
