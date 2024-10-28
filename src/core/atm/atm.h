@@ -109,6 +109,10 @@ struct Point {
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
 
+  [[nodiscard]] Numeric number_density() const;
+  [[nodiscard]] Numeric number_density(const SpeciesEnum &spec) const;
+  [[nodiscard]] Numeric number_density(const SpeciesIsotope &spec) const;
+
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
     const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {

@@ -113,19 +113,9 @@ void py_atm(py::module_ &m) try {
       .def(
           "number_density",
           [](AtmPoint &atm, std::variant<SpeciesEnum, SpeciesIsotope> key) {
-            return std::visit(
-                [&atm]<typename T>(const T &s) {
-                  if (not atm.has(s))
-                    throw py::key_error(var_string(s).c_str());
-
-                  Numeric nd =
-                      atm[s] * number_density(atm.pressure, atm.temperature);
-                  if constexpr (requires { s.spec; }) {
-                    nd *= atm[s.spec];
-                  }
-                  return nd;
-                },
-                key);
+            return std::visit([&atm]<typename T>(
+                                  const T &s) { return atm.number_density(s); },
+                              key);
           },
           "spec"_a,
           R"(Get the number density [1 / m :sup:`3`] of a species or of a species isotopologue.

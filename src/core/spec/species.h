@@ -9,3 +9,7 @@ using ArrayOfArrayOfSpeciesEnum = Array<ArrayOfSpeciesEnum>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesEnum& a);
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesEnum& a);
+
+consteval SpeciesEnum operator""_spec(const char* x, std::size_t) {
+  return to<SpeciesEnum>(x);
+}

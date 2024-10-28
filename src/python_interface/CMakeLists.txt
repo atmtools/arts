@@ -127,6 +127,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_spectroscopy.cpp
     py_jac.cpp
     py_global.cpp
+    py_lookup.cpp
     py_xsec_fit.cpp
     py_nlte.cpp
     py_constant.cpp

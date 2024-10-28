@@ -71,6 +71,13 @@ class grid {
     assert_sorted(x);
   }
 
+  template <class Iterator, class Func>
+  grid(const Iterator& begin, const Iterator& end, Func fun)
+      : x(std::distance(begin, end)) {
+    std::transform(begin, end, x.begin(), fun);
+    assert_sorted(x);
+  }
+
   grid(Vector&& in) : x(std::move(in)) { assert_sorted(x); }
 
   grid& operator=(Vector&& in) {

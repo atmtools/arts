@@ -10,6 +10,15 @@ internal_workspace_variables() {
       .type = "AbsorptionBands",
   };
 
+  wsv_data["absorption_lookup_table"] = {
+      .desc = R"--(Absorption lookup table for scalar gas absorption coefficients.
+
+Precomputing this table replaces the need for the calculation of scalar gas line-by-line
+absorption.
+)--",
+      .type = "AbsorptionLookupTables",
+  };
+
   wsv_data["absorption_cia_data"] = {
       .desc = R"--(HITRAN Collision Induced Absorption (CIA) Data.
 

@@ -1332,11 +1332,11 @@ using ArrayOfSpeciesIsotope = Array<SpeciesIsotope>;
 
 using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
 
-constexpr SpeciesIsotope operator""_isot(const char* x, std::size_t) {
+consteval SpeciesIsotope operator""_isot(const char* x, std::size_t) {
   return Species::select(x);
 }
 
-constexpr Index operator""_isot_index(const char* x, std::size_t) {
+consteval Index operator""_isot_index(const char* x, std::size_t) {
   return Species::find_species_index(x);
 }
 

@@ -1,6 +1,7 @@
 #include "atm.h"
 
 #include <matpack.h>
+#include <physics_funcs.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -23,26 +24,32 @@
 
 AtmKey to_wind(const String &x) {
   switch (to<FieldComponent>(x)) {
-    case FieldComponent::u:
-      return AtmKey::wind_u;
-    case FieldComponent::v:
-      return AtmKey::wind_v;
-    case FieldComponent::w:
-      return AtmKey::wind_w;
+    case FieldComponent::u: return AtmKey::wind_u;
+    case FieldComponent::v: return AtmKey::wind_v;
+    case FieldComponent::w: return AtmKey::wind_w;
   }
   std::unreachable();
 }
 
 AtmKey to_mag(const String &x) {
   switch (to<FieldComponent>(x)) {
-    case FieldComponent::u:
-      return AtmKey::mag_u;
-    case FieldComponent::v:
-      return AtmKey::mag_v;
-    case FieldComponent::w:
-      return AtmKey::mag_w;
+    case FieldComponent::u: return AtmKey::mag_u;
+    case FieldComponent::v: return AtmKey::mag_v;
+    case FieldComponent::w: return AtmKey::mag_w;
   }
   std::unreachable();
+}
+
+Numeric AtmPoint::number_density() const {
+  return ::number_density(pressure, temperature);
+}
+
+Numeric AtmPoint::number_density(const SpeciesEnum &spec) const {
+  return specs.at(spec) * number_density();
+}
+
+Numeric AtmPoint::number_density(const SpeciesIsotope &spec) const {
+  return isots.at(spec) * number_density(spec.spec);
 }
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try {
@@ -71,22 +78,14 @@ Numeric AtmPoint::operator[](const ScatteringSpeciesProperty &x) const try {
 
 Numeric AtmPoint::operator[](AtmKey x) const {
   switch (x) {
-    case AtmKey::t:
-      return temperature;
-    case AtmKey::p:
-      return pressure;
-    case AtmKey::wind_u:
-      return wind[0];
-    case AtmKey::wind_v:
-      return wind[1];
-    case AtmKey::wind_w:
-      return wind[2];
-    case AtmKey::mag_u:
-      return mag[0];
-    case AtmKey::mag_v:
-      return mag[1];
-    case AtmKey::mag_w:
-      return mag[2];
+    case AtmKey::t:      return temperature;
+    case AtmKey::p:      return pressure;
+    case AtmKey::wind_u: return wind[0];
+    case AtmKey::wind_v: return wind[1];
+    case AtmKey::wind_w: return wind[2];
+    case AtmKey::mag_u:  return mag[0];
+    case AtmKey::mag_v:  return mag[1];
+    case AtmKey::mag_w:  return mag[2];
   }
   ARTS_USER_ERROR("Cannot reach")
 }
@@ -103,22 +102,14 @@ Numeric &AtmPoint::operator[](const ScatteringSpeciesProperty &x) {
 
 Numeric &AtmPoint::operator[](AtmKey x) {
   switch (x) {
-    case AtmKey::t:
-      return temperature;
-    case AtmKey::p:
-      return pressure;
-    case AtmKey::wind_u:
-      return wind[0];
-    case AtmKey::wind_v:
-      return wind[1];
-    case AtmKey::wind_w:
-      return wind[2];
-    case AtmKey::mag_u:
-      return mag[0];
-    case AtmKey::mag_v:
-      return mag[1];
-    case AtmKey::mag_w:
-      return mag[2];
+    case AtmKey::t:      return temperature;
+    case AtmKey::p:      return pressure;
+    case AtmKey::wind_u: return wind[0];
+    case AtmKey::wind_v: return wind[1];
+    case AtmKey::wind_w: return wind[2];
+    case AtmKey::mag_u:  return mag[0];
+    case AtmKey::mag_v:  return mag[1];
+    case AtmKey::mag_w:  return mag[2];
   }
   std::unreachable();
 }
@@ -140,7 +131,8 @@ FieldMap::Map<Atm::Data,
               SpeciesEnum,
               SpeciesIsotope,
               QuantumIdentifier,
-              ScatteringSpeciesProperty>::operator[](const KeyVal &k) const try {
+              ScatteringSpeciesProperty>::operator[](const KeyVal &k) const
+    try {
   return std::visit(
       [this](auto &key) -> const Atm::Data & {
         return this->map<decltype(key)>().at(key);
@@ -174,7 +166,8 @@ bool FieldMap::Map<Atm::Data,
                    SpeciesEnum,
                    SpeciesIsotope,
                    QuantumIdentifier,
-                   ScatteringSpeciesProperty>::contains(const KeyVal &key) const {
+                   ScatteringSpeciesProperty>::contains(const KeyVal &key)
+    const {
   return std::visit(
       [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
       key);
@@ -201,8 +194,7 @@ Point::Point(const IsoRatioOption isots_key) {
       }
     } break;
     case IsoRatioOption::None:
-    default:
-      break;
+    default:                   break;
   }
 }
 
@@ -226,8 +218,7 @@ Field::Field(const IsoRatioOption isots_key) {
       }
     } break;
     case IsoRatioOption::None:
-    default:
-      break;
+    default:                   break;
   }
 }
 
@@ -619,36 +610,26 @@ constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
                                              InterpolationExtrapolation b) {
   using enum InterpolationExtrapolation;
   switch (a) {
-    case None:
-      return None;
+    case None: return None;
     case Zero: {
       switch (b) {
-        case None:
-          return None;
-        case Zero:
-          return Zero;
-        case Nearest:
-          return Zero;
-        case Linear:
-          return Zero;
+        case None:    return None;
+        case Zero:    return Zero;
+        case Nearest: return Zero;
+        case Linear:  return Zero;
       }
       std::unreachable();
     }
     case Nearest: {
       switch (b) {
-        case None:
-          return None;
-        case Zero:
-          return Zero;
-        case Nearest:
-          return Nearest;
-        case Linear:
-          return Nearest;
+        case None:    return None;
+        case Zero:    return Zero;
+        case Nearest: return Nearest;
+        case Linear:  return Nearest;
       }
       std::unreachable();
     }
-    case Linear:
-      return b;
+    case Linear: return b;
   }
 
   return a;

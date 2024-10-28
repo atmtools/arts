@@ -23,6 +23,7 @@ add_subdirectory(predefined)
 add_subdirectory(operators)
 add_subdirectory(fwd)
 add_subdirectory(lbl)
+add_subdirectory(lookup)
 add_subdirectory(quantum)
 add_subdirectory(scattering)
 add_subdirectory(spec)
@@ -77,6 +78,7 @@ target_link_libraries(artscore PUBLIC
   coretypes
   fwd
   lbl
+  lookup
   matpack
   operators
   path

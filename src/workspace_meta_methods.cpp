@@ -188,6 +188,22 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"model_state_vector_apriori"},
   });
 
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "absorption_lookup_tableCalc",
+      .desc    = R"(Get *absorption_lookup_table* from available data.
+
+Computes a pure uplooking *ray_path* from a given ``latitude`` and ``longitude``.
+This path is used to extract ``ray_path_atmospheric_point``, which is used to
+define the default atmospheric state for the absorption lookup table.
+)",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricUplooking",
+                  "ray_path_atmospheric_pointFromPath",
+                  "absorption_lookup_tableInit",
+                  "absorption_lookup_tablePrecomputeAll"},
+      .out     = {"absorption_lookup_table"},
+  });
+
   return out;
 }
 const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {

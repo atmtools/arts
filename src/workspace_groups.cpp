@@ -976,6 +976,17 @@ well as the sampling device's polarization response.
       .desc = "The settings required to run Disort.\n",
   };
 
+  wsg_data["AbsorptionLookupTable"] = {
+      .file = "lookup_map.h",
+      .desc = "A table of lookup calculations.\n",
+  };
+
+  wsg_data["AbsorptionLookupTables"] = {
+      .file = "lookup_map.h",
+      .desc = "A map of tables of of lookup calculations.\n",
+      .map_type = true,
+  };
+
   return wsg_data;
 }
 

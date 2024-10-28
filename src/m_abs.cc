@@ -42,8 +42,7 @@
 #include "nc_io.h"
 #endif
 
-void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los) {
+void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
   los_mirrored.resize(2);
   los_mirrored[0] = 180 - los[0];
   los_mirrored[1] = los[1] + 180;
@@ -72,10 +71,10 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
 
-inline constexpr Numeric ELECTRON_CHARGE = -Constant::elementary_charge;
-inline constexpr Numeric ELECTRON_MASS = Constant::electron_mass;
-inline constexpr Numeric PI = Constant::pi;
-inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
+inline constexpr Numeric ELECTRON_CHARGE     = -Constant::elementary_charge;
+inline constexpr Numeric ELECTRON_MASS       = Constant::electron_mass;
+inline constexpr Numeric PI                  = Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT      = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -94,7 +93,8 @@ void absorption_speciesSet(  // WS Output:
     // Call this function.
     absorption_species[i] = ArrayOfSpeciesTag(names[i]);
   }
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_speciesDefineAllInScenario(  // WS Output:
@@ -155,11 +155,10 @@ void AbsInputFromAtmFields(  // WS Output:
     const Tensor3& t_field,
     const Tensor4& vmr_field) {
   // First, make sure that we really have a 1D atmosphere:
-  ARTS_USER_ERROR_IF(
-      1 != 3, "Atmospheric dimension must be 1D, but 3 is 3")
+  ARTS_USER_ERROR_IF(1 != 3, "Atmospheric dimension must be 1D, but 3 is 3")
 
-  abs_p = p_grid;
-  abs_t = t_field(joker, 0, 0);
+  abs_p    = p_grid;
+  abs_t    = t_field(joker, 0, 0);
   abs_vmrs = vmr_field(joker, joker, 0, 0);
 }
 
@@ -278,8 +277,8 @@ void propagation_matrixAddFaraday(
     }
 
     for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
-      const Numeric f2 = frequency_grid[iv] * frequency_grid[iv];
-      const Numeric r = ne * c1 / f2;
+      const Numeric f2            = frequency_grid[iv] * frequency_grid[iv];
+      const Numeric r             = ne * c1 / f2;
       propagation_matrix[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
@@ -334,7 +333,7 @@ void propagation_matrixAddParticles(
                      "passed a consistency check (scat_data_checked=1).")
 
   const Index ns = TotalNumberOfElements(scat_data);
-  Index np = 0;
+  Index np       = 0;
   for (Size sp = 0; sp < absorption_species.size(); sp++) {
     if (absorption_species[sp].Particles()) {
       np++;
@@ -370,7 +369,7 @@ void propagation_matrixAddParticles(
   Vector T_array;
   if (jac_temperature.first) {
     T_array.resize(2);
-    T_array = atm_point.temperature;
+    T_array     = atm_point.temperature;
     T_array[1] += dT;
   } else {
     T_array.resize(1);
@@ -397,7 +396,7 @@ void propagation_matrixAddParticles(
 
   // loop over the scat_data and link them with correct vmr_field entry according
   // to the position of the particle type entries in absorption_species.
-  Index sp = 0;
+  Index sp        = 0;
   Index i_se_flat = 0;
   for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
     for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
@@ -454,10 +453,10 @@ void propagation_matrixAddParticles(
         const auto iq = jac_temperature.second->target_pos;
 
         if (use_abs_as_ext) {
-          tmp(joker, joker, 0) = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
+          tmp(joker, joker, 0)  = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
           tmp(joker, joker, 0) -= abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
         } else {
-          tmp = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
+          tmp  = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
@@ -517,16 +516,21 @@ void isotopologue_ratiosInitFromHitran(
   isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
-void propagation_matrix_agendaAuto(  // Workspace reference:
+void propagation_matrix_agendaAuto(
     Agenda& propagation_matrix_agenda,
-    // WS Input:
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const AbsorptionBands& absorption_bands,
-    // WS Generic Input:
+    const Index& use_absorption_lookup_table,
     const Numeric& T_extrapolfac,
+    const Index& ignore_errors,
+    const Index& no_negative_absorption,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Index& ignore_errors) {
+    const Index& p_interp_order,
+    const Index& t_interp_order,
+    const Index& water_interp_order,
+    const Index& f_interp_order,
+    const Numeric& extpolfac) {
   AgendaCreator agenda("propagation_matrix_agenda");
 
   const SpeciesTagTypeStatus any_species(absorption_species);
@@ -534,9 +538,18 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   // propagation_matrixInit
   agenda.add("propagation_matrixInit");
 
-  // propagation_matrixAddLines
-  if (absorption_bands.size()) {
-    agenda.add("propagation_matrixAddLines");
+  // propagation_matrixAddLines or propagation_matrixAddLookup
+  if (use_absorption_lookup_table) {
+    agenda.add("propagation_matrixAddLookup",
+               SetWsv{"no_negative_absorption", no_negative_absorption},
+               SetWsv{"p_interp_order", p_interp_order},
+               SetWsv{"t_interp_order", t_interp_order},
+               SetWsv{"water_interp_order", water_interp_order},
+               SetWsv{"f_interp_order", f_interp_order},
+               SetWsv{"extpolfac", extpolfac});
+  } else if (absorption_bands.size()) {
+    agenda.add("propagation_matrixAddLines",
+               SetWsv{"no_negative_absorption", no_negative_absorption});
   }
 
   //propagation_matrixAddHitranXsec
@@ -559,9 +572,8 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   }
 
   //propagation_matrixAddFaraday
-  if (std::ranges::any_of(absorption_species, [](auto& spec) {
-        return spec.FreeElectrons();
-      })) {
+  if (std::ranges::any_of(absorption_species,
+                          [](auto& spec) { return spec.FreeElectrons(); })) {
     agenda.add("propagation_matrixAddFaraday");
   }
 
