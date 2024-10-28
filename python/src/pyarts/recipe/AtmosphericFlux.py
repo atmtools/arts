@@ -66,8 +66,8 @@ class AtmosphericFlux:
         self.ws.ReadCatalogData()
 
         for band in self.ws.absorption_bands:
-            band.data.cutoff = "ByLine"
-            band.data.cutoff_value = 750e9
+            self.ws.absorption_bands[band].cutoff = "ByLine"
+            self.ws.absorption_bands[band].cutoff_value = 750e9
 
         self.ws.propagation_matrix_agendaAuto()
 
