@@ -29,7 +29,7 @@ void spectral_radiance_operatorClearsky1D(
     const Index& cia_robust) {
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
 
-  using lines_t  = ArrayOfAbsorptionBand;
+  using lines_t  = AbsorptionBands;
   using cia_t    = ArrayOfCIARecord;
   using xsec_t   = ArrayOfXsecRecord;
   using predef_t = PredefinedModelData;

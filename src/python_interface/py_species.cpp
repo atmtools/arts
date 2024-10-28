@@ -278,6 +278,17 @@ Returns
              }
            }
          });
+  b1.def_static(
+      "all_isotopologues",
+      []() {
+        ArrayOfArrayOfSpeciesTag out;
+        for (auto& x : Species::Isotopologues) {
+          if (not is_normal_isotopologue(x)) continue;
+          out.emplace_back(Array<SpeciesTag>{SpeciesTag(x)});
+        }
+        return out;
+      },
+      "Return a list of all species tags");
   py::implicitly_convertible<Array<Array<SpeciesTag>>,
                              ArrayOfArrayOfSpeciesTag>();
   b1.def("__init__", [](ArrayOfArrayOfSpeciesTag* s, py::list l) {

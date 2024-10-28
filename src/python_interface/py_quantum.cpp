@@ -6,8 +6,11 @@
 #include <quantum_numbers.h>
 #include <quantum_term_symbol.h>
 
+#include <stdexcept>
+
 #include "hpy_arts.h"
 #include "hpy_vector.h"
+#include "nanobind/nanobind.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -58,6 +61,38 @@ void py_quantum(py::module_& m) try {
   py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
       .def(py::init<>())
       .def(py::init<std::string>())
+      .def(
+          "__len__",
+          [](QuantumNumberValueList& x) { return x.values.size(); },
+          "Number of values")
+      .def(
+          "__iter__",
+          [](QuantumNumberValueList& x) {
+            return py::make_iterator<py::rv_policy::reference_internal>(
+                py::type<QuantumNumberValueList>(),
+                "iterator",
+                x.values.begin(),
+                x.values.end());
+          },
+          py::keep_alive<0, 1>(),
+          "Iterate over the values")
+      .def("__getitem__",
+           [](QuantumNumberValueList& x, QuantumNumberType y) {
+             if (not x.has(y)) throw std::out_of_range(std::format("{}", y));
+             return x[y];
+           })
+      .def("__getitem__",
+           [](QuantumNumberValueList& x, Size y) {
+             if (x.values.size() <= y)
+               throw std::out_of_range(std::format("{}", y));
+             return x.values[y];
+           })
+      .def("__setitem__",
+           [](QuantumNumberValueList& x, Size y, QuantumNumberValue z) {
+             if (x.values.size() <= y)
+               throw std::out_of_range(std::format("{}", y));
+             return x.values[y] = z;
+           })
       .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def(
           "get",
@@ -106,6 +141,39 @@ qn : ~pyarts.arts.QuantumNumberValue
       .def(py::init<std::string>())
       .PythonInterfaceCopyValue(QuantumNumberLocalState)
       .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
+      .def(
+          "__len__",
+          [](QuantumNumberLocalState& x) { return x.val.values.size(); },
+          "Number of values")
+      .def(
+          "__iter__",
+          [](QuantumNumberLocalState& x) {
+            return py::make_iterator<py::rv_policy::reference_internal>(
+                py::type<QuantumNumberLocalState>(),
+                "iterator",
+                x.val.values.begin(),
+                x.val.values.end());
+          },
+          py::keep_alive<0, 1>(),
+          "Iterate over the values")
+      .def("__getitem__",
+           [](QuantumNumberLocalState& x, QuantumNumberType y) {
+             if (not x.val.has(y))
+               throw std::out_of_range(std::format("{}", y));
+             return x.val[y];
+           })
+      .def("__getitem__",
+           [](QuantumNumberLocalState& x, Size y) {
+             if (x.val.values.size() <= y)
+               throw std::out_of_range(std::format("{}", y));
+             return x.val.values[y];
+           })
+      .def("__setitem__",
+           [](QuantumNumberLocalState& x, Size y, QuantumNumberValue z) {
+             if (x.val.values.size() <= y)
+               throw std::out_of_range(std::format("{}", y));
+             return x.val.values[y] = z;
+           })
       .def_rw(
           "state",
           &QuantumNumberLocalState::val,

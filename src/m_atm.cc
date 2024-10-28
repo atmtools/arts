@@ -178,13 +178,12 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
       }
       break;
 
-    case MissingFieldComponentError::Ignore:
-      break;
+    case MissingFieldComponentError::Ignore: break;
   }
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
-                 const ArrayOfAbsorptionBand &absorption_bands) {
+                 const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
@@ -200,7 +199,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
 
 void atmospheric_fieldAppendLineSpeciesData(
     AtmField &atmospheric_field,
-    const ArrayOfAbsorptionBand &absorption_bands,
+    const AbsorptionBands &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
@@ -219,7 +218,7 @@ void atmospheric_fieldAppendLineSpeciesData(
 }
 
 void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
-                      const ArrayOfAbsorptionBand &absorption_bands) {
+                      const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
@@ -229,7 +228,7 @@ void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
 
 void atmospheric_fieldAppendLineIsotopologueData(
     AtmField &atmospheric_field,
-    const ArrayOfAbsorptionBand &absorption_bands,
+    const AbsorptionBands &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
@@ -252,7 +251,7 @@ void atmospheric_fieldAppendLineIsotopologueData(
 }
 
 void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
-              const ArrayOfAbsorptionBand &absorption_bands) {
+              const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
@@ -263,7 +262,7 @@ void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
 
 void atmospheric_fieldAppendLineLevelData(
     AtmField &atmospheric_field,
-    const ArrayOfAbsorptionBand &absorption_bands,
+    const AbsorptionBands &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
@@ -435,7 +434,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 
   if (const String lines_str = "absorption_bands";
       ws.wsv_and_contains(lines_str)) {
-    using lines_t    = ArrayOfAbsorptionBand;
+    using lines_t    = AbsorptionBands;
     const auto &data = ws.get<lines_t>(lines_str);
 
     keysSpecies(keys, data);

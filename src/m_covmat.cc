@@ -285,7 +285,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                    covariance_matrix_diagonal_blocks,
                                const AtmField& atmospheric_field,
                                const SurfaceField& surface_field,
-                               const ArrayOfAbsorptionBand& absorption_bands) {
+                               const AbsorptionBands& absorption_bands) {
   jacobian_targetsFinalize(
       jacobian_targets, atmospheric_field, surface_field, absorption_bands);
 

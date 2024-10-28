@@ -48,7 +48,7 @@ struct spectral_radiance {
                     AscendingGrid lon,
                     const AtmField& atm,
                     const SurfaceField& surf,
-                    const std::shared_ptr<ArrayOfAbsorptionBand>& lines,
+                    const std::shared_ptr<AbsorptionBands>& lines,
                     const std::shared_ptr<ArrayOfCIARecord>& cia,
                     const std::shared_ptr<ArrayOfXsecRecord>& xsec,
                     const std::shared_ptr<PredefinedModelData>& predef,

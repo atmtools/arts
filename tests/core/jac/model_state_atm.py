@@ -67,8 +67,8 @@ ws.ReadCatalogData()
 ws.absorption_bandsSelectFrequency(fmin=100e9, fmax=120e9, by_line=1)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 
-while len(ws.absorption_bands) != 1:
-    ws.absorption_bands.pop()
+bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
+ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
 
 # %% Temperature and pressure and VMR and ratios
 

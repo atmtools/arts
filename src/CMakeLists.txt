@@ -149,6 +149,7 @@ add_library(artsworkspace STATIC
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
+  xml_io_map_types.cc
   xml_io_rtepack.cc
   xml_operators.cc
   ${NETCDF_CC_FILES}

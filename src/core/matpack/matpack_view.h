@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <array>
 #include <functional>
-#include <numeric>
 #include <iosfwd>
+#include <numeric>
 #include <ranges>
 #include <string>
 #include <type_traits>
@@ -1111,8 +1111,8 @@ class matpack_view {
     return *this;
   }
 
-  template <bool c, bool s>
-  constexpr matpack_view& operator+=(const matpack_view<T, N, c, s>& x)
+  template <arithmetic_addition_with<T> U, bool c, bool s>
+  constexpr matpack_view& operator+=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
@@ -1126,8 +1126,15 @@ class matpack_view {
                      [](auto a, auto b) { return a + b; });
     return *this;
   }
-  template <bool c, bool s>
-  constexpr matpack_view& operator-=(const matpack_view<T, N, c, s>& x)
+  template <arithmetic_addition_with<T> U>
+  constexpr matpack_view& operator+=(const matpack_data<U, N>& x)
+    requires(not constant)
+  {
+    *this += x.view;
+    return *this;
+  }
+  template <arithmetic_subtraction_with<T> U, bool c, bool s>
+  constexpr matpack_view& operator-=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
@@ -1141,8 +1148,15 @@ class matpack_view {
                      [](auto a, auto b) { return a - b; });
     return *this;
   }
-  template <bool c, bool s>
-  constexpr matpack_view& operator*=(const matpack_view<T, N, c, s>& x)
+  template <arithmetic_subtraction_with<T> U>
+  constexpr matpack_view& operator-=(const matpack_data<U, N>& x)
+    requires(not constant)
+  {
+    *this -= x.view;
+    return *this;
+  }
+  template <arithmetic_multiplication_with<T> U, bool c, bool s>
+  constexpr matpack_view& operator*=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
@@ -1156,8 +1170,15 @@ class matpack_view {
                      [](auto a, auto b) { return a * b; });
     return *this;
   }
-  template <bool c, bool s>
-  constexpr matpack_view& operator/=(const matpack_view<T, N, c, s>& x)
+  template <arithmetic_multiplication_with<T> U>
+  constexpr matpack_view& operator*=(const matpack_data<U, N>& x)
+    requires(not constant)
+  {
+    *this *= x.view;
+    return *this;
+  }
+  template <arithmetic_division_with<T> U, bool c, bool s>
+  constexpr matpack_view& operator/=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
@@ -1169,6 +1190,13 @@ class matpack_view {
                      x.elem_begin(),
                      elem_begin(),
                      [](auto a, auto b) { return a / b; });
+    return *this;
+  }
+  template <arithmetic_division_with<T> U>
+  constexpr matpack_view& operator/=(const matpack_data<U, N>& x)
+    requires(not constant)
+  {
+    *this /= x.view;
     return *this;
   }
   constexpr matpack_view& operator+=(const data_t& x)

@@ -130,9 +130,9 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
-                    QuantumNumberType::v1)) {
-      if (qid.val[QuantumNumberType::v1].low() == 0 and
-          qid.val[QuantumNumberType::v1].upp() == 0) {
+                    QuantumNumberType::v)) {
+      if (qid.val[QuantumNumberType::v].low() == 0 and
+          qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002084;
         constexpr Numeric GLE = 2.77e-3;
         constexpr Numeric GR  = -1.16e-4;
@@ -163,9 +163,9 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
   } else if (qid.Isotopologue() == "O2-68"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
-                    QuantumNumberType::v1)) {
-      if (qid.val[QuantumNumberType::v1].low() == 0 and
-          qid.val[QuantumNumberType::v1].upp() == 0) {
+                    QuantumNumberType::v)) {
+      if (qid.val[QuantumNumberType::v].low() == 0 and
+          qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002025;
         constexpr Numeric GLE = 2.813e-3;
         constexpr Numeric GR  = -1.26e-4;

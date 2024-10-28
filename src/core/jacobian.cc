@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& os, const LineTarget&) {
   return os << "Line key value: ";
 }
 
-void LineTarget::update(ArrayOfAbsorptionBand& absorption_bands,
+void LineTarget::update(AbsorptionBands& absorption_bands,
                         const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
@@ -51,7 +51,7 @@ void LineTarget::update(ArrayOfAbsorptionBand& absorption_bands,
 }
 
 void LineTarget::update(Vector& x,
-                        const ArrayOfAbsorptionBand& absorption_bands) const {
+                        const AbsorptionBands& absorption_bands) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
   set_state(x.slice(x_start, x_size), absorption_bands, type);
@@ -77,7 +77,7 @@ std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
 
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
-                       const ArrayOfAbsorptionBand&) {
+                       const AbsorptionBands&) {
   zero_out_x();
 
   const Size natm  = atm().size();

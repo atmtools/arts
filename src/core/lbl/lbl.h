@@ -2,6 +2,7 @@
 
 #include "lbl_data.h"
 #include "lbl_fwd.h"
+#include "lbl_hitran.h"
 #include "lbl_lineshape.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_lineshape_voigt_ecs.h"

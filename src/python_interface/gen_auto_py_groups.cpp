@@ -22,6 +22,9 @@ void groups(const std::string& fname) {
 
   for (auto& [group, wsg] : wsgs) {
     hos << "NB_MAKE_OPAQUE(Array<" << group << ">);\n";
+    if (wsg.map_type) {
+      hos << "NB_MAKE_OPAQUE(" << group << ");\n";
+    }
   }
 
   std::string_view newline = "\n";

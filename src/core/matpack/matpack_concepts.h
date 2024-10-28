@@ -63,6 +63,27 @@ concept is_always_exhaustive_v = std::remove_cvref_t<T>::is_always_exhaustive();
 template <typename T>
 concept arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
+//! The two types are arithmetic together
+template <typename U, typename T>
+concept arithmetic_addition_with = requires(T a, U b) {
+  { a + b } -> std::convertible_to<T>;
+};
+
+template <typename U, typename T>
+concept arithmetic_subtraction_with = requires(T a, U b) {
+  { a - b } -> std::convertible_to<T>;
+};
+
+template <typename U, typename T>
+concept arithmetic_multiplication_with = requires(T a, U b) {
+  { a * b } -> std::convertible_to<T>;
+};
+
+template <typename U, typename T>
+concept arithmetic_division_with = requires(T a, U b) {
+  { a / b } -> std::convertible_to<T>;
+};
+
 //! Checks that the type is a pure arithmetic complex type
 template <typename T>
 concept complex_type =

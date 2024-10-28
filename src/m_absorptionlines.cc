@@ -165,23 +165,6 @@ void merge_local_lines(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-/** Selects the global quantum numbers
- *
- * @param qns Quantum numbers to select
- * @param qid Identifeier to select from
- * @return QuantumIdentifier of all qns in qid
- */
-QuantumIdentifier global_quantumidentifier(const Array<QuantumNumberType>& qns,
-                                           const QuantumIdentifier& qid) {
-  QuantumIdentifier out(qid.Isotopologue());
-  for (auto qn : qns) {
-    if (qid.val.has(qn)) {
-      out.val.set(qid.val[qn]);
-    }
-  }
-  return out;
-}
-
 /** Get a list of quantum numbers from a string
  * 
  * @param[in] qnstr A string such as "J N v1"
@@ -323,7 +306,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
         // Get the global quantum number identifier
         const QuantumIdentifier global_qid =
-            global_quantumidentifier(global_nums, sline.quantumidentity);
+            Quantum::Number::global_state(global_nums, sline.quantumidentity);
 
         // Get local quantum numbers into the line
         for (auto qn : local_nums) {
@@ -455,7 +438,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
       // Get the global quantum number identifier
       const QuantumIdentifier global_qid =
-          global_quantumidentifier(global_nums, sline.quantumidentity);
+          Quantum::Number::global_state(global_nums, sline.quantumidentity);
 
       // Get local quantum numbers into the line
       for (auto qn : local_nums) {
@@ -626,7 +609,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
     // Get the global quantum number identifier
     const QuantumIdentifier global_qid =
-        global_quantumidentifier(global_nums, sline.quantumidentity);
+        Quantum::Number::global_state(global_nums, sline.quantumidentity);
 
     // Get local quantum numbers into the line
     for (auto qn : local_nums) {

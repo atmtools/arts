@@ -184,8 +184,8 @@ struct TwoLevelValueHolder {
  * @param s Some view of a string
  * @return constexpr ValueDescription 
  */
-[[nodiscard]]  ValueDescription value_holder(std::string_view s,
-                                                      QuantumNumberType t) ;
+[[nodiscard]] ValueDescription value_holder(std::string_view s,
+                                            QuantumNumberType t);
 
 //! Struct that converts to bool automatically but allows checking both energy levels matching status
 struct LevelMatch {
@@ -203,28 +203,28 @@ struct LevelMatch {
  * @param s Any set of characters
  * @return constexpr Index The number of space-separated items in s
  */
- Index count_items(std::string_view s) noexcept;
+Index count_items(std::string_view s) noexcept;
 
 /** Strips spaces at the end of x before returning it
  * 
  * @param x any string view
  * @return constexpr std::string_view stripped
  */
- std::string_view rstrip(std::string_view x);
+std::string_view rstrip(std::string_view x);
 
 /** Strips spaces at the beginning x before returning it
  * 
  * @param x any string view
  * @return constexpr std::string_view stripped
  */
- std::string_view lstrip(std::string_view x);
+std::string_view lstrip(std::string_view x);
 
 /** Strips spaces at the beginning and end of x before returning it
  * 
  * @param x any string view
  * @return constexpr std::string_view stripped
  */
- std::string_view strip(std::string_view x);
+std::string_view strip(std::string_view x);
 
 /** Get a view of a number of space-separated items from the list
  * 
@@ -239,29 +239,30 @@ struct LevelMatch {
  * @param n The length of the list of items
  * @return constexpr std::string_view 
  */
-std::string_view items(std::string_view s, std::size_t i, std::size_t n=1) noexcept;
+std::string_view items(std::string_view s,
+                       std::size_t i,
+                       std::size_t n = 1) noexcept;
 
 //! A complete quantum number value with type information
 struct Value {
   QuantumNumberType type;
   TwoLevelValueHolder qn;
 
-   std::strong_ordering operator<=>(const Value& v) const;
+  std::strong_ordering operator<=>(const Value& v) const;
 
-   Value(QuantumNumberType t = QuantumNumberType::term)
-      : type(t), qn(type) {}
+  Value(QuantumNumberType t = QuantumNumberType::term) : type(t), qn(type) {}
   Value(const Value&)                = default;
   Value(Value&&) noexcept            = default;
   Value& operator=(const Value&)     = default;
   Value& operator=(Value&&) noexcept = default;
 
-   Value(QuantumNumberType t, Rational upp_, Rational low_);
+  Value(QuantumNumberType t, Rational upp_, Rational low_);
 
   //! Default constructor from some string of values
-   Value(std::string_view s);
+  Value(std::string_view s);
 
   //! Returns the upper quantum number rational if it exists or an undefined
-  [[nodiscard]]  Rational upp() const noexcept;
+  [[nodiscard]] Rational upp() const noexcept;
 
   //! Returns the lower quantum number rational if it exists or an undefined
   [[nodiscard]] Rational low() const noexcept;
@@ -316,13 +317,13 @@ struct CheckMatch {
 };
 
 //! Updates old by what a new check says it should be
- CheckValue update(CheckValue val, CheckValue res) noexcept ;
+CheckValue update(CheckValue val, CheckValue res) noexcept;
 
 //! Updates old by what a new check says it should be
- CheckMatch update(CheckMatch val, CheckValue res) noexcept ;
+CheckMatch update(CheckMatch val, CheckValue res) noexcept;
 
 //! Updates old by what a new check says it should be
- CheckMatch update(CheckMatch val, CheckMatch res) noexcept;
+CheckMatch update(CheckMatch val, CheckMatch res) noexcept;
 
 /** Checks if an array of types is sorted
  * 
@@ -385,29 +386,29 @@ struct ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index size() const  { return values.size(); }
+  [[nodiscard]] Index size() const { return values.size(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
-  [[nodiscard]] bool perpendicular(const ValueList& that) const ;
+  [[nodiscard]] bool perpendicular(const ValueList& that) const;
 
   //! Returns whether all the Types are part of the list, the types must be sorted
-  template <typename... Types>
-  [[nodiscard]] bool has(Types... ts) const  {
-    static_assert(sizeof...(Types) > 0);
-
-    ARTS_ASSERT(is_sorted(std::array{QuantumNumberType(ts)...}))
-
-    auto ptr = cbegin();
-    auto end = cend();
-    for (QuantumNumberType t : {QuantumNumberType(ts)...}) {
-      ptr = std::find_if(ptr, end, [t](auto& x) { return x.type == t; });
-      if (ptr == end) return false;
+  template <typename... Types, Size N = sizeof...(Types)>
+  [[nodiscard]] bool has(Types... ts) const
+    requires(N > Size{0})
+  {
+    if constexpr (N > 1) {
+      return (has(ts) and ...);
+    } else {
+      return cend() !=
+             std::find_if(cbegin(),
+                          cend(),
+                          [t = std::array{QuantumNumberType(ts)...}[0]](
+                              const Value& v) { return v.type == t; });
     }
-    return true;
   }
 
   //! Returns the value of the Type (assumes it exist)
-  const Value& operator[](QuantumNumberType t) const ;
+  const Value& operator[](QuantumNumberType t) const;
 
   //! Legacy manipulation operator access
   Value& operator[](Index i) { return values.at(i); }
@@ -425,8 +426,7 @@ struct ValueList {
   void set(Index i, std::string_view upp, std::string_view low);
 
   //! Returns upper and lower matching status
-  [[nodiscard]] CheckMatch check_match(const ValueList& other) const
-      ;
+  [[nodiscard]] CheckMatch check_match(const ValueList& other) const;
 
   //! ouptut stream if all values
   friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
@@ -454,7 +454,7 @@ struct LocalState {
   ValueList val{};
 
   std::strong_ordering operator<=>(const LocalState& l) const;
-  bool operator==(const LocalState& l) const ;
+  bool operator==(const LocalState& l) const;
   bool operator!=(const LocalState& l) const;
 
   LocalState() = default;
@@ -546,9 +546,9 @@ struct StateMatch {
   StateMatch(const GlobalState& target, const GlobalState& key);
 
   //! It is of the desired type if it is less than the value, bar None
-   bool operator==(StateMatchType x) const noexcept ;
+  bool operator==(StateMatchType x) const noexcept;
 
-   bool operator!=(StateMatchType x) const noexcept ;
+  bool operator!=(StateMatchType x) const noexcept;
 };
 
 //! VAMDC classes of quantum number cases
@@ -577,7 +577,7 @@ enum class VAMDC : char {
  * @return true If it can belong to the VAMDC type
  * @return false If it cannot belong to the VAMDC type
  */
-bool vamdcCheck(const ValueList& l, VAMDC type) ;
+bool vamdcCheck(const ValueList& l, VAMDC type);
 
 //! A default state of global quantum numbers
 [[maybe_unused]] inline constexpr std::array global_types{
@@ -653,6 +653,41 @@ bool vamdcCheck(const ValueList& l, VAMDC type) ;
                                                          QuantumNumberType::Ka,
                                                          QuantumNumberType::Kc,
                                                          QuantumNumberType::N};
+
+/** Selects the global state
+ *
+ * @param qns Quantum numbers to select, must just be iterable for template to work
+ * @param qid State to select from
+ * @return State of all qns in qid
+ */
+template <typename list_type>
+[[nodiscard]] GlobalState global_state(const list_type& qns,
+                                       const GlobalState& qid) {
+  GlobalState out(qid.Isotopologue());
+  for (auto qn : qns) {
+    if (qid.val.has(qn)) {
+      out.val.set(qid.val[qn]);
+    }
+  }
+  return out;
+}
+/** Selects the global state
+ *
+ * @param qns Quantum numbers to select, must just be iterable for template to work
+ * @param qid State to select from
+ * @return State of all qns in qid
+ */
+template <typename list_type>
+[[nodiscard]] LocalState local_state(const list_type& qns,
+                                     const GlobalState& qid) {
+  LocalState out;
+  for (auto qn : qns) {
+    if (qid.val.has(qn)) {
+      out.val.add(qid.val[qn]);
+    }
+  }
+  return out;
+}
 
 std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a);
 }  // namespace Quantum::Number
@@ -796,11 +831,7 @@ struct std::formatter<QuantumIdentifier> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumIdentifier& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.Isotopologue().FullName(), tags.sep(), v.val);
-    tags.add_if_bracket(ctx, ']');
-
-    return ctx.out();
+    return format_to(ctx.out(), "{}{} {}{}"sv, tags.quote(), v.Isotopologue().FullName(), v.val, tags.quote());
   }
 };
 

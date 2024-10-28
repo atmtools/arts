@@ -1003,7 +1003,7 @@ std::strong_ordering ValueList::operator<=>(const ValueList& v) const {
   const std::size_t n = std::min(values.size(), v.values.size());
 
   if (auto f = values.size() <=> v.values.size();
-      f == std::strong_ordering::equal) {
+      f != std::strong_ordering::equal) {
     return f;
   }
 

@@ -15,8 +15,8 @@
 #include <format_tags.h>
 #include <mystring.h>
 
-#include <numeric>
 #include <iosfwd>
+#include <numeric>
 
 using std::gcd;
 
@@ -940,8 +940,8 @@ struct std::formatter<Rational> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Rational& v, FmtContext& ctx) const {
-    const std::string_view div = tags.comma ? ","sv : "/"sv;
-    return std::format_to(ctx.out(), "{}{}{}", v.numer, div, v.denom);
+    if (v.denom == 1) return tags.format(ctx, v.numer);
+    return tags.format(ctx, v.numer, '/', v.denom);
   }
 };
 

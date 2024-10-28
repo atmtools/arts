@@ -2535,41 +2535,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-void xml_read_from_stream(std::istream& is_xml,
-                          AbsorptionBand& data,
-                          bifstream* pbifs) try {
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("AbsorptionBand");
-
-  xml_read_from_stream(is_xml, data.key, pbifs);
-  xml_read_from_stream(is_xml, data.data, pbifs);
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/AbsorptionBand");
-}
-ARTS_METHOD_ERROR_CATCH
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const AbsorptionBand& data,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  open_tag.set_name("AbsorptionBand");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, data.key, pbofs, "");
-  xml_write_to_stream(os_xml, data.data, pbofs, "");
-
-  ArtsXMLTag close_tag;
-  close_tag.set_name("/AbsorptionBand");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== LinemixingEcsData =========================================
 struct meta_data {
   String name;

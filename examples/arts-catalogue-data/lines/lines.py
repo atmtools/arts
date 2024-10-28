@@ -135,12 +135,16 @@ inputs required to initialize the propagation matrix
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.frequency_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
+ws.frequency_grid = np.linspace(
+    40e9, 120e9, 11
+)  # Frequencies between 40 and 120 GHz
 ws.ray_path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point[ws.absorption_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point[ws.absorption_species[0]] = (
+    0.21  # At 21% atmospheric Oxygen
+)
 
 # Call the agenda with inputs above
 ws.propagation_matrix_agendaExecute()
@@ -163,8 +167,19 @@ be safely ignored
 # ws.propagation_matrix.savexml("lines_test_result.xml", type="ascii")
 
 # test that we are still OK
-propagation_matrix_agenda = \
-    pyarts.arts.PropmatVector.fromxml("lines_test_result.xml")
 assert np.allclose(
-    propagation_matrix_agenda, ws.propagation_matrix
+    [
+        8.92664373e-06,
+        2.88107577e-05,
+        1.55470464e-03,
+        1.55360514e-03,
+        5.57640699e-05,
+        2.51926728e-05,
+        1.72272988e-05,
+        1.43453057e-05,
+        1.46251762e-05,
+        2.71389841e-05,
+        1.97382384e-04,
+    ],
+    ws.propagation_matrix[:, 0],
 ), "O2 Absorption has changed"

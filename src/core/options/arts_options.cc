@@ -15,6 +15,21 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "HitranLineStrengthOption",
+      .desc =
+          R"(The way line strength is computed in ARTS when reading Hitran data.
+
+ARTS uses Einstein A-coefficients to compute the line strength. Hitran provides
+both the line strength and the Einstein A-coefficient. There is a 1-to-1 conversion
+between these two.  However, as with all data, the numbers might differ slightly even
+if good cases, so we have provide this selection mechanism to make them match.
+)",
+      .values_and_desc = {
+          Value{"S", "s", "strenght", "s0", "S0", "Line strength"},
+          Value{"A", "a", "einstein", "ein", "A0", "Absorption intensity"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
       .name = "TimeStepType",
       .desc =
           "Time step for the integration.  Is often accompanied by a value.\n",
@@ -60,20 +75,20 @@ std::vector<EnumeratedOption> internal_options_create() {
                            Value{"wind_w", "Wind field W-component [m/s]"},
                        }});
 
-  opts.emplace_back(
-      EnumeratedOption{.name = "AtmKey",
-                       .desc = R"(A key to identify an atmospheric property.
+  opts.emplace_back(EnumeratedOption{
+      .name            = "AtmKey",
+      .desc            = R"(A key to identify an atmospheric property.
 )",
-                       .values_and_desc = {
-                           Value{"t", "temperature", "Temperature [K]"},
-                           Value{"p", "pressure", "Pressure [Pa]"},
-                           Value{"wind_u", "WindU", "Wind field U-component [m/s]"},
-                           Value{"wind_v", "WindV", "Wind field V-component [m/s]"},
-                           Value{"wind_w", "WindW", "Wind field W-component [m/s]"},
-                           Value{"mag_u", "MagU", "Magnetic field U-component [T]"},
-                           Value{"mag_v", "MagV", "Magnetic field V-component [T]"},
-                           Value{"mag_w", "MagW", "Magnetic field W-component [T]"},
-                       }});
+      .values_and_desc = {
+          Value{"t", "temperature", "Temperature [K]"},
+          Value{"p", "pressure", "Pressure [Pa]"},
+          Value{"wind_u", "WindU", "Wind field U-component [m/s]"},
+          Value{"wind_v", "WindV", "Wind field V-component [m/s]"},
+          Value{"wind_w", "WindW", "Wind field W-component [m/s]"},
+          Value{"mag_u", "MagU", "Magnetic field U-component [T]"},
+          Value{"mag_v", "MagV", "Magnetic field V-component [T]"},
+          Value{"mag_w", "MagW", "Magnetic field W-component [T]"},
+      }});
 
   opts.emplace_back(EnumeratedOption{
       .name = "InterpolationExtrapolation",
@@ -1047,7 +1062,8 @@ radiation).
 
   opts.emplace_back(EnumeratedOption{
       .name = "ParticulateProperty",
-      .desc = R"(Numerical properties used to numerically represent particle populations.
+      .desc =
+          R"(Numerical properties used to numerically represent particle populations.
 )",
       .values_and_desc =
           {Value{"MassDensity", "m", "Mass density in kg/m^{-3}"},
@@ -1092,12 +1108,12 @@ std::string EnumeratedOption::docs() const {
 
   const auto n = values_and_desc.front().size();
 
-  os << "Group name: " << '"'<< name<< '"' << "\n\n"
+  os << "Group name: " << '"' << name << '"' << "\n\n"
      << desc << "\n\nValid options:\n\n";
   for (auto& v : values_and_desc) {
     std::string_view x = "- ";
     for (auto& s : v | std::views::take(n - 1)) {
-      os << std::exchange(x, " or ") << "``" << '"'<< s<< '"' << "``";
+      os << std::exchange(x, " or ") << "``" << '"' << s << '"' << "``";
     }
     os << ": " << v.back() << '\n';
   }

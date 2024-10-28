@@ -115,6 +115,14 @@ struct line {
   */
   [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dt) const;
 
+  /** Compute the HITRAN linestrength for this line
+   * 
+   * @param hitran_s The HITRAN line strength
+   * @param isot The isotope to use - required to get the correct partition function
+   * @return Numeric Hitran equivalent linestrength
+   */
+  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s, const SpeciesIsotope& isot);
+
   friend std::ostream& operator<<(std::ostream& os, const line& x);
 
   friend std::istream& operator>>(std::istream& is, line& x);
@@ -168,14 +176,10 @@ struct band_data {
 
   [[nodiscard]] Rational max(QuantumNumberType) const;
 
+  //! Returns true if the line is new for the band_data (based on quantum numbers)
+  bool merge(const line& linedata);
+
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
-};
-
-struct band {
-  QuantumIdentifier key{"Ar-8"};
-  band_data data{};
-
-  friend std::ostream& operator<<(std::ostream& os, const band&);
 };
 
 struct line_pos {
@@ -217,13 +221,13 @@ struct line_key {
 
   friend std::ostream& operator<<(std::ostream& os, const line_key& x);
 
-  [[nodiscard]] Numeric& get_value(std::vector<lbl::band>&) const;
-  [[nodiscard]] const Numeric& get_value(const std::vector<lbl::band>&) const;
+  [[nodiscard]] Numeric& get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] const Numeric& get_value(const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
 
-std::ostream& operator<<(std::ostream& os, const std::vector<band>& x);
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<QuantumIdentifier, band_data>& x);
 }  // namespace lbl
 
 //! Support hashing of line keys
@@ -237,10 +241,10 @@ struct std::hash<lbl::line_key> {
 
 using LblLineKey = lbl::line_key;
 
-using AbsorptionBand = lbl::band;
+using AbsorptionBand = lbl::band_data;
 
 //! A list of multiple bands
-using ArrayOfAbsorptionBand = std::vector<lbl::band>;
+using AbsorptionBands = std::unordered_map<QuantumIdentifier, AbsorptionBand>;
 
 template <>
 struct std::formatter<lbl::line> {
@@ -287,24 +291,6 @@ struct std::formatter<lbl::band_data> {
     if (not tags.short_str) tags.format(ctx, sep, v.lines);
 
     return ctx.out();
-  }
-};
-
-template <>
-struct std::formatter<AbsorptionBand> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const AbsorptionBand& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.key, tags.sep(), v.data);
   }
 };
 

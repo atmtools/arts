@@ -5,20 +5,27 @@
 #include <iomanip>
 #include <limits>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
 #include "debug.h"
 #include "double_imanip.h"
+#include "hitran_species.h"
+#include "partfun.h"
 #include "quantum_numbers.h"
 
 //! In CPP file
+using Constant::c;
+using Constant::h;
 using Constant::k;
+using Constant::pi;
 using Math::pow2;
 using Math::pow3;
 using Math::pow4;
 using std::exp;
+using std::expm1;
 
 namespace lbl {
 Numeric line::s(Numeric T, Numeric Q) const {
@@ -45,15 +52,9 @@ Numeric line::ds_da(Numeric T, Numeric Q) const {
 void band_data::sort(LineByLineVariable v) {
   using enum LineByLineVariable;
   switch (v) {
-    case f0:
-      std::ranges::sort(lines, {}, &line::f0);
-      break;
-    case e0:
-      std::ranges::sort(lines, {}, &line::e0);
-      break;
-    case a:
-      std::ranges::sort(lines, {}, &line::a);
-      break;
+    case f0: std::ranges::sort(lines, {}, &line::f0); break;
+    case e0: std::ranges::sort(lines, {}, &line::e0); break;
+    case a:  std::ranges::sort(lines, {}, &line::a); break;
   }
 }
 
@@ -91,15 +92,11 @@ std::ostream& operator<<(std::ostream& os, const band_data& x) {
             << x.lines;
 }
 
-std::ostream& operator<<(std::ostream& os, const band& x) {
-  return os << x.key << '\n' << x.data;
-}
-
-std::ostream& operator<<(std::ostream& os, const std::vector<band>& x) {
+std::ostream& operator<<(std::ostream& os, const AbsorptionBands& x) {
   constexpr std::string_view endl = "\n";
   std::string_view sep            = "";
-  for (auto& y : x) {
-    os << sep << y;
+  for (auto& [key, data] : x) {
+    os << sep << key << '\n' << data;
     std::exchange(sep, endl);
   }
   return os;
@@ -139,16 +136,13 @@ std::ostream& operator<<(std::ostream& os, const line_key& x) {
 template <typename T>
 auto local_get_value(T& absorption_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
-  auto& band =
-      [&type, &absorption_bands]() {
-        auto ptr =
-            std::ranges::find(absorption_bands, type.band, &lbl::band::key);
-        ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
-                           "No band with quantum identifier: {}",
-                           type.band);
-        return ptr;
-      }()
-          ->data;
+  auto ptr = absorption_bands.find(type.band);
+
+  ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
+                     "No band with quantum identifier: {}",
+                     type.band);
+
+  auto& band = ptr->second;
 
   ARTS_USER_ERROR_IF(type.line >= band.lines.size(),
                      "Line index out of range: {}"
@@ -184,22 +178,42 @@ auto local_get_value(T& absorption_bands, const line_key& type)
   }
 
   switch (type.var) {
-    case LineByLineVariable::f0:
-      return line.f0;
-    case LineByLineVariable::e0:
-      return line.e0;
-    case LineByLineVariable::a:
-      return line.a;
+    case LineByLineVariable::f0: return line.f0;
+    case LineByLineVariable::e0: return line.e0;
+    case LineByLineVariable::a:  return line.a;
   }
 
   std::unreachable();
 }
 
-Numeric& line_key::get_value(std::vector<lbl::band>& b) const {
+Numeric& line_key::get_value(AbsorptionBands& b) const {
   return local_get_value(b, *this);
 }
 
-const Numeric& line_key::get_value(const std::vector<lbl::band>& b) const {
+const Numeric& line_key::get_value(const AbsorptionBands& b) const {
   return local_get_value(b, *this);
+}
+
+[[nodiscard]] Numeric line::hitran_a(const Numeric hitran_s,
+                                     const SpeciesIsotope& isot) {
+  constexpr Numeric T0 = 296.0;
+  const Numeric Q0     = PartitionFunctions::Q(T0, isot);
+  const Numeric Ia     = Hitran::isotopologue_ratios()[isot];
+
+  //! Note negative value because expm1 is used as a more accurate form of (1 - exp(x)) for exp(x) close to 1.
+  return -8.0 * pi * Q0 * hitran_s /
+         (Ia * gu * exp(-e0 / (k * T0)) * expm1(-(h * f0) / (k * T0)) *
+          pow2(c / f0));
+}
+
+bool band_data::merge(const line& linedata) {
+  for (auto& line : lines) {
+    if (line.qn == linedata.qn) {
+      line = linedata;
+      return false;
+    }
+  }
+  lines.push_back(linedata);
+  return true;
 }
 }  // namespace lbl

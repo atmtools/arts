@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <ranges>
 
 #include "debug.h"
 #include "lbl_data.h"
@@ -17,26 +18,24 @@
 namespace lbl {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
     const ExhaustiveConstVectorView& f_grid,
-    const std::span<const lbl::band>& bnds,
+    const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
   if (std::ranges::any_of(
-          bnds,
-          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE; },
-          &band::data))
+          bnds |std::ranges::views::values,
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE; }))
     return std::make_unique<voigt::lte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
   return nullptr;
 }
 std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
     const ExhaustiveConstVectorView& f_grid,
-    const std::span<const lbl::band>& bnds,
+    const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
   if (std::ranges::any_of(
-          bnds,
-          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR; },
-          &band::data))
+          bnds|std::ranges::views::values,
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR; }))
     return std::make_unique<voigt::lte_mirror::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
   return nullptr;
@@ -44,13 +43,12 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
 
 std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
     const ExhaustiveConstVectorView& f_grid,
-    const std::span<const lbl::band>& bnds,
+    const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
   if (std::ranges::any_of(
-          bnds,
-          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE; },
-          &band::data))
+          bnds|std::ranges::views::values,
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE; }))
     return std::make_unique<voigt::nlte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
   return nullptr;
@@ -58,16 +56,15 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
 
 std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
     const ExhaustiveConstVectorView& f_grid,
-    const std::span<const lbl::band>& bnds,
+    const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
   if (std::ranges::any_of(
-          bnds,
+          bnds|std::ranges::views::values,
           [](auto& bnd) {
             return bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV or
                    bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN;
-          },
-          &band::data))
+          }))
     return std::make_unique<voigt::ecs::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
   return nullptr;
@@ -80,7 +77,7 @@ void calculate(PropmatVectorView pm,
                const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const SpeciesEnum species,
-               const std::span<const lbl::band>& bnds,
+               const AbsorptionBands& bnds,
                const linemixing::isot_map& ecs_data,
                const AtmPoint& atm,
                const Vector2 los,

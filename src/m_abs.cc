@@ -521,7 +521,7 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
     Agenda& propagation_matrix_agenda,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& absorption_species,
-    const ArrayOfAbsorptionBand& absorption_bands,
+    const AbsorptionBands& absorption_bands,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Numeric& force_p,

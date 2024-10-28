@@ -91,7 +91,7 @@ x : Vector
   target(line);
   line.def(
       "model_state",
-      [](const Jacobian::LineTarget& t, const ArrayOfAbsorptionBand& f) {
+      [](const Jacobian::LineTarget& t, const AbsorptionBands& f) {
         Vector x(t.x_size);
         t.set_state(x, f, t.type);
         return x;
@@ -107,7 +107,7 @@ Warning:
 
 Parameters
 ----------
-t : ArrayOfAbsorptionBand
+t : AbsorptionBands
     The absorption data container
 
 Returns
