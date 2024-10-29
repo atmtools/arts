@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module contains functions to interact with ARTS."""
 
-from pyarts import sensor  # noqa
 from pyarts import xml  # noqa
 from pyarts import arts  # noqa
 from pyarts import data  # noqa
