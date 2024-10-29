@@ -108,22 +108,22 @@ void table::absorption(ExhaustiveVectorView absorption,
       "The lookup table internal variable log_p_grid is incorrect.\n")
 
   // Frequency grid positions
-  const ExhaustiveConstVectorView frequency_grid_v(frequency_grid);
-  const ExhaustiveConstVectorView f_grid_v(*f_grid);
+  const Vector& frequency_grid_v(frequency_grid);
+  const Vector& f_grid_v(*f_grid);
   const auto flag =
       my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
           frequency_grid_v, f_grid_v, f_interp_order, extpolfac);
 
   // Pressure grid positions
   const auto plog_local = std::log(atm_point.pressure);
-  const ExhaustiveConstVectorView plog_v{log_p_grid};
+  const Vector& plog_v(log_p_grid);
   LagrangeInterpolation::check(plog_v, p_interp_order, plog_local, extpolfac);
   const Array<LagrangeInterpolation> plag{
       LagrangeInterpolation(0, plog_local, plog_v, p_interp_order)};
 
   const auto water_lag = [&]() {
     const auto x = atm_point["H2O"_spec] / interp(water_atmref, plag[0]);
-    const ExhaustiveConstVectorView xi{water_pert};
+    const Vector& xi(water_pert);
     LagrangeInterpolation::check(xi, water_interp_order, x, extpolfac);
     const Array<LagrangeInterpolation> wlag{
         LagrangeInterpolation(0, x, xi, water_interp_order)};
@@ -132,7 +132,7 @@ void table::absorption(ExhaustiveVectorView absorption,
 
   const auto temperature_lag = [&]() {
     const auto x = atm_point.temperature - interp(t_atmref, plag[0]);
-    const ExhaustiveConstVectorView xi{t_pert};
+    const Vector& xi(t_pert);
     LagrangeInterpolation::check(xi, t_interp_order, x, extpolfac);
     const Array<LagrangeInterpolation> tlag{
         LagrangeInterpolation(0, x, xi, t_interp_order)};
