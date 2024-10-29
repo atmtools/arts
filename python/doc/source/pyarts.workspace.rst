@@ -12,12 +12,13 @@ pyarts.workspace
    
    pyarts.workspace.Workspace
 
-.. rubric:: Creating an agenda
+.. rubric:: Decorators
 
 .. autosummary::
    :toctree: stubs
 
    arts_agenda
+   callback_operator
 
 pyarts.workspace.utility
 ------------------------
