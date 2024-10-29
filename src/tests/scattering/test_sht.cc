@@ -49,8 +49,8 @@ bool test_initialize_sht() {
  */
 bool test_transform_harmonics() {
   auto sht              = *sht::provider.get_instance({5, 5, 32, 32});
-  auto a_angs           = sht.get_azimuth_angle_grid(true);
-  auto z_angs           = grid_vector(sht.get_zenith_angle_grid(true));
+  Vector a_angs{sht.get_azimuth_angle_grid(true)};
+  Vector z_angs{grid_vector(sht.get_zenith_angle_grid(true))};
   Matrix spatial_coeffs = static_cast<Matrix>(sht.get_spatial_coeffs());
   ComplexVector spectral_coeffs =
       static_cast<ComplexVector>(sht.get_spectral_coeffs());

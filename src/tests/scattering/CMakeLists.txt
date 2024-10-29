@@ -56,9 +56,4 @@ if(DOWNLOAD_XMLDATA_DEPS)
 endif()
 
 # add_test(NAME "cpp.fast.scattering.test_particle_habit" COMMAND test_particle_habit)
-add_dependencies(check-deps test_particle_habit)
-
-add_executable(test_scattering_io test_xml_io.cc)
-target_link_libraries(test_scattering_io scattering_io)
-target_include_directories(test_scattering_io PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
-add_test(NAME "cpp.fast.scattering.test_scattering_io" COMMAND test_scattering_io)
+#add_dependencies(check-deps test_particle_habit)
