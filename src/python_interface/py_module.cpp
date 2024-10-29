@@ -65,7 +65,7 @@ void py_retrieval(py::module_& m);
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
 NB_MODULE(arts, m) try {
-  m.doc() = "Interface directly to the C++ types via python";
+  m.doc() = "Interface directly to the C++ types, functions and modules via python";
   py::class_<Workspace> ws(m, "CxxWorkspace");
 
   static bool init = true;
