@@ -48,13 +48,11 @@ ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &ppvar_f,
  * @param main_freq Original frequency grid
  * @param rad_path path point of the radiation
  * @param atm_path path point of the atmosphere
- * @param along_path_atm_speed Speed of the measurement along the path
  */
 void forward_path_freq(AscendingGrid &path_freq,
                        const AscendingGrid &main_freq,
                        const PropagationPathPoint &rad_path,
-                       const AtmPoint &atm_path,
-                       const Numeric along_path_atm_speed);
+                       const AtmPoint &atm_path);
 
 /** Set frequency grid along the atmospheric path
  * 
@@ -62,14 +60,12 @@ void forward_path_freq(AscendingGrid &path_freq,
  * @param[in] f_grid As WSV
  * @param[in] rad_path As WSV
  * @param[in] ppvar_atm As WSV
- * @param[in] rte_alonglos_v As WSV
  * @return ArrayOfVector& As ppvar_f WSV
  */
 void forward_path_freq(ArrayOfAscendingGrid &ppvar_f,
                        const AscendingGrid &f_grid,
                        const ArrayOfPropagationPathPoint &rad_path,
-                       const ArrayOfAtmPoint &ppvar_atm,
-                       const Numeric rte_alonglos_v);
+                       const ArrayOfAtmPoint &ppvar_atm);
 
 /** Extracts a 1D atmospheric "path" from a 3D atmospheric field
  *
