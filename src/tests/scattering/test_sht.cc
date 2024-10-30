@@ -24,19 +24,19 @@ bool test_initialize_sht() {
   if (sht.get_n_spectral_coeffs() != sht_p.get_n_spectral_coeffs()) {
     return false;
   }
-  if (sht.get_n_latitudes() != sht_p.get_n_latitudes()) {
+  if (sht.get_n_zenith_angles() != sht_p.get_n_zenith_angles()) {
     return false;
   }
-  if (sht.get_n_longitudes() != sht_p.get_n_longitudes()) {
+  if (sht.get_n_azimuth_angles() != sht_p.get_n_azimuth_angles()) {
     return false;
   }
 
-  auto sht_lonlat = *sht::provider.get_instance_lonlat(32, 32);
+  sht = *sht::provider.get_instance(32, 32);
   auto sht_lm     = *sht::provider.get_instance_lm(15, 15);
-  if (sht_lonlat.get_n_latitudes() != sht_lm.get_n_latitudes()) {
+  if (sht.get_n_zenith_angles() != sht_lm.get_n_zenith_angles()) {
     return false;
   }
-  if (sht_lonlat.get_n_longitudes() != sht_lm.get_n_longitudes()) {
+  if (sht.get_n_azimuth_angles() != sht_lm.get_n_azimuth_angles()) {
     return false;
   }
 
@@ -49,15 +49,15 @@ bool test_initialize_sht() {
  */
 bool test_transform_harmonics() {
   auto sht              = *sht::provider.get_instance({5, 5, 32, 32});
-  auto lons             = sht.get_longitude_grid(true);
-  auto lats             = sht.get_latitude_grid(true);
+  Vector a_angs{sht.get_azimuth_angle_grid(true)};
+  Vector z_angs{grid_vector(sht.get_zenith_angle_grid(true))};
   Matrix spatial_coeffs = static_cast<Matrix>(sht.get_spatial_coeffs());
   ComplexVector spectral_coeffs =
       static_cast<ComplexVector>(sht.get_spectral_coeffs());
 
   for (int l = 0; l < 3; ++l) {
     for (int m = -l; m <= l; ++m) {
-      spatial_coeffs   = evaluate_spherical_harmonic(l, m, lons, lats);
+      spatial_coeffs   = evaluate_spherical_harmonic(l, m, a_angs, z_angs);
       spectral_coeffs  = sht.transform(spatial_coeffs);
       auto coeff_index = sht.get_coeff_index(l, m);
       for (int i = 0; i < spectral_coeffs.size(); ++i) {
@@ -128,31 +128,31 @@ bool test_add_coefficients(int n_trials) {
 }
 
 bool test_grids() {
-  auto sht = sht::provider.get_instance_lonlat(64, 64);
+  auto sht = sht::provider.get_instance(64, 64);
 
-  auto lat_grid     = sht->get_latitude_grid();
+  auto lat_grid     = sht->get_zenith_angle_grid();
   Numeric max_angle = max<Vector>(lat_grid);
   if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
     return false;
   }
-  lat_grid  = sht->get_latitude_grid(true);
+  lat_grid  = sht->get_zenith_angle_grid(true);
   max_angle = max<Vector>(lat_grid);
   if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) {
     return false;
   }
 
-  auto lon_grid = sht->get_longitude_grid();
+  auto lon_grid = sht->get_azimuth_angle_grid();
   max_angle     = max<Vector>(lon_grid);
   if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
     return false;
   }
-  lon_grid  = sht->get_longitude_grid(true);
+  lon_grid  = sht->get_azimuth_angle_grid(true);
   max_angle = max<Vector>(lon_grid);
   if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) {
     return false;
   }
 
-  max_angle = max<Vector>(*sht->get_za_grid_ptr());
+  max_angle = max(grid_vector(*sht->get_za_grid_ptr()));
   if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
     return false;
   }

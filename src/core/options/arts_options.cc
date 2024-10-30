@@ -1070,6 +1070,8 @@ radiation).
            Value{"NumberDensity", "n", "Number density in m^{-3}"},
            Value{"DMax", "dmax", "Maximum particle diameter in m."},
            Value{"DVeq", "dveq", "Volume-equivalent diameter in m."},
+           Value{"Extinction", "ext", "Extinction in m^{-1}"},
+           Value{"SingleScatteringAlbedo", "ssa", "Single scattering albedo"},
            Value{"ShapeParameter",
                  "ShapeParameter",
                  "PSD shape parmeter in arbitary units."},

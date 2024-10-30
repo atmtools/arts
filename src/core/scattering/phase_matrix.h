@@ -42,14 +42,16 @@ constexpr Scalar save_acos(Scalar a, Scalar epsilon = 1e-6) {
   return acos(a);
 }
 
+
+
 /** Calculate angle between incoming and outgoing directions in the scattering
  *  plane.
  *
- * @param lon_inc The incoming-angle longitude component in degree.
- * @param lat_inc The incoming-angle latitude component in degree.
- * @param lon_scat The outgoing (scattering) angle longitude component in
+ * @param aa_inc The incoming-angle azimuth-angle component in degree.
+ * @param za_inc The incoming-angle zenith-angle component in degree.
+ * @param aa_scat The outgoing (scattering) angle azimuth-angle component in
  * degree.
- * @param lat_scat The outgoing (scattering) angle longitude component in
+ * @param za_scat The outgoing (scattering) angle azimuth-angle component in
  * degree.
  * @return The angle between the incoming and outgoing directions in
  * degree.
@@ -73,10 +75,10 @@ Scalar scattering_angle(Scalar aa_inc,
  * coefficients C_1, * C_2, S_1, S_2 as defined in equation (4.16) in
  * "Scattering, Absorption, and Emission of Light by Small Particles."
  *
- * @param aa_inc The longitude component of the incoming angle in degree.
- * @param za_inc The latitude component of the incoming angle in degree.
- * @param aa_scat The longitude component of the scattering angle in degree.
- * @param za_scat The latitude component of the scattering angle in degree.
+ * @param aa_inc The azimuth-angle component of the incoming angle in degree.
+ * @param za_inc The zenith-angle component of the incoming angle in degree.
+ * @param aa_scat The azimuth-angle component of the scattering angle in degree.
+ * @param za_scat The zenith-angle component of the scattering angle in degree.
  */
 template <typename Scalar>
 std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d,
@@ -261,7 +263,7 @@ constexpr Index get_n_mat_elems(Format format, Index stokes_dim) {
 struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
-                      std::shared_ptr<const LatitudeGrid> za_scat_grid_)
+                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
       : t_grid(t_grid_),
         f_grid(f_grid_),
         aa_inc_grid(nullptr),
@@ -273,7 +275,7 @@ struct ScatteringDataGrids {
                       std::shared_ptr<const Vector> f_grid_,
                       std::shared_ptr<const Vector> za_inc_grid_,
                       std::shared_ptr<const Vector> delta_aa_grid_,
-                      std::shared_ptr<const LatitudeGrid> za_scat_grid_)
+                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
       : t_grid(t_grid_),
         f_grid(f_grid_),
         aa_inc_grid(nullptr),
@@ -286,7 +288,7 @@ struct ScatteringDataGrids {
   std::shared_ptr<const Vector> aa_inc_grid;
   std::shared_ptr<const Vector> za_inc_grid;
   std::shared_ptr<const Vector> aa_scat_grid;
-  std::shared_ptr<const LatitudeGrid> za_scat_grid;
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid;
 };
 
 struct RegridWeights {
@@ -304,7 +306,7 @@ inline RegridWeights calc_regrid_weights(
     std::shared_ptr<const Vector> aa_inc_grid,
     std::shared_ptr<const Vector> za_inc_grid,
     std::shared_ptr<const Vector> aa_scat_grid,
-    std::shared_ptr<const LatitudeGrid> za_scat_grid,
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
     ScatteringDataGrids new_grids) {
   RegridWeights res{};
 
@@ -343,8 +345,10 @@ inline RegridWeights calc_regrid_weights(
     gridpos(res.aa_scat_grid_weights, *aa_scat_grid, *new_grids.aa_scat_grid);
   }
   if ((za_scat_grid) && (new_grids.za_scat_grid)) {
-    res.za_scat_grid_weights = ArrayOfGridPos(new_grids.za_scat_grid->size());
-    gridpos(res.za_scat_grid_weights, *za_scat_grid, *new_grids.za_scat_grid);
+    res.za_scat_grid_weights = ArrayOfGridPos(std::visit([](const auto &grd){ return grd.size();}, *new_grids.za_scat_grid));
+    gridpos(res.za_scat_grid_weights,
+            std::visit([](const auto &grd){ return static_cast<Vector>(grd); }, *za_scat_grid),
+            std::visit([](const auto &grd){ return static_cast<Vector>(grd); }, *new_grids.za_scat_grid));
   }
   return res;
 }
@@ -611,6 +615,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
       detail::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -627,16 +632,16 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
    */
   PhaseMatrixData(std::shared_ptr<const Vector> t_grid,
                   std::shared_ptr<const Vector> f_grid,
-                  std::shared_ptr<const LatitudeGrid> za_scat_grid)
+                  std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
       : matpack::matpack_data<Scalar, 4>(t_grid->size(),
                                          f_grid->size(),
-                                         za_scat_grid->size(),
+                                         grid_size(*za_scat_grid),
                                          n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid),
-        n_za_scat_(za_scat_grid->size()),
+        n_za_scat_(grid_size(*za_scat_grid)),
         za_scat_grid_(za_scat_grid) {
     TensorType::operator=(0.0);
   }
@@ -673,7 +678,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     }
     n_temps_ = t_grid_->size();
     n_freqs_ = f_grid_->size();
-    n_za_scat_ = za_scat_grid_->size();
+    n_za_scat_ = grid_size(*za_scat_grid_);
   }
 
   PhaseMatrixData &operator=(const matpack::matpack_data<Scalar, 4> &data) {
@@ -695,7 +700,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
 
   std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
   std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
-  std::shared_ptr<const LatitudeGrid> get_za_scat_grid() const {
+  std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const {
     return za_scat_grid_;
   }
 
@@ -704,8 +709,8 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
    * @param Pointer to the SHT to use for the transformation.
    */
   PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
-    ARTS_ASSERT(sht->get_n_longitudes() == 1);
-    ARTS_ASSERT(sht->get_n_latitudes() == n_za_scat_);
+    ARTS_ASSERT(sht->get_n_azimuth_angles() == 1);
+    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
 
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, sht);
 
@@ -719,14 +724,20 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     }
     return result;
   }
+
+  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const {
+    auto sht_ptr = sht::provider.get_instance_lm(degree, order);
+    return to_spectral(sht_ptr);
+  }
+
   PhaseMatrixDataSpectral to_spectral() const {
-    return to_spectral(sht::provider.get_instance_lonlat(1, n_za_scat_));
+    return to_spectral(sht::provider.get_instance(1, n_za_scat_));
   }
 
   PhaseMatrixDataLabFrame to_lab_frame(
       std::shared_ptr<const Vector> za_inc_grid,
       std::shared_ptr<const Vector> delta_aa_grid,
-      std::shared_ptr<const LatitudeGrid> za_scat_grid_new) {
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const {
     PhaseMatrixDataLabFrame result(
         t_grid_, f_grid_, za_inc_grid, delta_aa_grid, za_scat_grid_new);
 
@@ -734,17 +745,17 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
       GridPos angle_interp;
       for (Index i_delta_aa = 0; i_delta_aa < delta_aa_grid->size();
            ++i_delta_aa) {
-        for (Index i_za_scat = 0; i_za_scat < za_scat_grid_new->size();
+        for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid_new);
              ++i_za_scat) {
           std::array<Scalar, 5> coeffs =
               detail::rotation_coefficients(0.0,
                                             (*za_inc_grid)[i_za_inc],
                                             (*delta_aa_grid)[i_delta_aa],
-                                            (*za_scat_grid_new)[i_za_scat]);
+                                            grid_vector(*za_scat_grid_new)[i_za_scat]);
 
           // On the fly interpolation of stokes components and expansion.
           Scalar scat_angle = Conversion::rad2deg(std::get<0>(coeffs));
-          gridpos(angle_interp, *za_scat_grid_, scat_angle);
+          gridpos(angle_interp, grid_vector(*za_scat_grid_), scat_angle);
 
           Tensor3 scat_mat_interpd(n_temps_, n_freqs_, stokes_dim);
           Vector pm_comps(n_stokes_coeffs);
@@ -775,7 +786,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     BackscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
                                                                   f_grid_);
     GridPos interp;
-    gridpos(interp, *za_scat_grid_, 180.0);
+    gridpos(interp, grid_vector(*za_scat_grid_), 180.0);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -794,7 +805,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     ForwardscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
                                                                      f_grid_);
     GridPos interp;
-    gridpos(interp, *za_scat_grid_, 0.0);
+    gridpos(interp, grid_vector(*za_scat_grid_), 0.0);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -832,7 +843,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         result_vec(i_t, i_f) =
             2.0 * pi_v<Scalar> *
-            integrate_latitudes(this_vec(i_t, i_f, joker), *za_scat_grid_);
+            integrate_zenith_angle(this_vec(i_t, i_f, joker), *za_scat_grid_);
       }
     }
     return results;
@@ -945,7 +956,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
   /// The number of scattering zenith angles.
   Index n_za_scat_;
   /// The zenith angle grid.
-  std::shared_ptr<const LatitudeGrid> za_scat_grid_;
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid_;
 };
 
 template <std::floating_point Scalar, Index stokes_dim, Representation repr>
@@ -965,6 +976,8 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
                                                   Format::TRO,
                                                   Representation::Spectral,
                                                   stokes_dim>;
+  using PhaseMatrixDataLabFrame =
+      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>;
   using PhaseMatrixDataDoublySpectral =
       PhaseMatrixData<Scalar,
                       Format::TRO,
@@ -977,6 +990,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
       detail::get_n_mat_elems(Format::TRO, stokes_dim);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1080,8 +1094,8 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
   PhaseMatrixDataGridded to_gridded() const {
     ARTS_ASSERT(sht_->get_n_spectral_coeffs() == n_spectral_coeffs_);
 
-    auto lat_grid = std::make_shared<SHT::LatGrid>(sht_->get_latitude_grid());
-    PhaseMatrixDataGridded result(t_grid_, f_grid_, lat_grid);
+    auto za_grid = std::make_shared<ZenithAngleGrid>(sht_->get_zenith_angle_grid());
+    PhaseMatrixDataGridded result(t_grid_, f_grid_, za_grid);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -1092,6 +1106,12 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
       }
     }
     return result;
+  }
+
+  PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector> za_inc_grid,
+                                       std::shared_ptr<const Vector> delta_aa_grid,
+                                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const {
+    return to_gridded().to_lab_frame(za_inc_grid, delta_aa_grid, za_scat_grid_new);
   }
 
   BackscatterMatrixData<Scalar, Format::TRO, stokes_dim>
@@ -1177,7 +1197,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
   /// Conversion from doubly-spectral format to spectral is just a
   /// copy for TRO format.
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT>) { return *this; }
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT>) const { return *this; }
 
   /// Conversion from spectral to doubly-spectral format is just a copy for TRO format.
   PhaseMatrixDataDoublySpectral to_doubly_spectral(std::shared_ptr<SHT>) {
@@ -1278,6 +1298,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
       detail::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1300,12 +1321,12 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
                   std::shared_ptr<const Vector> f_grid,
                   std::shared_ptr<const Vector> za_inc_grid,
                   std::shared_ptr<const Vector> delta_aa_grid,
-                  std::shared_ptr<const LatitudeGrid> za_scat_grid)
+                  std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
       : matpack::matpack_data<Scalar, 6>(t_grid->size(),
                                          f_grid->size(),
                                          za_inc_grid->size(),
                                          delta_aa_grid->size(),
-                                         za_scat_grid->size(),
+                                         grid_size(*za_scat_grid),
                                          n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
@@ -1315,7 +1336,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
         za_inc_grid_(za_inc_grid),
         n_delta_aa_(delta_aa_grid->size()),
         delta_aa_grid_(delta_aa_grid),
-        n_za_scat_(za_scat_grid->size()),
+        n_za_scat_(grid_size(*za_scat_grid)),
         za_scat_grid_(za_scat_grid) {
     matpack::matpack_data<Scalar, 6>::operator=(0.0);
   }
@@ -1358,9 +1379,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) {
-    ARTS_ASSERT(sht->get_n_longitudes() == n_delta_aa_);
-    ARTS_ASSERT(sht->get_n_latitudes() == n_za_scat_);
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
+    ARTS_ASSERT(sht->get_n_azimuth_angles() == n_delta_aa_);
+    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
 
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, za_inc_grid_, sht);
 
@@ -1376,9 +1397,14 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
     }
     return result;
   }
-  PhaseMatrixDataSpectral to_spectral() {
-    return to_spectral(
-        sht::provider.get_instance_lonlat(n_delta_aa_, n_za_scat_));
+
+  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const {
+    auto sht_ptr = sht::provider.get_instance_lm(degree, order);
+    return to_spectral(sht_ptr);
+  }
+
+  PhaseMatrixDataSpectral to_spectral() const {
+    return to_spectral(sht::provider.get_instance(n_delta_aa_, n_za_scat_));
   }
 
   BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
@@ -1393,7 +1419,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
           auto za_inc = (*za_inc_grid_)[i_za_inc];
-          gridpos(za_scat_interp, *za_scat_grid_, 180.0 - za_inc);
+          gridpos(za_scat_interp, grid_vector(*za_scat_grid_), 180.0 - za_inc);
           interpweights(weights, delta_aa_interp, za_scat_interp);
 
           for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
@@ -1419,7 +1445,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
           auto za_inc = (*za_inc_grid_)[i_za_inc];
-          gridpos(za_scat_interp, *za_scat_grid_, za_inc);
+          gridpos(za_scat_interp, grid_vector(*za_scat_grid_), za_inc);
           interpweights(weights, delta_aa_interp, za_scat_interp);
 
           for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
@@ -1777,7 +1803,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
   /// The number of scattering zenith angles.
   Index n_za_scat_;
   /// The zenith angle grid.
-  std::shared_ptr<const LatitudeGrid> za_scat_grid_;
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid_;
 };
 
 template <std::floating_point Scalar, Index stokes_dim>
@@ -1799,6 +1825,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
       detail::get_n_mat_elems(Format::ARO, stokes_dim);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
+  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1885,6 +1912,25 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
       }
     }
     return result;
+  }
+
+  /** Transform
+   *
+   * @param Pointer to the SHT to use for the transformation.
+   */
+  PhaseMatrixData to_spectral(Index l_new, Index m_new) {
+    auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
+    PhaseMatrixData pm_new(t_grid_, f_grid_, sht_new);
+    for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+      for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+        for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid_->size(); ++za_inc_ind) {
+          for (Index coeff_ind = 0; coeff_ind < std::min(this->size(4), pm_new.size(4)); ++coeff_ind) {
+            pm_new(t_ind, f_ind, za_inc_ind, coeff_ind) = (*this)(t_ind, f_ind, za_inc_ind, coeff_ind);
+          }
+        }
+      }
+    }
+    return pm_new;
   }
 
   BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
