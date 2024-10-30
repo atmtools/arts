@@ -393,8 +393,7 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
 }
 
 template <GridType type,
-          template <cycle_limit lim>
-          class Limit,
+          template <cycle_limit lim> class Limit,
           matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Numeric l_factor(const Numeric x,
                            const Vec &xi,
@@ -459,8 +458,7 @@ constexpr Numeric l_factor(const Numeric x,
  * @param[in] cycle The size of a cycle (optional)
  */
 template <GridType type,
-          template <cycle_limit lim>
-          class Limit,
+          template <cycle_limit lim> class Limit,
           matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Numeric l(const Index p0,
                     const Index order,
@@ -487,8 +485,7 @@ constexpr Numeric l(const Index p0,
  */
 template <Index order,
           GridType type,
-          template <cycle_limit lim>
-          class Limit,
+          template <cycle_limit lim> class Limit,
           matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Numeric l(const Index p0,
                     const Numeric x,
@@ -527,8 +524,7 @@ constexpr Numeric l(const Index p0,
  * @param[in] cycle The size of a cycle (optional)
  */
 template <GridType type,
-          template <cycle_limit lim>
-          class Limit,
+          template <cycle_limit lim> class Limit,
           matpack::ranked_matpack_type<Numeric, 1> Vec,
           class LagrangeVectorType>
 constexpr double dl_dval(const Index p0,
@@ -617,8 +613,7 @@ constexpr double dl_dval(const Index p0,
  * @param[in] cycle The size of a cycle (optional)
  */
 template <GridType type,
-          template <cycle_limit lim>
-          class Limit,
+          template <cycle_limit lim> class Limit,
           matpack::ranked_matpack_type<Numeric, 1> Vec,
           class LagrangeVectorType>
 constexpr Numeric dl(const Index p0,
@@ -990,24 +985,28 @@ struct Lagrange {
                        "Interpolation setup has failed!\n"
                        "\tRequesting greater interpolation order "
                        "than possible with given input grid")
+
     if constexpr (GridType::Cyclic not_eq type) {
-      if (polyorder not_eq 0 and extrapol > 0) {
-        const bool ascending = is_ascending(xi);
-        const Numeric xmin =
-            ascending
-                ? xi[0] - extrapol * nonstd::abs(xi[1] - xi[0])
-                : xi[n - 1] - extrapol * nonstd::abs(xi[n - 2] - xi[n - 1]);
-        const Numeric xmax =
-            ascending
-                ? xi[n - 1] + extrapol * nonstd::abs(xi[n - 2] - xi[n - 1])
-                : xi[0] + extrapol * nonstd::abs(xi[1] - xi[0]);
+      ARTS_USER_ERROR_IF(extrapol < 0, "Must have a non-negative extrapolation")
+
+      if (polyorder != 0) {
+        const Numeric xlow = xi[0] + extrapol * (xi[0] - xi[1]);
+        const Numeric xupp = xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2]);
+        const Numeric xmin = std::min(xlow, xupp);
+        const Numeric xmax = std::max(xlow, xupp);
+
         ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
-                           "Interpolation setup has failed!\n"
-                           "\tThe new grid has limits: {} {}\n\tThe old grid has limits: {} {}",
-                           x.first,
-                           x.second,
+                           R"(Interpolation setup has failed!
+
+  Grid:                      {:B,}
+  The input limit is:        {:B,}
+  The extrapolated limit is: [{}, {}] (extrapolation: {})
+)",
+                           xi,
+                           x,
                            xmin,
-                           xmax)
+                           xmax,
+                           extrapol)
       }
     }
   }
@@ -1213,7 +1212,7 @@ struct select_derivative {
                                     const T &...all)
     requires(sizeof...(inds) == sizeof...(T))
   {
-    return matpack::elemwise{one_by_one<inds == dlx>(all)...};
+    return matpack::elemwise{one_by_one < inds == dlx > (all)...};
   }
 };
 }  // namespace internal
@@ -1657,8 +1656,7 @@ using FixedLagrangeInterpolation = my_interp::Lagrange<sz, deriv>;
 template <Index PolyOrder,
           bool do_derivs,
           GridType type,
-          template <my_interp::cycle_limit lim>
-          class Limit>
+          template <my_interp::cycle_limit lim> class Limit>
 struct std::formatter<my_interp::Lagrange<PolyOrder, do_derivs, type, Limit>> {
   format_tags tags;
 

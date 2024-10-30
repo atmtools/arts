@@ -1663,7 +1663,7 @@ See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
                     "hydrostatic_option"},
-      .gin_type  = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
+      .gin_type  = {"GriddedField2,Numeric", "Vector", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{-1},
