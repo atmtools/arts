@@ -23,19 +23,6 @@ from pyarts.workspace.callback import callback_operator
 
 _group_types = tuple(eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups()))
 _wsvs = cxx.globals.workspace_variables()
-python_workspace_methods = {}
-
-
-class PythonWorkspaceMethod:
-    def __init__(self, ws, magic):
-        self.ws = ws
-        self.magic = magic
-    
-    def __call__(self, *args, **kwargs):
-        try :
-            return self.magic(self.ws, *args, **kwargs)
-        except Exception as e:
-            raise RuntimeError(f"Error in calling {self.magic}:\n{e}")
 
 
 class Workspace(cxx.CxxWorkspace):
@@ -52,8 +39,6 @@ class Workspace(cxx.CxxWorkspace):
     def __getattr__(self, attr):
         if super().has(attr):
             return super().get(attr)
-        elif attr in python_workspace_methods:
-            return PythonWorkspaceMethod(self, python_workspace_methods[attr]);
 
         raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
 
@@ -182,8 +167,6 @@ def _method_args(name):
     """
     m = workspace_methods().get(name)
     if m is None:
-        if name in python_workspace_methods:
-            return f"Python methods not yet supported in Agendas, failed to use '{name}'"
         return f"Unknown method '{name}'"
     out = {}
 
