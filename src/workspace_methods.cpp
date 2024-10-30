@@ -1636,7 +1636,7 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
   };
 
   wsm_data["atmospheric_fieldHydrostaticPressure"] = {
-      .desc      = R"-x-(Add the hydrostatic pressure to the atmospheric field
+      .desc   = R"-x-(Add the hydrostatic pressure to the atmospheric field
     
 The field must already be able to compute temperature as a function of
 altitude, latitude, and longitude.
@@ -1655,15 +1655,16 @@ as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
 )-x-",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "gravity_operator"},
-      .gin       = {"p0",
-                    "alts",
-                    "fixed_specific_gas_constant",
-                    "fixed_atmospheric_temperature",
-                    "hydrostatic_option"},
-      .gin_type  = {"GriddedField2,Numeric", "Vector", "Numeric", "Numeric", "String"},
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field", "gravity_operator"},
+      .gin    = {"p0",
+                 "alts",
+                 "fixed_specific_gas_constant",
+                 "fixed_atmospheric_temperature",
+                 "hydrostatic_option"},
+      .gin_type =
+          {"GriddedField2,Numeric", "Vector", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{-1},
@@ -2183,6 +2184,52 @@ for those species that are ``water_affected_species``.
           {"Temperature perturbation to use for the lookup table",
            "Water vapor perturbation to use for the lookup table",
            "A list of absorption species that are affected by water vapor perturbations nonlinearly"},
+  };
+
+  wsm_data["absorption_lookup_tableFromProfiles"] = {
+      .desc =
+          R"--(Compute the lookup table for all species in *absorption_bands*.
+
+Wraps *absorption_lookup_tablePrecomputeAll* after creating a simple
+*ray_path_atmospheric_point* from the input data.
+
+Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
+*absorption_lookup_table*
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"frequency_grid",
+                    "absorption_bands",
+                    "ecs_data"},
+      .gin       = {"pressure_profile",
+                    "temperature_profile",
+                    "vmr_profiles",
+                    "temperature_perturbation",
+                    "water_perturbation",
+                    "water_affected_species",
+                    "default_isotopologue_ratios"},
+      .gin_type  = {"DescendingGrid",
+                    "Vector",
+                    "SpeciesEnumVectors",
+                    "AscendingGrid",
+                    "AscendingGrid",
+                    "ArrayOfSpeciesEnum",
+                    "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    AscendingGrid{},
+                    AscendingGrid{},
+                    ArrayOfSpeciesEnum{},
+                    String{"Builtin"}},
+      .gin_desc =
+          {"Pressure profile [Pa]",
+           "Temperature profile [K]",
+           "Volume mixing ratio profiles {SpeciesEnum: [VMR]}",
+           "Temperature perturbation to use for the lookup table",
+           "Water vapor perturbation to use for the lookup table",
+           "A list of absorption species that are affected by water vapor perturbations nonlinearly",
+           "Default isotopologue ratio option to initialize the *AtmPoint* with"},
   };
 
   wsm_data["sortedIndexOfBands"] = {

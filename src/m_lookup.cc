@@ -4,6 +4,13 @@
 #include <algorithm>
 #include <set>
 
+#include "mh_checks.h"
+
+void absorption_lookup_tableInit(
+    AbsorptionLookupTables& absorption_lookup_table) {
+  absorption_lookup_table.clear();
+}
+
 template <bool calc>
 std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     PropmatVector& propagation_matrix [[maybe_unused]],
@@ -209,7 +216,48 @@ void absorption_lookup_tablePrecomputeAll(
   }
 }
 
-void absorption_lookup_tableInit(
-    AbsorptionLookupTables& absorption_lookup_table) {
-  absorption_lookup_table = {};
+void absorption_lookup_tableFromProfiles(
+    AbsorptionLookupTables& absorption_lookup_table,
+    const AscendingGrid& frequency_grid,
+    const AbsorptionBands& absorption_bands,
+    const LinemixingEcsData& ecs_data,
+    const DescendingGrid& pressure_profile,
+    const Vector& temperature_profile,
+    const SpeciesEnumVectors& vmr_profiles,
+    const AscendingGrid& temperature_perturbation,
+    const AscendingGrid& water_perturbation,
+    const ArrayOfSpeciesEnum& water_affected_species,
+    const String& isoratio_option) {
+  absorption_lookup_tableInit(absorption_lookup_table);
+
+  ArrayOfAtmPoint ray_path_atmospheric_point(
+      pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
+
+  ARTS_USER_ERROR_IF(not same_shape(pressure_profile, temperature_profile),
+                     "Pressure and temperature profiles must agree in size.");
+
+  for (Index i = 0; i < pressure_profile.size(); i++) {
+    ray_path_atmospheric_point[i].pressure    = pressure_profile[i];
+    ray_path_atmospheric_point[i].temperature = temperature_profile[i];
+  }
+
+  for (auto& [spec, prof] : vmr_profiles) {
+    ARTS_USER_ERROR_IF(
+        not same_shape(pressure_profile, prof),
+        "Pressure and VMR profiles must agree in size, fails for species {}",
+        spec);
+
+    for (Index i = 0; i < prof.size(); i++) {
+      ray_path_atmospheric_point[i][spec] = prof[i];
+    }
+  }
+
+  absorption_lookup_tablePrecomputeAll(absorption_lookup_table,
+                                       ray_path_atmospheric_point,
+                                       frequency_grid,
+                                       absorption_bands,
+                                       ecs_data,
+                                       temperature_perturbation,
+                                       water_perturbation,
+                                       water_affected_species);
 }

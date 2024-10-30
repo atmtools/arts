@@ -79,3 +79,4 @@ void xml_read(std::istream& is_xml,
 
 TMPL_XML_READ_WRITE_STREAM_MAP(AbsorptionBands)
 TMPL_XML_READ_WRITE_STREAM_MAP(AbsorptionLookupTables)
+TMPL_XML_READ_WRITE_STREAM_MAP(SpeciesEnumVectors)

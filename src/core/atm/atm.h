@@ -544,3 +544,5 @@ struct std::formatter<AtmField> {
     return ctx.out();
   }
 };
+
+using SpeciesEnumVectors = std::unordered_map<SpeciesEnum, Vector>;

@@ -22,6 +22,12 @@ internal_workspace_groups_creator() {
       .map_type = true,
   };
 
+  wsg_data["SpeciesEnumVectors"] = {
+      .file     = "atm.h",
+      .desc     = "A map of *SpeciesEnum* to *Vector*\n",
+      .map_type = true,
+  };
+
   wsg_data["Agenda"] = {
       .file = "workspace_agenda_class.h",
       .desc = "Describes a set of function calls and variable definitions\n",
@@ -910,6 +916,11 @@ radiation.
   wsg_data["ArrayOfVector2"] = {
       .file = "matpack.h",
       .desc = "A list of *Vector2*\n",
+  };
+
+  wsg_data["DescendingGrid"] = {
+      .file = "matpack.h",
+      .desc = "A sorted grid of always Descending values.\n",
   };
 
   wsg_data["AscendingGrid"] = {

@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <partfun.h>
@@ -302,6 +303,9 @@ Returns
     }
   });
   py::implicitly_convertible<py::list, ArrayOfArrayOfSpeciesTag>();
+
+  auto sev = py::bind_map<SpeciesEnumVectors>(m, "SpeciesEnumVectors");
+  workspace_group_interface(sev);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize species\n", e.what()));
