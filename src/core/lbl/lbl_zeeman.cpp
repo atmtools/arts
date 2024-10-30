@@ -11,6 +11,8 @@
 
 #include "lbl_zeeman.h"
 
+#include <utility>
+
 #include "arts_constexpr_math.h"
 #include "debug.h"
 #include "double_imanip.h"
@@ -128,9 +130,8 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 
 data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
-    if (qid.val.has(QuantumNumberType::J,
-                    QuantumNumberType::N,
-                    QuantumNumberType::v)) {
+    if (qid.val.has(
+            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
       if (qid.val[QuantumNumberType::v].low() == 0 and
           qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002084;
@@ -161,9 +162,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       }
     }
   } else if (qid.Isotopologue() == "O2-68"_isot) {
-    if (qid.val.has(QuantumNumberType::J,
-                    QuantumNumberType::N,
-                    QuantumNumberType::v)) {
+    if (qid.val.has(
+            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
       if (qid.val[QuantumNumberType::v].low() == 0 and
           qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002025;
@@ -480,6 +480,8 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
               -2 * ST * ST * C2E};
     case pol::no: return {1, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
@@ -522,6 +524,8 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
@@ -564,6 +568,8 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
@@ -606,5 +612,7 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 }  // namespace lbl::zeeman
