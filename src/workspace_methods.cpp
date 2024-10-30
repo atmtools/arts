@@ -863,12 +863,16 @@ Sets N2 and O2 speces
   };
 
   wsm_data["frequency_gridWindShift"] = {
-      .desc   = R"--(Applies wind shift to the *frequency_grid*.
+      .desc =
+          R"--(Applies wind shift to the *frequency_grid* for the local frequency grid.
 
 Also sets *frequency_grid_wind_shift_jacobian*.
+
+If the wind is 0 or nan
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
+      .out    = {"frequency_grid",
+                 "frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
   };
 
@@ -893,7 +897,7 @@ Also sets *frequency_grid_wind_shift_jacobian*.
       .desc   = R"--(Gets the frequency grid along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_frequency_grid"},
+      .out    = {"ray_path_frequency_grid", "ray_path_frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
   };
 
@@ -906,13 +910,14 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_frequency_grid",
+      .out            = {
                          "ray_path_propagation_matrix",
                          "ray_path_propagation_matrix_source_vector_nonlte",
                          "ray_path_propagation_matrix_jacobian",
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
       .in             = {"propagation_matrix_agenda",
-                         "frequency_grid",
+                         "ray_path_frequency_grid",
+                         "ray_path_frequency_grid_wind_shift_jacobian",
                          "jacobian_targets",
                          "ray_path",
                          "ray_path_atmospheric_point"},
@@ -1395,7 +1400,7 @@ Available models:
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
 This broadens the cross section data from *absorption_xsec_fit_data* and
-interpolates it onto the current frequency_grid.
+interpolates it onto the current *frequency_grid*.
 
 Model data needs to be read in with *absorption_xsec_fit_dataReadSpeciesSplitCatalog* before calling
 this method.
@@ -1876,6 +1881,7 @@ matrix to be calculated will work.
                  "propagation_matrix_source_vector_nonlte_jacobian"},
       .in     = {"propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian",
+                 "frequency_grid",
                  "jacobian_targets",
                  "frequency_grid_wind_shift_jacobian"},
   };

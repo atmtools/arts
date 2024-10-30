@@ -52,35 +52,26 @@ void Agenda::finalize(bool fix) try {
     const auto& outs = method.get_outs();
 
     std::ranges::copy_if(
-        ins,
-        std::back_inserter(ins_first),
-        [&outs_first, &ins_first, &in_then_out, &outs](const std::string& i) {
+        ins, std::back_inserter(ins_first), [&](const std::string& i) {
           const auto cmp = Cmp::eq(i);
           return not std::ranges::any_of(ins_first, cmp) and
                  not std::ranges::any_of(outs_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp) and
-                 not std::ranges::any_of(outs, cmp);
+                 not std::ranges::any_of(in_then_out, cmp);
         });
 
     std::ranges::copy_if(
-        ins,
-        std::back_inserter(in_then_out),
-        [&outs_first, &in_then_out, &outs](const std::string& i) {
+        outs, std::back_inserter(in_then_out), [&](const std::string& i) {
+          const auto cmp = Cmp::eq(i);
+          return std::ranges::any_of(ins_first, cmp) and
+                 not std::ranges::any_of(in_then_out, cmp);
+        });
+
+    std::ranges::copy_if(
+        outs, std::back_inserter(outs_first), [&](const std::string& i) {
           const auto cmp = Cmp::eq(i);
           return not std::ranges::any_of(outs_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp) and
-                 std::ranges::any_of(outs, cmp);
-        });
-
-    std::ranges::copy_if(
-        outs,
-        std::back_inserter(outs_first),
-        [&outs_first, &ins_first, &in_then_out, &ins](const std::string& i) {
-          const auto cmp = Cmp::eq(i);
-          return not std::ranges::any_of(ins_first, cmp) and
-                 not std::ranges::any_of(outs_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp) and
-                 not std::ranges::any_of(ins, cmp);
+                 not std::ranges::any_of(ins_first, cmp) and
+                 not std::ranges::any_of(in_then_out, cmp);
         });
   }
 
@@ -116,14 +107,20 @@ void Agenda::finalize(bool fix) try {
   }
 
   for (const std::string& o : must_out) {
-    if (std::ranges::binary_search(ins_first, o) or
-        std::ranges::binary_search(in_then_out, o)) {
-      throw std::runtime_error(
-          var_string("Agenda \"",
-                     name,
-                     "\" first uses \"",
-                     o,
-                     "\" as an input but it is agenda output"));
+    if (std::ranges::binary_search(ins_first, o)
+        and not std::ranges::binary_search(in_then_out, o)) {
+      throw std::runtime_error(std::format(
+          R"(Agenda "{}" uses "{}" only as an input but it is Agenda output
+
+Agenda input:    {:B,}
+Agenda output:   {:B,}
+Agenda inoutput: {:B,}
+)",
+          name,
+          o,
+          ins_first,
+          outs_first,
+          in_then_out));
     }
 
     if (not std::ranges::binary_search(outs_first, o)) {

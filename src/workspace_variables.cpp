@@ -147,6 +147,14 @@ wind shift Jacobian calculations.
 The order is ``[df_du, df_dv, df_fw]``
 )--",
       .type = "Vector3",
+      .default_value = Vector3{0.0, 0.0, 0.0},
+  };
+
+  wsv_data["ray_path_frequency_grid_wind_shift_jacobian"] = {
+      .desc =
+          R"--(A list of *frequency_grid_wind_shift_jacobian* for a ray path.
+)--",
+      .type = "ArrayOfVector3",
   };
 
   wsv_data["absorption_xsec_fit_data"] = {
@@ -237,13 +245,7 @@ Usage: Output of radiative transfer methods.
   };
 
   wsv_data["ray_path_frequency_grid"] = {
-      .desc = R"--(Atmospheric frequency grids along the propagation path.
-
-See *frequency_grid* for information about the frequency grid
-
-Dimension: [ ppath.np ]
-
-Usage: Output of radiative transfer methods.
+      .desc = R"--(All *frequency_grid* along the propagation path.
 )--",
       .type = "ArrayOfAscendingGrid",
   };
@@ -498,6 +500,12 @@ size of the local *spectral_radiance* as columns.
       .desc = R"--(A single path point.
 )--",
       .type = "PropagationPathPoint",
+  };
+
+  wsv_data["frequency_grid"] = {
+      .desc = R"--(A single path point's frequency grid.
+)--",
+      .type = "AscendingGrid",
   };
 
   wsv_data["ray_path"] = {

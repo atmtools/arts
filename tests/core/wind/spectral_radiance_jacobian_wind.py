@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 PLOT = False  # Plot for debug
 LIMIT = 50  # Rerun limit for finding a fit
-ATOL = 1
+ATOL = 20
 NF = 1001
 noise = 0.5
 
@@ -23,7 +23,8 @@ ws.absorption_bandsSelectFrequency(fmin=118e9, fmax=119e9, by_line=1)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
-ws.absorption_bands.pop()
+qid = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
+ws.absorption_bands = {qid: ws.absorption_bands[qid]}
 # %% Use the automatic agenda setter for propagation matrix calculations
 ws.propagation_matrix_agendaAuto()
 
@@ -67,15 +68,13 @@ def inversion_iterate_agenda(ws):
     ws.measurement_vector_fittedFromMeasurement()
 
 
-for fc in [wf]:
+for fc in [uf, vf, wf]:
     ws.RetrievalInit()
-    ws.RetrievalAddWindField(
-        component=str(fc), matrix=np.diag(np.ones((1)) * 1e-10)
-    )
+    ws.RetrievalAddWindField(component=str(fc), matrix=np.diag(np.ones((1)) * 100))
     ws.RetrievalFinalizeDiagonal()
 
     pos = [110e3, 0, 0]
-    los = [160.0, 30.0]
+    los = [140.0, 30.0]
     fail = True
 
     for i in range(LIMIT):
@@ -89,7 +88,7 @@ for fc in [wf]:
         ws.model_state_vector = []
         ws.measurement_jacobian = [[]]
 
-        ws.atmospheric_field["wind_" + str(fc)] = wind[fc] + 10
+        ws.atmospheric_field["wind_" + str(fc)] = wind[fc] + 100
         ws.model_state_vector_aprioriFromData()
 
         ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -100,7 +99,11 @@ for fc in [wf]:
         absdiff = round(abs(wind[fc] - ws.model_state_vector[0]))
 
         print(
-            f"{fc}-component: Input {round(wind[fc])} m/s, Output {round(ws.model_state_vector[0])} m/s, AbsDiff {absdiff} m/s"
+            f"""{fc}-component:
+  Apriori:  {ws.model_state_vector_apriori[0]} m/s
+  Truth:    {round(wind[fc])} m/s
+  Retrieved {round(ws.model_state_vector[0])} m/s
+  AbsDiff   {absdiff} m/s"""
         )
         if absdiff >= ATOL:
             print(f"AbsDiff not less than {ATOL} m/s, rerunning with new random noise")

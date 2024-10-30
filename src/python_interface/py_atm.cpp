@@ -379,19 +379,17 @@ Parameters
       },
       "frequency_grid"_a,
       "atmospheric_point"_a,
-      "rte_alonglos_v"_a,
+      "ray_path_point"_a,
       R"(Get the frequency-shifted frequency grid at a point in the atmosphere.
 
 Parameters
 ----------
   frequency_grid : AscendingGrid
     The frequency grid to shift.
-  ray_path_point : PropagationPathPoint
-    The point along the ray path.
   atmospheric_point : AtmPoint
     The point in the atmosphere.
-  rte_alonglos_v : Numeric
-    The along line of sight velocity.
+  ray_path_point : PropagationPathPoint
+    The point along the ray path.
 )");
 
   fld.def(
