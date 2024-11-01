@@ -2,7 +2,7 @@
 #include <lookup_map.h>
 
 #include <algorithm>
-#include <set>
+#include <ranges>
 
 #include "mh_checks.h"
 
@@ -151,7 +151,7 @@ void propagation_matrixAddLookup(
     const Index& t_interp_order,
     const Index& water_interp_order,
     const Index& f_interp_order,
-    const Numeric& extpolfac) {
+    const Numeric& extpolfac) try {
   _propagation_matrixAddLookup<false>(propagation_matrix,
                                       propagation_matrix_jacobian,
                                       frequency_grid,
@@ -166,6 +166,7 @@ void propagation_matrixAddLookup(
                                       f_interp_order,
                                       extpolfac);
 }
+ARTS_METHOD_ERROR_CATCH
 
 void absorption_lookup_tablePrecompute(
     AbsorptionLookupTables& absorption_lookup_table,
@@ -178,12 +179,12 @@ void absorption_lookup_tablePrecompute(
     const SpeciesEnum& select_species) {
   absorption_lookup_table[select_species] = AbsorptionLookupTable(
       select_species,
-      std::make_shared<AscendingGrid>(frequency_grid),
-      std::make_shared<ArrayOfAtmPoint>(ray_path_atmospheric_point),
+      ray_path_atmospheric_point,
+      std::make_shared<const AscendingGrid>(frequency_grid),
       absorption_bands,
       ecs_data,
-      temperature_perturbation,
-      water_perturbation);
+      std::make_shared<const AscendingGrid>(temperature_perturbation),
+      std::make_shared<const AscendingGrid>(water_perturbation));
 }
 
 void absorption_lookup_tablePrecomputeAll(
@@ -195,23 +196,72 @@ void absorption_lookup_tablePrecomputeAll(
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation,
     const ArrayOfSpeciesEnum& water_affected_species) {
-  std::set<SpeciesEnum> species_set;
+  const AscendingGrid empty{};
 
-  for (auto& [qid, _] : absorption_bands) {
-    if (const SpeciesEnum s = qid.Species(); not species_set.contains(s)) {
-      species_set.insert(s);
-      const AscendingGrid local_water_perturbation =
-          std::ranges::any_of(water_affected_species, Cmp::eq(s))
-              ? water_perturbation
-              : AscendingGrid{};
-      absorption_lookup_tablePrecompute(absorption_lookup_table,
-                                        ray_path_atmospheric_point,
-                                        frequency_grid,
-                                        absorption_bands,
-                                        ecs_data,
-                                        temperature_perturbation,
-                                        local_water_perturbation,
-                                        s);
+  ArrayOfSpeciesEnum lut_species;
+  const auto species_not_in_lut =
+      std::views::transform(
+          [](const auto& pair) { return pair.first.Species(); }) |
+      std::views::filter([&lut_species](const SpeciesEnum& s) {
+        return lut_species.end() == std::ranges::find(lut_species, s);
+      });
+
+  std::ranges::copy(absorption_bands | species_not_in_lut,
+                    std::back_inserter(lut_species));
+
+  std::ranges::sort(lut_species);
+
+  for (auto spec : water_affected_species) {
+    ARTS_USER_ERROR_IF(
+        not std::ranges::binary_search(lut_species, spec),
+        R"(Missing a species in the absorption bands that is marked as affected by water vapor.
+  Species:                                       {}
+  Absorption band species:
+    {:B,}
+  All species marked as affected by water vapor:
+    {:B,}
+)",
+        spec,
+        lut_species,
+        water_affected_species)
+  }
+
+  for (SpeciesEnum spec : lut_species) {
+    const bool do_water_perturb =
+        std::ranges::any_of(water_affected_species, Cmp::eq(spec));
+
+    absorption_lookup_tablePrecompute(
+        absorption_lookup_table,
+        ray_path_atmospheric_point,
+        frequency_grid,
+        absorption_bands,
+        ecs_data,
+        temperature_perturbation,
+        do_water_perturb ? water_perturbation : empty,
+        spec);
+  }
+
+  //! Make the newly added LUT entries share grids with eachother
+  if (lut_species.size() > 1) {
+    const std::shared_ptr<const AscendingGrid> fs =
+        absorption_lookup_table[lut_species.front()].f_grid;
+    const std::shared_ptr<const DescendingGrid> ps =
+        absorption_lookup_table[lut_species.front()].log_p_grid;
+    const std::shared_ptr<const AscendingGrid> ts =
+        absorption_lookup_table[lut_species.front()].t_pert;
+    const std::shared_ptr<const AscendingGrid> ws =
+        water_affected_species.empty()
+            ? nullptr
+            : absorption_lookup_table[water_affected_species.front()].w_pert;
+
+    for (SpeciesEnum spec : lut_species | std::ranges::views::drop(1)) {
+      const bool do_water_perturb =
+          std::ranges::any_of(water_affected_species, Cmp::eq(spec));
+
+      absorption_lookup_table[spec].f_grid     = fs;
+      absorption_lookup_table[spec].log_p_grid = ps;
+      absorption_lookup_table[spec].t_pert     = ts;
+      if (do_water_perturb) absorption_lookup_table[spec].w_pert = ws;
     }
   }
 }

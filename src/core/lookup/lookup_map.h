@@ -7,30 +7,30 @@
 
 #include <unordered_map>
 
+#include "interp.h"
+
 namespace lookup {
 struct table {
   //! The frequency grid in Hz
-  std::shared_ptr<const AscendingGrid> f_grid{std::make_shared<AscendingGrid>()};
+  std::shared_ptr<const AscendingGrid> f_grid{
+      std::make_shared<const AscendingGrid>()};
 
-  //! The atmospheric states (Pressure must be in decreasing order)
-  std::shared_ptr<const ArrayOfAtmPoint> atmref{std::make_shared<ArrayOfAtmPoint>()};
-
-  //! The pressure grid in std::log Pa [same dimension as atm]
-  DescendingGrid log_p_grid;
+  //! The pressure grid in log(P) [any number of elements]
+  std::shared_ptr<const DescendingGrid> log_p_grid;
 
   //! The temperautre perturbation grid in K [any number of elements or empty for nothing]
-  AscendingGrid t_pert;
+  std::shared_ptr<const AscendingGrid> t_pert;
 
   //! The humidity perturbation grid in fractional units [any number of elements or empty for nothing]
-  AscendingGrid water_pert;
+  std::shared_ptr<const AscendingGrid> w_pert;
 
-  //! Local grids so that pressure interpolation may work
+  //! Local grids so that pressure interpolation may work [all in log_p_grid size]
   Vector water_atmref;
   Vector t_atmref;
 
   /*! The absorption cross section table
 
-      Dimensions: t_pert.size() x water_pert.size() x f_grid -> size() x atm -> size()
+      Dimensions: t_pert.size() x w_pert.size() x log_p_grid -> size() x f_grid -> size()
   */
   Tensor4 xsec;
 
@@ -41,12 +41,12 @@ struct table {
   table& operator=(table&&)      = default;
 
   table(const SpeciesEnum& species,
+        const ArrayOfAtmPoint& atmref,
         std::shared_ptr<const AscendingGrid> f_grid,
-        std::shared_ptr<const ArrayOfAtmPoint> atm,
         const AbsorptionBands& absorption_bands,
         const LinemixingEcsData& ecs_data,
-        AscendingGrid t_pert     = {},
-        AscendingGrid water_pert = {});
+        std::shared_ptr<const AscendingGrid> t_pert = nullptr,
+        std::shared_ptr<const AscendingGrid> w_pert = nullptr);
 
   void absorption(ExhaustiveVectorView absorption,
                   const SpeciesEnum& species,
@@ -57,11 +57,47 @@ struct table {
                   const AtmPoint& atm_point,
                   const AscendingGrid& frequency_grid,
                   const Numeric& extpolfac) const;
+
+  [[nodiscard]] bool do_t() const;
+  [[nodiscard]] bool do_w() const;
+  [[nodiscard]] bool do_p() const;
+  [[nodiscard]] bool do_f() const;
+
+  [[nodiscard]] Index t_size() const;
+  [[nodiscard]] Index w_size() const;
+  [[nodiscard]] Index p_size() const;
+  [[nodiscard]] Index f_size() const;
+  
+  [[nodiscard]] std::array<Index, 4> grid_shape() const;
+  void check() const;
+
+  [[nodiscard]] LagrangeInterpolation pressure_lagrange(
+      const Numeric& pressure,
+      const Index interpolation_order,
+      const Numeric& extpolation_factor) const;
+
+  [[nodiscard]] ArrayOfLagrangeInterpolation frequency_lagrange(
+      const Vector& frequency_grid,
+      const Index interpolation_order,
+      const Numeric& extpolation_factor) const;
+
+  [[nodiscard]] LagrangeInterpolation water_lagrange(
+      const Numeric& water_vmr,
+      const LagrangeInterpolation& pressure_lagrange,
+      const Index interpolation_order,
+      const Numeric& extpolation_factor) const;
+
+  [[nodiscard]] LagrangeInterpolation temperature_lagrange(
+      const Numeric& temperature,
+      const LagrangeInterpolation& pressure_lagrange,
+      const Index interpolation_order,
+      const Numeric& extpolation_factor) const;
 };
 }  // namespace lookup
 
-using AbsorptionLookupTable  = lookup::table;
-using AbsorptionLookupTables = std::unordered_map<SpeciesEnum, AbsorptionLookupTable>;
+using AbsorptionLookupTable = lookup::table;
+using AbsorptionLookupTables =
+    std::unordered_map<SpeciesEnum, AbsorptionLookupTable>;
 
 template <>
 struct std::formatter<AbsorptionLookupTable> {
@@ -76,23 +112,22 @@ struct std::formatter<AbsorptionLookupTable> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const AbsorptionLookupTable& v, FmtContext& ctx) const {
+  FmtContext::iterator format(const AbsorptionLookupTable& v,
+                              FmtContext& ctx) const {
+    tags.format(ctx, "f_grid: "sv);
+    if (v.f_grid) tags.format(ctx, *v.f_grid);
+    tags.format(ctx, "\nlog_p_grid: "sv);
+    if (v.log_p_grid) tags.format(ctx, *v.log_p_grid);
+    tags.format(ctx, "\nt_pert: "sv);
+    if (v.t_pert) tags.format(ctx, *v.t_pert);
+    tags.format(ctx, "\nw_pert: "sv);
+    if (v.w_pert) tags.format(ctx, *v.w_pert);
     return tags.format(ctx,
-                       "f_grid: "sv,
-                       *v.f_grid,
-                       "\natmref: "sv,
-                       *v.atmref,
-                       "\nlog_p_grid: "sv,
-                       v.log_p_grid,
-                       "\nt_pert: "sv,
-                       v.t_pert,
-                       "\nwater_pert: "sv,
-                       v.water_pert,
                        "\nwater_atmref: "sv,
                        v.water_atmref,
                        "\nt_atmref: "sv,
                        v.t_atmref,
-                       "\nxsec: "sv,
+                       "\nxsec:\n"sv,
                        v.xsec);
   }
 };

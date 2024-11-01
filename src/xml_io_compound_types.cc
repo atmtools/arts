@@ -3423,21 +3423,29 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag tag;
   tag.read_from_stream(is_xml);
   tag.check_name("AbsorptionLookupTable");
+  Index f, p, t, w;
+  tag.get_attribute_value("f", f);
+  tag.get_attribute_value("p", p);
+  tag.get_attribute_value("t", t);
+  tag.get_attribute_value("w", w);
 
-  AscendingGrid f_grid;
-  ArrayOfAtmPoint atmref;
+  AscendingGrid fg, tg, wg;
+  DescendingGrid pg;
 
-  xml_read_from_stream(is_xml, f_grid, pbifs);
-  xml_read_from_stream(is_xml, atmref, pbifs);
-  xml_read_from_stream(is_xml, lt.log_p_grid, pbifs);
-  xml_read_from_stream(is_xml, lt.t_pert, pbifs);
-  xml_read_from_stream(is_xml, lt.water_pert, pbifs);
+  if (f) xml_read_from_stream(is_xml, fg, pbifs);
+  if (p) xml_read_from_stream(is_xml, pg, pbifs);
+  if (t) xml_read_from_stream(is_xml, tg, pbifs);
+  if (w) xml_read_from_stream(is_xml, wg, pbifs);
   xml_read_from_stream(is_xml, lt.water_atmref, pbifs);
   xml_read_from_stream(is_xml, lt.t_atmref, pbifs);
   xml_read_from_stream(is_xml, lt.xsec, pbifs);
 
-  lt.f_grid = std::make_shared<const AscendingGrid>(std::move(f_grid));
-  lt.atmref = std::make_shared<const ArrayOfAtmPoint>(std::move(atmref));
+  if (f) lt.f_grid = std::make_shared<const AscendingGrid>(std::move(fg));
+  if (p) lt.log_p_grid = std::make_shared<const DescendingGrid>(std::move(pg));
+  if (t) lt.t_pert = std::make_shared<const AscendingGrid>(std::move(tg));
+  if (w) lt.w_pert = std::make_shared<const AscendingGrid>(std::move(wg));
+
+  lt.check();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLookupTable");
@@ -3458,14 +3466,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("AbsorptionLookupTable");
+  open_tag.add_attribute("f", static_cast<Index>(static_cast<bool>(lt.f_grid)));
+  open_tag.add_attribute("p",
+                         static_cast<Index>(static_cast<bool>(lt.log_p_grid)));
+  open_tag.add_attribute("t", static_cast<Index>(static_cast<bool>(lt.t_pert)));
+  open_tag.add_attribute("w", static_cast<Index>(static_cast<bool>(lt.w_pert)));
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
-  xml_write_to_stream(os_xml, *lt.atmref, pbofs, "atmref");
-  xml_write_to_stream(os_xml, lt.log_p_grid, pbofs, "log_p_grid");
-  xml_write_to_stream(os_xml, lt.t_pert, pbofs, "t_pert");
-  xml_write_to_stream(os_xml, lt.water_pert, pbofs, "water_pert");
+  if (lt.do_f()) xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
+  if (lt.do_p())
+    xml_write_to_stream(os_xml, *lt.log_p_grid, pbofs, "log_p_grid");
+  if (lt.do_t()) xml_write_to_stream(os_xml, *lt.t_pert, pbofs, "t_pert");
+  if (lt.do_w()) xml_write_to_stream(os_xml, *lt.w_pert, pbofs, "w_pert");
   xml_write_to_stream(os_xml, lt.water_atmref, pbofs, "water_atmref");
   xml_write_to_stream(os_xml, lt.t_atmref, pbofs, "t_atmref");
   xml_write_to_stream(os_xml, lt.xsec, pbofs, "xsec");

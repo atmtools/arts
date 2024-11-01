@@ -1,4 +1,5 @@
 #include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/shared_ptr.h>
 #include <python_interface.h>
 
 #include "hpy_arts.h"
@@ -9,9 +10,6 @@ void py_lookup(py::module_& m) try {
   workspace_group_interface(alt);
   alt.def_rw(
       "f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz");
-  alt.def_rw("atmref",
-             &AbsorptionLookupTable::atmref,
-             "The atmospheric states (Pressure must be in decreasing order)");
   alt.def_rw("log_p_grid",
              &AbsorptionLookupTable::log_p_grid,
              "The pressure grid in log Pa [same dimension as atm]");
@@ -20,8 +18,8 @@ void py_lookup(py::module_& m) try {
       &AbsorptionLookupTable::t_pert,
       "The temperautre perturbation grid in K [any number of elements or empty for nothing]");
   alt.def_rw(
-      "water_pert",
-      &AbsorptionLookupTable::water_pert,
+      "w_pert",
+      &AbsorptionLookupTable::w_pert,
       "The humidity perturbation grid in fractional units [any number of elements or empty for nothing]");
   alt.def_rw("water_atmref",
              &AbsorptionLookupTable::water_atmref,
