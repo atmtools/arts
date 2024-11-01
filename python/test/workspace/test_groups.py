@@ -1027,4 +1027,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_construct_empty()
+    x.test_xml()

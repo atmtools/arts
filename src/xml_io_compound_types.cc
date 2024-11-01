@@ -3436,6 +3436,7 @@ void xml_read_from_stream(std::istream& is_xml,
   if (p) xml_read_from_stream(is_xml, pg, pbifs);
   if (t) xml_read_from_stream(is_xml, tg, pbifs);
   if (w) xml_read_from_stream(is_xml, wg, pbifs);
+
   xml_read_from_stream(is_xml, lt.water_atmref, pbifs);
   xml_read_from_stream(is_xml, lt.t_atmref, pbifs);
   xml_read_from_stream(is_xml, lt.xsec, pbifs);
@@ -3444,8 +3445,6 @@ void xml_read_from_stream(std::istream& is_xml,
   if (p) lt.log_p_grid = std::make_shared<const DescendingGrid>(std::move(pg));
   if (t) lt.t_pert = std::make_shared<const AscendingGrid>(std::move(tg));
   if (w) lt.w_pert = std::make_shared<const AscendingGrid>(std::move(wg));
-
-  lt.check();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLookupTable");
@@ -3466,21 +3465,34 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("AbsorptionLookupTable");
-  open_tag.add_attribute("f", static_cast<Index>(static_cast<bool>(lt.f_grid)));
-  open_tag.add_attribute("p",
-                         static_cast<Index>(static_cast<bool>(lt.log_p_grid)));
-  open_tag.add_attribute("t", static_cast<Index>(static_cast<bool>(lt.t_pert)));
-  open_tag.add_attribute("w", static_cast<Index>(static_cast<bool>(lt.w_pert)));
+  open_tag.add_attribute("f", Index{lt.do_f() ? 1 : 0});
+  open_tag.add_attribute("p", Index{lt.do_p() ? 1 : 0});
+  open_tag.add_attribute("t", Index{lt.do_t() ? 1 : 0});
+  open_tag.add_attribute("w", Index{lt.do_w() ? 1 : 0});
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  if (lt.do_f()) xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
-  if (lt.do_p())
+  if (lt.do_f()) {
+    xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
+    os_xml << '\n';
+  }
+  if (lt.do_p()) {
     xml_write_to_stream(os_xml, *lt.log_p_grid, pbofs, "log_p_grid");
-  if (lt.do_t()) xml_write_to_stream(os_xml, *lt.t_pert, pbofs, "t_pert");
-  if (lt.do_w()) xml_write_to_stream(os_xml, *lt.w_pert, pbofs, "w_pert");
+    os_xml << '\n';
+  }
+  if (lt.do_t()) {
+    xml_write_to_stream(os_xml, *lt.t_pert, pbofs, "t_pert");
+    os_xml << '\n';
+  }
+  if (lt.do_w()) {
+    xml_write_to_stream(os_xml, *lt.w_pert, pbofs, "w_pert");
+    os_xml << '\n';
+  }
+
   xml_write_to_stream(os_xml, lt.water_atmref, pbofs, "water_atmref");
+  os_xml << '\n';
   xml_write_to_stream(os_xml, lt.t_atmref, pbofs, "t_atmref");
+  os_xml << '\n';
   xml_write_to_stream(os_xml, lt.xsec, pbofs, "xsec");
 
   close_tag.set_name("/AbsorptionLookupTable");
