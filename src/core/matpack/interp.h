@@ -976,18 +976,22 @@ struct Lagrange {
                     [[maybe_unused]] const std::pair<Numeric, Numeric> x =
                         {std::numeric_limits<Numeric>::infinity(),
                          -std::numeric_limits<Numeric>::infinity()},
-                    [[maybe_unused]] const Numeric extrapol = 0.5)
+                    [[maybe_unused]] const Numeric extrapol = 0.5,
+                    const char *const info                  = "UNNAMED")
     requires(test_cyclic_limit<Limit>())
   {
     const Index n = Index(xi.size());
 
     ARTS_USER_ERROR_IF(polyorder >= n,
-                       "Interpolation setup has failed!\n"
+                       "Interpolation setup has for {} field!\n"
                        "\tRequesting greater interpolation order "
-                       "than possible with given input grid")
+                       "than possible with given input grid",
+                       info)
 
     if constexpr (GridType::Cyclic not_eq type) {
-      ARTS_USER_ERROR_IF(extrapol < 0, "Must have a non-negative extrapolation")
+      ARTS_USER_ERROR_IF(extrapol < 0,
+                         "Must have a non-negative extrapolation for {} field",
+                         info)
 
       if (polyorder != 0) {
         const Numeric xlow = xi[0] + extrapol * (xi[0] - xi[1]);
@@ -996,12 +1000,13 @@ struct Lagrange {
         const Numeric xmax = std::max(xlow, xupp);
 
         ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
-                           R"(Interpolation setup has failed!
+                           R"(Interpolation setup has failed for {} field!
 
   Grid:                      {:B,}
   The input limit is:        {:B,}
   The extrapolated limit is: [{}, {}] (extrapolation: {})
 )",
+                           info,
                            xi,
                            x,
                            xmin,
@@ -1022,10 +1027,11 @@ struct Lagrange {
   static constexpr void check(const Vec &xi,
                               const Index polyorder,
                               const Numeric x        = 0,
-                              const Numeric extrapol = 0.5)
+                              const Numeric extrapol = 0.5,
+                              const char *const info = "UNNAMED")
     requires(test_cyclic_limit<Limit>())
   {
-    check(xi, polyorder, std::pair{x, x}, extrapol);
+    check(xi, polyorder, std::pair{x, x}, extrapol, info);
   }
 };  // Lagrange
 
@@ -1096,14 +1102,16 @@ concept lagrange_type =
 template <lagrange_type T,
           matpack::ranked_matpack_type<Numeric, 1> NewVec,
           matpack::ranked_matpack_type<Numeric, 1> Vec>
-constexpr Array<T> lagrange_interpolation_list(NewVec &&xs,
-                                               Vec &&xi,
-                                               Index order,
-                                               Numeric extrapol = 0.5)
+constexpr Array<T> lagrange_interpolation_list(
+    NewVec &&xs,
+    Vec &&xi,
+    Index order,
+    Numeric extrapol       = 0.5,
+    const char *const info = "UNNAMED")
   requires(std::remove_cvref_t<T>::runtime_polyorder())
 {
   if (extrapol < std::numeric_limits<Numeric>::infinity()) {
-    T::check(xi, order, minmax(xs), extrapol);
+    T::check(xi, order, minmax(xs), extrapol, info);
   }
 
   Array<T> out;
@@ -1143,13 +1151,15 @@ constexpr Array<T> lagrange_interpolation_list(NewVec &&xs,
 template <lagrange_type T,
           matpack::ranked_matpack_type<Numeric, 1> NewVec,
           matpack::ranked_matpack_type<Numeric, 1> Vec>
-constexpr Array<T> lagrange_interpolation_list(NewVec &&xs,
-                                               Vec &&xi,
-                                               Numeric extrapol = 0.5)
+constexpr Array<T> lagrange_interpolation_list(
+    NewVec &&xs,
+    Vec &&xi,
+    Numeric extrapol       = 0.5,
+    const char *const info = "UNNAMED")
   requires(not std::remove_cvref_t<T>::runtime_polyorder())
 {
   if (extrapol < std::numeric_limits<Numeric>::infinity()) {
-    T::check(xi, T::polyorder(), minmax(xs), extrapol);
+    T::check(xi, T::polyorder(), minmax(xs), extrapol, info);
   }
 
   Array<T> out;

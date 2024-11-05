@@ -67,7 +67,7 @@ struct table {
   [[nodiscard]] Index w_size() const;
   [[nodiscard]] Index p_size() const;
   [[nodiscard]] Index f_size() const;
-  
+
   [[nodiscard]] std::array<Index, 4> grid_shape() const;
   void check() const;
 
@@ -93,6 +93,21 @@ struct table {
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 };
+
+/** Wraps calling Atm::extend_in_pressure but for an atmosphere fitting a lookup table.
+ * 
+ * Additional checks are performed to ensure that the input fits the ideas of the lookup table.
+ * 
+ * @param atm The atmospheric grid that goes into creating a lookup table
+ * @param extrapolation_type See Atm::extend_in_pressure
+ * @param new_max_pressure The maximum pressure to extend to, must be greater than the last pressure in atm
+ * @param new_min_pressure The minimum pressure to extend to, must be less than the first pressure in atm
+ */
+void extend_atmosphere(ArrayOfAtmPoint& atm,
+                       const InterpolationExtrapolation extrapolation_type =
+                           InterpolationExtrapolation::Nearest,
+                       const Numeric new_max_pressure = NAN,
+                       const Numeric new_min_pressure = NAN);
 }  // namespace lookup
 
 using AbsorptionLookupTable = lookup::table;

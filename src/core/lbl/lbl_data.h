@@ -14,6 +14,7 @@
 #include <format>
 #include <limits>
 #include <vector>
+#include <unordered_set>
 
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
@@ -228,6 +229,8 @@ struct line_key {
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
 
 std::ostream& operator<<(std::ostream& os, const std::unordered_map<QuantumIdentifier, band_data>& x);
+
+std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<QuantumIdentifier, band_data>& bands);
 }  // namespace lbl
 
 //! Support hashing of line keys

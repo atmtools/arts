@@ -862,6 +862,22 @@ Sets N2 and O2 speces
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
 
+  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
+      .desc      = R"--(Gets the atmospheric points along the path.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_atmospheric_point"},
+      .in        = {"ray_path_atmospheric_point"},
+      .gin       = {"extended_max_pressure",
+                    "extended_min_pressure",
+                    "extrapolation_option"},
+      .gin_type  = {"Numeric", "Numeric", "String"},
+      .gin_value = {Numeric{NAN}, Numeric{NAN}, String{"Nearest"}},
+      .gin_desc  = {R"--(Maximum pressure to extend to.)--",
+                    R"--(Minimum pressure to extend to.)--",
+                    R"--(Extrapolation option.)--"},
+  };
+
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
       .desc   = R"--(Gets the atmospheric points along the path.
 )--",
@@ -2198,9 +2214,7 @@ Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"absorption_lookup_table"},
-      .in        = {"frequency_grid",
-                    "absorption_bands",
-                    "ecs_data"},
+      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
       .gin       = {"pressure_profile",
                     "temperature_profile",
                     "vmr_profiles",
@@ -2230,6 +2244,57 @@ Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
            "Water vapor perturbation to use for the lookup table",
            "A list of absorption species that are affected by water vapor perturbations nonlinearly",
            "Default isotopologue ratio option to initialize the *AtmPoint* with"},
+  };
+
+  wsm_data["absorption_lookup_tableSimpleWide"] = {
+      .desc =
+          R"--(Set up a simple wide lookup table for all species in *absorption_bands*.
+
+This method simply computes the profiles for Earth-like atmospheres (by defaults)
+and pass them into *absorption_lookup_tableFromProfiles*.
+
+The pressure range is set up logarithmically and all other ranges are set linearly.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
+      .gin       = {"water_affected_species",
+                    "pressure_range",
+                    "temperature_range",
+                    "water_vmr_range",
+                    "isoratio_option",
+                    "vmr_value",
+                    "atmospheric_steps",
+                    "temperature_perturbation_steps",
+                    "water_vmr_perturbation_steps"},
+      .gin_type  = {"ArrayOfSpeciesEnum",
+                    "Vector2",
+                    "Vector2",
+                    "Vector2",
+                    "String",
+                    "Numeric",
+                    "Index",
+                    "Index",
+                    "Index"},
+      .gin_value = {ArrayOfSpeciesEnum{},
+                    Vector2{1e-2, 1100e2},
+                    Vector2{150, 350},
+                    Vector2{1e-4, 0.15},
+                    String{"Builtin"},
+                    Numeric{1e-9},
+                    Index{80},
+                    Index{15},
+                    Index{15}},
+      .gin_desc =
+          {"A list of absorption species that are affected by water vapor perturbations nonlinearly",
+           "Pressure range to consider - in increasing order [Pa]",
+           "Temperature range to consider - in increasing order [K]",
+           "Water VMR range to consider - in increasing order [vmr]",
+           "Default isotopologue ratio option to initialize the *AtmPoint* with",
+           "The VMR to use for the self-value broadening",
+           "Number of steps in the atmospheric profile",
+           "Number of steps in the temperature perturbation",
+           "Number of steps in the water vapor perturbation"},
   };
 
   wsm_data["sortedIndexOfBands"] = {

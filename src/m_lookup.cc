@@ -168,6 +168,19 @@ void propagation_matrixAddLookup(
 }
 ARTS_METHOD_ERROR_CATCH
 
+void ray_path_atmospheric_pointExtendInPressure(
+    ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const Numeric& extended_max_pressure,
+    const Numeric& extended_min_pressure,
+    const String& extrapolation_option) try {
+  lookup::extend_atmosphere(
+      ray_path_atmospheric_point,
+      to<InterpolationExtrapolation>(extrapolation_option),
+      extended_max_pressure,
+      extended_min_pressure);
+}
+ARTS_METHOD_ERROR_CATCH
+
 void absorption_lookup_tablePrecompute(
     AbsorptionLookupTables& absorption_lookup_table,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
@@ -177,14 +190,18 @@ void absorption_lookup_tablePrecompute(
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation,
     const SpeciesEnum& select_species) {
-  absorption_lookup_table[select_species] = AbsorptionLookupTable(
+  absorption_lookup_table[select_species] = {
       select_species,
       ray_path_atmospheric_point,
       std::make_shared<const AscendingGrid>(frequency_grid),
       absorption_bands,
       ecs_data,
-      std::make_shared<const AscendingGrid>(temperature_perturbation),
-      std::make_shared<const AscendingGrid>(water_perturbation));
+      temperature_perturbation.empty()
+          ? nullptr
+          : std::make_shared<const AscendingGrid>(temperature_perturbation),
+      water_perturbation.empty()
+          ? nullptr
+          : std::make_shared<const AscendingGrid>(water_perturbation)};
 }
 
 void absorption_lookup_tablePrecomputeAll(
@@ -226,42 +243,24 @@ void absorption_lookup_tablePrecomputeAll(
         water_affected_species)
   }
 
-  for (SpeciesEnum spec : lut_species) {
+  const auto f = std::make_shared<const AscendingGrid>(frequency_grid);
+  const auto t =
+      std::make_shared<const AscendingGrid>(temperature_perturbation);
+  const auto w =
+      water_affected_species.empty()
+          ? nullptr
+          : std::make_shared<const AscendingGrid>(water_perturbation);
+
+  for (SpeciesEnum s : lut_species) {
     const bool do_water_perturb =
-        std::ranges::any_of(water_affected_species, Cmp::eq(spec));
+        std::ranges::any_of(water_affected_species, Cmp::eq(s));
 
-    absorption_lookup_tablePrecompute(
-        absorption_lookup_table,
-        ray_path_atmospheric_point,
-        frequency_grid,
-        absorption_bands,
-        ecs_data,
-        temperature_perturbation,
-        do_water_perturb ? water_perturbation : empty,
-        spec);
-  }
-
-  //! Make the newly added LUT entries share grids with eachother
-  if (lut_species.size() > 1) {
-    const std::shared_ptr<const AscendingGrid> fs =
-        absorption_lookup_table[lut_species.front()].f_grid;
-    const std::shared_ptr<const DescendingGrid> ps =
-        absorption_lookup_table[lut_species.front()].log_p_grid;
-    const std::shared_ptr<const AscendingGrid> ts =
-        absorption_lookup_table[lut_species.front()].t_pert;
-    const std::shared_ptr<const AscendingGrid> ws =
-        water_affected_species.empty()
-            ? nullptr
-            : absorption_lookup_table[water_affected_species.front()].w_pert;
-
-    for (SpeciesEnum spec : lut_species | std::ranges::views::drop(1)) {
-      const bool do_water_perturb =
-          std::ranges::any_of(water_affected_species, Cmp::eq(spec));
-
-      absorption_lookup_table[spec].f_grid     = fs;
-      absorption_lookup_table[spec].log_p_grid = ps;
-      absorption_lookup_table[spec].t_pert     = ts;
-      if (do_water_perturb) absorption_lookup_table[spec].w_pert = ws;
+    if (do_water_perturb) {
+      absorption_lookup_table[s] = {
+          s, ray_path_atmospheric_point, f, absorption_bands, ecs_data, t, w};
+    } else {
+      absorption_lookup_table[s] = {
+          s, ray_path_atmospheric_point, f, absorption_bands, ecs_data, t};
     }
   }
 }
@@ -310,4 +309,82 @@ void absorption_lookup_tableFromProfiles(
                                        temperature_perturbation,
                                        water_perturbation,
                                        water_affected_species);
+}
+
+void absorption_lookup_tableSimpleWide(
+    AbsorptionLookupTables& absorption_lookup_table,
+    const AscendingGrid& frequency_grid,
+    const AbsorptionBands& absorption_bands,
+    const LinemixingEcsData& ecs_data,
+    const ArrayOfSpeciesEnum& water_affected_species,
+    const Vector2& pressure_range,
+    const Vector2& temperature_range,
+    const Vector2& water_vmr_range,
+    const String& isoratio_option,
+    const Numeric& vmr_value,
+    const Index& atmospheric_steps,
+    const Index& temperature_perturbation_steps,
+    const Index& water_vmr_perturbation_steps) {
+  ARTS_USER_ERROR_IF(pressure_range[1] <= pressure_range[0],
+                     "Pressure range must be increasing, got {:B,}",
+                     pressure_range);
+  ARTS_USER_ERROR_IF(temperature_range[1] <= temperature_range[0],
+                     "Temperature range must be increasing, got {:B,}",
+                     temperature_range);
+  ARTS_USER_ERROR_IF(water_vmr_range[1] <= water_vmr_range[0],
+                     "Water VMR range must be increasing, got {:B,}",
+                     water_vmr_range);
+  ARTS_USER_ERROR_IF(
+      vmr_value <= 0.0, "VMR value must be positive, got {}", vmr_value);
+  ARTS_USER_ERROR_IF(atmospheric_steps < 2,
+                     "Must have at least two atmospheric levels, got {}",
+                     atmospheric_steps);
+  ARTS_USER_ERROR_IF(
+      temperature_perturbation_steps < 0,
+      "Must have zero or positive temperature perturbations steps, got {}",
+      temperature_perturbation_steps);
+  ARTS_USER_ERROR_IF(
+      water_vmr_perturbation_steps < 0,
+      "Must have zero or positive water VMR perturbations steps, got {}",
+      water_vmr_perturbation_steps);
+
+  const Vector temperature_profile(atmospheric_steps, mean(temperature_range));
+  const DescendingGrid pressure_profile =
+      nlogspace(pressure_range[1], pressure_range[0], atmospheric_steps);
+
+  const AscendingGrid water_perturbation = [vmr_value,
+                                            water_vmr_range,
+                                            water_vmr_perturbation_steps]() {
+    Vector out = nlinspace(
+        water_vmr_range[0], water_vmr_range[1], water_vmr_perturbation_steps);
+    out /= vmr_value;
+    return out;
+  }();
+  const AscendingGrid temperature_perturbation =
+      nlinspace(temperature_range[0] - temperature_profile[0],
+                temperature_range[1] - temperature_profile[0],
+                temperature_perturbation_steps);
+
+  const SpeciesEnumVectors vmr_profiles =
+      [species = lbl::species_in_bands(absorption_bands),
+       vmr_value,
+       atmospheric_steps]() {
+        SpeciesEnumVectors out;
+        for (SpeciesEnum s : species) {
+          out[s] = Vector(atmospheric_steps, vmr_value);
+        }
+        return out;
+      }();
+
+  absorption_lookup_tableFromProfiles(absorption_lookup_table,
+                                      frequency_grid,
+                                      absorption_bands,
+                                      ecs_data,
+                                      pressure_profile,
+                                      temperature_profile,
+                                      vmr_profiles,
+                                      temperature_perturbation,
+                                      water_perturbation,
+                                      water_affected_species,
+                                      isoratio_option);
 }

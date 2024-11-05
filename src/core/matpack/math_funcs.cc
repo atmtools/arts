@@ -233,6 +233,12 @@ void nlinspace(VectorView x,
   x[n - 1] = stop;
 }
 
+Vector nlinspace(const Numeric start, const Numeric stop, const Index step) {
+  Vector x;
+  nlinspace(x, start, stop, step);
+  return x;
+}
+
 //! nlogspace
 /*! 
     Logarithmically spaced vector with specified length. 
@@ -266,6 +272,12 @@ void nlogspace(Vector& x,
   x[0]         = start;
   for (Index i = 1; i < n - 1; i++) x[i] = exp(a + (double)i * step);
   x[n - 1] = stop;
+}
+
+Vector nlogspace(const Numeric start, const Numeric stop, const Index step) {
+  Vector x;
+  nlogspace(x, start, stop, step);
+  return x;
 }
 
 //! trapz

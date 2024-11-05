@@ -199,6 +199,7 @@ define the default atmospheric state for the absorption lookup table.
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricUplooking",
                   "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atmospheric_pointExtendInPressure",
                   "absorption_lookup_tableInit",
                   "absorption_lookup_tablePrecomputeAll"},
       .out     = {"absorption_lookup_table"},

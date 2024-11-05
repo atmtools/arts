@@ -36,6 +36,8 @@ void nlinspace(Vector& x,
                const Numeric stop,
                const Index n);
 
+Vector nlinspace(const Numeric start, const Numeric stop, const Index n);
+
 void nlinspace(VectorView x,
                const Numeric start,
                const Numeric stop,
@@ -46,10 +48,11 @@ void nlogspace(Vector& x,
                const Numeric stop,
                const Index n);
 
+Vector nlogspace(const Numeric start, const Numeric stop, const Index n);
+
 Numeric trapz(ConstVectorView x, ConstVectorView y);
 
-void cumsum(VectorView csum,
-            ConstVectorView x);
+void cumsum(VectorView csum, ConstVectorView x);
 
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,

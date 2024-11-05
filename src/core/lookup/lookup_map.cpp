@@ -128,7 +128,7 @@ LagrangeInterpolation table::pressure_lagrange(
   const auto plog_local = std::log(pressure);
   const Vector& plog_v(*log_p_grid);
   LagrangeInterpolation::check(
-      plog_v, interpolation_order, plog_local, extpolation_factor);
+      plog_v, interpolation_order, plog_local, extpolation_factor, "Pressure");
   return {0, plog_local, plog_v, interpolation_order};
 }
 ARTS_METHOD_ERROR_CATCH
@@ -140,7 +140,11 @@ ArrayOfLagrangeInterpolation table::frequency_lagrange(
   ARTS_ASSERT(do_f())
   const Vector& f_grid_v(*f_grid);
   return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-      frequency_grid, f_grid_v, interpolation_order, extpolation_factor);
+      frequency_grid,
+      f_grid_v,
+      interpolation_order,
+      extpolation_factor,
+      "Frequency");
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -152,7 +156,8 @@ LagrangeInterpolation table::water_lagrange(
   ARTS_ASSERT(do_w())
   const Numeric x = water_vmr / interp(water_atmref, pressure_lagrange);
   const Vector& xi(*w_pert);
-  LagrangeInterpolation::check(xi, interpolation_order, x, extpolation_factor);
+  LagrangeInterpolation::check(
+      xi, interpolation_order, x, extpolation_factor, "Water VMR");
   return {0, x, xi, interpolation_order};
 }
 ARTS_METHOD_ERROR_CATCH
@@ -165,7 +170,8 @@ LagrangeInterpolation table::temperature_lagrange(
   ARTS_ASSERT(do_t())
   const auto x = temperature - interp(t_atmref, pressure_lagrange);
   const Vector& xi(*t_pert);
-  LagrangeInterpolation::check(xi, interpolation_order, x, extpolation_factor);
+  LagrangeInterpolation::check(
+      xi, interpolation_order, x, extpolation_factor, "Temperature");
   return {0, x, xi, interpolation_order};
 }
 ARTS_METHOD_ERROR_CATCH
@@ -266,5 +272,28 @@ void table::check() const {
 )",
                      p_size,
                      t_atmref.size());
+}
+
+void extend_atmosphere(ArrayOfAtmPoint& atm,
+                       const InterpolationExtrapolation extrapolation_type,
+                       const Numeric new_max_pressure,
+                       const Numeric new_min_pressure) {
+  if (not std::isnan(new_max_pressure)) {
+    ARTS_USER_ERROR_IF(new_max_pressure <= atm.back().pressure,
+                       "The new maximum pressure must be greater than the "
+                       "current maximum pressure: {} <= {}",
+                       new_max_pressure,
+                       atm.back().pressure)
+    Atm::extend_in_pressure(atm, new_max_pressure, extrapolation_type);
+  }
+
+  if (not std::isnan(new_min_pressure)) {
+    ARTS_USER_ERROR_IF(new_max_pressure >= atm.front().pressure,
+                       "The new minimum pressure must be smaller than the "
+                       "current minimum pressure: {} >= {}",
+                       new_min_pressure,
+                       atm.back().pressure)
+    Atm::extend_in_pressure(atm, new_min_pressure, extrapolation_type);
+  }
 }
 }  // namespace lookup

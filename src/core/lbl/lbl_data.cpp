@@ -216,4 +216,18 @@ bool band_data::merge(const line& linedata) {
   lines.push_back(linedata);
   return true;
 }
+
+std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<QuantumIdentifier, band_data>& bands) {
+  std::unordered_set<SpeciesEnum> out;
+  for (auto& [key, data] : bands) {
+    out.insert(key.Species());
+
+    for (auto& line: data.lines) {
+      for (auto spec : line.ls.single_models | std::views::transform([](auto& x) { return x.species; })) {
+        out.insert(spec);
+      }
+    }
+  }
+  return out;
+}
 }  // namespace lbl
