@@ -169,7 +169,7 @@ void XsecRecord::Extract(VectorView result,
     {
       const auto f_gp =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
-              data_f_grid_active, f_grid_active);
+              data_f_grid_active, f_grid_active, 0.5, "Frequency");
       const auto f_itw = interpweights(f_gp);
       // Find frequency grid positions:
       my_interp::reinterp(xsec_interp, fit_result_active, f_itw, f_gp);

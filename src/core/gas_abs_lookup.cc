@@ -99,13 +99,13 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
                          ConstVectorView current_f_grid) {
   // Some constants we will need:
   const Index n_current_species = current_species.size();
-  const Index n_current_f_grid = current_f_grid.size();
+  const Index n_current_f_grid  = current_f_grid.size();
 
-  const Index n_species = species.size();
-  const Index n_nls = nonlinear_species.size();
+  const Index n_species  = species.size();
+  const Index n_nls      = nonlinear_species.size();
   const Index n_nls_pert = nls_pert.size();
-  const Index n_f_grid = f_grid.size();
-  const Index n_p_grid = p_grid.size();
+  const Index n_f_grid   = f_grid.size();
+  const Index n_p_grid   = p_grid.size();
 
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species, 0);
@@ -407,7 +407,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // 6. Initialize flag_default.
   flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-      f_grid, f_grid, 0);
+      f_grid, f_grid, 0, 0.5, "Frequency Default");
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table.
@@ -638,7 +638,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       flag = &flag_local;
       flag_local =
           my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-              new_f_grid, f_grid, 0);
+              new_f_grid, f_grid, 0, 0.5, "Frequency");
 
       // Check that we really are on a frequency grid point, for safety's sake.
       if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin) {
@@ -678,9 +678,9 @@ void GasAbsLookup::Extract(Matrix& sga,
     }
 
     // We do have real frequency interpolation (f_interp_order!=0).
-    flag = &flag_local;
+    flag       = &flag_local;
     flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-        new_f_grid, f_grid, f_interp_order);
+        new_f_grid, f_grid, f_interp_order, 0.5, "Frequency");
   }
 
   // 4.b Other stuff
@@ -727,7 +727,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   ConstVectorView plog_v{plog};
   const auto plag =
       my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-          plog_v, log_p_grid, p_interp_order);
+          plog_v, log_p_grid, p_interp_order, 0.5, "Log-Pressure");
 
   // Pressure interpolation weights:
   const auto pitw = interpweights(plag[0]);
@@ -972,13 +972,13 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Set h2o related interpolation parameters:
       Index this_h2o_extent;  // Range of H2O interpolation
       if (do_VMR) {
-        vlag = &vlag_h2o;
+        vlag            = &vlag_h2o;
         this_h2o_extent = n_nls_pert;
-        itw = &itw_withH2O;
+        itw             = &itw_withH2O;
       } else {
-        vlag = &lag_trivial;
+        vlag            = &lag_trivial;
         this_h2o_extent = 1;
-        itw = &itw_noH2O;
+        itw             = &itw_noH2O;
       }
 
       // Get the right view on xsec.

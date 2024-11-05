@@ -158,7 +158,7 @@ struct gridded_data {
     requires(Grid < dim and std::remove_cvref_t<lag_t>::runtime_polyorder())
   {
     return my_interp::lagrange_interpolation_list<lag_t>(
-        other, grid<Grid>(), order, extrapol);
+        other, grid<Grid>(), order, extrapol, gridname<Grid>().c_str());
   }
 
   template <Size Grid, my_interp::lagrange_type lag_t>
@@ -167,7 +167,7 @@ struct gridded_data {
     requires(Grid < dim and not std::remove_cvref_t<lag_t>::runtime_polyorder())
   {
     return my_interp::lagrange_interpolation_list<lag_t>(
-        other, grid<Grid>(), extrapol);
+        other, grid<Grid>(), extrapol, gridname<Grid>().c_str());
   }
 
  private:

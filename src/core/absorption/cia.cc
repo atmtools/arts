@@ -172,23 +172,16 @@ void cia_interpolation(VectorView result,
   // the data
   Index T_order;
   switch (data_T_grid.nelem()) {
-    case 1:
-      T_order = 0;
-      break;
-    case 2:
-      T_order = 1;
-      break;
-    case 3:
-      T_order = 2;
-      break;
-    default:
-      T_order = 3;
-      break;
+    case 1:  T_order = 0; break;
+    case 2:  T_order = 1; break;
+    case 3:  T_order = 2; break;
+    default: T_order = 3; break;
   }
 
   // Find frequency grid positions:
   const auto f_lag = my_interp::lagrange_interpolation_list<
-      FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
+      FixedLagrangeInterpolation<f_order>>(
+      f_grid_active, data_f_grid, 0.5, "Frequency");
 
   // Do the rest of the interpolation.
   if (T_order == 0) {
@@ -201,21 +194,21 @@ void cia_interpolation(VectorView result,
     if (T_order == 1) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
-              Tnew, data_T_grid, T_extrapolfac);
+              Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
               .template reduce_rank<0>();
     } else if (T_order == 2) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
-              Tnew, data_T_grid, T_extrapolfac);
+              Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
               .template reduce_rank<0>();
     } else if (T_order == 3) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
-              Tnew, data_T_grid, T_extrapolfac);
+              Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
               .template reduce_rank<0>();

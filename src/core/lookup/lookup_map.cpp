@@ -127,8 +127,11 @@ LagrangeInterpolation table::pressure_lagrange(
   ARTS_ASSERT(do_p())
   const auto plog_local = std::log(pressure);
   const Vector& plog_v(*log_p_grid);
-  LagrangeInterpolation::check(
-      plog_v, interpolation_order, plog_local, extpolation_factor, "Pressure");
+  LagrangeInterpolation::check(plog_v,
+                               interpolation_order,
+                               plog_local,
+                               extpolation_factor,
+                               "Log-Pressure");
   return {0, plog_local, plog_v, interpolation_order};
 }
 ARTS_METHOD_ERROR_CATCH

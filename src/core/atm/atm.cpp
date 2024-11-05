@@ -454,12 +454,12 @@ struct interp_helper {
                           const Vector &lat,
                           const Vector &lon)
     requires(not precompute)
-      : lags_alt(
-            my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
-        lags_lat(
-            my_interp::lagrange_interpolation_list<LatLag>(lat, lat_grid, -1)),
+      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
+            alt, alt_grid, -1, "Altitude")),
+        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
+            lat, lat_grid, -1, "Latitude")),
         lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
-            lon, lon_grid, -1)) {}
+            lon, lon_grid, -1, "Longitude")) {}
 
   constexpr interp_helper(const Vector &alt_grid,
                           const Vector &lat_grid,
@@ -468,12 +468,12 @@ struct interp_helper {
                           const Vector &lat,
                           const Vector &lon)
     requires(precompute)
-      : lags_alt(
-            my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
-        lags_lat(
-            my_interp::lagrange_interpolation_list<LatLag>(lat, lat_grid, -1)),
-        lags_lon(
-            my_interp::lagrange_interpolation_list<LonLag>(lon, lon_grid, -1)),
+      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
+            alt, alt_grid, -1, "Altitude")),
+        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
+            lat, lat_grid, -1, "Latitude")),
+        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
+            lon, lon_grid, -1, "Longitude")),
         iws(flat_interpweights(lags_alt, lags_lat, lags_lon)) {}
 
   Vector operator()(const Tensor3 &data) const {
@@ -1195,11 +1195,11 @@ void Atm::extend_in_pressure(
     auto lo = up - 1;
 
     if (lo <= atm.begin()) {
-      lo         = atm.begin();
-      up         = atm.begin() + 1;
+      lo = atm.begin();
+      up = atm.begin() + 1;
     } else if (up >= atm.end()) {
-      lo         = atm.end() - 2;
-      up         = atm.end() - 1;
+      lo = atm.end() - 2;
+      up = atm.end() - 1;
     }
 
     prof   = {lo, up + 1};
