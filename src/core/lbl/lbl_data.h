@@ -15,6 +15,7 @@
 #include <limits>
 #include <unordered_set>
 #include <vector>
+#include <unordered_set>
 
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"

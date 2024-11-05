@@ -887,9 +887,24 @@ Also sets *frequency_grid_wind_shift_jacobian*.
 If the wind is 0 or nan
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid",
-                 "frequency_grid_wind_shift_jacobian"},
+      .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
+  };
+
+  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
+      .desc      = R"--(Gets the atmospheric points along the path.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_atmospheric_point"},
+      .in        = {"ray_path_atmospheric_point"},
+      .gin       = {"extended_max_pressure",
+                    "extended_min_pressure",
+                    "extrapolation_option"},
+      .gin_type  = {"Numeric", "Numeric", "String"},
+      .gin_value = {Numeric{NAN}, Numeric{NAN}, String{"Nearest"}},
+      .gin_desc  = {R"--(Maximum pressure to extend to.)--",
+                    R"--(Minimum pressure to extend to.)--",
+                    R"--(Extrapolation option.)--"},
   };
 
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
@@ -913,7 +928,8 @@ If the wind is 0 or nan
       .desc   = R"--(Gets the frequency grid along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_frequency_grid", "ray_path_frequency_grid_wind_shift_jacobian"},
+      .out    = {"ray_path_frequency_grid",
+                 "ray_path_frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
   };
 
@@ -926,8 +942,7 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {
-                         "ray_path_propagation_matrix",
+      .out            = {"ray_path_propagation_matrix",
                          "ray_path_propagation_matrix_source_vector_nonlte",
                          "ray_path_propagation_matrix_jacobian",
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
