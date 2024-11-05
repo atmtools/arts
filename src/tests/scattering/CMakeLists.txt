@@ -56,4 +56,4 @@ if(DOWNLOAD_XMLDATA_DEPS)
 endif()
 
 # add_test(NAME "cpp.fast.scattering.test_particle_habit" COMMAND test_particle_habit)
-add_dependencies(check-deps test_particle_habit)
+#add_dependencies(check-deps test_particle_habit)

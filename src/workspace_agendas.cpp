@@ -12,9 +12,10 @@ internal_workspace_agendas() {
                  "propagation_matrix_source_vector_nonlte",
                  "propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian"},
-      .input  = {"jacobian_targets",
+      .input  = {"frequency_grid",
+                 "frequency_grid_wind_shift_jacobian",
+                 "jacobian_targets",
                  "propagation_matrix_select_species",
-                 "frequency_grid",
                  "ray_path_point",
                  "atmospheric_point"},
   };

@@ -22,6 +22,7 @@
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
+#include "enumsAtmKey.h"
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"
@@ -33,6 +34,7 @@
 #include "nlte.h"
 #include "optproperties.h"
 #include "path_point.h"
+#include "sorted_grid.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -576,6 +578,8 @@ void propagation_matrix_agendaAuto(
                           [](auto& spec) { return spec.FreeElectrons(); })) {
     agenda.add("propagation_matrixAddFaraday");
   }
+
+  agenda.add("propagation_matrix_jacobianWindFix");
 
   // Extra check (should really never ever fail when species exist)
   propagation_matrix_agenda = std::move(agenda).finalize();

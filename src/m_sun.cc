@@ -406,7 +406,6 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     const SurfaceField& surface_field,
     const Agenda& propagation_matrix_agenda,
     const Numeric& depolarization_factor,
-    const Numeric& rte_alonglos_v,
     const Index& hse_derivative) try {
   ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
                      "Cannot have any Jacobian targets")
@@ -482,7 +481,6 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             spectral_radiance_background,
             spectral_radiance_background_jacobian,
             surface_field,
-            rte_alonglos_v,
             hse_derivative);
 
         ARTS_USER_ERROR_IF(

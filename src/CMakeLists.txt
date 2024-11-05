@@ -120,6 +120,7 @@ add_library(artsworkspace STATIC
   m_covmat.cc
   m_disort.cc
   m_disort_settings.cc
+  m_frequency_grid.cc
   m_fwd.cc
   m_predefined_absorption_models.cc
   m_xsec_fit.cc

@@ -47,8 +47,7 @@ ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &path_freq,
 void forward_path_freq(AscendingGrid &path_freq,
                        const AscendingGrid &main_freq,
                        const PropagationPathPoint &rad_path,
-                       const AtmPoint &atm_path,
-                       const Numeric along_path_atm_speed) {
+                       const AtmPoint &atm_path) {
   auto dot_prod = [&]() {
     const auto &[u, v, w] = atm_path.wind;
     const auto &[za, aa]  = rad_path.los;
@@ -64,7 +63,7 @@ void forward_path_freq(AscendingGrid &path_freq,
   };
 
   const Numeric fac =
-      1.0 - (along_path_atm_speed + dot_prod()) / Constant::speed_of_light;
+      1.0 - dot_prod() / Constant::speed_of_light;
 
   ARTS_USER_ERROR_IF(
       fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
@@ -78,15 +77,13 @@ void forward_path_freq(AscendingGrid &path_freq,
 void forward_path_freq(ArrayOfAscendingGrid &path_freq,
                        const AscendingGrid &main_freq,
                        const ArrayOfPropagationPathPoint &rad_path,
-                       const ArrayOfAtmPoint &atm_path,
-                       const Numeric along_path_atm_speed) {
+                       const ArrayOfAtmPoint &atm_path) {
   if (arts_omp_in_parallel()) {
     for (Size ip = 0; ip < atm_path.size(); ip++) {
       forward_path_freq(path_freq[ip],
                         main_freq,
                         rad_path[ip],
-                        atm_path[ip],
-                        along_path_atm_speed);
+                        atm_path[ip]);
     }
   } else {
     String error{};
@@ -96,8 +93,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
         forward_path_freq(path_freq[ip],
                           main_freq,
                           rad_path[ip],
-                          atm_path[ip],
-                          along_path_atm_speed);
+                          atm_path[ip]);
       } catch (const std::exception &e) {
 #pragma omp critical
         error = var_string(e.what(), "\n");
