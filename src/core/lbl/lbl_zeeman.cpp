@@ -480,6 +480,8 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
               -2 * ST * ST * C2E};
     case pol::no: return {1, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
@@ -522,6 +524,8 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
@@ -564,6 +568,8 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 
 Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
@@ -606,5 +612,7 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
               4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
+
+  std::unreachable();
 }
 }  // namespace lbl::zeeman
