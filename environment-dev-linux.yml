@@ -29,6 +29,7 @@ dependencies:
         - python-build
         - requests
         - scipy
+        - setuptools
         - sphinx=8
         - sphinx-favicon
         - sphinx-rtd-theme=3
