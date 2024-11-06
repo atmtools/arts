@@ -279,6 +279,14 @@ void py_lbl(py::module_& m) try {
           "T"_a,
           "Q"_a,
           "The line strength")
+      .def(
+          "hitran_s",
+          [](const lbl::line& self, const SpeciesIsotope& isot, Numeric T0) {
+            return self.hitran_s(isot, T0);
+          },
+          "isot"_a,
+          "T0"_a = 296.0,
+          "The HITRAN-like line strength")
       .PythonInterfaceBasicRepresentation(lbl::line)
       .doc() = "Data for an absorption line";
 
@@ -289,12 +297,36 @@ void py_lbl(py::module_& m) try {
   vector_interface(ll);
 
   py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
-  ab.def_rw("lines", &lbl::band_data::lines, "The lines in the band")
-      .def_rw("lineshape", &lbl::band_data::lineshape, "The lineshape type")
-      .def_rw("cutoff", &lbl::band_data::cutoff, "The cutoff type")
+  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band")
+      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type")
+      .def_rw("cutoff", &AbsorptionBand::cutoff, "The cutoff type")
       .def_rw("cutoff_value",
-              &lbl::band_data::cutoff_value,
-              "The cutoff value [Hz]");
+              &AbsorptionBand::cutoff_value,
+              "The cutoff value [Hz]")
+      .def(
+          "keep_frequencies",
+          [](AbsorptionBand& band, Vector2 freqs) {
+            band.sort();
+            auto l = band.active_lines(freqs[0], freqs[1]).second;
+            std::vector<lbl::line> new_lines(l.begin(), l.end());
+            band.lines = std::move(new_lines);
+          },
+          "freqs"_a,
+          "Keep only the lines within the given frequency range")
+      .def(
+          "keep_hitran_s",
+          [](AbsorptionBand& band,
+             Numeric min_s,
+             const SpeciesIsotope& isot,
+             Numeric T0) {
+            std::erase_if(band.lines, [&isot, &T0, &min_s](auto& line) {
+              return line.hitran_s(isot, T0) < min_s;
+            });
+          },
+          "min_s"_a,
+          "isot"_a,
+          "T0"_a = 296.0,
+          "Keep only the lines with a stronger HITRAN-like line strength");
   workspace_group_interface(ab);
 
   auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
@@ -363,6 +395,25 @@ Returns
 -------
 int : The number of removed variables
 )");
+
+  aoab.def(
+      "count_lines",
+      [](const AbsorptionBands& self, SpeciesEnum spec) {
+        Size n = 0;
+
+        if (spec == SpeciesEnum::Bath) {
+          for (auto& band : self | std::views::values) {
+            n += band.size();
+          }
+          return n;
+        }
+        for (auto& [key, band] : self) {
+          if (spec == key.Species()) n += band.size();
+        }
+        return n;
+      },
+      "spec"_a = SpeciesEnum::Bath,
+      "Return the total number of lines");
 
   py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
   workspace_group_interface(led);

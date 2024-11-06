@@ -194,16 +194,20 @@ const Numeric& line_key::get_value(const AbsorptionBands& b) const {
   return local_get_value(b, *this);
 }
 
-[[nodiscard]] Numeric line::hitran_a(const Numeric hitran_s,
-                                     const SpeciesIsotope& isot) {
-  constexpr Numeric T0 = 296.0;
-  const Numeric Q0     = PartitionFunctions::Q(T0, isot);
-  const Numeric Ia     = Hitran::isotopologue_ratios()[isot];
+Numeric line::hitran_a(const Numeric hitran_s,
+                       const SpeciesIsotope& isot,
+                       const Numeric T0) const {
+  const Numeric Q0 = PartitionFunctions::Q(T0, isot);
+  const Numeric Ia = Hitran::isotopologue_ratios()[isot];
 
   //! Note negative value because expm1 is used as a more accurate form of (1 - exp(x)) for exp(x) close to 1.
   return -8.0 * pi * Q0 * hitran_s /
          (Ia * gu * exp(-e0 / (k * T0)) * expm1(-(h * f0) / (k * T0)) *
           pow2(c / f0));
+}
+
+Numeric line::hitran_s(const SpeciesIsotope& isot, const Numeric T0) const {
+  return a / hitran_a(1.0, isot, T0);
 }
 
 bool band_data::merge(const line& linedata) {
@@ -217,13 +221,16 @@ bool band_data::merge(const line& linedata) {
   return true;
 }
 
-std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<QuantumIdentifier, band_data>& bands) {
+std::unordered_set<SpeciesEnum> species_in_bands(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands) {
   std::unordered_set<SpeciesEnum> out;
   for (auto& [key, data] : bands) {
     out.insert(key.Species());
 
-    for (auto& line: data.lines) {
-      for (auto spec : line.ls.single_models | std::views::transform([](auto& x) { return x.species; })) {
+    for (auto& line : data.lines) {
+      for (auto spec :
+           line.ls.single_models |
+               std::views::transform([](auto& x) { return x.species; })) {
         out.insert(spec);
       }
     }

@@ -13,11 +13,12 @@
 
 #include <format>
 #include <limits>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
+
 
 namespace lbl {
 struct line {
@@ -120,9 +121,21 @@ struct line {
    * 
    * @param hitran_s The HITRAN line strength
    * @param isot The isotope to use - required to get the correct partition function
+   * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
    * @return Numeric Hitran equivalent linestrength
    */
-  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s, const SpeciesIsotope& isot);
+  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s,
+                                 const SpeciesIsotope& isot,
+                                 const Numeric T0 = 296.0) const;
+
+  /** The HITRAN equivalent line strength
+   * 
+   * @param isot The isotope to use
+   * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
+   * @return Numeric The HITRAN equivalent line strength (including isotopoic ratio)
+   */
+  [[nodiscard]] Numeric hitran_s(const SpeciesIsotope& isot,
+                                 const Numeric T0 = 296.0) const;
 
   friend std::ostream& operator<<(std::ostream& os, const line& x);
 
@@ -161,10 +174,8 @@ struct band_data {
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const {
     using enum LineByLineCutoffType;
     switch (cutoff) {
-      case None:
-        return std::numeric_limits<Numeric>::infinity();
-      case ByLine:
-        return cutoff_value;
+      case None:   return std::numeric_limits<Numeric>::infinity();
+      case ByLine: return cutoff_value;
     }
     return -1;
   }
@@ -222,15 +233,20 @@ struct line_key {
 
   friend std::ostream& operator<<(std::ostream& os, const line_key& x);
 
-  [[nodiscard]] Numeric& get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
-  [[nodiscard]] const Numeric& get_value(const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] Numeric& get_value(
+      std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] const Numeric& get_value(
+      const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
 
-std::ostream& operator<<(std::ostream& os, const std::unordered_map<QuantumIdentifier, band_data>& x);
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::unordered_map<QuantumIdentifier, band_data>& x);
 
-std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<QuantumIdentifier, band_data>& bands);
+std::unordered_set<SpeciesEnum> species_in_bands(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands);
 }  // namespace lbl
 
 //! Support hashing of line keys
