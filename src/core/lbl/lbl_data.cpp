@@ -237,4 +237,75 @@ std::unordered_set<SpeciesEnum> species_in_bands(
   }
   return out;
 }
+
+void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
+                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
+                   const Numeric T0) {
+  for (auto& [key, data] : bands) {
+    const auto ptr = keep.find(key.Species());
+    if (ptr != keep.end()) {
+      std::erase_if(data.lines, [&key, &T0, &min_s = ptr->second](line& line) {
+        return line.hitran_s(key.Isotopologue(), T0) < min_s;
+      });
+    }
+  }
+}
+
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const Numeric approx_percentile,
+    const Numeric T0) {
+  ARTS_USER_ERROR_IF(approx_percentile < 0 or approx_percentile > 100,
+                     "Approximate percentile must be between 0 and 100");
+
+  std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
+  for (auto& [key, data] : bands) {
+    for (auto& line : data.lines) {
+      compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+    }
+  }
+
+  std::unordered_map<SpeciesEnum, Numeric> out;
+  for (auto& [spec, values] : compute) {
+    if (const Size N = values.size(); N != 0) {
+      std::ranges::sort(values);
+      const Size i =
+          static_cast<Size>(static_cast<Numeric>(N) * approx_percentile * 0.01);
+      out[spec] = values[std::clamp<Size>(i, 0, N - 1)];
+    }
+  }
+
+  return out;
+}
+
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
+    const Numeric T0) {
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(approx_percentile | std::views::values,
+                          [](auto i) { return i < 0 or i > 100; }),
+      "Approximate percentile must be between 0 and 100");
+
+  std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
+  for (auto& [key, data] : bands) {
+    if (approx_percentile.contains(key.Species())) {
+      for (auto& line : data.lines) {
+        compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+      }
+    }
+  }
+
+  std::unordered_map<SpeciesEnum, Numeric> out;
+  for (auto& [spec, values] : compute) {
+    if (const Size N = values.size(); N != 0) {
+      std::ranges::sort(values);
+      const Size i = static_cast<Size>(static_cast<Numeric>(N) *
+                                       approx_percentile.at(spec) * 0.01);
+      out[spec]    = values[std::clamp<Size>(i, 0, N - 1)];
+    }
+  }
+
+  return out;
+}
 }  // namespace lbl

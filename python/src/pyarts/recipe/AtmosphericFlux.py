@@ -33,6 +33,7 @@ class AtmosphericFlux:
         solar_latitude: float = 0.0,
         solar_longitude: float = 0.0,
         species: list = ["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
+        remove_lines_percentile: dict[pyarts.arts.SpeciesEnum, float] | float | None = None,
     ):
         """Compute the total flux for a given atmospheric profile and surface temperature
 
@@ -50,6 +51,7 @@ class AtmosphericFlux:
             solar_latitude (float, optional): Latitude of sun [degrees]. Defaults to 0.0.
             solar_longitude (float, optional): Longitude of sun [degrees]. Defaults to 0.0.
             species (list, optional): The list of absorption species. Defaults to [ "H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT", ].
+            remove_lines_percentile (dict | float | None, optional): The percentile of lines to remove [0, 100].  Per species if dict. Defaults to None.
         """
 
         self.visible_surface_reflectivity = visible_surface_reflectivity
@@ -68,6 +70,9 @@ class AtmosphericFlux:
         for band in self.ws.absorption_bands:
             self.ws.absorption_bands[band].cutoff = "ByLine"
             self.ws.absorption_bands[band].cutoff_value = 750e9
+
+        if remove_lines_percentile is not None:
+            self.ws.absorption_bands.keep_hitran_s(remove_lines_percentile)
 
         self.ws.propagation_matrix_agendaAuto()
 

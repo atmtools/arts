@@ -6,12 +6,14 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
 #include <iomanip>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
@@ -414,6 +416,72 @@ int : The number of removed variables
       },
       "spec"_a = SpeciesEnum::Bath,
       "Return the total number of lines");
+
+  aoab.def(
+      "remove_hitran_s",
+      &lbl::keep_hitran_s,
+      R"(Removes all lines with a weaker HITRAN-like line strength than those provided by the remove map.
+
+Parameters
+----------
+remove : dict
+    The species to keep with their respective minimum HITRAN-like line strengths
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "remove"_a,
+      "T0"_a = 296.0);
+
+  aoab.def(
+      "percentile_hitran_s",
+      [](const AbsorptionBands& self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
+             percentile,
+         const Numeric T0) {
+        return std::visit(
+            [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
+            percentile);
+      },
+      R"(Map of HITRAN linestrengths at a given percentile
+
+.. note::
+
+  The percentile is approximated by floating point arithmetic on the sorted HITRAN line strenght values.
+
+Parameters
+----------
+percentile : float or dict
+    The percentile to keep. If a float, the same percentile is used for all species. If a dict, the species are mapped to their respective percentiles.  Values must be [0, 100].
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "approximate_percentile"_a,
+      "T0"_a = 296.0);
+
+  aoab.def(
+      "keep_hitran_s",
+      [](AbsorptionBands& self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
+             percentile,
+         const Numeric T0) {
+        lbl::keep_hitran_s(
+            self,
+            std::visit(
+                [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
+                percentile),
+            T0);
+      },
+      R"(Wraps calling percentile_hitran_s followed by remove_hitran_s.
+
+Parameters
+----------
+percentile : float or dict
+    See percentile_hitran_s.
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "approximate_percentile"_a,
+      "T0"_a = 296.0);
 
   py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
   workspace_group_interface(led);
