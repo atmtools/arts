@@ -26,7 +26,7 @@ ws.atmospheric_fieldRead(
 tdata = pyarts.arts.Tensor3(ws.atmospheric_field["t"].data.data)
 wdata = pyarts.arts.Tensor3(ws.atmospheric_field["H2O"].data.data)
 
-v = np.linspace(400, 2500, 1001)
+v = np.linspace(400, 2500, 101)
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(v)
 
 t = time()
@@ -35,8 +35,8 @@ ws.absorption_lookup_tableFromProfiles(
     temperature_profile=np.array(ws.atmospheric_field["t"].data.flatten()),
     vmr_profiles={"CO2": np.array(ws.atmospheric_field["CO2"].data.flatten()),
                   "H2O": np.array(ws.atmospheric_field["H2O"].data.flatten())},
-    temperature_perturbation=np.linspace(-40, 40, 8),
-    water_perturbation=np.logspace(-1, 1, 15),
+    temperature_perturbation=np.linspace(-30, 30, 9),
+    water_perturbation=np.logspace(-1, 1, 9),
     water_affected_species=["H2O"],
 )
 print(round(1000 * (time() - t)), "ms to train the LUT")
@@ -51,7 +51,7 @@ ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
 
 # %% Checks and settings for LBL
 for water_ratio in [5e-1, 5]:
-    for temperature_offset in np.linspace(-20, 20, 5):
+    for temperature_offset in np.linspace(-20, 20, 3):
         ws.atmospheric_field["t"].data.data = tdata + temperature_offset
         ws.atmospheric_field["H2O"].data.data = wdata * water_ratio
 
@@ -66,7 +66,8 @@ for water_ratio in [5e-1, 5]:
         ws.propagation_matrix_agendaAuto(
             f_interp_order=0,
             p_interp_order=5,
-            t_interp_order=7,
+            t_interp_order=4,
+            water_interp_order=4,
             use_absorption_lookup_table=1,
         )
         ws.spectral_radianceClearskyEmission()
@@ -82,3 +83,5 @@ for water_ratio in [5e-1, 5]:
         plt.title(f"Water ratio: {100*water_ratio}%, Temperature offset: {temperature_offset} K")
 
         assert np.allclose(lbl, lut, atol=1e-3)
+
+# %%

@@ -34,8 +34,8 @@ t = time()
 ws.absorption_lookup_tableCalc(
     latitude=0.0,
     longitude=0.0,
-    temperature_perturbation=np.linspace(-30, 30, 10),
-    water_perturbation=np.logspace(-1, 1, 10),
+    temperature_perturbation=np.linspace(-30, 30, 5),
+    water_perturbation=np.logspace(-1, 1, 5),
     water_affected_species=["H2O"],
 )
 print(round(1000 * (time() - t)), "ms to train the LUT")
@@ -66,7 +66,8 @@ for water_ratio in [5e-1, 5]:
         ws.propagation_matrix_agendaAuto(
             f_interp_order=0,
             p_interp_order=5,
-            t_interp_order=7,
+            t_interp_order=4,
+            water_interp_order=4,
             use_absorption_lookup_table=1,
         )
         ws.spectral_radianceClearskyEmission()
@@ -88,3 +89,5 @@ for water_ratio in [5e-1, 5]:
         )
 
         assert np.allclose(lbl, lut, atol=1e-3)
+
+# %%

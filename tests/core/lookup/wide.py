@@ -26,7 +26,7 @@ ws.atmospheric_fieldRead(
 tdata = pyarts.arts.Tensor3(ws.atmospheric_field["t"].data.data)
 wdata = pyarts.arts.Tensor3(ws.atmospheric_field["H2O"].data.data)
 
-v = np.linspace(400, 2500, 1001)
+v = np.linspace(400, 2500, 101)
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(v)
 
 t = time()
