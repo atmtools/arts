@@ -1,6 +1,7 @@
 #include "atm.h"
 
 #include <matpack.h>
+#include <physics_funcs.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -23,26 +24,32 @@
 
 AtmKey to_wind(const String &x) {
   switch (to<FieldComponent>(x)) {
-    case FieldComponent::u:
-      return AtmKey::wind_u;
-    case FieldComponent::v:
-      return AtmKey::wind_v;
-    case FieldComponent::w:
-      return AtmKey::wind_w;
+    case FieldComponent::u: return AtmKey::wind_u;
+    case FieldComponent::v: return AtmKey::wind_v;
+    case FieldComponent::w: return AtmKey::wind_w;
   }
   std::unreachable();
 }
 
 AtmKey to_mag(const String &x) {
   switch (to<FieldComponent>(x)) {
-    case FieldComponent::u:
-      return AtmKey::mag_u;
-    case FieldComponent::v:
-      return AtmKey::mag_v;
-    case FieldComponent::w:
-      return AtmKey::mag_w;
+    case FieldComponent::u: return AtmKey::mag_u;
+    case FieldComponent::v: return AtmKey::mag_v;
+    case FieldComponent::w: return AtmKey::mag_w;
   }
   std::unreachable();
+}
+
+Numeric AtmPoint::number_density() const {
+  return ::number_density(pressure, temperature);
+}
+
+Numeric AtmPoint::number_density(const SpeciesEnum &spec) const {
+  return specs.at(spec) * number_density();
+}
+
+Numeric AtmPoint::number_density(const SpeciesIsotope &spec) const {
+  return isots.at(spec) * number_density(spec.spec);
 }
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try {
@@ -71,22 +78,14 @@ Numeric AtmPoint::operator[](const ScatteringSpeciesProperty &x) const try {
 
 Numeric AtmPoint::operator[](AtmKey x) const {
   switch (x) {
-    case AtmKey::t:
-      return temperature;
-    case AtmKey::p:
-      return pressure;
-    case AtmKey::wind_u:
-      return wind[0];
-    case AtmKey::wind_v:
-      return wind[1];
-    case AtmKey::wind_w:
-      return wind[2];
-    case AtmKey::mag_u:
-      return mag[0];
-    case AtmKey::mag_v:
-      return mag[1];
-    case AtmKey::mag_w:
-      return mag[2];
+    case AtmKey::t:      return temperature;
+    case AtmKey::p:      return pressure;
+    case AtmKey::wind_u: return wind[0];
+    case AtmKey::wind_v: return wind[1];
+    case AtmKey::wind_w: return wind[2];
+    case AtmKey::mag_u:  return mag[0];
+    case AtmKey::mag_v:  return mag[1];
+    case AtmKey::mag_w:  return mag[2];
   }
   ARTS_USER_ERROR("Cannot reach")
 }
@@ -103,22 +102,14 @@ Numeric &AtmPoint::operator[](const ScatteringSpeciesProperty &x) {
 
 Numeric &AtmPoint::operator[](AtmKey x) {
   switch (x) {
-    case AtmKey::t:
-      return temperature;
-    case AtmKey::p:
-      return pressure;
-    case AtmKey::wind_u:
-      return wind[0];
-    case AtmKey::wind_v:
-      return wind[1];
-    case AtmKey::wind_w:
-      return wind[2];
-    case AtmKey::mag_u:
-      return mag[0];
-    case AtmKey::mag_v:
-      return mag[1];
-    case AtmKey::mag_w:
-      return mag[2];
+    case AtmKey::t:      return temperature;
+    case AtmKey::p:      return pressure;
+    case AtmKey::wind_u: return wind[0];
+    case AtmKey::wind_v: return wind[1];
+    case AtmKey::wind_w: return wind[2];
+    case AtmKey::mag_u:  return mag[0];
+    case AtmKey::mag_v:  return mag[1];
+    case AtmKey::mag_w:  return mag[2];
   }
   std::unreachable();
 }
@@ -140,7 +131,8 @@ FieldMap::Map<Atm::Data,
               SpeciesEnum,
               SpeciesIsotope,
               QuantumIdentifier,
-              ScatteringSpeciesProperty>::operator[](const KeyVal &k) const try {
+              ScatteringSpeciesProperty>::operator[](const KeyVal &k) const
+    try {
   return std::visit(
       [this](auto &key) -> const Atm::Data & {
         return this->map<decltype(key)>().at(key);
@@ -174,7 +166,8 @@ bool FieldMap::Map<Atm::Data,
                    SpeciesEnum,
                    SpeciesIsotope,
                    QuantumIdentifier,
-                   ScatteringSpeciesProperty>::contains(const KeyVal &key) const {
+                   ScatteringSpeciesProperty>::contains(const KeyVal &key)
+    const {
   return std::visit(
       [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
       key);
@@ -201,8 +194,7 @@ Point::Point(const IsoRatioOption isots_key) {
       }
     } break;
     case IsoRatioOption::None:
-    default:
-      break;
+    default:                   break;
   }
 }
 
@@ -226,8 +218,7 @@ Field::Field(const IsoRatioOption isots_key) {
       }
     } break;
     case IsoRatioOption::None:
-    default:
-      break;
+    default:                   break;
   }
 }
 
@@ -463,12 +454,12 @@ struct interp_helper {
                           const Vector &lat,
                           const Vector &lon)
     requires(not precompute)
-      : lags_alt(
-            my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
-        lags_lat(
-            my_interp::lagrange_interpolation_list<LatLag>(lat, lat_grid, -1)),
+      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
+            alt, alt_grid, -1, "Altitude")),
+        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
+            lat, lat_grid, -1, "Latitude")),
         lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
-            lon, lon_grid, -1)) {}
+            lon, lon_grid, -1, "Longitude")) {}
 
   constexpr interp_helper(const Vector &alt_grid,
                           const Vector &lat_grid,
@@ -477,12 +468,12 @@ struct interp_helper {
                           const Vector &lat,
                           const Vector &lon)
     requires(precompute)
-      : lags_alt(
-            my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
-        lags_lat(
-            my_interp::lagrange_interpolation_list<LatLag>(lat, lat_grid, -1)),
-        lags_lon(
-            my_interp::lagrange_interpolation_list<LonLag>(lon, lon_grid, -1)),
+      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
+            alt, alt_grid, -1, "Altitude")),
+        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
+            lat, lat_grid, -1, "Latitude")),
+        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
+            lon, lon_grid, -1, "Longitude")),
         iws(flat_interpweights(lags_alt, lags_lat, lags_lon)) {}
 
   Vector operator()(const Tensor3 &data) const {
@@ -619,36 +610,26 @@ constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
                                              InterpolationExtrapolation b) {
   using enum InterpolationExtrapolation;
   switch (a) {
-    case None:
-      return None;
+    case None: return None;
     case Zero: {
       switch (b) {
-        case None:
-          return None;
-        case Zero:
-          return Zero;
-        case Nearest:
-          return Zero;
-        case Linear:
-          return Zero;
+        case None:    return None;
+        case Zero:    return Zero;
+        case Nearest: return Zero;
+        case Linear:  return Zero;
       }
       std::unreachable();
     }
     case Nearest: {
       switch (b) {
-        case None:
-          return None;
-        case Zero:
-          return Zero;
-        case Nearest:
-          return Nearest;
-        case Linear:
-          return Nearest;
+        case None:    return None;
+        case Zero:    return Zero;
+        case Nearest: return Nearest;
+        case Linear:  return Nearest;
       }
       std::unreachable();
     }
-    case Linear:
-      return b;
+    case Linear: return b;
   }
 
   return a;
@@ -952,7 +933,7 @@ std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
-  return ptr and *ptr == key;
+  return ptr and * ptr == key;
 }
 
 bool operator==(const AtmKeyVal &keyval, AtmKey key) {
@@ -1105,4 +1086,173 @@ std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal &v) const {
         return std::vformat(fmt.c_str(), std::make_format_args(val));
       },
       v);
+}
+
+bool Atm::pressure_is_increasing(const std::span<const Point> &atm) {
+  ARTS_USER_ERROR_IF(atm.size() < 2,
+                     "Must have at least two atmospheric points")
+
+  const auto begin = atm.begin();
+  const auto end   = atm.end();
+
+  const bool pressure_increasing = begin->pressure < next(begin)->pressure;
+
+  if (pressure_increasing) {
+    for (auto it = begin; it != end - 1; it = next(it)) {
+      ARTS_USER_ERROR_IF(it->pressure >= next(it)->pressure,
+                         "Pressure is not consistently increasing")
+    }
+  } else {
+    for (auto it = begin; it != end - 1; it = next(it)) {
+      ARTS_USER_ERROR_IF(not(it->pressure >= next(it)->pressure),
+                         "Pressure is not consistently decreasing")
+    }
+  }
+
+  return pressure_increasing;
+}
+
+AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
+                               const AscendingGrid &altitudes,
+                               const InterpolationExtrapolation &alt_extrap,
+                               const Numeric &top_of_atmosphere) {
+  using std::distance;
+  using std::next;
+
+  const Size N = altitudes.size();
+
+  ARTS_USER_ERROR_IF(N != atm.size(),
+                     "Inconsistent altitude grid size: {} != {}",
+                     N,
+                     atm.size())
+
+  GriddedField3 gf3;
+  gf3.grid<0>()     = altitudes;
+  gf3.grid<1>()     = {0.0};
+  gf3.grid<2>()     = {0.0};
+  gf3.gridname<0>() = "Altitude";
+  gf3.gridname<1>() = "Latitude";
+  gf3.gridname<2>() = "Longitude";
+  gf3.data.resize(N, 1, 1);
+
+  Atm::Data data;
+  data.alt_low = alt_extrap;
+  data.alt_upp = alt_extrap;
+  data.lat_low = InterpolationExtrapolation::Nearest;
+  data.lat_upp = InterpolationExtrapolation::Nearest;
+  data.lon_low = InterpolationExtrapolation::Nearest;
+  data.lon_upp = InterpolationExtrapolation::Nearest;
+
+  AtmField out;
+
+  if (pressure_is_increasing(atm)) {
+    for (auto &key : atm.front().keys()) {
+      for (Size i = 0; i < atm.size(); i++) {
+        // Add from ending
+        gf3.data(N - 1 - i, 0, 0) = atm[i][key];
+      }
+
+      gf3.data_name = var_string(key);
+      data.data     = gf3;
+      out[key]      = data;
+    }
+  } else {
+    for (auto &key : atm.front().keys()) {
+      for (Size i = 0; i < atm.size(); i++) {
+        // Add from beginning
+        gf3.data(i, 0, 0) = atm[i][key];
+      }
+
+      gf3.data_name = var_string(key);
+      data.data     = gf3;
+      out[key]      = data;
+    }
+  }
+
+  if (std::isnan(top_of_atmosphere)) {
+    out.top_of_atmosphere = altitudes.back();
+  } else {
+    out.top_of_atmosphere = top_of_atmosphere;
+  }
+
+  return out;
+}
+
+void Atm::extend_in_pressure(
+    ArrayOfAtmPoint &atm,
+    const Numeric &new_pressure,
+    const InterpolationExtrapolation extrapolation_type,
+    const bool logarithmic) {
+  const bool pressure_increasing = pressure_is_increasing(atm);
+
+  std::span<const AtmPoint> prof;
+  std::array<Numeric, 2> bounds;
+  ArrayOfAtmPoint::const_iterator pos;
+
+  if (pressure_increasing) {
+    auto up =
+        std::ranges::lower_bound(atm, new_pressure, {}, &AtmPoint::pressure);
+    auto lo = up - 1;
+
+    if (lo <= atm.begin()) {
+      lo = atm.begin();
+      up = atm.begin() + 1;
+    } else if (up >= atm.end()) {
+      lo = atm.end() - 2;
+      up = atm.end() - 1;
+    }
+
+    prof   = {lo, up + 1};
+    bounds = {lo->pressure, up->pressure};
+
+    if (new_pressure < bounds[0]) {
+      pos = lo;
+    } else if (new_pressure > bounds[1]) {
+      pos = up + 1;
+    } else {
+      pos = up;
+    }
+  } else {
+    auto lo =
+        (std::ranges::lower_bound(
+             atm | std::views::reverse, new_pressure, {}, &AtmPoint::pressure) +
+         1)
+            .base();
+    auto up = lo - 1;
+
+    if (lo >= atm.end()) {
+      lo = atm.end() - 1;
+      up = atm.end() - 2;
+    } else if (up <= atm.begin()) {
+      lo = atm.begin() + 1;
+      up = atm.begin();
+    }
+
+    prof   = {up, lo + 1};
+    bounds = {lo->pressure, up->pressure};
+
+    if (new_pressure < bounds[0]) {
+      pos = lo + 1;
+    } else if (new_pressure > bounds[1]) {
+      pos = up;
+    } else {
+      pos = lo;
+    }
+  }
+
+  if (std::ranges::any_of(prof, Cmp::eq(new_pressure), &AtmPoint::pressure))
+    return;
+
+  const AscendingGrid altitudes =
+      logarithmic ? AscendingGrid{std::log(bounds[0]), std::log(bounds[1])}
+                  : AscendingGrid{bounds[0], bounds[1]};
+  const Numeric palt = logarithmic ? std::log(new_pressure) : new_pressure;
+  const Numeric top_of_atmosphere = std::max(palt, altitudes.back());
+
+  //! Use a fake 1D atmosphere to extend all the data
+  auto p = atm.insert(
+      pos,
+      atm_from_profile(prof, altitudes, extrapolation_type, top_of_atmosphere)
+          .at(palt, 0, 0));
+  p->pressure = new_pressure;
 }

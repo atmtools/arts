@@ -862,6 +862,22 @@ Sets N2 and O2 speces
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
 
+  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
+      .desc      = R"--(Gets the atmospheric points along the path.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_atmospheric_point"},
+      .in        = {"ray_path_atmospheric_point"},
+      .gin       = {"extended_max_pressure",
+                    "extended_min_pressure",
+                    "extrapolation_option"},
+      .gin_type  = {"Numeric", "Numeric", "String"},
+      .gin_value = {Numeric{NAN}, Numeric{NAN}, String{"Nearest"}},
+      .gin_desc  = {R"--(Maximum pressure to extend to.)--",
+                    R"--(Minimum pressure to extend to.)--",
+                    R"--(Extrapolation option.)--"},
+  };
+
   wsm_data["frequency_gridWindShift"] = {
       .desc =
           R"--(Applies wind shift to the *frequency_grid* for the local frequency grid.
@@ -871,9 +887,24 @@ Also sets *frequency_grid_wind_shift_jacobian*.
 If the wind is 0 or nan
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid",
-                 "frequency_grid_wind_shift_jacobian"},
+      .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
+  };
+
+  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
+      .desc      = R"--(Gets the atmospheric points along the path.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_atmospheric_point"},
+      .in        = {"ray_path_atmospheric_point"},
+      .gin       = {"extended_max_pressure",
+                    "extended_min_pressure",
+                    "extrapolation_option"},
+      .gin_type  = {"Numeric", "Numeric", "String"},
+      .gin_value = {Numeric{NAN}, Numeric{NAN}, String{"Nearest"}},
+      .gin_desc  = {R"--(Maximum pressure to extend to.)--",
+                    R"--(Minimum pressure to extend to.)--",
+                    R"--(Extrapolation option.)--"},
   };
 
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
@@ -897,7 +928,8 @@ If the wind is 0 or nan
       .desc   = R"--(Gets the frequency grid along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_frequency_grid", "ray_path_frequency_grid_wind_shift_jacobian"},
+      .out    = {"ray_path_frequency_grid",
+                 "ray_path_frequency_grid_wind_shift_jacobian"},
       .in     = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
   };
 
@@ -910,8 +942,7 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {
-                         "ray_path_propagation_matrix",
+      .out            = {"ray_path_propagation_matrix",
                          "ray_path_propagation_matrix_source_vector_nonlte",
                          "ray_path_propagation_matrix_jacobian",
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
@@ -1457,44 +1488,6 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
       .in     = {"jacobian_targets", "frequency_grid"},
   };
 
-  wsm_data["propagation_matrix_agendaAuto"] = {
-      .desc      = R"--(Sets the *propagation_matrix_agenda* automatically
-
-This method introspects the input and uses it for generating the
-*propagation_matrix_agenda* automatically.  If ``use_absorption_lookup_table_data``, all
-methods that can be used to generate the absorption lookup table
-are ignored and instead the calculations from the absorption
-lookup are used.
-
-The following methods are considered for addition:
-
-1) *propagation_matrixInit*
-2) *propagation_matrixAddCIA*
-3) *propagation_matrixAddLines*
-4) *propagation_matrixAddFaraday*
-5) *propagation_matrixAddXsecFit*
-7) *propagation_matrixAddPredefined*
-
-To perform absorption lookupo table calculation, call:
-
-1) *propagation_matrix_agendaAuto*
-2) ``absorption_lookup_table_dataCalc``  FIXME: HOW TO COMPUTE IT
-3) *propagation_matrix_agendaAuto* (use_absorption_lookup_table_data=1)
-4) Perform other calculations
-
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_agenda"},
-      .in        = {"absorption_species", "absorption_bands"},
-      .gin       = {"T_extrapolfac", "force_p", "force_t", "ignore_errors"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{0.5}, Numeric{-1}, Numeric{-1}, Index{0}},
-      .gin_desc  = {R"--(See *propagation_matrixAddCIA*)--",
-                    R"--(See *propagation_matrixAddXsecFit*)--",
-                    R"--(See *propagation_matrixAddXsecFit*)--",
-                    R"--(See *propagation_matrixAddCIA*)--"},
-  };
-
   wsm_data["propagation_matrix_agendaSet"] = {
       .desc      = R"--(Sets *propagation_matrix_agenda* to a default value
 
@@ -1687,7 +1680,7 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
   };
 
   wsm_data["atmospheric_fieldHydrostaticPressure"] = {
-      .desc      = R"-x-(Add the hydrostatic pressure to the atmospheric field
+      .desc   = R"-x-(Add the hydrostatic pressure to the atmospheric field
     
 The field must already be able to compute temperature as a function of
 altitude, latitude, and longitude.
@@ -1706,15 +1699,16 @@ as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
 )-x-",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "gravity_operator"},
-      .gin       = {"p0",
-                    "alts",
-                    "fixed_specific_gas_constant",
-                    "fixed_atmospheric_temperature",
-                    "hydrostatic_option"},
-      .gin_type  = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field", "gravity_operator"},
+      .gin    = {"p0",
+                 "alts",
+                 "fixed_specific_gas_constant",
+                 "fixed_atmospheric_temperature",
+                 "hydrostatic_option"},
+      .gin_type =
+          {"GriddedField2,Numeric", "Vector", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{-1},
@@ -1910,6 +1904,36 @@ matrix to be calculated will work.
       .gin_value = {Index{1}},
       .gin_desc =
           {"Turn off to allow individual absorbers to have negative absorption"},
+  };
+
+  wsm_data["propagation_matrixAddLookup"] = {
+      .desc     = R"--(Lookup calculations
+)--",
+      .author   = {"Richard Larsson"},
+      .out      = {"propagation_matrix", "propagation_matrix_jacobian"},
+      .in       = {"propagation_matrix",
+                   "propagation_matrix_jacobian",
+                   "frequency_grid",
+                   "jacobian_targets",
+                   "propagation_matrix_select_species",
+                   "absorption_lookup_table",
+                   "atmospheric_point"},
+      .gin      = {"no_negative_absorption",
+                   "p_interp_order",
+                   "t_interp_order",
+                   "water_interp_order",
+                   "f_interp_order",
+                   "extpolfac"},
+      .gin_type = {"Index", "Index", "Index", "Index", "Index", "Numeric"},
+      .gin_value =
+          {Index{1}, Index{7}, Index{7}, Index{7}, Index{7}, Numeric{0.5}},
+      .gin_desc =
+          {"Turn off to allow individual absorbers to have negative absorption",
+           "Interpolation order for pressure",
+           "Interpolation order for temperature",
+           "Interpolation order for water vapor",
+           "Interpolation order for frequency",
+           "Extrapolation factor"},
   };
 
   wsm_data["jacobian_targetsInit"] = {
@@ -2168,6 +2192,156 @@ If ``line`` is positive, also keep only the line of this index
       .gin_type  = {"QuantumIdentifier", "Index"},
       .gin_value = {std::nullopt, Index{-1}},
       .gin_desc  = {"Band to keep", "Line to keep (if positive)"},
+  };
+
+  wsm_data["absorption_lookup_tableInit"] = {
+      .desc =
+          R"--(Initialize an empty lookup table.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_lookup_table"},
+  };
+
+  wsm_data["absorption_lookup_tablePrecompute"] = {
+      .desc =
+          R"--(Precompute the lookup table for a single species, adding it to the map.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"absorption_lookup_table",
+                    "ray_path_atmospheric_point",
+                    "frequency_grid",
+                    "absorption_bands",
+                    "ecs_data"},
+      .gin       = {"temperature_perturbation",
+                    "water_perturbation",
+                    "select_species"},
+      .gin_type  = {"AscendingGrid", "AscendingGrid", "SpeciesEnum"},
+      .gin_value = {AscendingGrid{}, AscendingGrid{}, std::nullopt},
+      .gin_desc =
+          {"Temperature perturbation to use for the lookup table",
+           "Water vapor perturbation to use for the lookup table (makes the species nonlinear)",
+           "The species to compute the lookup table for"},
+  };
+
+  wsm_data["absorption_lookup_tablePrecomputeAll"] = {
+      .desc =
+          R"--(Compute the lookup table for all species in *absorption_bands*.
+
+Wraps *absorption_lookup_tablePrecompute* for each species, passing ``water_perturbation`` along
+for those species that are ``water_affected_species``.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"absorption_lookup_table",
+                    "ray_path_atmospheric_point",
+                    "frequency_grid",
+                    "absorption_bands",
+                    "ecs_data"},
+      .gin       = {"temperature_perturbation",
+                    "water_perturbation",
+                    "water_affected_species"},
+      .gin_type  = {"AscendingGrid", "AscendingGrid", "ArrayOfSpeciesEnum"},
+      .gin_value = {AscendingGrid{}, AscendingGrid{}, ArrayOfSpeciesEnum{}},
+      .gin_desc =
+          {"Temperature perturbation to use for the lookup table",
+           "Water vapor perturbation to use for the lookup table",
+           "A list of absorption species that are affected by water vapor perturbations nonlinearly"},
+  };
+
+  wsm_data["absorption_lookup_tableFromProfiles"] = {
+      .desc =
+          R"--(Compute the lookup table for all species in *absorption_bands*.
+
+Wraps *absorption_lookup_tablePrecomputeAll* after creating a simple
+*ray_path_atmospheric_point* from the input data.
+
+Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
+*absorption_lookup_table*
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
+      .gin       = {"pressure_profile",
+                    "temperature_profile",
+                    "vmr_profiles",
+                    "temperature_perturbation",
+                    "water_perturbation",
+                    "water_affected_species",
+                    "default_isotopologue_ratios"},
+      .gin_type  = {"DescendingGrid",
+                    "Vector",
+                    "SpeciesEnumVectors",
+                    "AscendingGrid",
+                    "AscendingGrid",
+                    "ArrayOfSpeciesEnum",
+                    "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    AscendingGrid{},
+                    AscendingGrid{},
+                    ArrayOfSpeciesEnum{},
+                    String{"Builtin"}},
+      .gin_desc =
+          {"Pressure profile [Pa]",
+           "Temperature profile [K]",
+           "Volume mixing ratio profiles {SpeciesEnum: [VMR]}",
+           "Temperature perturbation to use for the lookup table",
+           "Water vapor perturbation to use for the lookup table",
+           "A list of absorption species that are affected by water vapor perturbations nonlinearly",
+           "Default isotopologue ratio option to initialize the *AtmPoint* with"},
+  };
+
+  wsm_data["absorption_lookup_tableSimpleWide"] = {
+      .desc =
+          R"--(Set up a simple wide lookup table for all species in *absorption_bands*.
+
+This method simply computes the profiles for Earth-like atmospheres (by defaults)
+and pass them into *absorption_lookup_tableFromProfiles*.
+
+The pressure range is set up logarithmically and all other ranges are set linearly.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_lookup_table"},
+      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
+      .gin       = {"water_affected_species",
+                    "pressure_range",
+                    "temperature_range",
+                    "water_vmr_range",
+                    "isoratio_option",
+                    "vmr_value",
+                    "atmospheric_steps",
+                    "temperature_perturbation_steps",
+                    "water_vmr_perturbation_steps"},
+      .gin_type  = {"ArrayOfSpeciesEnum",
+                    "Vector2",
+                    "Vector2",
+                    "Vector2",
+                    "String",
+                    "Numeric",
+                    "Index",
+                    "Index",
+                    "Index"},
+      .gin_value = {ArrayOfSpeciesEnum{},
+                    Vector2{1e-2, 1100e2},
+                    Vector2{150, 350},
+                    Vector2{1e-4, 0.15},
+                    String{"Builtin"},
+                    Numeric{1e-9},
+                    Index{80},
+                    Index{15},
+                    Index{15}},
+      .gin_desc =
+          {"A list of absorption species that are affected by water vapor perturbations nonlinearly",
+           "Pressure range to consider - in increasing order [Pa]",
+           "Temperature range to consider - in increasing order [K]",
+           "Water VMR range to consider - in increasing order [vmr]",
+           "Default isotopologue ratio option to initialize the *AtmPoint* with",
+           "The VMR to use for the self-value broadening",
+           "Number of steps in the atmospheric profile",
+           "Number of steps in the temperature perturbation",
+           "Number of steps in the water vapor perturbation"},
   };
 
   wsm_data["sortedIndexOfBands"] = {
@@ -3846,6 +4020,98 @@ Note that you must have set the optical thickness before calling this.
                  "surface_field",
                  "absorption_bands"},
   };
+
+  /* 
+  LEAVE THESE PENULTIMATE AS THEY REQUIRE THE DATA ABOVE TO FUNCTION BUT CAN BE USED IN META CALLS
+  */
+
+  {  // propagation_matrix_agendaAuto
+    std::vector<std::string> gin{"use_absorption_lookup_table"};
+    std::vector<std::string> gin_type{"Index"};
+    std::vector<std::string> gin_desc{
+        "Whether or not to use the lookup table instead of pure line-by-line calculations"};
+    std::vector<std::optional<Wsv>> gin_value{Index{0}};
+    std::vector<std::string> gout{};
+    std::vector<std::string> gout_type{};
+    std::vector<std::string> gout_desc{};
+    const std::string meta = "propagation_matrix_agendaAuto";
+
+    for (auto& method : {"propagation_matrixInit",
+                         "propagation_matrixAddCIA",
+                         "propagation_matrixAddLines",
+                         "propagation_matrixAddFaraday",
+                         "propagation_matrixAddXsecFit",
+                         "propagation_matrixAddPredefined",
+                         "propagation_matrixAddLookup"}) {
+      try {
+        const auto& x = wsm_data.at(method);
+
+        for (Size i = 0; i < x.gin.size(); i++) {
+          if (auto ptr = std::ranges::find(gin, x.gin[i]); ptr != gin.end()) {
+            gin_desc[ptr - gin.begin()] +=
+                std::format(", *{}*", std::string_view{method});
+          } else {
+            gin.emplace_back(x.gin[i]);
+            gin_type.emplace_back(x.gin_type[i]);
+            gin_desc.emplace_back(
+                std::format("See *{}*", std::string_view{method}));
+            gin_value.emplace_back(x.gin_value[i]);
+          }
+        }
+
+        for (Size i = 0; i < x.gout.size(); i++) {
+          if (auto ptr = std::ranges::find(gout, x.gout[i]);
+              ptr != gout.end()) {
+            gout_desc[ptr - gout.begin()] +=
+                std::format(", *{}*", std::string_view{method});
+          } else {
+            gout.emplace_back(x.gout[i]);
+            gout_type.emplace_back(x.gout_type[i]);
+            gout_desc.emplace_back(
+                std::format("See *{}*", std::string_view{method}));
+          }
+        }
+      } catch (std::out_of_range&) {
+        throw std::runtime_error(std::format(
+            R"(Missing method: "{}",
+cannot generate automatic method signature for "{}"
+)",
+            method,
+            meta));
+      }
+    }
+
+    wsm_data[meta] = {
+        .desc =
+            R"--(Sets the *propagation_matrix_agenda* automatically from absorption data and species tag meta information.
+
+The following methods are considered for addition to the agenda:
+
+- *propagation_matrixAddCIA*
+- *propagation_matrixAddLines*
+- *propagation_matrixAddFaraday*
+- *propagation_matrixAddXsecFit*
+- *propagation_matrixAddPredefined*
+
+If ``use_absorption_lookup_table`` evaluates to true, lookup table
+calculations, via *propagation_matrixAddLookup*, are used instead of *propagation_matrixAddLines*.
+
+Note that the signature of this method changes depending on the input methods.  This is important
+because several generic input parameters are used in the methods.  Please see the individual methods
+for more information.
+)--",
+        .author    = {"Richard Larsson"},
+        .out       = {"propagation_matrix_agenda"},
+        .gout      = gout,
+        .gout_type = gout_type,
+        .gout_desc = gout_desc,
+        .in        = {"absorption_species", "absorption_bands"},
+        .gin       = gin,
+        .gin_type  = gin_type,
+        .gin_value = gin_value,
+        .gin_desc  = gin_desc,
+    };
+  }
 
   /*
   LEAVE THIS LAST AS IT REQUIRES THE DATA ABOVE TO FUNCTION

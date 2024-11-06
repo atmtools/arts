@@ -518,16 +518,21 @@ void isotopologue_ratiosInitFromHitran(
   isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
-void propagation_matrix_agendaAuto(  // Workspace reference:
+void propagation_matrix_agendaAuto(
     Agenda& propagation_matrix_agenda,
-    // WS Input:
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const AbsorptionBands& absorption_bands,
-    // WS Generic Input:
+    const Index& use_absorption_lookup_table,
     const Numeric& T_extrapolfac,
+    const Index& ignore_errors,
+    const Index& no_negative_absorption,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Index& ignore_errors) {
+    const Index& p_interp_order,
+    const Index& t_interp_order,
+    const Index& water_interp_order,
+    const Index& f_interp_order,
+    const Numeric& extpolfac) {
   AgendaCreator agenda("propagation_matrix_agenda");
 
   const SpeciesTagTypeStatus any_species(absorption_species);
@@ -535,9 +540,18 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   // propagation_matrixInit
   agenda.add("propagation_matrixInit");
 
-  // propagation_matrixAddLines
-  if (absorption_bands.size()) {
-    agenda.add("propagation_matrixAddLines");
+  // propagation_matrixAddLines or propagation_matrixAddLookup
+  if (use_absorption_lookup_table) {
+    agenda.add("propagation_matrixAddLookup",
+               SetWsv{"no_negative_absorption", no_negative_absorption},
+               SetWsv{"p_interp_order", p_interp_order},
+               SetWsv{"t_interp_order", t_interp_order},
+               SetWsv{"water_interp_order", water_interp_order},
+               SetWsv{"f_interp_order", f_interp_order},
+               SetWsv{"extpolfac", extpolfac});
+  } else if (absorption_bands.size()) {
+    agenda.add("propagation_matrixAddLines",
+               SetWsv{"no_negative_absorption", no_negative_absorption});
   }
 
   //propagation_matrixAddHitranXsec

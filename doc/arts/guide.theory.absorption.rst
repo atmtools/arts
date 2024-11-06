@@ -151,7 +151,7 @@ and the added emissions are given by
 .. math::
 
   K_{NLTE} = \rho \frac{c^2\nu}{8\pi} \left\{r_u\left[
-  1 - \exp\left(-\frac{h\nu_0}{kT}\right)\right] - \left(r_l \frac{g_u}{g_l} - r_u\right)
+  1 - \exp\left(\frac{h\nu_0}{kT}\right)\right] - \left(r_l \frac{g_u}{g_l} - r_u\right)
   \right\} \frac{ A_{lu}}{\nu_0^3},
 
 where :math:`r_l` and :math:`r_u` are the ratios of the populations of the lower and upper states, respectively.
@@ -196,12 +196,13 @@ This is seen by putting the above RHS and the expression for :math:`r_u` into th
 .. math::
 
   K_{NLTE} = \rho \frac{c^2\nu}{8\pi} \left\{\frac{g_u\exp\left(-\frac{E_u}{kT}\right)}{Q(T)}\left[
-    1 - \exp\left(-\frac{h\nu_0}{kT}\right)\right] - \left[1 - \exp\left(-\frac{h\nu_0}{kT}\right)\right]\frac{g_u\exp\left(-\frac{E_l}{kT}\right)}{Q(T)}
+    1 - \exp\left(\frac{h\nu_0}{kT}\right)\right] - \left[1 - \exp\left(-\frac{h\nu_0}{kT}\right)\right]\frac{g_u\exp\left(-\frac{E_l}{kT}\right)}{Q(T)}
     \right\} \frac{ A_{lu}}{\nu_0^3} = 0.
 
 The ratio between LTE and non-LTE line strength remaining is:
 
 .. math::
+
   \frac{S_{NLTE}}{S_{LTE}} = \frac{1 - \exp\left(-\frac{h\nu_0}{kT}\right)}{1 - \exp\left(-\frac{h\nu}{kT}\right)}.
 
 It is clear that the non-LTE expression is the one that is incorrect here.

@@ -113,19 +113,9 @@ void py_atm(py::module_ &m) try {
       .def(
           "number_density",
           [](AtmPoint &atm, std::variant<SpeciesEnum, SpeciesIsotope> key) {
-            return std::visit(
-                [&atm]<typename T>(const T &s) {
-                  if (not atm.has(s))
-                    throw py::key_error(var_string(s).c_str());
-
-                  Numeric nd =
-                      atm[s] * number_density(atm.pressure, atm.temperature);
-                  if constexpr (requires { s.spec; }) {
-                    nd *= atm[s.spec];
-                  }
-                  return nd;
-                },
-                key);
+            return std::visit([&atm]<typename T>(
+                                  const T &s) { return atm.number_density(s); },
+                              key);
           },
           "spec"_a,
           R"(Get the number density [1 / m :sup:`3`] of a species or of a species isotopologue.
@@ -771,6 +761,49 @@ Parameters
       py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(
           m, "ArrayOfAtmPoint");
   workspace_group_interface(aap);
+  aap.def(
+      "field1D",
+      [](const ArrayOfAtmPoint &atm,
+         const AscendingGrid &altitudes,
+         const InterpolationExtrapolation &extrap) {
+        return Atm::atm_from_profile(atm, altitudes, extrap);
+      },
+      "altitudes"_a,
+      "extrap"_a = InterpolationExtrapolation::Nearest,
+      R"(Create an atmospheric field from a profile of atmospheric points.
+
+The field is a 1D profile
+
+Parameters
+----------
+  atm : ArrayOfAtmPoint
+    The atmospheric profile.
+  altitudes : AscendingGrid
+    The altitude grid
+  extrap : InterpolationExtrapolation, optional
+    The extrapolation method to use for the new keys.  Default is "Nearest".
+)");
+
+  aap.def("extend_in_pressure",
+          &Atm::extend_in_pressure,
+          R"(Extend the atmosphere to a new pressure point.
+
+The logarithm of the pressure profile will be used as a pseudo-altitude coordinate
+in calling :method:`field1D`.  The extrapolation type will be used for the new points,
+above and below the original profile (if necessary).
+
+Parameters
+----------
+  extrapolation_type : InterpolationExtrapolation
+    The extrapolation type to use for the new points.  Default is "Nearest".
+  pressure : Numeric, optional
+    The new pressure point.
+  logarithmic : bool, optional
+    The grid should be extended as in logarithmic pressure.  Default is True.
+)",
+          "pressure"_a,
+          "extrapolation_type"_a = InterpolationExtrapolation::Nearest,
+          "logarithmic"_a = true);
 
   aap.def(
       "to_dict",

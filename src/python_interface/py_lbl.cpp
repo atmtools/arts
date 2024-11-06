@@ -6,12 +6,14 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 
 #include <iomanip>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
@@ -279,6 +281,14 @@ void py_lbl(py::module_& m) try {
           "T"_a,
           "Q"_a,
           "The line strength")
+      .def(
+          "hitran_s",
+          [](const lbl::line& self, const SpeciesIsotope& isot, Numeric T0) {
+            return self.hitran_s(isot, T0);
+          },
+          "isot"_a,
+          "T0"_a = 296.0,
+          "The HITRAN-like line strength")
       .PythonInterfaceBasicRepresentation(lbl::line)
       .doc() = "Data for an absorption line";
 
@@ -289,12 +299,36 @@ void py_lbl(py::module_& m) try {
   vector_interface(ll);
 
   py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
-  ab.def_rw("lines", &lbl::band_data::lines, "The lines in the band")
-      .def_rw("lineshape", &lbl::band_data::lineshape, "The lineshape type")
-      .def_rw("cutoff", &lbl::band_data::cutoff, "The cutoff type")
+  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band")
+      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type")
+      .def_rw("cutoff", &AbsorptionBand::cutoff, "The cutoff type")
       .def_rw("cutoff_value",
-              &lbl::band_data::cutoff_value,
-              "The cutoff value [Hz]");
+              &AbsorptionBand::cutoff_value,
+              "The cutoff value [Hz]")
+      .def(
+          "keep_frequencies",
+          [](AbsorptionBand& band, Vector2 freqs) {
+            band.sort();
+            auto l = band.active_lines(freqs[0], freqs[1]).second;
+            std::vector<lbl::line> new_lines(l.begin(), l.end());
+            band.lines = std::move(new_lines);
+          },
+          "freqs"_a,
+          "Keep only the lines within the given frequency range")
+      .def(
+          "keep_hitran_s",
+          [](AbsorptionBand& band,
+             Numeric min_s,
+             const SpeciesIsotope& isot,
+             Numeric T0) {
+            std::erase_if(band.lines, [&isot, &T0, &min_s](auto& line) {
+              return line.hitran_s(isot, T0) < min_s;
+            });
+          },
+          "min_s"_a,
+          "isot"_a,
+          "T0"_a = 296.0,
+          "Keep only the lines with a stronger HITRAN-like line strength");
   workspace_group_interface(ab);
 
   auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
@@ -363,6 +397,91 @@ Returns
 -------
 int : The number of removed variables
 )");
+
+  aoab.def(
+      "count_lines",
+      [](const AbsorptionBands& self, SpeciesEnum spec) {
+        Size n = 0;
+
+        if (spec == SpeciesEnum::Bath) {
+          for (auto& band : self | std::views::values) {
+            n += band.size();
+          }
+          return n;
+        }
+        for (auto& [key, band] : self) {
+          if (spec == key.Species()) n += band.size();
+        }
+        return n;
+      },
+      "spec"_a = SpeciesEnum::Bath,
+      "Return the total number of lines");
+
+  aoab.def(
+      "remove_hitran_s",
+      &lbl::keep_hitran_s,
+      R"(Removes all lines with a weaker HITRAN-like line strength than those provided by the remove map.
+
+Parameters
+----------
+remove : dict
+    The species to keep with their respective minimum HITRAN-like line strengths
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "remove"_a,
+      "T0"_a = 296.0);
+
+  aoab.def(
+      "percentile_hitran_s",
+      [](const AbsorptionBands& self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
+             percentile,
+         const Numeric T0) {
+        return std::visit(
+            [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
+            percentile);
+      },
+      R"(Map of HITRAN linestrengths at a given percentile
+
+.. note::
+
+  The percentile is approximated by floating point arithmetic on the sorted HITRAN line strenght values.
+
+Parameters
+----------
+percentile : float or dict
+    The percentile to keep. If a float, the same percentile is used for all species. If a dict, the species are mapped to their respective percentiles.  Values must be [0, 100].
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "approximate_percentile"_a,
+      "T0"_a = 296.0);
+
+  aoab.def(
+      "keep_hitran_s",
+      [](AbsorptionBands& self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
+             percentile,
+         const Numeric T0) {
+        lbl::keep_hitran_s(
+            self,
+            std::visit(
+                [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
+                percentile),
+            T0);
+      },
+      R"(Wraps calling percentile_hitran_s followed by remove_hitran_s.
+
+Parameters
+----------
+percentile : float or dict
+    See percentile_hitran_s.
+T0 : float
+    The reference temperature. Defaults to 296.0.
+)",
+      "approximate_percentile"_a,
+      "T0"_a = 296.0);
 
   py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
   workspace_group_interface(led);

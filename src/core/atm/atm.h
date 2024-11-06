@@ -27,9 +27,8 @@
 #include <utility>
 #include <variant>
 
-AtmKey to_wind(const String&);
-AtmKey to_mag(const String&);
-
+AtmKey to_wind(const String &);
+AtmKey to_mag(const String &);
 
 namespace Atm {
 
@@ -63,19 +62,15 @@ using KeyVal = std::variant<AtmKey,
 
 template <typename T>
 concept ListKeyType = requires(T a) {
-                        { a.size() } -> matpack::integral;
-                        { a[0] } -> KeyType;
-                      };
+  { a.size() } -> matpack::integral;
+  { a[0] } -> KeyType;
+};
 
 template <typename T>
 concept ListOfNumeric = requires(T a) {
-                          {
-                            matpack::mdshape(a)
-                            } -> std::same_as<std::array<Index, 1>>;
-                          {
-                            matpack::mdvalue(a, {Index{0}})
-                            } -> std::same_as<Numeric>;
-                        };
+  { matpack::mdshape(a) } -> std::same_as<std::array<Index, 1>>;
+  { matpack::mdvalue(a, {Index{0}}) } -> std::same_as<Numeric>;
+};
 
 struct Point {
   std::unordered_map<SpeciesEnum, Numeric> specs{};
@@ -108,6 +103,10 @@ struct Point {
 
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
+
+  [[nodiscard]] Numeric number_density() const;
+  [[nodiscard]] Numeric number_density(const SpeciesEnum &spec) const;
+  [[nodiscard]] Numeric number_density(const SpeciesIsotope &spec) const;
 
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
@@ -170,7 +169,9 @@ using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric, Numeric) const { ARTS_USER_ERROR("{}", error) }
+  Numeric operator()(Numeric, Numeric, Numeric) const {
+    ARTS_USER_ERROR("{}", error)
+  }
 };
 
 template <typename T>
@@ -279,8 +280,8 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
-      &ssprops() const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data> &
+  ssprops() const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
@@ -313,6 +314,50 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
+
+/** Returns true if the pressure is increasing
+ * 
+ * The pressure must be consistently increasing or decreasing.
+ * Otherwise, the function will throw an error.
+ * 
+ * @param a 
+ * @return true 
+ * @return false 
+ */
+bool pressure_is_increasing(const std::span<const Point> &atm);
+
+/** Create a 1D atmosphheric field from a profile
+ * 
+ * The pressure must be consistently increasing or decreasing.
+ * 
+ * The atmospheric profile is defined between two iterators.  These
+ * must be contiguous in memory with begin < end.
+ * 
+ * @param atm A span of atmospheric points
+ * @param altitudes The altitude grid
+ * @param altitude_extrapolation The way that extrapolation should be done
+ * @param top_of_atmosphere The top of the atmosphere altitude
+ * @return Field 
+ */
+Field atm_from_profile(const std::span<const Point> &atm,
+                       const AscendingGrid &altitudes,
+                       const InterpolationExtrapolation &altitude_extrapolation,
+                       const Numeric &top_of_atmosphere = NAN);
+
+/** Extends the atmosphere by adding a new point at the given pressure
+ * 
+ * The new point is created by interpolating the neighbouring points. The altitude
+ * grid for this extenstion is from the pressure profile of the atmosphere.
+ * 
+ * @param atm The profile to extend
+ * @param extrapolation_type The type of extrapolation to use
+ * @param new_pressure The new pressure to add
+ * @param logarithmic If true, the pressure is treated as a logarithmic coordinate, otherwise it is treated as a linear coordinate
+ */
+void extend_in_pressure(std::vector<Point> &atm,
+                        const Numeric &new_pressure,
+                        const InterpolationExtrapolation extrapolation_type = InterpolationExtrapolation::Nearest,
+                        const bool logarithmic = true);
 }  // namespace Atm
 
 using AtmKeyVal         = Atm::KeyVal;
@@ -330,7 +375,6 @@ bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
 bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
 std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
-
 
 template <>
 struct std::formatter<AtmKeyVal> {
@@ -540,3 +584,5 @@ struct std::formatter<AtmField> {
     return ctx.out();
   }
 };
+
+using SpeciesEnumVectors = std::unordered_map<SpeciesEnum, Vector>;

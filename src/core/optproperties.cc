@@ -365,7 +365,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
       return T_lag;
     } else {
       return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
-          T_array, T_grid, this_T_interp_order, extrapolfac);
+          T_array, T_grid, this_T_interp_order, extrapolfac, "Temperature");
     }
   } else {
     t_ok = 1.;
@@ -2088,15 +2088,9 @@ String PTypeToString(const PType& ptype) {
   String ptype_string;
 
   switch (ptype) {
-    case PTYPE_GENERAL:
-      ptype_string = "general";
-      break;
-    case PTYPE_TOTAL_RND:
-      ptype_string = "totally_random";
-      break;
-    case PTYPE_AZIMUTH_RND:
-      ptype_string = "azimuthally_random";
-      break;
+    case PTYPE_GENERAL:     ptype_string = "general"; break;
+    case PTYPE_TOTAL_RND:   ptype_string = "totally_random"; break;
+    case PTYPE_AZIMUTH_RND: ptype_string = "azimuthally_random"; break;
     default:
       ARTS_USER_ERROR(
           "Internal error: Cannot map PType enum value {} to String.", ptype)

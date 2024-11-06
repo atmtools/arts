@@ -127,6 +127,7 @@ add_library(artsworkspace STATIC
   m_jactargets.cc
   m_lbl.cc
   m_linemixing.cc
+  m_lookup.cc
   m_model_state.cc
   m_nc.cc
   m_obsel.cc

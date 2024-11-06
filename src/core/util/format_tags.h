@@ -6,8 +6,10 @@
 #include <format>
 #include <map>
 #include <ranges>
+#include <set>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 
@@ -166,6 +168,52 @@ struct arts_formattable_compat_format_tags {
   }
 };
 
+template <class FmtContext, class iterable>
+void format_value_iterable(FmtContext& ctx,
+                           const format_tags& tags,
+                           const iterable& v) {
+  const std::size_t n = std::size(v);
+  if (tags.short_str and n > 8) {
+    const auto sep = tags.sep();
+    for (auto&& s : v | std::views::take(3)) {
+      tags.format(ctx, s, sep);
+    }
+    tags.format(ctx, "..."sv);
+    for (auto&& s : v | std::views::drop(n - 3)) {
+      tags.format(ctx, sep, s);
+    }
+  } else {
+    std::string_view next = tags.sep();
+    std::string_view sep  = ""sv;
+    for (auto&& a : v) {
+      tags.format(ctx, std::exchange(sep, next), a);
+    }
+  }
+}
+
+template <class FmtContext, class iterable>
+void format_map_iterable(FmtContext& ctx,
+                         const format_tags& tags,
+                         const iterable& m) {
+  const std::size_t n = std::size(m);
+  if (tags.short_str and n > 8) {
+    const auto sep = tags.sep();
+    for (auto&& [k, v] : m | std::views::take(3)) {
+      tags.format(ctx, k, ": "sv, v, sep);
+    }
+    tags.format(ctx, "..."sv);
+    for (auto&& [k, v] : m | std::views::drop(n - 3)) {
+      tags.format(ctx, sep, k, ": "sv, v);
+    }
+  } else {
+    std::string_view next = tags.sep();
+    std::string_view sep  = ""sv;
+    for (auto&& [k, v] : m) {
+      tags.format(ctx, std::exchange(sep, next), k, ": "sv, v);
+    }
+  }
+}
+
 template <arts_formattable_or_value_type... WTs>
 struct std::formatter<std::variant<WTs...>> {
   format_tags tags;
@@ -205,15 +253,9 @@ struct std::formatter<std::unordered_map<Key, Value>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
                               FmtContext& ctx) const {
-    std::string_view sep  = "";
-    std::string_view next = tags.sep();
-
     tags.add_if_bracket(ctx, '{');
-    for (const auto& [k, val] : v) {
-      tags.format(ctx, std::exchange(sep, next), k, ": "sv, val);
-    }
+    format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
-
     return ctx.out();
   }
 };
@@ -235,15 +277,82 @@ struct std::formatter<std::map<Key, Value>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
                               FmtContext& ctx) const {
-    std::string_view sep  = "";
-    std::string_view next = tags.sep();
-
     tags.add_if_bracket(ctx, '{');
-    for (const auto& [k, val] : v) {
-      tags.format(ctx, std::exchange(sep, next), k, ": "sv, val);
-    }
+    format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
+    return ctx.out();
+  }
+};
 
+template <arts_formattable_or_value_type T>
+struct std::formatter<std::span<T>> {
+  std::conditional_t<arts_formattable<T>,
+                     std::formatter<T>,
+                     arts_formattable_compat_format_tags>
+      fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::span<T>& v, FmtContext& ctx) const {
+    inner_fmt().tags.add_if_bracket(ctx, '[');
+    format_value_iterable(ctx, inner_fmt().tags, v);
+    inner_fmt().tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <arts_formattable_or_value_type T>
+struct std::formatter<std::set<T>> {
+  std::conditional_t<arts_formattable<T>,
+                     std::formatter<T>,
+                     arts_formattable_compat_format_tags>
+      fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::set<T>& v, FmtContext& ctx) const {
+    inner_fmt().tags.add_if_bracket(ctx, '[');
+    format_value_iterable(ctx, inner_fmt().tags, v);
+    inner_fmt().tags.add_if_bracket(ctx, ']');
+    return ctx.out();
+  }
+};
+
+template <arts_formattable_or_value_type T>
+struct std::formatter<std::unordered_set<T>> {
+  std::conditional_t<arts_formattable<T>,
+                     std::formatter<T>,
+                     arts_formattable_compat_format_tags>
+      fmt;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return fmt.parse(ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::unordered_set<T>& v,
+                              FmtContext& ctx) const {
+    inner_fmt().tags.add_if_bracket(ctx, '[');
+    format_value_iterable(ctx, inner_fmt().tags, v);
+    inner_fmt().tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -266,32 +375,8 @@ struct std::formatter<std::vector<T, Allocator>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::vector<T, Allocator>& v,
                               FmtContext& ctx) const {
-    const auto n = v.size();
-
     inner_fmt().tags.add_if_bracket(ctx, '[');
-    if (inner_fmt().tags.short_str and n > 8) {
-      const auto sep = inner_fmt().tags.sep();
-      inner_fmt().tags.format(ctx,
-                              v[0],
-                              sep,
-                              v[1],
-                              sep,
-                              v[2],
-                              sep,
-                              "..."sv,
-                              v[n - 3],
-                              sep,
-                              v[n - 2],
-                              sep,
-                              v[n - 1]);
-    } else {
-      std::string_view first = inner_fmt().tags.sep();
-      std::string_view sep   = ""sv;
-      for (auto&& a : v) {
-        inner_fmt().tags.format(ctx, std::exchange(sep, first), a);
-      }
-    }
-
+    format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
@@ -315,32 +400,8 @@ struct std::formatter<std::array<T, N>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::array<T, N>& v,
                               FmtContext& ctx) const {
-    const auto n = v.size();
-
     inner_fmt().tags.add_if_bracket(ctx, '[');
-    if (inner_fmt().tags.short_str and n > 8) {
-      const auto sep = inner_fmt().tags.sep();
-      inner_fmt().tags.format(ctx,
-                              v[0],
-                              sep,
-                              v[1],
-                              sep,
-                              v[2],
-                              sep,
-                              "..."sv,
-                              v[n - 3],
-                              sep,
-                              v[n - 2],
-                              sep,
-                              v[n - 1]);
-    } else {
-      std::string_view first = inner_fmt().tags.sep();
-      std::string_view sep   = ""sv;
-      for (auto&& a : v) {
-        inner_fmt().tags.format(ctx, std::exchange(sep, first), a);
-      }
-    }
-
+    format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

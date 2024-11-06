@@ -70,6 +70,8 @@ struct AtmTarget {
   void update(AtmField& atm, const Vector& x) const;
 
   void update(Vector& x, const AtmField& atm) const;
+
+  [[nodiscard]] bool is_wind() const;
 };
 
 struct SurfaceTarget {

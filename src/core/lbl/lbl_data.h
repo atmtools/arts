@@ -13,6 +13,7 @@
 
 #include <format>
 #include <limits>
+#include <unordered_set>
 #include <vector>
 
 #include "lbl_lineshape_model.h"
@@ -119,9 +120,21 @@ struct line {
    * 
    * @param hitran_s The HITRAN line strength
    * @param isot The isotope to use - required to get the correct partition function
+   * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
    * @return Numeric Hitran equivalent linestrength
    */
-  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s, const SpeciesIsotope& isot);
+  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s,
+                                 const SpeciesIsotope& isot,
+                                 const Numeric T0 = 296.0) const;
+
+  /** The HITRAN equivalent line strength
+   * 
+   * @param isot The isotope to use
+   * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
+   * @return Numeric The HITRAN equivalent line strength (including isotopoic ratio)
+   */
+  [[nodiscard]] Numeric hitran_s(const SpeciesIsotope& isot,
+                                 const Numeric T0 = 296.0) const;
 
   friend std::ostream& operator<<(std::ostream& os, const line& x);
 
@@ -160,10 +173,8 @@ struct band_data {
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const {
     using enum LineByLineCutoffType;
     switch (cutoff) {
-      case None:
-        return std::numeric_limits<Numeric>::infinity();
-      case ByLine:
-        return cutoff_value;
+      case None:   return std::numeric_limits<Numeric>::infinity();
+      case ByLine: return cutoff_value;
     }
     return -1;
   }
@@ -221,13 +232,63 @@ struct line_key {
 
   friend std::ostream& operator<<(std::ostream& os, const line_key& x);
 
-  [[nodiscard]] Numeric& get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
-  [[nodiscard]] const Numeric& get_value(const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] Numeric& get_value(
+      std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] const Numeric& get_value(
+      const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
 
-std::ostream& operator<<(std::ostream& os, const std::unordered_map<QuantumIdentifier, band_data>& x);
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::unordered_map<QuantumIdentifier, band_data>& x);
+
+/** Returns all species in the band, including those that are broadening species
+ * 
+ * @param bands The bands to search
+ * @return std::unordered_set<SpeciesEnum> 
+ */
+std::unordered_set<SpeciesEnum> species_in_bands(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands);
+
+/** Wraps keep_hitran_s for band_data per species, to remove all lines that are not in the keep map
+ * 
+ * @param bands The bands to use
+ * @param keep A map of species to minimum hitran_s values to keep.  Missing species keep all their lines.
+ * @param T0 The reference temperature.  Defaults to 296.0.
+ */
+void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
+                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
+                   const Numeric T0 = 296);
+
+/** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
+ * 
+ * The same percentile of lines are kept for all species
+ * 
+ * @param bands The bands to use
+ * @param approx_percentile The percentile to keep [0, 100]
+ * @param T0 The reference temperature.  Defaults to 296.0.
+ * @return A map of species to minimum hitran_s values to keep
+ */
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const Numeric approx_percentile,
+    const Numeric T0 = 296);
+
+/** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
+ * 
+ * Only species in the approx_percentile map are affected.  Otherwise acts like the pure index version.
+ * 
+ * @param bands The bands to use
+ * @param approx_percentile The percentile to keep species: [0, 100]
+ * @param T0 The reference temperature.  Defaults to 296.0.
+ * @return A map of species to minimum hitran_s values to keep
+ */
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
+    const Numeric T0 = 296);
 }  // namespace lbl
 
 //! Support hashing of line keys

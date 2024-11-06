@@ -11,6 +11,8 @@
 
 #include "lbl_zeeman.h"
 
+#include <utility>
+
 #include "arts_constexpr_math.h"
 #include "debug.h"
 #include "double_imanip.h"
@@ -128,9 +130,8 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 
 data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
-    if (qid.val.has(QuantumNumberType::J,
-                    QuantumNumberType::N,
-                    QuantumNumberType::v)) {
+    if (qid.val.has(
+            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
       if (qid.val[QuantumNumberType::v].low() == 0 and
           qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002084;
@@ -161,9 +162,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       }
     }
   } else if (qid.Isotopologue() == "O2-68"_isot) {
-    if (qid.val.has(QuantumNumberType::J,
-                    QuantumNumberType::N,
-                    QuantumNumberType::v)) {
+    if (qid.val.has(
+            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
       if (qid.val[QuantumNumberType::v].low() == 0 and
           qid.val[QuantumNumberType::v].upp() == 0) {
         constexpr Numeric GS  = 2.002025;

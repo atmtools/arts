@@ -194,16 +194,20 @@ const Numeric& line_key::get_value(const AbsorptionBands& b) const {
   return local_get_value(b, *this);
 }
 
-[[nodiscard]] Numeric line::hitran_a(const Numeric hitran_s,
-                                     const SpeciesIsotope& isot) {
-  constexpr Numeric T0 = 296.0;
-  const Numeric Q0     = PartitionFunctions::Q(T0, isot);
-  const Numeric Ia     = Hitran::isotopologue_ratios()[isot];
+Numeric line::hitran_a(const Numeric hitran_s,
+                       const SpeciesIsotope& isot,
+                       const Numeric T0) const {
+  const Numeric Q0 = PartitionFunctions::Q(T0, isot);
+  const Numeric Ia = Hitran::isotopologue_ratios()[isot];
 
   //! Note negative value because expm1 is used as a more accurate form of (1 - exp(x)) for exp(x) close to 1.
   return -8.0 * pi * Q0 * hitran_s /
          (Ia * gu * exp(-e0 / (k * T0)) * expm1(-(h * f0) / (k * T0)) *
           pow2(c / f0));
+}
+
+Numeric line::hitran_s(const SpeciesIsotope& isot, const Numeric T0) const {
+  return a / hitran_a(1.0, isot, T0);
 }
 
 bool band_data::merge(const line& linedata) {
@@ -215,5 +219,93 @@ bool band_data::merge(const line& linedata) {
   }
   lines.push_back(linedata);
   return true;
+}
+
+std::unordered_set<SpeciesEnum> species_in_bands(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands) {
+  std::unordered_set<SpeciesEnum> out;
+  for (auto& [key, data] : bands) {
+    out.insert(key.Species());
+
+    for (auto& line : data.lines) {
+      for (auto spec :
+           line.ls.single_models |
+               std::views::transform([](auto& x) { return x.species; })) {
+        out.insert(spec);
+      }
+    }
+  }
+  return out;
+}
+
+void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
+                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
+                   const Numeric T0) {
+  for (auto& [key, data] : bands) {
+    const auto ptr = keep.find(key.Species());
+    if (ptr != keep.end()) {
+      std::erase_if(data.lines, [&key, &T0, &min_s = ptr->second](line& line) {
+        return line.hitran_s(key.Isotopologue(), T0) < min_s;
+      });
+    }
+  }
+}
+
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const Numeric approx_percentile,
+    const Numeric T0) {
+  ARTS_USER_ERROR_IF(approx_percentile < 0 or approx_percentile > 100,
+                     "Approximate percentile must be between 0 and 100");
+
+  std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
+  for (auto& [key, data] : bands) {
+    for (auto& line : data.lines) {
+      compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+    }
+  }
+
+  std::unordered_map<SpeciesEnum, Numeric> out;
+  for (auto& [spec, values] : compute) {
+    if (const Size N = values.size(); N != 0) {
+      std::ranges::sort(values);
+      const Size i =
+          static_cast<Size>(static_cast<Numeric>(N) * approx_percentile * 0.01);
+      out[spec] = values[std::clamp<Size>(i, 0, N - 1)];
+    }
+  }
+
+  return out;
+}
+
+std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
+    const std::unordered_map<QuantumIdentifier, band_data>& bands,
+    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
+    const Numeric T0) {
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(approx_percentile | std::views::values,
+                          [](auto i) { return i < 0 or i > 100; }),
+      "Approximate percentile must be between 0 and 100");
+
+  std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
+  for (auto& [key, data] : bands) {
+    if (approx_percentile.contains(key.Species())) {
+      for (auto& line : data.lines) {
+        compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+      }
+    }
+  }
+
+  std::unordered_map<SpeciesEnum, Numeric> out;
+  for (auto& [spec, values] : compute) {
+    if (const Size N = values.size(); N != 0) {
+      std::ranges::sort(values);
+      const Size i = static_cast<Size>(static_cast<Numeric>(N) *
+                                       approx_percentile.at(spec) * 0.01);
+      out[spec]    = values[std::clamp<Size>(i, 0, N - 1)];
+    }
+  }
+
+  return out;
 }
 }  // namespace lbl

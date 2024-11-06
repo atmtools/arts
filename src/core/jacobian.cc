@@ -22,6 +22,11 @@ void AtmTarget::update(Vector& x, const AtmField& atm) const {
   set_state(x.slice(x_start, x_size), atm, type);
 }
 
+bool AtmTarget::is_wind() const {
+  return type == AtmKey::wind_u or type == AtmKey::wind_v or
+         type == AtmKey::wind_w;
+}
+
 std::ostream& operator<<(std::ostream& os, const SurfaceTarget& target) {
   return os << "Surface key value: " << target.type << ", starting at "
             << target.x_start << " of size " << target.x_size;
