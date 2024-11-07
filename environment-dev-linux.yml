@@ -31,6 +31,7 @@ dependencies:
         - scipy
         - setuptools
         - sphinx=8
+        - sphinx-copybutton
         - sphinx-favicon
         - sphinx-rtd-theme=3
         - sphinxcontrib-jquery
