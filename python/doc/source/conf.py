@@ -312,6 +312,11 @@ autosummary_generate = True
 
 nbsphinx_execute = "always"
 
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
 # -- Intersphinx configuration -------------------------------------------
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.11', None),
@@ -334,6 +339,8 @@ plot_rcparams = {
     'font.size': 16,
     'savefig.bbox': 'tight',
 }
+
+plot_formats = [('svg', 96), ('pdf', 96)]
 
 # -- Favicon ----------------------------------------------------------------
 favicons = [
