@@ -36,6 +36,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'sphinx_copybutton',
     'sphinx_favicon',
     'sphinxcontrib.mermaid',
     'matplotlib.sphinxext.plot_directive',
