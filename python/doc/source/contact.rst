@@ -4,6 +4,11 @@ Contact
 GitHub
 ------
 * `Submit a bug report <https://github.com/atmtools/arts/issues/new/choose>`_
+* `Discussions on GitHub <https://github.com/atmtools/arts/discussions>`_
+
+.. note::
+    Please use the Github issue tracker for bug reports and the discussions section for questions and comments if possible.
+    Only use the mailing lists if you're unable to use the GitHub website.
 
 User email list
 ---------------

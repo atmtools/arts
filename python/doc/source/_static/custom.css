@@ -131,3 +131,16 @@
 .wy-menu-vertical li.toctree-l2 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l3 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l4 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l5 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l6 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l7 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l8 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l9 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l10 a:hover button.toctree-expand {
     color: rgb(64, 64, 64);
 }
+
+div.nbinput.container, div.nboutput.container {
+    margin-bottom: 24px;
+}
+
+.rst-content .toctree-wrapper>p.caption, h1, h2, h3, h4, h5, h6, legend {
+    margin-top: 24px;
+}
+
+.rst-content .toctree-wrapper > p.caption, .rst-content h1, .rst-content h2, .rst-content h3, .rst-content h4, .rst-content h5, .rst-content h6 {
+    margin-bottom:12px;
+}
+
