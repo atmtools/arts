@@ -1,6 +1,8 @@
 #include "absorption_vector.h"
 #include "test_utils.h"
 
+#include <iostream>
+
 bool test_absorption_vector_tro() {
   using AbsorptionVector =
       scattering::AbsorptionVectorData<Numeric,

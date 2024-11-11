@@ -3,6 +3,8 @@
 #include <numbers>
 #include <ranges>
 
+#include <iostream>
+
 #include "arts_conversions.h"
 #include "interpolation.h"
 #include "matpack/matpack_concepts.h"

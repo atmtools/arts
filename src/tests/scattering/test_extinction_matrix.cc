@@ -1,6 +1,8 @@
 #include "extinction_matrix.h"
 #include "test_utils.h"
 
+#include <iostream>
+
 bool test_extinction_matrix_tro() {
   using ExtinctionMatrix =
       scattering::ExtinctionMatrixData<Numeric,
