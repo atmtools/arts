@@ -7,7 +7,6 @@
 
 #include <cmath>
 #include <format>
-#include <iostream>
 #include <variant>
 
 #include "properties.h"
@@ -54,9 +53,7 @@ using BulkScatteringProperties = scattering::BulkScatteringProperties<format, re
   * and provides convenience functions to calculate their bulk scattering
   * properties.
   */
-class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
- public:
-
+struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
   void add(const scattering::Species& species) { push_back(species); }
   void prepare_scattering_data(scattering::ScatteringDataSpec) {}
 
@@ -69,11 +66,14 @@ class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
     auto &scat_spec = this->operator[](0);
     auto bsp = std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_tro_gridded<stokes_dim>(atm_point, f_grid, za_scat_grid);},
                           scat_spec);
-    for (Index ind = 1; ind < size(); ++ind) {
-      auto scat_spec = this->operator[](ind);
-      bsp += std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_tro_gridded<stokes_dim>(atm_point, f_grid, za_scat_grid);},
-                        scat_spec);
-
+    for (Size ind = 1; ind < size(); ++ind) {
+      auto& scat_spec  = this->operator[](ind);
+      bsp             += std::visit(
+          [&](const auto& spec) {
+            return spec.template get_bulk_scattering_properties_tro_gridded<
+                            stokes_dim>(atm_point, f_grid, za_scat_grid);
+          },
+          scat_spec);
     }
     return bsp;
   }
@@ -87,10 +87,14 @@ class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
     auto &scat_spec = this->operator[](0);
     auto bsp = std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_tro_spectral<stokes_dim>(atm_point, f_grid, degree);},
                           scat_spec);
-    for (Index ind = 1; ind < size(); ++ind) {
-      auto scat_spec = this->operator[](ind);
-      bsp += std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_tro_spectral<stokes_dim>(atm_point, f_grid, degree);},
-                        scat_spec);
+    for (Size ind = 1; ind < size(); ++ind) {
+      auto& scat_spec  = this->operator[](ind);
+      bsp             += std::visit(
+          [&](const auto& spec) {
+            return spec.template get_bulk_scattering_properties_tro_spectral<
+                            stokes_dim>(atm_point, f_grid, degree);
+          },
+          scat_spec);
     }
     return bsp;
   }
@@ -106,10 +110,15 @@ class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
     auto &scat_spec = this->operator[](0);
     auto bsp = std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_aro_gridded<stokes_dim>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);},
                           scat_spec);
-    for (Index ind = 1; ind < size(); ++ind) {
-      auto scat_spec = this->operator[](ind);
-      bsp += std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_aro_gridded<stokes_dim>(atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);},
-                        scat_spec);
+    for (Size ind = 1; ind < size(); ++ind) {
+      auto& scat_spec  = this->operator[](ind);
+      bsp             += std::visit(
+          [&](const auto& spec) {
+            return spec.template get_bulk_scattering_properties_aro_gridded<
+                            stokes_dim>(
+                atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
+          },
+          scat_spec);
     }
     return bsp;
   }
@@ -125,10 +134,14 @@ class ArrayOfScatteringSpecies : std::vector<scattering::Species> {
     auto &scat_spec = this->operator[](0);
     auto bsp = std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_aro_spectral<stokes_dim>(atm_point, f_grid, za_inc_grid, degree, order);},
                           scat_spec);
-    for (Index ind = 1; ind < size(); ++ind) {
-      auto scat_spec = this->operator[](ind);
-      bsp += std::visit([&](const auto& spec) {return spec.template get_bulk_scattering_properties_aro_spectral<stokes_dim>(atm_point, f_grid, za_inc_grid, degree, order);},
-                        scat_spec);
+    for (Size ind = 1; ind < size(); ++ind) {
+      auto& scat_spec  = this->operator[](ind);
+      bsp             += std::visit(
+          [&](const auto& spec) {
+            return spec.template get_bulk_scattering_properties_aro_spectral<
+                            stokes_dim>(atm_point, f_grid, za_inc_grid, degree, order);
+          },
+          scat_spec);
     }
     return bsp;
   }

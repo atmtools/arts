@@ -1452,6 +1452,84 @@ this method.
                     R"--(Positive value forces constant temperature [K].)--"},
   };
 
+  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectralInit"] = {
+      .desc =
+          R"--(Initialize *propagation_matrix_scattering_totally_random_orientation_spectral* and co to zeroes.
+
+This method must be used inside *propagation_matrix_scattering_totally_random_orientation_spectral* and then be called first.
+)--",
+      .author = {"Richard Larsson"},
+      .out =
+          {
+              "propagation_matrix_scattering_totally_random_orientation_spectral",
+              "absorption_vector_scattering_totally_random_orientation_spectral",
+              "phase_matrix_scattering_totally_random_orientation_spectral",
+          },
+      .in = {"frequency_grid", "legendre_degree"},
+  };
+
+  wsm_data["legendre_degreeFromDisortSettings"] = {
+      .desc =
+          R"--(Sets *legendre_degree* to *disort_settings* ``legendre_polynomial_dimension``
+
+Method is purely for convenience and composition.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"legendre_degree"},
+      .in     = {"disort_settings"},
+  };
+
+  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies"] = {
+      .desc =
+          R"--(Adds *scattering_species* results for totally random oriented spectral calculations to
+*propagation_matrix_scattering_totally_random_orientation_spectral* and co.
+)--",
+      .author = {"Richard Larsson"},
+      .out =
+          {
+              "propagation_matrix_scattering_totally_random_orientation_spectral",
+              "absorption_vector_scattering_totally_random_orientation_spectral",
+              "phase_matrix_scattering_totally_random_orientation_spectral",
+          },
+      .in =
+          {
+              "propagation_matrix_scattering_totally_random_orientation_spectral",
+              "absorption_vector_scattering_totally_random_orientation_spectral",
+              "phase_matrix_scattering_totally_random_orientation_spectral",
+              "frequency_grid",
+              "atmospheric_point",
+              "scattering_species",
+          },
+  };
+
+  wsm_data["ray_path_propagation_matrixAddTotallyRandomOrientationSpectral"] = {
+      .desc =
+          R"--(Adds *ray_path_propagation_matrix_scattering_totally_random_orientation_spectral* to *ray_path_propagation_matrix*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_propagation_matrix"},
+      .in =
+          {"ray_path_propagation_matrix",
+           "ray_path_propagation_matrix_scattering_totally_random_orientation_spectral"},
+  };
+
+  wsm_data["ray_path_propagation_matrix_scattering_totally_random_orientation_spectralFromAgenda"] = {
+      .desc =
+          R"--(Compute *ray_path_propagation_matrix_scattering_totally_random_orientation_spectral* and co for a path.
+)--",
+      .author = {"Richard Larsson"},
+      .out =
+          {"ray_path_propagation_matrix_scattering_totally_random_orientation_spectral",
+           "ray_path_absorption_vector_scattering_totally_random_orientation_spectral",
+           "ray_path_phase_matrix_scattering_totally_random_orientation_spectral"},
+      .in =
+          {"ray_path_frequency_grid",
+           "ray_path_atmospheric_point",
+           "legendre_degree",
+           "propagation_matrix_scattering_totally_random_orientation_spectral_agenda"},
+      .pass_workspace = true,
+  };
+
   wsm_data["propagation_matrix_scatteringInit"] = {
       .desc =
           R"--(Initialize *propagation_matrix_scattering* to zeroes.
@@ -1505,14 +1583,32 @@ See *propagation_matrix_agendaPredefined* for valid ``option``
       .gin_desc  = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["propagation_matrix_scattering_agendaSet"] = {
-      .desc =
-          R"--(Sets *propagation_matrix_scattering_agenda* to a default value
+  wsm_data["propagation_matrix_agendaSet"] = {
+      .desc      = R"--(Sets *propagation_matrix_agenda* to a default value
 
-See *propagation_matrix_scattering_agendaPredefined* for valid ``option``
+Please consider using *propagation_matrix_agendaAuto* instead of one of these options
+as it will ensure you have the best coverage of use cases.  The options below are
+available for feature testing
+
+See *propagation_matrix_agendaPredefined* for valid ``option``
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_scattering_agenda"},
+      .out       = {"propagation_matrix_agenda"},
+      .gin       = {"option"},
+      .gin_type  = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {R"--(Default agenda option (see description))--"},
+  };
+
+  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectral_agendaSet"] = {
+      .desc =
+          R"--(Sets *propagation_matrix_scattering_totally_random_orientation_spectral_agenda* to a default value
+
+See *propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined* for valid ``option``
+)--",
+      .author = {"Richard Larsson"},
+      .out =
+          {"propagation_matrix_scattering_totally_random_orientation_spectral_agenda"},
       .gin       = {"option"},
       .gin_type  = {"String"},
       .gin_value = {std::nullopt},
@@ -3681,6 +3777,39 @@ Description of the special input arguments:
       .gin_type  = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The value of the covariance matrix diagonal"},
+  };
+
+  wsm_data["scattering_speciesInit"] = {
+      .desc   = R"(Initialize scattering species.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"scattering_species"},
+      .in     = {},
+  };
+
+  wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
+      .desc   = R"(Sets the legendre coefficients from the path-variable.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in =
+          {
+              "disort_settings",
+              "ray_path_phase_matrix_scattering_totally_random_orientation_spectral",
+          },
+  };
+
+  wsm_data["disort_settingsSingleScatteringAlbedoFromPath"] = {
+      .desc   = R"(Sets the single scattering albedo from the path-variable.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in =
+          {
+              "disort_settings",
+              "ray_path_propagation_matrix_scattering_totally_random_orientation_spectral",
+              "ray_path_absorption_vector_scattering_totally_random_orientation_spectral",
+          },
   };
 
   wsm_data["disort_settingsNoSun"] = {

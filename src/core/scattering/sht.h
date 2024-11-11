@@ -38,7 +38,6 @@
 #include <scattering/integration.h>
 
 #include <complex>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <numbers>
@@ -561,6 +560,7 @@ class SHTProvider {
    * @return shared pointer to SHT instance.
    */
   std::shared_ptr<SHT> get_instance(SHTParams params) {
+#pragma omp critical
     if (sht_instances_.count(params) == 0) {
       sht_instances_[params] =
           std::make_shared<SHT>(params[0], params[1], params[2], params[3]);

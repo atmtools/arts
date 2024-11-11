@@ -1,15 +1,29 @@
 #include "henyey_greenstein.h"
 
 #include <cmath>
+
 #include "math_funcs.h"
 
 namespace scattering {
+HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
+    ExtSSACallback ext_ssa_callback_, const Numeric& g_)
+    : ext_ssa_callback(std::move(ext_ssa_callback_)), g(g_) {
+  if (std::abs(g) > 1)
+    throw std::runtime_error(
+        "The Henyey-Greenstein asymmetry parameter g must be in the range [-1, 1].");
+}
 
-  HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(ExtSSACallback ext_ssa_callback_,
-                                                       const Numeric& g_)
-    : ext_ssa_callback(ext_ssa_callback_),
-      g(g_){};
-
+HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
+    ScatteringSpeciesProperty extinction_field,
+    ScatteringSpeciesProperty ssa_field,
+    const Numeric& g_)
+    : ext_ssa_callback(ExtinctionSSALookup(std::move(extinction_field),
+                                           std::move(ssa_field))),
+      g(g_) {
+  if (std::abs(g) > 1)
+    throw std::runtime_error(
+        "The Henyey-Greenstein asymmetry parameter g must be in the range [-1, 1].");
+}
 
   template <Index stokes_dim>
   BulkScatteringProperties<Format::TRO, Representation::Gridded, stokes_dim>
@@ -49,35 +63,46 @@ namespace scattering {
 
   template <Index stokes_dim>
   BulkScatteringProperties<Format::TRO, Representation::Spectral, stokes_dim>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
-                                                                         const Vector& f_grid,
-                                                                         Index l) const {
-    auto t_grid = std::make_shared<Vector>(Vector{0.0});
+  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(
+      const AtmPoint& atm_point, const Vector& f_grid, Index l) const {
+    auto t_grid     = std::make_shared<Vector>(Vector{0.0});
     auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral, stokes_dim> pm{t_grid,
-                                                                                   f_grid_ptr,
-                                                                                   sht::provider.get_instance_lm(l, 0)};
-    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Spectral, stokes_dim> emd{t_grid, f_grid_ptr};
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral, stokes_dim>
+        pm{t_grid, f_grid_ptr, sht::provider.get_instance_lm(l, 0)};
+    ExtinctionMatrixData<Numeric,
+                         Format::TRO,
+                         Representation::Spectral,
+                         stokes_dim>
+        emd{t_grid, f_grid_ptr};
 
-    AbsorptionVectorData<Numeric, Format::TRO, Representation::Spectral, stokes_dim> av{t_grid, f_grid_ptr};
+    AbsorptionVectorData<Numeric,
+                         Format::TRO,
+                         Representation::Spectral,
+                         stokes_dim>
+        av{t_grid, f_grid_ptr};
+
+    constexpr Numeric inv_sphere = 0.5 * Constant::inv_sqrt_pi;  // sqrt(1/4pi)
+    Vector f(l + 1, inv_sphere);
+    for (Index ind = 1; ind <= l; ind++) {
+      f[ind] *= std::sqrt(2 * ind + 1) * std::pow(g, ind);
+    }
 
     for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
-
-      float extinction, ssa;
-      std::tie(extinction, ssa) = ext_ssa_callback(f_grid[f_ind], atm_point);
-      float scattering_xsec = extinction * ssa;
+      const auto [extinction, ssa] = ext_ssa_callback(f_grid[f_ind], atm_point);
+      const auto scattering_xsec   = extinction * ssa;
 
       for (Index ind = 0; ind <= l; ++ind) {
-        pm(0, f_ind, ind, 0) = sqrt((2.0 * static_cast<Numeric>(ind) + 1.0) * 4.0 * Constant::pi) * std::pow(g, static_cast<Numeric>(ind));
+        pm(0, f_ind, ind, 0) = f[ind] * scattering_xsec;
       }
 
-      pm *= scattering_xsec / (4.0 * Constant::pi);
-
       emd(0, f_ind, 0) = extinction;
-      av(0, f_ind, 0) = extinction - scattering_xsec;
+      av(0, f_ind, 0)  = extinction - scattering_xsec;
     }
-    return BulkScatteringProperties<Format::TRO, Representation::Spectral, stokes_dim>{pm, emd, av};
+
+    return {.phase_matrix      = std::move(pm),
+            .extinction_matrix = std::move(emd),
+            .absorption_vector = std::move(av)};
   }
 
   template <Index stokes_dim>

@@ -475,6 +475,22 @@ if good cases, so we have provide this selection mechanism to make them match.
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name =
+          "propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined",
+      .desc =
+          R"(The types of predefined *propagation_matrix_scattering_totally_random_orientation_spectral_agenda*.
+)",
+      .values_and_desc =
+          {
+              Value{"FromSpecies", R"(
+
+  - *propagation_matrix_scattering_totally_random_orientation_spectralInit*
+  - *propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies*
+)"},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "propagation_matrix_scattering_agendaPredefined",
       .desc = R"(The types of predefined *propagation_matrix_scattering_agenda*.
 )",
@@ -523,6 +539,26 @@ if good cases, so we have provide this selection mechanism to make them match.
   - *ray_path_propagation_matrixFromPath*
   - *ray_path_pointLowestFromPath*
   - *disort_settingsInit*
+  - *disort_settingsOpticalThicknessFromPath*
+  - *disort_settingsLayerThermalEmissionLinearInTau*
+  - *disort_settingsSurfaceEmissionByTemperature*
+  - *disort_settingsCosmicMicrowaveBackgroundRadiation*
+  - *disort_settingsNoSurfaceScattering*
+  - *disort_settingsNoSingleScatteringAlbedo*
+  - *disort_settingsNoFractionalScattering*
+  - *disort_settingsNoLegendre*
+  - *disort_settingsNoSun*
+)"},
+              Value{"ScatteringSpecies", R"(
+
+  - *jacobian_targetsInit*
+  - *jacobian_targetsFinalize*
+  - *ray_path_atmospheric_pointFromPath*
+  - *ray_path_frequency_gridFromPath*
+  - *ray_path_propagation_matrixFromPath*
+  - *ray_path_pointLowestFromPath*
+  - *disort_settingsInit*
+  - *legendre_degreeFromDisortSettings*
   - *disort_settingsOpticalThicknessFromPath*
   - *disort_settingsLayerThermalEmissionLinearInTau*
   - *disort_settingsSurfaceEmissionByTemperature*

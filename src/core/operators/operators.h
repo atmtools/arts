@@ -18,7 +18,7 @@
 template <typename R, typename... Args>
 struct CustomOperator {
   using func_t = std::function<R(Args...)>;
-  func_t f;
+  func_t f{[](Args...) -> R { throw std::runtime_error("CustomOperator not set"); std::unreachable(); }};
 
   friend std::ostream &operator<<(std::ostream &os, const CustomOperator &) {
     return os << "custom-operator";

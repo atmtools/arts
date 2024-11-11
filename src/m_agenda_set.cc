@@ -9,6 +9,11 @@ void propagation_matrix_scattering_agendaSet(Agenda& out,
   out = get_propagation_matrix_scattering_agenda(option);
 }
 
+void propagation_matrix_scattering_totally_random_orientation_spectral_agendaSet(Agenda& out,
+                                                                                const String& option) {
+  out = get_propagation_matrix_scattering_totally_random_orientation_spectral_agenda(option);
+}
+
 void spectral_radiance_surface_agendaSet(Agenda& out, const String& option) {
   out = get_spectral_radiance_surface_agenda(option);
 }

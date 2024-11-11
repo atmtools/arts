@@ -3,10 +3,14 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
+#include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/function.h>
 
 #include "hpy_arts.h"
+#include "nanobind/nanobind.h"
+#include "nanobind/stl/bind_vector.h"
 #include "py_macros.h"
 
 NB_MAKE_OPAQUE(scattering::ZenithAngleGrid);
@@ -249,6 +253,7 @@ void py_scattering_species(py::module_ &m) try {  //
   py::class_<MGDSingleMoment>(m, "MGDSingleMoment");
   py::class_<ScatteringHabit>(m, "ScatteringHabit");
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
+    .def(py::init<ExtSSACallback, Numeric>(), "func"_a, "g"_a)
     .def(py::init<>())
     .def(py::init<ScatteringSpeciesProperty, ScatteringSpeciesProperty, Numeric>())
     .def("get_bulk_scattering_properties_tro_spectral",
@@ -298,6 +303,7 @@ void py_scattering_species(py::module_ &m) try {  //
   py::class_<ArrayOfScatteringSpecies> aoss(m, "ArrayOfScatteringSpecies");
   aoss
     .def(py::init<>())
+    .def(py::init_implicit<std::vector<ScatteringSpecies>>())
     .def("add", &ArrayOfScatteringSpecies::add)
     .def("get_bulk_scattering_properties_tro_spectral",
          [](const ArrayOfScatteringSpecies& aoss,

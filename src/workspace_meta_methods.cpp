@@ -58,6 +58,19 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .preset_gin_value = {String{"Clearsky"}}});
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "disort_spectral_radiance_fieldScatteringSpecies",
+      .desc    = "Use Disort for clearsky calculations of spectral flux field",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricDownlooking",
+                  "disort_settings_agendaSet",
+                  "disort_spectral_radiance_fieldFromAgenda"},
+      .out     = {"disort_spectral_radiance_field",
+                  "disort_quadrature_angles",
+                  "disort_quadrature_weights"},
+      .preset_gin       = {"option"},
+      .preset_gin_value = {String{"ScatteringSpecies"}}});
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
       .desc    = "Apply unit changes to spectral radiance and its Jacobian",
       .author  = {"Richard Larsson"},

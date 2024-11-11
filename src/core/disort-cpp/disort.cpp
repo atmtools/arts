@@ -537,12 +537,14 @@ void main_data::check_input_size() const {
 
 void main_data::check_input_value() const {
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
-                     "tau_arr must be strictly positive");
+                     "tau_arr must be strictly positive, got {:B,}",
+                     tau_arr);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(omega_arr,
                           [](auto&& omega) { return omega >= 1 or omega < 0; }),
-      "omega_arr must be [0, 1)");
+      "omega_arr must be [0, 1), but got {:B,}",
+      omega_arr);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(Leg_coeffs_all,
@@ -552,24 +554,29 @@ void main_data::check_input_value() const {
                                      return std::abs<Numeric>(u) > 1;
                                    });
                           }),
-      "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere");
+      "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
+      Leg_coeffs_all);
 
-  ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative");
+  ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative, got {}", I0);
 
   ARTS_USER_ERROR_IF(phi0 < 0 or phi0 >= Constant::two_pi,
-                     "phi0 must be [0, 2*pi)");
+                     "phi0 must be [0, 2*pi), got {}",
+                     phi0);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
-      "f_arr must be [0, 1]");
+      "f_arr must be [0, 1], got {:B,}",
+      f_arr);
 
-  ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1]");
+  ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(
           mu_arr.slice(0, N),
           [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
-      "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0.");
+      "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0. Got mu_arr {:B,} for mu0 {}",
+      mu_arr,
+      mu0);
 }
 
 void main_data::update_all(const Numeric I0_) try {
