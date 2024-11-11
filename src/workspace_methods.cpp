@@ -1600,6 +1600,20 @@ See *propagation_matrix_agendaPredefined* for valid ``option``
       .gin_desc  = {R"--(Default agenda option (see description))--"},
   };
 
+  wsm_data["propagation_matrix_scattering_agendaSet"] = {
+      .desc =
+          R"--(Sets *propagation_matrix_scattering_agenda* to a default value
+
+See *propagation_matrix_scattering_agendaPredefined* for valid ``option``
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"propagation_matrix_scattering_agenda"},
+      .gin       = {"option"},
+      .gin_type  = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {R"--(Default agenda option (see description))--"},
+  };
+
   wsm_data["propagation_matrix_scattering_totally_random_orientation_spectral_agendaSet"] = {
       .desc =
           R"--(Sets *propagation_matrix_scattering_totally_random_orientation_spectral_agenda* to a default value
