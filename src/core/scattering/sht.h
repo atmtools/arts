@@ -41,6 +41,7 @@
 #include <map>
 #include <memory>
 #include <numbers>
+#include <utility>
 
 typedef struct shtns_info *shtns_cfg;
 
@@ -559,22 +560,11 @@ class SHTProvider {
    * for explanation of their significance.
    * @return shared pointer to SHT instance.
    */
-  std::shared_ptr<SHT> get_instance(SHTParams params) {
-#pragma omp critical
-    if (sht_instances_.count(params) == 0) {
-      sht_instances_[params] =
-          std::make_shared<SHT>(params[0], params[1], params[2], params[3]);
-    }
-    return sht_instances_[params];
-  }
+  std::shared_ptr<SHT> get_instance(SHTParams params [[maybe_unused]]);
 
-  std::shared_ptr<SHT> get_instance(Index n_aa, Index n_za) {
-    return get_instance(SHT::get_config_lonlat(n_aa, n_za));
-  }
+  std::shared_ptr<SHT> get_instance(Index n_aa, Index n_za);
 
-  std::shared_ptr<SHT> get_instance_lm(Index l_max, Index m_max) {
-    return get_instance(SHT::get_config_lm(l_max, m_max));
-  }
+  std::shared_ptr<SHT> get_instance_lm(Index l_max, Index m_max);
 
  protected:
   std::map<SHTParams, std::shared_ptr<SHT>> sht_instances_;
