@@ -81,10 +81,10 @@ void propagation_matrix_scattering_totally_random_orientation_spectralAddScatter
 
   if (phase_matrix.has_value()) {
     ARTS_USER_ERROR_IF(
-        not same_shape(std::array{Index{1}, F, L, Index{1}},
+        not same_shape(std::array{Index{1}, F, L, Index{6}},
                        phase_matrix.value()),
         "The shape of phase_matrix from scattering_species must be {:B,}, is {:B,}",
-        std::array{Index{1}, F, L, Index{1}},
+        std::array{Index{1}, F, L, Index{6}},
         phase_matrix->shape())
     phase_matrix_scattering_totally_random_orientation_spectral +=
         phase_matrix.value()(0, joker, joker, 0).real();
