@@ -17,6 +17,8 @@ for key in ws.absorption_bands:
     ws.absorption_bands[key].cutoff = "ByLine"
     ws.absorption_bands[key].cutoff_value = 750e9
 
+ws.absorption_bands.keep_hitran_s(70)
+
 ws.surface_fieldSetPlanetEllipsoid(option="Earth")
 ws.surface_field["t"] = 295.0
 
