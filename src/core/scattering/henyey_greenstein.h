@@ -15,7 +15,6 @@ using ExtSSACallback =
     CustomOperator<std::pair<Numeric, Numeric>, Numeric, const AtmPoint&>;
 
 namespace scattering {
-
 struct ExtinctionSSALookup {
   ScatteringSpeciesProperty extinction_field{};
   ScatteringSpeciesProperty ssa_field{};
@@ -41,26 +40,26 @@ class HenyeyGreensteinScatterer {
                             ScatteringSpeciesProperty ssa_field,
                             const Numeric& g_);
 
-  HenyeyGreensteinScatterer(const HenyeyGreensteinScatterer&) = default;
-  HenyeyGreensteinScatterer(HenyeyGreensteinScatterer&&) noexcept= default;
+  HenyeyGreensteinScatterer(const HenyeyGreensteinScatterer&)     = default;
+  HenyeyGreensteinScatterer(HenyeyGreensteinScatterer&&) noexcept = default;
   HenyeyGreensteinScatterer& operator=(const HenyeyGreensteinScatterer&) =
       default;
-  HenyeyGreensteinScatterer& operator=(HenyeyGreensteinScatterer&&) noexcept=
+  HenyeyGreensteinScatterer& operator=(HenyeyGreensteinScatterer&&) noexcept =
       default;
 
-  BulkScatteringProperties<Format::TRO, Representation::Gridded>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
   get_bulk_scattering_properties_tro_gridded(
       const AtmPoint&,
       const Vector& f_grid,
       std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
 
-  BulkScatteringProperties<Format::TRO, Representation::Spectral>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Spectral>
   get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
                                               const Vector& f_grid,
                                               Index l) const;
 
-  BulkScatteringProperties<scattering::Format::ARO,
-                           scattering::Representation::Gridded>
+  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO,
+                                         scattering::Representation::Gridded>
   get_bulk_scattering_properties_aro_gridded(
       const AtmPoint&,
       const Vector& f_grid,
@@ -68,21 +67,20 @@ class HenyeyGreensteinScatterer {
       const Vector& delta_aa_grid,
       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  BulkScatteringProperties<scattering::Format::ARO,
-                           scattering::Representation::Spectral>
+  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO,
+                                         scattering::Representation::Spectral>
   get_bulk_scattering_properties_aro_spectral(const AtmPoint&,
                                               const Vector& f_grid,
                                               const Vector& za_inc_grid,
                                               Index degree,
                                               Index order) const;
 
-  Numeric get_g() const { return g; };
+  [[nodiscard]] Numeric get_g() const { return g; };
   void set_g(const Numeric& g_) { g = g_; };
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const HenyeyGreensteinScatterer& scatterer);
 };
-
 }  // namespace scattering
 
 #endif  // HENYEY_GREENSTEIN_H_

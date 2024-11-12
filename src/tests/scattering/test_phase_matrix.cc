@@ -202,7 +202,8 @@ bool test_phase_matrix_tro() {
         }
       }
     }
-  }
+  }        
+
 
   // Test extraction of backscatter matrix.
   auto backscatter_matrix = phase_matrix_liquid.extract_backscatter_matrix();
@@ -226,7 +227,6 @@ bool test_phase_matrix_tro() {
   err            = max_error<Tensor3>(backscatter_matrix, backscatter_matrix_2);
   Tensor3 delta  = backscatter_matrix;
   delta         -= backscatter_matrix_2;
-
   if (err > 1e-15) return false;
 
   auto forwardscatter_matrix_2 =
@@ -238,7 +238,7 @@ bool test_phase_matrix_tro() {
   auto phase_matrix_liquid_1 = phase_matrix_liquid.extract_stokes_coeffs();
   err                        = max_error<ConstTensor4View>(
       phase_matrix_liquid_1,
-      phase_matrix_liquid(joker, joker, joker, Range(0, 1)));
+      phase_matrix_liquid);
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
@@ -246,7 +246,7 @@ bool test_phase_matrix_tro() {
       phase_matrix_liquid_spectral.extract_stokes_coeffs();
   err = max_error<matpack::matpack_view<std::complex<Numeric>, 4, true, true>>(
       phase_matrix_liquid_spectral_1,
-      phase_matrix_liquid_spectral(joker, joker, joker, Range(0, 1)));
+      phase_matrix_liquid_spectral);
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
@@ -572,11 +572,10 @@ bool test_phase_matrix_aro() {
       phase_matrix_spectral.extract_forwardscatter_matrix();
   err = max_error<Tensor4>(forwardscatter_matrix, forwardscatter_matrix_2);
   if (err > 1e-3) return false;
-
   auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs();
   err                         = max_error<Tensor6View>(
       phase_matrix_gridded_1,
-      phase_matrix_gridded(joker, joker, joker, joker, joker, Range(0, 1)));
+      phase_matrix_gridded);
   if (err > 0) return false;
 
   return true;

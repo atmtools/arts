@@ -317,8 +317,7 @@ class matpack_data {
   constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
     using other_view_type = typename matpack_data<T, M>::view_type;
 
-    if (size() != mdsize<M>(sz)) std::terminate();
-    ARTS_ASSERT(size() == mdsize<M>(sz), "{} vs {}", size(), mdsize<M>(sz))
+    assert (size() == mdsize<M>(sz)) ;
 
     matpack_data<T, M> out;
     out.data = std::move(data);
@@ -338,8 +337,7 @@ class matpack_data {
   template <Index M>
   constexpr matpack_view<T, M, false, false> reshape_as(
       const std::array<Index, M>& sz) {
-    if (size() != mdsize<M>(sz)) std::terminate();
-    ARTS_ASSERT(size() == mdsize<M>(sz), "{} vs {}", size(), mdsize<M>(sz))
+    assert (size() == mdsize<M>(sz));
 
     return matpack_view<T, M, false, false>{data.data(), sz};
   }
@@ -354,8 +352,7 @@ class matpack_data {
   template <Index M>
   constexpr matpack_view<T, M, true, false> reshape_as(
       const std::array<Index, M>& sz) const {
-    if (size() != mdsize<M>(sz)) std::terminate();
-    ARTS_ASSERT(size() == mdsize<M>(sz), "{} vs {}", size(), mdsize<M>(sz))
+    assert (size() == mdsize<M>(sz));
 
     return matpack_view<T, M, true, false>{const_cast<T*>(data.data()), sz};
   }
