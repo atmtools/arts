@@ -219,15 +219,14 @@ void xml_read_from_stream(std::istream &is_xml,
 
 
 
-template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
+template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr>
 void xml_write_to_stream(std::ostream &os_xml,
-                         const scattering::PhaseMatrixData<Scalar, fmt, repr, stokes_dim>& grid,
+                         const scattering::PhaseMatrixData<Scalar, fmt, repr>& grid,
                          bofstream *pbofs [[maybe_unused]],
                          const String &) {
   //if constexpr (std::is_same_v<format, scattering::Format::ARO>) {
   //  ArtsXMLTag open_tag, close_tag;
   //  open_tag.set_name("PhaseMatrixDataAROGridded");
-  //  open_tag.add_attribute("stokes_dim", stokes_dim);
   //  open_tag.write_to_stream(os_xml);
   //  close_tag.set_name("/FejerGrid");
   //  close_tag.write_to_stream(os_xml);
@@ -247,7 +246,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   //}
 }
 
-template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
+template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr>
 void xml_read_from_stream(std::istream &is_xml,
                           scattering::FejerGrid& grid,
                           bifstream *pbifs [[maybe_unused]]) {

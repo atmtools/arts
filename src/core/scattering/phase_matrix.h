@@ -173,7 +173,7 @@ constexpr auto f44(const VectorType &v) {
   return v[5];
 }
 
-template <typename Scalar, Index stokes_dim, bool strided>
+template <typename Scalar, bool strided>
 void expand_and_transform(ExhaustiveVectorView output,
                           const ExhaustiveConstVectorView &input,
                           const std::array<Scalar, 5> rotation_coefficients,
@@ -184,49 +184,43 @@ void expand_and_transform(ExhaustiveVectorView output,
   Scalar s_2 = std::get<4>(rotation_coefficients);
 
   // Stokes dim 1
-  output[0 * stokes_dim + 0] = f11(input);
+  output[0] = f11(input);
 
   // Stokes dim 2 and higher.
-  if constexpr (stokes_dim > 1) {
-    output[0 * stokes_dim + 1] = c_1 * f12(input);
-    output[1 * stokes_dim + 0] = c_2 * f12(input);
-    output[1 * stokes_dim + 1] =
-        c_1 * c_2 * f22(input) - s_1 * s_2 * f33(input);
-  }
+  output[1] = c_1 * f12(input);
+  output[4] = c_2 * f12(input);
+  output[5] =
+      c_1 * c_2 * f22(input) - s_1 * s_2 * f33(input);
 
   // Stokes dim 3 and higher.
-  if constexpr (stokes_dim > 2) {
-    output[0 * stokes_dim + 2] = s_1 * f12(input);
-    output[1 * stokes_dim + 2] =
-        s_1 * c_2 * f22(input) + c_1 * s_2 * f33(input);
-    output[2 * stokes_dim + 0] = -s_2 * f12(input);
-    output[2 * stokes_dim + 1] =
-        -c_1 * s_2 * f22(input) - s_1 * c_2 * f33(input);
-    output[2 * stokes_dim + 2] =
-        -s_1 * s_2 * f22(input) + c_1 * c_2 * f33(input);
+  output[2] = s_1 * f12(input);
+  output[6] =
+      s_1 * c_2 * f22(input) + c_1 * s_2 * f33(input);
+  output[8] = -s_2 * f12(input);
+  output[9] =
+      -c_1 * s_2 * f22(input) - s_1 * c_2 * f33(input);
+  output[10] =
+      -s_1 * s_2 * f22(input) + c_1 * c_2 * f33(input);
 
-    if (delta_aa_gt_180) {
-      output[0 * stokes_dim + 2] *= -1.0;
-      output[1 * stokes_dim + 2] *= -1.0;
-      output[2 * stokes_dim + 0] *= -1.0;
-      output[2 * stokes_dim + 1] *= -1.0;
-    }
+  if (delta_aa_gt_180) {
+    output[2] *= -1.0;
+    output[6] *= -1.0;
+    output[8] *= -1.0;
+    output[9] *= -1.0;
   }
 
   // Stokes dim 4 and higher.
-  if constexpr (stokes_dim > 3) {
-    output[0 * stokes_dim + 3] = 0.0;
-    output[1 * stokes_dim + 3] = s_2 * f34(input);
-    output[2 * stokes_dim + 3] = c_2 * f34(input);
-    output[3 * stokes_dim + 0] = 0.0;
-    output[3 * stokes_dim + 1] = s_1 * f34(input);
-    output[3 * stokes_dim + 2] = -c_1 * f34(input);
-    output[3 * stokes_dim + 3] = f44(input);
+  output[3] = 0.0;
+  output[7] = s_2 * f34(input);
+  output[11] = c_2 * f34(input);
+  output[12] = 0.0;
+  output[13] = s_1 * f34(input);
+  output[14] = -c_1 * f34(input);
+  output[15] = f44(input);
 
-    if (delta_aa_gt_180) {
-      output[1 * stokes_dim + 3] *= -1.0;
-      output[3 * stokes_dim + 1] *= -1.0;
-    }
+  if (delta_aa_gt_180) {
+    output[7] *= -1.0;
+    output[13] *= -1.0;
   }
 }
 
@@ -236,25 +230,15 @@ void expand_and_transform(ExhaustiveVectorView output,
  * a phase matrix in a given format and stokes dimension.
  *
  * @param format The phase matrix data format.
- * @param stokes_dim The number of stokes elements that are stored.
  * @return The number of elements that are required to be stored.
  */
-constexpr Index get_n_mat_elems(Format format, Index stokes_dim) {
+constexpr Index get_n_mat_elems(Format format) {
   // Compact format used for phase matrix data in TRO format.
   if (format == Format::TRO) {
-    switch (stokes_dim) {
-      case 1:
-        return 1;
-      case 2:
-        return 3;
-      case 3:
-        return 4;
-      case 4:
         return 6;
-    }
   }
   // All matrix elements stored for data in other formats.
-  return stokes_dim * stokes_dim;
+  return 16;
 }
 
 }  // namespace detail
@@ -353,12 +337,12 @@ inline RegridWeights calc_regrid_weights(
   return res;
 }
 
-template <std::floating_point Scalar, Format format, Index stokes_dim>
+template <std::floating_point Scalar, Format format>
 class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
  public:
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(format, stokes_dim);
+      detail::get_n_mat_elems(format);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   BackscatterMatrixData(std::shared_ptr<const Vector> t_grid,
@@ -394,13 +378,11 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
         {this->extent(0), this->extent(1)});
   }
 
-  template <Index new_stokes_dim>
-  BackscatterMatrixData<Scalar, Format::TRO, new_stokes_dim>
+  BackscatterMatrixData<Scalar, Format::TRO>
   extract_stokes_coeffs() const {
     constexpr Index n_stokes_coeffs_new =
-        detail::get_n_mat_elems(format, new_stokes_dim);
-    BackscatterMatrixData<Scalar, format, new_stokes_dim> result(t_grid_,
-                                                                 f_grid_);
+        detail::get_n_mat_elems(format);
+    BackscatterMatrixData<Scalar, format> result(t_grid_, f_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_s = 0; i_s < n_stokes_coeffs_new; ++i_s) {
@@ -445,13 +427,13 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
   std::shared_ptr<const Vector> f_grid_;
 };  // namespace scattering
 
-template <std::floating_point Scalar, Index stokes_dim>
-class BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
+template <std::floating_point Scalar>
+class BackscatterMatrixData<Scalar, Format::ARO>
     : public matpack::matpack_data<Scalar, 4> {
  public:
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(Format::ARO, stokes_dim);
+      detail::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   BackscatterMatrixData(std::shared_ptr<const Vector> t_grid,
@@ -495,12 +477,11 @@ class BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
     return this;
   }
 
-  template <Index new_stokes_dim>
-  BackscatterMatrixData<Scalar, Format::ARO, new_stokes_dim>
+  BackscatterMatrixData<Scalar, Format::ARO>
   extract_stokes_coeffs() const {
     constexpr Index n_stokes_coeffs_new =
-        detail::get_n_mat_elems(Format::ARO, new_stokes_dim);
-    BackscatterMatrixData<Scalar, Format::ARO, new_stokes_dim> result(
+        detail::get_n_mat_elems(Format::ARO);
+    BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -575,9 +556,9 @@ class BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
   std::shared_ptr<const Vector> za_inc_grid_;
 };
 
-template <std::floating_point Scalar, Format format, Index stokes_dim>
+template <std::floating_point Scalar, Format format>
 using ForwardscatterMatrixData =
-    BackscatterMatrixData<Scalar, format, stokes_dim>;
+    BackscatterMatrixData<Scalar, format>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Phase matrix data
@@ -585,12 +566,11 @@ using ForwardscatterMatrixData =
 
 template <std::floating_point Scalar,
           Format format,
-          Representation representation,
-          Index stokes_dim>
+          Representation representation>
 class PhaseMatrixData;
 
-template <std::floating_point Scalar, Index stokes_dim>
-class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
+template <std::floating_point Scalar>
+class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     : public matpack::matpack_data<Scalar, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -602,17 +582,16 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
   /// Spectral transform of this phase matrix.
   using PhaseMatrixDataSpectral = PhaseMatrixData<Scalar,
                                                   Format::TRO,
-                                                  Representation::Spectral,
-                                                  stokes_dim>;
+                                                  Representation::Spectral>;
   using PhaseMatrixDataLabFrame =
-      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>;
+      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>;
 
   /// The tensor type used to store the phase matrix data.
   using TensorType = matpack::matpack_data<Scalar, 4>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(Format::TRO, stokes_dim);
+      detail::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   PhaseMatrixData() {}
@@ -648,10 +627,9 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
 
   template <typename OtherScalar,
             Format format,
-            Representation repr,
-            Index other_stokes_dim>
+            Representation repr>
   PhaseMatrixData(
-      const PhaseMatrixData<OtherScalar, format, repr, other_stokes_dim>
+      const PhaseMatrixData<OtherScalar, format, repr>
           &other) {
     // Other must be TRO particle
     if (format != Format::TRO) {
@@ -662,7 +640,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
 
     // Extract required stokes parameters.
     auto other_stokes =
-        other.template extract_stokes_coeffs<other_stokes_dim>();
+        other.extract_stokes_coeffs();
 
     if constexpr (repr == Representation::Gridded) {
       t_grid_ = other_stokes.get_t_grid();
@@ -757,7 +735,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
           Scalar scat_angle = Conversion::rad2deg(std::get<0>(coeffs));
           gridpos(angle_interp, grid_vector(*za_scat_grid_), scat_angle);
 
-          Tensor3 scat_mat_interpd(n_temps_, n_freqs_, stokes_dim);
+          Tensor3 scat_mat_interpd(n_temps_, n_freqs_, 4);
           Vector pm_comps(n_stokes_coeffs);
           for (Index i_t = 0; i_t < n_temps_; ++i_t) {
             for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -768,7 +746,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
                      angle_interp.fd[0] *
                          this->operator()(i_t, i_f, angle_interp.idx + 1, i_s));
               }
-              detail::expand_and_transform<Scalar, stokes_dim, false>(
+              detail::expand_and_transform<Scalar, false>(
                   result(i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker),
                   pm_comps,
                   coeffs,
@@ -781,10 +759,9 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     return result;
   }
 
-  BackscatterMatrixData<Scalar, Format::TRO, stokes_dim>
+  BackscatterMatrixData<Scalar, Format::TRO>
   extract_backscatter_matrix() {
-    BackscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
-                                                                  f_grid_);
+    BackscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
     GridPos interp;
     gridpos(interp, grid_vector(*za_scat_grid_), 180.0);
 
@@ -800,10 +777,9 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
     return result;
   }
 
-  ForwardscatterMatrixData<Scalar, Format::TRO, stokes_dim>
+  ForwardscatterMatrixData<Scalar, Format::TRO>
   extract_forwardscatter_matrix() {
-    ForwardscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
-                                                                     f_grid_);
+    ForwardscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
     GridPos interp;
     gridpos(interp, grid_vector(*za_scat_grid_), 0.0);
 
@@ -851,19 +827,14 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new phase matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, new_stokes_dim>
+  PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
     PhaseMatrixData<Scalar,
                     Format::TRO,
-                    Representation::Gridded,
-                    new_stokes_dim>
+                    Representation::Gridded>
         result(t_grid_, f_grid_, za_scat_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -959,8 +930,8 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid_;
 };
 
-template <std::floating_point Scalar, Index stokes_dim, Representation repr>
-class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
+template <std::floating_point Scalar, Representation repr>
+class PhaseMatrixData<Scalar, Format::TRO, repr>
     : public matpack::matpack_data<std::complex<Scalar>, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -971,23 +942,21 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
  public:
   /// Gridded transform of this phase matrix.
   using PhaseMatrixDataGridded =
-      PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded, stokes_dim>;
+      PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>;
   using PhaseMatrixDataSpectral = PhaseMatrixData<Scalar,
                                                   Format::TRO,
-                                                  Representation::Spectral,
-                                                  stokes_dim>;
+                                                  Representation::Spectral>;
   using PhaseMatrixDataLabFrame =
-      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>;
+      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>;
   using PhaseMatrixDataDoublySpectral =
       PhaseMatrixData<Scalar,
                       Format::TRO,
-                      Representation::DoublySpectral,
-                      stokes_dim>;
+                      Representation::DoublySpectral>;
   using TensorType = matpack::matpack_data<std::complex<Scalar>, 4>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(Format::TRO, stokes_dim);
+      detail::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
   PhaseMatrixData() {}
@@ -1023,10 +992,9 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
   template <typename OtherScalar,
             Format format,
-            Representation other_repr,
-            Index other_stokes_dim>
+            Representation other_repr>
   PhaseMatrixData(
-      const PhaseMatrixData<OtherScalar, format, other_repr, other_stokes_dim>
+      const PhaseMatrixData<OtherScalar, format, other_repr>
           &other) {
     // Other must be TRO particle
     if (format != Format::TRO) {
@@ -1044,7 +1012,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
     // Extract required stokes parameters.
     auto other_stokes =
-        other.template extract_stokes_coeffs<other_stokes_dim>();
+        other.extract_stokes_coeffs();
 
     if constexpr (other_repr == Representation::Gridded) {
       auto other_spectral = other_stokes.to_spectral();
@@ -1114,10 +1082,9 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
     return to_gridded().to_lab_frame(za_inc_grid, delta_aa_grid, za_scat_grid_new);
   }
 
-  BackscatterMatrixData<Scalar, Format::TRO, stokes_dim>
+  BackscatterMatrixData<Scalar, Format::TRO>
   extract_backscatter_matrix() const {
-    BackscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
-                                                                  f_grid_);
+    BackscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
@@ -1131,10 +1098,9 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
     return result;
   }
 
-  ForwardscatterMatrixData<Scalar, Format::TRO, stokes_dim>
+  ForwardscatterMatrixData<Scalar, Format::TRO>
   extract_forwardscatter_matrix() const {
-    ForwardscatterMatrixData<Scalar, Format::TRO, stokes_dim> result(t_grid_,
-                                                                     f_grid_);
+    ForwardscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
@@ -1168,19 +1134,14 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new phase matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  PhaseMatrixData<Scalar, Format::TRO, Representation::Spectral, new_stokes_dim>
+  PhaseMatrixData<Scalar, Format::TRO, Representation::Spectral>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
     PhaseMatrixData<Scalar,
                     Format::TRO,
-                    Representation::Spectral,
-                    new_stokes_dim>
+                    Representation::Spectral>
         result(t_grid_, f_grid_, sht_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -1277,8 +1238,8 @@ class PhaseMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 // ARO format
 ///////////////////////////////////////////////////////////////////////////////
 
-template <std::floating_point Scalar, Index stokes_dim>
-class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
+template <std::floating_point Scalar>
+class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
     : public matpack::matpack_data<Scalar, 6> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -1290,12 +1251,11 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
   /// Spectral transform of this phase matrix.
   using PhaseMatrixDataSpectral = PhaseMatrixData<Scalar,
                                                   Format::ARO,
-                                                  Representation::Spectral,
-                                                  stokes_dim>;
+                                                  Representation::Spectral>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(Format::ARO, stokes_dim);
+      detail::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   PhaseMatrixData() {}
@@ -1407,9 +1367,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
     return to_spectral(sht::provider.get_instance(n_delta_aa_, n_za_scat_));
   }
 
-  BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
+  BackscatterMatrixData<Scalar, Format::ARO>
   extract_backscatter_matrix() {
-    BackscatterMatrixData<Scalar, Format::ARO, stokes_dim> result(
+    BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
     GridPos za_scat_interp, delta_aa_interp;
     gridpos(delta_aa_interp, *delta_aa_grid_, 180.0);
@@ -1433,9 +1393,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
     return result;
   }
 
-  ForwardscatterMatrixData<Scalar, Format::ARO, stokes_dim>
+  ForwardscatterMatrixData<Scalar, Format::ARO>
   extract_forwardscatter_matrix() {
-    BackscatterMatrixData<Scalar, Format::ARO, stokes_dim> result(
+    BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
     GridPos za_scat_interp, delta_aa_interp;
     gridpos(delta_aa_interp, *delta_aa_grid_, 0.0);
@@ -1461,19 +1421,14 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new phase matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, new_stokes_dim>
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
     PhaseMatrixData<Scalar,
                     Format::ARO,
-                    Representation::Gridded,
-                    new_stokes_dim>
+                    Representation::Gridded>
         result(t_grid_, f_grid_, za_inc_grid_, delta_aa_grid_, za_scat_grid_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -1806,8 +1761,8 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid_;
 };
 
-template <std::floating_point Scalar, Index stokes_dim>
-class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
+template <std::floating_point Scalar>
+class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
     : public matpack::matpack_data<std::complex<Scalar>, 5> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -1818,11 +1773,11 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
  public:
   /// Spectral transform of this phase matrix.
   using PhaseMatrixDataGridded =
-      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, stokes_dim>;
+      PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
-      detail::get_n_mat_elems(Format::ARO, stokes_dim);
+      detail::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
   PhaseMatrixData() {}
@@ -1933,9 +1888,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
     return pm_new;
   }
 
-  BackscatterMatrixData<Scalar, Format::ARO, stokes_dim>
+  BackscatterMatrixData<Scalar, Format::ARO>
   extract_backscatter_matrix() {
-    BackscatterMatrixData<Scalar, Format::ARO, stokes_dim> result(
+    BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
@@ -1956,9 +1911,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
     return result;
   }
 
-  ForwardscatterMatrixData<Scalar, Format::ARO, stokes_dim>
+  ForwardscatterMatrixData<Scalar, Format::ARO>
   extract_forwardscatter_matrix() {
-    BackscatterMatrixData<Scalar, Format::ARO, stokes_dim> result(
+    BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
@@ -1994,19 +1949,14 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new phase matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded, new_stokes_dim>
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
     PhaseMatrixData<Scalar,
                     Format::ARO,
-                    Representation::Spectral,
-                    new_stokes_dim>
+                    Representation::Spectral>
         result(t_grid_, f_grid_, za_inc_grid_, sht_);
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {

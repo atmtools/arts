@@ -20,8 +20,7 @@ bool test_single_scattering_data_from_legacy_tro() {
   using SingleScatteringData =
       scattering::SingleScatteringData<Numeric,
                                        scattering::Format::TRO,
-                                       scattering::Representation::Gridded,
-                                       4>;
+                                       scattering::Representation::Gridded>;
   auto ssd = SingleScatteringData::from_legacy_tro(legacy_data, legacy_meta);
 
   Numeric err = max_error<Tensor3View>(

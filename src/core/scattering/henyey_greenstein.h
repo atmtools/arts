@@ -48,33 +48,28 @@ class HenyeyGreensteinScatterer {
   HenyeyGreensteinScatterer& operator=(HenyeyGreensteinScatterer&&) noexcept=
       default;
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<Format::TRO, Representation::Gridded, stokes_dim>
+  BulkScatteringProperties<Format::TRO, Representation::Gridded>
   get_bulk_scattering_properties_tro_gridded(
       const AtmPoint&,
       const Vector& f_grid,
       std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<Format::TRO, Representation::Spectral, stokes_dim>
+  BulkScatteringProperties<Format::TRO, Representation::Spectral>
   get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
                                               const Vector& f_grid,
                                               Index l) const;
 
-  template <Index stokes_dim>
   BulkScatteringProperties<scattering::Format::ARO,
-                           scattering::Representation::Gridded,
-                           stokes_dim>
+                           scattering::Representation::Gridded>
   get_bulk_scattering_properties_aro_gridded(
       const AtmPoint&,
       const Vector& f_grid,
       const Vector& za_inc_grid,
       const Vector& delta_aa_grid,
       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
-  template <Index stokes_dim>
+
   BulkScatteringProperties<scattering::Format::ARO,
-                           scattering::Representation::Spectral,
-                           stokes_dim>
+                           scattering::Representation::Spectral>
   get_bulk_scattering_properties_aro_spectral(const AtmPoint&,
                                               const Vector& f_grid,
                                               const Vector& za_inc_grid,

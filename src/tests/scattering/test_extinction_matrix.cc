@@ -7,8 +7,7 @@ bool test_extinction_matrix_tro() {
   using ExtinctionMatrix =
       scattering::ExtinctionMatrixData<Numeric,
                                        scattering::Format::TRO,
-                                       scattering::Representation::Gridded,
-                                       4>;
+                                       scattering::Representation::Gridded>;
 
   auto t_grid = std::make_shared<Vector>(Vector{210.0, 240.0, 270.0});
   auto f_grid = std::make_shared<Vector>(Vector{1e9, 10e9, 100e9});
@@ -61,8 +60,7 @@ bool test_extinction_matrix_aro() {
   using ExtinctionMatrix =
       scattering::ExtinctionMatrixData<Numeric,
                                        scattering::Format::ARO,
-                                       scattering::Representation::Gridded,
-                                       4>;
+                                       scattering::Representation::Gridded>;
 
   auto t_grid = std::make_shared<Vector>(Vector{210.0, 240.0, 270.0});
   auto f_grid = std::make_shared<Vector>(Vector{1e9, 10e9, 100e9});

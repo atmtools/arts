@@ -72,10 +72,11 @@ void propagation_matrix_scattering_totally_random_orientation_spectralAddScatter
       "The shape of phase_matrix_scattering_totally_random_orientation_spectral must be {:B,}, is {:B,}",
       std::array{F, L},
       phase_matrix_scattering_totally_random_orientation_spectral.shape())
+   ARTS_USER_ERROR_IF(L < 1, "Must have at least one legendre coefficient")
 
   //! FIXME: The following is a dummy implementation until the stokes-dim thing is fixed to stokes_dim=4
   const auto [phase_matrix, extinction_matrix, absorption_vector] =
-      scattering_species.get_bulk_scattering_properties_tro_spectral<1>(
+      scattering_species.get_bulk_scattering_properties_tro_spectral(
           atmospheric_point, frequency_grid, L - 1);
 
   if (phase_matrix.has_value()) {

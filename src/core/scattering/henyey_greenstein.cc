@@ -25,20 +25,19 @@ HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
         "The Henyey-Greenstein asymmetry parameter g must be in the range [-1, 1].");
 }
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<Format::TRO, Representation::Gridded, stokes_dim>
+  BulkScatteringProperties<Format::TRO, Representation::Gridded>
   HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(const AtmPoint& atm_point,
                                                                         const Vector& f_grid,
                                                                         std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const {
     auto t_grid = std::make_shared<Vector>(Vector{0.0});
     auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, stokes_dim> pm{t_grid,
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> pm{t_grid,
                                                                                   f_grid_ptr,
                                                                                   zenith_angle_grid};
-    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded, stokes_dim> emd{t_grid, f_grid_ptr};
+    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> emd{t_grid, f_grid_ptr};
 
-    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded, stokes_dim> av{t_grid, f_grid_ptr};
+    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> av{t_grid, f_grid_ptr};
 
     auto zenith_angles = grid_vector(*zenith_angle_grid);
     for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
@@ -58,28 +57,25 @@ HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
 
     }
 
-    return BulkScatteringProperties<Format::TRO, Representation::Gridded, stokes_dim>{pm, emd, av};
+    return BulkScatteringProperties<Format::TRO, Representation::Gridded>{pm, emd, av};
   }
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<Format::TRO, Representation::Spectral, stokes_dim>
+  BulkScatteringProperties<Format::TRO, Representation::Spectral>
   HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(
       const AtmPoint& atm_point, const Vector& f_grid, Index l) const {
     auto t_grid     = std::make_shared<Vector>(Vector{0.0});
     auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral, stokes_dim>
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral>
         pm{t_grid, f_grid_ptr, sht::provider.get_instance_lm(l, 0)};
     ExtinctionMatrixData<Numeric,
                          Format::TRO,
-                         Representation::Spectral,
-                         stokes_dim>
+                         Representation::Spectral>
         emd{t_grid, f_grid_ptr};
 
     AbsorptionVectorData<Numeric,
                          Format::TRO,
-                         Representation::Spectral,
-                         stokes_dim>
+                         Representation::Spectral>
         av{t_grid, f_grid_ptr};
 
     constexpr Numeric inv_sphere = 0.5 * Constant::inv_sqrt_pi;  // sqrt(1/4pi)
@@ -105,21 +101,19 @@ HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
             .absorption_vector = std::move(av)};
   }
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded, stokes_dim>
+  BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>
   HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded(const AtmPoint& atm_point,
                                                                         const Vector& f_grid,
                                                                         const Vector& za_inc_grid,
                                                                         const Vector& delta_aa_grid,
                                                                         std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const {
-    auto bsp_tro = get_bulk_scattering_properties_tro_gridded<stokes_dim>(atm_point, f_grid, za_scat_grid);
+    auto bsp_tro = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid);
     return bsp_tro.to_lab_frame(std::make_shared<Vector>(za_inc_grid),
                                 std::make_shared<Vector>(delta_aa_grid),
                                 za_scat_grid);
   }
 
-  template <Index stokes_dim>
-  BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral, stokes_dim>
+  BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
   HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
                                                                          const Vector& f_grid,
                                                                          const Vector& za_inc_grid,
@@ -128,7 +122,7 @@ HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
     auto sht_ptr = sht::provider.get_instance(degree, order);
     auto aa_scat_grid_ptr = sht_ptr->get_aa_grid_ptr();
     auto za_scat_grid_ptr = std::make_shared<ZenithAngleGrid>(sht_ptr->get_zenith_angle_grid());
-    auto bsp_tro = get_bulk_scattering_properties_tro_gridded<stokes_dim>(atm_point, f_grid, za_scat_grid_ptr);
+    auto bsp_tro = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid_ptr);
     auto bsp_aro = bsp_tro.to_lab_frame(std::make_shared<Vector>(za_inc_grid), aa_scat_grid_ptr, za_scat_grid_ptr);
     return bsp_aro.to_spectral(degree, order);
   }
@@ -137,88 +131,4 @@ HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
                            const HenyeyGreensteinScatterer& scatterer) {
     return os << "HenyeyGreensteinScatterer(g = " << scatterer.g << ")";
   }
-
-  template BulkScatteringProperties<Format::TRO, Representation::Gridded, 1>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Gridded, 2>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Gridded, 3>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Gridded, 4>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-
-  template BulkScatteringProperties<Format::TRO, Representation::Spectral, 1>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                         Index l) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Spectral, 2>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                         Index l) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Spectral, 3>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                         Index l) const;
-  template BulkScatteringProperties<Format::TRO, Representation::Spectral, 4>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                         Index l) const;
-
-  template BulkScatteringProperties<Format::ARO, Representation::Gridded, 1>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        const Vector& delta_aa_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Gridded, 2>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        const Vector& delta_aa_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Gridded, 3>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        const Vector& delta_aa_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Gridded, 4>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        const Vector& delta_aa_grid,
-                                                                        std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
-
-  template BulkScatteringProperties<Format::ARO, Representation::Spectral, 1>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        Index degree,
-                                                                        Index order) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Spectral, 2>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        Index degree,
-                                                                        Index order) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Spectral, 3>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        Index degree,
-                                                                        Index order) const;
-  template BulkScatteringProperties<Format::ARO, Representation::Spectral, 4>
-  HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
-                                                                        const Vector& f_grid,
-                                                                        const Vector& za_inc_grid,
-                                                                        Index degree,
-                                                                        Index order) const;
 }
