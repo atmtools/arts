@@ -1,5 +1,6 @@
 #include <matpack.h>
 #include <rtepack.h>
+#include <atm.h>
 
 #include <algorithm>
 
@@ -36,8 +37,7 @@ namespace Absorption::PredefinedModel::ELL07 {
 //! New implementation
 void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,
-             const Numeric t,
-             const Numeric lwc) {
+             const AtmPoint& atm_point) {
   using Cmp::gt;
   using Constant::pi;
   using Constant::two_pi;
@@ -45,6 +45,9 @@ void compute(PropmatVector& propmat_clearsky,
   using Math::pow3;
   constexpr Numeric LIQUID_AND_ICE_TREAT_AS_ZERO = 1e-10;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
+
+  const Numeric t = atm_point.temperature;
+  const Numeric lwc = atm_point["liquidcloud"_spec];
 
   if (lwc < LIQUID_AND_ICE_TREAT_AS_ZERO) {
     return;

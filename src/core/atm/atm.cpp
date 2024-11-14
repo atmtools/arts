@@ -22,6 +22,34 @@
 #include "interp.h"
 #include "isotopologues.h"
 
+void Atm::Data::adjust_interpolation_extrapolation() {
+  if (std::holds_alternative<GriddedField3>(data)) {
+    auto &field = std::get<GriddedField3>(data);
+
+    if (field.grid<0>().size() == 1) {
+      alt_upp = InterpolationExtrapolation::Nearest;
+      alt_low = InterpolationExtrapolation::Nearest;
+    }
+
+    if (field.grid<1>().size() == 1) {
+      lat_upp = InterpolationExtrapolation::Nearest;
+      lat_low = InterpolationExtrapolation::Nearest;
+    }
+
+    if (field.grid<2>().size() == 1) {
+      lon_upp = InterpolationExtrapolation::Nearest;
+      lon_low = InterpolationExtrapolation::Nearest;
+    }
+  } else {
+    alt_upp = InterpolationExtrapolation::Nearest;
+    alt_low = InterpolationExtrapolation::Nearest;
+    lat_upp = InterpolationExtrapolation::Nearest;
+    lat_low = InterpolationExtrapolation::Nearest;
+    lon_upp = InterpolationExtrapolation::Nearest;
+    lon_low = InterpolationExtrapolation::Nearest;
+  }
+}
+
 AtmKey to_wind(const String &x) {
   switch (to<FieldComponent>(x)) {
     case FieldComponent::u: return AtmKey::wind_u;
@@ -335,14 +363,33 @@ Numeric Point::mean_mass() const {
   return mass / vmr;
 }
 
-std::vector<KeyVal> Point::keys() const {
+std::vector<KeyVal> Point::keys(bool keep_basic,
+                                bool keep_specs,
+                                bool keep_isots,
+                                bool keep_nlte,
+                                bool keep_ssprops) const {
   std::vector<KeyVal> out;
   out.reserve(size());
-  for (auto &a : enumtyps::AtmKeyTypes) out.emplace_back(a);
-  for (auto &a : specs) out.emplace_back(a.first);
-  for (auto &a : nlte) out.emplace_back(a.first);
-  for (auto &a : ssprops) out.emplace_back(a.first);
-  for (auto &a : isots) out.emplace_back(a.first);
+
+  if (keep_basic) {
+    for (auto &a : enumtyps::AtmKeyTypes) out.emplace_back(a);
+  }
+
+  if (keep_specs) {
+    for (auto &a : specs) out.emplace_back(a.first);
+  }
+
+  if (keep_nlte) {
+    for (auto &a : nlte) out.emplace_back(a.first);
+  }
+
+  if (keep_ssprops) {
+    for (auto &a : ssprops) out.emplace_back(a.first);
+  }
+
+  if (keep_isots) {
+    for (auto &a : isots) out.emplace_back(a.first);
+  }
   return out;
 }
 
@@ -589,7 +636,7 @@ Vector vec_interp(const GriddedField3 &v,
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
   ARTS_USER_ERROR_IF(
       lim.type == InterpolationExtrapolation::None,
-      "Altitude limit breaced.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
+      "Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
       lim.alt,
       lim.lat,
       lim.lon)
@@ -1034,7 +1081,7 @@ std::optional<Numeric> get_optional_limit(const Data &data,
 
   ARTS_USER_ERROR_IF(
       lim.type == InterpolationExtrapolation::None,
-      "Altitude limit breaced.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
+      "Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
       lim.alt,
       lim.lat,
       lim.lon)

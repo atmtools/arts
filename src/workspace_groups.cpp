@@ -179,6 +179,11 @@ internal_workspace_groups_creator() {
       .desc = "Represents species of scattering paritlces in the atmosphere.",
   };
 
+  wsg_data["ScatteringSpeciesProperty"] = {
+      .file = "scattering/properties.h",
+      .desc = "Meta data for scattering spefcies.",
+};
+
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
       .desc = "A list of *ScatteringMetaData*\n",
@@ -333,9 +338,21 @@ and interpolate the cross-section to other temperatures and pressures
 )--",
   };
 
+  wsg_data["AtmKey"] = {
+      .file = "enumsAtmKey.h",
+      .desc = R"--(A key for atmospheric data
+)--",
+  };
+
   wsg_data["AtmField"] = {
       .file = "atm.h",
       .desc = R"--(An atmospheric field
+)--",
+  };
+
+  wsg_data["AtmData"] = {
+      .file = "atm.h",
+      .desc = R"--(An atmospheric point
 )--",
   };
 

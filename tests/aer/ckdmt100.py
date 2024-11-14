@@ -3,7 +3,14 @@ import numpy as np
 
 f = np.linspace(40e12, 56e12, 101)
 
-x = pyarts.arts.predef.get_o2_cia_ckdmt100(f, 1e4, 250, 0.21)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 5e-3
+atm["O2"] = 0.21
+atm["N2"] = 0.781
+
+x = pyarts.arts.predef.get_o2_cia_ckdmt100(f, atm)
 
 x_ref = np.array([0.00000000e+00, 0.00000000e+00, 1.82284991e-09, 4.42012470e-09,
                   7.02540192e-09, 9.55026048e-09, 1.18144323e-08, 1.50192892e-08,
@@ -36,7 +43,7 @@ assert np.allclose(x, x_ref), "O2-CIAfunCKDMT100"
 
 f = np.linspace(220e12, 260e12, 101)
 
-x = pyarts.arts.predef.get_o2_v0v0_ckdmt100(f, 1e4, 250, 0.21, 0.79)
+x = pyarts.arts.predef.get_o2_v0v0_ckdmt100(f, atm)
 
 x_ref = np.array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                   0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
@@ -69,7 +76,7 @@ assert np.allclose(x, x_ref), "O2-v0v0CKDMT100"
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(9000, 11100, 101))
 
-x = pyarts.arts.predef.get_o2_v1v0_ckdmt100(f, 1e4, 250, 0.21)
+x = pyarts.arts.predef.get_o2_v1v0_ckdmt100(f, atm)
 
 x_ref = np.array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                   0.00000000e+00, 5.09591162e-10, 6.68182572e-10, 8.86553098e-10,

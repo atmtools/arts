@@ -15,8 +15,6 @@ void full::adapt() try {
   if (data->data.empty()) {
     return;
   }
-
-  vmrs = Absorption::PredefinedModel::VMRS(*atm);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -41,9 +39,7 @@ Complex full::operator()(const Numeric frequency) const {
                                          dpropmat_clearsky_dx,
                                          tag,
                                          f_grid,
-                                         atm->pressure,
-                                         atm->temperature,
-                                         vmrs,
+                                         *atm,
                                          jacobian_targets,
                                          mod);
   }

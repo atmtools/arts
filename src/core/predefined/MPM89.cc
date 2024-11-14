@@ -2,6 +2,7 @@
 #include <matpack.h>
 #include <nonstd.h>
 #include <rtepack.h>
+#include <atm.h>
 
 #include <array>
 #include <numeric>
@@ -90,11 +91,13 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
 //! New implementation
 void water(PropmatVector& propmat_clearsky,
            const Vector& f_grid,
-           const Numeric p_pa,
-           const Numeric t,
-           const Numeric vmr) noexcept {
+           const AtmPoint& atm_point) {
   using Math::pow3;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["H2O"_spec];
 
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
@@ -261,14 +264,16 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
 //! New implementation
 void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
-            const Numeric p_pa,
-            const Numeric t,
-            const Numeric vmr,
-            const Numeric h2o) {
+            const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
   constexpr Numeric VMRCalcLimit = 1.000e-25;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
 
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10

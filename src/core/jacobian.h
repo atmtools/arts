@@ -3,18 +3,83 @@
 #include <atm.h>
 #include <lbl.h>
 #include <matpack.h>
+#include <sensor/obsel.h>
 #include <surf.h>
 
 #include <concepts>
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <iosfwd>
 #include <unordered_map>
 #include <variant>
 #include <vector>
 
+#include "operators.h"
+
+enum class SensorKeyType {
+  Frequency,
+  PointingZenith,
+  PointingAzimuth,
+  PointingAltitude,
+  PointingLatitude,
+  PointingLongitude,
+  Weights,
+};
+
+enum class SensorModelType {
+  None,
+  PolynomialOffset,
+};
+
+struct SensorKey {
+  SensorKeyType type;
+
+  Index elem;
+
+  SensorModelType model{SensorModelType::None};
+
+  Vector original_grid{};
+};
+
+using AtmTargetSetState     = CustomOperator<void,
+                                             ExhaustiveVectorView,
+                                             const AtmField&,
+                                             const AtmKeyVal&>;
+using AtmTargetSetModel     = CustomOperator<void,
+                                             AtmField&,
+                                             const AtmKeyVal&,
+                                             const ExhaustiveConstVectorView>;
+using SurfaceTargetSetState = CustomOperator<void,
+                                             ExhaustiveVectorView,
+                                             const SurfaceField&,
+                                             const SurfaceKeyVal&>;
+using SurfaceTargetSetModel = CustomOperator<void,
+                                             SurfaceField&,
+                                             const SurfaceKeyVal&,
+                                             const ExhaustiveConstVectorView>;
+using LineTargetSetState    = CustomOperator<void,
+                                             ExhaustiveVectorView,
+                                             const AbsorptionBands&,
+                                             const LblLineKey&>;
+using LineTargetSetModel    = CustomOperator<void,
+                                             AbsorptionBands&,
+                                             const LblLineKey&,
+                                             const ExhaustiveConstVectorView>;
+using SensorTargetSetState  = CustomOperator<void,
+                                             ExhaustiveVectorView,
+                                             const ArrayOfSensorObsel&,
+                                             const SensorKey&>;
+using SensorTargetSetModel  = CustomOperator<void,
+                                             ArrayOfSensorObsel&,
+                                             const SensorKey&,
+                                             const ExhaustiveConstVectorView>;
+
 namespace Jacobian {
+void default_atm_x_set(ExhaustiveVectorView, const AtmField&, const AtmKeyVal&);
+void default_x_atm_set(AtmField&,
+                       const AtmKeyVal&,
+                       const ExhaustiveConstVectorView);
+
 struct AtmTarget {
   AtmKeyVal type;
 
@@ -26,46 +91,9 @@ struct AtmTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(ExhaustiveVectorView, const AtmField&, const AtmKeyVal&)>
-      set_state{[](ExhaustiveVectorView x,
-                   const AtmField& atm,
-                   const AtmKeyVal& key) {
-        ARTS_USER_ERROR_IF(not atm.contains(key),
-                           "Atmosphere does not contain key value {}",
-                           key)
+  AtmTargetSetState set_state{default_atm_x_set};
 
-        auto xn = atm[key].flat_view();
-
-        ARTS_USER_ERROR_IF(
-            atm[key].flat_view().size() not_eq x.size(),
-            "Problem with sizes.  \n"
-            "Did you change your atmosphere since you set the jacobian targets?\n"
-            "Did you forget to finalize the JacobianTargets?")
-
-        x = xn;
-      }};
-
-  std::function<void(
-      AtmField&, const AtmKeyVal&, const ExhaustiveConstVectorView)>
-      set_model{[](AtmField& atm,
-                   const AtmKeyVal& key,
-                   const ExhaustiveConstVectorView x) {
-        ARTS_USER_ERROR_IF(not atm.contains(key),
-                           "Atmosphere does not contain key value {}",
-                           key)
-
-        auto xn = atm[key].flat_view();
-
-        ARTS_USER_ERROR_IF(
-            atm[key].flat_view().size() not_eq x.size(),
-            "Problem with sizes.  \n"
-            "Did you change your atmosphere since you set the jacobian targets?\n"
-            "Did you forget to finalize the JacobianTargets?")
-
-        xn = x;
-      }};
-
-  friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target);
+  AtmTargetSetModel set_model{default_x_atm_set};
 
   void update(AtmField& atm, const Vector& x) const;
 
@@ -73,6 +101,13 @@ struct AtmTarget {
 
   [[nodiscard]] bool is_wind() const;
 };
+
+void default_surf_x_set(ExhaustiveVectorView,
+                        const SurfaceField&,
+                        const SurfaceKeyVal&);
+void default_x_surf_set(SurfaceField&,
+                        const SurfaceKeyVal&,
+                        const ExhaustiveConstVectorView);
 
 struct SurfaceTarget {
   SurfaceKeyVal type;
@@ -85,51 +120,21 @@ struct SurfaceTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(
-      ExhaustiveVectorView, const SurfaceField&, const SurfaceKeyVal&)>
-      set_state{[](ExhaustiveVectorView x,
-                   const SurfaceField& surf,
-                   const SurfaceKeyVal& key) {
-        ARTS_USER_ERROR_IF(
-            not surf.contains(key), "Surface does not contain key value {}", key)
+  SurfaceTargetSetState set_state{default_surf_x_set};
 
-        auto xn = surf[key].flat_view();
-
-        ARTS_USER_ERROR_IF(
-            xn.size() not_eq x.size(),
-            "Problem with sizes.\n"
-            "Did you change your surface since you set the jacobian targets?\n"
-            "Did you forget to finalize the JacobianTargets?")
-
-        x = xn;
-      }};
-
-  std::function<void(
-      SurfaceField&, const SurfaceKeyVal&, const ExhaustiveConstVectorView)>
-      set_model{[](SurfaceField& surf,
-                   const SurfaceKeyVal& key,
-                   const ExhaustiveConstVectorView x) {
-        ARTS_USER_ERROR_IF(
-            not surf.contains(key), "Surface does not contain key value {}", key)
-
-        auto xn = surf[key].flat_view();
-
-        ARTS_USER_ERROR_IF(
-            xn.size() not_eq x.size(),
-            "Problem with sizes.\n"
-            "Did you change your surface since you set the jacobian targets?\n"
-            "Did you forget to finalize the JacobianTargets?")
-
-        xn = x;
-      }};
-
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const SurfaceTarget& target);
+  SurfaceTargetSetModel set_model{default_x_surf_set};
 
   void update(SurfaceField& surf, const Vector& x) const;
 
   void update(Vector& x, const SurfaceField& surf) const;
 };
+
+void default_line_x_set(ExhaustiveVectorView,
+                        const AbsorptionBands&,
+                        const LblLineKey&);
+void default_x_line_set(AbsorptionBands&,
+                        const LblLineKey&,
+                        const ExhaustiveConstVectorView);
 
 struct LineTarget {
   LblLineKey type;
@@ -142,26 +147,40 @@ struct LineTarget {
 
   Size x_size{std::numeric_limits<Size>::max()};
 
-  std::function<void(
-      ExhaustiveVectorView, const AbsorptionBands&, const LblLineKey&)>
-      set_state{[](ExhaustiveVectorView x,
-                   const AbsorptionBands& bands,
-                   const LblLineKey& key) { x = key.get_value(bands); }};
+  LineTargetSetState set_state{default_line_x_set};
 
-  std::function<void(AbsorptionBands&,
-                     const LblLineKey&,
-                     const ExhaustiveConstVectorView)>
-      set_model{[](AbsorptionBands& bands,
-                   const LblLineKey& key,
-                   const ExhaustiveConstVectorView x) {
-        ExhaustiveVectorView{key.get_value(bands)} = x;
-      }};
-
-  friend std::ostream& operator<<(std::ostream& os, const LineTarget&);
+  LineTargetSetModel set_model{default_x_line_set};
 
   void update(AbsorptionBands&, const Vector&) const;
 
   void update(Vector&, const AbsorptionBands&) const;
+};
+
+void default_sensor_x_set(ExhaustiveVectorView,
+                          const ArrayOfSensorObsel&,
+                          const SensorKey&);
+void default_x_sensor_set(ArrayOfSensorObsel&,
+                          const SensorKey&,
+                          const ExhaustiveConstVectorView);
+
+struct SensorTarget {
+  SensorKey type;
+
+  Numeric d{};
+
+  Size target_pos{std::numeric_limits<Size>::max()};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  SensorTargetSetState set_state{default_sensor_x_set};
+
+  SensorTargetSetModel set_model{default_x_sensor_set};
+
+  void update(ArrayOfSensorObsel&, const Vector&) const;
+
+  void update(Vector&, const ArrayOfSensorObsel&) const;
 };
 
 template <typename T>
@@ -285,6 +304,7 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   [[nodiscard]] const std::vector<AtmTarget>& atm() const;
   [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
   [[nodiscard]] const std::vector<LineTarget>& line() const;
+
   [[nodiscard]] std::vector<AtmTarget>& atm();
   [[nodiscard]] std::vector<SurfaceTarget>& surf();
   [[nodiscard]] std::vector<LineTarget>& line();
@@ -293,8 +313,6 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   void finalize(const AtmField& atmospheric_field,
                 const SurfaceField& surface_field,
                 const AbsorptionBands& absorption_bands);
-
-  friend std::ostream& operator<<(std::ostream& os, const Targets& targets);
 };
 
 struct TargetType {
@@ -325,14 +343,6 @@ struct TargetType {
     return apply([](auto&) { return "AtmKeyVal"s; },
                  [](auto&) { return "SurfaceKeyVal"s; },
                  [](auto&) { return "LblLineKey"s; });
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const TargetType& tt) {
-    tt.apply(
-        [&os](const AtmKeyVal& key) { os << "AtmKeyVal::" << key; },
-        [&os](const SurfaceKeyVal& key) { os << "SurfaceKeyVal::" << key; },
-        [&os](const LblLineKey& key) { os << "LblLineKey::" << key; });
-    return os;
   }
 };
 }  // namespace Jacobian

@@ -41,7 +41,9 @@ std::ifstream open_input_file(const std::string_view name);
 
 [[nodiscard]] ArrayOfString read_text_from_file(const std::string_view name);
 
-void replace_all(String& s, const std::string_view what, const std::string_view with);
+void replace_all(String& s,
+                 const std::string_view what,
+                 const std::string_view with);
 
 [[nodiscard]] int check_newline(const std::string_view s);
 
@@ -51,6 +53,10 @@ bool find_file(ArrayOfString& matches,
                const std::string_view filename,
                const ArrayOfString& paths,
                const ArrayOfString& extensions = {""});
+
+bool find_file2(ArrayOfString& matches,
+                const std::string_view filename,
+                const ArrayOfString& paths);
 
 void find_xml_file(String& filename);
 
@@ -64,6 +70,7 @@ void find_xml_file(String& filename);
 
 [[nodiscard]] ArrayOfString list_directory(const std::string_view dirname);
 
-[[nodiscard]] String make_filename_unique(const std::string_view filename, const String& extension = "");
+[[nodiscard]] String make_filename_unique(const std::string_view filename,
+                                          const String& extension = "");
 
 #endif

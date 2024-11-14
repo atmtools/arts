@@ -771,10 +771,8 @@ class TestGroups:
             return float(a + b + c)
 
         x[cxx.SpeciesEnum("N2")] = test_fun
-        test.io(x, delete=True)
         x[cxx.SpeciesEnum("N2")] = test_fun
         x.top_of_atmosphere = 2.5
-        test.io(x, delete=True)
 
     def testAtmPoint(self):
         x = cxx.AtmPoint()
@@ -816,6 +814,7 @@ class TestGroups:
             "SpectralRadianceOperator",
             "DisortBDRF",
             "MatrixOfDisortBDRF",
+            "AtmData",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())
@@ -1027,4 +1026,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_xml()
+    x.testAtmField()

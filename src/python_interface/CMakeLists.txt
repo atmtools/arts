@@ -147,6 +147,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_igrf.cpp
     py_zeeman.cpp
     py_module.cpp
+    py_file.cpp
 
     gen_auto_py_helpers.cpp
 )

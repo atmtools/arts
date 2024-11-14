@@ -123,7 +123,6 @@ void propagation_matrixAddPredefined(
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
-  const Absorption::PredefinedModel::VMRS vmr(atm_point);
   for (auto& [isot, data] : absorption_predefined_model_data.data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
@@ -131,9 +130,7 @@ void propagation_matrixAddPredefined(
                                          propagation_matrix_jacobian,
                                          isot,
                                          f_grid,
-                                         atm_point.pressure,
-                                         atm_point.temperature,
-                                         vmr,
+                                         atm_point,
                                          jacobian_targets,
                                          data);
   }

@@ -1,4 +1,5 @@
 #include <rtepack.h>
+#include <atm.h>
 
 #include "arts_constants.h"
 
@@ -30,12 +31,14 @@ namespace Absorption::PredefinedModel::MPM93 {
 //! New implementation
 void nitrogen(PropmatVector& propmat_clearsky,
               const Vector& f_grid,
-              const Numeric p_pa,
-              const Numeric t,
-              const Numeric n2,
-              const Numeric h2o) {
+              const AtmPoint& atm_point) {
   using std::pow;
   using Constant::pi, Constant::speed_of_light;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric n2 = atm_point["N2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 N2 continuum model

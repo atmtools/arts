@@ -1,3 +1,4 @@
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -44,11 +45,13 @@ namespace Absorption::PredefinedModel::Standard {
 //! New implementation
 void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
-            const Numeric p_pa,
-            const Numeric t,
-            const Numeric o2,
-            const Numeric h2o) {
+            const AtmPoint& atm_point) {
   using Math::pow2;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric o2 = atm_point["O2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
@@ -115,10 +118,12 @@ void oxygen(PropmatVector& propmat_clearsky,
 //! New implementation
 void nitrogen(PropmatVector& propmat_clearsky,
               const Vector& f_grid,
-              const Numeric p_pa,
-              const Numeric t,
-              const Numeric n2) {
+              const AtmPoint& atm_point) {
   using std::pow;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric n2 = atm_point["N2"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model, Chapter 2, pp 74, in M. A. Janssen,
@@ -172,10 +177,12 @@ void nitrogen(PropmatVector& propmat_clearsky,
 //! New implementation
 void water_foreign(PropmatVector& propmat_clearsky,
                    const Vector& f_grid,
-                   const Numeric p_pa,
-                   const Numeric t,
-                   const Numeric h2o) {
+                   const AtmPoint& atm_point) {
   using Math::pow2;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric h2o = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -222,10 +229,12 @@ void water_foreign(PropmatVector& propmat_clearsky,
 //! New implementation
 void water_self(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
-                const Numeric p_pa,
-                const Numeric t,
-                const Numeric h2o) {
+                   const AtmPoint& atm_point) {
   using Math::pow2;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric h2o = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):

@@ -4,6 +4,7 @@
 #include <iterator>
 
 #include <arts_conversions.h>
+#include <atm.h>
 #include <debug.h>
 #include <matpack.h>
 #include <rtepack.h>
@@ -98,11 +99,13 @@ void check(const WaterData& data) {
 
 void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
-                         const Numeric& P,
-                         const Numeric& T,
-                         const Numeric& vmrh2o,
+                         const AtmPoint& atm_point,
                          const WaterData& data) {
   using Conversion::freq2kaycm;
+
+  const Numeric P = atm_point.pressure;
+  const Numeric T = atm_point.temperature;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // Perform checks to ensure the calculation data is good
   check(data);
@@ -173,11 +176,13 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
 
 void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
-                      const Numeric& P,
-                      const Numeric& T,
-                      const Numeric& vmrh2o,
+                      const AtmPoint& atm_point,
                       const WaterData& data) {
   using Conversion::freq2kaycm;
+
+  const Numeric P = atm_point.pressure;
+  const Numeric T = atm_point.temperature;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // Perform checks to ensure the calculation data is good
   check(data);

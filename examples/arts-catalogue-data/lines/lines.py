@@ -142,7 +142,7 @@ ws.ray_path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point[ws.absorption_species[0]] = (
+ws.atmospheric_point["O2"] = (
     0.21  # At 21% atmospheric Oxygen
 )
 
