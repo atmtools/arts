@@ -5,7 +5,8 @@ import os
 import urllib.request
 import zipfile
 from pyarts.arts.globals import parameters
-
+import pyarts
+import numpy as np
 from tqdm import tqdm
 
 
@@ -200,3 +201,75 @@ def download_arts_cat_data(download_dir=None, version=None, verbose=False):
             Whether to print info messages. Defaults to False.
     """
     return _download_arts_data("arts-cat-data", download_dir, version, verbose)
+
+
+def to_atmospheric_field(x, lon_index):
+    atm_field = pyarts.arts.AtmField()
+
+    nalt = len(x.pressure)
+    nlat = 1
+    nlon = 1
+
+    # Evil naming scheme
+    alts = x.get("geometric height")[:, lon_index].data
+
+    atmdata = pyarts.arts.AtmData()
+    atmdata.alt_upp = "Nearest"
+    atmdata.alt_low = "Nearest"
+    atmdata.lat_upp = "Nearest"
+    atmdata.lat_low = "Nearest"
+    atmdata.lon_upp = "Nearest"
+    atmdata.lon_low = "Nearest"
+    atmdata.data = pyarts.arts.GriddedField3(
+        name="Pressure",
+        data=x.pressure.data.reshape(nalt, nlat, nlon),
+        grid_names=["Altitude", "Latitude", "Longitude"],
+        grids=[alts, [x.lat.data], [x.lon[lon_index].data]],
+    )
+
+    atm_field.top_of_atmosphere = max(alts)
+    atm_field["pressure"] = atmdata
+
+    for k in list(x.keys()):
+        atmdata.data.dataname = k
+        atmdata.data.data = x.get(k).data[:, lon_index].reshape(nalt, nlat, nlon)
+        try:
+            atm_field[k] = atmdata
+            print(f"Wrote '{k}' to atm_field")
+        except:
+            print(f"Cannot write '{k}' to atm_field")
+
+    return atm_field
+
+
+def absorption_species_from_atmospheric_field(atm_field):
+    species = atm_field.species_keys()
+
+    out = []
+    for spec in species:
+        out.append(f"{spec}")
+
+        if pyarts.arts.file.find_xml(f"xsec/{spec}-XFIT") is not None:
+            out.append(f"{spec}-XFIT")
+
+        for spec2 in species:
+            if pyarts.arts.file.find_xml(f"cia/{spec}-CIA-{spec2}"):
+                out.append(f"{spec}-CIA-{spec2}")
+
+            if pyarts.arts.file.find_xml(f"cia/{spec2}-CIA-{spec}"):
+                out.append(f"{spec2}-CIA-{spec}")
+
+        if pyarts.arts.file.find_xml(f"cia/{spec}-CIA-{spec}") is not None:
+            out.append(f"{spec}-CIA-{spec}")
+
+        if spec == pyarts.arts.SpeciesEnum.Water:
+            out.append("H2O-ForeignContCKDMT400")
+            out.append("H2O-SelfContCKDMT400")
+        elif spec == pyarts.arts.SpeciesEnum.CarbonDioxide:
+            out.append("CO2-CKDMT252")
+        elif spec == pyarts.arts.SpeciesEnum.Oxygen:
+            out.append("O2-SelfContStandardType")
+        elif spec == pyarts.arts.SpeciesEnum.Nitrogen:
+            out.append("N2-SelfContStandardType")
+
+    return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
