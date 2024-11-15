@@ -8,6 +8,7 @@ from pyarts.arts.globals import parameters
 import pyarts
 import numpy as np
 from tqdm import tqdm
+import xarray
 
 
 def download(data=("xml", "cat"), download_dir=None, verbose=False, **kwargs):
@@ -203,46 +204,103 @@ def download_arts_cat_data(download_dir=None, version=None, verbose=False):
     return _download_arts_data("arts-cat-data", download_dir, version, verbose)
 
 
-def to_atmospheric_field(x, lon_index):
-    atm_field = pyarts.arts.AtmField()
+def to_atmospheric_field(
+    data: xarray.Dataset,
+    remap: None | dict[str, str] = None,
+    ignore: None | list[str] = None,
+    *,
+    atm: None | pyarts.arts.AtmField = None,
+) -> pyarts.arts.AtmField:
+    """
+    Populates a ~pyarts.arts.AtmField from an xarray Dataset-like structure
 
-    nalt = len(x.pressure)
-    nlat = 1
-    nlon = 1
+    Parameters
+    ----------
+    data : xarray.Dataset
+        A dataset.  Coordinates should contain 'alt', 'lat', and 'lon'.
+        All other keys() should be assignable to the atm-field by name.
+    remap : None | dict[str, str], optional
+        All names in this optional dict are renamed when accessing the dataset.
+        For example, if the altitude-grid is called 'Alt' instead of 'alt', the
+        dict should contain {..., 'alt': 'Alt', ...}.
+    ignore : None | list[str], optional
+        Ignore keys listed from assignment into the atmospheric field.
+    atm : None | pyarts.arts.AtmField
+        The default atmospheric field to use.  Defaults to None to use default-
+        constructed atmospheric field object.
 
-    # Evil naming scheme
-    alts = x.get("geometric height")[:, lon_index].data
+    Returns
+    -------
+    atm : pyarts.arts.AtmField
+        An atmospheric field
 
-    atmdata = pyarts.arts.AtmData()
-    atmdata.alt_upp = "Nearest"
-    atmdata.alt_low = "Nearest"
-    atmdata.lat_upp = "Nearest"
-    atmdata.lat_low = "Nearest"
-    atmdata.lon_upp = "Nearest"
-    atmdata.lon_low = "Nearest"
-    atmdata.data = pyarts.arts.GriddedField3(
-        name="Pressure",
-        data=x.pressure.data.reshape(nalt, nlat, nlon),
-        grid_names=["Altitude", "Latitude", "Longitude"],
-        grids=[alts, [x.lat.data], [x.lon[lon_index].data]],
+    """
+    if ignore is None:
+        ignore = []
+
+    if remap is None:
+        remap = {}
+
+    alt = (
+        getattr(data, remap.get("alt", "alt")).data.flatten()
+        if "alt" not in ignore
+        else np.array([0])
+    )
+    lat = (
+        getattr(data, remap.get("lat", "lat")).data.flatten()
+        if "lat" not in ignore
+        else np.array([0])
+    )
+    lon = (
+        getattr(data, remap.get("lon", "lon")).data.flatten()
+        if "lon" not in ignore
+        else np.array([0])
     )
 
-    atm_field.top_of_atmosphere = max(alts)
-    atm_field["pressure"] = atmdata
+    GF3 = pyarts.arts.GriddedField3(
+        name="Generic",
+        data=np.zeros((alt.size, lat.size, lon.size)),
+        grid_names=["Altitude", "Latitude", "Longitude"],
+        grids=[alt, lat, lon],
+    )
 
-    for k in list(x.keys()):
-        atmdata.data.dataname = k
-        atmdata.data.data = x.get(k).data[:, lon_index].reshape(nalt, nlat, nlon)
+    if atm is None:
+        atm = pyarts.arts.AtmField()
+        atm.top_of_atmosphere = max(alt)
+
+    for k in data.keys():
         try:
-            atm_field[k] = atmdata
-            print(f"Wrote '{k}' to atm_field")
-        except:
-            print(f"Cannot write '{k}' to atm_field")
+            if k in ignore:
+                continue
 
-    return atm_field
+            k = remap.get(k, k)
+            kstr = str(k)
+
+            GF3.dataname = kstr
+            np.asarray(GF3.data).flat[:] = getattr(data, kstr).data.flat[:]
+
+            atm[k] = GF3
+
+        except Exception as e:
+            raise Exception(f"{e}\n\nFailed to assign key to atm: {k}")
+
+    return atm
 
 
-def absorption_species_from_atmospheric_field(atm_field):
+def to_absorption_species(
+    atm_field: pyarts.arts.AtmField,
+) -> pyarts.arts.ArrayOfArrayOfSpeciesTag:
+    """Scans the ARTS data path for species relevant to the given atmospheric field.
+
+    The scan is done over files in an arts-cat-data like directory structure.
+
+    Args:
+        atm_field (pyarts.arts.AtmField): A relevant atmospheric field.
+
+    Returns:
+        pyarts.arts.ArrayOfArrayOfSpeciesTag: All found species tags.
+        The intent is that this is enough information to use pyarts.workspace.Workspace.ReadCatalogData
+    """
     species = atm_field.species_keys()
 
     out = []
@@ -273,3 +331,32 @@ def absorption_species_from_atmospheric_field(atm_field):
             out.append("N2-SelfContStandardType")
 
     return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
+
+def xarray_open_dataset(filename_or_obj, *args, **kwargs):
+    """Wraps xarray.open_dataset to search for files in the current and in ARTS' data path.
+
+    All args and kwargs are passed on to xarray.open_dataset directly.  Any FileNotFoundError
+    will be caught and just raised if no path works.
+
+    Args:
+        filename_or_obj (_type_): _description_
+
+    Raises:
+        FileNotFoundError: _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    try:
+        return xarray.open_dataset(filename_or_obj, *args, **kwargs)
+    except FileNotFoundError:
+        pass
+
+    for p in parameters.datapath:
+        try:
+            return xarray.open_dataset(os.path.join(p, filename_or_obj), *args, **kwargs)
+        except FileNotFoundError:
+            pass
+
+    raise FileNotFoundError(f"File not found in ARTS data path ({parameters.datapath}): {filename_or_obj}")

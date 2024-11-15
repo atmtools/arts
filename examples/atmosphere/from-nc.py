@@ -17,14 +17,14 @@ remove_lines_percentile = 70
 sunfile = "star/Sun/solar_spectrum_QUIET.xml"
 planet = "Earth"
 
-xarr = xa.open_dataset("atm_samples.nc")
+xarr = pyarts.data.xarray_open_dataset("atm.nc")
 
 ws = pyarts.Workspace()
 
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
-ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr, 0)
+ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr)
 
-v = pyarts.data.absorption_species_from_atmospheric_field(ws.atmospheric_field)
+v = pyarts.data.to_absorption_species(ws.atmospheric_field)
 
 ws.absorption_species = v
 ws.ReadCatalogData()
