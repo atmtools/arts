@@ -24,8 +24,10 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     PredefinedModelData& absorption_predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const String& basename,
-    const Index& name_missing_index) try {
-  const bool name_missing = static_cast<bool>(name_missing_index);
+    const Index& name_missing_,
+    const Index& ignore_missing_) try {
+  const bool name_missing   = static_cast<bool>(name_missing_);
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   absorption_predefined_model_data.data.clear();
 
@@ -46,13 +48,17 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
         absorption_predefined_model_data.data.insert(other.data.begin(),
                                                      other.data.end());
       } else {
-        ARTS_USER_ERROR_IF(not name_missing, "File {} not found", filename)
-        absorption_predefined_model_data.data[spec.Isotopologue()] =
-            Absorption::PredefinedModel::ModelName{};
+        if (name_missing) {
+          absorption_predefined_model_data.data[spec.Isotopologue()] =
+              Absorption::PredefinedModel::ModelName{};
+        } else {
+          ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
+        }
       }
     }
   }
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 void absorption_predefined_model_dataInit(
     PredefinedModelData& absorption_predefined_model_data) {
@@ -80,8 +86,8 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
 
   using Model = Absorption::PredefinedModel::MT_CKD400::WaterData;
   Model x;
-  x.ref_temp = ref_temp;
-  x.ref_press = ref_press;
+  x.ref_temp    = ref_temp;
+  x.ref_press   = ref_press;
   x.ref_h2o_vmr = ref_h2o_vmr;
   x.self_absco_ref.resize(sz);
   x.for_absco_ref.resize(sz);
@@ -96,7 +102,7 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
   absorption_predefined_model_data.data["H2O-ForeignContCKDMT400"_isot] = x;
-  absorption_predefined_model_data.data["H2O-SelfContCKDMT400"_isot] = x;
+  absorption_predefined_model_data.data["H2O-SelfContCKDMT400"_isot]    = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

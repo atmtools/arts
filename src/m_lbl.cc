@@ -415,8 +415,10 @@ ARTS_METHOD_ERROR_CATCH
 void absorption_bandsReadSpeciesSplitCatalog(
     AbsorptionBands& absorption_bands,
     const ArrayOfArrayOfSpeciesTag& absorbtion_species,
-    const String& basename) try {
-  absorption_bands = {};
+    const String& basename,
+    const Index& ignore_missing_) try {
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+  absorption_bands.clear();
 
   const String my_base = complete_basename(basename);
 
@@ -445,7 +447,7 @@ void absorption_bandsReadSpeciesSplitCatalog(
       absorption_bands.insert(std::make_move_iterator(other.begin()),
                               std::make_move_iterator(other.end()));
     } else {
-      ARTS_USER_ERROR("File {} not found", filename)
+      ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
     }
   }
 }

@@ -27,7 +27,7 @@ ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr)
 v = pyarts.data.to_absorption_species(ws.atmospheric_field)
 
 ws.absorption_species = v
-ws.ReadCatalogData()
+ws.ReadCatalogData(ignore_missing=True)
 ws.propagation_matrix_agendaAuto(T_extrapolfac=1e9)
 
 for band in ws.absorption_bands:
