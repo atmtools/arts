@@ -589,9 +589,65 @@ common form of a predefined model.
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{1}, Index{0}},
-      .gin_desc  = {R"--(The path to the split catalog files)--",
-                    R"--(Flag to name models that are missing)--",
-                    R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+      .gin_desc =
+          {R"--(The path to the split catalog files)--",
+           R"--(Flag to name models that are missing)--",
+           R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+  };
+
+  wsm_data["atmospheric_fieldRegrid"] = {
+      .desc =
+          R"--(Regrid the input atmospheric field parameter to a new grid.
+
+The atmospheric field parameter will have a *GriddedField3* with the input grid
+after the regridding.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field"},
+      .gin       = {"parameter", "alt", "lat", "lon", "extrapolation"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+                    "AscendingGrid",
+                    "AscendingGrid",
+                    "AscendingGrid",
+                    "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{"Nearest"}},
+      .gin_desc =
+          {"The parameter to regrid",
+           "The altitude grid",
+           "The latitude grid",
+           "The longitude grid",
+           "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
+  };
+
+  wsm_data["atmospheric_fieldRegridAll"] = {
+      .desc =
+          R"--(Regrid all parameters of the input atmospheric field to a new grid
+
+The atmospheric field will have a *GriddedField3* with the input grid
+after the regridding at all positions.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field"},
+      .gin       = {"alt", "lat", "lon", "extrapolation"},
+      .gin_type  = {"AscendingGrid",
+                    "AscendingGrid",
+                    "AscendingGrid",
+                    "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{"Nearest"}},
+      .gin_desc =
+          {"The altitude grid",
+           "The latitude grid",
+           "The longitude grid",
+           "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
   };
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
