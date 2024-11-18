@@ -17,6 +17,12 @@ struct global_data {
 #else
       false;
 #endif
+  static constexpr bool has_sht = not is_lgpl and
+#ifdef _MSC_VER
+                                  false;
+#else
+                                  true;
+#endif
 };
 
 extern Parameters parameters;
@@ -163,14 +169,22 @@ Parameters
       .def(py::init<>())
       .def_ro_static("is_lgpl",
                      &global_data::is_lgpl,
-                     "Whether the ARTS library is licensed under the LGPL")
-      .def("__repr__", [](const global_data&) {
-        return std::format(R"(Global state of ARTS:
+                     "Whether the ARTS library is compiled licensed under the LGPL")
+      .def_ro_static("has_sht",
+                     &global_data::has_sht,
+                     "Whether the ARTS library is compiled to be able to use the SHT library")
+      .def("__repr__",
+           [](const global_data&) {
+             return std::format(R"(Global state of ARTS:
 
 is_lgpl: {}
+has_sht: {}
 )",
-                           global_data::is_lgpl);
-      }).doc() = "A set of global data that we might need from ARTS inside pyarts";
+                                global_data::is_lgpl,
+                                global_data::has_sht);
+           })
+      .doc() =
+      "A set of global data that we might need from ARTS inside pyarts";
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize global\n", e.what()));
