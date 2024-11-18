@@ -8,7 +8,7 @@ lat = 0
 lon = 0
 NQuad = 40
 
-if pyarts.arts.globals.has_sht:
+if pyarts.arts.globals.data.has_sht:
     ws = pyarts.Workspace()
 
     line_f0 = 118750348044.712
