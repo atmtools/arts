@@ -1,5 +1,6 @@
 #include <arts_conversions.h>
 #include <rtepack.h>
+#include <atm.h>
 
 /*
       --------------------------- CKD_MT_3.20 -------------------------
@@ -1205,10 +1206,11 @@ Numeric XINT_FUN(const Numeric V1A,
 */
 void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
-                      const Numeric& P,
-                      const Numeric& T,
-                      const Numeric& vmrh2o) {
+                      const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
+  const Numeric T = atm_point.temperature;
+  const Numeric P = atm_point.pressure;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // ************************** CKD stuff ************************************
@@ -1385,11 +1387,12 @@ based on Baranov and Lafferty (2012) and Mondelain et al. (2014) measurements (E
 */
 void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
-                         const Numeric& P,
-                         const Numeric& T,
-                         const Numeric& vmrh2o) {
+                         const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
   const Index n_f = f_grid.nelem();  // Number of frequencies
+  const Numeric T = atm_point.temperature;
+  const Numeric P = atm_point.pressure;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // ************************** CKD stuff ************************************
 

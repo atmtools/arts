@@ -93,7 +93,7 @@ ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.frequency_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point[ws.absorption_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point["O2"] = 0.21  # At 21% atmospheric Oxygen
 ws.ray_path_point # No particular POSLOS
 
 # Call the agenda with inputs above

@@ -1,3 +1,4 @@
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -110,10 +111,11 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
 
 void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
-            const Numeric p_pa,
-            const Numeric t,
-            const Numeric oxygen_vmr,
-            const Numeric water_vmr) {
+            const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric oxygen_vmr = atm_point["O2"_spec];
+  const Numeric water_vmr = atm_point["H2O"_spec];
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0             1           2         3         4      5        6

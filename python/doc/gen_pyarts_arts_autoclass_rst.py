@@ -106,6 +106,8 @@ def is_operator(name):
         "__delitem__",
         "__truediv__",
         "__array__",
+        "__getstate__",
+        "__setstate__",
     ]
     return name in operators
 

@@ -3,7 +3,15 @@ import numpy as np
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(1, 21000, 101))
 
-x = pyarts.arts.predef.get_self_h2o_ckdmt350(f, 1e4, 250, 1e-2)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 1e-2
+atm["O2"] = 0.21
+atm["N2"] = 0.79
+atm["CO2"] = 400e-6
+
+x = pyarts.arts.predef.get_self_h2o_ckdmt350(f, atm)
 
 x_sref = np.array([8.67921718e-08, 1.51975861e-04, 2.75826947e-05, 6.70760899e-06,
                    3.09117602e-06, 1.23734118e-06, 1.21410336e-06, 1.34989880e-05,
@@ -34,7 +42,7 @@ x_sref = np.array([8.67921718e-08, 1.51975861e-04, 2.75826947e-05, 6.70760899e-0
 
 assert np.allclose(x, x_sref), "H2O-SelfContCKDMT350"
 
-x = pyarts.arts.predef.get_foreign_h2o_ckdmt350(f, 1e4, 250, 1e-2)
+x = pyarts.arts.predef.get_foreign_h2o_ckdmt350(f, atm)
 
 x_fref = np.array([7.89978771e-08, 6.80275767e-04, 1.95314402e-05, 1.45112811e-06,
                    1.02850241e-07, 1.04526206e-08, 2.68649033e-07, 9.90167807e-05,

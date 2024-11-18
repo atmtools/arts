@@ -1,5 +1,6 @@
 #include <core/scattering/particle_habit.h>
 #include <core/scattering/single_scattering_data.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -41,7 +42,7 @@ void bind_phase_matrix_data_tro_gridded(py::module_ &m,
       .def("get_f_grid", &PMD::get_f_grid)
       .def("get_za_scat_grid", &PMD::get_za_scat_grid)
 
-      .def("to_spectral", [](const PMD &obj) { obj.to_spectral(); })
+      .def("to_spectral", [](const PMD& obj) { obj.to_spectral(); })
 
       // Bind other member functions
       .def("integrate_phase_matrix", &PMD::integrate_phase_matrix)
@@ -76,7 +77,7 @@ void bind_phase_matrix_data_tro_spectral(py::module_ &m,
       .def("get_t_grid", &PMD::get_t_grid)
       .def("get_f_grid", &PMD::get_f_grid)
 
-      .def("to_gridded", [](const PMD &obj) { return obj.to_gridded(); })
+      .def("to_gridded", [](const PMD& obj) { return obj.to_gridded(); })
       .def("integrate_phase_matrix", &PMD::integrate_phase_matrix)
       .def("extract_stokes_coeffs", &PMD::extract_stokes_coeffs)  // You can specify the new stokes_dim here
       .def("regrid", &PMD::regrid);
@@ -187,7 +188,7 @@ void bind_single_scattering_data(py::module_ &m, const std::string &name) {
       .def_rw("forwardscatter_matrix", &SSDClass::forwardscatter_matrix)
       .def_static(
           "from_legacy_tro", &SSDClass::from_legacy_tro, "ssd"_a, "smd"_a)
-      .def("__repr__", [](const SSDClass &ssd) {
+      .def("__repr__", [](const SSDClass& ssd) {
         std::ostringstream oss;
         oss << ssd;
         return oss.str();
@@ -201,19 +202,16 @@ void bind_bulk_scattering_properties(py::module_ &m, const std::string &name) {
     .def_rw("phase_matrix", &scattering::BulkScatteringProperties<format, repr>::phase_matrix)
     .def_rw("extinction_matrix", &scattering::BulkScatteringProperties<format, repr>::extinction_matrix)
     .def_rw("absorption_vector", &scattering::BulkScatteringProperties<format, repr>::absorption_vector);
-}
 
-
-void py_scattering_species(py::module_ &m) try {  //
+void py_scattering_species(py::module_& m) try {  //
   // ScatSpeciesProperty
   //
 
-  py::class_<ScatteringSpeciesProperty>(m, "ScatteringSpeciesProperty")
-    .def(py::init<std::string, ParticulateProperty>(), "Constructor")
-    .def_rw("species_name", &ScatteringSpeciesProperty::species_name)
-    .def_rw("pproperty", &ScatteringSpeciesProperty::pproperty);
-
-
+  py::class_<ScatteringSpeciesProperty> ssp(m, "ScatteringSpeciesProperty");
+  workspace_group_interface(ssp);
+  ssp.def(py::init<std::string, ParticulateProperty>(), "Constructor")
+      .def_rw("species_name", &ScatteringSpeciesProperty::species_name)
+      .def_rw("pproperty", &ScatteringSpeciesProperty::pproperty);
 
   //
   // Modified gamma PSD
@@ -257,20 +255,18 @@ void py_scattering_species(py::module_ &m) try {  //
   py::class_<scattering::IrregularZenithAngleGrid>(m, "IrregularZenithAngleGrid")
     .def(py::init<Vector>());
   py::class_<scattering::GaussLegendreGrid>(m, "GaussLegendreGrid")
-    .def(py::init<Index>());
+      .def(py::init<Index>());
   py::class_<scattering::DoubleGaussGrid>(m, "DoubleGaussGrid")
-    .def(py::init<Index>());
-  py::class_<scattering::LobattoGrid>(m, "LobattoGrid")
-    .def(py::init<Index>());
-  py::class_<scattering::FejerGrid>(m, "FejerGrid")
-    .def(py::init<Index>());
+      .def(py::init<Index>());
+  py::class_<scattering::LobattoGrid>(m, "LobattoGrid").def(py::init<Index>());
+  py::class_<scattering::FejerGrid>(m, "FejerGrid").def(py::init<Index>());
 
   py::class_<scattering::ZenithAngleGrid>(m, "ZenithAngleGrid")
-    .def(py::init<scattering::IrregularZenithAngleGrid>())
-    .def(py::init<scattering::GaussLegendreGrid>())
-    .def(py::init<scattering::DoubleGaussGrid>())
-    .def(py::init<scattering::LobattoGrid>())
-    .def(py::init<scattering::FejerGrid>());
+      .def(py::init<scattering::IrregularZenithAngleGrid>())
+      .def(py::init<scattering::GaussLegendreGrid>())
+      .def(py::init<scattering::DoubleGaussGrid>())
+      .def(py::init<scattering::LobattoGrid>())
+      .def(py::init<scattering::FejerGrid>());
 
   py::class_<ArrayOfScatteringSpecies> aoss(m, "ArrayOfScatteringSpecies");
   aoss
@@ -345,9 +341,10 @@ void py_scattering_species(py::module_ &m) try {  //
   bind_bulk_scattering_properties<scattering::Format::TRO, scattering::Representation::Spectral>(m, "BulkScatteringPropertiesTROSpectral4");
 
   py::class_<ParticleHabit>(m, "ParticleHabit")
-  .def_static("from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);
+      .def_static(
+          "from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);
 
-} catch (std::exception &e) {
+} catch (std::exception& e) {
   throw std::runtime_error(var_string(
       "DEV ERROR:\nCannot initialize scattering species:\n", e.what()));
 };

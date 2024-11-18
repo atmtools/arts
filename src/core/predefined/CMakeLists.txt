@@ -17,12 +17,12 @@ if (NOT ENABLE_ARTS_LGPL)
     CKDMT350.cc
     CKDMT320.cc
     MT_CKD400.cc)
-  target_link_libraries(predef_aer PUBLIC matpack rtepack species_tags)
+  target_link_libraries(predef_aer PUBLIC matpack rtepack species_tags atm)
   target_include_directories(predef_aer PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
   target_include_directories(predef_aer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 else()
   add_library(predef_aer STATIC no_aer.cc)
-  target_link_libraries(predef_aer PUBLIC matpack rtepack species_tags)
+  target_link_libraries(predef_aer PUBLIC matpack rtepack species_tags atm)
 endif()
 
 target_link_libraries(predef PUBLIC matpack rtepack species_tags Faddeeva predef_aer)

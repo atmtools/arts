@@ -2,13 +2,17 @@ import pyarts
 import numpy as np
 
 f = np.linspace(1e9, 1000e9, 101)
-x_h2o = 5e-3
-x_o2 = 0.21
-x_n2 = 0.781
 
-x = pyarts.arts.predef.get_h2o_pwr2021(f, 1e4, 250, x_h2o)
-y = pyarts.arts.predef.get_o2_pwr2021(f, 1e4, 250, x_o2, x_h2o)
-z = pyarts.arts.predef.get_n2_pwr2021(f, 1e4, 250, x_n2, x_h2o)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 5e-3
+atm["O2"] = 0.21
+atm["N2"] = 0.781
+
+x = pyarts.arts.predef.get_h2o_pwr2021(f, atm)
+y = pyarts.arts.predef.get_o2_pwr2021(f, atm)
+z = pyarts.arts.predef.get_n2_pwr2021(f,atm)
 
 x_ref = np.array([8.62520957e-11, 1.27448533e-08, 1.09635056e-06, 1.19335086e-07,
                   1.38755048e-07, 1.97312377e-07, 2.74382912e-07, 3.67716809e-07,

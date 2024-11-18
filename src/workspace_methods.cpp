@@ -361,10 +361,11 @@ in *absorption_species*.
       .author    = {"Oliver Lemke"},
       .out       = {"absorption_xsec_fit_data"},
       .in        = {"absorption_species"},
-      .gin       = {"basename"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Basepath to the files)--"},
+      .gin       = {"basename", "ignore_missing"},
+      .gin_type  = {"String", "Index"},
+      .gin_value = {std::nullopt, Index{0}},
+      .gin_desc  = {R"--(Basepath to the files)--",
+                    R"--(Ignore missing files (0: no, 1: yes))--"},
   };
 
   wsm_data["Touch"] = {
@@ -550,7 +551,7 @@ The units of the data are described in *absorption_cia_dataReadFromCIA*.
       .author    = {"Richard Larsson"},
       .out       = {"absorption_cia_data"},
       .in        = {"absorption_species"},
-      .gin       = {"basename", "robust"},
+      .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
       .gin_desc =
@@ -585,11 +586,12 @@ common form of a predefined model.
       .author    = {"Richard Larsson"},
       .out       = {"absorption_predefined_model_data"},
       .in        = {"absorption_species"},
-      .gin       = {"basename", "name_missing"},
-      .gin_type  = {"String", "Index"},
-      .gin_value = {std::nullopt, Index{1}},
+      .gin       = {"basename", "name_missing", "ignore_missing"},
+      .gin_type  = {"String", "Index", "Index"},
+      .gin_value = {std::nullopt, Index{1}, Index{0}},
       .gin_desc  = {R"--(The path to the split catalog files)--",
-                    R"--(Flag to name models that are missing)--"},
+                    R"--(Flag to name models that are missing)--",
+                    R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
   };
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
@@ -2488,10 +2490,11 @@ variables are not considered
       .author    = {"Richard Larsson"},
       .out       = {"absorption_bands"},
       .in        = {"absorption_species"},
-      .gin       = {"basename"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Absolute or relative path to the directory"},
+      .gin       = {"basename", "ignore_missing"},
+      .gin_type  = {"String", "Index"},
+      .gin_value = {std::nullopt, Index{0}},
+      .gin_desc  = {"Absolute or relative path to the directory",
+                    "Ignore missing files instead of throwing an error"},
   };
 
   wsm_data["absorption_bandsReadSplit"] = {
@@ -3090,7 +3093,7 @@ Wraps:
 Wraps:
 
 - *absorption_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
-- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename`` and ``robust`` = 0
+- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename``
 - *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
 - *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
@@ -3100,10 +3103,11 @@ Wraps:
                     "absorption_cia_data",
                     "absorption_bands"},
       .in        = {"absorption_species"},
-      .gin       = {"basename"},
-      .gin_type  = {"String"},
-      .gin_value = {String{}},
-      .gin_desc  = {"Absolute or relative path to the data"},
+      .gin       = {"basename", "ignore_missing"},
+      .gin_type  = {"String", "Index"},
+      .gin_value = {String{}, Index{0}},
+      .gin_desc  = {"Absolute or relative path to the data",
+                    "Ignore missing files instead of throwing an error"},
   };
 
   wsm_data["absorption_bandsSetZeeman"] = {

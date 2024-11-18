@@ -2,13 +2,18 @@ import pyarts
 import numpy as np
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(1, 21000, 101))
-p = 1e4
-t = 250
-x_h2o=1e-2
+
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 1e-2
+atm["O2"] = 0.21
+atm["N2"] = 0.79
+atm["CO2"] = 400e-6
 
 data = pyarts.arts.PredefinedModelData.fromcatalog("predef/", ["H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400"])
 
-self_abs400 = pyarts.arts.predef.get_self_h2o_ckdmt400(f, p, t, x_h2o, data)
+self_abs400 = pyarts.arts.predef.get_self_h2o_ckdmt400(f, atm, data)
 
 self_ref400 = np.array([9.19895412e-08, 1.56724440e-04, 2.82856717e-05, 6.95598923e-06,
        3.26021741e-06, 1.30146968e-06, 1.26394130e-06, 1.39463521e-05,
@@ -39,7 +44,7 @@ self_ref400 = np.array([9.19895412e-08, 1.56724440e-04, 2.82856717e-05, 6.955989
 
 assert np.allclose(self_abs400, self_ref400)
 
-foreign_abs400 = pyarts.arts.predef.get_foreign_h2o_ckdmt400(f, p, t, x_h2o, data)
+foreign_abs400 = pyarts.arts.predef.get_foreign_h2o_ckdmt400(f, atm, data)
 
 foreign_ref400 = np.array([7.91178291e-08, 6.80489234e-04, 1.95375691e-05, 1.45158347e-06,
        1.02882514e-07, 1.04559006e-08, 2.68733334e-07, 9.90478517e-05,

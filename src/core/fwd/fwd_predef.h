@@ -7,7 +7,6 @@
 
 namespace fwd::predef {
 class full {
-  Absorption::PredefinedModel::VMRS vmrs;
   std::shared_ptr<AtmPoint> atm;
   std::shared_ptr<PredefinedModelData> data;
 

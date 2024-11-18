@@ -3,7 +3,15 @@ import numpy as np
 
 f = np.linspace(1e9, 300e12, 101)
 
-x = pyarts.arts.predef.get_co2_ckdmt252(f, 1e4, 250, 400e-6)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 5e-3
+atm["O2"] = 0.21
+atm["N2"] = 0.79
+atm["CO2"] = 400e-6
+
+x = pyarts.arts.predef.get_co2_ckdmt252(f, atm)
 
 x_ref = np.array([
     1.3683133887398645e-18, 1.1986608079016771e-14, 2.040677409128314e-13, 1.8423491780381407e-12,
@@ -38,7 +46,7 @@ assert np.allclose(x, x_ref), "CO2-CKDMT252"
 
 f = np.linspace(400e12, 1000e12, 101)
 
-x = pyarts.arts.predef.get_o2_vis_ckdmt252(f, 1e4, 250, 0.21)
+x = pyarts.arts.predef.get_o2_vis_ckdmt252(f, atm)
 
 x_ref = np.array([0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
                   0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
@@ -71,7 +79,7 @@ assert np.allclose(x, x_ref), "O2-visCKDMT252"
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(2000, 2750, 101))
 
-x = pyarts.arts.predef.get_n2_fun_ckdmt252(f, 1e4, 250, 0.79, 5e-3, 0.21)
+x = pyarts.arts.predef.get_n2_fun_ckdmt252(f, atm)
 
 x_ref = np.array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                   0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 6.77285356e-11,
@@ -104,7 +112,7 @@ assert np.allclose(x, x_ref), "N2-CIAfunCKDMT252"
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(1, 360, 101))
 
-x = pyarts.arts.predef.get_n2_rot_ckdmt252(f, 1e4, 250, 0.79, 5e-3, 0.21)
+x = pyarts.arts.predef.get_n2_rot_ckdmt252(f, atm)
 x_ref = np.array([
     4.892519398826424e-08, 1.130776309157957e-07, 1.9392380357232268e-07, 2.7858617060206603e-07,
     3.6602326729796283e-07, 4.6300564804852784e-07, 5.83077354117196e-07, 7.17245752628144e-07,

@@ -102,6 +102,23 @@ class Obsel {
   [[nodiscard]] const PosLosVector& poslos_grid() const { return *poslos; }
   [[nodiscard]] const StokvecMatrix& weight_matrix() const { return w; }
 
+  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
+    ARTS_USER_ERROR_IF(not n, "Must exist");
+    ARTS_USER_ERROR_IF(n->size() != f->size(), "Mismatching size");
+    f = std::move(n);
+  }
+
+  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
+    ARTS_USER_ERROR_IF(not n, "Must exist");
+    ARTS_USER_ERROR_IF(n->size() != poslos->size(), "Mismatching size");
+    poslos = std::move(n);
+  }
+
+  void set_weight_matrix(StokvecMatrix n) {
+    ARTS_USER_ERROR_IF(n.shape() != w.shape(), "Mismatching shape");
+    w = std::move(n);
+  }
+
   //! Constant indicating that the frequency or poslos is not found in the grid
   constexpr static Index dont_have = -1;
 

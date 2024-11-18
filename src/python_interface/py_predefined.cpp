@@ -61,17 +61,13 @@ void internalCKDMT400(py::module_& m) {
   m.def(
       "get_foreign_h2o_ckdmt400",
       [](const Vector& f,
-         Numeric p,
-         Numeric t,
-         Numeric x,
+         const AtmPoint& atm,
          PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD400::compute_foreign_h2o(
             pm,
             f,
-            p,
-            t,
-            x,
+            atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
                 data.data.at("H2O-ForeignContCKDMT400"_isot)));
         Vector out(pm.nelem());
@@ -81,9 +77,7 @@ void internalCKDMT400(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       "predefined_model_data"_a,
       R"--(Computes foreign absorption using MT CKD Hitran version
 
@@ -91,12 +85,8 @@ Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 predefined_model_data : ~pyarts.arts.PredefinedModelData
     As WSV
 
@@ -109,17 +99,13 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_self_h2o_ckdmt400",
       [](const Vector& f,
-         Numeric p,
-         Numeric t,
-         Numeric x,
+         const AtmPoint& atm,
          PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD400::compute_self_h2o(
             pm,
             f,
-            p,
-            t,
-            x,
+            atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
                 data.data.at("H2O-SelfContCKDMT400"_isot)));
         Vector out(pm.nelem());
@@ -129,9 +115,7 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       "predefined_model_data"_a,
       R"--(Computes self absorption using MT CKD Hitran version
 
@@ -139,12 +123,8 @@ Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 predefined_model_data : ~pyarts.arts.PredefinedModelData
     As WSV
 
@@ -158,9 +138,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalMPM89(py::module_& m) {
   m.def(
       "get_h2o_mpm89",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MPM89::water(pm, f, p, t, x);
+        Absorption::PredefinedModel::MPM89::water(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -168,21 +148,15 @@ void internalMPM89(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes water absorption using MPM89
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -192,10 +166,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_mpm89",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MPM89::oxygen(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::MPM89::oxygen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -203,24 +176,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes oxygen absorption using MPM89
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float , optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -232,10 +196,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalMPM93(py::module_& m) {
   m.def(
       "get_n2_mpm93",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MPM93::nitrogen(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::MPM93::nitrogen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -243,24 +206,15 @@ void internalMPM93(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_n2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes nitrogen absorption using MPM93
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
-x_h2o : float, optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -272,9 +226,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalELL07(py::module_& m) {
   m.def(
       "get_water_droplet_ell07",
-      [](const Vector& f, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::ELL07::compute(pm, f, t, x);
+        Absorption::PredefinedModel::ELL07::compute(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -282,18 +236,15 @@ void internalELL07(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_temperature"_a,
-      "lwc"_a,
+      "atm"_a,
       R"--(Computes water absorption using PWR98
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_temperature : float
-    Temperature value [K]
-lwc : float
-    Liquid water content [1e-10, ...)
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -305,9 +256,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalPWR98(py::module_& m) {
   m.def(
       "get_h2o_pwr98",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR98::water(pm, f, p, t, x);
+        Absorption::PredefinedModel::PWR98::water(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -315,21 +266,15 @@ void internalPWR98(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes water absorption using PWR98
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -339,10 +284,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_pwr98",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR98::oxygen(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::PWR98::oxygen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -350,24 +294,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes oxygen absorption using PWR98
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float , optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -379,9 +314,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalPWR20xx(py::module_& m) {
   m.def(
       "get_h2o_pwr2021",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, p, t, x);
+        Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -389,21 +324,15 @@ void internalPWR20xx(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes water absorption using PWR2021
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -413,11 +342,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_pwr2021",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR20xx::compute_o2_2021(
-            pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::PWR20xx::compute_o2_2021(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -425,24 +352,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes oxygen absorption using PWR2021
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float , optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -452,9 +370,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_h2o_pwr2022",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, p, t, x);
+        Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -462,21 +380,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes water absorption using PWR2022
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -486,11 +398,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_pwr2022",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR20xx::compute_o2_2022(
-            pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::PWR20xx::compute_o2_2022(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -498,24 +408,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes oxygen absorption using PWR2022
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float , optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -525,10 +426,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_n2_pwr2021",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -536,24 +436,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_n2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes nitrogen absorption using PWR2021
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -565,10 +456,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalTRE05(py::module_& m) {
   m.def(
       "get_o2_tre05",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::TRE05::oxygen(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::TRE05::oxygen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -576,24 +466,15 @@ void internalTRE05(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a = 0.0,
+      "atm"_a,
       R"--(Computes oxygen absorption using TRE05
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float , optional
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -605,9 +486,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalCKDMT100(py::module_& m) {
   m.def(
       "get_o2_cia_ckdmt100",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, p, t, x);
+        Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -615,21 +496,15 @@ void internalCKDMT100(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -639,10 +514,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_v0v0_ckdmt100",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric n2)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, p, t, x, n2);
+        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -650,24 +524,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_n2"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -677,9 +542,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_v1v0_ckdmt100",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, p, t, x);
+        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -687,21 +552,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -713,9 +572,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalCKDMT252(py::module_& m) {
   m.def(
       "get_co2_ckdmt252",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, p, t, x);
+        Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -723,21 +582,15 @@ void internalCKDMT252(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_co2"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_co2 : float
-    Ratio of carbon dioxide in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -747,9 +600,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_vis_ckdmt252",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, p, t, x);
+        Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -757,21 +610,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -781,15 +628,10 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_n2_fun_ckdmt252",
-      [](const Vector& f,
-         Numeric p,
-         Numeric t,
-         Numeric x,
-         Numeric h2o,
-         Numeric o2) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(
-            pm, f, p, t, x, h2o, o2);
+            pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -797,27 +639,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_n2"_a,
-      "x_h2o"_a,
-      "x_o2"_a,
+      "atm"_a,
       R"--(Computes N2 fun absorption using MT CKD version 2.52
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -827,15 +657,10 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_n2_rot_ckdmt252",
-      [](const Vector& f,
-         Numeric p,
-         Numeric t,
-         Numeric x,
-         Numeric h2o,
-         Numeric o2) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(
-            pm, f, p, t, x, h2o, o2);
+            pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -843,27 +668,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_n2"_a,
-      "x_h2o"_a,
-      "x_o2"_a,
+      "atm"_a,
       R"--(Computes N2 rot absorption using MT CKD version 2.52
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -875,9 +688,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalSTANDARD(py::module_& m) {
   m.def(
       "get_h2o_self_standard",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::Standard::water_self(pm, f, p, t, x);
+        Absorption::PredefinedModel::Standard::water_self(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -885,21 +698,15 @@ void internalSTANDARD(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes self water absorption using Rosenkranz standard
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -909,9 +716,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_h2o_foreign_standard",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::Standard::water_foreign(pm, f, p, t, x);
+        Absorption::PredefinedModel::Standard::water_foreign(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -919,21 +726,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes foreign water absorption using Rosenkranz standard
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -943,9 +744,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_n2_standard",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::Standard::nitrogen(pm, f, p, t, x);
+        Absorption::PredefinedModel::Standard::nitrogen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -953,21 +754,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_n2"_a,
+      "atm"_a,
       R"--(Computes nitrogen absorption using Rosenkranz standard
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_n2 : float
-    Ratio of nitrogen in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -977,10 +772,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_o2_standard",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o)
-          -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::Standard::oxygen(pm, f, p, t, x, h2o);
+        Absorption::PredefinedModel::Standard::oxygen(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -988,24 +782,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_o2"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes oxygen absorption using Rosenkranz standard
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_o2 : float
-    Ratio of oxygen in the atmosphere in the range [0, 1]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -1017,9 +802,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalCKDMT350(py::module_& m) {
   m.def(
       "get_self_h2o_ckdmt350",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, p, t, x);
+        Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -1027,21 +812,15 @@ void internalCKDMT350(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 3.50
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -1051,10 +830,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_foreign_h2o_ckdmt350",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(
-            pm, f, p, t, x);
+        Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -1062,21 +840,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes foreign absorption using MT CKD version 3.50
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -1088,9 +860,9 @@ abs_coef : ~pyarts.arts.Vector
 void internalCKDMT320(py::module_& m) {
   m.def(
       "get_self_h2o_ckdmt320",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::CKDMT320::compute_self_h2o(pm, f, p, t, x);
+        Absorption::PredefinedModel::CKDMT320::compute_self_h2o(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -1098,21 +870,15 @@ void internalCKDMT320(py::module_& m) {
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes self absorption using MT CKD version 3.20
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------
@@ -1122,10 +888,9 @@ abs_coef : ~pyarts.arts.Vector
 
   m.def(
       "get_foreign_h2o_ckdmt320",
-      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+      [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.nelem());
-        Absorption::PredefinedModel::CKDMT320::compute_foreign_h2o(
-            pm, f, p, t, x);
+        Absorption::PredefinedModel::CKDMT320::compute_foreign_h2o(pm, f, atm);
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -1133,21 +898,15 @@ abs_coef : ~pyarts.arts.Vector
         return out;
       },
       "f_grid"_a,
-      "rtp_pressure"_a,
-      "rtp_temperature"_a,
-      "x_h2o"_a,
+      "atm"_a,
       R"--(Computes foreign absorption using MT CKD version 3.20
 
 Parameters
 ----------
 f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
-rtp_pressure : float
-    Pressure value [Pa]
-rtp_temperature : float
-    Temperature value [K]
-x_h2o : float
-    Ratio of water in the atmosphere in the range [0, 1]
+atm : AtmPoint
+    The atmospheric state
 
 Returns
 -------

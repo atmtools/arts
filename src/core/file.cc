@@ -327,6 +327,39 @@ bool find_file(ArrayOfString& matches,
   return exists;
 }
 
+bool find_file2(ArrayOfString& matches,
+                const std::string_view filename,
+                const ArrayOfString& paths) {
+  bool exists = false;
+  std::string efilename{expand_path(String{filename})};
+
+  // filename contains full path
+  if (!paths.size() || std::filesystem::path(efilename).is_absolute()) {
+    const String& fullpath{efilename};
+
+    if (file_exists(fullpath)) {
+      if (std::find(matches.begin(), matches.end(), fullpath) == matches.end())
+        matches.push_back(fullpath);
+      exists = true;
+    }
+  }
+  // filename contains no or relative path
+  else {
+    for (const auto& path : paths) {
+      const String fullpath{expand_path(path) + "/" + efilename};
+
+      if (file_exists(fullpath)) {
+        if (std::find(matches.begin(), matches.end(), fullpath) ==
+            matches.end())
+          matches.push_back(fullpath);
+        exists = true;
+      }
+    }
+  }
+
+  return exists;
+}
+
 /**
   Find an xml file.
  

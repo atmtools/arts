@@ -1,4 +1,5 @@
 #include <arts_constexpr_math.h>
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -37,11 +38,13 @@ namespace Absorption::PredefinedModel::PWR98 {
 //! New implementation
 void water(PropmatVector& propmat_clearsky,
            const Vector& f_grid,
-           const Numeric p_pa,
-           const Numeric t,
-           const Numeric vmr) noexcept {
+           const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["H2O"_spec];
 
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
@@ -292,13 +295,15 @@ void water(PropmatVector& propmat_clearsky,
 //! New implementation
 void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
-            const Numeric p_pa,
-            const Numeric t,
-            const Numeric vmr,
-            const Numeric h2o) {
+            const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
   constexpr Numeric VMRCalcLimit = 1.000e-25;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
 
   // widths in MHz/mbar for the O2 continuum
   constexpr Numeric WB300 = 0.56;  // [MHz/mbar]=[MHz/hPa]

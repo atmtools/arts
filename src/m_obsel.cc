@@ -63,7 +63,7 @@ void measurement_sensorSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
       measurement_sensor[i].normalize(pol, sum(pol));
     } catch (std::runtime_error& e) {
 #pragma omp critical
-      error += std::format("{}\n", e.what());
+      if (error.empty()) error = e.what();
     }
   }
 

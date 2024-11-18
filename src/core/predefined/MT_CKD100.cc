@@ -1,5 +1,6 @@
 #include <matpack.h>
 #include <rtepack.h>
+#include <atm.h>
 
 #include <vector>
 
@@ -179,9 +180,11 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
 //! New implementation
 void oxygen_cia(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
-                const Numeric p_pa,
-                const Numeric t,
-                const Numeric vmr) {
+                const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
+
   constexpr Numeric O2O2_O2F_ckd_mt_100_v1 = 1340.000;
   constexpr Numeric O2O2_O2F_ckd_mt_100_v2 = 1850.000;
   constexpr Numeric O2O2_O2F_ckd_mt_100_dv = 5.000;
@@ -374,10 +377,12 @@ void oxygen_cia(PropmatVector& propmat_clearsky,
 //! New implementation
 void oxygen_v0v0(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
-                 const Numeric p_pa,
-                 const Numeric t,
-                 const Numeric vmr,
-                 const Numeric n2) {
+                 const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
+  const Numeric n2 = atm_point["N2"_spec];
+
   constexpr Numeric O2_00_ckd_mt_100_v1 = 7536.000e0;
   constexpr Numeric O2_00_ckd_mt_100_v2 = 8500.000e0;
   constexpr Numeric O2_00_ckd_mt_100_dv = 2.000e0;
@@ -600,10 +605,12 @@ void oxygen_v0v0(PropmatVector& propmat_clearsky,
 //! New implementation
 void oxygen_v0v1(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
-                 const Numeric p_pa,
-                 const Numeric t,
-                 const Numeric vmr) {
+                 const AtmPoint& atm_point) {
   using Math::pow2;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
 
   constexpr Numeric O2_10_ckd_mt_100_v1 = 9100.000e0;
   constexpr Numeric O2_10_ckd_mt_100_v2 = 11000.000e0;

@@ -40,6 +40,7 @@
 #include "xml_io.h"
 #include "xml_io_base.h"
 #include "xml_io_general_types.h"
+#include "xml_io_variant_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -1578,78 +1579,54 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== AtmField =========================================
-void xml_read_from_stream_helper(std::istream& is_xml,
-                                 AtmKeyVal& key_val,
-                                 Atm::Data& data,
-                                 bifstream* pbifs) {
-  data = Atm::Data{};  // overwrite
+//=== AtmData =========================================
+void xml_read_from_stream(std::istream& is_xml,
+                          AtmData& data,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  String version;
 
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("AtmData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("AtmData");
 
-  String keytype, key, type;
-  open_tag.get_attribute_value("keytype", keytype);
-  open_tag.get_attribute_value("key", key);
-  open_tag.get_attribute_value("type", type);
+  xml_read(is_xml, data.data, pbifs);
+  xml_read_from_stream(is_xml, data.alt_upp, pbifs);
+  xml_read_from_stream(is_xml, data.alt_low, pbifs);
+  xml_read_from_stream(is_xml, data.lat_upp, pbifs);
+  xml_read_from_stream(is_xml, data.lat_low, pbifs);
+  xml_read_from_stream(is_xml, data.lon_upp, pbifs);
+  xml_read_from_stream(is_xml, data.lon_low, pbifs);
 
-  const auto get_extrapol = [&open_tag](auto& k) {
-    String x;
-    open_tag.get_attribute_value(k, x);
-    return to<InterpolationExtrapolation>(x);
-  };
-  data.alt_low = get_extrapol("alt_low");
-  data.alt_upp = get_extrapol("alt_upp");
-  data.lat_low = get_extrapol("lat_low");
-  data.lat_upp = get_extrapol("lat_upp");
-  data.lon_low = get_extrapol("lon_low");
-  data.lon_upp = get_extrapol("lon_upp");
-
-  if (keytype == "AtmKey")
-    key_val = to<AtmKey>(key);
-  else if (keytype == "Species")
-    key_val = to<SpeciesEnum>(key);
-  else if (keytype == "IsotopeRecord")
-    key_val = Species::Isotopologues[Species::find_species_index(key)];
-  else if (keytype == "QuantumIdentifier")
-    key_val = QuantumIdentifier(key);
-  else
-    ARTS_USER_ERROR("Cannot understand the keytype: \"{}\"", keytype)
-
-  if (type == "GriddedField3")
-    data.data = GriddedField3{};
-  else if (type == "Numeric")
-    data.data = Numeric{};
-  else if (type == "FunctionalData")
-    data.data = Atm::FunctionalData{
-        Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
-  else
-    ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
-
-  std::visit(
-      [&](auto& v) {
-        if constexpr (std::same_as<std::remove_cvref_t<decltype(v)>,
-                                   Atm::FunctionalData>) {
-          String x;
-          xml_read_from_stream(is_xml, x, pbifs);
-          v = Atm::FunctionalData{Atm::FunctionalDataAlwaysThrow{x}};
-        } else {
-          xml_read_from_stream(is_xml, v, pbifs);
-        }
-      },
-      data.data);
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/AtmData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/AtmData");
 }
 
-/*!
- * \param is_xml     XML Input stream
- * \param atm        AtmField return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
+void xml_write_to_stream(std::ostream& os_xml,
+                         const AtmData& data,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("AtmData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
+
+  xml_write(os_xml, data.data, pbofs, "data");
+  xml_write_to_stream(os_xml, data.alt_upp, pbofs, "alt_upp");
+  xml_write_to_stream(os_xml, data.alt_low, pbofs, "alt_low");
+  xml_write_to_stream(os_xml, data.lat_upp, pbofs, "lat_upp");
+  xml_write_to_stream(os_xml, data.lat_low, pbofs, "lat_low");
+  xml_write_to_stream(os_xml, data.lon_upp, pbofs, "lon_upp");
+  xml_write_to_stream(os_xml, data.lon_low, pbofs, "lon_low");
+
+  close_tag.set_name("/AtmData");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+//=== AtmField =========================================
+
 void xml_read_from_stream(std::istream& is_xml,
                           AtmField& atm,
                           bifstream* pbifs) {
@@ -1667,7 +1644,8 @@ void xml_read_from_stream(std::istream& is_xml,
   for (Index i = 0; i < n; i++) {
     AtmKeyVal key;
     Atm::Data data;
-    xml_read_from_stream_helper(is_xml, key, data, pbifs);
+    xml_read(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, data, pbifs);
     atm[key] = std::move(data);
   }
 
@@ -1676,74 +1654,6 @@ void xml_read_from_stream(std::istream& is_xml,
   close_tag.check_name("/AtmField");
 }
 
-void xml_write_to_stream_helper(std::ostream& os_xml,
-                                const AtmKeyVal& key,
-                                const Atm::Data& data,
-                                bofstream* pbofs) {
-  ArtsXMLTag open_data_tag;
-  open_data_tag.set_name("AtmData");
-
-  std::visit(
-      [&](auto& key_val) {
-        if constexpr (Atm::isAtmKey<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "AtmKey");
-        else if constexpr (Atm::isSpecies<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "Species");
-        else if constexpr (Atm::isSpeciesIsotope<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "IsotopeRecord");
-        else if constexpr (Atm::isQuantumIdentifier<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "QuantumIdentifier");
-        else
-          ARTS_ASSERT(false,
-                      "New key type is not yet handled by writing routine!")
-
-        if constexpr (Atm::isSpecies<decltype(key_val)>)
-          open_data_tag.add_attribute("key", String{toString<1>(key_val)});
-        else
-          open_data_tag.add_attribute("key", var_string(key_val));
-
-        open_data_tag.add_attribute("type", data.data_type());
-        open_data_tag.add_attribute("alt_low", String{toString(data.alt_low)});
-        open_data_tag.add_attribute("alt_upp", String{toString(data.alt_upp)});
-        open_data_tag.add_attribute("lat_low", String{toString(data.lat_low)});
-        open_data_tag.add_attribute("lat_upp", String{toString(data.lat_upp)});
-        open_data_tag.add_attribute("lon_low", String{toString(data.lon_low)});
-        open_data_tag.add_attribute("lon_upp", String{toString(data.lon_upp)});
-        open_data_tag.write_to_stream(os_xml);
-        os_xml << '\n';
-
-        std::visit(
-            [&](auto&& data_type [[maybe_unused]]) {
-              if constexpr (std::same_as<
-                                std::remove_cvref_t<decltype(data_type)>,
-                                Atm::FunctionalData>)
-                xml_write_to_stream(
-                    os_xml,
-                    String{var_string(
-                        "Data for ",
-                        key_val,
-                        " read from file as functional must be set explicitly")},
-                    pbofs,
-                    "Functional Data Error");
-              else
-                xml_write_to_stream(os_xml, data_type, pbofs, "Data");
-            },
-            data.data);
-      },
-      key);
-
-  ArtsXMLTag close_data_tag;
-  close_data_tag.set_name("/AtmData");
-  close_data_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-/*!
- * \param os_xml     XML Output stream
- * \param atm        AtmField
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
 void xml_write_to_stream(std::ostream& os_xml,
                          const AtmField& atm,
                          bofstream* pbofs,
@@ -1765,7 +1675,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   for (auto& key : keys) {
-    xml_write_to_stream_helper(os_xml, key, atm[key], pbofs);
+    xml_write(os_xml, key, pbofs, "Data Key");
+    xml_write_to_stream(os_xml, atm[key], pbofs, "Data");
   }
 
   close_tag.set_name("/AtmField");
@@ -1788,36 +1699,14 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmPoint");
 
-  Index nspec, nnlte, nother, nisot;
-  open_tag.get_attribute_value("nspec", nspec);
-  open_tag.get_attribute_value("nnlte", nnlte);
-  open_tag.get_attribute_value("nother", nother);
-  open_tag.get_attribute_value("nisot", nisot);
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
 
-  const Index n = nspec + nnlte + nother + nisot;
   for (Index i = 0; i < n; i++) {
-    Numeric v;
-    String k;
-    xml_read_from_stream(is_xml, k, pbifs);
-    xml_read_from_stream(is_xml, v, pbifs);
-
-    if (nother > 0) {
-      atm[to<AtmKey>(k)] = v;
-      nother--;
-    } else if (nspec > 0) {
-      atm[to<SpeciesEnum>(k)] = v;
-      nspec--;
-    } else if (nnlte > 0) {
-      atm[QuantumIdentifier(k)] = v;
-      nnlte--;
-    } else if (nisot > 0) {
-      atm[SpeciesIsotope(k)] = v;
-      nisot--;
-    } else {
-      ARTS_ASSERT(false)
-    }
+    AtmKeyVal key;
+    xml_read(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, atm[key], pbifs);
   }
-  ARTS_ASSERT((nspec + nnlte + nother) == 0)
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -1841,29 +1730,17 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   //! List of all KEY values
-  auto keys          = atm.keys();
-  const Index nspec  = atm.nspec();
-  const Index nnlte  = atm.nnlte();
-  const Index nother = atm.nother();
-  const Index nisot  = atm.nisot();
+  const auto keys = atm.keys(true, true, true, true, true);
 
-  open_tag.add_attribute("nspec", nspec);
-  open_tag.add_attribute("nnlte", nnlte);
-  open_tag.add_attribute("nother", nother);
-  open_tag.add_attribute("nisot", nisot);
+  open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   xml_set_stream_precision(os_xml);
 
   for (auto& key : keys) {
-    std::visit(
-        [&](auto&& key_val) {
-          xml_write_to_stream(
-              os_xml, String{var_string(key_val)}, pbofs, "Data Key");
-          xml_write_to_stream(os_xml, atm[key_val], pbofs, "Data");
-        },
-        key);
+    xml_write(os_xml, key, pbofs, "Key");
+    xml_write_to_stream(os_xml, atm[key], pbofs, "Data");
   }
 
   close_tag.set_name("/AtmPoint");

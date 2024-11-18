@@ -26,10 +26,11 @@
 namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
-  atmdata.def(py::init<Atm::Data>())
-      .def(py::init<GriddedField3>())
-      .def(py::init<Numeric>())
-      .def(py::init<Atm::FunctionalData>())
+  workspace_group_interface(atmdata);
+  atmdata
+      .def(py::init_implicit<GriddedField3>())
+      .def(py::init_implicit<Numeric>())
+      .def(py::init_implicit<Atm::FunctionalData>())
       .def_rw("data", &Atm::Data::data, "The data")
       .def_rw("alt_upp", &Atm::Data::alt_upp, "Upper altitude limit")
       .def_rw("alt_low", &Atm::Data::alt_low, "Lower altitude limit")
@@ -92,12 +93,7 @@ void py_atm(py::module_ &m) try {
              a->lat_upp = std::get<4>(state);
              a->lon_low = std::get<5>(state);
              a->lon_upp = std::get<6>(state);
-           })
-      .doc() = "Atmospheric data";
-  str_interface(atmdata);
-  py::implicitly_convertible<GriddedField3, Atm::Data>();
-  py::implicitly_convertible<Numeric, Atm::Data>();
-  py::implicitly_convertible<Index, Atm::Data>();
+           });
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
@@ -179,47 +175,20 @@ Parameters
           "qid"_a,
           "x"_a,
           "Set the NLTE value")
-      .def(
-          "__getitem__",
-          [](AtmPoint &atm, const Atm::KeyVal &x) {
-            return std::visit(
-                [&atm](auto &key) {
-                  if (not atm.has(key))
-                    throw py::key_error(var_string(key).c_str());
-                  return atm[key];
-                },
-                x);
-          },
-          "key"_a,
-          "Get the value of a key")
-      .def(
-          "__getitem__",
-          [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            const SpeciesEnum key = x.Species();
-            if (not atm.has(key)) throw py::key_error(var_string(key).c_str());
-            return atm[key];
-          },
-          "key"_a,
-          "Set the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmPoint &atm, const Atm::KeyVal &x, Numeric data) {
-            atm[x] = data;
-          },
-          "key"_a,
-          "val"_a,
-          "Set the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            atm[x.Species()] = data;
-          },
-          "key"_a,
-          "val"_a,
-          "Set the value of a key")
-      .def("keys", &AtmPoint::keys, "Available keys")
+      .def("__getitem__",
+           [](AtmPoint &self, const AtmKeyVal &key) { return self[key]; })
+      .def("__setitem__",
+           [](AtmPoint &self, const AtmKeyVal &key, Numeric x) {
+             self[key] = x;
+           })
+      .def("keys",
+           &AtmPoint::keys,
+           "Available keys",
+           "keep_basic"_a   = true,
+           "keep_specs"_a   = true,
+           "keep_isots"_a   = false,
+           "keep_nlte"_a    = false,
+           "keep_ssprops"_a = true)
       .def(
           "no_isotopologues",
           [](AtmPoint in) {
@@ -270,51 +239,7 @@ Parameters
          },
          "toa"_a = 100e3,
          "iso"_a = IsoRatioOption::Builtin)
-      .def(
-          "__getitem__",
-          [](AtmField &atm, const Atm::KeyVal &x) -> Atm::Data & {
-            std::visit(
-                [&atm](auto &key) {
-                  if (not atm.has(key))
-                    throw py::key_error(var_string(key).c_str());
-                },
-                x);
-
-            return atm[x];
-          },
-          py::rv_policy::reference_internal,
-          "key"_a,
-          "Get the value of a key")
-      .def(
-          "__getitem__",
-          [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            const SpeciesEnum key = x.Species();
-            if (not atm.has(key)) throw py::key_error(var_string(key).c_str());
-            return atm[key];
-          },
-          py::rv_policy::reference_internal,
-          "key"_a,
-          "Get the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmField &atm, const Atm::KeyVal &x, const Atm::FieldData &data) {
-            atm[x].data = data;
-          },
-          "key"_a,
-          "val"_a,
-          "Set the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmField &atm,
-             const ArrayOfSpeciesTag &x,
-             const Atm::FieldData &data) {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            atm[x.Species()].data = data;
-          },
-          "key"_a,
-          "val"_a,
-          "Set the value of a key")
+      .def("species_keys", &AtmField::keys<SpeciesEnum>)
       .def(
           "at",
           [](const AtmField &atm,
@@ -325,6 +250,35 @@ Parameters
           "lat"_a,
           "lon"_a,
           "Get the data at a point")
+      .def(
+          "at",
+          [](const AtmField &atm,
+             const Vector &hv,
+             const Vector &latv,
+             const Vector &lonv) {
+            const Index N = hv.size();
+            if (latv.size() != lonv.size() or N != latv.size())
+              throw std::logic_error(std::format(R"(Not same size:
+  h:   {:B,} (size: {})
+  lat: {:B,} (size: {})
+  lon: {:B,} (size: {})
+)",
+                                                 hv,
+                                                 hv.size(),
+                                                 latv,
+                                                 latv.size(),
+                                                 lonv,
+                                                 lonv.size()));
+            ArrayOfAtmPoint out;
+            out.reserve(N);
+            for (Index i = 0; i < N; i++)
+              out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
+            return out;
+          },
+          "h"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data as a list")
       .def_rw("top_of_atmosphere",
               &AtmField::top_of_atmosphere,
               "Top of the atmosphere [m]")
@@ -548,53 +502,14 @@ Parameters
          "iso"_a = IsoRatioOption::Builtin)
       .def(
           "__getitem__",
-          [](AtmField &atm, const Atm::KeyVal &x) -> Atm::Data & {
-            std::visit(
-                [&atm](auto &key) {
-                  if (not atm.has(key))
-                    throw py::key_error(var_string(key).c_str());
-                },
-                x);
-
-            return atm[x];
+          [](AtmField &self, const AtmKeyVal &key) -> Atm::Data & {
+            return self[key];
           },
-          py::rv_policy::reference_internal,
-          "Get the value of a key")
-      .def(
-          "__getitem__",
-          [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            const SpeciesEnum key = x.Species();
-            if (not atm.has(key)) throw py::key_error(var_string(key).c_str());
-            return atm[key];
-          },
-          py::rv_policy::reference_internal,
-          "Get the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmField &atm, const Atm::KeyVal &x, const Atm::FieldData &data) {
-            atm[x].data = data;
-          },
-          "Set the value of a key")
-      .def(
-          "__setitem__",
-          [](AtmField &atm,
-             const ArrayOfSpeciesTag &x,
-             const Atm::FieldData &data) {
-            if (x.empty()) throw py::key_error("empty species tag list");
-            atm[x.Species()].data = data;
-          },
-          "Set the value of a key")
-      .def(
-          "at",
-          [](const AtmField &atm,
-             const Numeric &h,
-             const Numeric &lat,
-             const Numeric &lon) { return atm.at(h, lat, lon); },
-          "h"_a,
-          "lat"_a,
-          "lon"_a,
-          "Get the data at a point")
+          py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) {
+             self[key] = x;
+           })
       .def_rw("top_of_atmosphere",
               &AtmField::top_of_atmosphere,
               "Top of the atmosphere [m]")
@@ -803,7 +718,7 @@ Parameters
 )",
           "pressure"_a,
           "extrapolation_type"_a = InterpolationExtrapolation::Nearest,
-          "logarithmic"_a = true);
+          "logarithmic"_a        = true);
 
   aap.def(
       "to_dict",
