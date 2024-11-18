@@ -368,7 +368,7 @@ Numeric magnetic_angles::dtheta_dv() const {
   using std::sqrt;
   const Numeric rat = pow2(uct / H);
   const Numeric nom = v * uct - ca * sz * pow2(H);
-  return (H == 0.0 or rat == 1.0) ? 0 : nom / (sqrt(1 - rat) * pow3(H));
+  return (H == 0.0 or rat == 1.0) ? 0 : nom / (sqrt(1.0 - rat) * pow3(H));
 }
 
 Numeric magnetic_angles::dtheta_dw() const {
