@@ -9,10 +9,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "debug.h"
-#include "format_tags.h"
-#include "matpack_constexpr.h"
-#include "sorted_grid.h"
+#include <enumsSensorKeyType.h>
+#include <enumsSensorJacobianModelType.h>
 
 namespace sensor {
 struct PosLos {
@@ -136,10 +134,53 @@ class Obsel {
 
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
   void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
+
+  [[nodiscard]] Size flat_size(const SensorKeyType& key) const;
+  void flat(ExhaustiveVectorView x, const SensorKeyType& key) const;
+  [[nodiscard]] Vector flat(const SensorKeyType& key) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
 }  // namespace sensor
+
+struct SensorKey {
+  SensorKeyType type;
+
+  Index elem;
+
+  SensorJacobianModelType model;
+
+  Index polyorder{-1};
+
+  Vector original_grid{};
+
+  bool operator==(const SensorKey& other) const;
+};
+
+template<>
+struct std::hash<SensorKey> {
+  std::size_t operator()(const SensorKey& g) const {
+    return std::hash<SensorKeyType>{}(g.type) ^ (std::hash<SensorJacobianModelType>{}(g.model) << 10) ^ (std::hash<Index>{}(g.elem) << 20);
+  }
+};
+
+template <>
+struct std::formatter<SensorKey> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.type, tags.sep(), v.elem, tags.sep(), v.model);
+  }
+};
 
 using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;

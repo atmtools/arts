@@ -21,6 +21,7 @@ add_subdirectory(matpack)
 add_subdirectory(rtepack)
 add_subdirectory(predefined)
 add_subdirectory(operators)
+add_subdirectory(jacobian)
 add_subdirectory(fwd)
 add_subdirectory(lbl)
 add_subdirectory(lookup)
@@ -48,7 +49,6 @@ add_library(artscore STATIC
   geodetic.cc
   igrf13.cc
   interpolation.cc
-  jacobian.cc
   jpl_species.cc
   lineshapemodel.cc
   mc_antenna.cc
@@ -93,6 +93,7 @@ target_link_libraries(artscore PUBLIC
   util
   disort-cpp
   legendre
+  jacobian
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

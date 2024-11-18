@@ -166,7 +166,7 @@ void default_sensor_x_set(ExhaustiveVectorView x,
 
   using enum SensorKeyType;
   switch (key.model) {
-    case SensorModelType::None: {
+    case SensorJacobianModelType::None: {
       switch (key.type) {
         case Frequency:
           ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
@@ -243,7 +243,7 @@ void default_sensor_x_set(ExhaustiveVectorView x,
         } break;
       }
     } break;
-    case SensorModelType::PolynomialOffset: {
+    case SensorJacobianModelType::PolynomialOffset: {
       const Vector& o = key.original_grid;
       switch (key.type) {
         case Frequency:         polyfit(x, o, rem_frq(v, o)); break;
@@ -287,7 +287,7 @@ void set_frq(const SensorObsel& v,
   const auto xs = std::make_shared<const AscendingGrid>(
       x.begin(), x.end(), [](auto& x) { return x; });
 
-  // Must copy, as we may change the shared_ptr later, regrdless of clang-tidy
+  // Must copy, as we may change the shared_ptr later
   const auto fs = v.f_grid_ptr();
 
   for (auto& elem : sensor) {
@@ -323,7 +323,7 @@ void set_poslos(const SensorObsel& v,
 
   const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
 
-  // Must copy, as we may change the shared_ptr later, regrdless of clang-tidy
+  // Must copy, as we may change the shared_ptr later
   const auto ps = v.poslos_grid_ptr();
 
   for (auto& elem : sensor) {
@@ -370,7 +370,7 @@ void default_x_sensor_set(ArrayOfSensorObsel& sensor,
 
   using enum SensorKeyType;
   switch (key.model) {
-    case SensorModelType::None: {
+    case SensorJacobianModelType::None: {
       switch (key.type) {
         case Frequency:         set_frq(v, sensor, x); break;
         case PointingZenith:    set_zag(v, sensor, x); break;
@@ -401,7 +401,7 @@ void default_x_sensor_set(ArrayOfSensorObsel& sensor,
         } break;
       }
     } break;
-    case SensorModelType::PolynomialOffset: {
+    case SensorJacobianModelType::PolynomialOffset: {
       auto& o  = key.original_grid;
       Vector r = polynomial_offset_evaluate(x, o);
 
@@ -481,7 +481,8 @@ std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
 
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
-                       const AbsorptionBands&) {
+                       const AbsorptionBands&,
+                       const ArrayOfSensorObsel& measurement_sensor) {
   zero_out_x();
 
   const Size natm  = atm().size();

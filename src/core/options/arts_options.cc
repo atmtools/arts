@@ -15,6 +15,31 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "SensorKeyType",
+      .desc =
+          R"(A key for identifying a sensor property
+)",
+      .values_and_desc = {
+          Value{"Frequency", "Frequency of the sensor"},
+          Value{"PointingZenith", "Pointing Zenith of the sensor"},
+          Value{"PointingAzimuth", "Pointing Azimuth of the sensor"},
+          Value{"PointingAltitude", "Pointing Altitude of the sensor"},
+          Value{"PointingLatitude", "Pointing Latitude of the sensor"},
+          Value{"PointingLongitude", "Pointing Longitude of the sensor"},
+          Value{"Weights", "Weights of the sensor"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "SensorJacobianModelType",
+      .desc =
+          R"(How to model the sensor Jacobian model target.
+)",
+      .values_and_desc = {
+          Value{"None", "No model, work purely on sensor data"},
+          Value{"PolynomialOffset", "The sensor Jacobian is modeled as a polynomial offset"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
       .name = "HitranLineStrengthOption",
       .desc =
           R"(The way line strength is computed in ARTS when reading Hitran data.

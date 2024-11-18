@@ -1,9 +1,14 @@
 #include "obsel.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "compare.h"
 #include "debug.h"
+
+bool SensorKey::operator==(const SensorKey& other) const {
+  return other.elem == elem and other.model == model and other.type == type;
+}
 
 namespace sensor {
 std::ostream& operator<<(std::ostream& os, const PosLos& obsel) {
@@ -69,6 +74,105 @@ void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
     auto jac  = j[ij];
     out[ij]  += std::transform_reduce(jac.begin(), jac.end(), ws.begin(), 0.0);
   }
+}
+
+Size Obsel::flat_size(const SensorKeyType& key) const {
+  switch (key) {
+    using enum SensorKeyType;
+    case Frequency:         return f->size();
+    case PointingZenith:    return poslos->size();
+    case PointingAzimuth:   return poslos->size();
+    case PointingAltitude:  return poslos->size();
+    case PointingLatitude:  return poslos->size();
+    case PointingLongitude: return poslos->size();
+    case Weights:           return f->size() * poslos->size() * 4;
+  }
+
+  std::unreachable();
+}
+
+void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
+  switch (key) {
+    using enum SensorKeyType;
+    case Frequency:
+      ARTS_USER_ERROR_IF(x.size() != f_grid().size(),
+                         "Bad size. x.size(): {}, f_grid().size(): {}",
+                         x.size(),
+                         f_grid().size())
+      x = f_grid();
+      break;
+    case PointingZenith:
+      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
+                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                         x.size(),
+                         poslos_grid().size())
+      std::transform(poslos_grid().begin(),
+                     poslos_grid().end(),
+                     x.begin(),
+                     [](auto& poslos) { return poslos.los[0]; });
+      break;
+    case PointingAzimuth:
+      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
+                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                         x.size(),
+                         poslos_grid().size())
+      std::transform(poslos_grid().begin(),
+                     poslos_grid().end(),
+                     x.begin(),
+                     [](auto& poslos) { return poslos.los[1]; });
+      break;
+    case PointingAltitude:
+      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
+                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                         x.size(),
+                         poslos_grid().size())
+      std::transform(poslos_grid().begin(),
+                     poslos_grid().end(),
+                     x.begin(),
+                     [](auto& poslos) { return poslos.pos[0]; });
+      break;
+    case PointingLatitude:
+      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
+                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                         x.size(),
+                         poslos_grid().size())
+      std::transform(poslos_grid().begin(),
+                     poslos_grid().end(),
+                     x.begin(),
+                     [](auto& poslos) { return poslos.pos[1]; });
+      break;
+    case PointingLongitude:
+      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
+                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                         x.size(),
+                         poslos_grid().size())
+      std::transform(poslos_grid().begin(),
+                     poslos_grid().end(),
+                     x.begin(),
+                     [](auto& poslos) { return poslos.pos[2]; });
+      break;
+    case Weights: {
+      ARTS_USER_ERROR_IF(w.size() * 4 != x.size(),
+                         "Bad size. x.size(): {} for w.size()*4: {}",
+                         x.size(),
+                         w.size() * 4)
+      auto X = x.reshape_as(w.nrows(), w.ncols(), 4);
+      for (Index i = 0; i < X.npages(); ++i) {
+        for (Index j = 0; j < X.nrows(); ++j) {
+          X(i, j, 0) = w(i, j).I();
+          X(i, j, 1) = w(i, j).Q();
+          X(i, j, 2) = w(i, j).U();
+          X(i, j, 3) = w(i, j).V();
+        }
+      }
+    } break;
+  }
+}
+
+Vector Obsel::flat(const SensorKeyType& key) const {
+  Vector out(flat_size(key));
+  flat(out, key);
+  return out;
 }
 }  // namespace sensor
 
