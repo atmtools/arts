@@ -5,8 +5,10 @@ import os
 import urllib.request
 import zipfile
 from pyarts.arts.globals import parameters
-
+import pyarts
+import numpy as np
 from tqdm import tqdm
+import xarray
 
 
 def download(data=("xml", "cat"), download_dir=None, verbose=False, **kwargs):
@@ -200,3 +202,161 @@ def download_arts_cat_data(download_dir=None, version=None, verbose=False):
             Whether to print info messages. Defaults to False.
     """
     return _download_arts_data("arts-cat-data", download_dir, version, verbose)
+
+
+def to_atmospheric_field(
+    data: xarray.Dataset,
+    remap: None | dict[str, str] = None,
+    ignore: None | list[str] = None,
+    *,
+    atm: None | pyarts.arts.AtmField = None,
+) -> pyarts.arts.AtmField:
+    """
+    Populates a ~pyarts.arts.AtmField from an xarray Dataset-like structure
+
+    Parameters
+    ----------
+    data : xarray.Dataset
+        A dataset.  Coordinates should contain 'alt', 'lat', and 'lon'.
+        All other keys() should be assignable to the atm-field by name.
+    remap : None | dict[str, str], optional
+        All names in this optional dict are renamed when accessing the dataset.
+        For example, if the altitude-grid is called 'Alt' instead of 'alt', the
+        dict should contain {..., 'alt': 'Alt', ...}.
+    ignore : None | list[str], optional
+        Ignore keys listed from assignment into the atmospheric field.
+    atm : None | pyarts.arts.AtmField
+        The default atmospheric field to use.  Defaults to None to use default-
+        constructed atmospheric field object.
+
+    Returns
+    -------
+    atm : pyarts.arts.AtmField
+        An atmospheric field
+
+    """
+    if ignore is None:
+        ignore = []
+
+    if remap is None:
+        remap = {}
+
+    alt = (
+        getattr(data, remap.get("alt", "alt")).data.flatten()
+        if "alt" not in ignore
+        else np.array([0])
+    )
+    lat = (
+        getattr(data, remap.get("lat", "lat")).data.flatten()
+        if "lat" not in ignore
+        else np.array([0])
+    )
+    lon = (
+        getattr(data, remap.get("lon", "lon")).data.flatten()
+        if "lon" not in ignore
+        else np.array([0])
+    )
+
+    GF3 = pyarts.arts.GriddedField3(
+        name="Generic",
+        data=np.zeros((alt.size, lat.size, lon.size)),
+        grid_names=["Altitude", "Latitude", "Longitude"],
+        grids=[alt, lat, lon],
+    )
+
+    if atm is None:
+        atm = pyarts.arts.AtmField()
+        atm.top_of_atmosphere = max(alt)
+
+    for k in data.keys():
+        try:
+            if k in ignore:
+                continue
+
+            k = remap.get(k, k)
+            kstr = str(k)
+
+            GF3.dataname = kstr
+            np.asarray(GF3.data).flat[:] = getattr(data, kstr).data.flat[:]
+
+            atm[k] = GF3
+
+        except Exception as e:
+            raise Exception(f"{e}\n\nFailed to assign key to atm: {k}")
+
+    return atm
+
+
+def to_absorption_species(
+    atm_field: pyarts.arts.AtmField,
+) -> pyarts.arts.ArrayOfArrayOfSpeciesTag:
+    """Scans the ARTS data path for species relevant to the given atmospheric field.
+
+    The scan is done over files in an arts-cat-data like directory structure.
+
+    Args:
+        atm_field (pyarts.arts.AtmField): A relevant atmospheric field.
+
+    Returns:
+        pyarts.arts.ArrayOfArrayOfSpeciesTag: All found species tags.
+        The intent is that this is enough information to use pyarts.workspace.Workspace.ReadCatalogData
+    """
+    species = atm_field.species_keys()
+
+    out = []
+    for spec in species:
+        out.append(f"{spec}")
+
+        if pyarts.arts.file.find_xml(f"xsec/{spec}-XFIT") is not None:
+            out.append(f"{spec}-XFIT")
+
+        for spec2 in species:
+            if pyarts.arts.file.find_xml(f"cia/{spec}-CIA-{spec2}"):
+                out.append(f"{spec}-CIA-{spec2}")
+
+            if pyarts.arts.file.find_xml(f"cia/{spec2}-CIA-{spec}"):
+                out.append(f"{spec2}-CIA-{spec}")
+
+        if pyarts.arts.file.find_xml(f"cia/{spec}-CIA-{spec}") is not None:
+            out.append(f"{spec}-CIA-{spec}")
+
+        if spec == pyarts.arts.SpeciesEnum.Water:
+            out.append("H2O-ForeignContCKDMT400")
+            out.append("H2O-SelfContCKDMT400")
+        elif spec == pyarts.arts.SpeciesEnum.CarbonDioxide:
+            out.append("CO2-CKDMT252")
+        elif spec == pyarts.arts.SpeciesEnum.Oxygen:
+            out.append("O2-SelfContStandardType")
+        elif spec == pyarts.arts.SpeciesEnum.Nitrogen:
+            out.append("N2-SelfContStandardType")
+
+    return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
+
+def xarray_open_dataset(filename_or_obj, *args, **kwargs):
+    """Wraps xarray.open_dataset to search for files in the current and in ARTS' data path.
+
+    All args and kwargs are passed on to xarray.open_dataset directly.  Any FileNotFoundError
+    will be caught and just raised if no path works.
+
+    Args:
+        filename_or_obj (_type_): _description_
+
+    Raises:
+        FileNotFoundError: _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    try:
+        return xarray.open_dataset(filename_or_obj, *args, **kwargs)
+    except FileNotFoundError:
+        pass
+
+    for p in parameters.datapath:
+        try:
+            return xarray.open_dataset(os.path.join(p, filename_or_obj), *args, **kwargs)
+        except FileNotFoundError:
+            pass
+
+    raise FileNotFoundError(f"File not found in ARTS data path ({parameters.datapath}): {filename_or_obj}")

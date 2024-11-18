@@ -1,6 +1,7 @@
 #include <arts_conversions.h>
 #include <matpack.h>
 #include <rtepack.h>
+#include <atm.h>
 
 /*
       --------------------------- CKD_MT_3.50 -------------------------
@@ -1025,11 +1026,13 @@ Numeric XINT_FUN(const Numeric V1A,
 */
 void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
-                      const Numeric& P,
-                      const Numeric& T,
-                      const Numeric& vmrh2o) {
+                      const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
   const Index nf = f_grid.nelem();
+
+  const Numeric T = atm_point.temperature;
+  const Numeric P = atm_point.pressure;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
@@ -1141,11 +1144,13 @@ October 2020: The water vapor continuum in the microwave through far-infrared wa
 */
 void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
-                         const Numeric& P,
-                         const Numeric& T,
-                         const Numeric& vmrh2o) {
+                         const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
   const Index nf = f_grid.nelem();
+
+  const Numeric T = atm_point.temperature;
+  const Numeric P = atm_point.pressure;
+  const Numeric vmrh2o = atm_point["H2O"_spec];
 
   //     Foreign correction factors from joint RHUBC-II/RHUBC-I
   //     analysis (mt_ckd_3.0) for up to 600cm-1

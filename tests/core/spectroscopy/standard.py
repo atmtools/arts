@@ -3,7 +3,14 @@ import numpy as np
 
 f = np.linspace(1e9, 25e9, 101)
 
-x = pyarts.arts.predef.get_o2_standard(f, 1e4, 250, 0.21, 5e-3)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 5e-3
+atm["O2"] = 0.21
+atm["N2"] = 0.79
+
+x = pyarts.arts.predef.get_o2_standard(f, atm)
 
 x_ref = np.array([2.40378599e-08, 2.40730972e-08, 2.40926762e-08, 2.41046637e-08,
                   2.41125304e-08, 2.41179690e-08, 2.41218848e-08, 2.41247973e-08,
@@ -36,7 +43,7 @@ assert np.allclose(x, x_ref), "O2-SelfContStandardType"
 
 f = np.linspace(1e9, 100000e9, 101)
 
-x = pyarts.arts.predef.get_n2_standard(f, 1e4, 250, 0.79)
+x = pyarts.arts.predef.get_n2_standard(f, atm)
 
 x_ref = np.array([1.25180564e-12, 1.25428545e-06, 5.01213085e-06, 1.12735375e-05,
                   2.00385053e-05, 3.13070344e-05, 4.50791246e-05, 6.13547761e-05,
@@ -69,7 +76,7 @@ assert np.allclose(x, x_ref), "N2-SelfContStandardType"
 
 f = np.linspace(1e9, 100000e9, 101)
 
-x = pyarts.arts.predef.get_h2o_self_standard(f, 1e4, 250, 5e-3)
+x = pyarts.arts.predef.get_h2o_self_standard(f, atm)
 
 x_ref = np.array([1.76240488e-11, 1.76589617e-05, 7.05652983e-05, 1.58719028e-04,
                   2.82120150e-04, 4.40768664e-04, 6.34664571e-04, 8.63807871e-04,
@@ -102,7 +109,7 @@ assert np.allclose(x, x_ref), "H2O-SelfContStandardType"
 
 f = np.linspace(1e9, 100000e9, 101)
 
-x = pyarts.arts.predef.get_h2o_foreign_standard(f, 1e4, 250, 5e-3)
+x = pyarts.arts.predef.get_h2o_foreign_standard(f, atm)
 
 x_ref = np.array([4.66806240e-11, 4.67730974e-05, 1.86905529e-04, 4.20397341e-04,
                   7.47248534e-04, 1.16745911e-03, 1.68102906e-03, 2.28795840e-03,

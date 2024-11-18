@@ -357,7 +357,9 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
     ArrayOfCIARecord& absorption_cia_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
-    const Index& robust) try {
+    const Index& ignore_missing_) try {
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+
   ArrayOfString names{};
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
@@ -383,14 +385,13 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    xml_read_from_file(fil.string(), absorption_cia_data.emplace_back());
+    String filename = fil.string();
+    if (not find_xml_file_existence(filename)) {
+      if (ignore_missing) continue;
+      ARTS_USER_ERROR("File {} not found", filename);
+    }
 
-    ARTS_USER_ERROR_IF(
-        robust == 0 and absorption_cia_data.back().DatasetCount() == 0,
-        "Cannot find any data for \"{}"
-        "\" in file at {}",
-        name,
-        fil.string())
+    xml_read_from_file(fil.string(), absorption_cia_data.emplace_back());
   }
 }
 ARTS_METHOD_ERROR_CATCH

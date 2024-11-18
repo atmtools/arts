@@ -143,11 +143,9 @@ void ray_path_propagation_matrixFromPath(
           propagation_matrix_agenda);
     }
   } else {
-    ArrayOfString fail_msg;
-    bool do_abort = false;
+    String error{};
 #pragma omp parallel for if (!arts_omp_in_parallel())
     for (Size ip = 0; ip < np; ip++) {
-      if (do_abort) continue;
       try {
         propagation_matrix_agendaExecute(
             ws,
@@ -163,20 +161,12 @@ void ray_path_propagation_matrixFromPath(
             ray_path_atmospheric_point[ip],
             propagation_matrix_agenda);
       } catch (const std::runtime_error &e) {
-#pragma omp critical(iyEmissionStandard_source)
-        {
-          do_abort = true;
-          fail_msg.push_back(
-              std::format("Runtime-error in propagation radiative "
-                          "properties calculation at index {}:\n{}",
-                          ip,
-                          e.what()));
-        }
+#pragma omp critical
+        if (error.empty()) error = e.what();
       }
     }
 
-    ARTS_USER_ERROR_IF(
-        do_abort, "Error messages from failed cases:\n{}", fail_msg)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -214,8 +204,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfAscendingGrid &ray_path_frequency_grid,
     const ArrayOfAtmPoint &ray_path_atmospheric_point,
     const JacobianTargets &jacobian_targets) try {
-  ArrayOfString fail_msg;
-  bool do_abort = false;
+  String error{};
 
   const Index np = ray_path_atmospheric_point.size();
   if (np == 0) {
@@ -244,7 +233,6 @@ void ray_path_spectral_radiance_sourceFromPropmat(
   // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ip = 0; ip < np; ip++) {
-    if (do_abort) continue;
     try {
       rtepack::source::level_nlte(
           ray_path_spectral_radiance_source[ip],
@@ -257,19 +245,12 @@ void ray_path_spectral_radiance_sourceFromPropmat(
           ray_path_atmospheric_point[ip].temperature,
           it);
     } catch (const std::runtime_error &e) {
-#pragma omp critical(iyEmissionStandard_source)
-      {
-        do_abort = true;
-        fail_msg.push_back(
-            var_string("Runtime-error in source calculation at index {}:\n{}",
-                       ip,
-                       e.what()));
-      }
+#pragma omp critical
+      if (error.empty()) error = e.what();
     }
   }
 
-  ARTS_USER_ERROR_IF(
-      do_abort, "Error messages from failed cases:\n{}", fail_msg)
+  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -343,13 +324,11 @@ void ray_path_transmission_matrixFromPath(
                     ray_path_distance_jacobian2);
     }
   } else {
-    ArrayOfString fail_msg;
-    bool do_abort = false;
+    String error;
 
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
     firstprivate(ray_path_distance_jacobian1, ray_path_distance_jacobian2)
     for (Size ip = 1; ip < np; ip++) {
-      if (do_abort) continue;
       try {
         const Numeric ray_path_distance = path::distance(
             ray_path[ip - 1].pos, ray_path[ip].pos, surface_field.ellipsoid);
@@ -373,19 +352,12 @@ void ray_path_transmission_matrixFromPath(
                       ray_path_distance_jacobian1,
                       ray_path_distance_jacobian2);
       } catch (const std::runtime_error &e) {
-#pragma omp critical(iyEmissionStandard_transmission)
-        {
-          do_abort = true;
-          fail_msg.push_back(var_string(
-              "Runtime-error in transmission calculation at index {}:\n{}",
-              ip,
-              e.what()));
-        }
+#pragma omp critical
+        if (error.empty()) error = e.what();
       }
     }
 
-    ARTS_USER_ERROR_IF(
-        do_abort, "Error messages from failed cases:\n{}", fail_msg)
+    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -420,11 +392,11 @@ void ray_path_frequency_gridFromPath(
                               ray_path[ip]);
     } catch (std::exception &e) {
 #pragma omp critical
-      error += std::format("Error: {}\n", e.what());
+      error = e.what();
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "{}\n", error);
+  ARTS_USER_ERROR_IF(not error.empty(), "{}\n", error);
 }
 ARTS_METHOD_ERROR_CATCH
 

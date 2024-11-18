@@ -73,15 +73,21 @@ concept ListOfNumeric = requires(T a) {
 };
 
 struct Point {
-  std::unordered_map<SpeciesEnum, Numeric> specs{};
-  std::unordered_map<SpeciesIsotope, Numeric> isots{};
-  std::unordered_map<QuantumIdentifier, Numeric> nlte{};
-  std::unordered_map<ScatteringSpeciesProperty, Numeric> ssprops{};
+  using SpeciesMap        = std::unordered_map<SpeciesEnum, Numeric>;
+  using SpeciesIsotopeMap = std::unordered_map<SpeciesIsotope, Numeric>;
+  using NlteMap           = std::unordered_map<QuantumIdentifier, Numeric>;
+  using ScatteringSpeciesMap =
+      std::unordered_map<ScatteringSpeciesProperty, Numeric>;
 
-  Numeric pressure{NAN};
-  Numeric temperature{NAN};
-  Vector3 wind{NAN, NAN, NAN};
-  Vector3 mag{NAN, NAN, NAN};
+  SpeciesMap specs{};
+  SpeciesIsotopeMap isots{};
+  NlteMap nlte{};
+  ScatteringSpeciesMap ssprops{};
+
+  Numeric pressure{0};
+  Numeric temperature{0};
+  Vector3 wind{0, 0, 0};
+  Vector3 mag{0, 0, 0};
 
   Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
   Point(const Point &)            = default;
@@ -133,7 +139,11 @@ struct Point {
   [[nodiscard]] Numeric mean_mass() const;
   [[nodiscard]] Numeric mean_mass(SpeciesEnum) const;
 
-  [[nodiscard]] std::vector<KeyVal> keys() const;
+  [[nodiscard]] std::vector<KeyVal> keys(bool keep_basic   = true,
+                                         bool keep_specs   = true,
+                                         bool keep_isots   = false,
+                                         bool keep_nlte    = false,
+                                         bool keep_ssprops = true) const;
 
   [[nodiscard]] Index size() const;
   [[nodiscard]] Index nspec() const;
@@ -206,15 +216,23 @@ struct Data {
   Data &operator=(const Data &) = default;
   Data &operator=(Data &&)      = default;
 
+  void adjust_interpolation_extrapolation();
+
   // Allow copy and move construction implicitly from all types
-  explicit Data(const RawDataType auto &x) : data(x) {}
-  explicit Data(RawDataType auto &&x) : data(std::move(x)) {}
+  explicit Data(const RawDataType auto &x) : data(x) {
+    adjust_interpolation_extrapolation();
+  }
+  explicit Data(RawDataType auto &&x) : data(std::move(x)) {
+    adjust_interpolation_extrapolation();
+  }
   Data &operator=(const RawDataType auto &x) {
     data = x;
+    adjust_interpolation_extrapolation();
     return *this;
   }
   Data &operator=(RawDataType auto &&x) {
     data = std::move(x);
+    adjust_interpolation_extrapolation();
     return *this;
   }
 
@@ -356,7 +374,8 @@ Field atm_from_profile(const std::span<const Point> &atm,
  */
 void extend_in_pressure(std::vector<Point> &atm,
                         const Numeric &new_pressure,
-                        const InterpolationExtrapolation extrapolation_type = InterpolationExtrapolation::Nearest,
+                        const InterpolationExtrapolation extrapolation_type =
+                            InterpolationExtrapolation::Nearest,
                         const bool logarithmic = true);
 }  // namespace Atm
 
@@ -365,6 +384,7 @@ using AtmField          = Atm::Field;
 using AtmPoint          = Atm::Point;
 using ArrayOfAtmPoint   = Array<AtmPoint>;
 using AtmFunctionalData = Atm::FunctionalData;
+using AtmData           = Atm::Data;
 
 bool operator==(const AtmKeyVal &, AtmKey);
 bool operator==(AtmKey, const AtmKeyVal &);

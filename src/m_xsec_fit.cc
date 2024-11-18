@@ -19,7 +19,10 @@
 void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
     ArrayOfXsecRecord& absorption_xsec_fit_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String& basename) try {
+    const String& basename,
+    const Index& ignore_missing_) try {
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+
   // Build a set of species indices. Duplicates are ignored.
   std::set<SpeciesEnum> unique_species;
   for (auto& asp : abs_species) {
@@ -39,17 +42,16 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
   absorption_xsec_fit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    const String filename{
-        std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
+    String filename{std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
 
-    try {
-      xml_read_from_file(filename, xsec_coeffs);
-
-      absorption_xsec_fit_data.push_back(xsec_coeffs);
-    } catch (const std::exception& e) {
-      ARTS_USER_ERROR(
-          "Error reading coefficients file: \"{}\"\n{}", filename, e.what());
+    if (not find_xml_file_existence(filename)) {
+      if (ignore_missing) continue;
+      ARTS_USER_ERROR("File {} not found", filename);
     }
+
+    xml_read_from_file_base(filename, xsec_coeffs);
+
+    absorption_xsec_fit_data.push_back(std::move(xsec_coeffs));
   }
 }
 ARTS_METHOD_ERROR_CATCH

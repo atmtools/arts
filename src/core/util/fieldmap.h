@@ -48,7 +48,8 @@ struct Map {
 
   static constexpr std::size_t N = sizeof...(Keys);
   using KeyVal                   = std::variant<Keys...>;
-  std::tuple<std::unordered_map<Keys, T>...> map_data;
+  template <typename Key> using map_type = std::unordered_map<Key, T>;
+  std::tuple<map_type<Keys>...> map_data;
 
  private:
   template <one_of<Keys...> Key>

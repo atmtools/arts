@@ -3,7 +3,11 @@ import numpy as np
 
 f = np.linspace(1e9, 25e12, 101)
 
-x = pyarts.arts.predef.get_water_droplet_ell07(f, 250, 1e-3)
+atm = pyarts.arts.AtmPoint()
+atm.temperature = 250
+atm["liquidcloud"] = 1e-3
+
+x = pyarts.arts.predef.get_water_droplet_ell07(f, atm)
 
 x_ref = np.array([5.72891933e-07, 2.17342194e-03, 4.38481404e-03, 6.80703802e-03,
                   8.94229642e-03, 1.07248359e-02, 1.22628065e-02, 1.36962479e-02,

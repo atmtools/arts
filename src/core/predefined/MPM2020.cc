@@ -1,5 +1,6 @@
 #include <arts_conversions.h>
 #include <matpack.h>
+#include <atm.h>
 #include <rtepack.h>
 
 /**
@@ -32,11 +33,13 @@ constexpr Numeric sum_lines(const Numeric f,
 
 void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,
-             const Numeric& p_pa,
-             const Numeric& t,
-             const Numeric& oxygen_vmr) noexcept {
+             const AtmPoint& atm_point) {
   using Math::pow2, Math::pow3, Constant::log10_euler;
   using Conversion::hz2ghz, Conversion::pa2bar;
+
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric oxygen_vmr = atm_point["O2"_spec];
 
   std::array<Numeric, num> c{
       940.3,  543.4,  1503.0, 1442.1, 2103.4, 2090.7, 2379.9, 2438.0,

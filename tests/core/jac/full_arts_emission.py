@@ -43,10 +43,6 @@ grid = pyarts.arts.GriddedField3(
 )
 
 ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2] = grid
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_upp = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
 
 # %% Jacobian
 

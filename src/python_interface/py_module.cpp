@@ -53,6 +53,7 @@ void py_igrf(py::module_& m);
 void py_zeeman(py::module_& m);
 void py_retrieval(py::module_& m);
 void py_lookup(py::module_& m);
+void py_file(py::module_& m);
 
 /** Construct a new nanobind module object to hold all the Arts types and functions
  * 
@@ -155,6 +156,7 @@ NB_MODULE(arts, m) try {
   py_hitran(m);
   py_igrf(m);
   py_zeeman(m);
+  py_file(m);
 
   py::set_leak_warnings(false);
   py::set_implicit_cast_warnings(false);

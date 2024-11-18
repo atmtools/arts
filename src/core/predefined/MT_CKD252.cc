@@ -1,5 +1,6 @@
 #include <matpack.h>
 #include <rtepack.h>
+#include <atm.h>
 #include <cmath>
 
 #include "arts_constants.h"
@@ -84,9 +85,11 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
 //! New implementation
 void carbon_dioxide(PropmatVector& propmat_clearsky,
                     const Vector& f_grid,
-                    const Numeric p_pa,
-                    const Numeric t,
-                    const Numeric vmr) {
+                    const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["CO2"_spec];
+
   // ************************** CKD stuff ************************************
 
   constexpr Numeric xLosmt = 2.686763e19;  // [molecules/cm^3]
@@ -1150,9 +1153,11 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
 //! New implementation
 void oxygen_vis(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
-                const Numeric p_pa,
-                const Numeric t,
-                const Numeric vmr) {
+                const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric vmr = atm_point["O2"_spec];
+
   const Numeric O2_vis_ckd_mt_250_v1 = 15000.000e0;
   constexpr Numeric O2_vis_ckd_mt_250_v2 = 29870.000e0;
   constexpr Numeric O2_vis_ckd_mt_250_dv = 10.000e0;
@@ -1523,11 +1528,13 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
 //! New implementation
 void nitrogen_fun(PropmatVector& propmat_clearsky,
                   const Vector& f_grid,
-                  const Numeric p_pa,
-                  const Numeric t,
-                  const Numeric vmr,
-                  const Numeric h2o,
-                  const Numeric o2) {
+                  const AtmPoint& atm_point) {
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric t = atm_point.temperature;
+  const Numeric vmr = atm_point["N2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric o2 = atm_point["O2"_spec];
+  
   constexpr Numeric VMRCalcLimit = 1.000e-25;
   constexpr Numeric N2N2_N2F_ckd_mt_250_v1 = 2001.766357;
   constexpr Numeric N2N2_N2F_ckd_mt_250_v2 = 2710.45;
@@ -1751,11 +1758,13 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
 //! New implementation
 void nitrogen_rot(PropmatVector& propmat_clearsky,
                   const Vector& f_grid,
-                  const Numeric p_pa,
-                  const Numeric t,
-                  const Numeric vmr,
-                  const Numeric h2o,
-                  const Numeric o2) {
+                  const AtmPoint& atm_point){
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric t = atm_point.temperature;
+  const Numeric vmr = atm_point["N2"_spec];
+  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric o2 = atm_point["O2"_spec];
+  
   constexpr Numeric N2N2_CT296_ckd_mt_100_v1 = -10.0;
   constexpr Numeric N2N2_CT296_ckd_mt_100_v2 = 350.0;
   constexpr Numeric N2N2_CT296_ckd_mt_100_dv = 5.0;

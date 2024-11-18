@@ -75,7 +75,7 @@ void variables(const int nfiles) {
 
   std::vector<std::ofstream> ofs(nfiles);
   for (int i = 0; i < nfiles; i++) {
-    ofs[i].open("py_auto_wsv_" + std::to_string(i) + ".cpp");
+    ofs[i].open(std::format("py_auto_wsv_{}.cpp", i));
   }
 
   for (int i = 0; i < nfiles; i++) {

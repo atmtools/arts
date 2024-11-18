@@ -396,10 +396,6 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   for (auto &predef_record : absorption_predefined_model_data.data) {
     ++keys[predef_record.first.spec];
   }
-
-  for (auto &spec : Absorption::PredefinedModel::VMRS::species) {
-    ++keys[spec];
-  }
 }
 
 void atmospheric_fieldAppendPredefSpeciesData(

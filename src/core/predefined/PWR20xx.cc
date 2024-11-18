@@ -1,5 +1,6 @@
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -164,9 +165,11 @@ void compute_h2o(PropmatVector& propmat_clearsky,
 
 void compute_h2o_2021(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
-                      const Numeric& p_pa,
-                      const Numeric& t,
-                      const Numeric& h2o_vmr) noexcept {
+                      const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric h2o_vmr = atm_point["H2O"_spec];
+
   // Line parameters taken from h2o_sdlist.asc
   static const std::valarray<Numeric> frequency_ghz = {22.23508,
                                                        183.310087,
@@ -376,9 +379,11 @@ void compute_h2o_2021(PropmatVector& propmat_clearsky,
 
 void compute_h2o_2022(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
-                      const Numeric& p_pa,
-                      const Numeric& t,
-                      const Numeric& h2o_vmr) noexcept {
+                      const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric h2o_vmr = atm_point["H2O"_spec];
+
   // Line parameters taken from h2o_sdlist.asc
   static const std::valarray<Numeric> frequency_ghz = {
       22.23508,   183.310087, 321.22563,  325.152888, 380.197353,
@@ -565,10 +570,12 @@ void compute_o2(PropmatVector& propmat_clearsky,
 
 void compute_o2_2021(PropmatVector& propmat_clearsky,
                      const Vector& f_grid,
-                     const Numeric& p_pa,
-                     const Numeric& t,
-                     const Numeric& o2_vmr,
-                     const Numeric& h2o_vmr) noexcept {
+                     const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric o2_vmr = atm_point["O2"_spec];
+  const Numeric h2o_vmr = atm_point["H2O"_spec];
+
   // Line parameters
   // Line frequency (GHz)
   static const std::valarray<Numeric> frequency_ghz = {
@@ -671,10 +678,12 @@ void compute_o2_2021(PropmatVector& propmat_clearsky,
 
 void compute_o2_2022(PropmatVector& propmat_clearsky,
                      const Vector& f_grid,
-                     const Numeric& p_pa,
-                     const Numeric& t,
-                     const Numeric& o2_vmr,
-                     const Numeric& h2o_vmr) noexcept {
+                     const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric o2_vmr = atm_point["O2"_spec];
+  const Numeric h2o_vmr = atm_point["H2O"_spec];
+
   // Line parameters
   // Line frequency (GHz)
   static const std::valarray<Numeric> frequency_ghz = {
@@ -777,10 +786,12 @@ void compute_o2_2022(PropmatVector& propmat_clearsky,
 
 void compute_n2(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
-                const Numeric& p_pa,
-                const Numeric& t,
-                const Numeric& n2_vmr,
-                const Numeric& h2o_vmr) noexcept {
+                const AtmPoint& atm_point) {
+  const Numeric t = atm_point.temperature;
+  const Numeric p_pa = atm_point.pressure;
+  const Numeric n2_vmr = atm_point["N2"_spec];
+  const Numeric h2o_vmr = atm_point["H2O"_spec];
+
   // Dry air continuum absorption routine based on absn2.f
   // Note that in spite of the name, this is for air and
   // not pure Nitrogen, i.e. it includes O2-N2 and O2-O2

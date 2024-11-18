@@ -2,10 +2,15 @@ import pyarts
 import numpy as np
 
 f = np.linspace(1e9, 1000e9, 101)
-x_h2o = 5e-3
-x_n2 = 0.781
 
-z = pyarts.arts.predef.get_n2_mpm93(f, 1e4, 250, x_n2, x_h2o)
+atm = pyarts.arts.AtmPoint()
+atm.pressure = 1e4
+atm.temperature = 250
+atm["H2O"] = 5e-3
+atm["O2"] = 0.21
+atm["N2"] = 0.781
+
+z = pyarts.arts.predef.get_n2_mpm93(f, atm)
 
 z_ref = np.array([1.10010782e-12, 1.32780332e-10, 4.83336817e-10, 1.05168051e-09,
                   1.83641914e-09, 2.83592250e-09, 4.04836143e-09, 5.47173550e-09,

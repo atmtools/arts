@@ -415,8 +415,10 @@ ARTS_METHOD_ERROR_CATCH
 void absorption_bandsReadSpeciesSplitCatalog(
     AbsorptionBands& absorption_bands,
     const ArrayOfArrayOfSpeciesTag& absorbtion_species,
-    const String& basename) try {
-  absorption_bands = {};
+    const String& basename,
+    const Index& ignore_missing_) try {
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+  absorption_bands.clear();
 
   const String my_base = complete_basename(basename);
 
@@ -445,7 +447,7 @@ void absorption_bandsReadSpeciesSplitCatalog(
       absorption_bands.insert(std::make_move_iterator(other.begin()),
                               std::make_move_iterator(other.end()));
     } else {
-      ARTS_USER_ERROR("File {} not found", filename)
+      ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
     }
   }
 }
@@ -473,7 +475,7 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
       xml_read_from_file(paths[i].string(), splitbands[i]);
     } catch (std::exception& e) {
 #pragma omp critical
-      error += var_string(e.what(), '\n');
+      if (error.empty()) error = e.what();
     }
   }
 
@@ -585,7 +587,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                        no_negative_absorption);
       } catch (std::exception& e) {
 #pragma omp critical
-        if (error.empty()) error = var_string(e.what(), '\n');
+        if (error.empty()) error = e.what();
       }
     }
 
@@ -752,10 +754,11 @@ void absorption_bandsLineMixingAdaptation(
   eqv_str.real() /= Math::pow2(atmospheric_point.pressure);
   eqv_str.imag() /= atmospheric_point.pressure;
 
+  using namespace Minimize;
   for (Size j = 0; j < K; j++) {
     for (Size k = 0; k < N; k++) {
       if (rosenkranz_fit_order >= 1) {
-        auto [success_y, yfit] = Minimize::curve_fit<Minimize::Polynom>(
+        auto [success_y, yfit] = curve_fit<Polynom>(
             temperatures, eqv_str(joker, j, k).imag(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_y, "Cannot fit y for line {} of band {}", k, band_key)
@@ -765,7 +768,7 @@ void absorption_bandsLineMixingAdaptation(
       }
 
       if (rosenkranz_fit_order >= 2) {
-        auto [success_g, gfit] = Minimize::curve_fit<Minimize::Polynom>(
+        auto [success_g, gfit] = curve_fit<Polynom>(
             temperatures, eqv_str(joker, j, k).real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_g, "Cannot fit g for line {} of band {}", k, band_key)
@@ -773,7 +776,7 @@ void absorption_bandsLineMixingAdaptation(
             LineShapeModelVariable::G,
             lbl::temperature::data{LineShapeModelType::POLY, Vector{gfit}});
 
-        auto [success_d, dfit] = Minimize::curve_fit<Minimize::Polynom>(
+        auto [success_d, dfit] = curve_fit<Polynom>(
             temperatures, eqv_val(joker, j, k).real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_d, "Cannot fit dv for line {} of band {}", k, band_key)
