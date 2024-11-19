@@ -32,7 +32,6 @@ ws.atmospheric_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-# ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 
 # %% Checks and settings
 
@@ -42,7 +41,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.disort_spectral_radiance_fieldClearsky(
+ws.disort_spectral_radiance_fieldSunlessClearsky(
     longitude=lon,
     latitude=lat,
     disort_quadrature_dimension=NQuad,

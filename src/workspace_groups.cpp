@@ -1,5 +1,7 @@
 #include "workspace_groups.h"
 
+#include <arts_options.h>
+
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
@@ -182,7 +184,7 @@ internal_workspace_groups_creator() {
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
       .desc = "Meta data for scattering spefcies.",
-};
+  };
 
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
@@ -209,12 +211,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
   };
 
-  wsg_data["SurfaceKey"] = {
-      .file = "enumsSurfaceKey.h",
-      .desc = R"--(A surface key
-)--",
-  };
-
   wsg_data["SurfaceTypeTag"] = {
       .file = "surf.h",
       .desc = R"--(A surface type
@@ -230,30 +226,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
   wsg_data["ArrayOfSpeciesEnum"] = {
       .file = "species.h",
       .desc = R"--(A list of *SpeciesEnum*
-)--",
-  };
-
-  wsg_data["SpeciesEnum"] = {
-      .file = "enumsSpeciesEnum.h",
-      .desc = R"--(An atmospheric species
-)--",
-  };
-
-  wsg_data["AtmKey"] = {
-      .file = "enumsAtmKey.h",
-      .desc = R"--(An atmospheric key
-)--",
-  };
-
-  wsg_data["LineShapeModelVariable"] = {
-      .file = "enumsLineShapeModelVariable.h",
-      .desc = R"--(A line shape model parameter
-)--",
-  };
-
-  wsg_data["LineByLineVariable"] = {
-      .file = "enumsLineByLineVariable.h",
-      .desc = R"--(An line-by-line variable parameter
 )--",
   };
 
@@ -335,12 +307,6 @@ longitude in the sky of the planet and the type)-x-",
 These cross-section records contains information about the valid temperature and
 pressure ranges as well as well as the fitting coefficients used to compute
 and interpolate the cross-section to other temperatures and pressures
-)--",
-  };
-
-  wsg_data["AtmKey"] = {
-      .file = "enumsAtmKey.h",
-      .desc = R"--(A key for atmospheric data
 )--",
   };
 
@@ -1010,10 +976,20 @@ well as the sampling device's polarization response.
   };
 
   wsg_data["AbsorptionLookupTables"] = {
-      .file = "lookup_map.h",
-      .desc = "A map of tables of of lookup calculations.\n",
+      .file     = "lookup_map.h",
+      .desc     = "A map of tables of of lookup calculations.\n",
       .map_type = true,
   };
+
+  for (auto& g : internal_options()) {
+    if (wsg_data.find(g.name) != wsg_data.end())
+      throw std::runtime_error("Duplicate workspace group name: " + g.name);
+
+    wsg_data[g.name] = {
+        .file = "enums.h",
+        .desc = g.docs(),
+    };
+  }
 
   return wsg_data;
 }

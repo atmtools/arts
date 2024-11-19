@@ -23,17 +23,6 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldClearsky",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
-      .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricUplooking",
-                  "disort_settings_agendaSet",
-                  "disort_spectral_flux_fieldFromAgenda"},
-      .out     = {"disort_spectral_flux_field"},
-      .preset_gin       = {"option"},
-      .preset_gin_value = {String{"Clearsky"}}});
-
-  out.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgenda",
       .desc   = "Use the disort settings agenda to calculate spectral radiance",
       .author = {"Richard Larsson"},
@@ -45,7 +34,18 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_radiance_fieldClearsky",
+      .name    = "disort_spectral_flux_fieldSunlessClearsky",
+      .desc    = "Use Disort for clearsky calculations of spectral flux field",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricUplooking",
+                  "disort_settings_agendaSet",
+                  "disort_spectral_flux_fieldFromAgenda"},
+      .out     = {"disort_spectral_flux_field"},
+      .preset_gin       = {"option"},
+      .preset_gin_value = {String{"SunlessClearsky"}}});
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "disort_spectral_radiance_fieldSunlessClearsky",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
@@ -55,11 +55,16 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "disort_quadrature_angles",
                   "disort_quadrature_weights"},
       .preset_gin       = {"option"},
-      .preset_gin_value = {String{"Clearsky"}}});
+      .preset_gin_value = {String{"SunlessClearsky"}}});
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
-      .desc    = "Apply unit changes to spectral radiance and its Jacobian",
+      .desc    = R"(Apply unit changes to spectral radiance and its Jacobian
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointForeground",
                   "spectral_radiance_jacobianApplyUnit",

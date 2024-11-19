@@ -1,5 +1,7 @@
 #pragma once
 
+#include <enumsSensorJacobianModelType.h>
+#include <enumsSensorKeyType.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -8,9 +10,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <enumsSensorKeyType.h>
-#include <enumsSensorJacobianModelType.h>
 
 namespace sensor {
 struct PosLos {
@@ -138,6 +137,9 @@ class Obsel {
   [[nodiscard]] Size flat_size(const SensorKeyType& key) const;
   void flat(ExhaustiveVectorView x, const SensorKeyType& key) const;
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;
+
+  [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
+  [[nodiscard]] Index find(const AscendingGrid& frequency_grid) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
@@ -157,10 +159,12 @@ struct SensorKey {
   bool operator==(const SensorKey& other) const;
 };
 
-template<>
+template <>
 struct std::hash<SensorKey> {
   std::size_t operator()(const SensorKey& g) const {
-    return std::hash<SensorKeyType>{}(g.type) ^ (std::hash<SensorJacobianModelType>{}(g.model) << 10) ^ (std::hash<Index>{}(g.elem) << 20);
+    return std::hash<SensorKeyType>{}(g.type) ^
+           (std::hash<SensorJacobianModelType>{}(g.model) << 10) ^
+           (std::hash<Index>{}(g.elem) << 20);
   }
 };
 
@@ -189,6 +193,11 @@ using ArrayOfSensorObsel = Array<SensorObsel>;
 using SensorSimulations  = std::unordered_map<
      std::shared_ptr<const AscendingGrid>,
      std::unordered_set<std::shared_ptr<const SensorPosLosVector>>>;
+
+void unflatten(ArrayOfSensorObsel& sensor,
+               const ExhaustiveConstVectorView& x,
+               const SensorObsel& v,
+               const SensorKeyType& key);
 
 void make_exhaustive(ArrayOfSensorObsel& obsels);
 

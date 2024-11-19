@@ -41,7 +41,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_unit = "Tb"
-ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
+ws.spectral_radiance_observer_agendaSet(option="Emission")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSet(option="Geometric")
@@ -57,10 +57,6 @@ vmr_grid = pyarts.arts.GriddedField3(
 )
 
 ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2] = vmr_grid
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_upp = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
 
 # %% Artificial Temperature
 
@@ -77,6 +73,12 @@ ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lat_low = "Nearest"
 ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lat_upp = "Nearest"
 ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lon_low = "Nearest"
 ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lon_upp = "Nearest"
+
+# %% Set up sensor
+
+pos = [100e3, 0, 0]
+los = [180.0, 0.0]
+ws.measurement_sensorSimple(pos=pos, los=los)
 
 # %% Jacobian
 
@@ -114,14 +116,11 @@ def condition(x, xas):
 
 # %% Core calculations
 
-pos = [100e3, 0, 0]
-los = [180.0, 0.0]
 works = False
 
 for i in range(LIMIT):
     ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data = vmr_grid
     ws.atmospheric_field[pyarts.arts.AtmKey.t].data = temp_grid
-    ws.measurement_sensorSimple(pos=pos, los=los)
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []

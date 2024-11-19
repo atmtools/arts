@@ -20,13 +20,12 @@ std::vector<EnumeratedOption> internal_options_create() {
           R"(A key for identifying a sensor property
 )",
       .values_and_desc = {
-          Value{"Frequency", "Frequency of the sensor"},
-          Value{"PointingZenith", "Pointing Zenith of the sensor"},
-          Value{"PointingAzimuth", "Pointing Azimuth of the sensor"},
-          Value{"PointingAltitude", "Pointing Altitude of the sensor"},
-          Value{"PointingLatitude", "Pointing Latitude of the sensor"},
-          Value{"PointingLongitude", "Pointing Longitude of the sensor"},
-          Value{"Weights", "Weights of the sensor"},
+          Value{"f", "Frequency", "Frequency of the sensor"},
+          Value{"za", "PointingZenith", "Pointing Zenith of the sensor"},
+          Value{"aa", "PointingAzimuth", "Pointing Azimuth of the sensor"},
+          Value{"alt", "PointingAltitude", "Pointing Altitude of the sensor"},
+          Value{"lat", "PointingLatitude", "Pointing Latitude of the sensor"},
+          Value{"lon", "PointingLongitude", "Pointing Longitude of the sensor"},
       }});
 
   opts.emplace_back(EnumeratedOption{
@@ -36,7 +35,8 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc = {
           Value{"None", "No model, work purely on sensor data"},
-          Value{"PolynomialOffset", "The sensor Jacobian is modeled as a polynomial offset"},
+          Value{"PolynomialOffset",
+                "The sensor Jacobian is modeled as a polynomial offset"},
       }});
 
   opts.emplace_back(EnumeratedOption{
@@ -524,12 +524,6 @@ if good cases, so we have provide this selection mechanism to make them match.
   - *ray_path_observer_agendaExecute*
   - *spectral_radianceClearskyEmission*
 )"},
-              Value{"EmissionUnits", R"(
-
-  - *ray_path_observer_agendaExecute*
-  - *spectral_radianceClearskyEmission*
-  - *spectral_radianceApplyUnitFromSpectralRadiance*
-)"},
           },
   });
 
@@ -539,10 +533,9 @@ if good cases, so we have provide this selection mechanism to make them match.
 )",
       .values_and_desc =
           {
-              Value{"Clearsky", R"(
+              Value{"SunlessClearsky", R"(
 
-  - *jacobian_targetsInit*
-  - *jacobian_targetsFinalize*
+  - Set *jacobian_targets* empty
   - *ray_path_atmospheric_pointFromPath*
   - *ray_path_frequency_gridFromPath*
   - *ray_path_propagation_matrixFromPath*
@@ -710,53 +703,49 @@ which is [W / m :math:`^{2}` Hz sr].
 
 For the description below, :math:`c` is the speed of light, :math:`k` is the Boltzmann constant,
 :math:`f` is the frequency, :math:`h` is the Planck constant, :math:`F(x)` is the conversion
-function, and :math:`[I, Q, U, V]` is the internal representation of *spectral_radiance*.
+function, and :math:`[I,\; Q,\; U,\; V]` is the internal representation of *spectral_radiance*.
 
 For Rayleigh-Jeans brightness temperature the conversion is:
 
 .. math::
 
-    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
-
-with
+    [I,\; Q,\; U,\; V] \rightarrow [F(I),\; F(Q),\; F(U),\; F(V)]
 
 .. math::
 
-    F(x)=\frac{c^2 x}{2 k f^2}.
+    F(x) = \frac{c^2 x}{2 k f^2}.
 
 For Planck brightness temperature the conversion is:
 
 .. math::
 
-    [I, Q, U, V] \rightarrow [
-        F(I),
-        F( \frac{1}{2}\left( I + Q \right) ) - F( \frac{1}{2}\left( I - Q \right) ),
-        F( \frac{1}{2}\left( I + U \right) ) - F( \frac{1}{2}\left( I - U \right) ),
-        F( \frac{1}{2}\left( I + V \right) ) - F( \frac{1}{2}\left( I - V \right) )]
-
-with 
+    [I,\; Q,\; U,\; V] \rightarrow
+        \left[
+        F(I),\;
+        F\left( \frac{I + Q}{2} \right) - F\left( \frac{I - Q}{2} \right),\;
+        F\left( \frac{I + U}{2} \right) - F\left( \frac{I - U}{2} \right),\;
+        F\left( \frac{I + V}{2} \right) - F\left( \frac{I - V}{2} \right)
+        \right]
 
 .. math::
 
     F(x) = \frac{h f}{k}\left[\log\left(1 + \frac{2hf^3}{c^2x}\right)\right]^{-1}.
 
-The spectral radiance per wavelength [W / m :math:`^{2}` m sr`] is:
+The spectral radiance per wavelength [W / m :math:`^{2}` m sr] is:
 
 .. math::
 
-    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
-
-with
+    [I,\; Q,\; U,\; V] \rightarrow [F(I),\; F(Q),\; F(U),\; F(V)]
 
 .. math::
 
     F(x) = \frac{f^2 x}{c}.
 
-The spectral radiance per wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`] is:
+The spectral radiance per wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr] is:
 
 .. math::
 
-    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
+    [I,\; Q,\; U,\; V] \rightarrow [F(I),\; F(Q),\; F(U),\; F(V)]
 
 .. math::
 
@@ -766,7 +755,7 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
 
 .. math::
 
-    [I, Q, U, V] \rightarrow [I, Q, U, V]
+    [I,\; Q,\; U,\; V] \rightarrow [I,\; Q,\; U,\; V].
 )",
       .values_and_desc =
           {
@@ -780,11 +769,11 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
 )"},
               Value{"W_m2_m_sr",
                     "W/(m^2 m sr)",
-                    "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
+                    "Spectral radiance wavelength [W / m :math:`^{2}` m sr]"},
               Value{
                   "W_m2_m1_sr",
                   "W/(m^2 m-1 sr)",
-                  "Spectral radiance wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`]"},
+                  "Spectral radiance wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr]"},
               Value{"unit",
                     "1",
                     "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
@@ -1114,18 +1103,14 @@ const std::vector<EnumeratedOption>& internal_options() {
 }
 
 std::string_view EnumeratedOption::sz() const {
-  if (values_and_desc.size() < std::numeric_limits<char>::max()) {
-    return "char";
-  }
-  if (values_and_desc.size() < std::numeric_limits<short>::max()) {
-    return "short";
-  }
-  if (values_and_desc.size() < std::numeric_limits<int>::max()) {
-    return "int";
-  }
-  if (values_and_desc.size() < std::numeric_limits<long>::max()) {
-    return "long";
-  }
+  const auto n = values_and_desc.size();
+
+  if (n < std::numeric_limits<bool>::max()) return "bool";
+  if (n < std::numeric_limits<char>::max()) return "char";
+  if (n < std::numeric_limits<short>::max()) return "short";
+  if (n < std::numeric_limits<int>::max()) return "int";
+  if (n < std::numeric_limits<long>::max()) return "long";
+  if (n < std::numeric_limits<long long>::max()) return "long long";
 
   throw std::runtime_error("Too many values for enum class");
 }

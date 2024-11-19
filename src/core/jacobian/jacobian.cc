@@ -163,98 +163,21 @@ void default_sensor_x_set(ExhaustiveVectorView x,
                           const ArrayOfSensorObsel& sensor,
                           const SensorKey& key) {
   const SensorObsel& v = sensor.at(key.elem);
+  const Vector& o      = key.original_grid;
 
   using enum SensorKeyType;
   switch (key.model) {
-    case SensorJacobianModelType::None: {
+    case SensorJacobianModelType::None: v.flat(x, key.type); break;
+    case SensorJacobianModelType::PolynomialOffset:
       switch (key.type) {
-        case Frequency:
-          ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
-                             "Bad size. x.size(): {}, f_grid().size(): {}",
-                             x.size(),
-                             v.f_grid().size())
-          x = v.f_grid();
-          break;
-        case PointingZenith:
-          ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                             "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                             x.size(),
-                             v.poslos_grid().size())
-          std::transform(v.poslos_grid().begin(),
-                         v.poslos_grid().end(),
-                         x.begin(),
-                         [](auto& poslos) { return poslos.los[0]; });
-          break;
-        case PointingAzimuth:
-          ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                             "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                             x.size(),
-                             v.poslos_grid().size())
-          std::transform(v.poslos_grid().begin(),
-                         v.poslos_grid().end(),
-                         x.begin(),
-                         [](auto& poslos) { return poslos.los[1]; });
-          break;
-        case PointingAltitude:
-          ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                             "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                             x.size(),
-                             v.poslos_grid().size())
-          std::transform(v.poslos_grid().begin(),
-                         v.poslos_grid().end(),
-                         x.begin(),
-                         [](auto& poslos) { return poslos.pos[0]; });
-          break;
-        case PointingLatitude:
-          ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                             "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                             x.size(),
-                             v.poslos_grid().size())
-          std::transform(v.poslos_grid().begin(),
-                         v.poslos_grid().end(),
-                         x.begin(),
-                         [](auto& poslos) { return poslos.pos[1]; });
-          break;
-        case PointingLongitude:
-          ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                             "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                             x.size(),
-                             v.poslos_grid().size())
-          std::transform(v.poslos_grid().begin(),
-                         v.poslos_grid().end(),
-                         x.begin(),
-                         [](auto& poslos) { return poslos.pos[2]; });
-          break;
-        case Weights: {
-          auto& w = v.weight_matrix();
-          ARTS_USER_ERROR_IF(w.size() * 4 != x.size(),
-                             "Bad size. x.size(): {} for w.size()*4: {}",
-                             x.size(),
-                             w.size() * 4)
-          auto X = x.reshape_as(w.nrows(), w.ncols(), 4);
-          for (Index i = 0; i < X.npages(); ++i) {
-            for (Index j = 0; j < X.nrows(); ++j) {
-              X(i, j, 0) = w(i, j).I();
-              X(i, j, 1) = w(i, j).Q();
-              X(i, j, 2) = w(i, j).U();
-              X(i, j, 3) = w(i, j).V();
-            }
-          }
-        } break;
+        case f:   polyfit(x, o, rem_frq(v, o)); break;
+        case za:  polyfit(x, o, rem_zag(v, o)); break;
+        case aa:  polyfit(x, o, rem_aag(v, o)); break;
+        case alt: polyfit(x, o, rem_alt(v, o)); break;
+        case lat: polyfit(x, o, rem_lat(v, o)); break;
+        case lon: polyfit(x, o, rem_lon(v, o)); break;
       }
-    } break;
-    case SensorJacobianModelType::PolynomialOffset: {
-      const Vector& o = key.original_grid;
-      switch (key.type) {
-        case Frequency:         polyfit(x, o, rem_frq(v, o)); break;
-        case PointingZenith:    polyfit(x, o, rem_zag(v, o)); break;
-        case PointingAzimuth:   polyfit(x, o, rem_aag(v, o)); break;
-        case PointingAltitude:  polyfit(x, o, rem_alt(v, o)); break;
-        case PointingLatitude:  polyfit(x, o, rem_lat(v, o)); break;
-        case PointingLongitude: polyfit(x, o, rem_lon(v, o)); break;
-        case Weights:           ARTS_USER_ERROR("Not available for polynomial model.");
-      }
-    } break;
+      break;
   }
 }
 
@@ -276,93 +199,6 @@ Vector polynomial_offset_evaluate(const ExhaustiveConstVectorView x,
   return out;
 }
 
-void set_frq(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
-                     "Bad size. x.size(): {}, f_grid().size(): {}",
-                     x.size(),
-                     v.f_grid().size())
-
-  const auto xs = std::make_shared<const AscendingGrid>(
-      x.begin(), x.end(), [](auto& x) { return x; });
-
-  // Must copy, as we may change the shared_ptr later
-  const auto fs = v.f_grid_ptr();
-
-  for (auto& elem : sensor) {
-    if (elem.f_grid_ptr() == fs) {
-      elem.set_f_grid_ptr(xs);  // may change here
-    }
-  }
-}
-
-template <bool pos, Index k>
-void set_poslos(const SensorObsel& v,
-                ArrayOfSensorObsel& sensor,
-                const ExhaustiveConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                     x.size(),
-                     v.poslos_grid().size())
-
-  SensorPosLosVector xsv = v.poslos_grid();
-
-  std::transform(xsv.begin(),
-                 xsv.end(),
-                 x.begin(),
-                 xsv.begin(),
-                 [](auto poslos, Numeric val) {
-                   if constexpr (pos) {
-                     poslos.pos[k] = val;
-                   } else {
-                     poslos.los[k] = val;
-                   }
-                   return poslos;
-                 });
-
-  const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
-
-  // Must copy, as we may change the shared_ptr later
-  const auto ps = v.poslos_grid_ptr();
-
-  for (auto& elem : sensor) {
-    if (elem.poslos_grid_ptr() == ps) {
-      elem.set_poslos_grid_ptr(ps);
-    }
-  }
-}
-
-void set_alt(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  set_poslos<true, 0>(v, sensor, x);
-}
-
-void set_lat(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  set_poslos<true, 1>(v, sensor, x);
-}
-
-void set_lon(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  set_poslos<true, 2>(v, sensor, x);
-}
-
-void set_zag(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  set_poslos<false, 0>(v, sensor, x);
-}
-
-void set_aag(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
-  set_poslos<false, 1>(v, sensor, x);
-}
-
 void default_x_sensor_set(ArrayOfSensorObsel& sensor,
                           const SensorKey& key,
                           const ExhaustiveConstVectorView x) {
@@ -370,50 +206,13 @@ void default_x_sensor_set(ArrayOfSensorObsel& sensor,
 
   using enum SensorKeyType;
   switch (key.model) {
-    case SensorJacobianModelType::None: {
-      switch (key.type) {
-        case Frequency:         set_frq(v, sensor, x); break;
-        case PointingZenith:    set_zag(v, sensor, x); break;
-        case PointingAzimuth:   set_aag(v, sensor, x); break;
-        case PointingAltitude:  set_alt(v, sensor, x); break;
-        case PointingLatitude:  set_lat(v, sensor, x); break;
-        case PointingLongitude: set_lon(v, sensor, x); break;
-        case Weights:           {
-          auto [r, c] = v.weight_matrix().shape();
-
-          ARTS_USER_ERROR_IF(r * c * 4 != x.size(),
-                             "Bad size. x.size(): {} for w.size()*4: {}",
-                             x.size(),
-                             r * c * 4)
-
-          auto X = x.reshape_as(r, c, 4);
-          StokvecMatrix ws{r, c};
-          for (Index i = 0; i < r; ++i) {
-            for (Index j = 0; j < c; ++j) {
-              ws(i, j).I() = X(i, j, 0);
-              ws(i, j).Q() = X(i, j, 1);
-              ws(i, j).U() = X(i, j, 2);
-              ws(i, j).V() = X(i, j, 3);
-            }
-          }
-
-          v.set_weight_matrix(std::move(ws));
-        } break;
-      }
-    } break;
+    case SensorJacobianModelType::None:
+      unflatten(sensor, x, v, key.type);
+      break;
     case SensorJacobianModelType::PolynomialOffset: {
-      auto& o  = key.original_grid;
-      Vector r = polynomial_offset_evaluate(x, o);
-
-      switch (key.type) {
-        case Frequency:         set_frq(v, sensor, r); break;
-        case PointingZenith:    set_zag(v, sensor, r); break;
-        case PointingAzimuth:   set_aag(v, sensor, r); break;
-        case PointingAltitude:  set_alt(v, sensor, r); break;
-        case PointingLatitude:  set_lat(v, sensor, r); break;
-        case PointingLongitude: set_lon(v, sensor, r); break;
-        case Weights:           ARTS_USER_ERROR("Not available for polynomial model.");
-      }
+      auto& o        = key.original_grid;
+      const Vector r = polynomial_offset_evaluate(x, o);
+      unflatten(sensor, r, v, key.type);
     } break;
   }
 }
@@ -473,11 +272,17 @@ const std::vector<LineTarget>& Targets::line() const {
   return target<LineTarget>();
 }
 
+const std::vector<SensorTarget>& Targets::sensor() const {
+  return target<SensorTarget>();
+}
+
 std::vector<AtmTarget>& Targets::atm() { return target<AtmTarget>(); }
 
 std::vector<SurfaceTarget>& Targets::surf() { return target<SurfaceTarget>(); }
 
 std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
+
+std::vector<SensorTarget>& Targets::sensor() { return target<SensorTarget>(); }
 
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
@@ -485,10 +290,11 @@ void Targets::finalize(const AtmField& atmospheric_field,
                        const ArrayOfSensorObsel& measurement_sensor) {
   zero_out_x();
 
-  const Size natm  = atm().size();
-  const Size nsurf = surf().size();
-  const Size nline = line().size();
-  ARTS_ASSERT(target_count() == (natm + nsurf + nline));
+  const Size natm    = atm().size();
+  const Size nsurf   = surf().size();
+  const Size nline   = line().size();
+  const Size nsensor = sensor().size();
+  ARTS_ASSERT(target_count() == (natm + nsurf + nline + nsensor));
 
   Size last_size = 0;
 
@@ -525,6 +331,27 @@ void Targets::finalize(const AtmField& atmospheric_field,
                        t.type)
     t.x_start  = last_size;
     t.x_size   = 1;
+    last_size += t.x_size;
+  }
+
+  for (Size i = 0; i < nsensor; i++) {
+    SensorTarget& t = sensor()[i];
+    ARTS_USER_ERROR_IF(std::ranges::any_of(sensor() | std::views::drop(i + 1),
+                                           Cmp::eq(t.type),
+                                           &SensorTarget::type),
+                       "Multiple targets of the same type: {}",
+                       t.type)
+    t.x_start = last_size;
+    switch (t.type.model) {
+      case SensorJacobianModelType::None:
+        t.x_size = measurement_sensor.at(t.type.elem).flat_size(t.type.type);
+        break;
+      case SensorJacobianModelType::PolynomialOffset:
+        ARTS_USER_ERROR_IF(t.type.polyorder < 0,
+                           "Must have a polynomial order.")
+        t.x_size = t.type.polyorder + 1;
+        break;
+    }
     last_size += t.x_size;
   }
 

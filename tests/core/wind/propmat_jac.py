@@ -47,7 +47,7 @@ for i in range(3):
     # Set up the wind field Jacobian
     ws.jacobian_targetsInit()
     ws.jacobian_targetsAddWindField(component=keys[i])
-    ws.jacobian_targetsFinalize()
+    ws.jacobian_targetsFinalize(measurement_sensor=[])
 
     # Reset
     ws.atmospheric_point = ws.atmospheric_field.at(*ws.ray_path_point.pos)

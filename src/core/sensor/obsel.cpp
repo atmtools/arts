@@ -79,13 +79,12 @@ void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
 Size Obsel::flat_size(const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
-    case Frequency:         return f->size();
-    case PointingZenith:    return poslos->size();
-    case PointingAzimuth:   return poslos->size();
-    case PointingAltitude:  return poslos->size();
-    case PointingLatitude:  return poslos->size();
-    case PointingLongitude: return poslos->size();
-    case Weights:           return f->size() * poslos->size() * 4;
+    case f:   return this->f->size();
+    case za:  return poslos->size();
+    case aa:  return poslos->size();
+    case alt: return poslos->size();
+    case lat: return poslos->size();
+    case lon: return poslos->size();
   }
 
   std::unreachable();
@@ -94,14 +93,14 @@ Size Obsel::flat_size(const SensorKeyType& key) const {
 void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
-    case Frequency:
+    case f:
       ARTS_USER_ERROR_IF(x.size() != f_grid().size(),
                          "Bad size. x.size(): {}, f_grid().size(): {}",
                          x.size(),
                          f_grid().size())
       x = f_grid();
       break;
-    case PointingZenith:
+    case za:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -111,7 +110,7 @@ void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.los[0]; });
       break;
-    case PointingAzimuth:
+    case aa:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -121,7 +120,7 @@ void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.los[1]; });
       break;
-    case PointingAltitude:
+    case alt:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -131,7 +130,7 @@ void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.pos[0]; });
       break;
-    case PointingLatitude:
+    case lat:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -141,7 +140,7 @@ void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.pos[1]; });
       break;
-    case PointingLongitude:
+    case lon:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -151,21 +150,6 @@ void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.pos[2]; });
       break;
-    case Weights: {
-      ARTS_USER_ERROR_IF(w.size() * 4 != x.size(),
-                         "Bad size. x.size(): {} for w.size()*4: {}",
-                         x.size(),
-                         w.size() * 4)
-      auto X = x.reshape_as(w.nrows(), w.ncols(), 4);
-      for (Index i = 0; i < X.npages(); ++i) {
-        for (Index j = 0; j < X.nrows(); ++j) {
-          X(i, j, 0) = w(i, j).I();
-          X(i, j, 1) = w(i, j).Q();
-          X(i, j, 2) = w(i, j).U();
-          X(i, j, 3) = w(i, j).V();
-        }
-      }
-    } break;
   }
 }
 
@@ -173,6 +157,22 @@ Vector Obsel::flat(const SensorKeyType& key) const {
   Vector out(flat_size(key));
   flat(out, key);
   return out;
+}
+
+Index Obsel::find(const Vector3& pos, const Vector2& los) const {
+  const auto first       = poslos->cbegin();
+  const auto last        = poslos->cend();
+  const auto same_poslos = [&](const auto& p) {
+    return pos == p.pos and los == p.los;
+  };
+
+  const auto it = std::find_if(first, last, same_poslos);
+
+  return (it == last) ? dont_have : std::distance(first, it);
+}
+
+Index Obsel::find(const AscendingGrid& frequency_grid) const {
+  return (*f != frequency_grid) ? dont_have : 0;
 }
 }  // namespace sensor
 
@@ -249,5 +249,107 @@ void make_exhaustive(ArrayOfSensorObsel& obsels) {
     }
 
     obsel = SensorObsel(f_grid_ptr, poslos_grid_ptr, std::move(weights));
+  }
+}
+
+void set_frq(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
+                     "Bad size. x.size(): {}, f_grid().size(): {}",
+                     x.size(),
+                     v.f_grid().size())
+
+  const auto xs = std::make_shared<const AscendingGrid>(
+      x.begin(), x.end(), [](auto& x) { return x; });
+
+  // Must copy, as we may change the shared_ptr later
+  const auto fs = v.f_grid_ptr();
+
+  for (auto& elem : sensor) {
+    if (elem.f_grid_ptr() == fs) {
+      elem.set_f_grid_ptr(xs);  // may change here
+    }
+  }
+}
+
+template <bool pos, Index k>
+void set_poslos(const SensorObsel& v,
+                ArrayOfSensorObsel& sensor,
+                const ExhaustiveConstVectorView x) {
+  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
+                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
+                     x.size(),
+                     v.poslos_grid().size())
+
+  SensorPosLosVector xsv = v.poslos_grid();
+
+  std::transform(xsv.begin(),
+                 xsv.end(),
+                 x.begin(),
+                 xsv.begin(),
+                 [](auto poslos, Numeric val) {
+                   if constexpr (pos) {
+                     poslos.pos[k] = val;
+                   } else {
+                     poslos.los[k] = val;
+                   }
+                   return poslos;
+                 });
+
+  const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
+
+  // Must copy, as we may change the shared_ptr later
+  const auto ps = v.poslos_grid_ptr();
+
+  for (auto& elem : sensor) {
+    if (elem.poslos_grid_ptr() == ps) {
+      elem.set_poslos_grid_ptr(ps);
+    }
+  }
+}
+
+void set_alt(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  set_poslos<true, 0>(v, sensor, x);
+}
+
+void set_lat(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  set_poslos<true, 1>(v, sensor, x);
+}
+
+void set_lon(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  set_poslos<true, 2>(v, sensor, x);
+}
+
+void set_zag(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  set_poslos<false, 0>(v, sensor, x);
+}
+
+void set_aag(const SensorObsel& v,
+             ArrayOfSensorObsel& sensor,
+             const ExhaustiveConstVectorView x) {
+  set_poslos<false, 1>(v, sensor, x);
+}
+
+void unflatten(ArrayOfSensorObsel& sensor,
+               const ExhaustiveConstVectorView& x,
+               const SensorObsel& v,
+               const SensorKeyType& key) {
+  switch (key) {
+    using enum SensorKeyType;
+    case f:   set_frq(v, sensor, x); break;
+    case za:  set_zag(v, sensor, x); break;
+    case aa:  set_aag(v, sensor, x); break;
+    case alt: set_alt(v, sensor, x); break;
+    case lat: set_lat(v, sensor, x); break;
+    case lon: set_lon(v, sensor, x); break;
   }
 }

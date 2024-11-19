@@ -169,6 +169,7 @@ class TestVariables:
         vars = list(allvars.keys())
         mets = pyarts.arts.globals.workspace_methods()
         ages = pyarts.arts.globals.workspace_agendas()
+        opts = pyarts.arts.globals.option_groups()
 
         res = {}
         for var in vars:
@@ -189,6 +190,10 @@ class TestVariables:
                     if var in ages[ag].input or var in ages[ag].output:
                         ok_anyways = True
                         break
+                
+                # Allow options to be pure input
+                if nout == 0 and allvars[var].type in opts:
+                    ok_anyways = True                            
 
                 if nin != 0 and allvars[var].type == "Agenda":
                     ok_anyways = True
@@ -196,6 +201,7 @@ class TestVariables:
                 if not ok_anyways:
                     bad_vars.append(f"{var}")
 
+    
         bad_vars.sort()
         assert len(bad_vars) == 0, (
             "Should have no pure input/output variables,\n"

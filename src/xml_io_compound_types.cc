@@ -3064,6 +3064,45 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== SensorKey =========================================================
+
+//! Reads SensorKey from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param key       SensorKey
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          SensorKey& key,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("SensorKey");
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SensorKey");
+}
+
+//! Write SensorKey to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param key       SensorKey
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SensorKey& key,
+                         bofstream* pbofs,
+                         const String& name [[maybe_unused]]) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SensorKey");
+
+  close_tag.set_name("/SensorKey");
+  close_tag.write_to_stream(os_xml);
+}
+
 //=== JacobianTargetType =========================================================
 
 //! Reads JacobianTargetType from XML input stream
@@ -3087,6 +3126,8 @@ void xml_read_from_stream(std::istream& is_xml,
     jtt.target = SurfaceKeyVal{};
   } else if (type == "LblLineKey"s) {
     jtt.target = LblLineKey{};
+  } else if (type == "SensorKey"s) {
+    jtt.target = SensorKey{};
   } else {
     ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }

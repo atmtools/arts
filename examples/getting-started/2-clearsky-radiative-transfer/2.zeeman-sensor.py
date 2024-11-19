@@ -35,7 +35,7 @@ ws.spectral_radiance_unit = "Tb"
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSet(option="Geometric")
-ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
+ws.spectral_radiance_observer_agendaSet(option="Emission")
 
 # %% Set up a sensor with Gaussian channel widths on individual frequency ranges
 
@@ -45,13 +45,11 @@ ws.measurement_sensorSimpleGaussian(fwhm=1e5, pos=pos, los=los, pol="RC")
 
 # %% Core calculations
 
-result = pyarts.arts.Vector()
-result_jac = pyarts.arts.Matrix()
-ws.measurement_vectorFromSensor(result, result_jac)
+ws.measurement_vectorFromSensor()
 
 # %% Show results
 
-plt.plot((ws.frequency_grid - line_f0) / 1e6, result)
+plt.plot((ws.frequency_grid - line_f0) / 1e6, ws.measurement_vector)
 plt.xlabel("Frequency offset [MHz]")
 plt.ylabel("Spectral radiance [K]")
 plt.title(
@@ -61,7 +59,7 @@ plt.title(
 # %% Test
 
 assert np.allclose(
-    result[::100],
+    ws.measurement_vector[::100],
     np.array(
         [
             227.78646795,

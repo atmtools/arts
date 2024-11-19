@@ -589,9 +589,10 @@ common form of a predefined model.
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{1}, Index{0}},
-      .gin_desc  = {R"--(The path to the split catalog files)--",
-                    R"--(Flag to name models that are missing)--",
-                    R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+      .gin_desc =
+          {R"--(The path to the split catalog files)--",
+           R"--(Flag to name models that are missing)--",
+           R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
   };
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
@@ -1787,6 +1788,32 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "ray_path_point"},
   };
 
+  wsm_data["spectral_radiance_jacobianAddSensorJacobianPerturbations"] = {
+      .desc = R"--(Adds sensor properties to the *spectral_radiance_jacobian*.
+
+This is done via perturbation based on the input delta values to the sensor
+Jacobian targets and a callback to *spectral_radiance_observer_agenda* with
+a modified *jacobian_targets*, making it safe to use this method inside
+*spectral_radiance_observer_agenda*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance_jacobian"},
+      .in =
+          {
+              "spectral_radiance_jacobian",
+              "spectral_radiance",
+              "measurement_sensor",
+              "frequency_grid",
+              "jacobian_targets",
+              "spectral_radiance_observer_position",
+              "spectral_radiance_observer_line_of_sight",
+              "atmospheric_field",
+              "surface_field",
+              "spectral_radiance_observer_agenda",
+          },
+      .pass_workspace = true,
+  };
+
   wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc   = R"--(Set the cosmic background radiation derivative to empty.
 
@@ -1833,10 +1860,11 @@ Size : (*jacobian_targets*, *frequency_grid*)
   wsm_data["spectral_radiance_jacobianApplyUnit"] = {
       .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
 
-See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
-and limitations.
-
 Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
@@ -1854,6 +1882,10 @@ See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
 and limitations.
 
 Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
@@ -1946,14 +1978,19 @@ matrix to be calculated will work.
   };
 
   wsm_data["jacobian_targetsFinalize"] = {
-      .desc   = R"--(Finalize *jacobian_targets* for use in RT methods
+      .desc   = R"--(Finalize *jacobian_targets*.
+
+The finalization computes the size of the required *model_state_vector*.
+It is thus necessary if any OEM or other functionality that requires the
+building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
       .in     = {"jacobian_targets",
                  "atmospheric_field",
                  "surface_field",
-                 "absorption_bands"},
+                 "absorption_bands",
+                 "measurement_sensor"},
   };
 
   wsm_data["jacobian_targetsAddTemperature"] = {
@@ -3064,7 +3101,9 @@ The core calculations happens inside the *spectral_radiance_operator*.
 
 The core calculations happens inside the *spectral_radiance_observer_agenda*.
 
-User choices of *spectral_radiance_unit* does not adversely affect this method.
+User choices of *spectral_radiance_unit* does not adversely affect this method
+unless the *measurement_vector* or *measurement_jacobian* are further modified
+before consumption by, e.g., *OEM*
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
@@ -4014,7 +4053,9 @@ Note that you must have set the optical thickness before calling this.
   };
 
   wsm_data["RetrievalFinalizeDiagonal"] = {
-      .desc   = R"(Add species VMR to the retrieval setup.
+      .desc   = R"(Finalize the retrieval setup.
+
+See *jacobian_targetsFinalize* for more information.
 )",
       .author = {"Richard Larsson"},
       .out    = {"model_state_covariance_matrix", "jacobian_targets"},
@@ -4022,7 +4063,8 @@ Note that you must have set the optical thickness before calling this.
                  "covariance_matrix_diagonal_blocks",
                  "atmospheric_field",
                  "surface_field",
-                 "absorption_bands"},
+                 "absorption_bands",
+                 "measurement_sensor"},
   };
 
   /* 

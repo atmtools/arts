@@ -18,9 +18,10 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const AtmField& atmospheric_field,
                               const SurfaceField& surface_field,
-                              const AbsorptionBands& absorption_bands) {
+                              const AbsorptionBands& absorption_bands,
+                              const ArrayOfSensorObsel& measurement_sensor) {
   jacobian_targets.finalize(
-      atmospheric_field, surface_field, absorption_bands, {});
+      atmospheric_field, surface_field, absorption_bands, measurement_sensor);
 }
 
 void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
@@ -147,7 +148,9 @@ void jacobian_targetsAddSensor(JacobianTargets& jacobian_targets,
                      elem)
 
   jacobian_targets.sensor().push_back({
-      .type       = {.type = key, .elem = elem, .model = SensorJacobianModelType::None},
+      .type       = {.type  = key,
+                     .elem  = elem,
+                     .model = SensorJacobianModelType::None},
       .d          = d,
       .target_pos = jacobian_targets.target_count(),
   });
@@ -167,11 +170,11 @@ void jacobian_targetsAddSensorPolyFit(
       polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
 
   Jacobian::SensorTarget target{
-      .type       = {.type          = key,
-                     .elem          = elem,
-                     .model         = SensorJacobianModelType::PolynomialOffset,
-                     .polyorder     = polyorder},
-                //     .original_grid = sensor_grid(measurement_sensor[elem], key)},
+      .type = {.type      = key,
+               .elem      = elem,
+               .model     = SensorJacobianModelType::PolynomialOffset,
+               .polyorder = polyorder},
+      //     .original_grid = sensor_grid(measurement_sensor[elem], key)},
       .d          = d,
       .target_pos = jacobian_targets.target_count(),
   };
