@@ -195,6 +195,7 @@ class TestVariables:
                 if nout == 0 and allvars[var].type in opts:
                     ok_anyways = True                            
 
+                # Allow agendas to be pure input
                 if nin != 0 and allvars[var].type == "Agenda":
                     ok_anyways = True
 

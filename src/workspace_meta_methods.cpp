@@ -14,6 +14,33 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorSimple",
+      .desc    = "Wrapper for a single simple dirac-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit",
+                  "measurement_sensorAddSimple"},
+      .out     = {"measurement_sensor"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorSimpleGaussian",
+      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit",
+                  "measurement_sensorAddSimpleGaussian"},
+      .out     = {"measurement_sensor"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorVectorGaussian",
+      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit",
+                  "measurement_sensorAddVectorGaussian"},
+      .out     = {"measurement_sensor"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_flux_fieldFromAgenda",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},

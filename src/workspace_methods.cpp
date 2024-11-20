@@ -3116,15 +3116,23 @@ before consumption by, e.g., *OEM*
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_sensorSimple"] = {
+  wsm_data["measurement_sensorInit"] = {
       .desc =
-          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
+          R"--(Initialize *measurement_sensor* to empty.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_sensor"},
+  };
+
+  wsm_data["measurement_sensorAddSimple"] = {
+      .desc =
+          R"--(Adds a sensor with a dirac channel opening around the frequency grid.
 
 All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"frequency_grid"},
+      .in        = {"measurement_sensor", "frequency_grid"},
       .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
@@ -3136,9 +3144,9 @@ All elements share position, line-of-sight, and frequency grid.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_sensorSimpleGaussian"] = {
+  wsm_data["measurement_sensorAddSimpleGaussian"] = {
       .desc =
-          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
+          R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
 
 All elements share position, line-of-sight, and frequency grid.
 
@@ -3146,15 +3154,39 @@ Note that this means you only get "half" a Gaussian channel for the outermost ch
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"frequency_grid"},
+      .in        = {"measurement_sensor", "frequency_grid"},
       .gin       = {"fwhm", "pos", "los", "pol"},
-      .gin_type  = {"Vector, Numeric", "Vector3", "Vector2", "Stokvec"},
+      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I)},
       .gin_desc =
-          {"The full-width half-maximum of the channel(s)",
+          {"The full-width half-maximum of the channel",
+           "A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whos dot-product with the spectral radiance becomes the measurement"},
+  };
+
+  wsm_data["measurement_sensorAddVectorGaussian"] = {
+      .desc =
+          R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
+
+All elements share position, line-of-sight, and frequency grid.
+
+Note that this means you only get "half" a Gaussian channel for the outermost channels.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "frequency_grid"},
+      .gin       = {"fwhm", "pos", "los", "pol"},
+      .gin_type  = {"Vector", "Vector3", "Vector2", "Stokvec"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc =
+          {"The full-width half-maximum of the channels",
            "A position [alt, lat, lon]",
            "A line of sight [zenith, azimuth]",
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
