@@ -1,8 +1,8 @@
 dependencies:
         - boost
         - ccache
-        - clang
-        - clangxx
+        - clang>=19
+        - clangxx>=19
         - cmake
         - docutils
         - doxygen
