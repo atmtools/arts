@@ -40,7 +40,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_unit = "Tb"
-ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
+ws.spectral_radiance_observer_agendaSet(option="Emission")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSet(option="Geometric")
@@ -68,20 +68,20 @@ def inversion_iterate_agenda(ws):
     ws.measurement_vector_fittedFromMeasurement()
 
 
+pos = [110e3, 0, 0]
+los = [140.0, 30.0]
+ws.measurement_sensorSimple(pos=pos, los=los)
+
 for fc in [uf, vf, wf]:
     ws.RetrievalInit()
     ws.RetrievalAddWindField(component=str(fc), matrix=np.diag(np.ones((1)) * 100))
     ws.RetrievalFinalizeDiagonal()
-
-    pos = [110e3, 0, 0]
-    los = [140.0, 30.0]
     fail = True
 
     for i in range(LIMIT):
         ws.atmospheric_field["wind_u"] = wind[fc]
         ws.atmospheric_field["wind_v"] = wind[fc]
         ws.atmospheric_field["wind_w"] = wind[fc]
-        ws.measurement_sensorSimple(pos=pos, los=los)
         ws.measurement_vectorFromSensor()
 
         ws.measurement_vector_fitted = []

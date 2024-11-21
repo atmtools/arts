@@ -9,28 +9,31 @@ all functionality should mimic the matpack
 functionality, but not all matpack functionality
 */
 
-#include "matpack_concepts.h"
-
 #include <numeric>
 
+#include "matpack_concepts.h"
+
 template <typename T>
-concept standard_iterable = not matpack::any_matpack_type<T> and matpack::rank<T>() == 1 and requires (T a) {
-  { a.begin() } -> std::random_access_iterator;
-  { a.end() } -> std::random_access_iterator;
-};
+concept standard_iterable = not matpack::any_matpack_type<T> and
+                            matpack::rank<T>() == 1 and requires(T a) {
+                              { a.begin() } -> std::random_access_iterator;
+                              { a.end() } -> std::random_access_iterator;
+                            };
 
 /** Find minimum of x by reduction */
-constexpr auto min(standard_iterable auto &&x) {
+constexpr auto min(standard_iterable auto&& x) {
   return std::reduce(
-      x.begin(), x.end(),
+      x.begin(),
+      x.end(),
       std::numeric_limits<std::remove_cvref_t<decltype(x[0])>>::max(),
       [](auto a, auto b) { return a < b ? a : b; });
 }
 
 /** Find miximum of x by reduction */
-constexpr auto max(standard_iterable auto &&x) {
+constexpr auto max(standard_iterable auto&& x) {
   return std::reduce(
-      x.begin(), x.end(),
+      x.begin(),
+      x.end(),
       std::numeric_limits<std::remove_cvref_t<decltype(x[0])>>::lowest(),
       [](auto a, auto b) { return a > b ? a : b; });
 }

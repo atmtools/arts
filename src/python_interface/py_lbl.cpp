@@ -49,7 +49,7 @@ void py_lbl(py::module_& m) try {
           [](lbl::temperature::data& self, LineShapeModelType x) {
             self = lbl::temperature::data{x, self.X()};
           },
-          ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
+          ":class:`~pyarts.arts.TemperatureModelType` The type of the model")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },

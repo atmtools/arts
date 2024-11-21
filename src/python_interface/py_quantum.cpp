@@ -22,7 +22,7 @@ void py_quantum(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_rw("type",
               &QuantumNumberValue::type,
-              ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
+              ":class:`~pyarts.arts.QuantumNumberType` Type of number")
       .def_prop_rw(
           "str_upp",
           &QuantumNumberValue::str_upp,

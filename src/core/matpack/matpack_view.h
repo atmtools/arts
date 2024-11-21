@@ -1556,7 +1556,7 @@ struct std::formatter<matpack::matpack_view<T, N, constant, strided>> {
 
       if (tags.short_str and n > 8) {
         for (auto&& a : v | take(3) | drop(1)) tags.format(ctx, sep, a);
-        tags.format(ctx, sep, "...");
+        tags.format(ctx, sep, "..."sv);
         for (auto&& a : v | drop(n - 3)) tags.format(ctx, sep, a);
       } else {
         for (auto&& a : v | drop(1)) tags.format(ctx, sep, a);

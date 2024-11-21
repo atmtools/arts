@@ -14,6 +14,32 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> wsm_meta;
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorSimple",
+      .desc    = "Wrapper for a single simple dirac-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
+      .out     = {"measurement_sensor"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorSimpleGaussian",
+      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit",
+                  "measurement_sensorAddSimpleGaussian"},
+      .out     = {"measurement_sensor"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "measurement_sensorVectorGaussian",
+      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_sensorInit",
+                  "measurement_sensorAddVectorGaussian"},
+      .out     = {"measurement_sensor"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_flux_fieldFromAgenda",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
@@ -21,17 +47,6 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "disort_spectral_flux_fieldCalc"},
       .out     = {"disort_spectral_flux_field"},
   });
-
-  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldClearsky",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
-      .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricUplooking",
-                  "disort_settings_agendaSet",
-                  "disort_spectral_flux_fieldFromAgenda"},
-      .out     = {"disort_spectral_flux_field"},
-      .preset_gin       = {"option"},
-      .preset_gin_value = {String{"Clearsky"}}});
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgenda",
@@ -45,7 +60,18 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_radiance_fieldClearsky",
+      .name    = "disort_spectral_flux_fieldSunlessClearsky",
+      .desc    = "Use Disort for clearsky calculations of spectral flux field",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricUplooking",
+                  "disort_settings_agendaSet",
+                  "disort_spectral_flux_fieldFromAgenda"},
+      .out     = {"disort_spectral_flux_field"},
+      .preset_gin       = {"option"},
+      .preset_gin_value = {String{"SunlessClearsky"}}});
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "disort_spectral_radiance_fieldSunlessClearsky",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
@@ -55,11 +81,16 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "disort_quadrature_angles",
                   "disort_quadrature_weights"},
       .preset_gin       = {"option"},
-      .preset_gin_value = {String{"Clearsky"}}});
+      .preset_gin_value = {String{"SunlessClearsky"}}});
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
-      .desc    = "Apply unit changes to spectral radiance and its Jacobian",
+      .desc    = R"(Apply unit changes to spectral radiance and its Jacobian
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointForeground",
                   "spectral_radiance_jacobianApplyUnit",
@@ -163,8 +194,12 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .author  = {"Richard Larsson"},
       .methods = {"absorption_bandsFromModelState",
                   "surface_fieldFromModelState",
-                  "atmospheric_fieldFromModelState"},
-      .out     = {"absorption_bands", "surface_field", "atmospheric_field"},
+                  "atmospheric_fieldFromModelState",
+                  "measurement_sensorFromModelState"},
+      .out     = {"absorption_bands",
+                  "surface_field",
+                  "atmospheric_field",
+                  "measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -175,7 +210,8 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "model_state_vectorZero",
                   "model_state_vectorFromAtmosphere",
                   "model_state_vectorFromSurface",
-                  "model_state_vectorFromBands"},
+                  "model_state_vectorFromBands",
+                  "model_state_vectorFromSensor"},
       .out     = {"model_state_vector"},
   });
 
@@ -234,15 +270,15 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
 
     const auto ptr = wsms.find(m);
     if (ptr == wsms.end()) {
-      throw std::runtime_error("Method " + m + " not found");
+      throw std::runtime_error(std::format(R"(Method "{}" not found)", m));
     }
 
     const auto& wm = ptr->second;
 
     if (wm.has_any() or wm.has_overloads()) {
-      throw std::runtime_error(
-          "Method " + m +
-          " has overloads and does not work with meta-functions");
+      throw std::runtime_error(std::format(
+          R"(Method "{}"  has overloads and does not work with meta-functions)",
+          m));
     }
 
     wsm.author.insert(wsm.author.end(), wm.author.begin(), wm.author.end());

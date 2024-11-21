@@ -1,5 +1,7 @@
 #pragma once
 
+#include <enumsSensorJacobianModelType.h>
+#include <enumsSensorKeyType.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -8,11 +10,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-
-#include "debug.h"
-#include "format_tags.h"
-#include "matpack_constexpr.h"
-#include "sorted_grid.h"
 
 namespace sensor {
 struct PosLos {
@@ -130,16 +127,65 @@ class Obsel {
    * polarization will be equal to the new value.
    *
    * @param pol The polarization that is sampled for the sum. The default is [1, 0, 0, 0].
-   * @param new_value The new value for the normalization. The default is 1.0.
    */
-  void normalize(Stokvec pol = {1., 0., 0., 0.}, Numeric new_value = 1.0);
+  void normalize(Stokvec pol = {1., 0., 0., 0.});
 
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
   void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
+
+  [[nodiscard]] Size flat_size(const SensorKeyType& key) const;
+  void flat(ExhaustiveVectorView x, const SensorKeyType& key) const;
+  [[nodiscard]] Vector flat(const SensorKeyType& key) const;
+
+  [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
+  [[nodiscard]] Index find(const AscendingGrid& frequency_grid) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
 }  // namespace sensor
+
+struct SensorKey {
+  SensorKeyType type{};
+
+  Index elem{};
+
+  SensorJacobianModelType model{};
+
+  Index polyorder{-1};
+
+  Vector original_grid{};
+
+  bool operator==(const SensorKey& other) const;
+};
+
+template <>
+struct std::hash<SensorKey> {
+  std::size_t operator()(const SensorKey& g) const {
+    return std::hash<SensorKeyType>{}(g.type) ^
+           (std::hash<SensorJacobianModelType>{}(g.model)
+            << (8 * sizeof(SensorKeyType))) ^
+           (std::hash<Index>{}(g.elem)
+            << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
+  }
+};
+
+template <>
+struct std::formatter<SensorKey> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.type, tags.sep(), v.elem, tags.sep(), v.model);
+  }
+};
 
 using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;
@@ -148,6 +194,11 @@ using ArrayOfSensorObsel = Array<SensorObsel>;
 using SensorSimulations  = std::unordered_map<
      std::shared_ptr<const AscendingGrid>,
      std::unordered_set<std::shared_ptr<const SensorPosLosVector>>>;
+
+void unflatten(ArrayOfSensorObsel& sensor,
+               const ExhaustiveConstVectorView& x,
+               const SensorObsel& v,
+               const SensorKeyType& key);
 
 void make_exhaustive(ArrayOfSensorObsel& obsels);
 

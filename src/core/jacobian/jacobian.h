@@ -3,7 +3,7 @@
 #include <atm.h>
 #include <lbl.h>
 #include <matpack.h>
-#include <sensor/obsel.h>
+#include <obsel.h>
 #include <surf.h>
 
 #include <concepts>
@@ -15,31 +15,6 @@
 #include <vector>
 
 #include "operators.h"
-
-enum class SensorKeyType {
-  Frequency,
-  PointingZenith,
-  PointingAzimuth,
-  PointingAltitude,
-  PointingLatitude,
-  PointingLongitude,
-  Weights,
-};
-
-enum class SensorModelType {
-  None,
-  PolynomialOffset,
-};
-
-struct SensorKey {
-  SensorKeyType type;
-
-  Index elem;
-
-  SensorModelType model{SensorModelType::None};
-
-  Vector original_grid{};
-};
 
 using AtmTargetSetState     = CustomOperator<void,
                                              ExhaustiveVectorView,
@@ -272,7 +247,7 @@ struct targets_t {
 
     ((std::ranges::for_each(
          target<Targets>(),
-         [&](auto& a) {
+         [xsize, t_size](auto& a) {
            ARTS_USER_ERROR_IF((a.x_start + a.x_size) > xsize,
                               "The target {}"
                               " is out of bounds of the x-vector.  (xsize: {})",
@@ -300,29 +275,47 @@ struct targets_t {
   }
 };
 
-struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
+struct Targets final
+    : targets_t<AtmTarget, SurfaceTarget, LineTarget, SensorTarget> {
   [[nodiscard]] const std::vector<AtmTarget>& atm() const;
   [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
   [[nodiscard]] const std::vector<LineTarget>& line() const;
+  [[nodiscard]] const std::vector<SensorTarget>& sensor() const;
 
   [[nodiscard]] std::vector<AtmTarget>& atm();
   [[nodiscard]] std::vector<SurfaceTarget>& surf();
   [[nodiscard]] std::vector<LineTarget>& line();
+  [[nodiscard]] std::vector<SensorTarget>& sensor();
 
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atmospheric_field,
                 const SurfaceField& surface_field,
-                const AbsorptionBands& absorption_bands);
+                const AbsorptionBands& absorption_bands,
+                const ArrayOfSensorObsel& measurement_sensor);
+
+  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d);
+  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d);
+  LineTarget& emplace_back(LblLineKey&& t, Numeric d);
+  LineTarget& emplace_back(const LblLineKey& t, Numeric d);
+  SensorTarget& emplace_back(SensorKey&& t, Numeric d);
+  SensorTarget& emplace_back(const SensorKey& t, Numeric d);
+  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
+  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
 };
 
 struct TargetType {
-  using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey>;
+  using variant_t =
+      std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey>;
   variant_t target;
 
-  template <class AtmKeyValFunc, class SurfaceKeyValFunc, class LblLineKeyFunc>
+  template <class AtmKeyValFunc,
+            class SurfaceKeyValFunc,
+            class LblLineKeyFunc,
+            class SensorKeyFunc>
   [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
                                      const SurfaceKeyValFunc& ifsurf,
-                                     const LblLineKeyFunc& ifline) const {
+                                     const LblLineKeyFunc& ifline,
+                                     const SensorKeyFunc& ifsensor) const {
     return std::visit(
         [&](const auto& t) {
           using T = std::decay_t<decltype(t)>;
@@ -332,6 +325,8 @@ struct TargetType {
             return ifsurf(t);
           } else if constexpr (std::same_as<T, LblLineKey>) {
             return ifline(t);
+          } else if constexpr (std::same_as<T, SensorKey>) {
+            return ifsensor(t);
           }
         },
         target);
@@ -342,7 +337,8 @@ struct TargetType {
   [[nodiscard]] std::string type() const {
     return apply([](auto&) { return "AtmKeyVal"s; },
                  [](auto&) { return "SurfaceKeyVal"s; },
-                 [](auto&) { return "LblLineKey"s; });
+                 [](auto&) { return "LblLineKey"s; },
+                 [](auto&) { return "SensorKey"s; });
   }
 };
 }  // namespace Jacobian
@@ -390,6 +386,9 @@ struct std::formatter<JacobianTargetType> {
         },
         [this, &ctx](const LblLineKey& key) {
           tags.format(ctx, "LblLineKey::"sv, key);
+        },
+        [this, &ctx](const SensorKey& key) {
+          tags.format(ctx, "SensorKey::"sv, key);
         });
 
     return ctx.out();
@@ -493,6 +492,38 @@ struct std::formatter<Jacobian::LineTarget> {
 };
 
 template <>
+struct std::formatter<Jacobian::SensorTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::SensorTarget& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+    return tags.format(ctx,
+                       v.type,
+                       ": "sv,
+                       v.d,
+                       sep,
+                       "target_pos: "sv,
+                       v.target_pos,
+                       sep,
+                       "x_start: "sv,
+                       v.x_start,
+                       sep,
+                       "x_size: "sv,
+                       v.x_size);
+  }
+};
+
+template <>
 struct std::formatter<JacobianTargets> {
   format_tags tags;
 
@@ -517,7 +548,10 @@ struct std::formatter<JacobianTargets> {
                 v.surf(),
                 sep,
                 R"("line": )"sv,
-                v.line());
+                v.line(),
+                sep,
+                R"("sensor": )"sv,
+                v.sensor());
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();
