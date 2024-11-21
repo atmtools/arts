@@ -47,6 +47,8 @@ def ops(ws, op):
 
 ws = pyarts.Workspace()
 
+ws.measurement_sensor = []
+
 ws.jacobian_targetsInit()
 
 ws.atmospheric_fieldInit(toa=toa)

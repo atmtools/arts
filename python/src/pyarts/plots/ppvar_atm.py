@@ -41,22 +41,22 @@ def plt_info(atm, keys=[]):
     for key in keys:
         if isinstance(key, pyarts.arts.ArrayOfSpeciesTag):
             out[key] = Info("linear", f"VMR {key} [-]", 1)
-        elif isinstance(key, pyarts.arts.options.AtmKey):
-            if key == pyarts.arts.options.AtmKey.t:
+        elif isinstance(key, pyarts.arts.AtmKey):
+            if key == pyarts.arts.AtmKey.t:
                 out[key] = Info("linear", "Temperature [K]", 1)
-            elif key == pyarts.arts.options.AtmKey.p:
+            elif key == pyarts.arts.AtmKey.p:
                 out[key] = Info("log", "Pressure [Pa]", 1)
-            elif key == pyarts.arts.options.AtmKey.mag_u:
+            elif key == pyarts.arts.AtmKey.mag_u:
                 out[key] = Info("linear", "Magnetic u-component [µT]", 1e6)
-            elif key == pyarts.arts.options.AtmKey.mag_v:
+            elif key == pyarts.arts.AtmKey.mag_v:
                 out[key] = Info("linear", "Magnetic v-component [µT]", 1e6)
-            elif key == pyarts.arts.options.AtmKey.mag_w:
+            elif key == pyarts.arts.AtmKey.mag_w:
                 out[key] = Info("linear", "Magnetic w-component [µT]", 1e6)
-            elif key == pyarts.arts.options.AtmKey.wind_u:
+            elif key == pyarts.arts.AtmKey.wind_u:
                 out[key] = Info("linear", "Wind u-component [m/s]", 1)
-            elif key == pyarts.arts.options.AtmKey.wind_v:
+            elif key == pyarts.arts.AtmKey.wind_v:
                 out[key] = Info("linear", "Wind v-component [m/s]", 1)
-            elif key == pyarts.arts.options.AtmKey.wind_w:
+            elif key == pyarts.arts.AtmKey.wind_w:
                 out[key] = Info("linear", "Wind w-component [m/s]", 1)
             else:
                 assert False, "Unknown key type"

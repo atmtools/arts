@@ -3,47 +3,58 @@
 #include <obsel.h>
 #include <rtepack.h>
 
+#include <boost/math/distributions/normal.hpp>
 #include <numeric>
 #include <stdexcept>
 
 #include "debug.h"
 #include "matpack_data.h"
 
-void measurement_sensorSimple(ArrayOfSensorObsel& measurement_sensor,
-                              const AscendingGrid& frequency_grid,
-                              const Vector3& pos,
-                              const Vector2& los,
-                              const Stokvec& pol) try {
-  measurement_sensor.resize(frequency_grid.size());
+void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
+  measurement_sensor = {};
+}
+
+void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
+                                 const AscendingGrid& frequency_grid,
+                                 const Vector3& pos,
+                                 const Vector2& los,
+                                 const Stokvec& pol) try {
+  const Index n = frequency_grid.size();
+  const Size sz = measurement_sensor.size();
+
+  measurement_sensor.resize(sz + n);
 
   auto f = std::make_shared<const AscendingGrid>(frequency_grid);
   auto p = std::make_shared<const SensorPosLosVector>(
       SensorPosLosVector{{.pos = pos, .los = los}});
 
-  for (Size i = 0; i < measurement_sensor.size(); i++) {
-    StokvecMatrix w(1, frequency_grid.size(), 0);
-
-    w(0, i)               = pol;
-    measurement_sensor[i] = SensorObsel(f, p, std::move(w));
+  for (Index i = 0; i < n; i++) {
+    StokvecMatrix w(1, n, 0);
+    w(0, i)                    = pol;
+    measurement_sensor[i + sz] = {f, p, std::move(w)};
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-Numeric gauss(Numeric f0, Numeric f, Numeric fwhm) {
-  return std::exp(-4 * Constant::ln_2 * Math::pow2((f - f0) / fwhm));
-}
+void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
+                                         const AscendingGrid& frequency_grid,
+                                         const Vector& stds,
+                                         const Vector3& pos,
+                                         const Vector2& los,
+                                         const Stokvec& pol) try {
+  using gauss = boost::math::normal_distribution<Numeric>;
+  using boost::math::pdf;
 
-void measurement_sensorSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
-                                      const AscendingGrid& frequency_grid,
-                                      const Vector& fwhm,
-                                      const Vector3& pos,
-                                      const Vector2& los,
-                                      const Stokvec& pol) try {
-  const Index n = frequency_grid.size();
+  const Index n      = frequency_grid.size();
+  const Size sz      = measurement_sensor.size();
+  const Size nonzero = pol.nonzero_components();
+
   ARTS_USER_ERROR_IF(n < 2, "Must have a frequency grid")
-  ARTS_USER_ERROR_IF(n != fwhm.size(), "Must have a frequency grid")
+  ARTS_USER_ERROR_IF(n != stds.size(),
+                     "Must have a standard deviation for each frequency point")
+  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
 
-  measurement_sensor.resize(n);
+  measurement_sensor.resize(sz + n);
 
   auto f = std::make_shared<const AscendingGrid>(frequency_grid);
   auto p = std::make_shared<const SensorPosLosVector>(
@@ -51,16 +62,17 @@ void measurement_sensorSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size i = 0; i < measurement_sensor.size(); i++) {
+  for (Index i = 0; i < n; i++) {
     try {
-      StokvecMatrix w(1, frequency_grid.size(), pol);
+      StokvecMatrix w(1, n, pol);
 
+      const gauss dist(frequency_grid[i], stds[i]);
       for (Index j = 0; j < n; j++) {
-        w(0, j) *= gauss(frequency_grid[i], frequency_grid[j], fwhm[i]);
+        w(0, j) *= pdf(dist, frequency_grid[j]);
       }
 
-      measurement_sensor[i] = SensorObsel(f, p, std::move(w));
-      measurement_sensor[i].normalize(pol, sum(pol));
+      measurement_sensor[i + sz] = {f, p, std::move(w)};
+      measurement_sensor[i + sz].normalize(pol);
     } catch (std::runtime_error& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -71,16 +83,13 @@ void measurement_sensorSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
-                                      const AscendingGrid& frequency_grid,
-                                      const Numeric& fwhm,
-                                      const Vector3& pos,
-                                      const Vector2& los,
-                                      const Stokvec& pol) {
-  measurement_sensorSimpleGaussian(measurement_sensor,
-                                   frequency_grid,
-                                   Vector(frequency_grid.size(), fwhm),
-                                   pos,
-                                   los,
-                                   pol);
+void measurement_sensorAddSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
+                                         const AscendingGrid& frequency_grid,
+                                         const Numeric& std,
+                                         const Vector3& pos,
+                                         const Vector2& los,
+                                         const Stokvec& pol) {
+  const Vector stds(frequency_grid.size(), std);
+      measurement_sensorAddVectorGaussian(
+          measurement_sensor, frequency_grid, stds, pos, los, pol);
 }

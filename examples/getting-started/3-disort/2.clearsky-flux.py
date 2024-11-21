@@ -41,7 +41,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.disort_settings_agendaSet(option="Clearsky")
+ws.disort_settings_agendaSet(option="SunlessClearsky")
 
 ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_step=40_000)
 ws.ray_path_atmospheric_pointFromPath()

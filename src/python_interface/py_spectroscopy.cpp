@@ -45,7 +45,7 @@ void py_spectroscopy(py::module_& m) try {
       .def_rw(
           "type",
           &LineShapeModelParameters::type,
-          ":class:`~pyarts.arts.options.LineShapeTemperatureModel` The temperature model")
+          ":class:`~pyarts.arts.LineShapeTemperatureModel` The temperature model")
       .def_rw(
           "X0", &LineShapeModelParameters::X0, ":class:`float` 1st coefficient")
       .def_rw(
@@ -566,22 +566,22 @@ void py_spectroscopy(py::module_& m) try {
       .def_rw(
           "cutoff",
           &AbsorptionLines::cutoff,
-          ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
+          ":class:`~pyarts.arts.AbsorptionCutoffTypeOld` Cutoff type")
       .def_rw(
           "mirroring",
           &AbsorptionLines::mirroring,
-          ":class:`~pyarts.arts.options.AbsorptionMirroringype` Mirroring type")
+          ":class:`~pyarts.arts.AbsorptionMirroringype` Mirroring type")
       .def_rw(
           "population",
           &AbsorptionLines::population,
-          ":class:`~pyarts.arts.options.AbsorptionPopulationTypeOld` Line population distribution")
+          ":class:`~pyarts.arts.AbsorptionPopulationTypeOld` Line population distribution")
       .def_rw(
           "normalization",
           &AbsorptionLines::normalization,
-          ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
+          ":class:`~pyarts.arts.AbsorptionNormalizationTypeOld` Normalization type")
       .def_rw("lineshapetype",
               &AbsorptionLines::lineshapetype,
-              ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
+              ":class:`~pyarts.arts.LineShapeTypeOld` Line shape type")
       .def_rw(
           "T0",
           &AbsorptionLines::T0,

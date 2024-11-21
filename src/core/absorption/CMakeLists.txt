@@ -5,4 +5,4 @@ add_library(absorption STATIC
   predefined_absorption_models.cc
 )
 target_link_libraries(absorption PUBLIC path predef physics lbl)
-target_include_directories(absorption PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(absorption PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

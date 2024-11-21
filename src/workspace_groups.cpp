@@ -1,5 +1,9 @@
 #include "workspace_groups.h"
 
+#include <arts_options.h>
+
+#include <stdexcept>
+
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
@@ -182,7 +186,7 @@ internal_workspace_groups_creator() {
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
       .desc = "Meta data for scattering spefcies.",
-};
+  };
 
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
@@ -209,12 +213,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
   };
 
-  wsg_data["SurfaceKey"] = {
-      .file = "enumsSurfaceKey.h",
-      .desc = R"--(A surface key
-)--",
-  };
-
   wsg_data["SurfaceTypeTag"] = {
       .file = "surf.h",
       .desc = R"--(A surface type
@@ -230,30 +228,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
   wsg_data["ArrayOfSpeciesEnum"] = {
       .file = "species.h",
       .desc = R"--(A list of *SpeciesEnum*
-)--",
-  };
-
-  wsg_data["SpeciesEnum"] = {
-      .file = "enumsSpeciesEnum.h",
-      .desc = R"--(An atmospheric species
-)--",
-  };
-
-  wsg_data["AtmKey"] = {
-      .file = "enumsAtmKey.h",
-      .desc = R"--(An atmospheric key
-)--",
-  };
-
-  wsg_data["LineShapeModelVariable"] = {
-      .file = "enumsLineShapeModelVariable.h",
-      .desc = R"--(A line shape model parameter
-)--",
-  };
-
-  wsg_data["LineByLineVariable"] = {
-      .file = "enumsLineByLineVariable.h",
-      .desc = R"--(An line-by-line variable parameter
 )--",
   };
 
@@ -335,12 +309,6 @@ longitude in the sky of the planet and the type)-x-",
 These cross-section records contains information about the valid temperature and
 pressure ranges as well as well as the fitting coefficients used to compute
 and interpolate the cross-section to other temperatures and pressures
-)--",
-  };
-
-  wsg_data["AtmKey"] = {
-      .file = "enumsAtmKey.h",
-      .desc = R"--(A key for atmospheric data
 )--",
   };
 
@@ -674,7 +642,6 @@ if it is contained in the Atlas and NAN otherwise.
       .desc = "A map of vibrational energy levels for NLTE calculations\n",
   };
 
-  // rtepack types
   wsg_data["Propmat"] = {
       .file = "rtepack.h",
       .desc = R"--(A single propagation matrix.
@@ -881,6 +848,11 @@ when computing the Jacobian matrix or partial derivatives.
 )--",
   };
 
+  wsg_data["PairOfBlockMatrix"] = {
+      .file = "retrieval_target.h",
+      .desc = R"--(A pair of *BlockMatrix* objects)--",
+  };
+
   wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
       .file = "retrieval_target.h",
       .desc =
@@ -889,6 +861,7 @@ when computing the Jacobian matrix or partial derivatives.
 The intended use of this type is to store required *BlockMatrix* objects so that
 the user-interface for setting up retrieval targets can be simplified.
 )--",
+      .map_type = true,
   };
 
   wsg_data["PropagationPathPoint"] = {
@@ -1010,10 +983,20 @@ well as the sampling device's polarization response.
   };
 
   wsg_data["AbsorptionLookupTables"] = {
-      .file = "lookup_map.h",
-      .desc = "A map of tables of of lookup calculations.\n",
+      .file     = "lookup_map.h",
+      .desc     = "A map of tables of of lookup calculations.\n",
       .map_type = true,
   };
+
+  for (auto& g : internal_options()) {
+    if (wsg_data.find(g.name) != wsg_data.end())
+      throw std::runtime_error("Duplicate workspace group name (name is reserved as options-group): " + g.name);
+
+    wsg_data[g.name] = {
+        .file = "enums.h",
+        .desc = g.docs(),
+    };
+  }
 
   return wsg_data;
 }

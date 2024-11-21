@@ -30,7 +30,7 @@ ws.surface_field
 ws.atmospheric_field["mag_w"] = B[2]
 ws.jacobian_targetsInit()
 ws.jacobian_targetsAddMagneticField(component="w")
-ws.jacobian_targetsFinalize()
+ws.jacobian_targetsFinalize(measurement_sensor=[])
 
 ws.atmospheric_point.temperature = 250
 ws.atmospheric_point.pressure = 1.0

@@ -1,5 +1,7 @@
 
 #include <arts_omp.h>
+#include <arts_options.h>
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
@@ -7,7 +9,6 @@
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
 
-#include "nanobind/nanobind.h"
 #include "python_interface.h"
 
 struct global_data {
@@ -128,6 +129,18 @@ Return
       "\n    Map of agendas");
 
   global.def(
+      "option_groups",
+      []() -> std::vector<std::string> {
+        std::vector<std::string> out(internal_options().size());
+        for (Size i = 0; i < out.size(); i++) {
+          out[i] = internal_options()[i].name;
+        }
+        return out;
+      },
+      "Get a copy of all named options\n\n"
+      "Return\n------\n:class:`list`");
+
+  global.def(
       "all_isotopologues",
       []() { return Species::Isotopologues; },
       "List of all valid :class:`~pyarts.arts.SpeciesIsotopeRecord`");
@@ -164,13 +177,16 @@ Parameters
       .def_ro_static("is_lgpl",
                      &global_data::is_lgpl,
                      "Whether the ARTS library is licensed under the LGPL")
-      .def("__repr__", [](const global_data&) {
-        return std::format(R"(Global state of ARTS:
+      .def("__repr__",
+           [](const global_data&) {
+             return std::format(R"(Global state of ARTS:
 
 is_lgpl: {}
 )",
-                           global_data::is_lgpl);
-      }).doc() = "A set of global data that we might need from ARTS inside pyarts";
+                                global_data::is_lgpl);
+           })
+      .doc() =
+      "A set of global data that we might need from ARTS inside pyarts";
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize global\n", e.what()));

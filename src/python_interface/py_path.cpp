@@ -13,11 +13,11 @@ void py_path(py::module_& m) try {
   pppp.def_rw(
           "pos_type",
           &PropagationPathPoint::pos_type,
-          ":class:`~pyarts.arts.options.PathPositionType` Path position type")
+          ":class:`~pyarts.arts.PathPositionType` Path position type")
       .def_rw(
           "los_type",
           &PropagationPathPoint::los_type,
-          ":class:`~pyarts.arts.options.PathPositionType` Path line-of-sight type")
+          ":class:`~pyarts.arts.PathPositionType` Path line-of-sight type")
       .def_rw("pos",
               &PropagationPathPoint::pos,
               ":class:`~pyarts.arts.Vector3` Path position")

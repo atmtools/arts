@@ -46,6 +46,7 @@ ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2] = grid
 
 # %% Jacobian
 
+ws.measurement_sensor = []
 ws.jacobian_targetsInit()
 ws.jacobian_targetsAddSpeciesVMR(species="O2")
 ws.jacobian_targetsFinalize()

@@ -19,15 +19,15 @@ void add_diagonal_covmat(CovarianceMatrix& covmat,
 
   ARTS_USER_ERROR_IF(
       matrix.ncols() != colrow.extent or matrix.nrows() != colrow.extent,
-          R"(The matrix must be square.  It must also have the same size as the target.
+      R"(The matrix must be square.  It must also have the same size as the target.
      shape(matrix) = {:B,},
      shape(target) = [{}, {}]
 Target: {}
 )",
-          matrix.shape(),
-          colrow.extent,
-          colrow.extent,
-          target.type);
+      matrix.shape(),
+      colrow.extent,
+      colrow.extent,
+      target.type);
 
   covmat.add_correlation({colrow,
                           colrow,
@@ -37,15 +37,15 @@ Target: {}
   if (inverse.not_null()) {
     ARTS_USER_ERROR_IF(
         inverse.ncols() != colrow.extent or inverse.nrows() != colrow.extent,
-            R"(The inverse matrix must be square.  It must also have the same size as the target.
+        R"(The inverse matrix must be square.  It must also have the same size as the target.
      shape(matrix) = {:B,},
      shape(target) = [{}, {}]
 Target: {}
 )",
-            inverse.shape(),
-            colrow.extent,
-            colrow.extent,
-            target.type);
+        inverse.shape(),
+        colrow.extent,
+        colrow.extent,
+        target.type);
 
     covmat.add_correlation({colrow,
                             colrow,
@@ -126,6 +126,29 @@ void model_state_covariance_matrixAdd(
 
   ARTS_USER_ERROR_IF(
       not found, "No target found for surface target : {}", new_target);
+}
+
+void model_state_covariance_matrixAdd(
+    CovarianceMatrix& model_state_covariance_matrix,
+    const JacobianTargets& jacobian_targets,
+    const SensorKey& new_target,
+    const BlockMatrix& matrix,
+    const BlockMatrix& inverse) {
+  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+                     "Jacobian targets not finalized.");
+
+  bool found = false;
+
+  for (const auto& target : jacobian_targets.sensor()) {
+    if (target.type == new_target) {
+      found = true;
+      add_diagonal_covmat(
+          model_state_covariance_matrix, target, matrix, inverse);
+    }
+  }
+
+  ARTS_USER_ERROR_IF(
+      not found, "No target found for sensor target : {}", new_target);
 }
 
 void model_state_covariance_matrixAddAtmosphere(
@@ -285,9 +308,13 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                    covariance_matrix_diagonal_blocks,
                                const AtmField& atmospheric_field,
                                const SurfaceField& surface_field,
-                               const AbsorptionBands& absorption_bands) {
-  jacobian_targetsFinalize(
-      jacobian_targets, atmospheric_field, surface_field, absorption_bands);
+                               const AbsorptionBands& absorption_bands,
+                               const ArrayOfSensorObsel& measurement_sensor) {
+  jacobian_targetsFinalize(jacobian_targets,
+                           atmospheric_field,
+                           surface_field,
+                           absorption_bands,
+                           measurement_sensor);
 
   for (auto& key_data : covariance_matrix_diagonal_blocks) {
     std::visit(

@@ -215,19 +215,7 @@ struct DPL {
  * 
  * @param[in] status Eigen::LevenbergMarquardtSpace::Status value from minimize(x) call 
  */
-constexpr bool goodStatus(int status) {
-  if (status ==
-      Eigen::LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall) {
-    return true;
-  }
-  if (status == Eigen::LevenbergMarquardtSpace::RelativeReductionTooSmall) {
-    return true;
-  }
-  if (status == Eigen::LevenbergMarquardtSpace::RelativeErrorTooSmall) {
-    return true;
-  }
-  return false;
-}
+[[nodiscard]] bool goodStatus(int status);
 
 /*! Fit a curve to data values
  * 
