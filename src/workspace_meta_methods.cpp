@@ -17,8 +17,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name    = "measurement_sensorSimple",
       .desc    = "Wrapper for a single simple dirac-opening sensor",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit",
-                  "measurement_sensorAddSimple"},
+      .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
       .out     = {"measurement_sensor"},
   });
 
@@ -195,8 +194,12 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .author  = {"Richard Larsson"},
       .methods = {"absorption_bandsFromModelState",
                   "surface_fieldFromModelState",
-                  "atmospheric_fieldFromModelState"},
-      .out     = {"absorption_bands", "surface_field", "atmospheric_field"},
+                  "atmospheric_fieldFromModelState",
+                  "measurement_sensorFromModelState"},
+      .out     = {"absorption_bands",
+                  "surface_field",
+                  "atmospheric_field",
+                  "measurement_sensor"},
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
@@ -207,7 +210,8 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "model_state_vectorZero",
                   "model_state_vectorFromAtmosphere",
                   "model_state_vectorFromSurface",
-                  "model_state_vectorFromBands"},
+                  "model_state_vectorFromBands",
+                  "model_state_vectorFromSensor"},
       .out     = {"model_state_vector"},
   });
 
@@ -266,15 +270,15 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
 
     const auto ptr = wsms.find(m);
     if (ptr == wsms.end()) {
-      throw std::runtime_error("Method " + m + " not found");
+      throw std::runtime_error(std::format(R"(Method "{}" not found)", m));
     }
 
     const auto& wm = ptr->second;
 
     if (wm.has_any() or wm.has_overloads()) {
-      throw std::runtime_error(
-          "Method " + m +
-          " has overloads and does not work with meta-functions");
+      throw std::runtime_error(std::format(
+          R"(Method "{}"  has overloads and does not work with meta-functions)",
+          m));
     }
 
     wsm.author.insert(wsm.author.end(), wm.author.begin(), wm.author.end());

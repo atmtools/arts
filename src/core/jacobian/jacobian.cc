@@ -150,7 +150,15 @@ void polyfit(ExhaustiveVectorView param, const Vector& x, const Vector& y) {
   using namespace Minimize;
   auto [success, fit] = curve_fit<Polynom>(x, y, param.size() - 1);
 
-  ARTS_USER_ERROR_IF(not success, "Could not fit polynomial.")
+  ARTS_USER_ERROR_IF(not success,
+                     R"(Could not fit polynomial:
+  x:   {:B,},
+  y:   {:B,}
+  fit: {:B,}
+)",
+                     x,
+                     y,
+                     Vector{fit})
   ARTS_USER_ERROR_IF(fit.size() != param.size(),
                      "Bad size. fit.size(): {}, param.size(): {}",
                      fit.size(),
@@ -232,6 +240,18 @@ void AtmTarget::update(Vector& x, const AtmField& atm) const {
 bool AtmTarget::is_wind() const {
   return type == AtmKey::wind_u or type == AtmKey::wind_v or
          type == AtmKey::wind_w;
+}
+
+void SensorTarget::update(ArrayOfSensorObsel& sens, const Vector& x) const {
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_model(sens, type, x.slice(x_start, x_size));
+}
+
+void SensorTarget::update(Vector& x, const ArrayOfSensorObsel& sens) const {
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_state(x.slice(x_start, x_size), sens, type);
 }
 
 void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
@@ -358,5 +378,37 @@ void Targets::finalize(const AtmField& atmospheric_field,
   finalized = true;
 
   throwing_check(last_size);
+}
+
+AtmTarget& Targets::emplace_back(AtmKeyVal&& t, Numeric d) {
+  return atm().emplace_back(std::move(t), d, target_count());
+}
+
+SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
+  return surf().emplace_back(std::move(t), d, target_count());
+}
+
+LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
+  return line().emplace_back(std::move(t), d, target_count());
+}
+
+SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
+  return sensor().emplace_back(std::move(t), d, target_count());
+}
+
+AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) {
+  return atm().emplace_back(t, d, target_count());
+}
+
+SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) {
+  return surf().emplace_back(t, d, target_count());
+}
+
+LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) {
+  return line().emplace_back(t, d, target_count());
+}
+
+SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) {
+  return sensor().emplace_back(t, d, target_count());
 }
 }  // namespace Jacobian

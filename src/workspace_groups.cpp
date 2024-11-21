@@ -2,6 +2,8 @@
 
 #include <arts_options.h>
 
+#include <exception>
+
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
@@ -640,7 +642,6 @@ if it is contained in the Atlas and NAN otherwise.
       .desc = "A map of vibrational energy levels for NLTE calculations\n",
   };
 
-  // rtepack types
   wsg_data["Propmat"] = {
       .file = "rtepack.h",
       .desc = R"--(A single propagation matrix.
@@ -989,7 +990,7 @@ well as the sampling device's polarization response.
 
   for (auto& g : internal_options()) {
     if (wsg_data.find(g.name) != wsg_data.end())
-      throw std::runtime_error("Duplicate workspace group name: " + g.name);
+      throw std::runtime_error("Duplicate workspace group name (name is reserved as options-group): " + g.name);
 
     wsg_data[g.name] = {
         .file = "enums.h",

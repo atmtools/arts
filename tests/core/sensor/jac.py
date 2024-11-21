@@ -2,12 +2,20 @@ import pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+LIMIT = 50
+noise = 0.5
+NF = 1001
+std = 1
+pol1 = "RC"
+pol2 = "Ih"
+ATOL = 1000
+
 ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-f = np.linspace(-5e6, 5e6, 1001) + line_f0
+f = np.linspace(-5e6, 5e6, NF) + line_f0
 
 # %% Species and line absorption
 
@@ -43,16 +51,10 @@ pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 
 ws.measurement_sensorSimpleGaussian(
-    frequency_grid=f, std=1e5, pos=pos, los=los, pol="Ih"
+    frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
 )
 ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f, std=1e5, pos=pos, los=los, pol="Iv"
-)
-ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f, std=1e5, pos=pos, los=los, pol="RC"
-)
-ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f, std=1e5, pos=pos, los=los, pol="LC"
+    frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
 # %% Original calculations
@@ -62,34 +64,79 @@ orig = ws.measurement_vector * 1.0
 
 # %% Modify the sensor
 
-DF1 = 1e6
-DF2 = 2e6
-DF3 = 3e6
-DF4 = -4e6
+DF1 = 1e5
 
 ws.measurement_sensorSimpleGaussian(
-    frequency_grid=f + DF1, std=1e5, pos=pos, los=los, pol="Ih"
+    frequency_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
 )
 ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f + DF2, std=1e5, pos=pos, los=los, pol="Iv"
-)
-ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f + DF3, std=1e5, pos=pos, los=los, pol="RC"
-)
-ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f + DF4, std=1e5, pos=pos, los=los, pol="LC"
+    frequency_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
 )
 
 ws.measurement_vectorFromSensor()
 mod = ws.measurement_vector * 1.0
 
+# %% Retrieval agenda
+
+
+@pyarts.workspace.arts_agenda(ws=ws, fix=True)
+def inversion_iterate_agenda(ws):
+    ws.UpdateModelStates()
+    ws.measurement_vectorFromSensor()
+    ws.measurement_vector_fittedFromMeasurement()
+
+
 # %% Set up the retrieval
 
 ws.RetrievalInit()
-ws.RetrievalAddSensorFrequencyPolyFit(elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e6))
+ws.RetrievalAddSensorFrequencyPolyFit(
+    elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+)
+ws.RetrievalAddSensorFrequencyPolyFit(
+    elem=1001, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+)
 ws.RetrievalFinalizeDiagonal()
 
-ws.measurement_vector_fitted = []
-ws.model_state_vector = []
-ws.measurement_jacobian = [[]]
-# %%
+# %% Perform OEM retrieval of frequency grid
+
+fail = True
+for i in range(LIMIT):
+    ws.measurement_vector_fitted = []
+    ws.model_state_vector = []
+    ws.measurement_jacobian = [[]]
+
+    ws.measurement_sensorSimpleGaussian(
+        frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
+    )
+    ws.measurement_sensorAddSimpleGaussian(
+        frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
+    )
+    ws.measurement_vectorFromSensor()
+    ws.measurement_vector += np.random.normal(0, noise, 2 * NF)
+
+    ws.measurement_sensorSimpleGaussian(
+        frequency_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
+    )
+    ws.measurement_sensorAddSimpleGaussian(
+        frequency_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
+    )
+
+    ws.measurement_vector_fitted = []
+    ws.model_state_vector = []
+    ws.measurement_jacobian = [[]]
+
+    ws.model_state_vector_aprioriFromData()
+
+    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+
+    ws.OEM(method="gn")
+
+    print(f"got:      [{ws.model_state_vector[0]}, {ws.model_state_vector[1]}]")
+    print(f"expected: [{-DF1}, {-2*DF1}]")
+    if np.allclose(ws.model_state_vector, [-DF1, -2 * DF1], atol=ATOL):
+        print(f"Within {ATOL} Hz.  Success!")
+        fail = False
+        break
+    print(f"AbsDiff not less than {ATOL} HZ, rerunning with new random noise")
+
+assert not fail, "Failed to retrieve frequency grid"

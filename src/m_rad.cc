@@ -265,24 +265,26 @@ frequency_grid.size()              = {}
   const auto b  = x.begin();
   const auto e  = x.end();
 
+  bool find_any = false;
   for (auto &target : jacobian_targets.sensor()) {
     ARTS_USER_ERROR_IF(
         measurement_sensor.size() <= static_cast<Size>(target.type.elem),
         "Sensor element out of bounds");
 
+    auto &elem = measurement_sensor[target.type.elem];
     auto m = spectral_radiance_jacobian.slice(target.x_start, target.x_size);
     const Numeric d = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
-    const Index iposlos = measurement_sensor[target.type.elem].find(pos, los);
+    const Index iposlos = elem.find(pos, los);
     if (iposlos == SensorObsel::dont_have) continue;
-    if (measurement_sensor[target.type.elem].find(frequency_grid) ==
-        SensorObsel::dont_have)
-      continue;
+    if (elem.find(frequency_grid) == SensorObsel::dont_have) continue;
+
+    find_any = true;
 
     using enum SensorKeyType;
     switch (target.type.type) {
-      case f:   call({b, e, [d](auto x) { return x + d; }}, pos, los, d);
+      case f:   call({b, e, [d](auto x) { return x + d; }}, pos, los, d); break;
       case za:  call(x, pos, {los[0] + d, los[1]}, d); break;
       case aa:  call(x, pos, {los[0], los[1] + d}, d); break;
       case alt: call(x, {pos[0] + d, pos[1], pos[2]}, los, d); break;
@@ -331,6 +333,22 @@ frequency_grid.size()              = {}
       } break;
     }
   }
+
+  ARTS_USER_ERROR_IF(not find_any,
+                     R"(No sensor element found for pos-los/frequency grid pair
+
+  frequency_grid: {:Bs,}
+  pos:            {:B,}
+  los:            {:B,}
+
+Note: It is not allowed to change the frequency grid or the pos-los pair in an agenda
+that calls this function.  This is because the actual memory address is used to identify
+a sensor element.  Modifying pos, los or frequency_grid will copy the data to a new memory
+location and the sensor element will not be found.
+)",
+                     frequency_grid,
+                     pos,
+                     los);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -389,6 +407,7 @@ f_grid_ptr->size()       = {}
 )",
             spectral_radiance.size(),
             f_grid_ptr->size())
+
         ARTS_USER_ERROR_IF(
             (spectral_radiance_jacobian.shape() !=
              std::array{measurement_jacobian.ncols(), f_grid_ptr->size()}),

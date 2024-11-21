@@ -275,7 +275,8 @@ struct targets_t {
   }
 };
 
-struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget, SensorTarget> {
+struct Targets final
+    : targets_t<AtmTarget, SurfaceTarget, LineTarget, SensorTarget> {
   [[nodiscard]] const std::vector<AtmTarget>& atm() const;
   [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
   [[nodiscard]] const std::vector<LineTarget>& line() const;
@@ -291,13 +292,26 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget, SensorTar
                 const SurfaceField& surface_field,
                 const AbsorptionBands& absorption_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
+
+  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d);
+  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d);
+  LineTarget& emplace_back(LblLineKey&& t, Numeric d);
+  LineTarget& emplace_back(const LblLineKey& t, Numeric d);
+  SensorTarget& emplace_back(SensorKey&& t, Numeric d);
+  SensorTarget& emplace_back(const SensorKey& t, Numeric d);
+  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
+  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
 };
 
 struct TargetType {
-  using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey>;
+  using variant_t =
+      std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey>;
   variant_t target;
 
-  template <class AtmKeyValFunc, class SurfaceKeyValFunc, class LblLineKeyFunc, class SensorKeyFunc>
+  template <class AtmKeyValFunc,
+            class SurfaceKeyValFunc,
+            class LblLineKeyFunc,
+            class SensorKeyFunc>
   [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
                                      const SurfaceKeyValFunc& ifsurf,
                                      const LblLineKeyFunc& ifline,
@@ -534,7 +548,10 @@ struct std::formatter<JacobianTargets> {
                 v.surf(),
                 sep,
                 R"("line": )"sv,
-                v.line());
+                v.line(),
+                sep,
+                R"("sensor": )"sv,
+                v.sensor());
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();

@@ -1994,14 +1994,15 @@ building of an actual Jacobian matrix.
   };
 
   const auto jac2ret = [&wsm_data](const std::string& name) {
-    auto v = wsm_data[name];
+    auto v  = wsm_data[name];
     v.desc += std::format(R"(
 This method wraps *{}* together with adding the covariance matrices,
 to the *covariance_matrix_diagonal_blocks*, which are required to perform *OEM*.
 
 The input covariance matrices must fit the size of the later computed model state
 represented by the *jacobian_targets*.  The covariance matrix inverse 
-)", name);
+)",
+                          name);
     v.out.insert(v.out.begin() + 1, "covariance_matrix_diagonal_blocks");
     v.in.insert(v.in.begin() + 1, "covariance_matrix_diagonal_blocks");
     v.gin.insert(v.gin.end(), "matrix");
@@ -2087,7 +2088,8 @@ See *FieldComponent* for valid ``component``
           {"The component to use [u, v, w]",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddMagneticField"] = jac2ret("jacobian_targetsAddMagneticField");
+  wsm_data["RetrievalAddMagneticField"] =
+      jac2ret("jacobian_targetsAddMagneticField");
 
   wsm_data["jacobian_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative
@@ -2107,7 +2109,7 @@ See *FieldComponent* for valid ``component``
           {"The component to use [u, v, w]",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
+  wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative
@@ -2124,7 +2126,7 @@ See *SpeciesEnum* for valid ``species``
           {"The species of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
+  wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
 
   wsm_data["jacobian_targetsAddAtmosphere"] = {
       .desc      = R"--(Sets an atmospheric target
@@ -2140,7 +2142,7 @@ wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-wsm_data["RetrievalAddAtmosphere"] = jac2ret("jacobian_targetsAddAtmosphere");
+  wsm_data["RetrievalAddAtmosphere"] = jac2ret("jacobian_targetsAddAtmosphere");
 
   wsm_data["jacobian_targetsAddSurface"] = {
       .desc      = R"--(Sets a surface target
@@ -2155,7 +2157,7 @@ wsm_data["RetrievalAddAtmosphere"] = jac2ret("jacobian_targetsAddAtmosphere");
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-wsm_data["RetrievalAddSurface"] = jac2ret("jacobian_targetsAddSurface");
+  wsm_data["RetrievalAddSurface"] = jac2ret("jacobian_targetsAddSurface");
 
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -2172,7 +2174,8 @@ See *SpeciesIsotope* for valid ``species``
           {"The species isotopologue of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-wsm_data["RetrievalAddSpeciesIsotopologueRatio"] = jac2ret("jacobian_targetsAddSpeciesIsotopologueRatio");
+  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] =
+      jac2ret("jacobian_targetsAddSpeciesIsotopologueRatio");
 
   wsm_data["absorption_bandsReadHITRAN"] = {
       .desc =
@@ -3175,6 +3178,15 @@ before consumption by, e.g., *OEM*
       .pass_workspace = true,
   };
 
+  wsm_data["measurement_sensorFromModelState"] = {
+      .desc =
+          R"--(Update *measurement_sensor* from *model_state_vector*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_sensor"},
+      .in = {"measurement_sensor", "model_state_vector", "jacobian_targets"},
+  };
+
   wsm_data["measurement_sensorInit"] = {
       .desc =
           R"--(Initialize *measurement_sensor* to empty.
@@ -3462,6 +3474,14 @@ Warning:
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
       .in     = {"model_state_vector"},
+  };
+
+  wsm_data["model_state_vectorFromSensor"] = {
+      .desc   = R"--(Sets *model_state_vector*'s sensor part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in = {"model_state_vector", "measurement_sensor", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorFromAtmosphere"] = {
