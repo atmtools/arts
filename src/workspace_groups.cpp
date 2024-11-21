@@ -2,7 +2,7 @@
 
 #include <arts_options.h>
 
-#include <exception>
+#include <stdexcept>
 
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
