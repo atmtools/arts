@@ -847,6 +847,11 @@ when computing the Jacobian matrix or partial derivatives.
 )--",
   };
 
+  wsg_data["PairOfBlockMatrix"] = {
+      .file = "retrieval_target.h",
+      .desc = R"--(A pair of *BlockMatrix* objects)--",
+  };
+
   wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
       .file = "retrieval_target.h",
       .desc =
@@ -855,6 +860,7 @@ when computing the Jacobian matrix or partial derivatives.
 The intended use of this type is to store required *BlockMatrix* objects so that
 the user-interface for setting up retrieval targets can be simplified.
 )--",
+      .map_type = true,
   };
 
   wsg_data["PropagationPathPoint"] = {

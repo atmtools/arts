@@ -156,10 +156,9 @@ void jacobian_targetsAddSensor(JacobianTargets& jacobian_targets,
   });
 }
 
-void jacobian_targetsAddSensorPolyFit(
+void jacobian_targetsAddSensorFrequencyPolyFit(
     JacobianTargets& jacobian_targets,
     const ArrayOfSensorObsel& measurement_sensor,
-    const SensorKeyType& key,
     const Numeric& d,
     const Index& elem,
     const Index& polyorder) {
@@ -170,11 +169,11 @@ void jacobian_targetsAddSensorPolyFit(
       polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
 
   Jacobian::SensorTarget target{
-      .type = {.type      = key,
-               .elem      = elem,
-               .model     = SensorJacobianModelType::PolynomialOffset,
-               .polyorder = polyorder},
-      //     .original_grid = sensor_grid(measurement_sensor[elem], key)},
+      .type       = {.type          = SensorKeyType::f,
+                     .elem          = elem,
+                     .model         = SensorJacobianModelType::PolynomialOffset,
+                     .polyorder     = polyorder,
+                     .original_grid = measurement_sensor[elem].flat(SensorKeyType::f)},
       .d          = d,
       .target_pos = jacobian_targets.target_count(),
   };

@@ -127,9 +127,8 @@ class Obsel {
    * polarization will be equal to the new value.
    *
    * @param pol The polarization that is sampled for the sum. The default is [1, 0, 0, 0].
-   * @param new_value The new value for the normalization. The default is 1.0.
    */
-  void normalize(Stokvec pol = {1., 0., 0., 0.}, Numeric new_value = 1.0);
+  void normalize(Stokvec pol = {1., 0., 0., 0.});
 
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
   void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
@@ -146,11 +145,11 @@ std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
 }  // namespace sensor
 
 struct SensorKey {
-  SensorKeyType type;
+  SensorKeyType type{};
 
-  Index elem;
+  Index elem{};
 
-  SensorJacobianModelType model;
+  SensorJacobianModelType model{};
 
   Index polyorder{-1};
 
@@ -163,8 +162,10 @@ template <>
 struct std::hash<SensorKey> {
   std::size_t operator()(const SensorKey& g) const {
     return std::hash<SensorKeyType>{}(g.type) ^
-           (std::hash<SensorJacobianModelType>{}(g.model) << 10) ^
-           (std::hash<Index>{}(g.elem) << 20);
+           (std::hash<SensorJacobianModelType>{}(g.model)
+            << (8 * sizeof(SensorKeyType))) ^
+           (std::hash<Index>{}(g.elem)
+            << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
   }
 };
 

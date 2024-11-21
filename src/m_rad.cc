@@ -396,7 +396,7 @@ f_grid_ptr->size()       = {}
 
 spectral_radiance_jacobian.shape()  = {:B,},
 f_grid_ptr->size()                  = {},
-measurement_jacobian.ncols() = {}
+measurement_jacobian.ncols()        = {}
 )",
             spectral_radiance_jacobian.shape(),
             f_grid_ptr->size(),

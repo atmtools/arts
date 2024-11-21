@@ -43,17 +43,22 @@ void Obsel::check() const {
       f->size());
 }
 
-void Obsel::normalize(Stokvec pol, Numeric new_value) {
-  const Numeric sum = std::transform_reduce(
-      w.elem_begin(),
-      w.elem_end(),
-      0.0,
-      std::plus<>(),
-      [pol](const Stokvec& ws) -> Numeric { return pol * ws; });
+void Obsel::normalize(Stokvec pol) {
+  const Stokvec x = sum(w);
 
-  ARTS_USER_ERROR_IF(sum == 0.0, "Cannot normalize, sum is zero");
+  if (x.I() != 0.0) pol.I() = std::abs(pol.I() / x.I());
+  if (x.is_polarized()) {
+    const Numeric hyp = std::hypot(x.Q(), x.U(), x.V());
+    pol.Q()           = std::abs(pol.Q() / hyp);
+    pol.U()           = std::abs(pol.U() / hyp);
+    pol.V()           = std::abs(pol.V() / hyp);
+  }
 
-  w *= new_value / sum;
+  std::transform(
+      w.elem_begin(), w.elem_end(), w.elem_begin(), [pol](auto& e) -> Stokvec {
+        return {
+            e.I() * pol.I(), e.Q() * pol.Q(), e.U() * pol.U(), e.V() * pol.V()};
+      });
 }
 
 Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
@@ -163,7 +168,7 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
   const auto first       = poslos->cbegin();
   const auto last        = poslos->cend();
   const auto same_poslos = [&](const auto& p) {
-    return pos == p.pos and los == p.los;
+    return &pos == &p.pos and & los == &p.los;
   };
 
   const auto it = std::find_if(first, last, same_poslos);
@@ -172,7 +177,7 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
 }
 
 Index Obsel::find(const AscendingGrid& frequency_grid) const {
-  return (*f != frequency_grid) ? dont_have : 0;
+  return (f.get() != &frequency_grid) ? dont_have : 0;
 }
 }  // namespace sensor
 

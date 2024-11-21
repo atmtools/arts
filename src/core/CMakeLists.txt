@@ -60,7 +60,6 @@ add_library(artscore STATIC
   radiation_field.cc
   raw.cc
   refraction.cc
-  retrieval_target.cc
   sensor.cc
   special_interp.cc
   sun.cc

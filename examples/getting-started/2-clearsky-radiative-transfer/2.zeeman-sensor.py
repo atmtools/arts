@@ -37,11 +37,13 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSet(option="Geometric")
 ws.spectral_radiance_observer_agendaSet(option="Emission")
 
-# %% Set up a sensor with Gaussian channel widths on individual frequency ranges
+# %% Set up a sensor with Gaussian FWHM channel widths on individual frequency ranges
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_sensorSimpleGaussian(fwhm=1e5, pos=pos, los=los, pol="RC")
+ws.measurement_sensorSimpleGaussian(
+    std=1e5 / (2 * np.sqrt(2 * np.log(2))), pos=pos, los=los, pol="RC"
+)
 
 # %% Core calculations
 
