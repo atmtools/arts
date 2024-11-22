@@ -11,9 +11,9 @@
 #include "workspace_variables.h"
 
 std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
-  std::vector<WorkspaceMethodInternalMetaRecord> out;
+  std::vector<WorkspaceMethodInternalMetaRecord> wsm_meta;
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimple",
       .desc    = "Wrapper for a single simple dirac-opening sensor",
       .author  = {"Richard Larsson"},
@@ -21,7 +21,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"measurement_sensor"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimpleGaussian",
       .desc    = "Wrapper for a single simple Gaussian-opening sensor",
       .author  = {"Richard Larsson"},
@@ -30,7 +30,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"measurement_sensor"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorVectorGaussian",
       .desc    = "Wrapper for a single simple Gaussian-opening sensor",
       .author  = {"Richard Larsson"},
@@ -39,7 +39,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"measurement_sensor"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_flux_fieldFromAgenda",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
@@ -48,7 +48,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"disort_spectral_flux_field"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgenda",
       .desc   = "Use the disort settings agenda to calculate spectral radiance",
       .author = {"Richard Larsson"},
@@ -59,7 +59,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "disort_quadrature_weights"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_flux_fieldSunlessClearsky",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
@@ -70,7 +70,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .preset_gin       = {"option"},
       .preset_gin_value = {String{"SunlessClearsky"}}});
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_radiance_fieldSunlessClearsky",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
@@ -83,7 +83,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .preset_gin       = {"option"},
       .preset_gin_value = {String{"SunlessClearsky"}}});
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
       .desc    = R"(Apply unit changes to spectral radiance and its Jacobian
 
@@ -98,7 +98,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyEmission",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
@@ -117,7 +117,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyRayleighScattering",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
@@ -140,7 +140,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
@@ -158,7 +158,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyBackgroundTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
@@ -175,7 +175,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name             = "atmospheric_fieldRead",
       .desc             = "Reads absorption file from a directory",
       .author           = {"Richard Larsson"},
@@ -187,7 +187,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .preset_gin_value = {Index{0}},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "UpdateModelStates",
       .desc =
           "Update state of the model in preparation for a forward model run",
@@ -202,7 +202,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "measurement_sensor"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "model_state_vectorFromData",
       .desc    = "Get *model_state_vector* from available data",
       .author  = {"Richard Larsson"},
@@ -215,7 +215,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"model_state_vector"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "model_state_vector_aprioriFromData",
       .desc    = "Get *model_state_vector_apriori* from available data",
       .author  = {"Richard Larsson"},
@@ -224,7 +224,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out     = {"model_state_vector_apriori"},
   });
 
-  out.push_back(WorkspaceMethodInternalMetaRecord{
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "absorption_lookup_tableCalc",
       .desc    = R"(Get *absorption_lookup_table* from available data.
 
@@ -241,7 +241,7 @@ define the default atmospheric state for the absorption lookup table.
       .out     = {"absorption_lookup_table"},
   });
 
-  return out;
+  return wsm_meta;
 }
 const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
   static const auto out = internal_meta_methods_creator();
