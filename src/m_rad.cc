@@ -268,10 +268,10 @@ frequency_grid.size()              = {}
   bool find_any = false;
   for (auto &target : jacobian_targets.sensor()) {
     ARTS_USER_ERROR_IF(
-        measurement_sensor.size() <= static_cast<Size>(target.type.elem),
+        measurement_sensor.size() <= static_cast<Size>(target.type.measurement_elem),
         "Sensor element out of bounds");
 
-    auto &elem = measurement_sensor[target.type.elem];
+    auto &elem = measurement_sensor[target.type.measurement_elem];
     auto m = spectral_radiance_jacobian.slice(target.x_start, target.x_size);
     const Numeric d = target.d;
 

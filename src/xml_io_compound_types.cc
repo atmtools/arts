@@ -3080,7 +3080,8 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.check_name("SensorKey");
 
   xml_read_from_stream(is_xml, key.type, pbifs);
-  xml_read_from_stream(is_xml, key.elem, pbifs);
+  xml_read_from_stream(is_xml, key.sensor_elem, pbifs);
+  xml_read_from_stream(is_xml, key.measurement_elem, pbifs);
   xml_read_from_stream(is_xml, key.model, pbifs);
   xml_read_from_stream(is_xml, key.polyorder, pbifs);
   xml_read_from_stream(is_xml, key.original_grid, pbifs);
@@ -3108,7 +3109,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream(os_xml, key.type, pbofs, "type");
-  xml_write_to_stream(os_xml, key.elem, pbofs, "elem");
+  xml_write_to_stream(os_xml, key.sensor_elem, pbofs, "sensor_elem");
+  xml_write_to_stream(os_xml, key.measurement_elem, pbofs, "measurement_elem");
   xml_write_to_stream(os_xml, key.model, pbofs, "model");
   xml_write_to_stream(os_xml, key.polyorder, pbofs, "polyorder");
   xml_write_to_stream(os_xml, key.original_grid, pbofs, "original_grid");
