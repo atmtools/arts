@@ -309,7 +309,7 @@ void set_poslos(const SensorObsel& v,
 
   for (auto& elem : sensor) {
     if (elem.poslos_grid_ptr() == ps) {
-      elem.set_poslos_grid_ptr(ps);
+      elem.set_poslos_grid_ptr(ps);  // may change here
     }
   }
 }
