@@ -7,9 +7,9 @@
 #include "workspace_wsv.h"
 
 struct WorkspaceVariableInternalRecord {
-  std::string desc{};
-  std::string type{};
-  std::optional<Wsv> default_value{};
+  std::string desc;
+  std::string type;
+  std::optional<Wsv> default_value{std::nullopt};
 };
 
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
