@@ -2656,23 +2656,28 @@ void xml_read_from_stream(std::istream& is_xml,
   g = std::move(x);
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in AscendingGrid:\n{}", e.what()));
 }
-ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AscendingGrid& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml, "AscendingGrid"};
   xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in AscendingGrid:\n{}", e.what()));
 }
 
 //! SensorObsel
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorObsel& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorObsel"};
 
   AscendingGrid f_grid;
@@ -2686,26 +2691,30 @@ void xml_read_from_stream(std::istream& is_xml,
   g = SensorObsel{f_grid, poslos_grid, weight_matrix};
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorObsel:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorObsel& g,
                          bofstream* pbofs,
-                         const String&) {
-  tag stag{os_xml, "SensorObsel"};
+                         const String& name) try {
+  tag stag{os_xml, "SensorObsel", meta_data{"name", name}};
 
   xml_write_to_stream(os_xml, g.f_grid(), pbofs, "f_grid");
   xml_write_to_stream(os_xml, g.poslos_grid(), pbofs, "poslos");
   xml_write_to_stream(os_xml, g.weight_matrix(), pbofs, "weight_matrix");
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorObsel:\n{}", e.what()));
 }
 
 //! SensorPosLos
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLos& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorPosLos"};
 
   if (pbifs) {
@@ -2717,12 +2726,14 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLos:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLos& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml, "SensorPosLos"};
 
   if (pbofs) {
@@ -2732,14 +2743,17 @@ void xml_write_to_stream(std::ostream& os_xml,
            << ' ' << g.los[1];
   }
 
+  os_xml << '\n';
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLos:\n{}", e.what()));
 }
 
 //! SensorPosLosVector
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLosVector& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorPosLosVector", "nelem"};
 
   const auto n = stag.get<Index>("nelem");
@@ -2749,12 +2763,14 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLosVector& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml,
            "SensorPosLosVector",
            meta_data{"nelem", static_cast<Index>(g.size())}};
@@ -2764,6 +2780,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 //! DisortBDRF
@@ -3080,7 +3098,8 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.check_name("SensorKey");
 
   xml_read_from_stream(is_xml, key.type, pbifs);
-  xml_read_from_stream(is_xml, key.elem, pbifs);
+  xml_read_from_stream(is_xml, key.sensor_elem, pbifs);
+  xml_read_from_stream(is_xml, key.measurement_elem, pbifs);
   xml_read_from_stream(is_xml, key.model, pbifs);
   xml_read_from_stream(is_xml, key.polyorder, pbifs);
   xml_read_from_stream(is_xml, key.original_grid, pbifs);
@@ -3108,7 +3127,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream(os_xml, key.type, pbofs, "type");
-  xml_write_to_stream(os_xml, key.elem, pbofs, "elem");
+  xml_write_to_stream(os_xml, key.sensor_elem, pbofs, "sensor_elem");
+  xml_write_to_stream(os_xml, key.measurement_elem, pbofs, "measurement_elem");
   xml_write_to_stream(os_xml, key.model, pbofs, "model");
   xml_write_to_stream(os_xml, key.polyorder, pbofs, "polyorder");
   xml_write_to_stream(os_xml, key.original_grid, pbofs, "original_grid");

@@ -7,7 +7,9 @@
 #include "debug.h"
 
 bool SensorKey::operator==(const SensorKey& other) const {
-  return other.elem == elem and other.model == model and other.type == type;
+  return other.sensor_elem == sensor_elem and
+         other.measurement_elem == measurement_elem and other.model == model and
+         other.type == type;
 }
 
 namespace sensor {

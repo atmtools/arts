@@ -147,7 +147,9 @@ std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
 struct SensorKey {
   SensorKeyType type{};
 
-  Index elem{};
+  Index sensor_elem{};
+
+  Index measurement_elem{};
 
   SensorJacobianModelType model{};
 
@@ -164,7 +166,7 @@ struct std::hash<SensorKey> {
     return std::hash<SensorKeyType>{}(g.type) ^
            (std::hash<SensorJacobianModelType>{}(g.model)
             << (8 * sizeof(SensorKeyType))) ^
-           (std::hash<Index>{}(g.elem)
+           (std::hash<Index>{}(g.measurement_elem)
             << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
   }
 };
@@ -183,7 +185,7 @@ struct std::formatter<SensorKey> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.type, tags.sep(), v.elem, tags.sep(), v.model);
+    return tags.format(ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem, tags.sep(), v.model);
   }
 };
 

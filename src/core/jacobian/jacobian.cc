@@ -1,6 +1,7 @@
 #include "jacobian.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "compare.h"
 #include "minimize.h"
@@ -170,7 +171,7 @@ void polyfit(ExhaustiveVectorView param, const Vector& x, const Vector& y) {
 void default_sensor_x_set(ExhaustiveVectorView x,
                           const ArrayOfSensorObsel& sensor,
                           const SensorKey& key) {
-  const SensorObsel& v = sensor.at(key.elem);
+  const SensorObsel& v = sensor.at(key.measurement_elem);
   const Vector& o      = key.original_grid;
 
   using enum SensorKeyType;
@@ -210,7 +211,7 @@ Vector polynomial_offset_evaluate(const ExhaustiveConstVectorView x,
 void default_x_sensor_set(ArrayOfSensorObsel& sensor,
                           const SensorKey& key,
                           const ExhaustiveConstVectorView x) {
-  auto& v = sensor.at(key.elem);
+  auto& v = sensor.at(key.measurement_elem);
 
   using enum SensorKeyType;
   switch (key.model) {
@@ -354,17 +355,50 @@ void Targets::finalize(const AtmField& atmospheric_field,
     last_size += t.x_size;
   }
 
+  for (auto& elem : sensor()) {
+    ARTS_USER_ERROR_IF(
+        static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size(),
+        "Bad sensor elements {}, out-of-bounds",
+        elem);
+  }
+
   for (Size i = 0; i < nsensor; i++) {
     SensorTarget& t = sensor()[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(sensor() | std::views::drop(i + 1),
-                                           Cmp::eq(t.type),
-                                           &SensorTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(
+            sensor() | std::views::drop(i + 1),
+            [&](const SensorKey& key) {
+              if (t.type.type != key.type) return false;
+              if (t.type.model != key.model) return false;
+
+              const Index elem1 = t.type.measurement_elem;
+              const Index elem2 = key.measurement_elem;
+
+              switch (key.type) {
+                using enum SensorKeyType;
+                case f:
+                  return measurement_sensor[elem1].f_grid_ptr() ==
+                         measurement_sensor[elem2].f_grid_ptr();
+                case za:
+                case aa:
+                case alt:
+                case lat:
+                case lon:
+                  return measurement_sensor[elem1].poslos_grid_ptr() ==
+                         measurement_sensor[elem2].poslos_grid_ptr();
+              }
+
+              std::unreachable();
+            },
+            &SensorTarget::type),
+        "Multiple targets of the same type for target: {} "
+        "- note that different sensor element targets may not share the same type, model, and relevant grids",
+        t.type)
+
     t.x_start = last_size;
     switch (t.type.model) {
       case SensorJacobianModelType::None:
-        t.x_size = measurement_sensor.at(t.type.elem).flat_size(t.type.type);
+        t.x_size = measurement_sensor.at(t.type.measurement_elem).flat_size(t.type.type);
         break;
       case SensorJacobianModelType::PolynomialOffset:
         ARTS_USER_ERROR_IF(t.type.polyorder < 0,

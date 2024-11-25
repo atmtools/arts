@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 #include <obsel.h>
 #include <python_interface.h>
 
@@ -82,16 +83,84 @@ void py_sensor(py::module_& m) try {
                   const SensorPosLosVector&,
                   StokvecMatrix>())
       .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid")
-      .def_prop_ro("weight_matrix", &SensorObsel::weight_matrix, "Weights matrix")
+      .def_prop_ro(
+          "weight_matrix", &SensorObsel::weight_matrix, "Weights matrix")
       .def_prop_ro("poslos",
                    &SensorObsel::poslos_grid,
                    "Position and line of sight grid");
+
+  auto a0 =
+      py::bind_vector<Array<SensorPosLosVector>, py::rv_policy::reference_internal>(
+          m, "ArrayOfSensorPosLosVector");
 
   auto a1 =
       py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(
           m, "ArrayOfSensorObsel");
   workspace_group_interface(a1);
   vector_interface(a1);
+
+  a1.def(
+      "unique_frequency_grids",
+      [](const ArrayOfSensorObsel& x) {
+        const SensorSimulations simuls = collect_simulations(x);
+        std::vector<AscendingGrid> out;
+        out.reserve(simuls.size());
+        for (auto& k : simuls | std::views::keys) out.push_back(*k);
+        return out;
+      },
+      "List of the unique frequency grids");
+
+  a1.def(
+      "unique_poslos_grids",
+      [](const ArrayOfSensorObsel& x) {
+        const SensorSimulations simuls = collect_simulations(x);
+        std::unordered_set<std::shared_ptr<const SensorPosLosVector>> vecs;
+        for (auto& k : simuls | std::views::values) {
+          vecs.insert(k.begin(), k.end());
+        }
+
+        std::vector<SensorPosLosVector> out;
+        out.reserve(vecs.size());
+        for (auto& v : vecs) out.push_back(*v);
+        return out;
+      },
+      "List of the unique poslos grids");
+
+  a1.def(
+      "collect_frequency_grids",
+      [](ArrayOfSensorObsel& x) {
+        for (Size i = 0; i < x.size(); i++) {
+          auto& f  = x[i].f_grid();
+          auto& fp = x[i].f_grid_ptr();
+
+          for (Size j = i + 1; j < x.size(); j++) {
+            if (x[j].f_grid_ptr() == fp) continue;
+            if (std::ranges::equal(x[j].f_grid(), f)) x[j].set_f_grid_ptr(fp);
+          }
+        }
+      },
+      R"(Attempts to collect all frequency grids that overlap 1-to-1 between elements.
+
+Will leave non-unique grids alone.
+)");
+
+  a1.def(
+      "collect_poslos_grids",
+      [](ArrayOfSensorObsel& x) {
+        for (Size i = 0; i < x.size(); i++) {
+          auto& p  = x[i].poslos_grid();
+          auto& pp = x[i].poslos_grid_ptr();
+
+          for (Size j = i + 1; j < x.size(); j++) {
+            if (x[j].poslos_grid_ptr() == pp) continue;
+            if (std::ranges::equal(x[j].poslos_grid(), p)) x[j].set_poslos_grid_ptr(pp);
+          }
+        }
+      },
+      R"(Attempts to collect all poslos grids that overlap 1-to-1 between elements.
+
+Will leave non-unique grids alone.
+)");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize sensors\n", e.what()));

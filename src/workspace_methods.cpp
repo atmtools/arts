@@ -2081,14 +2081,19 @@ Order 1 means linear:   f := f0 + a + b * f0
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
-Note that sensor elements that share the same frequency grid will all
-be affected by this method.  In fact, finalizing the *jacobian_targets*
-with several elements of the frequency grids is a runtime error.
+.. note::
+
+    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
+    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
+    to all the different *SensorObsel* that they add to the *measurement_sensor*.
+    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
+    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
+    and manipulating how many unique frequency grids are available in *measurement_sensor*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets", "measurement_sensor"},
-      .gin       = {"d", "elem", "polyorder"},
+      .gin       = {"d", "sensor_elem", "polyorder"},
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
       .gin_desc =

@@ -90,10 +90,10 @@ def inversion_iterate_agenda(ws):
 
 ws.RetrievalInit()
 ws.RetrievalAddSensorFrequencyPolyFit(
-    elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+    sensor_elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
 ws.RetrievalAddSensorFrequencyPolyFit(
-    elem=1001, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+    sensor_elem=1, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
 ws.RetrievalFinalizeDiagonal()
 

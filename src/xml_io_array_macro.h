@@ -65,7 +65,7 @@ void xml_write(std::ostream &os_xml,
   os_xml << '\n';
 
   for (Size n = 0; n < at.size(); n++)
-    xml_write_to_stream(os_xml, at[n], pbofs, "");
+    xml_write_to_stream(os_xml, at[n], pbofs, std::format("{}", n));
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
