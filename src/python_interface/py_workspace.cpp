@@ -101,7 +101,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n, const std::string& t) {
             if (w.contains(n))
               throw std::domain_error(
-                  std::format("Workspace variable ", '"', n, '"', " exists."));
+                  std::format(R"(Workspace variable "{}" already exists.)", n));
 
             try {
               w.set(n, Wsv::from_named_type(t));
@@ -123,7 +123,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
             Wsv wsv = from_py(x);
 
             if (wsv.index() != w.share(n).index())
-              throw std::domain_error(std::format("Type mismatch: \"{}\" is of type \"{}\", cannot be set to \"{}\"",
+              throw std::domain_error(std::format(R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
                                                  n,
                                                  w.share(n).type_name(),
                                                  wsv.type_name()));

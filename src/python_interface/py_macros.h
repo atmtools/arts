@@ -23,12 +23,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
               -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {        \
             i = negative_clamp(i, x.size());                                   \
             if (x.size() <= static_cast<Size>(i) or i < 0)                     \
-              throw std::out_of_range(                                         \
-                  std::format("Bad index access: {}"                           \
-                                                                               \
-                              " in object of range [0, {})",                   \
-                              i,                                               \
-                              x.size()));                                      \
+              throw std::out_of_range(std::format(                             \
+                  "Bad index access: {} in object of range [0, {})",           \
+                  i,                                                           \
+                  x.size()));                                                  \
             return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(       \
                 &x[i], [](void*) {});                                          \
           },                                                                   \
@@ -41,11 +39,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           [](Type& x, Index i, decltype(x[i]) y) {                             \
             i = negative_clamp(i, x.size());                                   \
             if (x.size() <= static_cast<Size>(i) or i < 0)                     \
-              throw std::out_of_range(                                         \
-                  std::format("Bad index access: {}",                          \
-                              " in object of range [0, {})",                   \
-                              i,                                               \
-                              x.size()));                                      \
+              throw std::out_of_range(std::format(                             \
+                  "Bad index access: {} in object of range [0, {})",           \
+                  i,                                                           \
+                  x.size()));                                                  \
             x[i] = std::move(y);                                               \
           },                                                                   \
           "i"_a,                                                               \

@@ -326,7 +326,8 @@ String method_docs(const String& name) try {
     const String optval{
         has_defval ? std::format(" Defaults to ``{}``", to_defval_str(*defval))
                    : ""};
-    out += std::format(R"({0} : {1}{2}
+    out += std::format(R"(
+{0} : {1}{2}
     {2}{3} **[IN]**)",
                       varname,
                       grpname,
