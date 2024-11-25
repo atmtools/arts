@@ -1,5 +1,6 @@
 #include <rtepack.h>
 
+#include "double_imanip.h"
 #include "xml_io.h"
 #include "xml_io_array_macro.h"
 
@@ -13,7 +14,7 @@
  */
 void xml_read_from_stream(std::istream &is_xml,
                           Propmat &pm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -22,11 +23,13 @@ void xml_read_from_stream(std::istream &is_xml,
   if (pbifs)
     pbifs->readDoubleArray(pm.data.data(), 7);
   else
-    is_xml >> pm.A() >> pm.B() >> pm.C() >> pm.D() >> pm.U() >> pm.V() >>
-        pm.W();
+    is_xml >> double_imanip() >> pm.A() >> pm.B() >> pm.C() >> pm.D() >>
+        pm.U() >> pm.V() >> pm.W();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Propmat");
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Propmat:\n{}", e.what()));
 }
 
 //! Writes Propmat to XML output stream
@@ -39,7 +42,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const Propmat &pm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -59,6 +62,8 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Propmat");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Propmat:\n{}", e.what()));
 }
 
 //=== Stokvec ================================================================
@@ -71,7 +76,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           Stokvec &pm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -80,10 +85,12 @@ void xml_read_from_stream(std::istream &is_xml,
   if (pbifs)
     pbifs->readDoubleArray(pm.data.data(), 4);
   else
-    is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+    is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Stokvec");
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Stokvec:\n{}", e.what()));
 }
 
 //! Writes Stokvec to XML output stream
@@ -96,7 +103,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const Stokvec &pm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -115,6 +122,8 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Stokvec");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Stokvec:\n{}", e.what()));
 }
 
 //=== Muelmat ================================================================
@@ -127,7 +136,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           Muelmat &pm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -136,13 +145,15 @@ void xml_read_from_stream(std::istream &is_xml,
   if (pbifs)
     pbifs->readDoubleArray(pm.data.data(), 16);
   else
-    is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
-        pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >> pm.data[8] >>
-        pm.data[9] >> pm.data[10] >> pm.data[11] >> pm.data[12] >>
+    is_xml >> double_imanip() >> pm.data[0] >> pm.data[1] >> pm.data[2] >>
+        pm.data[3] >> pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
+        pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >> pm.data[12] >>
         pm.data[13] >> pm.data[14] >> pm.data[15];
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Muelmat");
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
 }
 
 //! Writes Muelmat to XML output stream
@@ -155,7 +166,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const Muelmat &pm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -183,6 +194,8 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Muelmat");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
 }
 
 //=== PropmatVector ================================================================
@@ -195,7 +208,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           PropmatVector &pmv,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -209,11 +222,14 @@ void xml_read_from_stream(std::istream &is_xml,
     if (pbifs)
       pbifs->readDoubleArray(pm.data.data(), 7);
     else
-      is_xml >> pm.A() >> pm.B() >> pm.C() >> pm.D() >> pm.U() >> pm.V() >>
-          pm.W();
+      is_xml >> double_imanip() >> pm.A() >> pm.B() >> pm.C() >> pm.D() >>
+          pm.U() >> pm.V() >> pm.W();
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/PropmatVector");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in PropmatVector:\n{}", e.what()));
 }
 
 //! Writes PropmatVector to XML output stream
@@ -226,7 +242,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const PropmatVector &pmv,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -249,6 +265,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/PropmatVector");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in PropmatVector:\n{}", e.what()));
 }
 
 //=== StokvecVector ================================================================
@@ -261,7 +280,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecVector &pmv,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -275,10 +294,13 @@ void xml_read_from_stream(std::istream &is_xml,
     if (pbifs)
       pbifs->readDoubleArray(pm.data.data(), 4);
     else
-      is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+      is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecVector");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecVector:\n{}", e.what()));
 }
 
 //! Writes StokvecVector to XML output stream
@@ -291,7 +313,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecVector &pmv,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -313,6 +335,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecVector");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecVector:\n{}", e.what()));
 }
 
 //=== MuelmatVector ================================================================
@@ -325,7 +350,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           MuelmatVector &pmv,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -339,13 +364,16 @@ void xml_read_from_stream(std::istream &is_xml,
     if (pbifs)
       pbifs->readDoubleArray(pm.data.data(), 16);
     else
-      is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
-          pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >> pm.data[8] >>
-          pm.data[9] >> pm.data[10] >> pm.data[11] >> pm.data[12] >>
-          pm.data[13] >> pm.data[14] >> pm.data[15];
+      is_xml >> double_imanip() >> pm.data[0] >> pm.data[1] >> pm.data[2] >>
+          pm.data[3] >> pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
+          pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >>
+          pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatVector");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatVector:\n{}", e.what()));
 }
 
 //! Writes MuelmatVector to XML output stream
@@ -358,7 +386,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const MuelmatVector &pmv,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -389,8 +417,10 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatVector");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatVector:\n{}", e.what()));
 }
-
 //=== PropmatMatrix ================================================================
 
 //! Reads PropmatMatrix from XML input stream
@@ -401,7 +431,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           PropmatMatrix &pmm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -417,12 +447,15 @@ void xml_read_from_stream(std::istream &is_xml,
       if (pbifs)
         pbifs->readDoubleArray(pm.data.data(), 7);
       else
-        is_xml >> pm.A() >> pm.B() >> pm.C() >> pm.D() >> pm.U() >> pm.V() >>
-            pm.W();
+        is_xml >> double_imanip() >> pm.A() >> pm.B() >> pm.C() >> pm.D() >>
+            pm.U() >> pm.V() >> pm.W();
     }
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/PropmatMatrix");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in PropmatMatrix:\n{}", e.what()));
 }
 
 //! Writes PropmatMatrix to XML output stream
@@ -435,7 +468,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const PropmatMatrix &pmm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -461,6 +494,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/PropmatMatrix");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in PropmatMatrix:\n{}", e.what()));
 }
 
 //=== StokvecMatrix ================================================================
@@ -473,7 +509,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecMatrix &pmm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -489,11 +525,14 @@ void xml_read_from_stream(std::istream &is_xml,
       if (pbifs)
         pbifs->readDoubleArray(pm.data.data(), 4);
       else
-        is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+        is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
     }
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecMatrix");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecMatrix:\n{}", e.what()));
 }
 
 //! Writes StokvecMatrix to XML output stream
@@ -506,7 +545,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecMatrix &pmm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -518,19 +557,22 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   xml_set_stream_precision(os_xml);
 
-  for (const auto &pmv : pmm) {
-    for (const auto &pm : pmv) {
-      if (pbofs)
-        *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
-      else
-        os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
-               << pm.V() << '\n';
+  if (pbofs) {
+    for (const auto &pmv : pmm) {
+      for (const auto &pm : pmv) {
+        if (pbofs) *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
+      }
     }
+  } else {
+    os_xml << std::format("{}\n", pmm);
   }
 
   close_tag.set_name("/StokvecMatrix");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecMatrix:\n{}", e.what()));
 }
 
 //=== StokvecTensor3 ================================================================
@@ -543,7 +585,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecTensor3 &pmt3,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -561,13 +603,16 @@ void xml_read_from_stream(std::istream &is_xml,
         if (pbifs)
           pbifs->readDoubleArray(pm.data.data(), 4);
         else
-          is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+          is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
       }
     }
   }
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor3");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor3:\n{}", e.what()));
 }
 
 //! Writes StokvecTensor3 to XML output stream
@@ -580,7 +625,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecTensor3 &pmt3,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -607,6 +652,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor3");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor3:\n{}", e.what()));
 }
 
 //=== StokvecTensor4 ================================================================
@@ -619,7 +667,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecTensor4 &pmt4,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -639,13 +687,16 @@ void xml_read_from_stream(std::istream &is_xml,
           if (pbifs)
             pbifs->readDoubleArray(pm.data.data(), 4);
           else
-            is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+            is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
         }
       }
     }
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor4");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor4:\n{}", e.what()));
 }
 
 //! Writes StokvecTensor4 to XML output stream
@@ -658,7 +709,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecTensor4 &pmt4,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -688,6 +739,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor4");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor4:\n{}", e.what()));
 }
 
 //=== StokvecTensor5 ================================================================
@@ -700,7 +754,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecTensor5 &pmt5,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -722,7 +776,7 @@ void xml_read_from_stream(std::istream &is_xml,
             if (pbifs)
               pbifs->readDoubleArray(pm.data.data(), 4);
             else
-              is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+              is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
           }
         }
       }
@@ -731,6 +785,9 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor5");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor5:\n{}", e.what()));
 }
 
 //! Writes StokvecTensor5 to XML output stream
@@ -743,7 +800,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecTensor5 &pmt5,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -776,6 +833,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor5");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor5:\n{}", e.what()));
 }
 
 //=== StokvecTensor6 ================================================================
@@ -788,7 +848,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           StokvecTensor6 &pmt6,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -812,7 +872,8 @@ void xml_read_from_stream(std::istream &is_xml,
               if (pbifs)
                 pbifs->readDoubleArray(pm.data.data(), 4);
               else
-                is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+                is_xml >> double_imanip() >> pm.I() >> pm.Q() >> pm.U() >>
+                    pm.V();
             }
           }
         }
@@ -822,6 +883,9 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor6");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor6:\n{}", e.what()));
 }
 
 //! Writes StokvecTensor6 to XML output stream
@@ -834,7 +898,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const StokvecTensor6 &pmt6,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -870,6 +934,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor6");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in StokvecTensor6:\n{}", e.what()));
 }
 
 //=== MuelmatMatrix ================================================================
@@ -882,7 +949,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           MuelmatMatrix &pmm,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -898,14 +965,18 @@ void xml_read_from_stream(std::istream &is_xml,
       if (pbifs)
         pbifs->readDoubleArray(pm.data.data(), 16);
       else
-        is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
-            pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
-            pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >>
-            pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
+        is_xml >> double_imanip() >> pm.data[0] >> pm.data[1] >> pm.data[2] >>
+            pm.data[3] >> pm.data[4] >> pm.data[5] >> pm.data[6] >>
+            pm.data[7] >> pm.data[8] >> pm.data[9] >> pm.data[10] >>
+            pm.data[11] >> pm.data[12] >> pm.data[13] >> pm.data[14] >>
+            pm.data[15];
     }
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatMatrix");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatMatrix:\n{}", e.what()));
 }
 
 //! Writes MuelmatMatrix to XML output stream
@@ -918,7 +989,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const MuelmatMatrix &pmm,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -952,6 +1023,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatMatrix");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatMatrix:\n{}", e.what()));
 }
 
 //=== MuelmatTensor3 ================================================================
@@ -964,7 +1038,7 @@ void xml_write_to_stream(std::ostream &os_xml,
  */
 void xml_read_from_stream(std::istream &is_xml,
                           MuelmatTensor3 &pmt3,
-                          bifstream *pbifs [[maybe_unused]]) {
+                          bifstream *pbifs [[maybe_unused]]) try {
   ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -982,15 +1056,19 @@ void xml_read_from_stream(std::istream &is_xml,
         if (pbifs)
           pbifs->readDoubleArray(pm.data.data(), 16);
         else
-          is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
-              pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
-              pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >>
-              pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
+          is_xml >> double_imanip() >> pm.data[0] >> pm.data[1] >> pm.data[2] >>
+              pm.data[3] >> pm.data[4] >> pm.data[5] >> pm.data[6] >>
+              pm.data[7] >> pm.data[8] >> pm.data[9] >> pm.data[10] >>
+              pm.data[11] >> pm.data[12] >> pm.data[13] >> pm.data[14] >>
+              pm.data[15];
       }
     }
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatTensor3");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatTensor3:\n{}", e.what()));
 }
 
 //! Writes MuelmatTensor3 to XML output stream
@@ -1003,7 +1081,7 @@ void xml_read_from_stream(std::istream &is_xml,
 void xml_write_to_stream(std::ostream &os_xml,
                          const MuelmatTensor3 &pmt3,
                          bofstream *pbofs [[maybe_unused]],
-                         const String &) {
+                         const String &) try {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -1040,6 +1118,9 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatTensor3");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in MuelmatTensor3:\n{}", e.what()));
 }
 
 // arrays

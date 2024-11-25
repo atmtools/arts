@@ -12,17 +12,18 @@
 
 #include "xml_io_base.h"
 
-#include "bifstream.h"
-#include "bofstream.h"
-#include "file.h"
-#include "double_imanip.h"
 #include <iterator>
 #include <string_view>
+
+#include "bifstream.h"
+#include "bofstream.h"
+#include "double_imanip.h"
+#include "file.h"
 
 namespace {
 static inline std::string quotation_mark_replacement{"”"};
 static inline std::string quotation_mark_original{"\""};
-} // namespace
+}  // namespace
 
 ////////////////////////////////////////////////////////////////////////////
 //   XMLTag implementation
@@ -55,7 +56,8 @@ void XMLTag::add_attribute(const String& aname, String value) {
 
   auto pos = value.find(quotation_mark_original);
   while (pos not_eq std::string::npos) {
-    value.replace(pos, quotation_mark_original.length(), quotation_mark_replacement);
+    value.replace(
+        pos, quotation_mark_original.length(), quotation_mark_replacement);
     pos = value.find(quotation_mark_original);
   }
 
@@ -105,9 +107,10 @@ void XMLTag::check_attribute(const String& aname, const String& value) {
   }
 }
 
-
 bool XMLTag::has_attribute(const String& aname) const {
-  return std::any_of(attribs.cbegin(), attribs.cend(), [&](auto& attr){return attr.name == aname;});
+  return std::any_of(attribs.cbegin(), attribs.cend(), [&](auto& attr) {
+    return attr.name == aname;
+  });
 }
 
 /*! Returns value of attribute as String
@@ -128,7 +131,7 @@ void XMLTag::get_attribute_value(const String& aname, String& value) {
   while (it != attribs.end()) {
     if (it->name == aname) {
       value = it->value;
-      it = attribs.end();
+      it    = attribs.end();
     } else {
       it++;
     }
@@ -136,7 +139,8 @@ void XMLTag::get_attribute_value(const String& aname, String& value) {
 
   auto pos = value.find(quotation_mark_replacement);
   while (pos not_eq std::string::npos) {
-    value.replace(pos, quotation_mark_replacement.length(), quotation_mark_original);
+    value.replace(
+        pos, quotation_mark_replacement.length(), quotation_mark_original);
     pos = value.find(quotation_mark_replacement);
   }
 }
@@ -166,13 +170,13 @@ void XMLTag::get_attribute_value(const String& aname, Index& value) {
 void XMLTag::get_attribute_value(const String& aname, Numeric& value) {
   String attribute_value;
   std::istringstream strstr("");
-  
+
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> double_imanip() >> value;
   if (strstr.fail()) {
     xml_parse_error("Error while parsing value of " + aname + " from <" + name +
-    ">");
+                    ">");
   }
 }
 
@@ -195,13 +199,18 @@ void XMLTag::read_from_stream(std::istream& is) {
     is.get();
   }
 
+  if (not is.good()) xml_parse_error("Unknown error while reading from stream");
+
   is >> ch;
 
   if (ch != '<') {
     is >> token;
-    token = ch + token;
 
-    xml_parse_error("'<' expected but " + token + " found.");
+    for (auto c : token) std::print("VALUE: {}\n", c);
+
+    if (ch != '\0') token = ch + token;
+
+    xml_parse_error(std::format("'<' expected but '{}' found.", token));
   }
 
   is.get(tag, '>');
@@ -408,9 +417,7 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(std::ifstream& ifs,
-                         const String& name) {
-
+void xml_open_input_file(std::ifstream& ifs, const String& name) {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -447,8 +454,7 @@ void xml_open_input_file(std::ifstream& ifs,
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(igzstream& ifs,
-                         const String& name) {
+void xml_open_input_file(igzstream& ifs, const String& name) {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -612,8 +618,7 @@ void xml_read_footer_from_stream(std::istream& is) {
   \param os     Output stream
   \param ftype  File type
 */
-void xml_write_header_to_stream(std::ostream& os,
-                                FileType ftype) {
+void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
   XMLTag tag;
 
   os << "<?xml version=\"1.0\"?>" << '\n';
@@ -621,12 +626,8 @@ void xml_write_header_to_stream(std::ostream& os,
   tag.set_name("arts");
   switch (ftype) {
     case FileType::ascii:
-    case FileType::zascii:
-      tag.add_attribute("format", "ascii");
-      break;
-    case FileType::binary:
-      tag.add_attribute("format", "binary");
-      break;
+    case FileType::zascii: tag.add_attribute("format", "ascii"); break;
+    case FileType::binary: tag.add_attribute("format", "binary"); break;
   }
 
   tag.add_attribute("version", "1");
@@ -658,11 +659,11 @@ void parse_xml_tag_content_as_string(std::istream& is_xml, String& content) {
   char dummy;
 
   content = "";
-  dummy = (char)is_xml.peek();
+  dummy   = (char)is_xml.peek();
   while (is_xml && dummy != '<') {
     is_xml.get(dummy);
     content += dummy;
-    dummy = (char)is_xml.peek();
+    dummy    = (char)is_xml.peek();
   }
 
   if (!is_xml) throw std::runtime_error("Unexpected end of file.");

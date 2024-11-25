@@ -65,56 +65,56 @@ std::string var_string(const Args&... args) {
   }
 }
 
+// These three overloads exist to allow for zero arguments to be passed to std::format
 template <typename... Args>
 std::string artsformat(std::format_string<Args...> fmt, Args&&... args)
   requires(sizeof...(Args) > 0)
 {
   return std::format(fmt, std::forward<Args>(args)...);
 }
-
 std::string artsformat(std::format_string<> fmt);
-
 std::string artsformat();
 
 #if __cpp_lib_source_location >= 201907L
 #include <source_location>
 
-#define CURRENT_SOURCE_LOCATION                        \
-  std::format(                                         \
-      "Filename:      {}\n"                            \
-      "Function Name: {}\n"                            \
-      "Line Number:   {}\n"                            \
-      "Column Number: {}\n",                           \
-      std::source_location::current().file_name(),     \
-      std::source_location::current().function_name(), \
-      std::source_location::current().line(),          \
+#define CURRENT_SOURCE_LOCATION                                          \
+  std::format(                                                           \
+      "Filename:      {}\n"                                              \
+      "Function Name: {}\n"                                              \
+      "Line Number:   {}\n"                                              \
+      "Column Number: {}\n",                                             \
+      std::string_view(std::source_location::current().file_name()),     \
+      std::string_view(std::source_location::current().function_name()), \
+      std::source_location::current().line(),                            \
       std::source_location::current().column())
 
 #else
 
 #define CURRENT_SOURCE_LOCATION \
-  var_string("File:Line:     ", __FILE__, ":", __LINE__)
+  var_string(std::string_view("File:Line:     " __FILE__ ":"), __LINE__)
 
 #endif
 
 #if __cpp_lib_source_location >= 201907L
 #define CURRENT_SOURCE_FUNCTION \
-  var_string(std::source_location::current().function_name())
+  var_string(std::string_view(std::source_location::current().function_name()))
 #else
-#define CURRENT_SOURCE_FUNCTION var_string(__FILE__, ":", __LINE__)
+#define CURRENT_SOURCE_FUNCTION \
+  var_string(std::string_view(__FILE__ ":"), __LINE__)
 #endif
 
-#define ARTS_METHOD_ERROR_CATCH                                         \
-  catch (std::logic_error & e) {                                        \
-    throw std::runtime_error(var_string("Assertion error caught in:\n", \
-                                        CURRENT_SOURCE_FUNCTION,        \
-                                        '\n',                           \
-                                        '\n',                           \
-                                        e.what()));                     \
-  }                                                                     \
-  catch (std::exception & e) {                                          \
-    throw std::runtime_error(                                           \
-        var_string(CURRENT_SOURCE_FUNCTION, '\n', e.what()));           \
+#define ARTS_METHOD_ERROR_CATCH                                           \
+  catch (std::logic_error & e) {                                          \
+    throw std::runtime_error(var_string("Assertion error caught in:\n"sv, \
+                                        CURRENT_SOURCE_FUNCTION,          \
+                                        '\n',                             \
+                                        '\n',                             \
+                                        std::string_view(e.what())));     \
+  }                                                                       \
+  catch (std::exception & e) {                                            \
+    throw std::runtime_error(var_string(                                  \
+        CURRENT_SOURCE_FUNCTION, '\n', std::string_view(e.what())));      \
   }
 
 #ifndef NDEBUG
@@ -123,7 +123,9 @@ std::string artsformat();
 #ifdef ARTS_ASSERT_USE_C
 
 #define ARTS_ASSERT(condition, ...) \
-  { assert(condition); }
+  {                                 \
+    assert(condition);              \
+  }
 
 #else
 
@@ -137,7 +139,7 @@ std::string artsformat();
                       "\nPlease contact ARTS developers so we can fix " \
                       "our error(s) via:\n\t"                           \
                       "github.com/atmtools/arts\n{}",                   \
-                      #condition,                                       \
+                      std::string_view(#condition),                     \
                       CURRENT_SOURCE_LOCATION,                          \
                       artsformat(__VA_OPT__(__VA_ARGS__))));            \
     }                                                                   \
@@ -149,7 +151,8 @@ std::string artsformat();
 
 /*! Condition should be true to pass internal check, lets hope it is! */
 #define ARTS_ASSERT(condition, ...) \
-  {}
+  {                                 \
+  }
 
 #endif /* NDEBUG */
 
@@ -190,7 +193,7 @@ std::string artsformat();
             "Please follow these instructions to correct the error:\n" \
             "\n"                                                       \
             "{}\n",                                                    \
-            #condition,                                                \
+            std::string_view(#condition),                              \
             CURRENT_SOURCE_LOCATION,                                   \
             std::format(__VA_OPT__(__VA_ARGS__))));                    \
     }                                                                  \
