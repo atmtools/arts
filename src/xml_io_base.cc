@@ -206,8 +206,6 @@ void XMLTag::read_from_stream(std::istream& is) {
   if (ch != '<') {
     is >> token;
 
-    for (auto c : token) std::print("VALUE: {}\n", c);
-
     if (ch != '\0') token = ch + token;
 
     xml_parse_error(std::format("'<' expected but '{}' found.", token));
