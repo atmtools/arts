@@ -290,7 +290,7 @@ void access_str(std::string& out, first ind [[maybe_unused]], rest... inds) {
   if constexpr (std::same_as<Joker, std::remove_cvref_t<first>>) {
     out += "joker";
   } else {
-    out += var_string(ind);
+    out += std::format("{}", ind);
   }
 
   if constexpr (sizeof...(inds) > 0) {
@@ -1379,21 +1379,19 @@ template <typename T, Index N, bool constant, bool strided>
 std::string describe(const matpack_view<T, N, constant, strided>& m) {
   using namespace matpack;
   if constexpr (constant and strided)
-    return var_string("constant and strided matpack_view of rank ",
+    return std::format("constant and strided matpack_view of rank {} of shape {}",
                       N,
-                      " of shape ",
                       m.shape());
   else if constexpr (constant)
-    return var_string("constant and exhaustive matpack_view of rank ",
+    return std::format("constant and exhaustive matpack_view of rank {} of shape {}",
                       N,
-                      " of shape ",
                       m.shape());
   else if constexpr (strided)
-    return var_string(
-        "strided matpack_view of rank ", N, " of shape ", m.shape());
+    return std::format(
+        "strided matpack_view of rank {} of shape {}", N, m.shape());
   else
-    return var_string(
-        "exhaustive matpack_view of rank ", N, " of shape ", m.shape());
+    return std::format(
+        "exhaustive matpack_view of rank {} of shape {}", N, m.shape());
 }
 }  // namespace matpack
 

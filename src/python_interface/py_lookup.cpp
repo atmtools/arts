@@ -36,6 +36,6 @@ void py_lookup(py::module_& m) try {
   workspace_group_interface(alts);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize lookup\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize lookup\n{}", e.what()));
 }
 }  // namespace Python

@@ -199,10 +199,10 @@ struct PythonWorkspaceGroupInfo {constexpr static const char* desc = "Unknown";}
 
   for (auto& [group, wsg] : wsgs) {
     const auto info =
-        unwrap_stars(var_string(wsg.desc,
-                                '\n',
-                                Python::group_generics_inout(group),
-                                Python::group_workspace_types(group)));
+        unwrap_stars(std::format("{}\n{}{}",
+                                 wsg.desc,
+                                 Python::group_generics_inout(group),
+                                 Python::group_workspace_types(group)));
 
     os << R"(
 template <>

@@ -13,58 +13,6 @@
 #include <format>
 #include <version>
 
-/*! Take all arguments and turn to string by their operator<<() */
-template <typename... Args>
-std::string var_string(const Args&... args) {
-  constexpr auto N = sizeof...(Args);
-  if constexpr (N not_eq 0) {
-    if constexpr (N == 1)
-      return std::format("{}", args...);
-    else if constexpr (N == 2)
-      return std::format("{}{}", args...);
-    else if constexpr (N == 3)
-      return std::format("{}{}{}", args...);
-    else if constexpr (N == 4)
-      return std::format("{}{}{}{}", args...);
-    else if constexpr (N == 5)
-      return std::format("{}{}{}{}{}", args...);
-    else if constexpr (N == 6)
-      return std::format("{}{}{}{}{}{}", args...);
-    else if constexpr (N == 7)
-      return std::format("{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 8)
-      return std::format("{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 9)
-      return std::format("{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 10)
-      return std::format("{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 11)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 12)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 13)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 14)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 15)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 16)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 17)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 18)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 19)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else if constexpr (N == 20)
-      return std::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", args...);
-    else
-      return (std::format("{}", args) + ...);
-  } else {
-    return "";
-  }
-}
-
 // These three overloads exist to allow for zero arguments to be passed to std::format
 template <typename... Args>
 std::string artsformat(std::format_string<Args...> fmt, Args&&... args)
@@ -92,29 +40,27 @@ std::string artsformat();
 #else
 
 #define CURRENT_SOURCE_LOCATION \
-  var_string(std::string_view("File:Line:     " __FILE__ ":"), __LINE__)
+  std::format("File:Line:     " __FILE__ ":{}", __LINE__)
 
 #endif
 
 #if __cpp_lib_source_location >= 201907L
 #define CURRENT_SOURCE_FUNCTION \
-  var_string(std::string_view(std::source_location::current().function_name()))
+  std::string(std::source_location::current().function_name())
 #else
-#define CURRENT_SOURCE_FUNCTION \
-  var_string(std::string_view(__FILE__ ":"), __LINE__)
+#define CURRENT_SOURCE_FUNCTION std::format(__FILE__ ":{}", __LINE__)
 #endif
 
-#define ARTS_METHOD_ERROR_CATCH                                           \
-  catch (std::logic_error & e) {                                          \
-    throw std::runtime_error(var_string("Assertion error caught in:\n"sv, \
-                                        CURRENT_SOURCE_FUNCTION,          \
-                                        '\n',                             \
-                                        '\n',                             \
-                                        std::string_view(e.what())));     \
-  }                                                                       \
-  catch (std::exception & e) {                                            \
-    throw std::runtime_error(var_string(                                  \
-        CURRENT_SOURCE_FUNCTION, '\n', std::string_view(e.what())));      \
+#define ARTS_METHOD_ERROR_CATCH                                                \
+  catch (std::logic_error & e) {                                               \
+    throw std::runtime_error(                                                  \
+        std::format("Assertion error caught in:\n{}\n\n{}",                    \
+                    CURRENT_SOURCE_FUNCTION,                                   \
+                    std::string_view(e.what())));                              \
+  }                                                                            \
+  catch (std::exception & e) {                                                 \
+    throw std::runtime_error(std::format(                                      \
+        "{}\n{}", CURRENT_SOURCE_FUNCTION, '\n', std::string_view(e.what()))); \
   }
 
 #ifndef NDEBUG

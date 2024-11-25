@@ -189,6 +189,6 @@ is_lgpl: {}
       "A set of global data that we might need from ARTS inside pyarts";
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize global\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
 }
 }  // namespace Python

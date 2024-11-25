@@ -133,7 +133,7 @@ void test_9a() try {
           flux_up,
           false);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-9a:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-9a:\n{}", e.what()));
 }
 
 void test_9b() try {
@@ -281,7 +281,7 @@ void test_9b() try {
           flux_up,
           false);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-9b:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-9b:\n{}", e.what()));
 }
 
 int main() try {

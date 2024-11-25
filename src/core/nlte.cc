@@ -18,7 +18,7 @@ std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib) {
   for (auto& a : vib) {
     if (any) os << ',' << ' ';
     any = true;
-    os << '"' << var_string(a.first) << '"' << ": " << a.second;
+    os << std::format(R"("{}": {})", a.first, a.second);
   }
   return os << '}';
 }

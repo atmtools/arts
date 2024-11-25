@@ -124,7 +124,7 @@ void enum_options(const std::string& fname) {
   }
   cc << R"-x-(} catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize automatic options\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize automatic options\n{}", std::string_view(e.what())));
 }
 }  // namespace Python
 )-x-";

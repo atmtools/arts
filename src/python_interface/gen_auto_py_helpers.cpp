@@ -28,24 +28,24 @@ String as_pyarts(const String& x) try {
   };
 
   if (found_in_options(x) or found_in(wsgs))
-    return var_string(":class:`~pyarts.arts.", x, '`');
+    return std::format(":class:`~pyarts.arts.{}`", x);
   if (found_in(wsms))
-    return var_string(":func:`~pyarts.workspace.Workspace.", x, '`');
+    return std::format(":func:`~pyarts.workspace.Workspace.{}`", x);
   if (found_in(wsvs))
-    return var_string(":attr:`~pyarts.workspace.Workspace.", x, '`');
+    return std::format(":attr:`~pyarts.workspace.Workspace.{}`", x);
 
-  throw std::invalid_argument(var_string(
-      '"',
-      x,
-      '"',
-      " is not a valid group, method, or workspace variable.\n"
-      "If it is a GIN or GOUT, consider representing it as \"``",
-      x,
-      "``\" instead?\nIf it is an old or deleted method or "
-      "variable or group, please remove it from the documentation!\n"));
+  throw std::invalid_argument(
+      std::format(R"("{0}"  is not a valid group, method, or workspace variable.
+
+If it is a GIN or GOUT, consider representing it as ``{0}`` instead?
+If it is an old or deleted method or variable or group, please remove it from the documentation! 
+  )",
+                  x));
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Could not convert ", '"', x, '"', " to pyarts: ", e.what()));
+      std::format("Could not convert \"{}\" to pyarts:\n{}",
+                  x,
+                  std::string_view(e.what())));
 }
 
 uint32_t hlist_num_cols(const std::vector<String>& v1,
@@ -107,7 +107,8 @@ String unwrap_stars(String x) try {
 
   return x;
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Could not unwrap stars: ", e.what()));
+  throw std::runtime_error(
+      std::format("Could not unwrap stars: {}", std::string_view(e.what())));
 }
 
 String get_agenda_io(const String& x) try {
@@ -152,23 +153,21 @@ Parameters
   constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
       "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
   for (auto& var : writer) {
-    out += var_string(var.name,
-                      " : ~pyarts.arts.",
-                      var.group,
-                      '\n',
-                      "    ",
-                      unwrap_stars(short_doc(var.name)),
-                      " See :attr:`~pyarts.workspace.Workspace.",
-                      var.name,
-                      "` **",
-                      inout[var.in][var.out],
-                      "**\n");
+    out += std::format(R"({0} : ~pyarts.arts.{1}
+    {2} See :attr: `~pyarts.workspace.Workspace.{0}` **{3}**
+)",
+                       var.name,
+                       var.group,
+                       unwrap_stars(short_doc(var.name)),
+                       inout[var.in][var.out]);
   }
 
   return writer.size() ? out + "\n\n" : "";
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Could not get agenda IO for ", '"', x, '"', ":\n", e.what()));
+      std::format("Could not get agenda IO for \"{}\":\n{}",
+                  x,
+                  std::string_view(e.what())));
 }
 
 String until_first_newline(const String& x) {
@@ -188,18 +187,17 @@ String short_doc(const String& x) try {
   if (found_in(wsms)) return until_first_newline(wsms.at(x).desc);
   if (found_in(wsvs)) return until_first_newline(wsvs.at(x).desc);
 
-  throw std::invalid_argument(var_string(
-      '"',
-      x,
-      '"',
-      " is not a valid group, method, or workspace variable.\n"
-      "If it is a GIN or GOUT, consider representing it as \"``",
-      x,
-      "``\" instead?\nIf it is an old or deleted method or "
-      "variable or group, please remove it from the documentation!\n"));
+  throw std::invalid_argument(
+      std::format(R"("{0}" is not a valid group, method, or workspace variable.
+If it If it is a GIN or GOUT, consider representing it as ``{0}`` instead?",
+If it is an old or deleted method or variable or group, please remove it from the documentation!
+)",
+                  x));
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Could not get short doc for ", '"', x, '"', ":\n", e.what()));
+      std::format("Could not get short doc for \"{}\":\n{}",
+                  x,
+                  std::string_view(e.what())));
 }
 
 void remove_trailing(String& x, char n) {
@@ -207,21 +205,21 @@ void remove_trailing(String& x, char n) {
 }
 
 String compose_generic_groups(const String& grps) {
-  return var_string("~pyarts.arts.", grps);
+  return std::format("~pyarts.arts.{}", grps);
 }
 
 String to_defval_str(const Wsv& wsv) try {
   const auto& group = wsv.type_name();
 
   std::string out =
-      std::visit([](auto& a) { return var_string(*a); }, wsv.value());
+      std::visit([](auto& a) { return std::format("{}", *a); }, wsv.value());
 
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();
 
   if (group == "String" and
       (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
-    return var_string('"', out, '"');
+    return std::format("\"{}\"", out);
   }
 
   if (out.size() == 0) {
@@ -232,7 +230,7 @@ String to_defval_str(const Wsv& wsv) try {
 
     if (group == "Numeric" or group == "Index") return "0";
 
-    return var_string("pyarts.arts.", group, "()");
+    return std::format("pyarts.arts.{}()", group);
   }
 
   return out;
@@ -240,7 +238,7 @@ String to_defval_str(const Wsv& wsv) try {
   throw std::runtime_error("Cannot convert to defval string");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in to_defval_str: ", e.what(), '\n'));
+      std::format("Error in to_defval_str: {}\n", std::string_view(e.what())));
 }
 
 String method_docs(const String& name) try {
@@ -283,19 +281,13 @@ String method_docs(const String& name) try {
     const String io      = is_input(varname) ? "INOUT" : "OUT";
     const auto& wsv      = wsvs.at(varname);
     const auto& grpname  = wsv.type;
-    out                 += var_string('\n',
-                      varname,
-                      " : ~pyarts.arts.",
-                      grpname,
-                      ", optional\n    ",
-                      unwrap_stars(short_doc(varname)),
-                      " See :attr:`~pyarts.workspace.Workspace.",
-                      varname,
-                      "`, defaults to ``self.",
-                      varname,
-                      "`` **[",
-                      io,
-                      "]**");
+    out                 += std::format(R"(
+{0} : ~pyarts.arts.{1}, optional
+    {2} See :attr:`~pyarts.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[{3}]**)",
+                       varname,
+                       grpname,
+                       unwrap_stars(short_doc(varname)),
+                       io);
   }
 
   for (std::size_t i = 0; i < method.gout.size(); i++) {
@@ -303,13 +295,11 @@ String method_docs(const String& name) try {
     const String io      = is_ginput(varname) ? "INOUT" : "OUT";
     const auto& grpname  = compose_generic_groups(method.gout_type[i]);
     out                 += std::format(R"(
-{} : {}
-    {}  Defaults to create and/or use ``self.{}`` : :class:`{}`. **[{}]**)",
+{0} : {1}
+    {2}  Defaults to create and/or use ``self.{0}`` : :class:`{1}`. **[{3}]**)",
                        varname,
                        grpname,
                        unwrap_stars(until_first_newline(method.gout_desc[i])),
-                       varname,
-                       grpname,
                        io);
   }
 
@@ -318,17 +308,12 @@ String method_docs(const String& name) try {
 
     const auto& wsv      = wsvs.at(varname);
     const auto& grpname  = wsv.type;
-    out                 += var_string('\n',
-                      varname,
-                      " : ~pyarts.arts.",
-                      grpname,
-                      ", optional\n    ",
-                      unwrap_stars(short_doc(varname)),
-                      " See :attr:`~pyarts.workspace.Workspace.",
-                      varname,
-                      "`, defaults to ``self.",
-                      varname,
-                      "`` **[IN]**");
+    out                 += std::format(R"(
+{0} : ~pyarts.arts.{1}, optional
+    {2} See :attr:`~pyarts.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[IN]**)",
+                       varname,
+                       grpname,
+                       unwrap_stars(short_doc(varname)));
   }
 
   for (std::size_t i = 0; i < method.gin.size(); i++) {
@@ -339,17 +324,15 @@ String method_docs(const String& name) try {
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval), "``")
+        has_defval ? std::format(" Defaults to ``{}``", to_defval_str(*defval))
                    : ""};
-    out += var_string('\n',
+    out += std::format(R"({0} : {1}{2}
+    {2}{3} **[IN]**)",
                       varname,
-                      " : ",
                       grpname,
                       opt,
-                      "\n    ",
                       unwrap_stars(until_first_newline(method.gin_desc[i])),
-                      optval,
-                      " **[IN]**");
+                      optval);
   }
 
   fix();
@@ -358,10 +341,10 @@ String method_docs(const String& name) try {
 
   return out;
 } catch (std::out_of_range& e) {
-  throw std::runtime_error(var_string("Cannot find: ", '"', name, '"'));
+  throw std::runtime_error(std::format("Cannot find: \"{}\"", name));
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in method_docs(", name, "): ", e.what()));
+      std::format("Error in method_docs({}): {}", name, std::string_view(e.what())));
 }
 
 String variable_used_by(const String& name) {
@@ -423,38 +406,47 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\n.. rubric:: Input to workspace methods\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[0]),
-                        "\n");
+      val += std::format(R"(
+
+.. rubric:: Input to workspace methods
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[0]));
       for (auto& m : io[0]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
     if (io[1].size()) {
-      val += var_string("\n\n.. rubric:: Modified by workspace methods\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[1]),
-                        "\n");
+      val += std::format(R"(
+
+.. rubric:: Modified by workspace methods
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[1]));
       for (auto& m : io[1]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
     if (io[2].size()) {
-      val += var_string("\n\n.. rubric:: Output from workspace methods\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[2]),
-                        "\n");
+      val += std::format(R"(
+
+.. rubric:: Output from workspace methods
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[2]));
       for (auto& m : io[2]) {
         val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
     val += "\n";
@@ -476,51 +468,61 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\n.. rubric:: Input to workspace agendas\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[0]),
-                        "\n");
+      val += std::format(R"(
+.. rubric:: Input to workspace agendas
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[0]));
       for (auto& m : io[0]) {
         val +=
-            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
     if (io[1].size()) {
-      val += var_string("\n\n.. rubric:: Modified by workspace agendas\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[1]),
-                        "\n");
+      val += std::format(R"(
+
+.. rubric:: Modified by workspace agendas
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[1]));
       for (auto& m : io[1]) {
         val +=
-            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
     if (io[2].size()) {
-      val += var_string("\n\n.. rubric:: Output from workspace agendas\n\n",
-                        "\n\n.. hlist::",
-                        "\n    :columns: ",
-                        hlist_num_cols(io[2]),
-                        "\n");
+      val += std::format(R"(
+.. rubric:: Output from workspace agendas
+
+.. hlist::
+    :columns: {0}
+)",
+                        hlist_num_cols(io[2]));
       for (auto& m : io[2]) {
         val +=
-            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
     val += "\n";
   }
 
   if (usedocs.wsvs.size()) {
-    val += var_string("\n\n.. rubric:: Related workspace variables\n",
-                      "\n\n.. hlist::",
-                      "\n    :columns: ",
-                      hlist_num_cols(usedocs.wsvs),
-                      "\n");
+    val += std::format(R"(
+
+.. rubric:: Related workspace variables
+
+.. hlist::
+    :columns: {0}
+)",
+                      hlist_num_cols(usedocs.wsvs));
     for (auto& m : usedocs.wsvs) {
-      val += var_string("\n    *  :attr:`~pyarts.workspace.Workspace.", m, '`');
+      val += std::format("\n    *  :attr:`~pyarts.workspace.Workspace.{}`", m);
     }
     val += "\n";
   }

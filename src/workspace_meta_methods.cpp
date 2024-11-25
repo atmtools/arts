@@ -414,8 +414,8 @@ Equivalent (mostly) Python code:
 
   return wsm;
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Error creating meta-function ", '"', name, '"', ":\n\n", e.what()));
+  throw std::runtime_error(std::format(
+      "Error creating meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
 }
 
 std::string WorkspaceMethodInternalMetaRecord::call(
@@ -482,10 +482,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   return code.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error creating call for meta-function ",
-                                      '"',
-                                      name,
-                                      '"',
-                                      ":\n\n",
-                                      e.what()));
+  throw std::runtime_error(std::format("Error creating call for meta-function \"{}\":\n\n{}",
+                                       name,
+                                       std::string_view(e.what())));
 }

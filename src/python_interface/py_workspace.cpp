@@ -101,7 +101,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
           [](Workspace& w, const std::string& n, const std::string& t) {
             if (w.contains(n))
               throw std::domain_error(
-                  var_string("Workspace variable ", '"', n, '"', " exists."));
+                  std::format("Workspace variable ", '"', n, '"', " exists."));
 
             try {
               w.set(n, Wsv::from_named_type(t));
@@ -117,21 +117,16 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
             if (not w.contains(n))
-              throw std::domain_error(var_string(
-                  "Workspace variable ", '"', n, '"', " does not exist."));
+              throw std::domain_error(std::format(
+                  "Workspace variable \"{}\" does not exist", n));
 
             Wsv wsv = from_py(x);
 
             if (wsv.index() != w.share(n).index())
-              throw std::domain_error(var_string("Type mismatch: ",
-                                                 '"',
+              throw std::domain_error(std::format("Type mismatch: \"{}\" is of type \"{}\", cannot be set to \"{}\"",
                                                  n,
-                                                 '"',
-                                                 " is of type \"",
                                                  w.share(n).type_name(),
-                                                 "\", cannot be set to \"",
-                                                 wsv.type_name(),
-                                                 '"'));
+                                                 wsv.type_name()));
 
             w.overwrite(n, wsv);
 
@@ -185,6 +180,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
   py_auto_wsm(ws);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize workspace\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize workspace\n{}", e.what()));
 }
 }  // namespace Python

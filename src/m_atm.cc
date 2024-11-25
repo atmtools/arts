@@ -71,7 +71,7 @@ void append_data(
     const Index &replace_existing,
     const Index &ignore_missing,
     const std::unordered_map<T, Index> &keys,
-    const auto &to_string = [](const auto &x) { return var_string(x); })
+    const auto &to_string = [](const auto &x) { return std::format("{}", x); })
   requires(
       std::same_as<typename std::decay_t<decltype(to_string(T{}))>, String>)
 {
@@ -82,7 +82,7 @@ void append_data(
       to<InterpolationExtrapolation>(extrapolation);
 
   for (const auto &[key, _] : keys) {
-    String filename = var_string(my_base, to_string(key), ".xml");
+    String filename = std::format("{}{}.xml", my_base, to_string(key));
 
     if (static_cast<bool>(replace_existing) or
         not atmospheric_field.contains(key)) {
@@ -125,7 +125,7 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
               replace_existing,
               1,
               keys,
-              [](const AtmKey &x) { return var_string(x); });
+              [](const AtmKey &x) { return std::format("{}", x); });
 
   using enum AtmKey;
 
@@ -282,7 +282,7 @@ void atmospheric_fieldAppendLineLevelData(
               replace_existing,
               0,
               keys,
-              [](const QuantumIdentifier &x) { return var_string(x); });
+              [](const QuantumIdentifier &x) { return std::format("{}", x); });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
@@ -788,7 +788,7 @@ lon: {:Bs,} [{} elements]
       to<InterpolationExtrapolation>(extrapolation);
 
   GriddedField3 new_field{
-      .data_name  = String{var_string(key)},
+      .data_name  = String{std::format("{}", key)},
       .data       = Tensor3(alt.size(), lat.size(), lon.size()),
       .grid_names = {String{"Altitude"},
                      String{"Latitude"},

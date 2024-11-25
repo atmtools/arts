@@ -36,5 +36,5 @@ void CallbackOperator::operator()(Workspace& ws_in) const try {
   callback(ws);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in callback operator:\n{}\n{}", *this, e.what()));
+      std::format("Error in callback operator:\n{}\n{}", *this, e.what()));
 }

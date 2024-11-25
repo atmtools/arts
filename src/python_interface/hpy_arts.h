@@ -186,10 +186,10 @@ void str_interface(py::class_<T>& c) {
     } else {
       if (not fmt.empty()) {
         throw std::format_error(
-            var_string("Cannot support options: ", '"', fmt, '"'));
+            std::format("Cannot support options: \"{}\"", fmt));
       }
 
-      return var_string(x);
+      return std::format("{}", x);
     }
   });
 
@@ -197,7 +197,7 @@ void str_interface(py::class_<T>& c) {
     if constexpr (std::formattable<T, char>) {
       return std::format("{:qNB,}", x);
     } else {
-      return var_string(x);
+      return std::format("{}", x);
     }
   });
 
@@ -205,7 +205,7 @@ void str_interface(py::class_<T>& c) {
     if constexpr (std::formattable<T, char>) {
       return std::format("{:sqNB,}", x);
     } else {
-      return var_string(x);
+      return std::format("{}", x);
     }
   });
 }

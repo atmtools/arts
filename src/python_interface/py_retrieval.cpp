@@ -22,6 +22,6 @@ void py_retrieval(py::module_& m) try {
   workspace_group_interface(jtt);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize retrieval\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize retrieval\n{}", e.what()));
 }
 }  // namespace Python

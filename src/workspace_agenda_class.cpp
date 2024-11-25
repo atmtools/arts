@@ -86,12 +86,10 @@ void Agenda::finalize(bool fix) try {
 
   for (const std::string& i : must_in) {
     if (std::ranges::binary_search(outs_first, i)) {
-      throw std::runtime_error(
-          var_string("Agenda \"",
-                     name,
-                     "\" first uses \"",
-                     i,
-                     "\" as an output but it is agenda input"));
+      throw std::runtime_error(std::format(
+          R"(Agenda "{}" first uses "{}" as an input but it is an output)",
+          name,
+          i));
     }
 
     if (not std::ranges::binary_search(ins_first, i)) {
@@ -101,14 +99,14 @@ void Agenda::finalize(bool fix) try {
                              std::unordered_map<std::string, std::string>{});
       } else {
         throw std::runtime_error(
-            var_string("Agenda \"", name, "\" does not use \"", i, '"'));
+            std::format(R"(Agenda "{}" does not use "{}")", name, i));
       }
     }
   }
 
   for (const std::string& o : must_out) {
-    if (std::ranges::binary_search(ins_first, o)
-        and not std::ranges::binary_search(in_then_out, o)) {
+    if (std::ranges::binary_search(ins_first, o) and
+        not std::ranges::binary_search(in_then_out, o)) {
       throw std::runtime_error(std::format(
           R"(Agenda "{}" uses "{}" only as an input but it is Agenda output
 
@@ -130,7 +128,7 @@ Agenda inoutput: {:B,}
                              std::unordered_map<std::string, std::string>{});
       } else {
         throw std::runtime_error(
-            var_string("Agenda \"", name, "\" does not set \"", o, '"'));
+            std::format(R"(Agenda "{}" does not set "{}")", name, o));
       }
     }
   }
@@ -148,8 +146,12 @@ Agenda inoutput: {:B,}
 
   checked = true;
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      var_string("Error finalizing agenda \"", name, '"', '\n', e.what()));
+  throw std::runtime_error(std::format(R"(Error finalizing agenda "{}"
+
+{}
+)",
+                                       name,
+                                       std::string_view(e.what())));
 }
 
 void agenda_add_inner_logic(Workspace& out,
@@ -230,8 +232,12 @@ void Agenda::execute(Workspace& ws) const try {
     method(ws);
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      var_string("Error executing agenda ", '"', name, '"', '\n', e.what()));
+  throw std::runtime_error(std::format(R"(Error executing agenda "{}"
+
+{}
+)",
+                                       name,
+                                       std::string_view(e.what())));
 }
 
 bool Agenda::has_method(const std::string& method) const {

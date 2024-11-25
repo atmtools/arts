@@ -188,7 +188,7 @@ void agenda_checker(std::ostream& os, const std::string& name, bool array) {
   }
   os << ".get_name(); n != \"" << name
      << "\") {\n"
-        "    throw std::runtime_error(var_string(\"Mismatch with name: \", n));\n  }\n";
+        "    throw std::runtime_error(std::format(\"Mismatch with name: {}\", n));\n  }\n";
 }
 
 void workspace_setup_and_exec(std::ostream& os,
@@ -200,7 +200,7 @@ void workspace_setup_and_exec(std::ostream& os,
 
   // FIXME: This should be overwrite, no?  And then if it exists we should copy over it?
   for (auto& i : ag.i) {
-    os << "  _lws.set(" << var_string('"', i.second, '"') << ", const_cast<"
+    os << "  _lws.set(" << std::format(R"("{}")", i.second) << ", const_cast<"
        << i.first << "*>(&" << i.second << "));\n";
   }
 
@@ -214,7 +214,7 @@ void workspace_setup_and_exec(std::ostream& os,
 
   os << "\n  // Modified data must be copied here\n";
   for (auto& o : ag.o) {
-    os << "  _lws.overwrite(" << var_string('"', o.second, '"') << ", &"
+    os << "  _lws.overwrite(" << std::format(R"("{}")", o.second) << ", &"
        << o.second << ");\n";
   }
 
@@ -245,11 +245,11 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
        << "] = WorkspaceAgendaRecord{\n    .desc=R\"--(" << ag.desc << ")--\","
        << "\n    .output={";
     for (const auto& o : ag.o) {
-      os << var_string('"', o.second, '"') << ", ";
+      os << std::format(R"("{}")", o.second) << ", ";
     }
     os << "},\n    .input={";
     for (const auto& i : ag.i) {
-      os << var_string('"', i.second, '"') << ", ";
+      os << std::format(R"("{}")", i.second) << ", ";
     }
     os << "}\n  };\n\n";
   }
@@ -269,7 +269,7 @@ bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
        << ";\n";
   }
   os << R"--(
-  throw std::runtime_error(var_string("Not a predefined agenda: \"", ag, '"'));
+  throw std::runtime_error(std::format("Not a predefined agenda: \"{}\"", ag));
 }
 
 void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
@@ -279,7 +279,7 @@ void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
        << " = true; return;}\n";
   }
   os << R"--(
-  throw std::runtime_error(var_string("Not a predefined agenda: \"", ag, '"'));
+  throw std::runtime_error(std::format("Not a predefined agenda: \"{}\"", ag));
 }
 std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab) {
 )--";

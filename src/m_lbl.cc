@@ -516,7 +516,7 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
 
   for (const auto& [isot, bands] : isotopologues_data) {
     xml_write_to_file(
-        (p / var_string(isot, ".xml")).string(), bands, FileType::ascii, 0);
+        (p / std::format("{}.xml", isot)).string(), bands, FileType::ascii, 0);
   }
 }
 ARTS_METHOD_ERROR_CATCH

@@ -80,7 +80,7 @@ struct Map {
   [[nodiscard]] constexpr const T &operator[](const Key &k) const try {
     return map<Key>().at(k);
   } catch (std::out_of_range &) {
-    throw std::out_of_range(var_string("Key not found in map: \"", k, '"'));
+    throw std::out_of_range(std::format(R"(Key not found in map: "{}")", k));
   } catch (...) {
     throw;
   }

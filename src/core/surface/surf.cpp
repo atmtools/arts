@@ -16,16 +16,11 @@
 
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
-    case SurfaceKey::h:
-      return elevation;
-    case SurfaceKey::t:
-      return temperature;
-    case SurfaceKey::wind_u:
-      return wind[0];
-    case SurfaceKey::wind_v:
-      return wind[1];
-    case SurfaceKey::wind_w:
-      return wind[2];
+    case SurfaceKey::h:      return elevation;
+    case SurfaceKey::t:      return temperature;
+    case SurfaceKey::wind_u: return wind[0];
+    case SurfaceKey::wind_v: return wind[1];
+    case SurfaceKey::wind_w: return wind[2];
   }
   std::unreachable();
 }
@@ -36,26 +31,25 @@ Numeric &Surf::Point::operator[](const SurfacePropertyTag &x) {
   return prop[x];
 }
 
-Numeric Surf::Point::operator[](SurfaceKey x) const{
+Numeric Surf::Point::operator[](SurfaceKey x) const {
   switch (x) {
-    case SurfaceKey::h:
-      return elevation;
-    case SurfaceKey::t:
-      return temperature;
-    case SurfaceKey::wind_u:
-      return wind[0];
-    case SurfaceKey::wind_v:
-      return wind[1];
-    case SurfaceKey::wind_w:
-      return wind[2];
+    case SurfaceKey::h:      return elevation;
+    case SurfaceKey::t:      return temperature;
+    case SurfaceKey::wind_u: return wind[0];
+    case SurfaceKey::wind_v: return wind[1];
+    case SurfaceKey::wind_w: return wind[2];
   }
   std::unreachable();
 }
 
-Numeric Surf::Point::operator[](const SurfaceTypeTag &x) const{ return type.at(x);; }
+Numeric Surf::Point::operator[](const SurfaceTypeTag &x) const {
+  return type.at(x);
+  ;
+}
 
-Numeric Surf::Point::operator[](const SurfacePropertyTag &x) const{
-  return prop.at(x);;
+Numeric Surf::Point::operator[](const SurfacePropertyTag &x) const {
+  return prop.at(x);
+  ;
 }
 
 template <>
@@ -68,7 +62,7 @@ const Surf::Data &FieldMap::
       },
       k);
 } catch (std::out_of_range &) {
-  throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+  throw std::out_of_range(std::format(R"(Key not found in map: "{}")", k));
 } catch (...) {
   throw;
 }
@@ -402,13 +396,11 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
 
   return geodetic::from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
-  throw std::runtime_error(
-      var_string("Cannot find a normal to the surface at position ",
-                 lat,
-                 ' ',
-                 lon,
-                 "\nThe internal error reads: ",
-                 e.what()));
+  throw std::runtime_error(std::format(
+      "Cannot find a normal to the surface at position {} {}\nThe internal error reads: {}",
+      lat,
+      lon,
+      std::string_view(e.what())));
 }
 
 Point Field::at(Numeric lat, Numeric lon) const {

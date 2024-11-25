@@ -104,7 +104,7 @@ abs : Vector
             py::dict out;
 
             py::dict attrs;
-            attrs["creation_data"] = var_string(Time{});
+            attrs["creation_data"] = std::format("{}", Time{});
             attrs["version"]       = py::object(self.attr("version"));
             attrs["species"] = self.attr("species").attr("__format__")("");
 
@@ -145,8 +145,8 @@ abs : Vector
                 py::object(self.attr("fitmaxtemperatures"));
 
             for (Size i = 0; i < py::len(fitcoeffs); ++i) {
-              const String band_fgrid    = var_string("band", i, "_fgrid");
-              const String band_coeffs   = var_string("band", i, "_coeffs");
+              const String band_fgrid    = std::format("band{}_fgrid", i);
+              const String band_coeffs   = std::format("band{}_coeffs", i);
               const auto band_fgrid_key  = py::str(band_fgrid.c_str());
               const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
@@ -215,8 +215,8 @@ abs : Vector
 
             out.FitCoeffs().reserve(out.FitMinPressures().size());
             for (Index i = 0; i < out.FitMinPressures().size(); ++i) {
-              const String band_fgrid    = var_string("band", i, "_fgrid");
-              const String band_coeffs   = var_string("band", i, "_coeffs");
+              const String band_fgrid    = std::format("band{}_fgrid", i);
+              const String band_coeffs   = std::format("band{}_coeffs", i);
               const auto band_fgrid_key  = py::str(band_fgrid.c_str());
               const auto band_coeffs_key = py::str(band_coeffs.c_str());
 
@@ -301,6 +301,6 @@ abs : Vector
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize xsec fit\n{}", e.what()));
 }
 }  // namespace Python

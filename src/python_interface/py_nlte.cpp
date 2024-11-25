@@ -23,7 +23,7 @@ void py_nlte(py::module_ &m) try {
           "__getitem__",
           [](VibrationalEnergyLevels &x, const QuantumIdentifier &q) {
             if (x.data.find(q) == x.end())
-              throw py::key_error(var_string(q).c_str());
+              throw py::key_error(std::format("{}", q).c_str());
             return x[q];
           },
           py::rv_policy::reference_internal)
@@ -63,6 +63,6 @@ void py_nlte(py::module_ &m) try {
            });
 } catch (std::exception &e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize nlte\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize nlte\n{}", e.what()));
 }
 }  // namespace Python

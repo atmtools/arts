@@ -737,6 +737,6 @@ X : ~pyarts.arts.LineShapeOutput
   vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize spectroscopy\n{}", e.what()));
 }
 }  // namespace Python

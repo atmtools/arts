@@ -23,19 +23,20 @@ std::vector<std::string> wsv_names(std::ostream& os) {
     names.push_back(name);
 
     if (not wsg.contains(data.type)) {
-      os << var_string(
-          "static_assert(false, R\"--(\n\nWorkspace variable type is not a workspace group\n"
-          "This is not allowed.\n"
-          "The workspace variable is: ",
-          '"',
+      os << std::format(
+          R"WSV(static_assert(false, R"--(
+
+Workspace variable type is not a workspace group.
+
+This is not allowed.
+
+The workspace variable is:      "{}"
+The workspace variable type is: "{}"
+)--");
+
+)WSV",
           name,
-          '"',
-          "\n"
-          "The workspace variable type is: ",
-          '"',
-          data.type,
-          '"',
-          "\n\n)--\");\n\n");
+          data.type);
     }
   }
 
@@ -47,14 +48,17 @@ std::vector<std::string> wsv_names(std::ostream& os) {
 
   auto ptr = std::adjacent_find(names.begin(), names.end());
   while (names.end() not_eq ptr) {
-    os << var_string(
-        "static_assert(false, R\"--(\n\nDuplicate name in workspace variables and agendas\n"
-        "This is not allowed.\n"
-        "The duplicate name is: ",
-        '"',
-        *ptr,
-        '"',
-        "\n\n)--\");\n\n");
+    os << std::format(R"WSV(static_assert(false, R"--(
+
+Duplicate name in workspace variables and agendas.
+
+This is not allowed.
+
+The duplicate name is: "{}"
+)--");
+
+)WSV",
+        *ptr);
     ptr = std::adjacent_find(ptr + 1, names.end());
   }
 
