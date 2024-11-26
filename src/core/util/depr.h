@@ -27,7 +27,7 @@
                 << FUNCTION_NAME << " is deprecated since "                    \
                 << DATE_STRING_OR_SILLY_REASON << '\n'                         \
                 << '\n'                                                        \
-                << var_string(__VA_ARGS__) << '\n'                             \
+                << std::format(__VA_ARGS__) << '\n'                             \
                 << '\n'                                                        \
                 << "#########################################################" \
                    "#######################\n"                                 \

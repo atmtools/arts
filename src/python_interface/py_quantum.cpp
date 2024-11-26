@@ -37,19 +37,19 @@ void py_quantum(py::module_& m) try {
           "upp",
           &QuantumNumberValue::upp,
           [](QuantumNumberValue& x, Rational& y) {
-            x.set(var_string(y), true);
+            x.set(std::format("{}", y), true);
           },
           ":class:`~pyarts.arts.Rational` Upper value")
       .def_prop_rw(
           "low",
           &QuantumNumberValue::low,
           [](QuantumNumberValue& x, Rational& y) {
-            x.set(var_string(y), false);
+            x.set(std::format("{}", y), false);
           },
           ":class:`~pyarts.arts.Rational` Lower value")
       .def("__getstate__",
            [](const QuantumNumberValue& qnv) {
-             return std::tuple<std::string>{var_string(qnv)};
+             return std::tuple<std::string>{std::format("{}", qnv)};
            })
       .def("__setstate__",
            [](QuantumNumberValue* qnv, const std::tuple<std::string>& state) {
@@ -126,7 +126,7 @@ qn : ~pyarts.arts.QuantumNumberValue
       .PythonInterfaceBasicRepresentation(QuantumNumberValueList)
       .def("__getstate__",
            [](const QuantumNumberValueList& qnv) {
-             return std::tuple<std::string>{var_string(qnv)};
+             return std::tuple<std::string>{std::format("{}", qnv)};
            })
       .def("__setstate__",
            [](QuantumNumberValueList* qnv,
@@ -180,7 +180,7 @@ qn : ~pyarts.arts.QuantumNumberValue
           ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
       .def("__getstate__",
            [](const QuantumNumberLocalState& qnv) {
-             return std::tuple<std::string>{var_string(qnv)};
+             return std::tuple<std::string>{std::format("{}", qnv)};
            })
       .def("__setstate__",
            [](QuantumNumberLocalState* qnv,
@@ -228,7 +228,7 @@ symbol : str
 )")
       .def("__getstate__",
            [](const QuantumIdentifier& qnv) {
-             return std::tuple<std::string>{var_string(qnv)};
+             return std::tuple<std::string>{std::format("{}", qnv)};
            })
       .def("__setstate__",
            [](QuantumIdentifier* qnv, const std::tuple<std::string>& state) {
@@ -243,6 +243,6 @@ symbol : str
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize quantum\n{}", e.what()));
 }
 }  // namespace Python

@@ -1556,7 +1556,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     String sizes_str = "";
     for (std::size_t i = 0; i < sizes.size(); i++) {
       if (i > 0) sizes_str += " ";
-      sizes_str += var_string(sizes[i]);
+      sizes_str += std::format("{}", sizes[i]);
     }
     internal_open_tag.add_attribute("sizes", sizes_str);
 
@@ -1856,7 +1856,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
           ARTS_ASSERT(false,
                       "New key type is not yet handled by writing routine!")
 
-        open_data_tag.add_attribute("key", var_string(key_val));
+        open_data_tag.add_attribute("key", std::format("{}", key_val));
         open_data_tag.add_attribute("type", data.data_type());
         open_data_tag.add_attribute("lat_low", String{toString(data.lat_low)});
         open_data_tag.add_attribute("lat_upp", String{toString(data.lat_upp)});
@@ -1872,10 +1872,9 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
                                 Surf::FunctionalData>)
                 xml_write_to_stream(
                     os_xml,
-                    String{var_string(
-                        "Data for ",
-                        key_val,
-                        " read from file as functional must be set explicitly")},
+                    String{std::format(
+                        "Data for {} read from file as functional must be set explicitly",
+                        key_val)},
                     pbofs,
                     "Functional Data Error");
               else
@@ -2005,7 +2004,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     std::visit(
         [&](auto&& key_val) {
           xml_write_to_stream(
-              os_xml, String{var_string(key_val)}, pbofs, "Data Key");
+              os_xml, String{std::format("{}", key_val)}, pbofs, "Data Key");
           xml_write_to_stream(os_xml, surf[key_val], pbofs, "Data");
         },
         key);
@@ -2425,7 +2424,7 @@ struct meta_data {
 
   meta_data(String n) : name(std::move(n)) {}
   meta_data(String n, String v) : name(std::move(n)), value(std::move(v)) {}
-  meta_data(String n, auto v) : name(std::move(n)), value(var_string(v)) {}
+  meta_data(String n, auto v) : name(std::move(n)), value(std::format("{}", v)) {}
 };
 
 struct Empty {};

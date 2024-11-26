@@ -364,9 +364,9 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
       if (tag.type == SpeciesTagType::Cia) {
-        names.emplace_back(var_string(toString<1>(tag.Spec()),
-                                      "-CIA-",
-                                      toString<1>(tag.cia_2nd_species)));
+        names.emplace_back(std::format("{}-CIA-{}",
+                                       toString<1>(tag.Spec()),
+                                       toString<1>(tag.cia_2nd_species)));
       }
     }
   }

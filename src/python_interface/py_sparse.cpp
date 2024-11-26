@@ -32,9 +32,9 @@ void py_sparse(py::module_& m) try {
           [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
             const auto [r, c] = ind;
             if (r < 0 or r >= x.nrows())
-              throw std::out_of_range(var_string("row ", r));
+              throw std::out_of_range(std::format("row {}", r));
             if (c < 0 or c >= x.ncols())
-              throw std::out_of_range(var_string("col ", c));
+              throw std::out_of_range(std::format("col {}", c));
             return x.rw(r, c);
           },
           py::rv_policy::reference_internal)
@@ -42,9 +42,9 @@ void py_sparse(py::module_& m) try {
            [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
              const auto [r, c] = ind;
              if (r < 0 or r >= x.nrows())
-               throw std::out_of_range(var_string("row ", r));
+               throw std::out_of_range(std::format("row {}", r));
              if (c < 0 or c >= x.ncols())
-               throw std::out_of_range(var_string("col ", c));
+               throw std::out_of_range(std::format("col {}", c));
              x.rw(r, c) = y;
            })
       .def_prop_rw(
@@ -224,6 +224,6 @@ arr : numpy.ndarray
            });
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
 }
 }  // namespace Python

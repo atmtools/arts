@@ -1248,13 +1248,13 @@ void chk_interpolation_grids(const String& which_interpolation,
         "but not so much).\n",
         "Minimum of original grid:           ",
         min(old_grid),
-        islog ? var_string(" (", exp(min(old_grid)), ")") : var_string(),
+        islog ? std::format(" ({})", exp(min(old_grid))) : std::string{},
         "\nMinimum allowed value for new grid: ",
         og_min,
-        islog ? var_string(" (", exp(og_min), ")") : var_string(),
+        islog ? std::format(" ({})", exp(og_min)) : std::string{},
         "\nActual minimum of new grid:         ",
         ng_min,
-        islog ? var_string(" (", exp(ng_min), ")") : var_string())
+        islog ? std::format(" ({})", exp(ng_min)) : std::string{})
 
     ARTS_USER_ERROR_IF(
         ng_max > og_max,
@@ -1267,13 +1267,13 @@ void chk_interpolation_grids(const String& which_interpolation,
         "but not so much).\n",
         "Maximum of original grid:           ",
         max(old_grid),
-        islog ? var_string(" (", exp(max(old_grid)), ")") : var_string(),
+        islog ? std::format(" ({})", exp(max(old_grid))) : std::string{},
         "\nMaximum allowed value for new grid: ",
         og_max,
-        islog ? var_string(" (", exp(og_max), ")") : var_string(),
+        islog ? std::format(" ({})", exp(og_max)) : std::string{},
         "\nActual maximum of new grid:         ",
         ng_max,
-        islog ? var_string(" (", exp(ng_max), ")") : var_string())
+        islog ? std::format(" ({})", exp(ng_max)) : std::string{})
   }
 
   // If we get here, than everything should be fine.

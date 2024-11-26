@@ -80,14 +80,14 @@ template <WorkspaceGroup T>
 const T& select_gin(const T* const x, const char* const name) {
   return x ? *x
            : throw std::runtime_error(
-                 var_string("Unknown input: ", '"', name, '"'));
+                 std::format("Unknown input: \"{}\"", name));
 }
 
 template <WorkspaceGroup T>
 const T& select_gin(const ValueHolder<T>* const x, const char* const name) {
   return x ? static_cast<const T&>(*x)
            : throw std::runtime_error(
-                 var_string("Unknown input: ", '"', name, '"'));
+                 std::format("Unknown input: \"{}\"", name));
 }
 
 template <WorkspaceGroup T>

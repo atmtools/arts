@@ -788,8 +788,8 @@ class matpack_data {
 template <typename T, Index N>
 std::string describe(const matpack_data<T, N>& m) {
   using namespace matpack;
-  return var_string(
-      "matpack_data of rank ", N, " of shape ", m.shape());
+  return std::format(
+      "matpack_data of rank {} of shape {:B,}", N, m.shape());
 }
 }  // namespace matpack
 

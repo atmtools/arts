@@ -215,6 +215,6 @@ void py_matpack(py::module_& m) try {
   vector_interface(b1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
 }
 }  // namespace Python

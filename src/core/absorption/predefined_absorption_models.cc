@@ -158,7 +158,7 @@ bool compute_selection(
   return false;
 } catch (std::bad_variant_access& e) {
   throw std::runtime_error(
-      var_string("Data for model ", model, " is not of correct type"));
+      std::format("Data for model {} is not of correct type", model));
 } catch (std::exception&) {
   throw;
 }

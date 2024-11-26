@@ -25,32 +25,37 @@ String group_generics_inout(const String& group) try {
   String out;
 
   if (outdocs.first.size()) {
-    out += var_string("\n.. rubric:: Workspace methods that can generate ",
-                      group,
-                      "\n",
-                      "\n\n.. hlist::\n    :columns: ",
-                      hlist_num_cols(outdocs.first),
-                      "\n");
+    out += std::format(R"(
+.. rubric:: Workspace methods that can generate {}
+
+.. hlist::
+    :columns: {}
+)",
+                       group,
+                       hlist_num_cols(outdocs.first));
     for (auto& m : outdocs.first)
-      out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      out += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
   if (outdocs.second.size()) {
-    out += var_string("\n.. rubric:: Workspace methods that require ",
-                      group,
-                      "\n",
-                      "\n\n.. hlist::\n    :columns: ",
-                      hlist_num_cols(outdocs.second),
-                      "\n");
+    out += std::format(R"(
+.. rubric:: Workspace methods that require {}
+
+.. hlist::
+    :columns: {}
+)",
+                       group,
+                       hlist_num_cols(outdocs.second));
     for (auto& m : outdocs.second)
-      out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      out += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
   return out;
 } catch (const std::exception& e) {
-  return var_string("Error in group_generics_inout: ", e.what());
+  return std::format("Error in group_generics_inout: {}",
+                     std::string_view(e.what()));
 }
 
 String group_workspace_types(const String& group) try {
@@ -65,18 +70,21 @@ String group_workspace_types(const String& group) try {
 
   String out;
   if (vars.size()) {
-    out += var_string("\n.. rubric:: Workspace variables of type ",
-                      group,
-                      "\n",
-                      "\n\n.. hlist::\n    :columns: ",
-                      hlist_num_cols(vars),
-                      "\n");
+    out += std::format(R"(
+.. rubric:: Workspace variables of type {}
+
+.. hlist::
+    :columns: {}
+)",
+                       group,
+                       hlist_num_cols(vars));
     for (auto& m : vars)
-      out += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+      out += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
   }
 
   return out + "\n";
 } catch (const std::exception& e) {
-  return var_string("Error in group_workspace_types: ", e.what());
+  return std::format("Error in group_workspace_types: {}",
+                     std::string_view(e.what()));
 }
 }  // namespace Python

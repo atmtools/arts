@@ -45,6 +45,6 @@ Return
 )--");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize hitran\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize hitran\n{}", e.what()));
 }
 }  // namespace Python

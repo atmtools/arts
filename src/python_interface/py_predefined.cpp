@@ -1004,6 +1004,6 @@ void py_predefined(py::module_& m) try {
   internalSTANDARD(predef);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize predefined\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize predefined\n{}", e.what()));
 }
 }  // namespace Python

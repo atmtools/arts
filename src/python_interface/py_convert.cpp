@@ -64,6 +64,6 @@ These all should work with any array-like type
       kaycm2joule, Numeric, "CGS Energy [cm-1]", "Energy [J]", "v");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize convert\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize convert\n{}", e.what()));
 }
 }  // namespace Python

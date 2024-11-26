@@ -51,6 +51,6 @@ void py_star(py::module_& m) try {
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize star\n{}", e.what()));
 }
 }  // namespace Python

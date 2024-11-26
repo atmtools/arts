@@ -69,6 +69,6 @@ void py_tessem(py::module_& m) try {
            });
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize tessem\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize tessem\n{}", e.what()));
 }
 }  // namespace Python

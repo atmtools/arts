@@ -71,6 +71,6 @@ void py_mcantenna(py::module_& m) try {
            });
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize mcantenna\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize mcantenna\n{}", e.what()));
 }
 }  // namespace Python

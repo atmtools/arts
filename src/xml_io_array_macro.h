@@ -38,10 +38,14 @@ void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
   tag.check_name("/Array");
 } catch (std::runtime_error &e) {
   throw std::runtime_error(
-      var_string("Failed reading routine for ",
-                 WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
-                 "\nError reads:\n",
-                 e.what()));
+      std::format(R"(Failed reading routine for {}
+
+Error reads:
+
+{}
+)",
+                  WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
+                  std::string_view(e.what())));
 }
 
 template <array_of_group T>
@@ -73,10 +77,14 @@ void xml_write(std::ostream &os_xml,
   os_xml << '\n';
 } catch (std::runtime_error &e) {
   throw std::runtime_error(
-      var_string("Failed saving routine for ",
-                 WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
-                 "\nError reads:\n",
-                 e.what()));
+      std::format(R"(Failed saving routine for {}
+
+Error reads:
+
+{}
+)",
+                  WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
+                  std::string_view(e.what())));
 }
 
 //! Helper macro for when both Array<T> and T are ARTS groups

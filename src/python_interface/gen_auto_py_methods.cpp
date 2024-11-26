@@ -280,7 +280,7 @@ std::string method_resolution_any(const std::string& name,
   os << "        } catch (std::bad_variant_access&) {\n";
 
   const auto* const spaces = "                                              ";
-  os << R"(          throw std::runtime_error(var_string("Derived variadic arguments:\n",)";
+  os << R"(          throw std::runtime_error(std::format("Derived variadic arguments:\n{}",)";
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
     auto& t = wsm.gout_type[i];
@@ -459,7 +459,7 @@ std::string method_resolution_variadic(
 
     const auto* const spaces =
         "                                                    ";
-    os << "\n          else throw std::runtime_error(var_string(\"Derived variadic arguments:\\n\",";
+    os << "\n          else throw std::runtime_error(std::format(\"Derived variadic arguments:\\n{}\",";
 
     for (std::size_t i = 0; i < wsm.gout.size(); i++) {
       auto& t = wsm.gout_type[i];
@@ -559,7 +559,7 @@ std::string method_resolution_variadic(
 
     const auto* const spaces =
         "                                               ";
-    os << "\n          throw std::runtime_error(var_string(\"Derived variadic arguments:\\n\",";
+    os << "\n          throw std::runtime_error(std::format(\"Derived variadic arguments:\\n{}\",";
 
     for (std::size_t i = 0; i < wsm.gout.size(); i++) {
       auto& t = wsm.gout_type[i];
@@ -653,65 +653,78 @@ std::string method_resolution(const std::string& name,
   return os.str();
 }
 
+Size max_varlen(const WorkspaceMethodInternalRecord& wsm) {
+  using std::max;
+  Size n = 0;
+  for (auto& t : wsm.out) n = max(n, t.size());
+  for (auto& t : wsm.in) n = max(n, t.size());
+  for (auto& t : wsm.gin) n = max(n, t.size());
+  for (auto& t : wsm.gout) n = max(n, t.size());
+  return n;
+}
+
 std::string method_error(const std::string& name,
                          const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
-  os << "        throw std::runtime_error(\n          var_string(";
-  os << R"("Cannot execute method:\n\n",
-              ")";
-  os << name << '(';
+  os << std::format(R"(        throw std::runtime_error(
+          std::format(R"-WSM-(Cannot execute method:
 
-  const auto spaces = std::string(name.size() + 1, ' ');
+  {}()",
+                    name);
+
+  const auto spaces      = std::string(name.size() + 1 + 2, ' ');
+  const Size largest_var = max_varlen(wsm);
+  std::vector<std::string> arg;
 
   bool first = true;
   for (auto& t : wsm.out) {
-    if (not first) os << ",\\n" << spaces;
+    if (not first) os << ",\n" << spaces;
     first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
-       << workspace_variables().at(t).type;
-    os << R"(, defaults to self.)" << t << R"()-x-"),
-              ")";
+    os << std::format(
+        R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(std::format(
+        R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string("self.{0}"))",
+        t));
   }
 
   for (auto& t : wsm.gout) {
-    if (not first) os << ",\\n" << spaces;
+    if (not first) os << ",\n" << spaces;
     first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string("NoneType"),
-              ")";
+    os << std::format(
+        R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(
+        std::format(R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string("None"))", t));
   }
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
-    if (not first) os << ",\\n" << spaces;
+    if (not first) os << ",\n" << spaces;
     first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()"
-       << workspace_variables().at(t).type;
-    os << R"(, defaults to self.)" << t << R"()-x-"),
-              ")";
+    os << std::format(
+        R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(std::format(
+        R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string("self.{0}"))",
+        t));
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     auto& t = wsm.gin[i];
     auto& v = wsm.gin_value[i];
-    auto& g = wsm.gin_type[i];
-    if (not first) os << ",\\n" << spaces;
+    if (not first) os << ",\n" << spaces;
     first = false;
-    os << t << " : \",\n              "
-       << "_" << t << " ? type(_" << t << R"() : std::string(R"-x-()";
-    if (v) {
-      os << g << ", defaults to " << to_defval_str(*v);
-    } else {
-      os << "NoneType";
-    }
-    os << R"()-x-"),
-              ")";
+    os << std::format(
+        R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(std::format(
+        R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+        t,
+        v ? std::format("{}", to_defval_str(*v)) : "None"));
   }
 
-  os << ")\", ";
-  os << "\"\\n\\n\", e.what()));\n";
+  os << ")\n\nMethod reports the following error(s):\n{})-WSM-\", ";
+  for (auto& a : arg) {
+    os << std::format("{},\n           ", a);
+  }
+  os << "std::string_view(e.what())));\n";
   return os.str();
 }
 

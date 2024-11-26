@@ -64,6 +64,6 @@ void py_fwd(py::module_& m) try {
                    "The altitude of the top of the atmosphere [m]");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize fwd\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize fwd\n{}", e.what()));
 }
 }  // namespace Python

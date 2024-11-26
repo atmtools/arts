@@ -163,6 +163,6 @@ Will leave non-unique grids alone.
 )");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize sensors\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize sensors\n{}", e.what()));
 }
 }  // namespace Python

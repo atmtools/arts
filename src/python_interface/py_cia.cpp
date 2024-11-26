@@ -104,6 +104,6 @@ Returns
   vector_interface(acr);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
 }
 }  // namespace Python

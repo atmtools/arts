@@ -76,7 +76,7 @@ void py_surf(py::module_ &m) try {
       .def(
           "__getitem__",
           [](SurfacePoint &surf, SurfaceKey x) {
-            if (not surf.has(x)) throw py::key_error(var_string(x).c_str());
+            if (not surf.has(x)) throw py::key_error(std::format("{}", x).c_str());
             return surf[x];
           },
           py::rv_policy::reference_internal)
@@ -116,7 +116,7 @@ void py_surf(py::module_ &m) try {
   fld.def(
          "__getitem__",
          [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
-           if (not surf.has(x)) throw py::key_error(var_string(x).c_str());
+           if (not surf.has(x)) throw py::key_error(std::format("{}", x).c_str());
            return surf[x];
          },
          py::rv_policy::reference_internal)
@@ -160,6 +160,6 @@ void py_surf(py::module_ &m) try {
            });
 } catch (std::exception &e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize surf\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize surf\n{}", e.what()));
 }
 }  // namespace Python

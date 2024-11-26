@@ -134,7 +134,7 @@ Parameters
       .def(
           "species_vmr",
           [](AtmPoint &atm, SpeciesEnum s) {
-            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
             return atm[s];
           },
           "spec"_a,
@@ -148,7 +148,7 @@ Parameters
       .def(
           "isotopologue_ratio",
           [](AtmPoint &atm, SpeciesIsotope s) {
-            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
             return atm[s];
           },
           "isot"_a,
@@ -162,7 +162,7 @@ Parameters
       .def(
           "nlte_value",
           [](AtmPoint &atm, const QuantumIdentifier &s) {
-            if (not atm.has(s)) throw py::key_error(var_string(s).c_str());
+            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
             return atm[s];
           },
           "qid"_a,
@@ -467,10 +467,10 @@ Parameters
         std::unordered_map<std::string, Atm::FieldData> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = var_string(key);
+          const std::string strkey = std::format("{}",key);
           if (unique and out.contains(strkey)) {
             throw std::runtime_error(
-                var_string("Key \"", strkey, "\" is not unique."));
+                std::format("Key \"{}\" us not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -647,10 +647,10 @@ Parameters
         std::unordered_map<std::string, Numeric> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = var_string(key);
+          const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
             throw std::runtime_error(
-                var_string("Key \"", strkey, "\" is not unique."));
+                std::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -861,10 +861,10 @@ Parameters
         std::unordered_map<std::string, Vector> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = var_string(key);
+          const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
             throw std::runtime_error(
-                var_string("Key \"", strkey, "\" is not unique."));
+                std::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -887,6 +887,6 @@ Parameters
 )");
 } catch (std::exception &e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize atm\n{}", e.what()));
 }
 }  // namespace Python

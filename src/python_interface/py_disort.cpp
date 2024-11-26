@@ -54,9 +54,8 @@ void py_disort(py::module_& m) try {
               const Matrix out = f(Vector{a}, Vector{b});
               if (out.shape() != mat.shape()) {
                 throw std::runtime_error(
-                    var_string("BDRF function returned wrong shape\n",
+                    std::format("BDRF function returned wrong shape\n{:B,} vs {:B,}",
                                out.shape(),
-                               " vs ",
                                mat.shape()));
               }
               mat = out;
@@ -269,6 +268,6 @@ void py_disort(py::module_& m) try {
                          ":class:`Tensor3`");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize disort\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));
 }
 }  // namespace Python

@@ -193,14 +193,14 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
   return os.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in meta-function header(",
-                                      '"',
-                                      name,
-                                      '"',
-                                      ", ",
-                                      overload,
-                                      "):\n\n",
-                                      e.what()));
+  throw std::runtime_error(
+      std::format(R"(Error in meta-function header("{}", {}):
+
+{}
+)",
+                  name,
+                  overload,
+                  std::string_view(e.what())));
 }
 
 int WorkspaceMethodInternalRecord::count_overloads() const try {
@@ -257,8 +257,10 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
 
   return os.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Cannot create call of method ", '"', name, '"', ":\n\n", e.what()));
+  throw std::runtime_error(
+      std::format("Cannot create call of method \"{}\":\n\n{}",
+                  name,
+                  std::string_view(e.what())));
 }
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
@@ -602,15 +604,16 @@ common form of a predefined model.
 The atmospheric field parameter will have a *GriddedField3* with the input grid
 after the regridding.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field"},
-      .gin       = {"parameter", "alt", "lat", "lon", "extrapolation"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
-                    "AscendingGrid",
-                    "AscendingGrid",
-                    "AscendingGrid",
-                    "String"},
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field"},
+      .gin    = {"parameter", "alt", "lat", "lon", "extrapolation"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+           "AscendingGrid",
+           "AscendingGrid",
+           "AscendingGrid",
+           "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
@@ -631,14 +634,11 @@ after the regridding.
 The atmospheric field will have a *GriddedField3* with the input grid
 after the regridding at all positions.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field"},
-      .gin       = {"alt", "lat", "lon", "extrapolation"},
-      .gin_type  = {"AscendingGrid",
-                    "AscendingGrid",
-                    "AscendingGrid",
-                    "String"},
+      .author   = {"Richard Larsson"},
+      .out      = {"atmospheric_field"},
+      .in       = {"atmospheric_field"},
+      .gin      = {"alt", "lat", "lon", "extrapolation"},
+      .gin_type = {"AscendingGrid", "AscendingGrid", "AscendingGrid", "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
@@ -4191,7 +4191,7 @@ for more information.
   return wsm_data;
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Cannot create workspace methods:\n\n", e.what()));
+      std::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
 }
 
 const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&

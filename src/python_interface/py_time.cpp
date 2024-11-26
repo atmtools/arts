@@ -77,7 +77,7 @@ void py_time(py::module_& m) try {
           "n"_a,
           "Allows `n - self`")
       .def("__getstate__",
-           [](const Time& t) { return std::tuple<std::string>{var_string(t)}; })
+           [](const Time& t) { return std::tuple<std::string>{std::format("{}", t)}; })
       .def("__setstate__", [](Time* t, const std::tuple<std::string>& state) {
         new (t) Time{std::get<0>(state)};
       });
@@ -107,6 +107,6 @@ void py_time(py::module_& m) try {
   vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize time\n{}", e.what()));
 }
 }  // namespace Python

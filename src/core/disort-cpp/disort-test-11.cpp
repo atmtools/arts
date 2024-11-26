@@ -202,7 +202,7 @@ void test_11a_1layer() try {
           flux_up,
           true);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-11a-1layer:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-11a-1layer:\n{}", e.what()));
 }
 
 void test_11a_multilayer() try {
@@ -402,7 +402,7 @@ void test_11a_multilayer() try {
           true);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in test-11a-multilayer:\n", e.what()));
+      std::format("Error in test-11a-multilayer:\n{}", e.what()));
 }
 
 int main() try {

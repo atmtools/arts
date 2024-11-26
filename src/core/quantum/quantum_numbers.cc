@@ -614,12 +614,12 @@ bool StateMatch::operator!=(StateMatchType x) const noexcept {
 String Value::str_upp() const noexcept {
   if (QuantumNumberValueType::S == common_value_type(type))
     return String{qn.upp.s.val()};
-  return var_string(upp());
+  return std::format("{}", upp());
 }
 String Value::str_low() const noexcept {
   if (QuantumNumberValueType::S == common_value_type(type))
     return String{qn.low.s.val()};
-  return var_string(low());
+  return std::format("{}", low());
 }
 
 std::ostream& operator<<(std::ostream& os, Value x) {
@@ -942,7 +942,7 @@ void ValueList::set(Value v) {
 }
 
 void ValueList::set(Index i, std::string_view upp, std::string_view low) {
-  values[i] = Value(var_string(values[i].type, ' ', upp, ' ', low));
+  values[i] = Value(std::format("{} {} {}", values[i].type, upp, low));
 }
 
 std::ostream& operator<<(std::ostream& os, const ValueList& vl) {
@@ -1638,8 +1638,8 @@ void Value::swap_values(Value& x) {
   _x.qn    = qn;
 
   // Assign by reinterpreting the data using standard operations
-  *this = Value(var_string(_this));
-  x     = Value(var_string(_x));
+  *this = Value(std::format("{}", _this));
+  x     = Value(std::format("{}", _x));
 }
 
 GlobalState::GlobalState(std::string_view s, Index v) {
