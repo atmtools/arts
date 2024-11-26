@@ -145,6 +145,12 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
     xml_open_input_file(
         *(static_cast<ifstream*>(ifs.get())), xml_file, verbosity);
   }
+
+  // Read the file into memory first to significantly speed up
+  // the parsing (13x to 18x faster).
+  std::shared_ptr<std::stringstream> buffer(new std::stringstream());
+  *buffer << ifs->rdbuf();
+  ifs = buffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////
