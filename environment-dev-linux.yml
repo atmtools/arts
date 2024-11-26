@@ -23,6 +23,7 @@ dependencies:
         - pytest
         - python-build
         - scipy
+        - setuptools
         - sphinx
         - sphinx-favicon
         - sphinx_rtd_theme
