@@ -14,6 +14,7 @@
 #define xml_io_base_h
 
 #include <memory>
+#include <sstream>
 
 #include "arts.h"
 #include "xml_io_general_types.h"
@@ -255,6 +256,11 @@ void xml_read_from_file_base(const String& filename,
         *static_cast<ifstream*>(ifs.get()), filename, verbosity);
   }
 
+  // Read the file into memory first to significantly speed up
+  // the parsing (13x to 18x faster).
+  std::stringstream buffer;
+  buffer << ifs->rdbuf();
+
   // No need to check for error, because xml_open_input_file throws a
   // runtime_error with an appropriate error message.
 
@@ -266,15 +272,15 @@ void xml_read_from_file_base(const String& filename,
     NumericType ntype;
     EndianType etype;
 
-    xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
+    xml_read_header_from_stream(buffer, ftype, ntype, etype, verbosity);
     if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream(*ifs, type, NULL, verbosity);
+      xml_read_from_stream(buffer, type, NULL, verbosity);
     } else {
       String bfilename = filename + ".bin";
       bifstream bifs(bfilename.c_str());
-      xml_read_from_stream(*ifs, type, &bifs, verbosity);
+      xml_read_from_stream(buffer, type, &bifs, verbosity);
     }
-    xml_read_footer_from_stream(*ifs, verbosity);
+    xml_read_footer_from_stream(buffer, verbosity);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading file: " << filename << '\n' << e.what();
