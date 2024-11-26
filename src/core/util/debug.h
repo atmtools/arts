@@ -60,7 +60,7 @@ std::string artsformat();
   }                                                                            \
   catch (std::exception & e) {                                                 \
     throw std::runtime_error(std::format(                                      \
-        "{}\n{}", CURRENT_SOURCE_FUNCTION, '\n', std::string_view(e.what()))); \
+        "{}\n{}", CURRENT_SOURCE_FUNCTION, std::string_view(e.what())));       \
   }
 
 #ifndef NDEBUG
