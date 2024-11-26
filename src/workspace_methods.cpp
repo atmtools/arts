@@ -193,14 +193,14 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
   return os.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in meta-function header(",
-                                      '"',
-                                      name,
-                                      '"',
-                                      ", ",
-                                      overload,
-                                      "):\n\n",
-                                      e.what()));
+  throw std::runtime_error(
+      std::format(R"(Error in meta-function header("{}", {}):
+
+{}
+)",
+                  name,
+                  overload,
+                  std::string_view(e.what())));
 }
 
 int WorkspaceMethodInternalRecord::count_overloads() const try {
@@ -257,8 +257,10 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
 
   return os.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Cannot create call of method ", '"', name, '"', ":\n\n", e.what()));
+  throw std::runtime_error(
+      std::format("Cannot create call of method \"{}\":\n\n{}",
+                  name,
+                  std::string_view(e.what())));
 }
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
@@ -589,9 +591,63 @@ common form of a predefined model.
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{1}, Index{0}},
-      .gin_desc  = {R"--(The path to the split catalog files)--",
-                    R"--(Flag to name models that are missing)--",
-                    R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+      .gin_desc =
+          {R"--(The path to the split catalog files)--",
+           R"--(Flag to name models that are missing)--",
+           R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+  };
+
+  wsm_data["atmospheric_fieldRegrid"] = {
+      .desc =
+          R"--(Regrid the input atmospheric field parameter to a new grid.
+
+The atmospheric field parameter will have a *GriddedField3* with the input grid
+after the regridding.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field"},
+      .gin    = {"parameter", "alt", "lat", "lon", "extrapolation"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+           "AscendingGrid",
+           "AscendingGrid",
+           "AscendingGrid",
+           "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{"Nearest"}},
+      .gin_desc =
+          {"The parameter to regrid",
+           "The altitude grid",
+           "The latitude grid",
+           "The longitude grid",
+           "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
+  };
+
+  wsm_data["atmospheric_fieldRegridAll"] = {
+      .desc =
+          R"--(Regrid all parameters of the input atmospheric field to a new grid
+
+The atmospheric field will have a *GriddedField3* with the input grid
+after the regridding at all positions.
+)--",
+      .author   = {"Richard Larsson"},
+      .out      = {"atmospheric_field"},
+      .in       = {"atmospheric_field"},
+      .gin      = {"alt", "lat", "lon", "extrapolation"},
+      .gin_type = {"AscendingGrid", "AscendingGrid", "AscendingGrid", "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{"Nearest"}},
+      .gin_desc =
+          {"The altitude grid",
+           "The latitude grid",
+           "The longitude grid",
+           "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
   };
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
@@ -1897,6 +1953,32 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "ray_path_point"},
   };
 
+  wsm_data["spectral_radiance_jacobianAddSensorJacobianPerturbations"] = {
+      .desc = R"--(Adds sensor properties to the *spectral_radiance_jacobian*.
+
+This is done via perturbation based on the input delta values to the sensor
+Jacobian targets and a callback to *spectral_radiance_observer_agenda* with
+a modified *jacobian_targets*, making it safe to use this method inside
+*spectral_radiance_observer_agenda*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance_jacobian"},
+      .in =
+          {
+              "spectral_radiance_jacobian",
+              "spectral_radiance",
+              "measurement_sensor",
+              "frequency_grid",
+              "jacobian_targets",
+              "spectral_radiance_observer_position",
+              "spectral_radiance_observer_line_of_sight",
+              "atmospheric_field",
+              "surface_field",
+              "spectral_radiance_observer_agenda",
+          },
+      .pass_workspace = true,
+  };
+
   wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc   = R"--(Set the cosmic background radiation derivative to empty.
 
@@ -1943,10 +2025,11 @@ Size : (*jacobian_targets*, *frequency_grid*)
   wsm_data["spectral_radiance_jacobianApplyUnit"] = {
       .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
 
-See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
-and limitations.
-
 Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
@@ -1964,6 +2047,10 @@ See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
 and limitations.
 
 Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+
+.. warning::
+  This is a destructive method.  Any use of it means that it is undefined behavior
+  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
@@ -2056,15 +2143,76 @@ matrix to be calculated will work.
   };
 
   wsm_data["jacobian_targetsFinalize"] = {
-      .desc   = R"--(Finalize *jacobian_targets* for use in RT methods
+      .desc   = R"--(Finalize *jacobian_targets*.
+
+The finalization computes the size of the required *model_state_vector*.
+It is thus necessary if any OEM or other functionality that requires the
+building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
       .in     = {"jacobian_targets",
                  "atmospheric_field",
                  "surface_field",
-                 "absorption_bands"},
+                 "absorption_bands",
+                 "measurement_sensor"},
   };
+
+  const auto jac2ret = [&wsm_data](const std::string& name) {
+    auto v  = wsm_data[name];
+    v.desc += std::format(R"(
+This method wraps *{}* together with adding the covariance matrices,
+to the *covariance_matrix_diagonal_blocks*, which are required to perform *OEM*.
+
+The input covariance matrices must fit the size of the later computed model state
+represented by the *jacobian_targets*.  The covariance matrix inverse 
+)",
+                          name);
+    v.out.insert(v.out.begin() + 1, "covariance_matrix_diagonal_blocks");
+    v.in.insert(v.in.begin() + 1, "covariance_matrix_diagonal_blocks");
+    v.gin.insert(v.gin.end(), "matrix");
+    v.gin.insert(v.gin.end(), "inverse");
+    v.gin_type.insert(v.gin_type.end(), "BlockMatrix");
+    v.gin_type.insert(v.gin_type.end(), "BlockMatrix");
+    v.gin_value.insert(v.gin_value.end(), std::nullopt);
+    v.gin_value.insert(v.gin_value.end(), BlockMatrix{});
+    v.gin_desc.insert(v.gin_desc.end(), "The covariance diagonal block matrix");
+    v.gin_desc.insert(v.gin_desc.end(),
+                      "The inverse covariance diagonal block matrix");
+    return v;
+  };
+
+  wsm_data["jacobian_targetsAddSensorFrequencyPolyFit"] = {
+      .desc =
+          R"--(Set sensor frequency derivative to use polynomial fitting offset
+
+Order 0 means constant: f := f0 + a
+Order 1 means linear:   f := f0 + a + b * f0
+and so on.  The derivatives that are added to the *model_state_vector* are
+those with regards to a, b, etc..
+
+.. note::
+
+    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
+    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
+    to all the different *SensorObsel* that they add to the *measurement_sensor*.
+    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
+    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
+    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "measurement_sensor"},
+      .gin       = {"d", "sensor_elem", "polyorder"},
+      .gin_type  = {"Numeric", "Index", "Index"},
+      .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
+      .gin_desc =
+          {"The perturbation used in methods that cannot compute derivatives analytically",
+           "The sensor element whose frequency grid to use",
+           "The order of the polynomial fit"},
+  };
+  wsm_data["RetrievalAddSensorFrequencyPolyFit"] =
+      jac2ret("jacobian_targetsAddSensorFrequencyPolyFit");
 
   wsm_data["jacobian_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative
@@ -2078,6 +2226,8 @@ matrix to be calculated will work.
       .gin_desc =
           {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddTemperature"] =
+      jac2ret("jacobian_targetsAddTemperature");
 
   wsm_data["jacobian_targetsAddPressure"] = {
       .desc      = R"--(Set pressure derivative
@@ -2091,6 +2241,7 @@ matrix to be calculated will work.
       .gin_desc =
           {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddPressure"] = jac2ret("jacobian_targetsAddPressure");
 
   wsm_data["jacobian_targetsAddMagneticField"] = {
       .desc      = R"--(Set magnetic field derivative
@@ -2107,6 +2258,8 @@ See *FieldComponent* for valid ``component``
           {"The component to use [u, v, w]",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddMagneticField"] =
+      jac2ret("jacobian_targetsAddMagneticField");
 
   wsm_data["jacobian_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative
@@ -2126,6 +2279,7 @@ See *FieldComponent* for valid ``component``
           {"The component to use [u, v, w]",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative
@@ -2142,6 +2296,7 @@ See *SpeciesEnum* for valid ``species``
           {"The species of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
 
   wsm_data["jacobian_targetsAddAtmosphere"] = {
       .desc      = R"--(Sets an atmospheric target
@@ -2157,6 +2312,7 @@ See *SpeciesEnum* for valid ``species``
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddAtmosphere"] = jac2ret("jacobian_targetsAddAtmosphere");
 
   wsm_data["jacobian_targetsAddSurface"] = {
       .desc      = R"--(Sets a surface target
@@ -2171,6 +2327,7 @@ See *SpeciesEnum* for valid ``species``
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddSurface"] = jac2ret("jacobian_targetsAddSurface");
 
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -2187,6 +2344,8 @@ See *SpeciesIsotope* for valid ``species``
           {"The species isotopologue of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
+  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] =
+      jac2ret("jacobian_targetsAddSpeciesIsotopologueRatio");
 
   wsm_data["absorption_bandsReadHITRAN"] = {
       .desc =
@@ -3174,7 +3333,9 @@ The core calculations happens inside the *spectral_radiance_operator*.
 
 The core calculations happens inside the *spectral_radiance_observer_agenda*.
 
-User choices of *spectral_radiance_unit* does not adversely affect this method.
+User choices of *spectral_radiance_unit* does not adversely affect this method
+unless the *measurement_vector* or *measurement_jacobian* are further modified
+before consumption by, e.g., *OEM*
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
@@ -3187,15 +3348,32 @@ User choices of *spectral_radiance_unit* does not adversely affect this method.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_sensorSimple"] = {
+  wsm_data["measurement_sensorFromModelState"] = {
       .desc =
-          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
+          R"--(Update *measurement_sensor* from *model_state_vector*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_sensor"},
+      .in = {"measurement_sensor", "model_state_vector", "jacobian_targets"},
+  };
+
+  wsm_data["measurement_sensorInit"] = {
+      .desc =
+          R"--(Initialize *measurement_sensor* to empty.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_sensor"},
+  };
+
+  wsm_data["measurement_sensorAddSimple"] = {
+      .desc =
+          R"--(Adds a sensor with a dirac channel opening around the frequency grid.
 
 All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"frequency_grid"},
+      .in        = {"measurement_sensor", "frequency_grid"},
       .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
@@ -3207,29 +3385,36 @@ All elements share position, line-of-sight, and frequency grid.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_sensorSimpleGaussian"] = {
+  wsm_data["measurement_sensorAddSimpleGaussian"] = {
       .desc =
-          R"--(Sets a sensor with a Gaussian channel opening around the frequency grid.
+          R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
 
 All elements share position, line-of-sight, and frequency grid.
 
 Note that this means you only get "half" a Gaussian channel for the outermost channels.
+
+The I component's distribution is normalized to 1 or 0 by itself, while
+the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"frequency_grid"},
-      .gin       = {"fwhm", "pos", "los", "pol"},
-      .gin_type  = {"Vector, Numeric", "Vector3", "Vector2", "Stokvec"},
+      .in        = {"measurement_sensor", "frequency_grid"},
+      .gin       = {"std", "pos", "los", "pol"},
+      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I)},
       .gin_desc =
-          {"The full-width half-maximum of the channel(s)",
+          {"The standard deviations of the channels",
            "A position [alt, lat, lon]",
            "A line of sight [zenith, azimuth]",
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
+
+  wsm_data["measurement_sensorAddVectorGaussian"] =
+      wsm_data["measurement_sensorAddSimpleGaussian"];
+  wsm_data["measurement_sensorAddVectorGaussian"].gin_type[0] = "Vector";
 
   wsm_data["sun_pathFromObserverAgenda"] = {
       .desc =
@@ -3459,6 +3644,14 @@ Warning:
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
       .in     = {"model_state_vector"},
+  };
+
+  wsm_data["model_state_vectorFromSensor"] = {
+      .desc   = R"--(Sets *model_state_vector*'s sensor part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in = {"model_state_vector", "measurement_sensor", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorFromAtmosphere"] = {
@@ -4024,140 +4217,10 @@ Note that you must have set the optical thickness before calling this.
                  "covariance_matrix_diagonal_blocks"},
   };
 
-  wsm_data["RetrievalAddSurface"] = {
-      .desc      = R"(Add surface property the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "d"},
-      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag",
-                    "BlockMatrix",
-                    "BlockMatrix",
-                    "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The property added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddAtmosphere"] = {
-      .desc      = R"(Add atmospheric property the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "d"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
-                    "BlockMatrix",
-                    "BlockMatrix",
-                    "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The property added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddSpeciesVMR"] = {
-      .desc      = R"(Add species VMR to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "d"},
-      .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The species added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] = {
-      .desc      = R"(Add species isotopologue ratio to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"species", "matrix", "inverse", "d"},
-      .gin_type  = {"SpeciesIsotope", "BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The isotopologue ratio added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddMagneticField"] = {
-      .desc      = R"(Add magnetic field component to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"component", "matrix", "inverse", "d"},
-      .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The magnetic field component added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddWindField"] = {
-      .desc      = R"(Add species VMR to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"component", "matrix", "inverse", "d"},
-      .gin_type  = {"String", "BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The magnetic field component added to the retrieval system",
-           "The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddTemperature"] = {
-      .desc      = R"(Add atmospheric temperature to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"matrix", "inverse", "d"},
-      .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
-  wsm_data["RetrievalAddPressure"] = {
-      .desc      = R"(Add atmospheric pressure to the retrieval setup.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .in        = {"jacobian_targets", "covariance_matrix_diagonal_blocks"},
-      .gin       = {"matrix", "inverse", "d"},
-      .gin_type  = {"BlockMatrix", "BlockMatrix", "Numeric"},
-      .gin_value = {std::nullopt, BlockMatrix{}, Numeric{0.1}},
-      .gin_desc =
-          {"The covariance diagonal block matrix",
-           "The inverse covariance diagonal block matrix",
-           "The delta of the value incase manual perturbation is needed"},
-  };
-
   wsm_data["RetrievalFinalizeDiagonal"] = {
-      .desc   = R"(Add species VMR to the retrieval setup.
+      .desc   = R"(Finalize the retrieval setup.
+
+See *jacobian_targetsFinalize* for more information.
 )",
       .author = {"Richard Larsson"},
       .out    = {"model_state_covariance_matrix", "jacobian_targets"},
@@ -4165,7 +4228,8 @@ Note that you must have set the optical thickness before calling this.
                  "covariance_matrix_diagonal_blocks",
                  "atmospheric_field",
                  "surface_field",
-                 "absorption_bands"},
+                 "absorption_bands",
+                 "measurement_sensor"},
   };
 
   /* 
@@ -4270,7 +4334,7 @@ for more information.
   return wsm_data;
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Cannot create workspace methods:\n\n", e.what()));
+      std::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
 }
 
 const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&

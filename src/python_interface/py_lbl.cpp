@@ -49,7 +49,7 @@ void py_lbl(py::module_& m) try {
           [](lbl::temperature::data& self, LineShapeModelType x) {
             self = lbl::temperature::data{x, self.X()};
           },
-          ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
+          ":class:`~pyarts.arts.TemperatureModelType` The type of the model")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },
@@ -82,7 +82,7 @@ void py_lbl(py::module_& m) try {
                      return data;
                    }
                  }
-                 throw std::out_of_range(var_string('"', x, '"'));
+                 throw std::out_of_range(std::format("\"{}\"", x));
                })
           .def("__setitem__",
                [](pair_vector_type& self,
@@ -523,6 +523,6 @@ T0 : float
       "T"_a);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));
 }
 }  // namespace Python

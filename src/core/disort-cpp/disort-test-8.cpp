@@ -131,7 +131,7 @@ void test_8a() try {
           flux_up,
           false);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-8a:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-8a:\n{}", e.what()));
 }
 
 void test_8b() try {
@@ -267,7 +267,7 @@ void test_8b() try {
           flux_up,
           false);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-8b:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-8b:\n{}", e.what()));
 }
 
 void test_8c() try {
@@ -403,7 +403,7 @@ void test_8c() try {
           flux_up,
           false);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-8c:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-8c:\n{}", e.what()));
 }
 
 int main() try {

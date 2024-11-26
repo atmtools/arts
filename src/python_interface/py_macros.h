@@ -23,11 +23,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
               -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {        \
             i = negative_clamp(i, x.size());                                   \
             if (x.size() <= static_cast<Size>(i) or i < 0)                     \
-              throw std::out_of_range(var_string("Bad index access: ",         \
-                                                 i,                            \
-                                                 " in object of range [0, ",   \
-                                                 x.size(),                     \
-                                                 ")"));                        \
+              throw std::out_of_range(std::format(                             \
+                  "Bad index access: {} in object of range [0, {})",           \
+                  i,                                                           \
+                  x.size()));                                                  \
             return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(       \
                 &x[i], [](void*) {});                                          \
           },                                                                   \
@@ -40,11 +39,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           [](Type& x, Index i, decltype(x[i]) y) {                             \
             i = negative_clamp(i, x.size());                                   \
             if (x.size() <= static_cast<Size>(i) or i < 0)                     \
-              throw std::out_of_range(var_string("Bad index access: ",         \
-                                                 i,                            \
-                                                 " in object of range [0, ",   \
-                                                 x.size(),                     \
-                                                 ")"));                        \
+              throw std::out_of_range(std::format(                             \
+                  "Bad index access: {} in object of range [0, {})",           \
+                  i,                                                           \
+                  x.size()));                                                  \
             x[i] = std::move(y);                                               \
           },                                                                   \
           "i"_a,                                                               \
@@ -53,8 +51,8 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
 
 #define PythonInterfaceBasicRepresentation(Type) \
   def("__str__", [](const Type& x) {             \
-    return var_string(x);                        \
-  }).def("__repr__", [](const Type& x) { return var_string(x); })
+    return std::format("{}", x);                 \
+  }).def("__repr__", [](const Type& x) { return std::format("{}", x); })
 
 #define PythonInterfaceCopyValue(Type)  \
   def("__copy__", [](Type& t) -> Type { \

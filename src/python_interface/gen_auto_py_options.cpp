@@ -14,7 +14,7 @@ os << std::format(R"-x-(
 void enum_{0}(py::module_& m) {{
    py::class_<{0}> _g{0}(m, "{0}");
 
-   _g{0}.doc() = R"-ENUMDOC-({1})-ENUMDOC-";
+   _g{0}.doc() = PythonWorkspaceGroupInfo<{0}>::desc;
 
    xml_interface(_g{0});
    
@@ -55,7 +55,7 @@ void enum_{0}(py::module_& m) {{
 
    _g{0}.def_static("get_options_as_strings", [](){{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");
 
-)-x-", wso.name, unwrap_stars(wso.docs()));
+)-x-", wso.name);
 
   static std::array pykeywords{"None", "any", "all", "print"};
   constexpr std::string_view ignore_str =
@@ -124,7 +124,7 @@ void enum_options(const std::string& fname) {
   }
   cc << R"-x-(} catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize automatic options\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize automatic options\n{}", std::string_view(e.what())));
 }
 }  // namespace Python
 )-x-";

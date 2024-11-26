@@ -96,7 +96,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
                           atm_path[ip]);
       } catch (const std::exception &e) {
 #pragma omp critical
-        error = var_string(e.what(), "\n");
+        error = std::format("{}\n", std::string_view(e.what()));
       }
     }
 

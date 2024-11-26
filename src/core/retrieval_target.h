@@ -2,47 +2,32 @@
 
 #include <unordered_map>
 
-#include "atm.h"
 #include "covariance_matrix.h"
-#include "enums.h"
-#include "jacobian.h"
-#include "lbl_data.h"
-#include "surf.h"
+#include <jacobian.h>
 
-struct JacobianTargetsDiagonalCovarianceMatrixMap {
-  std::unordered_map<JacobianTargetType, std::pair<BlockMatrix, BlockMatrix>>
-      map;
+struct PairOfBlockMatrix {
+  BlockMatrix first, second;
+};
 
-  [[nodiscard]] auto begin() { return map.begin(); }
-  [[nodiscard]] auto end() { return map.end(); }
-  [[nodiscard]] auto begin() const { return map.begin(); }
-  [[nodiscard]] auto end() const { return map.end(); }
-  [[nodiscard]] auto cbegin() const { return map.cbegin(); }
-  [[nodiscard]] auto cend() const { return map.cend(); }
-  [[nodiscard]] auto size() const { return map.size(); }
-  [[nodiscard]] auto empty() const { return map.empty(); }
-  [[nodiscard]] auto clear() { return map.clear(); }
-  [[nodiscard]] auto find(const JacobianTargetType& x) const { return map.find(x); }
+using JacobianTargetsDiagonalCovarianceMatrixMap =
+    std::unordered_map<JacobianTargetType, PairOfBlockMatrix>;
 
-  void set(const JacobianTargetType& type,
-           const BlockMatrix& matrix,
-           const BlockMatrix& inverse = BlockMatrix{});
+template <>
+struct std::formatter<PairOfBlockMatrix> {
+  format_tags tags;
 
-  void set(const AtmKeyVal& type,
-           const BlockMatrix& matrix,
-           const BlockMatrix& inverse = BlockMatrix{});
-           
-  void set(const SurfaceKeyVal& type,
-           const BlockMatrix& matrix,
-           const BlockMatrix& inverse = BlockMatrix{});
-           
-  void set(const LblLineKey& type,
-           const BlockMatrix& matrix,
-           const BlockMatrix& inverse = BlockMatrix{});
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  friend std::ostream& operator<<(
-      std::ostream& os, const JacobianTargetsDiagonalCovarianceMatrixMap&) {
-    return os << "NotImplementedYet";
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const PairOfBlockMatrix& x,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, x.first, tags.sep(), x.second);
   }
 };
 

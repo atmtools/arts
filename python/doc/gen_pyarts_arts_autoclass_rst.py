@@ -17,7 +17,7 @@ def doc(x):
         raise Exception(f"Error in doc for {x}:\n{e}")
 
 
-def short_doc(v):
+def short_doc(v, var=None, name=None):
     try:
         x = doc(v).split("\n")
         s = x[0]
@@ -28,22 +28,20 @@ def short_doc(v):
             i += 1
 
         if "->" in s or len(s) == 0:
-            if isinstance(v, property):
-                print("NAME:", v.fget.__name__)
-            attr = v.__name__ if hasattr(v, "__name__") else v
+            attr = v.__name__ if hasattr(v, "__name__") else name
             if not is_operator(attr):
                 print(
-                    f"WARNING [ARTS DOC] No short doc found: {attr}"
+                    f"WARNING [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
                 )
 
         return s
     except Exception as e:
-        raise Exception(f"Error in short_doc for {x}:\n{e}")
+        raise Exception(f"Error in short_doc for v={v}, var={var}, name={name}:\n{e}")
 
 
 def func(name, var):
     try:
-        return {"name": name, "short": short_doc(getattr(var, name))}
+        return {"name": name, "short": short_doc(getattr(var, name), var.__name__, name)}
     except Exception as e:
         raise Exception(f"Error in func for name={name}, var={var}:\n{e}")
 

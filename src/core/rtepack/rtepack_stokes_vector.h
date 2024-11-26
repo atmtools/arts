@@ -51,31 +51,30 @@ struct stokvec final : vec4 {
   [[nodiscard]] constexpr bool is_zero() const {
     return I() == 0.0 && Q() == 0.0 && U() == 0.0 && V() == 0.0;
   }
+
+  [[nodiscard]] constexpr bool is_polarized() const {
+    return Q() != 0.0 or U() != 0.0 or V() != 0.0;
+  }
+
+  [[nodiscard]] constexpr Size nonzero_components() const {
+    return static_cast<Size>(I() != 0.0) + static_cast<Size>(Q() != 0.0) +
+           static_cast<Size>(U() != 0.0) + static_cast<Size>(V() != 0.0);
+  }
 };
 
 constexpr stokvec to_stokvec(PolarizationChoice p) {
   using enum PolarizationChoice;
   switch (p) {
-    case I:
-      return {1.0, 0.0, 0.0, 0.0};
-    case Q:
-      return {0.0, 1.0, 0.0, 0.0};
-    case U:
-      return {0.0, 0.0, 1.0, 0.0};
-    case V:
-      return {0.0, 0.0, 0.0, 1.0};
-    case Iv:
-      return {1.0, 1.0, 0.0, 0.0};
-    case Ih:
-      return {1.0, -1.0, 0.0, 0.0};
-    case Ip45:
-      return {1.0, 0.0, 1.0, 0.0};
-    case Im45:
-      return {1.0, 0.0, -1.0, 0.0};
-    case Ilhc:
-      return {1.0, 0.0, 0.0, -1.0};
-    case Irhc:
-      return {1.0, 0.0, 0.0, 1.0};
+    case I:    return {1.0, 0.0, 0.0, 0.0};
+    case Q:    return {0.0, 1.0, 0.0, 0.0};
+    case U:    return {0.0, 0.0, 1.0, 0.0};
+    case V:    return {0.0, 0.0, 0.0, 1.0};
+    case Iv:   return {1.0, 1.0, 0.0, 0.0};
+    case Ih:   return {1.0, -1.0, 0.0, 0.0};
+    case Ip45: return {1.0, 0.0, 1.0, 0.0};
+    case Im45: return {1.0, 0.0, -1.0, 0.0};
+    case Ilhc: return {1.0, 0.0, 0.0, -1.0};
+    case Irhc: return {1.0, 0.0, 0.0, 1.0};
   }
   std::unreachable();
 }

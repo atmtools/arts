@@ -139,6 +139,6 @@ void py_basic(py::module_& m) try {
       .def("__setstate__", [](Any* a, const std::tuple<>&) { new (a) Any{}; });
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize basic\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
 }
 }  // namespace Python

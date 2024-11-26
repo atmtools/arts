@@ -167,7 +167,7 @@ FieldMap::Map<Atm::Data,
       },
       k);
 } catch (std::out_of_range &) {
-  throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
+  throw std::out_of_range(std::format(R"(Key not found in map: "{}")", k));
 } catch (...) {
   throw;
 }
@@ -1199,7 +1199,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
         gf3.data(N - 1 - i, 0, 0) = atm[i][key];
       }
 
-      gf3.data_name = var_string(key);
+      gf3.data_name = std::format("{}", key);
       data.data     = gf3;
       out[key]      = data;
     }
@@ -1210,7 +1210,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
         gf3.data(i, 0, 0) = atm[i][key];
       }
 
-      gf3.data_name = var_string(key);
+      gf3.data_name = std::format("{}", key);
       data.data     = gf3;
       out[key]      = data;
     }

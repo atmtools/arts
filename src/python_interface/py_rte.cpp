@@ -94,6 +94,6 @@ void py_rte(py::module_& m) try {
            });
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize rte\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize rte\n{}", e.what()));
 }
 }  // namespace Python

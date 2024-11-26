@@ -282,17 +282,10 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       if (go_on) {
         Absorption::SingleLineExternal sline;
         switch (artscat_version) {
-          case 3:
-            sline = Absorption::ReadFromArtscat3Stream(is_xml);
-            break;
-          case 4:
-            sline = Absorption::ReadFromArtscat4Stream(is_xml);
-            break;
-          case 5:
-            sline = Absorption::ReadFromArtscat5Stream(is_xml);
-            break;
-          default:
-            ARTS_ASSERT(false, "Bad version!");
+          case 3:  sline = Absorption::ReadFromArtscat3Stream(is_xml); break;
+          case 4:  sline = Absorption::ReadFromArtscat4Stream(is_xml); break;
+          case 5:  sline = Absorption::ReadFromArtscat5Stream(is_xml); break;
+          default: ARTS_ASSERT(false, "Bad version!");
         }
 
         ARTS_USER_ERROR_IF(sline.bad, "Cannot read line {}", n)
@@ -414,17 +407,10 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     if (go_on) {
       Absorption::SingleLineExternal sline;
       switch (artscat_version) {
-        case 3:
-          sline = Absorption::ReadFromArtscat3Stream(is_xml);
-          break;
-        case 4:
-          sline = Absorption::ReadFromArtscat4Stream(is_xml);
-          break;
-        case 5:
-          sline = Absorption::ReadFromArtscat5Stream(is_xml);
-          break;
-        default:
-          ARTS_ASSERT(false, "Bad version!");
+        case 3:  sline = Absorption::ReadFromArtscat3Stream(is_xml); break;
+        case 4:  sline = Absorption::ReadFromArtscat4Stream(is_xml); break;
+        case 5:  sline = Absorption::ReadFromArtscat5Stream(is_xml); break;
+        default: ARTS_ASSERT(false, "Bad version!");
       }
 
       ARTS_USER_ERROR_IF(sline.bad, "Cannot read line {}", n)
@@ -903,13 +889,11 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(
         error.store(true);
 
 #pragma omp critical
-        errors.push_back(var_string("\n\nError in thread ",
-                                    i,
-                                    " for species ",
-                                    spec,
-                                    ":\n",
-                                    e.what(),
-                                    "\n\n"));
+        errors.push_back(
+            std::format("\n\nError in thread {} for species {}:\n{}\n\n",
+                        i,
+                        spec,
+                        std::string_view(e.what())));
       }
     }
   }
@@ -1145,19 +1129,21 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
       if (Quantum::Number::StateMatch(band.quantumidentity,
                                       replacement.quantumidentity) ==
           Quantum::Number::StateMatchType::Full) {
-        ARTS_USER_ERROR_IF(pos.band not_eq -1,
-                           "Duplicate band matches for replacement line:\n{}\nThese are for band indexes {} and {}",
-                           replacement,
-                           pos.band,
-                           i)
+        ARTS_USER_ERROR_IF(
+            pos.band not_eq -1,
+            "Duplicate band matches for replacement line:\n{}\nThese are for band indexes {} and {}",
+            replacement,
+            pos.band,
+            i)
 
         pos.band = i;
       }
     }
 
-    ARTS_USER_ERROR_IF(pos.band == -1,
-                       "There is no match for replacement band:\n{}\nYou need to append the entire band",
-                       replacement)
+    ARTS_USER_ERROR_IF(
+        pos.band == -1,
+        "There is no match for replacement band:\n{}\nYou need to append the entire band",
+        replacement)
     abs_lines[pos.band] = replacement;
   }
 }
@@ -1403,10 +1389,11 @@ void abs_lines_per_speciesManualMirroringSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& species) {
-  ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
-                     "Mismatch abs_species and abs_lines_per_species, sizes {} vs {}, respectively",
-                     abs_species.size(),
-                     abs_lines_per_species.size())
+  ARTS_USER_ERROR_IF(
+      abs_species.size() not_eq abs_lines_per_species.size(),
+      "Mismatch abs_species and abs_lines_per_species, sizes {} vs {}, respectively",
+      abs_species.size(),
+      abs_lines_per_species.size())
 
   if (auto ind = std::distance(
           abs_species.cbegin(),
@@ -1414,9 +1401,8 @@ void abs_lines_per_speciesManualMirroringSpecies(
       static_cast<Size>(ind) not_eq abs_species.size()) {
     abs_linesManualMirroring(abs_lines_per_species[ind]);
   } else {
-    ARTS_USER_ERROR("Cannot find species: {}\nIn abs_species: [{}]",
-                    species,
-                    abs_species)
+    ARTS_USER_ERROR(
+        "Cannot find species: {}\nIn abs_species: [{}]", species, abs_species)
   }
 }
 
@@ -1879,12 +1865,8 @@ void abs_linesBaseParameterMatchingLines(ArrayOfAbsorptionLines& abs_lines,
           case 7:  // "Upper Statistical Weight":
             band.lines[k].gupp = x;
             break;
-          case 8:
-            band.lines[k].zeeman.gl() = x;
-            break;
-          case 9:
-            band.lines[k].zeeman.gu() = x;
-            break;
+          case 8:  band.lines[k].zeeman.gl() = x; break;
+          case 9:  band.lines[k].zeeman.gu() = x; break;
           default: {
             ARTS_USER_ERROR(
                 "Usupported paramter_name\n{}\nSee method description for supported parameter names.\n",

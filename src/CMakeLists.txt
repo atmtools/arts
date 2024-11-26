@@ -22,6 +22,7 @@ add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 add_library(workspace_group STATIC
   workspace_groups.cpp
 )
+target_link_libraries(workspace_group PRIVATE arts_options)
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
 add_custom_command(OUTPUT

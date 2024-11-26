@@ -52,6 +52,6 @@ void py_telsem(py::module_& m) try {
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize telsem\n{}", e.what()));
 }
 }  // namespace Python

@@ -149,7 +149,7 @@ void py_species(py::module_& m) try {
   stag.def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_rw("type",
               &SpeciesTag::type,
-              ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
+              ":class:`~pyarts.arts.SpeciesTagType` Type of tag")
       .def_rw("cia_2nd_species",
               &SpeciesTag::cia_2nd_species,
               ":class:`~pyarts.arts.Species` CIA species")
@@ -308,6 +308,6 @@ Returns
   workspace_group_interface(sev);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize species\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize species\n{}", e.what()));
 }
 }  // namespace Python

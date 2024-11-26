@@ -102,11 +102,7 @@ Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
     case Emission:
       agenda.add("ray_path_observer_agendaExecute");
       agenda.add("spectral_radianceClearskyEmission");
-      break;
-    case EmissionUnits:
-      agenda.add("ray_path_observer_agendaExecute");
-      agenda.add("spectral_radianceClearskyEmission");
-      agenda.add("spectral_radianceApplyUnitFromSpectralRadiance");
+      agenda.add("spectral_radiance_jacobianAddSensorJacobianPerturbations");
       break;
   }
 
@@ -171,9 +167,8 @@ Agenda get_disort_settings_agenda(const std::string& option) {
 
   using enum disort_settings_agendaPredefined;
   switch (to<disort_settings_agendaPredefined>(option)) {
-    case Clearsky:
-      agenda.add("jacobian_targetsInit");
-      agenda.add("jacobian_targetsFinalize");
+    case SunlessClearsky:
+      agenda.set("jacobian_targets", JacobianTargets{});
       agenda.add("ray_path_atmospheric_pointFromPath");
       agenda.add("ray_path_frequency_gridFromPath");
       agenda.add("ray_path_propagation_matrixFromPath");

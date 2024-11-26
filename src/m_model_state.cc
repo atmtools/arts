@@ -56,3 +56,19 @@ void model_state_vectorFromBands(Vector& model_state_vector,
     target.update(model_state_vector, absorption_bands);
   }
 }
+
+void measurement_sensorFromModelState(ArrayOfSensorObsel& measurement_sensor,
+                                      const Vector& model_state_vector,
+                                      const JacobianTargets& jacobian_targets) {
+  for (auto& target : jacobian_targets.sensor()) {
+    target.update(measurement_sensor, model_state_vector);
+  }
+}
+
+void model_state_vectorFromSensor(Vector& model_state_vector,
+                                  const ArrayOfSensorObsel& measurement_sensor,
+                                  const JacobianTargets& jacobian_targets) {
+  for (auto& target : jacobian_targets.sensor()) {
+    target.update(model_state_vector, measurement_sensor);
+  }
+}

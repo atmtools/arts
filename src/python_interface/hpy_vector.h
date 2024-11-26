@@ -238,7 +238,7 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
               auto p = std::find(s, e, value);
               if (p == e)
                 throw std::invalid_argument(
-                    var_string(value, " is not in list"));
+                    std::format("{} is not in list", value));
               return Index{std::distance(v.begin(), p)};
             },
             "value"_a,

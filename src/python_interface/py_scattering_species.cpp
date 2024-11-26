@@ -388,7 +388,7 @@ void py_scattering_species(py::module_& m) try {  //
           "from_legacy_tro", &ParticleHabit::from_legacy_tro, "ssd"_a, "smd"_a);
 
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "DEV ERROR:\nCannot initialize scattering species:\n", e.what()));
+  throw std::runtime_error(std::format(
+      "DEV ERROR:\nCannot initialize scattering species:\n{}", e.what()));
 };
 }  // namespace Python

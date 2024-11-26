@@ -9,3 +9,4 @@ It contains design descriptions and guidelines for the development of ARTS.
    
    develop.classes
    develop.error
+   develop.workspace

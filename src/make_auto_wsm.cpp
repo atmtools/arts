@@ -1,4 +1,5 @@
 #include <auto_wsg.h>
+#include <auto_wsv.h>
 #include <mystring.h>
 
 #include <algorithm>
@@ -8,7 +9,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <auto_wsv.h>
 #include "debug.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
@@ -20,116 +20,79 @@ void scan_wsmr_for_errors(ArrayOfString& errors,
   const auto& wsv = workspace_variables();
 
   if (wsmr.desc.size() == 0) {
-    errors.push_back(var_string("No description for ", '"', name, '"'));
+    errors.push_back(std::format("No description for \"{}\"", name));
   }
 
   if (wsmr.desc.back() not_eq '\n') {
-    errors.push_back(var_string(
-        "Description for ", '"', name, '"', " does not end with a newline"));
+    errors.push_back(
+        std::format("Description for \"{}\" ends without a newline", name));
   }
 
   if (wsmr.author.size() == 0) {
-    errors.push_back(var_string("No authors for ", '"', name, '"'));
+    errors.push_back(std::format("No authors for \"{}\"", name));
   }
 
   if (wsmr.gout.size() not_eq wsmr.gout_type.size() or
       wsmr.gout.size() not_eq wsmr.gout_desc.size()) {
-    errors.push_back(var_string("Mismatch sizes of gout (",
-                                wsmr.gout.size(),
-                                "), gout_type (",
-                                wsmr.gout_type.size(),
-                                "), gout_desc (",
-                                wsmr.gout_desc.size(),
-                                ") for ",
-                                '"',
-                                name,
-                                '"'));
+    errors.push_back(std::format(
+        "Mismatch sizes of gout ({}), gout_type ({}), gout_des ({}), for \"{}\"",
+        wsmr.gout.size(),
+        wsmr.gout_type.size(),
+        wsmr.gout_desc.size(),
+        name));
   }
 
   for (auto& type : wsmr.gout_type) {
     if (not valid_wsg(type)) {
-      errors.push_back(var_string(
-          "Invalid gout_type for ", '"', name, '"', ": ", '"', type, '"'));
+      errors.push_back(
+          std::format(R"(Invalid gout_type for "{}": "{}")", name, type));
     }
   }
 
   for (auto& gvar : wsmr.gout) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      errors.push_back(var_string("Invalid gout for ",
-                                  '"',
-                                  name,
-                                  '"',
-                                  ": ",
-                                  '"',
-                                  gvar,
-                                  '"',
-                                  " - it is already a WSV"));
+      errors.push_back(std::format(
+          R"(Invalid gout for "{}": "{}" - it is already a WSV)", name, gvar));
     }
   }
 
   if (wsmr.gin.size() not_eq wsmr.gin_type.size() or
       wsmr.gin.size() not_eq wsmr.gin_value.size() or
       wsmr.gin.size() not_eq wsmr.gin_desc.size()) {
-    errors.push_back(var_string("Mismatch sizes of gin (",
-                                wsmr.gin.size(),
-                                ") gin_type (",
-                                wsmr.gin_type.size(),
-                                "), gin_value (",
-                                wsmr.gin_value.size(),
-                                "), gin_desc (",
-                                wsmr.gin_desc.size(),
-                                ") for ",
-                                '"',
-                                name,
-                                '"'));
+    errors.push_back(std::format(
+        "Mismatch sizes of gin ({}), gin_type ({}), gin_value ({}), gin_desc ({}), for \"{}\"",
+        wsmr.gin.size(),
+        wsmr.gin_type.size(),
+        wsmr.gin_value.size(),
+        wsmr.gin_desc.size(),
+        name));
   }
 
   for (auto& type : wsmr.gin_type) {
     if (not valid_wsg(type)) {
-      errors.push_back(var_string(
-          "Invalid gin_type for ", '"', name, '"', ": ", '"', type, '"'));
+      errors.push_back(
+          std::format(R"(Invalid gin_type for "{}": "{}")", '"', name, type));
     }
   }
 
   for (auto& gvar : wsmr.gin) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      errors.push_back(var_string("Invalid gin for ",
-                                  '"',
-                                  name,
-                                  '"',
-                                  ": ",
-                                  '"',
-                                  gvar,
-                                  '"',
-                                  " - it is already a WSV"));
+      errors.push_back(std::format(
+          R"(Invalid gin for "{}": "{}" - it is already a WSV)", name, gvar));
     }
   }
 
   for (auto& var : wsmr.out) {
     if (wsv.find(var) == wsv.end()) {
-      errors.push_back(var_string("Invalid out for ",
-                                  '"',
-                                  name,
-                                  '"',
-                                  ": ",
-                                  '"',
-                                  var,
-                                  '"',
-                                  " - it is not a WSV"));
+      errors.push_back(std::format(
+          R"(Invalid out for "{}": "{}" - it is not a WSV)", name, var));
     }
   }
 
   for (auto& var : wsmr.in) {
     if (wsv.find(var) == wsv.end()) {
-      errors.push_back(var_string("Invalid in for ",
-                                  '"',
-                                  name,
-                                  '"',
-                                  ": ",
-                                  '"',
-                                  var,
-                                  '"',
-                                  " - it is not a WSV"));
+      errors.push_back(std::format(
+          R"(Invalid in for "{}": "{}" - it is not a WSV)", name, var));
     }
   }
 }
@@ -385,7 +348,7 @@ void call_function(std::ostream& os,
     }
 
     os << R"--(}] (Workspace& ws [[maybe_unused]],const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {
-      const auto& func = map.at(var_string()--";
+      const auto& func = map.at(std::format("{}", )--";
 
     bool final_first = true;
     for (std::size_t garg = 0; garg < wsmr.gout_type.size(); garg++) {
@@ -629,7 +592,8 @@ int main(int argc, char** argv) try {
   std::ofstream impl("auto_wsm.cpp");
   std::ofstream of("auto_wsmmeta.cpp");
 
-  ARTS_USER_ERROR_IF(const auto err = scan_for_errors(); not err.empty(), "{}", err)
+  ARTS_USER_ERROR_IF(const auto err = scan_for_errors();
+                     not err.empty(), "{}", err)
 
   header(head);
   implementation(impl, num_methods);

@@ -1055,7 +1055,7 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
   XMLTag tag;
 
   tag.read_from_stream(is_xml);
-  tag.check_name(var_string("MatpackData", type<T>::name()));
+  tag.check_name(std::format("MatpackData{}", type<T>::name()));
   Index nelem;
   tag.get_attribute_value("nelem", nelem);
 
@@ -1067,7 +1067,7 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
   }
 
   tag.read_from_stream(is_xml);
-  tag.check_name(var_string("/MatpackData", type<T>::name()));
+  tag.check_name(std::format("/MatpackData{}", type<T>::name()));
 }
 
 template <class T, Index... DIM>
@@ -1081,7 +1081,7 @@ void xml_write_to_stream_tmpl(
       "Type not supported, add a struct type<T> with a static constexpr std::string_view name() function returning other than \"any\"");
 
   XMLTag open_tag;
-  open_tag.set_name(var_string("MatpackData", type<T>::name()));
+  open_tag.set_name(std::format("MatpackData{}", type<T>::name()));
   if (name.size()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("nelem", (DIM * ...));
   open_tag.write_to_stream(os_xml);
@@ -1094,7 +1094,7 @@ void xml_write_to_stream_tmpl(
   }
 
   XMLTag close_tag;
-  close_tag.set_name(var_string("/MatpackData", type<T>::name()));
+  close_tag.set_name(std::format("/MatpackData{}", type<T>::name()));
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }

@@ -58,19 +58,23 @@ position and line of sight.
 The intent of this agenda is to provide a spectral radiance as seen from the observer
 position and line of sight.
 
+It also outputs the *ray_path* as seen from the observer position and line of sight.
+This is useful in-case a call to the destructive *spectral_radianceApplyUnitFromSpectralRadiance*
+is warranted
+
 The output must be sized as:
 
 - *spectral_radiance* : (*frequency_grid*)
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
+- *ray_path* : (Unknown)
 )--",
-      .output = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
       .input  = {"frequency_grid",
                  "jacobian_targets",
                  "spectral_radiance_observer_position",
                  "spectral_radiance_observer_line_of_sight",
                  "atmospheric_field",
-                 "surface_field",
-                 "spectral_radiance_unit"},
+                 "surface_field"},
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {

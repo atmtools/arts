@@ -25,7 +25,7 @@ struct Timing {
 inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
   for (auto& t : vt) {
     if (t.name.contains('\n') or t.name.contains(' ') or t.name.empty())
-      throw std::runtime_error(var_string("bad name: ", '"', t.name, '"'));
+      throw std::runtime_error(std::format("bad name: \"{}\"", t.name));
     if (t.name not_eq "dummy") {
       os << std::setprecision(15) << t.name << " " << t.dt.count() << '\n';
     }
@@ -332,7 +332,7 @@ void test_flat() try {
   std::cout << "fb abs-max ungridded: " << fb3_abs << '\n';
   std::cout << "fb abs-rel ungridded: " << fb3_rel << '\n';
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-test:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-test:\n{}", e.what()));
 }
 
 void handle_opt(const char* c, bool& print, Index& N) {

@@ -1556,7 +1556,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     String sizes_str = "";
     for (std::size_t i = 0; i < sizes.size(); i++) {
       if (i > 0) sizes_str += " ";
-      sizes_str += var_string(sizes[i]);
+      sizes_str += std::format("{}", sizes[i]);
     }
     internal_open_tag.add_attribute("sizes", sizes_str);
 
@@ -1856,7 +1856,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
           ARTS_ASSERT(false,
                       "New key type is not yet handled by writing routine!")
 
-        open_data_tag.add_attribute("key", var_string(key_val));
+        open_data_tag.add_attribute("key", std::format("{}", key_val));
         open_data_tag.add_attribute("type", data.data_type());
         open_data_tag.add_attribute("lat_low", String{toString(data.lat_low)});
         open_data_tag.add_attribute("lat_upp", String{toString(data.lat_upp)});
@@ -1872,10 +1872,9 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
                                 Surf::FunctionalData>)
                 xml_write_to_stream(
                     os_xml,
-                    String{var_string(
-                        "Data for ",
-                        key_val,
-                        " read from file as functional must be set explicitly")},
+                    String{std::format(
+                        "Data for {} read from file as functional must be set explicitly",
+                        key_val)},
                     pbofs,
                     "Functional Data Error");
               else
@@ -2005,7 +2004,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     std::visit(
         [&](auto&& key_val) {
           xml_write_to_stream(
-              os_xml, String{var_string(key_val)}, pbofs, "Data Key");
+              os_xml, String{std::format("{}", key_val)}, pbofs, "Data Key");
           xml_write_to_stream(os_xml, surf[key_val], pbofs, "Data");
         },
         key);
@@ -2425,7 +2424,7 @@ struct meta_data {
 
   meta_data(String n) : name(std::move(n)) {}
   meta_data(String n, String v) : name(std::move(n)), value(std::move(v)) {}
-  meta_data(String n, auto v) : name(std::move(n)), value(var_string(v)) {}
+  meta_data(String n, auto v) : name(std::move(n)), value(std::format("{}", v)) {}
 };
 
 struct Empty {};
@@ -2656,23 +2655,28 @@ void xml_read_from_stream(std::istream& is_xml,
   g = std::move(x);
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in AscendingGrid:\n{}", e.what()));
 }
-ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AscendingGrid& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml, "AscendingGrid"};
   xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in AscendingGrid:\n{}", e.what()));
 }
 
 //! SensorObsel
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorObsel& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorObsel"};
 
   AscendingGrid f_grid;
@@ -2686,26 +2690,30 @@ void xml_read_from_stream(std::istream& is_xml,
   g = SensorObsel{f_grid, poslos_grid, weight_matrix};
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorObsel:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorObsel& g,
                          bofstream* pbofs,
-                         const String&) {
-  tag stag{os_xml, "SensorObsel"};
+                         const String& name) try {
+  tag stag{os_xml, "SensorObsel", meta_data{"name", name}};
 
   xml_write_to_stream(os_xml, g.f_grid(), pbofs, "f_grid");
   xml_write_to_stream(os_xml, g.poslos_grid(), pbofs, "poslos");
   xml_write_to_stream(os_xml, g.weight_matrix(), pbofs, "weight_matrix");
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorObsel:\n{}", e.what()));
 }
 
 //! SensorPosLos
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLos& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorPosLos"};
 
   if (pbifs) {
@@ -2717,12 +2725,14 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLos:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLos& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml, "SensorPosLos"};
 
   if (pbofs) {
@@ -2732,14 +2742,17 @@ void xml_write_to_stream(std::ostream& os_xml,
            << ' ' << g.los[1];
   }
 
+  os_xml << '\n';
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLos:\n{}", e.what()));
 }
 
 //! SensorPosLosVector
 
 void xml_read_from_stream(std::istream& is_xml,
                           SensorPosLosVector& g,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   tag stag{is_xml, "SensorPosLosVector", "nelem"};
 
   const auto n = stag.get<Index>("nelem");
@@ -2749,12 +2762,14 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const SensorPosLosVector& g,
                          bofstream* pbofs,
-                         const String&) {
+                         const String&) try {
   tag stag{os_xml,
            "SensorPosLosVector",
            meta_data{"nelem", static_cast<Index>(g.size())}};
@@ -2764,6 +2779,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 
   stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 //! DisortBDRF
@@ -3064,6 +3081,61 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== SensorKey =========================================================
+
+//! Reads SensorKey from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param key       SensorKey
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          SensorKey& key,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("SensorKey");
+
+  xml_read_from_stream(is_xml, key.type, pbifs);
+  xml_read_from_stream(is_xml, key.sensor_elem, pbifs);
+  xml_read_from_stream(is_xml, key.measurement_elem, pbifs);
+  xml_read_from_stream(is_xml, key.model, pbifs);
+  xml_read_from_stream(is_xml, key.polyorder, pbifs);
+  xml_read_from_stream(is_xml, key.original_grid, pbifs);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SensorKey");
+}
+
+//! Write SensorKey to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param key       SensorKey
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SensorKey& key,
+                         bofstream* pbofs,
+                         const String& name [[maybe_unused]]) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SensorKey");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, key.type, pbofs, "type");
+  xml_write_to_stream(os_xml, key.sensor_elem, pbofs, "sensor_elem");
+  xml_write_to_stream(os_xml, key.measurement_elem, pbofs, "measurement_elem");
+  xml_write_to_stream(os_xml, key.model, pbofs, "model");
+  xml_write_to_stream(os_xml, key.polyorder, pbofs, "polyorder");
+  xml_write_to_stream(os_xml, key.original_grid, pbofs, "original_grid");
+
+  close_tag.set_name("/SensorKey");
+  close_tag.write_to_stream(os_xml);
+}
+
 //=== JacobianTargetType =========================================================
 
 //! Reads JacobianTargetType from XML input stream
@@ -3087,6 +3159,8 @@ void xml_read_from_stream(std::istream& is_xml,
     jtt.target = SurfaceKeyVal{};
   } else if (type == "LblLineKey"s) {
     jtt.target = LblLineKey{};
+  } else if (type == "SensorKey"s) {
+    jtt.target = SensorKey{};
   } else {
     ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }
@@ -3128,6 +3202,53 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== PairOfBlockMatrix =========================================================
+
+//! Reads PairOfBlockMatrix from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param x         PairOfBlockMatrix
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          PairOfBlockMatrix& x,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("PairOfBlockMatrix");
+
+  xml_read_from_stream(is_xml, x.first, pbifs);
+  xml_read_from_stream(is_xml, x.second, pbifs);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/PairOfBlockMatrix");
+}
+
+//! Write PairOfBlockMatrix to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param x         PairOfBlockMatrix
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const PairOfBlockMatrix& x,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("PairOfBlockMatrix");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, x.first, pbofs, "first");
+  xml_write_to_stream(os_xml, x.second, pbofs, "second");
+
+  close_tag.set_name("/PairOfBlockMatrix");
+  close_tag.write_to_stream(os_xml);
+}
+
 //=== JacobianTargetsDiagonalCovarianceMatrixMap =========================================================
 
 //! Reads JacobianTargetsDiagonalCovarianceMatrixMap from XML input stream
@@ -3139,7 +3260,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           JacobianTargetsDiagonalCovarianceMatrixMap& jtmap,
                           bifstream* pbifs) {
-  jtmap.map.clear();
+  jtmap.clear();
 
   ArtsXMLTag tag;
   tag.read_from_stream(is_xml);
@@ -3150,14 +3271,9 @@ void xml_read_from_stream(std::istream& is_xml,
 
   for (Index i = 0; i < size; i++) {
     JacobianTargetType key;
-    BlockMatrix matrix;
-    BlockMatrix inverse;
 
     xml_read_from_stream(is_xml, key, pbifs);
-    xml_read_from_stream(is_xml, matrix, pbifs);
-    xml_read_from_stream(is_xml, inverse, pbifs);
-
-    jtmap.set(key, matrix, inverse);
+    xml_read_from_stream(is_xml, jtmap[key], pbifs);
   }
 
   tag.read_from_stream(is_xml);
@@ -3180,14 +3296,13 @@ void xml_write_to_stream(
   ArtsXMLTag close_tag;
 
   open_tag.set_name("JacobianTargetsDiagonalCovarianceMatrixMap");
-  open_tag.add_attribute("size", static_cast<Index>(jtmap.map.size()));
+  open_tag.add_attribute("size", static_cast<Index>(jtmap.size()));
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   for (const auto& [key, value] : jtmap) {
     xml_write_to_stream(os_xml, key, pbofs, "key");
-    xml_write_to_stream(os_xml, value.first, pbofs, "matrix");
-    xml_write_to_stream(os_xml, value.second, pbofs, "inverse");
+    xml_write_to_stream(os_xml, value, pbofs, "matrix-pair");
   }
 
   close_tag.set_name("/JacobianTargetsDiagonalCovarianceMatrixMap");

@@ -145,6 +145,6 @@ void py_scattering(py::module_& m) try {
 
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize scattering\n{}", e.what()));
 }
 }  // namespace Python

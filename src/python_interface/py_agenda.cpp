@@ -209,6 +209,6 @@ so Copy(a, out=b) will not even see the b variable.
           ":class:`~pyarts.arts.String` Name of the array of agenda");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));
 }
 }  // namespace Python

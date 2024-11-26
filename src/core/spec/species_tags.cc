@@ -177,7 +177,7 @@ std::ostream& operator<<(std::ostream& os, const Tag& ot) {
  * 
  * \return The tag name as a string.
  */
-String Tag::Name() const { return var_string(*this); }
+String Tag::Name() const { return std::format("{}", *this); }
 }  // namespace Species
 
 ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(SpeciesTag x) {

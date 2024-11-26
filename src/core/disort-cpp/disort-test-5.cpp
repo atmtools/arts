@@ -413,7 +413,7 @@ void test_5a() try {
           flux_up,
           true);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-5a:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-5a:\n{}", e.what()));
 }
 
 void test_5b() try {
@@ -791,7 +791,7 @@ void test_5b() try {
           flux_up,
           true);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-5b:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-5b:\n{}", e.what()));
 }
 
 void test_5BDRF() try {
@@ -1170,7 +1170,7 @@ void test_5BDRF() try {
           flux_up,
           true);
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-5BDRF:\n", e.what()));
+  throw std::runtime_error(std::format("Error in test-5BDRF:\n{}", e.what()));
 }
 
 int main() try {

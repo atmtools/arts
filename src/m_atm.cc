@@ -71,7 +71,7 @@ void append_data(
     const Index &replace_existing,
     const Index &ignore_missing,
     const std::unordered_map<T, Index> &keys,
-    const auto &to_string = [](const auto &x) { return var_string(x); })
+    const auto &to_string = [](const auto &x) { return std::format("{}", x); })
   requires(
       std::same_as<typename std::decay_t<decltype(to_string(T{}))>, String>)
 {
@@ -82,7 +82,7 @@ void append_data(
       to<InterpolationExtrapolation>(extrapolation);
 
   for (const auto &[key, _] : keys) {
-    String filename = var_string(my_base, to_string(key), ".xml");
+    String filename = std::format("{}{}.xml", my_base, to_string(key));
 
     if (static_cast<bool>(replace_existing) or
         not atmospheric_field.contains(key)) {
@@ -125,7 +125,7 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
               replace_existing,
               1,
               keys,
-              [](const AtmKey &x) { return var_string(x); });
+              [](const AtmKey &x) { return std::format("{}", x); });
 
   using enum AtmKey;
 
@@ -282,7 +282,7 @@ void atmospheric_fieldAppendLineLevelData(
               replace_existing,
               0,
               keys,
-              [](const QuantumIdentifier &x) { return var_string(x); });
+              [](const QuantumIdentifier &x) { return std::format("{}", x); });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
@@ -762,4 +762,144 @@ void atmospheric_fieldHydrostaticPressure(
                                        fixed_specific_gas_constant,
                                        fixed_atm_temperature,
                                        hydrostatic_option);
+}
+
+template <Atm::KeyType T>
+void atmospheric_fieldRegridTemplate(AtmData &data,
+                                     const T &key,
+                                     const AscendingGrid &alt,
+                                     const AscendingGrid &lat,
+                                     const AscendingGrid &lon,
+                                     const String &extrapolation) {
+  ARTS_USER_ERROR_IF(alt.size() * lat.size() * lon.size() == 0,
+                     R"(Cannot regrid to empty grid
+alt: {:Bs,} [{} elements]
+lat: {:Bs,} [{} elements]
+lon: {:Bs,} [{} elements]
+)",
+                     alt,
+                     alt.size(),
+                     lat,
+                     lat.size(),
+                     lon,
+                     lon.size())
+
+  const InterpolationExtrapolation extrap =
+      to<InterpolationExtrapolation>(extrapolation);
+
+  GriddedField3 new_field{
+      .data_name  = String{std::format("{}", key)},
+      .data       = Tensor3(alt.size(), lat.size(), lon.size()),
+      .grid_names = {String{"Altitude"},
+                     String{"Latitude"},
+                     String{"Longitude"}},
+      .grids      = {alt, lat, lon},
+  };
+
+  for (Index i = 0; i < alt.size(); i++) {
+    for (Index j = 0; j < lat.size(); j++) {
+      for (Index k = 0; k < lon.size(); k++) {
+        new_field(i, j, k) = data.at(alt[i], lat[j], lon[k]);
+      }
+    }
+  }
+
+  data.data    = std::move(new_field);
+  data.alt_upp = extrap;
+  data.alt_low = extrap;
+  data.lat_upp = extrap;
+  data.lat_low = extrap;
+  data.lon_upp = extrap;
+  data.lon_low = extrap;
+}
+
+void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const ScatteringSpeciesProperty &key,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
+                             const String &extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.contains(key), R"(No scattering species key "{}" in atmospheric_field)", key)
+
+  atmospheric_fieldRegridTemplate(
+      atmospheric_field[key], key, alt, lat, lon, extrapolation);
+}
+
+void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const SpeciesEnum &key,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
+                             const String &extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.contains(key), R"(No VMR key "{}" in atmospheric_field)", key)
+
+  atmospheric_fieldRegridTemplate(
+      atmospheric_field[key], key, alt, lat, lon, extrapolation);
+}
+
+void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const SpeciesIsotope &key,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
+                             const String &extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.contains(key), R"(No isotopologue ratio key "{}" in atmospheric_field)", key)
+
+  atmospheric_fieldRegridTemplate(
+      atmospheric_field[key], key, alt, lat, lon, extrapolation);
+}
+
+void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const QuantumIdentifier &key,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
+                             const String &extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.contains(key), R"(No NLTE key "{}" in atmospheric_field)", key)
+
+  atmospheric_fieldRegridTemplate(
+      atmospheric_field[key], key, alt, lat, lon, extrapolation);
+}
+
+void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const AtmKey &key,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
+                             const String &extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.contains(key), R"(No atmospheric key "{}" in atmospheric_field)", key)
+
+  atmospheric_fieldRegridTemplate(
+      atmospheric_field[key], key, alt, lat, lon, extrapolation);
+}
+
+void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
+                                const AscendingGrid &alt,
+                                const AscendingGrid &lat,
+                                const AscendingGrid &lon,
+                                const String &extrapolation) {
+  for (auto &[key, data] : atmospheric_field.map<ScatteringSpeciesProperty>()) {
+    atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
+  }
+
+  for (auto &[key, data] : atmospheric_field.map<SpeciesEnum>()) {
+    atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
+  }
+
+  for (auto &[key, data] : atmospheric_field.map<SpeciesIsotope>()) {
+    atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
+  }
+
+  for (auto &[key, data] : atmospheric_field.map<QuantumIdentifier>()) {
+    atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
+  }
+
+  for (auto &[key, data] : atmospheric_field.map<AtmKey>()) {
+    atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
+  }
 }

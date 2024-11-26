@@ -359,7 +359,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("version", al.version);
-  open_tag.add_attribute("id", var_string(al.quantumidentity));
+  open_tag.add_attribute("id", std::format("{}", al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
   open_tag.add_attribute("cutofftype", String{toString(al.cutoff)});
   open_tag.add_attribute("mirroringtype", String{toString(al.mirroring)});
@@ -463,7 +463,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   for (auto& a : vib) {
     ArtsXMLTag open_data_tag;
     open_data_tag.set_name("Data");
-    open_data_tag.add_attribute("key", var_string(a.first));
+    open_data_tag.add_attribute("key", std::format("{}", a.first));
     open_data_tag.write_to_stream(os_xml);
     if (pbofs)
       *pbofs << a.second;

@@ -11,7 +11,8 @@ internal_workspace_variables() {
   };
 
   wsv_data["absorption_lookup_table"] = {
-      .desc = R"--(Absorption lookup table for scalar gas absorption coefficients.
+      .desc =
+          R"--(Absorption lookup table for scalar gas absorption coefficients.
 
 Precomputing this table replaces the need for the calculation of scalar gas line-by-line
 absorption.
@@ -155,7 +156,7 @@ wind shift Jacobian calculations.
 
 The order is ``[df_du, df_dv, df_fw]``
 )--",
-      .type = "Vector3",
+      .type          = "Vector3",
       .default_value = Vector3{0.0, 0.0, 0.0},
   };
 
@@ -497,9 +498,6 @@ gravity : Numeric
   wsv_data["spectral_radiance_unit"] = {
       .desc          = R"--(The spectral radiance unit after conversion.
 
-If a unit conversion is desired, the user has to set this variable to one
-of the valid options in *SpectralRadianceUnitType*.
-
 Internally, it is always assumed that this is set to "1" and that no
 unit conversion are taking place. 
 
@@ -508,8 +506,8 @@ Unless a method or variable explicitly mention that a unit conversion is support
 it is called, the use of *spectral_radiance_unit* with a different unit than "1" may lead to
 undesired results.
 )--",
-      .type          = "String",
-      .default_value = String{"1"},
+      .type          = "SpectralRadianceUnitType",
+      .default_value = SpectralRadianceUnitType::unit,
   };
 
   wsv_data["spectral_radiance"] = {

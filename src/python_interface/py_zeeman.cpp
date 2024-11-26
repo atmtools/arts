@@ -175,6 +175,6 @@ void py_zeeman(py::module_& m) try {
       py::arg("line_of_sight"));
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("DEV ERROR:\nCannot initialize IGRF\n", e.what()));
+      std::format("DEV ERROR:\nCannot initialize Zeeman\n{}", e.what()));
 }
 }  // namespace Python

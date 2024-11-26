@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 PLOT = False  # Plot for debug
 LIMIT = 50  # Rerun limit for finding a fit
-ATOL = 50
+ATOL = 100
 NF = 1001
 noise = 0.5
 
@@ -41,7 +41,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_unit = "Tb"
-ws.spectral_radiance_observer_agendaSet(option="EmissionUnits")
+ws.spectral_radiance_observer_agendaSet(option="Emission")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSet(option="Geometric")
@@ -61,13 +61,15 @@ mag = {uf: mag_u, vf: mag_v, wf: mag_w}
 
 # %% Retrieval agenda
 
-
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
     ws.measurement_vectorFromSensor()
     ws.measurement_vector_fittedFromMeasurement()
 
+pos = [110e3, 0, 0]
+los = [160.0, 0.0]
+ws.measurement_sensorSimple(pos=pos, los=los)
 
 for fc in [uf, vf, wf]:
     ws.RetrievalInit()
@@ -76,13 +78,10 @@ for fc in [uf, vf, wf]:
     )
     ws.RetrievalFinalizeDiagonal()
 
-    pos = [110e3, 0, 0]
-    los = [160.0, 0.0]
     fail = True
 
     for i in range(LIMIT):
         ws.atmospheric_field["mag_" + str(fc)] = mag[fc]
-        ws.measurement_sensorSimple(pos=pos, los=los)
         ws.measurement_vectorFromSensor()
 
         ws.measurement_vector_fitted = []

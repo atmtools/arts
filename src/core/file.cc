@@ -79,9 +79,7 @@ void open_output_file(std::ofstream& file, const std::string_view name) {
     // thrown by open().)
   } catch (const std::exception& e) {
     ARTS_USER_ERROR(
-        "Cannot open output file: ",
-        ename,
-        "\nMaybe you don't have write access to the directory or the file?");
+        "Cannot open output file: {}\nMaybe you don't have write access to the directory or the file?", ename);
   }
 }
 

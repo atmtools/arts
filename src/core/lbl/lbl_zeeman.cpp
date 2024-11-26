@@ -368,7 +368,7 @@ Numeric magnetic_angles::dtheta_dv() const {
   using std::sqrt;
   const Numeric rat = pow2(uct / H);
   const Numeric nom = v * uct - ca * sz * pow2(H);
-  return (H == 0.0 or rat == 1.0) ? 0 : nom / (sqrt(1 - rat) * pow3(H));
+  return (H == 0.0 or rat == 1.0) ? 0 : nom / (sqrt(1.0 - rat) * pow3(H));
 }
 
 Numeric magnetic_angles::dtheta_dw() const {
@@ -403,43 +403,44 @@ Numeric magnetic_angles::deta_dw() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const magnetic_angles& m) {
-  os << var_string("Magnetic angles:",
-                   "\n\tu: ",
-                   m.u,
-                   "\n\tv: ",
-                   m.v,
-                   "\n\tw: ",
-                   m.w,
-                   "\n\tsa: ",
-                   m.sa,
-                   "\n\tca: ",
-                   m.ca,
-                   "\n\tsz: ",
-                   m.sz,
-                   "\n\tcz: ",
-                   m.cz,
-                   "\n\tH: ",
-                   m.H,
-                   "\n\tuct: ",
-                   m.uct,
-                   "\n\tduct: ",
-                   m.duct,
-                   "\n\ttheta: ",
-                   m.theta(),
-                   "\n\tdtheta_du: ",
-                   m.dtheta_du(),
-                   "\n\tdtheta_dv: ",
-                   m.dtheta_dv(),
-                   "\n\tdtheta_dw: ",
-                   m.dtheta_dw(),
-                   "\n\teta: ",
-                   m.eta(),
-                   "\n\tdeta_du: ",
-                   m.deta_du(),
-                   "\n\tdeta_dv: ",
-                   m.deta_dv(),
-                   "\n\tdeta_dw: ",
-                   m.deta_dw());
+  os << std::format(R"(Magnetic angles:
+    u:         {}
+    v:         {}
+    w:         {}
+    sa:        {}
+    ca:        {}
+    sz:        {}
+    cz:        {}
+    H:         {}
+    uct:       {}
+    duct:      {}
+    theta:     {}
+    dtheta_du: {}
+    dtheta_dv: {}
+    dtheta_dw: {}
+    eta:       {}
+    deta_du:   {}
+    deta_dv:   {}
+    deta_dw:   {}
+)",
+                    m.u,
+                    m.v,
+                    m.w,
+                    m.sa,
+                    m.ca,
+                    m.sz,
+                    m.cz,
+                    m.H,
+                    m.uct,
+                    m.duct,
+                    m.theta(),
+                    m.dtheta_du(),
+                    m.dtheta_dv(),
+                    m.dtheta_dw(),
+                    m.eta(),
+                    m.deta_du(),
+                    m.deta_dv(),
+                    m.deta_dw());
   return os;
 }
 
