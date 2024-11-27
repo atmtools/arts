@@ -8,7 +8,7 @@ NF = 1001
 std = 1
 pol1 = "RC"
 pol2 = "Ih"
-ATOL = 1000
+RTOL = 5e-3
 
 ws = pyarts.workspace.Workspace()
 
@@ -62,15 +62,11 @@ ws.measurement_sensorAddSimpleGaussian(
 ws.measurement_vectorFromSensor()
 orig = ws.measurement_vector * 1.0
 
-# %% Modify the sensor
-
-DF1 = 1e5
-
 ws.measurement_sensorSimpleGaussian(
-    frequency_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
+    frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
 )
 ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
+    frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
 ws.measurement_vectorFromSensor()
@@ -83,17 +79,20 @@ mod = ws.measurement_vector * 1.0
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
     ws.measurement_vectorFromSensor()
+    ws.measurement_vector_errorInitStandard()
+    ws.measurement_vector_errorAddErrorState()
+    ws.measurement_vectorAddError()
     ws.measurement_vector_fittedFromMeasurement()
 
 
 # %% Set up the retrieval
 
 ws.RetrievalInit()
-ws.RetrievalAddSensorFrequencyPolyFit(
-    sensor_elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+ws.RetrievalAddErrorPolyFit(
+    sensor_elem=0, t=f, matrix=np.diag(np.ones((1)) * 25), polyorder=0
 )
-ws.RetrievalAddSensorFrequencyPolyFit(
-    sensor_elem=1, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
+ws.RetrievalAddErrorPolyFit(
+    sensor_elem=1, t=f - min(f), matrix=np.diag([25, 1e-12]), polyorder=1
 )
 ws.RetrievalFinalizeDiagonal()
 
@@ -113,13 +112,8 @@ for i in range(LIMIT):
     )
     ws.measurement_vectorFromSensor()
     ws.measurement_vector += np.random.normal(0, noise, 2 * NF)
-
-    ws.measurement_sensorSimpleGaussian(
-        frequency_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
-    )
-    ws.measurement_sensorAddSimpleGaussian(
-        frequency_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
-    )
+    ws.measurement_vector[:NF] += 5 + f * 0
+    ws.measurement_vector[NF:] += 15 + (f - min(f)) * 1e-6
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
@@ -132,11 +126,13 @@ for i in range(LIMIT):
     ws.OEM(method="gn")
 
     print(f"got:      {ws.model_state_vector:B,}")
-    print(f"expected: [{-DF1}, {-2*DF1}]")
-    if np.allclose(ws.model_state_vector, [-DF1, -2 * DF1], atol=ATOL):
-        print(f"Within {ATOL} Hz.  Success!")
+    print(f"expected: [5, 15, 1e-6]")
+    if np.allclose(ws.model_state_vector / [5, 15, 1e-6], 1, rtol=RTOL):
+        print(f"Within {RTOL}%.  Success!")
         fail = False
         break
-    print(f"AbsDiff not less than {ATOL} HZ, rerunning with new random noise")
+    print(f"RelDiff not less than {RTOL}%, rerunning with new random noise")
 
-assert not fail, "Failed to retrieve frequency grid"
+    print(ws.model_state_vector)
+
+assert not fail, "Failed to retrieve sensor polynomial offsets grid"

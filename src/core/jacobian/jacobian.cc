@@ -145,7 +145,9 @@ Vector rem_aag(const SensorObsel& v, const ExhaustiveConstVectorView x) {
   return rem_poslos<false, 1>(v, x);
 }
 
-void polyfit(ExhaustiveVectorView param, const Vector& x, const Vector& y) {
+void polyfit(ExhaustiveVectorView param,
+             const ExhaustiveConstVectorView x,
+             const ExhaustiveConstVectorView y) {
   ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
 
   using namespace Minimize;
@@ -281,6 +283,41 @@ void LineTarget::update(Vector& x,
   set_state(x.slice(x_start, x_size), absorption_bands, type);
 }
 
+void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
+  const Index szx = x.size();
+  ARTS_USER_ERROR_IF(szx < static_cast<Index>(x_start + x_size),
+                     "Got too small x.")
+
+  const Index szy = y.size();
+  ARTS_USER_ERROR_IF(szy < static_cast<Index>(type.y_start + type.y_size),
+                     "Got too small y.")
+
+  ARTS_USER_ERROR_IF((dy.shape() != std::array{szy, szx}),
+                     "Mismatched dy shape. {:B,} vs [{}, {}]",
+                     dy.shape(),
+                     szy,
+                     szx)
+
+  set_y(y.slice(type.y_start, type.y_size),
+        dy(Range(type.y_start, type.y_size), Range(x_start, x_size)),
+        x.slice(x_start, x_size));
+}
+
+void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
+  ARTS_USER_ERROR_IF(y.size() != y0.size(), "Got different size y and y0.")
+
+  const auto szx = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(szx < (x_start + x_size), "Got too small x.")
+
+  const auto szy = static_cast<Size>(y.size());
+  ARTS_USER_ERROR_IF(szy < (type.y_start + type.y_size), "Got too small y.")
+
+  Vector e(y.slice(type.y_start, type.y_size));
+  e -= y0.slice(type.y_start, type.y_size);
+
+  set_x(x.slice(x_start, x_size), e);
+}
+
 const std::vector<AtmTarget>& Targets::atm() const {
   return target<AtmTarget>();
 }
@@ -297,6 +334,10 @@ const std::vector<SensorTarget>& Targets::sensor() const {
   return target<SensorTarget>();
 }
 
+const std::vector<ErrorTarget>& Targets::error() const {
+  return target<ErrorTarget>();
+}
+
 std::vector<AtmTarget>& Targets::atm() { return target<AtmTarget>(); }
 
 std::vector<SurfaceTarget>& Targets::surf() { return target<SurfaceTarget>(); }
@@ -305,17 +346,16 @@ std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
 
 std::vector<SensorTarget>& Targets::sensor() { return target<SensorTarget>(); }
 
+std::vector<ErrorTarget>& Targets::error() { return target<ErrorTarget>(); }
+
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
                        const AbsorptionBands&,
                        const ArrayOfSensorObsel& measurement_sensor) {
-  zero_out_x();
-
   const Size natm    = atm().size();
   const Size nsurf   = surf().size();
   const Size nline   = line().size();
   const Size nsensor = sensor().size();
-  ARTS_ASSERT(target_count() == (natm + nsurf + nline + nsensor));
 
   Size last_size = 0;
 
@@ -356,10 +396,10 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (auto& elem : sensor()) {
-    ARTS_USER_ERROR_IF(
-        static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size(),
-        "Bad sensor elements {}, out-of-bounds",
-        elem);
+    ARTS_USER_ERROR_IF(static_cast<Size>(elem.type.measurement_elem) >=
+                           measurement_sensor.size(),
+                       "Bad sensor elements {}, out-of-bounds",
+                       elem);
   }
 
   for (Size i = 0; i < nsensor; i++) {
@@ -398,7 +438,8 @@ void Targets::finalize(const AtmField& atmospheric_field,
     t.x_start = last_size;
     switch (t.type.model) {
       case SensorJacobianModelType::None:
-        t.x_size = measurement_sensor.at(t.type.measurement_elem).flat_size(t.type.type);
+        t.x_size = measurement_sensor.at(t.type.measurement_elem)
+                       .flat_size(t.type.type);
         break;
       case SensorJacobianModelType::PolynomialOffset:
         ARTS_USER_ERROR_IF(t.type.polyorder < 0,
@@ -407,6 +448,22 @@ void Targets::finalize(const AtmField& atmospheric_field,
         break;
     }
     last_size += t.x_size;
+  }
+
+  for (auto& t : error()) {
+    t.x_start = last_size;
+    // t.x_size already known
+    last_size += t.x_size;
+
+    ARTS_USER_ERROR_IF(
+        t.type.y_start + t.type.y_size > measurement_sensor.size(),
+        R"(An error target is out of bounds of the y-vector.
+
+The error target is defined to operator on the measurement_vector in the range {},
+but the measurement_vector will only have {} element by the measurement_sensor.
+)",
+        t.type,
+        measurement_sensor.size())
   }
 
   finalized = true;
@@ -444,5 +501,16 @@ LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) {
 
 SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) {
   return sensor().emplace_back(t, d, target_count());
+}
+
+ErrorTarget& Targets::emplace_back(const ErrorKey& target,
+                                   Size x_size,
+                                   ErrorTargetSetState&& set_y,
+                                   ErrorTargetSetModel&& set_x) {
+  return error().emplace_back(ErrorTarget{.type       = target,
+                                          .target_pos = target_count(),
+                                          .x_size     = x_size,
+                                          .set_y      = std::move(set_y),
+                                          .set_x      = std::move(set_x)});
 }
 }  // namespace Jacobian

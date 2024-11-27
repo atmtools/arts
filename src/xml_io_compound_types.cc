@@ -3136,6 +3136,56 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== ErrorKey =========================================================
+
+//! Reads ErrorKey from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param key       ErrorKey
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          ErrorKey& key,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("ErrorKey");
+
+  Index s;
+  xml_read_from_stream(is_xml, s, pbifs);
+  key.y_start = static_cast<Size>(s);
+  xml_read_from_stream(is_xml, s, pbifs);
+  key.y_size = static_cast<Size>(s);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ErrorKey");
+}
+
+//! Write ErrorKey to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param key       ErrorKey
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const ErrorKey& key,
+                         bofstream* pbofs,
+                         const String& name [[maybe_unused]]) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("ErrorKey");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, static_cast<Index>(key.y_start), pbofs, "y_start");
+  xml_write_to_stream(os_xml, static_cast<Index>(key.y_size), pbofs, "y_size");
+
+  close_tag.set_name("/ErrorKey");
+  close_tag.write_to_stream(os_xml);
+}
+
 //=== JacobianTargetType =========================================================
 
 //! Reads JacobianTargetType from XML input stream
@@ -3161,6 +3211,8 @@ void xml_read_from_stream(std::istream& is_xml,
     jtt.target = LblLineKey{};
   } else if (type == "SensorKey"s) {
     jtt.target = SensorKey{};
+  } else if (type == "ErrorKey"s) {
+    jtt.target = ErrorKey{};
   } else {
     ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
   }

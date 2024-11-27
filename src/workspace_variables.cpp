@@ -594,7 +594,7 @@ radiance.
   wsv_data["model_state_vector"] = {
       .desc          = R"(A state vector of the model.
 
-In classical ``F(x) = y``-notation, this is the ``x``.
+In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`x`.
 )",
       .type          = "Vector",
       .default_value = Vector{},
@@ -603,7 +603,7 @@ In classical ``F(x) = y``-notation, this is the ``x``.
   wsv_data["model_state_vector_apriori"] = {
       .desc = R"(An apriori state vector of the model.
 
-In classical ``F(x) = y``-notation, this is the ``x``.
+In classical :math:`F(x) = y + \epsilon`-notation, this is the apriori :math:`x`.
 )",
       .type = "Vector",
   };
@@ -611,13 +611,27 @@ In classical ``F(x) = y``-notation, this is the ``x``.
   wsv_data["measurement_vector"] = {
       .desc = R"(The measurment vector for, e.g., a sensor.
 
-In classical ``F(x) = y``-notation, this is the ``y``.
+In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y`.
+
+This should often be the same size as *measurement_sensor*.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["measurement_vector_error"] = {
+      .desc = R"(The measurment vector error for, e.g., a sensor.
+
+In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`\epsilon`.
+
+This should often be the same size as *measurement_sensor*.
 )",
       .type = "Vector",
   };
 
   wsv_data["measurement_vector_fitted"] = {
       .desc          = R"(As *measurement_vector*, but fitted to the model.
+
+In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
 )",
       .type          = "Vector",
       .default_value = Vector{},
@@ -674,7 +688,19 @@ In classical ``F(x) = y``-notation, this is the ``y``.
   wsv_data["measurement_jacobian"] = {
       .desc = R"(The partial derivatives of the *measurement_vector*.
 
+In classical :math:`F(x) = y + \epsilon`-notation, this is used as both :math:`\frac{\partial y}{\partial x}` or :math:`\frac{\partial y}{\partial x} + \frac{\partial \epsilon}{\partial x}`.
+
 The size of this variable should be the size *measurement_vector* times the size of *model_state_vector*.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["measurement_jacobian_error"] = {
+      .desc = R"(The partial derivatives of the *measurement_vector_error*.
+
+In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`\frac{\partial \epsilon}{\partial x}`.
+
+The size of this variable should be the size *measurement_vector_error* times the size of *model_state_vector*.
 )",
       .type = "Matrix",
   };
