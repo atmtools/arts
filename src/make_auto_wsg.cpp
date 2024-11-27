@@ -98,6 +98,7 @@ template <typename T> struct WorkspaceGroupInfo {
   static constexpr std::string_view name = "<Unknown>";
   static constexpr std::string_view file = "<Unknown>";
   static constexpr std::string_view desc = "<Unknown>";
+  static constexpr bool map_or_vector = false;
   static constexpr bool value_type = false;
 };
 
@@ -108,12 +109,14 @@ template <> struct WorkspaceGroupInfo<{0}> {{
   static constexpr std::string_view name = "{0}";
   static constexpr std::string_view file = "{1}";
   static constexpr std::string_view desc = R"--({2})--";
-  static constexpr bool value_type = {3};
+  static constexpr bool map_or_vector = {3};
+  static constexpr bool value_type = {4};
 }};
 )",
                       group,
                       data.at(group).file,
                       data.at(group).desc,
+                      data.at(group).array_depth > 0 or data.at(group).map_type,
                       data.at(group).value_type);
   }
 
@@ -295,12 +298,13 @@ concept mapped_type_is_wsg = QualifiedWorkspaceGroup<typename T::mapped_type>;
 
 template <typename T>
 concept python_requires_map_and_vector_subtype_are_groups =
-    value_type_is_wsg<T> or mapped_type_is_wsg<T> or not has_value_type<T> or
+    value_type_is_wsg<T> or (mapped_type_is_wsg<T>) or not has_value_type<T> or
     std::same_as<T, String>;
 
 template <typename T>
 concept internally_consistent =
-    python_requires_map_and_vector_subtype_are_groups<T>;
+      (value_type_is_wsg<T> or mapped_type_is_wsg<T>) or
+   not WorkspaceGroupInfo<T>::map_or_vector;
 
 )--";
 

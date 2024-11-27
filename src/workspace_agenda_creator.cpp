@@ -69,6 +69,19 @@ Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
+Agenda get_propagation_matrix_scattering_totally_random_orientation_spectral_agenda(const std::string& option) {
+  AgendaCreator agenda("propagation_matrix_scattering_totally_random_orientation_spectral_agenda");
+
+  using enum propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined;
+  switch (to<propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined>(option)) {
+    case FromSpecies:
+      agenda.add("propagation_matrix_scattering_totally_random_orientation_spectralInit");
+      agenda.add("propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies");
+  }
+
+  return std::move(agenda).finalize();
+}
+
 Agenda get_propagation_matrix_agenda(const std::string& option) {
   AgendaCreator agenda("propagation_matrix_agenda");
 
@@ -169,6 +182,26 @@ Agenda get_disort_settings_agenda(const std::string& option) {
       agenda.add("disort_settingsNoSingleScatteringAlbedo");
       agenda.add("disort_settingsNoFractionalScattering");
       agenda.add("disort_settingsNoLegendre");
+      agenda.add("disort_settingsNoSun");
+      break;
+    case ScatteringSpecies:
+      agenda.set("jacobian_targets", JacobianTargets{});
+      agenda.add("ray_path_atmospheric_pointFromPath");
+      agenda.add("ray_path_frequency_gridFromPath");
+      agenda.add("ray_path_propagation_matrixFromPath");
+      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("disort_settingsInit");
+      agenda.add("legendre_degreeFromDisortSettings");
+      agenda.add("ray_path_propagation_matrix_scattering_totally_random_orientation_spectralFromAgenda");
+      agenda.add("ray_path_propagation_matrixAddTotallyRandomOrientationSpectral");
+      agenda.add("disort_settingsOpticalThicknessFromPath");
+      agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
+      agenda.add("disort_settingsSurfaceEmissionByTemperature");
+      agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation");
+      agenda.add("disort_settingsNoSurfaceScattering");
+      agenda.add("disort_settingsSingleScatteringAlbedoFromPath");
+      agenda.add("disort_settingsNoFractionalScattering");
+      agenda.add("disort_settingsLegendreCoefficientsFromPath");
       agenda.add("disort_settingsNoSun");
       break;
   }

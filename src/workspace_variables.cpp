@@ -334,6 +334,48 @@ Shape: NFREQ
       .type = "MuelmatVector",
   };
 
+  wsv_data["propagation_matrix_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
+)--",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["ray_path_propagation_matrix_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
+)--",
+      .type = "ArrayOfPropmatVector",
+  };
+
+  wsv_data["absorption_vector_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
+)--",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["ray_path_absorption_vector_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["phase_matrix_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
+)--",
+      .type = "Matrix",
+  };
+
+  wsv_data["ray_path_phase_matrix_scattering_totally_random_orientation_spectral"] = {
+      .desc = R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
+)--",
+      .type = "ArrayOfMatrix",
+  };
+
+  wsv_data["scattering_species"] = {
+      .desc = R"--(The scattering species
+)--",
+      .type = "ArrayOfScatteringSpecies",
+  };
+
   wsv_data["ray_path_spectral_radiance_scattering"] = {
       .desc = R"--(Spectral radiance scattered into the propagation path
 )--",
@@ -719,6 +761,12 @@ Size is *disort_quadrature_dimension* / 2
 
   wsv_data["disort_legendre_polynomial_dimension"] = {
       .desc = R"(The number of input Legendre polynimials for Disort.
+)",
+      .type = "Index",
+  };
+
+  wsv_data["legendre_degree"] = {
+      .desc = R"(The degree of a Legendre polynimial.
 )",
       .type = "Index",
   };

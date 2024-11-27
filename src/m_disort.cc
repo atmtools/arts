@@ -43,7 +43,6 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
                  [](const Numeric& mu) { return acosd(mu); });
 
   String error;
-
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis)
   for (Index iv = 0; iv < nv; iv++) {
     try {
@@ -56,7 +55,7 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 
 void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,

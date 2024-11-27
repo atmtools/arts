@@ -18,32 +18,25 @@ namespace absorption {
  * an extinction matrix for a given format and stokes dimension.
  *
  * @param format The extinction matrix data format.
- * @param stokes_dim The number of stokes elements that are stored.
  * @return The number of elements that are required to be stored.
  */
-constexpr Index get_n_mat_elems(Format format, Index stokes_dim) {
+constexpr Index get_n_mat_elems(Format format) {
   // Compact format used for extinction matrix data in TRO format.
   if (format == Format::TRO) {
     return 1;
   }
-  switch (stokes_dim) {
-    case 1:
-      return 1;
-    default:
-      return 2;
-  }
+  return 2;
 }
 
 }  // namespace absorption
 
 template <std::floating_point Scalar,
           Format format,
-          Representation representation,
-          Index stokes_dim>
+          Representation representation>
 class AbsorptionVectorData;
 
-template <std::floating_point Scalar, Representation repr, Index stokes_dim>
-class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
+template <std::floating_point Scalar, Representation repr>
+class AbsorptionVectorData<Scalar, Format::TRO, repr>
     : public matpack::matpack_data<Scalar, 3> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -55,11 +48,10 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
   using AbsorptionVectorDataLabFrame =
       AbsorptionVectorData<Scalar,
                            Format::ARO,
-                           Representation::Gridded,
-                           stokes_dim>;
+                           Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs =
-      absorption::get_n_mat_elems(Format::TRO, stokes_dim);
+      absorption::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   AbsorptionVectorData() {};
@@ -108,9 +100,9 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
         {this->extent(0), this->extent(1)});
   }
 
-  AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
+  AbsorptionVectorData<Scalar, Format::ARO, repr>
   to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) {
-    AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim> av_new{t_grid_, f_grid_, za_inc_grid};
+    AbsorptionVectorData<Scalar, Format::ARO, repr> av_new{t_grid_, f_grid_, za_inc_grid};
     for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
         for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
@@ -121,8 +113,8 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
     return av_new;
   }
 
-  AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> to_spectral() {
-    AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> avd_new(t_grid_, f_grid_);
+  AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> to_spectral() {
+    AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> avd_new(t_grid_, f_grid_);
     reinterpret_cast<matpack::matpack_data<Scalar, 3>&>(avd_new) = *this;
     return avd_new;
   }
@@ -165,8 +157,8 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr, stokes_dim>
   std::shared_ptr<const Vector> f_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr, Index stokes_dim>
-class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
+template <std::floating_point Scalar, Representation repr>
+class AbsorptionVectorData<Scalar, Format::ARO, repr>
     : public matpack::matpack_data<Scalar, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -176,7 +168,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
 
  public:
   constexpr static Index n_stokes_coeffs =
-      absorption::get_n_mat_elems(Format::ARO, stokes_dim);
+      absorption::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   AbsorptionVectorData() {};
@@ -232,8 +224,8 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr, stokes_dim>
         {this->extent(0), this->extent(1), this->extent(2)});
   }
 
-  AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> to_spectral() {
-    AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> avd_new(t_grid_, f_grid_, za_inc_grid_);
+  AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> to_spectral() {
+    AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> avd_new(t_grid_, f_grid_, za_inc_grid_);
     reinterpret_cast<matpack::matpack_data<Scalar, 4>&>(avd_new) = *this;
     return avd_new;
   }

@@ -17,39 +17,27 @@ namespace extinction {
  * an extinction matrix for a given format and stokes dimension.
  *
  * @param format The extinction matrix data format.
- * @param stokes_dim The number of stokes elements that are stored.
  * @return The number of elements that are required to be stored.
  */
-constexpr Index get_n_mat_elems(Format format, Index stokes_dim) {
+constexpr Index get_n_mat_elems(Format format) {
   // Compact format used for extinction matrix data in TRO format.
   if (format == Format::TRO) {
     return 1;
   }
   // All matrix elements stored for data in other formats.
-  switch (stokes_dim) {
-    case 1:
-      return 1;
-    case 2:
-      return 2;
-    case 3:
-      return 3;
-    case 4:
-      return 3;
-  }
-  return 0;
+  return 3;
 }
 
 }  // namespace extinction
 
 template <std::floating_point Scalar,
           Format format,
-          Representation representation,
-          Index stokes_dim>
+          Representation representation>
 class ExtinctionMatrixData;
 
 
-template <std::floating_point Scalar, Representation repr, Index stokes_dim>
-class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
+template <std::floating_point Scalar, Representation repr>
+class ExtinctionMatrixData<Scalar, Format::TRO, repr>
     : public matpack::matpack_data<Scalar, 3> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -62,19 +50,17 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
   using ExtinctionMatrixDataSpectral =
       ExtinctionMatrixData<Scalar,
                            Format::TRO,
-                           Representation::Spectral,
-                           stokes_dim>;
+                           Representation::Spectral>;
   using ExtinctionMatrixDataLabFrame =
       ExtinctionMatrixData<Scalar,
                            Format::ARO,
-                           Representation::Gridded,
-                           stokes_dim>;
+                           Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs =
-      extinction::get_n_mat_elems(Format::TRO, stokes_dim);
+      extinction::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
-  ExtinctionMatrixData() {};
+  ExtinctionMatrixData() = default;
   /** Create a new ExtinctionMatrixData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -121,30 +107,26 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new extinction matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  ExtinctionMatrixData<Scalar, Format::TRO, repr, new_stokes_dim>
+  ExtinctionMatrixData<Scalar, Format::TRO, repr>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
-    ExtinctionMatrixData<Scalar, Format::TRO, repr, new_stokes_dim> result(
+    ExtinctionMatrixData<Scalar, Format::TRO, repr> result(
         t_grid_, f_grid_);
     result = this->operator()(joker, joker, result.n_stokes_coeffs);
     return result;
   }
 
-  ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> to_spectral() {
-    ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral, stokes_dim> emd_new{t_grid_, f_grid_};
+  ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral> to_spectral() {
+    ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral> emd_new{t_grid_, f_grid_};
     reinterpret_cast<matpack::matpack_data<Scalar, 3>&>(emd_new) = *this;
     return emd_new;
   }
 
-  ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
+  ExtinctionMatrixData<Scalar, Format::ARO, repr>
   to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) {
-    ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim> em_new{t_grid_, f_grid_, za_inc_grid};
+    ExtinctionMatrixData<Scalar, Format::ARO, repr> em_new{t_grid_, f_grid_, za_inc_grid};
     for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
         for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
@@ -190,8 +172,8 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr, stokes_dim>
   std::shared_ptr<const Vector> f_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr, Index stokes_dim>
-class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
+template <std::floating_point Scalar, Representation repr>
+class ExtinctionMatrixData<Scalar, Format::ARO, repr>
     : public matpack::matpack_data<Scalar, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -204,16 +186,14 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
   using ExtinctionMatrixDataSpectral =
       ExtinctionMatrixData<Scalar,
                            Format::ARO,
-                           Representation::Spectral,
-                           stokes_dim>;
+                           Representation::Spectral>;
   using ExtinctionMatrixDataLabFrame =
       ExtinctionMatrixData<Scalar,
                            Format::ARO,
-                           Representation::Gridded,
-                           stokes_dim>;
+                           Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs =
-      extinction::get_n_mat_elems(Format::ARO, stokes_dim);
+      extinction::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
   ExtinctionMatrixData() {};
@@ -271,22 +251,18 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @tparam new_stokes_dim The stokes dimensions for which to extract the
-   * relevant data.
    * @return A new extinction matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  template <Index new_stokes_dim>
-  PhaseMatrixData<Scalar, Format::TRO, Representation::Spectral, new_stokes_dim>
+  PhaseMatrixData<Scalar, Format::TRO, Representation::Spectral>
   extract_stokes_coeffs() const {
-    ARTS_ASSERT(new_stokes_dim <= stokes_dim);
-    ExtinctionMatrixData<Scalar, Format::ARO, repr, new_stokes_dim> result(
+    ExtinctionMatrixData<Scalar, Format::ARO, repr> result(
         t_grid_, f_grid_, za_inc_grid_);
     result = this->operator()(joker, joker, joker, result.n_stokes_coeffs);
     return result;
   }
 
-  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> to_spectral();
+  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> to_spectral();
 
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
                               const RegridWeights& weights) {
@@ -347,10 +323,10 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>
   std::shared_ptr<const Vector> za_inc_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr, Index stokes_dim>
-ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim>
-ExtinctionMatrixData<Scalar, Format::ARO, repr, stokes_dim>::to_spectral() {
-    ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral, stokes_dim> emd_new{t_grid_, f_grid_, za_inc_grid_};
+template <std::floating_point Scalar, Representation repr>
+ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral>
+ExtinctionMatrixData<Scalar, Format::ARO, repr>::to_spectral() {
+    ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> emd_new{t_grid_, f_grid_, za_inc_grid_};
     emd_new = reinterpret_cast<matpack::matpack_data<Scalar, 4>&>(*this);
     return emd_new;
 }

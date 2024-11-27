@@ -5,6 +5,10 @@
 #include <physics_funcs.h>
 #include <rtepack.h>
 #include <workspace.h>
+
+#include <numeric>
+
+#include "atm.h"
 #include "debug.h"
 #include "enumsSurfaceKey.h"
 #include "mh_checks.h"
@@ -242,15 +246,6 @@ void disort_settingsOpticalThicknessFromPath(
                           }),
       "No implementation for polarized propagation matrices.");
 
-  // Altitude is increasing
-  ARTS_USER_ERROR_IF(
-      std::ranges::is_sorted(
-          ray_path,
-          [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
-            return a.altitude() < b.altitude();
-          }),
-      "Ray path points must be sorted by increasing altitude.");
-
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
     for (Index i = 0; i < n; i++) {
@@ -259,6 +254,18 @@ void disort_settingsOpticalThicknessFromPath(
 
     return out;
   }();
+
+  ARTS_USER_ERROR_IF(std::ranges::any_of(r, Cmp::le(0.0)),
+                     R"(Atmospheric layer thickness must be positive.
+
+Values:   {:B,}
+
+Ray path points must be sorted by decreasing altitude.
+
+ray_path: {:B,}
+)",
+                     r,
+                     ray_path);
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
@@ -321,3 +328,156 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
 void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
   disort_settings.single_scattering_albedo = 0.0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Disort Scattering Species Interface
+////////////////////////////////////////////////////////////////////////////////
+
+void disort_settingsLegendreCoefficientsFromPath(
+    DisortSettings& disort_settings,
+    const ArrayOfMatrix&
+        ray_path_phase_matrix_scattering_totally_random_orientation_spectral) try {
+  const Size N  = disort_settings.nlay;
+  const Index F = disort_settings.nfreq;
+  const Index L = disort_settings.legendre_polynomial_dimension;
+
+  ARTS_USER_ERROR_IF(
+      (N + 1) !=
+          ray_path_phase_matrix_scattering_totally_random_orientation_spectral
+              .size(),
+      R"(The number of levels in ray_path_phase_matrix_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+
+  disort_settings.nlay + 1:                                                    {}
+  ray_path_phase_matrix_scattering_totally_random_orientation_spectral.size(): {}
+)",
+      N,
+      ray_path_phase_matrix_scattering_totally_random_orientation_spectral
+          .size());
+
+  ARTS_USER_ERROR_IF(
+      not all_same_shape(
+          std::array{F, L},
+          ray_path_phase_matrix_scattering_totally_random_orientation_spectral),
+      "The shape of ray_path_phase_matrix_scattering_totally_random_orientation_spectral must be {:B,}, at least one is not",
+      std::array{F, L});
+
+  ARTS_USER_ERROR_IF(
+      not same_shape(std::array{F, static_cast<Index>(N), L},
+                     disort_settings.legendre_coefficients),
+      R"(The shape of disort_settings.legendre_coefficients must be {:B,}, but is {:B,})",
+      std::array{F, static_cast<Index>(N), L},
+      disort_settings.legendre_coefficients.shape());
+
+  Vector invfac(L);
+  for (Index j = 0; j < L; j++) {
+    invfac[j] = 1.0 / std::sqrt(2 * j + 1);
+  }
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3)
+  for (Size i = 0; i < N; i++) {
+    for (Index iv = 0; iv < F; iv++) {
+      for (Index j = 0; j < L; j++) {
+        disort_settings.legendre_coefficients(iv, i, j) =
+            invfac[j] *
+            std::midpoint(
+                ray_path_phase_matrix_scattering_totally_random_orientation_spectral
+                    [i](iv, j),
+                ray_path_phase_matrix_scattering_totally_random_orientation_spectral
+                    [i + 1](iv, j));
+      }
+    }
+  }
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+  for (Size i = 0; i < N; i++) {
+    for (Index iv = 0; iv < F; iv++) {
+      // Disort wants the first value to be 1.0, so we normalize
+      if (std::isnormal(disort_settings.legendre_coefficients(iv, i, 0))) {
+        disort_settings.legendre_coefficients(iv, i, joker) /=
+            disort_settings.legendre_coefficients(iv, i, 0);
+
+        //! WARNING: Numerical instabiliy occurs for large j-values in invfac cf what scattering_species does
+        for (auto& v : disort_settings.legendre_coefficients(iv, i, joker)) {
+          v = std::clamp(v, -1.0, 1.0);
+        }
+      } else {
+        disort_settings.legendre_coefficients(iv, i, joker) = 0.0;
+        disort_settings.legendre_coefficients(iv, i, 0)     = 1.0;
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void disort_settingsSingleScatteringAlbedoFromPath(
+    DisortSettings& disort_settings,
+    const ArrayOfPropmatVector&
+        ray_path_propagation_matrix_scattering_totally_random_orientation_spectral,
+    const ArrayOfStokvecVector&
+        ray_path_absorption_vector_scattering_totally_random_orientation_spectral) try {
+  const Size N  = disort_settings.nlay;
+  const Index F = disort_settings.nfreq;
+
+  ARTS_USER_ERROR_IF(
+      (N + 1) !=
+          ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
+              .size(),
+      R"(The number of levels in ray_path_propagation_matrix_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+
+  disort_settings.nlay:                                                              {}
+  ray_path_propagation_matrix_scattering_totally_random_orientation_spectral.size(): {}
+)",
+      N,
+      ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
+          .size());
+
+  ARTS_USER_ERROR_IF(
+      (N + 1) !=
+          ray_path_absorption_vector_scattering_totally_random_orientation_spectral
+              .size(),
+      R"(The number of levels in ray_path_absorption_vector_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+
+  disort_settings.nlay:                                                             {}
+  ray_path_absorption_vector_scattering_totally_random_orientation_spectral.size(): {}
+)",
+      N,
+      ray_path_absorption_vector_scattering_totally_random_orientation_spectral
+          .size());
+
+  ARTS_USER_ERROR_IF(
+      not all_same_shape(
+          std::array{F},
+          ray_path_absorption_vector_scattering_totally_random_orientation_spectral,
+          ray_path_propagation_matrix_scattering_totally_random_orientation_spectral),
+      "The shape of ray_path_propagation_matrix_scattering_totally_random_orientation_spectral and ray_path_absorption_vector_scattering_totally_random_orientation_spectral must be {:B,}, at least one is not",
+      std::array{F});
+
+  ARTS_USER_ERROR_IF(
+      not same_shape(std::array{F, static_cast<Index>(N)},
+                     disort_settings.single_scattering_albedo),
+      R"(The shape of disort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
+      std::array{F, static_cast<Index>(N)},
+      disort_settings.single_scattering_albedo.shape());
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+  for (Size i = 0; i < N; i++) {
+    for (Index iv = 0; iv < F; iv++) {
+      const Numeric x =
+          1.0 -
+          std::midpoint(
+              (inv(ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
+                       [i][iv]) *
+               ray_path_absorption_vector_scattering_totally_random_orientation_spectral
+                   [i][iv])
+                  .I(),
+              (inv(ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
+                       [i][iv]) *
+               ray_path_absorption_vector_scattering_totally_random_orientation_spectral
+                   [i][iv])
+                  .I());
+      disort_settings.single_scattering_albedo(iv, i) =
+          std::isnormal(x) ? x : 0.0;
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH

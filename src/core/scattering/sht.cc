@@ -287,6 +287,28 @@ FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
 // SHTProvider
 ////////////////////////////////////////////////////////////////////////////////
 
+std::shared_ptr<SHT> SHTProvider::get_instance(SHTParams params [[maybe_unused]]) {
+#ifdef ARTS_NO_SHTNS
+    ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+    std::unreachable();
+#else
+#pragma omp critical
+    if (sht_instances_.count(params) == 0) {
+      sht_instances_[params] =
+          std::make_shared<SHT>(params[0], params[1], params[2], params[3]);
+    }
+    return sht_instances_[params];
+#endif
+  }
+
+  std::shared_ptr<SHT> SHTProvider::get_instance(Index n_aa, Index n_za) {
+    return get_instance(SHT::get_config_lonlat(n_aa, n_za));
+  }
+
+  std::shared_ptr<SHT> SHTProvider::get_instance_lm(Index l_max, Index m_max) {
+    return get_instance(SHT::get_config_lm(l_max, m_max));
+  }
+
 SHTProvider provider{};
 
 }  // namespace sht

@@ -20,6 +20,18 @@ internal_workspace_agendas() {
                  "atmospheric_point"},
   };
 
+  wsa_data
+      ["propagation_matrix_scattering_totally_random_orientation_spectral_agenda"] = {
+          .desc =
+              R"--(Compute the propagation matrix, the absorption vector, and their derivatives
+)--",
+          .output =
+              {"propagation_matrix_scattering_totally_random_orientation_spectral",
+               "absorption_vector_scattering_totally_random_orientation_spectral",
+               "phase_matrix_scattering_totally_random_orientation_spectral"},
+          .input = {"frequency_grid", "atmospheric_point", "legendre_degree"},
+      };
+
   wsa_data["propagation_matrix_scattering_agenda"] = {
       .desc =
           R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives

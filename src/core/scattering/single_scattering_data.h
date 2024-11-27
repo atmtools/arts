@@ -33,11 +33,10 @@ struct ParticleProperties {
  */
 template <std::floating_point Scalar,
           Format format,
-          Representation repr,
-          Index stokes_dim>
+          Representation repr>
 struct SingleScatteringData {
  public:
-  static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded, 4>
+  static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>
   from_legacy_tro(::SingleScatteringData ssd, ::ScatteringMetaData smd) {
     ARTS_USER_ERROR_IF(
         ssd.ptype != PType::PTYPE_TOTAL_RND,
@@ -48,11 +47,11 @@ struct SingleScatteringData {
     auto f_grid = std::make_shared<Vector>(ssd.f_grid);
     auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(ssd.za_grid));
 
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, 4>
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>
         phase_matrix(t_grid, f_grid, za_scat_grid);
-    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded, 4>
+    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded>
         extinction_matrix(t_grid, f_grid);
-    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded, 4>
+    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded>
         absorption_vector(t_grid, f_grid);
 
     for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
@@ -82,7 +81,7 @@ struct SingleScatteringData {
       smd.description, smd.source, smd.refr_index, smd.mass, smd.diameter_volume_equ, smd.diameter_max
     };
 
-    return SingleScatteringData<Numeric, Format::TRO, Representation::Gridded, 4>(properties,
+    return SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>(properties,
                                                                                   phase_matrix,
                                                                                   extinction_matrix,
                                                                                   absorption_vector,
@@ -99,11 +98,11 @@ struct SingleScatteringData {
    * @param forwardscatter_matrix_ The forwardscatter matrix.
    */
   SingleScatteringData(
-      PhaseMatrixData<Scalar, format, repr, stokes_dim> phase_matrix_,
-      ExtinctionMatrixData<Scalar, format, repr, stokes_dim> extinction_matrix_,
-      AbsorptionVectorData<Scalar, format, repr, stokes_dim> absorption_vector_,
-      BackscatterMatrixData<Scalar, format, stokes_dim> backscatter_matrix_,
-      ForwardscatterMatrixData<Scalar, format, stokes_dim>
+      PhaseMatrixData<Scalar, format, repr> phase_matrix_,
+      ExtinctionMatrixData<Scalar, format, repr> extinction_matrix_,
+      AbsorptionVectorData<Scalar, format, repr> absorption_vector_,
+      BackscatterMatrixData<Scalar, format> backscatter_matrix_,
+      ForwardscatterMatrixData<Scalar, format>
           forwardscatter_matrix_)
       : phase_matrix(phase_matrix_),
         extinction_matrix(extinction_matrix_),
@@ -122,11 +121,11 @@ struct SingleScatteringData {
    */
   SingleScatteringData(
       ParticleProperties properties_,
-      PhaseMatrixData<Scalar, format, repr, stokes_dim> phase_matrix_,
-      ExtinctionMatrixData<Scalar, format, repr, stokes_dim> extinction_matrix_,
-      AbsorptionVectorData<Scalar, format, repr, stokes_dim> absorption_vector_,
-      BackscatterMatrixData<Scalar, format, stokes_dim> backscatter_matrix_,
-      ForwardscatterMatrixData<Scalar, format, stokes_dim> forwardscatter_matrix_
+      PhaseMatrixData<Scalar, format, repr> phase_matrix_,
+      ExtinctionMatrixData<Scalar, format, repr> extinction_matrix_,
+      AbsorptionVectorData<Scalar, format, repr> absorption_vector_,
+      BackscatterMatrixData<Scalar, format> backscatter_matrix_,
+      ForwardscatterMatrixData<Scalar, format> forwardscatter_matrix_
                        )
       : properties(properties_),
         phase_matrix(phase_matrix_),
@@ -136,34 +135,33 @@ struct SingleScatteringData {
         forwardscatter_matrix(forwardscatter_matrix_) {}
 
   std::optional<ParticleProperties> properties;
-  std::optional<PhaseMatrixData<Scalar, format, repr, stokes_dim>> phase_matrix;
-  ExtinctionMatrixData<Scalar, format, repr, stokes_dim> extinction_matrix;
-  AbsorptionVectorData<Scalar, format, repr, stokes_dim> absorption_vector;
-  BackscatterMatrixData<Scalar, format, stokes_dim> backscatter_matrix;
-  ForwardscatterMatrixData<Scalar, format, stokes_dim> forwardscatter_matrix;
+  std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix;
+  ExtinctionMatrixData<Scalar, format, repr> extinction_matrix;
+  AbsorptionVectorData<Scalar, format, repr> absorption_vector;
+  BackscatterMatrixData<Scalar, format> backscatter_matrix;
+  ForwardscatterMatrixData<Scalar, format> forwardscatter_matrix;
 };
 
 template <std::floating_point Scalar,
           Format format,
-          Representation repr,
-          Index stokes_dim>
+          Representation repr>
 class ArrayOfSingleScatteringData
     : public std::vector<
-          SingleScatteringData<Scalar, format, repr, stokes_dim>> {
+          SingleScatteringData<Scalar, format, repr>> {
  public:
   //ArrayOfSingleScatteringData regrid(ScatteringDataGrids grids) {
   //  return ArrayOfSingleScatteringData{};
   //}
 
-  //  ArrayOfSingleScatteringData<Scalar, format, Representation::Gridded, stokes_dim> to_gridded() {
+  //  ArrayOfSingleScatteringData<Scalar, format, Representation::Gridded> to_gridded() {
   //    return ArrayOfSingleScatteringData{};
   //  }
   //
-  //  SingleScatteringData<Scalar, format, repr, stokes_dim> calculate_bulk_properties(Vector pnd,
+  //  SingleScatteringData<Scalar, format, repr> calculate_bulk_properties(Vector pnd,
   //                                                                                   Numeric temperature,
   //                                                                                   bool include_phase_matrix=true)
   //  {
-  //    return SingleScatteringData<Scalar, format, repr, stokes_dim>{};
+  //    return SingleScatteringData<Scalar, format, repr>{};
   //  }
 
  private:
@@ -171,15 +169,13 @@ class ArrayOfSingleScatteringData
 
 template <std::floating_point Scalar,
           Format format,
-          Representation repr,
-          Index stokes_dim>
+          Representation repr>
 std::ostream &operator<<(
     std::ostream &out,
-    SingleScatteringData<Scalar, format, repr, stokes_dim>) {
+    SingleScatteringData<Scalar, format, repr>) {
   out << "SingleScatteringData" << std::endl;
   out << "\t Format:          " << format << std::endl;
   out << "\t Representation:  " << repr << std::endl;
-  out << "\t Max. stokes dim: " << stokes_dim << std::endl;
   return out;
 }
 

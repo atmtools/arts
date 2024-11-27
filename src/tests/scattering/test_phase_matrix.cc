@@ -3,6 +3,8 @@
 #include <numbers>
 #include <ranges>
 
+#include <iostream>
+
 #include "arts_conversions.h"
 #include "interpolation.h"
 #include "matpack/matpack_concepts.h"
@@ -13,33 +15,28 @@
 
 using namespace scattering;
 
-template <Index stokes_dim>
 using PhaseMatrixTROGridded =
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, stokes_dim>;
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>;
 
-template <Index stokes_dim>
 using PhaseMatrixTROSpectral =
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, stokes_dim>;
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>;
 
-template <Index stokes_dim>
 using PhaseMatrixAROGridded =
-    PhaseMatrixData<Numeric, Format::ARO, Representation::Gridded, stokes_dim>;
+    PhaseMatrixData<Numeric, Format::ARO, Representation::Gridded>;
 
-template <Index stokes_dim>
 using PhaseMatrixAROSpectral =
-    PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral, stokes_dim>;
+    PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral>;
 
 /** Create a TRO phase matrix for testing
  *
  * Creates a phase matrix with Legendre polynomials with the degree
  * similar to the frequency index.
  */
-template <Index stokes_dim>
-PhaseMatrixTROGridded<stokes_dim> make_phase_matrix(
+PhaseMatrixTROGridded make_phase_matrix(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
-  PhaseMatrixTROGridded<stokes_dim> phase_matrix(t_grid, f_grid, za_scat_grid);
+  PhaseMatrixTROGridded phase_matrix(t_grid, f_grid, za_scat_grid);
   Vector za_grid  = Vector{grid_vector(*za_scat_grid)};
   za_grid        *= Conversion::deg2rad(1.0);
   Vector aa_grid(1);
@@ -60,12 +57,11 @@ PhaseMatrixTROGridded<stokes_dim> make_phase_matrix(
  *
  * Creates phase matrix data for a liquid sphere with a radius of 100um.
  */
-template <Index stokes_dim>
-PhaseMatrixTROGridded<stokes_dim> make_phase_matrix_liquid_sphere(
+PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
-  PhaseMatrixTROGridded<stokes_dim> phase_matrix(t_grid, f_grid, za_scat_grid);
+  PhaseMatrixTROGridded phase_matrix(t_grid, f_grid, za_scat_grid);
 
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
@@ -86,14 +82,13 @@ PhaseMatrixTROGridded<stokes_dim> make_phase_matrix_liquid_sphere(
  * similar to the frequency index and order similar to the temperature
  * index.
  */
-template <Index stokes_dim>
-PhaseMatrixAROGridded<stokes_dim> make_phase_matrix(
+PhaseMatrixAROGridded make_phase_matrix(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const Vector> za_inc_grid,
     std::shared_ptr<const Vector> delta_aa_grid,
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
-  PhaseMatrixAROGridded<stokes_dim> phase_matrix(
+  PhaseMatrixAROGridded phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
   Vector aa_grid  = *delta_aa_grid;
   aa_grid        *= Conversion::deg2rad(1.0);
@@ -121,7 +116,7 @@ bool test_phase_matrix_tro() {
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   std::shared_ptr<ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(*sht->get_za_grid_ptr());
   auto phase_matrix_gridded =
-      make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
+      make_phase_matrix(t_grid, f_grid, za_scat_grid);
 
   //
   // Test conversion between spectral and gridded format.
@@ -162,7 +157,7 @@ bool test_phase_matrix_tro() {
           IrregularZenithAngleGrid(Vector({0.0, 10, 20, 160, 180.0})));
 
   auto phase_matrix_liquid =
-      make_phase_matrix_liquid_sphere<4>(t_grid, f_grid, za_scat_grid_liquid);
+      make_phase_matrix_liquid_sphere(t_grid, f_grid, za_scat_grid_liquid);
   auto phase_matrix_lab = phase_matrix_liquid.to_lab_frame(
       za_inc_grid, delta_aa_grid, za_scat_grid_new);
 
@@ -207,7 +202,8 @@ bool test_phase_matrix_tro() {
         }
       }
     }
-  }
+  }        
+
 
   // Test extraction of backscatter matrix.
   auto backscatter_matrix = phase_matrix_liquid.extract_backscatter_matrix();
@@ -224,14 +220,13 @@ bool test_phase_matrix_tro() {
   if (err > 1e-15) return false;
 
   auto phase_matrix_liquid_sht =
-      make_phase_matrix_liquid_sphere<4>(t_grid, f_grid, za_scat_grid);
+      make_phase_matrix_liquid_sphere(t_grid, f_grid, za_scat_grid);
   auto phase_matrix_liquid_spectral = phase_matrix_liquid_sht.to_spectral(sht);
   auto backscatter_matrix_2 =
       phase_matrix_liquid_spectral.extract_backscatter_matrix();
   err            = max_error<Tensor3>(backscatter_matrix, backscatter_matrix_2);
   Tensor3 delta  = backscatter_matrix;
   delta         -= backscatter_matrix_2;
-
   if (err > 1e-15) return false;
 
   auto forwardscatter_matrix_2 =
@@ -240,18 +235,18 @@ bool test_phase_matrix_tro() {
   if (err > 1e-15) return false;
 
   // Test reduction of stokes elements.
-  auto phase_matrix_liquid_1 = phase_matrix_liquid.extract_stokes_coeffs<1>();
+  auto phase_matrix_liquid_1 = phase_matrix_liquid.extract_stokes_coeffs();
   err                        = max_error<ConstTensor4View>(
       phase_matrix_liquid_1,
-      phase_matrix_liquid(joker, joker, joker, Range(0, 1)));
+      phase_matrix_liquid);
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
   auto phase_matrix_liquid_spectral_1 =
-      phase_matrix_liquid_spectral.extract_stokes_coeffs<1>();
+      phase_matrix_liquid_spectral.extract_stokes_coeffs();
   err = max_error<matpack::matpack_view<std::complex<Numeric>, 4, true, true>>(
       phase_matrix_liquid_spectral_1,
-      phase_matrix_liquid_spectral(joker, joker, joker, Range(0, 1)));
+      phase_matrix_liquid_spectral);
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
@@ -264,21 +259,21 @@ bool test_phase_matrix_copy_const_tro() {
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
-      make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
+      make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
 
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, 2>
+  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>
       phase_matrix_gridded_2(phase_matrix_gridded);
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded, 2>
+  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>
       phase_matrix_gridded_3(phase_matrix_spectral);
   Numeric err = max_error(phase_matrix_gridded_2, phase_matrix_gridded_3);
   if (err > 1e-6) {
     return false;
   }
 
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral, 2>
+  PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral>
       phase_matrix_spectral_2 = phase_matrix_gridded_2;
-  err = max_error(phase_matrix_spectral.extract_stokes_coeffs<2>(),
+  err = max_error(phase_matrix_spectral.extract_stokes_coeffs(),
                   phase_matrix_spectral_2);
   if (err > 1e-6) {
     return false;
@@ -300,7 +295,7 @@ bool test_phase_matrix_regrid_tro() {
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = sht->get_za_grid_ptr();
   auto phase_matrix_gridded =
-      make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
+      make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
 
   //
@@ -465,7 +460,7 @@ bool test_backscatter_matrix_regrid_tro() {
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(sht->get_zenith_angle_grid()));
-  auto phase_matrix = make_phase_matrix<4>(t_grid, f_grid, za_scat_grid);
+  auto phase_matrix = make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
 
   //
@@ -533,7 +528,7 @@ bool test_phase_matrix_aro() {
   auto za_scat_grid  = sht->get_za_grid_ptr();
   auto delta_aa_grid = sht->get_aa_grid_ptr();
 
-  auto phase_matrix_gridded = make_phase_matrix<4>(
+  auto phase_matrix_gridded = make_phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
 
   //
@@ -577,11 +572,10 @@ bool test_phase_matrix_aro() {
       phase_matrix_spectral.extract_forwardscatter_matrix();
   err = max_error<Tensor4>(forwardscatter_matrix, forwardscatter_matrix_2);
   if (err > 1e-3) return false;
-
-  auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs<1>();
+  auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs();
   err                         = max_error<Tensor6View>(
       phase_matrix_gridded_1,
-      phase_matrix_gridded(joker, joker, joker, joker, joker, Range(0, 1)));
+      phase_matrix_gridded);
   if (err > 0) return false;
 
   return true;
@@ -601,7 +595,7 @@ bool test_phase_matrix_regrid_aro() {
   auto za_scat_grid  = sht->get_za_grid_ptr();
   auto za_inc_grid   = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
   auto delta_aa_grid = std::make_shared<Vector>(std::views::iota(0, 180));
-  auto phase_matrix_gridded = make_phase_matrix<4>(
+  auto phase_matrix_gridded = make_phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
   auto phase_matrix_spectral = phase_matrix_gridded.to_spectral();
 
@@ -776,7 +770,7 @@ bool test_backscatter_matrix_regrid_aro() {
   auto za_scat_grid  = sht->get_za_grid_ptr();
   auto za_inc_grid   = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
   auto delta_aa_grid = std::make_shared<Vector>(std::views::iota(0, 180));
-  auto phase_matrix_gridded = make_phase_matrix<4>(
+  auto phase_matrix_gridded = make_phase_matrix(
       t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix_gridded.extract_backscatter_matrix();
 

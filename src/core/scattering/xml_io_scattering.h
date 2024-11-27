@@ -70,15 +70,15 @@ void xml_read_from_stream(std::istream &is_xml,
                           scattering::FejerGrid& grid,
                           bifstream *pbifs [[maybe_unused]]);
 
-template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
+template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr>
 void xml_write_to_stream(std::ostream &os_xml,
-                         const scattering::PhaseMatrixData<Scalar, fmt, repr, stokes_dim>& grid,
+                         const scattering::PhaseMatrixData<Scalar, fmt, repr>& grid,
                          bofstream *pbofs [[maybe_unused]],
                          const String &);
 
-template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr, Index stokes_dim>
+template <std::floating_point Scalar, scattering::Format fmt, scattering::Representation repr>
 void xml_read_from_stream(std::istream &is_xml,
-                          const scattering::PhaseMatrixData<Scalar, fmt, repr, stokes_dim>& grid,
+                          const scattering::PhaseMatrixData<Scalar, fmt, repr>& grid,
                           bifstream *pbifs [[maybe_unused]]);
 
 void xml_write_to_stream(std::ostream &os_xml,

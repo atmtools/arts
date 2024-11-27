@@ -46,14 +46,17 @@ struct matpack_strided_access {
                                    const matpack_strided_access& r)
       : offset(r.offset), extent(r.extent), stride(r.stride) {
     // Start must be >= 0:
+    assert(0 <= offset);
     ARTS_ASSERT(0 <= offset, "offset={}", offset);
     // ... and < max_size:
+    assert(offset < max_size or (max_size == 0 and offset == 0));
     ARTS_ASSERT(offset < max_size or (max_size == 0 and offset == 0),
                 "offset={}; max_size=",
                 offset,
                 max_size);
 
     // Stride must be != 0:
+    assert(0 < stride);
     ARTS_ASSERT(0 < stride, "stride={}", stride);
 
     // Convert negative extent (joker) to explicit extent
@@ -61,7 +64,9 @@ struct matpack_strided_access {
       extent = 1 + (max_size - 1 - offset) / stride;
     } else {
       // Check that extent is ok:
+      assert(0 <= (offset + (extent - 1) * stride));
       ARTS_ASSERT(0 <= (offset + (extent - 1) * stride));
+      assert((offset + (extent - 1) * stride) < max_size);
       ARTS_ASSERT((offset + (extent - 1) * stride) < max_size);
     }
   }
@@ -82,11 +87,14 @@ struct matpack_strided_access {
     const Index prev_fin = p.offset + (p.extent - 1) * p.stride;
 
     // Resulting start must be >= previous start:
+    assert(p.offset <= offset);
     ARTS_ASSERT(p.offset <= offset);
     // and <= prev_fin, except for Joker:
+    assert(offset <= prev_fin || extent == -1);
     ARTS_ASSERT(offset <= prev_fin || extent == -1);
 
     // Resulting stride must be < 0:
+    assert(0 < stride);
     ARTS_ASSERT(0 < stride,
                 "Problem: stride=={} for offset=={} and extent=={}",
                 stride,
@@ -97,7 +105,9 @@ struct matpack_strided_access {
     if (extent < 0) {
       extent = 1 + (prev_fin - offset) / stride;
     } else {
+      assert(p.offset <= (offset + (extent - 1) * stride));
       ARTS_ASSERT(p.offset <= (offset + (extent - 1) * stride));
+      assert((offset + (extent - 1) * stride) <= prev_fin);
       ARTS_ASSERT((offset + (extent - 1) * stride) <= prev_fin);
     }
   }
@@ -466,6 +476,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const me_view& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
@@ -474,6 +485,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ce_view& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
@@ -482,6 +494,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const ms_view& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
@@ -490,6 +503,7 @@ class matpack_view {
   constexpr matpack_view& operator=(const cs_view& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if (unsafe_data_handle() not_eq x.unsafe_data_handle())
       std::copy(x.elem_begin(), x.elem_end(), elem_begin());
@@ -688,6 +702,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
   {
+    assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    {:B,}\nAccessor: {}",
                 shape(),
@@ -704,6 +719,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator()(access&&... ind) const -> ret_t
     requires(sizeof...(access) == N)
   {
+    assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    {:B,}\nAccessor: {}",
                 shape(),
@@ -720,6 +736,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
   {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    {}\nAccessor: {}",
                 shape(),
@@ -735,6 +752,7 @@ class matpack_view {
             Index M     = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    {}\nAccessor: {}",
                 shape(),
@@ -757,6 +775,7 @@ class matpack_view {
    * @return matpack_view<T, N, constant, strided> Slice of the view
    */
   matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
+    assert(extent(0) >= i0 + nelem);
     ARTS_ASSERT(extent(0) >= i0 + nelem,
                 "Cannot get range {}:{} for first dimension of {:B,}",
                 i0,
@@ -776,6 +795,7 @@ class matpack_view {
    * @return matpack_view<T, N, true, strided> Slice of the view
    */
   matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
+    assert(extent(0) >= i0 + nelem);
     ARTS_ASSERT(extent(0) >= i0 + nelem,
                 "Cannot get range {}:{} for first dimension of {:B,}",
                 i0,
@@ -1021,6 +1041,7 @@ class matpack_view {
   [[nodiscard]] matpack_view<T, 1, constant, true> diagonal() const
     requires(N == 2)
   {
+    assert(ncols() == nrows());
     ARTS_ASSERT(ncols() == nrows(), "{} vs {}", ncols(), nrows())
     return strided_mdspan<T, 1>{
         unsafe_data_handle(),
@@ -1038,9 +1059,7 @@ class matpack_view {
       const std::array<Index, M>& sz) const
     requires(not strided)
   {
-    if (size() != mdsize<M>(sz)) std::terminate();
-    ARTS_ASSERT(size() == mdsize<M>(sz), "{} vs {}", size(), mdsize<M>(sz))
-
+    assert (size() == mdsize<M>(sz)) ;
     return matpack_view<T, M, constant, false>{data_handle(), sz};
   }
 
@@ -1115,6 +1134,7 @@ class matpack_view {
   constexpr matpack_view& operator+=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) += x[i];
@@ -1137,6 +1157,7 @@ class matpack_view {
   constexpr matpack_view& operator-=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) -= x[i];
@@ -1159,6 +1180,7 @@ class matpack_view {
   constexpr matpack_view& operator*=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) *= x[i];
@@ -1181,6 +1203,7 @@ class matpack_view {
   constexpr matpack_view& operator/=(const matpack_view<U, N, c, s>& x)
     requires(not constant)
   {
+    assert(shape() == x.shape());
     ARTS_ASSERT(shape() == x.shape(), "{} vs {}", shape(), x.shape())
     if constexpr (strided or s)
       for (Index i = 0; i < extent(0); i++) this->operator[](i) /= x[i];
@@ -1320,6 +1343,7 @@ class matpack_view {
     requires(not constant)
   {
     auto ext_sh = mdshape(x);
+    assert(shape() == ext_sh);
     ARTS_ASSERT(shape() == ext_sh, "{} vs {}", shape(), ext_sh)
 
     auto pos = flat_shape_pos<N>(ext_sh);
