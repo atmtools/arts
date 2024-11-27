@@ -439,17 +439,35 @@ void absorption_bandsReadSpeciesSplitCatalog(
     }
   }
 
-  for (auto& isot : isotopologues) {
-    String filename = my_base + isot.FullName() + ".xml";
-    if (find_xml_file_existence(filename)) {
-      AbsorptionBands other;
-      xml_read_from_file(filename, other);
-      absorption_bands.insert(std::make_move_iterator(other.begin()),
-                              std::make_move_iterator(other.end()));
-    } else {
-      ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
+  std::vector<std::string> read_errors;
+  std::vector<std::string> file_errors;
+  std::vector<SpeciesIsotope> visot(isotopologues.begin(), isotopologues.end());
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
+  for (std::size_t iisot = 0; iisot < isotopologues.size(); iisot++) {
+    try {
+      const auto& isot{visot[iisot]};
+      String filename{my_base + isot.FullName() + ".xml"};
+      if (find_xml_file_existence(filename)) {
+        AbsorptionBands other;
+        xml_read_from_file(filename, other);
+#pragma omp critical(absorption_bandsReadSpeciesSplitCatalogInsert)
+        absorption_bands.insert(std::make_move_iterator(other.begin()),
+                                std::make_move_iterator(other.end()));
+      } else if (not ignore_missing) {
+#pragma omp critical(absorption_bandsReadSpeciesSplitCatalogFileError)
+        file_errors.push_back(filename);
+      }
+    } catch (const std::exception& e) {
+#pragma omp critical(absorption_bandsReadSpeciesSplitCatalogReadError)
+      read_errors.emplace_back(e.what());
     }
   }
+  if (file_errors.size() and read_errors.size())
+    ARTS_USER_ERROR(
+        "Files not found:\n{}\n\nReading errors:\n{}", file_errors, read_errors)
+
+  if (file_errors.size()) ARTS_USER_ERROR("Files not found:\n{}", file_errors)
+  if (read_errors.size()) ARTS_USER_ERROR("{}", read_errors);
 }
 ARTS_METHOD_ERROR_CATCH
 
