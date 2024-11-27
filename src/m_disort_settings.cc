@@ -246,15 +246,6 @@ void disort_settingsOpticalThicknessFromPath(
                           }),
       "No implementation for polarized propagation matrices.");
 
-  // Altitude is increasing
-  ARTS_USER_ERROR_IF(
-      std::ranges::is_sorted(
-          ray_path,
-          [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
-            return a.altitude() < b.altitude();
-          }),
-      "Ray path points must be sorted by increasing altitude.");
-
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
     for (Index i = 0; i < n; i++) {
@@ -263,6 +254,18 @@ void disort_settingsOpticalThicknessFromPath(
 
     return out;
   }();
+
+  ARTS_USER_ERROR_IF(std::ranges::any_of(r, Cmp::le(0.0)),
+                     R"(Atmospheric layer thickness must be positive.
+
+Values:   {:B,}
+
+Ray path points must be sorted by decreasing altitude.
+
+ray_path: {:B,}
+)",
+                     r,
+                     ray_path);
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {

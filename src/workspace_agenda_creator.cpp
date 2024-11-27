@@ -185,8 +185,7 @@ Agenda get_disort_settings_agenda(const std::string& option) {
       agenda.add("disort_settingsNoSun");
       break;
     case ScatteringSpecies:
-      agenda.add("jacobian_targetsInit");
-      agenda.add("jacobian_targetsFinalize");
+      agenda.set("jacobian_targets", JacobianTargets{});
       agenda.add("ray_path_atmospheric_pointFromPath");
       agenda.add("ray_path_frequency_gridFromPath");
       agenda.add("ray_path_propagation_matrixFromPath");

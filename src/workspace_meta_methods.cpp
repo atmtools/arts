@@ -63,7 +63,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name    = "disort_spectral_flux_fieldSunlessClearsky",
       .desc    = "Use Disort for clearsky calculations of spectral flux field",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricUplooking",
+      .methods = {"ray_pathGeometricDownlooking",
                   "disort_settings_agendaSet",
                   "disort_spectral_flux_fieldFromAgenda"},
       .out     = {"disort_spectral_flux_field"},

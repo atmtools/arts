@@ -41,7 +41,7 @@ if pyarts.arts.globals.data.has_sht:
 
     # %% Core Disort calculations
 
-    ws.disort_spectral_radiance_fieldClearsky(
+    ws.disort_spectral_radiance_fieldSunlessClearsky(
         longitude=lon,
         latitude=lat,
         disort_quadrature_dimension=NQuad,
