@@ -665,6 +665,11 @@ of this term multiplied by a negative distance.
 )--",
   };
 
+  wsg_data["ComplexMuelmat"] = {
+      .file = "rtepack.h",
+      .desc = "A single Complex Mueller 4x4 matrix.\n",
+  };
+
   wsg_data["Muelmat"] = {
       .file = "rtepack.h",
       .desc = "A single Mueller 4x4 matrix.\n",
@@ -696,6 +701,11 @@ of this term multiplied by a negative distance.
   };
 
   wsg_data["MuelmatMatrix"] = {
+      .file = "rtepack.h",
+      .desc = "A matrix of *Muelmat*.\n",
+  };
+
+  wsg_data["ComplexMuelmatMatrix"] = {
       .file = "rtepack.h",
       .desc = "A matrix of *Muelmat*.\n",
   };
@@ -737,73 +747,93 @@ of this term multiplied by a negative distance.
   };
 
   wsg_data["ArrayOfPropmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *PropmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *PropmatVector*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfMuelmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *MuelmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatVector*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfStokvecVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *StokvecVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecVector*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfPropmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *PropmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *PropmatMatrix*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfMuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *MuelmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatMatrix*.\n",
+      .array_depth = 1,
+  };
+
+  wsg_data["ArrayOfComplexMuelmatMatrix"] = {
+      .file        = "rtepack.h",
+      .desc        = "A list of *ComplexMuelmatMatrix*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfMuelmatTensor3"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *MuelmatTensor3*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatTensor3*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfStokvecMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *StokvecMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecMatrix*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfStokvecTensor3"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *StokvecTensor3*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecTensor3*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfArrayOfPropmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfPropmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfPropmatVector*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfMuelmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfMuelmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfMuelmatVector*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfStokvecVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfStokvecVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfStokvecVector*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfPropmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfPropmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfPropmatMatrix*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfMuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfMuelmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfMuelmatMatrix*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfStokvecMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfStokvecMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfStokvecMatrix*.\n",
+      .array_depth = 2,
   };
 
   wsg_data["NumericUnaryOperator"] = {
@@ -990,7 +1020,9 @@ well as the sampling device's polarization response.
 
   for (auto& g : internal_options()) {
     if (wsg_data.find(g.name) != wsg_data.end())
-      throw std::runtime_error("Duplicate workspace group name (name is reserved as options-group): " + g.name);
+      throw std::runtime_error(
+          "Duplicate workspace group name (name is reserved as options-group): " +
+          g.name);
 
     wsg_data[g.name] = {
         .file = "enums.h",

@@ -79,13 +79,13 @@ if pyarts.arts.globals.data.has_sht:
     plt.xlabel("Dirac frequency [GHz]")
     plt.title("Downlooking")
 
-    ws.propagation_matrix_scattering_totally_random_orientation_spectral_agendaSet(
-        option="FromSpecies"
+    ws.propagation_matrix_scattering_spectral_agendaSet(
+        option="FromSpeciesTRO"
     )
 
-    for EXT in np.logspace(-9, -1, 3):
-        for SSA in np.logspace(-5, -1, 5):
-            for g in [-1.0, -0.8, 0.0, 0.2, 1.0]:
+    for EXT in [0.1]:
+        for SSA in [0.1]:
+            for g in [0.9]:
                 print(EXT, SSA, g)
                 ws.scattering_species = [
                     pyarts.arts.HenyeyGreensteinScatterer(

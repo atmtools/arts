@@ -1510,18 +1510,18 @@ this method.
                     R"--(Positive value forces constant temperature [K].)--"},
   };
 
-  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectralInit"] = {
+  wsm_data["propagation_matrix_scatteringSpectralInit"] = {
       .desc =
-          R"--(Initialize *propagation_matrix_scattering_totally_random_orientation_spectral* and co to zeroes.
+          R"--(Initialize *propagation_matrix_scattering* and co to zeroes.
 
-This method must be used inside *propagation_matrix_scattering_totally_random_orientation_spectral* and then be called first.
+This method must be used inside *propagation_matrix_scattering_spectral_agenda* and then be called first.
 )--",
       .author = {"Richard Larsson"},
       .out =
           {
-              "propagation_matrix_scattering_totally_random_orientation_spectral",
-              "absorption_vector_scattering_totally_random_orientation_spectral",
-              "phase_matrix_scattering_totally_random_orientation_spectral",
+              "propagation_matrix_scattering",
+              "absorption_vector_scattering",
+              "phase_matrix_scattering_spectral",
           },
       .in = {"frequency_grid", "legendre_degree"},
   };
@@ -1537,23 +1537,23 @@ Method is purely for convenience and composition.
       .in     = {"disort_settings"},
   };
 
-  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies"] = {
+  wsm_data["propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO"] = {
       .desc =
           R"--(Adds *scattering_species* results for totally random oriented spectral calculations to
-*propagation_matrix_scattering_totally_random_orientation_spectral* and co.
+*propagation_matrix_scattering* and co.
 )--",
       .author = {"Richard Larsson"},
       .out =
           {
-              "propagation_matrix_scattering_totally_random_orientation_spectral",
-              "absorption_vector_scattering_totally_random_orientation_spectral",
-              "phase_matrix_scattering_totally_random_orientation_spectral",
+              "propagation_matrix_scattering",
+              "absorption_vector_scattering",
+              "phase_matrix_scattering_spectral",
           },
       .in =
           {
-              "propagation_matrix_scattering_totally_random_orientation_spectral",
-              "absorption_vector_scattering_totally_random_orientation_spectral",
-              "phase_matrix_scattering_totally_random_orientation_spectral",
+              "propagation_matrix_scattering",
+              "absorption_vector_scattering",
+              "phase_matrix_scattering_spectral",
               "frequency_grid",
               "atmospheric_point",
               "scattering_species",
@@ -1562,29 +1562,26 @@ Method is purely for convenience and composition.
 
   wsm_data["ray_path_propagation_matrixAddTotallyRandomOrientationSpectral"] = {
       .desc =
-          R"--(Adds *ray_path_propagation_matrix_scattering_totally_random_orientation_spectral* to *ray_path_propagation_matrix*.
+          R"--(Adds *ray_path_propagation_matrix_scattering* to *ray_path_propagation_matrix*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_propagation_matrix"},
-      .in =
-          {"ray_path_propagation_matrix",
-           "ray_path_propagation_matrix_scattering_totally_random_orientation_spectral"},
+      .in     = {"ray_path_propagation_matrix",
+                 "ray_path_propagation_matrix_scattering"},
   };
 
-  wsm_data["ray_path_propagation_matrix_scattering_totally_random_orientation_spectralFromAgenda"] = {
+  wsm_data["ray_path_propagation_matrix_scatteringFromSpectralAgenda"] = {
       .desc =
-          R"--(Compute *ray_path_propagation_matrix_scattering_totally_random_orientation_spectral* and co for a path.
+          R"--(Compute *ray_path_propagation_matrix_scattering* and co for a path.
 )--",
-      .author = {"Richard Larsson"},
-      .out =
-          {"ray_path_propagation_matrix_scattering_totally_random_orientation_spectral",
-           "ray_path_absorption_vector_scattering_totally_random_orientation_spectral",
-           "ray_path_phase_matrix_scattering_totally_random_orientation_spectral"},
-      .in =
-          {"ray_path_frequency_grid",
-           "ray_path_atmospheric_point",
-           "legendre_degree",
-           "propagation_matrix_scattering_totally_random_orientation_spectral_agenda"},
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_propagation_matrix_scattering",
+                         "ray_path_absorption_vector_scattering",
+                         "ray_path_phase_matrix_scattering_spectral"},
+      .in             = {"ray_path_frequency_grid",
+                         "ray_path_atmospheric_point",
+                         "legendre_degree",
+                         "propagation_matrix_scattering_spectral_agenda"},
       .pass_workspace = true,
   };
 
@@ -1672,15 +1669,14 @@ See *propagation_matrix_scattering_agendaPredefined* for valid ``option``
       .gin_desc  = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["propagation_matrix_scattering_totally_random_orientation_spectral_agendaSet"] = {
+  wsm_data["propagation_matrix_scattering_spectral_agendaSet"] = {
       .desc =
-          R"--(Sets *propagation_matrix_scattering_totally_random_orientation_spectral_agenda* to a default value
+          R"--(Sets *propagation_matrix_scattering_spectral_agenda* to a default value
 
-See *propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined* for valid ``option``
+See *propagation_matrix_scattering_spectral_agendaPredefined* for valid ``option``
 )--",
-      .author = {"Richard Larsson"},
-      .out =
-          {"propagation_matrix_scattering_totally_random_orientation_spectral_agenda"},
+      .author    = {"Richard Larsson"},
+      .out       = {"propagation_matrix_scattering_spectral_agenda"},
       .gin       = {"option"},
       .gin_type  = {"String"},
       .gin_value = {std::nullopt},
@@ -4078,7 +4074,7 @@ Description of the special input arguments:
       .in =
           {
               "disort_settings",
-              "ray_path_phase_matrix_scattering_totally_random_orientation_spectral",
+              "ray_path_phase_matrix_scattering_spectral",
           },
   };
 
@@ -4090,8 +4086,8 @@ Description of the special input arguments:
       .in =
           {
               "disort_settings",
-              "ray_path_propagation_matrix_scattering_totally_random_orientation_spectral",
-              "ray_path_absorption_vector_scattering_totally_random_orientation_spectral",
+              "ray_path_propagation_matrix_scattering",
+              "ray_path_absorption_vector_scattering",
           },
   };
 

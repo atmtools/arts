@@ -6,6 +6,7 @@ namespace rtepack {
 using vec7 = matpack::matpack_constant_data<Numeric, 7>;
 using vec4 = matpack::matpack_constant_data<Numeric, 4>;
 using mat44 = matpack::matpack_constant_data<Numeric, 4, 4>;
+using cmat44 = matpack::matpack_constant_data<Complex, 4, 4>;
 
 struct muelmat;
 

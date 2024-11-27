@@ -20,17 +20,15 @@ internal_workspace_agendas() {
                  "atmospheric_point"},
   };
 
-  wsa_data
-      ["propagation_matrix_scattering_totally_random_orientation_spectral_agenda"] = {
-          .desc =
-              R"--(Compute the propagation matrix, the absorption vector, and their derivatives
+  wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
+      .desc =
+          R"--(Get the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix
 )--",
-          .output =
-              {"propagation_matrix_scattering_totally_random_orientation_spectral",
-               "absorption_vector_scattering_totally_random_orientation_spectral",
-               "phase_matrix_scattering_totally_random_orientation_spectral"},
-          .input = {"frequency_grid", "atmospheric_point", "legendre_degree"},
-      };
+      .output = {"propagation_matrix_scattering",
+                 "absorption_vector_scattering",
+                 "phase_matrix_scattering_spectral"},
+      .input  = {"frequency_grid", "atmospheric_point", "legendre_degree"},
+  };
 
   wsa_data["propagation_matrix_scattering_agenda"] = {
       .desc =
