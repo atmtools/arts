@@ -151,6 +151,29 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for sensor target : {}", new_target);
 }
 
+void model_state_covariance_matrixAdd(
+    CovarianceMatrix& model_state_covariance_matrix,
+    const JacobianTargets& jacobian_targets,
+    const ErrorKey& new_target,
+    const BlockMatrix& matrix,
+    const BlockMatrix& inverse) {
+  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+                     "Jacobian targets not finalized.");
+
+  bool found = false;
+
+  for (const auto& target : jacobian_targets.error()) {
+    if (target.type == new_target) {
+      found = true;
+      add_diagonal_covmat(
+          model_state_covariance_matrix, target, matrix, inverse);
+    }
+  }
+
+  ARTS_USER_ERROR_IF(
+      not found, "No target found for sensor target : {}", new_target);
+}
+
 void model_state_covariance_matrixAddAtmosphere(
     CovarianceMatrix& model_state_covariance_matrix,
     const JacobianTargets& jacobian_targets,

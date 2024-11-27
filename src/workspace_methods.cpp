@@ -2182,6 +2182,45 @@ represented by the *jacobian_targets*.  The covariance matrix inverse
     return v;
   };
 
+  wsm_data["jacobian_targetsAddErrorPolyFit"] = {
+      .desc =
+          R"--(Set a measurement error to polynomial fit.
+
+This is a generic error that is simply added to *measurement_vector* as if
+
+.. math::
+
+    y = y_0 + \epsilon(p_0, p_1, ..., p_n),
+
+where y represents *measurement_vector* and y0 is the measurement
+
+Order 0 means constant: y := y0 + a
+Order 1 means linear:   y := y0 + a + b * t
+and so on.  The derivatives that are added to the *model_state_vector* are
+those with regards to a, b, etc..
+
+.. note::
+
+    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
+    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
+    to all the different *SensorObsel* that they add to the *measurement_sensor*.
+    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
+    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
+    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "measurement_sensor"},
+      .gin       = {"t", "sensor_elem", "polyorder"},
+      .gin_type  = {"Vector", "Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Index{0}},
+      .gin_desc  = {"The grid of the perturbation",
+                    "The sensor element whose frequency grid to use",
+                    "The order of the polynomial fit"},
+  };
+  wsm_data["RetrievalAddErrorPolyFit"] =
+      jac2ret("jacobian_targetsAddErrorPolyFit");
+
   wsm_data["jacobian_targetsAddSensorFrequencyPolyFit"] = {
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
@@ -3977,6 +4016,39 @@ Description of the special input arguments:
                     "The inverse covariance diagoinal block matrix"},
   };
 
+  wsm_data["measurement_vector_errorInitStandard"] = {
+      .desc =
+          R"(Initialize measurement error variables to 0 from the measurements.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_vector_error", "measurement_jacobian_error"},
+      .in     = {"measurement_vector", "measurement_jacobian"},
+  };
+
+  wsm_data["measurement_vector_errorAddErrorState"] = {
+      .desc =
+          R"(Add measurement error from the model state.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_vector_error", "measurement_jacobian_error"},
+      .in     = {"measurement_vector_error",
+                 "measurement_jacobian_error",
+                 "jacobian_targets",
+                 "model_state_vector"},
+  };
+
+  wsm_data["measurement_vectorAddError"] = {
+      .desc =
+          R"(Add the measurement error to the measurement.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_vector", "measurement_jacobian"},
+      .in     = {"measurement_vector",
+                 "measurement_jacobian",
+                 "measurement_vector_error",
+                 "measurement_jacobian_error"},
+  };
+
   wsm_data["measurement_vector_error_covariance_matrixConstant"] = {
       .desc =
           R"(Sets a constant measurement vector error covariance matrix.
@@ -4333,8 +4405,8 @@ for more information.
 
   return wsm_data;
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
+  throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}",
+                                       std::string_view(e.what())));
 }
 
 const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&

@@ -16,6 +16,23 @@
 
 #include "operators.h"
 
+struct ErrorKey {
+  Size y_start;
+
+  Size y_size;
+
+  constexpr bool operator==(const ErrorKey& other) const {
+    return other.y_start == y_start and other.y_size == y_size;
+  }
+};
+
+template <>
+struct std::hash<ErrorKey> {
+  std::size_t operator()(const ErrorKey& g) const {
+    return std::hash<Size>{}(g.y_start) ^ (std::hash<Size>{}(g.y_size) << 32);
+  }
+};
+
 using AtmTargetSetState     = CustomOperator<void,
                                              ExhaustiveVectorView,
                                              const AtmField&,
@@ -48,6 +65,12 @@ using SensorTargetSetModel  = CustomOperator<void,
                                              ArrayOfSensorObsel&,
                                              const SensorKey&,
                                              const ExhaustiveConstVectorView>;
+using ErrorTargetSetState   = CustomOperator<void,
+                                             ExhaustiveVectorView,
+                                             MatrixView,
+                                             const ExhaustiveConstVectorView>;
+using ErrorTargetSetModel =
+    CustomOperator<void, ExhaustiveVectorView, const ExhaustiveConstVectorView>;
 
 namespace Jacobian {
 void default_atm_x_set(ExhaustiveVectorView, const AtmField&, const AtmKeyVal&);
@@ -55,6 +78,21 @@ void default_x_atm_set(AtmField&,
                        const AtmKeyVal&,
                        const ExhaustiveConstVectorView);
 
+/** The class that deals with Jacobian targets that are part of an AtmField object
+ * 
+ * The intent here is that the type should be able to match into any Key that can
+ * be held by an AtmField object.  This includes things like atmospheric temperature,
+ * pressure, VMR, Scattering species, etc.
+ * 
+ * As for all targets, we need to know where in a local list the target is
+ * (target_pos), where in the global list the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  The default functions are provided
+ * but can be overridden with advantage as they perform a lot of computations
+ * that are not required when the type is known.
+ */
 struct AtmTarget {
   AtmKeyVal type;
 
@@ -84,6 +122,21 @@ void default_x_surf_set(SurfaceField&,
                         const SurfaceKeyVal&,
                         const ExhaustiveConstVectorView);
 
+/** The class that deals with Jacobian targets that are part of a SurfaceField object
+ * 
+ * The intent here is that the type should be able to match into any Key that can
+ * be held by a SurfaceField object.  This includes things like surface temperature,
+ * surface properties, etc.
+ * 
+ * As for all targets, we need to know where in a local vector the target is
+ * (target_pos), where in the global vector the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  The default functions are provided
+ * but can be overridden with advantage as they perform a lot of computations
+ * that are not required when the type is known.
+ */
 struct SurfaceTarget {
   SurfaceKeyVal type;
 
@@ -111,6 +164,21 @@ void default_x_line_set(AbsorptionBands&,
                         const LblLineKey&,
                         const ExhaustiveConstVectorView);
 
+/** The class that deals with Jacobian targets that are part of an AbsorptionBands object
+ * 
+ * The intent here is that the type should be able to match into any Key that can
+ * be held by a AbsorptionBands object.  This includes things like einstein coefficient
+ * pressure parameters, etc.
+ * 
+ * As for all targets, we need to know where in a local vector the target is
+ * (target_pos), where in the global vector the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  The default functions are provided
+ * but can be overridden with advantage as they perform a lot of computations
+ * that are not required when the type is known.
+ */
 struct LineTarget {
   LblLineKey type;
 
@@ -138,6 +206,24 @@ void default_x_sensor_set(ArrayOfSensorObsel&,
                           const SensorKey&,
                           const ExhaustiveConstVectorView);
 
+/** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
+ * 
+ * The intent here is that the type should be able to match into any Key that can
+ * be held by a SensorObsel object.  This includes things like sensor frequency grid,
+ * sensor position, and sensor line of sight.
+ * 
+ * As for all targets, we need to know where in a local vector the target is
+ * (target_pos), where in the global vector the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  The default functions are provided
+ * but can be overridden with advantage as they perform a lot of computations
+ * that are not required when the type is known.
+ * 
+ * NOTE:  Several SensorObsel objects share grids.  By default, shared grids
+ * are updated together.
+ */
 struct SensorTarget {
   SensorKey type;
 
@@ -158,9 +244,40 @@ struct SensorTarget {
   void update(Vector&, const ArrayOfSensorObsel&) const;
 };
 
+/** The class that deals with Jacobian targets that are not part of any input object
+ * 
+ * The intent here is that some properties of a retrieval process are best described
+ * as an error on the measurement vector rather than as a property of the measurement
+ * 
+ * As for all targets, we need to know where in a local vector the target is
+ * (target_pos), where in the global vector the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  Note that the default functions
+ * will just throw an error if called.  It is necessary to override these functions
+ * manually for each case.
+ */
+struct ErrorTarget {
+  ErrorKey type;
+
+  Size target_pos{std::numeric_limits<Size>::max()};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  ErrorTargetSetState set_y{};
+
+  ErrorTargetSetModel set_x{};
+
+  void update_y(Vector& y, Matrix& dy, const Vector& x) const;
+
+  void update_x(Vector& x, const Vector& y, const Vector& y0) const;
+};
+
 template <typename T>
 concept target_type = requires(T a) {
-  { a.d } -> std::same_as<Numeric&>;
   { a.target_pos } -> std::same_as<Size&>;
   { a.x_start } -> std::same_as<Size&>;
   { a.x_size } -> std::same_as<Size&>;
@@ -264,28 +381,24 @@ struct targets_t {
   }
 
   void clear() { ((target<Targets>().clear()), ...); }
-
-  void zero_out_x() {
-    ((std::ranges::for_each(target<Targets>(),
-                            [](auto& a) {
-                              a.x_start = 0;
-                              a.x_size  = 0;
-                            })),
-     ...);
-  }
 };
 
-struct Targets final
-    : targets_t<AtmTarget, SurfaceTarget, LineTarget, SensorTarget> {
+struct Targets final : targets_t<AtmTarget,
+                                 SurfaceTarget,
+                                 LineTarget,
+                                 SensorTarget,
+                                 ErrorTarget> {
   [[nodiscard]] const std::vector<AtmTarget>& atm() const;
   [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
   [[nodiscard]] const std::vector<LineTarget>& line() const;
   [[nodiscard]] const std::vector<SensorTarget>& sensor() const;
+  [[nodiscard]] const std::vector<ErrorTarget>& error() const;
 
   [[nodiscard]] std::vector<AtmTarget>& atm();
   [[nodiscard]] std::vector<SurfaceTarget>& surf();
   [[nodiscard]] std::vector<LineTarget>& line();
   [[nodiscard]] std::vector<SensorTarget>& sensor();
+  [[nodiscard]] std::vector<ErrorTarget>& error();
 
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atmospheric_field,
@@ -301,21 +414,34 @@ struct Targets final
   SensorTarget& emplace_back(const SensorKey& t, Numeric d);
   SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
   SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
+  ErrorTarget& emplace_back(const ErrorKey& target,
+                            Size x_size,
+                            ErrorTargetSetState&& set_y,
+                            ErrorTargetSetModel&& set_x);
+  template <class Func>
+  ErrorTarget& emplace_back(const ErrorKey& target,
+                            Size x_size,
+                            const Func& set) {
+    return emplace_back(
+        target, x_size, ErrorTargetSetState{set}, ErrorTargetSetModel{set});
+  }
 };
 
 struct TargetType {
   using variant_t =
-      std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey>;
+      std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey, ErrorKey>;
   variant_t target;
 
   template <class AtmKeyValFunc,
             class SurfaceKeyValFunc,
             class LblLineKeyFunc,
-            class SensorKeyFunc>
+            class SensorKeyFunc,
+            class ErrorKeyFunc>
   [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
                                      const SurfaceKeyValFunc& ifsurf,
                                      const LblLineKeyFunc& ifline,
-                                     const SensorKeyFunc& ifsensor) const {
+                                     const SensorKeyFunc& ifsensor,
+                                     const ErrorKeyFunc& iferror) const {
     return std::visit(
         [&](const auto& t) {
           using T = std::decay_t<decltype(t)>;
@@ -327,6 +453,8 @@ struct TargetType {
             return ifline(t);
           } else if constexpr (std::same_as<T, SensorKey>) {
             return ifsensor(t);
+          } else if constexpr (std::same_as<T, ErrorKey>) {
+            return iferror(t);
           }
         },
         target);
@@ -338,9 +466,14 @@ struct TargetType {
     return apply([](auto&) { return "AtmKeyVal"s; },
                  [](auto&) { return "SurfaceKeyVal"s; },
                  [](auto&) { return "LblLineKey"s; },
-                 [](auto&) { return "SensorKey"s; });
+                 [](auto&) { return "SensorKey"s; },
+                 [](auto&) { return "ErrorKey"s; });
   }
 };
+
+void polyfit(ExhaustiveVectorView param,
+             const ExhaustiveConstVectorView x,
+             const ExhaustiveConstVectorView y);
 }  // namespace Jacobian
 
 Numeric field_perturbation(const auto& f) {
@@ -354,6 +487,24 @@ Numeric field_perturbation(const auto& f) {
 
 using JacobianTargets    = Jacobian::Targets;
 using JacobianTargetType = Jacobian::TargetType;
+
+template <>
+struct std::formatter<ErrorKey> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const ErrorKey& v, FmtContext& ctx) const {
+    return tags.format(ctx, '[', v.y_start, ", "sv, v.y_start + v.y_size, ')');
+  }
+};
 
 template <>
 struct std::hash<JacobianTargetType> {
@@ -389,6 +540,9 @@ struct std::formatter<JacobianTargetType> {
         },
         [this, &ctx](const SensorKey& key) {
           tags.format(ctx, "SensorKey::"sv, key);
+        },
+        [this, &ctx](const ErrorKey& key) {
+          tags.format(ctx, "ErrorKey::"sv, key);
         });
 
     return ctx.out();
@@ -524,6 +678,35 @@ struct std::formatter<Jacobian::SensorTarget> {
 };
 
 template <>
+struct std::formatter<Jacobian::ErrorTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::ErrorTarget& v,
+                              FmtContext& ctx) const {
+    const std::string_view sep = tags.sep();
+    return tags.format(ctx,
+                       v.type,
+                       ": target_pos: "sv,
+                       v.target_pos,
+                       sep,
+                       "x_start: "sv,
+                       v.x_start,
+                       sep,
+                       "x_size: "sv,
+                       v.x_size);
+  }
+};
+
+template <>
 struct std::formatter<JacobianTargets> {
   format_tags tags;
 
@@ -551,7 +734,10 @@ struct std::formatter<JacobianTargets> {
                 v.line(),
                 sep,
                 R"("sensor": )"sv,
-                v.sensor());
+                v.sensor(),
+                sep,
+                R"("error": )"sv,
+                v.error());
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();
