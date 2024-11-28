@@ -1013,6 +1013,50 @@ Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
       .pass_workspace = true,
   };
 
+  wsm_data["select_species_listCollectAbsorption"] = {
+      .desc =
+          R"--(Selects all main absorbers from the absorption data.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"select_species_list"},
+      .in             = {"absorption_predefined_model_data",
+                         "absorption_xsec_fit_data",
+                         "absorption_cia_data",
+                         "absorption_bands"},
+  };
+
+  wsm_data["ray_path_propagation_matrix_species_splitFromPath"] = {
+      .desc =
+          R"--(As *ray_path_propagation_matrixFromPath* but the output is only for the selected species.
+
+The outer dimension of the output arrays are the size of the species selection list.  The inner dimensions
+are as per *ray_path_propagation_matrixFromPath*.
+)--",
+      .author = {"Richard Larsson"},
+      .gout =
+          {"ray_path_propagation_matrix_species_split",
+           "ray_path_propagation_matrix_source_vector_nonlte_species_split",
+           "ray_path_propagation_matrix_jacobian_species_split",
+           "ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split"},
+      .gout_type = {"ArrayOfArrayOfPropmatVector",
+                    "ArrayOfArrayOfStokvecVector",
+                    "ArrayOfArrayOfPropmatMatrix",
+                    "ArrayOfArrayOfStokvecMatrix"},
+      .gout_desc =
+          {R"--(Propagation matrix for selected species)--",
+           R"--(Non-LTE source vector for selected species)--",
+           R"--(Jacobian of propagation matrix for selected species)--",
+           R"--(Jacobian of non-LTE source vector for selected species)--"},
+      .in             = {"propagation_matrix_agenda",
+                         "ray_path_frequency_grid",
+                         "ray_path_frequency_grid_wind_shift_jacobian",
+                         "jacobian_targets",
+                         "ray_path",
+                         "ray_path_atmospheric_point",
+                         "select_species_list"},
+      .pass_workspace = true,
+  };
+
   wsm_data["ray_path_propagation_matrix_scatteringFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix for scattering along the path.
@@ -1129,7 +1173,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
       .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
-                    "propagation_matrix_select_species",
+                    "select_species",
                     "jacobian_targets",
                     "frequency_grid",
                     "atmospheric_point",
@@ -1165,7 +1209,7 @@ but adds further contributions.
                  "propagation_matrix_jacobian",
                  "frequency_grid",
                  "absorption_species",
-                 "propagation_matrix_select_species",
+                 "select_species",
                  "jacobian_targets",
                  "atmospheric_point",
                  "ray_path_point"},
@@ -1478,7 +1522,7 @@ Available models:
       .in     = {"propagation_matrix",
                  "propagation_matrix_jacobian",
                  "absorption_predefined_model_data",
-                 "propagation_matrix_select_species",
+                 "select_species",
                  "jacobian_targets",
                  "frequency_grid",
                  "atmospheric_point"},
@@ -1498,7 +1542,7 @@ this method.
       .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
-                    "propagation_matrix_select_species",
+                    "select_species",
                     "jacobian_targets",
                     "frequency_grid",
                     "atmospheric_point",
@@ -2089,7 +2133,7 @@ matrix to be calculated will work.
                     "propagation_matrix_source_vector_nonlte_jacobian",
                     "frequency_grid",
                     "jacobian_targets",
-                    "propagation_matrix_select_species",
+                    "select_species",
                     "absorption_bands",
                     "ecs_data",
                     "atmospheric_point",
@@ -2110,7 +2154,7 @@ matrix to be calculated will work.
                    "propagation_matrix_jacobian",
                    "frequency_grid",
                    "jacobian_targets",
-                   "propagation_matrix_select_species",
+                   "select_species",
                    "absorption_lookup_table",
                    "atmospheric_point"},
       .gin      = {"no_negative_absorption",
@@ -2518,16 +2562,14 @@ If ``line`` is positive, also keep only the line of this index
                     "ray_path_atmospheric_point",
                     "frequency_grid",
                     "absorption_bands",
-                    "ecs_data"},
-      .gin       = {"temperature_perturbation",
-                    "water_perturbation",
+                    "ecs_data",
                     "select_species"},
-      .gin_type  = {"AscendingGrid", "AscendingGrid", "SpeciesEnum"},
-      .gin_value = {AscendingGrid{}, AscendingGrid{}, std::nullopt},
+      .gin       = {"temperature_perturbation", "water_perturbation"},
+      .gin_type  = {"AscendingGrid", "AscendingGrid"},
+      .gin_value = {AscendingGrid{}, AscendingGrid{}},
       .gin_desc =
           {"Temperature perturbation to use for the lookup table",
-           "Water vapor perturbation to use for the lookup table (makes the species nonlinear)",
-           "The species to compute the lookup table for"},
+           "Water vapor perturbation to use for the lookup table (makes the species nonlinear)"},
   };
 
   wsm_data["absorption_lookup_tablePrecomputeAll"] = {

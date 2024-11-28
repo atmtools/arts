@@ -15,7 +15,7 @@ internal_workspace_agendas() {
       .input  = {"frequency_grid",
                  "frequency_grid_wind_shift_jacobian",
                  "jacobian_targets",
-                 "propagation_matrix_select_species",
+                 "select_species",
                  "ray_path_point",
                  "atmospheric_point"},
   };

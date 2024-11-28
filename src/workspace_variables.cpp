@@ -302,15 +302,16 @@ Dimension: *frequency_grid*.
       .type = "PropmatVector",
   };
 
-  wsv_data["propagation_matrix_select_species"] = {
-      .desc = R"--(A select species tag group from *absorption_species*
-
-If set to empty, this selection is void.  It must otherwise match perfectly a tag inside
-*absorption_species* for that to be the selection.
+  wsv_data["select_species"] = {
+      .desc          = R"--(Species selection.
 )--",
-      .type = "SpeciesEnum",
+      .type          = "SpeciesEnum",
       .default_value = SpeciesEnum::Bath,
   };
+
+  wsv_data["select_species_list"] = {.desc = R"--(Species selection.
+)--",
+                                     .type = "ArrayOfSpeciesEnum"};
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
@@ -334,8 +335,7 @@ Shape: NFREQ
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {
-      .desc =
+  wsv_data["propagation_matrix_scattering"] = {      .desc =
           R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "PropmatVector",
@@ -345,8 +345,8 @@ Shape: NFREQ
       .desc =
           R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
-      .type = "ArrayOfPropmatVector",
-  };
+              .type = "ArrayOfPropmatVector",
+          };
 
   wsv_data["absorption_vector_scattering"] = {
       .desc =
@@ -359,8 +359,8 @@ Shape: NFREQ
       .desc =
           R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
 )--",
-      .type = "ArrayOfStokvecVector",
-  };
+              .type = "ArrayOfStokvecVector",
+          };
 
   wsv_data["phase_matrix_scattering_spectral"] = {
       .desc =
