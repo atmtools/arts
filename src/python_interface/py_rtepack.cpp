@@ -205,13 +205,6 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<Propmat> pm(m, "Propmat");
   pm.def(py::init_implicit<Numeric>())
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric>())
       .def(py::init_implicit<std::array<Numeric, 7>>())
       .def(
           "__array__",
@@ -253,22 +246,6 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<Muelmat> mm(m, "Muelmat");
   mm.def(py::init_implicit<Numeric>())
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric>())
       .def(py::init_implicit<std::array<Numeric, 16>>())
       .def(
           "__array__",
@@ -310,22 +287,6 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<ComplexMuelmat> cmm(m, "ComplexMuelmat");
   cmm.def(py::init_implicit<Complex>())
-      .def(py::init<Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex,
-                    Complex>())
       .def(py::init_implicit<std::array<Complex, 16>>())
       .def(
           "__array__",

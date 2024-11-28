@@ -17,12 +17,12 @@ a += 1
 def Ks(x):
     offset = 0
 
-    K = Propmat(offset + a * x, b * x, c * x, d * x, u * x, v * x, w * x)
-    dK = Propmat(a, b, c, d, u, v, w)
+    K = Propmat([offset + a * x, b * x, c * x, d * x, u * x, v * x, w * x])
+    dK = Propmat([a, b, c, d, u, v, w])
 
     delta = 1e-8
     x += delta
-    K2 = Propmat(offset + a * x, b * x, c * x, d * x, u * x, v * x, w * x)
+    K2 = Propmat([offset + a * x, b * x, c * x, d * x, u * x, v * x, w * x])
 
     return K, K2, dK, (K2 - K) / delta, delta
 
