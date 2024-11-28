@@ -334,40 +334,46 @@ Shape: NFREQ
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
+  wsv_data["propagation_matrix_scattering"] = {
+      .desc =
+          R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "PropmatVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
+  wsv_data["ray_path_propagation_matrix_scattering"] = {
+      .desc =
+          R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["absorption_vector_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
+  wsv_data["absorption_vector_scattering"] = {
+      .desc =
+          R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_absorption_vector_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
+  wsv_data["ray_path_absorption_vector_scattering"] = {
+      .desc =
+          R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["phase_matrix_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
+  wsv_data["phase_matrix_scattering_spectral"] = {
+      .desc =
+          R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
-      .type = "Matrix",
+      .type = "ComplexMuelmatMatrix",
   };
 
-  wsv_data["ray_path_phase_matrix_scattering_totally_random_orientation_spectral"] = {
-      .desc = R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
+  wsv_data["ray_path_phase_matrix_scattering_spectral"] = {
+      .desc =
+          R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
-      .type = "ArrayOfMatrix",
+      .type = "ArrayOfComplexMuelmatMatrix",
   };
 
   wsv_data["scattering_species"] = {

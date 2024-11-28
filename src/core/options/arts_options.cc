@@ -500,17 +500,16 @@ if good cases, so we have provide this selection mechanism to make them match.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name =
-          "propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined",
+      .name = "propagation_matrix_scattering_spectral_agendaPredefined",
       .desc =
-          R"(The types of predefined *propagation_matrix_scattering_totally_random_orientation_spectral_agenda*.
+          R"(The types of predefined *propagation_matrix_scattering_spectral_agenda*.
 )",
       .values_and_desc =
           {
-              Value{"FromSpecies", R"(
+              Value{"FromSpeciesTRO", R"(
 
-  - *propagation_matrix_scattering_totally_random_orientation_spectralInit*
-  - *propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies*
+  - *propagation_matrix_scatteringSpectralInit*
+  - *propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO*
 )"},
           },
   });

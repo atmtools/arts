@@ -1,4 +1,5 @@
 add_library(rtepack STATIC
+  rtepack_complex_mueller_matrix.cc
   rtepack_mueller_matrix.cc
   rtepack_multitype.cc
   rtepack_propagation_matrix.cc

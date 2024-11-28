@@ -69,14 +69,16 @@ Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-Agenda get_propagation_matrix_scattering_totally_random_orientation_spectral_agenda(const std::string& option) {
-  AgendaCreator agenda("propagation_matrix_scattering_totally_random_orientation_spectral_agenda");
+Agenda get_propagation_matrix_scattering_spectral_agenda(
+    const std::string& option) {
+  AgendaCreator agenda("propagation_matrix_scattering_spectral_agenda");
 
-  using enum propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined;
-  switch (to<propagation_matrix_scattering_totally_random_orientation_spectral_agendaPredefined>(option)) {
-    case FromSpecies:
-      agenda.add("propagation_matrix_scattering_totally_random_orientation_spectralInit");
-      agenda.add("propagation_matrix_scattering_totally_random_orientation_spectralAddScatteringSpecies");
+  using enum propagation_matrix_scattering_spectral_agendaPredefined;
+  switch (to<propagation_matrix_scattering_spectral_agendaPredefined>(option)) {
+    case FromSpeciesTRO:
+      agenda.add("propagation_matrix_scatteringSpectralInit");
+      agenda.add(
+          "propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO");
   }
 
   return std::move(agenda).finalize();
@@ -87,8 +89,7 @@ Agenda get_propagation_matrix_agenda(const std::string& option) {
 
   using enum propagation_matrix_agendaPredefined;
   switch (to<propagation_matrix_agendaPredefined>(option)) {
-    case Empty:
-      agenda.add("propagation_matrixInit");
+    case Empty: agenda.add("propagation_matrixInit");
   }
 
   return std::move(agenda).finalize();
@@ -135,9 +136,7 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
 
   using enum spectral_radiance_surface_agendaPredefined;
   switch (to<spectral_radiance_surface_agendaPredefined>(option)) {
-    case Blackbody:
-      agenda.add("spectral_radianceSurfaceBlackbody");
-      break;
+    case Blackbody: agenda.add("spectral_radianceSurfaceBlackbody"); break;
     case Transmission:
       agenda.add("spectral_radianceDefaultTransmission");
       break;
@@ -192,8 +191,9 @@ Agenda get_disort_settings_agenda(const std::string& option) {
       agenda.add("ray_path_pointLowestFromPath");
       agenda.add("disort_settingsInit");
       agenda.add("legendre_degreeFromDisortSettings");
-      agenda.add("ray_path_propagation_matrix_scattering_totally_random_orientation_spectralFromAgenda");
-      agenda.add("ray_path_propagation_matrixAddTotallyRandomOrientationSpectral");
+      agenda.add("ray_path_propagation_matrix_scatteringFromSpectralAgenda");
+      agenda.add(
+          "ray_path_propagation_matrixAddTotallyRandomOrientationSpectral");
       agenda.add("disort_settingsOpticalThicknessFromPath");
       agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");

@@ -198,6 +198,80 @@ void xml_write_to_stream(std::ostream &os_xml,
   throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
 }
 
+//=== ComplexMuelmat ================================================================
+
+//! Reads ComplexMuelmat from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      ComplexMuelmat return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream &is_xml,
+                          ComplexMuelmat &pm,
+                          bifstream *pbifs [[maybe_unused]]) try {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("ComplexMuelmat");
+
+  if (pbifs)
+    pbifs->readDoubleArray(reinterpret_cast<Numeric *>(pm.data.data()), 32);
+  else
+    is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
+        pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >> pm.data[8] >>
+        pm.data[9] >> pm.data[10] >> pm.data[11] >> pm.data[12] >>
+        pm.data[13] >> pm.data[14] >> pm.data[15];
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ComplexMuelmat");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in ComplexMuelmat:\n{}", e.what()));
+}
+
+//! Writes ComplexMuelmat to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      ComplexMuelmat
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream &os_xml,
+                         const ComplexMuelmat &pm,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &) try {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("ComplexMuelmat");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  if (pbofs)
+    *pbofs << pm.data[0] << pm.data[1] << pm.data[2] << pm.data[3] << pm.data[4]
+           << pm.data[5] << pm.data[6] << pm.data[7] << pm.data[8] << pm.data[9]
+           << pm.data[10] << pm.data[11] << pm.data[12] << pm.data[13]
+           << pm.data[14] << pm.data[15];
+  else
+    os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2] << ' '
+           << pm.data[3] << '\n'
+           << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6] << ' '
+           << pm.data[7] << '\n'
+           << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
+           << ' ' << pm.data[11] << '\n'
+           << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
+           << ' ' << pm.data[15] << ' ';
+
+  close_tag.set_name("/ComplexMuelmat");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in ComplexMuelmat:\n{}", e.what()));
+}
+
 //=== PropmatVector ================================================================
 
 //! Reads PropmatVector from XML input stream
@@ -939,6 +1013,95 @@ void xml_write_to_stream(std::ostream &os_xml,
       std::format("Error in StokvecTensor6:\n{}", e.what()));
 }
 
+//=== ComplexMuelmatMatrix ================================================================
+
+//! Reads ComplexMuelmatMatrix from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      ComplexMuelmatMatrix return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream &is_xml,
+                          ComplexMuelmatMatrix &pmm,
+                          bifstream *pbifs [[maybe_unused]]) try {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("ComplexMuelmatMatrix");
+
+  Index nr, nc;
+  tag.get_attribute_value("nrows", nr);
+  tag.get_attribute_value("ncols", nc);
+
+  pmm.resize(nr, nc);
+  for (auto &&pmv : pmm) {
+    for (auto &pm : pmv) {
+      if (pbifs)
+        pbifs->readDoubleArray(reinterpret_cast<Numeric *>(pm.data.data()), 32);
+      else {
+        is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >>
+            pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >>
+            pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >>
+            pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
+      }
+    }
+  }
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ComplexMuelmatMatrix");
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in ComplexMuelmatMatrix:\n{}", e.what()));
+}
+
+//! Writes ComplexMuelmatMatrix to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      ComplexMuelmatMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream &os_xml,
+                         const ComplexMuelmatMatrix &pmm,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &) try {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("ComplexMuelmatMatrix");
+  open_tag.add_attribute("nrows", pmm.nrows());
+  open_tag.add_attribute("ncols", pmm.ncols());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  for (const auto &pmv : pmm) {
+    for (const auto &pm : pmv) {
+      if (pbofs)
+        *pbofs << pm.data[0] << pm.data[1] << pm.data[2] << pm.data[3]
+               << pm.data[4] << pm.data[5] << pm.data[6] << pm.data[7]
+               << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
+               << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
+      else
+        os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
+               << ' ' << pm.data[3] << '\n'
+               << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
+               << ' ' << pm.data[7] << '\n'
+               << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
+               << ' ' << pm.data[11] << '\n'
+               << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
+               << ' ' << pm.data[15] << '\n';
+    }
+  }
+
+  close_tag.set_name("/ComplexMuelmatMatrix");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error in ComplexMuelmatMatrix:\n{}", e.what()));
+}
+
 //=== MuelmatMatrix ================================================================
 
 //! Reads MuelmatMatrix from XML input stream
@@ -1143,3 +1306,5 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfStokvecMatrix)
 
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfMuelmatVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfMuelmatMatrix)
+
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfComplexMuelmatMatrix)

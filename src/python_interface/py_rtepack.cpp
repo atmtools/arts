@@ -32,6 +32,20 @@ void copy(Muelmat &x, const ExhaustiveConstVectorView y) {
   std::copy(y.begin(), y.end(), x.data.begin());
 }
 
+void copy(ComplexMuelmat &x, const ExhaustiveConstComplexVectorView y) {
+  ARTS_ASSERT(y.size() == 16)
+  std::copy(y.begin(), y.end(), x.data.begin());
+}
+
+template <typename T, Index M>
+void copy(matpack::matpack_view<T, M, false, false> &&x,
+          matpack::matpack_view<Complex, M + 1, true, false> &&y) {
+  ARTS_ASSERT(x.shape()[0] == y.shape()[0])
+  for (Index i = 0; i < x.shape()[0]; i++) {
+    copy(x[i], y[i]);
+  }
+}
+
 template <typename T, Index M>
 void copy(matpack::matpack_view<T, M, false, false> &&x,
           matpack::matpack_view<Numeric, M + 1, true, false> &&y) {
@@ -43,23 +57,24 @@ void copy(matpack::matpack_view<T, M, false, false> &&x,
 
 template <typename T, Index M, size_t... N>
 void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
+  using U = T::value_type;
+
   c.def(
       "__init__",
-      [](matpack::matpack_data<T, M> *y,
-         const matpack::matpack_data<Numeric, M> &x) {
+      [](matpack::matpack_data<T, M> *y, const matpack::matpack_data<U, M> &x) {
         new (y) matpack::matpack_data<T, M>(x.shape());
-        std::transform(x.elem_begin(),
-                       x.elem_end(),
-                       y->elem_begin(),
-                       [](const Numeric &z) { return T(z); });
+        std::transform(
+            x.elem_begin(), x.elem_end(), y->elem_begin(), [](const U &z) {
+              return T(z);
+            });
       },
       "x"_a);
-  py::implicitly_convertible<matpack::matpack_data<Numeric, M>,
+  py::implicitly_convertible<matpack::matpack_data<U, M>,
                              matpack::matpack_data<T, M>>();
   c.def(
       "__init__",
       [](matpack::matpack_data<T, M> *y,
-         const matpack::matpack_data<Numeric, M + 1> &x) {
+         const matpack::matpack_data<U, M + 1> &x) {
         if (x.size() != 0 and x.shape().back() != T::sz) {
           throw std::invalid_argument(std::format(
               "Last dimension of input must be equal to the size of the "
@@ -77,7 +92,7 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
         copy(matpack::matpack_view<T, M, false, false>(*y), x);
       },
       "x"_a);
-  py::implicitly_convertible<matpack::matpack_data<Numeric, M + 1>,
+  py::implicitly_convertible<matpack::matpack_data<U, M + 1>,
                              matpack::matpack_data<T, M>>();
 
   c.def(
@@ -190,13 +205,6 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<Propmat> pm(m, "Propmat");
   pm.def(py::init_implicit<Numeric>())
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric>())
       .def(py::init_implicit<std::array<Numeric, 7>>())
       .def(
           "__array__",
@@ -238,22 +246,6 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<Muelmat> mm(m, "Muelmat");
   mm.def(py::init_implicit<Numeric>())
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric>())
       .def(py::init_implicit<std::array<Numeric, 16>>())
       .def(
           "__array__",
@@ -292,6 +284,44 @@ void py_rtepack(py::module_ &m) try {
   py::class_<MuelmatTensor3> mt3(m, "MuelmatTensor3");
   rtepack_array<Muelmat, 3, 4, 4>(mt3);
   workspace_group_interface(mt3);
+
+  py::class_<ComplexMuelmat> cmm(m, "ComplexMuelmat");
+  cmm.def(py::init_implicit<Complex>())
+      .def(py::init_implicit<std::array<Complex, 16>>())
+      .def(
+          "__array__",
+          [](ComplexMuelmat &x, py::object dtype, py::object copy) {
+            std::array<size_t, 2> shape = {4, 4};
+            auto np                     = py::module_::import_("numpy");
+            auto w =
+                py::ndarray<py::numpy, Complex, py::shape<4, 4>, py::c_contig>(
+                    x.data.data(), 2, shape.data(), py::cast(x));
+            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.")
+      .def_prop_rw(
+          "value",
+          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+          [](ComplexMuelmat &x, ComplexMuelmat &y) { x = y; },
+          "A :class:`~numpy.ndarray` of the object.");
+  common_ndarray(cmm);
+  workspace_group_interface(cmm);
+
+  py::class_<ComplexMuelmatVector> vcmm(m, "ComplexMuelmatVector");
+  vcmm.def(py::init_implicit<std::vector<Complex>>())
+      .def(py::init_implicit<std::vector<ComplexMuelmat>>());
+  rtepack_array<ComplexMuelmat, 1, 4, 4>(vcmm);
+  //workspace_group_interface(vcmm);
+
+  py::class_<ComplexMuelmatMatrix> mcmm(m, "ComplexMuelmatMatrix");
+  rtepack_array<ComplexMuelmat, 2, 4, 4>(mcmm);
+  workspace_group_interface(mcmm);
+
+  py::class_<ComplexMuelmatTensor3> cmt3(m, "ComplexMuelmatTensor3");
+  rtepack_array<ComplexMuelmat, 3, 4, 4>(cmt3);
+  //workspace_group_interface(cmt3);
 
   auto a1 =
       py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(
@@ -366,7 +396,33 @@ void py_rtepack(py::module_ &m) try {
   workspace_group_interface(c5);
   vector_interface(c5);
 
-  auto rtepack = m.def_submodule("rtepack");
+//   auto d1 =
+//       py::bind_vector<ArrayOfComplexMuelmatVector, py::rv_policy::reference_internal>(
+//           m, "ArrayOfComplexMuelmatVector");
+//   workspace_group_interface(d1);
+//   vector_interface(d1);
+//   auto d2 = py::bind_vector<ArrayOfArrayOfComplexMuelmatVector,
+//                             py::rv_policy::reference_internal>(
+//       m, "ArrayOfArrayOfComplexMuelmatVector");
+//   workspace_group_interface(d2);
+//   vector_interface(d2);
+  auto d3 =
+      py::bind_vector<ArrayOfComplexMuelmatMatrix, py::rv_policy::reference_internal>(
+          m, "ArrayOfComplexMuelmatMatrix");
+  workspace_group_interface(d3);
+  vector_interface(d3);
+//   auto d4 = py::bind_vector<ArrayOfArrayOfComplexMuelmatMatrix,
+//                             py::rv_policy::reference_internal>(
+//       m, "ArrayOfArrayOfComplexMuelmatMatrix");
+//   workspace_group_interface(d4);
+//   vector_interface(d4);
+//   auto d5 =
+//       py::bind_vector<ArrayOfComplexMuelmatTensor3, py::rv_policy::reference_internal>(
+//           m, "ArrayOfComplexMuelmatTensor3");
+//   workspace_group_interface(d5);
+//   vector_interface(d5);
+
+  auto rtepack  = m.def_submodule("rtepack");
   rtepack.doc() = "Interface to some of the core RTE functionality";
   rtepack.def(
       "two_level_exp",

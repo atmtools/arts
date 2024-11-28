@@ -335,30 +335,26 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfMatrix&
-        ray_path_phase_matrix_scattering_totally_random_orientation_spectral) try {
+    const ArrayOfComplexMuelmatMatrix&
+        ray_path_phase_matrix_scattering_spectral) try {
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
   const Index L = disort_settings.legendre_polynomial_dimension;
 
   ARTS_USER_ERROR_IF(
-      (N + 1) !=
-          ray_path_phase_matrix_scattering_totally_random_orientation_spectral
-              .size(),
-      R"(The number of levels in ray_path_phase_matrix_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+      (N + 1) != ray_path_phase_matrix_scattering_spectral.size(),
+      R"(The number of levels in ray_path_phase_matrix_scattering_spectral must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay + 1:                                                    {}
-  ray_path_phase_matrix_scattering_totally_random_orientation_spectral.size(): {}
+  disort_settings.nlay + 1:                         {}
+  ray_path_phase_matrix_scattering_spectral.size(): {}
 )",
       N,
-      ray_path_phase_matrix_scattering_totally_random_orientation_spectral
-          .size());
+      ray_path_phase_matrix_scattering_spectral.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(
-          std::array{F, L},
-          ray_path_phase_matrix_scattering_totally_random_orientation_spectral),
-      "The shape of ray_path_phase_matrix_scattering_totally_random_orientation_spectral must be {:B,}, at least one is not",
+      not all_same_shape(std::array{F, L},
+                         ray_path_phase_matrix_scattering_spectral),
+      "The shape of ray_path_phase_matrix_scattering_spectral must be {:B,}, at least one is not",
       std::array{F, L});
 
   ARTS_USER_ERROR_IF(
@@ -380,10 +376,10 @@ void disort_settingsLegendreCoefficientsFromPath(
         disort_settings.legendre_coefficients(iv, i, j) =
             invfac[j] *
             std::midpoint(
-                ray_path_phase_matrix_scattering_totally_random_orientation_spectral
-                    [i](iv, j),
-                ray_path_phase_matrix_scattering_totally_random_orientation_spectral
-                    [i + 1](iv, j));
+                ray_path_phase_matrix_scattering_spectral[i](iv, j)(0, 0)
+                    .real(),
+                ray_path_phase_matrix_scattering_spectral[i + 1](iv, j)(0, 0)
+                    .real());
       }
     }
   }
@@ -411,45 +407,36 @@ ARTS_METHOD_ERROR_CATCH
 
 void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfPropmatVector&
-        ray_path_propagation_matrix_scattering_totally_random_orientation_spectral,
-    const ArrayOfStokvecVector&
-        ray_path_absorption_vector_scattering_totally_random_orientation_spectral) try {
+    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
+    const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
 
   ARTS_USER_ERROR_IF(
-      (N + 1) !=
-          ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
-              .size(),
-      R"(The number of levels in ray_path_propagation_matrix_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+      (N + 1) != ray_path_propagation_matrix_scattering.size(),
+      R"(The number of levels in ray_path_propagation_matrix_scattering must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay:                                                              {}
-  ray_path_propagation_matrix_scattering_totally_random_orientation_spectral.size(): {}
+  disort_settings.nlay:                          {}
+  ray_path_propagation_matrix_scattering.size(): {}
 )",
       N,
-      ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
-          .size());
+      ray_path_propagation_matrix_scattering.size());
 
   ARTS_USER_ERROR_IF(
-      (N + 1) !=
-          ray_path_absorption_vector_scattering_totally_random_orientation_spectral
-              .size(),
-      R"(The number of levels in ray_path_absorption_vector_scattering_totally_random_orientation_spectral must be one more than the number of layers in disort_settings.
+      (N + 1) != ray_path_absorption_vector_scattering.size(),
+      R"(The number of levels in ray_path_absorption_vector_scattering must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay:                                                             {}
-  ray_path_absorption_vector_scattering_totally_random_orientation_spectral.size(): {}
+  disort_settings.nlay:                         {}
+  ray_path_absorption_vector_scattering.size(): {}
 )",
       N,
-      ray_path_absorption_vector_scattering_totally_random_orientation_spectral
-          .size());
+      ray_path_absorption_vector_scattering.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(
-          std::array{F},
-          ray_path_absorption_vector_scattering_totally_random_orientation_spectral,
-          ray_path_propagation_matrix_scattering_totally_random_orientation_spectral),
-      "The shape of ray_path_propagation_matrix_scattering_totally_random_orientation_spectral and ray_path_absorption_vector_scattering_totally_random_orientation_spectral must be {:B,}, at least one is not",
+      not all_same_shape(std::array{F},
+                         ray_path_absorption_vector_scattering,
+                         ray_path_propagation_matrix_scattering),
+      "The shape of ray_path_propagation_matrix_scattering and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
@@ -464,17 +451,12 @@ void disort_settingsSingleScatteringAlbedoFromPath(
     for (Index iv = 0; iv < F; iv++) {
       const Numeric x =
           1.0 -
-          std::midpoint(
-              (inv(ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
-                       [i][iv]) *
-               ray_path_absorption_vector_scattering_totally_random_orientation_spectral
-                   [i][iv])
-                  .I(),
-              (inv(ray_path_propagation_matrix_scattering_totally_random_orientation_spectral
-                       [i][iv]) *
-               ray_path_absorption_vector_scattering_totally_random_orientation_spectral
-                   [i][iv])
-                  .I());
+          std::midpoint((inv(ray_path_propagation_matrix_scattering[i][iv]) *
+                         ray_path_absorption_vector_scattering[i][iv])
+                            .I(),
+                        (inv(ray_path_propagation_matrix_scattering[i][iv]) *
+                         ray_path_absorption_vector_scattering[i][iv])
+                            .I());
       disort_settings.single_scattering_albedo(iv, i) =
           std::isnormal(x) ? x : 0.0;
     }
