@@ -188,9 +188,9 @@ void absorption_lookup_tablePrecompute(
     const AscendingGrid& frequency_grid,
     const AbsorptionBands& absorption_bands,
     const LinemixingEcsData& ecs_data,
+    const SpeciesEnum& select_species,
     const AscendingGrid& temperature_perturbation,
-    const AscendingGrid& water_perturbation,
-    const SpeciesEnum& select_species) {
+    const AscendingGrid& water_perturbation) {
   absorption_lookup_table[select_species] = {
       select_species,
       ray_path_atmospheric_point,

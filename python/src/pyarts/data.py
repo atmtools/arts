@@ -325,10 +325,6 @@ def to_absorption_species(
             out.append("H2O-SelfContCKDMT400")
         elif spec == pyarts.arts.SpeciesEnum.CarbonDioxide:
             out.append("CO2-CKDMT252")
-        elif spec == pyarts.arts.SpeciesEnum.Oxygen:
-            out.append("O2-SelfContStandardType")
-        elif spec == pyarts.arts.SpeciesEnum.Nitrogen:
-            out.append("N2-SelfContStandardType")
 
     return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
 

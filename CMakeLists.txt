@@ -60,19 +60,12 @@ include(CMakeDependentOption)
 option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
-option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
-cmake_dependent_option(
-    NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
-cmake_dependent_option(
-    NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
-cmake_dependent_option(
-    NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 option (ARTS_SANITIZE "Turn on undefined behavior sanitizers" OFF)
@@ -97,16 +90,6 @@ if (ENABLE_ARTS_LGPL)
   add_definitions(-DARTS_LGPL=1)
 else()
   add_definitions(-DARTS_LGPL=0)
-endif()
-
-if (ENABLE_FORTRAN)
- if (NOT NO_FASTEM AND ENABLE_ARTS_LGPL)
-  message(FATAL_ERROR "FASTEM is not available as LGPL.")
- elseif(NOT NO_RT4 AND ENABLE_ARTS_LGPL)
-  message(FATAL_ERROR "RT4 is not available as LGPL.")
- elseif(NOT NO_TMATRIX AND ENABLE_ARTS_LGPL)
-  message(FATAL_ERROR "TMATRIX is not available as LGPL.")
- endif()
 endif()
 
 if(ENABLE_ARTS_LGPL)
@@ -150,28 +133,6 @@ list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 
 set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/src" ${Python_EXECUTABLE})
-
-if (ENABLE_FORTRAN)
-  enable_language (Fortran)
-
-  get_filename_component (FORTRAN_COMPILER ${CMAKE_Fortran_COMPILER} NAME)
-
-  if (FORTRAN_COMPILER MATCHES "gfortran.*")
-    if(CMAKE_BUILD_TYPE STREQUAL "Native")
-      set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8 -march=native -O3")
-    else ()
-      set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
-    endif()
-    if (ENABLE_TMATRIX_QUAD)
-      message (FATAL_ERROR "Gfortran does not support quad-precision.")
-    endif()
-  elseif (FORTRAN_COMPILER MATCHES "ifort.*")
-    set (FORTRAN_EXTRA_FLAGS "-i8 -r8")
-  else ()
-    message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran or ifort.")
-  endif (FORTRAN_COMPILER MATCHES "gfortran.*")
-
-endif (ENABLE_FORTRAN)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -222,7 +183,6 @@ endif ()
 if (ENABLE_IPO)
   include(CheckIPOSupported)
   check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX OUTPUT IPO_ERROR)
-  check_ipo_supported(RESULT IPO_FORTRAN_SUPPORTED LANGUAGES Fortran)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   if (NOT IPO_SUPPORTED)
     message(FATAL_ERROR "IPO / LTO not supported: ${IPO_ERROR}")
@@ -509,19 +469,6 @@ setup_arts_checks()
 ########### subdirectories ###############
 
 add_subdirectory (3rdparty)
-
-get_directory_property(ENABLE_RT4 DIRECTORY
-                       3rdparty/polradtran/rt4
-#                       3rdparty/rt4
-                       DEFINITION ENABLE_RT4)
-
-get_directory_property(ENABLE_FASTEM DIRECTORY
-                       3rdparty/fastem
-                       DEFINITION ENABLE_FASTEM)
-
-get_directory_property(ENABLE_TMATRIX DIRECTORY
-                       3rdparty/tmatrix
-                       DEFINITION ENABLE_TMATRIX)
 
 get_directory_property(ENABLE_WIGNER DIRECTORY
                        3rdparty/wigner

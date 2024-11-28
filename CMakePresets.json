@@ -16,14 +16,10 @@
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/arts_install",
         "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
         "ENABLE_ARTS_LGPL": "0",
-        "ENABLE_FORTRAN": "1",
         "ENABLE_NETCDF": "1",
         "ENABLE_PCH": "0",
         "FASTWIGNER": "0",
-        "NO_FASTEM": "0",
         "NO_OPENMP": "0",
-        "NO_RT4": "0",
-        "NO_TMATRIX": "0",
         "SPHINX_JOBS": "4",
         "TEST_JOBS": "4"
       }
@@ -34,7 +30,6 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/g++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/gcc",
-        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran",
         "CMAKE_C_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
         "CMAKE_Fortran_FLAGS": "-isystem $env{CONDA_PREFIX}/include"
@@ -50,7 +45,6 @@
         "CMAKE_INSTALL_PREFIX": "$env{USERPROFILE}/arts_install",
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "ENABLE_FORTRAN": "0",
         "NO_OPENMP": "1"
       },
       "environment": {
@@ -65,8 +59,7 @@
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
-        "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
-        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
+        "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang"
       }
     },
     {
@@ -106,29 +99,20 @@
     },
     {
       "name": "nofortran-gcc-conda",
-      "inherits": "default-gcc-conda",
-      "cacheVariables": {
-        "ENABLE_FORTRAN": "0"
-      }
+      "inherits": "default-gcc-conda"
     },
     {
       "name": "lgpl-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
-        "ENABLE_ARTS_LGPL": "1",
-        "NO_FASTEM": "1",
-        "NO_RT4": "1",
-        "NO_TMATRIX": "1"
+        "ENABLE_ARTS_LGPL": "1"
       }
     },
     {
       "name": "lgpl-clang-conda",
       "inherits": "default-clang-conda",
       "cacheVariables": {
-        "ENABLE_ARTS_LGPL": "1",
-        "NO_FASTEM": "1",
-        "NO_RT4": "1",
-        "NO_TMATRIX": "1"
+        "ENABLE_ARTS_LGPL": "1"
       }
     },
     {
@@ -143,8 +127,7 @@
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc-13",
-        "CMAKE_CXX_COMPILER": "g++-13",
-        "CMAKE_Fortran_COMPILER": "gfortran-13"
+        "CMAKE_CXX_COMPILER": "g++-13"
       }
     },
     {
@@ -152,8 +135,7 @@
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
-        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
-        "CMAKE_Fortran_COMPILER": "gfortran-13"
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang"
       }
     },
     {
@@ -161,8 +143,7 @@
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/usr/local/opt/llvm/bin/clang++",
-        "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang",
-        "CMAKE_Fortran_COMPILER": "gfortran-13"
+        "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang"
       }
     },
     {
@@ -179,7 +160,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/gcc",
         "CMAKE_CXX_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/g++",
-        "CMAKE_Fortran_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/gfortran",
         "CMAKE_PREFIX_PATH": "",
         "BLAS_blas_LIBRARY": "/sw/spack-levante/openblas-0.3.18-mzclcq/lib/libopenblas.so"
       }
@@ -189,8 +169,7 @@
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc-14",
-        "CMAKE_CXX_COMPILER": "g++-14",
-        "CMAKE_Fortran_COMPILER": "gfortran-14"
+        "CMAKE_CXX_COMPILER": "g++-14"
       }
     },
     {

@@ -219,30 +219,6 @@ complex computations are IEEE incompatible running this mode of build.
 Optional features
 -----------------
 
-Features that rely on Fortran code located in the 3rdparty
-subdirectory are enabled by default, but can be disabled by passing the
-following option to the `cmake --preset=...` command:
-
-```
--DENABLE_FORTRAN=0
-```
-
-This disables Disort, Fastem and Tmatrix.
-
-If necessary, certain Fortran modules can be selectively disabled:
-
-```
--DNO_DISORT=1
-```
-or
-```
--DENABLE_FORTRAN=1 -DNO_TMATRIX=1
-```
-
-IMPORTANT: Only gfortran is currently supported.
-Also, a 64-bit system is required (size of long type must be 8 bytes).
-
-
 Enable NetCDF: The basic matpack types can be read from NetCDF files, if NetCDF
 support is enabled:
 
@@ -291,9 +267,6 @@ Valgrind profiling
 
 The callgrind plugin included in valgrind is the recommended profiling method
 for ARTS.
-
-Due to limitations of valgrind, you need to disable the tmatrix code
-(-DNO_TMATRIX=1) when compiling ARTS with Fortran support.
 
 Certain things should be taken into account when calling ARTS with valgrind.
 Since recursion (cycles) will lead to wrong profiling results it is
