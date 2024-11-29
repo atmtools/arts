@@ -24,7 +24,7 @@
 		vstor(((double*)mem) + NLAT-VSIZE2, -(idx), vreverse(s));
 
   #ifdef _GCC_VEC_
-	void inline static
+	inline static void
 	cstore_north_south(double* mem, double* mem_m, long idx, long nlat, rnd nr, rnd sr, rnd ni, rnd si) {
 		ni = vxchg_even_odd(ni);	sr = vreverse(sr);
 		rnd aa = nr + ni;		rnd bb = nr - ni;

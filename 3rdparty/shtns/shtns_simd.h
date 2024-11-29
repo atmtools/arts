@@ -54,7 +54,7 @@
 	typedef float64x2_t rnd;
 	#define VSIZE2 2
 	#define _SIMD_NAME_ "neon"
-	#warning "arm neon"
+	// #warning "arm neon"
 	#define vall(x) vdupq_n_f64(x)
 	// _mm_unpacklo_pd => vzip1q_f64 	// _mm_unpackhi_pd => vzip2q_f64
 
