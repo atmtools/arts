@@ -203,7 +203,14 @@ void bind_bulk_scattering_properties(py::module_& m, const std::string& name) {
                                                     repr>::absorption_vector);
 }
 
-void py_scattering_species(py::module_& m) try {  //
+void py_scattering_species(py::module_& m) try {
+    py::class_<ScatteringTroSpectralVector> stsv(m, "ScatteringTroSpectralVector");
+    stsv.def_rw("phase_matrix", &ScatteringTroSpectralVector::phase_matrix)
+        .def_rw("extinction_matrix", &ScatteringTroSpectralVector::extinction_matrix)
+        .def_rw("absorption_vector", &ScatteringTroSpectralVector::absorption_vector);
+    str_interface(stsv);
+    
+      //
   // ScatSpeciesProperty
   //
 
@@ -247,9 +254,8 @@ void py_scattering_species(py::module_& m) try {  //
               const AtmPoint& atm_point,
               const Vector& f_grid,
               Index l) {
-             return BulkScatteringPropertiesTROSpectral{
-                 hg.get_bulk_scattering_properties_tro_spectral(
-                     atm_point, f_grid, l)};
+             return hg.get_bulk_scattering_properties_tro_spectral(
+                 atm_point, f_grid, l);
            })
       .def("get_bulk_scattering_properties_tro_gridded",
            [](const HenyeyGreensteinScatterer& hg,
@@ -287,9 +293,8 @@ void py_scattering_species(py::module_& m) try {  //
               const AtmPoint& atm_point,
               const Vector& f_grid,
               Index l) {
-             return BulkScatteringPropertiesTROSpectral{
-                 aoss.get_bulk_scattering_properties_tro_spectral(
-                     atm_point, f_grid, l)};
+             return aoss.get_bulk_scattering_properties_tro_spectral(
+                 atm_point, f_grid, l);
            })
       .def("get_bulk_scattering_properties_tro_gridded",
            [](const ArrayOfScatteringSpecies& aoss,

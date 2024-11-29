@@ -9,16 +9,16 @@
 #include <format>
 #include <variant>
 
-#include "properties.h"
 #include "bulk_scattering_properties.h"
 #include "henyey_greenstein.h"
-#include "psd.h"
 #include "particle_habit.h"
+#include "properties.h"
+#include "psd.h"
+#include "scattering_species_retval.h"
 
 namespace scattering {
 
 using PSD = std::variant<MGDSingleMoment>;
-
 
 /*** A scattering habit
  *
@@ -28,7 +28,7 @@ using PSD = std::variant<MGDSingleMoment>;
  */
 class ScatteringHabit {
  public:
-  ScatteringHabit(){};
+  ScatteringHabit() {};
 
  private:
   ParticleHabit particle_habit;
@@ -44,8 +44,8 @@ using Species = std::variant<HenyeyGreensteinScatterer>;
 using ScatteringSpecies = scattering::Species;
 
 template <scattering::Format format, scattering::Representation repr>
-using BulkScatteringProperties = scattering::BulkScatteringProperties<format, repr>;
-
+using BulkScatteringProperties =
+    scattering::BulkScatteringProperties<format, repr>;
 
 /** Array of scattering species
   *
@@ -64,8 +64,7 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
       const Vector& f_grid,
       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<scattering::Format::TRO,
-                                         scattering::Representation::Spectral>
+  [[nodiscard]] ScatteringTroSpectralVector
   get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
                                               const Vector& f_grid,
                                               Index degree) const;
@@ -88,14 +87,13 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
                                               Index order) const;
 };
 
-
 inline std::ostream& operator<<(std::ostream& os,
                                 const ArrayOfScatteringSpecies& /*species*/) {
   os << "An array of scattering species." << std::endl;
   return os;
 }
 
-template<>
+template <>
 struct std::formatter<ArrayOfScatteringSpecies> {
   format_tags tags;
 
@@ -110,15 +108,14 @@ struct std::formatter<ArrayOfScatteringSpecies> {
   template <class FmtContext>
   FmtContext::iterator format(const ArrayOfScatteringSpecies&,
                               FmtContext& ctx) const {
-
     return ctx.out();
   }
 };
 
 using HenyeyGreensteinScatterer = scattering::HenyeyGreensteinScatterer;
-using ParticleHabit = scattering::ParticleHabit;
-using ScatteringHabit = scattering::ScatteringHabit;
-using PSD = scattering::PSD;
+using ParticleHabit             = scattering::ParticleHabit;
+using ScatteringHabit           = scattering::ScatteringHabit;
+using PSD                       = scattering::PSD;
 
 std::ostream& operator<<(
     std::ostream& os,

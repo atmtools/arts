@@ -10,6 +10,7 @@
 #include "atm.h"
 #include "bulk_scattering_properties.h"
 #include "properties.h"
+#include "scattering_species_retval.h"
 
 using ExtSSACallback =
     CustomOperator<std::pair<Numeric, Numeric>, Numeric, const AtmPoint&>;
@@ -53,7 +54,7 @@ class HenyeyGreensteinScatterer {
       const Vector& f_grid,
       std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Spectral>
+  [[nodiscard]] ScatteringTroSpectralVector
   get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
                                               const Vector& f_grid,
                                               Index l) const;
@@ -82,5 +83,28 @@ class HenyeyGreensteinScatterer {
                                   const HenyeyGreensteinScatterer& scatterer);
 };
 }  // namespace scattering
+
+template <>
+struct std::formatter<scattering::HenyeyGreensteinScatterer> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const scattering::HenyeyGreensteinScatterer& v,
+                              FmtContext& ctx) const {
+    if (tags.names) {
+      return tags.format(ctx, "HenyeyGreensteinScatterer");
+    }
+
+    return tags.format(ctx, v.get_g());
+  }
+};
 
 #endif  // HENYEY_GREENSTEIN_H_
