@@ -53,6 +53,7 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     -Wno-unused -Wno-shadow -Wno-unused-parameter
     -Wno-conversion -Wno-sign-compare -Wno-switch -Wno-misleading-indentation
     -Wno-uninitialized -Wno-implicit-fallthrough -Wno-unused-command-line-argument
+    -Wno-strict-aliasing
   )
 endif()
 target_compile_definitions(shtns PRIVATE _GNU_SOURCE SHTNS_GIT=\"ARTS\")

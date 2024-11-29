@@ -31,8 +31,7 @@
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/g++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/gcc",
         "CMAKE_C_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
-        "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include",
-        "CMAKE_Fortran_FLAGS": "-isystem $env{CONDA_PREFIX}/include"
+        "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include"
       },
       "environment": {
         "LDFLAGS": "-L$env{CONDA_PREFIX}/lib -Wl,-rpath,$env{CONDA_PREFIX}/lib"

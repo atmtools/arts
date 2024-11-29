@@ -163,7 +163,7 @@ void* fomp_a[6][SHT_NTYP] = {
 #endif
 };
 
-void* fomp_b[6][SHT_NTYP] = {NULL}; /*
+void* fomp_b[6][SHT_NTYP] = {{NULL}}; /*
 	{ NULL, NULL, SHsphtor_to_spat_omp_b1_l, spat_to_SHsphtor_omp_b1_l,
 		SHsph_to_spat_omp_b1_l, SHtor_to_spat_omp_b1_l, SHqst_to_spat_omp_b1_l, spat_to_SHqst_omp_b1_l },
 	{ SH_to_spat_omp_b2_l, spat_to_SH_omp_b2_l, SHsphtor_to_spat_omp_b2_l, spat_to_SHsphtor_omp_b2_l,
