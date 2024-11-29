@@ -10,7 +10,7 @@
 #include "atm.h"
 #include "bulk_scattering_properties.h"
 #include "properties.h"
-#include "scattering_species_retval.h"
+#include "general_tro_spectral.h"
 
 using ExtSSACallback =
     CustomOperator<std::pair<Numeric, Numeric>, Numeric, const AtmPoint&>;
@@ -100,7 +100,7 @@ struct std::formatter<scattering::HenyeyGreensteinScatterer> {
   FmtContext::iterator format(const scattering::HenyeyGreensteinScatterer& v,
                               FmtContext& ctx) const {
     if (tags.names) {
-      return tags.format(ctx, "HenyeyGreensteinScatterer");
+      return tags.format(ctx, "HenyeyGreensteinScatterer"sv);
     }
 
     return tags.format(ctx, v.get_g());

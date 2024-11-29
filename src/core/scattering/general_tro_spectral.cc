@@ -1,4 +1,10 @@
-#include "scattering_species_retval.h"
+#include "general_tro_spectral.h"
+
+ScatteringTroSpectralVector
+ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_tro_spectral(
+    const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
+  return f(atm_point, f_grid, degree);
+}
 
 ScatteringTroSpectralVector& ScatteringTroSpectralVector::operator+=(
     const ScatteringTroSpectralVector& other) {

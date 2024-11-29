@@ -14,7 +14,7 @@
 #include "particle_habit.h"
 #include "properties.h"
 #include "psd.h"
-#include "scattering_species_retval.h"
+#include "general_tro_spectral.h"
 
 namespace scattering {
 
@@ -37,7 +37,7 @@ class ScatteringHabit {
 
 struct ScatteringDataSpec {};
 
-using Species = std::variant<HenyeyGreensteinScatterer>;
+using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO>;
 
 }  // namespace scattering
 

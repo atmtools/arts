@@ -209,6 +209,13 @@ void py_scattering_species(py::module_& m) try {
         .def_rw("extinction_matrix", &ScatteringTroSpectralVector::extinction_matrix)
         .def_rw("absorption_vector", &ScatteringTroSpectralVector::absorption_vector);
     str_interface(stsv);
+
+    py::class_<ScatteringGeneralSpectralTRO> sgstro(m, "ScatteringGeneralSpectralTRO");
+    sgstro.def(py::init<>());
+    sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
+    sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
+    sgstro.def_rw("f", &ScatteringGeneralSpectralTRO::f);
+    str_interface(stsv);
     
       //
   // ScatSpeciesProperty
