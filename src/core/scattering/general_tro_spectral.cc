@@ -29,6 +29,7 @@ ScatteringTroSpectralVector::to_general(
     const ComplexMuelmatMatrix& phase_matrix,
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
+
   ARTS_USER_ERROR_IF(phase_matrix.nrows() != f_grid_ptr->size(),
                      "Phase matrix and f grid must have the same size")
 
@@ -42,9 +43,9 @@ ScatteringTroSpectralVector::to_general(
                               scattering::Representation::Spectral>
       pm{t_grid, f_grid_ptr, scattering::sht::provider.get_instance_lm(l, 0)};
 
-  for (Index f_ind = 0; f_ind < f_grid_ptr->size(); ++f_ind) {
-    for (Index ind = 0; ind <= l; ++ind) {
-      for (Index is = 0; is < 16; is++) {
+  for (Index f_ind = 0; f_ind < pm.npages(); ++f_ind) {
+    for (Index ind = 0; ind < pm.nrows(); ++ind) {
+      for (Index is = 0; is < pm.ncols(); is++) {
         pm(0, f_ind, ind, is) = phase_matrix(f_ind, ind).data[is];
       }
     }
@@ -60,6 +61,7 @@ ScatteringTroSpectralVector::to_general(
     const PropmatVector& extinction_matrix,
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
+
   ARTS_USER_ERROR_IF(extinction_matrix.size() != f_grid_ptr->size(),
                      "Extinction matrix and f grid must have the same size")
 
@@ -70,8 +72,10 @@ ScatteringTroSpectralVector::to_general(
                                    scattering::Representation::Spectral>
       emd{t_grid, f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < f_grid_ptr->size(); ++f_ind) {
-    emd(0, f_ind, 0) = extinction_matrix[f_ind].A();
+  for (Index f_ind = 0; f_ind < emd.nrows(); ++f_ind) {
+    for (Index i = 0; i < emd.ncols(); i++) {
+      emd(0, f_ind, i) = extinction_matrix[f_ind][i];
+    }
   }
 
   return emd;
@@ -84,6 +88,7 @@ ScatteringTroSpectralVector::to_general(
     const StokvecVector& absorption_vector,
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
+
   ARTS_USER_ERROR_IF(absorption_vector.size() != f_grid_ptr->size(),
                      "Absorption vector and f grid must have the same size")
 
@@ -94,8 +99,10 @@ ScatteringTroSpectralVector::to_general(
                                    scattering::Representation::Spectral>
       av{t_grid, f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < f_grid_ptr->size(); ++f_ind) {
-    av(0, f_ind, 0) = absorption_vector[f_ind].I();
+  for (Index f_ind = 0; av.nrows(); ++f_ind) {
+    for (Index i = 0; i < av.ncols(); i++) {
+      av(0, f_ind, i) = absorption_vector[f_ind][i];
+    }
   }
   return av;
 }
