@@ -204,20 +204,41 @@ void bind_bulk_scattering_properties(py::module_& m, const std::string& name) {
 }
 
 void py_scattering_species(py::module_& m) try {
-    py::class_<ScatteringTroSpectralVector> stsv(m, "ScatteringTroSpectralVector");
-    stsv.def_rw("phase_matrix", &ScatteringTroSpectralVector::phase_matrix)
-        .def_rw("extinction_matrix", &ScatteringTroSpectralVector::extinction_matrix)
-        .def_rw("absorption_vector", &ScatteringTroSpectralVector::absorption_vector);
-    str_interface(stsv);
+  py::class_<ScatteringTroSpectralVector> stsv(m,
+                                               "ScatteringTroSpectralVector");
+  stsv.def_rw("phase_matrix", &ScatteringTroSpectralVector::phase_matrix)
+      .def_rw("extinction_matrix",
+              &ScatteringTroSpectralVector::extinction_matrix)
+      .def_rw("absorption_vector",
+              &ScatteringTroSpectralVector::absorption_vector);
+  stsv.def_static(
+      "to_gridded",
+      [](const ComplexMuelmatMatrix& phase_matrix,
+         const std::shared_ptr<Vector>& f) {
+        if (f) {
+          return ScatteringTroSpectralVector::to_general(phase_matrix, f)
+              .to_gridded();
+        }
 
-    py::class_<ScatteringGeneralSpectralTRO> sgstro(m, "ScatteringGeneralSpectralTRO");
-    sgstro.def(py::init<>());
-    sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
-    sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
-    sgstro.def_rw("f", &ScatteringGeneralSpectralTRO::f);
-    str_interface(stsv);
-    
-      //
+        const Index nf = phase_matrix.nrows();
+        const auto fs  = std::make_shared<Vector>(
+            nlinspace(1, static_cast<Numeric>(nf), nf));
+        return ScatteringTroSpectralVector::to_general(phase_matrix, fs)
+            .to_gridded();
+      },
+      "spectral_pm"_a,
+      "f"_a = std::shared_ptr<Vector>{nullptr});
+  str_interface(stsv);
+
+  py::class_<ScatteringGeneralSpectralTRO> sgstro(
+      m, "ScatteringGeneralSpectralTRO");
+  sgstro.def(py::init<>());
+  sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
+  sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
+  sgstro.def_rw("f", &ScatteringGeneralSpectralTRO::f);
+  str_interface(stsv);
+
+  //
   // ScatSpeciesProperty
   //
 
