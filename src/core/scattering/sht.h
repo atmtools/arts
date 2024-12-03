@@ -59,9 +59,9 @@ using std::numbers::pi_v;
 template <typename Numeric>
 class FFTWArray {
  public:
-  FFTWArray() {}
+  FFTWArray() = default;
   FFTWArray(Index n);
-  operator Numeric *() const { return ptr_.get(); }
+  [[nodiscard]] operator Numeric *() const { return ptr_.get(); }
 
  private:
   std::shared_ptr<Numeric> ptr_ = nullptr;
@@ -69,7 +69,10 @@ class FFTWArray {
 
 class ShtnsHandle {
  public:
-  static shtns_cfg get(Index l_max, Index m_max, Index n_aa, Index n_za);
+  [[nodiscard]] static shtns_cfg get(Index l_max,
+                                     Index m_max,
+                                     Index n_aa,
+                                     Index n_za);
 
  private:
   static std::array<Index, 4> current_config_;
@@ -106,47 +109,31 @@ class ShtnsHandle {
  */
 class SHT {
  public:
-
   /** Return azimuth-angle grid used by the SH transform.
    * @param The number of points in the zenith-angle grid.
    * @param radians If true the zenith-angle grid is returned in radians.
    * @return A vector containing the azimuth angles in degree (or radians).
    */
-  static Vector get_azimuth_angle_grid(Index n_aa, bool radians = false) {
-    if (n_aa == 1) {
-      Vector result(1);
-      result = 0.0;
-      return result;
-    }
-    Vector result(n_aa);
-    double dx = 360.0 / static_cast<double>(n_aa);
-    for (Index i = 0; i < n_aa; ++i) {
-      result[i] = dx * static_cast<double>(i);
-    }
-    if (radians) {
-      result *= Conversion::deg2rad(1.0);
-    }
-    return result;
-  }
+  [[nodiscard]] static Vector get_azimuth_angle_grid(Index n_aa,
+                                                     bool radians = false);
 
   /// Pointer to the azimuth angle grid in degrees.
-  std::shared_ptr<const Vector> get_aa_grid_ptr() const { return aa_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_aa_grid_ptr() const {
+    return aa_grid_;
+  }
 
   /** Return zenith-angle grid used by the SH transform.
    * @param The number of points in the zenith-angle grid.
    * @param radians If true the zenith-angle grid is returned in radians.
    * @return A vector containing the zenith-angle grid in degree (or radians).
    */
-  static FejerGrid get_zenith_angle_grid(Index n_pts, bool radians = false);
+  [[nodiscard]] static FejerGrid get_zenith_angle_grid(Index n_pts,
+                                                       bool radians = false);
 
-  FejerGrid get_zenith_angle_grid(bool radians = false) const {
-    return get_zenith_angle_grid(n_za_, radians);
-  }
+  [[nodiscard]] FejerGrid get_zenith_angle_grid(bool radians = false) const;
 
   /// Pointer to the zenith angle grid in degrees.
-  std::shared_ptr<const ZenithAngleGrid> get_za_grid_ptr() const {
-    return za_grid_;
-  }
+  [[nodiscard]] std::shared_ptr<const ZenithAngleGrid> get_za_grid_ptr() const;
 
   /** Calculates the number of spherical harmonics coefficients for a real
    * transform.
@@ -154,9 +141,7 @@ class SHT {
    * @param m_max The maximum order of the SHT.
    * @return The number of spherical harmonics coefficients.
    */
-  static Index calc_n_spectral_coeffs(Index l_max, Index m_max) {
-    return (l_max + 1) * (m_max + 1) - (m_max * (m_max + 1)) / 2;
-  }
+  [[nodiscard]] static Index calc_n_spectral_coeffs(Index l_max, Index m_max);
 
   /** Calculates the number of spherical harmonics coefficients for a complex
    * transform.
@@ -165,9 +150,8 @@ class SHT {
    * @return The number of spherical harmonics coefficients for a complex
    * transform.
    */
-  static Index calc_n_spectral_coeffs_cmplx(Index l_max, Index m_max) {
-    return (2 * m_max + 1) * (l_max + 1) - m_max * (m_max + 1);
-  }
+  [[nodiscard]] static Index calc_n_spectral_coeffs_cmplx(Index l_max,
+                                                          Index m_max);
 
   /** Calc l_max for m_max == l_max.
    *
@@ -177,10 +161,7 @@ class SHT {
    * @param n_spectral_coeffs The number of spectral coefficients.
    * @return l_max value yielding the given number of spectral coeffs.
    */
-  static Index calc_l_max(Index n_spectral_coeffs) {
-    return static_cast<Index>(
-        sqrt(2.0 * static_cast<double>(n_spectral_coeffs) + 0.25) - 1.5);
-  }
+  [[nodiscard]] static Index calc_l_max(Index n_spectral_coeffs);
 
   /** SHT parameters for a spatial field of given size.
    * @param n_aa: The size of the azimuth-angle grid.
@@ -189,17 +170,8 @@ class SHT {
    * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
-  static std::array<Index, 4> get_config_lonlat(Index n_aa, Index n_za) {
-    if (n_aa > 1) {
-      n_aa -= n_aa % 2;
-    }
-    n_za -= n_za % 2;
-
-    Index l_max = (n_za > 2) ? (n_za / 2) - 1 : 0;
-    Index m_max = (n_aa > 2) ? (n_aa / 2) - 1 : 0;
-    m_max = std::min(l_max, m_max);
-    return {l_max, m_max, n_aa, n_za};
-  }
+  [[nodiscard]] static std::array<Index, 4> get_config_lonlat(Index n_aa,
+                                                              Index n_za);
 
   /** SHT parameters for given SHT maximum degree and order of SHT
    * @param l_max: The maximum degree l of the SHT.
@@ -208,12 +180,8 @@ class SHT {
    * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
-  static std::array<Index, 4> get_config_lm(Index l_max, Index m_max) {
-    return {l_max,
-            m_max,
-            (m_max > 0) ? 2 * m_max + 2 : 1,
-            (l_max > 0) ? 2 * l_max + 2 : 1};
-  }
+  [[nodiscard]] static std::array<Index, 4> get_config_lm(Index l_max,
+                                                          Index m_max);
 
   /**
    * Create a spherical harmonics transformation object.
@@ -247,35 +215,20 @@ class SHT {
   SHT(Index l_max);
 
   /// Serialize SHT.
-  std::ostream &serialize(std::ostream &output) const {
-    output.write(reinterpret_cast<const char *>(&l_max_), sizeof(Index));
-    output.write(reinterpret_cast<const char *>(&m_max_), sizeof(Index));
-    output.write(reinterpret_cast<const char *>(&n_aa_), sizeof(Index));
-    output.write(reinterpret_cast<const char *>(&n_za_), sizeof(Index));
-    return output;
-  }
+  std::ostream &serialize(std::ostream &output) const;
 
   /// Deserialize SHT.
-  static SHT deserialize(std::istream &input) {
-    Index l_max, m_max, n_aa, n_za;
-    input.read(reinterpret_cast<char *>(&l_max), sizeof(Index));
-    input.read(reinterpret_cast<char *>(&m_max), sizeof(Index));
-    input.read(reinterpret_cast<char *>(&n_aa), sizeof(Index));
-    input.read(reinterpret_cast<char *>(&n_za), sizeof(Index));
-    return SHT(l_max, m_max, n_aa, n_za);
-  }
+  [[nodiscard]] static SHT deserialize(std::istream &input);
 
   /** Return the cosine of the zenith-angle grid used by SHTns.
    * @return A vector containing the cosine of the zenith-angle grid.
    */
-  Vector get_cos_za_grid();
+  [[nodiscard]] Vector get_cos_za_grid();
 
   /** Return azimuth-angle grid used by SHTns.
    * @return A vector containing the azimuth grid in radians.
    */
-  Vector get_azimuth_angle_grid(bool radians = false) {
-    return SHT::get_azimuth_angle_grid(n_aa_, radians);
-  }
+  [[nodiscard]] Vector get_azimuth_angle_grid(bool radians = false);
 
   /** L-indices of the SHT modes.
    *
@@ -298,11 +251,7 @@ class SHT {
    * @return The index of the coefficient in the spectral coefficient
    * vector.
    */
-  Index get_coeff_index(Index l, Index m) {
-    // l parameter varies fastest.
-    m = std::abs(m);
-    return m * (l_max_ + 1) - (m * (m - 1)) / 2 + l - m;
-  }
+  Index get_coeff_index(Index l, Index m);
 
   /**
    * Copy spatial field into the array that holds spatial data for
@@ -339,15 +288,7 @@ class SHT {
    * and columns to zenith angles.
    */
   void set_spectral_coeffs(
-      const matpack::matpack_view<Complex, 1, true, true> &view) const {
-    // Input size must match number of spectral coefficients of SHT.
-    ARTS_ASSERT(view.size() == n_spectral_coeffs_);
-    Index index = 0;
-    for (auto &x : view) {
-      spectral_coeffs_[index] = x;
-      ++index;
-    }
-  }
+      const matpack::matpack_view<Complex, 1, true, true> &view) const;
 
   /**
    * Copy spherical harmonics coefficients into the array that holds spectral
@@ -357,15 +298,7 @@ class SHT {
    * representing the data.
    */
   void set_spectral_coeffs_cmplx(
-      const matpack::matpack_view<Complex, 1, true, true> &view) const {
-    // Input size must match number of spectral coefficients of SHT.
-    ARTS_ASSERT(view.size() == n_spectral_coeffs_cmplx_);
-    Index index = 0;
-    for (auto &x : view) {
-      spectral_coeffs_cmplx_[index] = x;
-      ++index;
-    }
-  }
+      const matpack::matpack_view<Complex, 1, true, true> &view) const;
 
   /**
    * Return content of the array that holds spatial data for
@@ -375,9 +308,7 @@ class SHT {
    * correspond to azimuth angles  and columns to zenith angles.
    * angle).
    */
-  ExhaustiveConstMatrixView get_spatial_coeffs() const {
-    return ExhaustiveConstMatrixView(spatial_coeffs_, {n_aa_, n_za_});
-  }
+  ExhaustiveConstMatrixView get_spatial_coeffs() const;
 
   /**
    * Return content of the array that holds complex spatial data for
@@ -387,37 +318,34 @@ class SHT {
    * should correspond to azimuth angles and columns to zenith angles.
    *
    */
-  ExhaustiveConstComplexMatrixView get_spatial_coeffs_cmplx() const {
-    return ExhaustiveConstComplexMatrixView(spatial_coeffs_cmplx_,
-                                            {n_aa_, n_za_});
-  }
+  ExhaustiveConstComplexMatrixView get_spatial_coeffs_cmplx() const;
 
   /**
    * @return The size of the zenith-angle grid.
    */
-  Index get_n_zenith_angles() const { return n_za_; }
+  Index get_n_zenith_angles() const;
   /**
    * @return The size of the azimuth angle grid.
    */
-  Index get_n_azimuth_angles() const { return n_aa_; }
+  Index get_n_azimuth_angles() const;
   /**
    * @return The number of spherical harmonics coefficients.
    */
-  Index get_n_spectral_coeffs() const { return n_spectral_coeffs_; }
+  Index get_n_spectral_coeffs() const;
   /**
    * @return The number of spherical harmonics coefficients.
    */
-  Index get_n_spectral_coeffs_cmplx() const { return n_spectral_coeffs_cmplx_; }
+  Index get_n_spectral_coeffs_cmplx() const;
 
   /**
    * @return The maximum degree l of the SHT transformation.
    */
-  Index get_l_max() const { return l_max_; }
+  Index get_l_max() const;
 
   /**
    * @return The maximum order m of the SHT transformation.
    */
-  Index get_m_max() const { return m_max_; }
+  Index get_m_max() const;
 
   /**
    * Return content of the array that holds spectral data for
@@ -426,10 +354,7 @@ class SHT {
    * @return m  vector containing the spherical harmonics coefficients
    * representing the data.
    */
-  ExhaustiveConstComplexVectorView get_spectral_coeffs() const {
-    return ExhaustiveConstComplexVectorView(spectral_coeffs_,
-                                            {n_spectral_coeffs_});
-  }
+  ExhaustiveConstComplexVectorView get_spectral_coeffs() const;
 
   /**
    * Return content of the array that holds spectral data for
@@ -438,10 +363,7 @@ class SHT {
    * @return m Vector containing the spherical harmonics coefficients
    * representing the data.
    */
-  ExhaustiveConstComplexVectorView get_spectral_coeffs_cmplx() const {
-    return ExhaustiveConstComplexVectorView(spectral_coeffs_cmplx_,
-                                            {n_spectral_coeffs_cmplx_});
-  }
+  ExhaustiveConstComplexVectorView get_spectral_coeffs_cmplx() const;
 
   /** Apply forward SHT Transform *
    * Transforms discrete spherical data into spherical harmonics representation.
@@ -449,7 +371,7 @@ class SHT {
    * azimuth angles and columns to zenith angles.
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
-  ComplexVector transform(const ConstMatrixView &view) ;
+  ComplexVector transform(const ConstMatrixView &view);
 
   /** Apply forward SHT Transform
    *
@@ -645,9 +567,9 @@ matpack::matpack_data<T, 2> add_coeffs(
     const SHT &sht_inc_w,
     const SHT &sht_scat_w,
     const matpack::matpack_view<T, 2, constant_2, strided_2> &w) {
-  Index nlm_inc = sht_inc_v.get_n_spectral_coeffs_cmplx();
+  Index nlm_inc  = sht_inc_v.get_n_spectral_coeffs_cmplx();
   Index nlm_scat = sht_scat_v.get_n_spectral_coeffs();
-  auto result = ComplexMatrix(nlm_inc, nlm_scat);
+  auto result    = ComplexMatrix(nlm_inc, nlm_scat);
 
   Index index_l = 0;
   for (int l = 0; l <= static_cast<int>(sht_inc_v.l_max_); ++l) {
@@ -673,8 +595,6 @@ matpack::matpack_data<T, 2> add_coeffs(
 
 }  // namespace sht
 
-
 }  // namespace scattering
-
 
 #endif
