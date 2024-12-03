@@ -9,6 +9,8 @@
 
 namespace scattering {
 namespace sht {
+static std::mutex shtns_mutex{};
+
 Vector SHT::get_azimuth_angle_grid(Index n_aa, bool radians) {
   if (n_aa == 1) {
     Vector result(1);
@@ -149,9 +151,6 @@ ExhaustiveConstComplexVectorView SHT::get_spectral_coeffs() const {
 }
 
 ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -162,16 +161,17 @@ ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
   }
   set_spatial_coeffs(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+  
+  shtns_mutex.lock();
   spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
+  shtns_mutex.unlock();
+  
   return static_cast<ComplexVector>(get_spectral_coeffs());
 #endif
 }
 
 ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
                                    [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -182,15 +182,16 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
   }
   set_spatial_coeffs(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+
+  shtns_mutex.lock();
   spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
+  shtns_mutex.unlock();
+  
   return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
 #endif
 }
 
 Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -199,18 +200,21 @@ Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
     result = view[0].real();
     return result;
   }
+  
   set_spectral_coeffs(view);
+  
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+  
+  shtns_mutex.lock();
   SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
+  shtns_mutex.unlock();
+  
   return static_cast<Matrix>(get_spatial_coeffs());
 #endif
 }
 
 ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
                                     [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -221,7 +225,11 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
   }
   set_spectral_coeffs_cmplx(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+  
+  shtns_mutex.lock();
   SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
+  shtns_mutex.unlock();
+  
   return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
 #endif
 }
@@ -229,9 +237,6 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
 Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
                       Numeric phi [[maybe_unused]],
                       Numeric theta [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -240,15 +245,14 @@ Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
   }
   set_spectral_coeffs(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
-  return SH_to_point(shtns, spectral_coeffs_, cos(theta), phi);
+
+  const std::scoped_lock lock(shtns_mutex);
+  return SH_to_point(shtns, spectral_coeffs_, std::cos(theta), phi);
 #endif
 }
 
 Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
                      const MatrixView &points [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -261,19 +265,20 @@ Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
   auto n_points = points.nrows();
   Vector result(n_points);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+  
+  shtns_mutex.lock();
   for (auto i = 0; i < n_points; ++i) {
     result[i] =
-        SH_to_point(shtns, spectral_coeffs_, cos(points(i, 1)), points(i, 0));
+        SH_to_point(shtns, spectral_coeffs_, std::cos(points(i, 1)), points(i, 0));
   }
+  shtns_mutex.lock();
+  
   return result;
 #endif
 }
 
 Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
                      const Vector &thetas [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -289,9 +294,13 @@ Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
   auto n_points = thetas.size();
   Vector result(n_points);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
+
+  shtns_mutex.lock();
   for (auto i = 0; i < n_points; ++i) {
     result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
   }
+  shtns_mutex.unlock();
+
   return result;
 #endif
 }
@@ -300,14 +309,13 @@ Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
 struct FFTWDeleter {
   template <typename T>
   void operator()(T *t [[maybe_unused]]) {
-    static std::mutex shtns_mutex;
-    std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
     ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
     if (t) {
+      shtns_mutex.lock();
       fftw_free(t);
+      shtns_mutex.unlock();
       t = nullptr;
     }
 #endif
@@ -316,16 +324,15 @@ struct FFTWDeleter {
 
 template <typename Numeric>
 FFTWArray<Numeric>::FFTWArray(Index n [[maybe_unused]]) : ptr_(nullptr) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
   if (n > 0) {
+    shtns_mutex.lock();
     ptr_ = std::shared_ptr<Numeric>(
         reinterpret_cast<Numeric *>(fftw_malloc(n * sizeof(Numeric))),
         FFTWDeleter());
+    shtns_mutex.unlock();
   }
 #endif
 }
@@ -334,9 +341,6 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
                            Index m_max [[maybe_unused]],
                            Index n_aa [[maybe_unused]],
                            Index n_za [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -344,6 +348,7 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
   if (config == current_config_) {
     return shtns_;
   } else {
+    shtns_mutex.lock();
     shtns_reset();
     shtns_          = shtns_init(sht_reg_fast,
                         static_cast<int>(l_max),
@@ -351,6 +356,8 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
                         1,
                         static_cast<int>(n_za),
                         static_cast<int>(n_aa));
+    shtns_mutex.unlock();
+  
     current_config_ = config;
   }
   return shtns_;
@@ -366,9 +373,6 @@ std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 
 SHT::SHT(Index l_max, Index m_max, Index n_aa, Index n_za)
     : l_max_(l_max), m_max_(m_max), n_aa_(n_aa), n_za_(n_za) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -378,8 +382,12 @@ SHT::SHT(Index l_max, Index m_max, Index n_aa, Index n_za)
     n_spectral_coeffs_cmplx_ = 1;
   } else {
     is_trivial_ = false;
+  
+    shtns_mutex.lock();
     shtns_verbose(1);
     shtns_use_threads(0);
+    shtns_mutex.unlock();
+    
     n_spectral_coeffs_       = calc_n_spectral_coeffs(l_max, m_max);
     n_spectral_coeffs_cmplx_ = calc_n_spectral_coeffs_cmplx(l_max, m_max);
     spectral_coeffs_ =
@@ -403,9 +411,6 @@ SHT::SHT(Index l_max, Index m_max)
 SHT::SHT(Index l_max) : SHT(l_max, l_max) {}
 
 Vector SHT::get_cos_za_grid() {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -420,9 +425,6 @@ Vector SHT::get_cos_za_grid() {
 }
 
 ArrayOfIndex SHT::get_l_indices() {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -439,9 +441,6 @@ ArrayOfIndex SHT::get_l_indices() {
 }
 
 ArrayOfIndex SHT::get_m_indices() {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -458,9 +457,6 @@ ArrayOfIndex SHT::get_m_indices() {
 }
 
 FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
   auto result = FejerGrid(n_za);
   if (radians) {
     result *= Conversion::deg2rad(1.0);
@@ -474,9 +470,6 @@ FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
 
 std::shared_ptr<SHT> SHTProvider::get_instance(SHTParams params
                                                [[maybe_unused]]) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
   std::unreachable();
@@ -490,16 +483,10 @@ std::shared_ptr<SHT> SHTProvider::get_instance(SHTParams params
 }
 
 std::shared_ptr<SHT> SHTProvider::get_instance(Index n_aa, Index n_za) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
   return get_instance(SHT::get_config_lonlat(n_aa, n_za));
 }
 
 std::shared_ptr<SHT> SHTProvider::get_instance_lm(Index l_max, Index m_max) {
-  static std::mutex shtns_mutex;
-  std::scoped_lock shtns_lock(shtns_mutex);
-
   return get_instance(SHT::get_config_lm(l_max, m_max));
 }
 

@@ -16,7 +16,7 @@ using namespace scattering;
 // Test functions
 ///////////////////////////////////////////////////////////////////////////////
 
-bool test_initialize_sht() {
+bool test_initialize_sht() try {
   // SHT with l_max = 5, m_max = 5, n_lon = 32, n_lat = 32.
   auto sht   = sht::SHT(5, 5, 32, 32);
   auto sht_p = *sht::provider.get_instance({5, 5, 32, 32});
@@ -41,13 +41,16 @@ bool test_initialize_sht() {
   }
 
   return true;
+} catch (std::exception& e) {
+  std::cerr << "fail test_initialize_sht" << std::endl;
+  throw e;
 }
 
 /** Calculates transforms of specific spherical harmonics and checks
  * that the resulting coefficient are zero almost everywhere except
  * at the coefficients that correspond to the given SH function.
  */
-bool test_transform_harmonics() {
+bool test_transform_harmonics() try {
   auto sht              = *sht::provider.get_instance({5, 5, 32, 32});
   Vector a_angs{sht.get_azimuth_angle_grid(true)};
   Vector z_angs{grid_vector(sht.get_zenith_angle_grid(true))};
@@ -78,6 +81,9 @@ bool test_transform_harmonics() {
     }
   }
   return true;
+} catch (std::exception& e) {
+  std::cerr << "fail test_transform_harmonics" << std::endl;
+  throw e;
 }
 
 /** Test symmetry.
@@ -85,7 +91,7 @@ bool test_transform_harmonics() {
  * Ensure that applying the transform twice doesn't change
  * coefficients.
  */
-bool test_symmetry(int n_trials) {
+bool test_symmetry(int n_trials) try {
   for (int i = 0; i < n_trials; ++i) {
     auto sht_v          = *sht::provider.get_instance({16, 16, 34, 34});
     ComplexVector v     = random_spectral_coeffs(16, 16);
@@ -97,6 +103,9 @@ bool test_symmetry(int n_trials) {
     }
   }
   return true;
+} catch (std::exception& e) {
+  std::cerr << "fail test_symmetry" << std::endl;
+  throw e;
 }
 
 /** Test addition of spectral coefficients.
@@ -105,7 +114,7 @@ bool test_symmetry(int n_trials) {
  * space and ensures that the spectral representation of
  * the sum is the same.
  */
-bool test_add_coefficients(int n_trials) {
+bool test_add_coefficients(int n_trials) try {
   for (int i = 0; i < n_trials; ++i) {
     auto sht_w = *sht::provider.get_instance({8, 8, 34, 34});
     auto sht_v = *sht::provider.get_instance({16, 16, 34, 34});
@@ -125,9 +134,12 @@ bool test_add_coefficients(int n_trials) {
     }
   }
   return true;
+} catch (std::exception& e) {
+  std::cerr << "fail test_add_coefficients" << std::endl;
+  throw e;
 }
 
-bool test_grids() {
+bool test_grids() try {
   auto sht = sht::provider.get_instance(64, 64);
 
   auto lat_grid     = sht->get_zenith_angle_grid();
@@ -163,9 +175,12 @@ bool test_grids() {
   }
 
   return true;
+} catch (std::exception& e) {
+  std::cerr << "fail test_grids" << std::endl;
+  throw e;
 }
 
-int main(int /*nargs*/, char** /*argv*/) {
+int main(int /*nargs*/, char** /*argv*/) try {
 #ifndef ARTS_NO_SHTNS
   bool passed = test_initialize_sht();
   std::cout << "test_initialization: ";
@@ -213,5 +228,9 @@ int main(int /*nargs*/, char** /*argv*/) {
   }
 #endif
 
+  std::cout << "All tests passed!" << std::endl;
   return 0;
+} catch (std::exception& e) {
+  std::cerr << e.what() << std::endl;
+  return EXIT_FAILURE;
 }
