@@ -504,9 +504,10 @@ endif()
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (python)
-add_subdirectory (examples)
 add_subdirectory (testdata)
-add_subdirectory (tests)
+
+collect_test_subdir(examples)
+collect_test_subdir(tests)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
