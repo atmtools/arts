@@ -30,7 +30,7 @@ if(DOWNLOAD_CATDATA_DEPS)
     #
     # Clean
     #
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES arts-cat-data)
+    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-cat-data)
 endif()
 
 if(NOT ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
@@ -72,5 +72,5 @@ if(DOWNLOAD_XMLDATA_DEPS)
     #
     # Clean
     #
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES arts-xml-data)
+    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-xml-data)
 endif()

@@ -64,6 +64,6 @@ if(SPHINX_FOUND)
   #
   # Clean
   #
-  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES
     build source/pyarts_arts.rst)
 endif()
