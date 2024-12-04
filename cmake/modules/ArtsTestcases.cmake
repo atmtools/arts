@@ -22,7 +22,6 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   string(REGEX REPLACE ".py$" "" TESTNAME_LONG ${TESTNAME_LONG})
   set(TESTNAME_LONG pyarts.${TESTNAME}.${TESTNAME_LONG})
 
-  set(PYFILE "controlfiles/${PYTHONCTLFILE}")
   get_filename_component(CFILESUBDIR ${PYFILE} DIRECTORY)
   add_custom_target(
     make_dir_${TESTNAME}_${TESTNAME_LONG}
@@ -30,11 +29,21 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   )
   add_dependencies(check-deps make_dir_${TESTNAME}_${TESTNAME_LONG})
 
-  add_test(
-    NAME ${TESTNAME_LONG}
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${PYFILE}
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CFILESUBDIR}"
-  )
+  if (PYFILE MATCHES "\.ipynb$")
+    add_test(
+      NAME ${TESTNAME_LONG}
+      COMMAND jupyter nbconvert --output-dir=. --execute --to notebook ${CMAKE_CURRENT_SOURCE_DIR}/${PYFILE}
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CFILESUBDIR}"
+    )
+  elseif (PYFILE MATCHES "\.py$")
+    add_test(
+      NAME ${TESTNAME_LONG}
+      COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${PYFILE}
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CFILESUBDIR}"
+    )
+  else ()
+    MESSAGE(FATAL_ERROR "Unknown test filetype: ${PYFILE}")
+  endif()
   set_tests_properties(
     ${TESTNAME_LONG} PROPERTIES
     ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python/src;ARTS_HEADLESS=1;ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR};ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR};ARTS_DATA_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}"
@@ -43,11 +52,15 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
 endmacro()
 
 macro (COLLECT_TEST_SUBDIR SUBDIR)
-  file(GLOB_RECURSE PYFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SUBDIR}/*.py)
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${SUBDIR})
+  file(GLOB_RECURSE PYFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SUBDIR}/*.py ${SUBDIR}/*.ipynb)
   get_filename_component(CURRENTDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   foreach(PYFILE ${PYFILES})
+    if (PYFILE MATCHES "\.ipynb_checkpoints")
+      continue()
+    endif()
     set(SKIPFILE 0)
-    if (ENABLE_ARTS_LGPL AND "${PYFILE}" MATCHES ".nolgpl.")
+    if (ENABLE_ARTS_LGPL AND PYFILE MATCHES "\.nolgpl\.")
       set(SKIPFILE 1)
     endif()
     if (NOT SKIPFILE)
