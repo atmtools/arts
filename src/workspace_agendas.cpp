@@ -1,23 +1,24 @@
 #include "workspace_agendas.h"
 
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
-internal_workspace_agendas() {
+internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
   wsa_data["propagation_matrix_agenda"] = {
       .desc =
           R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
 )--",
-      .output = {"propagation_matrix",
-                 "propagation_matrix_source_vector_nonlte",
-                 "propagation_matrix_jacobian",
-                 "propagation_matrix_source_vector_nonlte_jacobian"},
-      .input  = {"frequency_grid",
-                 "frequency_grid_wind_shift_jacobian",
-                 "jacobian_targets",
-                 "select_species",
-                 "ray_path_point",
-                 "atmospheric_point"},
+      .output       = {"propagation_matrix",
+                       "propagation_matrix_source_vector_nonlte",
+                       "propagation_matrix_jacobian",
+                       "propagation_matrix_source_vector_nonlte_jacobian"},
+      .input        = {"frequency_grid",
+                       "frequency_grid_wind_shift_jacobian",
+                       "jacobian_targets",
+                       "select_species",
+                       "ray_path_point",
+                       "atmospheric_point"},
+      .enum_options = {"Empty"},
   };
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
@@ -28,25 +29,31 @@ internal_workspace_agendas() {
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral"},
       .input  = {"frequency_grid", "atmospheric_point", "legendre_degree"},
+      .enum_options = {"FromSpeciesTRO"},
+      .enum_default = "FromSpeciesTRO",
   };
 
   wsa_data["propagation_matrix_scattering_agenda"] = {
       .desc =
           R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
 )--",
-      .output = {"propagation_matrix_scattering"},
-      .input  = {"frequency_grid", "atmospheric_point"},
+      .output       = {"propagation_matrix_scattering"},
+      .input        = {"frequency_grid", "atmospheric_point"},
+      .enum_options = {"AirSimple"},
+      .enum_default = "AirSimple",
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc   = R"--(Get the propagation path as it is obeserved.
+      .desc         = R"--(Get the propagation path as it is obeserved.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
 )--",
-      .output = {"ray_path"},
-      .input  = {"spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight"},
+      .output       = {"ray_path"},
+      .input        = {"spectral_radiance_observer_position",
+                       "spectral_radiance_observer_line_of_sight"},
+      .enum_options = {"Geometric"},
+      .enum_default = "Geometric",
   };
 
   wsa_data["spectral_radiance_observer_agenda"] = {
@@ -73,10 +80,12 @@ The output must be sized as:
                  "spectral_radiance_observer_line_of_sight",
                  "atmospheric_field",
                  "surface_field"},
+      .enum_options = {"Emission"},
+      .enum_default = "Emission",
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {
-      .desc   = R"--(Spectral radiance as seen of space.
+      .desc         = R"--(Spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
 One common use-case us to provide a background spectral radiance.
@@ -88,12 +97,16 @@ The output must be sized as:
 - *spectral_radiance* : (*frequency_grid*)
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
-      .output = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input  = {"frequency_grid", "jacobian_targets", "ray_path_point"},
+      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .input        = {"frequency_grid", "jacobian_targets", "ray_path_point"},
+      .enum_options = {"UniformCosmicBackground",
+                       "SunOrCosmicBackground",
+                       "Transmission"},
+      .enum_default = "UniformCosmicBackground",
   };
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc   = R"--(Spectral radiance as seen of the surface.
+      .desc         = R"--(Spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -105,11 +118,13 @@ The output must be sized as:
 - *spectral_radiance* : (*frequency_grid*)
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
-      .output = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input  = {"frequency_grid",
-                 "jacobian_targets",
-                 "ray_path_point",
-                 "surface_field"},
+      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .input        = {"frequency_grid",
+                       "jacobian_targets",
+                       "ray_path_point",
+                       "surface_field"},
+      .enum_options = {"Blackbody", "Transmission"},
+      .enum_default = "Blackbody",
   };
 
   wsa_data["inversion_iterate_agenda"] = {
@@ -127,18 +142,25 @@ is not yet any calculated Jacobian.
   };
 
   wsa_data["disort_settings_agenda"] = {
-      .desc   = R"--(An agenda for setting up Disort.
+      .desc         = R"--(An agenda for setting up Disort.
 
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
-      .output = {"disort_settings"},
-      .input  = {"frequency_grid",
-                 "ray_path",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
+      .output       = {"disort_settings"},
+      .input        = {"frequency_grid",
+                       "ray_path",
+                       "disort_quadrature_dimension",
+                       "disort_fourier_mode_dimension",
+                       "disort_legendre_polynomial_dimension"},
+      .enum_options = {"SunlessClearsky", "ScatteringSpecies"},
   };
 
   return wsa_data;
+}
+
+const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
+internal_workspace_agendas() {
+  static const auto out = internal_workspace_agendas_creator();
+  return out;
 }

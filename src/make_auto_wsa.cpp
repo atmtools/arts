@@ -8,8 +8,8 @@
 #include "workspace_agendas.h"
 #include "workspace_variables.h"
 
-const auto wsa = internal_workspace_agendas();
-const auto wsv = internal_workspace_variables();
+const auto& wsa = internal_workspace_agendas();
+const auto& wsv = internal_workspace_variables();
 
 //! List of groups and their variables
 struct auto_ag {
@@ -145,6 +145,10 @@ struct WorkspaceAgendaRecord {
 
 const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas();
 
+// Returns documentation of default enums as keys for agenda names and then a list of pairs of option and documentation
+[[nodiscard]]
+std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> get_agenda_enum_documentation();
+
 struct WorkspaceAgendaBoolHandler {
 )--";
 
@@ -164,6 +168,15 @@ struct WorkspaceAgendaBoolHandler {
     header_docstring(os, ag.second, ag.first);
     call_operator(os, ag.second, ag.first);
     os << ";\n\n";
+  }
+
+  for (auto& [name, ag] : wsa) {
+    if (ag.enum_options.empty()) continue;
+
+    std::print(os,
+               R"(void {0}Set(Agenda& ag, const String& option);
+)",
+               name);
   }
 }
 
@@ -230,10 +243,10 @@ void implementation(std::ostream& os) {
 
   os << R"--(#include <auto_wsa.h>
 
-#include "workspace_agenda_class.h"
-#include "workspace_method_class.h"
-
-#include "workspace_class.h"
+#include <workspace_agenda_class.h>
+#include <workspace_method_class.h>
+#include <workspace_agenda_creator.h>
+#include <workspace_class.h>
 
 std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
   std::unordered_map<std::string, WorkspaceAgendaRecord> ags;
@@ -300,14 +313,101 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
     os << "} catch(std::exception& e) {\n  throw std::runtime_error(std::format(R\"--(Error executing agenda "
        << '"' << name << '"' << ":\n{})--\", e.what()));\n}\n\n";
   }
+
+  for (auto& [name, ag] : wsa) {
+    if (ag.enum_options.empty()) continue;
+
+    std::print(os,
+               R"(
+void {0}Set(Agenda& ag, const String& option) {{
+  static_assert(requires {{get_{0}("Something");}}, "Missing get_{0} function definition in workspace_agenda_creator.h, please add it.");
+  ag = get_{0}(option);  
+}}
+)",
+               name);
+  }
+
+  std::print(os, R"(
+std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> get_agenda_enum_documentation() {{
+  std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> out{{}};
+
+)");
+
+  for (auto& [name, ag] : wsa) {
+    std::print(os,
+               R"(  [[maybe_unused]] auto& tmp_{0} = out["{0}Set"];
+
+)",
+               name);
+    if (ag.enum_options.empty()) continue;
+
+    for (auto& opt : ag.enum_options) {
+      std::print(os,
+                 R"(  tmp_{1}.emplace_back("{0}", get_{1}("{0}").sphinx_list());
+)",
+                 opt,
+                 name);
+    }
+
+    os << '\n';
+  }
+
+  os << "  return out;\n}\n";
+}
+
+void options(std::ostream& os) {
+  std::print(os, R"(#pragma once
+
+#include <enums.h>
+
+)");
+
+  for (auto& [name, ag] : wsa) {
+    if (ag.enum_options.empty()) continue;
+
+    std::print(os, "enum class {}Predefined {{\n", name);
+    for (auto& opt : ag.enum_options) {
+      std::print(os, "  {},\n", opt);
+    }
+
+    std::print(os,
+               R"(}};
+
+template <>
+constexpr {0}Predefined to<{0}Predefined>(const std::string_view x) {{
+)",
+               name);
+
+    for (auto& opt : ag.enum_options) {
+      std::print(os,
+                 R"(  if (x == "{0}"sv) return {1}Predefined::{0};
+)",
+                 opt,
+                 name);
+    }
+
+    std::print(
+        os,
+        R"-XX-(  throw std::runtime_error(std::format(R"-X-(Bad value: "{{}}",
+
+Valid options for "{0}": {1:BNq,}
+)-X-", x));
+}}
+
+)-XX-",
+        name,
+        ag.enum_options);
+  }
 }
 
 int main() try {
   std::ofstream head("auto_wsa.h");
   std::ofstream impl("auto_wsa.cpp");
+  std::ofstream optshh("auto_wsa_options.h");
 
   header(head);
   implementation(impl);
+  options(optshh);
 } catch (std::exception& e) {
   std::cerr << "Cannot create the automatic agendas with error:\n\n"
             << e.what() << '\n';

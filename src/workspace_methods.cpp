@@ -104,8 +104,8 @@ WorkspaceMethodInternalRecord::generic_overloads() const {
 
 std::string WorkspaceMethodInternalRecord::header(const std::string& name,
                                                   int overload) const try {
-  const static auto wsv = internal_workspace_variables();
-  const static auto wsa = internal_workspace_agendas();
+  const auto& wsv = internal_workspace_variables();
+  const auto& wsa = internal_workspace_agendas();
 
   const std::string spaces(name.size() + 6, ' ');
 
@@ -263,11 +263,15 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
                   std::string_view(e.what())));
 }
 
-std::unordered_map<std::string, WorkspaceMethodInternalRecord>
-internal_workspace_methods_create() try {
-  std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
-
+void add_agenda_methods(
+    std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [agname, ag] : internal_workspace_agendas()) {
+    if (wsm_data.contains(agname + "Execute") or
+        wsm_data.contains(agname + "Set"))
+      throw std::runtime_error(
+          "Agenda method to Execute and/or Set must be generated automatically: " +
+          agname);
+
     std::vector<std::string> input = ag.input;
     input.push_back(agname);
     wsm_data[agname + "Execute"] = {
@@ -277,7 +281,26 @@ internal_workspace_methods_create() try {
         .in     = input,
         .pass_workspace = true,
     };
+
+    if (ag.enum_options.empty()) continue;
+
+    wsm_data[agname + "Set"] = {
+        .desc      = "Set *" + agname + "* to a specific value\n",
+        .author    = {"``Automatically Generated``"},
+        .out       = {agname},
+        .gin       = {"option"},
+        .gin_type  = {"String"},
+        .gin_value = {ag.enum_default.empty()
+                          ? std::nullopt
+                          : std::optional<String>(ag.enum_default)},
+        .gin_desc  = {"Choice of generated agenda"},
+    };
   }
+}
+
+std::unordered_map<std::string, WorkspaceMethodInternalRecord>
+internal_workspace_methods_create() try {
+  std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
   wsm_data["Ignore"] = {
       .desc      = R"--(Ignore a workspace variable.
@@ -792,32 +815,6 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
-  wsm_data["disort_settings_agendaSet"] = {
-      .desc      = R"--(Sets *disort_settings_agenda*
-
-See *disort_settings_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["spectral_radiance_observer_agendaSet"] = {
-      .desc      = R"--(Sets *spectral_radiance_space_agenda*
-
-See *spectral_radiance_space_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_observer_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
   wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
       .desc      = R"--(Sets A path of Zeeman effec magnetic field properties.
 
@@ -832,45 +829,6 @@ sight [eta].
       .gout_type = {"ArrayOfVector3"},
       .gout_desc = {R"--(Along-the-path [H, theta, eta])--"},
       .in        = {"ray_path", "ray_path_atmospheric_point"},
-  };
-
-  wsm_data["ray_path_observer_agendaSet"] = {
-      .desc      = R"--(Sets *ray_path_observer_agenda*
-
-See *ray_path_observer_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_observer_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["spectral_radiance_space_agendaSet"] = {
-      .desc      = R"--(Sets *spectral_radiance_space_agenda*
-
-See *spectral_radiance_space_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_space_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["spectral_radiance_surface_agendaSet"] = {
-      .desc      = R"--(Sets *spectral_radiance_surface_agenda*
-
-See *spectral_radiance_surface_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_surface_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
   };
 
   wsm_data["ecs_dataAddMakarov2020"] = {
@@ -1017,12 +975,12 @@ Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
       .desc =
           R"--(Selects all main absorbers from the absorption data.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"select_species_list"},
-      .in             = {"absorption_predefined_model_data",
-                         "absorption_xsec_fit_data",
-                         "absorption_cia_data",
-                         "absorption_bands"},
+      .author = {"Richard Larsson"},
+      .out    = {"select_species_list"},
+      .in     = {"absorption_predefined_model_data",
+                 "absorption_xsec_fit_data",
+                 "absorption_cia_data",
+                 "absorption_bands"},
   };
 
   wsm_data["ray_path_propagation_matrix_species_splitFromPath"] = {
@@ -1665,68 +1623,6 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
       .in     = {"jacobian_targets", "frequency_grid"},
   };
 
-  wsm_data["propagation_matrix_agendaSet"] = {
-      .desc      = R"--(Sets *propagation_matrix_agenda* to a default value
-
-Please consider using *propagation_matrix_agendaAuto* instead of one of these options
-as it will ensure you have the best coverage of use cases.  The options below are
-available for feature testing
-
-See *propagation_matrix_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["propagation_matrix_agendaSet"] = {
-      .desc      = R"--(Sets *propagation_matrix_agenda* to a default value
-
-Please consider using *propagation_matrix_agendaAuto* instead of one of these options
-as it will ensure you have the best coverage of use cases.  The options below are
-available for feature testing
-
-See *propagation_matrix_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["propagation_matrix_scattering_agendaSet"] = {
-      .desc =
-          R"--(Sets *propagation_matrix_scattering_agenda* to a default value
-
-See *propagation_matrix_scattering_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_scattering_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["propagation_matrix_scattering_spectral_agendaSet"] = {
-      .desc =
-          R"--(Sets *propagation_matrix_scattering_spectral_agenda* to a default value
-
-See *propagation_matrix_scattering_spectral_agendaPredefined* for valid ``option``
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_scattering_spectral_agenda"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Default agenda option (see description))--"},
-  };
-
   wsm_data["surface_fieldEarth"] = {
       .desc      = R"--(Earth reference ellipsoids.
 
@@ -2177,6 +2073,13 @@ matrix to be calculated will work.
 
   wsm_data["jacobian_targetsInit"] = {
       .desc   = R"--(Initialize or reset the *jacobian_targets*
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+  };
+
+  wsm_data["jacobian_targetsOff"] = {
+      .desc   = R"--(Turns off *jacobian_targets*
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
@@ -4343,10 +4246,19 @@ See *jacobian_targetsFinalize* for more information.
   };
 
   /* 
-  LEAVE THESE PENULTIMATE AS THEY REQUIRE THE DATA ABOVE TO FUNCTION BUT CAN BE USED IN META CALLS
+  MANUAL ENTRIES BELOW THIS POINT MESSES WITH THE LOGIC OF WSM_DATA
   */
 
+  add_agenda_methods(wsm_data);
+
   {  // propagation_matrix_agendaAuto
+    const std::string meta = "propagation_matrix_agendaAuto";
+    if (wsm_data.contains(meta)) {
+      throw std::runtime_error(std::format(
+          "Method name collision: \"{}\" already exists in the workspace methods",
+          meta));
+    }
+
     std::vector<std::string> gin{"use_absorption_lookup_table"};
     std::vector<std::string> gin_type{"Index"};
     std::vector<std::string> gin_desc{
@@ -4355,7 +4267,6 @@ See *jacobian_targetsFinalize* for more information.
     std::vector<std::string> gout{};
     std::vector<std::string> gout_type{};
     std::vector<std::string> gout_desc{};
-    const std::string meta = "propagation_matrix_agendaAuto";
 
     for (auto& method : {"propagation_matrixInit",
                          "propagation_matrixAddCIA",
@@ -4438,6 +4349,11 @@ for more information.
   LEAVE THIS LAST AS IT REQUIRES THE DATA ABOVE TO FUNCTION
   */
   for (auto& m : internal_meta_methods()) {
+    if (wsm_data.contains(m.name)) {
+      throw std::runtime_error(std::format(
+          "Method name collision: \"{}\" already exists in the workspace methods",
+          m.name));
+    }
     wsm_data[m.name] = m.create(wsm_data);
   }
 

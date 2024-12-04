@@ -10,11 +10,11 @@
 #include "workspace_groups.h"
 #include "workspace_variables.h"
 
-const static auto wsg = internal_workspace_groups();
+const auto& wsg = internal_workspace_groups();
+const auto& vars = internal_workspace_variables();
+const auto& ags  = internal_workspace_agendas();
 
 std::vector<std::string> wsv_names(std::ostream& os) {
-  const static auto vars = internal_workspace_variables();
-  const static auto ags  = internal_workspace_agendas();
 
   std::vector<std::string> names;
   names.reserve(vars.size() + ags.size());

@@ -59,6 +59,9 @@ class Agenda {
     return copy;
   }
 
+  [[nodiscard]] std::string sphinx_list(
+      const std::string_view prep = "- ") const;
+
   friend std::ostream& operator<<(std::ostream& os, const Agenda& a);
 };
 

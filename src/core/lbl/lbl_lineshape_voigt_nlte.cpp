@@ -33,12 +33,12 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
   const Numeric ru = atm[qid.UpperLevel()];
   const Numeric rl = atm[qid.LowerLevel()];
 
-  const Numeric k             = line.nlte_k(ru, rl);
-  const Numeric e             = line.nlte_e(ru);
-  const Numeric f             = line.f0;
-  static constexpr Numeric kB = Constant::k;
-  const Numeric T             = atm.temperature;
-  const Numeric inv_b         = -std::expm1(h * f / (kB * T)) / (f * f * f);
+  const Numeric k      = line.nlte_k(ru, rl);
+  const Numeric e      = line.nlte_e(ru);
+  const Numeric f      = line.f0;
+  constexpr Numeric kB = Constant::k;
+  const Numeric T      = atm.temperature;
+  const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
 
   const Numeric r = atm[qid.Isotopologue()];
   const Numeric x = atm[qid.Isotopologue().spec];
@@ -59,13 +59,13 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
   const Numeric ru = atm[qid.UpperLevel()];
   const Numeric rl = atm[qid.LowerLevel()];
 
-  const Numeric k             = line.nlte_k(ru, rl);
-  const Numeric e             = line.nlte_e(ru);
-  const Numeric f             = line.f0;
-  static constexpr Numeric kB = Constant::k;
-  const Numeric T             = atm.temperature;
-  const Numeric inv_b         = -std::expm1(h * f / (kB * T)) / (f * f * f);
-  const Numeric dinv_b        = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
+  const Numeric k      = line.nlte_k(ru, rl);
+  const Numeric e      = line.nlte_e(ru);
+  const Numeric f      = line.f0;
+  constexpr Numeric kB = Constant::k;
+  const Numeric T      = atm.temperature;
+  const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
+  const Numeric dinv_b = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
 
   const Numeric dD0 = line.ls.dD0_dT(atm);
 
@@ -92,13 +92,13 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
   const Numeric ru = atm[qid.UpperLevel()];
   const Numeric rl = atm[qid.LowerLevel()];
 
-  const Numeric k             = line.nlte_k(ru, rl);
-  const Numeric e             = line.nlte_e(ru);
-  const Numeric f             = line.f0;
-  static constexpr Numeric kB = Constant::k;
-  const Numeric T             = atm.temperature;
-  const Numeric inv_b         = -std::expm1(h * f / (kB * T)) / (f * f * f);
-  const Numeric dinv_b        = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
+  const Numeric k      = line.nlte_k(ru, rl);
+  const Numeric e      = line.nlte_e(ru);
+  const Numeric f      = line.f0;
+  constexpr Numeric kB = Constant::k;
+  const Numeric T      = atm.temperature;
+  const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
+  const Numeric dinv_b = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
 
   const auto& ls    = line.ls.single_models[ispec];
   const Numeric T0  = line.ls.T0;
@@ -466,7 +466,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
 band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut)
     : lines(std::move(ls)), cutoff(cut) {}
 
-constexpr static auto add_pair = [](auto&& lhs,
+constexpr auto add_pair = [](auto&& lhs,
                                     auto&& rhs) -> std::pair<Complex, Complex> {
   return {lhs.first + rhs.first, lhs.second + rhs.second};
 };
@@ -890,9 +890,7 @@ void compute_derivative(PropmatVectorView dpm,
         dsv[i] += {dsv_pm.A(), dsv_pm.B(), dsv_pm.C(), dsv_pm.D()};
       }
       break;
-    case p:
-      ARTS_USER_ERROR("Not implemented, pressure derivative");
-      break;
+    case p: ARTS_USER_ERROR("Not implemented, pressure derivative"); break;
     case mag_u:
       com_data.dmag_u_core_calc(shape, bnd, f_grid, atm, pol);
       for (Index i = 0; i < f_grid.size(); i++) {

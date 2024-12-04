@@ -10,7 +10,15 @@ The workspace agenda definitions are located in the ``wsa_data`` map object.  Th
 - ``desc`` - a description of the agenda as a string.
 - ``outputs`` - the workspace variables that are produced by the agenda as a list of strings.
 - ``inputs`` - the workspace variables that are consumed by the agenda as a list of strings.
+- ``enum_options`` - a list of strings that are the options for the agenda.  Defaults to empty.
+- ``enum_defaults`` - the default enum option for the agenda.  Defaults to no-default by being empty.
 - ``array`` - a boolean for whether or not the agenda is described as an :class:`~pyarts.arts.ArrayOfAgenda` (if true) or an :class:`~pyarts.arts.Agenda` (if false, default).
+
+The two enum-variables, if set, will generate workspace methods that allow setting the agenda to a specific named option.
+This is useful for agendas that have known "modes".  However, it puts some constraints on the implementation of the agenda.
+The implementor must implement a method ``get_MYAGENDA(const std::string&)`` in the
+``workspace_agenda_creator.h`` and ``workspace_agenda_creator.cpp`` files.
+Please see existing options in those files for examples.
 
 What quailifies a workspace agenda?
 ===================================

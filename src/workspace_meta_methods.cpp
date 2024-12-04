@@ -434,8 +434,8 @@ Equivalent (mostly) Python code:
 std::string WorkspaceMethodInternalMetaRecord::call(
     const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsms)
     const try {
-  const static auto wsvs = internal_workspace_variables();
-  const static auto wsas = internal_workspace_agendas();
+  const auto& wsvs = internal_workspace_variables();
+  const auto& wsas = internal_workspace_agendas();
 
   const auto ptr = wsms.find(name);
   if (ptr == wsms.end()) {

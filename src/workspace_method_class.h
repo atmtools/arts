@@ -7,8 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "workspace_wsv.h"
 #include "format_tags.h"
+#include "workspace_wsv.h"
+
+inline constexpr char named_input_prefix = '@';
+inline constexpr char internal_prefix    = '_';
 
 class Method {
   std::string name{};
@@ -41,6 +44,8 @@ class Method {
 
   void operator()(Workspace& ws) const;
   void add_defaults_to_agenda(Agenda& agenda) const;
+
+  [[nodiscard]] std::string sphinx_list_item() const;
 
   friend std::ostream& operator<<(std::ostream& os, const Method& m);
 };
