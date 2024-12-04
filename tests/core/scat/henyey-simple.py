@@ -8,95 +8,103 @@ lat = 0
 lon = 0
 NQuad = 40
 
-if pyarts.arts.globals.data.has_sht:
-    ws = pyarts.Workspace()
+ws = pyarts.Workspace()
 
-    line_f0 = 118750348044.712
-    ws.frequency_grid = [line_f0]
-    ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
+line_f0 = 118750348044.712
+ws.frequency_grid = [line_f0]
+ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
-    # %% Species and line absorption
+# %% Species and line absorption
 
-    ws.absorption_speciesSet(species=["O2-66"])
-    ws.ReadCatalogData()
+ws.absorption_speciesSet(species=["O2-66"])
+ws.ReadCatalogData()
 
-    # %% Use the automatic agenda setter for propagation matrix calculations
-    ws.propagation_matrix_agendaAuto()
+# %% Use the automatic agenda setter for propagation matrix calculations
+ws.propagation_matrix_agendaAuto()
 
-    # %% Grids and planet
+# %% Grids and planet
 
-    ws.surface_fieldSetPlanetEllipsoid(option="Earth")
-    ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-    ws.atmospheric_fieldRead(
-        toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
-    )
-    ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-    # ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
+ws.surface_fieldSetPlanetEllipsoid(option="Earth")
+ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atmospheric_fieldRead(
+    toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
+)
+ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+# ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 
-    # %% Checks and settings
+# %% Checks and settings
 
-    ws.spectral_radiance_unit = "Tb"
-    ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-    ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_radiance_unit = "Tb"
+ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
-    # %% Core Disort calculations
+# %% Core Disort calculations
 
-    ws.disort_spectral_radiance_fieldSunlessClearsky(
-        longitude=lon,
-        latitude=lat,
-        disort_quadrature_dimension=NQuad,
-        disort_legendre_polynomial_dimension=1,
-        disort_fourier_mode_dimension=1,
-    )
+ws.disort_spectral_radiance_fieldSunlessClearsky(
+    longitude=lon,
+    latitude=lat,
+    disort_quadrature_dimension=NQuad,
+    disort_legendre_polynomial_dimension=1,
+    disort_fourier_mode_dimension=1,
+)
 
-    # %% Equivalent ARTS calculations
+# %% Equivalent ARTS calculations
 
-    ws.ray_pathGeometricDownlooking(
-        latitude=lat,
-        longitude=lon,
-        max_step=1000.0,
-    )
-    ws.spectral_radianceClearskyEmission()
+ws.ray_pathGeometricDownlooking(
+    latitude=lat,
+    longitude=lon,
+    max_step=1000.0,
+)
+ws.spectral_radianceClearskyEmission()
 
-    # %% Plot results
-    f = (ws.frequency_grid - line_f0) / 1e9
+# %% Plot results
+f = (ws.frequency_grid - line_f0) / 1e9
 
-    plt.figure()
-    plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
-    plt.semilogy(
-        f,
-        ws.disort_spectral_radiance_field[:, 0, 0, 0],
-        "g:",
-        lw=3,
-    )
-    plt.semilogy(
-        f,
-        ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
-        "m:",
-        lw=3,
-    )
-    plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
-    plt.xlabel("Dirac frequency [GHz]")
-    plt.title("Downlooking")
+plt.figure()
+plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+plt.semilogy(
+    f,
+    ws.disort_spectral_radiance_field[:, 0, 0, 0],
+    "g:",
+    lw=3,
+)
+plt.semilogy(
+    f,
+    ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
+    "m:",
+    lw=3,
+)
+plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
+plt.xlabel("Dirac frequency [GHz]")
+plt.title("Downlooking")
 
-    ws.propagation_matrix_scattering_spectral_agendaSet(
-        option="FromSpeciesTRO"
-    )
+ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
 
+for manual in [False, True]:
     for EXT in [0.1]:
         for SSA in [0.1]:
             for g in [0.9]:
                 print(EXT, SSA, g)
-                ws.scattering_species = [
-                    pyarts.arts.HenyeyGreensteinScatterer(
-                        lambda f, atm: (
-                            np.array([EXT, SSA])
-                            if atm.pressure > 1e4 and atm.pressure < 9e4
-                            else [0, 0]
-                        ),
-                        g,
-                    )
-                ]
+                hspec = pyarts.arts.HenyeyGreensteinScatterer(
+                    lambda f, atm: (
+                        np.array([EXT, SSA])
+                        if atm.pressure > 1e4 and atm.pressure < 9e4
+                        else [0, 0]
+                    ),
+                    g,
+                )
+
+                if manual:
+                    ws.scattering_species = [hspec]
+                else:
+                    def python_func(atm, f, index):
+                        return hspec.get_bulk_scattering_properties_tro_spectral(
+                            atm, f, index
+                        )
+
+                    ws.scattering_species = [
+                        pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
+                    ]
 
                 ws.disort_spectral_radiance_fieldScatteringSpecies(
                     longitude=lon,
@@ -122,4 +130,4 @@ if pyarts.arts.globals.data.has_sht:
                 )
                 plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
                 plt.xlabel("Dirac frequency [GHz]")
-                plt.title(f"EXT {EXT}; SSA {SSA}; g {g}")
+                plt.title(f"EXT {EXT}; SSA {SSA}; g {g}; manual {manual}")

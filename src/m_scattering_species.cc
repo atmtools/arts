@@ -43,66 +43,55 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
     const AscendingGrid& frequency_grid,
     const AtmPoint& atmospheric_point,
     const ArrayOfScatteringSpecies& scattering_species) try {
-  const Index F = frequency_grid.size();
   const Index L = phase_matrix_scattering_spectral.ncols();
 
-  ARTS_USER_ERROR_IF(L < 1, "Must have at least one legendre coefficient")
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array{F}, propagation_matrix_scattering),
-      "The shape of propagation_matrix_scattering must be {:B,}, is {:B,}",
-      std::array{F},
-      propagation_matrix_scattering.shape())
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array{F}, absorption_vector_scattering),
-      "The shape of absorption_vector_scattering must be {:B,}, is {:B,}",
-      std::array{F},
-      absorption_vector_scattering.shape())
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array{F, L}, phase_matrix_scattering_spectral),
-      "The shape of phase_matrix_scattering_spectral must be {:B,}, is {:B,}",
-      std::array{F, L},
-      phase_matrix_scattering_spectral.shape())
+  ARTS_USER_ERROR_IF(L < 1, "Need at least one Legendre coefficient")
+  ARTS_USER_ERROR_IF(scattering_species.empty(), "No scattering species")
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(
           atmospheric_point, frequency_grid, L - 1);
 
-  ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(),
-                     "Expects phase_matrix to have a value")
+  ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(), "No phase matrix")
 
   const auto& phase_matrix = phase_matrix_opt.value();
 
   ARTS_USER_ERROR_IF(
-      not same_shape(std::array{Index{1}, F, L, Index{6}}, phase_matrix),
-      "The shape of phase_matrix from scattering_species must be {:B,}, is {:B,}",
-      std::array{Index{1}, F, L, Index{6}},
-      phase_matrix.shape())
-  for (Index i = 0; i < F; i++) {
-    for (Index j = 0; j < L; j++) {
-      phase_matrix_scattering_spectral(i, j)(0, 0) += phase_matrix(0, i, j, 0);
-      phase_matrix_scattering_spectral(i, j)(1, 1) += phase_matrix(0, i, j, 0);
-      phase_matrix_scattering_spectral(i, j)(2, 2) += phase_matrix(0, i, j, 0);
-      phase_matrix_scattering_spectral(i, j)(3, 3) += phase_matrix(0, i, j, 0);
-    }
-  }
+      not same_shape(phase_matrix, phase_matrix_scattering_spectral) or
+          not same_shape(extinction_matrix,
+                         absorption_vector,
+                         propagation_matrix_scattering,
+                         absorption_vector_scattering),
+      R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array{Index{1}, F, Index{1}}, extinction_matrix),
-      "The shape of extinction_matrix must be {:B,}, is {:B,}",
-      std::array{Index{1}, F, Index{1}},
-      extinction_matrix.shape())
-  for (Index iv = 0; iv < F; iv++) {
-    propagation_matrix_scattering[iv].A() += extinction_matrix(0, iv, 0);
-  }
+Phase matrix shape (must match):
+  phase_matrix.shape(): [OUTPUT]            {0:B,}
+  phase_matrix_scattering_spectral.shape(): {1:B,}
 
-  ARTS_USER_ERROR_IF(
-      not same_shape(std::array{Index{1}, F, Index{1}}, absorption_vector),
-      "The shape of absorption_vector must be {:B,}, is {:B,}",
-      std::array{Index{1}, F, Index{1}},
-      absorption_vector.shape())
-  for (Index iv = 0; iv < F; iv++) {
-    absorption_vector_scattering[iv].I() += absorption_vector(0, iv, 0);
-  }
+Extinction matrix shape (must match):
+  extinction_matrix.shape(): [OUTPUT]       {2:B,}
+  propagation_matrix_scattering.shape():    {3:B,}
+
+Absorption vector shape (must match):
+  absorption_vector.shape(): [OUTPUT]       {4:B,}
+  absorption_vector_scattering.shape():     {5:B,}
+
+Supporting variable sizes:
+  frequency_grid.size():                    {6}
+  scattering_species.size():                {7}
+)",
+      phase_matrix.shape(),
+      phase_matrix_scattering_spectral.shape(),
+      extinction_matrix.shape(),
+      propagation_matrix_scattering.shape(),
+      absorption_vector.shape(),
+      absorption_vector_scattering.shape(),
+      frequency_grid.size(),
+      scattering_species.size())
+
+  propagation_matrix_scattering    += extinction_matrix;
+  phase_matrix_scattering_spectral += phase_matrix;
+  absorption_vector_scattering     += absorption_vector;
 }
 ARTS_METHOD_ERROR_CATCH
 

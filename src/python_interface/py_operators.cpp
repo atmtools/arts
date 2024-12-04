@@ -90,5 +90,27 @@ void py_operators(py::module_& m) {
   workspace_group_interface(ntop);
   py::implicitly_convertible<NumericTernaryOperator::func_t,
                              NumericTernaryOperator>();
+
+  py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
+  ntop.def("__init__",
+           [](ScatteringGeneralSpectralTROFunc* op, ScatteringGeneralSpectralTROFunc::func_t f) {
+             new (op) ScatteringGeneralSpectralTROFunc(
+                 [f = std::move(f)](const AtmPoint& x, const Vector& y, Index z) {
+                   py::gil_scoped_acquire gil{};
+                   return f(x, y, z);
+                 });
+           })
+      .def(
+          "__call__",
+          [](ScatteringGeneralSpectralTROFunc& f,
+             py::object x,
+             py::object y,
+             py::object z) { return vectorize(f.f, x, y, z); },
+          "x"_a,
+          "y"_a,
+          "z"_a);
+  workspace_group_interface(ntop);
+  py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t,
+                             ScatteringGeneralSpectralTROFunc>();
 }
 }  // namespace Python

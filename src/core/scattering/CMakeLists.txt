@@ -1,6 +1,7 @@
 add_library(scattering STATIC
    integration.cc
    scattering_species.cc
+   general_tro_spectral.cc
    properties.cc
    psd.cc
    sht.cc
