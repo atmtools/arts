@@ -56,11 +56,6 @@ macro (COLLECT_TEST_SUBDIR SUBDIR)
       message(STATUS "Build settings don't support ${PYFILE}, skipping.")
     endif()
   endforeach()
-
-  file(GLOB_RECURSE ARTSFILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SUBDIR}/*.arts)
-  foreach(ARTSFILE ${ARTSFILES})
-    arts_test_run_ctlfile(${CURRENTDIR} ${ARTSFILE})
-  endforeach()
 endmacro ()
 
 macro (SETUP_ARTS_CHECKS)
