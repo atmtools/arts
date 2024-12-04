@@ -692,8 +692,9 @@ std::string method_error(const std::string& name,
     first = false;
     os << std::format(
         R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
-    arg.push_back(
-        std::format(R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string("None"))", t));
+    arg.push_back(std::format(
+        R"(_{0} ? std::format("Custom {{}}", type(_{0})) : std::string("None"))",
+        t));
   }
 
   for (auto& t : wsm.in) {
@@ -789,7 +790,6 @@ std::string method(const std::string& name,
 
 void methods(int nfiles) {
   const auto& wsms = internal_workspace_methods();
-  const auto wsas  = internal_workspace_agendas();
 
   std::vector<std::ofstream> ofs(nfiles);
   for (int i = 0; i < nfiles; i++) {

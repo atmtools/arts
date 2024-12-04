@@ -3,8 +3,12 @@
 
 #include <ranges>
 
-void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
+void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
   jacobian_targets.clear();
+}
+
+void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
+  jacobian_targetsOff(jacobian_targets);
 }
 
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,

@@ -6,7 +6,7 @@
 
 #include "workspace_groups.h"
 
-const static auto data = internal_workspace_groups();
+const auto& data = internal_workspace_groups();
 
 std::vector<std::pair<std::string, std::vector<std::string>>> files() {
   std::vector<std::pair<std::string, std::vector<std::string>>> files;

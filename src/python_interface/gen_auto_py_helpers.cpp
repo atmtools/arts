@@ -154,7 +154,7 @@ Parameters
       "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
   for (auto& var : writer) {
     out += std::format(R"({0} : ~pyarts.arts.{1}
-    {2} See :attr: `~pyarts.workspace.Workspace.{0}` **{3}**
+    {2} See :attr:`~pyarts.workspace.Workspace.{0}` **{3}**
 )",
                        var.name,
                        var.group,
@@ -242,8 +242,9 @@ String to_defval_str(const Wsv& wsv) try {
 }
 
 String method_docs(const String& name) try {
-  const auto& wsms = internal_workspace_methods();
-  const auto& wsvs = workspace_variables();
+  const auto& wsms  = internal_workspace_methods();
+  const auto& wsvs  = workspace_variables();
+  const auto wsadoc = get_agenda_enum_documentation();
 
   //! WARNING: Raw method
   const auto& method = wsms.at(name);
@@ -269,6 +270,21 @@ String method_docs(const String& name) try {
   out  = "--(";
   out += unwrap_stars(method.desc);
   fix();
+
+  if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {
+    out +=
+        "\nBelow are the available options and a representation of the agenda call order.\n\n";
+    for (auto& [opt, doc] : ptr->second) {
+      out += std::format(R"(``"{}"``
+
+{}
+
+)",
+                         opt,
+                         unwrap_stars(doc));
+    }
+    fix();
+  }
 
   out += "\nAuthor(s):";
   for (auto& author : method.author) out += " " + author + ", ";
@@ -328,12 +344,12 @@ String method_docs(const String& name) try {
                    : ""};
     out += std::format(R"(
 {0} : {1}{2}
-    {2}{3} **[IN]**)",
-                      varname,
-                      grpname,
-                      opt,
-                      unwrap_stars(until_first_newline(method.gin_desc[i])),
-                      optval);
+    {3}{4} **[IN]**)",
+                       varname,
+                       grpname,
+                       opt,
+                       unwrap_stars(until_first_newline(method.gin_desc[i])),
+                       optval);
   }
 
   fix();
@@ -344,8 +360,8 @@ String method_docs(const String& name) try {
 } catch (std::out_of_range& e) {
   throw std::runtime_error(std::format("Cannot find: \"{}\"", name));
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error in method_docs({}): {}", name, std::string_view(e.what())));
+  throw std::runtime_error(std::format(
+      "Error in method_docs({}): {}", name, std::string_view(e.what())));
 }
 
 String variable_used_by(const String& name) {
@@ -414,10 +430,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[0]));
+                         hlist_num_cols(io[0]));
       for (auto& m : io[0]) {
-        val +=
-            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
@@ -429,10 +444,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[1]));
+                         hlist_num_cols(io[1]));
       for (auto& m : io[1]) {
-        val +=
-            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
@@ -444,10 +458,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[2]));
+                         hlist_num_cols(io[2]));
       for (auto& m : io[2]) {
-        val +=
-            std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
     val += "\n";
@@ -475,10 +488,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[0]));
+                         hlist_num_cols(io[0]));
       for (auto& m : io[0]) {
-        val +=
-            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
@@ -490,10 +502,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[1]));
+                         hlist_num_cols(io[1]));
       for (auto& m : io[1]) {
-        val +=
-            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
 
@@ -504,10 +515,9 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                        hlist_num_cols(io[2]));
+                         hlist_num_cols(io[2]));
       for (auto& m : io[2]) {
-        val +=
-            std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
+        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
       }
     }
     val += "\n";
@@ -521,7 +531,7 @@ String variable_used_by(const String& name) {
 .. hlist::
     :columns: {0}
 )",
-                      hlist_num_cols(usedocs.wsvs));
+                       hlist_num_cols(usedocs.wsvs));
     for (auto& m : usedocs.wsvs) {
       val += std::format("\n    *  :attr:`~pyarts.workspace.Workspace.{}`", m);
     }

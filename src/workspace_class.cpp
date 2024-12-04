@@ -8,11 +8,9 @@
 
 #include "debug.h"
 
-const auto& wsv_data = workspace_variables();
-
 Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   if (WorkspaceInitialization::FromGlobalDefaults == how_to_initialize) {
-    for (const auto& [name, record] : wsv_data) {
+    for (const auto& [name, record] : workspace_variables()) {
       if (record.default_value.has_value()) {
         wsv[name] = Wsv{record.default_value.value()};
       }
@@ -35,8 +33,8 @@ void Workspace::set(const std::string& name, const Wsv& data) try {
   auto ptr = wsv.find(name);
 
   if (ptr == wsv.end()) {
-    if (auto wsv_ptr = wsv_data.find(name);
-        wsv_ptr != wsv_data.end() and wsv_ptr->second.type != data.type_name())
+    if (auto wsv_ptr = workspace_variables().find(name);
+        wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name())
       throw wsv_ptr->second.type;
 
     wsv[name] = data;
@@ -65,8 +63,8 @@ It cannot be set to be a "{}"
 }
 
 void Workspace::overwrite(const std::string& name, const Wsv& data) try {
-  if (auto wsv_ptr = wsv_data.find(name);
-      wsv_ptr != wsv_data.end() and wsv_ptr->second.type != data.type_name())
+  if (auto wsv_ptr = workspace_variables().find(name);
+      wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name())
     throw wsv_ptr->second.type;
   wsv[name] = data;
 } catch (const std::string& type) {
@@ -87,7 +85,7 @@ bool Workspace::contains(const std::string& name) const {
 
 bool Workspace::wsv_and_contains(const std::string& name) const {
   ARTS_USER_ERROR_IF(
-      std::ranges::none_of(wsv_data | std::views::keys,
+      std::ranges::none_of(workspace_variables() | std::views::keys,
                            [&name](const auto& n) { return n == name; }),
       "Invalid workspace variable: \"{}\"",
       name)

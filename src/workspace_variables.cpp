@@ -1,7 +1,7 @@
 #include "workspace_variables.h"
 
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
-internal_workspace_variables() {
+internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   wsv_data["absorption_bands"] = {
@@ -335,7 +335,8 @@ Shape: NFREQ
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {      .desc =
+  wsv_data["propagation_matrix_scattering"] = {
+      .desc =
           R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "PropmatVector",
@@ -345,8 +346,8 @@ Shape: NFREQ
       .desc =
           R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
-              .type = "ArrayOfPropmatVector",
-          };
+      .type = "ArrayOfPropmatVector",
+  };
 
   wsv_data["absorption_vector_scattering"] = {
       .desc =
@@ -359,8 +360,8 @@ Shape: NFREQ
       .desc =
           R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
 )--",
-              .type = "ArrayOfStokvecVector",
-          };
+      .type = "ArrayOfStokvecVector",
+  };
 
   wsv_data["phase_matrix_scattering_spectral"] = {
       .desc =
@@ -836,4 +837,10 @@ std::string_view any(const std::string& type) {
     return "T";
   }
   return type;
+}
+
+const std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
+internal_workspace_variables() {
+  static const auto wsv_data = internal_workspace_variables_creator();
+  return wsv_data;
 }

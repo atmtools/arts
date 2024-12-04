@@ -1,12 +1,6 @@
 #include "workspace_agenda_creator.h"
 
-#include <enumsdisort_settings_agendaPredefined.h>
-#include <enumspropagation_matrix_agendaPredefined.h>
-#include <enumspropagation_matrix_scattering_agendaPredefined.h>
-#include <enumsray_path_observer_agendaPredefined.h>
-#include <enumsspectral_radiance_observer_agendaPredefined.h>
-#include <enumsspectral_radiance_space_agendaPredefined.h>
-#include <enumsspectral_radiance_surface_agendaPredefined.h>
+#include <auto_wsa_options.h>
 
 #include <string>
 #include <unordered_map>
@@ -30,8 +24,8 @@ AgendaCreator& AgendaCreator::add(const std::string& name,
 
   for (auto& wsv : v) {
     if (wsv.wsv) {
-      a.add(Method{"@" + wsv.name, wsv.wsv.value()});
-      kwargs[wsv.name] = "@" + wsv.name;
+      a.add(Method{named_input_prefix + wsv.name, wsv.wsv.value()});
+      kwargs[wsv.name] = named_input_prefix + wsv.name;
     } else if (wsv.other) {
       kwargs[wsv.name] = wsv.other.value();
     } else {
@@ -167,7 +161,7 @@ Agenda get_disort_settings_agenda(const std::string& option) {
   using enum disort_settings_agendaPredefined;
   switch (to<disort_settings_agendaPredefined>(option)) {
     case SunlessClearsky:
-      agenda.set("jacobian_targets", JacobianTargets{});
+      agenda.add("jacobian_targetsOff");
       agenda.add("ray_path_atmospheric_pointFromPath");
       agenda.add("ray_path_frequency_gridFromPath");
       agenda.add("ray_path_propagation_matrixFromPath");
@@ -184,7 +178,7 @@ Agenda get_disort_settings_agenda(const std::string& option) {
       agenda.add("disort_settingsNoSun");
       break;
     case ScatteringSpecies:
-      agenda.set("jacobian_targets", JacobianTargets{});
+      agenda.add("jacobian_targetsOff");
       agenda.add("ray_path_atmospheric_pointFromPath");
       agenda.add("ray_path_frequency_gridFromPath");
       agenda.add("ray_path_propagation_matrixFromPath");

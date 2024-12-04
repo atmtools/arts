@@ -1,5 +1,6 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -140,6 +141,10 @@ void py_agenda(py::module_& m) try {
   py::class_<Agenda> ag(m, "Agenda");
   workspace_group_interface(ag);
   ag.def(py::init<std::string>(), "name"_a, "Create with name")
+      .def("document",
+           &Agenda::sphinx_list,
+           "prep"_a = std::string_view{"- "},
+           "Returns a list of methods")
       .def("add",
            &Agenda::add,
            "method"_a.none(false),

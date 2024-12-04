@@ -34,7 +34,7 @@ auto is_not_in(const std::vector<std::string>& seq) {
 }
 
 void Agenda::finalize(bool fix) try {
-  static const auto& wsa = workspace_agendas();
+  const auto& wsa = workspace_agendas();
 
   auto ag_ptr                          = wsa.find(name);
   const std::vector<std::string> empty = {};
@@ -272,7 +272,7 @@ std::vector<std::string> split(const std::string& s, char c) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Agenda& a) {
-  static const auto& wsa = workspace_agendas();
+  const auto& wsa = workspace_agendas();
 
   auto ptr           = wsa.find(a.name);
   const bool named   = ptr != wsa.end();
@@ -325,4 +325,14 @@ std::ostream& operator<<(std::ostream& os, const Agenda& a) {
 std::ostream& operator<<(std::ostream& os, const ArrayOfAgenda& a) {
   for (auto& ag : a) os << ag << '\n';
   return os;
+}
+
+std::string Agenda::sphinx_list(const std::string_view prep) const {
+  std::string out{};
+
+  for (auto& method : methods) {
+    out += std::format("{}{}\n", prep, method.sphinx_list_item());
+  }
+
+  return out;
 }
