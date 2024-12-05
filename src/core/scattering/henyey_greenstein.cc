@@ -69,7 +69,7 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(
   auto t_grid     = std::make_shared<Vector>(Vector{0.0});
   auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
-  ComplexMuelmatMatrix pm(f_grid.size(), l + 1);
+  SpecmatMatrix pm(f_grid.size(), l + 1);
   PropmatVector emd(f_grid.size());
   StokvecVector av(f_grid.size());
 

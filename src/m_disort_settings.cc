@@ -335,7 +335,7 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfComplexMuelmatMatrix&
+    const ArrayOfSpecmatMatrix&
         ray_path_phase_matrix_scattering_spectral) try {
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;

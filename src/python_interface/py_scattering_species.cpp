@@ -213,7 +213,7 @@ void py_scattering_species(py::module_& m) try {
               &ScatteringTroSpectralVector::absorption_vector);
   stsv.def_static(
       "to_gridded",
-      [](const ComplexMuelmatMatrix& phase_matrix,
+      [](const SpecmatMatrix& phase_matrix,
          const std::shared_ptr<Vector>& f) {
         if (f) {
           return ScatteringTroSpectralVector::to_general(phase_matrix, f)

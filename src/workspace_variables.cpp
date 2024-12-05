@@ -367,14 +367,14 @@ Shape: NFREQ
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
-      .type = "ComplexMuelmatMatrix",
+      .type = "SpecmatMatrix",
   };
 
   wsv_data["ray_path_phase_matrix_scattering_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
-      .type = "ArrayOfComplexMuelmatMatrix",
+      .type = "ArrayOfSpecmatMatrix",
   };
 
   wsv_data["scattering_species"] = {
