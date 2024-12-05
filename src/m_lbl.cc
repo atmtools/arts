@@ -285,33 +285,45 @@ std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
   return result;
 }
 
-void absorption_bandsSelectFrequency(AbsorptionBands& absorption_bands,
-                                     const Numeric& fmin,
-                                     const Numeric& fmax,
-                                     const Index& by_line) try {
+void absorption_bandsSelectFrequencyByLine(AbsorptionBands& absorption_bands,
+                                           const Numeric& fmin,
+                                           const Numeric& fmax) try {
   std::vector<QuantumIdentifier> to_remove;
 
   for (auto& [key, band] : absorption_bands) {
-    if (band.lines.front().f0 > fmax or band.lines.back().f0 < fmin) {
-      to_remove.push_back(key);
-    }
+    band.sort();
+
+    auto& lines = band.lines;
+
+    lines.erase(std::remove_if(lines.begin(),
+                               lines.end(),
+                               [fmin, fmax](const lbl::line& l) {
+                                 return l.f0 < fmin or l.f0 > fmax;
+                               }),
+                lines.end());
+
+    if (lines.empty()) to_remove.push_back(key);
   }
 
-  for (const auto& key : to_remove) {
-    absorption_bands.erase(key);
+  for (const auto& key : to_remove) absorption_bands.erase(key);
+}
+ARTS_METHOD_ERROR_CATCH
+
+void absorption_bandsSelectFrequencyByBand(AbsorptionBands& absorption_bands,
+                                           const Numeric& fmin,
+                                           const Numeric& fmax) try {
+  std::vector<QuantumIdentifier> to_remove;
+
+  for (auto& [key, band] : absorption_bands) {
+    band.sort();
+
+    const bool criteria = band.lines.empty() or band.lines.front().f0 > fmax or
+                          band.lines.back().f0 < fmin;
+
+    if (criteria) to_remove.push_back(key);
   }
 
-  if (by_line) {
-    for (auto& [key, band] : absorption_bands) {
-      auto& lines = band.lines;
-      lines.erase(std::remove_if(lines.begin(),
-                                 lines.end(),
-                                 [fmin, fmax](const lbl::line& l) {
-                                   return l.f0 < fmin or l.f0 > fmax;
-                                 }),
-                  lines.end());
-    }
-  }
+  for (const auto& key : to_remove) absorption_bands.erase(key);
 }
 ARTS_METHOD_ERROR_CATCH
 

@@ -25,7 +25,7 @@ dx = 1e-1
 # Load spectroscopic data
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequency(fmin=40e9, fmax=120e9, by_line=1)
+ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # Standard surface and atmospheric setup
