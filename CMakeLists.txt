@@ -64,11 +64,13 @@ option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 option (ARTS_SANITIZE "Turn on undefined behavior sanitizers" OFF)
+
 
 if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
@@ -283,6 +285,11 @@ include(FindFFTW)
 if (NOT NO_FFTW AND NOT FFTW_FOUND)
   message (FATAL_ERROR "fftw library not found.")
 endif ()
+
+########## SHTns #########
+if (NOT FFTW_FOUND OR ENABLE_ARTS_LGPL OR CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set (DISABLE_SHTNS ON)
+endif()
 
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
