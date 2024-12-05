@@ -665,7 +665,7 @@ of this term multiplied by a negative distance.
 )--",
   };
 
-  wsg_data["ComplexMuelmat"] = {
+  wsg_data["Specmat"] = {
       .file = "rtepack.h",
       .desc = "A single Complex Mueller 4x4 matrix.\n",
   };
@@ -705,7 +705,7 @@ of this term multiplied by a negative distance.
       .desc = "A matrix of *Muelmat*.\n",
   };
 
-  wsg_data["ComplexMuelmatMatrix"] = {
+  wsg_data["SpecmatMatrix"] = {
       .file = "rtepack.h",
       .desc = "A matrix of *Muelmat*.\n",
   };
@@ -776,9 +776,9 @@ of this term multiplied by a negative distance.
       .array_depth = 1,
   };
 
-  wsg_data["ArrayOfComplexMuelmatMatrix"] = {
+  wsg_data["ArrayOfSpecmatMatrix"] = {
       .file        = "rtepack.h",
-      .desc        = "A list of *ComplexMuelmatMatrix*.\n",
+      .desc        = "A list of *SpecmatMatrix*.\n",
       .array_depth = 1,
   };
 

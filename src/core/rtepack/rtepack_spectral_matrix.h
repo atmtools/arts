@@ -6,11 +6,11 @@
 namespace rtepack {
 
 //! A 4x4 matrix of Complex values to be used as a Mueller Matrix
-struct complex_muelmat final : cmat44 {
-  constexpr complex_muelmat(Complex tau = 1.0) noexcept
+struct specmat final : cmat44 {
+  constexpr specmat(Complex tau = 1.0) noexcept
       : cmat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr complex_muelmat(Complex a,
+  constexpr specmat(Complex a,
                             Complex b,
                             Complex c,
                             Complex d,
@@ -28,13 +28,13 @@ struct complex_muelmat final : cmat44 {
                             Complex p) noexcept
       : cmat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
 
-  constexpr complex_muelmat(std::array<Complex, 16> data) noexcept
+  constexpr specmat(std::array<Complex, 16> data) noexcept
       : cmat44{data} {}
 
   //! The identity matrix
-  static constexpr complex_muelmat id() { return complex_muelmat{1.0}; }
+  static constexpr specmat id() { return specmat{1.0}; }
 
-  constexpr complex_muelmat &operator+=(const complex_muelmat &b) {
+  constexpr specmat &operator+=(const specmat &b) {
     data[0]  += b.data[0];
     data[1]  += b.data[1];
     data[2]  += b.data[2];
@@ -54,7 +54,7 @@ struct complex_muelmat final : cmat44 {
     return *this;
   }
 
-  constexpr complex_muelmat &operator-=(const complex_muelmat &b) {
+  constexpr specmat &operator-=(const specmat &b) {
     data[0]  -= b.data[0];
     data[1]  -= b.data[1];
     data[2]  -= b.data[2];
@@ -74,7 +74,7 @@ struct complex_muelmat final : cmat44 {
     return *this;
   }
 
-  constexpr complex_muelmat &operator*=(const complex_muelmat &b) {
+  constexpr specmat &operator*=(const specmat &b) {
     const auto [a00,
                 a01,
                 a02,
@@ -127,56 +127,56 @@ struct complex_muelmat final : cmat44 {
   }
 };
 
-//! Addition between complex_muelmat matrices
-constexpr complex_muelmat operator+(complex_muelmat a,
-                                    const complex_muelmat &b) {
+//! Addition between specmat matrices
+constexpr specmat operator+(specmat a,
+                                    const specmat &b) {
   return a += b;
 }
 
-constexpr complex_muelmat operator+(Complex a, complex_muelmat b) {
-  return complex_muelmat{a} + b;
+constexpr specmat operator+(Complex a, specmat b) {
+  return specmat{a} + b;
 }
 
-//! Subtraction between complex_muelmat matrices
-constexpr complex_muelmat operator-(complex_muelmat a,
-                                    const complex_muelmat &b) {
+//! Subtraction between specmat matrices
+constexpr specmat operator-(specmat a,
+                                    const specmat &b) {
   return a -= b;
 }
 
-constexpr complex_muelmat operator-(Complex a, complex_muelmat b) {
-  return complex_muelmat{a} - b;
+constexpr specmat operator-(Complex a, specmat b) {
+  return specmat{a} - b;
 }
 
-//! Scaling a complex_muelmat matrix
-constexpr complex_muelmat operator*(complex_muelmat a, const Complex &b) {
+//! Scaling a specmat matrix
+constexpr specmat operator*(specmat a, const Complex &b) {
   return a *= b;
 }
 
-//! Scaling a complex_muelmat matrix
-constexpr complex_muelmat operator*(const Complex &a, complex_muelmat b) {
+//! Scaling a specmat matrix
+constexpr specmat operator*(const Complex &a, specmat b) {
   return b * a;
 }
 
-//! Scaling a complex_muelmat matrix
-constexpr complex_muelmat operator/(complex_muelmat a, const Complex &b) {
+//! Scaling a specmat matrix
+constexpr specmat operator/(specmat a, const Complex &b) {
   a *= (1.0 / b);
   return a;
 }
 
-//! Scaling a complex_muelmat matrix
-constexpr complex_muelmat operator*(complex_muelmat a,
-                                    const complex_muelmat &b) {
+//! Scaling a specmat matrix
+constexpr specmat operator*(specmat a,
+                                    const specmat &b) {
   return a *= b;
 }
 
-//! Take the average of two complex_muelmat matrices
-constexpr complex_muelmat avg(complex_muelmat a, const complex_muelmat &b) {
+//! Take the average of two specmat matrices
+constexpr specmat avg(specmat a, const specmat &b) {
   a += b;
   a *= Complex{0.5};
   return a;
 }
 
-constexpr complex_muelmat inv(const complex_muelmat &A) {
+constexpr specmat inv(const specmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
   const Complex div =
@@ -187,7 +187,7 @@ constexpr complex_muelmat inv(const complex_muelmat &A) {
              c * h * i * n - c * h * j * m - d * e * j * o + d * e * k * n +
              d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m);
 
-  return div * complex_muelmat{(f * k * p - f * l * o - g * j * p + g * l * n +
+  return div * specmat{(f * k * p - f * l * o - g * j * p + g * l * n +
                                 h * j * o - h * k * n),
                                (-b * k * p + b * l * o + c * j * p - c * l * n -
                                 d * j * o + d * k * n),
@@ -221,28 +221,28 @@ constexpr complex_muelmat inv(const complex_muelmat &A) {
                                 c * e * j - c * f * i)};
 }
 
-using complex_muelmat_vector = matpack::matpack_data<complex_muelmat, 1>;
-using complex_muelmat_vector_view =
-    matpack::matpack_view<complex_muelmat, 1, false, false>;
-using complex_muelmat_vector_const_view =
-    matpack::matpack_view<complex_muelmat, 1, true, false>;
+using specmat_vector = matpack::matpack_data<specmat, 1>;
+using specmat_vector_view =
+    matpack::matpack_view<specmat, 1, false, false>;
+using specmat_vector_const_view =
+    matpack::matpack_view<specmat, 1, true, false>;
 
-using complex_muelmat_matrix = matpack::matpack_data<complex_muelmat, 2>;
-using complex_muelmat_matrix_view =
-    matpack::matpack_view<complex_muelmat, 2, false, false>;
-using complex_muelmat_matrix_const_view =
-    matpack::matpack_view<complex_muelmat, 2, true, false>;
+using specmat_matrix = matpack::matpack_data<specmat, 2>;
+using specmat_matrix_view =
+    matpack::matpack_view<specmat, 2, false, false>;
+using specmat_matrix_const_view =
+    matpack::matpack_view<specmat, 2, true, false>;
 
-using complex_muelmat_tensor3 = matpack::matpack_data<complex_muelmat, 3>;
-using complex_muelmat_tensor3_view =
-    matpack::matpack_view<complex_muelmat, 3, false, false>;
-using complex_muelmat_tensor3_const_view =
-    matpack::matpack_view<complex_muelmat, 3, true, false>;
+using specmat_tensor3 = matpack::matpack_data<specmat, 3>;
+using specmat_tensor3_view =
+    matpack::matpack_view<specmat, 3, false, false>;
+using specmat_tensor3_const_view =
+    matpack::matpack_view<specmat, 3, true, false>;
 }  // namespace rtepack
 
 template <>
 
-struct std::formatter<rtepack::complex_muelmat> {
+struct std::formatter<rtepack::specmat> {
   std::formatter<rtepack::cmat44> fmt;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
@@ -254,7 +254,7 @@ struct std::formatter<rtepack::complex_muelmat> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const rtepack::complex_muelmat &v,
+  FmtContext::iterator format(const rtepack::specmat &v,
                               FmtContext &ctx) const {
     return fmt.format(v, ctx);
   }

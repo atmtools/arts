@@ -14,7 +14,7 @@ struct ScatteringTroSpectralVector {
       scattering::BulkScatteringProperties<scattering::Format::ARO,
                                            scattering::Representation::Gridded>;
 
-  std::optional<ComplexMuelmatMatrix> phase_matrix;
+  std::optional<SpecmatMatrix> phase_matrix;
   PropmatVector extinction_matrix;
   StokvecVector absorption_vector;
 
@@ -25,7 +25,7 @@ struct ScatteringTroSpectralVector {
   static scattering::PhaseMatrixData<Numeric,
                                      scattering::Format::TRO,
                                      scattering::Representation::Spectral>
-  to_general(const ComplexMuelmatMatrix&,
+  to_general(const SpecmatMatrix&,
              const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]

@@ -32,7 +32,7 @@ void copy(Muelmat &x, const ExhaustiveConstVectorView y) {
   std::copy(y.begin(), y.end(), x.data.begin());
 }
 
-void copy(ComplexMuelmat &x, const ExhaustiveConstComplexVectorView y) {
+void copy(Specmat &x, const ExhaustiveConstComplexVectorView y) {
   ARTS_ASSERT(y.size() == 16)
   std::copy(y.begin(), y.end(), x.data.begin());
 }
@@ -285,12 +285,12 @@ void py_rtepack(py::module_ &m) try {
   rtepack_array<Muelmat, 3, 4, 4>(mt3);
   workspace_group_interface(mt3);
 
-  py::class_<ComplexMuelmat> cmm(m, "ComplexMuelmat");
+  py::class_<Specmat> cmm(m, "Specmat");
   cmm.def(py::init_implicit<Complex>())
       .def(py::init_implicit<std::array<Complex, 16>>())
       .def(
           "__array__",
-          [](ComplexMuelmat &x, py::object dtype, py::object copy) {
+          [](Specmat &x, py::object dtype, py::object copy) {
             std::array<size_t, 2> shape = {4, 4};
             auto np                     = py::module_::import_("numpy");
             auto w =
@@ -304,23 +304,23 @@ void py_rtepack(py::module_ &m) try {
       .def_prop_rw(
           "value",
           [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
-          [](ComplexMuelmat &x, ComplexMuelmat &y) { x = y; },
+          [](Specmat &x, Specmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(cmm);
   workspace_group_interface(cmm);
 
-  py::class_<ComplexMuelmatVector> vcmm(m, "ComplexMuelmatVector");
+  py::class_<SpecmatVector> vcmm(m, "SpecmatVector");
   vcmm.def(py::init_implicit<std::vector<Complex>>())
-      .def(py::init_implicit<std::vector<ComplexMuelmat>>());
-  rtepack_array<ComplexMuelmat, 1, 4, 4>(vcmm);
+      .def(py::init_implicit<std::vector<Specmat>>());
+  rtepack_array<Specmat, 1, 4, 4>(vcmm);
   //workspace_group_interface(vcmm);
 
-  py::class_<ComplexMuelmatMatrix> mcmm(m, "ComplexMuelmatMatrix");
-  rtepack_array<ComplexMuelmat, 2, 4, 4>(mcmm);
+  py::class_<SpecmatMatrix> mcmm(m, "SpecmatMatrix");
+  rtepack_array<Specmat, 2, 4, 4>(mcmm);
   workspace_group_interface(mcmm);
 
-  py::class_<ComplexMuelmatTensor3> cmt3(m, "ComplexMuelmatTensor3");
-  rtepack_array<ComplexMuelmat, 3, 4, 4>(cmt3);
+  py::class_<SpecmatTensor3> cmt3(m, "SpecmatTensor3");
+  rtepack_array<Specmat, 3, 4, 4>(cmt3);
   //workspace_group_interface(cmt3);
 
   auto a1 =
@@ -397,28 +397,28 @@ void py_rtepack(py::module_ &m) try {
   vector_interface(c5);
 
 //   auto d1 =
-//       py::bind_vector<ArrayOfComplexMuelmatVector, py::rv_policy::reference_internal>(
-//           m, "ArrayOfComplexMuelmatVector");
+//       py::bind_vector<ArrayOfSpecmatVector, py::rv_policy::reference_internal>(
+//           m, "ArrayOfSpecmatVector");
 //   workspace_group_interface(d1);
 //   vector_interface(d1);
-//   auto d2 = py::bind_vector<ArrayOfArrayOfComplexMuelmatVector,
+//   auto d2 = py::bind_vector<ArrayOfArrayOfSpecmatVector,
 //                             py::rv_policy::reference_internal>(
-//       m, "ArrayOfArrayOfComplexMuelmatVector");
+//       m, "ArrayOfArrayOfSpecmatVector");
 //   workspace_group_interface(d2);
 //   vector_interface(d2);
   auto d3 =
-      py::bind_vector<ArrayOfComplexMuelmatMatrix, py::rv_policy::reference_internal>(
-          m, "ArrayOfComplexMuelmatMatrix");
+      py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(
+          m, "ArrayOfSpecmatMatrix");
   workspace_group_interface(d3);
   vector_interface(d3);
-//   auto d4 = py::bind_vector<ArrayOfArrayOfComplexMuelmatMatrix,
+//   auto d4 = py::bind_vector<ArrayOfArrayOfSpecmatMatrix,
 //                             py::rv_policy::reference_internal>(
-//       m, "ArrayOfArrayOfComplexMuelmatMatrix");
+//       m, "ArrayOfArrayOfSpecmatMatrix");
 //   workspace_group_interface(d4);
 //   vector_interface(d4);
 //   auto d5 =
-//       py::bind_vector<ArrayOfComplexMuelmatTensor3, py::rv_policy::reference_internal>(
-//           m, "ArrayOfComplexMuelmatTensor3");
+//       py::bind_vector<ArrayOfSpecmatTensor3, py::rv_policy::reference_internal>(
+//           m, "ArrayOfSpecmatTensor3");
 //   workspace_group_interface(d5);
 //   vector_interface(d5);
 

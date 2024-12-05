@@ -26,7 +26,7 @@ scattering::PhaseMatrixData<Numeric,
                             scattering::Format::TRO,
                             scattering::Representation::Spectral>
 ScatteringTroSpectralVector::to_general(
-    const ComplexMuelmatMatrix& phase_matrix,
+    const SpecmatMatrix& phase_matrix,
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 

@@ -5,7 +5,7 @@
 #include "rtepack_scattering.h"
 #include "rtepack_source.h"
 #include "rtepack_transmission.h"
-#include "rtepack_complex_mueller_matrix.h"
+#include "rtepack_spectral_matrix.h"
 
 using Propmat = rtepack::propmat;
 using PropmatVector = rtepack::propmat_vector;
@@ -65,19 +65,19 @@ using ArrayOfMuelmatTensor3 = Array<MuelmatTensor3>;
 using ArrayOfArrayOfMuelmatVector = Array<ArrayOfMuelmatVector>;
 using ArrayOfArrayOfMuelmatMatrix = Array<ArrayOfMuelmatMatrix>;
 
-using ComplexMuelmat = rtepack::complex_muelmat;
-using ComplexMuelmatVector = rtepack::complex_muelmat_vector;
-using ComplexMuelmatVectorView = rtepack::complex_muelmat_vector_view;
-using ComplexMuelmatConstVectorView = rtepack::complex_muelmat_vector_const_view;
-using ComplexMuelmatMatrix = rtepack::complex_muelmat_matrix;
-using ComplexMuelmatTensor3 = rtepack::complex_muelmat_tensor3;
-using ComplexMuelmatMatrixView = rtepack::complex_muelmat_matrix_view;
-using ComplexMuelmatConstMatrixView = rtepack::complex_muelmat_matrix_const_view;
-using ArrayOfComplexMuelmatVector = Array<ComplexMuelmatVector>;
-using ArrayOfComplexMuelmatMatrix = Array<ComplexMuelmatMatrix>;
-using ArrayOfComplexMuelmatTensor3 = Array<ComplexMuelmatTensor3>;
-using ArrayOfArrayOfComplexMuelmatVector = Array<ArrayOfComplexMuelmatVector>;
-using ArrayOfArrayOfComplexMuelmatMatrix = Array<ArrayOfComplexMuelmatMatrix>;
+using Specmat = rtepack::specmat;
+using SpecmatVector = rtepack::specmat_vector;
+using SpecmatVectorView = rtepack::specmat_vector_view;
+using SpecmatConstVectorView = rtepack::specmat_vector_const_view;
+using SpecmatMatrix = rtepack::specmat_matrix;
+using SpecmatTensor3 = rtepack::specmat_tensor3;
+using SpecmatMatrixView = rtepack::specmat_matrix_view;
+using SpecmatConstMatrixView = rtepack::specmat_matrix_const_view;
+using ArrayOfSpecmatVector = Array<SpecmatVector>;
+using ArrayOfSpecmatMatrix = Array<SpecmatMatrix>;
+using ArrayOfSpecmatTensor3 = Array<SpecmatTensor3>;
+using ArrayOfArrayOfSpecmatVector = Array<ArrayOfSpecmatVector>;
+using ArrayOfArrayOfSpecmatMatrix = Array<ArrayOfSpecmatMatrix>;
 
 namespace rtepack {
 std::ostream& operator<<(std::ostream& os, const Array<propmat>& a);

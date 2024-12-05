@@ -19,7 +19,7 @@ void scattering_speciesInit(ArrayOfScatteringSpecies& scattering_species) {
 void propagation_matrix_scatteringSpectralInit(
     PropmatVector& propagation_matrix_scattering,
     StokvecVector& absorption_vector_scattering,
-    ComplexMuelmatMatrix& phase_matrix_scattering_spectral,
+    SpecmatMatrix& phase_matrix_scattering_spectral,
     const AscendingGrid& frequency_grid,
     const Index& legendre_degree) {
   ARTS_USER_ERROR_IF(legendre_degree < 0,
@@ -39,7 +39,7 @@ void propagation_matrix_scatteringSpectralInit(
 void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
     PropmatVector& propagation_matrix_scattering,
     StokvecVector& absorption_vector_scattering,
-    ComplexMuelmatMatrix& phase_matrix_scattering_spectral,
+    SpecmatMatrix& phase_matrix_scattering_spectral,
     const AscendingGrid& frequency_grid,
     const AtmPoint& atmospheric_point,
     const ArrayOfScatteringSpecies& scattering_species) try {
@@ -129,7 +129,7 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
     const Workspace& ws,
     ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     ArrayOfStokvecVector& ray_path_absorption_vector_scattering,
-    ArrayOfComplexMuelmatMatrix& ray_path_phase_matrix_scattering_spectral,
+    ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const Index& legendre_degree,
