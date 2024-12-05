@@ -113,7 +113,6 @@ add_library(artsworkspace STATIC
   compile_time_tests.cc
   m_abs.cc
   m_absorptionlines.cc
-  m_agenda_set.cc
   m_atm.cc
   m_background.cc
   m_cat.cc

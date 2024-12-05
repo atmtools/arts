@@ -29,7 +29,7 @@ add_custom_command (
 
 add_custom_target (apidoc ALL DEPENDS doxified)
 
-set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "html")
+set_directory_properties (PROPERTIES ADDITIONAL_CLEAN_FILES "html")
 
 install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
          DESTINATION share/doc/arts/doxygen)

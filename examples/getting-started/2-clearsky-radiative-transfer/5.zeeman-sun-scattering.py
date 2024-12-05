@@ -12,7 +12,7 @@ ws.frequency_grid = [pyarts.arts.convert.wavelen2freq(700e-9)]
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequency(fmin=40e9, fmax=120e9, by_line=1)
+ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 

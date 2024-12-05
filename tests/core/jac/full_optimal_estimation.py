@@ -20,7 +20,7 @@ ws.frequency_grid = np.linspace(-20e6, 20e6, NFREQ) + line_f0
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequency(fmin=40e9, fmax=120e9, by_line=1)
+ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 

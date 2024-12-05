@@ -2401,24 +2401,38 @@ The computations of line mixing are done on the grid of temperatures provided.
            "The highest order of the polynomial fit (2 means square, 3 means cubic, etc)"},
   };
 
-  wsm_data["absorption_bandsSelectFrequency"] = {
+  wsm_data["absorption_bandsSelectFrequencyByLine"] = {
       .desc =
-          R"--(Remove all lines/bands that strictly falls outside a frequency range
+          R"--(Remove all lines that strictly falls outside a frequency range
 
-The line's of each band must be sorted by frequency
+Also remove bands whose lines are all removed.
 )--",
-      .author    = {"Richard Larsson"},
+      .author    = {"Richard Larsson", "Oliver Lemke"},
       .out       = {"absorption_bands"},
       .in        = {"absorption_bands"},
-      .gin       = {"fmin", "fmax", "by_line"},
-      .gin_type  = {"Numeric", "Numeric", "Index"},
+      .gin       = {"fmin", "fmax"},
+      .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity(),
-                    Index{0}},
+                    std::numeric_limits<Numeric>::infinity()},
       .gin_desc =
           {"Minimum frequency to keep",
-           "Maximum frequency to keep",
-           "Selection is done line-by-line (if true) or band-by-band (if false)"},
+           "Maximum frequency to keep"},
+  };
+
+  wsm_data["absorption_bandsSelectFrequencyByBand"] = {
+      .desc =
+          R"--(Remove all bands whose lines all strictly falls outside a frequency range
+)--",
+      .author    = {"Richard Larsson", "Oliver Lemke"},
+      .out       = {"absorption_bands"},
+      .in        = {"absorption_bands"},
+      .gin       = {"fmin", "fmax"},
+      .gin_type  = {"Numeric", "Numeric"},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(),
+                    std::numeric_limits<Numeric>::infinity()},
+      .gin_desc =
+          {"Minimum frequency to keep",
+           "Maximum frequency to keep"},
   };
 
   wsm_data["absorption_bandsRemoveID"] = {

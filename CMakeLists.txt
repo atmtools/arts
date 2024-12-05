@@ -64,11 +64,13 @@ option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 option (ARTS_SANITIZE "Turn on undefined behavior sanitizers" OFF)
+
 
 if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
@@ -284,6 +286,11 @@ if (NOT NO_FFTW AND NOT FFTW_FOUND)
   message (FATAL_ERROR "fftw library not found.")
 endif ()
 
+########## SHTns #########
+if (NOT FFTW_FOUND OR ENABLE_ARTS_LGPL OR CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set (DISABLE_SHTNS ON)
+endif()
+
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
@@ -426,7 +433,7 @@ if (ARTS_XML_DATA_PATH)
 else ()
   get_filename_component (ARTS_XML_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-xml-data" ABSOLUTE)
   if (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
-    set (ARTS_XML_DATA_DIR "${ARTS_BINARY_DIR}/tests/testdata/arts-xml-data")
+    set (ARTS_XML_DATA_DIR "${ARTS_BINARY_DIR}/testdata/arts-xml-data")
     message (STATUS "Did not find arts-xml-data, will be partially downloaded to ${ARTS_XML_DATA_DIR}")
   else()
     message(STATUS "Found arts-xml-data in ${ARTS_XML_DATA_DIR}")
@@ -442,7 +449,7 @@ if (ARTS_CAT_DATA_PATH)
 else ()
   get_filename_component (ARTS_CAT_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-cat-data" ABSOLUTE)
   if (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
-    set (ARTS_CAT_DATA_DIR "${ARTS_BINARY_DIR}/tests/testdata/arts-cat-data")
+    set (ARTS_CAT_DATA_DIR "${ARTS_BINARY_DIR}/testdata/arts-cat-data")
     message (STATUS "Did not find arts-cat-data, will be partially downloaded to ${ARTS_CAT_DATA_DIR}")
   else()
     message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
@@ -504,8 +511,10 @@ endif()
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (python)
-add_subdirectory (examples)
-add_subdirectory (tests)
+add_subdirectory (testdata)
+
+collect_test_subdir(examples)
+collect_test_subdir(tests)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)

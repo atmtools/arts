@@ -96,7 +96,7 @@ if 0:
     ws.ReadCatalogData()
     bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
     il = 95
-    ws.absorption_bandsSelectFrequency(fmax=120e9)
+    ws.absorption_bandsSelectFrequencyByBand(fmax=120e9)
     ws.absorption_bandsKeepID(id=bandkey)
     
     # Write some data to fields that does not exist

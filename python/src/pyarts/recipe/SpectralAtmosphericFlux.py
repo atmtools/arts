@@ -77,7 +77,7 @@ class SpectralAtmosphericFlux:
 
         self.ws.surface_fieldSetPlanetEllipsoid(option="Earth")
         self.ws.surface_field["t"] = surface_temperature
-        self.ws.absorption_bandsSelectFrequency(fmin=40e9, by_line=1)
+        self.ws.absorption_bandsSelectFrequencyByLine(fmin=40e9)
 
         self.ws.atmospheric_fieldRead(
             toa=atmospheric_altitude,
