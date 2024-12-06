@@ -266,6 +266,10 @@ def to_atmospheric_field(
 
     if atm is None:
         atm = pyarts.arts.AtmField()
+    
+    if hasattr(data, "top_of_atmosphere"):
+        atm.top_of_atmosphere = data.top_of_atmosphere
+    else:
         atm.top_of_atmosphere = max(alt)
 
     for k in data.keys():
