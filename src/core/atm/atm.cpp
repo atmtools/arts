@@ -245,8 +245,7 @@ Field::Field(const IsoRatioOption isots_key) {
         isots()[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
-    case IsoRatioOption::None:
-    default:                   break;
+    case IsoRatioOption::None: break;
   }
 }
 
@@ -286,6 +285,10 @@ std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
 
 std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops() {
   return map<ScatteringSpeciesProperty>();
+}
+
+bool Point::contains(const KeyVal &key) const {
+  return std::visit([this](auto &x) { return has(x); }, key);
 }
 
 std::ostream &operator<<(std::ostream &os, const Point &atm) {
@@ -975,6 +978,34 @@ std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
     const Vector3 pos) const {
   return flat_weight(pos[0], pos[1], pos[2]);
 }
+
+Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
+
+Data::Data(GriddedField3 x) : data(std::move(x)) {
+  adjust_interpolation_extrapolation();
+}
+
+Data::Data(FunctionalData x) : data(std::move(x)) {
+  adjust_interpolation_extrapolation();
+}
+
+Data &Data::operator=(Numeric x) {
+  data = x;
+  adjust_interpolation_extrapolation();
+  return *this;
+}
+
+Data &Data::operator=(GriddedField3 x) {
+  data = std::move(x);
+  adjust_interpolation_extrapolation();
+  return *this;
+}
+
+Data &Data::operator=(FunctionalData x) {
+  data = std::move(x);
+  adjust_interpolation_extrapolation();
+  return *this;
+}
 }  // namespace Atm
 
 template <Atm::KeyType T>
@@ -1173,7 +1204,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
                      N,
                      atm.size())
 
-  GriddedField3 gf3;
+  GriddedField3 gf3{};
   gf3.grid<0>()     = altitudes;
   gf3.grid<1>()     = {0.0};
   gf3.grid<2>()     = {0.0};
@@ -1302,4 +1333,137 @@ void Atm::extend_in_pressure(
       atm_from_profile(prof, altitudes, extrapolation_type, top_of_atmosphere)
           .at(palt, 0, 0));
   p->pressure = new_pressure;
+}
+
+AtmField AtmField::gridded(const AscendingGrid &alt,
+                           const AscendingGrid &lat,
+                           const AscendingGrid &lon) const {
+  AtmField out{IsoRatioOption::None};
+  out.top_of_atmosphere = top_of_atmosphere;
+
+  const Index nalt = alt.size();
+  const Index nlat = lat.size();
+  const Index nlon = lon.size();
+
+  ARTS_USER_ERROR_IF(nalt * nlat * nlon == 0, "Must have a grid")
+
+  ARTS_USER_ERROR_IF(alt.back() > top_of_atmosphere or lat.front() < -90 or
+                         lat.back() > 90 or lon.front() < -180 or
+                         lon.back() > 180,
+                     R"(Error gridding the atmospheric field.
+
+Top of atmosphere: {}
+Altitude grid:     {:B,}
+Latitude grid:     {:B,}
+Longitude grid:    {:B,}
+
+Altitude grid must be within the top of the atmosphere.
+Latitude must be within -90 to 90 degrees.
+Longitude must be within -180 to 180 degrees.
+)",
+                     top_of_atmosphere,
+                     alt,
+                     lat,
+                     lon)
+
+  GriddedField3 gf3{
+      .data_name  = "",
+      .data       = Tensor3(nalt, nlat, nlon),
+      .grid_names = {"Altitude", "Latitude", "Longitude"},
+      .grids      = {alt, lat, lon},
+  };
+
+  for (auto key : keys()) {
+    const auto &atm_data = operator[](key);
+
+    gf3.data_name = std::format("{}", key);
+
+    std::string error;
+
+#pragma omp parallel for collapse(3)
+    for (Index i = 0; i < nalt; i++) {
+      for (Index j = 0; j < nlat; j++) {
+        for (Index k = 0; k < nlon; k++) {
+          try {
+            gf3(i, j, k) = atm_data.at(alt[i], lat[j], lon[k]);
+          } catch (std::exception &e) {
+#pragma omp critical
+            if (error.empty()) error = e.what();
+          }
+        }
+      }
+    }
+
+    ARTS_USER_ERROR_IF(not error.empty(), "Error for key {}:\n\n{}", key, error)
+
+    auto &val = out[key];
+    val.data  = gf3;
+    val.adjust_interpolation_extrapolation();
+  }
+
+  return out;
+}
+
+Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
+    : toa(atm.top_of_atmosphere), keys(std::move(keys_)) {
+  if (keys.empty()) keys = atm.keys();
+
+  if (keys.empty()) {
+    altitudes  = AscendingGrid{};
+    latitudes  = AscendingGrid{};
+    longitudes = AscendingGrid{};
+    data       = {};
+    return;
+  }
+
+  {
+    const auto &key      = keys.front();
+    const auto &atm_data = atm[key].data;
+    ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(atm_data),
+                       "Data for key {} is not a GriddedField3",
+                       key)
+    const auto &gf3 = std::get<GriddedField3>(atm_data);
+
+    altitudes  = gf3.grid<0>();
+    latitudes  = gf3.grid<1>();
+    longitudes = gf3.grid<2>();
+    data.resize(
+        keys.size(), altitudes.size(), latitudes.size(), longitudes.size());
+
+    data[0] = gf3.data;
+  }
+
+  for (Size i = 1; i < keys.size(); i++) {
+    const auto &key      = keys[i];
+    const auto &atm_data = atm[key].data;
+    ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(atm_data),
+                       "Data for key {} is not a GriddedField3",
+                       key)
+    const auto &gf3 = std::get<GriddedField3>(atm_data);
+    ARTS_USER_ERROR_IF(
+        gf3.grid<0>() != altitudes or gf3.grid<1>() != latitudes or
+            gf3.grid<2>() != longitudes,
+        R"(Grids for key {0} is not the same as the first key (first key: {1})
+
+Grids for {0}:
+  Altitude:  {2:B,}
+  Latitude:  {3:B,}
+  Longitude: {4:B,}
+
+Grids for {1}:
+  Altitude:  {5:B,}
+  Latitude:  {6:B,}
+  Longitude: {7:B,}
+)",
+        key,
+        keys.front(),
+        altitudes,
+        latitudes,
+        longitudes,
+        gf3.grid<0>(),
+        gf3.grid<1>(),
+        gf3.grid<2>())
+
+    data[i] = gf3.data;
+  }
 }

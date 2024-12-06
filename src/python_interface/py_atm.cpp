@@ -21,14 +21,14 @@
 #include "enumsSpeciesEnum.h"
 #include "hpy_arts.h"
 #include "isotopologues.h"
+#include "nanobind/nanobind.h"
 #include "physics_funcs.h"
 
 namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
   workspace_group_interface(atmdata);
-  atmdata
-      .def(py::init_implicit<GriddedField3>())
+  atmdata.def(py::init_implicit<GriddedField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
       .def_rw("data", &Atm::Data::data, "The data")
@@ -134,7 +134,8 @@ Parameters
       .def(
           "species_vmr",
           [](AtmPoint &atm, SpeciesEnum s) {
-            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
+            if (not atm.has(s))
+              throw py::key_error(std::format("{}", s).c_str());
             return atm[s];
           },
           "spec"_a,
@@ -148,7 +149,8 @@ Parameters
       .def(
           "isotopologue_ratio",
           [](AtmPoint &atm, SpeciesIsotope s) {
-            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
+            if (not atm.has(s))
+              throw py::key_error(std::format("{}", s).c_str());
             return atm[s];
           },
           "isot"_a,
@@ -162,7 +164,8 @@ Parameters
       .def(
           "nlte_value",
           [](AtmPoint &atm, const QuantumIdentifier &s) {
-            if (not atm.has(s)) throw py::key_error(std::format("{}",s).c_str());
+            if (not atm.has(s))
+              throw py::key_error(std::format("{}", s).c_str());
             return atm[s];
           },
           "qid"_a,
@@ -176,7 +179,10 @@ Parameters
           "x"_a,
           "Set the NLTE value")
       .def("__getitem__",
-           [](AtmPoint &self, const AtmKeyVal &key) { return self[key]; })
+           [](AtmPoint &self, const AtmKeyVal &key) {
+             if (self.contains(key)) return self[key];
+             throw py::key_error(std::format("{}", key).c_str());
+           })
       .def("__setitem__",
            [](AtmPoint &self, const AtmKeyVal &key, Numeric x) {
              self[key] = x;
@@ -460,6 +466,76 @@ Parameters
     The extrapolation method to use for the new keys.  Default is "Nearest".  Ignored by existing keys.
 )");
 
+  fld.def(
+      "as_gridded",
+      &AtmField::gridded,
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      R"(Convert all fields of the input atmospheric field to gridded fields.
+
+Parameters
+----------
+alt : AscendingGrid
+  The altitude grid.
+lat : AscendingGrid
+  The latitude grid.
+lon : AscendingGrid
+  The longitude grid.
+
+Returns
+-------
+gridded_atm : AtmField
+  An atmospheric field with all fields gridded to the input altitude, latitude, and longitude grids.
+)");
+
+  fld.def(
+      "to_xarray",
+      [](const AtmField &atm, const std::vector<Atm::Field::KeyVal> &keys) {
+        auto xa = py::module_::import_("xarray");
+        auto np = py::module_::import_("numpy");
+
+        const auto xarray = Atm::Xarr(atm, keys);
+
+        py::dict coords;
+        coords["alt"] = np.attr("array")(xarray.altitudes);
+        coords["lat"] = np.attr("array")(xarray.latitudes);
+        coords["lon"] = np.attr("array")(xarray.longitudes);
+
+        py::list dims;
+        dims.append("alt");
+        dims.append("lat");
+        dims.append("lon");
+
+        py::dict data;
+        for (Size i = 0; i < xarray.keys.size(); i++) {
+          const std::string key = std::format("{}", xarray.keys[i]);
+          const Tensor3 d{xarray.data[i]};
+          ARTS_USER_ERROR_IF(data.contains(key), "Duplicate key: {}", key)
+          data[key.c_str()] = xa.attr("Variable")(dims, np.attr("array")(d));
+        }
+
+        py::dict attrs;
+        attrs["top_of_atmosphere"] = xarray.toa;
+
+        return xa.attr("Dataset")(data, coords, attrs);
+      },
+      "keys"_a = std::vector<Atm::Field::KeyVal>{},
+      R"(Convert the atmospheric field to an xarray dataset.
+
+The atmospheric field must be gridded using, e.g., the :func:`~pyarts.arts.AtmField.as_gridded` method.
+
+Parameters
+----------
+keys : list, optional
+  The keys to include in the xarray dataset.  Default is empty, which includes all keys.
+
+Returns
+-------
+dataset : xarray.Dataset
+  The dataset with the atmospheric field data.  The coordinates are "alt", "lat", and "lon".
+)");
+
   m.def(
       "stringify_keys",
       [](const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
@@ -467,7 +543,7 @@ Parameters
         std::unordered_map<std::string, Atm::FieldData> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = std::format("{}",key);
+          const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
             throw std::runtime_error(
                 std::format("Key \"{}\" us not unique", strkey));
@@ -503,7 +579,8 @@ Parameters
       .def(
           "__getitem__",
           [](AtmField &self, const AtmKeyVal &key) -> Atm::Data & {
-            return self[key];
+            if (self.contains(key)) return self[key];
+            throw py::key_error(std::format("{}", key).c_str());
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
@@ -704,7 +781,7 @@ Parameters
           R"(Extend the atmosphere to a new pressure point.
 
 The logarithm of the pressure profile will be used as a pseudo-altitude coordinate
-in calling :method:`field1D`.  The extrapolation type will be used for the new points,
+in calling :func:`~pyarts.arts.ArrayOfAtmPoint.field1D`.  The extrapolation type will be used for the new points,
 above and below the original profile (if necessary).
 
 Parameters

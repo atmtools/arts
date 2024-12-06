@@ -136,13 +136,15 @@ struct Point {
       return has_(*this, std::forward<T>(key));
   }
 
+  [[nodiscard]] bool contains(const KeyVal&) const;
+
   [[nodiscard]] Numeric mean_mass() const;
   [[nodiscard]] Numeric mean_mass(SpeciesEnum) const;
 
   [[nodiscard]] std::vector<KeyVal> keys(bool keep_basic   = true,
                                          bool keep_specs   = true,
-                                         bool keep_isots   = false,
-                                         bool keep_nlte    = false,
+                                         bool keep_isots   = true,
+                                         bool keep_nlte    = true,
                                          bool keep_ssprops = true) const;
 
   [[nodiscard]] Index size() const;
@@ -218,23 +220,15 @@ struct Data {
 
   void adjust_interpolation_extrapolation();
 
-  // Allow copy and move construction implicitly from all types
-  explicit Data(const RawDataType auto &x) : data(x) {
-    adjust_interpolation_extrapolation();
-  }
-  explicit Data(RawDataType auto &&x) : data(std::move(x)) {
-    adjust_interpolation_extrapolation();
-  }
-  Data &operator=(const RawDataType auto &x) {
-    data = x;
-    adjust_interpolation_extrapolation();
-    return *this;
-  }
-  Data &operator=(RawDataType auto &&x) {
-    data = std::move(x);
-    adjust_interpolation_extrapolation();
-    return *this;
-  }
+  // Allow copy implicitly from all types
+  explicit Data(Numeric x);
+  Data &operator=(Numeric x);
+
+  explicit Data(GriddedField3 x);
+  Data &operator=(GriddedField3 x);
+
+  explicit Data(FunctionalData x);
+  Data &operator=(FunctionalData x);
 
   [[nodiscard]] String data_type() const;
 
@@ -324,6 +318,21 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Field &atm);
+
+  [[nodiscard]] Field gridded(const AscendingGrid &alt,
+                              const AscendingGrid &lat,
+                              const AscendingGrid &lon) const;
+};
+
+struct Xarr {
+  Numeric toa{};
+  std::vector<Field::KeyVal> keys{};
+  AscendingGrid altitudes{};
+  AscendingGrid latitudes{};
+  AscendingGrid longitudes{};
+  Tensor4 data{};
+
+  Xarr(const Field &, std::vector<Field::KeyVal> keys = {});
 };
 
 static_assert(
