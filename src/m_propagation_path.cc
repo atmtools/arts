@@ -106,6 +106,17 @@ void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
       });
 }
 
+void ray_path_pointHighestFromPath(PropagationPathPoint& ray_path_point,
+                                  const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+
+  ray_path_point = *std::ranges::max_element(
+      ray_path,
+      [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
+        return a.altitude() < b.altitude();
+      });
+}
+
 void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                 const AtmField& atmospheric_field,
                                 const SurfaceField& surface_field,

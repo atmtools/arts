@@ -7,6 +7,7 @@ class SingleSpeciesAbsorption:
     def __init__(
         self,
         species: str,
+        cutoff: float = None,
     ):
         """Initialization
 
@@ -14,11 +15,17 @@ class SingleSpeciesAbsorption:
         ----------
         species : str
             See absorption_speciesSet for details.
+        cutoff : float
+            The cutoff value for the absorption bands. Defaults to None for no cutoff.
         """
         self.ws = pyarts.Workspace()
         self.ws.WignerInit()
         self.ws.absorption_speciesSet(species=[species])
         self.ws.ReadCatalogData()
+        if cutoff is not None:
+            for band in self.ws.absorption_bands:
+                self.ws.absorption_bands[band].cutoff = "ByLine"
+                self.ws.absorption_bands[band].cutoff_value = cutoff
         self.ws.propagation_matrix_agendaAuto()
         self.ws.ray_path_point = pyarts.arts.PropagationPathPoint()
 
@@ -51,23 +58,3 @@ class SingleSpeciesAbsorption:
         )
 
         return 1.0 * self.ws.propagation_matrix[:, 0]
-
-
-if __name__ == "__main__":
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    o2_spec = SingleSpeciesAbsorption(species="O2-66")
-    f = np.linspace(1e12, 1000e12, 1000)
-
-    atm = pyarts.arts.AtmPoint()
-    atm.set_species("O2", 0.21)
-    atm.set_species("H2O", 1e-3)
-    atm.temperature = 273
-    atm.pressure = 1e5
-    plt.semilogy(f, o2_spec(f, atm))
-
-    atm.temperature = 200
-    atm.pressure = 1e4
-    plt.semilogy(f, o2_spec(f, atm))
-    atm.species("O2") * atm.isotopologue("O2-66")

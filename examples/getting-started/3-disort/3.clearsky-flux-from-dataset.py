@@ -58,21 +58,14 @@ if not pyarts.arts.globals.data.is_lgpl:
         longitude=atm_longitude,
         max_step=max_level_step,
     )
-    ws.ray_path_atmospheric_pointFromPath()
 
-    ws.ray_path_frequency_gridFromPath()
-    ws.ray_path_propagation_matrixFromPath()
-    ws.disort_settingsInit()
-    ws.disort_settingsOpticalThicknessFromPath()
-    ws.disort_settingsLayerThermalEmissionLinearInTau()
-    ws.disort_settingsSurfaceEmissionByTemperature(ray_path_point=ws.ray_path[0])
-    ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
-    ws.disort_settingsSurfaceLambertian(value=surface_reflectivity)
-    ws.disort_settingsNoSingleScatteringAlbedo()
-    ws.disort_settingsNoFractionalScattering()
-    ws.disort_settingsNoLegendre()
-    ws.disort_settingsSetSun(ray_path_point=ws.ray_path[-1])
-    ws.disort_spectral_flux_fieldCalc()
+    ws.disort_settings_agendaSetup(
+        sun_setting="Sun",
+        surface_setting="ThermalLambertian",
+        surface_lambertian_value=surface_reflectivity * np.ones_like(ws.frequency_grid),
+    )
+
+    ws.disort_spectral_flux_fieldFromAgenda()
 
     plt.semilogy(pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
                 ws.disort_spectral_flux_field[:, 1])
