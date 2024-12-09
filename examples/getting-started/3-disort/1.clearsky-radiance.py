@@ -41,7 +41,9 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.disort_spectral_radiance_fieldSunlessClearsky(
+ws.disort_settings_agendaSetup()
+
+ws.disort_spectral_radiance_fieldProfile(
     longitude=lon,
     latitude=lat,
     disort_quadrature_dimension=NQuad,

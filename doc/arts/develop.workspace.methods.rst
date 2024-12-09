@@ -163,3 +163,15 @@ and capital letters in the filename.
 
 Lastly, please ensure that the file is listed in the CMake target ``artsworkspace``
 or it will not be compiled.
+
+Workspace method documentation
+==============================
+
+Workspace documentation that contains ``*text*`` is automatically turned into links
+to the relevant ARTS-related variable or method.  Please use this feature to link
+between workspace methods and variables.
+
+If a method require extra information beyond what you can fit in the ``desc`` field,
+there's a ``workspace_method_extra_doc.cpp`` file that you can add to.  This file
+has access to the full workspace as part of the ``artsworkspace`` target and the 
+python documentation adds a separate subsection for the information in this file (documentation level ``-------``).

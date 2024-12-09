@@ -14,6 +14,7 @@
 #include "nonstd.h"
 #include "python_interface/pydocs.h"
 #include "workspace_agendas.h"
+#include "workspace_method_extra_doc.h"
 #include "workspace_variables.h"
 
 String as_pyarts(const String& x) try {
@@ -242,9 +243,10 @@ String to_defval_str(const Wsv& wsv) try {
 }
 
 String method_docs(const String& name) try {
-  const auto& wsms  = internal_workspace_methods();
-  const auto& wsvs  = workspace_variables();
-  const auto wsadoc = get_agenda_enum_documentation();
+  const auto& wsms       = internal_workspace_methods();
+  const auto& wsvs       = workspace_variables();
+  const auto wsadoc      = get_agenda_enum_documentation();
+  const auto& wsms_extra = workspace_method_extra_doc();
 
   //! WARNING: Raw method
   const auto& method = wsms.at(name);
@@ -270,21 +272,6 @@ String method_docs(const String& name) try {
   out  = "--(";
   out += unwrap_stars(method.desc);
   fix();
-
-  if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {
-    out +=
-        "\nBelow are the available options and a representation of the agenda call order.\n\n";
-    for (auto& [opt, doc] : ptr->second) {
-      out += std::format(R"(``"{}"``
-
-{}
-
-)",
-                         opt,
-                         unwrap_stars(doc));
-    }
-    fix();
-  }
 
   out += "\nAuthor(s):";
   for (auto& author : method.author) out += " " + author + ", ";
@@ -353,6 +340,47 @@ String method_docs(const String& name) try {
   }
 
   fix();
+
+  if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {
+    out += std::format(R"(
+
+Valid options
+-------------
+
+These are the valid options for the ``{}`` method.
+The listed method calls describe the order of the agenda calls for each ``option``.
+
+)",
+                       name);
+
+    for (auto& [opt, doc] : ptr->second) {
+      out += std::format(R"(
+
+------------------------------------------------------------
+
+``{}(option="{}")``
+
+{}
+
+)",
+                         name,
+                         opt,
+                         unwrap_stars(doc));
+    }
+    fix();
+  }
+
+  if (wsms_extra.find(name) != wsms_extra.end()) {
+    out += std::format(R"(
+
+Extra
+-----
+
+{}
+
+)",
+                       unwrap_stars(wsms_extra.at(name)));
+  }
 
   out += ")--";
 

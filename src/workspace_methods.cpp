@@ -1562,16 +1562,6 @@ Method is purely for convenience and composition.
           },
   };
 
-  wsm_data["ray_path_propagation_matrixAddTotallyRandomOrientationSpectral"] = {
-      .desc =
-          R"--(Adds *ray_path_propagation_matrix_scattering* to *ray_path_propagation_matrix*.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_propagation_matrix"},
-      .in     = {"ray_path_propagation_matrix",
-                 "ray_path_propagation_matrix_scattering"},
-  };
-
   wsm_data["ray_path_propagation_matrix_scatteringFromSpectralAgenda"] = {
       .desc =
           R"--(Compute *ray_path_propagation_matrix_scattering* and co for a path.
@@ -2414,9 +2404,7 @@ Also remove bands whose lines are all removed.
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
                     std::numeric_limits<Numeric>::infinity()},
-      .gin_desc =
-          {"Minimum frequency to keep",
-           "Maximum frequency to keep"},
+      .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
   wsm_data["absorption_bandsSelectFrequencyByBand"] = {
@@ -2430,9 +2418,7 @@ Also remove bands whose lines are all removed.
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
                     std::numeric_limits<Numeric>::infinity()},
-      .gin_desc =
-          {"Minimum frequency to keep",
-           "Maximum frequency to keep"},
+      .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
   wsm_data["absorption_bandsRemoveID"] = {
@@ -3300,7 +3286,16 @@ See *SpeciesIsotope* for valid ``species``
 
   wsm_data["ray_path_pointLowestFromPath"] = {
       .desc =
-          R"(Sets *ray_path_point* to the lowest point of *ray_path*.
+          R"(Sets *ray_path_point* to the lowest altitude point of *ray_path*.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_point"},
+      .in     = {"ray_path"},
+  };
+
+  wsm_data["ray_path_pointHighestFromPath"] = {
+      .desc =
+          R"(Sets *ray_path_point* to the highest altitude point of *ray_path*.
 )",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_point"},
@@ -4025,6 +4020,36 @@ Description of the special input arguments:
       .in     = {},
   };
 
+  wsm_data["disort_settings_agendaSetup"] = {
+      .desc =
+          R"--(Setup for Disort standard calculations.
+
+This method allows setting up *disort_settings_agenda* by named options.  A description of the options is given below.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings_agenda"},
+      .gin       = {"layer_emission_setting",
+                    "scattering_setting",
+                    "space_setting",
+                    "sun_setting",
+                    "surface_setting",
+                    "surface_lambertian_value"},
+      .gin_type  = {"String", "String", "String", "String", "String", "Vector"},
+      .gin_value = {String{"LinearInTau"},
+                    String{"None"},
+                    String{"CosmicMicrowaveBackgroundRadiation"},
+                    String{"None"},
+                    String{"Thermal"},
+                    Vector{}},
+      .gin_desc =
+          {"Layer emission settings",
+           "Scattering settings",
+           "Space settings",
+           "Sun settings",
+           "Surface settings",
+           "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)"},
+  };
+
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
       .desc   = R"(Sets the legendre coefficients from the path-variable.
 )",
@@ -4169,15 +4194,16 @@ Note that you must have set the optical thickness before calling this.
   };
 
   wsm_data["disort_settingsSurfaceLambertian"] = {
-      .desc      = R"(Turns off BDRF in Disort calculations.
+      .desc      = R"(Sets the surface to Lambertian.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
       .in        = {"disort_settings"},
       .gin       = {"value"},
-      .gin_type  = {"Numeric"},
+      .gin_type  = {"Numeric,Vector"},
       .gin_value = {std::nullopt},
-      .gin_desc  = {"The value of the BDRF in all directions"},
+      .gin_desc =
+          {"The value of the BDRF in all directions (Numeric for constant, Vector for spectral)"},
   };
 
   wsm_data["disort_settingsInit"] = {

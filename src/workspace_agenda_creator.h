@@ -26,7 +26,10 @@ class AgendaCreator {
   AgendaCreator(AgendaCreator&&)      = delete;
   AgendaCreator(const AgendaCreator&) = delete;
 
-  AgendaCreator& set(const std::string& name, WorkspaceGroup auto v);
+  AgendaCreator& set(const std::string& name, WorkspaceGroup auto v) {
+    a.add(Method{name, std::move(v)});
+    return *this;
+  }
 
   AgendaCreator& add(const std::string& name, std::vector<SetWsv>&& v);
 
@@ -37,7 +40,8 @@ class AgendaCreator {
     return add(name, std::vector<SetWsv>{std::forward<T>(v)...});
   }
 
-  Agenda finalize() &&;
+  //! Finalize from rvalue.  fix = true will add missing variables to the agenda.
+  Agenda finalize(bool fix) &&;
 };
 
 Agenda get_propagation_matrix_agenda(const std::string& option);

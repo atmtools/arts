@@ -11,12 +11,6 @@ SetWsv::SetWsv(std::string n) : name(std::move(n)) {
   }
 }
 
-AgendaCreator& AgendaCreator::set(const std::string& name,
-                                  WorkspaceGroup auto v) {
-  a.add(Method{name, std::move(v)});
-  return *this;
-}
-
 AgendaCreator& AgendaCreator::add(const std::string& name,
                                   std::vector<SetWsv>&& v) {
   std::vector<std::string> args{};
@@ -44,9 +38,9 @@ AgendaCreator& AgendaCreator::ignore(const std::string& name) {
   return *this;
 }
 
-Agenda AgendaCreator::finalize() && {
+Agenda AgendaCreator::finalize(bool fix) && {
   Agenda ag{std::move(a)};
-  ag.finalize(true);
+  ag.finalize(fix);
   return ag;
 };
 
@@ -60,7 +54,7 @@ Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
       agenda.add("propagation_matrix_scatteringAirSimple");
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(false);
 }
 
 Agenda get_propagation_matrix_scattering_spectral_agenda(
@@ -75,7 +69,7 @@ Agenda get_propagation_matrix_scattering_spectral_agenda(
           "propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO");
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(false);
 }
 
 Agenda get_propagation_matrix_agenda(const std::string& option) {
@@ -86,7 +80,7 @@ Agenda get_propagation_matrix_agenda(const std::string& option) {
     case Empty: agenda.add("propagation_matrixInit");
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(true);
 }
 
 Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
@@ -101,7 +95,7 @@ Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
       break;
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(false);
 }
 
 Agenda get_spectral_radiance_space_agenda(const std::string& option) {
@@ -122,7 +116,7 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
       break;
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(true);
 }
 
 Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
@@ -136,7 +130,7 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
       break;
   }
 
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(true);
 }
 
 Agenda get_ray_path_observer_agenda(const std::string& option) {
@@ -152,53 +146,5 @@ Agenda get_ray_path_observer_agenda(const std::string& option) {
       break;
   }
 
-  return std::move(agenda).finalize();
-}
-
-Agenda get_disort_settings_agenda(const std::string& option) {
-  AgendaCreator agenda("disort_settings_agenda");
-
-  using enum disort_settings_agendaPredefined;
-  switch (to<disort_settings_agendaPredefined>(option)) {
-    case SunlessClearsky:
-      agenda.add("jacobian_targetsOff");
-      agenda.add("ray_path_atmospheric_pointFromPath");
-      agenda.add("ray_path_frequency_gridFromPath");
-      agenda.add("ray_path_propagation_matrixFromPath");
-      agenda.add("ray_path_pointLowestFromPath");
-      agenda.add("disort_settingsInit");
-      agenda.add("disort_settingsOpticalThicknessFromPath");
-      agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
-      agenda.add("disort_settingsSurfaceEmissionByTemperature");
-      agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation");
-      agenda.add("disort_settingsNoSurfaceScattering");
-      agenda.add("disort_settingsNoSingleScatteringAlbedo");
-      agenda.add("disort_settingsNoFractionalScattering");
-      agenda.add("disort_settingsNoLegendre");
-      agenda.add("disort_settingsNoSun");
-      break;
-    case ScatteringSpecies:
-      agenda.add("jacobian_targetsOff");
-      agenda.add("ray_path_atmospheric_pointFromPath");
-      agenda.add("ray_path_frequency_gridFromPath");
-      agenda.add("ray_path_propagation_matrixFromPath");
-      agenda.add("ray_path_pointLowestFromPath");
-      agenda.add("disort_settingsInit");
-      agenda.add("legendre_degreeFromDisortSettings");
-      agenda.add("ray_path_propagation_matrix_scatteringFromSpectralAgenda");
-      agenda.add(
-          "ray_path_propagation_matrixAddTotallyRandomOrientationSpectral");
-      agenda.add("disort_settingsOpticalThicknessFromPath");
-      agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
-      agenda.add("disort_settingsSurfaceEmissionByTemperature");
-      agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation");
-      agenda.add("disort_settingsNoSurfaceScattering");
-      agenda.add("disort_settingsSingleScatteringAlbedoFromPath");
-      agenda.add("disort_settingsNoFractionalScattering");
-      agenda.add("disort_settingsLegendreCoefficientsFromPath");
-      agenda.add("disort_settingsNoSun");
-      break;
-  }
-
-  return std::move(agenda).finalize();
+  return std::move(agenda).finalize(false);
 }

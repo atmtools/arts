@@ -12,6 +12,7 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "jacobian.h"
+#include "mh_checks.h"
 #include "path_point.h"
 #include "physics_funcs.h"
 #include "rtepack.h"
@@ -305,40 +306,6 @@ void ray_path_propagation_matrix_scatteringFromPath(
     }
 
     ARTS_USER_ERROR_IF(error.size(), "{}", error)
-  }
-}
-
-void ray_path_propagation_matrixAddScattering(
-    ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering) {
-  const Size np = ray_path_propagation_matrix.size();
-
-  ARTS_USER_ERROR_IF(
-      np != ray_path_propagation_matrix_scattering.size(),
-      "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
-
-  if (np == 0) return;
-  const Index nf = ray_path_propagation_matrix_scattering.front().size();
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          ray_path_propagation_matrix, Cmp::ne(nf), &PropmatVector::size),
-      "Mismatch frequency size of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering")
-
-  if (arts_omp_in_parallel()) {
-    for (Size ip = 0; ip < np; ip++) {
-      for (Index iv = 0; iv < nf; iv++) {
-        ray_path_propagation_matrix[ip][iv] +=
-            ray_path_propagation_matrix_scattering[ip][iv];
-      }
-    }
-  } else {
-#pragma omp parallel for collapse(2)
-    for (Size ip = 0; ip < np; ip++) {
-      for (Index iv = 0; iv < nf; iv++) {
-        ray_path_propagation_matrix[ip][iv] +=
-            ray_path_propagation_matrix_scattering[ip][iv];
-      }
-    }
   }
 }
 

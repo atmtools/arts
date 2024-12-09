@@ -49,6 +49,16 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "disort_spectral_flux_fieldProfile",
+      .desc =
+          "Extract a 1D path through the atmospheric field and calculate spectral flux using Disort",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricDownlooking",
+                  "disort_spectral_flux_fieldFromAgenda"},
+      .out     = {"disort_spectral_flux_field", "ray_path"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgenda",
       .desc   = "Use the disort settings agenda to calculate spectral radiance",
       .author = {"Richard Larsson"},
@@ -60,41 +70,17 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldSunlessClearsky",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
+      .name = "disort_spectral_radiance_fieldProfile",
+      .desc =
+          "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
-                  "disort_settings_agendaSet",
-                  "disort_spectral_flux_fieldFromAgenda"},
-      .out     = {"disort_spectral_flux_field"},
-      .preset_gin       = {"option"},
-      .preset_gin_value = {String{"SunlessClearsky"}}});
-
-  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_radiance_fieldSunlessClearsky",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
-      .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricDownlooking",
-                  "disort_settings_agendaSet",
                   "disort_spectral_radiance_fieldFromAgenda"},
       .out     = {"disort_spectral_radiance_field",
                   "disort_quadrature_angles",
-                  "disort_quadrature_weights"},
-      .preset_gin       = {"option"},
-      .preset_gin_value = {String{"SunlessClearsky"}}});
-
-  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_radiance_fieldScatteringSpecies",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
-      .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricDownlooking",
-                  "disort_settings_agendaSet",
-                  "disort_spectral_radiance_fieldFromAgenda"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights"},
-      .preset_gin       = {"option"},
-      .preset_gin_value = {String{"ScatteringSpecies"}}});
+                  "disort_quadrature_weights",
+                  "ray_path"},
+  });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
@@ -427,8 +413,10 @@ Equivalent (mostly) Python code:
 
   return wsm;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(
-      "Error creating meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
+  throw std::runtime_error(
+      std::format("Error creating meta-function \"{}\":\n\n{}",
+                  name,
+                  std::string_view(e.what())));
 }
 
 std::string WorkspaceMethodInternalMetaRecord::call(
@@ -495,7 +483,8 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   return code.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error creating call for meta-function \"{}\":\n\n{}",
-                                       name,
-                                       std::string_view(e.what())));
+  throw std::runtime_error(
+      std::format("Error creating call for meta-function \"{}\":\n\n{}",
+                  name,
+                  std::string_view(e.what())));
 }

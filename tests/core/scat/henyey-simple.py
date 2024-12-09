@@ -30,7 +30,6 @@ ws.atmospheric_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-# ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 
 # %% Checks and settings
 
@@ -40,7 +39,11 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.disort_spectral_radiance_fieldSunlessClearsky(
+ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
+
+ws.disort_settings_agendaSetup()
+
+ws.disort_spectral_radiance_fieldProfile(
     longitude=lon,
     latitude=lat,
     disort_quadrature_dimension=NQuad,
@@ -78,11 +81,9 @@ plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
 plt.xlabel("Dirac frequency [GHz]")
 plt.title("Downlooking")
 
-ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
-
 for manual in [False, True]:
-    for EXT in [0.1]:
-        for SSA in [0.1]:
+    for EXT in [1e-4]:
+        for SSA in [0.01]:
             for g in [0.9]:
                 print(EXT, SSA, g)
                 hspec = pyarts.arts.HenyeyGreensteinScatterer(
@@ -106,12 +107,17 @@ for manual in [False, True]:
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 
-                ws.disort_spectral_radiance_fieldScatteringSpecies(
+                
+                ws.disort_settings_agendaSetup(
+                    scattering_setting="ScatteringSpecies",
+                )
+
+                ws.disort_spectral_radiance_fieldProfile(
                     longitude=lon,
                     latitude=lat,
                     disort_quadrature_dimension=NQuad,
-                    disort_legendre_polynomial_dimension=15,
-                    disort_fourier_mode_dimension=15,
+                    disort_legendre_polynomial_dimension=1,
+                    disort_fourier_mode_dimension=1,
                 )
 
                 plt.figure()

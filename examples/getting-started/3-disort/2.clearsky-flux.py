@@ -41,13 +41,9 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.disort_settings_agendaSet(option="SunlessClearsky")
+ws.disort_settings_agendaSetup()
 
 ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_step=40_000)
-ws.ray_path_atmospheric_pointFromPath()
-ws.ray_path_frequency_gridFromPath()
-ws.ray_path_propagation_matrixFromPath()
-ws.ray_path_pointLowestFromPath()
 
 ws.disort_spectral_flux_fieldFromAgenda(
     disort_quadrature_dimension=NQuad,
