@@ -782,8 +782,8 @@ std::string method(const std::string& name,
   os << "      } catch (std::exception& e) {\n";
   os << method_error(name, wsm);
   os << "      }\n";
-  os << "    },\n    " << method_argument_documentation(wsm) << "R\""
-     << method_docs(name) << "\",\n";
+  os << "    },\n    " << method_argument_documentation(wsm) << '\n'
+     << method_docs(name) << ",\n";
   os << "    py::call_guard<py::gil_scoped_release>());\n\n";
   return os.str();
 }

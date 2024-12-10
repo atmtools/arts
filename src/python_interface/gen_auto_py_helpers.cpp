@@ -17,6 +17,19 @@
 #include "workspace_method_extra_doc.h"
 #include "workspace_variables.h"
 
+String rawify(const String& x) {
+  std::stringstream os{x};
+
+  std::string out{};
+
+  for (std::string line; std::getline(os, line);) {
+    out += std::format(R"(R"-x-({})-x-" "\n"
+)", line);
+  }
+
+  return out;
+}
+
 String as_pyarts(const String& x) try {
   const auto& wsgs = internal_workspace_groups();
   const auto& wsvs = workspace_variables();
@@ -269,7 +282,6 @@ String method_docs(const String& name) try {
     out += "\n";
   };
 
-  out  = "--(";
   out += unwrap_stars(method.desc);
   fix();
 
@@ -382,9 +394,7 @@ Extra
                        unwrap_stars(wsms_extra.at(name)));
   }
 
-  out += ")--";
-
-  return out;
+  return rawify(out);
 } catch (std::out_of_range& e) {
   throw std::runtime_error(std::format("Cannot find: \"{}\"", name));
 } catch (std::exception& e) {
