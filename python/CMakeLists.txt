@@ -77,10 +77,3 @@ add_custom_target(pyarts_tests
   DEPENDS pyarts
   COMMENT "Running PyARTS pytest")
 
-add_test(NAME pytest
-  COMMAND ${Python_EXECUTABLE} -m pytest -v test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(
-  pytest PROPERTIES
-  DEPENDS pyarts
-)
