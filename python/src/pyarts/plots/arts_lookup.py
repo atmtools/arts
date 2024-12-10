@@ -271,7 +271,7 @@ def calc_opacity_from_lookup(lookup,
         p = (pgrid[1:] + pgrid[:-1]) / 2.
         z = interp1d(p, z, fill_value='extrapolate')(lookup.p_grid.value)
 
-    return np.vstack([np.trapz(ialpha, z, axis=1) for ialpha in alpha])
+    return np.vstack([np.trapezoid(ialpha, z, axis=1) for ialpha in alpha])
 
 
 def plot_arts_lookup(lookup,
