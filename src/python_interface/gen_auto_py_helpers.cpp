@@ -23,7 +23,7 @@ String rawify(const String& x) {
   std::string out{};
 
   for (std::string line; std::getline(os, line);) {
-    out += std::format(R"({:?} "\n"
+    out += std::format(R"(R"-x-({})-x-" "\n"
 )",
                        line);
   }
