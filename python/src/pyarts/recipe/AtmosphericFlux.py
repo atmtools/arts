@@ -160,21 +160,15 @@ class AtmosphericFlux:
 
         # Visible
         self.ws.frequency_grid = self.visf
-        self.ws.ray_path_frequency_gridFromPath()
-        self.ws.ray_path_propagation_matrixFromPath()
-        self.ws.disort_settingsInit()
-        self.ws.disort_settingsOpticalThicknessFromPath()
-        self.ws.disort_settingsNoLayerThermalEmission()
-        self.ws.disort_settingsNoSurfaceEmission()
-        self.ws.disort_settingsNoSpaceEmission()
-        self.ws.disort_settingsSurfaceLambertian(
-            value=self.visible_surface_reflectivity
+        self.ws.disort_settings_agendaSetup(
+            layer_emission_setting="None",
+            scattering_setting="None",
+            space_setting="None",
+            surface_setting="Lambertian",
+            sun_setting="Sun",
+            surface_lambertian_value=self.visible_surface_reflectivity*np.ones_like(self.visf)
         )
-        self.ws.disort_settingsNoSingleScatteringAlbedo()
-        self.ws.disort_settingsNoFractionalScattering()
-        self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(ray_path_point=self.ws.ray_path[-1])
-        self.ws.disort_spectral_flux_fieldCalc()
+        self.ws.disort_spectral_flux_fieldFromAgenda()
 
         self.SOLAR = np.einsum(
             "i,ijk->jk", self.visw, self.ws.disort_spectral_flux_field
@@ -182,23 +176,15 @@ class AtmosphericFlux:
 
         # IR
         self.ws.frequency_grid = self.ir_f
-        self.ws.ray_path_frequency_gridFromPath()
-        self.ws.ray_path_propagation_matrixFromPath()
-        self.ws.disort_settingsInit()
-        self.ws.disort_settingsOpticalThicknessFromPath()
-        self.ws.disort_settingsLayerThermalEmissionLinearInTau()
-        self.ws.disort_settingsSurfaceEmissionByTemperature(
-            ray_path_point=self.ws.ray_path[0]
+        self.ws.disort_settings_agendaSetup(
+            layer_emission_setting="LinearInTau",
+            scattering_setting="None",
+            space_setting="CosmicMicrowaveBackgroundRadiation",
+            surface_setting="ThermalLambertian",
+            sun_setting="None",
+            surface_lambertian_value=self.thermal_surface_reflectivity*np.ones_like(self.visf)
         )
-        self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
-        self.ws.disort_settingsSurfaceLambertian(
-            value=self.thermal_surface_reflectivity
-        )
-        self.ws.disort_settingsNoSingleScatteringAlbedo()
-        self.ws.disort_settingsNoFractionalScattering()
-        self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsNoSun()
-        self.ws.disort_spectral_flux_fieldCalc()
+        self.ws.disort_spectral_flux_fieldFromAgenda()
 
         self.THERMAL = np.einsum(
             "i,ijk->jk", self.ir_w, self.ws.disort_spectral_flux_field

@@ -109,6 +109,7 @@ add_library(artsworkspace STATIC
   workspace_agenda_class.cpp
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
+  workspace_method_extra_doc.cpp
   workspace_class.cpp
   compile_time_tests.cc
   m_abs.cc

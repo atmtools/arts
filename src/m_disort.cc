@@ -24,7 +24,7 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
                                         Vector& disort_quadrature_weights,
                                         const DisortSettings& disort_settings,
                                         const Vector& phis) {
-  using Conversion::acosd, Conversion::cosd, Conversion::deg2rad;
+  using Conversion::acosd;
 
   const Index nv    = disort_settings.nfreq;
   const Index np    = disort_settings.nlay;
@@ -60,8 +60,6 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
 
 void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
                                     const DisortSettings& disort_settings) {
-  using Conversion::acosd, Conversion::cosd, Conversion::deg2rad;
-
   const Index nv = disort_settings.nfreq;
   const Index np = disort_settings.nlay;
 
@@ -100,14 +98,8 @@ void spectral_radianceIntegrateDisort(
   ARTS_USER_ERROR("Not implemented")
 }
 
-void SpectralFluxDisort(Matrix& spectral_flux_field_up,
-                        Matrix& spectral_flux_field_down,
-                        const Tensor3& disort_spectral_flux_field) {
-  ARTS_USER_ERROR_IF(disort_spectral_flux_field.nrows() != 3,
-                     "Must have shape (*, 3, *), but got shape {:B,}",
-                     disort_spectral_flux_field.shape())
-
-  spectral_flux_field_up    = disort_spectral_flux_field(joker, 0, joker);
-  spectral_flux_field_down  = disort_spectral_flux_field(joker, 1, joker);
-  spectral_flux_field_down += disort_spectral_flux_field(joker, 2, joker);
+void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
+                        Matrix& /*spectral_flux_field_down*/,
+                        const Tensor3& /*disort_spectral_flux_field*/) {
+  ARTS_USER_ERROR("Not implemented")
 }

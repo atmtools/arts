@@ -153,7 +153,6 @@ scenarios.  The output of this Agenda is just that setting.
                        "disort_quadrature_dimension",
                        "disort_fourier_mode_dimension",
                        "disort_legendre_polynomial_dimension"},
-      .enum_options = {"SunlessClearsky", "ScatteringSpecies"},
   };
 
   return wsa_data;

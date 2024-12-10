@@ -95,7 +95,7 @@ Supporting variable sizes:
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_propagation_matrixAddTotallyRandomOrientationSpectral(
+void ray_path_propagation_matrixAddScattering(
     ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering) try {
   const Size N = ray_path_propagation_matrix.size();
@@ -103,7 +103,7 @@ void ray_path_propagation_matrixAddTotallyRandomOrientationSpectral(
   ARTS_USER_ERROR_IF(
       N != ray_path_propagation_matrix_scattering.size(),
       R"(The size of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering must be the same.
-  ray_path_propagation_matrix.size():                                                {}
+  ray_path_propagation_matrix.size():            {}
   ray_path_propagation_matrix_scattering.size(): {}
 )",
       ray_path_propagation_matrix.size(),

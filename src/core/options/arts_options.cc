@@ -15,6 +15,61 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agenda_setup_layer_emission_type",
+      .desc =
+          R"(For atmospheric emission settings with *disort_settings_agendaSetup*.
+)",
+      .values_and_desc = {
+          Value{"None", "No atmospheric emission"},
+          Value{"LinearInTau", "Layer emission is linear in optical depth"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agenda_setup_sun_type",
+      .desc =
+          R"(For direct radiation settings with *disort_settings_agendaSetup*.
+)",
+      .values_and_desc = {
+          Value{"None", "No direct radiation"},
+          Value{"Sun", "Add a *Sun* object as the direct radiation source"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agenda_setup_space_type",
+      .desc =
+          R"(For space boundary settings with *disort_settings_agendaSetup*.
+)",
+      .values_and_desc = {
+          Value{"None", "No isotropic emission from space"},
+          Value{
+              "CosmicMicrowaveBackgroundRadiation",
+              "Isotropic emission as per cosmic microwave background radiation"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agenda_setup_scattering_type",
+      .desc =
+          R"(For atmospheric scattering settings with *disort_settings_agendaSetup*.
+)",
+      .values_and_desc = {
+          Value{"None", "No atmospheric scattering"},
+          Value{"ScatteringSpecies",
+                "Use *ArrayOfScatteringSpecies* for scattering"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "disort_settings_agenda_setup_surface_type",
+      .desc =
+          R"(For surface boundary settings with *disort_settings_agendaSetup*.
+)",
+      .values_and_desc = {
+          Value{"None", "No surface emission or scattering"},
+          Value{"Thermal", "Thermal emission, no scattering"},
+          Value{"ThermalLambertian", "Thermal emission, Lambertian scattering"},
+          Value{"Lambertian", "No surface emission, Lambertian scattering"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
       .name = "SensorKeyType",
       .desc =
           R"(A key for identifying a sensor property
@@ -995,8 +1050,7 @@ std::string EnumeratedOption::docs() const {
 
   const auto n = values_and_desc.front().size();
 
-  os << "Group name: " << '"' << name << '"' << "\n\n"
-     << desc << "\n\nValid options:\n\n";
+  os << desc << "\n\nValid options:\n\n";
   for (auto& v : values_and_desc) {
     std::string_view x = "- ";
     for (auto& s : v | std::views::take(n - 1)) {

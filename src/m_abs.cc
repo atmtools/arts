@@ -582,5 +582,5 @@ void propagation_matrix_agendaAuto(
   agenda.add("propagation_matrix_jacobianWindFix");
 
   // Extra check (should really never ever fail when species exist)
-  propagation_matrix_agenda = std::move(agenda).finalize();
+  propagation_matrix_agenda = std::move(agenda).finalize(true);
 }

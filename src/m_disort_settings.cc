@@ -309,6 +309,20 @@ void disort_settingsNoSurfaceScattering(DisortSettings& disort_settings) {
 }
 
 void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
+                                      const Vector& vec) {
+  disort_settings.bidirectional_reflectance_distribution_functions.resize(
+      disort_settings.nfreq, 1);
+
+  for (Index iv = 0; iv < disort_settings.nfreq; iv++) {
+    disort_settings.bidirectional_reflectance_distribution_functions(iv, 0) =
+        DisortBDRF{
+            [value = vec[iv]](ExhaustiveMatrixView x,
+                              const ExhaustiveConstVectorView&,
+                              const ExhaustiveConstVectorView&) { x = value; }};
+  }
+}
+
+void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
                                       const Numeric& value) {
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
       disort_settings.nfreq, 1);
@@ -335,8 +349,7 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfSpecmatMatrix&
-        ray_path_phase_matrix_scattering_spectral) try {
+    const ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral) try {
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
   const Index L = disort_settings.legendre_polynomial_dimension;
@@ -463,3 +476,115 @@ void disort_settingsSingleScatteringAlbedoFromPath(
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+void disort_settings_agendaSetup(
+    Agenda& disort_settings_agenda,
+    const disort_settings_agenda_setup_layer_emission_type&
+        layer_emission_setting,
+    const disort_settings_agenda_setup_scattering_type& scattering_setting,
+    const disort_settings_agenda_setup_space_type& space_setting,
+    const disort_settings_agenda_setup_sun_type& sun_setting,
+    const disort_settings_agenda_setup_surface_type& surface_setting,
+    const Vector& surface_lambertian_value) {
+  AgendaCreator agenda("disort_settings_agenda");
+
+  agenda.add("jacobian_targetsOff");
+
+  // Clearsky absorption
+  agenda.add("ray_path_atmospheric_pointFromPath");
+  agenda.add("ray_path_frequency_gridFromPath");
+  agenda.add("ray_path_propagation_matrixFromPath");
+
+  agenda.add("disort_settingsInit");
+
+  switch (scattering_setting) {
+    using enum disort_settings_agenda_setup_scattering_type;
+    case ScatteringSpecies:
+      agenda.add("legendre_degreeFromDisortSettings");
+      agenda.add("ray_path_propagation_matrix_scatteringFromSpectralAgenda");
+      agenda.add("ray_path_propagation_matrixAddScattering");
+
+      agenda.add("disort_settingsNoFractionalScattering");
+      agenda.add("disort_settingsLegendreCoefficientsFromPath");
+      agenda.add("disort_settingsSingleScatteringAlbedoFromPath");
+      break;
+    case None:
+      agenda.add("disort_settingsNoFractionalScattering");
+      agenda.add("disort_settingsNoLegendre");
+      agenda.add("disort_settingsNoSingleScatteringAlbedo");
+      break;
+  }
+
+  // We have both scattering and clearsky absorption, so we can set the optical thickness
+  agenda.add("disort_settingsOpticalThicknessFromPath");
+
+  // Since we have the optical thickness, we can set the thermal emission
+  switch (layer_emission_setting) {
+    using enum disort_settings_agenda_setup_layer_emission_type;
+    case LinearInTau:
+      agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
+      break;
+    case None: agenda.add("disort_settingsNoLayerThermalEmission"); break;
+  }
+
+  switch (space_setting) {
+    using enum disort_settings_agenda_setup_space_type;
+    case None: agenda.add("disort_settingsNoSpaceEmission"); break;
+    case CosmicMicrowaveBackgroundRadiation:
+      agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation");
+      break;
+  }
+
+  switch (surface_setting) {
+    using enum disort_settings_agenda_setup_surface_type;
+    case None:
+      agenda.add("disort_settingsNoSurfaceEmission");
+      agenda.add("disort_settingsNoSurfaceScattering");
+      break;
+    case Thermal:
+      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("disort_settingsSurfaceEmissionByTemperature");
+      agenda.add("disort_settingsNoSurfaceScattering");
+      break;
+    case ThermalLambertian:
+      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("disort_settingsSurfaceEmissionByTemperature");
+      agenda.add("disort_settingsSurfaceLambertian",
+                 SetWsv{"value", surface_lambertian_value});
+      break;
+    case Lambertian:
+      agenda.add("disort_settingsNoSurfaceEmission");
+      agenda.add("disort_settingsSurfaceLambertian",
+                 SetWsv{"value", surface_lambertian_value});
+      break;
+  }
+
+  switch (sun_setting) {
+    using enum disort_settings_agenda_setup_sun_type;
+    case None: agenda.add("disort_settingsNoSun"); break;
+    case Sun:
+      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("disort_settingsSetSun");
+      break;
+  }
+
+  disort_settings_agenda = std::move(agenda).finalize(false);
+}
+
+void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
+                                 const String& layer_emission_setting,
+                                 const String& scattering_setting,
+                                 const String& space_setting,
+                                 const String& sun_setting,
+                                 const String& surface_setting,
+                                 const Vector& surface_lambertian_value) {
+  disort_settings_agendaSetup(
+      disort_settings_agenda,
+      to<disort_settings_agenda_setup_layer_emission_type>(
+          layer_emission_setting),
+      to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
+      to<disort_settings_agenda_setup_space_type>(space_setting),
+      to<disort_settings_agenda_setup_sun_type>(sun_setting),
+      to<disort_settings_agenda_setup_surface_type>(surface_setting),
+      surface_lambertian_value);
+}
