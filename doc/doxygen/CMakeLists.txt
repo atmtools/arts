@@ -25,6 +25,7 @@ add_custom_command (
   COMMAND ${CMAKE_COMMAND} -E touch doxified
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
   DEPENDS Doxyfile ${ARTS_SOURCE_FILES}
+  COMMENT "Building doxygen documentation"
 )
 
 add_custom_target (apidoc ALL DEPENDS doxified)
