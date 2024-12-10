@@ -26,6 +26,7 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   add_custom_target(
     make_dir_${TESTNAME}_${TESTNAME_LONG}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${CFILESUBDIR}
+    COMMENT "Creating target directory for \"${PYFILE}\""
   )
   add_dependencies(check-deps make_dir_${TESTNAME}_${TESTNAME_LONG})
 
