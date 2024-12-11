@@ -82,27 +82,37 @@ macro (SETUP_ARTS_CHECKS)
   add_custom_target(check
     COMMAND ${CTEST_ARGS}
     -R \"\(^ctlfile|^pytest|^pyarts|^doc||^cpp\)\"
-    DEPENDS check-deps pyarts)
+    DEPENDS check-deps pyarts
+    COMMENT "Running all checks"
+  )
 
   add_custom_target(check-pyarts
     COMMAND ${CTEST_ARGS}
     -R \"\(^pyarts\)\"
-    DEPENDS check-deps pyarts)
+    DEPENDS check-deps pyarts
+    COMMENT "Running pyarts checks"
+  )
 
   add_custom_target(check-examples
     COMMAND ${CTEST_ARGS}
     -R \"\(\\.examples\\.\)\"
-    DEPENDS check-deps pyarts)
+    DEPENDS check-deps pyarts
+    COMMENT "Running examples checks"
+  )
 
   add_custom_target(check-tests
     COMMAND ${CTEST_ARGS}
     -R \"\(\\.tests\\.\)\"
-    DEPENDS check-deps pyarts)
+    DEPENDS check-deps pyarts
+    COMMENT "Running tests checks"
+  )
 
   add_custom_target(check-doc
     COMMAND ${CTEST_ARGS}
     -R \"\(^doc\)\"
-    DEPENDS check-deps)
+    DEPENDS check-deps
+    COMMENT "Running documentation checks"
+  )
 
   add_custom_target(check-pytest DEPENDS pyarts_tests)
 

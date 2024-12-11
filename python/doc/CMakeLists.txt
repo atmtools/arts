@@ -29,7 +29,7 @@ if(SPHINX_FOUND)
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different source/ ${CMAKE_CURRENT_BINARY_DIR}/source/
     DEPENDS ${PYTHON_SOURCE_FILES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Copying python docmentation structure"
+    COMMENT "Copying python documentation structure"
   )
 
   file(GLOB PYTHON_DOC_GENERATORS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.py)
@@ -45,6 +45,7 @@ if(SPHINX_FOUND)
 
   add_custom_target(gen_pyarts_arts_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_autoclass_rst.py source
+    COMMENT "Generating ARTS interface RST files"
   )
   add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
@@ -53,11 +54,13 @@ if(SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Variables > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.variables.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Groups > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.groups.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Methods > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.methods.auto.rst
+    COMMENT "Generating overview RST files"
   )
   add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_examples_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/examples examples source
+    COMMENT "Generating examples RST files"
   )
   add_dependencies(gen_examples_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 

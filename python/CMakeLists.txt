@@ -63,24 +63,17 @@ configure_file(MANIFEST.in MANIFEST.in)
 add_custom_target(pyarts
   ALL
   DEPENDS pyarts_cpp pyarts_cpp_stub pyarts_copy_python_source_files pyarts_copy_test_python_source_files 
-  COMMENT "Updating ARTS python package.")
+  COMMENT "Updating ARTS Python package")
 add_custom_target(pyarts-package
   ALL
   COMMAND ${Python_EXECUTABLE} -m build
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_cpp
-  COMMENT "Building ARTS python package.")
+  COMMENT "Building ARTS Python package")
 
 add_custom_target(pyarts_tests
   COMMAND ${Python_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
-  COMMENT "Run PyARTS tests")
+  COMMENT "Running PyARTS pytest")
 
-add_test(NAME pytest
-  COMMAND ${Python_EXECUTABLE} -m pytest -v test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(
-  pytest PROPERTIES
-  DEPENDS pyarts
-)
