@@ -27,12 +27,6 @@ void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
 }
 
 void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
-                                const SurfaceTypeTag& key,
-                                const Numeric& d) {
-  jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);
-}
-
-void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
                                 const SurfacePropertyTag& key,
                                 const Numeric& d) {
   jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);

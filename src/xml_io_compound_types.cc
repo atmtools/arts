@@ -1777,8 +1777,6 @@ void xml_read_from_stream_helper(std::istream& is_xml,
 
   if (keytype == "SurfaceKey")
     key_val = to<SurfaceKey>(key);
-  else if (keytype == "SurfaceTypeTag")
-    key_val = SurfaceTypeTag{key};
   else
     ARTS_USER_ERROR("Cannot understand the keytype: \"{}\"", keytype)
 
@@ -1850,8 +1848,6 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
       [&](auto& key_val) {
         if constexpr (Surf::isSurfaceKey<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "AtmKey");
-        else if constexpr (Surf::isSurfaceTypeTag<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "SurfaceTypeTag");
         else
           ARTS_ASSERT(false,
                       "New key type is not yet handled by writing routine!")
@@ -1939,13 +1935,12 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("SurfacePoint");
 
-  Index ntype, nother;
-  open_tag.get_attribute_value("ntype", ntype);
+  Index nother;
   open_tag.get_attribute_value("nother", nother);
   open_tag.get_attribute_value("zenith", surf.normal[0]);
   open_tag.get_attribute_value("azimuth", surf.normal[1]);
 
-  const Index n = ntype + nother;
+  const Index n = nother;
   for (Index i = 0; i < n; i++) {
     Numeric v;
     String k;
@@ -1955,14 +1950,11 @@ void xml_read_from_stream(std::istream& is_xml,
     if (nother > 0) {
       surf[to<SurfaceKey>(k)] = v;
       nother--;
-    } else if (ntype > 0) {
-      surf[SurfaceTypeTag{k}] = v;
-      ntype--;
     } else {
       ARTS_ASSERT(false)
     }
   }
-  ARTS_ASSERT((ntype + nother) == 0)
+  ARTS_ASSERT((nother) == 0)
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -1990,10 +1982,8 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   //! List of all KEY values
   auto keys          = surf.keys();
-  const Index ntype  = surf.ntype();
   const Index nother = surf.nother();
 
-  open_tag.add_attribute("ntype", ntype);
   open_tag.add_attribute("nother", nother);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
@@ -2424,7 +2414,8 @@ struct meta_data {
 
   meta_data(String n) : name(std::move(n)) {}
   meta_data(String n, String v) : name(std::move(n)), value(std::move(v)) {}
-  meta_data(String n, auto v) : name(std::move(n)), value(std::format("{}", v)) {}
+  meta_data(String n, auto v)
+      : name(std::move(n)), value(std::format("{}", v)) {}
 };
 
 struct Empty {};
@@ -2763,7 +2754,8 @@ void xml_read_from_stream(std::istream& is_xml,
 
   stag.close();
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
+  throw std::runtime_error(
+      std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
@@ -2780,7 +2772,8 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   stag.close();
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error in SensorPosLosVector:\n{}", e.what()));
+  throw std::runtime_error(
+      std::format("Error in SensorPosLosVector:\n{}", e.what()));
 }
 
 //! DisortBDRF
@@ -2936,8 +2929,6 @@ void xml_read_from_stream(std::istream& is_xml,
 
   if (type == "SurfaceKey"s) {
     surft = SurfaceKey{};
-  } else if (type == "SurfaceTypeTag"s) {
-    surft = SurfaceTypeTag{};
   } else if (type == "SurfacePropertyTag"s) {
     surft = SurfacePropertyTag{};
   } else {
@@ -2973,8 +2964,6 @@ void xml_write_to_stream(std::ostream& os_xml,
           []<typename T>(const T&) {
             if constexpr (std::same_as<T, SurfaceKey>)
               return "SurfaceKey"s;
-            else if constexpr (std::same_as<T, SurfaceTypeTag>)
-              return "SurfaceTypeTag"s;
             else if constexpr (std::same_as<T, SurfacePropertyTag>)
               return "SurfacePropertyTag"s;
             else
@@ -3179,7 +3168,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream(os_xml, static_cast<Index>(key.y_start), pbofs, "y_start");
+  xml_write_to_stream(
+      os_xml, static_cast<Index>(key.y_start), pbofs, "y_start");
   xml_write_to_stream(os_xml, static_cast<Index>(key.y_size), pbofs, "y_size");
 
   close_tag.set_name("/ErrorKey");

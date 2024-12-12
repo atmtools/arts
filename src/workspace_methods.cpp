@@ -318,9 +318,11 @@ This method can ignore any workspace variable you want.
       .gin_desc  = {R"--(Variable to be ignored.)--"},
   };
 
-  wsm_data["surface_fieldSetPlanetEllipsoid"] = {
+  wsm_data["surface_fieldPlanet"] = {
       .desc =
-          R"--(Sets the planet base surface field
+          R"--(Initialize the surface field with the ellipsoid of a planet.
+
+The elevation will be set to 0.
 
 See *PlanetOrMoonType* for valid ``option``.
 )--",
@@ -2293,7 +2295,7 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"target", "d"},
-      .gin_type  = {"SurfaceKey,SurfaceTypeTag,SurfacePropertyTag", "Numeric"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The target of interest",

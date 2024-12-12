@@ -75,7 +75,7 @@ class SpectralAtmosphericFlux:
 
         self.ws.propagation_matrix_agendaAuto()
 
-        self.ws.surface_fieldSetPlanetEllipsoid(option="Earth")
+        self.ws.surface_fieldPlanet(option="Earth")
         self.ws.surface_field["t"] = surface_temperature
         self.ws.absorption_bandsSelectFrequencyByLine(fmin=40e9)
 

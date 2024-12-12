@@ -31,18 +31,6 @@ void RetrievalAddSurface(JacobianTargets& jacobian_targets,
 void RetrievalAddSurface(JacobianTargets& jacobian_targets,
                          JacobianTargetsDiagonalCovarianceMatrixMap&
                              covariance_matrix_diagonal_blocks,
-                         const SurfaceTypeTag& key,
-                         const Numeric& d,
-                         const BlockMatrix& matrix,
-                         const BlockMatrix& inverse) {
-  jacobian_targetsAddSurface(jacobian_targets, key, d);
-  covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.surf().back().type}] = {matrix, inverse};
-}
-
-void RetrievalAddSurface(JacobianTargets& jacobian_targets,
-                         JacobianTargetsDiagonalCovarianceMatrixMap&
-                             covariance_matrix_diagonal_blocks,
                          const SurfacePropertyTag& key,
                          const Numeric& d,
                          const BlockMatrix& matrix,

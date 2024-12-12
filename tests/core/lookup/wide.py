@@ -19,7 +19,7 @@ for key in ws.absorption_bands:
 
 ws.absorption_bands.keep_hitran_s(70)
 
-ws.surface_fieldSetPlanetEllipsoid(option="Earth")
+ws.surface_fieldPlanet(option="Earth")
 ws.surface_field["t"] = 295.0
 
 ws.atmospheric_fieldRead(

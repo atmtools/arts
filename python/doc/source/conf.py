@@ -38,9 +38,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_copybutton',
     'sphinx_favicon',
-    'sphinxcontrib.mermaid',
     'matplotlib.sphinxext.plot_directive',
     'nbsphinx',
+    'sphinx.ext.graphviz',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -336,11 +336,11 @@ np.random.seed(0)
 """
 
 plot_rcparams = {
-    'font.size': 16,
     'savefig.bbox': 'tight',
+    'figure.facecolor': (1,1,1,0),
 }
 
-plot_formats = [('svg', 96), ('pdf', 96)]
+plot_formats = [('svg', 48), ('pdf', 48)]
 
 # -- Favicon ----------------------------------------------------------------
 favicons = [
@@ -348,3 +348,5 @@ favicons = [
     "favicon-32x32.png",
     {"rel": "apple-touch-icon", "sizes": "180x180", "href": "apple-touch-icon.png"},
 ]
+
+graphviz_output_format = 'svg'

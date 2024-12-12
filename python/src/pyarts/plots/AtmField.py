@@ -9,11 +9,7 @@ def plot(
     lats=0,
     lons=0,
     ygrid=None,
-    keep_basic=True,
-    keep_specs=True,
-    keep_isots=False,
-    keep_nlte=False,
-    keep_ssprops=True,
+    keys=None,
 ):
     """Plot the atmospheric field parameters in a default manner.
 
@@ -24,26 +20,16 @@ def plot(
         lats (optional): A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
         lons (optional): A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
         ygrid (optional): Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
-        keep_basic (bool, optional): Forwarded to pyarts.arts.AtmPoint::keys. Defaults to True.
-        keep_specs (bool, optional): Forwarded to pyarts.arts.AtmPoint::keys. Defaults to True.
-        keep_isots (bool, optional): Forwarded to pyarts.arts.AtmPoint::keys. Defaults to False.
-        keep_nlte (bool, optional): Forwarded to pyarts.arts.AtmPoint::keys. Defaults to False.
-        keep_ssprops (bool, optional): Forwarded to pyarts.arts.AtmPoint::keys. Defaults to True.
+        keys (optional): A list of keys to plot. Defaults to None for all keys in keys().
 
     Returns:
         fig: as input or a new figure
         subs: list of subplots
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
-    v = atm_field.at(alts, lats, lons)
+    v = atm_field(alts, lats, lons)
 
-    keys = v[0].keys(
-        keep_basic=keep_basic,
-        keep_specs=keep_specs,
-        keep_isots=keep_isots,
-        keep_nlte=keep_nlte,
-        keep_ssprops=keep_ssprops,
-    )
+    keys = v[0].keys() if keys is None else keys
     N = len(keys)
     n = int(np.ceil(np.sqrt(N))) + 1
 

@@ -29,7 +29,7 @@ ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # Standard surface and atmospheric setup
-ws.surface_fieldSetPlanetEllipsoid(option="Earth")
+ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
@@ -50,7 +50,7 @@ for i in range(3):
     ws.jacobian_targetsFinalize(measurement_sensor=[])
 
     # Reset
-    ws.atmospheric_point = ws.atmospheric_field.at(*ws.ray_path_point.pos)
+    ws.atmospheric_point = ws.atmospheric_field(*ws.ray_path_point.pos)
 
     # Original
     ws.frequency_grid = f

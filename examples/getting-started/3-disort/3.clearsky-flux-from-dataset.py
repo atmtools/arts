@@ -37,7 +37,7 @@ if not pyarts.arts.globals.data.is_lgpl:
 
     ws.absorption_bands.keep_hitran_s(remove_lines_percentile)
 
-    ws.surface_fieldSetPlanetEllipsoid(option=planet)
+    ws.surface_fieldPlanet(option=planet)
 
     sun = pyarts.arts.GriddedField2.fromxml(sunfile)
 

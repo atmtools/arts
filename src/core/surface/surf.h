@@ -7,19 +7,11 @@
 #include <mystring.h>
 #include <operators.h>
 
-#include <limits>
 #include <iosfwd>
+#include <limits>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
-
-struct SurfaceTypeTag {
-  String name;
-
-  auto operator<=>(const SurfaceTypeTag &x) const = default;
-
-  friend std::ostream &operator<<(std::ostream &, const SurfaceTypeTag &);
-};
 
 struct SurfacePropertyTag {
   String name;
@@ -31,13 +23,6 @@ struct SurfacePropertyTag {
 
 namespace std {
 template <>
-struct hash<SurfaceTypeTag> {
-  std::size_t operator()(const SurfaceTypeTag &pp) const noexcept {
-    return std::hash<String>{}(pp.name);
-  }
-};
-
-template <>
 struct hash<SurfacePropertyTag> {
   std::size_t operator()(const SurfacePropertyTag &pp) const noexcept {
     return std::hash<String>{}(pp.name);
@@ -45,8 +30,7 @@ struct hash<SurfacePropertyTag> {
 };
 }  // namespace std
 
-using SurfaceKeyVal =
-    std::variant<SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>;
+using SurfaceKeyVal = std::variant<SurfaceKey, SurfacePropertyTag>;
 
 std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key);
 
@@ -55,48 +39,36 @@ template <typename T>
 concept isSurfaceKey = std::same_as<std::remove_cvref_t<T>, SurfaceKey>;
 
 template <typename T>
-concept isSurfaceTypeTag = std::same_as<std::remove_cvref_t<T>, SurfaceTypeTag>;
-
-template <typename T>
 concept isSurfacePropertyTag =
     std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
 
 template <typename T>
-concept KeyType =
-    isSurfaceKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
+concept KeyType = isSurfaceKey<T> or isSurfacePropertyTag<T>;
 
 struct Point {
   Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};
   Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
-  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(),
-               std::numeric_limits<Numeric>::quiet_NaN(),
-               std::numeric_limits<Numeric>::quiet_NaN()};
   Vector2 normal{std::numeric_limits<Numeric>::quiet_NaN(),
                  std::numeric_limits<Numeric>::quiet_NaN()};
-  std::unordered_map<SurfaceTypeTag, Numeric> type;
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
   Numeric &operator[](SurfaceKey x);
-  Numeric &operator[](const SurfaceTypeTag &x);
   Numeric &operator[](const SurfacePropertyTag &x);
   Numeric &operator[](const SurfaceKeyVal &x);
-  
+
   Numeric operator[](SurfaceKey x) const;
-  Numeric operator[](const SurfaceTypeTag &x) const;
   Numeric operator[](const SurfacePropertyTag &x) const;
   Numeric operator[](const SurfaceKeyVal &x) const;
 
   [[nodiscard]] std::vector<SurfaceKeyVal> keys() const;
 
   [[nodiscard]] Index size() const;
-  [[nodiscard]] Index ntype() const;
   [[nodiscard]] static constexpr Index nother() {
     return static_cast<Index>(enumtyps::SurfaceKeyTypes.size());
   }
 
   template <KeyType T>
   constexpr bool contains(T &&k) const {
-    if constexpr (isSurfaceTypeTag<T>) return type.contains(std::forward<T>(k));
     if constexpr (isSurfacePropertyTag<T>)
       return prop.contains(std::forward<T>(k));
     else if constexpr (isSurfaceKey<T>)
@@ -137,21 +109,20 @@ struct Data {
   Data &operator=(const Data &) = default;
   Data &operator=(Data &&)      = default;
 
-  // Allow copy and move construction implicitly from all types
-  explicit Data(const GriddedField2 &x) : data(x) {}
-  explicit Data(const Numeric &x) : data(x) {}
-  explicit Data(const FunctionalData &x) : data(x) {}
-  explicit Data(GriddedField2 &&x) : data(std::move(x)) {}
-  explicit Data(FunctionalData &&x) : data(std::move(x)) {}
+  void adjust_interpolation_extrapolation();
+
+  // Allow copy implicitly from all types
+  explicit Data(Numeric x);
+  Data &operator=(Numeric x);
+
+  explicit Data(GriddedField2 x);
+  Data &operator=(GriddedField2 x);
+
+  explicit Data(FunctionalData x);
+  Data &operator=(FunctionalData x);
+
 
   [[nodiscard]] String data_type() const;
-
-  // Allow copy and move set implicitly from all types
-  Data &operator=(const GriddedField2 &x);
-  Data &operator=(const Numeric &x);
-  Data &operator=(const FunctionalData &x);
-  Data &operator=(GriddedField2 &&x);
-  Data &operator=(FunctionalData &&x);
 
   template <typename T>
   [[nodiscard]] T get() const {
@@ -176,10 +147,11 @@ struct Data {
   //! Flat weights for the positions on the surface
   [[nodiscard]] std::array<std::pair<Index, Numeric>, 4> flat_weights(
       const Numeric &lat, const Numeric &lon) const;
+
+  [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
 };
 
-struct Field final
-    : FieldMap::Map<Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag> {
+struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
   //! The ellipsoid used for the surface, in [a, b] in meters
   Vector2 ellipsoid;
 
@@ -226,8 +198,10 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 }  // namespace Surf
 
-using SurfacePoint = Surf::Point;
-using SurfaceField = Surf::Field;
+using SurfaceData         = Surf::Data;
+using SurfacePoint        = Surf::Point;
+using SurfaceField        = Surf::Field;
+using ArrayOfSurfacePoint = Array<SurfacePoint>;
 
 template <>
 struct std::formatter<SurfacePropertyTag> {
@@ -244,25 +218,6 @@ struct std::formatter<SurfacePropertyTag> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePropertyTag &v,
                               FmtContext &ctx) const {
-    const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
-  }
-};
-
-template <>
-struct std::formatter<SurfaceTypeTag> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const SurfaceTypeTag &v, FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
     return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
   }
@@ -354,21 +309,16 @@ struct std::formatter<SurfaceField> {
     tags.format(ctx, R"("Ellipsoid": )"sv, v.ellipsoid);
 
     if (tags.short_str) {
-      std::format_to(
-          ctx.out(),
-          R"(, "SurfaceKey": {}, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
-          v.map<SurfaceKey>().size(),
-          v.map<SurfaceTypeTag>().size(),
-          v.map<SurfacePropertyTag>().size());
+      std::format_to(ctx.out(),
+                     R"(, "SurfaceKey": {}, "SurfacePropertyTag": {})",
+                     v.map<SurfaceKey>().size(),
+                     v.map<SurfacePropertyTag>().size());
     } else {
       const std::string_view sep = tags.sep(true);
       tags.format(ctx,
                   sep,
                   R"("SurfaceKey": )"sv,
                   v.map<SurfaceKey>(),
-                  sep,
-                  R"("SurfaceTypeTag": )"sv,
-                  v.map<SurfaceTypeTag>(),
                   sep,
                   R"("SurfacePropertyTag": )"sv,
                   v.map<SurfacePropertyTag>());
@@ -395,25 +345,16 @@ struct std::formatter<SurfacePoint> {
   FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
     std::format_to(ctx.out(),
-                   R"("elevation": {}, "temperature": {}, "wind": )",
+                   R"("elevation": {}, "temperature": {}, "normal": {:B,})",
                    v.elevation,
-                   v.temperature);
-    tags.format(ctx, v.wind, R"(, "normal": )"sv, v.normal);
+                   v.temperature,
+                   v.normal);
 
     if (tags.short_str) {
-      std::format_to(ctx.out(),
-                     R"(, "SurfaceTypeTag": {}, "SurfacePropertyTag": {})",
-                     v.type.size(),
-                     v.prop.size());
+      std::format_to(ctx.out(), R"(, "SurfacePropertyTag": {})", v.prop.size());
     } else {
       const std::string_view sep = tags.sep(true);
-      tags.format(ctx,
-                  sep,
-                  R"("SurfaceTypeTag": )"sv,
-                  v.type,
-                  sep,
-                  R"("SurfacePropertyTag": )"sv,
-                  v.prop);
+      tags.format(ctx, sep, R"("SurfacePropertyTag": )"sv, v.prop);
     }
 
     tags.add_if_bracket(ctx, '}');

@@ -237,11 +237,8 @@ void surface_fieldInit(SurfaceField &surface_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
-                                     const String &option) {
-  surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
-
+void surface_fieldPlanet(SurfaceField &surface_field,
+                         const String &option) {
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
     case Earth:
