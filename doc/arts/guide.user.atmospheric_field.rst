@@ -7,7 +7,7 @@ The atmosphere in ARTS is represented by three key components:
 the atmospheric field, the atmospheric field data, and the atmospheric point.
 
 The atmospheric field contains all physical data of the entire atmosphere.
-Each property of the atmospheric field (temperature field, pressure field, VMR fields, etc)
+Each property of the atmospheric field (temperature field, pressure field, VMR fields, etc.)
 is stored as an atmospheric field data object, representing the full 3D field of that property.
 The local state of the atmospheric field is represented by an atmospheric point.
 An atmospheric point effectively holds the local state of the atmosphere at a specific location.
@@ -77,7 +77,7 @@ A single atmospheric point
 
 An atmospheric point holds the local state of the atmosphere.
 This is required for local calculations of radiative transfer properties,
-such as absorption, scattering, emission, etc..
+such as absorption, scattering, emission, etc.
 An atmospheric point is represented by an instance of :class:`~pyarts.arts.AtmPoint`.
 
 The main use on an atmospheric point is to access the local, numerical state of the atmosphere.
@@ -139,12 +139,12 @@ The following types of keys are available:
 - :class:`~pyarts.arts.SpeciesEnum`: Content of species.
   This most often means "volume mixing ratio" (VMR) but for historical reasons there are exceptions.
   VMRs need not sum up to 1 for practical reasons.
-- :class:`~pyarts.arts.SpeciesIsotope`:  Isotopologue ratios.
+- :class:`~pyarts.arts.SpeciesIsotope`: Isotopologue ratios.
   These are ratios of different isotopologues of the same species.
   As for VMRs they need not sum up to 1 per species for practical reasons.
   These are defaulted to values extracted from `HITRAN`_,
   complemented by other sources as necessary.
-- :class:`~pyarts.arts.QuantumIdentifier`:  Non-LTE data.
+- :class:`~pyarts.arts.QuantumIdentifier`: Non-LTE data.
   These are the state distributions of energy levels of molecules required for non-LTE calculations.
 - :class:`~pyarts.arts.ScatteringSpeciesProperty`: Scattering properties of the atmosphere.
   These are properties of the atmosphere that are relevant for scattering calculations.
@@ -200,10 +200,10 @@ Atmospheric field data
 The atmospheric field data is a core component of the atmospheric field.
 It is stored in an instance of :class:`~pyarts.arts.AtmData`.
 This type holds the entire atmospheric data for a single atmospheric property,
-such as the full 3D temperature field, the full 3D pressure field, etc..
+such as the full 3D temperature field, the full 3D pressure field, etc.
 It also holds the logic for how to interpolate and extrapolate this data to any altitude, latitude, and longitude point.
 As such, atmospheric field data can also be called as if it were a function taking altitude, latitude, and longitude
-to return the local floting point state of the atmospheric property it holds.
+to return the local floating point state of the atmospheric property it holds.
 
 These are the core operations on ``atm_data``:
 
@@ -267,7 +267,7 @@ Extrapolation rules
 
 The rules for extrapolation is governed by :class:`~pyarts.arts.InterpolationExtrapolation`.
 Please see its documentation for more information.
-Extrapolation happens only outside of the grids of the data.
+Extrapolation happens only outside the grids of the data.
 Interpreting the data inside a grid is done on a type-by-type basis.
 
 Data types
@@ -279,7 +279,7 @@ Each data type has its own rules for how to interpret, interpolate, and extrapol
 .. tip::
 
   Different atmospheric field data types can be mixed in the same atmospheric field.
-  There are no restrictions on how many different types can be used in the same atmospheric field.
+  There are no restrictions on how many types can be used in the same atmospheric field.
 
 Numeric
 ^^^^^^^
@@ -316,7 +316,7 @@ If the atmospheric data is of the type :class:`~pyarts.arts.GriddedField3`,
 the data is defined on a grid of altitude, latitude, and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
-This data type fully respects the rules of extrapolation outside of its grid.
+This data type fully respects the rules of extrapolation outside its grid.
 An example of using :class:`~pyarts.arts.GriddedField3` as atmospheric field data is given in the following code block.
 
 .. plot::
@@ -360,7 +360,7 @@ NumericTernaryOperator
 
 This operator (:class:`~pyarts.arts.NumericTernaryOperator`) represents that the atmospheric property is purely
 a function of altitude, latitude, and longitude.  The operator takes three arguments and returns a float.
-Extraopolation rules are not relevant for this data type as it is a function.
+Extrapolation rules are not relevant for this data type as it is a function.
 An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric field data is given in the following code block.
 
 .. plot::
@@ -394,7 +394,7 @@ An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric 
 .. tip::
 
   Any kind of python function-like object can be used as
-  a :class:`~pyarts.arts.NumericTernaryOperator`.  It must simply takes three floats and return another float.
+  a :class:`~pyarts.arts.NumericTernaryOperator`.  It must simply take three floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, alt, lat, lon)`` for it.
 
 .. note::

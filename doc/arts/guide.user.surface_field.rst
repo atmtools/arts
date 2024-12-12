@@ -7,7 +7,7 @@ The surface in ARTS is represented by three key components: the surface field,
 the surface field data, and the surface point.
 
 The surface field contains all physical properties of the entire surface.
-Each propery of the surface field (temperature, elevation, planetary shape, etc) is stored
+Each property of the surface field (temperature, elevation, planetary shape, etc.) is stored
 in a surface field data object, representing the full 2D field of that property.
 The local state of the surface at a specific point is represented by a surface
 point. A surface point holds the local state of the surface at a specific location,
@@ -33,9 +33,9 @@ It is presumed that a surface field can be intersected by a ray.
 
 The surface field holds a collection of surface field data, :class:`~pyarts.arts.SurfaceData`,
 that can be accessed and modified through a :class:`dict`-like interface.
-An surface field has an ellipsoid, :attr:`~pyarts.arts.SurfaceField.ellipsoid`, which defines the basic shape of the
+A surface field has an ellipsoid, :attr:`~pyarts.arts.SurfaceField.ellipsoid`, which defines the basic shape of the
 planet it represents.
-It may contains an elevation field that modifies the shape of the surface.  It is often accompanied by an
+It may contain an elevation field that modifies the shape of the surface.  It is often accompanied by an
 atmospheric field that defines the state of the surface above the surface.  See :ref:`Sec surface Field`
 for more details on the atmospheric field.
 The surface field can be called as if it were a function taking latitude and longitude 
@@ -75,12 +75,12 @@ Shorthand graph for ``surf_field``:
 A single surface point
 **********************
 
-An surface point holds the local state of the surface.
+A surface point holds the local state of the surface.
 This is required for local calculations of radiative transfer properties,
-such as reflection, emission, etc..
-An surface point is represented by an instance of :class:`~pyarts.arts.SurfacePoint`.
+such as reflection, emission, etc.
+A surface point is represented by an instance of :class:`~pyarts.arts.SurfacePoint`.
 
-The main use on an surface point is to access the local, numerical state of the surface.
+The main use on a surface point is to access the local, numerical state of the surface.
 
 The core operations on ``surf_point`` are:
 
@@ -88,7 +88,7 @@ The core operations on ``surf_point`` are:
 - ``surf_point.elevation``: The local :attr:`~pyarts.arts.SurfacePoint.elevation` [m] as a :class:`float`.
 - ``surf_point.temperature``: The local :attr:`~pyarts.arts.SurfacePoint.temperature` [K] as a :class:`float`.
 - ``surf_point.normal``: The (:attr:`~pyarts.arts.SurfacePoint.normal`) to the surface [degrees] as a :class:`~pyarts.arts.Vector2`.
-  This gives both the zenith angle and the azimuth angle of a downlooking ray.
+  This gives both the zenith angle and the azimuth angle of a down-looking ray.
 
 Shorthand graph for ``surf_point``:
 
@@ -121,8 +121,8 @@ Shorthand graph for ``surf_point``:
   The surface point does not know where it is in the surface.  This information is only available in the surface field.
   Positional data must be retained by the user if it is needed for calculations.
 
-surface field/point data access
-***********************************
+Surface field/point data access
+*******************************
 
 The access operator ``surf_field[key]`` is used to get and set surface field data (:class:`~pyarts.arts.SurfaceData`)
 in the surface field through the use of types of keys.
@@ -175,10 +175,10 @@ Surface field data
 The surface field data is a core component of the surface field.
 It is stored in an instance of :class:`~pyarts.arts.SurfaceData`.
 This type holds the entire surface data for a single surface property,
-such as the full 2D temperature field, the full 2D elevation field, etc..
+such as the full 2D temperature field, the full 2D elevation field, etc.
 It also holds the logic for how to interpolate and extrapolate this data to any latitude and longitude point.
 As such, surface field data can also be called as if it were a function taking latitude and longitude
-to return the local floting point state of the surface property it holds.
+to return the local floating point state of the surface property it holds.
 
 These are the core operations on ``surf_data``:
 
@@ -236,7 +236,7 @@ Extrapolation rules
 
 The rules for extrapolation is governed by :class:`~pyarts.arts.InterpolationExtrapolation`.
 Please see its documentation for more information.
-Extrapolation happens only outside of the grids of the data.
+Extrapolation happens only outside the grids of the data.
 Interpreting the data inside a grid is done on a type-by-type basis.
 
 Data types
@@ -248,7 +248,7 @@ Each data type has its own rules for how to interpret, interpolate, and extrapol
 .. tip::
 
   Different surface field data types can be mixed in the same surface field.
-  There are no restrictions on how many different types can be used in the same surface field.
+  There are no restrictions on how many types can be used in the same surface field.
 
 Numeric
 ^^^^^^^
@@ -274,7 +274,7 @@ If the surface data is of the type :class:`~pyarts.arts.GriddedField2`,
 the data is defined on a grid of latitude and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
-This data type fully respects the rules of extrapolation outside of its grid.
+This data type fully respects the rules of extrapolation outside its grid.
 
 .. note::
 
@@ -286,13 +286,13 @@ NumericBinaryOperator
 ^^^^^^^^^^^^^^^^^^^^^
 
 This operator (:class:`~pyarts.arts.NumericBinaryOperator`) represents that the surface property is purely
-a function of latitude and longitude.  The operator takes three arguments and returns a float.
-Extraopolation rules are not relevant for this data type as it is a function.
+a function of latitude and longitude.  The operator takes two arguments and returns a float.
+Extrapolation rules are not relevant for this data type as it is a function.
 
 .. tip::
 
   Any kind of python function-like object can be used as
-  a :class:`~pyarts.arts.NumericBinaryOperator`.  It must simply takes three floats and return another float.
+  a :class:`~pyarts.arts.NumericBinaryOperator`.  It must simply take two floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, lat, lon)`` for it.
 
 .. _HITRAN: https://hitran.org/
