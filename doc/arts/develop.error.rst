@@ -90,7 +90,7 @@ Guide to a valid use of the formatting string
 
 The formatting string should be a valid format string for the `std::format` function.
 This means that you need to use `{}` for each the arguments that you want to insert.
-You may add extra formatting options to the `{}`, these depends on the type you are formatting.
+You may add extra formatting options to the `{}`, these depend on the type you are formatting.
 
 .. code-block:: c++
 

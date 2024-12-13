@@ -91,11 +91,15 @@ void py_operators(py::module_& m) {
   py::implicitly_convertible<NumericTernaryOperator::func_t,
                              NumericTernaryOperator>();
 
-  py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
-  ntop.def("__init__",
-           [](ScatteringGeneralSpectralTROFunc* op, ScatteringGeneralSpectralTROFunc::func_t f) {
+  py::class_<ScatteringGeneralSpectralTROFunc> sgstro(
+      m, "ScatteringGeneralSpectralTROFunc");
+  sgstro
+      .def("__init__",
+           [](ScatteringGeneralSpectralTROFunc* op,
+              ScatteringGeneralSpectralTROFunc::func_t f) {
              new (op) ScatteringGeneralSpectralTROFunc(
-                 [f = std::move(f)](const AtmPoint& x, const Vector& y, Index z) {
+                 [f = std::move(f)](
+                     const AtmPoint& x, const Vector& y, Index z) {
                    py::gil_scoped_acquire gil{};
                    return f(x, y, z);
                  });
@@ -109,7 +113,8 @@ void py_operators(py::module_& m) {
           "x"_a,
           "y"_a,
           "z"_a);
-  workspace_group_interface(ntop);
+  sgstro.doc() =
+      "A callback to get the bulk scattering properties of a species.";
   py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t,
                              ScatteringGeneralSpectralTROFunc>();
 }

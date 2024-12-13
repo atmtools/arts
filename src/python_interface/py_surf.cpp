@@ -81,6 +81,7 @@ void py_surf(py::module_ &m) try {
              a->lon_low = std::get<3>(state);
              a->lon_upp = std::get<4>(state);
            });
+  surfdata.doc() = "Surface data";
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
   py::implicitly_convertible<Numeric, Surf::Data>();
@@ -98,6 +99,7 @@ void py_surf(py::module_ &m) try {
   auto asp =
       py::bind_vector<ArrayOfSurfacePoint, py::rv_policy::reference_internal>(
           m, "ArrayOfSurfacePoint");
+  asp.doc() = "Array of SurfacePoint";
 
   auto fld = py::class_<SurfaceField>(m, "SurfaceField");
   fld.def(

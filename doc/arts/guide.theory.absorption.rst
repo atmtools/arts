@@ -109,9 +109,9 @@ where
 :math:`G_D` is the scaled Doppler broadening half-width half-maximum.
 :math:`\nu` is just a sampling frequency, it can be anything positive.
 :math:`\nu_0` is provided by the absorption line catalog.
-The :math:`\Delta\nu_{lm}`, :math:`\Delta\nu_{P,0}`, and :math:`G_{P,0}` are `<Line Shape Parameters_>`_.  :math:`\Delta\nu_Z`
+The :math:`\Delta\nu_{lm}`, :math:`\Delta\nu_{P,0}`, and :math:`G_{P,0}` are Line Shape Parameters.  :math:`\Delta\nu_Z`
 is the Zeeman splitting, which depends on molecule and magnetic field strength as is described
-in `Zeeman effect <Zeeman Effect_>`_.  The scaled Doppler broadening half width half maximum is given by
+in Zeeman Effect.  The scaled Doppler broadening half width half maximum is given by
 
 .. math::
 
@@ -208,6 +208,6 @@ The ratio between LTE and non-LTE line strength remaining is:
 It is clear that the non-LTE expression is the one that is incorrect here.
 The energy of the emitted photon is not :math:`h\nu_0` but :math:`h\nu`, and
 as such the actual energy of the transition is :math:`E'_u-E'_l = h\nu`, but
-this should be relatively close in cases where we actualy care about non-LTE
+this should be relatively close in cases where we actually care about non-LTE
 (which is low density, low collision atmospheres).
 

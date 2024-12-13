@@ -113,7 +113,7 @@ void py_agenda(py::module_& m) try {
           "The name of the method")
       .doc() = "The method class of ARTS";
 
-  py::class_<Wsv>(m, "WorkspaceVariable")
+  py::class_<Wsv>(m, "Wsv")
       .def_prop_ro(
           "value",
           [](Wsv& v) {
@@ -136,7 +136,7 @@ void py_agenda(py::module_& m) try {
             return x.attr("value").attr("__format__")(fmt);
           },
           py::is_operator())
-      .doc() = "A workspace variable";
+      .doc() = "A workspace variable wrapper - no manual use required";
 
   py::class_<Agenda> ag(m, "Agenda");
   workspace_group_interface(ag);

@@ -7,7 +7,6 @@ from pyarts import data  # noqa
 from pyarts import plots  # noqa
 from pyarts import workspace  # noqa
 from pyarts import hitran  # noqa
-from pyarts import cat  # noqa
 from pyarts import fields  # noqa
 from pyarts import recipe  # noqa
 from pyarts.workspace import Workspace, arts_agenda  # noqa

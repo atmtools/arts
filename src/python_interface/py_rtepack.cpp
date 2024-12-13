@@ -313,6 +313,7 @@ void py_rtepack(py::module_ &m) try {
   vcmm.def(py::init_implicit<std::vector<Complex>>())
       .def(py::init_implicit<std::vector<Specmat>>());
   rtepack_array<Specmat, 1, 4, 4>(vcmm);
+  vcmm.doc() = "A vector of :class:`~pyarts.arts.Specmat`";
   //workspace_group_interface(vcmm);
 
   py::class_<SpecmatMatrix> mcmm(m, "SpecmatMatrix");
@@ -321,7 +322,7 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<SpecmatTensor3> cmt3(m, "SpecmatTensor3");
   rtepack_array<Specmat, 3, 4, 4>(cmt3);
-  //workspace_group_interface(cmt3);
+  cmt3.doc() = "A 3-tensor of :class:`~pyarts.arts.Specmat`";
 
   auto a1 =
       py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(

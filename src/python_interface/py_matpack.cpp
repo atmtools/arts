@@ -187,14 +187,15 @@ void py_matpack(py::module_& m) try {
   py::class_<ComplexVector> comv1(m, "ComplexVector");
   py::class_<ComplexMatrix> comv2(m, "ComplexMatrix");
   py::class_<ComplexTensor3> comv3(m, "ComplexTensor3");
-  py::class_<ComplexTensor4> ct4(m, "ComplexTensor4");
+  py::class_<ComplexTensor4> comv4(m, "ComplexTensor4");
   comv1.doc() = "A complex vector";
   comv2.doc() = "A complex matrix";
   comv3.doc() = "A complex tensor3";
+  comv4.doc() = "A complex tensor4";
   matpack_interface(comv1);
   matpack_interface(comv2);
   matpack_interface(comv3);
-  matpack_interface(ct4);
+  matpack_interface(comv4);
 
   py::class_<AscendingGrid> g1(m, "AscendingGrid");
   matpack_grid_interface(g1);

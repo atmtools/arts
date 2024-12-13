@@ -13,7 +13,7 @@ A single step of the radiative transfer calculation in ARTS solvers assume to fo
 
 .. math::
 
-  I_{1} = J_{0} + T_{0} \left(I_{0} - J_{0}\right)
+  I_{1} = J_{0} + T_{0} \left(I_{0} - J_{0}\right),
 
 where
 :math:`I_{1}` is the spectral radiance after the step,
@@ -38,7 +38,7 @@ may also have been reflected and can thus depend on all model states, we can wri
 
   J_{0} &=& J(x_0, x_1) \\
   T_{0} &=& T(x_0, x_1) \\
-  I_{0} &=& I_0(\vec{x})
+  I_{0} &=& I_0(\vec{x}),
 
 where :math:`x_0`, :math:`x_1` the levels above and below the layer, and :math:`\vec{x}` is the state of the model everywhere.
 Note that both :math:`x_0` and :math:`x_1` are covered by :math:`\vec{x}`.  This will matter when we compute the Jacobian.
@@ -94,9 +94,9 @@ which we can rewrite as a simple sum of terms:
     &\cdots&            \\
     J_{N-3} &-& J_{N-2} \\
     J_{N-2} &-& J_{N-1}
-  \end{array} \right]
+  \end{array} \right],
 
-and so on.  Here, :math:`\vec{J}'` is the source vector but we use a prime-tick because it is
+and so on.  Here, :math:`\vec{J}'` is the source vector, but we use a prime-tick because it is
 0-indexed whereas :math:`\vec{I}` is 1-indexed.
 
 In practice, it is often more convenient to just use
@@ -152,7 +152,7 @@ As we know that the solution can be written as a sum of terms, we can expand the
     \end{array} \right]
   \end{array}
 
-Remember we already defined that that
+Remember we already defined that
 :math:`J_i` and :math:`T_i` depends on values at levels :math:`x_i` and :math:`x_{i+1}`.
 These are part of :math:`\vec{x}` only via mapping, :math:`\vec{x}` covers both :math:`x_i` and :math:`x_{i+1}`.
 Thus, the :math:`\frac{\partial I_{0}}{\partial\vec{x}}`-term has been lifted from the above expression,
@@ -166,9 +166,9 @@ more compact,
   \begin{array}{ll}
     \prod_{i=n}^m T_i = T_n T_{n-1} \cdots T_{m+1} T_m & n \geq m \\
     1 & n < m
-  \end{array}\right.
+  \end{array}\right.,
 
-where it is imporant to note that all :math:`T_i` are only functions of :math:`x_i` and :math:`x_{i+1}`.
+where it is important to note that all :math:`T_i` are only functions of :math:`x_i` and :math:`x_{i+1}`.
 
 For sake of keeping the expressions short, we add :math:`T_N=1` and assume :math:`N>>0` below.
 We can extract the two dot products and expand them to see what the Jacobian looks like.
@@ -236,7 +236,7 @@ The expression in the grid of :math:`\vec{x}` is then the following:
   \frac{\partial I_N^{(1)}}{\partial \vec{x}_i} +
   \frac{\partial I_N^{(2)}}{\partial \vec{x}_i} +
   \frac{\partial J_{N-1}}{\partial \vec{x}_i}
-  \right)
+  \right),
 
 where the last term is 0 for all but :math:`i=N` and :math:`i=N-1`
 and where the function :math:`f` is defined as

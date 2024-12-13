@@ -2,6 +2,8 @@ import pyarts
 import pyarts.arts as cxx
 import sys
 
+global_errors = []
+
 module_t = type(cxx)
 attr_t = property
 class_t = type(cxx.Index)
@@ -30,8 +32,8 @@ def short_doc(v, var=None, name=None):
         if "->" in s or len(s) == 0:
             attr = v.__name__ if hasattr(v, "__name__") else name
             if not is_operator(attr):
-                print(
-                    f"WARNING [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
+                global_errors.append(
+                    f"ERROR [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
                 )
 
         return s
@@ -404,5 +406,9 @@ def create_workspace_rst(path):
 
 create_rst(data, sys.argv[1], "pyarts.arts")
 
-
 create_workspace_rst(sys.argv[1])
+
+if len(global_errors) != 0:
+    print("\n".join(global_errors))
+    print(f"ERRORS FOUND: {len(global_errors)}")
+    sys.exit(1)

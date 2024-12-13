@@ -15,7 +15,7 @@ In ``workspace_variables.cpp``
 
 The workspace variable definitions are located in the ``workspace_variables.cpp``
 as part of the ``wsv_data`` map object.  The name of the variable is the key
-of the map and the object is a struct with the following fields:
+of the map and the object are a struct with the following fields:
 
 - ``desc`` - a description of the variable as a string.
 - ``type`` - the workspace group of the variable as a string.
@@ -28,8 +28,8 @@ See the page on :doc:`develop.workspace.agendas` for more information.  The work
 have no default value.  It will be of the type :class:`~pyarts.arts.Agenda` by default but of type :class:`~pyarts.arts.ArrayOfAgenda`
 if the field ``array`` is ``true``.
 
-What quailifies as a workspace variable?
-========================================
+What qualifies as a workspace variable?
+=======================================
 
 The intent of a workspace variable is to pass information between workspace methods.
 Workspace variables must therefore be both input and output of different workspace methods.
@@ -54,7 +54,7 @@ as the ``py_auto_wsv_N.cpp`` files, where N is an integer.
 Workspace variable naming convention
 ====================================
 
-Names carry meaning.  Please follow the naming convention below and
+Names carry meaning.  Please follow the naming convention below, and
 please do not hesitate to fix any naming inconsistencies you find.
 
 Workspace variables should be named in ``snake_case``.  The name should be
@@ -74,7 +74,7 @@ The full list is available in the ``workspace_variables_keywords.cpp`` file.
 As of writing this, the list includes the following terms:
 
 - ``absorption`` - for workspace variables related to absorption.
-- ``jacobian`` - for workspace variables related to jacobians.
+- ``jacobian`` - for workspace variables related to Jacobian.
 - ``spectral_radiance`` - for workspace variables related to spectral radiance.
 - ``propagation_matrix`` - for workspace variables related to propagation matrices.
 - ``source_vector`` - for workspace variables related to source vectors.

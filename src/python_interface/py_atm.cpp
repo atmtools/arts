@@ -236,7 +236,7 @@ Parameters
          },
          "toa"_a = 100e3,
          "iso"_a = IsoRatioOption::Builtin)
-      .def("species_keys", &AtmField::keys<SpeciesEnum>)
+      .def("species_keys", &AtmField::keys<SpeciesEnum>, "Species keys")
       .def(
           "__call__",
           [](const AtmField &atm,
