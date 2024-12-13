@@ -16,16 +16,11 @@
 
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
-    case SurfaceKey::h:      return elevation;
-    case SurfaceKey::t:      return temperature;
-    case SurfaceKey::wind_u: return wind[0];
-    case SurfaceKey::wind_v: return wind[1];
-    case SurfaceKey::wind_w: return wind[2];
+    case SurfaceKey::h: return elevation;
+    case SurfaceKey::t: return temperature;
   }
   std::unreachable();
 }
-
-Numeric &Surf::Point::operator[](const SurfaceTypeTag &x) { return type[x]; }
 
 Numeric &Surf::Point::operator[](const SurfacePropertyTag &x) {
   return prop[x];
@@ -33,18 +28,10 @@ Numeric &Surf::Point::operator[](const SurfacePropertyTag &x) {
 
 Numeric Surf::Point::operator[](SurfaceKey x) const {
   switch (x) {
-    case SurfaceKey::h:      return elevation;
-    case SurfaceKey::t:      return temperature;
-    case SurfaceKey::wind_u: return wind[0];
-    case SurfaceKey::wind_v: return wind[1];
-    case SurfaceKey::wind_w: return wind[2];
+    case SurfaceKey::h: return elevation;
+    case SurfaceKey::t: return temperature;
   }
   std::unreachable();
-}
-
-Numeric Surf::Point::operator[](const SurfaceTypeTag &x) const {
-  return type.at(x);
-  ;
 }
 
 Numeric Surf::Point::operator[](const SurfacePropertyTag &x) const {
@@ -53,9 +40,9 @@ Numeric Surf::Point::operator[](const SurfacePropertyTag &x) const {
 }
 
 template <>
-const Surf::Data &FieldMap::
-    Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::operator[](
-        const KeyVal &k) const try {
+const Surf::Data &
+FieldMap::Map<Surf::Data, SurfaceKey, SurfacePropertyTag>::operator[](
+    const KeyVal &k) const try {
   return std::visit(
       [this](auto &key) -> const Surf::Data & {
         return this->map<decltype(key)>().at(key);
@@ -68,9 +55,9 @@ const Surf::Data &FieldMap::
 }
 
 template <>
-Surf::Data &FieldMap::
-    Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::operator[](
-        const KeyVal &k) try {
+Surf::Data &
+FieldMap::Map<Surf::Data, SurfaceKey, SurfacePropertyTag>::operator[](
+    const KeyVal &k) try {
   return std::visit(
       [this](auto &key) -> Surf::Data & {
         return const_cast<Map *>(this)->map<decltype(key)>()[key];
@@ -80,8 +67,8 @@ Surf::Data &FieldMap::
 ARTS_METHOD_ERROR_CATCH
 
 template <>
-bool FieldMap::Map<Surf::Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>::
-    contains(const KeyVal &key) const {
+bool FieldMap::Map<Surf::Data, SurfaceKey, SurfacePropertyTag>::contains(
+    const KeyVal &key) const {
   return std::visit(
       [this](auto &k) -> bool { return this->map<decltype(k)>().contains(k); },
       key);
@@ -157,18 +144,10 @@ namespace Surf {
 std::ostream &operator<<(std::ostream &os, const Point &surf) {
   os << "Elevation: " << surf.elevation << " m,\n";
   os << "Temperature: " << surf.temperature << " K\n,";
-  os << "Wind Field: [u: " << surf.wind[0] << ", v: " << surf.wind[1]
-     << ", w: " << surf.wind[2] << "] m/s,\n";
   os << "Normal: [za: " << surf.normal[0] << ", aa: " << surf.normal[1]
      << "] degrees,\n";
 
-  if (surf.type.size()) {
-    os << "Types: [";
-    for (auto &type : surf.type)
-      os << type.first << ": " << type.second << ", ";
-    return os << "] ratio";
-  }
-  return os << "Unspecified surface type";
+  return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const Field &surf) {
@@ -195,28 +174,6 @@ std::ostream &operator<<(std::ostream &os, const Field &surf) {
   return os;
 }
 
-// Allow copy and move set implicitly from all types
-Data &Data::operator=(const GriddedField2 &x) {
-  data = x;
-  return *this;
-}
-Data &Data::operator=(const Numeric &x) {
-  data = x;
-  return *this;
-}
-Data &Data::operator=(const FunctionalData &x) {
-  data = x;
-  return *this;
-}
-Data &Data::operator=(GriddedField2 &&x) {
-  data = std::move(x);
-  return *this;
-}
-Data &Data::operator=(FunctionalData &&x) {
-  data = std::move(x);
-  return *this;
-}
-
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
@@ -229,17 +186,12 @@ String Data::data_type() const {
 
 [[nodiscard]] std::vector<SurfaceKeyVal> Point::keys() const {
   std::vector<SurfaceKeyVal> out;
-  out.reserve(enumtyps::SurfaceKeyTypes.size() + type.size());
+  out.reserve(enumtyps::SurfaceKeyTypes.size());
   for (auto key : enumtyps::SurfaceKeyTypes) out.emplace_back(key);
-  for (auto &key : type) out.emplace_back(key.first);
   return out;
 }
 
-[[nodiscard]] Index Point::ntype() const {
-  return static_cast<Index>(type.size());
-}
-
-[[nodiscard]] Index Point::size() const { return nother() + ntype(); }
+[[nodiscard]] Index Point::size() const { return nother(); }
 
 Numeric &Point::operator[](const SurfaceKeyVal &x) {
   return std::visit(
@@ -363,6 +315,10 @@ auto interpolation_function(Numeric lat, Numeric lon) {
 }  // namespace detail
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
+  ARTS_USER_ERROR_IF(ellipsoid[0] <= 0. or ellipsoid[1] <= 0.,
+                     "Ellipsoid must have positive axes: {:B,}",
+                     ellipsoid)
+
   constexpr Vector2 up{180, 0};
 
   if (not contains(SurfaceKey::h)) {
@@ -403,26 +359,18 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
       std::string_view(e.what())));
 }
 
+Numeric Data::at(const Numeric lat, const Numeric lon) const {
+  return detail::interpolation_function(lat, lon)(*this);
+}
+
 Point Field::at(Numeric lat, Numeric lon) const {
   Point out;
 
-  const auto interp = detail::interpolation_function(lat, lon);
-
   for (auto &key : keys()) {
-    out[key] = interp(this->operator[](key));
+    out[key] = this->operator[](key).at(lat, lon);
   }
 
-  // Normalize the surface types
-  const auto div = 1.0 / [&]() {
-    Numeric d = 0.0;
-    for (auto &x : out.type) d += x.second;
-    return d;
-  }();
-  for (auto &a : out.type) {
-    a.second *= div;
-  }
-
-  if (has(SurfaceKey::h)) out.normal = normal(lat, lon, out.elevation);
+  out.normal = normal(lat, lon);
 
   return out;
 }
@@ -575,6 +523,55 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
     const Numeric &lat, const Numeric &lon) const {
   return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
 }
+
+void Data::adjust_interpolation_extrapolation() {
+  if (std::holds_alternative<GriddedField2>(data)) {
+    auto &field = std::get<GriddedField2>(data);
+
+    if (field.grid<0>().size() == 1) {
+      lat_upp = InterpolationExtrapolation::Nearest;
+      lat_low = InterpolationExtrapolation::Nearest;
+    }
+
+    if (field.grid<1>().size() == 1) {
+      lon_upp = InterpolationExtrapolation::Nearest;
+      lon_low = InterpolationExtrapolation::Nearest;
+    }
+  } else {
+    lat_upp = InterpolationExtrapolation::Nearest;
+    lat_low = InterpolationExtrapolation::Nearest;
+    lon_upp = InterpolationExtrapolation::Nearest;
+    lon_low = InterpolationExtrapolation::Nearest;
+  }
+}
+
+Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
+
+Data::Data(GriddedField2 x) : data(std::move(x)) {
+  adjust_interpolation_extrapolation();
+}
+
+Data::Data(FunctionalData x) : data(std::move(x)) {
+  adjust_interpolation_extrapolation();
+}
+
+Data &Data::operator=(Numeric x) {
+  data = x;
+  adjust_interpolation_extrapolation();
+  return *this;
+}
+
+Data &Data::operator=(GriddedField2 x) {
+  data = std::move(x);
+  adjust_interpolation_extrapolation();
+  return *this;
+}
+
+Data &Data::operator=(FunctionalData x) {
+  data = std::move(x);
+  adjust_interpolation_extrapolation();
+  return *this;
+}
 }  // namespace Surf
 
 std::string std::formatter<SurfaceKeyVal>::to_string(
@@ -585,10 +582,6 @@ std::string std::formatter<SurfaceKeyVal>::to_string(
         return std::vformat(fmt.c_str(), std::make_format_args(val));
       },
       v);
-}
-
-std::ostream &operator<<(std::ostream &os, const SurfaceTypeTag &ppt) {
-  return os << ppt.name;
 }
 
 std::ostream &operator<<(std::ostream &os, const SurfacePropertyTag &ppt) {

@@ -39,7 +39,7 @@ void py_atm(py::module_ &m) try {
       .def_rw("lon_upp", &Atm::Data::lon_upp, "Upper longitude limit")
       .def_rw("lon_low", &Atm::Data::lon_low, "Lower longitude limit")
       .def(
-          "at",
+          "__call__",
           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
             return d.at(alt, lat, lon);
           },
@@ -57,15 +57,6 @@ void py_atm(py::module_ &m) try {
           "lon"_a,
           "Get the weights of neighbors at a position")
       .def_prop_ro("data_type", &Atm::Data::data_type, "The data type")
-      .def(
-          "__call__",
-          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-            return d.at(alt, lat, lon);
-          },
-          "alt"_a,
-          "lat"_a,
-          "lon"_a,
-          "Get a point of data at the position")
       .def("__getstate__",
            [](const Atm::Data &t) {
              return std::make_tuple(t.data,
@@ -245,9 +236,9 @@ Parameters
          },
          "toa"_a = 100e3,
          "iso"_a = IsoRatioOption::Builtin)
-      .def("species_keys", &AtmField::keys<SpeciesEnum>)
+      .def("species_keys", &AtmField::keys<SpeciesEnum>, "Species keys")
       .def(
-          "at",
+          "__call__",
           [](const AtmField &atm,
              const Numeric &h,
              const Numeric &lat,
@@ -257,7 +248,7 @@ Parameters
           "lon"_a,
           "Get the data at a point")
       .def(
-          "at",
+          "__call__",
           [](const AtmField &atm,
              const Vector &hv,
              const Vector &latv,

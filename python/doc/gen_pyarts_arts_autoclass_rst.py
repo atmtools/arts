@@ -2,6 +2,8 @@ import pyarts
 import pyarts.arts as cxx
 import sys
 
+global_errors = []
+
 module_t = type(cxx)
 attr_t = property
 class_t = type(cxx.Index)
@@ -30,8 +32,8 @@ def short_doc(v, var=None, name=None):
         if "->" in s or len(s) == 0:
             attr = v.__name__ if hasattr(v, "__name__") else name
             if not is_operator(attr):
-                print(
-                    f"WARNING [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
+                global_errors.append(
+                    f"ERROR [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
                 )
 
         return s
@@ -106,6 +108,10 @@ def is_operator(name):
         "__array__",
         "__getstate__",
         "__setstate__",
+        "__init__",
+        "__format__",
+        "__repr__",
+        "__str__",
     ]
     return name in operators
 
@@ -379,9 +385,6 @@ def create_workspace_rst(path):
         create_class_rst(data[0], path, f"pyarts.workspace.Workspace")
 
         for name in dir(ws):
-            if is_internal(name):
-                continue
-
             attr = getattr(ws, name)
 
             if isinstance(attr, attr_t):
@@ -398,11 +401,22 @@ def create_workspace_rst(path):
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(".. currentmodule:: pyarts.workspace\n\n")
                     f.write(".. automethod:: Workspace." + name + "\n\n")
+            elif is_operator(name):
+                with open(
+                    f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+                ) as f:
+                    f.write(f"{name}\n{'='*len(name)}\n\n")
+                    f.write(".. currentmodule:: pyarts.workspace\n\n")
+                    f.write(".. automethod:: Workspace." + name + "\n\n")
     except Exception as e:
         raise Exception(f"Error in create_workspace_rst for path={path}:\n{e}")
 
 
 create_rst(data, sys.argv[1], "pyarts.arts")
 
-
 create_workspace_rst(sys.argv[1])
+
+if len(global_errors) != 0:
+    print("\n".join(global_errors))
+    print(f"ERRORS FOUND: {len(global_errors)}")
+    sys.exit(1)

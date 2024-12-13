@@ -213,12 +213,6 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
   };
 
-  wsg_data["SurfaceTypeTag"] = {
-      .file = "surf.h",
-      .desc = R"--(A surface type
-)--",
-  };
-
   wsg_data["SurfacePropertyTag"] = {
       .file = "surf.h",
       .desc = R"--(A surface property

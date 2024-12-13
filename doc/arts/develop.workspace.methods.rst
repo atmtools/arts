@@ -19,7 +19,7 @@ Defining a workspace method
 You may define either a basic method or a meta-method that depends on other methods.
 The easiest way to do so is to copy an existing method and modify it to suit your needs.
 Please design your method input and output to allow meta-methods to be defined,
-as they simplify composibility signficantly.
+as they simplify composability significantly.
 
 Basic methods
 -------------
@@ -27,7 +27,7 @@ Basic methods
 Basic methods completely define their input and output and do not explicitly
 depend on other methods.  The method must be manually implemented.
 
-Basic methods are defined entirerly in ``workspace_methods.cpp``.
+Basic methods are defined entirely in ``workspace_methods.cpp``.
 They are part of a map object called ``wsm_data``.  The name of the
 method is the key and the value is a struct with the following fields:
 
@@ -92,7 +92,7 @@ A single meta method data contains:
 
 .. tip::
 
-  A meta method may depend on another meta method.  If it does it is important that the
+  A meta method may depend on another meta method.  If it does, it is important that the
   meta method it depends on is defined before it in the list.
 
 Automatic methods
@@ -112,11 +112,11 @@ before doing so.  Adding a method to this list may also require changing the
 actual signature (which is why the method is generated, so that a change in
 the required actual signature is immediately made apparent).
 
-The methods the begin with ``RetrievalAdd...`` are partly generated.
+The methods that begin with ``RetrievalAdd...`` are partly generated.
 These methods all require a corresponding ``jacobian_targetsAdd...`` method
 that fills in the ``jacobian_targets`` workspace variable.  To keep that
 part of the signature consistent, the additional ``RetrievalAdd...`` information
-is simply appended to the the ``in``, ``out``, and ``gin``-lists of the
+is simply appended to the ``in``, ``out``, and ``gin``-lists of the
 corresponding ``jacobian_targetsAdd...`` method using the local ``jac2ret`` lambda.
 
 Generated files
@@ -131,7 +131,7 @@ code is also generated as ``py_auto_wsm_N.cpp``, where N is still a number.
 Workspace method naming convention
 ==================================
 
-Names carry meaning.  Please follow the naming convention below and
+Names carry meaning.  Please follow the naming convention below, and
 please do not hesitate to fix any naming inconsistencies you find.
 
 Method naming
@@ -146,11 +146,11 @@ variable and nouns for methods that create a new workspace variable.
 
 For example, :func:`~pyarts.workspace.Workspace.propagation_matrixAddLines`
 has a main output of :attr:`~pyarts.workspace.Workspace.propagation_matrix` and
-adds line absorption to it.  It needs to be preceeded by a call to 
+adds line absorption to it.  It needs to be preceded by a call to 
 :func:`~pyarts.workspace.Workspace.propagation_matrixInit` which sets up the
 propagation matrix to an initial state.
 
-Of course, every use-case is different but please try to follow this convention.
+Of course, every use-case is different, but please try to follow this convention.
 
 File naming
 -----------
@@ -158,10 +158,10 @@ File naming
 The file that a workspace method is implemented in should be named ``m_<concept>.cc``.
 The concept should be a short but descriptive name of what the methods therein do.
 Multiple methods per file is allowed and encouraged, but keep them conceptually similar.
-To ensure compatibility with various filesystems, please avoid using spaces
+To ensure compatibility with various file systems, please avoid using spaces
 and capital letters in the filename.
 
-Lastly, please ensure that the file is listed in the CMake target ``artsworkspace``
+Lastly, please ensure that the file is listed in the CMake target ``artsworkspace``,
 or it will not be compiled.
 
 Workspace method documentation

@@ -6,7 +6,6 @@ API Reference
    :hidden:
 
    pyarts.arts
-   pyarts.cat
    pyarts.data
    pyarts.hitran
    pyarts.plots
@@ -21,7 +20,6 @@ API Reference
 .. autosummary::
 
    pyarts.arts
-   pyarts.cat
    pyarts.data
    pyarts.hitran
    pyarts.plots

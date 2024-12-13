@@ -21,8 +21,8 @@ of the map and the object is a struct with the following fields:
 - ``file`` - the main header file that must be included to use the workspace group.
 - ``desc`` - a description of the variable as a string.
 - ``array_depth`` - an integer defining the depth of the array.  You can recursively access data of this type of array using the ``[]`` operator using an integer or range type.  Remember that the ``value_type`` of the array should also be a workspace group.
-- ``value_type`` - a boolean that defines whether or not a workspace group instance of this type is copyable in python.  You cannot copy python types such as ``int`` and ``str``.
-- ``map_type`` - a boolean that defines whether or not the workspace group is a map.  Maps can be accessed via the ``[]`` operator using the key type.  Remember that both the ``mapped_type`` and the ``key_type`` of the map should also be workspace groups.
+- ``value_type`` - a boolean that defines whether a workspace group instance of this type is copyable in python.  You cannot copy python types such as ``int`` and ``str``.
+- ``map_type`` - a boolean that defines whether the workspace group is a map.  Maps can be accessed via the ``[]`` operator using the key type.  Remember that both the ``mapped_type`` and the ``key_type`` of the map should also be workspace groups.
 
 In ``arts_options.cpp``
 -----------------------
@@ -31,8 +31,8 @@ See the page on :doc:`develop.workspace.options` for more information.
 The workspace group defined from a workspace option will
 simply be the name of the ``enum class`` that defines the option.
 
-What quailifies as a workspace group?
-=====================================
+What qualifies as a workspace group?
+====================================
 
 You need to ensure that the following code is possible for each workspace group ``T``.
 Read this assuming that ``a`` is an instance of ``T``, ``x`` is an instance of ``std::formatter<T>``, ``i`` is an instance of an integer, and ``k`` is an instance of a "key".
@@ -43,7 +43,7 @@ The following must compile:
 - ``T{}`` - allow default construction.  Failure to comply leads to a static assertion as the group fails the ``WorkspaceGroupIsDefaultConstructible`` concept.
 - ``T{a}`` - allow copy construction of.  Failure to comply leads to a static assertion as the group fails the ``WorkspaceGroupIsCopyable`` concept.
 - ``std::format("{}", a)``, ``std::format("{:sqNB,}", a)``, ``x.inner_fmt().tags``, and ``static_assert(std::same_as<format_tags, std::remove_cvref_t<decltype(x.inner_fmt().tags)>>)`` - allow formatting the group to a string.  The exception to this are classes that pass one of these consepts: ``std::integral<T>`` or ``std::floating_point<T>`` or ``std::same_as<T, std::string>``.   Failure to comply leads to a static assertion as the group fails the ``arts_formattable_or_value_type`` concept.  Note that to ensure this, you should read the :doc:`develop.classes.formatter` documentation.
-- ``x[i]`` and ``x[k]`` should also implement all of the above if the group is an array or map type, respectively.  This also holds true for the group of ``k`` for map types.  Failure to compile will lead to difficult errors in the python binding compilation.
+- ``x[i]`` and ``x[k]`` should also implement all the above if the group is an array or map type, respectively.  This also holds true for the group of ``k`` for map types.  Failure to compile will lead to difficult errors in the python binding compilation.
 
 Additionally, you need to ensure that your group passes the ``pytest`` tests when ``pyarts`` is built.  There exist a helper method ``workspace_group_interface`` you can send a mutable version
 of the ``py::class_<T>`` object to that should ensure this.  However, generally they interface via python might require some additional work.

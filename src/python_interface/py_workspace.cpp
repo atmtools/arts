@@ -2,6 +2,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
@@ -117,16 +118,17 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "set",
           [](Workspace& w, const std::string& n, const PyWSV& x) {
             if (not w.contains(n))
-              throw std::domain_error(std::format(
-                  "Workspace variable \"{}\" does not exist", n));
+              throw std::domain_error(
+                  std::format("Workspace variable \"{}\" does not exist", n));
 
             Wsv wsv = from_py(x);
 
             if (wsv.index() != w.share(n).index())
-              throw std::domain_error(std::format(R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
-                                                 n,
-                                                 w.share(n).type_name(),
-                                                 wsv.type_name()));
+              throw std::domain_error(std::format(
+                  R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
+                  n,
+                  w.share(n).type_name(),
+                  wsv.type_name()));
 
             w.overwrite(n, wsv);
 
@@ -166,13 +168,13 @@ void py_workspace(py::class_<Workspace>& ws) try {
 
   str_interface(ws);
   ws.def(
-      "__iter__",
-      [](const Workspace& w) {
-        return py::make_iterator(
-            py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
-      },
-      py::rv_policy::reference_internal,
-      "Allows `iter(self)`");
+        "__iter__",
+        [](const Workspace& w) {
+          return py::make_iterator(
+              py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
+        },
+        py::rv_policy::reference_internal,
+        "Allows `iter(self)`");
 
   ws.doc() = "The core ARTS Workspace";
 

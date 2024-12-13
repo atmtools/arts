@@ -16,6 +16,8 @@ class Workspace {
   Workspace(WorkspaceInitialization how_to_initialize =
                 WorkspaceInitialization::FromGlobalDefaults);
 
+  Workspace(std::unordered_map<std::string, Wsv>);
+
   //! Returns a shared pointer to the workspace variable with the given name.
   [[nodiscard]] const Wsv& share(const std::string& name) const;
 
@@ -91,6 +93,8 @@ class Workspace {
   [[nodiscard]] auto begin() const { return wsv.begin(); }
 
   [[nodiscard]] auto end() const { return wsv.end(); }
+
+  [[nodiscard]] auto size() const { return wsv.size(); }
 
   void init(const std::string& name);
 

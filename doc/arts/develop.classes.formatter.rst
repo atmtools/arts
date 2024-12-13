@@ -4,7 +4,7 @@ Use of std::formatter<T>
 What does it achieve?
 ---------------------
 
-We use formatters to allow converting ARTS classes to strings in a consistent way.
+We use formatters to allow converting ARTS classes to strings consistently.
 This has some main uses:
 
 1. See the content of the types in python using `__repr__`, `__str__`, or `print`.
@@ -13,7 +13,7 @@ This has some main uses:
    object using the python `__format__` interface to control some aspects of
    how the output looks.
 2. Calls to `std::format` inside the C++ code can be used to format strings
-   in a consistent way.  This is especially useful for logging and debugging,
+   consistently.  This is especially useful for logging and debugging,
    and may even be used in the XML IO code when `std::print` is available.
 
 How is it implemented?
@@ -137,7 +137,7 @@ What do you need to think about when implementing a formatter?
 2. Whenever you format in a `const char *`, that is anything in C++ that is directly
    written `"I am a const char *"`, there will be a resulting `'\0'` character included
    in the formatted string.  This will cause problems if you intend to copy-paste the 
-   screen output, as the `'\0'` character will not be visible but there anyways.
+   screen output, as the `'\0'` character will not be visible but there anyway.
    To avoid this, use `std::string_view` instead of `const char *` whenever possible.
-   The easiest way to to this is simply to write `"I am a string_view"sv`, as the `sv`
+   The easiest way to this is simply to write `"I am a string_view"sv`, as the `sv`
    makes it a `std::string_view` and avoids copying the last `'\0'` character.

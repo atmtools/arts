@@ -18,6 +18,9 @@ Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   }
 }
 
+Workspace::Workspace(std::unordered_map<std::string, Wsv> wsv)
+    : wsv(std::move(wsv)) {};
+
 const Wsv& Workspace::share(const std::string& name) const try {
   return wsv.at(name);
 } catch (std::out_of_range&) {
@@ -34,7 +37,8 @@ void Workspace::set(const std::string& name, const Wsv& data) try {
 
   if (ptr == wsv.end()) {
     if (auto wsv_ptr = workspace_variables().find(name);
-        wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name())
+        wsv_ptr != workspace_variables().end() and
+        wsv_ptr->second.type != data.type_name())
       throw wsv_ptr->second.type;
 
     wsv[name] = data;
@@ -64,7 +68,8 @@ It cannot be set to be a "{}"
 
 void Workspace::overwrite(const std::string& name, const Wsv& data) try {
   if (auto wsv_ptr = workspace_variables().find(name);
-      wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name())
+      wsv_ptr != workspace_variables().end() and
+      wsv_ptr->second.type != data.type_name())
     throw wsv_ptr->second.type;
   wsv[name] = data;
 } catch (const std::string& type) {

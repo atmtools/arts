@@ -67,6 +67,30 @@ struct Isotope {
   }
 };
 
+}  // namespace Species
+
+
+template <>
+struct std::formatter<Species::Isotope> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Species::Isotope& v, FmtContext& ctx) const {
+    const std::string_view quote = tags.quote();
+    return std::format_to(ctx.out(), "{}{}{}", quote, v.FullName(), quote);
+  }
+};
+
+namespace Species {
+
 #define deal_with_spec(SPEC) Isotope(SpeciesEnum::SPEC)
 
 /** A list of all ARTS isotopologues, note how the species enum class input HAS to be sorted */
@@ -711,9 +735,7 @@ constexpr Index find_species_index(const SpeciesEnum spec,
     }
   }
 
-  throw std::runtime_error(
-      "Isotope not found: " + std::string{toString<1>(spec)} + "-" +
-      std::string(isot));
+  throw std::runtime_error(std::format("Cannot find isotopologue: {}-{}\n\nValid isotopologues: {:BN,}", spec, isot, isotopologues(spec)));
 }
 
 constexpr Index find_species_index(const Isotope ir) {
@@ -1344,24 +1366,5 @@ template <>
 struct std::hash<SpeciesIsotope> {
   std::size_t operator()(const SpeciesIsotope& g) const {
     return static_cast<std::size_t>(find_species_index(g));
-  }
-};
-
-template <>
-struct std::formatter<SpeciesIsotope> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const SpeciesIsotope& v, FmtContext& ctx) const {
-    const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.FullName(), quote);
   }
 };

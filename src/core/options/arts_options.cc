@@ -148,11 +148,8 @@ if good cases, so we have provide this selection mechanism to make them match.
                        .desc = R"(A key to identify a surface property.
 )",
                        .values_and_desc = {
-                           Value{"h", "Altitude [m]"},
-                           Value{"t", "Temperature [K]"},
-                           Value{"wind_u", "Wind field U-component [m/s]"},
-                           Value{"wind_v", "Wind field V-component [m/s]"},
-                           Value{"wind_w", "Wind field W-component [m/s]"},
+                           Value{"h", "elevation", "Altitude [m]"},
+                           Value{"t", "temperature", "Temperature [K]"},
                        }});
 
   opts.emplace_back(EnumeratedOption{
