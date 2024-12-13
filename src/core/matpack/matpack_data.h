@@ -317,7 +317,7 @@ class matpack_data {
   constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
     using other_view_type = typename matpack_data<T, M>::view_type;
 
-    assert (size() == mdsize<M>(sz)) ;
+    assert(size() == mdsize<M>(sz));
 
     matpack_data<T, M> out;
     out.data = std::move(data);
@@ -337,7 +337,7 @@ class matpack_data {
   template <Index M>
   constexpr matpack_view<T, M, false, false> reshape_as(
       const std::array<Index, M>& sz) {
-    assert (size() == mdsize<M>(sz));
+    assert(size() == mdsize<M>(sz));
 
     return matpack_view<T, M, false, false>{data.data(), sz};
   }
@@ -352,7 +352,7 @@ class matpack_data {
   template <Index M>
   constexpr matpack_view<T, M, true, false> reshape_as(
       const std::array<Index, M>& sz) const {
-    assert (size() == mdsize<M>(sz));
+    assert(size() == mdsize<M>(sz));
 
     return matpack_view<T, M, true, false>{const_cast<T*>(data.data()), sz};
   }
@@ -419,21 +419,29 @@ class matpack_data {
   }
 
   template <access_operator... access>
+  [[nodiscard]]
   constexpr auto operator[](access&&... ind)
-      -> decltype(view[std::forward<access>(ind)...]) {
+      -> decltype(view[std::forward<access>(ind)...])
+    requires(sizeof...(access) == N and N > 1)
+  {
     return view[std::forward<access>(ind)...];
   }
   template <access_operator... access>
+  [[nodiscard]]
   constexpr auto operator[](access&&... ind) const
-      -> decltype(view[std::forward<access>(ind)...]) const {
+      -> decltype(view[std::forward<access>(ind)...]) const
+    requires(sizeof...(access) == N and N > 1)
+  {
     return view[std::forward<access>(ind)...];
   }
   template <access_operator access>
+  [[nodiscard]]
   constexpr auto operator[](access&& ind)
       -> decltype(view[std::forward<access>(ind)]) {
     return view[std::forward<access>(ind)];
   }
   template <access_operator access>
+  [[nodiscard]]
   constexpr auto operator[](access&& ind) const
       -> decltype(view[std::forward<access>(ind)]) const {
     return view[std::forward<access>(ind)];
@@ -785,8 +793,7 @@ class matpack_data {
 template <typename T, Index N>
 std::string describe(const matpack_data<T, N>& m) {
   using namespace matpack;
-  return std::format(
-      "matpack_data of rank {} of shape {:B,}", N, m.shape());
+  return std::format("matpack_data of rank {} of shape {:B,}", N, m.shape());
 }
 }  // namespace matpack
 

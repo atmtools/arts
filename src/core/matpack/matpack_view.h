@@ -700,7 +700,7 @@ class matpack_view {
             Index M     = num_index<access...>,
             class ret_t = mutable_access<access...>>
   [[nodiscard]] constexpr auto operator[](access&&... ind) -> ret_t
-    requires(sizeof...(access) == N and not constant)
+    requires(sizeof...(access) == N and not constant and N > 1)
   {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
@@ -717,7 +717,7 @@ class matpack_view {
             Index M     = num_index<access...>,
             class ret_t = constant_access<access...>>
   [[nodiscard]] constexpr auto operator[](access&&... ind) const -> ret_t
-    requires(sizeof...(access) == N)
+    requires(sizeof...(access) == N and N > 1)
   {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
@@ -774,6 +774,7 @@ class matpack_view {
    * @param nelem Length of new view
    * @return matpack_view<T, N, constant, strided> Slice of the view
    */
+  [[nodiscard]]
   matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
     assert(extent(0) >= i0 + nelem);
     ARTS_ASSERT(extent(0) >= i0 + nelem,
@@ -794,6 +795,7 @@ class matpack_view {
    * @param nelem Length of new view
    * @return matpack_view<T, N, true, strided> Slice of the view
    */
+  [[nodiscard]]
   matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
     assert(extent(0) >= i0 + nelem);
     ARTS_ASSERT(extent(0) >= i0 + nelem,
@@ -814,6 +816,7 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, constant, false> Exhaustive slice of the sub-view
    */
+  [[nodiscard]]
   matpack_view<T, N - 1, constant, false> as_slice(Index i)
     requires(N > 1)
   {
@@ -830,6 +833,7 @@ class matpack_view {
    * @param[in] i The left-most index access
    * @return matpack_view<T, N-1, true, false> Exhaustive slice of the sub-view
    */
+  [[nodiscard]]
   matpack_view<T, N - 1, true, false> as_slice(Index i) const
     requires(N > 1)
   {
@@ -1059,7 +1063,7 @@ class matpack_view {
       const std::array<Index, M>& sz) const
     requires(not strided)
   {
-    assert (size() == mdsize<M>(sz)) ;
+    assert(size() == mdsize<M>(sz));
     return matpack_view<T, M, constant, false>{data_handle(), sz};
   }
 
@@ -1403,13 +1407,15 @@ template <typename T, Index N, bool constant, bool strided>
 std::string describe(const matpack_view<T, N, constant, strided>& m) {
   using namespace matpack;
   if constexpr (constant and strided)
-    return std::format("constant and strided matpack_view of rank {} of shape {}",
-                      N,
-                      m.shape());
+    return std::format(
+        "constant and strided matpack_view of rank {} of shape {}",
+        N,
+        m.shape());
   else if constexpr (constant)
-    return std::format("constant and exhaustive matpack_view of rank {} of shape {}",
-                      N,
-                      m.shape());
+    return std::format(
+        "constant and exhaustive matpack_view of rank {} of shape {}",
+        N,
+        m.shape());
   else if constexpr (strided)
     return std::format(
         "strided matpack_view of rank {} of shape {}", N, m.shape());
