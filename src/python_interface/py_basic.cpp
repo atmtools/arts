@@ -133,8 +133,10 @@ void py_basic(py::module_& m) try {
 
   py::class_<Any> any(m, "Any");
   workspace_group_interface(any);
-  any.def("__init__",
-          [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; })
+  any.def(
+         "__init__",
+         [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; },
+         "Anything is allowed.")
       .def("__getstate__", [](const Any&) { return std::tuple<>(); })
       .def("__setstate__", [](Any* a, const std::tuple<>&) { new (a) Any{}; });
 } catch (std::exception& e) {

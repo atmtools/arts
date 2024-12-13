@@ -108,6 +108,10 @@ def is_operator(name):
         "__array__",
         "__getstate__",
         "__setstate__",
+        "__init__",
+        "__format__",
+        "__repr__",
+        "__str__",
     ]
     return name in operators
 
@@ -381,9 +385,6 @@ def create_workspace_rst(path):
         create_class_rst(data[0], path, f"pyarts.workspace.Workspace")
 
         for name in dir(ws):
-            if is_internal(name):
-                continue
-
             attr = getattr(ws, name)
 
             if isinstance(attr, attr_t):
@@ -394,6 +395,13 @@ def create_workspace_rst(path):
                     f.write(".. currentmodule:: pyarts.workspace\n\n")
                     f.write(".. autoattribute:: Workspace." + name + "\n\n")
             elif isinstance(attr, method_t):
+                with open(
+                    f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+                ) as f:
+                    f.write(f"{name}\n{'='*len(name)}\n\n")
+                    f.write(".. currentmodule:: pyarts.workspace\n\n")
+                    f.write(".. automethod:: Workspace." + name + "\n\n")
+            elif is_operator(name):
                 with open(
                     f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
                 ) as f:
