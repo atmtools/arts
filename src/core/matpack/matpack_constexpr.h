@@ -52,7 +52,7 @@ struct matpack_constant_view {
 
   template <integral... index>
   [[nodiscard]] constexpr T &operator[](index... i)
-    requires(not constant and sizeof...(index) == N)
+    requires(not constant and sizeof...(index) == N and N != 1)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
                 "{:B,} vs {:B,}",
@@ -63,7 +63,7 @@ struct matpack_constant_view {
 
   template <integral... index>
   [[nodiscard]] constexpr const T &operator[](index... i) const
-    requires(sizeof...(index) == N)
+    requires(sizeof...(index) == N and N != 1)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
                 "{:B,} vs {:B,}",
@@ -268,14 +268,14 @@ struct matpack_constant_data {
 
   template <integral... index>
   [[nodiscard]] constexpr T &operator[](index... i)
-    requires(sizeof...(index) == N)
+    requires(sizeof...(index) == N and N != 1)
   {
     return view()[i...];
   }
 
   template <integral... index>
   [[nodiscard]] constexpr T operator[](index... i) const
-    requires(sizeof...(index) == N)
+    requires(sizeof...(index) == N and N != 1)
   {
     return view()[i...];
   }
