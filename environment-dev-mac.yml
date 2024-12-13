@@ -9,6 +9,7 @@ dependencies:
         - eigen
         - fftw
         - gfortran
+        - graphviz
         - ipykernel
         - lark-parser
         - libclang
