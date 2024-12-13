@@ -146,7 +146,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       for (Index j = 0; j < naa; ++j) {
         const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
-          spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+          spectral_radiance_field.data[i, j, joker, 0, 0, n] =
               freqstep(frequency_grid[n], zenith_grid[i], path);
         }
       }
@@ -160,7 +160,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
         try {
           const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
           for (Index n = 0; n < nfreq; ++n) {
-            spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+            spectral_radiance_field.data[i, j, joker, 0, 0, n] =
                 freqstep(frequency_grid[n], zenith_grid[i], path);
           }
         } catch (std::exception& e) {

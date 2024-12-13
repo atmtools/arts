@@ -699,7 +699,7 @@ class matpack_view {
   template <access_operator... access,
             Index M     = num_index<access...>,
             class ret_t = mutable_access<access...>>
-  [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
+  [[nodiscard]] constexpr auto operator[](access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
   {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
@@ -716,7 +716,7 @@ class matpack_view {
   template <access_operator... access,
             Index M     = num_index<access...>,
             class ret_t = constant_access<access...>>
-  [[nodiscard]] constexpr auto operator()(access&&... ind) const -> ret_t
+  [[nodiscard]] constexpr auto operator[](access&&... ind) const -> ret_t
     requires(sizeof...(access) == N)
   {
     assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
@@ -766,7 +766,7 @@ class matpack_view {
 
   /** Take a slice of the left-most dimension of this object
    *
-   * Unlike the operator() call, this will preserve the stridedness of the
+   * Unlike the operator[] call, this will preserve the stridedness of the
    * view, allowing you to use the much more efficient contigious element
    * access patterns
    * 
@@ -786,7 +786,7 @@ class matpack_view {
 
   /** Take a slice of the left-most dimension of this object
    *
-   * Unlike the operator() call, this will preserve the stridedness of the
+   * Unlike the operator[] call, this will preserve the stridedness of the
    * view, allowing you to use the much more efficient contigious element
    * access patterns
    * 
@@ -1352,7 +1352,7 @@ class matpack_view {
         this->operator[](i) = mdvalue(x, pos.pos);
       else
         std::apply(
-            [this](auto... ind) -> T& { return this->operator()(ind...); },
+            [this](auto... ind) -> T& { return this->operator[](ind...); },
             pos.pos) = mdvalue(x, pos.pos);
       ++pos;
     }

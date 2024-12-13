@@ -104,11 +104,6 @@ class grid {
   operator ExhaustiveConstVectorView() const { return x; }
 
   template <access_operator Op>
-  [[nodiscard]] constexpr auto operator()(const Op& op) const {
-    return x(op);
-  }
-
-  template <access_operator Op>
   [[nodiscard]] constexpr auto operator[](const Op& op) const {
     return x[op];
   }

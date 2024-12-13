@@ -74,28 +74,28 @@ int test1() {
   {
     Numeric n = 0;
     for (Index i = 0; i < M.nrows(); ++i)
-      for (Index j = 0; j < M.ncols(); ++j) M(i, j) = ++n;
+      for (Index j = 0; j < M.ncols(); ++j) M[i, j] = ++n;
   }
 
   cout << "\nM =\n" << M << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4)) =\n"
-       << M(Range(2, 4), Range(2, 4)) << "\n";
+       << M[Range(2, 4), Range(2, 4)] << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
-       << M(Range(2, 4), Range(2, 4))(Range(1, 2), Range(1, 2)) << "\n";
+       << M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)] << "\n";
 
-  cout << "\nM(1,Range(joker)) =\n" << M(1, Range(joker)) << "\n";
+  cout << "\nM(1,Range(joker)) =\n" << M[1, Range(joker)] << "\n";
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
-  fill_with_junk(M(1, Range(1, 2)));
+  fill_with_junk(M[1, Range(1, 2)]);
 
   cout << "\nM(Range(0,4),Range(0,4)) =\n"
-       << M(Range(0, 4), Range(0, 4)) << "\n";
+       << M[Range(0, 4), Range(0, 4)] << "\n";
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
 
-  MatrixView s = M(Range(4, 2, 2), Range(6, 3));
+  MatrixView s = M[Range(4, 2, 2), Range(6, 3)];
   fill_with_junk(s);
 
   cout << "\nM =\n" << M << "\n";
@@ -103,10 +103,10 @@ int test1() {
   const Matrix C = M;
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
-       << C(Range(3, 4, 2), Range(2, 3, 3)) << "\n";
+       << C[Range(3, 4, 2), Range(2, 3, 3)] << "\n";
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
-       << transpose(C(Range(3, 4, 2), Range(2, 3, 3))) << "\n";
+       << transpose(C[Range(3, 4, 2), Range(2, 3, 3)]) << "\n";
 
   return 0;
 }
@@ -142,7 +142,7 @@ void test4() {
 
   B = 2;
   C = 3;
-  mult(A(Range(1, joker), Range(1, joker)), B, C);
+  mult(A[Range(1, joker), Range(1, joker)], B, C);
 
   //  cout << "\nB =\n" << B << "\n";
   //  cout << "\nC =\n" << C << "\n";
@@ -206,7 +206,7 @@ void test8() {
 void test9() {
   // Initialization of Matrix with view of other Matrix:
   Matrix A(4, 8);
-  Matrix B(A(Range(joker), Range(0, 3)));
+  Matrix B(A[Range(joker), Range(0, 3)]);
   cout << "B = " << B << "\n";
 }
 
@@ -397,10 +397,10 @@ void test29() {
   Matrix b;
 
   b.resize(2, 2);
-  b(0, 0) = 1;
-  b(0, 1) = 2;
-  b(1, 0) = 3;
-  b(1, 1) = 4;
+  b[0, 0] = 1;
+  b[0, 1] = 2;
+  b[1, 0] = 3;
+  b[1, 1] = 4;
   a.push_back(b);
   b *= 2;
   a.push_back(b);
@@ -446,27 +446,27 @@ void test31() {
   // Fill with some numbers
   for (Index i = 0; i < a.npages(); ++i)
     for (Index j = 0; j < a.nrows(); ++j)
-      for (Index k = 0; k < a.ncols(); ++k) a(i, j, k) = (Numeric)(++fill);
+      for (Index k = 0; k < a.ncols(); ++k) a[i, j, k] = (Numeric)(++fill);
 
   cout << "a =\n" << a << "\n";
 
   cout << "Taking out first row of first page:\n"
-       << a(0, 0, Range(joker)) << "\n";
+       << a[0, 0, Range(joker)] << "\n";
 
   cout << "Taking out last column of second page:\n"
-       << a(1, Range(joker), a.ncols() - 1) << "\n";
+       << a[1, Range(joker), a.ncols() - 1] << "\n";
 
   cout << "Taking out the first letter on every page:\n"
-       << a(Range(joker), 0, 0) << "\n";
+       << a[Range(joker), 0, 0] << "\n";
 
   cout << "Taking out first page:\n"
-       << a(0, Range(joker), Range(joker)) << "\n";
+       << a[0, Range(joker), Range(joker)] << "\n";
 
   cout << "Taking out last row of all pages:\n"
-       << a(Range(joker), a.nrows() - 1, Range(joker)) << "\n";
+       << a[Range(joker), a.nrows() - 1, Range(joker)] << "\n";
 
   cout << "Taking out second column of all pages:\n"
-       << a(Range(joker), Range(joker), 1) << "\n";
+       << a[Range(joker), Range(joker), 1] << "\n";
 
   a *= 2;
 
@@ -486,14 +486,14 @@ void test31() {
 
   a = 1;
 
-  cout << "a(900,900,900) = " << a(90, 90, 90) << "\n";
+  cout << "a(900,900,900) = " << a[90, 90, 90] << "\n";
 
   fill = 0;
 
   cout << "Fill with running numbers, using for loops...\n";
   for (Index i = 0; i < a.npages(); ++i)
     for (Index j = 0; j < a.nrows(); ++j)
-      for (Index k = 0; k < a.ncols(); ++k) a(i, j, k) = (Numeric)(++fill);
+      for (Index k = 0; k < a.ncols(); ++k) a[i, j, k] = (Numeric)(++fill);
 
   cout << "Max(a) = ...\n";
 
@@ -506,8 +506,8 @@ void test32() {
 
   for (Index j = 0; j < A.nrows(); ++j)
     for (Index k = 0; k < A.ncols(); ++k) {
-      X(j, k) = 1;
-      A(j, k) = (Numeric)(j + k);
+      X[j, k] = 1;
+      A[j, k] = (Numeric)(j + k);
     }
   cout << "A:\n" << A << "\n";
   cout << "X:\n" << X << "\n";
@@ -550,7 +550,7 @@ void test33() {
     Tensor3View at3 = Tensor3View{am};
     cout << "at3 = \n" << at3 << "\n";
     cout << "Describe at3: " << describe(at3) << "\n";
-    at3(0, 2, 0) += 1;
+    at3[0, 2, 0] += 1;
     cout << "a after Increasing element at3(0,2,0) by 1: \n" << a << "\n\n";
 
     Tensor4View at4 = Tensor4View{at3};
@@ -569,7 +569,7 @@ void test33() {
     cout << "at7 = \n" << at7 << "\n";
     cout << "Describe at7: " << describe(at7) << "\n";
 
-    at7(0, 0, 0, 0, 0, 2, 0) -= 1;
+    at7[0, 0, 0, 0, 0, 2, 0] -= 1;
 
     cout << "After subtracting 1 from at7(0,0,0,0,0,2,0)\n"
          << "a = " << a << "\n";
@@ -717,11 +717,11 @@ void test42() {
   ConstMatrixView z((MatrixView)y);
   cout << "z:\n" << z << endl;
 
-  cout << "Every other z:\n" << z(Range(1, 2, 2), joker) << endl;
+  cout << "Every other z:\n" << z[Range(1, 2, 2), joker] << endl;
 
   // Try write access also:
   MatrixView zz(y);
-  zz(Range(1, 2, 2), joker) = 0;
+  zz[Range(1, 2, 2), joker] = 0;
   cout << "zz:\n" << zz << endl;
   cout << "New x: " << x << endl;
 }
@@ -850,7 +850,7 @@ bool test_diagonal(Index ntests) {
     ConstMatrixView AT = transpose(A);
     ConstMatrixView B = A;
     if (n_diag > 3) {
-      B.set(A(Range(1, Joker(), 2), Range(1, Joker(), 2)));  // FIXME: NO MORE = for ConstXYZ
+      B.set(A[Range(1, Joker(), 2), Range(1, Joker(), 2)]);  // FIXME: NO MORE = for ConstXYZ
     }
 
     ConstVectorView v(A.diagonal());
@@ -860,10 +860,10 @@ bool test_diagonal(Index ntests) {
     random_fill_matrix(A, 10, true);
 
     for (Index j = 0; j < n_diag; j++) {
-      pass = pass && (v[j] == A(j, j));
-      pass = pass && (vt[j] == AT(j, j));
+      pass = pass && (v[j] == A[j, j]);
+      pass = pass && (vt[j] == AT[j, j]);
 
-      if (j < vb.size()) pass = pass && (vb[j] == B(j, j));
+      if (j < vb.size()) pass = pass && (vb[j] == B[j, j]);
     }
     cout << endl;
   }
@@ -921,10 +921,10 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
     n_sub = (n - 1) / column_stride + 1;
 
     mult(y[Range(0, joker, row_stride)],
-         A(Range(0, m_sub), Range(0, n_sub)),
+         A[Range(0, m_sub), Range(0, n_sub)],
          x[Range(0, joker, column_stride)]);
     mult(y_ref[Range(0, joker, row_stride)],
-                 A(Range(0, m_sub), Range(0, n_sub)),
+                 A[Range(0, m_sub), Range(0, n_sub)],
                  x[Range(0, joker, column_stride)]);
 
     err_mul = get_maximum_error(y[Range(0, joker, row_stride)],
@@ -945,10 +945,10 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
       n_sub = n - x_offset - 1;
 
       mult(y[Range(y_offset, m_sub)],
-           A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
+           A[Range(y_offset, m_sub), Range(x_offset, n_sub)],
            x[Range(x_offset, n_sub)]);
       mult(y_ref[Range(y_offset, m_sub)],
-                   A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
+                   A[Range(y_offset, m_sub), Range(x_offset, n_sub)],
                    x[Range(x_offset, n_sub)]);
 
       err_mul = get_maximum_error(
@@ -1125,11 +1125,11 @@ Numeric matrix_mult(
     Range r2(random_range(k1));
     Range r3(random_range(n1));
 
-    MatrixView C_sub(C(r1, r3));
-    MatrixView C_sub_ref(C_ref(r1, r3));
+    MatrixView C_sub(C[r1, r3]);
+    MatrixView C_sub_ref(C_ref[r1, r3]);
 
-    ConstMatrixView A_sub(A(r1, r2));
-    ConstMatrixView B_sub(B(r2, r3));
+    ConstMatrixView A_sub(A[r1, r2]);
+    ConstMatrixView B_sub(B[r2, r3]);
 
     mult(C_sub, A_sub, B_sub);
     mult(C_sub_ref, A_sub, B_sub);
@@ -1320,14 +1320,14 @@ void test47() {
   Matrix m;
 
   VectorView vv = v[joker];
-  MatrixView mv = m(joker, joker);
+  MatrixView mv = m[joker, joker];
 
   std::cout << "vv.size: " << vv.size() << std::endl;
   std::cout << "mv.nrows: " << mv.nrows() << " ";
   std::cout << "mv.ncols: " << mv.ncols() << std::endl;
 
   Matrix m2(0, 5);
-  MatrixView mv2 = MatrixView{m2(joker, 3)};
+  MatrixView mv2 = MatrixView{m2[joker, 3]};
   std::cout << "mv2.nrows: " << mv2.nrows() << " ";
   std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
 }
@@ -1389,7 +1389,7 @@ void test48() {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                testvar(i, j, k, l, m, n, o) = Numeric(val++);
+                testvar[i, j, k, l, m, n, o] = Numeric(val++);
               }
             }
           }
@@ -1404,8 +1404,8 @@ void test48() {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0>() << '\n';
-                std::cout << testvar(joker, j, k, l, m, n, o) << '\n';
+                std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0>() << '\n';
+                std::cout << testvar[joker, j, k, l, m, n, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1419,8 +1419,8 @@ void test48() {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1>() << '\n';
-                std::cout << testvar(i, joker, k, l, m, n, o) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1>() << '\n';
+                std::cout << testvar[i, joker, k, l, m, n, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1434,8 +1434,8 @@ void test48() {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<2>() << '\n';
-                std::cout << testvar(i, j, joker, l, m, n, o) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<2>() << '\n';
+                std::cout << testvar[i, j, joker, l, m, n, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1449,8 +1449,8 @@ void test48() {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<3>() << '\n';
-                std::cout << testvar(i, j, k, joker, m, n, o) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<3>() << '\n';
+                std::cout << testvar[i, j, k, joker, m, n, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1464,8 +1464,8 @@ void test48() {
           for (Index l=0; l<3; l++) {
             for (Index n=0; n<7; n++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<4>() << '\n';
-                std::cout << testvar(i, j, k, l, joker, n, o) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<4>() << '\n';
+                std::cout << testvar[i, j, k, l, joker, n, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1479,8 +1479,8 @@ void test48() {
           for (Index l=0; l<3; l++) {
             for (Index m=0; m<5; m++) {
               for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<5>() << '\n';
-                std::cout << testvar(i, j, k, l, m, joker, o) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<5>() << '\n';
+                std::cout << testvar[i, j, k, l, m, joker, o] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1494,8 +1494,8 @@ void test48() {
           for (Index l=0; l<3; l++) {
             for (Index m=0; m<5; m++) {
               for (Index n=0; n<7; n++) {
-                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<6>() << '\n';
-                std::cout << testvar(i, j, k, l, m, n, joker) << '\n';
+                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<6>() << '\n';
+                std::cout << testvar[i, j, k, l, m, n, joker] << '\n';
                 std::cout << '\n';
               }
             }
@@ -1510,8 +1510,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(joker, joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 1>() << '\n';
-              std::cout << testvar(joker, joker, k, l, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[joker, joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 1>() << '\n';
+              std::cout << testvar[joker, joker, k, l, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1523,8 +1523,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(joker, Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 2>() << '\n';
-              std::cout << testvar(joker, j, joker, l, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[joker, Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 2>() << '\n';
+              std::cout << testvar[joker, j, joker, l, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1536,8 +1536,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 3>() << '\n';
-              std::cout << testvar(joker, j, k, joker, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 3>() << '\n';
+              std::cout << testvar[joker, j, k, joker, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1549,8 +1549,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<0, 4>() << '\n';
-              std::cout << testvar(joker, j, k, l, joker, n, o) << '\n';
+              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<0, 4>() << '\n';
+              std::cout << testvar[joker, j, k, l, joker, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1562,8 +1562,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<0, 5>() << '\n';
-              std::cout << testvar(joker, j, k, l, m, joker, o) << '\n';
+              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<0, 5>() << '\n';
+              std::cout << testvar[joker, j, k, l, m, joker, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1575,8 +1575,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<0, 6>() << '\n';
-              std::cout << testvar(joker, j, k, l, m, n, joker) << '\n';
+              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<0, 6>() << '\n';
+              std::cout << testvar[joker, j, k, l, m, n, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1588,8 +1588,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), joker, joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1, 2>() << '\n';
-              std::cout << testvar(i, joker, joker, l, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), joker, joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1, 2>() << '\n';
+              std::cout << testvar[i, joker, joker, l, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1601,8 +1601,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1, 3>() << '\n';
-              std::cout << testvar(i, joker, k, joker, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1, 3>() << '\n';
+              std::cout << testvar[i, joker, k, joker, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1614,8 +1614,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<1, 4>() << '\n';
-              std::cout << testvar(i, joker, k, l, joker, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<1, 4>() << '\n';
+              std::cout << testvar[i, joker, k, l, joker, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1627,8 +1627,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<1, 5>() << '\n';
-              std::cout << testvar(i, joker, k, l, m, joker, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<1, 5>() << '\n';
+              std::cout << testvar[i, joker, k, l, m, joker, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1640,8 +1640,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<1, 6>() << '\n';
-              std::cout << testvar(i, joker, k, l, m, n, joker) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<1, 6>() << '\n';
+              std::cout << testvar[i, joker, k, l, m, n, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1653,8 +1653,8 @@ void test48() {
         for (Index m=0; m<5; m++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<2, 3>() << '\n';
-              std::cout << testvar(i, j, joker, joker, m, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<2, 3>() << '\n';
+              std::cout << testvar[i, j, joker, joker, m, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1666,8 +1666,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<2, 4>() << '\n';
-              std::cout << testvar(i, j, joker, l, joker, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<2, 4>() << '\n';
+              std::cout << testvar[i, j, joker, l, joker, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1679,8 +1679,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<2, 5>() << '\n';
-              std::cout << testvar(i, j, joker, l, m, joker, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<2, 5>() << '\n';
+              std::cout << testvar[i, j, joker, l, m, joker, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1692,8 +1692,8 @@ void test48() {
         for (Index l=0; l<3; l++) {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<2, 6>() << '\n';
-              std::cout << testvar(i, j, joker, l, m, n, joker) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<2, 6>() << '\n';
+              std::cout << testvar[i, j, joker, l, m, n, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1705,8 +1705,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index n=0; n<7; n++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, joker, Range(n, 1), Range(o, 1))).reduce_rank<3, 4>() << '\n';
-              std::cout << testvar(i, j, k, joker, joker, n, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, joker, Range(n, 1), Range(o, 1)]).reduce_rank<3, 4>() << '\n';
+              std::cout << testvar[i, j, k, joker, joker, n, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1718,8 +1718,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index m=0; m<5; m++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), joker, Range(o, 1))).reduce_rank<3, 5>() << '\n';
-              std::cout << testvar(i, j, k, joker, m, joker, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), joker, Range(o, 1)]).reduce_rank<3, 5>() << '\n';
+              std::cout << testvar[i, j, k, joker, m, joker, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1731,8 +1731,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index m=0; m<5; m++) {
             for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), joker)).reduce_rank<3, 6>() << '\n';
-              std::cout << testvar(i, j, k, joker, m, n, joker) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), joker]).reduce_rank<3, 6>() << '\n';
+              std::cout << testvar[i, j, k, joker, m, n, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1744,8 +1744,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index l=0; l<3; l++) {
             for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, joker, Range(o, 1))).reduce_rank<4, 5>() << '\n';
-              std::cout << testvar(i, j, k, l, joker, joker, o) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, joker, Range(o, 1)]).reduce_rank<4, 5>() << '\n';
+              std::cout << testvar[i, j, k, l, joker, joker, o] << '\n';
               std::cout << '\n';
             }
           }
@@ -1757,8 +1757,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index l=0; l<3; l++) {
             for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), joker)).reduce_rank<4, 6>() << '\n';
-              std::cout << testvar(i, j, k, l, joker, n, joker) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), joker]).reduce_rank<4, 6>() << '\n';
+              std::cout << testvar[i, j, k, l, joker, n, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1770,8 +1770,8 @@ void test48() {
         for (Index k=0; k<4; k++) {
           for (Index l=0; l<3; l++) {
             for (Index m=0; m<5; m++) {
-              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, joker)).reduce_rank<5, 6>() << '\n';
-              std::cout << testvar(i, j, k, l, m, joker, joker) << '\n';
+              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, joker]).reduce_rank<5, 6>() << '\n';
+              std::cout << testvar[i, j, k, l, m, joker, joker] << '\n';
               std::cout << '\n';
             }
           }
@@ -1802,7 +1802,7 @@ Matrix build_test_matrix(Index rows, Index cols) {
   Matrix a(rows, cols);
   for (Index i = 0; i < rows; i++) {
     for (Index j = 0; j < cols; j++) {
-      a(i, j) = static_cast<Numeric>(10 * i + j + 1);
+      a[i, j] = static_cast<Numeric>(10 * i + j + 1);
     }
   }
   return a;

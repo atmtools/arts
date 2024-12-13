@@ -233,7 +233,7 @@ void test_flat() try {
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = {172311.79936609, -102511.4417051};
-  const Vector f_arr{Leg_coeffs_all(joker, NQuad_)};
+  const Vector f_arr{Leg_coeffs_all[joker, NQuad_]};
 
   // Optional (unused)
   const Index NLeg      = NQuad_;
@@ -265,7 +265,7 @@ void test_flat() try {
     for (Index i = 0; i < NLayers_; i++) {
       for (Index j = 0; j < NP; j++) {
         dis.u(data_u, tau_arr[i], phi[j]);
-        u1(i, j, joker) = data_u.intensities;
+        u1[i, j, joker] = data_u.intensities;
       }
     }
   }

@@ -419,14 +419,14 @@ class matpack_data {
   }
 
   template <access_operator... access>
-  constexpr auto operator()(access&&... ind)
-      -> decltype(view(std::forward<access>(ind)...)) {
-    return view(std::forward<access>(ind)...);
+  constexpr auto operator[](access&&... ind)
+      -> decltype(view[std::forward<access>(ind)...]) {
+    return view[std::forward<access>(ind)...];
   }
   template <access_operator... access>
-  constexpr auto operator()(access&&... ind) const
-      -> decltype(view(std::forward<access>(ind)...)) const {
-    return view(std::forward<access>(ind)...);
+  constexpr auto operator[](access&&... ind) const
+      -> decltype(view[std::forward<access>(ind)...]) const {
+    return view[std::forward<access>(ind)...];
   }
   template <access_operator access>
   constexpr auto operator[](access&& ind)
@@ -532,7 +532,7 @@ class matpack_data {
     if constexpr (N == 1)
       return data[std::get<0>(std::tuple{inds...})];
     else
-      return view(inds...);
+      return view[inds...];
   }
 
   //! Access the data elements regardless of the matpack data rank  template <integral... Inds>
@@ -543,7 +543,7 @@ class matpack_data {
     if constexpr (N == 1)
       return data[std::get<0>(std::tuple{inds...})];
     else
-      return view(inds...);
+      return view[inds...];
   }
 
   //! Iterate over this object element-wise --- return the first of these iterators

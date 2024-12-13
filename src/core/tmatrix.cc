@@ -439,33 +439,33 @@ void ampmat_to_phamat(Matrix& z,
                       const Complex& s21,
                       const Complex& s22) {
   z.resize(4, 4);
-  z(0, 0) = 0.5 * (s11 * conj(s11) + s12 * conj(s12) + s21 * conj(s21) +
+  z[0, 0] = 0.5 * (s11 * conj(s11) + s12 * conj(s12) + s21 * conj(s21) +
                    s22 * conj(s22))
                       .real();
-  z(0, 1) = 0.5 * (s11 * conj(s11) - s12 * conj(s12) + s21 * conj(s21) -
+  z[0, 1] = 0.5 * (s11 * conj(s11) - s12 * conj(s12) + s21 * conj(s21) -
                    s22 * conj(s22))
                       .real();
-  z(0, 2) = (-s11 * conj(s12) - s22 * conj(s21)).real();
-  z(0, 3) = (Complex(0., 1.) * (s11 * conj(s12) - s22 * conj(s21))).real();
+  z[0, 2] = (-s11 * conj(s12) - s22 * conj(s21)).real();
+  z[0, 3] = (Complex(0., 1.) * (s11 * conj(s12) - s22 * conj(s21))).real();
 
-  z(1, 0) = 0.5 * (s11 * conj(s11) + s12 * conj(s12) - s21 * conj(s21) -
+  z[1, 0] = 0.5 * (s11 * conj(s11) + s12 * conj(s12) - s21 * conj(s21) -
                    s22 * conj(s22))
                       .real();
-  z(1, 1) = 0.5 * (s11 * conj(s11) - s12 * conj(s12) - s21 * conj(s21) +
+  z[1, 1] = 0.5 * (s11 * conj(s11) - s12 * conj(s12) - s21 * conj(s21) +
                    s22 * conj(s22))
                       .real();
-  z(1, 2) = (-s11 * conj(s12) + s22 * conj(s21)).real();
-  z(1, 3) = (Complex(0., 1.) * (s11 * conj(s12) + s22 * conj(s21))).real();
+  z[1, 2] = (-s11 * conj(s12) + s22 * conj(s21)).real();
+  z[1, 3] = (Complex(0., 1.) * (s11 * conj(s12) + s22 * conj(s21))).real();
 
-  z(2, 0) = (-s11 * conj(s21) - s22 * conj(s12)).real();
-  z(2, 1) = (-s11 * conj(s21) + s22 * conj(s12)).real();
-  z(2, 2) = (s11 * conj(s22) + s12 * conj(s21)).real();
-  z(2, 3) = (Complex(0., -1.) * (s11 * conj(s22) + s21 * conj(s12))).real();
+  z[2, 0] = (-s11 * conj(s21) - s22 * conj(s12)).real();
+  z[2, 1] = (-s11 * conj(s21) + s22 * conj(s12)).real();
+  z[2, 2] = (s11 * conj(s22) + s12 * conj(s21)).real();
+  z[2, 3] = (Complex(0., -1.) * (s11 * conj(s22) + s21 * conj(s12))).real();
 
-  z(3, 0) = (Complex(0., 1.) * (s21 * conj(s11) + s22 * conj(s12))).real();
-  z(3, 1) = (Complex(0., 1.) * (s21 * conj(s11) - s22 * conj(s12))).real();
-  z(3, 2) = (Complex(0., -1.) * (s22 * conj(s11) - s12 * conj(s21))).real();
-  z(3, 3) = (s22 * conj(s11) - s12 * conj(s21)).real();
+  z[3, 0] = (Complex(0., 1.) * (s21 * conj(s11) + s22 * conj(s12))).real();
+  z[3, 1] = (Complex(0., 1.) * (s21 * conj(s11) - s22 * conj(s12))).real();
+  z[3, 2] = (Complex(0., -1.) * (s22 * conj(s11) - s12 * conj(s21))).real();
+  z[3, 3] = (s22 * conj(s11) - s12 * conj(s21)).real();
 }
 
 static const Numeric GaussLeg6[][3] = {{0.23861918, 0.66120939, 0.93246951},
@@ -1038,8 +1038,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                        aspect_ratio,
                                        np,
                                        lam[f_index],
-                                       ref_index_real(f_index, T_index),
-                                       ref_index_imag(f_index, T_index),
+                                       ref_index_real[f_index, T_index],
+                                       ref_index_imag[f_index, T_index],
                                        precision,
                                        nza,
                                        ndgs,
@@ -1058,19 +1058,19 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
           }
 
           if (!thisfailed) {
-            mono_pha_mat_data(joker, 0) = f11;
-            mono_pha_mat_data(joker, 1) = f12;
-            mono_pha_mat_data(joker, 2) = f22;
-            mono_pha_mat_data(joker, 3) = f33;
-            mono_pha_mat_data(joker, 4) = f34;
-            mono_pha_mat_data(joker, 5) = f44;
+            mono_pha_mat_data[joker, 0] = f11;
+            mono_pha_mat_data[joker, 1] = f12;
+            mono_pha_mat_data[joker, 2] = f22;
+            mono_pha_mat_data[joker, 3] = f33;
+            mono_pha_mat_data[joker, 4] = f34;
+            mono_pha_mat_data[joker, 5] = f44;
 
             mono_pha_mat_data *= csca / 4. / PI;
-            ssd.pha_mat_data(f_index, T_index, joker, 0, 0, 0, joker) =
+            ssd.pha_mat_data[f_index, T_index, joker, 0, 0, 0, joker] =
                 mono_pha_mat_data;
 
-            ssd.ext_mat_data(f_index, T_index, 0, 0, 0) = cext;
-            ssd.abs_vec_data(f_index, T_index, 0, 0, 0) = cext - csca;
+            ssd.ext_mat_data[f_index, T_index, 0, 0, 0] = cext;
+            ssd.abs_vec_data[f_index, T_index, 0, 0, 0] = cext - csca;
           }
         }
       if (anyfailed)
@@ -1116,8 +1116,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                       aspect_ratio,
                                       np,
                                       lam_f,
-                                      ref_index_real(f_index, T_index),
-                                      ref_index_imag(f_index, T_index),
+                                      ref_index_real[f_index, T_index],
+                                      ref_index_imag[f_index, T_index],
                                       precision);
           } catch (const std::runtime_error& e) {
             std::ostringstream os;
@@ -1158,34 +1158,34 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                               0.0);
                 }
 
-                ssd.pha_mat_data(f_index,
+                ssd.pha_mat_data[f_index,
                                  T_index,
                                  za_scat_index,
                                  aa_index,
                                  za_inc_index,
                                  0,
-                                 Range(0, 4)) = phamat(0, joker);
-                ssd.pha_mat_data(f_index,
+                                 Range(0, 4)] = phamat[0];
+                ssd.pha_mat_data[f_index,
                                  T_index,
                                  za_scat_index,
                                  aa_index,
                                  za_inc_index,
                                  0,
-                                 Range(4, 4)) = phamat(1, joker);
-                ssd.pha_mat_data(f_index,
+                                 Range(4, 4)] = phamat[1];
+                ssd.pha_mat_data[f_index,
                                  T_index,
                                  za_scat_index,
                                  aa_index,
                                  za_inc_index,
                                  0,
-                                 Range(8, 4)) = phamat(2, joker);
-                ssd.pha_mat_data(f_index,
+                                 Range(8, 4)] = phamat[2];
+                ssd.pha_mat_data[f_index,
                                  T_index,
                                  za_scat_index,
                                  aa_index,
                                  za_inc_index,
                                  0,
-                                 Range(12, 4)) = phamat(3, joker);
+                                 Range(12, 4)] = phamat[3];
               }
 
           // Csca integral
@@ -1220,8 +1220,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                             0.,
                                             0.);
             }
-            csca_data(f_index, T_index, za_scat_index, 0, joker) =
-                csca_integral(Range(0, 2), 0);
+            csca_data[f_index, T_index, za_scat_index, 0, joker] =
+                csca_integral[Range(0, 2), 0];
           }
 
           // Extinction matrix
@@ -1236,7 +1236,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             Complex s21;
             Complex s22;
             VectorView K =
-                ssd.ext_mat_data(f_index, T_index, za_inc_index, 0, joker);
+                ssd.ext_mat_data[f_index, T_index, za_inc_index, 0, joker];
 
             const Numeric beta = 0.;
             const Numeric alpha = 0.;
@@ -1264,7 +1264,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
 
       csca_data *= 2. * PI * PI / 32400.;
       ssd.abs_vec_data =
-          ssd.ext_mat_data(joker, joker, joker, joker, Range(0, 2));
+          ssd.ext_mat_data[joker, joker, joker, joker, Range(0, 2)];
       ssd.abs_vec_data -= csca_data;
 
       break;
@@ -1408,15 +1408,15 @@ void calc_ssp_random_test() {
   Matrix mrr(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 1.78031135);
   Matrix mri(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 0.00278706);
 
-  mrr(0, 0) = 1.78031135;
-  mrr(0, 1) = 1.78150475;
-  mrr(1, 0) = 1.78037238;
-  mrr(1, 1) = 1.78147686;
+  mrr[0, 0] = 1.78031135;
+  mrr[0, 1] = 1.78150475;
+  mrr[1, 0] = 1.78037238;
+  mrr[1, 1] = 1.78147686;
 
-  mri(0, 0) = 0.00278706;
-  mri(0, 1) = 0.00507565;
-  mri(1, 0) = 0.00287245;
-  mri(1, 1) = 0.00523012;
+  mri[0, 0] = 0.00278706;
+  mri[0, 1] = 0.00507565;
+  mri[1, 0] = 0.00287245;
+  mri[1, 1] = 0.00523012;
 
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 1.5);
 
@@ -1438,15 +1438,15 @@ void calc_ssp_fixed_test() {
   Matrix mrr(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 1.78031135);
   Matrix mri(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 0.00278706);
 
-  mrr(0, 0) = 1.78031135;
-  mrr(0, 1) = 1.78150475;
-  mrr(1, 0) = 1.78037238;
-  mrr(1, 1) = 1.78147686;
+  mrr[0, 0] = 1.78031135;
+  mrr[0, 1] = 1.78150475;
+  mrr[1, 0] = 1.78037238;
+  mrr[1, 1] = 1.78147686;
 
-  mri(0, 0) = 0.00278706;
-  mri(0, 1) = 0.00507565;
-  mri(1, 0) = 0.00287245;
-  mri(1, 1) = 0.00523012;
+  mri[0, 0] = 0.00278706;
+  mri[0, 1] = 0.00507565;
+  mri[1, 0] = 0.00287245;
+  mri[1, 1] = 0.00523012;
 
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 1.5);
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 0.7);

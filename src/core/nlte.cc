@@ -39,11 +39,11 @@ void statistical_equilibrium_equation(MatrixView A,
     const Index i = upper[iline];
     const Index j = lower[iline];
 
-    A(j, j) -= Bji[iline] * Jij[iline] + Cji[iline];
-    A(i, i) -= Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
+    A[j, j] -= Bji[iline] * Jij[iline] + Cji[iline];
+    A[i, i] -= Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
 
-    A(j, i) += Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
-    A(i, j) += Bji[iline] * Jij[iline] + Cji[iline];
+    A[j, i] += Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
+    A[i, j] += Bji[iline] * Jij[iline] + Cji[iline];
   }
 }
 
@@ -71,13 +71,13 @@ void dampened_statistical_equilibrium_equation(
         total_number_count *
         (x[i] * Aij[iline] / (x[j] * Bji[iline] - x[i] * Bij[iline]));
 
-    A(j, j) -= Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
-    A(i, i) -= Aij[iline] * (1.0 - Lambda[iline]) +
+    A[j, j] -= Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
+    A[i, i] -= Aij[iline] * (1.0 - Lambda[iline]) +
                Bij[iline] * (Jij[iline] - Lambda[iline] * Source) + Cij[iline];
 
-    A(j, i) += Aij[iline] * (1.0 - Lambda[iline]) +
+    A[j, i] += Aij[iline] * (1.0 - Lambda[iline]) +
                Bij[iline] * (Jij[iline] - Lambda[iline] * Source) + Cij[iline];
-    A(i, j) += Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
+    A[i, j] += Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
   }
 }
 
@@ -85,7 +85,7 @@ void set_constant_statistical_equilibrium_matrix(MatrixView A,
                                                  VectorView x,
                                                  const Numeric& sem_ratio,
                                                  const Index row) {
-  A(row, joker) = 1.0;
+  A[row, joker] = 1.0;
   x[row]        = sem_ratio;
 }
 

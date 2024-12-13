@@ -49,7 +49,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
         if (i % cutline == 0) {
           os << '\n';
         }
-        os << data.data(i, 1) << ',' << ' ';
+        os << data.data[i, 1] << ',' << ' ';
       }
       os << "};\n\n";
 
@@ -58,7 +58,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
         if (i % cutline == 0) {
           os << '\n';
         }
-        os << data.data(i, 0) << ',' << ' ';
+        os << data.data[i, 0] << ',' << ' ';
       }
       os << "};\n";
       break;
@@ -68,7 +68,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
         if (i % cutline == 0) {
           os << '\n';
         }
-        os << data.data(i, 0) << ',' << ' ';
+        os << data.data[i, 0] << ',' << ' ';
       }
       os << "};\n";
       break;
@@ -78,12 +78,12 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
           if (i % cutline == 0) {
             os << '\n';
           }
-          os << data.data(i, 1) << ',' << ' ';
+          os << data.data[i, 1] << ',' << ' ';
         }
         os << "};\n\n";
 
-        os << "static constexpr inline Numeric dT = " << data.data(0, 0) << ";\n";
-        os << "static constexpr inline Numeric T0 = " << data.data(1, 0) - data.data(0, 0) << ";\n";
+        os << "static constexpr inline Numeric dT = " << data.data[0, 0] << ";\n";
+        os << "static constexpr inline Numeric T0 = " << data.data[1, 0] - data.data[0, 0] << ";\n";
       break;
   }
 }

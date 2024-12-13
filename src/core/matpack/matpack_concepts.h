@@ -1,14 +1,13 @@
 #pragma once
 
-#include <experimental/mdspan>
+#include <configtypes.h>
+#include <debug.h>
 
 #include <array>
 #include <complex>
+#include <experimental/mdspan>
 #include <type_traits>
 #include <vector>
-
-#include <configtypes.h>
-#include <debug.h>
 
 namespace stdx = std::experimental;
 
@@ -35,10 +34,12 @@ template <typename T, Index N>
 class matpack_data;
 
 //! The constexpr view type
-template <typename T, bool constant, Index... alldim> struct matpack_constant_view;
+template <typename T, bool constant, Index... alldim>
+struct matpack_constant_view;
 
 //! The constexpr data type
-template <typename T, Index... alldim> struct matpack_constant_data;
+template <typename T, Index... alldim>
+struct matpack_constant_data;
 
 //! Helper bool
 template <typename T>
@@ -76,7 +77,7 @@ concept arithmetic_subtraction_with = requires(T a, U b) {
 
 template <typename U, typename T>
 concept arithmetic_multiplication_with = requires(T a, U b) {
-  { a * b } -> std::convertible_to<T>;
+  { a* b } -> std::convertible_to<T>;
 };
 
 template <typename U, typename T>
@@ -160,7 +161,7 @@ concept has_nlibraries = requires(T a) {
 //! Eigen uses cols() for column index [exclude ncols and nelem]
 template <typename T>
 concept has_cols = requires(T a) {
-  { a.cols() } ->  integral;
+  { a.cols() } -> integral;
 } and not has_ncols<T> and not has_nelem<T>;
 
 //! Eigen uses rows() for column index [exclude nrows]
@@ -191,80 +192,94 @@ concept has_NumIndices = requires(T) {
 //! if it is a vector or (if false) if it is a matrix
 template <typename T>
 concept has_IsVectorAtCompileTime = requires(T) {
-  { std::remove_cvref_t<T>::IsVectorAtCompileTime } -> std::convertible_to<Index>;
+  {
+    std::remove_cvref_t<T>::IsVectorAtCompileTime
+  } -> std::convertible_to<Index>;
 };
 
 //! Checks if the type has any accepted types of columns
-template <typename T> concept column_keeper = has_ncols<T> or has_nelem<T> or has_size<T> or has_cols<T>;
+template <typename T>
+concept column_keeper =
+    has_ncols<T> or has_nelem<T> or has_size<T> or has_cols<T>;
 
 //! Get a column size from x
-template<column_keeper U>
+template <column_keeper U>
 constexpr auto column_size(const U& x) {
   if constexpr (has_cols<U>) {
-      // Special Eigen::Matrix workaround for vectors
+    // Special Eigen::Matrix workaround for vectors
     if constexpr (has_IsVectorAtCompileTime<U>) {
       if constexpr (U::IsVectorAtCompileTime) {
         return std::max(x.rows(), x.cols());
       }
     }
     return x.cols();
-  }
-  else if constexpr (has_size<U>) return x.size();
-  else if constexpr (has_nelem<U>) return x.nelem();
-  else return x.ncols();
+  } else if constexpr (has_size<U>)
+    return x.size();
+  else if constexpr (has_nelem<U>)
+    return x.nelem();
+  else
+    return x.ncols();
 }
 
 //! Checks if the type has any accepted types of rows as well as previous sizes
-template <typename T> concept row_keeper = column_keeper<T> and (has_nrows<T> or has_rows<T>);
+template <typename T>
+concept row_keeper = column_keeper<T> and (has_nrows<T> or has_rows<T>);
 
 //! Get a row size from x
-template<row_keeper U>
+template <row_keeper U>
 constexpr auto row_size(const U& x) {
-  if constexpr (has_rows<U>) return x.rows();
-  else return x.nrows();
+  if constexpr (has_rows<U>)
+    return x.rows();
+  else
+    return x.nrows();
 }
 
 //! Checks if the type has any accepted types of pages as well as previous sizes
-template <typename T> concept page_keeper = row_keeper<T> and (has_npages<T>);
+template <typename T>
+concept page_keeper = row_keeper<T> and (has_npages<T>);
 
 //! Get a page size from x
-template<page_keeper U>
+template <page_keeper U>
 constexpr auto page_size(const U& x) {
   return x.npages();
 }
 
 //! Checks if the type has any accepted types of books as well as previous sizes
-template <typename T> concept book_keeper = page_keeper<T> and (has_nbooks<T>);
+template <typename T>
+concept book_keeper = page_keeper<T> and (has_nbooks<T>);
 
 //! Get a book size from x
-template<book_keeper U>
+template <book_keeper U>
 constexpr auto book_size(const U&& x) {
   return x.nbooks();
 }
 
 //! Checks if the type has any accepted types of shelves as well as previous sizes
-template <typename T> concept shelf_keeper = book_keeper<T> and (has_nshelves<T>);
+template <typename T>
+concept shelf_keeper = book_keeper<T> and (has_nshelves<T>);
 
 //! Get a shelf size from x
-template<shelf_keeper U>
+template <shelf_keeper U>
 constexpr auto shelf_size(const U& x) {
   return x.nshelves();
 }
 
 //! Checks if the type has any accepted types of vitrines as well as previous sizes
-template <typename T> concept vitrine_keeper = shelf_keeper<T> and (has_nvitrines<T>);
+template <typename T>
+concept vitrine_keeper = shelf_keeper<T> and (has_nvitrines<T>);
 
 //! Get a vitrine size from x
-template<shelf_keeper U>
+template <shelf_keeper U>
 constexpr auto vitrine_size(const U& x) {
   return x.nvitrines();
 }
 
 //! Checks if the type has any accepted types of libraries as well as previous sizes
-template <typename T> concept library_keeper = vitrine_keeper<T> and (has_nlibraries<T>);
+template <typename T>
+concept library_keeper = vitrine_keeper<T> and (has_nlibraries<T>);
 
 //! Get a library size from x
-template<library_keeper U>
+template <library_keeper U>
 constexpr auto library_size(const U& x) {
   return x.nlibraries();
 }
@@ -276,35 +291,52 @@ constexpr Index mdsize(const std::array<Index, N>& shape) {
 }
 
 //! A rankable multidimensional array
-template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T> or has_size<T> or has_nelem<T>;
+template <typename T>
+concept rankable = has_rank<T> or has_NumIndices<T> or
+                   has_IsVectorAtCompileTime<T> or has_size<T> or has_nelem<T>;
 
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
 constexpr auto rank() {
-  if constexpr (has_NumIndices<T>) return std::remove_cvref_t<T>::NumIndices;
-  else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - std::remove_cvref_t<T>::IsVectorAtCompileTime;
-  else if constexpr (has_rank<T>) return std::remove_cvref_t<T>::rank();
-  else if constexpr (has_size<T>) return 1;
-  else if constexpr (has_nelem<T>) return 1;
-  else return -1;
+  if constexpr (has_NumIndices<T>)
+    return std::remove_cvref_t<T>::NumIndices;
+  else if constexpr (has_IsVectorAtCompileTime<T>)
+    return 2 - std::remove_cvref_t<T>::IsVectorAtCompileTime;
+  else if constexpr (has_rank<T>)
+    return std::remove_cvref_t<T>::rank();
+  else if constexpr (has_size<T>)
+    return 1;
+  else if constexpr (has_nelem<T>)
+    return 1;
+  else
+    return -1;
 }
 
 //! Gets the dimension size of some extent
-template <rankable T, auto dim = rank<T>()> constexpr Index dimsize(const T& v, integral auto ind) {
+template <rankable T, auto dim = rank<T>()>
+constexpr Index dimsize(const T& v, integral auto ind) {
   if constexpr (has_extent<T>) {
     return v.extent(ind);
   } else if constexpr (has_dimension<T>) {
     return v.dimension(ind);
   } else {
     switch (dim - ind - 1) {
-      case 0: if constexpr (dim > 0) return column_size(v);
-      case 1: if constexpr (dim > 1) return row_size(v);
-      case 2: if constexpr (dim > 2) return page_size(v);
-      case 3: if constexpr (dim > 3) return book_size(v);
-      case 4: if constexpr (dim > 4) return shelf_size(v);
-      case 5: if constexpr (dim > 5) return vitrine_size(v);
-      case 6: if constexpr (dim > 6) return library_size(v);
-      default: {}
+      case 0:
+        if constexpr (dim > 0) return column_size(v);
+      case 1:
+        if constexpr (dim > 1) return row_size(v);
+      case 2:
+        if constexpr (dim > 2) return page_size(v);
+      case 3:
+        if constexpr (dim > 3) return book_size(v);
+      case 4:
+        if constexpr (dim > 4) return shelf_size(v);
+      case 5:
+        if constexpr (dim > 5) return vitrine_size(v);
+      case 6:
+        if constexpr (dim > 6) return library_size(v);
+      default: {
+      }
     }
     return 0;
   }
@@ -318,10 +350,11 @@ concept has_dimsize = requires(T a) {
 
 //! Ensure that T is of the type std::array<integral, N>
 template <typename T, Index N>
-concept integral_array = 
-  requires(T a) { {a[0] } -> integral; } and
-  std::same_as<std::array<std::remove_cvref_t<decltype(T{}[0])>, N>,
-               std::remove_cvref_t<T>>;
+concept integral_array =
+    requires(T a) {
+      { a[0] } -> integral;
+    } and std::same_as<std::array<std::remove_cvref_t<decltype(T{}[0])>, N>,
+                       std::remove_cvref_t<T>>;
 
 //! Checks if the type has a shape
 template <typename T, Index N>
@@ -336,14 +369,14 @@ constexpr std::array<Index, dim> mdshape(const T& v) {
     return v.shape();
   } else {
     std::array<Index, dim> out;
-    for (Index i=0; i<dim; i++) out[i] = static_cast<Index>(dimsize(v, i));
+    for (Index i = 0; i < dim; i++) out[i] = static_cast<Index>(dimsize(v, i));
     return out;
   }
 }
 
-constexpr std::array<Index, 0> mdshape(const Index&) {return {};}
-constexpr std::array<Index, 0> mdshape(const Numeric&) {return {};}
-constexpr std::array<Index, 0> mdshape(const Complex&) {return {};}
+constexpr std::array<Index, 0> mdshape(const Index&) { return {}; }
+constexpr std::array<Index, 0> mdshape(const Numeric&) { return {}; }
+constexpr std::array<Index, 0> mdshape(const Complex&) { return {}; }
 
 //! Test that the object can have a shape
 template <typename T>
@@ -353,9 +386,7 @@ concept has_mdshape = rankable<T> and requires(T a) {
 
 //! Test if the object can be accessed by an Index
 template <typename T>
-concept has_index_access = requires(T a) {
-  a[Index{}];
-};
+concept has_index_access = requires(T a) { a[Index{}]; };
 
 //! Thest if the object can be iterated over
 template <typename T>
@@ -370,10 +401,23 @@ concept is_iterable = requires(T a) {
 template <rankable T, auto dim = rank<T>()>
 constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
   if constexpr (dim == 1) {
-    if constexpr (has_index_access<T>) return v[pos[0]];
-    else if constexpr (is_iterable<T>) return *(std::begin(v)+pos[0]);
-    else {/**/}
-  } else return std::apply([&v](auto... inds){return v(inds...);}, pos);
+    if constexpr (has_index_access<T>)
+      return v[pos[0]];
+    else if constexpr (is_iterable<T>)
+      return *(std::begin(v) + pos[0]);
+    else { /**/
+    }
+  } else {
+    return std::apply(
+        [&v](auto... inds) {
+          if constexpr (requires { v(inds...); }) {
+            return v(inds...);
+          } else {
+            return v[inds...];
+          }
+        },
+        pos);
+  }
 }
 
 //! The type is arithmetic or complex (for interface reasons, this cannot be
@@ -385,10 +429,8 @@ concept math_type = arithmetic<T> or complex_type<T>;
 //! specific type
 template <typename U, typename T>
 concept mdvalue_type_compatible = requires(U a) {
-                                    {
-                                      mdvalue(a, mdshape(a))
-                                      } -> std::convertible_to<T>;
-                                  };
+  { mdvalue(a, mdshape(a)) } -> std::convertible_to<T>;
+};
 
 //! The underlying value type of the type T
 template <typename T>
@@ -397,107 +439,119 @@ using matpack_value_type = typename std::remove_cvref_t<T>::value_type;
 //! Helper struct to test that all the types that define it has the same value type
 template <typename first, typename second, typename... rest>
 class same_value_type {
-/** Test the types that they are the same
+  /** Test the types that they are the same
  * 
  * @return true if all of first, second, rest..., have the same matpack_value_type
  * @return false otherwise
  */
-static constexpr bool same() {
-  using L = matpack_value_type<first>;
-  using R = matpack_value_type<second>;
-  if constexpr (sizeof...(rest) == 0) return std::same_as<L, R>;
-  else return std::same_as<L, R> and same_value_type<second, rest...>::value;
-}
+  static constexpr bool same() {
+    using L = matpack_value_type<first>;
+    using R = matpack_value_type<second>;
+    if constexpr (sizeof...(rest) == 0)
+      return std::same_as<L, R>;
+    else
+      return std::same_as<L, R> and same_value_type<second, rest...>::value;
+  }
 
-public:
+ public:
   static constexpr bool value = same();
 };
 
 //! Helper bool for ::value on same_value_type
 template <typename first, typename second, typename... rest>
-inline constexpr bool same_value_type_v = same_value_type<first, second, rest...>::value;
-
+inline constexpr bool same_value_type_v =
+    same_value_type<first, second, rest...>::value;
 
 //! Test that the type U is exactly matpack_view<T, N, false/true, false/true> (w/o qualifiers) for any constant, strided
 template <typename U, typename T, Index N>
-concept ranked_matpack_view = std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, false>> or
-                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, true>> or
-                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, false>> or
-                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, true>>;
+concept ranked_matpack_view =
+    std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, false>> or
+    std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, true>> or
+    std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, false>> or
+    std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, true>>;
 
 //! Test that the type U is exactly matpack_view<U::value_type, N, constant, strided> (w/o qualifiers) for any constant, strided
 template <typename U, Index N>
-concept strict_rank_matpack_view = ranked_matpack_view<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_view =
+    ranked_matpack_view<U, matpack_value_type<U>, N>;
 
 //! Test that the type U is any matpack_view<...> (w/o qualifiers)
 template <typename U>
-concept any_matpack_view = rankable<U> and ranked_matpack_view<U, matpack_value_type<U>, rank<U>()>;
-
+concept any_matpack_view =
+    rankable<U> and ranked_matpack_view<U, matpack_value_type<U>, rank<U>()>;
 
 //! Test that the type U is exactly matpack_data<T, N> (w/o qualifiers)
 template <typename U, typename T, Index N>
-concept ranked_matpack_data = std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
+concept ranked_matpack_data =
+    std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
 
 //! Test that the type U is exactly matpack_data<U::value_type, N> (w/o qualifiers)
 template <typename U, Index N>
-concept strict_rank_matpack_data = ranked_matpack_data<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_data =
+    ranked_matpack_data<U, matpack_value_type<U>, N>;
 
 //! Test that the type U is any matpack_data<...> (w/o qualifiers)
 template <typename U>
-concept any_matpack_data = rankable<U> and ranked_matpack_data<U, matpack_value_type<U>, rank<U>()>;
-
+concept any_matpack_data =
+    rankable<U> and ranked_matpack_data<U, matpack_value_type<U>, rank<U>()>;
 
 /** Test that the type U is a matpack_constant_view<T, true/false, ...> of a given rank and type (w/o qualifiers) using magic function */
 template <typename U, typename T, Index N>
 concept ranked_matpack_constant_view =
-  std::remove_cvref_t<U>::template magic_test_of_matpack_constant_view<T, N>();
+    std::remove_cvref_t<U>::template magic_test_of_matpack_constant_view<T,
+                                                                         N>();
 
 /** Test that the type U is a matpack_constant_view<T, true/false, ...> of a given rank (w/o qualifiers) */
 template <typename U, Index N>
-concept strict_rank_matpack_constant_view = ranked_matpack_constant_view<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_constant_view =
+    ranked_matpack_constant_view<U, matpack_value_type<U>, N>;
 
 /** Test that the type U is a matpack_constant_view<T, true/false, ...> (w/o qualifiers) */
 template <typename U>
-concept any_matpack_constant_view = ranked_matpack_constant_view<U, matpack_value_type<U>, rank<U>()>;
-
+concept any_matpack_constant_view =
+    ranked_matpack_constant_view<U, matpack_value_type<U>, rank<U>()>;
 
 /** Test that the type U is a matpack_constant_data<T, ...> of a given rank and type (w/o qualifiers) using magic function */
 template <typename U, typename T, Index N>
 concept ranked_matpack_constant_data =
-  std::remove_cvref_t<U>::template magic_test_of_matpack_constant_data<T, N>();
+    std::remove_cvref_t<U>::template magic_test_of_matpack_constant_data<T,
+                                                                         N>();
 
 /** Test that the type U is a matpack_constant_data<T, ...> of a given rank (w/o qualifiers) */
 template <typename U, Index N>
-concept strict_rank_matpack_constant_data = ranked_matpack_constant_data<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_constant_data =
+    ranked_matpack_constant_data<U, matpack_value_type<U>, N>;
 
 /** Test that the type U is a matpack_constant_data<T, ...> (w/o qualifiers) */
 template <typename U>
-concept any_matpack_constant_data = ranked_matpack_constant_data<U, matpack_value_type<U>, rank<U>()>;
-
+concept any_matpack_constant_data =
+    ranked_matpack_constant_data<U, matpack_value_type<U>, rank<U>()>;
 
 //! Test that the type U is exactly matpack_data<T, N> or matpack_view<T, N, ...> or their constant friends (w/o qualifiers)
 template <typename U, typename T, Index N>
-concept ranked_matpack_type = ranked_matpack_data<U, T, N> or
-                              ranked_matpack_view<U, T, N> or 
-                              ranked_matpack_constant_data<U, T, N> or
-                              ranked_matpack_constant_view<U, T, N>;
+concept ranked_matpack_type =
+    ranked_matpack_data<U, T, N> or ranked_matpack_view<U, T, N> or
+    ranked_matpack_constant_data<U, T, N> or
+    ranked_matpack_constant_view<U, T, N>;
 
 //! Test that the type U is strictly ranked matpack_data or matpack_view (w/o qualifiers)
-template<typename U, Index N>
-concept strict_rank_matpack_type = ranked_matpack_type<U, matpack_value_type<U>, N>;
+template <typename U, Index N>
+concept strict_rank_matpack_type =
+    ranked_matpack_type<U, matpack_value_type<U>, N>;
 
 //! Test that the type is any matpack_view or matpack_data
 template <typename U>
-concept any_matpack_type = ranked_matpack_type<U, matpack_value_type<U>, rank<U>()>;
-
+concept any_matpack_type =
+    ranked_matpack_type<U, matpack_value_type<U>, rank<U>()>;
 
 //! Test if the type can be converted to a ranked matpack_data
 template <typename U, typename T, Index N>
-concept matpack_convertible = not any_matpack_type<U> and has_mdshape<U> and mdvalue_type_compatible<U, T> and rank<U>() == N;
-
+concept matpack_convertible = not any_matpack_type<U> and has_mdshape<U> and
+                              mdvalue_type_compatible<U, T> and rank<U>() == N;
 
 //! Helper to rank a mdspan
-template <Index N> using ranking = stdx::dextents<Index, N>;
+template <Index N>
+using ranking = stdx::dextents<Index, N>;
 
 //! Helper to define a strided layout mdspan
 using strided = stdx::layout_stride;

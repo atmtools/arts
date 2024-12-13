@@ -251,7 +251,7 @@ void make_exhaustive(ArrayOfSensorObsel& obsels) {
             poslos_grid.end());
         if (ipn == poslos_grid.size()) continue;
 
-        weights(ivn, ipn) = obsel.weight_matrix()(iv, ip);
+        weights[ivn, ipn] = obsel.weight_matrix()[iv, ip];
       }
     }
 

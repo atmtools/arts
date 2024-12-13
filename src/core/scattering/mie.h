@@ -356,12 +356,12 @@ class MieSphere {
     }
 
     MatrixGen<Scalar> result{theta_.size(), 6};
-    result(joker, 0) = s11;
-    result(joker, 1) = s12;
-    result(joker, 2) = s11;
-    result(joker, 3) = s33;
-    result(joker, 4) = s34;
-    result(joker, 5) = s33;
+    result[joker, 0] = s11;
+    result[joker, 1] = s12;
+    result[joker, 2] = s11;
+    result[joker, 3] = s33;
+    result[joker, 4] = s34;
+    result[joker, 5] = s33;
     result /= (k * k);
     return result;
   }

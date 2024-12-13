@@ -65,8 +65,8 @@ void interp(MatrixView tia,
 
   for (Index inr = 0; inr < anr; inr++)
     for (Index inc = 0; inc < anc; inc++) {
-      tia(inr, inc) =
-          a[tc.idx](inr, inc) * itw[0] + a[tc.idx + 1](inr, inc) * itw[1];
+      tia[inr, inc] =
+          a[tc.idx][inr, inc] * itw[0] + a[tc.idx + 1][inr, inc] * itw[1];
     }
 }
 
@@ -140,7 +140,7 @@ void interp_scat_angle_temperature(  //Output:
 
     for (Index i = 0; i < 6; i++) {
       pha_mat_int[i] = interp(
-          itw, scat_data_single.pha_mat_data(0, 0, joker, 0, 0, 0, i), thet_gp);
+          itw, scat_data_single.pha_mat_data[0, 0, joker, 0, 0, 0, i], thet_gp);
     }
   } else {
     gridpos(t_gp, scat_data_single.T_grid, rtp_temperature);
@@ -151,7 +151,7 @@ void interp_scat_angle_temperature(  //Output:
     for (Index i = 0; i < 6; i++) {
       pha_mat_int[i] =
           interp(itw,
-                 scat_data_single.pha_mat_data(0, joker, joker, 0, 0, 0, i),
+                 scat_data_single.pha_mat_data[0, joker, joker, 0, 0, 0, i],
                  t_gp,
                  thet_gp);
     }

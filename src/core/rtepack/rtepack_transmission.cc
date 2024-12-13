@@ -223,7 +223,7 @@ struct tran {
 
     return {
         (dC0 + dC2 * (b2 + c2 + d2) + C2 * (db2 + dc2 + dd2)) * exp_a +
-            da * t(0, 0),
+            da * t[0, 0],
         (db * C1 + b * dC1 + dC2 * (-c * u - d * v) +
          C2 * (-dc * u - dd * v - c * du - d * dv) +
          dC3 *
@@ -233,7 +233,7 @@ struct tran {
                u * (db * u - dd * w) - v * (db * v + dc * w) -
                u * (b * du - d * dw) - v * (b * dv + c * dw))) *
                 exp_a +
-            da * t(0, 1),
+            da * t[0, 1],
         (dC1 * c + C1 * dc + dC2 * (b * u - d * w) +
          C2 * (db * u - dd * w + b * du - d * dw) +
          dC3 *
@@ -243,7 +243,7 @@ struct tran {
                u * (dc * u + dd * v) - w * (db * v + dc * w) -
                u * (c * du + d * dv) - w * (b * dv + c * dw))) *
                 exp_a +
-            da * t(0, 2),
+            da * t[0, 2],
         (dC1 * d + C1 * dd + dC2 * (b * v + c * w) +
          C2 * (db * v + dc * w + b * dv + c * dw) +
          dC3 *
@@ -253,7 +253,7 @@ struct tran {
                v * (dc * u + dd * v) + w * (db * u - dd * w) -
                v * (c * du + d * dv) + w * (b * du - d * dw))) *
                 exp_a +
-            da * t(0, 3),
+            da * t[0, 3],
 
         (db * C1 + b * dC1 + dC2 * (c * u + d * v) +
          C2 * (dc * u + dd * v + c * du + d * dv) +
@@ -264,9 +264,9 @@ struct tran {
                c * (db * c - dv * w) + d * (db * d + du * w) +
                c * (b * dc - v * dw) + d * (b * dd + u * dw))) *
                 exp_a +
-            da * t(1, 0),
+            da * t[1, 0],
         (dC0 + dC2 * (b2 - u2 - v2) + C2 * (db2 - du2 - dv2)) * exp_a +
-            da * t(1, 1),
+            da * t[1, 1],
         (dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw) +
          dC1 * u + C1 * du +
          dC3 *
@@ -276,7 +276,7 @@ struct tran {
                u * (-db2 + du2 + dv2) - w * (db * d + du * w) +
                c * (c * du + d * dv) - w * (b * dd + u * dw))) *
                 exp_a +
-            da * t(1, 2),
+            da * t[1, 2],
         (dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw) +
          dC1 * v + C1 * dv +
          dC3 *
@@ -286,7 +286,7 @@ struct tran {
                v * (-db2 + du2 + dv2) + w * (db * c - dv * w) +
                d * (c * du + d * dv) + w * (b * dc - v * dw))) *
                 exp_a +
-            da * t(1, 3),
+            da * t[1, 3],
 
         (dC1 * c + C1 * dc + dC2 * (-b * u + d * w) +
          C2 * (-db * u + dd * w - b * du + d * dw) +
@@ -297,7 +297,7 @@ struct tran {
                c * (-dc2 + du2 + dw2) + d * (dc * d - du * v) +
                b * (b * dc - v * dw) + d * (c * dd - u * dv))) *
                 exp_a +
-            da * t(2, 0),
+            da * t[2, 0],
         (dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw) -
          dC1 * u - C1 * du +
          dC3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) -
@@ -307,9 +307,9 @@ struct tran {
                u * (-dc2 + du2 + dw2) - v * (dc * d - du * v) -
                b * (b * du - d * dw) - v * (c * dd - u * dv))) *
                 exp_a +
-            da * t(2, 1),
+            da * t[2, 1],
         (dC0 + dC2 * (c2 - u2 - w2) + C2 * (dc2 - du2 - dw2)) * exp_a +
-            da * t(2, 2),
+            da * t[2, 2],
         (dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv) +
          dC1 * w + C1 * dw +
          dC3 * (-d * (b * u - d * w) + v * (b * c - v * w) -
@@ -319,7 +319,7 @@ struct tran {
                v * (db * c - dv * w) - w * (-dc2 + du2 + dw2) -
                d * (b * du - d * dw) + v * (b * dc - v * dw))) *
                 exp_a +
-            da * t(2, 3),
+            da * t[2, 3],
 
         (dC1 * d + C1 * dd + dC2 * (-b * v - c * w) +
          C2 * (-db * v - dc * w - b * dv - c * dw) +
@@ -330,7 +330,7 @@ struct tran {
                c * (dc * d - du * v) - d * (-dd2 + dv2 + dw2) +
                b * (b * dd + u * dw) + c * (c * dd - u * dv))) *
                 exp_a +
-            da * t(3, 0),
+            da * t[3, 0],
         (dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw) -
          dC1 * v - C1 * dv +
          dC3 * (-b * (b * v + c * w) - u * (c * d - u * v) +
@@ -340,7 +340,7 @@ struct tran {
                u * (dc * d - du * v) + v * (-dd2 + dv2 + dw2) -
                b * (b * dv + c * dw) - u * (c * dd - u * dv))) *
                 exp_a +
-            da * t(3, 1),
+            da * t[3, 1],
         (dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv) -
          dC1 * w - C1 * dw +
          dC3 * (-c * (b * v + c * w) + u * (b * d + u * w) +
@@ -350,9 +350,9 @@ struct tran {
                u * (db * d + du * w) + w * (-dd2 + dv2 + dw2) -
                c * (b * dv + c * dw) + u * (b * dd + u * dw))) *
                 exp_a +
-            da * t(3, 2),
+            da * t[3, 2],
         (C2 * (dd2 - dv2 - dw2) + dC2 * (d2 - v2 - w2) + dC0) * exp_a +
-            da * t(3, 3)};
+            da * t[3, 3]};
   }
 };
 
@@ -410,10 +410,10 @@ void two_level_exp(muelmat_vector_view tv,
     tv[i] = tran_state();
 
     for (Index j = 0; j < nq; j++) {
-      dt1v(j, i) =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v(j, i), rv, dr1v[j]);
-      dt2v(j, i) =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v(j, i), rv, dr2v[j]);
+      dt1v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
+      dt2v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
     }
   }
 }

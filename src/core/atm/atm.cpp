@@ -613,7 +613,7 @@ Vector vec_interp(const GriddedField3 &v,
 
   const Index n = alt.size();
 
-  if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
+  if (d1 and d2 and d3) return Vector(n, v.data[0, 0, 0]);
   if (d1 and d2)
     return tvec_interp<0, 0, 1>(
         v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
@@ -928,7 +928,7 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &gf3,
           for (Index j = 0; j < la.size(); j++) {
             for (Index k = 0; k < lo.size(); k++, ++m) {
               out[m] = {{(al.pos + i) * NN + (la.pos + j) * N + lo.pos + k},
-                        x(i, j, k)};
+                        x[i, j, k]};
             }
           }
         }
@@ -1227,7 +1227,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
     for (auto &key : atm.front().keys()) {
       for (Size i = 0; i < atm.size(); i++) {
         // Add from ending
-        gf3.data(N - 1 - i, 0, 0) = atm[i][key];
+        gf3.data[N - 1 - i, 0, 0] = atm[i][key];
       }
 
       gf3.data_name = std::format("{}", key);
@@ -1238,7 +1238,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
     for (auto &key : atm.front().keys()) {
       for (Size i = 0; i < atm.size(); i++) {
         // Add from beginning
-        gf3.data(i, 0, 0) = atm[i][key];
+        gf3.data[i, 0, 0] = atm[i][key];
       }
 
       gf3.data_name = std::format("{}", key);

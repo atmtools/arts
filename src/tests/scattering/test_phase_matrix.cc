@@ -45,7 +45,7 @@ PhaseMatrixTROGridded make_phase_matrix(
   for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
       for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-        phase_matrix(i_t, Range(i_f, 1), joker, i_s) =
+        phase_matrix[i_t, Range(i_f, 1), joker, i_s] =
             evaluate_spherical_harmonic(i_f, 0, aa_grid, za_grid);
       }
     }
@@ -69,7 +69,7 @@ PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(
           (*f_grid)[i_f], (*t_grid)[i_t], 1e-3, Vector(grid_vector(*za_scat_grid)));
       auto scat_matrix = scat_data.get_scattering_matrix_compact();
       for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-        phase_matrix(i_t, i_f, joker, i_s) = scat_matrix(joker, i_s);
+        phase_matrix[i_t, i_f, joker, i_s] = scat_matrix[joker, i_s];
       }
     }
   }
@@ -101,7 +101,7 @@ PhaseMatrixAROGridded make_phase_matrix(
         for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
           Index l = i_t;
           Index m = std::min(i_t, i_f);
-          phase_matrix(i_t, i_f, i_za_inc, joker, joker, i_s) =
+          phase_matrix[i_t, i_f, i_za_inc, joker, joker, i_s] =
               evaluate_spherical_harmonic(l, m, aa_grid, za_grid);
         }
       }
@@ -131,7 +131,7 @@ bool test_phase_matrix_tro() {
         Numeric err = max_error<ComplexVector>(
             coeffs_ref,
             static_cast<ComplexVector>(
-                phase_matrix_spectral(i_t, i_f, joker, i_s)));
+                phase_matrix_spectral[i_t, i_f, joker, i_s]));
         if (err > 1e-6) return false;
       }
     }
@@ -165,9 +165,9 @@ bool test_phase_matrix_tro() {
     for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
       // Backward scattering direction. Only two independent elements.
       // Off-diagonal elements must be close to 0.
-      auto pm_f           = phase_matrix_lab(i_t, i_f, 0, 0, 0, joker);
+      auto pm_f           = phase_matrix_lab[i_t, i_f, 0, 0, 0, joker];
       Numeric coeff_max_f = pm_f[0];
-      auto pm_b           = phase_matrix_lab(i_t, i_f, 0, 1, 0, joker);
+      auto pm_b           = phase_matrix_lab[i_t, i_f, 0, 1, 0, joker];
       Numeric coeff_max_b = pm_b[0];
 
       // For the forward direction we have:
@@ -209,14 +209,14 @@ bool test_phase_matrix_tro() {
   auto backscatter_matrix = phase_matrix_liquid.extract_backscatter_matrix();
   err                     = max_error<Tensor3>(
       backscatter_matrix,
-      static_cast<Tensor3>(phase_matrix_liquid(joker, joker, 4, joker)));
+      static_cast<Tensor3>(phase_matrix_liquid[joker, joker, 4, joker]));
   if (err > 1e-15) return false;
 
   auto forwardscatter_matrix =
       phase_matrix_liquid.extract_forwardscatter_matrix();
   err = max_error<Tensor3>(
       forwardscatter_matrix,
-      static_cast<Tensor3>(phase_matrix_liquid(joker, joker, 0, joker)));
+      static_cast<Tensor3>(phase_matrix_liquid[joker, joker, 0, joker]));
   if (err > 1e-15) return false;
 
   auto phase_matrix_liquid_sht =
@@ -313,8 +313,8 @@ bool test_phase_matrix_regrid_tro() {
   auto phase_matrix_gridded_interp =
       phase_matrix_gridded.regrid(grids, weights);
   Numeric err = max_error(
-      static_cast<MatrixView>(phase_matrix_gridded(0, 0, joker, joker)),
-      static_cast<MatrixView>(phase_matrix_gridded_interp(0, 0, joker, joker)));
+      static_cast<MatrixView>(phase_matrix_gridded[0, 0, joker, joker]),
+      static_cast<MatrixView>(phase_matrix_gridded_interp[0, 0, joker, joker]));
   if (err > 0.0) {
     return false;
   }
@@ -330,8 +330,8 @@ bool test_phase_matrix_regrid_tro() {
   phase_matrix_gridded_interp = phase_matrix_spectral_interp.to_gridded();
 
   err = max_error(
-      static_cast<MatrixView>(phase_matrix_gridded(0, 0, joker, joker)),
-      static_cast<MatrixView>(phase_matrix_gridded_interp(0, 0, joker, joker)));
+      static_cast<MatrixView>(phase_matrix_gridded[0, 0, joker, joker]),
+      static_cast<MatrixView>(phase_matrix_gridded_interp[0, 0, joker, joker]));
   if (err > 1e-10) {
     return false;
   }
@@ -355,13 +355,13 @@ bool test_phase_matrix_regrid_tro() {
     for (Index i_f = 0; i_f < 2; ++i_f) {
       for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat) {
         phase_matrix_ref += static_cast<matpack::matpack_data<double, 1>>(
-            0.125 * phase_matrix_gridded(i_t, i_f, i_za_scat, joker));
+            0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat, joker]);
       }
     }
   }
   err = max_error(
       static_cast<VectorView>(phase_matrix_ref),
-      static_cast<VectorView>(phase_matrix_gridded_interp(0, 0, 0, joker)));
+      static_cast<VectorView>(phase_matrix_gridded_interp[0, 0, 0, joker]));
   if (err > 1e-15) {
     return false;
   }
@@ -378,12 +378,12 @@ bool test_phase_matrix_regrid_tro() {
     for (Index i_f = 0; i_f < 2; ++i_f) {
       phase_matrix_spectral_ref +=
           static_cast<matpack::matpack_data<double, 2>>(
-              0.25 * phase_matrix_gridded(i_t, i_f, joker, joker));
+              0.25 * phase_matrix_gridded[i_t, i_f, joker, joker]);
     }
   }
   err = max_error(
       static_cast<MatrixView>(phase_matrix_spectral_ref),
-      static_cast<MatrixView>(phase_matrix_interp(0, 0, joker, joker)));
+      static_cast<MatrixView>(phase_matrix_interp[0, 0, joker, joker]));
   if (err > 1e-10) {
     return false;
   }
@@ -409,7 +409,7 @@ bool test_phase_matrix_regrid_tro() {
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid_inc, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -418,7 +418,7 @@ bool test_phase_matrix_regrid_tro() {
       reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 4> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err = std::abs(phase_matrix_spectral_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -428,7 +428,7 @@ bool test_phase_matrix_regrid_tro() {
   fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -437,7 +437,7 @@ bool test_phase_matrix_regrid_tro() {
       reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 4> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err = std::abs(phase_matrix_spectral_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -447,7 +447,7 @@ bool test_phase_matrix_regrid_tro() {
   fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -477,8 +477,8 @@ bool test_backscatter_matrix_regrid_tro() {
 
   auto backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
   Numeric err                    = max_error(
-      static_cast<VectorView>(backscatter_matrix(0, 0, joker)),
-      static_cast<VectorView>(backscatter_matrix_interp(0, 0, joker)));
+      static_cast<VectorView>(backscatter_matrix[0, 0, joker]),
+      static_cast<VectorView>(backscatter_matrix_interp[0, 0, joker]));
   if (err > 0.0) {
     return false;
   }
@@ -502,7 +502,7 @@ bool test_backscatter_matrix_regrid_tro() {
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err = std::abs(backscatter_matrix_interp(0, 0, 0) - 1.2345);
+  err = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -511,7 +511,7 @@ bool test_backscatter_matrix_regrid_tro() {
   fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err = std::abs(backscatter_matrix_interp(0, 0, 0) - 1.2345);
+  err = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -548,7 +548,7 @@ bool test_phase_matrix_aro() {
           Numeric err = max_error<ComplexVector>(
               coeffs_ref,
               static_cast<ComplexVector>(
-                  phase_matrix_spectral(i_t, i_f, i_za_inc, joker, i_s)));
+                  phase_matrix_spectral[i_t, i_f, i_za_inc, joker, i_s]));
           if (err > 1e-6) return false;
         }
       }
@@ -626,9 +626,9 @@ bool test_phase_matrix_regrid_aro() {
   auto phase_matrix_gridded_interp =
       phase_matrix_gridded.regrid(grids, weights);
   Numeric err = max_error(
-      static_cast<VectorView>(phase_matrix_gridded(0, 0, 0, 0, 0, joker)),
+      static_cast<VectorView>(phase_matrix_gridded[0, 0, 0, 0, 0, joker]),
       static_cast<VectorView>(
-          phase_matrix_gridded_interp(0, 0, 0, 0, 0, joker)));
+          phase_matrix_gridded_interp[0, 0, 0, 0, 0, joker]));
   if (err > 1e-10) {
     return false;
   }
@@ -644,9 +644,9 @@ bool test_phase_matrix_regrid_aro() {
   phase_matrix_gridded_interp = phase_matrix_spectral_interp.to_gridded();
 
   err = max_error(static_cast<Tensor3View>(
-                      phase_matrix_gridded(0, 0, 0, joker, joker, joker)),
-                  static_cast<Tensor3View>(phase_matrix_gridded_interp(
-                      0, 0, 0, joker, joker, joker)));
+                      phase_matrix_gridded[0, 0, 0, joker, joker, joker]),
+                  static_cast<Tensor3View>(phase_matrix_gridded_interp[
+                      0, 0, 0, joker, joker, joker]));
   if (err > 1e-10) {
     return false;
   }
@@ -689,7 +689,7 @@ bool test_phase_matrix_regrid_aro() {
                                 za_scat_grid_inc,
                                 grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
 
   if (err > 1e-10) {
     return false;
@@ -699,7 +699,7 @@ bool test_phase_matrix_regrid_aro() {
       reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err = std::abs(phase_matrix_spectral_interp(0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -709,7 +709,7 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -718,7 +718,7 @@ bool test_phase_matrix_regrid_aro() {
       reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err = std::abs(phase_matrix_spectral_interp(0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -728,7 +728,7 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -737,7 +737,7 @@ bool test_phase_matrix_regrid_aro() {
       reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err = std::abs(phase_matrix_spectral_interp(0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -746,7 +746,7 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<3>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -755,7 +755,7 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<4>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err = std::abs(phase_matrix_gridded_interp(0, 0, 0, 0, 0, 0) - 1.2345);
+  err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -800,8 +800,8 @@ bool test_backscatter_matrix_regrid_aro() {
 
   auto backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
   Numeric err                    = max_error(
-      static_cast<VectorView>(backscatter_matrix(0, 0, 0, joker)),
-      static_cast<VectorView>(backscatter_matrix_interp(0, 0, 0, joker)));
+      static_cast<VectorView>(backscatter_matrix[0, 0, 0, joker]),
+      static_cast<VectorView>(backscatter_matrix_interp[0, 0, 0, joker]));
   if (err > 1e-10) {
     return false;
   }
@@ -843,7 +843,7 @@ bool test_backscatter_matrix_regrid_aro() {
                                 za_scat_grid_inc,
                                 grids);
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err = std::abs(backscatter_matrix_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -853,7 +853,7 @@ bool test_backscatter_matrix_regrid_aro() {
   fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err = std::abs(backscatter_matrix_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -863,7 +863,7 @@ bool test_backscatter_matrix_regrid_aro() {
   fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err = std::abs(backscatter_matrix_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }

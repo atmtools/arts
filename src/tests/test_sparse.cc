@@ -174,9 +174,9 @@ void test40() {
   std::cout << "c = A*b (should be [11,44,99]):\n" << c << "\n";
 
   Matrix D(3, 2);
-  D(joker, 0) = b;
-  D(joker, 1) = b;
-  D(joker, 1) *= 2;
+  D[joker, 0] = b;
+  D[joker, 1] = b;
+  D[joker, 1] *= 2;
   std::cout << "D:\n" << D << "\n";
 
   Matrix E(3, 2);
@@ -463,7 +463,7 @@ Numeric test_insert_row(Index ntests, bool verbose) {
 
     A = static_cast<Matrix>(A_sparse);
 
-    Numeric err = get_maximum_error(A(r, joker), v, true);
+    Numeric err = get_maximum_error(A[r, joker], v, true);
     if (err > err_max) err_max = err;
 
     if (verbose) {
@@ -618,7 +618,7 @@ Numeric test_sparse_unary_operations(Index m,
 
     for (Index j = 0; j < m; j++) {
       for (Index k = 0; k < n; k++) {
-        B(j, k) = abs(A(j, k));
+        B[j, k] = abs(A[j, k]);
       }
     }
 
@@ -704,10 +704,10 @@ Numeric test_dense_sparse_multiplication(Index m,
       std::cout << std::setw(10) << c_stride;
     }
 
-    MatrixView A_view = A(Range(m1, dm, r_stride), joker);
-    MatrixView A_ref_view = A_ref(Range(m1, dm, r_stride), joker);
+    MatrixView A_view = A[Range(m1, dm, r_stride), joker];
+    MatrixView A_ref_view = A_ref[Range(m1, dm, r_stride), joker];
     Matrix C(dn, n);
-    MatrixView B_mul = B(Range(m1, dm, r_stride), Range(n1, dn, c_stride));
+    MatrixView B_mul = B[Range(m1, dm, r_stride), Range(n1, dn, c_stride)];
     Sparse C_sparse(dn, n), C_sparse_transpose(dn, n);
 
     //
@@ -734,8 +734,8 @@ Numeric test_dense_sparse_multiplication(Index m,
 
     A.resize(n, m);
     A_ref.resize(n, m);
-    MatrixView A_view_transp = A(joker, Range(m1, dm, r_stride));
-    MatrixView A_ref_view_transp = A_ref(joker, Range(m1, dm, r_stride));
+    MatrixView A_view_transp = A[joker, Range(m1, dm, r_stride)];
+    MatrixView A_ref_view_transp = A_ref[joker, Range(m1, dm, r_stride)];
 
     C_sparse.resize(n, dn);
     C.resize(n, dn);
@@ -744,7 +744,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     C = static_cast<Matrix>(C_sparse);
 
     MatrixView B_mul_transp =
-        B(Range(n1, dn, c_stride), Range(m1, dm, r_stride));
+        B[Range(n1, dn, c_stride), Range(m1, dm, r_stride)];
 
     mult(transpose(A_ref_view_transp), transpose(B_mul_transp), transpose(C));
     mult(transpose(A_view_transp), transpose(B_mul_transp), C_sparse_transpose);
@@ -825,9 +825,9 @@ Numeric test_sparse_dense_multiplication(Index m,
     dm = dm / r_stride;
 
     Matrix B(m, dm);
-    MatrixView A_view = A(joker, Range(n1, dn, c_stride));
-    MatrixView A_ref_view = A_ref(joker, Range(n1, dn, c_stride));
-    MatrixView C_mul = C(Range(m1, dm, r_stride), Range(n1, dn, c_stride));
+    MatrixView A_view = A[joker, Range(n1, dn, c_stride)];
+    MatrixView A_ref_view = A_ref[joker, Range(n1, dn, c_stride)];
+    MatrixView C_mul = C[Range(m1, dm, r_stride), Range(n1, dn, c_stride)];
     Sparse B_sparse(m, dm), B_sparse_transpose(m, dm);
 
     //
@@ -855,8 +855,8 @@ Numeric test_sparse_dense_multiplication(Index m,
 
     A.resize(n, m);
     A_ref.resize(n, m);
-    MatrixView A_view_transp = A(Range(n1, dn, c_stride), joker);
-    MatrixView A_ref_view_transp = A_ref(Range(n1, dn, c_stride), joker);
+    MatrixView A_view_transp = A[Range(n1, dn, c_stride), joker];
+    MatrixView A_ref_view_transp = A_ref[Range(n1, dn, c_stride), joker];
 
     B_sparse.resize(dm, m);
     B.resize(dm, m);
@@ -864,7 +864,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     transpose(B_sparse_transpose, B_sparse);
     B = static_cast<Matrix>(B_sparse);
 
-    MatrixView C_mul2 = C(Range(n1, dn, c_stride), Range(m1, dm, r_stride));
+    MatrixView C_mul2 = C[Range(n1, dn, c_stride), Range(m1, dm, r_stride)];
 
     // Transposed sparse-dense multiplication
     mult(transpose(A_ref_view_transp), transpose(B), transpose(C_mul2));

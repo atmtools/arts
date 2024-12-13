@@ -5,8 +5,8 @@ void test_2a() {
   const Vector omega_arr{0.5};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
-  Leg_coeffs_all(0, 0) = 1;
-  Leg_coeffs_all(0, 2) = 0.1;
+  Leg_coeffs_all[0, 0] = 1;
+  Leg_coeffs_all[0, 2] = 0.1;
 
   const Numeric mu0  = 0.080442;
   const Numeric I0   = Constant::pi;
@@ -185,8 +185,8 @@ void test_2b() {
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
-  Leg_coeffs_all(0, 0) = 1;
-  Leg_coeffs_all(0, 2) = 0.1;
+  Leg_coeffs_all[0, 0] = 1;
+  Leg_coeffs_all[0, 2] = 0.1;
 
   const Numeric mu0  = 0.080442;
   const Numeric I0   = Constant::pi;
@@ -365,8 +365,8 @@ void test_2c() {
   const Vector omega_arr{0.5};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
-  Leg_coeffs_all(0, 0) = 1;
-  Leg_coeffs_all(0, 2) = 0.1;
+  Leg_coeffs_all[0, 0] = 1;
+  Leg_coeffs_all[0, 2] = 0.1;
 
   const Numeric mu0  = 0.080442;
   const Numeric I0   = Constant::pi;
@@ -545,8 +545,8 @@ void test_2d() {
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
-  Leg_coeffs_all(0, 0) = 1;
-  Leg_coeffs_all(0, 2) = 0.1;
+  Leg_coeffs_all[0, 0] = 1;
+  Leg_coeffs_all[0, 2] = 0.1;
 
   const Numeric mu0  = 0.080442;
   const Numeric I0   = Constant::pi;

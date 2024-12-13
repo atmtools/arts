@@ -150,7 +150,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
 
       if (temp_jac.first) {
         const auto iq = temp_jac.second->target_pos;
-        propagation_matrix_jacobian(iq, f).A() +=
+        propagation_matrix_jacobian[iq, f].A() +=
             ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
              xsec_temp[f] * dnd_dt) *
             vmr;
@@ -159,7 +159,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
       for (auto& j : freq_jac) {
         if (j.first) {
           const auto iq = j.second->target_pos;
-          propagation_matrix_jacobian(iq, f).A() +=
+          propagation_matrix_jacobian[iq, f].A() +=
               (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
         }
       }
@@ -168,7 +168,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
               jacobian_targets.find<Jacobian::AtmTarget>(this_xdata.Species());
           j.first) {
         const auto iq                           = j.second->target_pos;
-        propagation_matrix_jacobian(iq, f).A() += xsec_temp[f] * nd * vmr;
+        propagation_matrix_jacobian[iq, f].A() += xsec_temp[f] * nd * vmr;
       }
     }
   }

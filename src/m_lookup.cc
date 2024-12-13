@@ -130,7 +130,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         const Numeric d_inv = 1.0 / jacobian_target.d;
         for (Index i = 0; i < frequency_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
-            propagation_matrix_jacobian(jacobian_target.target_pos, i).A() =
+            propagation_matrix_jacobian[jacobian_target.target_pos, i].A() =
                 (d_absorption[i] - absorption[i]) * d_inv;
           }
         }

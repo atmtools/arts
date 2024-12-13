@@ -270,9 +270,9 @@ class SHT {
     for (int i = 0; i < view.nrows(); ++i) {
       for (int j = 0; j < view.ncols(); ++j) {
         if constexpr (matpack::complex_type<T>) {
-          spatial_coeffs_cmplx_[index] = view(i, j);
+          spatial_coeffs_cmplx_[index] = view[i, j];
         } else {
-          spatial_coeffs_[index] = view(i, j);
+          spatial_coeffs_[index] = view[i, j];
         }
         ++index;
       }
@@ -577,7 +577,7 @@ matpack::matpack_data<T, 2> add_coeffs(
         (l <= static_cast<int>(sht_inc_v.m_max_)) ? l : sht_inc_v.m_max_);
     for (int m = -m_max; m <= m_max; ++m) {
       if ((l > sht_inc_w.l_max_) || (std::abs(m) > sht_inc_w.m_max_)) {
-        result(index_l, joker) = v.row(index_l, joker);
+        result[index_l, joker] = v.row(index_l, joker);
       } else {
         int h = static_cast<int>(
             std::min<int>(static_cast<int>(sht_inc_w.m_max_), l));
@@ -585,7 +585,7 @@ matpack::matpack_data<T, 2> add_coeffs(
 
         auto r =
             add_coeffs(sht_scat_v, v.row(index_l), sht_scat_w, w.row(index_r));
-        result(index_l, joker) = r;
+        result[index_l, joker] = r;
       }
       ++index_l;
     }

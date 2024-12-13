@@ -24,7 +24,7 @@ bool test_extinction_matrix_tro() {
 
   auto extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
   Numeric err =
-      std::abs(extinction_matrix(0, 0, 0) - extinction_matrix_interp(0, 0, 0));
+      std::abs(extinction_matrix[0, 0, 0] - extinction_matrix_interp[0, 0, 0]);
   if (err > 1e-10) {
     return false;
   }
@@ -40,7 +40,7 @@ bool test_extinction_matrix_tro() {
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  err = std::abs(extinction_matrix_interp(0, 0, 0) - 1.2345);
+  err = std::abs(extinction_matrix_interp[0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -48,7 +48,7 @@ bool test_extinction_matrix_tro() {
   fill_along_axis<1>(
       reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  err = std::abs(extinction_matrix_interp(0, 0, 0) - 1.2346);
+  err = std::abs(extinction_matrix_interp[0, 0, 0] - 1.2346);
   if (err > 1e-10) {
     return false;
   }
@@ -79,8 +79,8 @@ bool test_extinction_matrix_aro() {
       t_grid, f_grid, nullptr, za_inc_grid, nullptr, nullptr, grids);
 
   auto extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  Numeric err = std::abs(extinction_matrix(0, 0, 0, 0) -
-                         extinction_matrix_interp(0, 0, 0, 0));
+  Numeric err = std::abs(extinction_matrix[0, 0, 0, 0] -
+                         extinction_matrix_interp[0, 0, 0, 0]);
   if (err > 1e-10) {
     return false;
   }
@@ -99,7 +99,7 @@ bool test_extinction_matrix_aro() {
   weights = calc_regrid_weights(
       t_grid, f_grid, nullptr, za_inc_grid, nullptr, nullptr, grids);
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  err = std::abs(extinction_matrix_interp(0, 0, 0, 0) - 1.2345);
+  err = std::abs(extinction_matrix_interp[0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) {
     return false;
   }
@@ -107,7 +107,7 @@ bool test_extinction_matrix_aro() {
   fill_along_axis<1>(
       reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  err = std::abs(extinction_matrix_interp(0, 0, 0, 0) - 1.2346);
+  err = std::abs(extinction_matrix_interp[0, 0, 0, 0] - 1.2346);
   if (err > 1e-10) {
     return false;
   }
@@ -115,7 +115,7 @@ bool test_extinction_matrix_aro() {
   fill_along_axis<2>(
       reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
-  err = std::abs(extinction_matrix_interp(0, 0, 0, 0) - 1.2347);
+  err = std::abs(extinction_matrix_interp[0, 0, 0, 0] - 1.2347);
   if (err > 1e-10) {
     return false;
   }

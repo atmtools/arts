@@ -1463,7 +1463,7 @@ void chk_atm_field(const String& x_name,
   for (Index ip = 0; ip < npages; ip++) {
     for (Index ir = 0; ir < nrows; ir++) {
       for (Index ic = 0; ic < ncols; ic++) {
-        ARTS_USER_ERROR_IF(std::isnan(x(ip, ir, ic)),
+        ARTS_USER_ERROR_IF(std::isnan(x[ip, ir, ic]),
                            "The variable *",
                            x_name,
                            "* contains one or ",
@@ -1481,7 +1481,7 @@ void chk_atm_field(const String& x_name,
         for (Index ir = 0; ir < nrows; ir++) {
           ARTS_USER_ERROR_IF(
               !is_same_within_epsilon(
-                  x(ip, ir, ic), x(ip, ir, 0), 4 * DBL_EPSILON),
+                  x[ip, ir, ic], x[ip, ir, 0], 4 * DBL_EPSILON),
               "The variable *",
               x_name,
               "* covers 360 ",
@@ -1489,10 +1489,10 @@ void chk_atm_field(const String& x_name,
               "seems to deviate between first and last longitude ",
               "point. The field must be \"cyclic\".\n",
               "Difference: ",
-              x(ip, ir, ic) - x(ip, ir, 0),
+              x[ip, ir, ic] - x[ip, ir, 0],
               "\n",
               "Epsilon   : ",
-              4 * DBL_EPSILON * std::max(x(ip, ir, ic), x(ip, ir, 0)))
+              4 * DBL_EPSILON * std::max(x[ip, ir, ic], x[ip, ir, 0]))
         }
       }
     }
@@ -1505,7 +1505,7 @@ void chk_atm_field(const String& x_name,
           for (Index ic = 1; ic < ncols; ic++) {
             ARTS_USER_ERROR_IF(
                 !is_same_within_epsilon(
-                    x(ip, 0, ic), x(ip, 0, ic - 1), 2 * DBL_EPSILON),
+                    x[ip, 0, ic], x[ip, 0, ic - 1], 2 * DBL_EPSILON),
                 "The variable *",
                 x_name,
                 "* covers the South\n",
@@ -1527,7 +1527,7 @@ void chk_atm_field(const String& x_name,
           for (Index ic = 1; ic < ncols; ic++) {
             ARTS_USER_ERROR_IF(
                 !is_same_within_epsilon(
-                    x(ip, ir, ic), x(ip, ir, ic - 1), 2 * DBL_EPSILON),
+                    x[ip, ir, ic], x[ip, ir, ic - 1], 2 * DBL_EPSILON),
                 "The variable *",
                 x_name,
                 "* covers the North\n",
@@ -1616,7 +1616,7 @@ void chk_atm_field(const String& x_name,
       for (Index ip = 0; ip < npages; ip++) {
         for (Index ir = 0; ir < nrows; ir++) {
           for (Index ic = 0; ic < ncols; ic++) {
-            ARTS_USER_ERROR_IF(std::isnan(x(ib, ip, ir, ic)),
+            ARTS_USER_ERROR_IF(std::isnan(x[ib, ip, ir, ic]),
                                "The variable *",
                                x_name,
                                "* contains one or ",
@@ -1637,7 +1637,7 @@ void chk_atm_field(const String& x_name,
           for (Index ir = 0; ir < nrows; ir++) {
             ARTS_USER_ERROR_IF(
                 !is_same_within_epsilon(
-                    x(is, ip, ir, ic), x(is, ip, ir, 0), 2 * DBL_EPSILON),
+                    x[is, ip, ir, ic], x[is, ip, ir, 0], 2 * DBL_EPSILON),
                 "The variable *",
                 x_name,
                 "* covers 360 ",
@@ -1658,7 +1658,7 @@ void chk_atm_field(const String& x_name,
           for (Index ic = 1; ic < ncols; ic++) {
             ARTS_USER_ERROR_IF(
                 !is_same_within_epsilon(
-                    x(is, ip, 0, ic), x(is, ip, 0, ic - 1), 2 * DBL_EPSILON),
+                    x[is, ip, 0, ic], x[is, ip, 0, ic - 1], 2 * DBL_EPSILON),
                 "The variable *",
                 x_name,
                 "* covers the South ",
@@ -1679,7 +1679,7 @@ void chk_atm_field(const String& x_name,
           for (Index ic = 1; ic < ncols; ic++) {
             ARTS_USER_ERROR_IF(
                 !is_same_within_epsilon(
-                    x(is, ip, ir, ic), x(is, ip, ir, ic - 1), 2 * DBL_EPSILON),
+                    x[is, ip, ir, ic], x[is, ip, ir, ic - 1], 2 * DBL_EPSILON),
                 "The variable *",
                 x_name,
                 "* covers the North ",
@@ -1785,9 +1785,9 @@ void chk_atm_vecfield_lat90(const String& x1_name,
       Numeric vec1, vec2;
       for (Index ip = 0; ip < npages; ip++) {
         for (Index ic = 1; ic < ncols; ic++) {
-          vec1 = x1(ip, 0, ic) * x1(ip, 0, ic) + x2(ip, 0, ic) * x2(ip, 0, ic);
-          vec2 = x1(ip, 0, ic - 1) * x1(ip, 0, ic - 1) +
-                 x2(ip, 0, ic - 1) * x2(ip, 0, ic - 1);
+          vec1 = x1[ip, 0, ic] * x1[ip, 0, ic] + x2[ip, 0, ic] * x2[ip, 0, ic];
+          vec2 = x1[ip, 0, ic - 1] * x1[ip, 0, ic - 1] +
+                 x2[ip, 0, ic - 1] * x2[ip, 0, ic - 1];
           ARTS_USER_ERROR_IF(
               fabs(vec1 / vec2 - 1.) > th,
               "The variables *",
@@ -1821,9 +1821,9 @@ void chk_atm_vecfield_lat90(const String& x1_name,
       for (Index ip = 0; ip < npages; ip++) {
         for (Index ic = 1; ic < ncols; ic++) {
           vec1 =
-              x1(ip, ir, ic) * x1(ip, ir, ic) + x2(ip, ir, ic) * x2(ip, ir, ic);
-          vec2 = x1(ip, ir, ic - 1) * x1(ip, ir, ic - 1) +
-                 x2(ip, ir, ic - 1) * x2(ip, ir, ic - 1);
+              x1[ip, ir, ic] * x1[ip, ir, ic] + x2[ip, ir, ic] * x2[ip, ir, ic];
+          vec2 = x1[ip, ir, ic - 1] * x1[ip, ir, ic - 1] +
+                 x2[ip, ir, ic - 1] * x2[ip, ir, ic - 1];
           ARTS_USER_ERROR_IF(
               fabs(vec1 / vec2 - 1.) > th,
               "The variables *",
@@ -1898,7 +1898,7 @@ void chk_atm_surface(const String& x_name,
       const Index ic = ncols - 1;
       for (Index ir = 0; ir < nrows; ir++) {
         ARTS_USER_ERROR_IF(
-            !is_same_within_epsilon(x(ir, ic), x(ir, 0), 2 * DBL_EPSILON),
+            !is_same_within_epsilon(x[ir, ic], x[ir, 0], 2 * DBL_EPSILON),
             "The variable *",
             x_name,
             "* covers 360 ",
@@ -1912,7 +1912,7 @@ void chk_atm_surface(const String& x_name,
     if (lat_grid[0] == -90) {
       for (Index ic = 1; ic < ncols; ic++) {
         ARTS_USER_ERROR_IF(
-            !is_same_within_epsilon(x(0, ic), x(0, ic - 1), 2 * DBL_EPSILON),
+            !is_same_within_epsilon(x[0, ic], x[0, ic - 1], 2 * DBL_EPSILON),
             "The variable *",
             x_name,
             "* covers the South ",
@@ -1926,7 +1926,7 @@ void chk_atm_surface(const String& x_name,
       const Index ir = nrows - 1;
       for (Index ic = 1; ic < ncols; ic++) {
         ARTS_USER_ERROR_IF(
-            !is_same_within_epsilon(x(ir, ic), x(ir, ic - 1), 2 * DBL_EPSILON),
+            !is_same_within_epsilon(x[ir, ic], x[ir, ic - 1], 2 * DBL_EPSILON),
             "The variable *",
             x_name,
             "* covers the North ",
@@ -1983,7 +1983,7 @@ void chk_sensor_pos(const String& name, ConstMatrixView sensor_pos) {
   ARTS_USER_ERROR_IF(
       sensor_pos.nrows() == 0, "*", name, "*must have at least one row.");
   for (Index i = 0; i < sensor_pos.nrows(); i++) {
-    ARTS_USER_ERROR_IF(sensor_pos(i, 1) < -90 || sensor_pos(i, 1) > 90,
+    ARTS_USER_ERROR_IF((sensor_pos[i, 1] < -90 || sensor_pos[i, 1] > 90),
                        "Unvalid latitude in *",
                        name,
                        "*.\n",
@@ -1993,8 +1993,8 @@ void chk_sensor_pos(const String& name, ConstMatrixView sensor_pos) {
                        "(",
                        i,
                        ",1) is ",
-                       sensor_pos(i, 1));
-    ARTS_USER_ERROR_IF(sensor_pos(i, 2) < -180 || sensor_pos(i, 1) >= 180,
+                       sensor_pos[i, 1]);
+    ARTS_USER_ERROR_IF((sensor_pos[i, 2] < -180 || sensor_pos[i, 1] >= 180),
                        "Unvalid longitude in *",
                        name,
                        "*.\n",
@@ -2004,7 +2004,7 @@ void chk_sensor_pos(const String& name, ConstMatrixView sensor_pos) {
                        "(",
                        i,
                        ",2) is ",
-                       sensor_pos(i, 2));
+                       sensor_pos[i, 2]);
   }
 }
 
@@ -2014,7 +2014,7 @@ void chk_sensor_los(const String& name, ConstMatrixView sensor_los) {
   ARTS_USER_ERROR_IF(
       sensor_los.nrows() == 0, "*", name, "* must have at least one row.");
   for (Index i = 0; i < sensor_los.nrows(); i++) {
-    ARTS_USER_ERROR_IF(sensor_los(i, 0) < 0 || sensor_los(i, 0) > 180,
+    ARTS_USER_ERROR_IF((sensor_los[i, 0] < 0 || sensor_los[i, 0] > 180),
                        "Unvalid zenith angle in *",
                        name,
                        "*.\n",
@@ -2024,8 +2024,8 @@ void chk_sensor_los(const String& name, ConstMatrixView sensor_los) {
                        "(",
                        i,
                        ",0) is ",
-                       sensor_los(i, 0));
-    ARTS_USER_ERROR_IF(sensor_los(i, 1) < -180 || sensor_los(i, 1) > 180,
+                       sensor_los[i, 0]);
+    ARTS_USER_ERROR_IF((sensor_los[i, 1] < -180 || sensor_los[i, 1] > 180),
                        "Unvalid azimuth angle in *",
                        name,
                        "*.\n",
@@ -2035,7 +2035,7 @@ void chk_sensor_los(const String& name, ConstMatrixView sensor_los) {
                        "(",
                        i,
                        ",1) is ",
-                       sensor_los(i, 1));
+                       sensor_los[i, 1]);
   }
 }
 
@@ -2153,10 +2153,10 @@ void chk_met_mm_backend(const Matrix& mmb) {
   ARTS_USER_ERROR_IF(mmb.ncols() != 4, "*met_mm_backend* must have 4 columns.");
 
   for (Index ch = 0; ch < mmb.nrows(); ch++) {
-    Numeric lo        = mmb(ch, 0);
-    Numeric offset1   = mmb(ch, 1);
-    Numeric offset2   = mmb(ch, 2);
-    Numeric bandwidth = mmb(ch, 3);
+    Numeric lo        = mmb[ch, 0];
+    Numeric offset1   = mmb[ch, 1];
+    Numeric offset2   = mmb[ch, 2];
+    Numeric bandwidth = mmb[ch, 3];
 
     // Negative LO
     ARTS_USER_ERROR_IF(lo < 0.,
@@ -2166,7 +2166,7 @@ void chk_met_mm_backend(const Matrix& mmb) {
                        ch,
                        " in *met_mm_backend*.\n",
                        "Center frequency is negative: ",
-                       mmb(ch, 0),
+                       mmb[ch, 0],
                        " Hz")
 
     // Negative offsets

@@ -24,20 +24,20 @@ bool test_single_scattering_data_from_legacy_tro() {
   auto ssd = SingleScatteringData::from_legacy_tro(legacy_data, legacy_meta);
 
   Numeric err = max_error<Tensor3View>(
-      (*ssd.phase_matrix)(joker, 0, joker, joker),
-      legacy_data.pha_mat_data(0, joker, joker, 0, 0, 0, joker));
+      (*ssd.phase_matrix)[joker, 0, joker, joker],
+      legacy_data.pha_mat_data[0, joker, joker, 0, 0, 0, joker]);
   if (err > 0) {
     return false;
   }
 
-  err = max_error<MatrixView>(ssd.extinction_matrix(0, joker, joker),
-                              legacy_data.ext_mat_data(joker, 0, 0, 0, joker));
+  err = max_error<MatrixView>(ssd.extinction_matrix[0, joker, joker],
+                              legacy_data.ext_mat_data[joker, 0, 0, 0, joker]);
   if (err > 0) {
     return false;
   }
 
-  err = max_error<MatrixView>(ssd.absorption_vector(joker, 0, joker),
-                              legacy_data.abs_vec_data(0, joker, 0, 0, joker));
+  err = max_error<MatrixView>(ssd.absorption_vector[joker, 0, joker],
+                              legacy_data.abs_vec_data[0, joker, 0, 0, joker]);
   if (err > 0) {
     return false;
   }

@@ -22,7 +22,7 @@ Stokvec spectral_radiance::B(
 
   for (const auto& p : pos) {
     if (p.w == 0.0) continue;
-    out += p.w * planck(f, atm(p.i, p.j, p.k)->temperature);
+    out += p.w * planck(f, atm[p.i, p.j, p.k]->temperature);
   }
 
   return {out, 0.0, 0.0, 0.0};
@@ -37,12 +37,12 @@ Stokvec spectral_radiance::Iback(
   if (pp.point.los_type == PathPositionType::space) {
     for (const auto& p : pos) {
       if (p.w == 0.0) continue;
-      out += p.w * spectral_radiance_space(p.j, p.k)(f, pp.point.los);
+      out += p.w * spectral_radiance_space[p.j, p.k](f, pp.point.los);
     }
   } else if (pp.point.los_type == PathPositionType::surface) {
     for (const auto& p : pos) {
       if (p.w == 0.0) continue;
-      out += p.w * spectral_radiance_surface(p.j, p.k)(f, pp.point.los);
+      out += p.w * spectral_radiance_surface[p.j, p.k](f, pp.point.los);
     }
   }
 
@@ -58,7 +58,7 @@ std::pair<Propmat, Stokvec> spectral_radiance::PM(
 
   for (const auto& p : pos) {
     if (p.w == 0.0) continue;
-    const auto [propmat, stokvec]  = pm(p.i, p.j, p.k)(f, pp.point.los);
+    const auto [propmat, stokvec]  = pm[p.i, p.j, p.k](f, pp.point.los);
     out.first                     += p.w * propmat;
     out.second                    += p.w * stokvec;
   }
@@ -115,7 +115,7 @@ spectral_radiance::spectral_radiance(
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
-        spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
+        spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
                                               Numeric f, Vector2) -> Stokvec {
           return planck(f, surf.temperature);
         };
@@ -125,10 +125,10 @@ spectral_radiance::spectral_radiance(
     for (Index i = 0; i < alt.size(); i++) {
       for (Index j = 0; j < lat.size(); j++) {
         for (Index k = 0; k < lon.size(); k++) {
-          atm(i, j, k) =
+          atm[i, j, k] =
               std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
-          pm(i, j, k) = propmat(
-              atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+          pm[i, j, k] = propmat(
+              atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
         }
       }
     }
@@ -139,7 +139,7 @@ spectral_radiance::spectral_radiance(
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
         try {
-          spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
+          spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
                                                 Numeric f, Vector2) -> Stokvec {
             return planck(f, surf.temperature);
           };
@@ -155,10 +155,10 @@ spectral_radiance::spectral_radiance(
       for (Index j = 0; j < lat.size(); j++) {
         for (Index k = 0; k < lon.size(); k++) {
           try {
-            atm(i, j, k) =
+            atm[i, j, k] =
                 std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
-            pm(i, j, k) = propmat(
-                atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+            pm[i, j, k] = propmat(
+                atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
           } catch (const std::exception& e) {
 #pragma omp critical
             errors += e.what();
@@ -201,7 +201,7 @@ Stokvec spectral_radiance::operator()(const Numeric f,
     const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
     const Muelmat Ti = T * exp(avg(Ki, K), pp.distance);
 
-    if (Ti(0, 0) < cutoff_transmission) {
+    if (Ti[0, 0] < cutoff_transmission) {
       return I += Ti * avg(Ji, J);
     }
 

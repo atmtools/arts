@@ -328,12 +328,12 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   new_table.vmrs_ref.resize(n_current_species, n_p_grid);
   for (Index i = 0; i < n_current_species; ++i) {
     if (i_current_species[i] >= 0) {
-      new_table.vmrs_ref(i, Range(joker)) =
-          vmrs_ref(i_current_species[i], Range(joker));
+      new_table.vmrs_ref[i] =
+          vmrs_ref[i_current_species[i], Range(joker)];
     } else {
       // Here we handle the case of the trivial species, for which we set
       // the reference VMR to NAN.
-      new_table.vmrs_ref(i, Range(joker)) = NAN;
+      new_table.vmrs_ref[i] = NAN;
     }
   }
 
@@ -378,15 +378,15 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     // Do frequencies:
     for (Index i_f = 0; i_f < n_current_f_grid; ++i_f) {
       if (i_current_species[i_s] >= 0) {
-        new_table.xsec(Range(joker), Range(sp, n_v), i_f, Range(joker)) =
-            xsec(Range(joker),
+        new_table.xsec[Range(joker), Range(sp, n_v), i_f, Range(joker)] =
+            xsec[Range(joker),
                  Range(original_spec_pos_in_xsec[i_current_species[i_s]], n_v),
                  i_current_f_grid[i_f],
-                 Range(joker));
+                 Range(joker)];
       } else {
         // Here we handle the case of the trivial species, which we simply
         // set to NAN:
-        new_table.xsec(Range(joker), Range(sp, n_v), i_f, Range(joker)) = NAN;
+        new_table.xsec[Range(joker), Range(sp, n_v), i_f, Range(joker)] = NAN;
       }
 
       //           cout << "result: " << xsec( Range(joker),
@@ -891,7 +891,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       //           const Numeric effective_vmr_ref = interp(pitw,
       //                                                    vmrs_ref(h2o_index, Range(joker)),
       //                                                    pgp);
-      const Numeric effective_vmr_ref = vmrs_ref(h2o_index, this_p_grid_index);
+      const Numeric effective_vmr_ref = vmrs_ref[h2o_index, this_p_grid_index];
 
       // Fractional VMR:
       const Numeric VMR_frac = abs_vmrs[h2o_index] / effective_vmr_ref;
@@ -951,8 +951,8 @@ void GasAbsLookup::Extract(Matrix& sga,
       // For interpolation result.
       // Fixed pressure level and species.
       // Free dimension is T, H2O, and frequency.
-      Tensor3View res(xsec_pre_interpolated(
-          pi, si, Range(joker), Range(joker), Range(joker)));
+      Tensor3View res(xsec_pre_interpolated[
+          pi, si, Range(joker), Range(joker), Range(joker)]);
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
@@ -983,10 +983,10 @@ void GasAbsLookup::Extract(Matrix& sga,
 
       // Get the right view on xsec.
       ConstTensor3View this_xsec =
-          xsec(Range(joker),                 // Temperature range
+          xsec[Range(joker),                 // Temperature range
                Range(fpi, this_h2o_extent),  // VMR profile range
                Range(joker),                 // Frequency range
-               this_p_grid_index);           // Pressure index
+               this_p_grid_index];           // Pressure index
 
       // Do interpolation.
       reinterp(res,        // result
@@ -1028,12 +1028,11 @@ void GasAbsLookup::Extract(Matrix& sga,
     //   Temperature (always 1)
     //   H2O         (always 1)
     //   Frequency
-    xsec_pre_interpolated(
-        pi, Range(joker), Range(joker), Range(joker), Range(joker)) *= pitw[pi];
+    xsec_pre_interpolated[pi] *= pitw[pi];
 
     // Add up in sga.
     // Dimensions of sga are (species, frequency)
-    sga += xsec_pre_interpolated(pi, Range(joker), 0, 0, Range(joker));
+    sga += xsec_pre_interpolated[pi, Range(joker), 0, 0, Range(joker)];
   }
 
   // Watch out, this is not yet the final result, we
@@ -1043,9 +1042,9 @@ void GasAbsLookup::Extract(Matrix& sga,
   for (Index si = 0; si < n_species; ++si) {
     if (select_species != SpeciesEnum::Bath and
         species[si].Species() != select_species) {
-      sga(si, Range(joker)) = 0.;
+      sga[si] = 0.;
     } else {
-      sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+      sga[si] *= (n * abs_vmrs[si]);
     }
   }
 

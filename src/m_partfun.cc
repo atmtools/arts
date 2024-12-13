@@ -25,8 +25,8 @@ void WriteBuiltinPartitionFunctionsXML(
       
       PartitionFunctionsData data{PartitionFunctionsType::Interp, Matrix(N, 2)};
       for (Index i=0; i<N; i++) {
-        data.data(i, 0) = T[i];
-        data.data(i, 1) = PartitionFunctions::Q(T[i], ir);
+        data.data[i, 0] = T[i];
+        data.data[i, 1] = PartitionFunctions::Q(T[i], ir);
       }
       
       xml_write_to_file((d / (ir.FullName() + ".xml")).string(),

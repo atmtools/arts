@@ -251,7 +251,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
       //
       if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
       {
-        field_new(joker, joker, joker) = field_old(0, 0, 0);
+        field_new = field_old[0, 0, 0];
       }
 
       else if (np_is1)  // No pressure interpolation --------------
@@ -261,12 +261,12 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix itw(n3, 2);
           interpweights(itw, gp_lon);
           Vector tmp(n3);
-          interp(tmp, itw, field_old(0, 0, joker), gp_lon);
+          interp(tmp, itw, field_old[0, 0, joker], gp_lon);
           for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             for (Size lat = 0; lat < n2; lat++) {
               ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-              field_new(p, lat, joker) = tmp;
+              field_new[p, lat, joker] = tmp;
             }
           }
         } else if (nlon_is1)  // 3: Just latitude interpolation
@@ -274,12 +274,12 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix itw(n2, 2);
           interpweights(itw, gp_lat);
           Vector tmp(n2);
-          interp(tmp, itw, field_old(0, joker, 0), gp_lat);
+          interp(tmp, itw, field_old[0, joker, 0], gp_lat);
           for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             for (Size lon = 0; lon < n3; lon++) {
               ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-              field_new(p, joker, lon) = tmp;
+              field_new[p, joker, lon] = tmp;
             }
           }
         } else  // 4: Both lat and lon interpolation
@@ -287,10 +287,10 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Tensor3 itw(n2, n3, 4);
           interpweights(itw, gp_lat, gp_lon);
           Matrix tmp(n2, n3);
-          interp(tmp, itw, field_old(0, joker, joker), gp_lat, gp_lon);
+          interp(tmp, itw, field_old[0], gp_lat, gp_lon);
           for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            field_new(p, joker, joker) = tmp;
+            field_new[p] = tmp;
           }
         }
       }
@@ -302,12 +302,12 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix itw(n1, 2);
           interpweights(itw, gp_p);
           Vector tmp(n1);
-          interp(tmp, itw, field_old(joker, 0, 0), gp_p);
+          interp(tmp, itw, field_old[joker, 0, 0], gp_p);
           for (Size lat = 0; lat < n2; lat++) {
             ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
             for (Size lon = 0; lon < n3; lon++) {
               ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-              field_new(joker, lat, lon) = tmp;
+              field_new[joker, lat, lon] = tmp;
             }
           }
         } else if (nlat_is1)  // 6: Both p and lon interpolation
@@ -315,20 +315,20 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Tensor3 itw(n1, n3, 4);
           interpweights(itw, gp_p, gp_lon);
           Matrix tmp(n1, n3);
-          interp(tmp, itw, field_old(joker, 0, joker), gp_p, gp_lon);
+          interp(tmp, itw, field_old[joker, 0, joker], gp_p, gp_lon);
           for (Size lat = 0; lat < n2; lat++) {
             ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            field_new(joker, lat, joker) = tmp;
+            field_new[joker, lat, joker] = tmp;
           }
         } else  // 7: Both p and lat interpolation
         {
           Tensor3 itw(n1, n2, 4);
           interpweights(itw, gp_p, gp_lat);
           Matrix tmp(n1, n2);
-          interp(tmp, itw, field_old(joker, joker, 0), gp_p, gp_lat);
+          interp(tmp, itw, field_old[joker, joker, 0], gp_p, gp_lat);
           for (Size lon = 0; lon < n3; lon++) {
             ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-            field_new(joker, joker, lon) = tmp;
+            field_new[joker, joker, lon] = tmp;
           }
         }
     }
@@ -356,26 +356,26 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
         //
         if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
         {
-          field_new(joker, joker) = field_old(0, 0);
+          field_new = field_old[0, 0];
         } else if (nlon_is1)  // 2: Just latitude interpolation
         {
           Matrix itw(n1, 2);
           interpweights(itw, gp_lat);
           Vector tmp(n1);
-          interp(tmp, itw, field_old(joker, 0), gp_lat);
+          interp(tmp, itw, field_old[joker, 0], gp_lat);
           for (Index lon = 0; lon < n2; lon++) {
             ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-            field_new(joker, lon) = tmp;
+            field_new[joker, lon] = tmp;
           }
         } else  // 2: Just longitude interpolation
         {
           Matrix itw(n2, 2);
           interpweights(itw, gp_lon);
           Vector tmp(n2);
-          interp(tmp, itw, field_old(0, joker), gp_lon);
+          interp(tmp, itw, field_old[0], gp_lon);
           for (Index lat = 0; lat < n1; lat++) {
             ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            field_new(lat, joker) = tmp;
+            field_new[lat] = tmp;
           }
         }
       }
@@ -515,7 +515,7 @@ void z_at_lat_2d(VectorView z,
   interpweights(itw, gp_z, agp_lat);
   interp(z_matrix, itw, z_field, gp_z, agp_lat);
 
-  z = z_matrix(Range(joker), 0);
+  z = z_matrix[Range(joker), 0];
 }
 
 void z_at_latlon(VectorView z,
@@ -549,7 +549,7 @@ void z_at_latlon(VectorView z,
 
   interp(z_tensor, itw, z_field, agp_z, agp_lat, agp_lon);
 
-  z = z_tensor(Range(joker), 0, 0);
+  z = z_tensor[Range(joker), 0, 0];
 }
 
 /*===========================================================================
@@ -591,8 +591,8 @@ void complex_n_interp(MatrixView n_real,
   //
   if (nf_in == 1) {
     for (Index i = 0; i < nf_out; i++) {
-      nrf(i, joker) = complex_n.data(0, joker).real();
-      nif(i, joker) = complex_n.data(0, joker).imag();
+      nrf[i] = complex_n.data[0].real();
+      nif[i] = complex_n.data[0].imag();
     }
   } else {
     chk_interpolation_grids("Frequency interpolation", f_grid_in, f_grid);
@@ -602,8 +602,8 @@ void complex_n_interp(MatrixView n_real,
     gridpos(gp, f_grid_in, f_grid);
     interpweights(itw, gp);
     for (Index i = 0; i < nt_in; i++) {
-      interp(nrf(joker, i), itw, complex_n.data(joker, i).real(), gp);
-      interp(nif(joker, i), itw, complex_n.data(joker, i).imag(), gp);
+      interp(nrf[joker, i], itw, complex_n.data[joker, i].real(), gp);
+      interp(nif[joker, i], itw, complex_n.data[joker, i].imag(), gp);
     }
   }
 
@@ -611,8 +611,8 @@ void complex_n_interp(MatrixView n_real,
   //
   if (nt_in == 1) {
     for (Index i = 0; i < nt_out; i++) {
-      n_real(joker, i) = nrf(joker, 0);
-      n_imag(joker, i) = nif(joker, 0);
+      n_real[joker, i] = nrf[joker, 0];
+      n_imag[joker, i] = nif[joker, 0];
     }
   } else {
     chk_interpolation_grids("Temperature interpolation", t_grid_in, t_grid);
@@ -622,8 +622,8 @@ void complex_n_interp(MatrixView n_real,
     gridpos(gp, t_grid_in, t_grid);
     interpweights(itw, gp);
     for (Index i = 0; i < nf_out; i++) {
-      interp(n_real(i, joker), itw, nrf(i, joker), gp);
-      interp(n_imag(i, joker), itw, nif(i, joker), gp);
+      interp(n_real[i], itw, nrf[i], gp);
+      interp(n_imag[i], itw, nif[i], gp);
     }
   }
 }

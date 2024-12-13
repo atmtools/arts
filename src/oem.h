@@ -612,7 +612,7 @@ void Tensor4Clip(Tensor4 &x,
       for (Index p = 0; p < x.npages(); p++) {
         for (Index r = 0; r < x.nrows(); r++) {
           for (Index c = 0; c < x.ncols(); c++) {
-            if (x(i, p, r, c) < limit_low) x(i, p, r, c) = limit_low;
+            if (x[i, p, r, c] < limit_low) x[i, p, r, c] = limit_low;
           }
         }
       }
@@ -624,7 +624,7 @@ void Tensor4Clip(Tensor4 &x,
       for (Index p = 0; p < x.npages(); p++) {
         for (Index r = 0; r < x.nrows(); r++) {
           for (Index c = 0; c < x.ncols(); c++) {
-            if (x(i, p, r, c) > limit_high) x(i, p, r, c) = limit_high;
+            if (x[i, p, r, c] > limit_high) x[i, p, r, c] = limit_high;
           }
         }
       }

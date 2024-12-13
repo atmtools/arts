@@ -269,7 +269,7 @@ std::vector<Timing> test_linear_interpweights_cost(Index n) {
   out.emplace_back("gridpos")([&]() {
     Matrix iw(gp.size(), 2);
     interpweights(iw, gp);
-    X = iw(0, 0);
+    X = iw[0, 0];
   });
   xvec.push_back(X);
 

@@ -102,7 +102,7 @@ struct Sparse {
   // Index Operators:
   [[nodiscard]] Numeric& rw(Index r, Index c);
   [[nodiscard]] Numeric ro(Index r, Index c) const;
-  [[nodiscard]] Numeric operator()(Index r, Index c) const;
+  [[nodiscard]] Numeric operator[](Index r, Index c) const;
 
   // Arithmetic operators:
   Sparse& operator+=(const Sparse& x);

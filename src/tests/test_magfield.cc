@@ -41,8 +41,8 @@ int main() {
   Matrix g(14, 14), h(14, 14);
   for (Index i = 0; i < 14; i++) {
     for (Index j = 0; j < 14; j++) {
-      gstream >> g(i, j);
-      hstream >> h(i, j);
+      gstream >> g[i, j];
+      hstream >> h[i, j];
     }
   }
 

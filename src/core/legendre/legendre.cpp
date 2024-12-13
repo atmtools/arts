@@ -39,33 +39,33 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) {
   Matrix P(N, N, 0);
   Matrix dP(N, N, 0);
   Matrix S(N, N, 0);
-  S(0, 0) = 1.0;
-  P(0, 0) = 1.0;
+  S[0, 0] = 1.0;
+  P[0, 0] = 1.0;
 
   for (Index n = 1; n < N; ++n) {
     for (Index m = 0; m < n + 1; ++m) {
       if (n == m) {
-        P(n, n)  = st * P(n - 1, m - 1);
-        dP(n, n) = st * dP(n - 1, m - 1) + ct * P(n - 1, n - 1);
+        P[n, n]  = st * P[n - 1, m - 1];
+        dP[n, n] = st * dP[n - 1, m - 1] + ct * P[n - 1, n - 1];
       } else {
         if (n == 1) {
-          P(n, m)  = ct * P(n - 1, m);
-          dP(n, m) = st * dP(n - 1, m) - st * P(n - 1, m);
+          P[n, m]  = ct * P[n - 1, m];
+          dP[n, m] = st * dP[n - 1, m] - st * P[n - 1, m];
 
         } else {
           const Numeric Knm = static_cast<Numeric>((n - 1 + m) * (n - 1 - m)) /
                               static_cast<Numeric>((2 * n - 1) * (2 * n - 3));
-          P(n, m)  = ct * P(n - 1, m) - Knm * P(n - 2, m);
-          dP(n, m) = ct * dP(n - 1, m) - st * P(n - 1, m) - Knm * dP(n - 2, m);
+          P[n, m]  = ct * P[n - 1, m] - Knm * P[n - 2, m];
+          dP[n, m] = ct * dP[n - 1, m] - st * P[n - 1, m] - Knm * dP[n - 2, m];
         }
       }
 
       // compute Schmidt normalization
       if (m == 0)
-        S(n, 0) = S(n - 1, 0) * (2. * n - 1) / n;
+        S[n, 0] = S[n - 1, 0] * (2. * n - 1) / n;
       else
-        S(n, m) =
-            S(n, m - 1) * std::sqrt((n - m + 1) * (int(m == 1) + 1.) / (n + m));
+        S[n, m] =
+            S[n, m - 1] * std::sqrt((n - m + 1) * (int(m == 1) + 1.) / (n + m));
     }
   }
 
@@ -110,9 +110,9 @@ Vector3 schmidt_fieldcalc(const Matrix& g,
     ratn *= r_ratio;
     for (Index m = 0; m < n + 1; ++m) {
       B[0] +=
-          (g(n, m) * cosm[m] + h(n, m) * sinm[m]) * P(n, m) * (n + 1) * ratn;
-      B[1] -= (g(n, m) * cosm[m] + h(n, m) * sinm[m]) * dP(n, m) * ratn;
-      B[2] += (g(n, m) * sinm[m] - h(n, m) * cosm[m]) * P(n, m) * m * ratn;
+          (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * P[n, m] * (n + 1) * ratn;
+      B[1] -= (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * dP[n, m] * ratn;
+      B[2] += (g[n, m] * sinm[m] - h[n, m] * cosm[m]) * P[n, m] * m * ratn;
     }
   }
 

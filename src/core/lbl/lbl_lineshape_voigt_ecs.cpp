@@ -115,7 +115,7 @@ void ComputeData::core_calc_eqv() {
     // Do the matrix forward multiplication
     for (Index i = 0; i < n; i++) {
       for (Index j = 0; j < n; j++) {
-        eqv_str[i] += dip[j] * V(j, i);
+        eqv_str[i] += dip[j] * V[j, i];
       }
     }
 
@@ -124,7 +124,7 @@ void ComputeData::core_calc_eqv() {
     for (Index i = 0; i < n; i++) {
       Complex z(0, 0);
       for (Index j = 0; j < n; j++) {
-        z += pop[j] * dip[j] * V(i, j);
+        z += pop[j] * dip[j] * V[i, j];
       }
       eqv_str[i] *= z;
     }
@@ -256,9 +256,9 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag(k, k) = bnd.lines[sort[k]].ls.single_models[i].G0(
+      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models[i].G0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
-      Ws[i](k, k) = bnd.lines[sort[k]].ls.single_models[i].D0(
+      Ws[i][k, k] = bnd.lines[sort[k]].ls.single_models[i].D0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
@@ -276,7 +276,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   }
 
   for (Size i = 0; i < n; i++) {
-    Ws(joker, i, i) += bnd.lines[sort[i]].f0;
+    Ws[joker, i, i] += bnd.lines[sort[i]].f0;
   }
 }
 
@@ -384,7 +384,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag(k, k) = bnd.lines[sort[k]].ls.single_models[i].G0(
+      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models[i].G0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
@@ -400,7 +400,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
 
     for (Size ir = 0; ir < n; ir++) {
       for (Size ic = 0; ic < n; ic++) {
-        imag_val(Ws[0](ir, ic)) += this_vmr * Wimag(ir, ic);
+        imag_val(Ws[0][ir, ic]) += this_vmr * Wimag[ir, ic];
       }
     }
 
@@ -410,7 +410,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   if (vmr != 1.0) Ws[0] /= vmr;
 
   for (Size i = 0; i < n; i++) {
-    real_val(Ws[0](i, i)) =
+    real_val(Ws[0][i, i]) =
         bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm);
   }
 }

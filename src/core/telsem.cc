@@ -58,9 +58,9 @@ inline constexpr Numeric PI=Constant::pi;
     if (ind < 0) {
       throw std::runtime_error("The cell is not contained in the atlas.");
     } else {
-      e_v[0] = emis(ind, 0);
-      e_v[1] = emis(ind, 3);
-      e_v[2] = emis(ind, 5);
+      e_v[0] = emis[ind, 0];
+      e_v[1] = emis[ind, 3];
+      e_v[2] = emis[ind, 5];
     }
     return e_v;
   }
@@ -71,9 +71,9 @@ inline constexpr Numeric PI=Constant::pi;
     if (ind < 0) {
       throw std::runtime_error("The cell is not contained in the atlas.");
     } else {
-      e_h[0] = emis(ind, 1);
-      e_h[1] = emis(ind, 4);
-      e_h[2] = emis(ind, 6);
+      e_h[0] = emis[ind, 1];
+      e_h[1] = emis[ind, 4];
+      e_h[2] = emis[ind, 6];
     }
     return e_h;
   }
@@ -83,7 +83,7 @@ inline constexpr Numeric PI=Constant::pi;
     if (ind < 0) {
       throw std::runtime_error("The cell is not contained in the atlas.");
     } else {
-      return emis(ind, joker);
+      return emis[ind];
     }
   }
 
@@ -125,8 +125,8 @@ void TelsemAtlas::read(std::istream& is) {
     if (class1 > 0 && class2 > 0 && ipos < ndat) {
       ipos++;
       for (Index i = 0; i < nchan; i++) {
-        emis(ipos, i) = ssmi[i];
-        emis_err(ipos, i) = std::sqrt(ssmi[nchan + i]);
+        emis[ipos, i] = ssmi[i];
+        emis_err[ipos, i] = std::sqrt(ssmi[nchan + i]);
       }
       cellnums[ipos] = cellnum;
       classes1[ipos] = class1;

@@ -112,13 +112,13 @@ void dlosGauss(Matrix& dlos,
   const Numeric dangle = 0.58 * 2.0 * PI;
   for (Index i=0; i<npoints; ++i) {
     const Numeric angle = dangle * (Numeric) i;
-    dlos(i, 0) = r[i] * cos(angle);
-    dlos(i, 1) = r[i] * sin(angle);
+    dlos[i, 0] = r[i] * cos(angle);
+    dlos[i, 1] = r[i] * sin(angle);
     if (!include_response_in_weight) {
       dlos_weight_vector[i] = dlos_weight_vector[i] / (scfac * gv[i]);
     }
   }
-  dlos(0, joker) = 0.0;
+  dlos[0] = 0.0;
   dlos *= RAD2DEG;
 }
 
@@ -153,8 +153,8 @@ void dlosUniform(Matrix& dlos,
     const Numeric solid_angle = fac * (sin(grid_edges[z+1]) - sin(grid_edges[z]));
     for (Index a = 0; a < npoints; ++a) {
       const Index i = a * npoints + z;
-      dlos(i, 0) = grid[z];
-      dlos(i, 1) = grid[a];
+      dlos[i, 0] = grid[z];
+      dlos[i, 1] = grid[a];
       dlos_weight_vector[i] = solid_angle;
     }
   }
@@ -168,15 +168,15 @@ void dlosUniform(Matrix& dlos,
     //
     Index n = 0;
     for (Index i = 0; i < npoints * npoints; ++i) {
-      if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r) {
-        dlos_tmp(n, joker) = dlos(i, joker);
+      if (sqrt(pow(dlos[i,0], 2.0) + pow(dlos[i,1], 2.0)) <= r) {
+        dlos_tmp[n] = dlos[i];
         sa_tmp[n] = dlos_weight_vector[i];
         ++n;
       }
     }
 
     // Reset output variables
-    dlos = dlos_tmp(Range(0, n), joker);
+    dlos = dlos_tmp[Range(0, n), joker];
     dlos_weight_vector = sa_tmp[Range(0, n)];
   }
 }
@@ -251,10 +251,10 @@ void sensor_losGeometricToPosition(Matrix& sensor_los,
     geodetic2ecef(ecef_target, target_pos, surface_field.ellipsoid);
 
     for (Index i=0; i<n; ++i) {
-      geodetic2ecef(ecef, sensor_pos(i, joker), surface_field.ellipsoid);
+      geodetic2ecef(ecef, sensor_pos[i], surface_field.ellipsoid);
       ecef_vector_distance(decef, ecef, ecef_target);
       decef /= norm2(decef);
-      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, surface_field.ellipsoid);
+      ecef2geodetic_los(dummy, sensor_los[i], ecef, decef, surface_field.ellipsoid);
     }
 }
 
@@ -276,11 +276,11 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
 
     for (Index i=0; i<n; ++i) {
-      geodetic2ecef(ecef, sensor_pos(i, joker), surface_field.ellipsoid);
-      geodetic2ecef(ecef_target, target_pos(i, joker), surface_field.ellipsoid);
+      geodetic2ecef(ecef, sensor_pos[i], surface_field.ellipsoid);
+      geodetic2ecef(ecef_target, target_pos[i], surface_field.ellipsoid);
       ecef_vector_distance(decef, ecef, ecef_target);
       decef /= norm2(decef);
-      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, surface_field.ellipsoid);
+      ecef2geodetic_los(dummy, sensor_los[i], ecef, decef, surface_field.ellipsoid);
     }
 }
 
@@ -290,5 +290,5 @@ void sensor_losReverse(
     Matrix& sensor_los)
 {
   for (Index i = 0; i < sensor_los.nrows(); i++)
-    reverse_los(sensor_los(i, joker), sensor_los(i, joker));
+    reverse_los(sensor_los[i], sensor_los[i]);
 }

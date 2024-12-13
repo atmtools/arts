@@ -282,7 +282,7 @@ bool is_singular(ConstMatrixView A) {
   for (Index i = 0; i < A.nrows(); i++) {
     Numeric big = 0.;
     for (Index j = 0; j < A.nrows(); j++) {
-      if ((temp = fabs(A(i, j))) > big) big = temp;
+      if ((temp = fabs(A[i, j])) > big) big = temp;
     }
     // Due to numerical precision the values can deviate from 0.0
     if (big < precision) {
@@ -308,7 +308,7 @@ bool is_diagonal(ConstMatrixView A) {
 
   for (Index i = 1; i < A.ncols(); i++) {
     for (Index j = 0; j < i; j++) {
-      if (fabs(A(i, j)) > precision || fabs(A(j, i)) > precision) return false;
+      if (fabs(A[i, j]) > precision || fabs(A[j, i]) > precision) return false;
     }
   }
   return true;

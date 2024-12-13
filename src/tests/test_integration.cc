@@ -164,7 +164,7 @@ void init_xy(float stepsize,
 
   // The r=1 so we get a circle
   for (Index i = 0; i < n_za; i++)
-    for (Index j = 0; j < n_aa; j++) Integrand(i, j) = 1;
+    for (Index j = 0; j < n_aa; j++) Integrand[i, j] = 1;
 
   //za_grid (Theta) is between 0 and 180
   for (Index i = 0; i < n_za; i++) za_grid[i] = (float)i * stepsize;
@@ -177,10 +177,10 @@ void init_xy(float stepsize,
        << "n_aa = " << n_aa << std::endl
        << "stepsize = " << stepsize << std::endl
        << "frequency = " << frequency << std::endl
-       << "Integrand(*,0): von " << Integrand(0, 0) << " bis "
-       << Integrand(n_za - 1, 0) << std::endl
-       << "Integrand(0,*): von " << Integrand(0, 0) << " bis "
-       << Integrand(0, n_aa - 1) << std::endl
+       << "Integrand(*,0): von " << Integrand[0, 0] << " bis "
+       << Integrand[n_za - 1, 0] << std::endl
+       << "Integrand(0,*): von " << Integrand[0, 0] << " bis "
+       << Integrand[0, n_aa - 1] << std::endl
        << "za_grid (Theta): von " << za_grid[0] << " bis "
        << za_grid[za_grid.nelem() - 1] << std::endl
        << "aa_grid (Phi)  : von " << aa_grid[0] << " bis "
@@ -212,7 +212,7 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
     res1[i] = 0.0;
 
     for (Index j = 0; j < m - 1; ++j) {
-      res1[i] += 0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
                  (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
     }
   }
@@ -249,7 +249,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
     res1[i] = 0.0;
 
     for (Index j = 0; j < m - 1; ++j) {
-      res1[i] += 0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
                  (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
     }
   }
@@ -289,7 +289,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
     res1[i] = 0.0;
 
     for (Index j = 0; j < m - 1; ++j) {
-      res1[i] += 0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
                  stepsize * sin(za_grid[i] * DEG2RAD);
     }
   }
@@ -327,11 +327,11 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
 
-    res1[i] += Integrand(i, 0);
+    res1[i] += Integrand[i, 0];
     for (Index j = 1; j < m - 1; j++) {
-      res1[i] += Integrand(i, j) * 2;
+      res1[i] += Integrand[i, j] * 2;
     }
-    res1[i] += Integrand(i, m - 1);
+    res1[i] += Integrand[i, m - 1];
     res1[i] *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
   }
   Numeric res = 0.0;
@@ -372,11 +372,11 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
   Numeric temp = 0.0;
 
   for (Index i = 0; i < n; ++i) {
-    temp = Integrand(i, 0);
+    temp = Integrand[i, 0];
     for (Index j = 1; j < m - 1; j++) {
-      temp += Integrand(i, j) * 2;
+      temp += Integrand[i, j] * 2;
     }
-    temp += Integrand(i, m - 1);
+    temp += Integrand[i, m - 1];
     temp *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
     res1[i] = temp;
   }

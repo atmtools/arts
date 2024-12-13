@@ -106,7 +106,7 @@ table::table(const SpeciesEnum& species,
 
           const Numeric inv_nd = 1.0 / atm_point.number_density(species);
           for (Index ifreq = 0; ifreq < f_grid->size(); ++ifreq) {
-            xsec(it, iw, ip, ifreq) = pm[ifreq].A() * inv_nd;
+            xsec[it, iw, ip, ifreq] = pm[ifreq].A() * inv_nd;
           }
         } catch (std::runtime_error& e) {
 #pragma omp critical
@@ -218,7 +218,7 @@ void table::absorption(ExhaustiveVectorView absorption,
   } else if (do_t()) {
     const ArrayOfLagrangeInterpolation tlag{temperature_lagrange(
         atm_point.temperature, plag[0], t_interp_order, extpolfac)};
-    xsec_local = reinterp(xsec(joker, 0, joker, joker), tlag, plag, flag)
+    xsec_local = reinterp(xsec[joker, 0, joker, joker], tlag, plag, flag)
                      .reshape(frequency_grid.size());
   } else {
     xsec_local =

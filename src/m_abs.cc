@@ -160,8 +160,8 @@ void AbsInputFromAtmFields(  // WS Output:
   ARTS_USER_ERROR_IF(1 != 3, "Atmospheric dimension must be 1D, but 3 is 3")
 
   abs_p    = p_grid;
-  abs_t    = t_field(joker, 0, 0);
-  abs_vmrs = vmr_field(joker, joker, 0, 0);
+  abs_t    = t_field[joker, 0, 0];
+  abs_vmrs = vmr_field[joker, joker, 0, 0];
 }
 
 //======================================================================
@@ -285,20 +285,20 @@ void propagation_matrixAddFaraday(
 
       for (Size i = 0; i < 3; i++) {
         if (jacs[i].first) {
-          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
+          propagation_matrix_jacobian[jacs[i].second->target_pos, iv].U() +=
               ne * dc1[i] / f2;
         }
       }
 
       for (Size i = 3; i < 6; i++) {
         if (jacs[i].first) {
-          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
+          propagation_matrix_jacobian[jacs[i].second->target_pos, iv].U() +=
               -2.0 * ne * r / frequency_grid[iv];
         }
       }
 
       if (jacs[6].first) {
-        propagation_matrix_jacobian(jacs[6].second->target_pos, iv).U() += r;
+        propagation_matrix_jacobian[jacs[6].second->target_pos, iv].U() += r;
       }
     }
   }
@@ -378,7 +378,7 @@ void propagation_matrixAddParticles(
     T_array = atm_point.temperature;
   }
   Matrix dir_array(1, 2);
-  dir_array(0, joker) = rtp_los_back;
+  dir_array[0] = rtp_los_back;
 
   // ext/abs per scat element for all freqs at once
   opt_prop_NScatElems(ext_mat_Nse,
@@ -419,22 +419,22 @@ void propagation_matrixAddParticles(
           sp)
 
       if (atm_point[absorption_species[sp].Species()] > 0.) {
-        ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
+        ARTS_USER_ERROR_IF((t_ok[i_se_flat, 0] < 0.),
                            "Temperature interpolation error:\n"
                            "scat species #{}, scat elem #{}\n",
                            i_ss,
                            i_se)
         if (use_abs_as_ext) {
           for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
-            internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 0);
-            internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 1);
-            internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 2);
-            internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 3);
+            internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 0];
+            internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 1];
+            internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 2];
+            internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 3];
           }
         } else {
           for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv] = rtepack::to_propmat(
-                ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
+                ext_mat_Nse[i_ss][i_se][iv, 0, 0, joker, joker]);
           }
         }
 
@@ -445,7 +445,7 @@ void propagation_matrixAddParticles(
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
-      ARTS_USER_ERROR_IF(jac_temperature.first and t_ok(i_se_flat, 1) < 0.,
+      ARTS_USER_ERROR_IF((jac_temperature.first and t_ok[i_se_flat, 1] < 0.),
                          "Temperature interpolation error (in perturbation):\n"
                          "scat species #{}, scat elem #{}\n",
                          i_ss,
@@ -455,11 +455,11 @@ void propagation_matrixAddParticles(
         const auto iq = jac_temperature.second->target_pos;
 
         if (use_abs_as_ext) {
-          tmp(joker, joker, 0)  = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
-          tmp(joker, joker, 0) -= abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
+          tmp[joker, joker, 0]  = abs_vec_Nse[i_ss][i_se][joker, 1, 0, joker];
+          tmp[joker, joker, 0] -= abs_vec_Nse[i_ss][i_se][joker, 0, 0, joker];
         } else {
-          tmp  = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
-          tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
+          tmp  = ext_mat_Nse[i_ss][i_se][joker, 1, 0, joker, joker];
+          tmp -= ext_mat_Nse[i_ss][i_se][joker, 0, 0, joker, joker];
         }
 
         tmp *= atm_point[absorption_species[sp].Species()];
@@ -467,13 +467,12 @@ void propagation_matrixAddParticles(
 
         for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
-            propagation_matrix_jacobian(iq, iv).A() += tmp(iv, 0, 0);
-            propagation_matrix_jacobian(iq, iv).B() += tmp(iv, 1, 0);
-            propagation_matrix_jacobian(iq, iv).C() += tmp(iv, 2, 0);
-            propagation_matrix_jacobian(iq, iv).D() += tmp(iv, 3, 0);
+            propagation_matrix_jacobian[iq, iv].A() += tmp[iv, 0, 0];
+            propagation_matrix_jacobian[iq, iv].B() += tmp[iv, 1, 0];
+            propagation_matrix_jacobian[iq, iv].C() += tmp[iv, 2, 0];
+            propagation_matrix_jacobian[iq, iv].D() += tmp[iv, 3, 0];
           } else {
-            propagation_matrix_jacobian(iq, iv) +=
-                rtepack::to_propmat(tmp(iv, joker, joker));
+            propagation_matrix_jacobian[iq, iv] += rtepack::to_propmat(tmp[iv]);
           }
         }
       }
@@ -484,7 +483,7 @@ void propagation_matrixAddParticles(
         const auto iq = jac_species.second->target_pos;
 
         for (Index iv = 0; iv < frequency_grid.nelem(); iv++)
-          propagation_matrix_jacobian(iq, iv) += internal_propmat[iv];
+          propagation_matrix_jacobian[iq, iv] += internal_propmat[iv];
       }
 
       sp++;

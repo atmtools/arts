@@ -75,7 +75,7 @@ sun.spectrum.nrows():                {}
       sun.spectrum.nrows())
 
   for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.solar_source[iv] = sun.spectrum(iv, 0) * sin2_alpha;
+    disort_settings.solar_source[iv] = sun.spectrum[iv, 0] * sin2_alpha;
   }
 
   disort_settings.solar_zenith_angle  = los[0];
@@ -119,12 +119,12 @@ void disort_settingsLayerThermalEmissionLinearInTau(
       const Numeric y1 = planck(f, t1);
 
       const Numeric x0 =
-          i == 0 ? 0.0 : disort_settings.optical_thicknesses(iv, i - 1);
-      const Numeric x1 = disort_settings.optical_thicknesses(iv, i);
+          i == 0 ? 0.0 : disort_settings.optical_thicknesses[iv, i - 1];
+      const Numeric x1 = disort_settings.optical_thicknesses[iv, i];
 
       const Numeric b                             = (y1 - y0) / (x1 - x0);
-      disort_settings.source_polynomial(iv, i, 0) = y0 - b * x0;
-      disort_settings.source_polynomial(iv, i, 1) = b;
+      disort_settings.source_polynomial[iv, i, 0] = y0 - b * x0;
+      disort_settings.source_polynomial[iv, i, 1] = b;
     }
   }
 }
@@ -160,7 +160,7 @@ void disort_settingsSurfaceEmissionByTemperature(
       "Must have at least one fourier mode to use the positive boundary condition.")
 
   for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.positive_boundary_condition(iv, 0, joker) =
+    disort_settings.positive_boundary_condition[iv, 0, joker] =
         planck(frequency_grid[iv], T);
   }
 }
@@ -190,7 +190,7 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
       "Must have at leaat one fourier mode to use the negative boundary condition.")
 
   for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.negative_boundary_condition(iv, 0, joker) = planck(
+    disort_settings.negative_boundary_condition[iv, 0, joker] = planck(
         frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
   }
 }
@@ -205,7 +205,7 @@ void disort_settingsNoLegendre(DisortSettings& disort_settings) {
       "Must have at least one Legendre mode to use the Legendre coefficients.")
 
   disort_settings.legendre_coefficients                  = 0.0;
-  disort_settings.legendre_coefficients(joker, joker, 0) = 1.0;
+  disort_settings.legendre_coefficients[joker, joker, 0] = 1.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -269,15 +269,15 @@ ray_path: {:B,}
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
-      disort_settings.optical_thicknesses(iv, i) =
+      disort_settings.optical_thicknesses[iv, i] =
           r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
                                ray_path_propagation_matrix[i + 0][iv].A());
       if (i > 0) {
-        disort_settings.optical_thicknesses(iv, i) +=
-            disort_settings.optical_thicknesses(iv, i - 1);
+        disort_settings.optical_thicknesses[iv, i] +=
+            disort_settings.optical_thicknesses[iv, i - 1];
 
-        ARTS_USER_ERROR_IF(disort_settings.optical_thicknesses(iv, i) <=
-                               disort_settings.optical_thicknesses(iv, i - 1),
+        ARTS_USER_ERROR_IF((disort_settings.optical_thicknesses[iv, i] <=
+                               disort_settings.optical_thicknesses[iv, i - 1]),
                            R"(
 Not strictly increasing optical thicknesses between layers.
 
@@ -289,8 +289,8 @@ Old layer:            {}
 New layer:            {}
 Frequency grid point: {}
 )",
-                           disort_settings.optical_thicknesses(iv, i - 1),
-                           disort_settings.optical_thicknesses(iv, i),
+                           disort_settings.optical_thicknesses[iv, i - 1],
+                           disort_settings.optical_thicknesses[iv, i],
                            i - 1,
                            i,
                            iv);
@@ -314,7 +314,7 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
       disort_settings.nfreq, 1);
 
   for (Index iv = 0; iv < disort_settings.nfreq; iv++) {
-    disort_settings.bidirectional_reflectance_distribution_functions(iv, 0) =
+    disort_settings.bidirectional_reflectance_distribution_functions[iv, 0] =
         DisortBDRF{
             [value = vec[iv]](ExhaustiveMatrixView x,
                               const ExhaustiveConstVectorView&,
@@ -386,12 +386,12 @@ void disort_settingsLegendreCoefficientsFromPath(
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
       for (Index j = 0; j < L; j++) {
-        disort_settings.legendre_coefficients(iv, i, j) =
+        disort_settings.legendre_coefficients[iv, i, j] =
             invfac[j] *
             std::midpoint(
-                ray_path_phase_matrix_scattering_spectral[i](iv, j)(0, 0)
+                ray_path_phase_matrix_scattering_spectral[i][iv, j][0, 0]
                     .real(),
-                ray_path_phase_matrix_scattering_spectral[i + 1](iv, j)(0, 0)
+                ray_path_phase_matrix_scattering_spectral[i + 1][iv, j][0, 0]
                     .real());
       }
     }
@@ -401,17 +401,17 @@ void disort_settingsLegendreCoefficientsFromPath(
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
       // Disort wants the first value to be 1.0, so we normalize
-      if (std::isnormal(disort_settings.legendre_coefficients(iv, i, 0))) {
-        disort_settings.legendre_coefficients(iv, i, joker) /=
-            disort_settings.legendre_coefficients(iv, i, 0);
+      if (std::isnormal(disort_settings.legendre_coefficients[iv, i, 0])) {
+        disort_settings.legendre_coefficients[iv, i, joker] /=
+            disort_settings.legendre_coefficients[iv, i, 0];
 
         //! WARNING: Numerical instabiliy occurs for large j-values in invfac cf what scattering_species does
-        for (auto& v : disort_settings.legendre_coefficients(iv, i, joker)) {
+        for (auto& v : disort_settings.legendre_coefficients[iv, i, joker]) {
           v = std::clamp(v, -1.0, 1.0);
         }
       } else {
-        disort_settings.legendre_coefficients(iv, i, joker) = 0.0;
-        disort_settings.legendre_coefficients(iv, i, 0)     = 1.0;
+        disort_settings.legendre_coefficients[iv, i, joker] = 0.0;
+        disort_settings.legendre_coefficients[iv, i, 0]     = 1.0;
       }
     }
   }
@@ -470,7 +470,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
                         (inv(ray_path_propagation_matrix_scattering[i][iv]) *
                          ray_path_absorption_vector_scattering[i][iv])
                             .I());
-      disort_settings.single_scattering_albedo(iv, i) =
+      disort_settings.single_scattering_albedo[iv, i] =
           std::isnormal(x) ? x : 0.0;
     }
   }

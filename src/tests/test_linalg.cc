@@ -39,7 +39,7 @@ void test_lusolve1D(void) {
   Matrix b(1, 1);
 
   /* Assign test-matrix element. */
-  a(0, 0) = 3;
+  a[0, 0] = 3;
 
   /* ------------------------------------------------------------------------
      Test the function ludcmp.
@@ -47,7 +47,7 @@ void test_lusolve1D(void) {
   cout << "\n LU decomposition test \n";
   cout << "initial matrix: \n";
 
-  cout << " " << a(0, 0) << endl;
+  cout << " " << a[0, 0] << endl;
 
   /* input: Test-matrix a,
       output: Decomposed matrix b (includes upper and lower triangle, cp.
@@ -56,15 +56,15 @@ void test_lusolve1D(void) {
   ludcmp(b, indx, a);
 
   cout << "\n after decomposition: ";
-  cout << b(0, 0) << endl;
+  cout << b[0, 0] << endl;
 
   /* Seperate b into the two triangular matrices. */
   Matrix l(1, 1, 0.0);
   Matrix u(1, 1, 0.0);
   Matrix lu(1, 1, 0.0);
 
-  l(0, 0) = 1.0;
-  u(0, 0) = b(0, 0);
+  l[0, 0] = 1.0;
+  u[0, 0] = b[0, 0];
 
   /*-------------------------------------------------------------------
     end of ludcmp test
@@ -97,22 +97,22 @@ void test_lusolve4D(void) {
 
   /* Assign test-matrix elements. */
 
-  a(0, 0) = 1;
-  a(0, 1) = 3;
-  a(0, 2) = 5;
-  a(0, 3) = 6;
-  a(1, 0) = 2;
-  a(1, 1) = 3;
-  a(1, 2) = 4;
-  a(1, 3) = 4;
-  a(2, 0) = 1;
-  a(2, 1) = 2;
-  a(2, 2) = 5;
-  a(2, 3) = 1;
-  a(3, 0) = 7;
-  a(3, 1) = 2;
-  a(3, 2) = 4;
-  a(3, 3) = 3;
+  a[0, 0] = 1;
+  a[0, 1] = 3;
+  a[0, 2] = 5;
+  a[0, 3] = 6;
+  a[1, 0] = 2;
+  a[1, 1] = 3;
+  a[1, 2] = 4;
+  a[1, 3] = 4;
+  a[2, 0] = 1;
+  a[2, 1] = 2;
+  a[2, 2] = 5;
+  a[2, 3] = 1;
+  a[3, 0] = 7;
+  a[3, 1] = 2;
+  a[3, 2] = 4;
+  a[3, 3] = 3;
 
   /* ------------------------------------------------------------------------
      Test the function ludcmp.
@@ -122,7 +122,7 @@ void test_lusolve4D(void) {
   cout << "initial matrix: \n";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << a(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << a[i, j];
   }
   cout << "\n";
 
@@ -135,7 +135,7 @@ void test_lusolve4D(void) {
   cout << "\n after decomposition";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << b(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << b[i, j];
   }
   cout << "\n";
 
@@ -144,27 +144,27 @@ void test_lusolve4D(void) {
   Matrix u(4, 4, 0.0);
   Matrix lu(4, 4, 0.0);
 
-  for (Index i = 0; i < 4; i++) l(i, i) = 1.0;
-  l(1, 0) = b(1, 0);
-  l(2, Range(0, 2)) = b(2, Range(0, 2));
-  l(3, Range(0, 3)) = b(3, Range(0, 3));
+  for (Index i = 0; i < 4; i++) l[i, i] = 1.0;
+  l[1, 0] = b[1, 0];
+  l[2, Range(0, 2)] = b[2, Range(0, 2)];
+  l[3, Range(0, 3)] = b[3, Range(0, 3)];
 
   cout << "\n Matrix L";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << l(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << l[i, j];
   }
   cout << "\n";
 
-  u(0, Range(0, 4)) = b(0, Range(0, 4));
-  u(1, Range(1, 3)) = b(1, Range(1, 3));
-  u(2, Range(2, 2)) = b(2, Range(2, 2));
-  u(3, Range(3, 1)) = b(3, Range(3, 1));
+  u[0, Range(0, 4)] = b[0, Range(0, 4)];
+  u[1, Range(1, 3)] = b[1, Range(1, 3)];
+  u[2, Range(2, 2)] = b[2, Range(2, 2)];
+  u[3, Range(3, 1)] = b[3, Range(3, 1)];
 
   cout << "\n Matrix U";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << u(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << u[i, j];
   }
   cout << "\n";
 
@@ -174,7 +174,7 @@ void test_lusolve4D(void) {
   cout << "\n product L*U";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << lu(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << lu[i, j];
   }
   cout << "\n";
 
@@ -345,22 +345,22 @@ void test_inv(Index ntests, Index dim, bool verbose = false) {
 void test_matrix_exp4D(void) {
   Matrix A(4, 4);
   Matrix F(4, 4);
-  A(0, 0) = 1;
-  A(0, 1) = 3;
-  A(0, 2) = 5;
-  A(0, 3) = 6;
-  A(1, 0) = 2;
-  A(1, 1) = 3;
-  A(1, 2) = 4;
-  A(1, 3) = 4;
-  A(2, 0) = 1;
-  A(2, 1) = 2;
-  A(2, 2) = 5;
-  A(2, 3) = 1;
-  A(3, 0) = 7;
-  A(3, 1) = 2;
-  A(3, 2) = 4;
-  A(3, 3) = 3;
+  A[0, 0] = 1;
+  A[0, 1] = 3;
+  A[0, 2] = 5;
+  A[0, 3] = 6;
+  A[1, 0] = 2;
+  A[1, 1] = 3;
+  A[1, 2] = 4;
+  A[1, 3] = 4;
+  A[2, 0] = 1;
+  A[2, 1] = 2;
+  A[2, 2] = 5;
+  A[2, 3] = 1;
+  A[3, 0] = 7;
+  A[3, 1] = 2;
+  A[3, 2] = 4;
+  A[3, 3] = 3;
 
   /* set parameter for accuracy */
   Index q = 8;
@@ -371,7 +371,7 @@ void test_matrix_exp4D(void) {
   cout << "\n Exponential of Matrix K";
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
-    for (Index j = 0; j < 4; j++) cout << " " << F(i, j);
+    for (Index j = 0; j < 4; j++) cout << " " << F[i, j];
   }
   cout << "\n";
 }
@@ -383,7 +383,7 @@ void test_matrix_exp4D(void) {
 void test_matrix_exp1D(void) {
   Matrix A(1, 1);
   Matrix F(1, 1);
-  A(0, 0) = 5;
+  A[0, 0] = 5;
 
   /* set parameter for accuracy */
   Index q = 8;
@@ -392,7 +392,7 @@ void test_matrix_exp1D(void) {
   matrix_exp(F, A, q);
 
   cout << "\n Exponential of Matrix A:\n";
-  cout << F(0, 0);
+  cout << F[0, 0];
   cout << "\n";
 }
 
@@ -403,15 +403,15 @@ void test_matrix_exp1D(void) {
 void test_matrix_exp3D(void) {
   Matrix A(3, 3);
   Matrix F(3, 3);
-  A(0, 0) = 1;
-  A(0, 1) = 3;
-  A(0, 2) = 5;
-  A(1, 0) = 2;
-  A(1, 1) = 3;
-  A(1, 2) = 4;
-  A(2, 0) = 1;
-  A(2, 1) = 2;
-  A(2, 2) = 5;
+  A[0, 0] = 1;
+  A[0, 1] = 3;
+  A[0, 2] = 5;
+  A[1, 0] = 2;
+  A[1, 1] = 3;
+  A[1, 2] = 4;
+  A[2, 0] = 1;
+  A[2, 1] = 2;
+  A[2, 2] = 5;
 
   /* set parameter for accuracy */
   Index q = 8;
@@ -422,7 +422,7 @@ void test_matrix_exp3D(void) {
   cout << "\n Exponential of Matrix A";
   for (Index i = 0; i < 3; i++) {
     cout << "\n";
-    for (Index j = 0; j < 3; j++) cout << " " << F(i, j);
+    for (Index j = 0; j < 3; j++) cout << " " << F[i, j];
   }
   cout << "\n";
 }
@@ -463,7 +463,7 @@ void test_real_diagonalize(Index ntests, Index dim) {
 
     // Minus W as diagonal matrix
     for (Index j = 0; j < dim; j++) {
-      tmp1(j, j) -= Wr[j];
+      tmp1[j, j] -= Wr[j];
     }
 
     err2 = get_maximum_error(ZEROES, tmp1, false);
@@ -502,7 +502,7 @@ void test_complex_diagonalize(Index ntests, Index dim) {
 
     // Minus W as diagonal matrix
     for (Index j = 0; j < dim; j++) {
-      tmp1(j, j) -= W[j];
+      tmp1[j, j] -= W[j];
     }
 
     err = get_maximum_error(ZEROES, tmp1, false);

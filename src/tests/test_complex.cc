@@ -64,11 +64,11 @@ void test01() {
   ComplexVector X2(4);
   ComplexMatrix C(4, 4);
   for (Index i = 0; i < 4; i++) {
-    X1(i, 0) = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
+    X1[i, 0] = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
     X2[i] = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
     for (Index j = 0; j < 4; j++) {
-      A(i, j) = Complex((Numeric)i + (Numeric)j, 0.0) + Complex(1.0, 1.0);
-      B(i, j) =
+      A[i, j] = Complex((Numeric)i + (Numeric)j, 0.0) + Complex(1.0, 1.0);
+      B[i, j] =
           Complex(2.0 * (Numeric)i + 4.0 * (Numeric)j, 0.0) + Complex(3.0, 3.0);
     }
   }
@@ -83,16 +83,16 @@ void test01() {
   std::cout
       << "Same matrix can be both input and output, here is the above to the power of 4:\n"
       << matpack::eigen::mat(C) << "\n\n";
-  mult(C(joker, 1), A, X2);
+  mult(C[joker, 1], A, X2);
   std::cout << matpack::eigen::mat(A) << "\nx\n"
             << matpack::eigen::row_vec(X2) << "\n=\n"
-            << matpack::eigen::row_vec(C(joker, 1)) << "\n\n";
-  mult(C(Range(1, 3), Range(0, 3)),
-       A(Range(1, 3), Range(1, 2)),
-       B(Range(1, 2), Range(1, 3)));
-  std::cout << matpack::eigen::mat(A(Range(1, 3), Range(1, 2))) << "\nx\n"
-            << matpack::eigen::mat(B(Range(1, 2), Range(1, 3))) << "\n=\n"
-            << matpack::eigen::mat(C(Range(1, 3), Range(0, 3))) << "\n\n";
+            << matpack::eigen::row_vec(C[joker, 1]) << "\n\n";
+  mult(C[Range(1, 3), Range(0, 3)],
+       A[Range(1, 3), Range(1, 2)],
+       B[Range(1, 2), Range(1, 3)]);
+  std::cout << matpack::eigen::mat(A[Range(1, 3), Range(1, 2)]) << "\nx\n"
+            << matpack::eigen::mat(B[Range(1, 2), Range(1, 3)]) << "\n=\n"
+            << matpack::eigen::mat(C[Range(1, 3), Range(0, 3)]) << "\n\n";
 }
 
 void test02() {
@@ -173,7 +173,7 @@ void test03()
   ComplexMatrix M(n, n);
   for (Index i=0; i<n; i++)
     for (Index j=0; j<n; j++)
-      M(i, j) = Complex(Numeric(i), Numeric(j+2*n));
+      M[i, j] = Complex(Numeric(i), Numeric(j+2*n));
   const ComplexMatrix cM=M;
   
   std::cout<<"Vector: ";
@@ -204,36 +204,36 @@ void test03()
   std::cout<<"RowView Matrix\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"Matrix("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(M(row,r)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(M(row,r).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(M(row,r).imag()).transpose()<<'\n';
+    std::cout<<"Matrix("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(M[row,r]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(M[row,r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(M[row,r].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"ColView Matrix\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"Matrix("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(M(r, col)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(M(r, col).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(M(r, col).imag()).transpose()<<'\n';
+    std::cout<<"Matrix("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(M[r, col]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(M[r, col].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(M[r, col].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"RowView Matrix-transpose\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"transpose(Matrix)("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(transpose(M)(row,r)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(M)(row,r).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(M)(row,r).imag()).transpose()<<'\n';
+    std::cout<<"transpose(Matrix)("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(transpose(M)[row,r]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(M)[row,r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(M)[row,r].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"ColView Matrix transpose\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"transpose(Matrix)("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(transpose(M)(r, col)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(M)(r, col).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(M)(r, col).imag()).transpose()<<'\n';
+    std::cout<<"transpose(Matrix)("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(transpose(M)[r, col]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(M)[r, col].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(M)[r, col].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
@@ -241,9 +241,9 @@ void test03()
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto rr: ranges) {
     for (auto rc: ranges) {
-      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(M(rr,rc)).transpose()<<'\n';
-      std::cout<<"Real:\n"<<matpack::eigen::mat(M(rr,rc).real()).transpose()<<'\n';
-      std::cout<<"Imag:\n"<<matpack::eigen::mat(M(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(M[rr,rc]).transpose()<<'\n';
+      std::cout<<"Real:\n"<<matpack::eigen::mat(M[rr,rc].real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<matpack::eigen::mat(M[rr,rc].imag()).transpose()<<'\n';
       std::cout<<"---------------------------------------------------\n";
     }
   }
@@ -252,9 +252,9 @@ void test03()
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto rr: ranges) {
     for (auto rc: ranges) {
-      std::cout<<"transpose(Matrix)("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(transpose(M)(rr,rc)).transpose()<<'\n';
-      std::cout<<"Real:\n"<<matpack::eigen::mat(transpose(M)(rr,rc).real()).transpose()<<'\n';
-      std::cout<<"Imag:\n"<<matpack::eigen::mat(transpose(M)(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"transpose(Matrix)("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(transpose(M)[rr,rc]).transpose()<<'\n';
+      std::cout<<"Real:\n"<<matpack::eigen::mat(transpose(M)[rr,rc].real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<matpack::eigen::mat(transpose(M)[rr,rc].imag()).transpose()<<'\n';
       std::cout<<"---------------------------------------------------\n";
     }
   }
@@ -262,36 +262,36 @@ void test03()
   std::cout<<"RowView Matrix const\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"const Matrix("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(cM(row,r)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(cM(row,r).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(cM(row,r).imag()).transpose()<<'\n';
+    std::cout<<"const Matrix("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(cM[row,r]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(cM[row,r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(cM[row,r].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"ColView Matrix const\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"const Matrix("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(cM(r, col)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(cM(r, col).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(cM(r, col).imag()).transpose()<<'\n';
+    std::cout<<"const Matrix("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(cM[r, col]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(cM[r, col].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(cM[r, col].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"RowView Matrix-transpose const\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"transpose(const Matrix)("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(transpose(cM)(row,r)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(cM)(row,r).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(cM)(row,r).imag()).transpose()<<'\n';
+    std::cout<<"transpose(const Matrix)("<<row<<", "<<r<<"): "<<matpack::eigen::row_vec(transpose(cM)[row,r]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(cM)[row,r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(cM)[row,r].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   std::cout<<"ColView Matrix-transpose const\n";
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto r: ranges) {
-    std::cout<<"transpose(const Matrix)("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(transpose(cM)(r, col)).transpose()<<'\n';
-    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(cM)(r, col).real()).transpose()<<'\n';
-    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(cM)(r, col).imag()).transpose()<<'\n';
+    std::cout<<"transpose(const Matrix)("<<r<<", "<<col<<"): "<<matpack::eigen::row_vec(transpose(cM)[r, col]).transpose()<<'\n';
+    std::cout<<"Real: "<<matpack::eigen::row_vec(transpose(cM)[r, col].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<matpack::eigen::row_vec(transpose(cM)[r, col].imag()).transpose()<<'\n';
     std::cout<<"---------------------------------------------------\n";
   }
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
@@ -299,9 +299,9 @@ void test03()
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto rr: ranges) {
     for (auto rc: ranges) {
-      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(M(rr,rc)).transpose()<<'\n';
-      std::cout<<"Real:\n"<<matpack::eigen::mat(M(rr,rc).real()).transpose()<<'\n';
-      std::cout<<"Imag:\n"<<matpack::eigen::mat(M(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(M[rr,rc]).transpose()<<'\n';
+      std::cout<<"Real:\n"<<matpack::eigen::mat(M[rr,rc].real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<matpack::eigen::mat(M[rr,rc].imag()).transpose()<<'\n';
       std::cout<<"---------------------------------------------------\n";
     }
   }
@@ -310,9 +310,9 @@ void test03()
   std::cout<<"----------------------------------------------------------------------------------------------------\n";
   for (auto rr: ranges) {
     for (auto rc: ranges) {
-      std::cout<<"transpose(const Matrix)("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(transpose(cM)(rr,rc)).transpose()<<'\n';
-      std::cout<<"Real:\n"<<matpack::eigen::mat(transpose(cM)(rr,rc).real()).transpose()<<'\n';
-      std::cout<<"Imag:\n"<<matpack::eigen::mat(transpose(cM)(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"transpose(const Matrix)("<<rr<<", "<<rc<<"):\n"<<matpack::eigen::mat(transpose(cM)[rr,rc]).transpose()<<'\n';
+      std::cout<<"Real:\n"<<matpack::eigen::mat(transpose(cM)[rr,rc].real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<matpack::eigen::mat(transpose(cM)[rr,rc].imag()).transpose()<<'\n';
       std::cout<<"---------------------------------------------------\n";
     }
   }

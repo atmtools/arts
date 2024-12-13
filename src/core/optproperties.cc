@@ -171,15 +171,15 @@ void opt_prop_ScatSpecBulk(   //Output
       ARTS_ASSERT(nT == abs_vec_se[i_ss][i_se].npages());
 
       for (Index Tind = 0; Tind < nT; Tind++) {
-        if (pnds(i_se_flat, Tind) != 0.) {
-          if (t_ok(i_se_flat, Tind) > 0.) {
-            ext_tmp  = ext_mat_se[i_ss][i_se](joker, Tind, joker, joker, joker);
-            ext_tmp *= pnds(i_se_flat, Tind);
-            ext_mat[i_ss](joker, Tind, joker, joker, joker) += ext_tmp;
+        if (pnds[i_se_flat, Tind] != 0.) {
+          if (t_ok[i_se_flat, Tind] > 0.) {
+            ext_tmp  = ext_mat_se[i_ss][i_se][joker, Tind, joker, joker, joker];
+            ext_tmp *= pnds[i_se_flat, Tind];
+            ext_mat[i_ss][joker, Tind, joker, joker, joker] += ext_tmp;
 
-            abs_tmp  = abs_vec_se[i_ss][i_se](joker, Tind, joker, joker);
-            abs_tmp *= pnds(i_se_flat, Tind);
-            abs_vec[i_ss](joker, Tind, joker, joker) += abs_tmp;
+            abs_tmp  = abs_vec_se[i_ss][i_se][joker, Tind, joker, joker];
+            abs_tmp *= pnds[i_se_flat, Tind];
+            abs_vec[i_ss][joker, Tind, joker, joker] += abs_tmp;
           } else {
             ARTS_USER_ERROR(
                 "Interpolation error for (flat-array) scattering element #{}\nat location/temperature point #{}\n",
@@ -274,7 +274,7 @@ void opt_prop_NScatElems(            //Output
       opt_prop_1ScatElem(ext_mat[i_ss][i_se],
                          abs_vec[i_ss][i_se],
                          ptypes[i_ss][i_se],
-                         t_ok(i_se_flat, joker),
+                         t_ok[i_se_flat, joker],
                          scat_data[i_ss][i_se],
                          T_array,
                          dir_array,
@@ -467,17 +467,17 @@ void opt_prop_1ScatElem(  //Output
       Tensor3 ext_mat_tmp(nf, 4, 4);
       Matrix abs_vec_tmp(nf, 4);
       for (Index find = 0; find < nf; find++) {
-        ext_mat_SSD2Stokes(ext_mat_tmp(find, joker, joker),
-                           ssd.ext_mat_data(find + f_start, 0, 0, 0, joker),
+        ext_mat_SSD2Stokes(ext_mat_tmp[find, joker, joker],
+                           ssd.ext_mat_data[find + f_start, 0, 0, 0, joker],
                            ptype);
-        abs_vec_SSD2Stokes(abs_vec_tmp(find, joker),
-                           ssd.abs_vec_data(find + f_start, 0, 0, 0, joker),
+        abs_vec_SSD2Stokes(abs_vec_tmp[find, joker],
+                           ssd.abs_vec_data[find + f_start, 0, 0, 0, joker],
                            ptype);
       }
       for (Index Tind = 0; Tind < nTout; Tind++)
         for (Index dind = 0; dind < nDir; dind++) {
-          ext_mat(joker, Tind, dind, joker, joker) = ext_mat_tmp;
-          abs_vec(joker, Tind, dind, joker)        = abs_vec_tmp;
+          ext_mat[joker, Tind, dind, joker, joker] = ext_mat_tmp;
+          abs_vec[joker, Tind, dind, joker]        = abs_vec_tmp;
         }
     } else  // T-interpolation required (but not dir). To be done on the compact
             // ssd format.
@@ -488,37 +488,37 @@ void opt_prop_1ScatElem(  //Output
       Matrix abs_vec_tmp_ssd(nTout, ssd.abs_vec_data.ncols());
       for (Index find = 0; find < nf; find++) {
         for (Index nst = 0; nst < ext_mat_tmp_ssd.ncols(); nst++) {
-          reinterp(ext_mat_tmp_ssd(joker, nst),
-                   ssd.ext_mat_data(find + f_start, joker, 0, 0, nst),
+          reinterp(ext_mat_tmp_ssd[joker, nst],
+                   ssd.ext_mat_data[find + f_start, joker, 0, 0, nst],
                    T_itw_lag,
                    T_lag);
         }
         for (Index Tind = 0; Tind < nTout; Tind++)
           if (t_ok[Tind] > 0.)
-            ext_mat_SSD2Stokes(ext_mat_tmp(find, Tind, joker, joker),
-                               ext_mat_tmp_ssd(Tind, joker),
+            ext_mat_SSD2Stokes(ext_mat_tmp[find, Tind, joker, joker],
+                               ext_mat_tmp_ssd[Tind, joker],
                                ptype);
           else
-            ext_mat_tmp(find, Tind, joker, joker) = 0.;
+            ext_mat_tmp[find, Tind, joker, joker] = 0.;
 
         for (Index nst = 0; nst < abs_vec_tmp_ssd.ncols(); nst++) {
-          reinterp(abs_vec_tmp_ssd(joker, nst),
-                   ssd.abs_vec_data(find + f_start, joker, 0, 0, nst),
+          reinterp(abs_vec_tmp_ssd[joker, nst],
+                   ssd.abs_vec_data[find + f_start, joker, 0, 0, nst],
                    T_itw_lag,
                    T_lag);
         }
         for (Index Tind = 0; Tind < nTout; Tind++)
           if (t_ok[Tind] > 0.)
-            abs_vec_SSD2Stokes(abs_vec_tmp(find, Tind, joker),
-                               abs_vec_tmp_ssd(Tind, joker),
+            abs_vec_SSD2Stokes(abs_vec_tmp[find, Tind, joker],
+                               abs_vec_tmp_ssd[Tind, joker],
                                ptype);
           else
-            abs_vec_tmp(find, Tind, joker) = 0.;
+            abs_vec_tmp[find, Tind, joker] = 0.;
       }
 
       for (Index dind = 0; dind < nDir; dind++) {
-        ext_mat(joker, joker, dind, joker, joker) = ext_mat_tmp;
-        abs_vec(joker, joker, dind, joker)        = abs_vec_tmp;
+        ext_mat[joker, joker, dind, joker, joker] = ext_mat_tmp;
+        abs_vec[joker, joker, dind, joker]        = abs_vec_tmp;
       }
     }
 
@@ -533,7 +533,7 @@ void opt_prop_1ScatElem(  //Output
 
     // derive the direction interpolation weights.
     ArrayOfGridPos dir_gp(nDir);
-    gridpos(dir_gp, ssd.za_grid, dir_array(joker, 0));
+    gridpos(dir_gp, ssd.za_grid, dir_array[joker, 0]);
     Matrix dir_itw(nDir, 2);  // only interpolating in za, ie 1D linear interpol
     interpweights(dir_itw, dir_gp);
 
@@ -548,29 +548,29 @@ void opt_prop_1ScatElem(  //Output
       Tensor3 abs_vec_tmp(nf, nDir, 4);
       for (Index find = 0; find < nf; find++) {
         for (Index nst = 0; nst < next; nst++)
-          interp(ext_mat_tmp_ssd(joker, nst),
+          interp(ext_mat_tmp_ssd[joker, nst],
                  dir_itw,
-                 ssd.ext_mat_data(find + f_start, 0, joker, 0, nst),
+                 ssd.ext_mat_data[find + f_start, 0, joker, 0, nst],
                  dir_gp);
         for (Index Dind = 0; Dind < nDir; Dind++)
-          ext_mat_SSD2Stokes(ext_mat_tmp(find, Dind, joker, joker),
-                             ext_mat_tmp_ssd(Dind, joker),
+          ext_mat_SSD2Stokes(ext_mat_tmp[find, Dind, joker, joker],
+                             ext_mat_tmp_ssd[Dind, joker],
                              ptype);
 
         for (Index nst = 0; nst < nabs; nst++)
-          interp(abs_vec_tmp_ssd(joker, nst),
+          interp(abs_vec_tmp_ssd[joker, nst],
                  dir_itw,
-                 ssd.abs_vec_data(find + f_start, 0, joker, 0, nst),
+                 ssd.abs_vec_data[find + f_start, 0, joker, 0, nst],
                  dir_gp);
         for (Index Dind = 0; Dind < nDir; Dind++)
-          abs_vec_SSD2Stokes(abs_vec_tmp(find, Dind, joker),
-                             abs_vec_tmp_ssd(Dind, joker),
+          abs_vec_SSD2Stokes(abs_vec_tmp[find, Dind, joker],
+                             abs_vec_tmp_ssd[Dind, joker],
                              ptype);
       }
 
       for (Index Tind = 0; Tind < nTout; Tind++) {
-        ext_mat(joker, Tind, joker, joker, joker) = ext_mat_tmp;
-        abs_vec(joker, Tind, joker, joker)        = abs_vec_tmp;
+        ext_mat[joker, Tind, joker, joker, joker] = ext_mat_tmp;
+        abs_vec[joker, Tind, joker, joker]        = abs_vec_tmp;
       }
     } else  // T- and dir-interpolation required. To be done on the compact ssd
             // format.
@@ -583,38 +583,38 @@ void opt_prop_1ScatElem(  //Output
       for (Index find = 0; find < nf; find++) {
         for (Index Tind = 0; Tind < nTin; Tind++) {
           for (Index nst = 0; nst < next; nst++)
-            interp(ext_mat_tmp_ssd(Tind, joker, nst),
+            interp(ext_mat_tmp_ssd[Tind, joker, nst],
                    dir_itw,
-                   ssd.ext_mat_data(find + f_start, Tind, joker, 0, nst),
+                   ssd.ext_mat_data[find + f_start, Tind, joker, 0, nst],
                    dir_gp);
           for (Index nst = 0; nst < nabs; nst++)
-            interp(abs_vec_tmp_ssd(Tind, joker, nst),
+            interp(abs_vec_tmp_ssd[Tind, joker, nst],
                    dir_itw,
-                   ssd.abs_vec_data(find + f_start, Tind, joker, 0, nst),
+                   ssd.abs_vec_data[find + f_start, Tind, joker, 0, nst],
                    dir_gp);
         }
 
         for (Index Dind = 0; Dind < nDir; Dind++) {
           for (Index nst = 0; nst < next; nst++) {
-            reinterp(ext_mat_tmp(joker, nst),
-                     ext_mat_tmp_ssd(joker, Dind, nst),
+            reinterp(ext_mat_tmp[joker, nst],
+                     ext_mat_tmp_ssd[joker, Dind, nst],
                      T_itw_lag,
                      T_lag);
           }
           for (Index Tind = 0; Tind < nTout; Tind++)
-            ext_mat_SSD2Stokes(ext_mat(find, Tind, Dind, joker, joker),
-                               ext_mat_tmp(Tind, joker),
+            ext_mat_SSD2Stokes(ext_mat[find, Tind, Dind, joker, joker],
+                               ext_mat_tmp[Tind, joker],
                                ptype);
 
           for (Index nst = 0; nst < nabs; nst++) {
-            reinterp(abs_vec_tmp(joker, nst),
-                     abs_vec_tmp_ssd(joker, Dind, nst),
+            reinterp(abs_vec_tmp[joker, nst],
+                     abs_vec_tmp_ssd[joker, Dind, nst],
                      T_itw_lag,
                      T_lag);
           }
           for (Index Tind = 0; Tind < nTout; Tind++)
-            abs_vec_SSD2Stokes(abs_vec(find, Tind, Dind, joker),
-                               abs_vec_tmp(Tind, joker),
+            abs_vec_SSD2Stokes(abs_vec[find, Tind, Dind, joker],
+                               abs_vec_tmp[Tind, joker],
                                ptype);
         }
       }
@@ -647,14 +647,14 @@ void ext_mat_SSD2Stokes(  //Output
   ext_mat_stokes = 0.;
 
   for (Index ist = 0; ist < 4; ist++) {
-    ext_mat_stokes(ist, ist) = ext_mat_ssd[0];
+    ext_mat_stokes[ist, ist] = ext_mat_ssd[0];
   }
 
   if (ptype > PTYPE_TOTAL_RND) {
-    ext_mat_stokes(2, 3) = ext_mat_ssd[2];
-    ext_mat_stokes(3, 2) = -ext_mat_ssd[2];
-    ext_mat_stokes(0, 1) = ext_mat_ssd[1];
-    ext_mat_stokes(1, 0) = ext_mat_ssd[1];
+    ext_mat_stokes[2, 3] = ext_mat_ssd[2];
+    ext_mat_stokes[3, 2] = -ext_mat_ssd[2];
+    ext_mat_stokes[0, 1] = ext_mat_ssd[1];
+    ext_mat_stokes[1, 0] = ext_mat_ssd[1];
   }
 }
 
@@ -780,12 +780,12 @@ void pha_mat_ScatSpecBulk(    //Output
       ARTS_ASSERT(nT == pha_mat_se[i_ss][i_se].nshelves());
 
       for (Index Tind = 0; Tind < nT; Tind++) {
-        if (pnds(i_se_flat, Tind) != 0.) {
-          if (t_ok(i_se_flat, Tind) > 0.) {
+        if (pnds[i_se_flat, Tind] != 0.) {
+          if (t_ok[i_se_flat, Tind] > 0.) {
             pha_tmp =
-                pha_mat_se[i_ss][i_se](joker, Tind, joker, joker, joker, joker);
-            pha_tmp *= pnds(i_se_flat, Tind);
-            pha_mat[i_ss](joker, Tind, joker, joker, joker, joker) += pha_tmp;
+                pha_mat_se[i_ss][i_se][joker, Tind, joker, joker, joker, joker];
+            pha_tmp *= pnds[i_se_flat, Tind];
+            pha_mat[i_ss][joker, Tind, joker, joker, joker, joker] += pha_tmp;
           } else {
             ARTS_USER_ERROR(
                 "Interpolation error for (flat-array) scattering element #{}\nat location/temperature point #{}\n",
@@ -878,7 +878,7 @@ void pha_mat_NScatElems(             //Output
 
       pha_mat_1ScatElem(pha_mat[i_ss][i_se],
                         ptypes[i_ss][i_se],
-                        t_ok(i_se_flat, joker),
+                        t_ok[i_se_flat, joker],
                         scat_data[i_ss][i_se],
                         T_array,
                         pdir_array,
@@ -970,10 +970,10 @@ void pha_mat_1ScatElem(   //Output
       for (Index pdir = 0; pdir < npDir; pdir++)
         for (Index idir = 0; idir < niDir; idir++) {
           // calc scat ang theta from incident and prop dirs
-          Numeric theta = scat_angle(pdir_array(pdir, 0),
-                                     pdir_array(pdir, 1),
-                                     idir_array(idir, 0),
-                                     idir_array(idir, 1));
+          Numeric theta = scat_angle(pdir_array[pdir, 0],
+                                     pdir_array[pdir, 1],
+                                     idir_array[idir, 0],
+                                     idir_array[idir, 1]);
 
           // get scat angle interpolation weights
           GridPos dir_gp;
@@ -988,20 +988,20 @@ void pha_mat_1ScatElem(   //Output
             for (Index nst = 0; nst < npha; nst++)
               pha_mat_int[nst] = interp(
                   dir_itw,
-                  ssd.pha_mat_data(find + f_start, 0, joker, 0, 0, 0, nst),
+                  ssd.pha_mat_data[find + f_start, 0, joker, 0, 0, 0, nst],
                   dir_gp);
 
             // convert from scat to lab frame
-            pha_mat_labCalc(pha_mat_tmp(joker, joker),
+            pha_mat_labCalc(pha_mat_tmp[joker, joker],
                             pha_mat_int,
-                            pdir_array(pdir, 0),
-                            pdir_array(pdir, 1),
-                            idir_array(idir, 0),
-                            idir_array(idir, 1),
+                            pdir_array[pdir, 0],
+                            pdir_array[pdir, 1],
+                            idir_array[idir, 0],
+                            idir_array[idir, 1],
                             theta);
 
             for (Index Tind = 0; Tind < nTout; Tind++)
-              pha_mat(find, Tind, pdir, idir, joker, joker) = pha_mat_tmp;
+              pha_mat[find, Tind, pdir, idir, joker, joker] = pha_mat_tmp;
           }
         }
     } else  // T-interpolation required. To be done on the compact ssd format.
@@ -1009,10 +1009,10 @@ void pha_mat_1ScatElem(   //Output
       for (Index pdir = 0; pdir < npDir; pdir++)
         for (Index idir = 0; idir < niDir; idir++) {
           // calc scat ang theta from incident and prop dirs
-          Numeric theta = scat_angle(pdir_array(pdir, 0),
-                                     pdir_array(pdir, 1),
-                                     idir_array(idir, 0),
-                                     idir_array(idir, 1));
+          Numeric theta = scat_angle(pdir_array[pdir, 0],
+                                     pdir_array[pdir, 1],
+                                     idir_array[idir, 0],
+                                     idir_array[idir, 1]);
 
           // get scat angle interpolation weights
           GridPos dir_gp;
@@ -1026,15 +1026,15 @@ void pha_mat_1ScatElem(   //Output
             for (Index Tind = 0; Tind < nTin; Tind++)
               // perform the scat angle interpolation
               for (Index nst = 0; nst < npha; nst++) {
-                pha_mat_int(Tind, nst) = interp(
+                pha_mat_int[Tind, nst] = interp(
                     dir_itw,
-                    ssd.pha_mat_data(find + f_start, Tind, joker, 0, 0, 0, nst),
+                    ssd.pha_mat_data[find + f_start, Tind, joker, 0, 0, 0, nst],
                     dir_gp);
               }
             // perform the T-interpolation
             for (Index nst = 0; nst < npha; nst++) {
-              reinterp(pha_mat_tmp(joker, nst),
-                       pha_mat_int(joker, nst),
+              reinterp(pha_mat_tmp[joker, nst],
+                       pha_mat_int[joker, nst],
                        T_itw_lag,
                        T_lag);
             }
@@ -1045,12 +1045,12 @@ void pha_mat_1ScatElem(   //Output
             // should be faster.)
             for (Index Tind = 0; Tind < nTout; Tind++) {
               // convert from scat to lab frame
-              pha_mat_labCalc(pha_mat(find, Tind, pdir, idir, joker, joker),
-                              pha_mat_tmp(Tind, joker),
-                              pdir_array(pdir, 0),
-                              pdir_array(pdir, 1),
-                              idir_array(idir, 0),
-                              idir_array(idir, 1),
+              pha_mat_labCalc(pha_mat[find, Tind, pdir, idir, joker, joker],
+                              pha_mat_tmp[Tind, joker],
+                              pdir_array[pdir, 0],
+                              pdir_array[pdir, 1],
+                              idir_array[idir, 0],
+                              idir_array[idir, 1],
                               theta);
             }
           }
@@ -1066,17 +1066,17 @@ void pha_mat_1ScatElem(   //Output
     ArrayOfGridPos daa_gp(nDir), pza_gp(nDir), iza_gp(nDir);
     ArrayOfGridPos pza_gp_tmp(npDir), iza_gp_tmp(niDir);
 
-    gridpos(pza_gp_tmp, ssd.za_grid, pdir_array(joker, 0));
-    gridpos(iza_gp_tmp, ssd.za_grid, idir_array(joker, 0));
+    gridpos(pza_gp_tmp, ssd.za_grid, pdir_array[joker, 0]);
+    gridpos(iza_gp_tmp, ssd.za_grid, idir_array[joker, 0]);
 
     Index j = 0;
     for (Index pdir = 0; pdir < npDir; pdir++) {
       for (Index idir = 0; idir < niDir; idir++) {
-        delta_aa(pdir, idir) =
-            pdir_array(pdir, 1) - idir_array(idir, 1) +
-            (pdir_array(pdir, 1) - idir_array(idir, 1) < -180) * 360 -
-            (pdir_array(pdir, 1) - idir_array(idir, 1) > 180) * 360;
-        adelta_aa[j] = abs(delta_aa(pdir, idir));
+        delta_aa[pdir, idir] =
+            pdir_array[pdir, 1] - idir_array[idir, 1] +
+            (pdir_array[pdir, 1] - idir_array[idir, 1] < -180) * 360 -
+            (pdir_array[pdir, 1] - idir_array[idir, 1] > 180) * 360;
+        adelta_aa[j] = abs(delta_aa[pdir, idir]);
         pza_gp[j]    = pza_gp_tmp[pdir];
         iza_gp[j]    = iza_gp_tmp[idir];
         j++;
@@ -1100,10 +1100,10 @@ void pha_mat_1ScatElem(   //Output
         for (Index ist1 = 0; ist1 < 4; ist1++)
           for (Index ist2 = 0; ist2 < 4; ist2++)
             interp(
-                pha_mat_int(joker, ist1, ist2),
+                pha_mat_int[joker, ist1, ist2],
                 dir_itw,
-                ssd.pha_mat_data(
-                    find + f_start, 0, joker, joker, joker, 0, ist1 * 4 + ist2),
+                ssd.pha_mat_data[
+                    find + f_start, 0, joker, joker, joker, 0, ist1 * 4 + ist2],
                 pza_gp,
                 daa_gp,
                 iza_gp);
@@ -1113,31 +1113,31 @@ void pha_mat_1ScatElem(   //Output
         Index i = 0;
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++) {
-            pha_mat_tmp(pdir, idir, joker, joker) =
-                pha_mat_int(i, joker, joker);
+            pha_mat_tmp[pdir, idir, joker, joker] =
+                pha_mat_int[i, joker, joker];
             i++;
           }
 
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++)
-            if (delta_aa(pdir, idir) < 0.) {
-              pha_mat_tmp(pdir, idir, 0, 2) *= -1;
-              pha_mat_tmp(pdir, idir, 1, 2) *= -1;
-              pha_mat_tmp(pdir, idir, 2, 0) *= -1;
-              pha_mat_tmp(pdir, idir, 2, 1) *= -1;
+            if (delta_aa[pdir, idir] < 0.) {
+              pha_mat_tmp[pdir, idir, 0, 2] *= -1;
+              pha_mat_tmp[pdir, idir, 1, 2] *= -1;
+              pha_mat_tmp[pdir, idir, 2, 0] *= -1;
+              pha_mat_tmp[pdir, idir, 2, 1] *= -1;
             }
 
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++)
-            if (delta_aa(pdir, idir) < 0.) {
-              pha_mat_tmp(pdir, idir, 0, 3) *= -1;
-              pha_mat_tmp(pdir, idir, 1, 3) *= -1;
-              pha_mat_tmp(pdir, idir, 3, 0) *= -1;
-              pha_mat_tmp(pdir, idir, 3, 1) *= -1;
+            if (delta_aa[pdir, idir] < 0.) {
+              pha_mat_tmp[pdir, idir, 0, 3] *= -1;
+              pha_mat_tmp[pdir, idir, 1, 3] *= -1;
+              pha_mat_tmp[pdir, idir, 3, 0] *= -1;
+              pha_mat_tmp[pdir, idir, 3, 1] *= -1;
             }
 
         for (Index Tind = 0; Tind < nTout; Tind++)
-          pha_mat(find, Tind, joker, joker, joker, joker) = pha_mat_tmp;
+          pha_mat[find, Tind, joker, joker, joker, joker] = pha_mat_tmp;
       }
     }
 
@@ -1152,15 +1152,15 @@ void pha_mat_1ScatElem(   //Output
         for (Index Tind = 0; Tind < nTin; Tind++) {
           for (Index ist1 = 0; ist1 < 4; ist1++)
             for (Index ist2 = 0; ist2 < 4; ist2++)
-              interp(pha_mat_int(Tind, joker, ist1, ist2),
+              interp(pha_mat_int[Tind, joker, ist1, ist2],
                      dir_itw,
-                     ssd.pha_mat_data(find + f_start,
+                     ssd.pha_mat_data[find + f_start,
                                       Tind,
                                       joker,
                                       joker,
                                       joker,
                                       0,
-                                      ist1 * 4 + ist2),
+                                      ist1 * 4 + ist2],
                      pza_gp,
                      daa_gp,
                      iza_gp);
@@ -1174,8 +1174,8 @@ void pha_mat_1ScatElem(   //Output
           for (Index idir = 0; idir < niDir; idir++) {
             for (Index ist1 = 0; ist1 < 4; ist1++)
               for (Index ist2 = 0; ist2 < 4; ist2++)
-                reinterp(pha_mat(find, joker, pdir, idir, ist1, ist2),
-                         pha_mat_int(joker, i, ist1, ist2),
+                reinterp(pha_mat[find, joker, pdir, idir, ist1, ist2],
+                         pha_mat_int[joker, i, ist1, ist2],
                          T_itw_lag,
                          T_lag);
             i++;
@@ -1183,20 +1183,20 @@ void pha_mat_1ScatElem(   //Output
 
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++)
-            if (delta_aa(pdir, idir) < 0.) {
-              pha_mat(find, joker, pdir, idir, 0, 2) *= -1;
-              pha_mat(find, joker, pdir, idir, 1, 2) *= -1;
-              pha_mat(find, joker, pdir, idir, 2, 0) *= -1;
-              pha_mat(find, joker, pdir, idir, 2, 1) *= -1;
+            if (delta_aa[pdir, idir] < 0.) {
+              pha_mat[find, joker, pdir, idir, 0, 2] *= -1;
+              pha_mat[find, joker, pdir, idir, 1, 2] *= -1;
+              pha_mat[find, joker, pdir, idir, 2, 0] *= -1;
+              pha_mat[find, joker, pdir, idir, 2, 1] *= -1;
             }
 
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++)
-            if (delta_aa(pdir, idir) < 0.) {
-              pha_mat(find, joker, pdir, idir, 0, 3) *= -1;
-              pha_mat(find, joker, pdir, idir, 1, 3) *= -1;
-              pha_mat(find, joker, pdir, idir, 3, 0) *= -1;
-              pha_mat(find, joker, pdir, idir, 3, 1) *= -1;
+            if (delta_aa[pdir, idir] < 0.) {
+              pha_mat[find, joker, pdir, idir, 0, 3] *= -1;
+              pha_mat[find, joker, pdir, idir, 1, 3] *= -1;
+              pha_mat[find, joker, pdir, idir, 3, 0] *= -1;
+              pha_mat[find, joker, pdir, idir, 3, 1] *= -1;
             }
       }
     }
@@ -1254,7 +1254,7 @@ void abs_vecTransform(  //Output and Input
 
       abs_vec_lab = 0.0;
 
-      abs_vec_lab[0].I() = abs_vec_data(0, 0, 0);
+      abs_vec_lab[0].I() = abs_vec_data[0, 0, 0];
       break;
     }
 
@@ -1275,8 +1275,8 @@ void abs_vecTransform(  //Output and Input
 
       abs_vec_lab = 0.0;
 
-      abs_vec_lab[0].I() = interp(itw, abs_vec_data(Range(joker), 0, 0), gp);
-      abs_vec_lab[0].Q() = interp(itw, abs_vec_data(Range(joker), 0, 1), gp);
+      abs_vec_lab[0].I() = interp(itw, abs_vec_data[Range(joker), 0, 0], gp);
+      abs_vec_lab[0].Q() = interp(itw, abs_vec_data[Range(joker), 0, 1], gp);
       break;
     }
     default: {
@@ -1338,7 +1338,7 @@ void ext_matTransform(  //Output and Input
 
       ext_mat_lab = 0.0;
 
-      ext_mat_lab[0].A() = ext_mat_data(0, 0, 0);
+      ext_mat_lab[0].A() = ext_mat_data[0, 0, 0];
       break;
     }
 
@@ -1362,11 +1362,11 @@ void ext_matTransform(  //Output and Input
 
       ext_mat_lab = 0.0;
 
-      Kjj                = interp(itw, ext_mat_data(Range(joker), 0, 0), gp);
+      Kjj                = interp(itw, ext_mat_data[Range(joker), 0, 0], gp);
       ext_mat_lab[0].A() = Kjj;
-      K12                = interp(itw, ext_mat_data(Range(joker), 0, 1), gp);
+      K12                = interp(itw, ext_mat_data[Range(joker), 0, 1], gp);
       ext_mat_lab[0].B() = K12;
-      K34                = interp(itw, ext_mat_data(Range(joker), 0, 2), gp);
+      K34                = interp(itw, ext_mat_data[Range(joker), 0, 2], gp);
       ext_mat_lab[0].W() = K34;
       break;
     }
@@ -1470,156 +1470,156 @@ void pha_matTransform(  //Output
 
         interpweights(itw, za_sca_gp, delta_aa_gp, za_inc_gp);
 
-        pha_mat_lab(0, 0) =
+        pha_mat_lab[0, 0] =
             interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 0),
+                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 0],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
 
-        pha_mat_lab(0, 1) =
+        pha_mat_lab[0, 1] =
             interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 1),
+                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 1],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        pha_mat_lab(1, 0) =
+        pha_mat_lab[1, 0] =
             interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 4),
+                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 4],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        pha_mat_lab(1, 1) =
+        pha_mat_lab[1, 1] =
             interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 5),
+                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 5],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
 
         if (delta_aa >= 0) {
-          pha_mat_lab(0, 2) = interp(
+          pha_mat_lab[0, 2] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 2],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(1, 2) = interp(
+          pha_mat_lab[1, 2] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 6],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(2, 0) = interp(
+          pha_mat_lab[2, 0] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 8],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(2, 1) = interp(
+          pha_mat_lab[2, 1] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 9],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         } else {
-          pha_mat_lab(0, 2) = -interp(
+          pha_mat_lab[0, 2] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 2],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(1, 2) = -interp(
+          pha_mat_lab[1, 2] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 6],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(2, 0) = -interp(
+          pha_mat_lab[2, 0] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 8],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(2, 1) = -interp(
+          pha_mat_lab[2, 1] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 9],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         }
-        pha_mat_lab(2, 2) = interp(
+        pha_mat_lab[2, 2] = interp(
             itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 10),
+            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 10],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
 
         if (delta_aa >= 0) {
-          pha_mat_lab(0, 3) = interp(
+          pha_mat_lab[0, 3] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 3],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(1, 3) = interp(
+          pha_mat_lab[1, 3] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 7],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(3, 0) = interp(
+          pha_mat_lab[3, 0] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 12],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(3, 1) = interp(
+          pha_mat_lab[3, 1] = interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 13],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         } else {
-          pha_mat_lab(0, 3) = -interp(
+          pha_mat_lab[0, 3] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 3],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(1, 3) = -interp(
+          pha_mat_lab[1, 3] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 7],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(3, 0) = -interp(
+          pha_mat_lab[3, 0] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 12],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
-          pha_mat_lab(3, 1) = -interp(
+          pha_mat_lab[3, 1] = -interp(
               itw,
-              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
+              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 13],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         }
-        pha_mat_lab(2, 3) = interp(
+        pha_mat_lab[2, 3] = interp(
             itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 11),
+            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 11],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
-        pha_mat_lab(3, 2) = interp(
+        pha_mat_lab[3, 2] = interp(
             itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 14),
+            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 14],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
-        pha_mat_lab(3, 3) = interp(
+        pha_mat_lab[3, 3] = interp(
             itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 15),
+            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 15],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
@@ -1669,12 +1669,12 @@ void ext_matFromabs_vec(  //Output
 
   // first: diagonal elements
   for (Index is = 0; is < 4; is++) {
-    ext_mat(is, is) += abs_vec[0];
+    ext_mat[is, is] += abs_vec[0];
   }
   // second: off-diagonal elements, namely first row and column
   for (Index is = 1; is < 4; is++) {
-    ext_mat(0, is) += abs_vec[is];
-    ext_mat(is, 0) += abs_vec[is];
+    ext_mat[0, is] += abs_vec[is];
+    ext_mat[is, 0] += abs_vec[is];
   }
 }
 
@@ -1760,7 +1760,7 @@ void interpolate_scat_angle(  //Output:
 
   ARTS_ASSERT(pha_mat_data.ncols() == 6);
   for (Index i = 0; i < 6; i++) {
-    pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), thet_gp);
+    pha_mat_int[i] = interp(itw, pha_mat_data[joker, 0, 0, 0, i], thet_gp);
   }
 }
 
@@ -1810,7 +1810,7 @@ void pha_mat_labCalc(  //Output:
       "when doing MC calculations, it should not be critical. This path "
       "sampling will be rejected and replaced with a new one.");
 
-  pha_mat_lab(0, 0) = F11;
+  pha_mat_lab[0, 0] = F11;
 
   {
     Numeric za_sca_rad = Conversion::deg2rad(za_sca);
@@ -1835,25 +1835,25 @@ void pha_mat_labCalc(  //Output:
         ||
         (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::pi) < ANGTOL_RAD)  //   "
     ) {
-      pha_mat_lab(0, 1) = F12;
-      pha_mat_lab(1, 0) = F12;
-      pha_mat_lab(1, 1) = F22;
+      pha_mat_lab[0, 1] = F12;
+      pha_mat_lab[1, 0] = F12;
+      pha_mat_lab[1, 1] = F22;
 
       {
-        pha_mat_lab(0, 2) = 0;
-        pha_mat_lab(1, 2) = 0;
-        pha_mat_lab(2, 0) = 0;
-        pha_mat_lab(2, 1) = 0;
-        pha_mat_lab(2, 2) = F33;
+        pha_mat_lab[0, 2] = 0;
+        pha_mat_lab[1, 2] = 0;
+        pha_mat_lab[2, 0] = 0;
+        pha_mat_lab[2, 1] = 0;
+        pha_mat_lab[2, 2] = F33;
 
         {
-          pha_mat_lab(0, 3) = 0;
-          pha_mat_lab(1, 3) = 0;
-          pha_mat_lab(2, 3) = F34;
-          pha_mat_lab(3, 0) = 0;
-          pha_mat_lab(3, 1) = 0;
-          pha_mat_lab(3, 2) = -F34;
-          pha_mat_lab(3, 3) = F44;
+          pha_mat_lab[0, 3] = 0;
+          pha_mat_lab[1, 3] = 0;
+          pha_mat_lab[2, 3] = F34;
+          pha_mat_lab[3, 0] = 0;
+          pha_mat_lab[3, 1] = 0;
+          pha_mat_lab[3, 2] = -F34;
+          pha_mat_lab[3, 3] = F44;
         }
       }
     }
@@ -1904,16 +1904,16 @@ void pha_mat_labCalc(  //Output:
       const Numeric S1 = sin(2 * sigma1);
       const Numeric S2 = sin(2 * sigma2);
 
-      pha_mat_lab(0, 1) = C1 * F12;
-      pha_mat_lab(1, 0) = C2 * F12;
-      pha_mat_lab(1, 1) = C1 * C2 * F22 - S1 * S2 * F33;
+      pha_mat_lab[0, 1] = C1 * F12;
+      pha_mat_lab[1, 0] = C2 * F12;
+      pha_mat_lab[1, 1] = C1 * C2 * F22 - S1 * S2 * F33;
 
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(0,1)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,0)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,1)));
       ARTS_USER_ERROR_IF(
-          std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
-              std::isnan(pha_mat_lab(1, 1)),
+          std::isnan(pha_mat_lab[0, 1]) || std::isnan(pha_mat_lab[1, 0]) ||
+              std::isnan(pha_mat_lab[1, 1]),
           "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "
           "input data contain NaNs? Please check with *scat_dataCheck*. If "
           "input data are OK  and you critically need the ongoing calculations, "
@@ -1936,31 +1936,31 @@ void pha_mat_labCalc(  //Output:
         Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
                            (aa_sca - aa_inc > 180) * 360;
         if (delta_aa >= 0) {
-          pha_mat_lab(0, 2) = S1 * F12;
-          pha_mat_lab(1, 2) = S1 * C2 * F22 + C1 * S2 * F33;
-          pha_mat_lab(2, 0) = -S2 * F12;
-          pha_mat_lab(2, 1) = -C1 * S2 * F22 - S1 * C2 * F33;
+          pha_mat_lab[0, 2] = S1 * F12;
+          pha_mat_lab[1, 2] = S1 * C2 * F22 + C1 * S2 * F33;
+          pha_mat_lab[2, 0] = -S2 * F12;
+          pha_mat_lab[2, 1] = -C1 * S2 * F22 - S1 * C2 * F33;
         } else {
-          pha_mat_lab(0, 2) = -S1 * F12;
-          pha_mat_lab(1, 2) = -S1 * C2 * F22 - C1 * S2 * F33;
-          pha_mat_lab(2, 0) = S2 * F12;
-          pha_mat_lab(2, 1) = C1 * S2 * F22 + S1 * C2 * F33;
+          pha_mat_lab[0, 2] = -S1 * F12;
+          pha_mat_lab[1, 2] = -S1 * C2 * F22 - C1 * S2 * F33;
+          pha_mat_lab[2, 0] = S2 * F12;
+          pha_mat_lab[2, 1] = C1 * S2 * F22 + S1 * C2 * F33;
         }
-        pha_mat_lab(2, 2) = -S1 * S2 * F22 + C1 * C2 * F33;
+        pha_mat_lab[2, 2] = -S1 * S2 * F22 + C1 * C2 * F33;
 
         {
           if (delta_aa >= 0) {
-            pha_mat_lab(1, 3) = S2 * F34;
-            pha_mat_lab(3, 1) = S1 * F34;
+            pha_mat_lab[1, 3] = S2 * F34;
+            pha_mat_lab[3, 1] = S1 * F34;
           } else {
-            pha_mat_lab(1, 3) = -S2 * F34;
-            pha_mat_lab(3, 1) = -S1 * F34;
+            pha_mat_lab[1, 3] = -S2 * F34;
+            pha_mat_lab[3, 1] = -S1 * F34;
           }
-          pha_mat_lab(0, 3) = 0;
-          pha_mat_lab(2, 3) = C2 * F34;
-          pha_mat_lab(3, 0) = 0;
-          pha_mat_lab(3, 2) = -C1 * F34;
-          pha_mat_lab(3, 3) = F44;
+          pha_mat_lab[0, 3] = 0;
+          pha_mat_lab[2, 3] = C2 * F34;
+          pha_mat_lab[3, 0] = 0;
+          pha_mat_lab[3, 2] = -C1 * F34;
+          pha_mat_lab[3, 3] = F44;
         }
       }
     }
@@ -2165,10 +2165,10 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           ssd.za_grid.size(),
                           tmpT5.nrows(),
                           tmpT5.ncols());
-  ssd.abs_vec_data(joker, joker, Range(0, nza / 2 + 1), joker, joker) = tmpT5;
+  ssd.abs_vec_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
   for (Index i = 0; i < nza / 2; i++) {
-    ssd.abs_vec_data(joker, joker, nza - 1 - i, joker, joker) =
-        tmpT5(joker, joker, i, joker, joker);
+    ssd.abs_vec_data[joker, joker, nza - 1 - i, joker, joker] =
+        tmpT5[joker, joker, i, joker, joker];
   }
 
   tmpT5 = ssd.ext_mat_data;
@@ -2177,10 +2177,10 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           ssd.za_grid.size(),
                           tmpT5.nrows(),
                           tmpT5.ncols());
-  ssd.ext_mat_data(joker, joker, Range(0, nza / 2 + 1), joker, joker) = tmpT5;
+  ssd.ext_mat_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
   for (Index i = 0; i < nza / 2; i++) {
-    ssd.ext_mat_data(joker, joker, nza - 1 - i, joker, joker) =
-        tmpT5(joker, joker, i, joker, joker);
+    ssd.ext_mat_data[joker, joker, nza - 1 - i, joker, joker] =
+        tmpT5[joker, joker, i, joker, joker];
   }
 
   Tensor7 tmpT7 = ssd.pha_mat_data;
@@ -2191,22 +2191,22 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           ssd.za_grid.size(),
                           tmpT7.nrows(),
                           tmpT7.ncols());
-  ssd.pha_mat_data(
-      joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker) = tmpT7;
+  ssd.pha_mat_data[
+      joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
 
   // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
   // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
-  tmpT7(joker, joker, joker, joker, joker, joker, Range(2, 2))  *= -1.;
-  tmpT7(joker, joker, joker, joker, joker, joker, Range(6, 4))  *= -1.;
-  tmpT7(joker, joker, joker, joker, joker, joker, Range(12, 2)) *= -1.;
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(2, 2)]  *= -1.;
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(6, 4)]  *= -1.;
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(12, 2)] *= -1.;
 
   // For second half of incident polar angles (>90deg), we need to mirror the
   // original data in both incident and scattered polar angle around 90deg "planes".
   for (Index i = 0; i < nza / 2; i++)
     for (Index j = 0; j < nza; j++)
-      ssd.pha_mat_data(
-          joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker) =
-          tmpT7(joker, joker, j, joker, i, joker, joker);
+      ssd.pha_mat_data[
+          joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
+          tmpT7[joker, joker, j, joker, i, joker, joker];
 }
 
 //! Convert particle ssd method name to enum value
@@ -2357,7 +2357,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
     Index nvals = 0;
     for (Index icl = 0; icl < ncl; ++icl) {
       // Nothing to do if PND is zero
-      if (abs(pnd_data(ie, icl)) > 1e-3) {
+      if (abs(pnd_data[ie, icl]) > 1e-3) {
         const Numeric Tthis = T_grid[cl_start + icl];
         ARTS_USER_ERROR_IF(
             Tthis < tmin || Tthis > tmax,
@@ -2396,12 +2396,12 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
           Vector ext1(nvals), abs1(nvals);
           Matrix pfu1(nvals, nsa);
           interp(
-              ext1, itw1, scat_data[ie].ext_mat_data(iv, joker, 0, 0, 0), gp_t);
+              ext1, itw1, scat_data[ie].ext_mat_data[iv, joker, 0, 0, 0], gp_t);
           interp(
-              abs1, itw1, scat_data[ie].abs_vec_data(iv, joker, 0, 0, 0), gp_t);
+              abs1, itw1, scat_data[ie].abs_vec_data[iv, joker, 0, 0, 0], gp_t);
           interp(pfu1,
                  itw2,
-                 scat_data[ie].pha_mat_data(iv, joker, joker, 0, 0, 0, 0),
+                 scat_data[ie].pha_mat_data[iv, joker, joker, 0, 0, 0, 0],
                  gp_t,
                  gp_sa);
 
@@ -2409,10 +2409,10 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
           for (Index i = 0; i < nvals; i++) {
             const Index ic    = cboxlayer[i];
             const Index it    = cl_start + ic;
-            ext_data(iv, it) += pnd_data(ie, ic) * ext1[i];
-            abs_data(iv, it) += pnd_data(ie, ic) * abs1[i];
+            ext_data[iv, it] += pnd_data[ie, ic] * ext1[i];
+            abs_data[iv, it] += pnd_data[ie, ic] * abs1[i];
             for (Index ia = 0; ia < nsa; ia++) {
-              pfun_data(iv, it, ia) += pnd_data(ie, ic) * pfu1(i, ia);
+              pfun_data[iv, it, ia] += pnd_data[ie, ic] * pfu1[i, ia];
             }
           }
         }
@@ -2422,15 +2422,15 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
         Matrix pfu1(nvals, nsa);
         interp(ext1,
                itw1,
-               scat_data[ie].ext_mat_data(f_index, joker, 0, 0, 0),
+               scat_data[ie].ext_mat_data[f_index, joker, 0, 0, 0],
                gp_t);
         interp(abs1,
                itw1,
-               scat_data[ie].abs_vec_data(f_index, joker, 0, 0, 0),
+               scat_data[ie].abs_vec_data[f_index, joker, 0, 0, 0],
                gp_t);
         interp(pfu1,
                itw2,
-               scat_data[ie].pha_mat_data(f_index, joker, joker, 0, 0, 0, 0),
+               scat_data[ie].pha_mat_data[f_index, joker, joker, 0, 0, 0, 0],
                gp_t,
                gp_sa);
 
@@ -2438,10 +2438,10 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
         for (Index i = 0; i < nvals; i++) {
           const Index ic   = cboxlayer[i];
           const Index it   = cl_start + ic;
-          ext_data(0, it) += pnd_data(ie, ic) * ext1[i];
-          abs_data(0, it) += pnd_data(ie, ic) * abs1[i];
+          ext_data[0, it] += pnd_data[ie, ic] * ext1[i];
+          abs_data[0, it] += pnd_data[ie, ic] * abs1[i];
           for (Index ia = 0; ia < nsa; ia++) {
-            pfun_data(0, it, ia) += pnd_data(ie, ic) * pfu1(i, ia);
+            pfun_data[0, it, ia] += pnd_data[ie, ic] * pfu1[i, ia];
           }
         }
       }

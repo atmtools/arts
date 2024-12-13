@@ -105,10 +105,10 @@ std::array<Index, 2> BlockMatrix::shape() const {
 void mult(MatrixView C, ConstMatrixView A, const Block &B) {
   ARTS_ASSERT(B.not_null());
 
-  MatrixView CView(C(joker, B.get_column_range()));
-  MatrixView CTView(C(joker, B.get_row_range()));
-  ConstMatrixView AView(A(joker, B.get_row_range()));
-  ConstMatrixView ATView(A(joker, B.get_column_range()));
+  MatrixView CView(C[joker, B.get_column_range()]);
+  MatrixView CTView(C[joker, B.get_row_range()]);
+  ConstMatrixView AView(A[joker, B.get_row_range()]);
+  ConstMatrixView ATView(A[joker, B.get_column_range()]);
 
   Index i, j;
   std::tie(i, j) = B.get_indices();
@@ -135,10 +135,10 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B) {
 void mult(MatrixView C, const Block &A, ConstMatrixView B) {
   ARTS_ASSERT(A.not_null());
 
-  MatrixView CView(C(A.get_row_range(), joker));
-  MatrixView CTView(C(A.get_column_range(), joker));
-  ConstMatrixView BView(B(A.get_column_range(), joker));
-  ConstMatrixView BTView(B(A.get_row_range(), joker));
+  MatrixView CView(C[A.get_row_range(), joker]);
+  MatrixView CTView(C[A.get_column_range(), joker]);
+  ConstMatrixView BView(B[A.get_column_range(), joker]);
+  ConstMatrixView BTView(B[A.get_row_range(), joker]);
 
   if (A.is_dense()) {
     mult(CView, A.get_dense(), BView);
@@ -185,8 +185,8 @@ void mult(VectorView w, const Block &A, ConstVectorView v) {
 }
 
 MatrixView operator+=(MatrixView A, const Block &B) {
-  MatrixView Aview(A(B.get_row_range(), B.get_column_range()));
-  MatrixView ATview(A(B.get_column_range(), B.get_row_range()));
+  MatrixView Aview(A[B.get_row_range(), B.get_column_range()]);
+  MatrixView ATview(A[B.get_column_range(), B.get_row_range()]);
   if (B.is_dense()) {
     Aview += B.get_dense();
   } else {
@@ -215,7 +215,7 @@ CovarianceMatrix::operator Matrix() const {
   A = 0.0;
 
   for (const Block &c : correlations_) {
-    MatrixView Aview = A(c.get_row_range(), c.get_column_range());
+    MatrixView Aview = A[c.get_row_range(), c.get_column_range()];
     if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
@@ -225,7 +225,7 @@ CovarianceMatrix::operator Matrix() const {
     Index ci, cj;
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
-      MatrixView ATview = A(c.get_column_range(), c.get_row_range());
+      MatrixView ATview = A[c.get_column_range(), c.get_row_range()];
       if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
@@ -242,7 +242,7 @@ Matrix CovarianceMatrix::get_inverse() const {
   A = 0.0;
 
   for (const Block &c : inverses_) {
-    MatrixView Aview = A(c.get_row_range(), c.get_column_range());
+    MatrixView Aview = A[c.get_row_range(), c.get_column_range()];
     if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
@@ -252,7 +252,7 @@ Matrix CovarianceMatrix::get_inverse() const {
     Index ci, cj;
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
-      MatrixView ATview = A(c.get_column_range(), c.get_row_range());
+      MatrixView ATview = A[c.get_column_range(), c.get_row_range()];
       if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
@@ -536,7 +536,7 @@ void CovarianceMatrix::invert_correlation_block(
     std::tie(ci, cj) = blocks[i]->get_indices();
     Range row_range(block_start_cont[ci], block_extent_cont[ci]);
     Range column_range(block_start_cont[cj], block_extent_cont[cj]);
-    MatrixView A_view = A(row_range, column_range);
+    MatrixView A_view = A[row_range, column_range];
 
     if (blocks[i]->is_dense()) {
       A_view = blocks[i]->get_dense();
@@ -547,7 +547,7 @@ void CovarianceMatrix::invert_correlation_block(
 
   for (Index i = 0; i < n; ++i) {
     for (Index j = i + 1; j < n; ++j) {
-      A(j, i) = A(i, j);
+      A[j, i] = A[i, j];
     }
   }
   inv(A, A);
@@ -575,7 +575,7 @@ void CovarianceMatrix::invert_correlation_block(
         Range column_range_A(block_start_cont[bj], block_extent_cont[bj]);
         Range row_range(block_start[bi], block_extent[bi]);
         Range column_range(block_start[bj], block_extent[bj]);
-        MatrixView A_view = A(row_range_A, column_range_A);
+        MatrixView A_view = A[row_range_A, column_range_A];
         inverses.push_back(Block(row_range,
                                  column_range,
                                  std::make_pair(bi, bj),

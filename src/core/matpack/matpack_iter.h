@@ -36,8 +36,8 @@ template <Index M, Index N, class mdspan_type>
   using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
-        if constexpr (requires { v(slices...); }) {
-          return v(slices...);
+        if constexpr (requires { v[slices...]; }) {
+          return v[slices...];
         } else {
           return submdspan(v, slices...);
         }
@@ -51,8 +51,8 @@ template <Index M, Index N, class mdspan_type>
   using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
-        if constexpr (requires { v(slices...); }) {
-          return v(slices...);
+        if constexpr (requires { v[slices...]; }) {
+          return v[slices...];
         } else {
           return submdspan(v, slices...);
         }
@@ -246,7 +246,7 @@ public:
     else
       return std::apply(
           [this](auto... inds) -> std::conditional_t<constant, T, T &> {
-            return orig->operator()(inds...);
+            return orig->operator[](inds...);
           },
           pos.pos);
   }
@@ -258,7 +258,7 @@ public:
     else
       return std::apply(
           [this](auto... inds) -> std::conditional_t<constant, T, T &> {
-            return orig->operator()(inds...);
+            return orig->operator[](inds...);
           },
           (pos + i).pos);
   }

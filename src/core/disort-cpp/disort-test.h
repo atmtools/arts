@@ -44,7 +44,7 @@ inline Tensor3 compute_u(const disort::main_data& dis,
       } else {
         dis.u(u_data, taus[j], phis[i]);
       }
-      u(i, j, joker) = u_data.intensities;
+      u[i, j, joker] = u_data.intensities;
     }
   }
   return u;

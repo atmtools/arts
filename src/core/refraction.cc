@@ -78,8 +78,8 @@ void complex_n_water_liebe93(Matrix& complex_n,
     Complex n = sqrt(e2 + (e1 - e2) / (Numeric(1.0) - ifGHz / f2) +
                      (e0 - e1) / (Numeric(1.0) - ifGHz / f1));
 
-    complex_n(iv, 0) = n.real();
-    complex_n(iv, 1) = n.imag();
+    complex_n[iv, 0] = n.real();
+    complex_n[iv, 1] = n.imag();
   }
 }
 
@@ -133,8 +133,8 @@ void complex_n_ice_matzler06(Matrix& complex_n,
 
     Complex eps(reps, ieps);
     Complex n        = sqrt(eps);
-    complex_n(iv, 0) = n.real();
-    complex_n(iv, 1) = n.imag();
+    complex_n[iv, 0] = n.real();
+    complex_n[iv, 1] = n.imag();
   }
 }
 

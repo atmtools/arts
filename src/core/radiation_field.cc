@@ -59,7 +59,7 @@ Numeric integrate_convolved(const MuelmatVector& T,
   const Index n = f.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) *
-           (T[i](0, 0) * F[i].real() + T[i + 1](0, 0) * F[i + 1].real());
+           (T[i][0, 0] * F[i].real() + T[i + 1][0, 0] * F[i + 1].real());
 
   return 1.0 - val;
 }
