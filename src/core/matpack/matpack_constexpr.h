@@ -58,7 +58,7 @@ struct matpack_constant_view {
                 "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
                 shape())
-    return view(i...);
+    return view[i...];
   }
 
   template <integral... index>
@@ -69,7 +69,7 @@ struct matpack_constant_view {
                 "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
                 shape())
-    return view(i...);
+    return view[i...];
   }
 
   template <typename... Jokers>

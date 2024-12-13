@@ -708,7 +708,7 @@ class matpack_view {
                 shape(),
                 access_str(ind...))
     if constexpr (N == M)
-      return view(std::forward<access>(ind)...);
+      return view[std::forward<access>(ind)...];
     else
       return submdspan_substride(std::forward<access>(ind)...);
   }
@@ -725,7 +725,7 @@ class matpack_view {
                 shape(),
                 access_str(ind...))
     if constexpr (N == M)
-      return view(std::forward<access>(ind)...);
+      return view[std::forward<access>(ind)...];
     else
       return submdspan_substride(std::forward<access>(ind)...);
   }
