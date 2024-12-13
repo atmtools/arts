@@ -799,7 +799,7 @@ lon: {:Bs,} [{} elements]
   for (Index i = 0; i < alt.size(); i++) {
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
-        new_field(i, j, k) = data.at(alt[i], lat[j], lon[k]);
+        new_field[i, j, k] = data.at(alt[i], lat[j], lon[k]);
       }
     }
   }

@@ -76,12 +76,12 @@ struct gridded_data {
   }
 
   template <access_operator... Access>
-  [[nodiscard]] decltype(auto) operator()(Access&&... access) const {
+  [[nodiscard]] decltype(auto) operator[](Access&&... access) const {
     return data(std::forward<Access>(access)...);
   }
 
   template <access_operator... Access>
-  [[nodiscard]] decltype(auto) operator()(Access&&... access) {
+  [[nodiscard]] decltype(auto) operator[](Access&&... access) {
     return data(std::forward<Access>(access)...);
   }
 

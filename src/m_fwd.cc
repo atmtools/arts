@@ -228,7 +228,7 @@ void spectral_radiance_fieldFromOperatorPath(
               std::transform(
                   frequency_grid.begin(),
                   frequency_grid.end(),
-                  spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                  spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
                       .begin(),
                   [path = spectral_radiance_operator.from_path(ray_path),
                    &spectral_radiance_operator](Numeric f) {
@@ -261,7 +261,7 @@ void spectral_radiance_fieldFromOperatorPath(
                 std::transform(
                     frequency_grid.begin(),
                     frequency_grid.end(),
-                    spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                    spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
                         .begin(),
                     [path = spectral_radiance_operator.from_path(ray_path),
                      &spectral_radiance_operator](Numeric f) {

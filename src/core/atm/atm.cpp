@@ -1385,7 +1385,7 @@ Longitude must be within -180 to 180 degrees.
       for (Index j = 0; j < nlat; j++) {
         for (Index k = 0; k < nlon; k++) {
           try {
-            gf3(i, j, k) = atm_data.at(alt[i], lat[j], lon[k]);
+            gf3[i, j, k] = atm_data.at(alt[i], lat[j], lon[k]);
           } catch (std::exception &e) {
 #pragma omp critical
             if (error.empty()) error = e.what();
