@@ -77,7 +77,7 @@ inline Matrix evaluate_spherical_harmonic(Index l,
       if (l > 2) {
         throw std::runtime_error("l must be less than or equal to 1.");
       }
-      results(i, j) = norm * p * clon;
+      results[i, j] = norm * p * clon;
     }
   }
   return results;
