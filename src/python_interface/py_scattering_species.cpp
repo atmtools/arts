@@ -40,7 +40,6 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
            &PMD::extract_forwardscatter_matrix,
            "Extract forward scatter matrix")
 
-      // Bind grid accessors
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
       .def("get_za_scat_grid",
