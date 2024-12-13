@@ -212,13 +212,13 @@ void main_data::solve_for_coefs() {
 
       for (Index i = 0; i < N; i++) {
         for (Index j = 0; j < N; j++) {
-          LHSB(i, j) = G_collect_m(0, i + N, j);
-          LHSB(i, N + j) =
+          LHSB[i, j] = G_collect_m(0, i + N, j);
+          LHSB[i, N + j] =
               G_collect_m(0, i + N, j + N) *
               std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
-          LHSB(n - N + i, n - 2 * N + j) =
+          LHSB[n - N + i, n - 2 * N + j] =
               (G_collect_m(ln, i, j) - BDRF_LHS(i, j)) * E_Lm1L[j];
-          LHSB(n - N + i, n - N + j) =
+          LHSB[n - N + i, n - N + j] =
               G_collect_m(ln, i, j + N) - BDRF_LHS(i, j + N);
         }
       }
@@ -235,22 +235,22 @@ void main_data::solve_for_coefs() {
 
         for (Index i = 0; i < N; i++) {
           for (Index j = 0; j < N; j++) {
-            LHSB(N + l * NQuad + i, l * NQuad + j) =
+            LHSB[N + l * NQuad + i, l * NQuad + j] =
                 G_collect_m(l, i, j) * E_lm1l[j];
-            LHSB(2 * N + l * NQuad + i, l * NQuad + j) =
+            LHSB[2 * N + l * NQuad + i, l * NQuad + j] =
                 G_collect_m(l, N + i, j) * E_lm1l[j];
-            LHSB(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
+            LHSB[N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
                 -G_collect_m(l + 1, i, N + j) * E_llp1[j];
-            LHSB(2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
+            LHSB[2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
                 -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j];
           }
         }
 
         for (Index i = 0; i < NQuad; i++) {
           for (Index j = 0; j < N; j++) {
-            LHSB(N + l * NQuad + i, l * NQuad + N + j) =
+            LHSB[N + l * NQuad + i, l * NQuad + N + j] =
                 G_collect_m(l, i, N + j);
-            LHSB(N + l * NQuad + i, l * NQuad + 2 * N + j) =
+            LHSB[N + l * NQuad + i, l * NQuad + 2 * N + j] =
                 -G_collect_m(l + 1, i, j);
           }
         }
