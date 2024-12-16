@@ -78,7 +78,10 @@ struct matpack_constant_view {
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
     ARTS_ASSERT(i < view.extent(0), "{} vs {}", i, extent(0))
-    return stdx::submdspan(view, i, v...);
+    if constexpr ((integral<Jokers> and ...))
+      return view[i, v...];
+    else
+      return stdx::submdspan(view, i, v...);
   }
 
   template <typename... Jokers>
@@ -88,7 +91,10 @@ struct matpack_constant_view {
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
     ARTS_ASSERT(i < extent(0), "{} vs {}", i, extent(0))
-    return stdx::submdspan(view, i, v...);
+    if constexpr ((integral<Jokers> and ...))
+      return view[i, v...];
+    else
+      return stdx::submdspan(view, i, v...);
   }
 
   [[nodiscard]] constexpr auto operator[](Index i)

@@ -33,13 +33,12 @@ template <Index M, Index N, class mdspan_type>
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, Index i) {
-  using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
         if constexpr (requires { v[slices...]; }) {
           return v[slices...];
         } else {
-          return submdspan(v, slices...);
+          return stdx::submdspan(v, slices...);
         }
       },
       tup<M, N>(i));
@@ -48,13 +47,12 @@ template <Index M, Index N, class mdspan_type>
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, const stdx::strided_slice<Index, Index, Index>& i) {
-  using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
         if constexpr (requires { v[slices...]; }) {
           return v[slices...];
         } else {
-          return submdspan(v, slices...);
+          return stdx::submdspan(v, slices...);
         }
       },
       tup<M, N>(i));
