@@ -88,7 +88,7 @@ void sunBlackbody(Sun& sun,
   // spectrum
   sun.spectrum = Matrix(frequency_grid.nelem(), 4, 0.);
 
-  planck(sun.spectrum(joker, 0), frequency_grid, temperature);
+  planck(sun.spectrum[joker, 0], frequency_grid, temperature);
   sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 
   sun.description = "Blackbody sun";

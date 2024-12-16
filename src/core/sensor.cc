@@ -111,10 +111,10 @@ void antenna1d_matrix(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = antenna_response.data(ip, 0, joker, 0);
+            aresponse = antenna_response.data[ip, 0, joker, 0];
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = antenna_response.data(0, 0, joker, 0);
+            aresponse = antenna_response.data[0, 0, joker, 0];
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -131,10 +131,10 @@ void antenna1d_matrix(Sparse& H,
             Matrix aresponse_matrix(1, n_ar_za);
             interp(aresponse_matrix,
                    itw,
-                   antenna_response.data(ip, joker, joker, 0),
+                   antenna_response.data[ip, joker, joker, 0],
                    gp_f,
                    gp_za);
-            aresponse = aresponse_matrix(0, joker);
+            aresponse = aresponse_matrix[0];
           } else  // Reuse pattern for ip==0
           {
             new_antenna = 0;
@@ -183,7 +183,7 @@ void antenna2d_gridded_dlos(Sparse& H,
                      "must have two columns.");
 
   Index nza = 1;
-  for (Index i = 0; i < n_dlos - 1 && mblock_dlos(i + 1, 0) > mblock_dlos(i, 0);
+  for (Index i = 0; i < n_dlos - 1 && mblock_dlos[i + 1, 0] > mblock_dlos[i, 0];
        i++) {
     nza++;
   }
@@ -194,11 +194,11 @@ void antenna2d_gridded_dlos(Sparse& H,
                      "For the gridded_dlos option, the number of dlos angles "
                      "must be a product of two integers.");
   const Index naa = n_dlos / nza;
-  const Vector za_grid{mblock_dlos(Range(0, nza), 0)};
-  const Vector aa_grid{mblock_dlos(Range(0, naa, nza), 1)};
+  const Vector za_grid{mblock_dlos[Range(0, nza), 0]};
+  const Vector aa_grid{mblock_dlos[Range(0, naa, nza), 1]};
   for (Index i = 0; i < n_dlos; i++) {
     ARTS_USER_ERROR_IF(
-        i >= nza && abs(mblock_dlos(i, 0) - mblock_dlos(i - nza, 0)) > 1e-6,
+        i >= nza && abs(mblock_dlos[i, 0] - mblock_dlos[i - nza, 0]) > 1e-6,
         "Zenith angle of dlos {}"
         " (0-based) differs to zenith {}"
         "angle of dlos"
@@ -206,7 +206,7 @@ void antenna2d_gridded_dlos(Sparse& H,
         "to form rectangular grid.",
         i,
         i - nza)
-    ARTS_USER_ERROR_IF(abs(mblock_dlos(i, 1) - aa_grid[i / nza]) > 1e-6,
+    ARTS_USER_ERROR_IF(abs(mblock_dlos[i, 1] - aa_grid[i / nza]) > 1e-6,
                        "Azimuth angle of dlos {}",
                        " (0-based) differs to azimuth "
                        "angle {}"
@@ -253,8 +253,8 @@ void antenna2d_gridded_dlos(Sparse& H,
     for (Index i4 = 0; i4 < n_ar_aa; i4++) {
       for (Index i2 = 0; i2 < n_ar_f; i2++) {
         for (Index i1 = 0; i1 < n_ar_pol; i1++) {
-          aresponse_with_cos(i1, i2, i3, i4) =
-              t * antenna_response.data(i1, i2, i3, i4);
+          aresponse_with_cos[i1, i2, i3, i4] =
+              t * antenna_response.data[i1, i2, i3, i4];
         }
       }
     }
@@ -292,10 +292,10 @@ void antenna2d_gridded_dlos(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = aresponse_with_cos(ip, 0, joker, joker);
+            aresponse = aresponse_with_cos[ip, 0, joker, joker];
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = aresponse_with_cos(0, 0, joker, joker);
+            aresponse = aresponse_with_cos[0, 0, joker, joker];
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -312,11 +312,11 @@ void antenna2d_gridded_dlos(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   aresponse_with_cos(ip, joker, joker, joker),
+                   aresponse_with_cos[ip, joker, joker, joker],
                    gp_f,
                    gp_za,
                    gp_aa);
-            aresponse = aresponse_matrix(0, joker, joker);
+            aresponse = aresponse_matrix[0, joker, joker];
           } else  // Reuse pattern for ip==0
           {
             new_antenna = 0;
@@ -327,7 +327,7 @@ void antenna2d_gridded_dlos(Sparse& H,
         if (new_antenna) {
           // za grid positions
           Vector zas{aresponse_za_grid};
-          zas += antenna_dlos(ia, 0);
+          zas += antenna_dlos[ia, 0];
           ARTS_USER_ERROR_IF(
               zas[0] < za_grid[0],
               "The zenith angle grid in *mblock_dlos* is too narrow. "
@@ -345,7 +345,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           // aa grid positions
           Vector aas{aresponse_aa_grid};
           if (antenna_dlos.ncols() > 1) {
-            aas += antenna_dlos(ia, 1);
+            aas += antenna_dlos[ia, 1];
           }
           ARTS_USER_ERROR_IF(
               aas[0] < aa_grid[0],
@@ -377,17 +377,17 @@ void antenna2d_gridded_dlos(Sparse& H,
               const Index z = gp_za[iza].idx;
               const Index x = z + 1;
 
-              if (itw(iza, iaa, 0) > 1e-9) {
-                hza[a * nza + z] += aresponse(iza, iaa) * itw(iza, iaa, 0);
+              if (itw[iza, iaa, 0] > 1e-9) {
+                hza[a * nza + z] += aresponse[iza, iaa] * itw[iza, iaa, 0];
               }
-              if (itw(iza, iaa, 1) > 1e-9) {
-                hza[b * nza + z] += aresponse(iza, iaa) * itw(iza, iaa, 1);
+              if (itw[iza, iaa, 1] > 1e-9) {
+                hza[b * nza + z] += aresponse[iza, iaa] * itw[iza, iaa, 1];
               }
-              if (itw(iza, iaa, 2) > 1e-9) {
-                hza[a * nza + x] += aresponse(iza, iaa) * itw(iza, iaa, 2);
+              if (itw[iza, iaa, 2] > 1e-9) {
+                hza[a * nza + x] += aresponse[iza, iaa] * itw[iza, iaa, 2];
               }
-              if (itw(iza, iaa, 3) > 1e-9) {
-                hza[b * nza + x] += aresponse(iza, iaa) * itw(iza, iaa, 3);
+              if (itw[iza, iaa, 3] > 1e-9) {
+                hza[b * nza + x] += aresponse[iza, iaa] * itw[iza, iaa, 3];
               }
             }
           }
@@ -459,8 +459,8 @@ void antenna2d_interp_response(Sparse& H,
     for (Index i4 = 0; i4 < n_ar_aa; i4++) {
       for (Index i2 = 0; i2 < n_ar_f; i2++) {
         for (Index i1 = 0; i1 < n_ar_pol; i1++) {
-          aresponse_with_cos(i1, i2, i3, i4) =
-              t * antenna_response.data(i1, i2, i3, i4);
+          aresponse_with_cos[i1, i2, i3, i4] =
+              t * antenna_response.data[i1, i2, i3, i4];
         }
       }
     }
@@ -501,10 +501,10 @@ void antenna2d_interp_response(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = antenna_response.data(ip, 0, joker, joker);
+            aresponse = antenna_response.data[ip, 0, joker, joker];
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = antenna_response.data(0, 0, joker, joker);
+            aresponse = antenna_response.data[0, 0, joker, joker];
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -521,11 +521,11 @@ void antenna2d_interp_response(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   antenna_response.data(ip, joker, joker, joker),
+                   antenna_response.data[ip],
                    gp_f,
                    gp_za,
                    gp_aa);
-            aresponse = aresponse_matrix(0, joker, joker);
+            aresponse = aresponse_matrix[0];
           } else  // Reuse pattern for ip==0
           {
             new_antenna = 0;
@@ -535,13 +535,13 @@ void antenna2d_interp_response(Sparse& H,
         // Calculate response weights
         if (new_antenna) {
           for (Index l = 0; l < n_dlos; l++) {
-            const Numeric za = mblock_dlos(l, 0) - antenna_dlos(ia, 0);
+            const Numeric za = mblock_dlos[l, 0] - antenna_dlos[ia, 0];
             Numeric aa       = 0.0;
             if (mblock_dlos.ncols() > 1) {
-              aa += mblock_dlos(l, 1);
+              aa += mblock_dlos[l, 1];
             }
             if (antenna_dlos.ncols() > 1) {
-              aa -= antenna_dlos(ia, 1);
+              aa -= antenna_dlos[ia, 1];
             }
 
             // The response is zero if mblock_dlos is outside of
@@ -682,21 +682,21 @@ void mixer_matrix(Sparse& H,
 void muellersparse_rotation(Sparse& H, const Numeric& rotangle) {
   ARTS_ASSERT(H.nrows() == 4);
   ARTS_ASSERT(H.ncols() == 4);
-  ARTS_ASSERT(H(0, 1) == 0);
-  ARTS_ASSERT(H(1, 0) == 0);
+  ARTS_ASSERT((H[0, 1] == 0));
+  ARTS_ASSERT((H[1, 0] == 0));
   //
   H.rw(0, 0)      = 1;
   const Numeric a = Conversion::cosd(2 * rotangle);
   H.rw(1, 1)      = a;
-  ARTS_ASSERT(H(2, 0) == 0);
-  ARTS_ASSERT(H(0, 2) == 0);
+  ARTS_ASSERT((H[2, 0] == 0));
+  ARTS_ASSERT((H[0, 2] == 0));
 
   const Numeric b = Conversion::sind(2 * rotangle);
   H.rw(1, 2)      = b;
   H.rw(2, 1)      = -b;
   H.rw(2, 2)      = a;
   // More values should be checked, but to save time we just ARTS_ASSERT one
-  ARTS_ASSERT(H(2, 3) == 0);
+  ARTS_ASSERT((H[2, 3] == 0));
   H.rw(3, 3) = 1;
 }
 
@@ -832,7 +832,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       Vector hrow(nch * 4, 0.0);
       const Index i0 = i * 4;
       for (Index s = 0; s < 4; s++) {
-        hrow[i0 + s] = Hc(0, s);
+        hrow[i0 + s] = Hc[0, s];
       }
       H.insert_row(i, hrow);
     }
@@ -868,7 +868,7 @@ void sensor_aux_vectors(Vector& sensor_response_f,
         //
         sensor_response_f[i]           = sensor_response_f_grid[ifr];
         sensor_response_pol[i]         = sensor_response_pol_grid[ip];
-        sensor_response_dlos(i, joker) = sensor_response_dlos_grid(ilos, joker);
+        sensor_response_dlos[i, joker] = sensor_response_dlos_grid[ilos, joker];
       }
     }
   }

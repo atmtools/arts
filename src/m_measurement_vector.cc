@@ -76,7 +76,7 @@ struct polyfit {
       for (Index i = 0; i < p.size(); i++) {
         const Numeric xn  = std::pow(t[j], i);
         y[j]             += p[i] * xn;
-        dy(j, i)          = xn;
+        dy[j, i]          = xn;
       }
     }
   }

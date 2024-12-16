@@ -1227,12 +1227,6 @@ struct select_derivative {
 };
 }  // namespace internal
 
-//! Conceptually, the type is assignable
-template <typename T, typename U>
-concept matpack_assignable = matpack::any_matpack_type<T> and requires(T &a) {
-  std::apply(a, std::array<Index, matpack::rank<T>()>{}) = U{};
-};
-
 /** Precompute the interpolation weights
  *
  * For use with the interp method when re-usability is required
@@ -1245,7 +1239,7 @@ concept matpack_assignable = matpack::any_matpack_type<T> and requires(T &a) {
 template <lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr void interpweights(
     matpack::ranked_matpack_type<Numeric, N> auto &&out, const lags &...lag)
-  requires(N > 0 and matpack_assignable<decltype(out), Numeric>)
+  requires(N > 0)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
                      "{:B,} vs {:B,}",
@@ -1270,8 +1264,7 @@ constexpr void interpweights(
 template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr void dinterpweights(
     matpack::ranked_matpack_type<Numeric, N> auto &&out, const lags &...lag)
-  requires(N > 0 and matpack_assignable<decltype(out), Numeric> and dlx >= 0 and
-           dlx < N)
+  requires(N > 0 and dlx >= 0 and dlx < N)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
                      "{:B,} vs {:B,}",
@@ -1371,7 +1364,7 @@ constexpr auto interpweights(const list_lags &...lags)
        ++pos) {
     std::apply(
         [&](auto &&...ind) {
-          interpweights(std::apply(out,
+          interpweights(std::apply([&out](auto... ind) { return out[ind...]; },
                                    std::tuple_cat(std::array{ind...},
                                                   matpack::jokers<N>())),
                         lags[ind]...);
@@ -1414,10 +1407,11 @@ constexpr auto dinterpweights(const list_lags &...lags)
        ++pos) {
     std::apply(
         [&](auto &&...ind) {
-          dinterpweights<dlx>(std::apply(out,
-                                         std::tuple_cat(std::array{ind...},
-                                                        matpack::jokers<N>())),
-                              lags[ind]...);
+          dinterpweights<dlx>(
+              std::apply(
+                  [&out](auto... ind) { return out[ind...]; },
+                  std::tuple_cat(std::array{ind...}, matpack::jokers<N>())),
+              lags[ind]...);
         },
         pos.pos);
   }
@@ -1480,11 +1474,12 @@ constexpr void reinterp(
        ++pos) {
     std::apply(
         [&](auto... ind) {
-          out(ind...) = interp(field,
-                               std::apply(iw_field,
-                                          std::tuple_cat(std::array{ind...},
-                                                         matpack::jokers<N>())),
-                               list_lag[ind]...);
+          out[ind...] = interp(
+              field,
+              std::apply(
+                  [&iw_field](auto... ind) { return iw_field[ind...]; },
+                  std::tuple_cat(std::array{ind...}, matpack::jokers<N>())),
+              list_lag[ind]...);
         },
         pos.pos);
   }

@@ -146,7 +146,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       for (Index j = 0; j < naa; ++j) {
         const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
-          spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+          spectral_radiance_field.data[i, j, joker, 0, 0, n] =
               freqstep(frequency_grid[n], zenith_grid[i], path);
         }
       }
@@ -160,7 +160,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
         try {
           const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
           for (Index n = 0; n < nfreq; ++n) {
-            spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+            spectral_radiance_field.data[i, j, joker, 0, 0, n] =
                 freqstep(frequency_grid[n], zenith_grid[i], path);
           }
         } catch (std::exception& e) {
@@ -228,7 +228,7 @@ void spectral_radiance_fieldFromOperatorPath(
               std::transform(
                   frequency_grid.begin(),
                   frequency_grid.end(),
-                  spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                  spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
                       .begin(),
                   [path = spectral_radiance_operator.from_path(ray_path),
                    &spectral_radiance_operator](Numeric f) {
@@ -261,7 +261,7 @@ void spectral_radiance_fieldFromOperatorPath(
                 std::transform(
                     frequency_grid.begin(),
                     frequency_grid.end(),
-                    spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                    spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
                         .begin(),
                     [path = spectral_radiance_operator.from_path(ray_path),
                      &spectral_radiance_operator](Numeric f) {

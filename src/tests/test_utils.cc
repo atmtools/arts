@@ -47,7 +47,7 @@ void random_fill_matrix(MatrixView A, Numeric range, bool positive) {
 
   for (Index i = 0; i < m; i++) {
     for (Index j = 0; j < n; j++) {
-      A(i, j) = (Numeric)rand();
+      A[i, j] = (Numeric)rand();
     }
   }
 }
@@ -59,7 +59,7 @@ void random_fill_matrix(ComplexMatrixView A, Numeric range, bool positive) {
 
   for (Index i = 0; i < m; i++) {
     for (Index j = 0; j < n; j++) {
-      A(i, j) = Complex((Numeric)rand(), (Numeric)rand());
+      A[i, j] = Complex((Numeric)rand(), (Numeric)rand());
     }
   }
 }
@@ -122,8 +122,8 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
     m1 = rand() % m;
     n1 = rand() % n;
 
-    A(m1, n1) = random_number();
-    B.rw(m1, n1) = A(m1, n1);
+    A[m1, n1] = random_number();
+    B.rw(m1, n1) = A[m1, n1];
   }
 }
 
@@ -174,7 +174,7 @@ void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive) {
 
   // Add identity matrix.
   for (Index i = 0; i < n; i++) {
-    A(i, i) += 1.0;
+    A[i, i] += 1.0;
   }
 }
 
@@ -242,7 +242,7 @@ MatrixView random_submatrix(MatrixView A, int m, int n) {
   n1 = rand_n();
 
   Range r1(m1, m), r2(n1, n);
-  return A(r1, r2);
+  return A[r1, r2];
 }
 
 //! Generate random sub-range of the range [0, n-1].
@@ -328,12 +328,12 @@ Numeric get_maximum_error(ConstMatrixView A1,
       err = 0.0;
 
       if (relative) {
-        if (A2(i, j) != 0.0) {
-          err = abs((A2(i, j) - A1(i, j)) / A2(i, j));
+        if (A2[i, j] != 0.0) {
+          err = abs((A2[i, j] - A1[i, j]) / A2[i, j]);
         }
 
       } else {
-        err = A2(i, j) - A1(i, j);
+        err = A2[i, j] - A1[i, j];
       }
 
       if (err > max) {
@@ -357,12 +357,12 @@ Numeric get_maximum_error(ConstComplexMatrixView A1,
       err = 0.0;
 
       if (relative) {
-        if (A2(i, j).real() != 0.0 && A2(i, j).imag() != 0.0) {
-          err = abs((A2(i, j) - A1(i, j)) / A2(i, j));
+        if (A2[i, j].real() != 0.0 && A2[i, j].imag() != 0.0) {
+          err = abs((A2[i, j] - A1[i, j]) / A2[i, j]);
         }
 
       } else {
-        err = abs(A2(i, j) - A1(i, j));
+        err = abs(A2[i, j] - A1[i, j]);
       }
 
       if (err > max) {

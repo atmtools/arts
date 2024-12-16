@@ -123,7 +123,7 @@ int main() try {
               const Index jjfp = jf[iRp];
               if (jjip > jji) continue;
 
-              Wipert(iRp, iR, ipp) = relaxation_matrix_element(
+              Wipert[iRp, iR, ipp] = relaxation_matrix_element(
                   li, lf, jji, jjf, jjip, jjfp, ECS, QL);
             }
           }
@@ -131,8 +131,8 @@ int main() try {
 
         for (Index iR = 0; iR <= nraies; iR++) {
           for (Index iRp = 0; iRp <= nraies; iRp++) {
-            W(iRp, iR, itemp) =
-                0.79 * Wipert(iRp, iR, 0) + 0.21 * Wipert(iRp, iR, 1);
+            W[iRp, iR, itemp] =
+                0.79 * Wipert[iRp, iR, 0] + 0.21 * Wipert[iRp, iR, 1];
           }
         }
       }
@@ -143,20 +143,20 @@ int main() try {
       for (Index iR = 0; iR <= nraies; iR++) {
         for (Index iRp = 0; iRp <= nraies; iRp++) {
           if (ji[iRp] > ji[iR]) continue;
-          if (max(W(iRp, iR, joker)) == min(W(iRp, iR, joker))) continue;
+          if (max(W[iRp, iR, joker]) == min(W[iRp, iR, joker])) continue;
           char str[200];
           std::sprintf(
               str,
               " %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E   %" PRId64
               "   %" PRId64 "   %" PRId64 "   %" PRId64 "\n",
-              W(iRp, iR, 0),
-              W(iRp, iR, 1),
-              W(iRp, iR, 2),
-              W(iRp, iR, 3),
-              W(iRp, iR, 4),
-              W(iRp, iR, 5),
-              W(iRp, iR, 6),
-              W(iRp, iR, 7),
+              W[iRp, iR, 0],
+              W[iRp, iR, 1],
+              W[iRp, iR, 2],
+              W[iRp, iR, 3],
+              W[iRp, iR, 4],
+              W[iRp, iR, 5],
+              W[iRp, iR, 6],
+              W[iRp, iR, 7],
               ji[iR],
               jf[iR],
               ji[iRp],

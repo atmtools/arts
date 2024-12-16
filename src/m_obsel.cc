@@ -30,7 +30,7 @@ void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
 
   for (Index i = 0; i < n; i++) {
     StokvecMatrix w(1, n, 0);
-    w(0, i)                    = pol;
+    w[0, i]                    = pol;
     measurement_sensor[i + sz] = {f, p, std::move(w)};
   }
 }
@@ -68,7 +68,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
 
       const gauss dist(frequency_grid[i], stds[i]);
       for (Index j = 0; j < n; j++) {
-        w(0, j) *= pdf(dist, frequency_grid[j]);
+        w[0, j] *= pdf(dist, frequency_grid[j]);
       }
 
       measurement_sensor[i + sz] = {f, p, std::move(w)};

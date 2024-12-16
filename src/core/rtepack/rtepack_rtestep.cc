@@ -29,8 +29,8 @@ void two_level_linear_emission_step(stokvec_vector_view I,
     I[i]         = I[i] - J;
 
     for (Index j = 0; j < M; j++) {
-      dI1(j, i) += PiT[i] * dT1(j, i) * I[i] + dJ1(j, i) - T[i] * dJ1(j, i);
-      dI2(j, i) += PiT[i] * dT2(j, i) * I[i] + dJ2(j, i) - T[i] * dJ2(j, i);
+      dI1[j, i] += PiT[i] * dT1[j, i] * I[i] + dJ1[j, i] - T[i] * dJ1[j, i];
+      dI2[j, i] += PiT[i] * dT2[j, i] * I[i] + dJ2[j, i] - T[i] * dJ2[j, i];
     }
 
     I[i] = T[i] * I[i] + J;
@@ -65,8 +65,8 @@ void two_level_linear_transmission_step(stokvec_vector_view I,
 
   for (Index j = 0; j < M; j++) {
     for (Index i = 0; i < N; i++) {
-      dI1(j, i) += PiT[i] * dT1(j, i) * I[i];
-      dI2(j, i) += PiT[i] * dT2(j, i) * I[i];
+      dI1[j, i] += PiT[i] * dT1[j, i] * I[i];
+      dI2[j, i] += PiT[i] * dT2[j, i] * I[i];
     }
   }
 
@@ -141,14 +141,14 @@ void two_level_linear_emission_step_by_step_full(
       Iv -= Jv;
 
       for (Index iq = 0; iq < nq; iq++) {
-        dI[i](iq, iv) +=
+        dI[i][iq, iv] +=
             Pi[i][iv] *
-            (dTs[i](0, iq, iv) * Iv +
-             0.5 * (dJs[i](iq, iv) - Ts[i + 1][iv] * dJs[i](iq, iv)));
-        dI[i + 1](iq, iv) +=
+            (dTs[i][0, iq, iv] * Iv +
+             0.5 * (dJs[i][iq, iv] - Ts[i + 1][iv] * dJs[i][iq, iv]));
+        dI[i + 1][iq, iv] +=
             Pi[i][iv] *
-            (dTs[i + 1](1, iq, iv) * Iv +
-             0.5 * (dJs[i + 1](iq, iv) - Ts[i + 1][iv] * dJs[i + 1](iq, iv)));
+            (dTs[i + 1][1, iq, iv] * Iv +
+             0.5 * (dJs[i + 1][iq, iv] - Ts[i + 1][iv] * dJs[i + 1][iq, iv]));
       }
 
       Iv = Ts[i + 1][iv] * Iv + Jv;
@@ -232,14 +232,14 @@ void two_level_linear_emission_cumulative_full(
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Index iv = 0; iv < nv; iv++) {
     for (Index iq = 0; iq < nq; iq++) {
-      dI[0](iq, iv)     += 0.5 * dJs[0](iq, iv);
-      dI[1](iq, iv)     += 0.5 * dJs[1](iq, iv);
-      dI[N - 2](iq, iv) -= 0.5 * Pi.back()[iv] * dJs[N - 2](iq, iv);
-      dI[N - 1](iq, iv) -= 0.5 * Pi.back()[iv] * dJs[N - 1](iq, iv);
+      dI[0][iq, iv]     += 0.5 * dJs[0][iq, iv];
+      dI[1][iq, iv]     += 0.5 * dJs[1][iq, iv];
+      dI[N - 2][iq, iv] -= 0.5 * Pi.back()[iv] * dJs[N - 2][iq, iv];
+      dI[N - 1][iq, iv] -= 0.5 * Pi.back()[iv] * dJs[N - 1][iq, iv];
 
       for (Size j = 1; j < N - 1; j++) {
-        dI[j + 1](iq, iv) += 0.5 * Pi[j][iv] * dJs[j + 1](iq, iv);
-        dI[j - 1](iq, iv) -= 0.5 * Pi[j][iv] * dJs[j - 1](iq, iv);
+        dI[j + 1][iq, iv] += 0.5 * Pi[j][iv] * dJs[j + 1][iq, iv];
+        dI[j - 1][iq, iv] -= 0.5 * Pi[j][iv] * dJs[j - 1][iq, iv];
       }
     }
   }
@@ -253,15 +253,15 @@ void two_level_linear_emission_cumulative_full(
     for (Size i = N - 2; i > 0; i--) {
       const muelmat R = Ts[i + 1][iv] * P;
       for (Index iq = 0; iq < nq; iq++) {
-        dI[i](iq, iv) += Pi[i][iv] * dTs[i](0, iq, iv) * P * src;
-        dI[i](iq, iv) += Pi[i - 1][iv] * dTs[i](1, iq, iv) * R * src;
+        dI[i][iq, iv] += Pi[i][iv] * dTs[i][0, iq, iv] * P * src;
+        dI[i][iq, iv] += Pi[i - 1][iv] * dTs[i][1, iq, iv] * R * src;
       }
       P = R;
     }
 
     for (Index iq = 0; iq < nq; iq++) {
-      dI[0](iq, iv)     += Pi[0][iv] * dTs[0](0, iq, iv) * P * src;
-      dI[N - 1](iq, iv) += Pi[N - 2][iv] * dTs[N - 1](1, iq, iv) * src;
+      dI[0][iq, iv]     += Pi[0][iv] * dTs[0][0, iq, iv] * P * src;
+      dI[N - 1][iq, iv] += Pi[N - 2][iv] * dTs[N - 1][1, iq, iv] * src;
     }
   }
 
@@ -275,15 +275,15 @@ void two_level_linear_emission_cumulative_full(
       for (Size i = j - 1; i > 0; i--) {
         const muelmat R = Ts[i + 1][iv] * P;
         for (Index iq = 0; iq < nq; iq++) {
-          dI[i](iq, iv) += Pi[i][iv] * dTs[i](0, iq, iv) * P * jsrc;
-          dI[i](iq, iv) += Pi[i - 1][iv] * dTs[i](1, iq, iv) * R * jsrc;
+          dI[i][iq, iv] += Pi[i][iv] * dTs[i][0, iq, iv] * P * jsrc;
+          dI[i][iq, iv] += Pi[i - 1][iv] * dTs[i][1, iq, iv] * R * jsrc;
         }
         P = R;
       }
 
       for (Index iq = 0; iq < nq; iq++) {
-        dI[j](iq, iv) += Pi[j - 1][iv] * dTs[j](1, iq, iv) * jsrc;
-        dI[0](iq, iv) += (dTs[0](0, iq, iv) + dTs[0](1, iq, iv)) * P * jsrc;
+        dI[j][iq, iv] += Pi[j - 1][iv] * dTs[j][1, iq, iv] * jsrc;
+        dI[0][iq, iv] += (dTs[0][0, iq, iv] + dTs[0][1, iq, iv]) * P * jsrc;
       }
     }
   }
@@ -345,15 +345,15 @@ void two_level_linear_transmission_step(stokvec_vector &I,
     for (Size i = N - 2; i > 0; i--) {
       const muelmat R = Ts[i + 1][iv] * P;
       for (Index iq = 0; iq < nq; iq++) {
-        dI[i](iq, iv) += Pi[i][iv] * dTs[i](0, iq, iv) * P * src;
-        dI[i](iq, iv) += Pi[i - 1][iv] * dTs[i](1, iq, iv) * R * src;
+        dI[i][iq, iv] += Pi[i][iv] * dTs[i][0, iq, iv] * P * src;
+        dI[i][iq, iv] += Pi[i - 1][iv] * dTs[i][1, iq, iv] * R * src;
       }
       P = R;
     }
 
     for (Index iq = 0; iq < nq; iq++) {
-      dI[0](iq, iv)     += Pi[0][iv] * dTs[0](0, iq, iv) * P * src;
-      dI[N - 1](iq, iv) += Pi[N - 2][iv] * dTs[N - 1](1, iq, iv) * src;
+      dI[0][iq, iv]     += Pi[0][iv] * dTs[0][0, iq, iv] * P * src;
+      dI[N - 1][iq, iv] += Pi[N - 2][iv] * dTs[N - 1][1, iq, iv] * src;
     }
   }
 }

@@ -184,7 +184,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
                           const Numeric pressure,
                           const Numeric temperature) const {
   for (Index i = 0; i < xsec.nelem(); i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+    const ConstVectorView coeffs = mfitcoeffs[dataset].data[i, joker];
     xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
               coeffs[P20] * temperature * temperature;
   }

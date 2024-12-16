@@ -26,7 +26,7 @@ void matvec(int N) {
       for (Index v = 0; v < n; v++) {
         y[v] = 0;
         for (Index j = 0; j < m; j++) {
-          y[v] += A(v, j) * x[j];
+          y[v] += A[v, j] * x[j];
         }
       }
       some_results.push_back(y[0]);
@@ -122,13 +122,13 @@ void matmat(int N) {
       Matrix C(m, p);
       for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
-          C(x, j) = 0;
+          C[x, j] = 0;
           for (Index k = 0; k < n; k++) {
-            C(x, j) += A(x, k) * B(k, j);
+            C[x, j] += A[x, k] * B[k, j];
           }
         }
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-partial-einsum");
@@ -139,7 +139,7 @@ void matmat(int N) {
       for (Index x = 0; x < m; x++) {
         einsum<"p", "n", "np">(C[x], A[x], B);
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-naive-dotprod");
@@ -149,10 +149,10 @@ void matmat(int N) {
       Matrix C(m, p);
       for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
-          C(x, j) = A[x] * B(joker, j);
+          C[x, j] = A[x] * B[joker, j];
         }
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-naive-optimized");
@@ -164,11 +164,11 @@ void matmat(int N) {
       for (Index x = 0; x < m; x++) {
         for (Index k = 0; k < n; k++) {
           for (Index j = 0; j < p; j++) {
-            C(x, j) += A(x, k) * B(k, j);
+            C[x, j] += A[x, k] * B[k, j];
           }
         }
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-partial-einsum-matvec");
@@ -178,9 +178,9 @@ void matmat(int N) {
       Matrix C(m, p);
       C = 0;
       for (Index x = 0; x < p; x++) {
-        einsum<"m", "mn", "n">(C(joker, x), A, B(joker, x));
+        einsum<"m", "mn", "n">(C[joker, x], A, B[joker, x]);
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-partial-lapack-matvec");
@@ -190,9 +190,9 @@ void matmat(int N) {
       Matrix C(m, p);
       C = 0;
       for (Index x = 0; x < p; x++) {
-        mult(C(joker, x), A, B(joker, x));
+        mult(C[joker, x], A, B[joker, x]);
       }
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-lapack");
@@ -201,7 +201,7 @@ void matmat(int N) {
       const Matrix B(n, p, 1);
       Matrix C(m, p);
       mult(C, A, B);
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-einsum-view");
@@ -210,7 +210,7 @@ void matmat(int N) {
       const Matrix B(n, p, 1);
       Matrix C(m, p);
       einsum<"mp", "mn", "np">(C, A, B);
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
 
     ts.emplace_back("matmat-einsum-retval");
@@ -218,7 +218,7 @@ void matmat(int N) {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
       const auto C = einsum<Matrix, "mp", "mn", "np">({m, p}, A, B);
-      some_results.push_back(C(0, 0));
+      some_results.push_back(C[0, 0]);
     });
   }
 
@@ -245,10 +245,10 @@ void pathing(int N) {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
       Matrix C(k, l, .3);
-      C(0, 0) = 2;
+      C[0, 0] = 2;
       Matrix D(i, l);
       einsum<"il", "ij", "jk", "kl">(D, A, B, C);
-      some_results.push_back(D(0, 0));
+      some_results.push_back(D[0, 0]);
     });
 
     ts.emplace_back("ij,jk,kl->il-np.einsum_path-einsum");
@@ -256,36 +256,36 @@ void pathing(int N) {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
       Matrix C(k, l, .3);
-      C(0, 0) = 2;
+      C[0, 0] = 2;
       Matrix CB(j, l);
       Matrix D(i, l);
       einsum<"jl", "kl", "jk">(CB, C, B);
       einsum<"il", "jl", "ij">(D, CB, A);
-      some_results.push_back(D(0, 0));
+      some_results.push_back(D[0, 0]);
     });
 
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-direct-einsum");
     ts.back()([&]() {
       const Tensor4 I(i, i, i, i, 1);
       Matrix C(i, i, 1);
-      C(0, 0) = 2;
+      C[0, 0] = 2;
       Tensor4 D(i, i, i, i);
       einsum<"efgh", "ea", "fb", "abcd", "gc", "hd">(D, C, C, I, C, C);
-      some_results.push_back(D(0, 0, 0, 0));
+      some_results.push_back(D[0, 0, 0, 0]);
     });
 
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-np.einsum_path-einsum");
     ts.back()([&]() {
       const Tensor4 I(i, i, i, i, 1);
       Matrix C(i, i, 1);
-      C(0, 0) = 2;
+      C[0, 0] = 2;
       Tensor4 B(i, i, i, i);
       Tensor4 D(i, i, i, i);
       einsum<"bcde", "abcd", "ea">(B, I, C);
       einsum<"cdef", "bcde", "fb">(D, B, C);
       einsum<"defg", "cdef", "gc">(B, D, C);
       einsum<"efgh", "defg", "hd">(D, B, C);
-      some_results.push_back(D(0, 0, 0, 0));
+      some_results.push_back(D[0, 0, 0, 0]);
     });
   }
 

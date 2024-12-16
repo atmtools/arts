@@ -403,7 +403,7 @@ void diagonalize(ComplexMatrixView P,
                  &info);
 
   for (Index i = 0; i < n; i++)
-    for (Index j = 0; j < i; j++) std::swap(P(j, i), P(i, j));
+    for (Index j = 0; j < i; j++) std::swap(P[j, i], P[i, j]);
 }
 
 //! General exponential of a Matrix
@@ -475,9 +475,9 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   ludcmp(X, indx, D);
 
   for (Index i = 0; i < n; i++) {
-    N_col_vec = N(joker, i);  // extract column vectors of N
+    N_col_vec = N[joker, i];  // extract column vectors of N
     lubacksub(F_col_vec, X, N_col_vec, indx);
-    F(joker, i) = F_col_vec;  // construct F matrix  from column vectors
+    F[joker, i] = F_col_vec;  // construct F matrix  from column vectors
   }
 
   /* The square of F gives the result. */
@@ -514,7 +514,7 @@ Numeric norm_inf(ConstMatrixView A) {
   for (Index j = 0; j < A.nrows(); j++) {
     Numeric row_sum = 0;
     //Calculate the row sum for all rows
-    for (Index i = 0; i < A.ncols(); i++) row_sum += abs(A(i, j));
+    for (Index i = 0; i < A.ncols(); i++) row_sum += abs(A[i, j]);
     //Pick out the row with the highest row sum
     if (norm_inf < row_sum) norm_inf = row_sum;
   }
@@ -530,7 +530,7 @@ void id_mat(MatrixView I) {
   ARTS_ASSERT(n == I.nrows());
 
   I = 0;
-  for (Index i = 0; i < n; i++) I(i, i) = 1.;
+  for (Index i = 0; i < n; i++) I[i, i] = 1.;
 }
 
 /*!
@@ -546,11 +546,11 @@ Numeric det(ConstMatrixView A) {
   ARTS_ASSERT(dim == A.ncols());
 
   if (dim == 3)
-    return A(0, 0) * A(1, 1) * A(2, 2) + A(0, 1) * A(1, 2) * A(2, 0) +
-           A(0, 2) * A(1, 0) * A(2, 1) - A(0, 2) * A(1, 1) * A(2, 0) -
-           A(0, 1) * A(1, 0) * A(2, 2) - A(0, 0) * A(1, 2) * A(2, 1);
-  if (dim == 2) return A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
-  if (dim == 1) return A(0, 0);
+    return A[0, 0] * A[1, 1] * A[2, 2] + A[0, 1] * A[1, 2] * A[2, 0] +
+           A[0, 2] * A[1, 0] * A[2, 1] - A[0, 2] * A[1, 1] * A[2, 0] -
+           A[0, 1] * A[1, 0] * A[2, 2] - A[0, 0] * A[1, 2] * A[2, 1];
+  if (dim == 2) return A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0];
+  if (dim == 1) return A[0, 0];
 
   Numeric ret_val = 0.;
 
@@ -559,14 +559,14 @@ Numeric det(ConstMatrixView A) {
     for (Index I = 1; I < dim; I++)
       for (Index J = 0; J < dim; J++) {
         if (J < j)
-          temp(I - 1, J) = A(I, J);
+          temp[I - 1, J] = A[I, J];
         else if (J > j)
-          temp(I - 1, J - 1) = A(I, J);
+          temp[I - 1, J - 1] = A[I, J];
       }
 
     Numeric tempNum = det(temp);
 
-    ret_val += ((j % 2 == 0) ? -1. : 1.) * tempNum * A(0, j);
+    ret_val += ((j % 2 == 0) ? -1. : 1.) * tempNum * A[0, j];
   }
   return ret_val;
 }

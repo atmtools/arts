@@ -59,17 +59,17 @@ struct SingleScatteringData {
         for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid);
              ++i_za_scat) {
           for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-            phase_matrix(i_t, i_f, i_za_scat, i_s) =
-                ssd.pha_mat_data(i_f, i_t, i_za_scat, 0, 0, 0, i_s);
+            phase_matrix[i_t, i_f, i_za_scat, i_s] =
+                ssd.pha_mat_data[i_f, i_t, i_za_scat, 0, 0, 0, i_s];
           }
         }
         for (Index i_s = 0; i_s < absorption_vector.n_stokes_coeffs; ++i_s) {
-          absorption_vector(i_t, i_f, i_s) =
-              ssd.abs_vec_data(i_f, i_t, 0, 0, i_s);
+          absorption_vector[i_t, i_f, i_s] =
+              ssd.abs_vec_data[i_f, i_t, 0, 0, i_s];
         }
         for (Index i_s = 0; i_s < extinction_matrix.n_stokes_coeffs; ++i_s) {
-          extinction_matrix(i_t, i_f, i_s) =
-              ssd.ext_mat_data(i_f, i_t, 0, 0, i_s);
+          extinction_matrix[i_t, i_f, i_s] =
+              ssd.ext_mat_data[i_f, i_t, 0, 0, i_s];
         }
       }
     }

@@ -58,10 +58,10 @@ ray_path_atmospheric_point.size()           = {})",
   // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
   if (hse_derivative and temperature_derivative_position >= 0) {
     for (Size ip = 1; ip < N; ip++) {
-      ray_path_distance_jacobian(0, ip, temperature_derivative_position) =
+      ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
           ray_path_distance[ip] /
           (2.0 * ray_path_atmospheric_point[ip - 1].temperature);
-      ray_path_distance_jacobian(1, ip, temperature_derivative_position) =
+      ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
           ray_path_distance[ip] /
           (2.0 * ray_path_atmospheric_point[ip].temperature);
     }

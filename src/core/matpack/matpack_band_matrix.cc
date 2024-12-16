@@ -33,7 +33,7 @@ band_matrix::band_matrix(const Matrix& ab)
     for (Index j = 0; j < N; ++j) {
       if (i == j) continue;
 
-      if (ab(i, j) != 0) {
+      if (ab[i, j] != 0) {
         if (j > i)
           KU = std::max(j - i, KU);
         else if (j < i)
@@ -47,17 +47,17 @@ band_matrix::band_matrix(const Matrix& ab)
   for (Index j = 0; j < N; j++) {
     const Index maxi = end_row(j);
     for (Index i = start_row(j); i < maxi; i++) {
-      this->operator()(i, j) = ab(i, j);
+      this->operator[](i, j) = ab[i, j];
     }
   }
 }
 
-Numeric& band_matrix::operator()(Index i, Index j) {
+Numeric& band_matrix::operator[](Index i, Index j) {
   ARTS_ASSERT(
       i >= start_row(j), "Out of lower bound. limit: {} vs {}", start_row(j), i)
   ARTS_ASSERT(
       i < end_row(j), "Out of upper bound. limit: {} vs {}", end_row(j), i)
-  return AB(j, KU + KL + i - j);
+  return AB[j, KU + KL + i - j];
 }
 
 int band_matrix::solve(Vector& bx) {

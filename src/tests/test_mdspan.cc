@@ -36,7 +36,7 @@ void test_view() {
         x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
     for (Index i = 0; i < 2; i++) {
       [[maybe_unused]] auto g =
-          y(i, joker, matpack::matpack_strided_access{joker})(i, i);
+          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
       [[maybe_unused]] auto h = y[i][i][i];
       static_assert(std::same_as<decltype(g), decltype(h)>);
       static_assert(std::same_as<decltype(g), Numeric>);
@@ -58,7 +58,7 @@ void test_view() {
         x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
     for (Index i = 0; i < 2; i++) {
       [[maybe_unused]] auto& g =
-          y(i, joker, matpack::matpack_strided_access{joker})(i, i);
+          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
       [[maybe_unused]] auto& h = y[i][i][i];
       static_assert(std::same_as<decltype(g), decltype(h)>);
       static_assert(std::same_as<decltype(g), Numeric&>);
@@ -80,7 +80,7 @@ void test_view() {
         x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
     for (Index i = 0; i < 2; i++) {
       [[maybe_unused]] auto g =
-          y(i, joker, matpack::matpack_strided_access{joker})(i, i);
+          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
       [[maybe_unused]] auto h = y[i][i][i];
       static_assert(std::same_as<decltype(g), decltype(h)>);
       static_assert(std::same_as<decltype(g), Numeric>);
@@ -102,7 +102,7 @@ void test_view() {
         x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
     for (Index i = 0; i < 2; i++) {
       [[maybe_unused]] auto& g =
-          y(i, joker, matpack::matpack_strided_access{joker})(i, i);
+          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
       [[maybe_unused]] auto& h = y[i][i][i];
       static_assert(std::same_as<decltype(g), decltype(h)>);
       static_assert(std::same_as<decltype(g), Numeric&>);
@@ -155,7 +155,7 @@ void test_view() {
         xr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
     const ExhaustiveTensor3View yi{matpack::exhaustive_mdspan<Numeric, 3>{
         xi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    auto z = y(joker, matpack::matpack_strided_access(0, -1, 2), joker);
+    auto z = y[joker, matpack::matpack_strided_access(0, -1, 2), joker];
 
     std::vector<Numeric> reszr{1, 2, 3, 4, 5, 6, 7, 8};
     std::vector<Numeric> reszi{1, 2, 0, 0, 5, 6, 0, 0};
@@ -493,7 +493,7 @@ void test_mult() {
   {
     Matrix A(4, 4, 1);
     for (Index i = 0; i < 4; i++)
-      for (Index j = 0; j < 4; j++) A(i, j) = static_cast<Numeric>(i);
+      for (Index j = 0; j < 4; j++) A[i, j] = static_cast<Numeric>(i);
     Vector y({1, 2, 3, 4}), x(4);
 
     Vector eig_x{A * y};
@@ -504,7 +504,7 @@ void test_mult() {
     ComplexMatrix A(4, 4, 1);
     for (Index i = 0; i < 4; i++)
       for (Index j = 0; j < 4; j++)
-        A(i, j) = {static_cast<Numeric>(i), 2 * static_cast<Numeric>(i)};
+        A[i, j] = {static_cast<Numeric>(i), 2 * static_cast<Numeric>(i)};
     ComplexVector y({1, 2, 3, 4}), x(4);
 
     ComplexVector eig_x{A * y};
@@ -520,8 +520,8 @@ void test_const_view() {
   {
     matpack::matpack_constant_view<double, false, 3, 3> xv(x);
     ARTS_USER_ERROR_IF(xv != xv, "Bad")
-    ARTS_USER_ERROR_IF(xv(2, 2) != x.back(), "Bad")
-    ARTS_USER_ERROR_IF(xv(0, 0) != x.front(), "Bad")
+    ARTS_USER_ERROR_IF((xv[2, 2] != x.back()), "Bad")
+    ARTS_USER_ERROR_IF((xv[0, 0] != x.front()), "Bad")
     ARTS_USER_ERROR_IF(
         xv[0] != (matpack::matpack_constant_view<double, false, 3>{x3}), "Bad")
     ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")
@@ -530,8 +530,8 @@ void test_const_view() {
   {
     matpack::matpack_constant_view<double, true, 3, 3> xv(x);
     ARTS_USER_ERROR_IF(xv != xv, "Bad")
-    ARTS_USER_ERROR_IF(xv(2, 2) != x.back(), "Bad")
-    ARTS_USER_ERROR_IF(xv(0, 0) != x.front(), "Bad")
+    ARTS_USER_ERROR_IF((xv[2, 2] != x.back()), "Bad")
+    ARTS_USER_ERROR_IF((xv[0, 0] != x.front()), "Bad")
     ARTS_USER_ERROR_IF(
         xv[0] != (matpack::matpack_constant_view<double, true, 3>{x3}), "Bad")
     ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")

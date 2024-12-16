@@ -15,7 +15,7 @@ void test01() {
   GriddedField2 cia_data;
 
   Matrix A(5, 3, 0.);
-  A(2, 1) = 1;
+  A[2, 1] = 1;
   //    cout << "A:" << A << std::endl;
 
   cia_data.data = A;

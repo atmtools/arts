@@ -31,7 +31,7 @@ void test_11a_1layer() try {
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   const Matrix s_poly_coeffs{
       Vector{172311.79936609, -102511.4417051}.reshape(tau_arr.nelem(), 2)};
-  const Vector f_arr{Leg_coeffs_all(joker, NQuad)};
+  const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)
   const Index NLeg     = NQuad;
@@ -232,7 +232,7 @@ void test_11a_multilayer() try {
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = {172311.79936609, -102511.4417051};
-  const Vector f_arr{Leg_coeffs_all(joker, NQuad)};
+  const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)
   const Index NLeg     = NQuad;

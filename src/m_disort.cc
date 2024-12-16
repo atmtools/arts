@@ -74,9 +74,9 @@ void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
     try {
       disort_settings.set(dis, iv);
 
-      dis.gridded_flux(disort_spectral_flux_field(iv, 0, joker),
-                       disort_spectral_flux_field(iv, 1, joker),
-                       disort_spectral_flux_field(iv, 2, joker));
+      dis.gridded_flux(disort_spectral_flux_field[iv, 0, joker],
+                       disort_spectral_flux_field[iv, 1, joker],
+                       disort_spectral_flux_field[iv, 2, joker]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

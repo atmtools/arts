@@ -167,7 +167,7 @@ void py_disort(py::module_& m) try {
 
             Tensor3 out(dis.mu().size(), tau.size(), phi.size());
             for (Index i = 0; i < tau.size(); i++) {
-              out(joker, i, joker) = transpose(res[sorting[i]]);
+              out[joker, i, joker] = transpose(res[sorting[i]]);
             }
             return out;
           },
@@ -190,7 +190,7 @@ void py_disort(py::module_& m) try {
 
             Vector out(tau.size());
             for (Index i = 0; i < tau.size(); i++) {
-              out[i] = res(0, sorting[i]);
+              out[i] = res[0, sorting[i]];
             }
             return out;
           },
@@ -212,8 +212,8 @@ void py_disort(py::module_& m) try {
 
             ArrayOfVector out(2, Vector(tau.size()));
             for (Index i = 0; i < tau.size(); i++) {
-              out[0][i] = res(1, sorting[i]);
-              out[1][i] = res(2, sorting[i]);
+              out[0][i] = res[1, sorting[i]];
+              out[1][i] = res[2, sorting[i]];
             }
             return out;
           },

@@ -19,7 +19,7 @@ void test_4a() try {
   const Index NQuad = 32;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
   for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
-    Leg_coeffs_all(0, i) =
+    Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
 
@@ -32,7 +32,7 @@ void test_4a() try {
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
-  const Vector f_arr{Leg_coeffs_all(0, NQuad)};
+  const Vector f_arr{Leg_coeffs_all[0, NQuad]};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
   const Matrix s_poly_coeffs(1, 0);
 
@@ -301,7 +301,7 @@ void test_4b() try {
   const Index NQuad = 32;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
   for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
-    Leg_coeffs_all(0, i) =
+    Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
 
@@ -314,7 +314,7 @@ void test_4b() try {
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
-  const Vector f_arr{Leg_coeffs_all(0, NQuad)};
+  const Vector f_arr{Leg_coeffs_all[0, NQuad]};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
   const Matrix s_poly_coeffs(1, 0);
 
@@ -583,7 +583,7 @@ void test_4c() try {
   const Index NQuad = 32;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
   for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
-    Leg_coeffs_all(0, i) =
+    Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
 
@@ -596,7 +596,7 @@ void test_4c() try {
   const Index NFourier = NQuad;
   const Matrix b_pos(NQuad, NQuad / 2, 0);
   const Matrix b_neg(NQuad, NQuad / 2, 0);
-  const Vector f_arr{Leg_coeffs_all(0, NQuad)};
+  const Vector f_arr{Leg_coeffs_all[0, NQuad]};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
   const Matrix s_poly_coeffs(1, 0);
 

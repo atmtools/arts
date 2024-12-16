@@ -97,8 +97,8 @@ int poly_root_solve(Matrix &roots, Vector &coeffs) {
 #ifndef USE_DOUBLE
   if (status == GSL_SUCCESS) {
     for (Index i = 0; i < a - 1; i++) {
-      roots(i, 0) = (Numeric)s[i * 2];
-      roots(i, 1) = (Numeric)s[i * 2 + 1];
+      roots[i, 0] = (Numeric)s[i * 2];
+      roots[i, 1] = (Numeric)s[i * 2 + 1];
     }
   }
 

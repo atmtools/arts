@@ -29,11 +29,11 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
 
   net.w1.resize(net.nb_cache, net.nb_inputs);
   for (Index i = 0; i < net.nb_cache; i++)
-    for (Index j = 0; j < net.nb_inputs; j++) is >> double_imanip() >> net.w1(i, j);
+    for (Index j = 0; j < net.nb_inputs; j++) is >> double_imanip() >> net.w1[i, j];
 
   net.w2.resize(net.nb_outputs, net.nb_cache);
   for (Index i = 0; i < net.nb_outputs; i++)
-    for (Index j = 0; j < net.nb_cache; j++) is >> double_imanip() >> net.w2(i, j);
+    for (Index j = 0; j < net.nb_cache; j++) is >> double_imanip() >> net.w2[i, j];
 
   net.x_min.resize(net.nb_inputs);
   for (Index i = 0; i < net.nb_inputs; i++) is >> double_imanip() >> net.x_min[i];
@@ -84,7 +84,7 @@ void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
   Vector trans = net.b1;
   for (Index i = 0; i < net.nb_cache; i++) {
     for (Index j = 0; j < net.nb_inputs; j++)
-      trans[i] += net.w1(i, j) * new_x[j];
+      trans[i] += net.w1[i, j] * new_x[j];
 
     trans[i] = 2. / (1. + exp(-2. * trans[i])) - 1.;
   }
@@ -92,7 +92,7 @@ void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
   Vector new_y = net.b2;
   for (Index i = 0; i < net.nb_outputs; i++) {
     for (Index j = 0; j < net.nb_cache; j++)
-      new_y[i] += net.w2(i, j) * trans[j];
+      new_y[i] += net.w2[i, j] * trans[j];
   }
 
   // postprocessing

@@ -46,7 +46,7 @@ ScatteringTroSpectralVector::to_general(
   for (Index f_ind = 0; f_ind < pm.npages(); ++f_ind) {
     for (Index ind = 0; ind < pm.nrows(); ++ind) {
       for (Index is = 0; is < pm.ncols(); is++) {
-        pm(0, f_ind, ind, is) = phase_matrix(f_ind, ind).data[is];
+        pm[0, f_ind, ind, is] = phase_matrix[f_ind, ind].data[is];
       }
     }
   }
@@ -74,7 +74,7 @@ ScatteringTroSpectralVector::to_general(
 
   for (Index f_ind = 0; f_ind < emd.nrows(); ++f_ind) {
     for (Index i = 0; i < emd.ncols(); i++) {
-      emd(0, f_ind, i) = extinction_matrix[f_ind][i];
+      emd[0, f_ind, i] = extinction_matrix[f_ind][i];
     }
   }
 
@@ -101,7 +101,7 @@ ScatteringTroSpectralVector::to_general(
 
   for (Index f_ind = 0; av.nrows(); ++f_ind) {
     for (Index i = 0; i < av.ncols(); i++) {
-      av(0, f_ind, i) = absorption_vector[f_ind][i];
+      av[0, f_ind, i] = absorption_vector[f_ind][i];
     }
   }
   return av;

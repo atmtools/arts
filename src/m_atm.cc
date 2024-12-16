@@ -582,10 +582,10 @@ struct atmospheric_fieldHydrostaticPressureData {
       for (Index j = 0; j < lat.nelem(); j++) {
         for (Index k = 0; k < lon.nelem(); k++) {
           const Numeric h  = alt[i] - alt[i - 1];
-          const Numeric p0 = pre(i - 1, j, k);
-          const Numeric d0 = grad_p(i - 1, j, k);
+          const Numeric p0 = pre[i - 1, j, k];
+          const Numeric d0 = grad_p[i - 1, j, k];
 
-          pre(i, j, k) = step(p0, h, d0);
+          pre[i, j, k] = step(p0, h, d0);
         }
       }
     }
@@ -679,7 +679,7 @@ void atmospheric_fieldHydrostaticPressure(
                                        : 1.0 / atmospheric_point.temperature;
 
           // Partial rho, no pressure
-          scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
+          scl[i, j, k] = g * inv_specific_gas_constant * inv_temp;
         }
       }
     }
@@ -799,7 +799,7 @@ lon: {:Bs,} [{} elements]
   for (Index i = 0; i < alt.size(); i++) {
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
-        new_field(i, j, k) = data.at(alt[i], lat[j], lon[k]);
+        new_field[i, j, k] = data.at(alt[i], lat[j], lon[k]);
       }
     }
   }

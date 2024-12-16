@@ -100,9 +100,9 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
     interpweights(itw, f_gp);
 
     for (int i = 0; i < 4; i++) {
-      interp(int_data(Range(i_fstart, f_extent), i),
+      interp(int_data[Range(i_fstart, f_extent), i],
              itw,
-             sun_spectrum_raw.data(active_range, i),
+             sun_spectrum_raw.data[active_range, i],
              f_gp);
     }
   }
@@ -119,10 +119,10 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
     }
     if (temperature > 0) {
       for (int i = 0; i < i_fstart; i++) {
-        int_data(i, 0) = planck(f_grid[i], temperature);
+        int_data[i, 0] = planck(f_grid[i], temperature);
       }
       for (Index i = f_extent; i < nf; i++) {
-        int_data(i, 0) = planck(f_grid[i], temperature);
+        int_data[i, 0] = planck(f_grid[i], temperature);
       }
     }
   }
@@ -355,7 +355,7 @@ bool set_spectral_radiance_if_sun_intersection(
 
     for (Index iv = 0; iv < nf; ++iv) {
       for (Index is = 0; is < 4; ++is) {
-        spectral_radiance[iv][is] = sun.spectrum(iv, is) / Constant::pi;
+        spectral_radiance[iv][is] = sun.spectrum[iv, is] / Constant::pi;
       }
     }
 

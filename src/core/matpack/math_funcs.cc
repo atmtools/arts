@@ -342,7 +342,7 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
     res1[i] = 0.0;
 
     for (Index j = 0; j < m - 1; ++j) {
-      res1[i] += 0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
                  (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
     }
   }
@@ -390,11 +390,11 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     Numeric temp = 0.0;
 
     for (Index i = 0; i < n; ++i) {
-      temp = Integrand(i, 0);
+      temp = Integrand[i, 0];
       for (Index j = 1; j < m - 1; j++) {
-        temp += Integrand(i, j) * 2;
+        temp += Integrand[i, j] * 2;
       }
-      temp    += Integrand(i, m - 1);
+      temp    += Integrand[i, m - 1];
       temp    *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
       res1[i]  = temp;
     }
@@ -630,10 +630,10 @@ void mgd_with_derivatives(VectorView psd,
         const Numeric eterm = exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
         if (do_n0_jac) {
-          jac_data(0, ix) = eterm;
+          jac_data[0, ix] = eterm;
         }
         if (do_la_jac) {
-          jac_data(2, ix) = -x[ix] * psd[ix];
+          jac_data[2, ix] = -x[ix] * psd[ix];
         }
       }
     } else {
@@ -647,13 +647,13 @@ void mgd_with_derivatives(VectorView psd,
         const Numeric xterm = pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
         if (do_n0_jac) {
-          jac_data(0, ix) = xterm * eterm;
+          jac_data[0, ix] = xterm * eterm;
         }
         if (do_mu_jac) {
-          jac_data(1, ix) = log(x[ix]) * psd[ix];
+          jac_data[1, ix] = log(x[ix]) * psd[ix];
         }
         if (do_la_jac) {
-          jac_data(2, ix) = -x[ix] * psd[ix];
+          jac_data[2, ix] = -x[ix] * psd[ix];
         }
         psd[ix] = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
       }
@@ -674,16 +674,16 @@ void mgd_with_derivatives(VectorView psd,
       const Numeric xterm = pow(x[ix], mu);
       psd[ix]             = n0 * xterm * eterm;
       if (do_n0_jac) {
-        jac_data(0, ix) = xterm * eterm;
+        jac_data[0, ix] = xterm * eterm;
       }
       if (do_mu_jac) {
-        jac_data(1, ix) = log(x[ix]) * psd[ix];
+        jac_data[1, ix] = log(x[ix]) * psd[ix];
       }
       if (do_la_jac) {
-        jac_data(2, ix) = -pterm * psd[ix];
+        jac_data[2, ix] = -pterm * psd[ix];
       }
       if (do_ga_jac) {
-        jac_data(3, ix) = -la * pterm * log(x[ix]) * psd[ix];
+        jac_data[3, ix] = -la * pterm * log(x[ix]) * psd[ix];
       }
     }
   }
@@ -704,7 +704,7 @@ void delanoe_shape_with_derivative(VectorView psd,
   for (Index i = 0; i < x.size(); ++i) {
     Numeric xi = x[i];
     psd[i]     = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
-    jac_data(0, i) =
+    jac_data[0, i] =
         psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
   }
 }
@@ -791,7 +791,7 @@ void flat(VectorView x, ConstMatrixView X) {
 
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
-      x[i]  = X(r, c);
+      x[i]  = X[r, c];
       i    += 1;
     }
   }
@@ -818,7 +818,7 @@ void flat(VectorView x, ConstTensor3View X) {
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
       for (Index p = 0; p < X.npages(); p++) {
-        x[i]  = X(p, r, c);
+        x[i]  = X[p, r, c];
         i    += 1;
       }
     }
@@ -846,7 +846,7 @@ void reshape(Tensor3View X, ConstVectorView x) {
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
       for (Index p = 0; p < X.npages(); p++) {
-        X(p, r, c)  = x[i];
+        X[p, r, c]  = x[i];
         i          += 1;
       }
     }
@@ -873,7 +873,7 @@ void reshape(MatrixView X, ConstVectorView x) {
 
   for (Index c = 0; c < X.ncols(); c++) {
     for (Index r = 0; r < X.nrows(); r++) {
-      X(r, c)  = x[i];
+      X[r, c]  = x[i];
       i       += 1;
     }
   }

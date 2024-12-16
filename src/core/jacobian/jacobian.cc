@@ -299,7 +299,7 @@ void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
                      szx)
 
   set_y(y.slice(type.y_start, type.y_size),
-        dy(Range(type.y_start, type.y_size), Range(x_start, x_size)),
+        dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
         x.slice(x_start, x_size));
 }
 

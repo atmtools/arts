@@ -180,8 +180,8 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       sum *= scl * Om[Ni.toIndex()];
 
       // Add to W and rescale to upwards element by the populations
-      W(i, j) = sum;
-      W(j, i) =
+      W[i, j] = sum;
+      W[j, i] =
           sum * std::exp((bnd.lines[sorting[j]].e0 - bnd.lines[sorting[i]].e0) /
                          kelvin2joule(atm.temperature));
     }
@@ -197,20 +197,20 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
     for (Size j = 0; j < n; j++) {
       if (j > i) {
-        sumlw += dipr[j] * W(j, i);
+        sumlw += dipr[j] * W[j, i];
       } else {
-        sumup += dipr[j] * W(j, i);
+        sumup += dipr[j] * W[j, i];
       }
     }
 
     for (Size j = i + 1; j < n; j++) {
       if (sumlw == 0) {
-        W(j, i) = 0.0;
-        W(i, j) = 0.0;
+        W[j, i] = 0.0;
+        W[i, j] = 0.0;
       } else {
-        W(j, i) *= -sumup / sumlw;
-        W(i, j) =
-            W(j, i) *
+        W[j, i] *= -sumup / sumlw;
+        W[i, j] =
+            W[j, i] *
             std::exp((bnd.lines[sorting[i]].e0 - bnd.lines[sorting[j]].e0) /
                      kelvin2joule(atm.temperature));
       }

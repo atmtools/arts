@@ -7,7 +7,7 @@ void test_8a() try {
   const Vector omega_arr{0.5, 0.3};
   const Index NQuad = 8;
   Matrix Leg_coeffs_all(2, 9, 0);
-  Leg_coeffs_all(joker, 0) = 1;
+  Leg_coeffs_all[joker, 0] = 1;
 
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
@@ -139,7 +139,7 @@ void test_8b() try {
   const Vector omega_arr{0.8, 0.95};
   const Index NQuad = 8;
   Matrix Leg_coeffs_all(2, 9, 0);
-  Leg_coeffs_all(joker, 0) = 1;
+  Leg_coeffs_all[joker, 0] = 1;
 
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
@@ -275,7 +275,7 @@ void test_8c() try {
   const Vector omega_arr{0.8, 0.95};
   const Index NQuad = 8;
   Matrix Leg_coeffs_all(2, 9, 0);
-  Leg_coeffs_all(joker, 0) = 1;
+  Leg_coeffs_all[joker, 0] = 1;
 
   const Numeric mu0 = 0;
   const Numeric I0 = 0;

@@ -471,12 +471,12 @@ Sparse calculate_downsampling_matrix(const VectorView& old_grid,
       Scalar overlap =
           std::min(right_new, right_old) - std::max(left_new, left_old);
       if (overlap > 0.0) {
-        weights(i_new, i_old) += 0.5 * overlap;
-        weights(i_new, i_old + 1) += 0.5 * overlap;
+        weights[i_new, i_old] += 0.5 * overlap;
+        weights[i_new, i_old + 1] += 0.5 * overlap;
         ;
       }
     }
-    weights(i_new, joker) /= (right_new - left_new);
+    weights[i_new, joker] /= (right_new - left_new);
   }
 
   // Convert matrix to sparse.
@@ -489,7 +489,7 @@ Sparse calculate_downsampling_matrix(const VectorView& old_grid,
   Index comp_index = 0;
   for (Index i_r = 0; i_r < weights.nrows(); ++i_r) {
     for (Index i_c = 0; i_c < weights.ncols(); ++i_c) {
-      Numeric elem = weights(i_r, i_c);
+      Numeric elem = weights[i_r, i_c];
       if (elem > 0.0) {
         row_inds[comp_index] = i_r;
         col_inds[comp_index] = i_c;

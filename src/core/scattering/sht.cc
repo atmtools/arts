@@ -156,7 +156,7 @@ ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
 #else
   if (is_trivial_) {
     ComplexVector result(1);
-    result[0] = view(0, 0);
+    result[0] = view[0, 0];
     return result;
   }
   set_spatial_coeffs(view);
@@ -177,7 +177,7 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
 #else
   if (is_trivial_) {
     ComplexVector result(1);
-    result[0] = view(0, 0);
+    result[0] = view[0, 0];
     return result;
   }
   set_spatial_coeffs(view);
@@ -220,7 +220,7 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
 #else
   if (is_trivial_) {
     ComplexMatrix result(1, 1);
-    result(0, 0) = view[0];
+    result[0, 0] = view[0];
     return result;
   }
   set_spectral_coeffs_cmplx(view);
@@ -269,7 +269,7 @@ Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
   shtns_mutex.lock();
   for (auto i = 0; i < n_points; ++i) {
     result[i] =
-        SH_to_point(shtns, spectral_coeffs_, std::cos(points(i, 1)), points(i, 0));
+        SH_to_point(shtns, spectral_coeffs_, std::cos(points[i, 1]), points[i, 0]);
   }
   shtns_mutex.lock();
   

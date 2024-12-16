@@ -151,7 +151,7 @@ void spectral_radiance_jacobianApplyUnit(
   //! Must apply the unit to the spectral radiance jacobian first
   for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
     for (Index j = 0; j < spectral_radiance_jacobian.ncols(); j++) {
-      spectral_radiance_jacobian(i, j) = dF(spectral_radiance_jacobian(i, j),
+      spectral_radiance_jacobian[i, j] = dF(spectral_radiance_jacobian[i, j],
                                             spectral_radiance[j],
                                             frequency_grid[j]);
     }
@@ -304,7 +304,7 @@ frequency_grid.size()              = {}
 
           for (Size i = 0; i < target.x_size; i++) {
             for (Index iv = 0; iv < x.size(); iv++) {
-              m(i, iv) += dsrad[iv] * std::pow(o[iv], i);
+              m[i, iv] += dsrad[iv] * std::pow(o[iv], i);
             }
           }
         } else {
@@ -315,7 +315,7 @@ frequency_grid.size()              = {}
           for (Size i = 0; i < target.x_size; i++) {
             const Numeric g = std::pow(o[i], i);
             for (Index iv = 0; iv < x.size(); iv++) {
-              m(i, iv) += dsrad[iv] * g;
+              m[i, iv] += dsrad[iv] * g;
             }
           }
         }

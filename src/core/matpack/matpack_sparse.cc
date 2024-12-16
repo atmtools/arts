@@ -83,7 +83,7 @@ Numeric& Sparse::rw(Index r, Index c) {
   \return The data element with these indices.
 
 */
-Numeric Sparse::operator()(Index r, Index c) const {
+Numeric Sparse::operator[](Index r, Index c) const {
   return matrix.coeff((int)r, (int)c);
 }
 
@@ -171,7 +171,7 @@ Sparse::operator Matrix() const {
   for (int i = 0; i < m; i++) {
     Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(matrix, i);
     for (; it; ++it) {
-      A(it.row(), it.col()) = it.value();
+      A[it.row(), it.col()] = it.value();
     }
   }
   return A;

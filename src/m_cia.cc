@@ -153,7 +153,7 @@ void propagation_matrixAddCIA(  // WS Output:
 
       if (jac_temps.first) {
         const auto iq = jac_temps.second->target_pos;
-        propagation_matrix_jacobian(iq, iv).A() +=
+        propagation_matrix_jacobian[iq, iv].A() +=
             ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
               xsec_temp[iv] * dnd_dt_sec) *
                  nd +
@@ -164,7 +164,7 @@ void propagation_matrixAddCIA(  // WS Output:
       for (auto& j : jac_freqs) {
         if (j.first) {
           const auto iq = j.second->target_pos;
-          propagation_matrix_jacobian(iq, iv).A() +=
+          propagation_matrix_jacobian[iq, iv].A() +=
               nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
               atm_point[this_cia.Species(1)];
         }
@@ -174,14 +174,14 @@ void propagation_matrixAddCIA(  // WS Output:
               jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(0));
           j.first) {
         const auto iq                            = j.second->target_pos;
-        propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
       if (const auto j =
               jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(1));
           j.first) {
         const auto iq                            = j.second->target_pos;
-        propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
   }

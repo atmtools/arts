@@ -5,7 +5,7 @@ void test_9a() try {
   const Vector omega_arr{0.65, 0.7, 0.75, 0.8, 0.85, 0.9};
   const Index NQuad = 8;
   Matrix Leg_coeffs_all(6, 9, 0);
-  Leg_coeffs_all(joker, 0) = 1;
+  Leg_coeffs_all[joker, 0] = 1;
 
   const Numeric mu0 = 0;
   const Numeric I0 = 0;

@@ -604,8 +604,8 @@ void propagation_matrixAddLines(PropmatVector& pm,
       try {
         lbl::calculate(pm.slice(ompv[i].first, ompv[i].second),
                        sv.slice(ompv[i].first, ompv[i].second),
-                       dpm(joker, Range(ompv[i].first, ompv[i].second)),
-                       dsv(joker, Range(ompv[i].first, ompv[i].second)),
+                       dpm[joker, Range(ompv[i].first, ompv[i].second)],
+                       dsv[joker, Range(ompv[i].first, ompv[i].second)],
                        static_cast<const Vector&>(f_grid).slice(ompv[i].first,
                                                                 ompv[i].second),
                        jacobian_targets,
@@ -736,7 +736,7 @@ void absorption_bandsLineMixingAdaptation(
         PartitionFunctions::Q(temperatures[i], band_key.Isotopologue());
     for (Size k = 0; k < N; k++) {
       auto& line    = band.lines[k];
-      lbl_str(i, k) = line.s(temperatures[i], Q) * Math::pow2(Constant::c) /
+      lbl_str[i, k] = line.s(temperatures[i], Q) * Math::pow2(Constant::c) /
                       (8 * Constant::pi);
     }
   }
@@ -754,7 +754,7 @@ void absorption_bandsLineMixingAdaptation(
     for (Size j = 0; j < K; j++) {
       for (Size k = 0; k < N; k++) {
         auto& line       = band.lines[k];
-        lbl_val(i, j, k) = Complex{
+        lbl_val[i, j, k] = Complex{
             line.f0 + line.ls.single_models[j].D0(line.ls.T0,
                                                   temperatures[i],
                                                   atmospheric_point.pressure),
@@ -766,8 +766,8 @@ void absorption_bandsLineMixingAdaptation(
 
   for (Size i = 0; i < M; i++) {
     for (Size j = 0; j < K; j++) {
-      auto s = eqv_str(i, j, joker);
-      auto v = eqv_val(i, j, joker);
+      auto s = eqv_str[i, j, joker];
+      auto v = eqv_val[i, j, joker];
       bubble_sort_by(
           [&](auto I1, auto I2) { return v[I1].real() > v[I2].real(); }, s, v);
     }
@@ -775,7 +775,7 @@ void absorption_bandsLineMixingAdaptation(
 
   eqv_val -= lbl_val;
 
-  for (Size j = 0; j < K; j++) eqv_str(joker, j, joker) /= lbl_str;
+  for (Size j = 0; j < K; j++) eqv_str[joker, j, joker] /= lbl_str;
 
   eqv_val.real() /= Math::pow2(atmospheric_point.pressure);
   eqv_val.imag() /= Math::pow3(atmospheric_point.pressure);
@@ -789,7 +789,7 @@ void absorption_bandsLineMixingAdaptation(
     for (Size k = 0; k < N; k++) {
       if (rosenkranz_fit_order >= 1) {
         auto [success_y, yfit] = curve_fit<Polynom>(
-            temperatures, eqv_str(joker, j, k).imag(), polynomial_fit_degree);
+            temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_y, "Cannot fit y for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(
@@ -799,7 +799,7 @@ void absorption_bandsLineMixingAdaptation(
 
       if (rosenkranz_fit_order >= 2) {
         auto [success_g, gfit] = curve_fit<Polynom>(
-            temperatures, eqv_str(joker, j, k).real(), polynomial_fit_degree);
+            temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_g, "Cannot fit g for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(
@@ -807,7 +807,7 @@ void absorption_bandsLineMixingAdaptation(
             lbl::temperature::data{LineShapeModelType::POLY, Vector{gfit}});
 
         auto [success_d, dfit] = curve_fit<Polynom>(
-            temperatures, eqv_val(joker, j, k).real(), polynomial_fit_degree);
+            temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not success_d, "Cannot fit dv for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(

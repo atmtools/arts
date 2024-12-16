@@ -109,7 +109,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else {
     for (Index r = 0; r < nrows; r++) {
       for (Index c = 0; c < ncols; c++) {
-        is_xml >> double_imanip() >> matrix(r, c);
+        is_xml >> double_imanip() >> matrix[r, c];
         if (is_xml.fail()) {
           std::ostringstream os;
           os << " near "
@@ -530,7 +530,7 @@ void xml_read_from_stream(std::istream& is_xml,
     for (Index p = 0; p < npages; p++) {
       for (Index r = 0; r < nrows; r++) {
         for (Index c = 0; c < ncols; c++) {
-          is_xml >> double_imanip() >> tensor(p, r, c);
+          is_xml >> double_imanip() >> tensor[p, r, c];
           if (is_xml.fail()) {
             std::ostringstream os;
             os << " near "
@@ -614,7 +614,7 @@ void xml_read_from_stream(std::istream& is_xml,
       for (Index p = 0; p < npages; p++) {
         for (Index r = 0; r < nrows; r++) {
           for (Index c = 0; c < ncols; c++) {
-            is_xml >> double_imanip() >> tensor(b, p, r, c);
+            is_xml >> double_imanip() >> tensor[b, p, r, c];
             if (is_xml.fail()) {
               std::ostringstream os;
               os << " near "
@@ -702,7 +702,7 @@ void xml_read_from_stream(std::istream& is_xml,
         for (Index p = 0; p < npages; p++) {
           for (Index r = 0; r < nrows; r++) {
             for (Index c = 0; c < ncols; c++) {
-              is_xml >> double_imanip() >> tensor(s, b, p, r, c);
+              is_xml >> double_imanip() >> tensor[s, b, p, r, c];
               if (is_xml.fail()) {
                 std::ostringstream os;
                 os << " near "
@@ -796,7 +796,7 @@ void xml_read_from_stream(std::istream& is_xml,
           for (Index p = 0; p < npages; p++) {
             for (Index r = 0; r < nrows; r++) {
               for (Index c = 0; c < ncols; c++) {
-                is_xml >> double_imanip() >> tensor(v, s, b, p, r, c);
+                is_xml >> double_imanip() >> tensor[v, s, b, p, r, c];
                 if (is_xml.fail()) {
                   std::ostringstream os;
                   os << " near "
@@ -894,7 +894,7 @@ void xml_read_from_stream(std::istream& is_xml,
             for (Index p = 0; p < npages; p++) {
               for (Index r = 0; r < nrows; r++) {
                 for (Index c = 0; c < ncols; c++) {
-                  is_xml >> double_imanip() >> tensor(l, v, s, b, p, r, c);
+                  is_xml >> double_imanip() >> tensor[l, v, s, b, p, r, c];
                   if (is_xml.fail()) {
                     std::ostringstream os;
                     os << " near "

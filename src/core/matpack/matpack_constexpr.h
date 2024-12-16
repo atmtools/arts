@@ -51,44 +51,50 @@ struct matpack_constant_view {
   using inner_view = typename inner_type<c, alldim...>::type;
 
   template <integral... index>
-  [[nodiscard]] constexpr T &operator()(index... i)
-    requires(not constant and sizeof...(index) == N)
+  [[nodiscard]] constexpr T &operator[](index... i)
+    requires(not constant and sizeof...(index) == N and N != 1)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
                 "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
                 shape())
-    return view(i...);
+    return view[i...];
   }
 
   template <integral... index>
-  [[nodiscard]] constexpr const T &operator()(index... i) const
-    requires(sizeof...(index) == N)
+  [[nodiscard]] constexpr const T &operator[](index... i) const
+    requires(sizeof...(index) == N and N != 1)
   {
     ARTS_ASSERT((std::cmp_less(static_cast<Index>(i), alldim) && ...),
                 "{:B,} vs {:B,}",
                 std::array{static_cast<Index>(i)...},
                 shape())
-    return view(i...);
+    return view[i...];
   }
 
   template <typename... Jokers>
-  [[nodiscard]] constexpr inner_view<false> operator()(Index i, Jokers... v)
+  [[nodiscard]] constexpr inner_view<false> operator[](Index i, Jokers... v)
     requires(not constant and sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
     ARTS_ASSERT(i < view.extent(0), "{} vs {}", i, extent(0))
-    return stdx::submdspan(view, i, v...);
+    if constexpr ((integral<Jokers> and ...))
+      return view[i, v...];
+    else
+      return stdx::submdspan(view, i, v...);
   }
 
   template <typename... Jokers>
-  [[nodiscard]] constexpr inner_view<true> operator()(Index i,
+  [[nodiscard]] constexpr inner_view<true> operator[](Index i,
                                                       Jokers... v) const
     requires(sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
     ARTS_ASSERT(i < extent(0), "{} vs {}", i, extent(0))
-    return stdx::submdspan(view, i, v...);
+    if constexpr ((integral<Jokers> and ...))
+      return view[i, v...];
+    else
+      return stdx::submdspan(view, i, v...);
   }
 
   [[nodiscard]] constexpr auto operator[](Index i)
@@ -267,34 +273,34 @@ struct matpack_constant_data {
   [[nodiscard]] constexpr auto view() const { return const_view_type{data}; }
 
   template <integral... index>
-  [[nodiscard]] constexpr T &operator()(index... i)
-    requires(sizeof...(index) == N)
+  [[nodiscard]] constexpr T &operator[](index... i)
+    requires(sizeof...(index) == N and N != 1)
   {
-    return view()(i...);
+    return view()[i...];
   }
 
   template <integral... index>
-  [[nodiscard]] constexpr T operator()(index... i) const
-    requires(sizeof...(index) == N)
+  [[nodiscard]] constexpr T operator[](index... i) const
+    requires(sizeof...(index) == N and N != 1)
   {
-    return view()(i...);
+    return view()[i...];
   }
 
   template <typename... Jokers>
-  [[nodiscard]] constexpr inner_view<false> operator()(Index i, Jokers... v)
+  [[nodiscard]] constexpr inner_view<false> operator[](Index i, Jokers... v)
     requires(sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
-    return view()(i, v...);
+    return view()[i, v...];
   }
 
   template <typename... Jokers>
-  [[nodiscard]] constexpr inner_view<true> operator()(Index i,
+  [[nodiscard]] constexpr inner_view<true> operator[](Index i,
                                                       Jokers... v) const
     requires(sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
-    return view()(i, v...);
+    return view()[i, v...];
   }
 
   [[nodiscard]] constexpr auto operator[](Index i)

@@ -39,7 +39,7 @@ void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
       J[i]         = 0.0;
-      dJ(joker, i) = 0.0;
+      dJ[joker, i] = 0.0;
     } else {
       const auto invK = inv(K[i]);
       const auto src  = a[i] * B[i] + S[i] + J_add[i];
@@ -47,8 +47,8 @@ void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
 
       // TODO: Add jacobians dJ_add of additional source
       for (Index j = 0; j < M; j++) {
-        const auto dsrc = dS(j, i) + da(j, i) * B[i] + a[i] * dB(j, i);
-        dJ(j, i)        = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
+        const auto dsrc = dS[j, i] + da[j, i] * B[i] + a[i] * dB[j, i];
+        dJ[j, i]        = 0.5 * (invK * (dsrc - dK[j, i] * J[i]));
       }
     }
   }
@@ -84,15 +84,15 @@ void level_nlte_and_scattering(stokvec_vector_view J,
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
       J[i]         = 0.0;
-      dJ(joker, i) = 0.0;
+      dJ[joker, i] = 0.0;
     } else {
       const auto invK = inv(K[i]);
       const auto src  = a[i] * B[i] + S[i];
       J[i]            = invK * src;
 
       for (Index j = 0; j < M; j++) {
-        const auto dsrc = dS(j, i) + da(j, i) * B[i] + a[i] * dB(j, i);
-        dJ(j, i)        = 0.5 * (invK * (dsrc - dK(j, i) * J[i]));
+        const auto dsrc = dS[j, i] + da[j, i] * B[i] + a[i] * dB[j, i];
+        dJ[j, i]        = 0.5 * (invK * (dsrc - dK[j, i] * J[i]));
       }
     }
   }
@@ -140,15 +140,15 @@ void level_nlte(stokvec_vector_view J,
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
       J[i]         = 0.0;
-      dJ(joker, i) = 0.0;
+      dJ[joker, i] = 0.0;
     } else {
       const auto b    = stokvec{planck(f[i], t), 0, 0, 0};
       const auto invK = inv(K[i]);
       J[i]            = b + invK * S[i];
 
       for (Index j = 0; j < M; j++) {
-        dJ(j, i)  = {it == j ? dplanck_dt(f[i], t) : 0, 0, 0, 0};
-        dJ(j, i) -= invK * (dK(j, i) * invK * S[i] - dS(j, i));
+        dJ[j, i]  = {it == j ? dplanck_dt(f[i], t) : 0, 0, 0, 0};
+        dJ[j, i] -= invK * (dK[j, i] * invK * S[i] - dS[j, i]);
       }
     }
   }

@@ -33,13 +33,12 @@ template <Index M, Index N, class mdspan_type>
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, Index i) {
-  using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
-        if constexpr (requires { v(slices...); }) {
-          return v(slices...);
+        if constexpr (requires { v[slices...]; }) {
+          return v[slices...];
         } else {
-          return submdspan(v, slices...);
+          return stdx::submdspan(v, slices...);
         }
       },
       tup<M, N>(i));
@@ -48,13 +47,12 @@ template <Index M, Index N, class mdspan_type>
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, const stdx::strided_slice<Index, Index, Index>& i) {
-  using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
-        if constexpr (requires { v(slices...); }) {
-          return v(slices...);
+        if constexpr (requires { v[slices...]; }) {
+          return v[slices...];
         } else {
-          return submdspan(v, slices...);
+          return stdx::submdspan(v, slices...);
         }
       },
       tup<M, N>(i));
@@ -119,7 +117,7 @@ public:
     if constexpr (N == 1) {
       return orig->operator[](pos);
     } else {
-      return sub<M, N>(*orig, pos);
+      return sub<M, N>(orig->view, pos);
     }
   }
 
@@ -129,7 +127,7 @@ public:
     if constexpr (N == 1) {
       return orig->operator[](pos + i);
     } else {
-      return sub<M, N>(*orig, pos + i);
+      return sub<M, N>(orig->view, pos + i);
     }
   }
 };
@@ -246,7 +244,7 @@ public:
     else
       return std::apply(
           [this](auto... inds) -> std::conditional_t<constant, T, T &> {
-            return orig->operator()(inds...);
+            return orig->operator[](inds...);
           },
           pos.pos);
   }
@@ -258,7 +256,7 @@ public:
     else
       return std::apply(
           [this](auto... inds) -> std::conditional_t<constant, T, T &> {
-            return orig->operator()(inds...);
+            return orig->operator[](inds...);
           },
           (pos + i).pos);
   }

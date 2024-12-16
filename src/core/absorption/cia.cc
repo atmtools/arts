@@ -187,7 +187,7 @@ void cia_interpolation(VectorView result,
   if (T_order == 0) {
     // No temperature interpolation in this case, just a frequency interpolation.
     result_active =
-        reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
+        reinterp(cia_data.data[joker, 0], interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
@@ -495,7 +495,7 @@ void CIARecord::AppendDataset(const Vector& freq,
   dataset.grid<1>()     = temp_t;
   dataset.gridname<1>() = "Temperature";
 
-  for (Index t = 0; t < temp.nelem(); t++) dataset.data(joker, t) = cia[t];
+  for (Index t = 0; t < temp.nelem(); t++) dataset.data[joker, t] = cia[t];
   mdata.push_back(dataset);
 }
 

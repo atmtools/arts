@@ -142,8 +142,8 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       sum *= scl;
 
       // Add to W and rescale to upwards element by the populations
-      W(j, i) = sum;
-      W(i, j) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
+      W[j, i] = sum;
+      W[i, j] = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
   arts_wigner_thread_free();
@@ -153,7 +153,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
   // Undocumented negative absolute sign
   for (Size i = 0; i < n; i++)
     for (Size j = 0; j < n; j++)
-      if (j not_eq i and W(i, j) > 0) W(i, j) *= -1;
+      if (j not_eq i and W[i, j] > 0) W[i, j] *= -1;
 
   // Sum rule correction
   for (Size i = 0; i < n; i++) {
@@ -162,9 +162,9 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
     for (Size j = 0; j < n; j++) {
       if (j > i) {
-        sumlw += std::abs(dipr[j]) * W(j, i);  // Undocumented abs-sign
+        sumlw += std::abs(dipr[j]) * W[j, i];  // Undocumented abs-sign
       } else {
-        sumup += std::abs(dipr[j]) * W(j, i);  // Undocumented abs-sign
+        sumup += std::abs(dipr[j]) * W[j, i];  // Undocumented abs-sign
       }
     }
 
@@ -174,11 +174,11 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       const Rational Jj =
           bnd.lines[sorting[j]].qn.val[QuantumNumberType::J].low();
       if (sumlw == 0) {
-        W(j, i) = 0.0;
-        W(i, j) = 0.0;
+        W[j, i] = 0.0;
+        W[i, j] = 0.0;
       } else {
-        W(j, i) *= -sumup / sumlw;
-        W(i, j)  = W(j, i) * std::exp((erot(Ji) - erot(Jj)) /
+        W[j, i] *= -sumup / sumlw;
+        W[i, j]  = W[j, i] * std::exp((erot(Ji) - erot(Jj)) /
                                      kelvin2joule(T));  // This gives LTE
       }
     }

@@ -35,7 +35,7 @@ constexpr MAT &inplace_transpose(MAT &x) {
   ARTS_ASSERT(x.nrows() == x.ncols(), "Matrix must be square")
   for (Index i = 0; i < x.nrows(); ++i) {
     for (Index j = 0; j < i; ++j) {
-      std::swap(x(i, j), x(j, i));
+      std::swap(x[i, j], x[j, i]);
     }
   }
   return x;

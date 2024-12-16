@@ -448,7 +448,7 @@ void xml_read_from_stream(std::istream& is_xml,
   } else {
     for (Index r = 0; r < nrows; r++) {
       for (Index c = 0; c < ncols; c++) {
-        is_xml >> double_imanip() >> matrix.real()(r, c) >> matrix.imag()(r, c);
+        is_xml >> double_imanip() >> matrix.real()[r, c] >> matrix.imag()[r, c];
         if (is_xml.fail()) {
           std::ostringstream os;
           os << " near "
@@ -490,15 +490,15 @@ void xml_write_to_stream(std::ostream& os_xml,
   // Write the elements:
   for (Index r = 0; r < matrix.nrows(); ++r) {
     if (pbofs)
-      *pbofs << matrix(r, 0);
+      *pbofs << matrix[r, 0];
     else
-      os_xml << matrix(r, 0).real() << ' ' << matrix(r, 0).imag();
+      os_xml << matrix[r, 0].real() << ' ' << matrix[r, 0].imag();
 
     for (Index c = 1; c < matrix.ncols(); ++c) {
       if (pbofs)
-        *pbofs << matrix(r, c);
+        *pbofs << matrix[r, c];
       else
-        os_xml << " " << matrix(r, c).real() << ' ' << matrix(r, c).imag();
+        os_xml << " " << matrix[r, c].real() << ' ' << matrix[r, c].imag();
     }
 
     if (!pbofs) os_xml << '\n';

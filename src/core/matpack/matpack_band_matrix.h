@@ -29,7 +29,7 @@ class band_matrix {
 
   band_matrix(const Matrix& ab);
 
-  Numeric& operator()(Index i, Index j);
+  Numeric& operator[](Index i, Index j);
 
   //! Solves the system of equations A * x = b destructively
   int solve(Vector& bx);

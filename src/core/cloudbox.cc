@@ -94,7 +94,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
     for (p_i = 0; p_i < pnd_field_raw[n].data.npages(); p_i++) {
       for (lat_i = 0; lat_i < pnd_field_raw[n].data.nrows(); lat_i++) {
         for (lon_i = 0; lon_i < pnd_field_raw[n].data.ncols(); lon_i++) {
-          v = pnd_field_raw[n].data(p_i, lat_i, lon_i);
+          v = pnd_field_raw[n].data[p_i, lat_i, lon_i];
           if (v != 0) {
             // Verify pressure is between cloudbox limits
             p = pnd_field_raw[n].grid<0>()[p_i];
@@ -499,8 +499,8 @@ void chk_scat_species_field(bool& empty_flag,
   for (Index j = 0; j < scat_species_field.npages(); j++) {
     for (Index k = 0; k < scat_species_field.nrows(); k++) {
       for (Index l = 0; l < scat_species_field.ncols(); l++) {
-        if (scat_species_field(j, k, l) != 0.0 &&
-            !std::isnan(scat_species_field(j, k, l)))
+        if (scat_species_field[j, k, l] != 0.0 &&
+            !std::isnan(scat_species_field[j, k, l]))
           empty_flag = true;
         //	      if ( scat_species_field(j,k,l) != 0.0 ) empty_flag = true;
       }

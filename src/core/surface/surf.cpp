@@ -253,7 +253,7 @@ Numeric numeric_interpolation(
   }
 
   if (lats.size() == 1 and lons.size() == 1) {
-    return data.data(0, 0);
+    return data.data[0, 0];
   }
 
   if (lats.size() == 1) {

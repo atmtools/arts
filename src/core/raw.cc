@@ -212,7 +212,7 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
   for (Index k=start; k<end; k++)
     for (Index i=0; i<y.size(); i++)
       for (Index j=0; j<y.size(); j++)
-        cov(i, j) += (ys[k][i] - y[i]) * (ys[k][j] - y[j]) * scale;
+        cov[i, j] += (ys[k][i] - y[i]) * (ys[k][j] - y[j]) * scale;
   return cov;
 }
 

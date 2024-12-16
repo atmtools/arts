@@ -178,16 +178,16 @@ void main_data::solve_for_coefs() {
           for (Index l = 0; l < ln; l++) {
             const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
             for (Index j = 0; j < NQuad; j++) {
-              RHS_middle(j, l) +=
-                  (B_collect_m(l + 1, j) - B_collect_m(l, j)) * scl;
+              RHS_middle[j, l] +=
+                  (B_collect_m[l + 1, j] - B_collect_m[l, j]) * scl;
             }
           }
         }
 
         for (Index i = 0; i < N; i++) {
-          RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
+          RHS[i] += b_neg_m[i] - B_collect_m[0, N + i];
           RHS[n - N + i] +=
-              b_pos_m[i] + (BDRF_RHS_contribution[i] - B_collect_m(ln, i)) *
+              b_pos_m[i] + (BDRF_RHS_contribution[i] - B_collect_m[ln, i]) *
                                std::exp(-scaled_tau_arr_with_0.back() / mu0);
         }
       } else {
@@ -200,7 +200,7 @@ void main_data::solve_for_coefs() {
     {
       for (Index i = 0; i < N; i++) {
         E_Lm1L[i] =
-            std::exp(K_collect_m(ln, i) * (scaled_tau_arr_with_0[NLayers] -
+            std::exp(K_collect_m[ln, i] * (scaled_tau_arr_with_0[NLayers] -
                                            scaled_tau_arr_with_0[NLayers - 1]));
       }
 
@@ -212,46 +212,46 @@ void main_data::solve_for_coefs() {
 
       for (Index i = 0; i < N; i++) {
         for (Index j = 0; j < N; j++) {
-          LHSB(i, j) = G_collect_m(0, i + N, j);
-          LHSB(i, N + j) =
-              G_collect_m(0, i + N, j + N) *
-              std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
-          LHSB(n - N + i, n - 2 * N + j) =
-              (G_collect_m(ln, i, j) - BDRF_LHS(i, j)) * E_Lm1L[j];
-          LHSB(n - N + i, n - N + j) =
-              G_collect_m(ln, i, j + N) - BDRF_LHS(i, j + N);
+          LHSB[i, j] = G_collect_m[0, i + N, j];
+          LHSB[i, N + j] =
+              G_collect_m[0, i + N, j + N] *
+              std::exp(K_collect_m[0, j] * scaled_tau_arr_with_0[1]);
+          LHSB[n - N + i, n - 2 * N + j] =
+              (G_collect_m[ln, i, j] - BDRF_LHS[i, j]) * E_Lm1L[j];
+          LHSB[n - N + i, n - N + j] =
+              G_collect_m[ln, i, j + N] - BDRF_LHS[i, j + N];
         }
       }
 
       for (Index l = 0; l < ln; l++) {
         for (Index i = 0; i < N; i++) {
           E_lm1l[i] =
-              std::exp(K_collect_m(l, i + N) * (scaled_tau_arr_with_0[l] -
+              std::exp(K_collect_m[l, i + N] * (scaled_tau_arr_with_0[l] -
                                                 scaled_tau_arr_with_0[l + 1]));
           E_llp1[i] = std::exp(
-              K_collect_m(l + 1, i + N) *
+              K_collect_m[l + 1, i + N] *
               (scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l + 2]));
         }
 
         for (Index i = 0; i < N; i++) {
           for (Index j = 0; j < N; j++) {
-            LHSB(N + l * NQuad + i, l * NQuad + j) =
-                G_collect_m(l, i, j) * E_lm1l[j];
-            LHSB(2 * N + l * NQuad + i, l * NQuad + j) =
-                G_collect_m(l, N + i, j) * E_lm1l[j];
-            LHSB(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
-                -G_collect_m(l + 1, i, N + j) * E_llp1[j];
-            LHSB(2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
-                -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j];
+            LHSB[N + l * NQuad + i, l * NQuad + j] =
+                G_collect_m[l, i, j] * E_lm1l[j];
+            LHSB[2 * N + l * NQuad + i, l * NQuad + j] =
+                G_collect_m[l, N + i, j] * E_lm1l[j];
+            LHSB[N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
+                -G_collect_m[l + 1, i, N + j] * E_llp1[j];
+            LHSB[2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
+                -1 * G_collect_m[l + 1, N + i, N + j] * E_llp1[j];
           }
         }
 
         for (Index i = 0; i < NQuad; i++) {
           for (Index j = 0; j < N; j++) {
-            LHSB(N + l * NQuad + i, l * NQuad + N + j) =
-                G_collect_m(l, i, N + j);
-            LHSB(N + l * NQuad + i, l * NQuad + 2 * N + j) =
-                -G_collect_m(l + 1, i, j);
+            LHSB[N + l * NQuad + i, l * NQuad + N + j] =
+                G_collect_m[l, i, N + j];
+            LHSB[N + l * NQuad + i, l * NQuad + 2 * N + j] =
+                -G_collect_m[l + 1, i, j];
           }
         }
       }
@@ -293,9 +293,9 @@ void main_data::diagonalize() {
 
     for (Index i = m; i < NLeg; i++) {
       for (Index j = 0; j < N; j++) {
-        asso_leg_term_pos(i - m, j) = Legendre::assoc_legendre(i, m, mu_arr[j]);
-        asso_leg_term_neg(i - m, j) =
-            asso_leg_term_pos(i - m, j) * ((i - m) % 2 ? -1.0 : 1.0);
+        asso_leg_term_pos[i - m, j] = Legendre::assoc_legendre(i, m, mu_arr[j]);
+        asso_leg_term_neg[i - m, j] =
+            asso_leg_term_pos[i - m, j] * ((i - m) % 2 ? -1.0 : 1.0);
       }
       asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(i, m, -mu0);
     }
@@ -311,7 +311,7 @@ void main_data::diagonalize() {
 
       for (Index i = 0; i < NLeg - m; i++) {
         weighted_asso_Leg_coeffs_l[i] =
-            weighted_scaled_Leg_coeffs(l, i + m) * fac[i];
+            weighted_scaled_Leg_coeffs[l, i + m] * fac[i];
       }
 
       const Numeric scaled_omega_l = scaled_omega_arr[l];
@@ -351,7 +351,7 @@ void main_data::diagonalize() {
 
         mult(GmG, apb, G.slice(0, N));
         for (Index j = 0; j < NQuad; j++) {
-          GmG(joker, j) /= K[j];
+          GmG[joker, j] /= K[j];
         }
         G.slice(N, N)  = G.slice(0, N);
         G.slice(0, N) -= GmG;
@@ -382,8 +382,8 @@ void main_data::diagonalize() {
         }
       } else {
         for (Index i = 0; i < N; i++) {
-          G(i + N, i) = 1;
-          G(i, i + N) = 1;
+          G[i + N, i] = 1;
+          G[i, i + N] = 1;
           K[i]        = -inv_mu_arr[i];
           K[i + N]    = inv_mu_arr[i];
         }
@@ -425,7 +425,7 @@ void main_data::set_ims_factors() {
           }
         } else {
           for (Index j = 0; j < NLayers; j++) {
-            sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
+            sum3 += Leg_coeffs_all[j, i] * omega_arr[j] * tau_arr[j];
           }
         }
       }
@@ -460,8 +460,8 @@ void main_data::set_scales() {
 
   for (Index i = 0; i < NLayers; i++) {
     for (Index j = 0; j < NLeg; j++) {
-      weighted_scaled_Leg_coeffs(i, j) = static_cast<Numeric>(2 * j + 1) *
-                                         (Leg_coeffs_all(i, j) - f_arr[i]) /
+      weighted_scaled_Leg_coeffs[i, j] = static_cast<Numeric>(2 * j + 1) *
+                                         (Leg_coeffs_all[i, j] - f_arr[i]) /
                                          (1 - f_arr[i]);
     }
   }
@@ -474,8 +474,8 @@ void main_data::set_scales() {
 void main_data::set_weighted_Leg_coeffs_all() {
   for (Index j = 0; j < NLayers; j++) {
     for (Index i = 0; i < NLeg_all; i++) {
-      weighted_Leg_coeffs_all(joker, i) =
-          static_cast<Numeric>(2 * i + 1) * Leg_coeffs_all(j, i);
+      weighted_Leg_coeffs_all[joker, i] =
+          static_cast<Numeric>(2 * i + 1) * Leg_coeffs_all[j, i];
     }
   }
 }
@@ -788,10 +788,10 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   data.exponent.resize(NFourier, NQuad);
   for (Index i = 0; i < NFourier; i++) {
     for (Index j = 0; j < N; j++) {
-      data.exponent(i, j) =
-          std::exp(K_collect(i, l, j) * (scaled_tau - scaled_tau_arr_lm1));
-      data.exponent(i, j + N) =
-          std::exp(K_collect(i, l, j + N) * (scaled_tau - scaled_tau_arr_l));
+      data.exponent[i, j] =
+          std::exp(K_collect[i, l, j] * (scaled_tau - scaled_tau_arr_lm1));
+      data.exponent[i, j + N] =
+          std::exp(K_collect[i, l, j + N] * (scaled_tau - scaled_tau_arr_l));
     }
   }
 
@@ -800,12 +800,12 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
       matpack::einsum_optpath<"mi", "mij", "mj">(),
       "On Failure, the einsum has been changed to not use optimal path");
   einsum<"mi", "mij", "mj">(
-      data.um, GC_collect(joker, l, joker, joker), data.exponent);
+      data.um, GC_collect[joker, l, joker, joker], data.exponent);
 
   if (has_beam_source) {
     for (Index m = 0; m < NFourier; m++) {
       for (Index i = 0; i < NQuad; i++) {
-        data.um(m, i) += std::exp(-scaled_tau / mu0) * B_collect(m, l, i);
+        data.um[m, i] += std::exp(-scaled_tau / mu0) * B_collect[m, l, i];
       }
     }
   }
@@ -850,9 +850,9 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   data.exponent.resize(NQuad);
   for (Index j = 0; j < N; j++) {
     data.exponent[j] =
-        std::exp(K_collect(0, l, j) * (scaled_tau - scaled_tau_arr_lm1));
+        std::exp(K_collect[0, l, j] * (scaled_tau - scaled_tau_arr_lm1));
     data.exponent[j + N] =
-        std::exp(K_collect(0, l, j + N) * (scaled_tau - scaled_tau_arr_l));
+        std::exp(K_collect[0, l, j + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
   data.u0.resize(NQuad);
@@ -869,10 +869,10 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
     data.u0 = 0.0;
   }
 
-  mult(data.u0, GC_collect(0, l, joker, joker), data.exponent, 1.0, 1.0);
+  mult(data.u0, GC_collect[0, l, joker, joker], data.exponent, 1.0, 1.0);
 
   if (has_beam_source) {
-    const auto tmp = B_collect(0, l, joker);
+    const auto tmp = B_collect[0, l, joker];
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
                    data.u0.elem_begin(),
@@ -930,7 +930,7 @@ void main_data::TMS(tms_data& data,
           Legendre::legendre_sum(weighted_Leg_coeffs_all[j], data.nu[i]);
       const Numeric p_trun =
           Legendre::legendre_sum(weighted_scaled_Leg_coeffs[j], data.nu[i]);
-      data.mathscr_B(j, i) = (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
+      data.mathscr_B[j, i] = (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
                              (mu0 / (mu0 + mu_arr[i])) *
                              (p_true / (1.0 - f_arr[j]) - p_trun);
     }
@@ -957,8 +957,8 @@ void main_data::TMS(tms_data& data,
       if (l > i) {
         // neg
         for (Index j = 0; j < N; j++) {
-          data.contribution_from_other_layers_neg(j, i) =
-              (data.mathscr_B(i, j + N) *
+          data.contribution_from_other_layers_neg[j, i] =
+              (data.mathscr_B[i, j + N] *
                (std::exp((scaled_tau_arr_with_0[i] - scaled_tau) / mu_arr[j] -
                          scaled_tau_arr_with_0[i] / mu0) -
                 std::exp((scaled_tau_arr_with_0[i] - scaled_tau) / mu_arr[j] -
@@ -967,8 +967,8 @@ void main_data::TMS(tms_data& data,
       } else if (l < i) {
         // pos
         for (Index j = 0; j < N; j++) {
-          data.contribution_from_other_layers_pos(j, i) =
-              (data.mathscr_B(i, j) *
+          data.contribution_from_other_layers_pos[j, i] =
+              (data.mathscr_B[i, j] *
                (std::exp((scaled_tau - scaled_tau_arr_with_0[i]) / mu_arr[j] -
                          scaled_tau_arr_with_0[i] / mu0) -
                 std::exp((scaled_tau - scaled_tau_arr_with_0[i]) / mu_arr[j] -
@@ -1051,20 +1051,20 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
 
   if (has_beam_source) {
     for (Index i = 0; i < N; i++) {
-      data.u0_pos[i] += B_collect(0, l, i) * std::exp(-scaled_tau / mu0);
+      data.u0_pos[i] += B_collect[0, l, i] * std::exp(-scaled_tau / mu0);
     }
   }
 
   data.exponent.resize(NQuad);
   for (Index i = 0; i < N; i++) {
     data.exponent[i] =
-        std::exp(K_collect(0, l, i) * (scaled_tau - scaled_tau_arr_lm1));
+        std::exp(K_collect[0, l, i] * (scaled_tau - scaled_tau_arr_lm1));
     data.exponent[i + N] =
-        std::exp(K_collect(0, l, i + N) * (scaled_tau - scaled_tau_arr_l));
+        std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
   mult(data.u0_pos,
-       GC_collect(0, l, Range(0, N), joker),
+       GC_collect[0, l, Range(0, N), joker],
        data.exponent,
        1.0,
        1.0);
@@ -1110,20 +1110,20 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
   if (has_beam_source) {
     for (Index i = 0; i < N; i++) {
-      data.u0_neg[i] += B_collect(0, l, i + N) * std::exp(-scaled_tau / mu0);
+      data.u0_neg[i] += B_collect[0, l, i + N] * std::exp(-scaled_tau / mu0);
     }
   }
 
   data.exponent.resize(NQuad);
   for (Index i = 0; i < N; i++) {
     data.exponent[i] =
-        std::exp(K_collect(0, l, i) * (scaled_tau - scaled_tau_arr_lm1));
+        std::exp(K_collect[0, l, i] * (scaled_tau - scaled_tau_arr_lm1));
     data.exponent[i + N] =
-        std::exp(K_collect(0, l, i + N) * (scaled_tau - scaled_tau_arr_l));
+        std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
   mult(data.u0_neg,
-       GC_collect(0, l, Range(N, N), joker),
+       GC_collect[0, l, Range(N, N), joker],
        data.exponent,
        1.0,
        1.0);
@@ -1164,16 +1164,16 @@ void main_data::gridded_flux(ExhaustiveVectorView flux_up,
         has_beam_source ? I0 * mu0 * std::exp(-scaled_tau_arr_l / mu0) : 0;
     if (has_beam_source) {
       for (Index i = 0; i < NQuad; i++) {
-        u0[i] += B_collect(0, l, i) * std::exp(-scaled_tau_arr_l / mu0);
+        u0[i] += B_collect[0, l, i] * std::exp(-scaled_tau_arr_l / mu0);
       }
     }
 
     for (Index i = 0; i < N; i++) {
-      exponent[i] = std::exp(K_collect(0, l, i) *
+      exponent[i] = std::exp(K_collect[0, l, i] *
                              (scaled_tau_arr_l - scaled_tau_arr_lm1));
     }
 
-    mult(u0, GC_collect(0, l, joker, joker), exponent, 1.0, 1.0);
+    mult(u0, GC_collect[0, l, joker, joker], exponent, 1.0, 1.0);
 
     flux_up[l] = Constant::two_pi * I0_orig *
                  einsum<Numeric, "", "i", "i", "i">(
@@ -1196,7 +1196,7 @@ void main_data::gridded_u(ExhaustiveTensor3View out, const Vector& phi) const {
   Matrix cp(Nphi, NFourier);
   for (Index p = 0; p < phi.size(); p++) {
     for (Index m = 0; m < NFourier; m++) {
-      cp(p, m) = I0_orig * std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
+      cp[p, m] = I0_orig * std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
     }
   }
 
@@ -1206,7 +1206,7 @@ void main_data::gridded_u(ExhaustiveTensor3View out, const Vector& phi) const {
 
     for (Index i = 0; i < NFourier; i++) {
       for (Index j = 0; j < N; j++) {
-        exponent(i, j) = std::exp(K_collect(i, l, j) *
+        exponent[i, j] = std::exp(K_collect[i, l, j] *
                                   (scaled_tau_arr_l - scaled_tau_arr_lm1));
       }
     }
@@ -1214,12 +1214,12 @@ void main_data::gridded_u(ExhaustiveTensor3View out, const Vector& phi) const {
     static_assert(
         matpack::einsum_optpath<"mi", "mij", "mj">(),
         "On Failure, the einsum has been changed to not use optimal path");
-    einsum<"mi", "mij", "mj">(um, GC_collect(joker, l, joker, joker), exponent);
+    einsum<"mi", "mij", "mj">(um, GC_collect[joker, l, joker, joker], exponent);
 
     if (has_beam_source) {
       for (Index m = 0; m < NFourier; m++) {
         for (Index i = 0; i < NQuad; i++) {
-          um(m, i) += std::exp(-scaled_tau_arr_l / mu0) * B_collect(m, l, i);
+          um[m, i] += std::exp(-scaled_tau_arr_l / mu0) * B_collect[m, l, i];
         }
       }
     }
@@ -1286,18 +1286,18 @@ void main_data::ungridded_flux(ExhaustiveVectorView flux_up,
         has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
     if (has_beam_source) {
       for (Index i = 0; i < NQuad; i++) {
-        u0[i] += B_collect(0, l, i) * std::exp(-scaled_tau / mu0);
+        u0[i] += B_collect[0, l, i] * std::exp(-scaled_tau / mu0);
       }
     }
 
     for (Index i = 0; i < N; i++) {
       exponent[i] =
-          std::exp(K_collect(0, l, i) * (scaled_tau - scaled_tau_arr_lm1));
+          std::exp(K_collect[0, l, i] * (scaled_tau - scaled_tau_arr_lm1));
       exponent[i + N] =
-          std::exp(K_collect(0, l, i + N) * (scaled_tau - scaled_tau_arr_l));
+          std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
     }
 
-    mult(u0, GC_collect(0, l, joker, joker), exponent, 1.0, 1.0);
+    mult(u0, GC_collect[0, l, joker, joker], exponent, 1.0, 1.0);
 
     flux_up[il] = Constant::two_pi * I0_orig *
                   einsum<Numeric, "", "i", "i", "i">(
@@ -1329,7 +1329,7 @@ void main_data::ungridded_u(ExhaustiveTensor3View out,
   Matrix cp(Nphi, NFourier);
   for (Index p = 0; p < phi.size(); p++) {
     for (Index m = 0; m < NFourier; m++) {
-      cp(p, m) = I0_orig * std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
+      cp[p, m] = I0_orig * std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
     }
   }
 
@@ -1344,22 +1344,22 @@ void main_data::ungridded_u(ExhaustiveTensor3View out,
 
     for (Index i = 0; i < NFourier; i++) {
       for (Index j = 0; j < N; j++) {
-        exponent(i, j) =
-            std::exp(K_collect(i, l, j) * (scaled_tau - scaled_tau_arr_lm1));
-        exponent(i, j + N) =
-            std::exp(K_collect(i, l, j + N) * (scaled_tau - scaled_tau_arr_l));
+        exponent[i, j] =
+            std::exp(K_collect[i, l, j] * (scaled_tau - scaled_tau_arr_lm1));
+        exponent[i, j + N] =
+            std::exp(K_collect[i, l, j + N] * (scaled_tau - scaled_tau_arr_l));
       }
     }
 
     static_assert(
         matpack::einsum_optpath<"mi", "mij", "mj">(),
         "On Failure, the einsum has been changed to not use optimal path");
-    einsum<"mi", "mij", "mj">(um, GC_collect(joker, l, joker, joker), exponent);
+    einsum<"mi", "mij", "mj">(um, GC_collect[joker, l, joker, joker], exponent);
 
     if (has_beam_source) {
       for (Index m = 0; m < NFourier; m++) {
         for (Index i = 0; i < NQuad; i++) {
-          um(m, i) += std::exp(-scaled_tau / mu0) * B_collect(m, l, i);
+          um[m, i] += std::exp(-scaled_tau / mu0) * B_collect[m, l, i];
         }
       }
     }
@@ -1471,7 +1471,7 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
        i < bidirectional_reflectance_distribution_functions.ncols();
        i++) {
     dis.brdf_modes()[i] =
-        bidirectional_reflectance_distribution_functions(iv, i);
+        bidirectional_reflectance_distribution_functions[iv, i];
   }
 
   dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
