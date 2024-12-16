@@ -77,7 +77,7 @@ class matpack_data {
 
   //! Allow all matpack views to view private information about this class
   template <typename U, Index M, bool c, bool s>
-  friend class matpack_view;
+  friend struct matpack_view;
 
  public:
   constexpr operator view_type&() { return view; }

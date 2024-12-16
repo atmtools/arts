@@ -27,7 +27,7 @@ struct matpack_strided_access;
 
 //! The basic view type
 template <typename T, Index N, bool constant, bool strided>
-class matpack_view;
+struct matpack_view;
 
 //! The basic data type
 template <typename T, Index N>

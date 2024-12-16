@@ -380,7 +380,7 @@ struct matpack_view {
 
   //! Allow any other matpack view type to access the private parts of this object
   template <typename U, Index M, bool c, bool s>
-  friend class matpack_view;
+  friend struct matpack_view;
 
   //! Sets this view to another view type, ignoring shape-checks
   constexpr void secret_set(view_type x) { view = std::move(x); }
