@@ -321,7 +321,7 @@ std::string access_str(access... ind) {
 
 //! The basic view type
 template <typename T, Index N, bool constant, bool strided>
-class matpack_view {
+struct matpack_view {
   static_assert(N > 0);
 
   //! The strided view type from mdspan

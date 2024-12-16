@@ -117,7 +117,7 @@ public:
     if constexpr (N == 1) {
       return orig->operator[](pos);
     } else {
-      return sub<M, N>(*orig, pos);
+      return sub<M, N>(orig->view, pos);
     }
   }
 
@@ -127,7 +127,7 @@ public:
     if constexpr (N == 1) {
       return orig->operator[](pos + i);
     } else {
-      return sub<M, N>(*orig, pos + i);
+      return sub<M, N>(orig->view, pos + i);
     }
   }
 };
