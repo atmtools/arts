@@ -41,11 +41,11 @@ void propagation_matrixAddCIA(  // WS Output:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
   // Size of problem
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index nq = jacobian_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
+  ARTS_USER_ERROR_IF(propagation_matrix.size() not_eq nf,
                      "*f_grid* must match *propagation_matrix*")
   ARTS_USER_ERROR_IF(
       propagation_matrix_jacobian.nrows() not_eq nq,
@@ -73,12 +73,12 @@ void propagation_matrixAddCIA(  // WS Output:
   Vector dabs_t{atm_point.temperature + dt};
 
   if (do_wind_jac) {
-    dfreq.resize(f_grid.nelem());
-    for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
+    dfreq.resize(f_grid.size());
+    for (Index iv = 0; iv < f_grid.size(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
-  Vector dxsec_temp_dF(do_wind_jac ? f_grid.nelem() : 0),
-      dxsec_temp_dT(do_temp_jac ? f_grid.nelem() : 0);
+  Vector dxsec_temp_dF(do_wind_jac ? f_grid.size() : 0),
+      dxsec_temp_dT(do_temp_jac ? f_grid.size() : 0);
 
   ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df),
                      "df must be >0 and not NaN or Inf: {}",
@@ -94,7 +94,7 @@ void propagation_matrixAddCIA(  // WS Output:
   // Allocate a vector with dimension frequencies for constructing our
   // cross-sections before adding them (more efficient to allocate this here
   // outside of the loops)
-  Vector xsec_temp(f_grid.nelem());
+  Vector xsec_temp(f_grid.size());
 
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
@@ -147,7 +147,7 @@ void propagation_matrixAddCIA(  // WS Output:
     const Numeric dnd_dt_sec =
         dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
         atm_point[this_cia.Species(1)];
-    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+    for (Index iv = 0; iv < f_grid.size(); iv++) {
       propagation_matrix[iv].A() +=
           nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 

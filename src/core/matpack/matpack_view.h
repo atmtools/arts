@@ -615,7 +615,7 @@ struct matpack_view {
   }
 
   //! Return the size of the 1-dimensional object
-  [[nodiscard]] constexpr Index nelem() const
+  [[nodiscard]] constexpr Index size() const
     requires(N == 1)
   {
     return view.extent(N - 1);

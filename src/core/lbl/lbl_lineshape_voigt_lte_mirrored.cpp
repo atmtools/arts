@@ -2025,7 +2025,7 @@ void calculate(PropmatVectorView pm,
   ARTS_ASSERT(jacobian_targets.target_count() ==
                   static_cast<Size>(dpm.nrows()) and
               nf == dpm.ncols())
-  ARTS_ASSERT(nf == pm.nelem())
+  ARTS_ASSERT(nf == pm.size())
 
   band_shape_helper(
       com_data.lines, com_data.pos, spec, bnd, atm, fmin, fmax, pol);

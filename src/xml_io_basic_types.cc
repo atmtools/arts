@@ -456,7 +456,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("VibrationalEnergyLevels");
-  open_tag.add_attribute("nelem", vib.nelem());
+  open_tag.add_attribute("nelem", vib.size());
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 

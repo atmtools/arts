@@ -114,8 +114,8 @@ void antenna2d_interp_response(Sparse& H,
 
    The size of the transfer matrix is changed in the function
    as follows:
-     nrows = f_mixer.nelem()
-     ncols = f_grid.nelem()
+     nrows = f_mixer.size()
+     ncols = f_grid.size()
 
    The returned frequencies are given in IF, so both primary and mirror band
    is converted down.

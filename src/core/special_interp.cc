@@ -515,7 +515,7 @@ void z_at_lat_2d(VectorView z,
   interpweights(itw, gp_z, agp_lat);
   interp(z_matrix, itw, z_field, gp_z, agp_lat);
 
-  z = z_matrix[Range(joker), 0];
+  z = z_matrix[joker, 0];
 }
 
 void z_at_latlon(VectorView z,
@@ -549,7 +549,7 @@ void z_at_latlon(VectorView z,
 
   interp(z_tensor, itw, z_field, agp_z, agp_lat, agp_lon);
 
-  z = z_tensor[Range(joker), 0, 0];
+  z = z_tensor[joker, 0, 0];
 }
 
 /*===========================================================================

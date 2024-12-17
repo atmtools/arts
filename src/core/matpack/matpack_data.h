@@ -199,13 +199,6 @@ class matpack_data {
   //! Return a full mdspan mapping of this object
   [[nodiscard]] constexpr auto inner_map() const { return view.inner_map(); }
 
-  //! Return the size of the 1-dimensional object
-  [[nodiscard]] constexpr auto nelem() const
-    requires(N == 1)
-  {
-    return view.nelem();
-  }
-
   //! Return the right-most extent of the multidimensional object
   [[nodiscard]] constexpr auto ncols() const
     requires(N >= 2)

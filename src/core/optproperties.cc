@@ -1275,8 +1275,8 @@ void abs_vecTransform(  //Output and Input
 
       abs_vec_lab = 0.0;
 
-      abs_vec_lab[0].I() = interp(itw, abs_vec_data[Range(joker), 0, 0], gp);
-      abs_vec_lab[0].Q() = interp(itw, abs_vec_data[Range(joker), 0, 1], gp);
+      abs_vec_lab[0].I() = interp(itw, abs_vec_data[joker, 0, 0], gp);
+      abs_vec_lab[0].Q() = interp(itw, abs_vec_data[joker, 0, 1], gp);
       break;
     }
     default: {
@@ -1362,11 +1362,11 @@ void ext_matTransform(  //Output and Input
 
       ext_mat_lab = 0.0;
 
-      Kjj                = interp(itw, ext_mat_data[Range(joker), 0, 0], gp);
+      Kjj                = interp(itw, ext_mat_data[joker, 0, 0], gp);
       ext_mat_lab[0].A() = Kjj;
-      K12                = interp(itw, ext_mat_data[Range(joker), 0, 1], gp);
+      K12                = interp(itw, ext_mat_data[joker, 0, 1], gp);
       ext_mat_lab[0].B() = K12;
-      K34                = interp(itw, ext_mat_data[Range(joker), 0, 2], gp);
+      K34                = interp(itw, ext_mat_data[joker, 0, 2], gp);
       ext_mat_lab[0].W() = K34;
       break;
     }
@@ -1472,26 +1472,26 @@ void pha_matTransform(  //Output
 
         pha_mat_lab[0, 0] =
             interp(itw,
-                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 0],
+                   pha_mat_data[joker, joker, joker, 0, 0],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
 
         pha_mat_lab[0, 1] =
             interp(itw,
-                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 1],
+                   pha_mat_data[joker, joker, joker, 0, 1],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
         pha_mat_lab[1, 0] =
             interp(itw,
-                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 4],
+                   pha_mat_data[joker, joker, joker, 0, 4],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
         pha_mat_lab[1, 1] =
             interp(itw,
-                   pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 5],
+                   pha_mat_data[joker, joker, joker, 0, 5],
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
@@ -1499,57 +1499,57 @@ void pha_matTransform(  //Output
         if (delta_aa >= 0) {
           pha_mat_lab[0, 2] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 2],
+              pha_mat_data[joker, joker, joker, 0, 2],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[1, 2] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 6],
+              pha_mat_data[joker, joker, joker, 0, 6],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[2, 0] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 8],
+              pha_mat_data[joker, joker, joker, 0, 8],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[2, 1] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 9],
+              pha_mat_data[joker, joker, joker, 0, 9],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         } else {
           pha_mat_lab[0, 2] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 2],
+              pha_mat_data[joker, joker, joker, 0, 2],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[1, 2] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 6],
+              pha_mat_data[joker, joker, joker, 0, 6],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[2, 0] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 8],
+              pha_mat_data[joker, joker, joker, 0, 8],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[2, 1] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 9],
+              pha_mat_data[joker, joker, joker, 0, 9],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         }
         pha_mat_lab[2, 2] = interp(
             itw,
-            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 10],
+            pha_mat_data[joker, joker, joker, 0, 10],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
@@ -1557,69 +1557,69 @@ void pha_matTransform(  //Output
         if (delta_aa >= 0) {
           pha_mat_lab[0, 3] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 3],
+              pha_mat_data[joker, joker, joker, 0, 3],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[1, 3] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 7],
+              pha_mat_data[joker, joker, joker, 0, 7],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[3, 0] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 12],
+              pha_mat_data[joker, joker, joker, 0, 12],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[3, 1] = interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 13],
+              pha_mat_data[joker, joker, joker, 0, 13],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         } else {
           pha_mat_lab[0, 3] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 3],
+              pha_mat_data[joker, joker, joker, 0, 3],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[1, 3] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 7],
+              pha_mat_data[joker, joker, joker, 0, 7],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[3, 0] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 12],
+              pha_mat_data[joker, joker, joker, 0, 12],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
           pha_mat_lab[3, 1] = -interp(
               itw,
-              pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 13],
+              pha_mat_data[joker, joker, joker, 0, 13],
               za_sca_gp,
               delta_aa_gp,
               za_inc_gp);
         }
         pha_mat_lab[2, 3] = interp(
             itw,
-            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 11],
+            pha_mat_data[joker, joker, joker, 0, 11],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
         pha_mat_lab[3, 2] = interp(
             itw,
-            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 14],
+            pha_mat_data[joker, joker, joker, 0, 14],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
         pha_mat_lab[3, 3] = interp(
             itw,
-            pha_mat_data[Range(joker), Range(joker), Range(joker), 0, 15],
+            pha_mat_data[joker, joker, joker, 0, 15],
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);

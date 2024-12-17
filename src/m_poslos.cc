@@ -71,7 +71,7 @@ void dlosGauss(Matrix& dlos,
     linspace(xp, 0, 2.0*fwhm, 0.02*fwhm);
     Vector gx = gaussian_grid(xp, 0, -1.0, fwhm);
     gx *= xp;  // Weight with radius, no need to include pi
-    const Index np = gx.nelem();
+    const Index np = gx.size();
     cx.resize(np);
     cumsum(cx, gx);
     cx /= cx[np-1];
@@ -163,7 +163,7 @@ void dlosUniform(Matrix& dlos,
   if (crop_circular) {
     // Pick out points inside radius (with special treatment of npoints=3)
     Matrix dlos_tmp(dlos.nrows(), 2);
-    Vector sa_tmp(dlos_weight_vector.nelem());
+    Vector sa_tmp(dlos_weight_vector.size());
     const Numeric r = width / 2.0 * (npoints != 3 ? 1 : 0.8);
     //
     Index n = 0;

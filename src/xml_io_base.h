@@ -59,6 +59,8 @@ class XMLTag {
 
   void add_attribute(const String& aname, const Index& value);
 
+  void add_attribute(const String& aname, const Size& value);
+
   /** Adds value of attribute as type Numeric to tag
    * 
    * @param[in] aname Attribute name
@@ -71,6 +73,8 @@ class XMLTag {
   void get_attribute_value(const String& aname, String& value);
 
   void get_attribute_value(const String& aname, Index& value);
+
+  void get_attribute_value(const String& aname, Size& value);
 
   /** Returns value of attribute as type Numeric
    * 

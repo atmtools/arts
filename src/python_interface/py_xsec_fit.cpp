@@ -39,7 +39,7 @@ void py_xsec(py::module_& m) try {
              Numeric P,
              Numeric VMR,
              const Vector& f) {
-            Vector out(f.nelem(), 0);
+            Vector out(f.size(), 0);
 
             self.Extract(out, f, P, T);
 

@@ -205,7 +205,7 @@ void water(PropmatVector& propmat_clearsky,
                       ((0.543 * pda) + (17.96 * pvap * pow(ti, (Numeric)4.5)));
 
   // Loop over input frequency
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // input frequency in [GHz]
     const Numeric ff = f_grid[s] * 1e-9;
     // line contribution at position f
@@ -389,7 +389,7 @@ void oxygen(PropmatVector& propmat_clearsky,
   const Numeric CCONT = 1.23e-10 * pow2(TH) * p_pa;
 
   // Loop over input frequency
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // initial O2 line absorption at position ff
     // Numeric O2ABS  = 0.000e0;cd safff
 

@@ -62,7 +62,7 @@ void nitrogen(PropmatVector& propmat_clearsky,
         pow(th, xT);
 
     // Loop frequency:
-    for (Index s = 0; s < f_grid.nelem(); ++s) {
+    for (Index s = 0; s < f_grid.size(); ++s) {
       propmat_clearsky[s].A() += n2 * 
                      fac * 
                      strength *               // strength

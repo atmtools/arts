@@ -111,10 +111,10 @@ void cia_interpolation(VectorView result,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
                        const Index& robust) try {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   // Assert that result vector has right size:
-  ARTS_ASSERT(result.nelem() == nf);
+  ARTS_ASSERT(result.size() == nf);
 
   // Get data grids:
   ConstVectorView data_f_grid = cia_data.grid<0>();
@@ -136,7 +136,7 @@ void cia_interpolation(VectorView result,
   if (i_fstart == nf) return;
 
   for (i_fstop = nf - 1; i_fstop >= 0; --i_fstop)
-    if (f_grid[i_fstop] <= data_f_grid[data_f_grid.nelem() - 1]) break;
+    if (f_grid[i_fstop] <= data_f_grid[data_f_grid.size() - 1]) break;
 
   // Return directly if all frequencies are above data_f_grid:
   if (i_fstop == -1) return;
@@ -160,10 +160,10 @@ void cia_interpolation(VectorView result,
 
   // The frequency grid has to have enough points for this interpolation
   // order, otherwise throw a runtime error.
-  if (data_f_grid.nelem() < f_order + 1) {
+  if (data_f_grid.size() < f_order + 1) {
     std::ostringstream os;
     os << "Not enough frequency grid points in CIA data.\n"
-       << "You have only " << data_f_grid.nelem() << " grid points.\n"
+       << "You have only " << data_f_grid.size() << " grid points.\n"
        << "But need at least " << f_order + 1 << ".";
     throw std::runtime_error(os.str());
   }
@@ -171,7 +171,7 @@ void cia_interpolation(VectorView result,
   // For T we have to be adaptive, since sometimes there is only one T in
   // the data
   Index T_order;
-  switch (data_T_grid.nelem()) {
+  switch (data_T_grid.size()) {
     case 1:  T_order = 0; break;
     case 2:  T_order = 1; break;
     case 3:  T_order = 2; break;
@@ -222,7 +222,7 @@ void cia_interpolation(VectorView result,
 
   // Set negative values to zero. (These could happen due to overshooting
   // of the higher order interpolation.)
-  for (Index i = 0; i < result_active.nelem(); ++i)
+  for (Index i = 0; i < result_active.size(); ++i)
     if (result_active[i] < 0) result_active[i] = 0;
 
   //    cout << "result_active after: " << result_active << endl;
@@ -280,7 +280,7 @@ void CIARecord::Extract(VectorView res,
                         const Index& robust) const {
   res = 0;
 
-  Vector result(res.nelem());
+  Vector result(res.size());
   for (auto& this_cia : mdata) {
     cia_interpolation(
         result, f_grid, temperature, this_cia, T_extrapolfac, robust);
@@ -473,11 +473,11 @@ void CIARecord::ReadFromCIA(const String& filename) {
   AppendDataset(freq, Vector{temp}, cia);
 
   //    // For debugging
-  //    for(Index i = 0; i < mdata.nelem(); i++)
+  //    for(Index i = 0; i < mdata.size(); i++)
   //    {
   //        cout << i << " ";
-  //        cout << mdata[i].get_numeric_grid(0).nelem() << " ";
-  //        cout << mdata[i].get_numeric_grid(1).nelem() << endl;
+  //        cout << mdata[i].get_numeric_grid(0).size() << " ";
+  //        cout << mdata[i].get_numeric_grid(1).size() << endl;
   //    }
 }
 
@@ -486,7 +486,7 @@ void CIARecord::AppendDataset(const Vector& freq,
                               const Vector& temp,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
-  dataset.resize(freq.nelem(), temp.nelem());
+  dataset.resize(freq.size(), temp.size());
   dataset.grid<0>()     = freq;
   dataset.gridname<0>() = "Frequency";
 
@@ -495,7 +495,7 @@ void CIARecord::AppendDataset(const Vector& freq,
   dataset.grid<1>()     = temp_t;
   dataset.gridname<1>() = "Temperature";
 
-  for (Index t = 0; t < temp.nelem(); t++) dataset.data[joker, t] = cia[t];
+  for (Index t = 0; t < temp.size(); t++) dataset.data[joker, t] = cia[t];
   mdata.push_back(dataset);
 }
 

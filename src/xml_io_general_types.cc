@@ -976,7 +976,7 @@ void xml_parse_from_stream(std::istream& is_xml,
   vector.resize(nelem);
 
   if (pbifs) {
-    pbifs->readDoubleArray(vector.data_handle(), vector.nelem());
+    pbifs->readDoubleArray(vector.data_handle(), vector.size());
   } else {
     for (Index n = 0; n < nelem; n++) {
       is_xml >> double_imanip() >> vector[n];
@@ -1022,7 +1022,7 @@ void xml_write_to_stream(std::ostream& os_xml,
                          bofstream* pbofs,
                          const String& name) {
   os_xml << std::format(R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
-                        vector.nelem(),
+                        vector.size(),
                         name,
                         pbofs ? Vector{} : vector);
 

@@ -36,7 +36,7 @@ void test3() {
   Matrix C(15,5,2.0);
   // C = 2;
 
-  mult(A, M, C(Range(joker), Range(joker)));
+  mult(A, M, C(joker, joker));
   std::cout << "\nA = \n" << A << "\n";
 
   */

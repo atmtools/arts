@@ -17,8 +17,8 @@ void test_4a() try {
   const AscendingGrid tau_arr{1};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 32;
-  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
+  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
+  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
@@ -299,8 +299,8 @@ void test_4b() try {
   const AscendingGrid tau_arr{1};
   const Vector omega_arr{0.9};
   const Index NQuad = 32;
-  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
+  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
+  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
@@ -581,8 +581,8 @@ void test_4c() try {
   const AscendingGrid tau_arr{1};
   const Vector omega_arr{0.9};
   const Index NQuad = 32;
-  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.nelem(); i++) {
+  Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
+  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }

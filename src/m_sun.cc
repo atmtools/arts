@@ -86,7 +86,7 @@ void sunBlackbody(Sun& sun,
                      radius)
 
   // spectrum
-  sun.spectrum = Matrix(frequency_grid.nelem(), 4, 0.);
+  sun.spectrum = Matrix(frequency_grid.size(), 4, 0.);
 
   planck(sun.spectrum[joker, 0], frequency_grid, temperature);
   sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
@@ -236,7 +236,7 @@ void ray_path_suns_pathFromPathObserver(
 void propagation_matrix_scatteringInit(
     PropmatVector& propagation_matrix_scattering,
     const AscendingGrid& frequency_grid) {
-  propagation_matrix_scattering.resize(frequency_grid.nelem());
+  propagation_matrix_scattering.resize(frequency_grid.size());
   propagation_matrix_scattering = 0.0;
 }
 

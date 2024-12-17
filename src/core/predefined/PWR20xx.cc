@@ -116,7 +116,7 @@ void compute_h2o(PropmatVector& propmat_clearsky,
   constexpr Numeric line_cutoff = 750.0;
   const std::valarray<Numeric> base = w0 / (pow2(line_cutoff) + pow2(w0));
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   for (Index iv = 0; iv < nf; ++iv) {
     const Numeric f = hz2ghz(f_grid[iv]);
     // Continuum absorbtion
@@ -540,7 +540,7 @@ void compute_o2(PropmatVector& propmat_clearsky,
   const std::valarray<Numeric> strength =
       strength_300 * std::exp(-be * theta_minus_1);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   for (Index iv = 0; iv < nf; ++iv) {
     const Numeric f_ghz = hz2ghz(f_grid[iv]);
     const Numeric f2_ghz = pow2(f_ghz);
@@ -816,7 +816,7 @@ void compute_n2(PropmatVector& propmat_clearsky,
   constexpr Numeric continuum_coefficient = 9.95e-14;  // Np / km / (hPa GHz)^2
   const Numeric cont = (n2_vmr / assumed_n2_vmr) * continuum_coefficient *
                        pow2(pdry_hpa) * std::pow(theta, 3.22);
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   for (Index iv = 0; iv < nf; ++iv) {
     const Numeric f_ghz = hz2ghz(f_grid[iv]);
     const Numeric frequency_dependence =

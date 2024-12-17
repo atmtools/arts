@@ -578,9 +578,9 @@ struct atmospheric_fieldHydrostaticPressureData {
         lat(pre0.grid<0>()),
         lon(pre0.grid<1>()) {
     pre[0] = pre0.data;
-    for (Index i = 1; i < alt.nelem(); i++) {
-      for (Index j = 0; j < lat.nelem(); j++) {
-        for (Index k = 0; k < lon.nelem(); k++) {
+    for (Index i = 1; i < alt.size(); i++) {
+      for (Index j = 0; j < lat.size(); j++) {
+        for (Index k = 0; k < lon.size(); k++) {
           const Numeric h  = alt[i] - alt[i - 1];
           const Numeric p0 = pre[i - 1, j, k];
           const Numeric d0 = grad_p[i - 1, j, k];

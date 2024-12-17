@@ -972,8 +972,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Index ndgs,
                                         const Index robust,
                                         const Index quiet) {
-  const Index nf = ssd.f_grid.nelem();
-  const Index nT = ssd.T_grid.nelem();
+  const Index nf = ssd.f_grid.size();
+  const Index nT = ssd.T_grid.size();
 
   static constexpr Numeric PI=Constant::pi;
   static constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
@@ -997,7 +997,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
 
   switch (ssd.ptype) {
     case PTYPE_TOTAL_RND: {
-      const Index nza = ssd.za_grid.nelem();
+      const Index nza = ssd.za_grid.size();
 
       ssd.pha_mat_data.resize(nf, nT, nza, 1, 1, 1, 6);
       ssd.ext_mat_data.resize(nf, nT, 1, 1, 1);
@@ -1085,8 +1085,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
       break;
     }
     case PTYPE_AZIMUTH_RND: {
-      const Index nza = ssd.za_grid.nelem();
-      const Index naa = ssd.aa_grid.nelem();
+      const Index nza = ssd.za_grid.size();
+      const Index naa = ssd.aa_grid.size();
 
       ssd.pha_mat_data.resize(nf, nT, nza, naa, nza, 1, 16);
       ssd.ext_mat_data.resize(nf, nT, nza, 1, 3);
@@ -1405,8 +1405,8 @@ void calc_ssp_random_test() {
 
   // Refractive index real and imagenary parts
   // Dimensions: [nf, nT];
-  Matrix mrr(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 1.78031135);
-  Matrix mri(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 0.00278706);
+  Matrix mrr(ssd.f_grid.size(), ssd.T_grid.size(), 1.78031135);
+  Matrix mri(ssd.f_grid.size(), ssd.T_grid.size(), 0.00278706);
 
   mrr[0, 0] = 1.78031135;
   mrr[0, 1] = 1.78150475;
@@ -1435,8 +1435,8 @@ void calc_ssp_fixed_test() {
 
   // Refractive index real and imagenary parts
   // Dimensions: [nf, nT];
-  Matrix mrr(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 1.78031135);
-  Matrix mri(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 0.00278706);
+  Matrix mrr(ssd.f_grid.size(), ssd.T_grid.size(), 1.78031135);
+  Matrix mri(ssd.f_grid.size(), ssd.T_grid.size(), 0.00278706);
 
   mrr[0, 0] = 1.78031135;
   mrr[0, 1] = 1.78150475;

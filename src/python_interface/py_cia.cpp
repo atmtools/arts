@@ -40,10 +40,10 @@ void py_cia(py::module_& m) try {
              const Vector& f,
              Numeric T_extrapolfac,
              Index robust) {
-            Vector out(f.nelem(), 0);
+            Vector out(f.size(), 0);
 
             for (auto& cia_data : cia_.Data()) {
-              Vector result(f.nelem(), 0);
+              Vector result(f.size(), 0);
               cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust);
               out += result;
             }

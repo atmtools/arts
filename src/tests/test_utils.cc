@@ -21,7 +21,7 @@ using std::abs;
 void add_noise(VectorView v, Numeric scale) {
   Rand<Numeric> rand(0, scale);
 
-  for (Index i = 0; i < v.nelem(); i++) {
+  for (Index i = 0; i < v.size(); i++) {
     v[i] += rand();
   }
 }
@@ -211,7 +211,7 @@ void random_fill_matrix_pos_semi_def(MatrixView A,
                       otherwise from the range [-range, range].
 */
 void random_fill_vector(VectorView v, Numeric range, bool positive) {
-  Index n = v.nelem();
+  Index n = v.size();
 
   Rand<Numeric> rand(positive ? 0 : -range, range);
 
@@ -280,7 +280,7 @@ Range random_range(Index n) {
 Numeric get_maximum_error(ConstVectorView v1,
                           ConstVectorView v2,
                           bool relative) {
-  Index n = std::min(v1.nelem(), v2.nelem());
+  Index n = std::min(v1.size(), v2.size());
 
   Numeric max = 0.0, err = 0.0;
 

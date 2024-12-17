@@ -38,7 +38,7 @@ Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
 
 //void SLIData2::check() const
 //{
-//  Index nx1=this->x1a.nelem();
+//  Index nx1=this->x1a.size();
 //  ARTS_ASSERT(nx1>0);
 //}
 
@@ -80,9 +80,9 @@ void interp(VectorView tia,
   // weights (last dimension) must always be approximately one.
   ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, 1e-6));
 
-  Index an = a[0].nelem();
+  Index an = a[0].size();
 
-  ARTS_ASSERT(tia.nelem() == an);
+  ARTS_ASSERT(tia.size() == an);
 
   for (Index i = 0; i < an; ++i) {
     tia[i] = a[tc.idx][i] * itw[0] + a[tc.idx + 1][i] * itw[1];
@@ -134,7 +134,7 @@ void interp_scat_angle_temperature(  //Output:
   gridpos(thet_gp, scat_data_single.za_grid, theta);
   GridPos t_gp;
 
-  if (scat_data_single.T_grid.nelem() == 1) {
+  if (scat_data_single.T_grid.size() == 1) {
     Vector itw(2);
     interpweights(itw, thet_gp);
 

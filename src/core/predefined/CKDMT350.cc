@@ -981,7 +981,7 @@ Numeric XINT_FUN(const Numeric V1A,
   const Numeric B2 = B * P;
 
   Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < A.nelem()) {
+  if (J - 1 > 0 && J + 2 < A.size()) {
     xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
            A[J + 2] * B2;
   }
@@ -1028,7 +1028,7 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
                       const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   const Numeric T = atm_point.temperature;
   const Numeric P = atm_point.pressure;
@@ -1146,7 +1146,7 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
                          const AtmPoint& atm_point) {
   using Conversion::freq2kaycm;
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   const Numeric T = atm_point.temperature;
   const Numeric P = atm_point.pressure;

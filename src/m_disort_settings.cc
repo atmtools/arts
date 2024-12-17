@@ -60,13 +60,13 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
   const Numeric sin2_alpha =
       sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
 
-  const Index nv = frequency_grid.nelem();
+  const Index nv = frequency_grid.size();
 
   ARTS_USER_ERROR_IF(
       disort_settings.solar_source.size() != nv or sun.spectrum.nrows() != nv,
       R"(Solar spectrum not agreeing with frequency grids:
 
-frequency_grid.nelem():              {}
+frequency_grid.size():              {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",

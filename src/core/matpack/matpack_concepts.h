@@ -113,7 +113,7 @@ concept has_dimension = requires(T a) {
 //! Checks if the type has some nelem
 template <typename T>
 concept has_nelem = requires(T a) {
-  { a.nelem() } -> integral;
+  { a.size() } -> integral;
 };
 
 //! Checks if the type has some ncols
@@ -216,7 +216,7 @@ constexpr auto column_size(const U& x) {
   } else if constexpr (has_size<U>)
     return x.size();
   else if constexpr (has_nelem<U>)
-    return x.nelem();
+    return x.size();
   else
     return x.ncols();
 }

@@ -10,7 +10,7 @@ constexpr stokvec level_lte(Numeric B) { return stokvec{B, 0, 0, 0}; }
 constexpr stokvec level_lte(stokvec_vector_view dj,
                             Numeric B,
                             const ExhaustiveConstVectorView &dB) {
-  ARTS_ASSERT(dj.nelem() == dB.nelem())
+  ARTS_ASSERT(dj.size() == dB.size())
   std::transform(dB.elem_begin(), dB.elem_end(), dj.elem_begin(), [](auto &db) {
     return stokvec{db};
   });
@@ -28,10 +28,10 @@ constexpr stokvec level_nlte(stokvec_vector_view dj,
                              const propmat_vector_view &dk,
                              const stokvec &n,
                              const stokvec_vector_view &dn) {
-  const Index N = dj.nelem();
-  ARTS_ASSERT(N == dB.nelem())
-  ARTS_ASSERT(N == dk.nelem())
-  ARTS_ASSERT(N == dn.nelem())
+  const Index N = dj.size();
+  ARTS_ASSERT(N == dB.size())
+  ARTS_ASSERT(N == dk.size())
+  ARTS_ASSERT(N == dn.size())
 
   const auto inv_k = inv(k);
   const auto a = absvec(k);

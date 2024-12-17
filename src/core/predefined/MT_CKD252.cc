@@ -1011,7 +1011,7 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ---------------------- subroutine FRNCO2 ------------------------------
 
@@ -1091,7 +1091,7 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
   Index J = 1;
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < FCO2_ckd_mt_250_v2)) {
@@ -1395,7 +1395,7 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine O2INF2 ----------------------------
 
@@ -1465,7 +1465,7 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
   Index J = 1;
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > V1S) && (V < V2S)) {
@@ -1616,7 +1616,7 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine N2_VER_1 ----------------------------
 
@@ -1699,7 +1699,7 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
   // has therefore to be interpolated on the input frequencies.
   VJ = V1C;
   Index J = 1;
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > N2N2_N2F_ckd_mt_250_v1) && (V < N2N2_N2F_ckd_mt_250_v2)) {
@@ -1837,7 +1837,7 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine N2R296/N2R220 ----------------------------
 
@@ -1949,7 +1949,7 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
   Index J = 1;
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < N2N2_CT220_ckd_mt_100_v2)) {

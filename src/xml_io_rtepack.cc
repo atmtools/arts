@@ -321,7 +321,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("PropmatVector");
-  open_tag.add_attribute("nelem", pmv.nelem());
+  open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
@@ -392,7 +392,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("StokvecVector");
-  open_tag.add_attribute("nelem", pmv.nelem());
+  open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
@@ -465,7 +465,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("MuelmatVector");
-  open_tag.add_attribute("nelem", pmv.nelem());
+  open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 

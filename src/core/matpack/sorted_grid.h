@@ -108,7 +108,6 @@ class grid {
     return x[op];
   }
 
-  [[nodiscard]] constexpr auto nelem() const { return x.nelem(); }
   [[nodiscard]] constexpr auto size() const { return x.size(); }
   [[nodiscard]] constexpr auto begin() const { return x.begin(); }
   [[nodiscard]] constexpr auto end() const { return x.end(); }

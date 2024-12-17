@@ -209,7 +209,7 @@ class GasAbsLookup {
     temperature itself should normally also be included, hence t_pert should
     always include 0. Must be sorted in ascending order!
 
-    The vector t_pert may be an empty vector (nelem()=0), which marks
+    The vector t_pert may be an empty vector (size()=0), which marks
     the special case that no interpolation in temperature should be
     done. If t_pert is not empty, you will get an error message if you
     try to extract absorption for temperatures outside the range of

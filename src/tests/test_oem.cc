@@ -190,7 +190,7 @@ void write_matrix(ConstMatrixView A, const char* filename) {
   \param[in] filename The name of the file to write to.
 */
 void write_vector(ConstVectorView v, const char* filename) {
-  Index n = v.nelem();
+  Index n = v.size();
 
   ofstream ofs(filename, ofstream::out);
 

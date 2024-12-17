@@ -84,9 +84,9 @@ void XsecRecord::Extract(VectorView result,
                          const Vector& f_grid,
                          const Numeric pressure,
                          const Numeric temperature) const {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
-  ARTS_ASSERT(result.nelem() == nf)
+  ARTS_ASSERT(result.size() == nf)
 
   result = 0.;
 
@@ -94,14 +94,14 @@ void XsecRecord::Extract(VectorView result,
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].grid<0>();
     const Numeric data_fmin   = data_f_grid[0];
-    const Numeric data_fmax   = data_f_grid[data_f_grid.nelem() - 1];
+    const Numeric data_fmax   = data_f_grid[data_f_grid.size() - 1];
 
     // We want to return result zero for all f_grid points that are outside the
     // data_f_grid, because xsec datasets are defined only where the absorption
     // was measured. So, we have to find out which part of f_grid is inside
     // data_f_grid.
     const Numeric* f_grid_begin = f_grid.data_handle();
-    const Numeric* f_grid_end   = f_grid_begin + f_grid.nelem();
+    const Numeric* f_grid_end   = f_grid_begin + f_grid.size();
     const Index i_fstart        = std::distance(
         f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
     const Index i_fstop =
@@ -155,7 +155,7 @@ void XsecRecord::Extract(VectorView result,
     const Range active_range(i_data_fstart, data_f_extent);
     const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
-    Vector fit_result(data_f_grid.nelem());
+    Vector fit_result(data_f_grid.size());
     VectorView fit_result_active = fit_result[active_range];
 
     // We have to create a matching view on the result vector:
@@ -183,7 +183,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
                           const Index dataset,
                           const Numeric pressure,
                           const Numeric temperature) const {
-  for (Index i = 0; i < xsec.nelem(); i++) {
+  for (Index i = 0; i < xsec.size(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data[i, joker];
     xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
               coeffs[P20] * temperature * temperature;
@@ -193,7 +193,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
 // void XsecRecord::CalcDT(VectorView xsec_dt,
 //                         const Index dataset,
 //                         const Numeric temperature) const {
-//   for (Index i = 0; i < xsec_dt.nelem(); i++) {
+//   for (Index i = 0; i < xsec_dt.size(); i++) {
 //     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
 //     xsec_dt[i] = coeffs[P10] + 2. * coeffs[P20] * temperature;
 //   }
@@ -202,7 +202,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
 // void XsecRecord::CalcDP(VectorView xsec_dp,
 //                         const Index dataset,
 //                         const Numeric pressure) const {
-//   for (Index i = 0; i < xsec_dp.nelem(); i++) {
+//   for (Index i = 0; i < xsec_dp.size(); i++) {
 //     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
 //     xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
 //   }

@@ -110,7 +110,7 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
   // Perform checks to ensure the calculation data is good
   check(data);
 
-  const Index n{f_grid.nelem()};
+  const Index n{f_grid.size()};
   if (n == 0) return;
   if (freq2kaycm(f_grid[0]) > data.wavenumbers.back()) return;
 
@@ -187,7 +187,7 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
   // Perform checks to ensure the calculation data is good
   check(data);
 
-  const Index n{f_grid.nelem()};
+  const Index n{f_grid.size()};
   if (n == 0) return;
   if (freq2kaycm(f_grid[0]) > data.wavenumbers.back()) return;
 

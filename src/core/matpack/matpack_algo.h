@@ -24,7 +24,7 @@ std::array<Vector, N> repeat(vectors &&...vec)
   requires(N > 0)
 {
   std::array<Vector, N> out;
-  out.fill(Vector((vec.nelem() * ...)));
+  out.fill(Vector((vec.size() * ...)));
 
   Index i = 0;
   for (auto &&x : elemwise{vec...}) {

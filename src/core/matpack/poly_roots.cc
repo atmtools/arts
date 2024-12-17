@@ -74,7 +74,7 @@ int poly_root_solve(Matrix &roots, Vector &coeffs) {
   double *c;
   double *s;
 
-  a = coeffs.nelem();
+  a = coeffs.size();
 
   ARTS_ASSERT(roots.nrows() == a - 1);
   ARTS_ASSERT(roots.ncols() == 2);

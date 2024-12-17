@@ -86,7 +86,7 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
 namespace Average {
 /** Compute the average of the ranged ys
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * @param[in,out] y N-dimensional Vector; Averages of y in given range
  * @param[in] ys list of N-dimensional Vector(s) to average
@@ -98,7 +98,7 @@ VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start=0, const
 
 /** Compute the average of the ranged ys ignoring all non-normal values
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * If this range contains only NaN, the value is set to NaN
  * 
@@ -112,7 +112,7 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start=0, co
 
 /** Compute the standard deviation of the ranged ys
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * @param[in,out] std N-dimensional Vector; Standard deviations
  * @param[in] y Averages of y in given range
@@ -125,7 +125,7 @@ VectorView std(VectorView std, const Vector& y, const ArrayOfVector& ys, const I
 
 /** Compute the standard deviation of the ranged ys ignoring all non-normal values
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * If this range contains only NaN, the value is set to NaN. Same if y contains NaN
  * 
@@ -140,7 +140,7 @@ VectorView nanstd(VectorView std, const Vector& y, const ArrayOfVector& ys, cons
 
 /** Compute the variance of the ranged ys
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * @param[in,out] var N-dimensional Vector; Variance
  * @param[in] y Averages of y in given range
@@ -153,7 +153,7 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
 
 /** Compute the variance of the ranged ys ignoring all non-normal values
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * If this range contains only NaN, the value is set to NaN. Same if y contains NaN
  * 
@@ -168,7 +168,7 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
 
 /** Compute the covariance matrix of the ranged ys
  * 
- * The range of ys is [start, end) if end is positive or [start, ys.nelem()+end] otherwise
+ * The range of ys is [start, end) if end is positive or [start, ys.size()+end] otherwise
  * 
  * @param[in,out] cov N-by-N-dimensional Matrix; Covariance matrix
  * @param[in] y Averages of y in given range

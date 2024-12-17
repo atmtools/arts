@@ -75,7 +75,7 @@ Numeric XINT_FUN(const Numeric V1A,
   Numeric B2 = B * P;
 
   Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < A.nelem()) {
+  if (J - 1 > 0 && J + 2 < A.size()) {
     xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
            A[J + 2] * B2;
   }
@@ -240,7 +240,7 @@ void oxygen_cia(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine O2_VER_1 ----------------------------
 
@@ -307,7 +307,7 @@ void oxygen_cia(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > O2O2_O2F_ckd_mt_100_v1) && (V < O2O2_O2F_ckd_mt_100_v2)) {
@@ -482,7 +482,7 @@ void oxygen_v0v0(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine O2INF1 ----------------------------
 
@@ -546,7 +546,7 @@ void oxygen_v0v0(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > O2_00_ckd_mt_100_v1) && (V < O2_00_ckd_mt_100_v2)) {
@@ -643,7 +643,7 @@ void oxygen_v0v1(PropmatVector& propmat_clearsky,
   // the frequency f_grid. n_f_new < n_f
   Numeric V1ABS = f_grid[0] / (Constant::c * 1.00e2);  // [cm^-1]
   Numeric V2ABS =
-      f_grid[f_grid.nelem() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
+      f_grid[f_grid.size() - 1] / (Constant::c * 1.00e2);  // [cm^-1]
 
   // ------------------- subroutine O2INF2 ----------------------------
 
@@ -719,7 +719,7 @@ void oxygen_v0v1(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > V1S) && (V < V2S)) {

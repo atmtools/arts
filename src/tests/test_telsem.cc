@@ -34,7 +34,7 @@ Numeric test_telsem_interpolate(std::string atlas_file,
                                 Vector frequencies) {
   TelsemAtlas atlas(atlas_file);
 
-  Index n_freqs = frequencies.nelem();
+  Index n_freqs = frequencies.size();
   std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
   results_h.reserve(n_freqs);
   results_v.reserve(n_freqs);

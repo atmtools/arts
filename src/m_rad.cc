@@ -34,7 +34,7 @@ void spectral_radiance_jacobianFromBackground(
     const MuelmatVector &background_transmittance) try {
   ARTS_USER_ERROR_IF(
       spectral_radiance_background_jacobian.ncols() !=
-          background_transmittance.nelem(),
+          background_transmittance.size(),
       "spectral_radiance_background_jacobian must have same number of rows as the "
       "size of jacobian_targets")
 

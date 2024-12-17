@@ -52,7 +52,7 @@ int test1() {
     v3 = (Numeric)i;
   }
 
-  v2[Range(joker)] = 88;
+  v2[joker] = 88;
 
   v2[Range(0, 2)] = 77;
 
@@ -85,7 +85,7 @@ int test1() {
   cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
        << M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)] << "\n";
 
-  cout << "\nM(1,Range(joker)) =\n" << M[1, Range(joker)] << "\n";
+  cout << "\nM(1,joker) =\n" << M[1, joker] << "\n";
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
   fill_with_junk(M[1, Range(1, 2)]);
@@ -206,7 +206,7 @@ void test8() {
 void test9() {
   // Initialization of Matrix with view of other Matrix:
   Matrix A(4, 8);
-  Matrix B(A[Range(joker), Range(0, 3)]);
+  Matrix B(A[joker, Range(0, 3)]);
   cout << "B = " << B << "\n";
 }
 
@@ -451,22 +451,22 @@ void test31() {
   cout << "a =\n" << a << "\n";
 
   cout << "Taking out first row of first page:\n"
-       << a[0, 0, Range(joker)] << "\n";
+       << a[0, 0, joker] << "\n";
 
   cout << "Taking out last column of second page:\n"
-       << a[1, Range(joker), a.ncols() - 1] << "\n";
+       << a[1, joker, a.ncols() - 1] << "\n";
 
   cout << "Taking out the first letter on every page:\n"
-       << a[Range(joker), 0, 0] << "\n";
+       << a[joker, 0, 0] << "\n";
 
   cout << "Taking out first page:\n"
-       << a[0, Range(joker), Range(joker)] << "\n";
+       << a[0, joker, joker] << "\n";
 
   cout << "Taking out last row of all pages:\n"
-       << a[Range(joker), a.nrows() - 1, Range(joker)] << "\n";
+       << a[joker, a.nrows() - 1, joker] << "\n";
 
   cout << "Taking out second column of all pages:\n"
-       << a[Range(joker), Range(joker), 1] << "\n";
+       << a[joker, joker, 1] << "\n";
 
   a *= 2;
 

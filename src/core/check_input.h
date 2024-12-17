@@ -182,11 +182,11 @@ Index chk_contains(const String& x_name, const Array<T>& x, const T& what) {
 */
 template <class T>
 void chk_size(const String& x_name, const Array<T>& x, const Index& c) {
-  ARTS_USER_ERROR_IF (x.nelem() != c,
+  ARTS_USER_ERROR_IF (x.size() != c,
       "The array *", x_name, "*\n"
       "does not have the right size.\n"
       "The size should be: ", c,"\n"
-      "but it is:          ", x.nelem())
+      "but it is:          ", x.size())
 }
 
 /*===========================================================================
