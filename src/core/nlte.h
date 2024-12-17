@@ -42,9 +42,6 @@ struct VibrationalEnergyLevels {
   T& operator[](Key&& key) { return data[std::move(key)]; }
   [[nodiscard]] bool empty() const noexcept { return data.empty(); }
   [[nodiscard]] size_type size() const noexcept { return data.size(); }
-  [[nodiscard]] Index nelem() const noexcept {
-    return static_cast<Index>(size());
-  }
   [[nodiscard]] std::pair<Numeric, Numeric> lower_upper(const Key& key) const;
 
   friend std::ostream& operator<<(std::ostream& os,

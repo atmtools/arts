@@ -107,7 +107,7 @@ void OEM(const Workspace& ws,
          const Index& display_progress) {
   // Main sizes
   const Index n = model_state_covariance_matrix.nrows();
-  const Index m = measurement_vector.nelem();
+  const Index m = measurement_vector.size();
 
   // Checks
   model_state_covariance_matrix.compute_inverse();
@@ -143,7 +143,7 @@ void OEM(const Workspace& ws,
   }
 
   // Check for start vector and precomputed yf, jacobian
-  if (model_state_vector.nelem() != n) {
+  if (model_state_vector.size() != n) {
     model_state_vector = model_state_vector_apriori;
     measurement_vector_fitted.resize(0);
     measurement_jacobian.resize(0, 0);
@@ -151,7 +151,7 @@ void OEM(const Workspace& ws,
 
   // If no precomputed value given, we compute yf and jacobian to
   // compute initial cost (and use in the first OEM iteration).
-  if (measurement_vector_fitted.nelem() == 0) {
+  if (measurement_vector_fitted.size() == 0) {
     inversion_iterate_agendaExecute(ws,
                                     measurement_vector_fitted,
                                     measurement_jacobian,
@@ -162,14 +162,14 @@ void OEM(const Workspace& ws,
   }
 
   ARTS_USER_ERROR_IF(
-      measurement_vector_fitted.nelem() not_eq measurement_vector.nelem(),
+      measurement_vector_fitted.size() not_eq measurement_vector.size(),
       "Mismatch between simulated y and input y.\n"
       "Input y is size {}"
       " but simulated y is {}"
       "\n"
       "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n",
-      measurement_vector.nelem(),
-      measurement_vector_fitted.nelem())
+      measurement_vector.size(),
+      measurement_vector_fitted.size())
 
   // TODO: Get this from invlib log.
   // Start value of cost function
@@ -209,7 +209,7 @@ void OEM(const Workspace& ws,
   else {
     bool apply_norm = false;
     oem::Matrix T{};
-    if (model_state_covariance_matrix_normalization.nelem() == n) {
+    if (model_state_covariance_matrix_normalization.size() == n) {
       T.resize(n, n);
       T            *= 0.0;
       T.diagonal()  = model_state_covariance_matrix_normalization;

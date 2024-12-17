@@ -141,8 +141,8 @@ void gridpos(ArrayOfGridPos& gp,
              ConstVectorView old_grid,
              ConstVectorView new_grid,
              const Numeric& extpolfac) {
-  const Index n_old = old_grid.nelem();
-  const Index n_new = new_grid.nelem();
+  const Index n_old = old_grid.size();
+  const Index n_new = new_grid.size();
 
   // Assert that gp has the right size:
   ARTS_ASSERT(is_size(gp, n_new));
@@ -431,7 +431,7 @@ void gridpos(GridPos& gp,
    \date   2012-06-22
 */
 void gridpos_1to1(ArrayOfGridPos& gp, ConstVectorView grid) {
-  const Index n = grid.nelem();
+  const Index n = grid.size();
   gp.resize(n);
 
   for (Index i = 0; i < n - 1; i++) {
@@ -1612,7 +1612,7 @@ void interp(VectorView ia,
 
     Index iti = 0;
     for (Index c = 0; c < 2; ++c) {
-      ARTS_ASSERT(tc.idx + c < a.nelem());  // Temporary !?
+      ARTS_ASSERT(tc.idx + c < a.size());  // Temporary !?
       tia += a[tc.idx + c] * itw[i, iti];
       ++iti;
     }
@@ -2334,7 +2334,7 @@ void interp(MatrixView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      sum(itw[0, 0, Range(joker)]), 1, sum_check_epsilon));
+      sum(itw[0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ir = 0; ir < nr; ++ir) {
@@ -2401,7 +2401,7 @@ void interp(Tensor3View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      sum(itw[0, 0, 0, Range(joker)]), 1, sum_check_epsilon));
+      sum(itw[0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ip = 0; ip < np; ++ip) {
@@ -2475,7 +2475,7 @@ void interp(Tensor4View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      sum(itw[0, 0, 0, 0, Range(joker)]), 1, sum_check_epsilon));
+      sum(itw[0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ib = 0; ib < nb; ++ib) {
@@ -2553,7 +2553,7 @@ void interp(Tensor5View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      sum(itw[0, 0, 0, 0, 0, Range(joker)]), 1, sum_check_epsilon));
+      sum(itw[0, 0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index is = 0; is < ns; ++is) {
@@ -2642,7 +2642,7 @@ void interp(Tensor6View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      sum(itw[0, 0, 0, 0, 0, 0, Range(joker)]), 1, sum_check_epsilon));
+      sum(itw[0, 0, 0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index iv = 0; iv < nv; ++iv) {
@@ -2772,9 +2772,9 @@ Numeric interp_poly(ConstVectorView x,
                     ConstVectorView y,
                     const Numeric& x_i,
                     const GridPos& gp) {
-  Index N_x = x.nelem();
+  Index N_x = x.size();
 
-  ARTS_ASSERT(N_x == y.nelem());
+  ARTS_ASSERT(N_x == y.size());
   ARTS_ASSERT(N_x > 2);
 
   Vector xa(4), ya(4);

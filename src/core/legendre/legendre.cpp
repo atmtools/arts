@@ -138,7 +138,7 @@ Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x) {
 
   ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
 
-  const Index n = s.nelem();
+  const Index n = s.size();
   if (n == 0) return 0.0;
 
   Numeric p0  = 1.0;

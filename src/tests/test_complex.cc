@@ -157,7 +157,7 @@ void test03()
   static_assert(col<n, "Req for size of val to follow");
   static_assert(row<n, "Req for size of val to follow");
   
-  constexpr Range r0 = Range(joker);
+  constexpr Range r0 = joker;
   constexpr Range r1 = Range(1, 2);
   constexpr Range r2 = Range(1, 2, 2);
   constexpr Range r3 = Range(n-1, 2, -1);

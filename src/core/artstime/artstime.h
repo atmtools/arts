@@ -118,7 +118,7 @@ Time next_even(const Time& t, const TimeStep& dt);
  * The first index is 0 and the second index is the start of
  * the first even period of the given stepsize
  * 
- * The last index is times.nelem().  If output has 1 element,
+ * The last index is times.size().  If output has 1 element,
  * no range was found matching the criteria.
  * 
  * @param[in] times Times sorted in ascending order
@@ -130,8 +130,8 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt);
 /** Computes the average time in a list
  * 
  * @param[in] ts A list of time
- * @param[in] s A starting index; valid range [0, ts.nelem())
- * @param[in] e The end+1 index; valid range [-1, ts.nelem()]; -1 is treated as ts.nelem()
+ * @param[in] s A starting index; valid range [0, ts.size())
+ * @param[in] e The end+1 index; valid range [-1, ts.size()]; -1 is treated as ts.size()
  */
 Time mean_time(const ArrayOfTime& ts, Index s = 0, Index e = -1);
 

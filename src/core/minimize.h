@@ -56,7 +56,7 @@ struct Polynom {
           const ConstVectorView& y,
           const Index order
   ) : m_inputs(int(order + 1)),
-    m_values(int(x.nelem())), X(x), Y(y) {}
+    m_values(int(x.size())), X(x), Y(y) {}
   
   /*!  Opeartor evaluating the function
     * 
@@ -122,7 +122,7 @@ struct T4 {
      const ConstVectorView& y,
      const Numeric t0,
      const Numeric exp0) :
-    m_values(int(x.nelem())), T(x), Y(y), T0(t0), EXP0(exp0) {}
+    m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
   
   /*!  Opeartor evaluating the function
     * 
@@ -189,7 +189,7 @@ struct DPL {
       const ConstVectorView& y,
       const Numeric t0,
       const Numeric exp0) :
-    m_values(int(x.nelem())), T(x), Y(y), T0(t0), EXP0(exp0) {}
+    m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
   
   /*!  Opeartor evaluating the function
     * 

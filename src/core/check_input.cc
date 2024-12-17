@@ -327,7 +327,7 @@ void chk_if_in_range_exclude(const String& x_name,
 void chk_vector_length(const String& x_name,
                        ConstVectorView x,
                        const Index& l) {
-  ARTS_USER_ERROR_IF(x.nelem() != l,
+  ARTS_USER_ERROR_IF(x.size() != l,
                      "The vector *",
                      x_name,
                      "* must have the length ",
@@ -336,7 +336,7 @@ void chk_vector_length(const String& x_name,
                      "The present length of *",
                      x_name,
                      "* is ",
-                     x.nelem(),
+                     x.size(),
                      ".")
 }
 
@@ -358,7 +358,7 @@ void chk_vector_length(const String& x1_name,
                        const String& x2_name,
                        ConstVectorView x1,
                        ConstVectorView x2) {
-  ARTS_USER_ERROR_IF(x1.nelem() != x2.nelem(),
+  ARTS_USER_ERROR_IF(x1.size() != x2.size(),
                      "The vectors *",
                      x1_name,
                      "* and *",
@@ -367,12 +367,12 @@ void chk_vector_length(const String& x1_name,
                      "The length of *",
                      x1_name,
                      "* is ",
-                     x1.nelem(),
+                     x1.size(),
                      ".\n"
                      "The length of *",
                      x2_name,
                      "* is ",
-                     x2.nelem(),
+                     x2.size(),
                      ".")
 }
 
@@ -444,7 +444,7 @@ void chk_if_equal(const String& x1_name,
                   Numeric margin) {
   chk_vector_length(x1_name, x2_name, v1, v2);
 
-  for (Index i = 0; i < v1.nelem(); i++) {
+  for (Index i = 0; i < v1.size(); i++) {
     ARTS_USER_ERROR_IF(abs(v1[i] - v2[i]) > margin,
                        "Vectors ",
                        x1_name,
@@ -551,7 +551,7 @@ void chk_size(const String& x_name, ConstVectorView x, const Index& c) {
                      c,
                      ",\nbut it is:          "
                      " ",
-                     x.nelem(),
+                     x.size(),
                      ".")
 }
 
@@ -924,9 +924,9 @@ void chk_interpolation_grids_loose_no_data_check(
     ConstVectorView old_grid,
     ConstVectorView new_grid,
     const Index order) {
-  const Index n_old = old_grid.nelem();
+  const Index n_old = old_grid.size();
 
-  ARTS_USER_ERROR_IF(!new_grid.nelem(),
+  ARTS_USER_ERROR_IF(!new_grid.size(),
                      "The new grid is not allowed to be empty.");
 
   // Old grid must have at least order+1 elements:
@@ -947,7 +947,7 @@ void chk_interpolation_grids_loose_no_data_check(
   Numeric og_min, og_max;
 
   ing_min = 0;
-  ing_max = new_grid.nelem() - 1;
+  ing_max = new_grid.size() - 1;
   if (ascending) {
     // Old grid must be strictly increasing (no duplicate values.)
     ARTS_USER_ERROR_IF(
@@ -988,10 +988,10 @@ void chk_interpolation_grids_loose_no_data_check(
   // that is.
 
   const Index iog_min = 0;
-  const Index iog_max = old_grid.nelem() - 1;
+  const Index iog_max = old_grid.size() - 1;
 
   ing_min = 0;
-  ing_max = new_grid.nelem() - 1;
+  ing_max = new_grid.size() - 1;
 
   if (ascending) {
     if (ng_max > og_max) {
@@ -999,7 +999,7 @@ void chk_interpolation_grids_loose_no_data_check(
     }
 
     if (ng_min < og_min) {
-      while (ing_min < new_grid.nelem() - 1 &&
+      while (ing_min < new_grid.size() - 1 &&
              new_grid[ing_min] < old_grid[iog_min])
         ing_min++;
     }
@@ -1009,7 +1009,7 @@ void chk_interpolation_grids_loose_no_data_check(
     }
 
     if (ng_max > og_max) {
-      while (ing_min < new_grid.nelem() - 1 &&
+      while (ing_min < new_grid.size() - 1 &&
              new_grid[ing_min] > old_grid[iog_min])
         ing_min++;
     }
@@ -1048,8 +1048,8 @@ void chk_interpolation_pgrids_loose_no_data_check(
     ConstVectorView new_pgrid,
     const Index order) {
   // Local variable to store log of the pressure grids
-  Vector logold(old_pgrid.nelem());
-  Vector lognew(new_pgrid.nelem());
+  Vector logold(old_pgrid.size());
+  Vector lognew(new_pgrid.size());
 
   transform(logold, log, old_pgrid);
   transform(lognew, log, new_pgrid);
@@ -1086,7 +1086,7 @@ void chk_interpolation_grids_loose_check_data(Index& ing_min,
                                               ConstVectorView old_grid,
                                               ConstVectorView new_grid,
                                               ConstVectorView data) {
-  ARTS_USER_ERROR_IF(!new_grid.nelem(),
+  ARTS_USER_ERROR_IF(!new_grid.size(),
                      "The new grid is not allowed to be empty.");
 
   // Decide whether we have an ascending or descending grid:
@@ -1095,8 +1095,8 @@ void chk_interpolation_grids_loose_check_data(Index& ing_min,
   // If new grid is not inside old grid, determine the indexes of the range
   // that is.
 
-  const Index iog_min = ascending ? old_grid.nelem() - 1 : 0;
-  const Index iog_max = ascending ? 0 : old_grid.nelem() - 1;
+  const Index iog_min = ascending ? old_grid.size() - 1 : 0;
+  const Index iog_max = ascending ? 0 : old_grid.size() - 1;
 
   ARTS_USER_ERROR_IF(
       ing_min > 0 && data[iog_min] != 0,
@@ -1115,7 +1115,7 @@ void chk_interpolation_grids_loose_check_data(Index& ing_min,
       data[iog_min])
 
   ARTS_USER_ERROR_IF(
-      ing_max < new_grid.nelem() - 1 && data[iog_max] != 0,
+      ing_max < new_grid.size() - 1 && data[iog_max] != 0,
       "There is a problem with the grids for the following interpolation:\n",
       which_interpolation,
       "\n",
@@ -1155,9 +1155,9 @@ void chk_interpolation_grids(const String& which_interpolation,
                              const Index order,
                              const Numeric& extpolfac,
                              const bool islog) {
-  const Index n_old = old_grid.nelem();
+  const Index n_old = old_grid.size();
 
-  ARTS_USER_ERROR_IF(!new_grid.nelem(),
+  ARTS_USER_ERROR_IF(!new_grid.size(),
                      "The new grid is not allowed to be empty.");
 
   ARTS_USER_ERROR_IF(order < 0,
@@ -1335,8 +1335,8 @@ void chk_interpolation_pgrids(const String& which_interpolation,
                               const Index order,
                               const Numeric& extpolfac) {
   // Local variable to store log of the pressure grids
-  Vector logold(old_pgrid.nelem());
-  Vector lognew(new_pgrid.nelem());
+  Vector logold(old_pgrid.size());
+  Vector lognew(new_pgrid.size());
 
   transform(logold, log, old_pgrid);
   transform(lognew, log, new_pgrid);
@@ -1369,26 +1369,26 @@ void chk_atm_grids(const Index& dim,
                    ConstVectorView lat_grid,
                    ConstVectorView lon_grid) {
   // p_grid
-  ARTS_USER_ERROR_IF(p_grid.nelem() < 2,
+  ARTS_USER_ERROR_IF(p_grid.size() < 2,
                      "The length of *p_grid* must be >= 2.");
   chk_if_decreasing("p_grid", p_grid);
 
   // lat_grid
   if (dim == 1) {
-    ARTS_USER_ERROR_IF(lat_grid.nelem() > 0,
+    ARTS_USER_ERROR_IF(lat_grid.size() > 0,
                        "For dim=1, the length of *lat_grid* must be 0.");
   } else {
-    ARTS_USER_ERROR_IF(lat_grid.nelem() < 2,
+    ARTS_USER_ERROR_IF(lat_grid.size() < 2,
                        "For dim>1, the length of *lat_grid* must be >= 2.");
     chk_if_increasing("lat_grid", lat_grid);
   }
 
   // lon_grid
   if (dim < 3) {
-    ARTS_USER_ERROR_IF(lon_grid.nelem() > 0,
+    ARTS_USER_ERROR_IF(lon_grid.size() > 0,
                        "For dim<3, the length of *lon_grid* must be 0.");
   } else {
-    ARTS_USER_ERROR_IF(lon_grid.nelem() < 2,
+    ARTS_USER_ERROR_IF(lon_grid.size() < 2,
                        "For dim=3, the length of *lon_grid* must be >= 2.");
     chk_if_increasing("lon_grid", lon_grid);
   }
@@ -1399,14 +1399,14 @@ void chk_atm_grids(const Index& dim,
         lat_grid[0] < -90,
         "The latitude grid cannot extend below -90 degrees for 3D");
     ARTS_USER_ERROR_IF(
-        lat_grid[lat_grid.nelem() - 1] > 90,
+        lat_grid[lat_grid.size() - 1] > 90,
         "The latitude grid cannot extend above 90 degrees for 3D");
     ARTS_USER_ERROR_IF(lon_grid[0] < -360,
                        "No longitude (in lon_grid) can be below -360 degrees.");
-    ARTS_USER_ERROR_IF(lon_grid[lon_grid.nelem() - 1] > 360,
+    ARTS_USER_ERROR_IF(lon_grid[lon_grid.size() - 1] > 360,
                        "No longitude (in lon_grid) can be above 360 degrees.");
     ARTS_USER_ERROR_IF(
-        lon_grid[lon_grid.nelem() - 1] - lon_grid[0] > 360,
+        lon_grid[lon_grid.size() - 1] - lon_grid[0] > 360,
         "The longitude grid is not allowed to cover more than 360 degrees.");
   }
 }
@@ -1437,9 +1437,9 @@ void chk_atm_field(const String& x_name,
                    ConstVectorView lon_grid,
                    const bool& chk_lat90) {
   // It is assumed that grids OK-ed through chk_atm_grids
-  Index npages = p_grid.nelem(), nrows = 1, ncols = 1;
-  if (dim > 1) nrows = lat_grid.nelem();
-  if (dim > 2) ncols = lon_grid.nelem();
+  Index npages = p_grid.size(), nrows = 1, ncols = 1;
+  if (dim > 1) nrows = lat_grid.size();
+  if (dim > 2) ncols = lon_grid.size();
   ARTS_USER_ERROR_IF(
       x.ncols() != ncols || x.nrows() != nrows || x.npages() != npages,
       "The atmospheric field *",
@@ -1581,9 +1581,9 @@ void chk_atm_field(const String& x_name,
     return;
   }
 
-  Index npages = p_grid.nelem(), nrows = 1, ncols = 1;
-  if (dim > 1) nrows = lat_grid.nelem();
-  if (dim > 2) ncols = lon_grid.nelem();
+  Index npages = p_grid.size(), nrows = 1, ncols = 1;
+  if (dim > 1) nrows = lat_grid.size();
+  if (dim > 2) ncols = lon_grid.size();
 
   ARTS_USER_ERROR_IF(x.ncols() != ncols || x.nrows() != nrows ||
                          x.npages() != npages || x.nbooks() != nbooks,
@@ -1874,8 +1874,8 @@ void chk_atm_surface(const String& x_name,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid) {
   Index ncols = 1, nrows = 1;
-  if (dim > 1) nrows = lat_grid.nelem();
-  if (dim > 2) ncols = lon_grid.nelem();
+  if (dim > 1) nrows = lat_grid.size();
+  if (dim > 2) ncols = lon_grid.size();
   ARTS_USER_ERROR_IF(x.ncols() != ncols || x.nrows() != nrows,
                      "The surface variable *",
                      x_name,
@@ -1944,7 +1944,7 @@ void chk_atm_surface(const String& x_name,
 
 void chk_rte_los(const String& name, ConstVectorView los) {
   ARTS_USER_ERROR_IF(
-      los.nelem() != 2, "The vector *", name, "* must have length 2.");
+      los.size() != 2, "The vector *", name, "* must have length 2.");
   ARTS_USER_ERROR_IF(los[0] < 0 || los[0] > 180,
                      "The zenith angle in *",
                      name,
@@ -1957,7 +1957,7 @@ void chk_rte_los(const String& name, ConstVectorView los) {
 
 void chk_rte_pos(const String& name, ConstVectorView pos) {
   ARTS_USER_ERROR_IF(
-      pos.nelem() != 3, "The vector *", name, "* must have length 3.")
+      pos.size() != 3, "The vector *", name, "* must have length 3.")
   ARTS_USER_ERROR_IF(pos[1] < -90 || pos[1] > 90,
                      "The latitude in *",
                      name,
@@ -2059,18 +2059,18 @@ void chk_surface_elevation(const GriddedField2& surface_elevation) {
   ARTS_USER_ERROR_IF(surface_elevation.gridname<1>() != "Longitude",
                      "Name of second grid must be \"Longitude\".");
   const Vector& lat_grid = surface_elevation.grid<0>();
-  ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.nelem(),
+  ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.size(),
                      "Inconsistent latitude size in *surface_elevation*\n"
                      "Length of latitude grid: ",
-                     lat_grid.nelem(),
+                     lat_grid.size(),
                      "\n"
                      "Latitude size of data: ",
                      surface_elevation.data.nrows());
   const Vector& lon_grid = surface_elevation.grid<1>();
-  ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.nelem(),
+  ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.size(),
                      "Inconsistent longitude size in *surface_elevation*\n"
                      "Length of longitude grid: ",
-                     lon_grid.nelem(),
+                     lon_grid.size(),
                      "\n"
                      "Longitude size of data: ",
                      surface_elevation.data.ncols());
@@ -2098,7 +2098,7 @@ void chk_rte_pos(ConstVectorView rte_pos, const bool& is_rte_pos2) {
     vname = "*rte_pos2*";
   }
   ARTS_USER_ERROR_IF(
-      rte_pos.nelem() != 3, "For 3D, ", vname, " must have length 3.")
+      rte_pos.size() != 3, "For 3D, ", vname, " must have length 3.")
   ARTS_USER_ERROR_IF(rte_pos[1] < -90 || rte_pos[1] > 90,
                      "The (3D) latitude in ",
                      vname,
@@ -2123,7 +2123,7 @@ void chk_rte_pos(ConstVectorView rte_pos, const bool& is_rte_pos2) {
     \date   2012-03-26
 */
 void chk_rte_los(ConstVectorView rte_los) {
-  ARTS_USER_ERROR_IF(rte_los.nelem() != 2,
+  ARTS_USER_ERROR_IF(rte_los.size() != 2,
                      "For 3D, los-vectors must have length 2.");
   ARTS_USER_ERROR_IF(rte_los[0] < 0 || rte_los[0] > 180,
                      "For 3D, the zenith angle of a los-vector must "

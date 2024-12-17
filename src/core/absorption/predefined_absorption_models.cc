@@ -226,8 +226,8 @@ void compute(
       std::ranges::any_of(vmrs_jac, [](auto& x) { return x.first; });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
-    PropmatVector pm(f_grid.nelem());
-    PropmatVector dpm(f_grid.nelem());
+    PropmatVector pm(f_grid.size());
+    PropmatVector dpm(f_grid.size());
     compute_selection<false>(
         pm, model, f_grid, atm_point, predefined_model_data);
 

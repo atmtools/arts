@@ -17,7 +17,7 @@ void gaussian_grid(Vector &y,
       (si <= 0 && fwhm <= 0) || (si > 0 && fwhm > 0),
       "One of the GINs *si* and *fwhm* shall be >0, but just one.");
 
-  const Index n = x.nelem();
+  const Index n = x.size();
 
   // Note that y and x can be the same vector
   if (&y != &x) {
@@ -243,8 +243,8 @@ void mult(VectorView y,
           const ConstVectorView &x,
           Numeric alpha,
           Numeric beta) {
-  assert(y.nelem() == M.nrows());
-  assert(M.ncols() == x.nelem());
+  assert(y.size() == M.nrows());
+  assert(M.ncols() == x.size());
   assert(not M.empty());
 
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
@@ -296,8 +296,8 @@ void mult(VectorView y,
 void mult(ComplexVectorView y,
           const ConstComplexMatrixView &M,
           const ConstComplexVectorView &x) {
-  ARTS_ASSERT(y.nelem() == M.nrows());
-  ARTS_ASSERT(M.ncols() == x.nelem());
+  ARTS_ASSERT(y.size() == M.nrows());
+  ARTS_ASSERT(M.ncols() == x.size());
   ARTS_ASSERT(not M.empty());
 
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
@@ -369,9 +369,9 @@ Vector diagonal(const ConstMatrixView &A) {
 }
 
 void cross3(VectorView c, const ConstVectorView &a, const ConstVectorView &b) {
-  ARTS_ASSERT(a.nelem() == 3, "{} vs 3", a.nelem());
-  ARTS_ASSERT(b.nelem() == 3, "{} vs 3", b.nelem());
-  ARTS_ASSERT(c.nelem() == 3, "{} vs 3", c.nelem());
+  ARTS_ASSERT(a.size() == 3, "{} vs 3", a.size());
+  ARTS_ASSERT(b.size() == 3, "{} vs 3", b.size());
+  ARTS_ASSERT(c.size() == 3, "{} vs 3", c.size());
 
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];
@@ -381,9 +381,9 @@ void cross3(VectorView c, const ConstVectorView &a, const ConstVectorView &b) {
 void cross3(ComplexVectorView c,
             const ConstComplexVectorView &a,
             const ConstComplexVectorView &b) {
-  ARTS_ASSERT(a.nelem() == 3, "{} vs 3", a.nelem());
-  ARTS_ASSERT(b.nelem() == 3, "{} vs 3", b.nelem());
-  ARTS_ASSERT(c.nelem() == 3, "{} vs 3", c.nelem());
+  ARTS_ASSERT(a.size() == 3, "{} vs 3", a.size());
+  ARTS_ASSERT(b.size() == 3, "{} vs 3", b.size());
+  ARTS_ASSERT(c.size() == 3, "{} vs 3", c.size());
 
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];

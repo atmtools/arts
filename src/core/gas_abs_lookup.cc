@@ -329,7 +329,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   for (Index i = 0; i < n_current_species; ++i) {
     if (i_current_species[i] >= 0) {
       new_table.vmrs_ref[i] =
-          vmrs_ref[i_current_species[i], Range(joker)];
+          vmrs_ref[i_current_species[i], joker];
     } else {
       // Here we handle the case of the trivial species, for which we set
       // the reference VMR to NAN.
@@ -378,21 +378,21 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     // Do frequencies:
     for (Index i_f = 0; i_f < n_current_f_grid; ++i_f) {
       if (i_current_species[i_s] >= 0) {
-        new_table.xsec[Range(joker), Range(sp, n_v), i_f, Range(joker)] =
-            xsec[Range(joker),
+        new_table.xsec[joker, Range(sp, n_v), i_f, joker] =
+            xsec[joker,
                  Range(original_spec_pos_in_xsec[i_current_species[i_s]], n_v),
                  i_current_f_grid[i_f],
-                 Range(joker)];
+                 joker];
       } else {
         // Here we handle the case of the trivial species, which we simply
         // set to NAN:
-        new_table.xsec[Range(joker), Range(sp, n_v), i_f, Range(joker)] = NAN;
+        new_table.xsec[joker, Range(sp, n_v), i_f, joker] = NAN;
       }
 
-      //           cout << "result: " << xsec( Range(joker),
+      //           cout << "result: " << xsec( joker,
       //                                       Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
       //                                       i_current_f_grid[i_f],
-      //                                       Range(joker) ) << endl;
+      //                                       joker ) << endl;
     }
 
     sp += n_v;
@@ -889,7 +889,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       // the interpolated one.
 
       //           const Numeric effective_vmr_ref = interp(pitw,
-      //                                                    vmrs_ref(h2o_index, Range(joker)),
+      //                                                    vmrs_ref(h2o_index, joker),
       //                                                    pgp);
       const Numeric effective_vmr_ref = vmrs_ref[h2o_index, this_p_grid_index];
 
@@ -952,7 +952,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Fixed pressure level and species.
       // Free dimension is T, H2O, and frequency.
       Tensor3View res(xsec_pre_interpolated[
-          pi, si, Range(joker), Range(joker), Range(joker)]);
+          pi, si, joker, joker, joker]);
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
@@ -983,9 +983,9 @@ void GasAbsLookup::Extract(Matrix& sga,
 
       // Get the right view on xsec.
       ConstTensor3View this_xsec =
-          xsec[Range(joker),                 // Temperature range
+          xsec[joker,                 // Temperature range
                Range(fpi, this_h2o_extent),  // VMR profile range
-               Range(joker),                 // Frequency range
+               joker,                 // Frequency range
                this_p_grid_index];           // Pressure index
 
       // Do interpolation.
@@ -1032,7 +1032,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
     // Add up in sga.
     // Dimensions of sga are (species, frequency)
-    sga += xsec_pre_interpolated[pi, Range(joker), 0, 0, Range(joker)];
+    sga += xsec_pre_interpolated[pi, joker, 0, 0, joker];
   }
 
   // Watch out, this is not yet the final result, we

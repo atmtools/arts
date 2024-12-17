@@ -390,11 +390,11 @@ void two_level_exp(muelmat_vector_view tv,
                    const Numeric rv,
                    const ExhaustiveConstVectorView &dr1v,
                    const ExhaustiveConstVectorView &dr2v) {
-  const Index nf = tv.nelem();
-  const Index nq = dr1v.nelem();
+  const Index nf = tv.size();
+  const Index nq = dr1v.size();
 
-  ARTS_ASSERT(nf == k1v.nelem());
-  ARTS_ASSERT(nf == k2v.nelem());
+  ARTS_ASSERT(nf == k1v.size());
+  ARTS_ASSERT(nf == k2v.size());
   ARTS_ASSERT(nf == dk1v.ncols());
   ARTS_ASSERT(nf == dk2v.ncols());
   ARTS_ASSERT(nq == dk1v.nrows());
@@ -403,7 +403,7 @@ void two_level_exp(muelmat_vector_view tv,
   ARTS_ASSERT(nf == dt2v.ncols());
   ARTS_ASSERT(nq == dt1v.nrows());
   ARTS_ASSERT(nq == dt2v.nrows());
-  ARTS_ASSERT(nq == dr2v.nelem());
+  ARTS_ASSERT(nq == dr2v.size());
 
   for (Index i = 0; i < nf; ++i) {
     const tran tran_state{k1v[i], k2v[i], rv};
@@ -424,8 +424,8 @@ void two_level_exp(muelmat_vector_view tv,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const Numeric rv) {
-  ARTS_ASSERT(k2v.nelem() == k1v.nelem());
-  ARTS_ASSERT(tv.nelem() == k1v.nelem());
+  ARTS_ASSERT(k2v.size() == k1v.size());
+  ARTS_ASSERT(tv.size() == k1v.size());
 
   std::transform(
       k1v.begin(),

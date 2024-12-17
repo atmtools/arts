@@ -7,7 +7,7 @@
 auto ArtsVector::rows() const
     -> Index
 {
-    return this->nelem();
+    return this->size();
 }
 
 auto ArtsVector::operator()(Index i) const

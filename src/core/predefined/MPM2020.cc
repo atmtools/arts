@@ -136,7 +136,7 @@ void compute(PropmatVector& propmat_clearsky,
   }
 
   // Sum up positive absorption
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   for (Index iv = 0; iv < nf; iv++) {
     const Numeric f = hz2ghz(f_grid[iv]);
     if (const Numeric a = sum_lines(f, c, ga, g0, y0, dv0, f0); a > 0)

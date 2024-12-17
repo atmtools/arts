@@ -132,19 +132,19 @@ void init_x(int vsize,
   //  Integrand.resize(vsize); // function to be integrated
   //  Theta.resize(vsize);     // Theta values
 
-  for (int i = 0; i < Integrand.nelem(); i++)
+  for (int i = 0; i < Integrand.size(); i++)
     Integrand[i] = (float)i * stepsize;
 
   //Theta is between 0 and 180
-  for (int i = 0; i < Theta.nelem(); i++) Theta[i] = (float)i * stepsize;
+  for (int i = 0; i < Theta.size(); i++) Theta[i] = (float)i * stepsize;
 
   std::cout << "function Y = X" << std::endl
        << "vsize = " << vsize << std::endl
        << "stepsize = " << stepsize << std::endl
        << "frequency = " << frequency << std::endl
        << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.nelem() - 1] << std::endl
-       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.nelem() - 1]
+       << Integrand[Integrand.size() - 1] << std::endl
+       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
        << std::endl;
 }
 
@@ -159,8 +159,8 @@ void init_xy(float stepsize,
              Vector& za_grid,
              Vector& aa_grid) {
   std::cout << ">>>>>-----------init_xy---------------\n";
-  Index n_za = za_grid.nelem();
-  Index n_aa = aa_grid.nelem();
+  Index n_za = za_grid.size();
+  Index n_aa = aa_grid.size();
 
   // The r=1 so we get a circle
   for (Index i = 0; i < n_za; i++)
@@ -182,9 +182,9 @@ void init_xy(float stepsize,
        << "Integrand(0,*): von " << Integrand[0, 0] << " bis "
        << Integrand[0, n_aa - 1] << std::endl
        << "za_grid (Theta): von " << za_grid[0] << " bis "
-       << za_grid[za_grid.nelem() - 1] << std::endl
+       << za_grid[za_grid.size() - 1] << std::endl
        << "aa_grid (Phi)  : von " << aa_grid[0] << " bis "
-       << aa_grid[aa_grid.nelem() - 1] << std::endl;
+       << aa_grid[aa_grid.size() - 1] << std::endl;
   std::cout << "---------------init_xy---------------<<<<<\n";
 }
 
@@ -203,8 +203,8 @@ void init_xy(float stepsize,
 Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
                                         ConstVectorView za_grid,
                                         ConstVectorView aa_grid) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -240,8 +240,8 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
 Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
                                    ConstVectorView za_grid,
                                    ConstVectorView aa_grid) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -280,8 +280,8 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
                                          ConstVectorView za_grid,
                                          ConstVectorView aa_grid,
                                          Numeric stepsize) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -319,8 +319,8 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
                                              ConstVectorView za_grid,
                                              ConstVectorView aa_grid,
                                              Numeric stepsize) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -364,8 +364,8 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
                                               ConstVectorView za_grid,
                                               ConstVectorView aa_grid,
                                               Numeric stepsize) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -398,7 +398,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
 */
 Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
                                         ConstVectorView za_grid) {
-  Index n = za_grid.nelem();
+  Index n = za_grid.size();
   ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
@@ -421,7 +421,7 @@ Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
 Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
                                          ConstVectorView za_grid,
                                          Numeric stepsize) {
-  Index n = za_grid.nelem();
+  Index n = za_grid.size();
   ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
@@ -798,14 +798,14 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
       (vsize - 1);  // attention this only works with eaqually spaced intervals
   std::cout << "Neue berechnete Stepsize: " << stepsize << std::endl;
 
-  for (int i = 0; i < Integrand.nelem(); i++) Integrand[i] = i * stepsize;
+  for (int i = 0; i < Integrand.size(); i++) Integrand[i] = i * stepsize;
 
   //Theta is between 0 and 180
-  for (int i = 0; i < Theta.nelem(); i++) Theta[i] = i * stepsize;
+  for (int i = 0; i < Theta.size(); i++) Theta[i] = i * stepsize;
 
   std::cout << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.nelem() - 1] << std::endl
-       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.nelem() - 1]
+       << Integrand[Integrand.size() - 1] << std::endl
+       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
        << std::endl;
 
   Numeric result = 0;

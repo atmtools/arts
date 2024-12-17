@@ -18,16 +18,16 @@ void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
                                        const stokvec_matrix_const_view &dS,
                                        const ExhaustiveConstVectorView &B,
                                        const ExhaustiveConstMatrixView &dB) {
-  const Index N = J.nelem();
+  const Index N = J.size();
   ARTS_ASSERT(N == dJ.ncols())
-  ARTS_ASSERT(N == J_add.nelem())
-  ARTS_ASSERT(N == K.nelem())
-  ARTS_ASSERT(N == a.nelem())
-  ARTS_ASSERT(N == S.nelem())
+  ARTS_ASSERT(N == J_add.size())
+  ARTS_ASSERT(N == K.size())
+  ARTS_ASSERT(N == a.size())
+  ARTS_ASSERT(N == S.size())
   ARTS_ASSERT(N == dK.ncols())
   ARTS_ASSERT(N == da.ncols())
   ARTS_ASSERT(N == dS.ncols())
-  ARTS_ASSERT(N == B.nelem())
+  ARTS_ASSERT(N == B.size())
   ARTS_ASSERT(N == dB.ncols())
 
   const Index M = dJ.nrows();
@@ -64,15 +64,15 @@ void level_nlte_and_scattering(stokvec_vector_view J,
                                const stokvec_matrix_const_view &dS,
                                const ExhaustiveConstVectorView &B,
                                const ExhaustiveConstMatrixView &dB) {
-  const Index N = J.nelem();
+  const Index N = J.size();
   ARTS_ASSERT(N == dJ.ncols())
-  ARTS_ASSERT(N == K.nelem())
-  ARTS_ASSERT(N == a.nelem())
-  ARTS_ASSERT(N == S.nelem())
+  ARTS_ASSERT(N == K.size())
+  ARTS_ASSERT(N == a.size())
+  ARTS_ASSERT(N == S.size())
   ARTS_ASSERT(N == dK.ncols())
   ARTS_ASSERT(N == da.ncols())
   ARTS_ASSERT(N == dS.ncols())
-  ARTS_ASSERT(N == B.nelem())
+  ARTS_ASSERT(N == B.size())
   ARTS_ASSERT(N == dB.ncols())
 
   const Index M = dJ.nrows();
@@ -103,11 +103,11 @@ void level_nlte_and_scattering(stokvec_vector_view J,
                                const stokvec_vector_const_view &a,
                                const stokvec_vector_const_view &S,
                                const ExhaustiveConstVectorView &B) {
-  const Index N = J.nelem();
-  ARTS_ASSERT(N == K.nelem())
-  ARTS_ASSERT(N == a.nelem())
-  ARTS_ASSERT(N == S.nelem())
-  ARTS_ASSERT(N == B.nelem())
+  const Index N = J.size();
+  ARTS_ASSERT(N == K.size())
+  ARTS_ASSERT(N == a.size())
+  ARTS_ASSERT(N == S.size())
+  ARTS_ASSERT(N == B.size())
 
   for (Index i = 0; i < N; i++) {
     J[i] = K[i].is_rotational() ? stokvec{0, 0, 0, 0}
@@ -124,13 +124,13 @@ void level_nlte(stokvec_vector_view J,
                 const ExhaustiveConstVectorView &f,
                 const Numeric &t,
                 const Index &it) {
-  const Index N = J.nelem();
+  const Index N = J.size();
   ARTS_ASSERT(N == dJ.ncols())
-  ARTS_ASSERT(N == K.nelem())
-  ARTS_ASSERT(N == S.nelem())
+  ARTS_ASSERT(N == K.size())
+  ARTS_ASSERT(N == S.size())
   ARTS_ASSERT(N == dK.ncols())
   ARTS_ASSERT(N == dS.ncols())
-  ARTS_ASSERT(N == f.nelem())
+  ARTS_ASSERT(N == f.size())
 
   const Index M = dJ.nrows();
   ARTS_ASSERT(M == dK.nrows())

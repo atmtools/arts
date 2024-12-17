@@ -243,12 +243,12 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E) {
   if (e == -1) e = ts.size();
   ARTS_USER_ERROR_IF(
       e < 0 or e > static_cast<Index>(ts.size()),
-      "Bad last index, valid options are [-1, ts.nelem()], got: {}",
+      "Bad last index, valid options are [-1, ts.size()], got: {}",
       E);
 
   ARTS_USER_ERROR_IF(
       s < 0 or s > static_cast<Index>(ts.size()),
-      "Bad first index, valid options are [0, ts.nelem()], got: {}",
+      "Bad first index, valid options are [0, ts.size()], got: {}",
       s);
 
   Time::InternalTimeStep dt(0);
@@ -263,8 +263,8 @@ Vector time_vector(const ArrayOfTime& times) {
 }
 
 ArrayOfTime time_vector(const Vector& times) {
-  ArrayOfTime t(times.nelem());
-  for (Index i = 0; i < times.nelem(); i++) t[i].Seconds(times[i]);
+  ArrayOfTime t(times.size());
+  for (Index i = 0; i < times.size(); i++) t[i].Seconds(times[i]);
   return t;
 }
 

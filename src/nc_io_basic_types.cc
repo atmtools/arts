@@ -194,7 +194,7 @@ void nca_read_from_file(const int ncid, Vector& v) {
 void nca_write_to_file(const int ncid, const Vector& v) {
   int retval;
   int ncdim, varid;
-  if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
+  if ((retval = nc_def_dim(ncid, "nelem", v.size(), &ncdim)))
     nca_error(retval, "nc_def_dim");
   if ((retval = nc_def_var(ncid, "Vector", NC_DOUBLE, 1, &ncdim, &varid)))
     nca_error(retval, "nc_def_var");

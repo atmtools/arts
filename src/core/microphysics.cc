@@ -28,11 +28,11 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 Numeric asymmetry_parameter(ConstVectorView sa_grid,
                             ConstVectorView pfun)
 {
-  const Index n = sa_grid.nelem();
+  const Index n = sa_grid.size();
   
   ARTS_ASSERT(abs(sa_grid[0]-0.0) < 1.0e-3);
   ARTS_ASSERT(abs(sa_grid[n-1]-180.0) < 1.0e-3);
-  ARTS_ASSERT(pfun.nelem() == n);
+  ARTS_ASSERT(pfun.size() == n);
 
   Vector sa{sa_grid};
   sa *= DEG2RAD;
@@ -67,7 +67,7 @@ void derive_scat_species_a_and_b(Numeric& a,
                                  const Vector& mass,
                                  const Numeric& x_fit_start,
                                  const Numeric& x_fit_end) {
-  const Index nse = x.nelem();
+  const Index nse = x.size();
   ARTS_ASSERT(nse > 1);
 
   ArrayOfIndex intarr_sort, intarr_unsort(0);

@@ -130,8 +130,8 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
 
   // Check dimensions of the system.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == x.nelem());
-  ARTS_ASSERT(n == b.nelem());
+  ARTS_ASSERT(n == x.size());
+  ARTS_ASSERT(n == b.size());
 
   // Allocate matrix and index vector for the LU decomposition.
   Matrix LU = Matrix(n, n);
@@ -242,8 +242,8 @@ void diagonalize_inplace(ExhaustiveMatrixView P,
 
   // A must be a square matrix.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == WR.nelem());
-  ARTS_ASSERT(n == WI.nelem());
+  ARTS_ASSERT(n == WR.size());
+  ARTS_ASSERT(n == WI.size());
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
   ARTS_ASSERT(n == static_cast<Index>(wo.N));
@@ -367,7 +367,7 @@ void diagonalize(ComplexMatrixView P,
 
   // A must be a square matrix.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == W.nelem());
+  ARTS_ASSERT(n == W.size());
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
@@ -495,7 +495,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   \return Norm
 */
 Numeric norm2(ConstVectorView v) {
-  ARTS_ASSERT(v.nelem());
+  ARTS_ASSERT(v.size());
   return sqrt(v * v);
 }
 
@@ -586,9 +586,9 @@ Numeric det(ConstMatrixView A) {
     \date   2013-01-25
 */
 void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
-  const Index n = x.nelem();
+  const Index n = x.size();
 
-  ARTS_ASSERT(y.nelem() == n);
+  ARTS_ASSERT(y.size() == n);
 
   p.resize(2);
 
@@ -638,7 +638,7 @@ Numeric lsf(VectorView x,
             ConstVectorView y,
             bool residual) noexcept {
   // Size of the problem
-  const Index n = x.nelem();
+  const Index n = x.size();
   Matrix AT, ATA(n, n);
   Vector ATy(n);
 

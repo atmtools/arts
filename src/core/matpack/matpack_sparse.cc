@@ -134,7 +134,7 @@ Sparse::Sparse(Index r, Index c) : matrix((int)r, (int)c) {
 }
 
 Sparse Sparse::diagonal(ConstVectorView v) {
-  Index n = v.nelem();
+  Index n = v.size();
   ArrayOfIndex indices(n);
   for (Index i = 0; i < n; ++i) {
     indices[i] = i;
@@ -294,7 +294,7 @@ void Sparse::insert_row(Index r, Vector v) {
   // Check if the row index and the Vector length are valid
   ARTS_ASSERT(0 <= r);
   ARTS_ASSERT(r < nrows());
-  ARTS_ASSERT(v.nelem() == ncols());
+  ARTS_ASSERT(v.size() == ncols());
 
   for (int i = 0; i < ncols(); i++) {
     if (v[i] != 0) matrix.coeffRef((int)r, i) = v[i];
@@ -395,8 +395,8 @@ void abs(Sparse& A, const Sparse& B) {
 */
 void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.nelem() == M.nrows());
-  ARTS_ASSERT(M.ncols() == x.nelem());
+  ARTS_ASSERT(y.size() == M.nrows());
+  ARTS_ASSERT(M.ncols() == x.size());
 
     // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
@@ -406,9 +406,9 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
 
   Numeric* data;
   data = x.unsafe_data_handle();
-  ColumnMap x_map(data, x.nelem(), Stride(1, x.stride(0)));
+  ColumnMap x_map(data, x.size(), Stride(1, x.stride(0)));
   data = y.unsafe_data_handle();
-  ColumnMap y_map(data, y.nelem(), Stride(1, y.stride(0)));
+  ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
   y_map = M.matrix * x_map;
 }
@@ -430,8 +430,8 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
 */
 void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.nelem() == M.ncols());
-  ARTS_ASSERT(M.nrows() == x.nelem());
+  ARTS_ASSERT(y.size() == M.ncols());
+  ARTS_ASSERT(M.nrows() == x.size());
 
     // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
@@ -441,9 +441,9 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
 
   Numeric* data;
   data = x.unsafe_data_handle();
-  ColumnMap x_map(data, x.nelem(), Stride(1, x.stride(0)));
+  ColumnMap x_map(data, x.size(), Stride(1, x.stride(0)));
   data = y.unsafe_data_handle();
-  ColumnMap y_map(data, y.nelem(), Stride(1, y.stride(0)));
+  ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
   y_map = x_map * M.matrix;
 }

@@ -251,7 +251,7 @@ void oxygen(PropmatVector& propmat_clearsky,
   const Numeric gam_cont = G0 * (pwv + pda) * pow(theta, X0);  // GHz
 
   // Loop over input frequency
-  for (Index s = 0; s < f_grid.nelem(); ++s) {
+  for (Index s = 0; s < f_grid.size(); ++s) {
     // input frequency in [GHz]
     const Numeric ff = f_grid[s] * Hz_to_GHz;
     // O2 continuum absorption [1/m]

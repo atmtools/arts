@@ -59,7 +59,7 @@ void complex_n_water_liebe93(Matrix& complex_n,
   chk_if_in_range("min of f_grid", min(f_grid), 10e9, 1000e9);
   chk_if_in_range("max of f_grid", max(f_grid), 10e9, 1000e9);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   complex_n.resize(nf, 2);
 
@@ -109,7 +109,7 @@ void complex_n_ice_matzler06(Matrix& complex_n,
   chk_if_in_range("min of f_grid", min(f_grid), 10e6, 3000e9);
   chk_if_in_range("max of f_grid", max(f_grid), 10e6, 3000e9);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   complex_n.resize(nf, 2);
 

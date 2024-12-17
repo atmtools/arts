@@ -54,31 +54,31 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
   }
 
   ARTS_USER_ERROR_IF(
-      spectral_radiance_background.nelem() not_eq frequency_grid.nelem(),
+      spectral_radiance_background.size() not_eq frequency_grid.size(),
       "Bad size spectral_radiance_background ({}"
       ").  It should have the same size as frequency_grid ({})",
-      spectral_radiance_background.nelem(),
-      frequency_grid.nelem());
+      spectral_radiance_background.size(),
+      frequency_grid.size());
 
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_background_jacobian.nrows()) not_eq
               jacobian_targets.x_size() or
           spectral_radiance_background_jacobian.ncols() not_eq
-              frequency_grid.nelem(),
+              frequency_grid.size(),
       "Bad size of spectral_radiance_background_jacobian ({}x{}"
       ").  It should have the same size as jacobian_targets ({}"
       ") and frequency_grid ({})",
       spectral_radiance_background_jacobian.nrows(),
       spectral_radiance_background_jacobian.ncols(),
       jacobian_targets.x_size(),
-      frequency_grid.nelem());
+      frequency_grid.size());
 }
 ARTS_METHOD_ERROR_CATCH
 
 namespace detail {
 StokvecVector from_temp(const ExhaustiveConstVectorView& frequency_grid,
                         const Numeric t) {
-  StokvecVector v(frequency_grid.nelem(), 0.0);
+  StokvecVector v(frequency_grid.size(), 0.0);
   std::transform(frequency_grid.begin(),
                  frequency_grid.end(),
                  v.begin(),
@@ -191,7 +191,7 @@ void spectral_radianceDefaultTransmission(
     StokvecMatrix& spectral_radiance_background,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets) {
-  const Index nf = frequency_grid.nelem();
+  const Index nf = frequency_grid.size();
   const Index nq = jacobian_targets.x_size();
 
   spectral_radiance_background.resize(nq, nf);

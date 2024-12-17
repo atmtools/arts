@@ -18,7 +18,7 @@ void test_11a_1layer() try {
              3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
              1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
              3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04}
-          .reshape(tau_arr.nelem(), 32)};
+          .reshape(tau_arr.size(), 32)};
 
   const Numeric mu0  = 0.6;
   const Numeric I0   = Constant::pi / mu0;
@@ -30,7 +30,7 @@ void test_11a_1layer() try {
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   const Matrix s_poly_coeffs{
-      Vector{172311.79936609, -102511.4417051}.reshape(tau_arr.nelem(), 2)};
+      Vector{172311.79936609, -102511.4417051}.reshape(tau_arr.size(), 2)};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)

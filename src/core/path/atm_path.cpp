@@ -40,7 +40,7 @@ ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &path_freq,
                                        const AscendingGrid &main_freq,
                                        const ArrayOfAtmPoint &atm_path) {
   path_freq.resize(atm_path.size());
-  for (auto &v : path_freq) v.unsafe_resize(main_freq.nelem());
+  for (auto &v : path_freq) v.unsafe_resize(main_freq.size());
   return path_freq;
 }
 

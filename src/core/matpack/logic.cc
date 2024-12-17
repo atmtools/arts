@@ -59,7 +59,7 @@ bool is_multiple(const Index& x, const Index& y) {
   \param  n The desired length.
   \return True if the size of x is l.
 */
-bool is_size(ConstVectorView x, const Index& n) { return (n == x.nelem()); }
+bool is_size(ConstVectorView x, const Index& n) { return (n == x.size()); }
 
 //! Verifies that the size of x is r by c.
 /*! 
@@ -180,8 +180,8 @@ bool is_size(ConstTensor7View x,
   \return      True if sorted.
 */
 bool is_sorted(ConstVectorView x) {
-  if (x.nelem() > 1) {
-    for (Index i = 1; i < x.nelem(); i++) {
+  if (x.size() > 1) {
+    for (Index i = 1; i < x.size(); i++) {
       if (!(x[i] >= x[i - 1])) return false;
     }
   }
@@ -196,8 +196,8 @@ bool is_sorted(ConstVectorView x) {
     \param   x   A vector.
 */
 bool is_increasing(ConstVectorView x) {
-  if (x.nelem() > 1) {
-    for (Index i = 1; i < x.nelem(); i++) {
+  if (x.size() > 1) {
+    for (Index i = 1; i < x.size(); i++) {
       if (!(x[i] > x[i - 1])) return false;
     }
   }
@@ -233,8 +233,8 @@ bool is_increasing(const ArrayOfIndex& x) {
     \param   x   A vector.
 */
 bool is_decreasing(ConstVectorView x) {
-  if (x.nelem() > 1) {
-    for (Index i = 1; i < x.nelem(); i++) {
+  if (x.size() > 1) {
+    for (Index i = 1; i < x.size(); i++) {
       if (!(x[i] < x[i - 1])) return false;
     }
   }
@@ -348,7 +348,7 @@ bool is_same_within_epsilon(const Numeric& a,
  */
 bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon) {
   return is_same_within_epsilon(
-      grid[grid.nelem() - 1] - grid[0], 360., epsilon);
+      grid[grid.size() - 1] - grid[0], 360., epsilon);
 }
 
 bool is_regularly_increasing_within_epsilon(ConstVectorView x,

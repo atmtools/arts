@@ -63,14 +63,14 @@ void internalCKDMT400(py::module_& m) {
       [](const Vector& f,
          const AtmPoint& atm,
          PredefinedModelData& data) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD400::compute_foreign_h2o(
             pm,
             f,
             atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
                 data.data.at("H2O-ForeignContCKDMT400"_isot)));
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -101,14 +101,14 @@ abs_coef : ~pyarts.arts.Vector
       [](const Vector& f,
          const AtmPoint& atm,
          PredefinedModelData& data) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD400::compute_self_h2o(
             pm,
             f,
             atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
                 data.data.at("H2O-SelfContCKDMT400"_isot)));
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -139,9 +139,9 @@ void internalMPM89(py::module_& m) {
   m.def(
       "get_h2o_mpm89",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM89::water(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -167,9 +167,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_mpm89",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM89::oxygen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -197,9 +197,9 @@ void internalMPM93(py::module_& m) {
   m.def(
       "get_n2_mpm93",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM93::nitrogen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -227,9 +227,9 @@ void internalELL07(py::module_& m) {
   m.def(
       "get_water_droplet_ell07",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::ELL07::compute(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -257,9 +257,9 @@ void internalPWR98(py::module_& m) {
   m.def(
       "get_h2o_pwr98",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR98::water(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -285,9 +285,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_pwr98",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR98::oxygen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -315,9 +315,9 @@ void internalPWR20xx(py::module_& m) {
   m.def(
       "get_h2o_pwr2021",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -343,9 +343,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_pwr2021",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_o2_2021(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -371,9 +371,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_h2o_pwr2022",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -399,9 +399,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_pwr2022",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_o2_2022(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -427,9 +427,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_n2_pwr2021",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -457,9 +457,9 @@ void internalTRE05(py::module_& m) {
   m.def(
       "get_o2_tre05",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::TRE05::oxygen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -487,9 +487,9 @@ void internalCKDMT100(py::module_& m) {
   m.def(
       "get_o2_cia_ckdmt100",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -515,9 +515,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_v0v0_ckdmt100",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -543,9 +543,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_v1v0_ckdmt100",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -573,9 +573,9 @@ void internalCKDMT252(py::module_& m) {
   m.def(
       "get_co2_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -601,9 +601,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_vis_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -629,10 +629,10 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_n2_fun_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(
             pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -658,10 +658,10 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_n2_rot_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(
             pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -689,9 +689,9 @@ void internalSTANDARD(py::module_& m) {
   m.def(
       "get_h2o_self_standard",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::water_self(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -717,9 +717,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_h2o_foreign_standard",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::water_foreign(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -745,9 +745,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_n2_standard",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::nitrogen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -773,9 +773,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_o2_standard",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::oxygen(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -803,9 +803,9 @@ void internalCKDMT350(py::module_& m) {
   m.def(
       "get_self_h2o_ckdmt350",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -831,9 +831,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_foreign_h2o_ckdmt350",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -861,9 +861,9 @@ void internalCKDMT320(py::module_& m) {
   m.def(
       "get_self_h2o_ckdmt320",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT320::compute_self_h2o(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
@@ -889,9 +889,9 @@ abs_coef : ~pyarts.arts.Vector
   m.def(
       "get_foreign_h2o_ckdmt320",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
-        PropmatVector pm(f.nelem());
+        PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT320::compute_foreign_h2o(pm, f, atm);
-        Vector out(pm.nelem());
+        Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
         });
