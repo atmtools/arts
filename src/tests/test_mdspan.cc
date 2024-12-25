@@ -785,6 +785,7 @@ void test_grid() {
   std::print(std::cout, "{:B,}\n", z);
   std::print("{}\n", x);
 }
+}  // namespace
 
 void test_einsum() {
   const Size n = 5, m = 3;
