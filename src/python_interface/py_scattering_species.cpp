@@ -329,10 +329,10 @@ void py_scattering_species(py::module_& m) try {
   // Modified gamma PSD
   //
 
-  //   using BulkScatteringPropertiesTROSpectral =
-  //       std::variant<scattering::BulkScatteringProperties<
-  //           scattering::Format::TRO,
-  //           scattering::Representation::Spectral>>;
+//   using BulkScatteringPropertiesTROSpectral =
+//       std::variant<scattering::BulkScatteringProperties<
+//           scattering::Format::TRO,
+//           scattering::Representation::Spectral>>;
   using BulkScatteringPropertiesTROGridded =
       std::variant<scattering::BulkScatteringProperties<
           scattering::Format::TRO,
