@@ -19,26 +19,10 @@ struct PosLos {
   constexpr bool operator==(const PosLos& other) const = default;
   constexpr bool operator!=(const PosLos& other) const = default;
 
-  constexpr bool operator<=(const PosLos& other) const {
-    return std::tie(pos, los) <= std::tie(other.pos, other.los);
-  };
-
-  constexpr bool operator>=(const PosLos& other) const {
-    return std::tie(pos, los) >= std::tie(other.pos, other.los);
-  };
-
-  constexpr bool operator<(const PosLos& other) const {
-    return std::tie(pos, los) < std::tie(other.pos, other.los);
-  };
-
-  constexpr bool operator>(const PosLos& other) const {
-    return std::tie(pos, los) > std::tie(other.pos, other.los);
-  };
-
   friend std::ostream& operator<<(std::ostream& os, const PosLos& poslos);
 };
 
-using PosLosVector = matpack::matpack_data<PosLos, 1>;
+using PosLosVector = matpack::data_t<PosLos, 1>;
 
 class Obsel {
   //! Frequency grid, must be ascending
@@ -134,7 +118,7 @@ class Obsel {
   void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
 
   [[nodiscard]] Size flat_size(const SensorKeyType& key) const;
-  void flat(ExhaustiveVectorView x, const SensorKeyType& key) const;
+  void flat(VectorView x, const SensorKeyType& key) const;
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;
 
   [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
@@ -198,7 +182,7 @@ using SensorSimulations  = std::unordered_map<
      std::unordered_set<std::shared_ptr<const SensorPosLosVector>>>;
 
 void unflatten(ArrayOfSensorObsel& sensor,
-               const ExhaustiveConstVectorView& x,
+               const ConstVectorView& x,
                const SensorObsel& v,
                const SensorKeyType& key);
 

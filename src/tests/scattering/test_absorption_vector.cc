@@ -33,7 +33,7 @@ bool test_absorption_vector_tro() {
   fill_along_axis<0>(*f_grid);
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(absorption_vector));
+      reinterpret_cast<matpack::data_t<Numeric, 3> &>(absorption_vector));
   (*t_grid_new)[0] = 1.2345;
   (*f_grid_new)[0] = 1.2346;
   grids = scattering::ScatteringDataGrids{t_grid_new, f_grid_new, nullptr};
@@ -46,7 +46,7 @@ bool test_absorption_vector_tro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(absorption_vector));
+      reinterpret_cast<matpack::data_t<Numeric, 3> &>(absorption_vector));
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
   err = std::abs(absorption_vector_interp[0, 0, 0] - 1.2346);
   if (err > 1e-10) {
@@ -64,7 +64,7 @@ bool test_absorption_vector_aro() {
 
   auto t_grid = std::make_shared<Vector>(Vector{210.0, 240.0, 270.0});
   auto f_grid = std::make_shared<Vector>(Vector{1e9, 10e9, 100e9});
-  auto za_inc_grid = std::make_shared<Vector>(uniform_grid(0.0, 10.0, 19));
+  auto za_inc_grid = std::make_shared<Vector>(matpack::uniform_grid(0.0, 10.0, 19));
 
   AbsorptionVector absorption_vector{t_grid, f_grid, za_inc_grid};
   absorption_vector = random_tensor<Tensor4>(absorption_vector.shape());
@@ -90,7 +90,7 @@ bool test_absorption_vector_aro() {
   fill_along_axis<0>(*za_inc_grid);
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(absorption_vector));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(absorption_vector));
   (*t_grid_new)[0] = 1.2345;
   (*f_grid_new)[0] = 1.2346;
   (*za_inc_grid_new)[0] = 1.2347;
@@ -105,7 +105,7 @@ bool test_absorption_vector_aro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(absorption_vector));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(absorption_vector));
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
   err = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2346);
   if (err > 1e-10) {
@@ -113,7 +113,7 @@ bool test_absorption_vector_aro() {
   }
 
   fill_along_axis<2>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(absorption_vector));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(absorption_vector));
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
   err = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2347);
   if (err > 1e-10) {
@@ -128,18 +128,18 @@ int main() {
   std::cout << "Testing absorption vector (TRO): ";
   passed = test_absorption_vector_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing absorption vector (ARO): ";
   passed = test_absorption_vector_aro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 

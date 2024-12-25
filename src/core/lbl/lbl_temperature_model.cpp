@@ -136,7 +136,7 @@ Numeric dDPL_dT(
   return -X0 * X1 * pow(T0 / T, X1) / T + -X2 * X3 * pow(T0 / T, X3) / T;
 }
 
-Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) {
+Numeric POLY(const ConstVectorView& x, Numeric T) {
   Numeric poly_fac = 1.0;
   Numeric poly_sum = 0.0;
   for (auto X : x) {
@@ -146,10 +146,10 @@ Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T) {
   return poly_sum;
 }
 
-Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) {
+Numeric dPOLY_dT(const ConstVectorView& x, Numeric T) {
   Numeric poly_fac = 1.0;
   Numeric poly_sum = 0.0;
-  for (Index i = 1; i < x.size(); ++i) {
+  for (Size i = 1; i < x.size(); ++i) {
     poly_sum += static_cast<Numeric>(i) * x[i] * poly_fac;
     poly_fac *= T;
   }
@@ -209,16 +209,6 @@ DERIVATIVES(T)
 
 #undef DERIVATIVES
 #undef SWITCHCASE
-
-std::ostream& operator<<(std::ostream& os, const temperature::data& x) {
-  os << x.t;
-
-  if (model_size[static_cast<Size>(x.t)] == std::numeric_limits<Size>::max()) {
-    os << ' ' << x.x.size();
-  }
-
-  return os << ' ' << x.x;
-}
 
 std::istream& operator>>(std::istream& is, temperature::data& x) {
   String name;

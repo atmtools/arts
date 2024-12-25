@@ -5,7 +5,6 @@
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"
-#include "matpack_data.h"
 #include "python_interface.h"
 
 namespace Python {
@@ -65,19 +64,34 @@ void py_matpack(py::module_& m) try {
   matpack_constant_interface(cv3);
   workspace_group_interface(cv3);
 
-  py::class_<Range>(m, "Range")
+  py::class_<StridedRange>(m, "StridedRange")
       .def(py::init<Index, Index, Index>(),
            "offset"_a,
            "extent"_a,
            "stride"_a = 1,
            "Valued initialization")
       .def("__getstate__",
-           [](const Range& self) {
-             return std::make_tuple(self.offset, self.extent, self.stride);
+           [](const StridedRange& self) {
+             return std::make_tuple(self.offset, self.nelem, self.stride);
            })
       .def("__setstate__",
-           [](Range* r, const std::tuple<Index, Index, Index>& t) {
-             new (r) Range{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
+           [](StridedRange* r, const std::tuple<Index, Index, Index>& t) {
+             new (r) StridedRange{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
+           })
+      .doc() = "A strided range, used to select parts of a matpack type";
+
+  py::class_<Range>(m, "Range")
+      .def(py::init<Index, Index>(),
+           "offset"_a,
+           "extent"_a,
+           "Valued initialization")
+      .def("__getstate__",
+           [](const StridedRange& self) {
+             return std::make_tuple(self.offset, self.nelem, self.stride);
+           })
+      .def("__setstate__",
+           [](Range* r, const std::tuple<Index, Index>& t) {
+             new (r) Range{std::get<0>(t), std::get<1>(t)};
            })
       .doc() = "A range, used to select parts of a matpack type";
 

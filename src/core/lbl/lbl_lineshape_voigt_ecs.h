@@ -43,7 +43,7 @@ struct ComputeData {
   Propmat npm{};
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const ExhaustiveConstVectorView& f_grid,
+  ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
               const Vector2& los = {},
               const zeeman::pol pol = zeeman::pol::no);
@@ -53,7 +53,7 @@ struct ComputeData {
                      const zeeman::pol pol);
 
   void core_calc_eqv();
-  void core_calc(const ExhaustiveConstVectorView& f_grid);
+  void core_calc(const ConstVectorView& f_grid);
   void adapt_single(const QuantumIdentifier& bnd_qid,
                     const band_data& bnd,
                     const linemixing::species_data_map& rovib_data,
@@ -67,9 +67,9 @@ struct ComputeData {
 };
 
 void calculate(PropmatVectorView pm,
-               matpack::matpack_view<Propmat, 2, false, true> dpm,
+               matpack::strided_view_t<Propmat, 2> dpm,
                ComputeData& com_data,
-               const ExhaustiveConstVectorView& f_grid,
+               const ConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -78,8 +78,8 @@ void calculate(PropmatVectorView pm,
                const zeeman::pol pol,
                const bool no_negative_absorption);
 
-void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
-                       ExhaustiveComplexTensor3View eqv_val,
+void equivalent_values(ComplexTensor3View eqv_str,
+                       ComplexTensor3View eqv_val,
                        ComputeData& com_data,
                        const QuantumIdentifier& bnd_qid,
                        const band_data& bnd,

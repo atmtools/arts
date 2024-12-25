@@ -13,28 +13,14 @@ bool SensorKey::operator==(const SensorKey& other) const {
 }
 
 namespace sensor {
-std::ostream& operator<<(std::ostream& os, const PosLos& obsel) {
-  return os << "[pos: [" << obsel.pos << "], los: [" << obsel.los << "]]";
-}
-
-std::ostream& operator<<(std::ostream& os, const Obsel& obsel) {
-  return os << std::format("{}", obsel);
-}
-
-std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel) {
-  for (const auto& o : obsel) {
-    os << o << '\n';
-  }
-  return os;
-}
-
 void Obsel::check() const {
   ARTS_ASSERT(f, "Must exist");
 
   ARTS_ASSERT(poslos, "Must exist");
 
   ARTS_USER_ERROR_IF(
-      (w.shape() != std::array<Index, 2>{poslos->size(), f->size()}),
+      (w.shape() != std::array{static_cast<Index>(poslos->size()),
+                               static_cast<Index>(f->size())}),
       R"(Weight matrix must have the same shape as the poslos times the frequency grids:
   weight_matrix.shape() = {:B,}
   poslos->size()        = {}
@@ -65,11 +51,14 @@ void Obsel::normalize(Stokvec pol) {
 
 Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
   ARTS_ASSERT(i.size() == f->size(), "Bad size");
-  ARTS_ASSERT(ip < poslos->size() and ip >= 0, "Bad index");
+  ARTS_ASSERT(ip < static_cast<Index>(poslos->size()) and ip >= 0, "Bad index");
 
   const auto ws = w[ip];
 
-  return std::transform_reduce(i.begin(), i.end(), ws.begin(), 0.0);
+  return std::transform_reduce(
+      i.begin(), i.end(), ws.begin(), 0.0, std::plus<>(), [](auto& a, auto& b) {
+        return dot(a, b);
+      });
 }
 
 void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
@@ -78,8 +67,14 @@ void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
   // j is a matrix of shape JACS x f->size()
 
   for (Index ij = 0; ij < j.nrows(); ij++) {
-    auto jac  = j[ij];
-    out[ij]  += std::transform_reduce(jac.begin(), jac.end(), ws.begin(), 0.0);
+    auto jac = j[ij];
+    out[ij] +=
+        std::transform_reduce(jac.begin(),
+                              jac.end(),
+                              ws.begin(),
+                              0.0,
+                              std::plus<>{},
+                              [](auto& a, auto& b) { return dot(a, b); });
   }
 }
 
@@ -97,7 +92,7 @@ Size Obsel::flat_size(const SensorKeyType& key) const {
   std::unreachable();
 }
 
-void Obsel::flat(ExhaustiveVectorView x, const SensorKeyType& key) const {
+void Obsel::flat(VectorView x, const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
     case f:
@@ -167,8 +162,8 @@ Vector Obsel::flat(const SensorKeyType& key) const {
 }
 
 Index Obsel::find(const Vector3& pos, const Vector2& los) const {
-  const auto first       = poslos->cbegin();
-  const auto last        = poslos->cend();
+  const auto first       = poslos->begin();
+  const auto last        = poslos->end();
   const auto same_poslos = [&](const auto& p) {
     return &pos == &p.pos and & los == &p.los;
   };
@@ -240,16 +235,16 @@ void make_exhaustive(ArrayOfSensorObsel& obsels) {
     StokvecMatrix weights(
         f_grid.size(), poslos_grid.size(), Stokvec{0.0, 0.0, 0.0, 0.0});
 
-    for (Index iv = 0; iv < obsel.f_grid().size(); iv++) {
+    for (Size iv = 0; iv < obsel.f_grid().size(); iv++) {
       const Index ivn = std::distance(
           std::ranges::find(f_grid, obsel.f_grid()[iv]), f_grid.end());
-      if (ivn == f_grid.size()) continue;
+      if (ivn == static_cast<Index>(f_grid.size())) continue;
 
-      for (Index ip = 0; ip < obsel.poslos_grid().size(); ip++) {
+      for (Size ip = 0; ip < obsel.poslos_grid().size(); ip++) {
         const Index ipn = std::distance(
             std::ranges::find(poslos_grid, obsel.poslos_grid()[ip]),
             poslos_grid.end());
-        if (ipn == poslos_grid.size()) continue;
+        if (ipn == static_cast<Index>(poslos_grid.size())) continue;
 
         weights[ivn, ipn] = obsel.weight_matrix()[iv, ip];
       }
@@ -261,7 +256,7 @@ void make_exhaustive(ArrayOfSensorObsel& obsels) {
 
 void set_frq(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
                      "Bad size. x.size(): {}, f_grid().size(): {}",
                      x.size(),
@@ -283,7 +278,7 @@ void set_frq(const SensorObsel& v,
 template <bool pos, Index k>
 void set_poslos(const SensorObsel& v,
                 ArrayOfSensorObsel& sensor,
-                const ExhaustiveConstVectorView x) {
+                const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
                      "Bad size. x.size(): {}, poslos_grid().size(): {}",
                      x.size(),
@@ -318,36 +313,36 @@ void set_poslos(const SensorObsel& v,
 
 void set_alt(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   set_poslos<true, 0>(v, sensor, x);
 }
 
 void set_lat(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   set_poslos<true, 1>(v, sensor, x);
 }
 
 void set_lon(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   set_poslos<true, 2>(v, sensor, x);
 }
 
 void set_zag(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   set_poslos<false, 0>(v, sensor, x);
 }
 
 void set_aag(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
-             const ExhaustiveConstVectorView x) {
+             const ConstVectorView x) {
   set_poslos<false, 1>(v, sensor, x);
 }
 
 void unflatten(ArrayOfSensorObsel& sensor,
-               const ExhaustiveConstVectorView& x,
+               const ConstVectorView& x,
                const SensorObsel& v,
                const SensorKeyType& key) {
   switch (key) {

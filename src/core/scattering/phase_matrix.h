@@ -4,8 +4,8 @@
 
 #include "arts_constants.h"
 #include "interpolation.h"
-#include "matpack/matpack_data.h"
-#include "matpack/matpack_eigen.h"
+#include <matpack.h>
+#include <matpack_mdspan_helpers_eigen.h>
 #include "sht.h"
 
 namespace scattering {
@@ -174,8 +174,8 @@ constexpr auto f44(const VectorType &v) {
 }
 
 template <typename Scalar, bool strided>
-void expand_and_transform(ExhaustiveVectorView output,
-                          const ExhaustiveConstVectorView &input,
+void expand_and_transform(StridedVectorView output,
+                          const StridedConstVectorView &input,
                           const std::array<Scalar, 5> rotation_coefficients,
                           bool delta_aa_gt_180) {
   Scalar c_1 = std::get<1>(rotation_coefficients);
@@ -338,7 +338,7 @@ inline RegridWeights calc_regrid_weights(
 }
 
 template <std::floating_point Scalar, Format format>
-class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
+class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
  public:
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
@@ -347,17 +347,17 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
 
   BackscatterMatrixData(std::shared_ptr<const Vector> t_grid,
                         std::shared_ptr<const Vector> f_grid)
-      : matpack::matpack_data<Scalar, 3>(
+      : matpack::data_t<Scalar, 3>(
             t_grid->size(), f_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid) {
-    matpack::matpack_data<Scalar, 3>::operator=(0.0);
+    matpack::data_t<Scalar, 3>::operator=(0.0);
   }
 
   BackscatterMatrixData &operator=(
-      const matpack::matpack_data<Scalar, 3> &data) {
+      const matpack::data_t<Scalar, 3> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -367,13 +367,13 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
     ARTS_USER_ERROR_IF(
         data.shape()[2] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 3>::operator=(data);
+    this->template data_t<Scalar, 3>::operator=(data);
     return *this;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 2, false, false>
+  constexpr matpack::view_t<CoeffVector, 2>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 2, false, false>(
+    return matpack::view_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0), this->extent(1)});
   }
@@ -429,7 +429,7 @@ class BackscatterMatrixData : public matpack::matpack_data<Scalar, 3> {
 
 template <std::floating_point Scalar>
 class BackscatterMatrixData<Scalar, Format::ARO>
-    : public matpack::matpack_data<Scalar, 4> {
+    : public matpack::data_t<Scalar, 4> {
  public:
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
@@ -439,7 +439,7 @@ class BackscatterMatrixData<Scalar, Format::ARO>
   BackscatterMatrixData(std::shared_ptr<const Vector> t_grid,
                         std::shared_ptr<const Vector> f_grid,
                         std::shared_ptr<const Vector> za_inc_grid)
-      : matpack::matpack_data<Scalar, 4>(t_grid->size(),
+      : matpack::data_t<Scalar, 4>(t_grid->size(),
                                          f_grid->size(),
                                          za_inc_grid->size(),
                                          n_stokes_coeffs),
@@ -449,18 +449,18 @@ class BackscatterMatrixData<Scalar, Format::ARO>
         f_grid_(f_grid),
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid) {
-    matpack::matpack_data<Scalar, 4>::operator=(0.0);
+    matpack::data_t<Scalar, 4>::operator=(0.0);
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 3, false, false>
+  constexpr matpack::view_t<CoeffVector, 3>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 3, false, false>(
+    return matpack::view_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2)});
   }
 
   BackscatterMatrixData &operator=(
-      const matpack::matpack_data<Scalar, 4> &data) {
+      const matpack::data_t<Scalar, 4> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -473,7 +473,7 @@ class BackscatterMatrixData<Scalar, Format::ARO>
     ARTS_USER_ERROR_IF(
         data.shape()[3] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 4>::operator=(data);
+    this->template data_t<Scalar, 4>::operator=(data);
     return this;
   }
 
@@ -571,12 +571,12 @@ class PhaseMatrixData;
 
 template <std::floating_point Scalar>
 class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
-    : public matpack::matpack_data<Scalar, 4> {
+    : public matpack::data_t<Scalar, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<Scalar, 4>::resize;
-  using matpack::matpack_data<Scalar, 4>::reshape;
+  using matpack::data_t<Scalar, 4>::resize;
+  using matpack::data_t<Scalar, 4>::reshape;
 
  public:
   /// Spectral transform of this phase matrix.
@@ -587,7 +587,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
       PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>;
 
   /// The tensor type used to store the phase matrix data.
-  using TensorType = matpack::matpack_data<Scalar, 4>;
+  using TensorType = matpack::data_t<Scalar, 4>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
@@ -612,7 +612,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   PhaseMatrixData(std::shared_ptr<const Vector> t_grid,
                   std::shared_ptr<const Vector> f_grid,
                   std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
-      : matpack::matpack_data<Scalar, 4>(t_grid->size(),
+      : matpack::data_t<Scalar, 4>(t_grid->size(),
                                          f_grid->size(),
                                          grid_size(*za_scat_grid),
                                          n_stokes_coeffs),
@@ -659,7 +659,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     n_za_scat_ = grid_size(*za_scat_grid_);
   }
 
-  PhaseMatrixData &operator=(const matpack::matpack_data<Scalar, 4> &data) {
+  PhaseMatrixData &operator=(const matpack::data_t<Scalar, 4> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -672,7 +672,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     ARTS_USER_ERROR_IF(
         data.shape()[3] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 4>::operator=(data);
+    this->template data_t<Scalar, 4>::operator=(data);
     return *this;
   }
 
@@ -719,9 +719,9 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     PhaseMatrixDataLabFrame result(
         t_grid_, f_grid_, za_inc_grid, delta_aa_grid, za_scat_grid_new);
 
-    for (Index i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
+    for (Size i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
       GridPos angle_interp;
-      for (Index i_delta_aa = 0; i_delta_aa < delta_aa_grid->size();
+      for (Size i_delta_aa = 0; i_delta_aa < delta_aa_grid->size();
            ++i_delta_aa) {
         for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid_new);
              ++i_za_scat) {
@@ -795,9 +795,9 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     return result;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 3, false, false>
+  constexpr matpack::view_t<CoeffVector, 3>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 3, false, false>(
+    return matpack::view_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2)});
   }
@@ -811,7 +811,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
    */
   Tensor3 integrate_phase_matrix() {
     Tensor3 results(this->extent(0), this->extent(1), n_stokes_coeffs);
-    auto result_vec = matpack::matpack_view<CoeffVector, 2, false, false>(
+    auto result_vec = matpack::view_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector *>(results.data_handle()),
         {this->extent(0), this->extent(1)});
     auto this_vec = get_coeff_vector_view();
@@ -932,12 +932,12 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
 
 template <std::floating_point Scalar, Representation repr>
 class PhaseMatrixData<Scalar, Format::TRO, repr>
-    : public matpack::matpack_data<std::complex<Scalar>, 4> {
+    : public matpack::data_t<std::complex<Scalar>, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<std::complex<Scalar>, 4>::resize;
-  using matpack::matpack_data<std::complex<Scalar>, 4>::reshape;
+  using matpack::data_t<std::complex<Scalar>, 4>::resize;
+  using matpack::data_t<std::complex<Scalar>, 4>::reshape;
 
  public:
   /// Gridded transform of this phase matrix.
@@ -952,7 +952,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
       PhaseMatrixData<Scalar,
                       Format::TRO,
                       Representation::DoublySpectral>;
-  using TensorType = matpack::matpack_data<std::complex<Scalar>, 4>;
+  using TensorType = matpack::data_t<std::complex<Scalar>, 4>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs =
@@ -1027,7 +1027,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
   }
 
   PhaseMatrixData &operator=(
-      const matpack::matpack_data<std::complex<Scalar>, 4> &data) {
+      const matpack::data_t<std::complex<Scalar>, 4> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -1040,13 +1040,13 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
     ARTS_USER_ERROR_IF(
         data.shape()[3] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<std::complex<Scalar>, 4>::operator=(data);
+    this->template data_t<std::complex<Scalar>, 4>::operator=(data);
     return *this;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 3, false, false>
+  constexpr matpack::view_t<CoeffVector, 3>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 3, false, false>(
+    return matpack::view_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2)});
   }
@@ -1240,12 +1240,12 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
 
 template <std::floating_point Scalar>
 class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
-    : public matpack::matpack_data<Scalar, 6> {
+    : public matpack::data_t<Scalar, 6> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<Scalar, 6>::resize;
-  using matpack::matpack_data<Scalar, 6>::reshape;
+  using matpack::data_t<Scalar, 6>::resize;
+  using matpack::data_t<Scalar, 6>::reshape;
 
  public:
   /// Spectral transform of this phase matrix.
@@ -1282,7 +1282,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
                   std::shared_ptr<const Vector> za_inc_grid,
                   std::shared_ptr<const Vector> delta_aa_grid,
                   std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
-      : matpack::matpack_data<Scalar, 6>(t_grid->size(),
+      : matpack::data_t<Scalar, 6>(t_grid->size(),
                                          f_grid->size(),
                                          za_inc_grid->size(),
                                          delta_aa_grid->size(),
@@ -1298,12 +1298,12 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
         delta_aa_grid_(delta_aa_grid),
         n_za_scat_(grid_size(*za_scat_grid)),
         za_scat_grid_(za_scat_grid) {
-    matpack::matpack_data<Scalar, 6>::operator=(0.0);
+    matpack::data_t<Scalar, 6>::operator=(0.0);
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 5, false, false>
+  constexpr matpack::view_t<CoeffVector, 5>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 5, false, false>(
+    return matpack::view_t<CoeffVector, 5>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0),
          this->extent(1),
@@ -1312,7 +1312,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
          this->extent(4)});
   }
 
-  PhaseMatrixData &operator=(const matpack::matpack_data<Scalar, 6> &data) {
+  PhaseMatrixData &operator=(const matpack::data_t<Scalar, 6> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -1331,7 +1331,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
     ARTS_USER_ERROR_IF(
         data.shape()[5] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 6>::operator=(data);
+    this->template data_t<Scalar, 6>::operator=(data);
     return *this;
   }
 
@@ -1763,12 +1763,12 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
 
 template <std::floating_point Scalar>
 class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
-    : public matpack::matpack_data<std::complex<Scalar>, 5> {
+    : public matpack::data_t<std::complex<Scalar>, 5> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<std::complex<Scalar>, 5>::resize;
-  using matpack::matpack_data<std::complex<Scalar>, 5>::reshape;
+  using matpack::data_t<std::complex<Scalar>, 5>::resize;
+  using matpack::data_t<std::complex<Scalar>, 5>::reshape;
 
  public:
   /// Spectral transform of this phase matrix.
@@ -1800,7 +1800,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
                   std::shared_ptr<const Vector> f_grid,
                   std::shared_ptr<const Vector> za_inc_grid,
                   std::shared_ptr<SHT> sht)
-      : matpack::matpack_data<std::complex<Scalar>, 5>(
+      : matpack::data_t<std::complex<Scalar>, 5>(
             t_grid->size(),
             f_grid->size(),
             za_inc_grid->size(),
@@ -1814,11 +1814,11 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
         za_inc_grid_(za_inc_grid),
         n_spectral_coeffs_(sht->get_n_spectral_coeffs()),
         sht_(sht) {
-    matpack::matpack_data<std::complex<Scalar>, 5>::operator=(0.0);
+    matpack::data_t<std::complex<Scalar>, 5>::operator=(0.0);
   }
 
   PhaseMatrixData &operator=(
-      const matpack::matpack_data<std::complex<Scalar>, 5> &data) {
+      const matpack::data_t<std::complex<Scalar>, 5> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -1834,13 +1834,13 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
     ARTS_USER_ERROR_IF(
         data.shape()[4] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<std::complex<Scalar>, 4>::operator=(data);
+    this->template data_t<std::complex<Scalar>, 4>::operator=(data);
     return *this;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 4, false, false>
+  constexpr matpack::view_t<CoeffVector, 4>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 4, false, false>(
+    return matpack::view_t<CoeffVector, 4>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2), this->extent(3)});
   }

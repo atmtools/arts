@@ -74,7 +74,7 @@ Vector3 schmidt_fieldcalc(const Matrix& g,
   * @param[in] x The x values
   * @return The sum
   */
-Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x);
+Numeric legendre_sum(const ConstVectorView& s, const Numeric& x);
 
 /** Computes P_n(x)
   * 
@@ -116,15 +116,15 @@ Numeric tgamma_ratio(Numeric x, Numeric y);
  * @param x The coordinates
  * @param w The weights
  */
-void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
-                                 ExhaustiveVectorView w);
+void PositiveDoubleGaussLegendre(VectorView x,
+                                 VectorView w);
 
 /** Computes the Gauss Legendre quadrature
   * 
   * @param x The coordinates
   * @param w The weights
   */
-void GaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w);
+void GaussLegendre(VectorView x, VectorView w);
 
 /** Computes the positive part of the Gauss Legendre quadrature
   *
@@ -134,5 +134,5 @@ void GaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w);
   * @param x The coordinates
   * @param w The weights
   */
-void PositiveGaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w);
+void PositiveGaussLegendre(VectorView x, VectorView w);
 }  // namespace Legendre

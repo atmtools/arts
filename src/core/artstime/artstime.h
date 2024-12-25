@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <mystring.h>
 
 #include <chrono>
 #include <cmath>

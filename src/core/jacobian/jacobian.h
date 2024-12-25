@@ -34,49 +34,49 @@ struct std::hash<ErrorKey> {
 };
 
 using AtmTargetSetState     = CustomOperator<void,
-                                             ExhaustiveVectorView,
+                                             VectorView,
                                              const AtmField&,
                                              const AtmKeyVal&>;
 using AtmTargetSetModel     = CustomOperator<void,
                                              AtmField&,
                                              const AtmKeyVal&,
-                                             const ExhaustiveConstVectorView>;
+                                             const ConstVectorView>;
 using SurfaceTargetSetState = CustomOperator<void,
-                                             ExhaustiveVectorView,
+                                             VectorView,
                                              const SurfaceField&,
                                              const SurfaceKeyVal&>;
 using SurfaceTargetSetModel = CustomOperator<void,
                                              SurfaceField&,
                                              const SurfaceKeyVal&,
-                                             const ExhaustiveConstVectorView>;
+                                             const ConstVectorView>;
 using LineTargetSetState    = CustomOperator<void,
-                                             ExhaustiveVectorView,
+                                             VectorView,
                                              const AbsorptionBands&,
                                              const LblLineKey&>;
 using LineTargetSetModel    = CustomOperator<void,
                                              AbsorptionBands&,
                                              const LblLineKey&,
-                                             const ExhaustiveConstVectorView>;
+                                             const ConstVectorView>;
 using SensorTargetSetState  = CustomOperator<void,
-                                             ExhaustiveVectorView,
+                                             VectorView,
                                              const ArrayOfSensorObsel&,
                                              const SensorKey&>;
 using SensorTargetSetModel  = CustomOperator<void,
                                              ArrayOfSensorObsel&,
                                              const SensorKey&,
-                                             const ExhaustiveConstVectorView>;
+                                             const ConstVectorView>;
 using ErrorTargetSetState   = CustomOperator<void,
-                                             ExhaustiveVectorView,
-                                             MatrixView,
-                                             const ExhaustiveConstVectorView>;
+                                             VectorView,
+                                             StridedMatrixView,
+                                             const ConstVectorView>;
 using ErrorTargetSetModel =
-    CustomOperator<void, ExhaustiveVectorView, const ExhaustiveConstVectorView>;
+    CustomOperator<void, VectorView, const ConstVectorView>;
 
 namespace Jacobian {
-void default_atm_x_set(ExhaustiveVectorView, const AtmField&, const AtmKeyVal&);
+void default_atm_x_set(VectorView, const AtmField&, const AtmKeyVal&);
 void default_x_atm_set(AtmField&,
                        const AtmKeyVal&,
-                       const ExhaustiveConstVectorView);
+                       const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
@@ -115,12 +115,12 @@ struct AtmTarget {
   [[nodiscard]] bool is_wind() const;
 };
 
-void default_surf_x_set(ExhaustiveVectorView,
+void default_surf_x_set(VectorView,
                         const SurfaceField&,
                         const SurfaceKeyVal&);
 void default_x_surf_set(SurfaceField&,
                         const SurfaceKeyVal&,
-                        const ExhaustiveConstVectorView);
+                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a SurfaceField object
  * 
@@ -157,12 +157,12 @@ struct SurfaceTarget {
   void update(Vector& x, const SurfaceField& surf) const;
 };
 
-void default_line_x_set(ExhaustiveVectorView,
+void default_line_x_set(VectorView,
                         const AbsorptionBands&,
                         const LblLineKey&);
 void default_x_line_set(AbsorptionBands&,
                         const LblLineKey&,
-                        const ExhaustiveConstVectorView);
+                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of an AbsorptionBands object
  * 
@@ -199,12 +199,12 @@ struct LineTarget {
   void update(Vector&, const AbsorptionBands&) const;
 };
 
-void default_sensor_x_set(ExhaustiveVectorView,
+void default_sensor_x_set(VectorView,
                           const ArrayOfSensorObsel&,
                           const SensorKey&);
 void default_x_sensor_set(ArrayOfSensorObsel&,
                           const SensorKey&,
-                          const ExhaustiveConstVectorView);
+                          const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
  * 
@@ -471,9 +471,9 @@ struct TargetType {
   }
 };
 
-void polyfit(ExhaustiveVectorView param,
-             const ExhaustiveConstVectorView x,
-             const ExhaustiveConstVectorView y);
+void polyfit(VectorView param,
+             const ConstVectorView x,
+             const ConstVectorView y);
 }  // namespace Jacobian
 
 Numeric field_perturbation(const auto& f) {

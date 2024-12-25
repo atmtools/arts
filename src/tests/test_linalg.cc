@@ -15,7 +15,6 @@
 #include <random>
 #include "array.h"
 #include "lin_alg.h"
-#include "matpack_math.h"
 #include "test_utils.h"
 
 #include "minimize.h"
@@ -24,7 +23,6 @@
 
 using std::abs;
 using std::cout;
-using std::endl;
 using std::setw;
 
 //!
@@ -47,7 +45,7 @@ void test_lusolve1D(void) {
   cout << "\n LU decomposition test \n";
   cout << "initial matrix: \n";
 
-  cout << " " << a[0, 0] << endl;
+  cout << " " << a[0, 0] << '\n';
 
   /* input: Test-matrix a,
       output: Decomposed matrix b (includes upper and lower triangle, cp.
@@ -56,7 +54,7 @@ void test_lusolve1D(void) {
   ludcmp(b, indx, a);
 
   cout << "\n after decomposition: ";
-  cout << b[0, 0] << endl;
+  cout << b[0, 0] << '\n';
 
   /* Seperate b into the two triangular matrices. */
   Matrix l(1, 1, 0.0);
@@ -75,13 +73,13 @@ void test_lusolve1D(void) {
 
   Vector c(1);
   c[0] = 6;
-  cout << indx[0] << "  " << c[0] << endl;
+  cout << indx[0] << "  " << c[0] << '\n';
 
   Vector x(1);
   lubacksub(x, b, c, indx);
 
   cout << "\n solution vector x: ";
-  cout << x[0] << endl;
+  cout << x[0] << '\n';
 }
 
 //!
@@ -197,17 +195,17 @@ void test_lusolve4D(void) {
     cout << "\n";
     cout << indx[i] << "  " << c[i];
   }
-  cout << endl;
+  cout << '\n';
 
   Vector x(4);
   lubacksub(x, b, c, indx);
 
-  cout << "\n solution vector x" << endl;
+  cout << "\n solution vector x" << '\n';
   for (Index i = 0; i < 4; i++) {
     cout << "\n";
     cout << x[i];
   }
-  cout << endl;
+  cout << '\n';
 
   cout << "\n test solution LU*x";
   Vector y(4);
@@ -246,10 +244,10 @@ void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
   // initialize random seed
   srand((unsigned int)time(0));
 
-  cout << endl << endl << "Testing linear system solution: n = " << dim;
-  cout << ", ntests = " << ntests << endl;
-  cout << endl << setw(10) << "Test no." << setw(20) << "lubacksub(...)";
-  cout << setw(20) << "solve(...)" << endl << endl;
+  cout << '\n' << '\n' << "Testing linear system solution: n = " << dim;
+  cout << ", ntests = " << ntests << '\n';
+  cout << '\n' << setw(10) << "Test no." << setw(20) << "lubacksub(...)";
+  cout << setw(20) << "solve(...)" << '\n' << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate linear system, make sure the determinant
@@ -272,15 +270,15 @@ void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
 
     err = get_maximum_error(x, x0, true);
 
-    cout << setw(20) << err << endl;
+    cout << setw(20) << err << '\n';
 
     if (verbose) {
-      cout << endl;
-      cout << "A:" << endl << A << endl << endl;
-      cout << "x0:" << endl << x0 << endl << endl;
-      cout << "x:" << endl << x << endl << endl;
-      cout << "Permutation Vector:" << endl << indx << endl;
-      cout << endl;
+      cout << '\n';
+      cout << "A:" << '\n' << std::format("{}", A) << '\n' << '\n';
+      cout << "x0:" << '\n' << std::format("{}", x0) << '\n' << '\n';
+      cout << "x:" << '\n' << std::format("{}", x) << '\n' << '\n';
+      cout << "Permutation Vector:" << '\n' << indx << '\n';
+      cout << '\n';
     }
   }
 }
@@ -312,10 +310,10 @@ void test_inv(Index ntests, Index dim, bool verbose = false) {
   // initialize random seed
   srand((unsigned int)time(0));
 
-  cout << endl << endl << "Testing matrix inversion: n = " << dim;
-  cout << ", ntests = " << ntests << endl << endl;
-  cout << setw(10) << "Test no." << setw(20) << "Max. rel. error" << endl
-       << endl;
+  cout << '\n' << '\n' << "Testing matrix inversion: n = " << dim;
+  cout << ", ntests = " << ntests << '\n' << '\n';
+  cout << setw(10) << "Test no." << setw(20) << "Max. rel. error" << '\n'
+       << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate random matrix, make sure the determinant
@@ -327,13 +325,13 @@ void test_inv(Index ntests, Index dim, bool verbose = false) {
 
     Numeric err = get_maximum_error(I, I0, false);
     // Print results.
-    cout << setw(10) << i << setw(20) << err << endl;
+    cout << setw(10) << i << setw(20) << err << '\n';
 
     if (verbose) {
-      cout << endl;
-      cout << "A:" << endl << A << endl << endl;
-      cout << "Ainv:" << endl << Ainv << endl << endl;
-      cout << "A*Ainv:" << endl << I << endl << endl;
+      cout << '\n';
+      cout << "A:" << '\n' << std::format("{}", A) << '\n' << '\n';
+      cout << "Ainv:" << '\n' << std::format("{}", Ainv) << '\n' << '\n';
+      cout << "A*Ainv:" << '\n' << std::format("{}", I) << '\n' << '\n';
     }
   }
 }
@@ -437,10 +435,10 @@ void test_real_diagonalize(Index ntests, Index dim) {
   // initialize random seed
   srand((unsigned int)time(0));
 
-  cout << endl << endl << "Testing diagonalize: n = " << dim;
-  cout << ", ntests = " << ntests << endl;
+  cout << '\n' << '\n' << "Testing diagonalize: n = " << dim;
+  cout << ", ntests = " << ntests << '\n';
   cout << setw(10) << "Test no." << setw(25) << "Max. rel. expm error";
-  cout << setw(25) << "Max. abs. P^-1*A*P-W" << endl << endl;
+  cout << setw(25) << "Max. abs. P^-1*A*P-W" << '\n' << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate a matrix that does not have complex answers...
@@ -468,7 +466,7 @@ void test_real_diagonalize(Index ntests, Index dim) {
 
     err2 = get_maximum_error(ZEROES, tmp1, false);
 
-    cout << setw(10) << i << setw(25) << err1 << setw(25) << err2 << endl;
+    cout << setw(10) << i << setw(25) << err1 << setw(25) << err2 << '\n';
   }
 }
 
@@ -481,10 +479,10 @@ void test_complex_diagonalize(Index ntests, Index dim) {
   // initialize random seed
   srand((unsigned int)time(0));
 
-  cout << endl << endl << "Testing diagonalize: n = " << dim;
-  cout << ", ntests = " << ntests << endl;
+  cout << '\n' << '\n' << "Testing diagonalize: n = " << dim;
+  cout << ", ntests = " << ntests << '\n';
   cout << setw(10) << "Test no.";
-  cout << setw(25) << "Max. abs. P^-1*A*P-W" << endl << endl;
+  cout << setw(25) << "Max. abs. P^-1*A*P-W" << '\n' << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate a matrix that does not have complex answers...
@@ -507,7 +505,7 @@ void test_complex_diagonalize(Index ntests, Index dim) {
 
     err = get_maximum_error(ZEROES, tmp1, false);
 
-    cout << setw(10) << i << setw(25) << err << endl;
+    cout << setw(10) << i << setw(25) << err << '\n';
   }
 }
 

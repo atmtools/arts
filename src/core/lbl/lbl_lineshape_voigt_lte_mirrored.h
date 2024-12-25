@@ -196,178 +196,178 @@ struct band_shape {
 
   [[nodiscard]] Complex df(const Numeric f) const;
 
-  [[nodiscard]] Complex dH(const ExhaustiveConstComplexVectorView& dz_dH,
+  [[nodiscard]] Complex dH(const ConstComplexVectorView& dz_dH,
                            const Numeric f) const;
 
-  [[nodiscard]] Complex dT(const ExhaustiveConstComplexVectorView& ds_dT,
-                           const ExhaustiveConstComplexVectorView& dz_dT,
-                           const ExhaustiveConstVectorView& dz_dT_fac,
+  [[nodiscard]] Complex dT(const ConstComplexVectorView& ds_dT,
+                           const ConstComplexVectorView& dz_dT,
+                           const ConstVectorView& dz_dT_fac,
                            const Numeric f) const;
 
-  [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
-                             const ExhaustiveConstComplexVectorView& dz_dVMR,
-                             const ExhaustiveConstVectorView& dz_dVMR_fac,
+  [[nodiscard]] Complex dVMR(const ConstComplexVectorView& ds_dVMR,
+                             const ConstComplexVectorView& dz_dVMR,
+                             const ConstVectorView& dz_dVMR_fac,
                              const Numeric f) const;
 
-  [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView ds_df0,
-                            const ExhaustiveConstComplexVectorView dz_df0,
-                            const ExhaustiveConstVectorView dz_df0_fac,
+  [[nodiscard]] Complex df0(const ConstComplexVectorView ds_df0,
+                            const ConstComplexVectorView dz_df0,
+                            const ConstVectorView dz_df0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex da(const ExhaustiveConstComplexVectorView ds_da,
+  [[nodiscard]] Complex da(const ConstComplexVectorView ds_da,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex de0(const ExhaustiveConstComplexVectorView ds_de0,
+  [[nodiscard]] Complex de0(const ConstComplexVectorView ds_de0,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView ds_dDV,
-                            const ExhaustiveConstComplexVectorView dz_dDV,
-                            const ExhaustiveConstVectorView dz_dDV_fac,
+  [[nodiscard]] Complex dDV(const ConstComplexVectorView ds_dDV,
+                            const ConstComplexVectorView dz_dDV,
+                            const ConstVectorView dz_dDV_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView ds_dD0,
-                            const ExhaustiveConstComplexVectorView dz_dD0,
-                            const ExhaustiveConstVectorView dz_dD0_fac,
+  [[nodiscard]] Complex dD0(const ConstComplexVectorView ds_dD0,
+                            const ConstComplexVectorView dz_dD0,
+                            const ConstVectorView dz_dD0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dG0(const ExhaustiveConstComplexVectorView dz_dG0,
+  [[nodiscard]] Complex dG0(const ConstComplexVectorView dz_dG0,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dY(const ExhaustiveConstComplexVectorView ds_dY,
+  [[nodiscard]] Complex dY(const ConstComplexVectorView ds_dY,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dG(const ExhaustiveConstComplexVectorView ds_dG,
+  [[nodiscard]] Complex dG(const ConstComplexVectorView ds_dG,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex operator()(const ExhaustiveConstComplexVectorView& cut,
+  [[nodiscard]] Complex operator()(const ConstComplexVectorView& cut,
                                    const Numeric f) const;
 
-  void operator()(ExhaustiveComplexVectorView cut) const;
+  void operator()(ComplexVectorView cut) const;
 
-  [[nodiscard]] Complex df(const ExhaustiveConstComplexVectorView& cut,
+  [[nodiscard]] Complex df(const ConstComplexVectorView& cut,
                            const Numeric f) const;
 
-  void df(ExhaustiveComplexVectorView cut) const;
+  void df(ComplexVectorView cut) const;
 
-  [[nodiscard]] Complex dH(const ExhaustiveConstComplexVectorView& cut,
-                           const ExhaustiveConstComplexVectorView& dz_dH,
+  [[nodiscard]] Complex dH(const ConstComplexVectorView& cut,
+                           const ConstComplexVectorView& dz_dH,
                            const Numeric f) const;
 
-  void dH(ExhaustiveComplexVectorView cut,
-          const ExhaustiveConstComplexVectorView& df0_dH) const;
+  void dH(ComplexVectorView cut,
+          const ConstComplexVectorView& df0_dH) const;
 
-  [[nodiscard]] Complex dT(const ExhaustiveConstComplexVectorView& cut,
-                           const ExhaustiveConstComplexVectorView& ds_dT,
-                           const ExhaustiveConstComplexVectorView& dz_dT,
-                           const ExhaustiveConstVectorView& dz_dT_fac,
+  [[nodiscard]] Complex dT(const ConstComplexVectorView& cut,
+                           const ConstComplexVectorView& ds_dT,
+                           const ConstComplexVectorView& dz_dT,
+                           const ConstVectorView& dz_dT_fac,
                            const Numeric f) const;
 
-  void dT(ExhaustiveComplexVectorView cut,
-          const ExhaustiveConstComplexVectorView& ds_dT,
-          const ExhaustiveConstComplexVectorView& dz_dT,
-          const ExhaustiveConstVectorView& dz_dT_fac) const;
+  void dT(ComplexVectorView cut,
+          const ConstComplexVectorView& ds_dT,
+          const ConstComplexVectorView& dz_dT,
+          const ConstVectorView& dz_dT_fac) const;
 
-  [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& cut,
-                             const ExhaustiveConstComplexVectorView& ds_dVMR,
-                             const ExhaustiveConstComplexVectorView& dz_dVMR,
-                             const ExhaustiveConstVectorView& dz_dVMR_fac,
+  [[nodiscard]] Complex dVMR(const ConstComplexVectorView& cut,
+                             const ConstComplexVectorView& ds_dVMR,
+                             const ConstComplexVectorView& dz_dVMR,
+                             const ConstVectorView& dz_dVMR_fac,
                              const Numeric f) const;
 
-  void dVMR(ExhaustiveComplexVectorView cut,
-            const ExhaustiveConstComplexVectorView& ds_dVMR,
-            const ExhaustiveConstComplexVectorView& dz_dVMR,
-            const ExhaustiveConstVectorView& dz_dVMR_fac) const;
+  void dVMR(ComplexVectorView cut,
+            const ConstComplexVectorView& ds_dVMR,
+            const ConstComplexVectorView& dz_dVMR,
+            const ConstVectorView& dz_dVMR_fac) const;
 
-  [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView& cut,
-                            const ExhaustiveConstComplexVectorView ds_df0,
-                            const ExhaustiveConstComplexVectorView dz_df0,
-                            const ExhaustiveConstVectorView dz_df0_fac,
+  [[nodiscard]] Complex df0(const ConstComplexVectorView& cut,
+                            const ConstComplexVectorView ds_df0,
+                            const ConstComplexVectorView dz_df0,
+                            const ConstVectorView dz_df0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void df0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveConstComplexVectorView ds_df0,
-           const ExhaustiveConstComplexVectorView dz_df0,
-           const ExhaustiveConstVectorView dz_df0_fac,
+  void df0(ComplexVectorView cut,
+           const ConstComplexVectorView ds_df0,
+           const ConstComplexVectorView dz_df0,
+           const ConstVectorView dz_df0_fac,
            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex da(const ExhaustiveConstComplexVectorView& cut,
-                           const ExhaustiveConstComplexVectorView ds_da,
+  [[nodiscard]] Complex da(const ConstComplexVectorView& cut,
+                           const ConstComplexVectorView ds_da,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void da(ExhaustiveComplexVectorView cut,
-          const ExhaustiveConstComplexVectorView ds_da,
+  void da(ComplexVectorView cut,
+          const ConstComplexVectorView ds_da,
           const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex de0(const ExhaustiveConstComplexVectorView& cut,
-                            const ExhaustiveConstComplexVectorView ds_de0,
+  [[nodiscard]] Complex de0(const ConstComplexVectorView& cut,
+                            const ConstComplexVectorView ds_de0,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void de0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveConstComplexVectorView ds_de0,
+  void de0(ComplexVectorView cut,
+           const ConstComplexVectorView ds_de0,
            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView& cut,
-                            const ExhaustiveConstComplexVectorView ds_dDV,
-                            const ExhaustiveConstComplexVectorView dz_dDV,
-                            const ExhaustiveConstVectorView dz_dDV_fac,
+  [[nodiscard]] Complex dDV(const ConstComplexVectorView& cut,
+                            const ConstComplexVectorView ds_dDV,
+                            const ConstComplexVectorView dz_dDV,
+                            const ConstVectorView dz_dDV_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void dDV(ExhaustiveComplexVectorView cut,
-           const ExhaustiveConstComplexVectorView ds_dDV,
-           const ExhaustiveConstComplexVectorView dz_dDV,
-           const ExhaustiveConstVectorView dz_dDV_fac,
+  void dDV(ComplexVectorView cut,
+           const ConstComplexVectorView ds_dDV,
+           const ConstComplexVectorView dz_dDV,
+           const ConstVectorView dz_dDV_fac,
            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView& cut,
-                            const ExhaustiveConstComplexVectorView ds_dD0,
-                            const ExhaustiveConstComplexVectorView dz_dD0,
-                            const ExhaustiveConstVectorView dz_dD0_fac,
+  [[nodiscard]] Complex dD0(const ConstComplexVectorView& cut,
+                            const ConstComplexVectorView ds_dD0,
+                            const ConstComplexVectorView dz_dD0,
+                            const ConstVectorView dz_dD0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void dD0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveConstComplexVectorView ds_dD0,
-           const ExhaustiveConstComplexVectorView dz_dD0,
-           const ExhaustiveConstVectorView dz_dD0_fac,
+  void dD0(ComplexVectorView cut,
+           const ConstComplexVectorView ds_dD0,
+           const ConstComplexVectorView dz_dD0,
+           const ConstVectorView dz_dD0_fac,
            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dG0(const ExhaustiveConstComplexVectorView& cut,
-                            const ExhaustiveConstComplexVectorView dz_dG0,
+  [[nodiscard]] Complex dG0(const ConstComplexVectorView& cut,
+                            const ConstComplexVectorView dz_dG0,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void dG0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveConstComplexVectorView dz_dG0,
+  void dG0(ComplexVectorView cut,
+           const ConstComplexVectorView dz_dG0,
            const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dY(const ExhaustiveConstComplexVectorView& cut,
-                           const ExhaustiveConstComplexVectorView ds_dY,
+  [[nodiscard]] Complex dY(const ConstComplexVectorView& cut,
+                           const ConstComplexVectorView ds_dY,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void dY(ExhaustiveComplexVectorView cut,
-          const ExhaustiveConstComplexVectorView ds_dY,
+  void dY(ComplexVectorView cut,
+          const ConstComplexVectorView ds_dY,
           const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dG(const ExhaustiveConstComplexVectorView& cut,
-                           const ExhaustiveConstComplexVectorView ds_dG,
+  [[nodiscard]] Complex dG(const ConstComplexVectorView& cut,
+                           const ConstComplexVectorView ds_dG,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void dG(ExhaustiveComplexVectorView cut,
-          const ExhaustiveConstComplexVectorView ds_dG,
+  void dG(ComplexVectorView cut,
+          const ConstComplexVectorView ds_dG,
           const std::vector<Size>& filter) const;
 };
 
@@ -400,7 +400,7 @@ struct ComputeData {
   Propmat dnpm_dw{};  //! The orientation of the polarization
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const ExhaustiveConstVectorView& f_grid,
+  ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
               const Vector2& los    = {},
               const zeeman::pol pol = zeeman::pol::no);
@@ -412,40 +412,40 @@ struct ComputeData {
   //! Sizes cut, dcut, dz, ds; sets shape
   void core_calc(const band_shape& shp,
                  const band_data& bnd,
-                 const ExhaustiveConstVectorView& f_grid);
+                 const ConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
@@ -453,7 +453,7 @@ struct ComputeData {
   void dVMR_core_calc(const SpeciesIsotope& spec,
                       const band_shape& shp,
                       const band_data& bnd,
-                      const ExhaustiveConstVectorView& f_grid,
+                      const ConstVectorView& f_grid,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
                       const SpeciesEnum target_spec);
@@ -464,7 +464,7 @@ struct ComputeData {
   void df0_core_calc(const SpeciesIsotope& spec,
                      const band_shape& shp,
                      const band_data& bnd,
-                     const ExhaustiveConstVectorView& f_grid,
+                     const ConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const zeeman::pol pol,
                      const line_key& key);
@@ -472,27 +472,27 @@ struct ComputeData {
   //! Sets dshape and ds and dcut and dshape
   void de0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const ExhaustiveConstVectorView& f_grid,
+                     const ConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void da_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dG0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const ExhaustiveConstVectorView& f_grid,
+                     const ConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dD0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const ExhaustiveConstVectorView& f_grid,
+                     const ConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
@@ -500,7 +500,7 @@ struct ComputeData {
   void dY_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol,
                     const line_key& key);
@@ -509,7 +509,7 @@ struct ComputeData {
   void dG_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol,
                     const line_key& key);
@@ -517,18 +517,15 @@ struct ComputeData {
   //! Sets dshape and dz and dcut and dshape
   void dDV_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const ExhaustiveConstVectorView& f_grid,
+                     const ConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
-
-  //! Pure debug print, will never be the same
-  friend std::ostream& operator<<(std::ostream& os, const ComputeData& cd);
 };
 
 void calculate(PropmatVectorView pm,
-               matpack::matpack_view<Propmat, 2, false, true> dpm,
+               matpack::strided_view_t<Propmat, 2> dpm,
                ComputeData& com_data,
-               const ExhaustiveConstVectorView& f_grid,
+               const ConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,

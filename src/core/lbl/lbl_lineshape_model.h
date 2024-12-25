@@ -106,7 +106,6 @@ struct species_model {
                                Numeric P,
                                LineShapeModelCoefficient coeff) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const species_model& x);
   friend std::istream& operator>>(std::istream& os, species_model& x);
 };
 
@@ -117,7 +116,6 @@ struct model {
 
   std::vector<species_model> single_models{};
 
-  friend std::ostream& operator<<(std::ostream& os, const model& x);
   friend std::istream& operator>>(std::istream& is, model& x);
 
 #define VARIABLE(name)                                      \
@@ -223,14 +221,8 @@ struct model {
   void clear_zeroes();
 };
 
-std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
 std::istream& operator>>(std::istream& is, std::vector<species_model>& x);
 }  // namespace lbl::line_shape
-
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::vector<
-        std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
 
 std::istream& operator>>(
     std::istream& is,

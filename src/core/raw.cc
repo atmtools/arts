@@ -103,7 +103,7 @@ VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.size(); i++)
+    for (Size i=0; i<y.size(); i++)
       y[i] += ys[k][i] * scale;
   return y;
 }
@@ -117,7 +117,7 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, cons
   y = 0;
   
   // Compute the averages ignoring all NaN
-  for (Index i=0; i<y.size(); i++) {
+  for (Size i=0; i<y.size(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
@@ -150,7 +150,7 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.size(); i++)
+    for (Size i=0; i<y.size(); i++)
       var[i] += Math::pow2(ys[k][i] - y[i]) * scale;
   return var;
 }
@@ -164,7 +164,7 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
   var = 0;
   
   // Compute
-  for (Index i=0; i<y.size(); i++) {
+  for (Size i=0; i<y.size(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
@@ -210,8 +210,8 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.size(); i++)
-      for (Index j=0; j<y.size(); j++)
+    for (Size i=0; i<y.size(); i++)
+      for (Size j=0; j<y.size(); j++)
         cov[i, j] += (ys[k][i] - y[i]) * (ys[k][j] - y[j]) * scale;
   return cov;
 }
@@ -284,7 +284,7 @@ ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeri
     return 1 << this_scale;
   };
   
-  for (Index i=0; i<x.size(); i++) scale[i] = scaling(x[i], x0, dx);
+  for (Size i=0; i<x.size(); i++) scale[i] = scaling(x[i], x0, dx);
   return scale;
 }
 
@@ -334,7 +334,7 @@ Vector focus(const Vector& x, const ArrayOfIndex& scaling)
     last_i = first_i;
   }
   
-  return out;
+  return Vector{std::move(out)};
 }
 
 Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling)
@@ -374,7 +374,7 @@ Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling)
     last_i = first_i;
   }
   
-  return out;
+  return Vector{std::move(out)};
 }
 } // namespace Reduce
 
@@ -382,7 +382,7 @@ namespace Mask {
 std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numeric xmax)
 {
   std::vector<bool> mask(x.size(), false);
-  for (Index i=0; i<x.size(); i++) mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not isnormal_or_zero(x[i]));
+  for (Size i=0; i<x.size(); i++) mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not isnormal_or_zero(x[i]));
   return mask;
 }
 

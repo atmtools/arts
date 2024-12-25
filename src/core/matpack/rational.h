@@ -8,6 +8,7 @@
 
 #ifndef rational_h
 #define rational_h
+
 #include <array.h>
 #include <binio/bifstream.h>
 #include <binio/bofstream.h>

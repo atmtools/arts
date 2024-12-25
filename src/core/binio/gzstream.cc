@@ -117,7 +117,7 @@ int gzstreambuf::overflow(int c) {  // used for output buffer only
 
 int gzstreambuf::sync() {
   // Changed to use flush_buffer() instead of overflow( EOF)
-  // which caused improper behavior with std::endl and flush(),
+  // which caused improper behavior with '\n' and flush(),
   // bug reported by Vincent Ricard.
   if (pptr() && pptr() > pbase()) {
     if (flush_buffer() == EOF) return -1;

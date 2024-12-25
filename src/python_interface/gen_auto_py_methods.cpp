@@ -826,7 +826,7 @@ void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
 
 int main(int argc, char** argv) {
   if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " output_file_count[int]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " output_file_count[int]" << '\n';
     return EXIT_FAILURE;
   }
 

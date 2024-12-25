@@ -264,7 +264,7 @@ Vector time_vector(const ArrayOfTime& times) {
 
 ArrayOfTime time_vector(const Vector& times) {
   ArrayOfTime t(times.size());
-  for (Index i = 0; i < times.size(); i++) t[i].Seconds(times[i]);
+  for (Size i = 0; i < times.size(); i++) t[i].Seconds(times[i]);
   return t;
 }
 

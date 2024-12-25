@@ -1,8 +1,7 @@
 #ifndef ARTS_CORE_SCATTERING_PSD_H_
 #define ARTS_CORE_SCATTERING_PSD_H_
 
-#include <math_funcs.h>
-#include <matpack_math.h>
+#include <matpack.h>
 
 #include <optional>
 

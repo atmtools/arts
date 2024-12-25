@@ -7,7 +7,6 @@
 #include "cdisort/cdisort.h"
 #include "configtypes.h"
 #include "rng.h"
-#include "sorted_grid.h"
 
 struct Timing {
   std::string_view name;
@@ -129,7 +128,7 @@ void newimpl(bool print_results = false) {
   const auto tau = []() {
     Vector out(NLayers);
     out[0] = dtau[0];
-    for (Index i = 1; i < out.size(); i++) {
+    for (Size i = 1; i < out.size(); i++) {
       out[i] = out[i - 1] + dtau[i];
     }
     return AscendingGrid{out};
@@ -138,7 +137,7 @@ void newimpl(bool print_results = false) {
   const Matrix Leg_coeffs_all = []() {
     Matrix out(NLayers, NFourier);
     for (Index i = 0; i < NLayers; i++) {
-      out[i] = {1.0, 0.0, 0.1};
+      out[i] = std::array{1.0, 0.0, 0.1};
     }
     return out;
   }();
@@ -181,8 +180,8 @@ void newimpl(bool print_results = false) {
   }
 }
 
-std::pair<Numeric, Numeric> absrel(ExhaustiveVectorView v1,
-                                   const ExhaustiveConstVectorView& v2) {
+std::pair<Numeric, Numeric> absrel(VectorView v1,
+                                   const ConstVectorView& v2) {
   for (double i : v1) {
     if (i == 0) std::cerr << "ERROR\n";
   }
@@ -213,7 +212,7 @@ void test_flat() try {
   for (auto& o : omega_arr) o = draw();
   Matrix Leg_coeffs_all(tau_arr.size(), 32);
   for (auto&& v : Leg_coeffs_all)
-    v = {1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
+    v = std::array{1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
          3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
          1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
          3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
@@ -232,7 +231,7 @@ void test_flat() try {
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);
-  for (auto&& v : s_poly_coeffs) v = {172311.79936609, -102511.4417051};
+  for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad_]};
 
   // Optional (unused)
@@ -255,7 +254,7 @@ void test_flat() try {
                               phi0);
 
   const Index NP   = 500;
-  const Vector phi = uniform_grid(0, NP, Constant::pi / NP);
+  const Vector phi = matpack::uniform_grid(0, NP, Constant::pi / NP);
 
   Tensor3 u1(NLayers_, NP, NQuad_), u2(NLayers_, NP, NQuad_),
       u3(NLayers_, NP, NQuad_);
@@ -280,11 +279,11 @@ void test_flat() try {
     dis.ungridded_u(u3, tau_arr, phi);
   }
 
-  const auto [u2_abs, u2_rel] = absrel(u2.flat_view(), u1.flat_view());
+  const auto [u2_abs, u2_rel] = absrel(u2.view_as(u2.size()), u1.view_as(u1.size()));
   std::cout << "u abs-max gridded:   " << u2_abs << '\n';
   std::cout << "u abs-rel gridded:   " << u2_rel << '\n';
 
-  const auto [u3_abs, u3_rel] = absrel(u3.flat_view(), u1.flat_view());
+  const auto [u3_abs, u3_rel] = absrel(u3.view_as(u3.size()), u1.view_as(u1.size()));
   std::cout << "u abs-max ungridded: " << u3_abs << '\n';
   std::cout << "u abs-rel ungridded: " << u3_rel << '\n';
 
@@ -312,9 +311,9 @@ void test_flat() try {
     dis.ungridded_flux(fu3, fd3, fb3, tau_arr);
   }
 
-  const auto [fu2_abs, fu2_rel] = absrel(fu2.flat_view(), fu1.flat_view());
-  const auto [fd2_abs, fd2_rel] = absrel(fd2.flat_view(), fd1.flat_view());
-  const auto [fb2_abs, fb2_rel] = absrel(fb2.flat_view(), fb1.flat_view());
+  const auto [fu2_abs, fu2_rel] = absrel(fu2.view_as(u2.size()), fu1.view_as(u1.size()));
+  const auto [fd2_abs, fd2_rel] = absrel(fd2.view_as(fd2.size()), fd1.view_as(fd1.size()));
+  const auto [fb2_abs, fb2_rel] = absrel(fb2.view_as(fb2.size()), fb1.view_as(fb1.size()));
   std::cout << "fu abs-max gridded:   " << fu2_abs << '\n';
   std::cout << "fu abs-rel gridded:   " << fu2_rel << '\n';
   std::cout << "fd abs-max gridded:   " << fd2_abs << '\n';
@@ -322,9 +321,9 @@ void test_flat() try {
   std::cout << "fb abs-max gridded:   " << fb2_abs << '\n';
   std::cout << "fb abs-rel gridded:   " << fb2_rel << '\n';
 
-  const auto [fu3_abs, fu3_rel] = absrel(fu3.flat_view(), fu1.flat_view());
-  const auto [fd3_abs, fd3_rel] = absrel(fd3.flat_view(), fd1.flat_view());
-  const auto [fb3_abs, fb3_rel] = absrel(fb3.flat_view(), fb1.flat_view());
+  const auto [fu3_abs, fu3_rel] = absrel(fu3.view_as(fu3.size()), fu1.view_as(u1.size()));
+  const auto [fd3_abs, fd3_rel] = absrel(fd3.view_as(fd3.size()), fd1.view_as(fd1.size()));
+  const auto [fb3_abs, fb3_rel] = absrel(fb3.view_as(fb3.size()), fb1.view_as(fb1.size()));
   std::cout << "fu abs-max ungridded: " << fu3_abs << '\n';
   std::cout << "fu abs-rel ungridded: " << fu3_rel << '\n';
   std::cout << "fd abs-max ungridded: " << fd3_abs << '\n';

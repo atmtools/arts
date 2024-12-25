@@ -330,7 +330,7 @@ std::pair<Numeric, Numeric> TelsemAtlas::emis_interp(
 }
 
 std::ostream& operator<<(std::ostream& os, const TelsemAtlas& ta) {
-  os << ta.name << std::endl;
+  os << ta.name << '\n';
   return os;
 }
 

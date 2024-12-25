@@ -492,7 +492,7 @@ std::pair<Complex, Complex> band_shape::df(const Numeric f) const {
 }
 
 std::pair<Complex, Complex> band_shape::dH(
-    const ExhaustiveConstComplexVectorView& dz_dH, const Numeric f) const {
+    const ConstComplexVectorView& dz_dH, const Numeric f) const {
   ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
 
   return std::transform_reduce(lines.begin(),
@@ -504,10 +504,10 @@ std::pair<Complex, Complex> band_shape::dH(
 }
 
 std::pair<Complex, Complex> band_shape::dT(
-    const ExhaustiveConstVectorView& dk_dT,
-    const ExhaustiveConstVectorView& de_ratio_dT,
-    const ExhaustiveConstComplexVectorView& dz_dT,
-    const ExhaustiveConstVectorView& dz_dT_fac,
+    const ConstVectorView& dk_dT,
+    const ConstVectorView& de_ratio_dT,
+    const ConstComplexVectorView& dz_dT,
+    const ConstVectorView& dz_dT_fac,
     const Numeric f) const {
   ARTS_ASSERT(dk_dT.size() == dz_dT.size())
   ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
@@ -564,7 +564,7 @@ void band_shape::df(CutView cut) const {
 
 std::pair<Complex, Complex> band_shape::dH(
     const CutViewConst& cut,
-    const ExhaustiveConstComplexVectorView& dz_dH,
+    const ConstComplexVectorView& dz_dH,
     const Numeric f) const {
   ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
 
@@ -579,7 +579,7 @@ std::pair<Complex, Complex> band_shape::dH(
 }
 
 void band_shape::dH(CutView cut,
-                    const ExhaustiveConstComplexVectorView& df0_dH) const {
+                    const ConstComplexVectorView& df0_dH) const {
   ARTS_ASSERT(static_cast<Size>(df0_dH.size()) == lines.size())
 
   std::transform(lines.begin(),
@@ -593,10 +593,10 @@ void band_shape::dH(CutView cut,
 
 std::pair<Complex, Complex> band_shape::dT(
     const CutViewConst& cut,
-    const ExhaustiveConstVectorView& dk_dT,
-    const ExhaustiveConstVectorView& de_ratio_dT,
-    const ExhaustiveConstComplexVectorView& dz_dT,
-    const ExhaustiveConstVectorView& dz_dT_fac,
+    const ConstVectorView& dk_dT,
+    const ConstVectorView& de_ratio_dT,
+    const ConstComplexVectorView& dz_dT,
+    const ConstVectorView& dz_dT_fac,
     const Numeric f) const {
   ARTS_ASSERT(dk_dT.size() == dz_dT.size())
   ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
@@ -615,10 +615,10 @@ std::pair<Complex, Complex> band_shape::dT(
 }
 
 void band_shape::dT(CutView cut,
-                    const ExhaustiveConstVectorView& dk_dT,
-                    const ExhaustiveConstVectorView& de_ratio_dT,
-                    const ExhaustiveConstComplexVectorView& dz_dT,
-                    const ExhaustiveConstVectorView& dz_dT_fac) const {
+                    const ConstVectorView& dk_dT,
+                    const ConstVectorView& de_ratio_dT,
+                    const ConstComplexVectorView& dz_dT,
+                    const ConstVectorView& dz_dT_fac) const {
   ARTS_ASSERT(dk_dT.size() == dz_dT.size())
   ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
 
@@ -639,7 +639,7 @@ void ComputeData::update_zeeman(const Vector2& los,
   }
 }
 
-ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
+ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
                          const zeeman::pol pol)
@@ -662,7 +662,7 @@ ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
 //! Sizes cut, dcut, dz, ds; sets shape
 void ComputeData::core_calc(const band_shape& shp,
                             const band_data& bnd,
-                            const ExhaustiveConstVectorView& f_grid) {
+                            const ConstVectorView& f_grid) {
   cut.resize(shp.size());
   dz.resize(shp.size());
   dz_fac.resize(shp.size());
@@ -688,7 +688,7 @@ void ComputeData::core_calc(const band_shape& shp,
 void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
                                const band_shape& shp,
                                const band_data& bnd,
-                               const ExhaustiveConstVectorView& f_grid,
+                               const ConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const zeeman::pol pol) {
   std::transform(
@@ -751,7 +751,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
 //! Sets dshape and dscl
 void ComputeData::df_core_calc(const band_shape& shp,
                                const band_data& bnd,
-                               const ExhaustiveConstVectorView& f_grid,
+                               const ConstVectorView& f_grid,
                                const AtmPoint& atm) {
   std::transform(f_grid.begin(),
                  f_grid.end(),
@@ -781,7 +781,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_u_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const ExhaustiveConstVectorView& f_grid,
+                                   const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -810,7 +810,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_v_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const ExhaustiveConstVectorView& f_grid,
+                                   const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -839,7 +839,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_w_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const ExhaustiveConstVectorView& f_grid,
+                                   const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -868,7 +868,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 void compute_derivative(PropmatVectorView dpm,
                         StokvecVectorView dsv,
                         ComputeData& com_data,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const QuantumIdentifier& qid,
                         const band_shape& shape,
                         const band_data& bnd,
@@ -879,7 +879,7 @@ void compute_derivative(PropmatVectorView dpm,
   switch (key) {
     case t:
       com_data.dt_core_calc(qid, shape, bnd, f_grid, atm, pol);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
                                 com_data.dscl[i] * com_data.shape[i].first +
                                     com_data.scl[i] * com_data.dshape[i].first);
@@ -893,7 +893,7 @@ void compute_derivative(PropmatVectorView dpm,
     case p: ARTS_USER_ERROR("Not implemented, pressure derivative"); break;
     case mag_u:
       com_data.dmag_u_core_calc(shape, bnd, f_grid, atm, pol);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
                                 com_data.dnpm_du,
                                 com_data.scl[i] * com_data.shape[i].first,
@@ -908,7 +908,7 @@ void compute_derivative(PropmatVectorView dpm,
       break;
     case mag_v:
       com_data.dmag_v_core_calc(shape, bnd, f_grid, atm, pol);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
                                 com_data.dnpm_dv,
                                 com_data.scl[i] * com_data.shape[i].first,
@@ -923,7 +923,7 @@ void compute_derivative(PropmatVectorView dpm,
       break;
     case mag_w:
       com_data.dmag_w_core_calc(shape, bnd, f_grid, atm, pol);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
                                 com_data.dnpm_dw,
                                 com_data.scl[i] * com_data.shape[i].first,
@@ -940,7 +940,7 @@ void compute_derivative(PropmatVectorView dpm,
     case wind_v:
     case wind_w:
       com_data.df_core_calc(shape, bnd, f_grid, atm);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] += zeeman::scale(com_data.npm,
                                 com_data.dscl[i] * com_data.shape[i].first +
                                     com_data.scl[i] * com_data.dshape[i].first);
@@ -957,7 +957,7 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
-                        const ExhaustiveConstVectorView&,
+                        const ConstVectorView&,
                         const QuantumIdentifier& qid,
                         const band_shape&,
                         const band_data&,
@@ -970,7 +970,7 @@ void compute_derivative(PropmatVectorView,
 void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
-                        const ExhaustiveConstVectorView&,
+                        const ConstVectorView&,
                         const QuantumIdentifier&,
                         const band_shape&,
                         const band_data&,
@@ -983,7 +983,7 @@ void compute_derivative(PropmatVectorView,
 void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
-                        const ExhaustiveConstVectorView&,
+                        const ConstVectorView&,
                         const QuantumIdentifier&,
                         const band_shape&,
                         const band_data&,
@@ -996,7 +996,7 @@ void compute_derivative(PropmatVectorView,
 void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
-                        const ExhaustiveConstVectorView&,
+                        const ConstVectorView&,
                         const SpeciesIsotope&,
                         const band_shape&,
                         const band_data&,
@@ -1004,20 +1004,12 @@ void compute_derivative(PropmatVectorView,
                         const zeeman::pol,
                         const auto&) {}
 
-std::ostream& operator<<(std::ostream& os, const ComputeData& cd) {
-  for (auto line : cd.lines) {
-    os << line.f0 << ' ' << line.k << ' ' << line.e_ratio << ' ' << line.inv_gd
-       << ' ' << line.z_imag << '\n';
-  }
-  return os;
-}
-
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
-               matpack::matpack_view<Propmat, 2, false, true> dpm,
-               matpack::matpack_view<Stokvec, 2, false, true> dsv,
+               matpack::strided_view_t<Propmat, 2> dpm,
+               matpack::strided_view_t<Stokvec, 2> dsv,
                ComputeData& com_data,
-               const ExhaustiveConstVectorView& f_grid,
+               const ConstVectorView& f_grid,
                const JacobianTargets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -1028,7 +1020,7 @@ void calculate(PropmatVectorView pm,
 
   if (std::ranges::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 
-  const Index nf = f_grid.size();
+  const Size nf = f_grid.size();
   if (nf == 0) return;
 
   const SpeciesIsotope spec = bnd_qid.Isotopologue();
@@ -1037,7 +1029,7 @@ void calculate(PropmatVectorView pm,
 
   ARTS_ASSERT(jacobian_targets.target_count() ==
                   static_cast<Size>(dpm.nrows()) and
-              nf == dpm.ncols())
+              nf == static_cast<Size>(dpm.ncols()))
   ARTS_ASSERT(nf == pm.size())
 
   band_shape_helper(
@@ -1050,7 +1042,7 @@ void calculate(PropmatVectorView pm,
 
   com_data.core_calc(shape, bnd, f_grid);
 
-  for (Index i = 0; i < nf; i++) {
+  for (Size i = 0; i < nf; i++) {
     const auto F = com_data.scl[i] * com_data.shape[i].first;
     const auto N = com_data.scl[i] * com_data.shape[i].second;
     if (no_negative_absorption and F.real() < 0) continue;
@@ -1064,8 +1056,8 @@ void calculate(PropmatVectorView pm,
   for (auto& atm_target : jacobian_targets.atm()) {
     std::visit(
         [&](auto& target) {
-          compute_derivative(dpm.as_slice(atm_target.target_pos),
-                             dsv.as_slice(atm_target.target_pos),
+          compute_derivative(dpm[atm_target.target_pos].unsafe_view(),
+                             dsv[atm_target.target_pos].unsafe_view(),
                              com_data,
                              f_grid,
                              spec,
@@ -1080,8 +1072,8 @@ void calculate(PropmatVectorView pm,
 
   for (auto& line_target : jacobian_targets.line()) {
     if (line_target.type.band == bnd_qid) {
-      compute_derivative(dpm.as_slice(line_target.target_pos),
-                         dsv.as_slice(line_target.target_pos),
+      compute_derivative(dpm[line_target.target_pos].unsafe_view(),
+                         dsv[line_target.target_pos].unsafe_view(),
                          com_data,
                          f_grid,
                          spec,

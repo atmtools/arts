@@ -56,7 +56,7 @@ Numeric reduced_dipole(const Rational Jf,
   return +sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
 }
 
-void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
+void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,

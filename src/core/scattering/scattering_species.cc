@@ -4,7 +4,7 @@
 
 namespace scattering {
 std::ostream& operator<<(std::ostream& os, const Species& /*species*/) {
-  os << "A scattering species." << std::endl;
+  os << "A scattering species." << '\n';
   return os;
 }
 }  // namespace scattering

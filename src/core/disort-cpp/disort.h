@@ -6,25 +6,17 @@
 #include <functional>
 #include <iosfwd>
 
-#include "configtypes.h"
-#include "format_tags.h"
-#include "lin_alg.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
-#include "sorted_grid.h"
-
 namespace disort {
 struct BDRF {
-  using func = std::function<void(ExhaustiveMatrixView,
-                                  const ExhaustiveConstVectorView&,
-                                  const ExhaustiveConstVectorView&)>;
+  using func = std::function<void(
+      MatrixView, const ConstVectorView&, const ConstVectorView&)>;
   func f{[](auto, auto&, auto&) {
     throw std::runtime_error("BDRF function not set");
   }};
 
-  void operator()(ExhaustiveMatrixView x,
-                  const ExhaustiveConstVectorView& a,
-                  const ExhaustiveConstVectorView& b) const;
+  void operator()(MatrixView x,
+                  const ConstVectorView& a,
+                  const ConstVectorView& b) const;
 
   Matrix operator()(const Vector& a, const Vector& b) const;
 
@@ -295,17 +287,17 @@ class main_data {
     */
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
-  void gridded_u(ExhaustiveTensor3View, const Vector& phi) const;
-  void gridded_flux(ExhaustiveVectorView up,
-                    ExhaustiveVectorView down,
-                    ExhaustiveVectorView down_direct) const;
+  void gridded_u(Tensor3View, const Vector& phi) const;
+  void gridded_flux(VectorView up,
+                    VectorView down,
+                    VectorView down_direct) const;
 
-  void ungridded_u(ExhaustiveTensor3View out,
+  void ungridded_u(Tensor3View out,
                    const AscendingGrid& tau,
                    const Vector& phi) const;
-  void ungridded_flux(ExhaustiveVectorView flux_up,
-                      ExhaustiveVectorView flux_do,
-                      ExhaustiveVectorView flux_dd,
+  void ungridded_flux(VectorView flux_up,
+                      VectorView flux_do,
+                      VectorView flux_dd,
                       const AscendingGrid& tau) const;
 
   /** Compute the downward flux at a given tau
@@ -538,26 +530,24 @@ class main_data {
   [[nodiscard]] auto tau() { return AscendingGridView{tau_arr}; }
 
   //! The single scattering albedo - NLayers
-  [[nodiscard]] auto omega() { return ExhaustiveVectorView{omega_arr}; }
+  [[nodiscard]] auto omega() { return VectorView{omega_arr}; }
 
   //! The fractional scattering into the peak - NLayers or 0
-  [[nodiscard]] auto f() { return ExhaustiveVectorView{f_arr}; }
+  [[nodiscard]] auto f() { return VectorView{f_arr}; }
 
   //! Polynomial coefficients of isotropic internal sources - NLayers x Nscoeffs or 0 x 0
-  [[nodiscard]] auto source_poly() {
-    return ExhaustiveMatrixView{source_poly_coeffs};
-  }
+  [[nodiscard]] auto source_poly() { return MatrixView{source_poly_coeffs}; }
 
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
   [[nodiscard]] auto all_legendre_coeffs() {
-    return ExhaustiveMatrixView{Leg_coeffs_all};
+    return MatrixView{Leg_coeffs_all};
   }
 
   //! Positive Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto positive_boundary() { return ExhaustiveMatrixView{b_pos}; }
+  [[nodiscard]] auto positive_boundary() { return MatrixView{b_pos}; }
 
   //! Negative Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto negative_boundary() { return ExhaustiveMatrixView{b_neg}; }
+  [[nodiscard]] auto negative_boundary() { return MatrixView{b_neg}; }
 
   //! Fourier modes of the BRDF - NBDRF
   [[nodiscard]] auto brdf_modes() { return std::span{brdf_fourier_modes}; }
@@ -583,7 +573,7 @@ class main_data {
 }  // namespace disort
 
 using DisortBDRF         = disort::BDRF;
-using MatrixOfDisortBDRF = matpack::matpack_data<DisortBDRF, 2>;
+using MatrixOfDisortBDRF = matpack::data_t<DisortBDRF, 2>;
 
 struct DisortSettings {
   Index quadrature_dimension{0};

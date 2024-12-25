@@ -11,9 +11,7 @@
 #include "arts_constants.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "mh_checks.h"
 #include "path_point.h"
-#include "sorted_grid.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Core Disort

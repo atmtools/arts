@@ -77,20 +77,17 @@ constexpr propmat avg(propmat a, const propmat &b) {
   return a;
 }
 
-using propmat_vector      = matpack::matpack_data<propmat, 1>;
-using propmat_vector_view = matpack::matpack_view<propmat, 1, false, false>;
-using propmat_vector_const_view =
-    matpack::matpack_view<propmat, 1, true, false>;
+using propmat_vector            = matpack::data_t<propmat, 1>;
+using propmat_vector_view       = matpack::view_t<propmat, 1>;
+using propmat_vector_const_view = matpack::view_t<const propmat, 1>;
 
-using propmat_matrix      = matpack::matpack_data<propmat, 2>;
-using propmat_matrix_view = matpack::matpack_view<propmat, 2, false, false>;
-using propmat_matrix_const_view =
-    matpack::matpack_view<propmat, 2, true, false>;
+using propmat_matrix            = matpack::data_t<propmat, 2>;
+using propmat_matrix_view       = matpack::view_t<propmat, 2>;
+using propmat_matrix_const_view = matpack::view_t<const propmat, 2>;
 
-using propmat_tensor3      = matpack::matpack_data<propmat, 3>;
-using propmat_tensor3_view = matpack::matpack_view<propmat, 3, false, false>;
-using propmat_tensor3_const_view =
-    matpack::matpack_view<propmat, 3, true, false>;
+using propmat_tensor3            = matpack::data_t<propmat, 3>;
+using propmat_tensor3_view       = matpack::view_t<propmat, 3>;
+using propmat_tensor3_const_view = matpack::view_t<const propmat, 3>;
 
 propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 }  // namespace rtepack

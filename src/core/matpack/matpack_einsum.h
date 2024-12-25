@@ -1,15 +1,13 @@
 #pragma once
 
-#include <matpack_concepts.h>
-#include <matpack_iter.h>
-#include <matpack_math.h>
+#include <debug.h>
 
 #include <limits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include "debug.h"
+#include "matpack_mdspan.h"
 
 namespace matpack {
 namespace detail {
@@ -107,7 +105,7 @@ constexpr std::size_t mddimsize(const auto& xf, const auto&... xs) {
   }
 }
 
-constexpr std::string shape(const any_matpack_type auto& x) {
+constexpr std::string shape(const any_md auto& x) {
   std::ostringstream os;
   std::string_view sep = "(";
   for (auto c : x.shape()) {
@@ -199,8 +197,8 @@ consteval bool multiply_chars()
 
 template <typename T>
 constexpr void transform_reduce(T& xr,
-                                const any_matpack_type auto& x1,
-                                const any_matpack_type auto& x2) {
+                                const any_md auto& x1,
+                                const any_md auto& x2) {
   xr = std::transform_reduce(
       x1.elem_begin(), x1.elem_end(), x2.elem_begin(), T{});
 }

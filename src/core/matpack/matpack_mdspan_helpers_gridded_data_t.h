@@ -6,14 +6,14 @@
 #include <algorithm>
 
 #include "interp.h"
-#include "matpack_data.h"
+#include "matpack_mdspan.h"
 
 namespace matpack {
 template <typename T, typename... Grids>
-struct gridded_data {
+struct gridded_data_t {
   static constexpr Size dim = sizeof...(Grids);
 
-  using data_t = matpack::matpack_data<T, dim>;
+  using data_t = matpack::data_t<T, dim>;
 
   using grids_t = std::tuple<Grids...>;
 
@@ -90,66 +90,7 @@ struct gridded_data {
     data.resize(std::forward<sz>(access)...);
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const gridded_data& gd) {
-    if (gd.data_name.size()) {
-      os << gd.data_name << " (";
-    } else {
-      os << "gridded_data (";
-    }
-
-    for (Size i : gd.shape()) {
-      os << i << ", ";
-    }
-    os << ") {\n";
-
-    if constexpr (constexpr Size N = 0; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 1; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 2; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 3; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 4; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 5; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 6; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 7; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 8; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    if constexpr (constexpr Size N = 9; dim > N) {
-      os << "  " << gd.grid_names[N] << ": " << gd.grid<N>() << '\n';
-    }
-
-    static_assert(dim <= 10, "Too many dimensions");
-
-    os << "  data:\n" << gd.data << '\n';
-
-    return os << '}';
-  }
-
-  auto operator<=>(const gridded_data&) const = default;
+  auto operator<=>(const gridded_data_t&) const = default;
 
   template <Size Grid, my_interp::lagrange_type lag_t>
   [[nodiscard]] Array<lag_t> lag(const grid_t<Grid>& other,
@@ -279,25 +220,25 @@ struct gridded_data {
 };
 }  // namespace matpack
 
-using GriddedField1 = matpack::gridded_data<Numeric, Vector>;
-using GriddedField2 = matpack::gridded_data<Numeric, Vector, Vector>;
-using GriddedField3 = matpack::gridded_data<Numeric, Vector, Vector, Vector>;
+using GriddedField1 = matpack::gridded_data_t<Numeric, Vector>;
+using GriddedField2 = matpack::gridded_data_t<Numeric, Vector, Vector>;
+using GriddedField3 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector>;
 using GriddedField4 =
-    matpack::gridded_data<Numeric, Vector, Vector, Vector, Vector>;
+    matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector>;
 using GriddedField5 =
-    matpack::gridded_data<Numeric, Vector, Vector, Vector, Vector, Vector>;
+    matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector>;
 using GriddedField6 = matpack::
-    gridded_data<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
+    gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
 
-using ComplexGriddedField2 = matpack::gridded_data<Complex, Vector, Vector>;
+using ComplexGriddedField2 = matpack::gridded_data_t<Complex, Vector, Vector>;
 
 using NamedGriddedField2 =
-    matpack::gridded_data<Numeric, Array<String>, Vector, Vector>;
+    matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector>;
 using NamedGriddedField3 =
-    matpack::gridded_data<Numeric, Array<String>, Vector, Vector, Vector>;
+    matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector, Vector>;
 
 using GriddedField1Named =
-    matpack::gridded_data<Numeric, Vector, Array<String>>;
+    matpack::gridded_data_t<Numeric, Vector, Array<String>>;
 
 using ArrayOfGriddedField1 = Array<GriddedField1>;
 using ArrayOfGriddedField2 = Array<GriddedField2>;
@@ -315,31 +256,8 @@ using ArrayOfArrayOfGriddedField2 = Array<ArrayOfGriddedField2>;
 using ArrayOfArrayOfGriddedField3 = Array<ArrayOfGriddedField3>;
 using ArrayOfArrayOfGriddedField4 = Array<ArrayOfGriddedField4>;
 
-namespace matpack {
 template <typename T, typename... Grids>
-std::ostream& operator<<(std::ostream& os,
-                         const Array<gridded_data<T, Grids...>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-template <typename T, typename... Grids>
-std::ostream& operator<<(std::ostream& os,
-                         const Array<Array<gridded_data<T, Grids...>>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-template <typename T, typename... Grids>
-std::ostream& operator<<(
-    std::ostream& os, const Array<Array<Array<gridded_data<T, Grids...>>>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-}  // namespace matpack
-
-template <typename T, typename... Grids>
-struct std::formatter<matpack::gridded_data<T, Grids...>> {
+struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
   static constexpr Size n = sizeof...(Grids);
 
   format_tags tags;
@@ -347,7 +265,7 @@ struct std::formatter<matpack::gridded_data<T, Grids...>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  using fmt_t = matpack::gridded_data<T, Grids...>;
+  using fmt_t = matpack::gridded_data_t<T, Grids...>;
 
   template <Size N>
   using grid_t = typename fmt_t::template grid_t<N>;

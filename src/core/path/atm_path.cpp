@@ -11,7 +11,6 @@
 #include "debug.h"
 #include "nonstd.h"
 #include "path_point.h"
-#include "sorted_grid.h"
 
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
                                  const ArrayOfPropagationPathPoint &ppath) {
@@ -109,7 +108,7 @@ void extract1D(ArrayOfAtmPoint &atm_path,
                const Vector &z_grid,
                const Vector &lat_grid,
                const Vector &lon_grid) {
-  const Index n = atm_path.size();
+  const Size n = atm_path.size();
 
   ARTS_USER_ERROR_IF(n < 1, "Empty path")
   ARTS_USER_ERROR_IF(z_grid.size() != 1 and z_grid.size() != n,
@@ -119,11 +118,11 @@ void extract1D(ArrayOfAtmPoint &atm_path,
   ARTS_USER_ERROR_IF(lon_grid.size() != 1 and lon_grid.size() != n,
                      "Bad longitude grid")
 
-  const auto at = [](const Vector &x, const Index i) {
+  const auto at = [](const Vector &x, const Size i) {
     return x.size() > 0 ? x[i] : x.front();
   };
 
-  for (Index i = 0; i < n; i++) {
+  for (Size i = 0; i < n; i++) {
     atm_path[i] = atm_field.at(at(z_grid, i), at(lat_grid, i), at(lon_grid, i));
   }
 }

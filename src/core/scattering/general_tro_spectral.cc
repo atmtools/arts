@@ -30,7 +30,7 @@ ScatteringTroSpectralVector::to_general(
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
-  ARTS_USER_ERROR_IF(phase_matrix.nrows() != f_grid_ptr->size(),
+  ARTS_USER_ERROR_IF(static_cast<Size>(phase_matrix.nrows()) != f_grid_ptr->size(),
                      "Phase matrix and f grid must have the same size")
 
   const auto t_grid = std::make_shared<Vector>(Vector{0.0});

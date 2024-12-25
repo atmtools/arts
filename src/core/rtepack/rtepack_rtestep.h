@@ -59,7 +59,7 @@ constexpr stokvec two_level_linear_step(stokvec_vector_view &dI1,
 
   const auto J = avg(J1, J2);
 
-  for (Index k = 0; k < dT1.size(); k++) {
+  for (Size k = 0; k < dT1.size(); k++) {
     dI1[k] += PiT * (dT1[k] * (I - J) + dJ1[k] - T * dJ1[k]);
     dI2[k] += PiT * (dT2[k] * (I - J) + dJ2[k] - T * dJ2[k]);
   }

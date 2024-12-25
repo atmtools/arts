@@ -26,7 +26,7 @@ void nca_read_from_file(const int ncid, Matrix& m) {
   ncols = nca_get_dim(ncid, "ncols");
 
   m.resize(nrows, ncols);
-  nca_get_data(ncid, "Matrix", m.unsafe_data_handle());
+  nca_get_data(ncid, "Matrix", m.data_handle());
 }
 
 //! Writes a Matrix to a NetCDF file
@@ -44,7 +44,7 @@ void nca_write_to_file(const int ncid, const Matrix& m) {
   if ((retval = nc_def_var(ncid, "Matrix", NC_DOUBLE, 2, &ncdims[0], &varid)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-  if ((retval = nc_put_var_double(ncid, varid, m.unsafe_data_handle())))
+  if ((retval = nc_put_var_double(ncid, varid, m.data_handle())))
     nca_error(retval, "nc_put_var");
 }
 
@@ -62,7 +62,7 @@ void nca_read_from_file(const int ncid, Tensor3& t) {
   ncols = nca_get_dim(ncid, "ncols");
 
   t.resize(npages, nrows, ncols);
-  nca_get_data(ncid, "Tensor3", t.unsafe_data_handle());
+  nca_get_data(ncid, "Tensor3", t.data_handle());
 }
 
 //! Writes a Tensor3 to a NetCDF file
@@ -82,7 +82,7 @@ void nca_write_to_file(const int ncid, const Tensor3& t) {
   if ((retval = nc_def_var(ncid, "Tensor3", NC_DOUBLE, 3, &ncdims[0], &varid)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-  if ((retval = nc_put_var_double(ncid, varid, t.unsafe_data_handle())))
+  if ((retval = nc_put_var_double(ncid, varid, t.data_handle())))
     nca_error(retval, "nc_put_var");
 }
 
@@ -101,7 +101,7 @@ void nca_read_from_file(const int ncid, Tensor4& t) {
   ncols = nca_get_dim(ncid, "ncols");
 
   t.resize(nbooks, npages, nrows, ncols);
-  nca_get_data(ncid, "Tensor4", t.unsafe_data_handle());
+  nca_get_data(ncid, "Tensor4", t.data_handle());
 }
 
 //! Writes a Tensor4 to a NetCDF file
@@ -123,7 +123,7 @@ void nca_write_to_file(const int ncid, const Tensor4& t) {
   if ((retval = nc_def_var(ncid, "Tensor4", NC_DOUBLE, 4, &ncdims[0], &varid)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-  if ((retval = nc_put_var_double(ncid, varid, t.unsafe_data_handle())))
+  if ((retval = nc_put_var_double(ncid, varid, t.data_handle())))
     nca_error(retval, "nc_put_var");
 }
 
@@ -143,7 +143,7 @@ void nca_read_from_file(const int ncid, Tensor5& t) {
   ncols = nca_get_dim(ncid, "ncols");
 
   t.resize(nshelves, nbooks, npages, nrows, ncols);
-  nca_get_data(ncid, "Tensor5", t.unsafe_data_handle());
+  nca_get_data(ncid, "Tensor5", t.data_handle());
 }
 
 //! Writes a Tensor5 to a NetCDF file
@@ -167,7 +167,7 @@ void nca_write_to_file(const int ncid, const Tensor5& t) {
   if ((retval = nc_def_var(ncid, "Tensor5", NC_DOUBLE, 5, &ncdims[0], &varid)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-  if ((retval = nc_put_var_double(ncid, varid, t.unsafe_data_handle())))
+  if ((retval = nc_put_var_double(ncid, varid, t.data_handle())))
     nca_error(retval, "nc_put_var");
 }
 
@@ -183,7 +183,7 @@ void nca_read_from_file(const int ncid, Vector& v) {
   nelem = nca_get_dim(ncid, "nelem");
 
   v.resize(nelem);
-  nca_get_data(ncid, "Vector", v.unsafe_data_handle());
+  nca_get_data(ncid, "Vector", v.data_handle());
 }
 
 //! Writes a Vector to a NetCDF file
@@ -199,7 +199,7 @@ void nca_write_to_file(const int ncid, const Vector& v) {
   if ((retval = nc_def_var(ncid, "Vector", NC_DOUBLE, 1, &ncdim, &varid)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
-  if ((retval = nc_put_var_double(ncid, varid, v.unsafe_data_handle())))
+  if ((retval = nc_put_var_double(ncid, varid, v.data_handle())))
     nca_error(retval, "nc_put_var");
 }
 

@@ -113,8 +113,8 @@ spectral_radiance::spectral_radiance(
   ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
 
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
-    for (Index j = 0; j < lat.size(); j++) {
-      for (Index k = 0; k < lon.size(); k++) {
+    for (Size j = 0; j < lat.size(); j++) {
+      for (Size k = 0; k < lon.size(); k++) {
         spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
                                               Numeric f, Vector2) -> Stokvec {
           return planck(f, surf.temperature);
@@ -122,9 +122,9 @@ spectral_radiance::spectral_radiance(
       }
     }
 
-    for (Index i = 0; i < alt.size(); i++) {
-      for (Index j = 0; j < lat.size(); j++) {
-        for (Index k = 0; k < lon.size(); k++) {
+    for (Size i = 0; i < alt.size(); i++) {
+      for (Size j = 0; j < lat.size(); j++) {
+        for (Size k = 0; k < lon.size(); k++) {
           atm[i, j, k] =
               std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
           pm[i, j, k] = propmat(
@@ -136,8 +136,8 @@ spectral_radiance::spectral_radiance(
     String errors{};
 
 #pragma omp parallel for collapse(2)
-    for (Index j = 0; j < lat.size(); j++) {
-      for (Index k = 0; k < lon.size(); k++) {
+    for (Size j = 0; j < lat.size(); j++) {
+      for (Size k = 0; k < lon.size(); k++) {
         try {
           spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
                                                 Numeric f, Vector2) -> Stokvec {
@@ -151,9 +151,9 @@ spectral_radiance::spectral_radiance(
     }
 
 #pragma omp parallel for collapse(3)
-    for (Index i = 0; i < alt.size(); i++) {
-      for (Index j = 0; j < lat.size(); j++) {
-        for (Index k = 0; k < lon.size(); k++) {
+    for (Size i = 0; i < alt.size(); i++) {
+      for (Size j = 0; j < lat.size(); j++) {
+        for (Size k = 0; k < lon.size(); k++) {
           try {
             atm[i, j, k] =
                 std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
@@ -250,12 +250,7 @@ StokvecVector spectral_radiance::operator()(
   }
 
   std::ranges::reverse(out);
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& os, const spectral_radiance& sr) {
-  return os << "Spectral radiance operator:\n"
-            << "  Altitude grid: " << sr.alt << "\n";
+  return StokvecVector{std::move(out)};
 }
 
 std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,

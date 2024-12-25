@@ -18,8 +18,6 @@
 
 #include "geodetic.h"
 
-#include <matpack_math.h>
-
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
 #include "debug.h"
@@ -101,16 +99,16 @@ void ecef2geodetic(VectorView pos,
     pos[2] = RAD2DEG * atan2(ecef[1], ecef[0]);
 
     const Numeric sq = sqrt(ecef[0] * ecef[0] + ecef[1] * ecef[1]);
-    Numeric B0 = atan2(ecef[2], sq);
-    Numeric B = B0 - 1, N;
+    Numeric B0       = atan2(ecef[2], sq);
+    Numeric B        = B0 - 1, N;
     const Numeric e2 = 1 - (refellipsoid[1] * refellipsoid[1]) /
                                (refellipsoid[0] * refellipsoid[0]);
     // 1e-15 seems to give a accuracy of better than 2 cm
     while (fabs(B - B0) > 1e-15) {
-      N = refellipsoid[0] / sqrt(1 - e2 * sin(B0) * sin(B0));
+      N      = refellipsoid[0] / sqrt(1 - e2 * sin(B0) * sin(B0));
       pos[0] = sq / cos(B0) - N;
-      B = B0;
-      B0 = atan((ecef[2] / sq) * 1 / (1 - e2 * N / (N + pos[0])));
+      B      = B0;
+      B0     = atan((ecef[2] / sq) * 1 / (1 - e2 * N / (N + pos[0])));
     }
     pos[1] = RAD2DEG * B;
   }
@@ -181,10 +179,10 @@ void enu2los(VectorView los, ConstVectorView enu) {
 void geocentric2ecef(VectorView ecef, ConstVectorView pos) {
   const Numeric latrad = DEG2RAD * pos[1];
   const Numeric lonrad = DEG2RAD * pos[2];
-  ecef[0] = pos[0] * cos(latrad);  // Common term for x and z
-  ecef[1] = ecef[0] * sin(lonrad);
-  ecef[0] = ecef[0] * cos(lonrad);
-  ecef[2] = pos[0] * sin(latrad);
+  ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
+  ecef[1]              = ecef[0] * sin(lonrad);
+  ecef[0]              = ecef[0] * cos(lonrad);
+  ecef[2]              = pos[0] * sin(latrad);
 }
 
 void geocentric_los2ecef(VectorView ecef,
@@ -195,32 +193,32 @@ void geocentric_los2ecef(VectorView ecef,
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
   if (fabs(pos[1]) > POLELATZZZ) {
-    const Numeric s = sign(pos[1]);
+    const Numeric s     = sign(pos[1]);
     const Numeric zarad = DEG2RAD * los[0];
     const Numeric aarad = DEG2RAD * los[1];
-    ecef[1] = 0;
-    ecef[1] = 0;
-    ecef[2] = s * pos[0];
-    decef[2] = s * cos(zarad);
-    decef[0] = sin(zarad);
-    decef[1] = decef[0] * sin(aarad);
-    decef[0] = decef[0] * cos(aarad);
+    ecef[1]             = 0;
+    ecef[1]             = 0;
+    ecef[2]             = s * pos[0];
+    decef[2]            = s * cos(zarad);
+    decef[0]            = sin(zarad);
+    decef[1]            = decef[0] * sin(aarad);
+    decef[0]            = decef[0] * cos(aarad);
   }
 
   else {
     const Numeric latrad = DEG2RAD * pos[1];
     const Numeric lonrad = DEG2RAD * pos[2];
-    const Numeric zarad = DEG2RAD * los[0];
-    const Numeric aarad = DEG2RAD * los[1];
+    const Numeric zarad  = DEG2RAD * los[0];
+    const Numeric aarad  = DEG2RAD * los[1];
 
     const Numeric coslat = cos(latrad);
     const Numeric sinlat = sin(latrad);
     const Numeric coslon = cos(lonrad);
     const Numeric sinlon = sin(lonrad);
-    const Numeric cosza = cos(zarad);
-    const Numeric sinza = sin(zarad);
-    const Numeric cosaa = cos(aarad);
-    const Numeric sinaa = sin(aarad);
+    const Numeric cosza  = cos(zarad);
+    const Numeric sinza  = sin(zarad);
+    const Numeric cosaa  = cos(aarad);
+    const Numeric sinaa  = sin(aarad);
 
     // This part as sph2cart but uses local variables
     ecef[0] = pos[0] * coslat;  // Common term for x and y
@@ -228,7 +226,7 @@ void geocentric_los2ecef(VectorView ecef,
     ecef[0] = ecef[0] * coslon;
     ecef[2] = pos[0] * sinlat;
 
-    const Numeric dr = cosza;
+    const Numeric dr   = cosza;
     const Numeric dlat = sinza * cosaa;  // r-term cancel out below
     const Numeric dlon = sinza * sinaa / coslat;
 
@@ -246,7 +244,7 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
                                       const Vector2 refellipsoid) {
   // Spherical case (length simply obtained by dot product)
   if (is_ellipsoid_spherical(refellipsoid)) {
-    ecef_at_distance(ecef_tan, ecef, decef, -(decef * ecef));
+    ecef_at_distance(ecef_tan, ecef, decef, -dot(decef, ecef));
 
     // General case
   } else {
@@ -267,9 +265,9 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
     cross3(yunit, zunit, decef);
     yunit /= norm2(yunit);
 
-    const Numeric yr = ecef * yunit;
-    const Numeric xr = ecef * decef;
-    const Numeric B = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
+    const Numeric yr = dot(ecef, yunit);
+    const Numeric xr = dot(ecef, decef);
+    const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
                              (decef[2] * yunit[2]) / b2);
     Numeric xx;
     if (B == 0.0) {
@@ -279,12 +277,12 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
                         decef[2] * decef[2] / b2;
       const Numeric C = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
                         yunit[2] * yunit[2] / b2;
-      const Numeric K = -2.0 * A / B;
+      const Numeric K      = -2.0 * A / B;
       const Numeric factor = 1.0 / (A + (B + C * K) * K);
-      xx = sqrt(factor);
-      const Numeric yy = K * ecef[0];
-      const Numeric dist1 = (xr - xx) * (xr - xx) + (yr - yy) * (yr - yy);
-      const Numeric dist2 = (xr + xx) * (xr + xx) + (yr + yy) * (yr + yy);
+      xx                   = sqrt(factor);
+      const Numeric yy     = K * ecef[0];
+      const Numeric dist1  = (xr - xx) * (xr - xx) + (yr - yy) * (yr - yy);
+      const Numeric dist2  = (xr + xx) * (xr + xx) + (yr + yy) * (yr + yy);
       if (dist1 > dist2) xx = -xx;
     }
 
@@ -309,13 +307,13 @@ void geodetic2ecef(VectorView ecef,
     const Numeric lonrad = DEG2RAD * pos[2];
     const Numeric sinlat = sin(latrad);
     const Numeric coslat = cos(latrad);
-    const Numeric a2 = refellipsoid[0] * refellipsoid[0];
-    const Numeric b2 = refellipsoid[1] * refellipsoid[1];
+    const Numeric a2     = refellipsoid[0] * refellipsoid[0];
+    const Numeric b2     = refellipsoid[1] * refellipsoid[1];
     const Numeric N = a2 / sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
     const Numeric nhcos = (N + pos[0]) * coslat;
-    ecef[0] = nhcos * cos(lonrad);
-    ecef[1] = nhcos * sin(lonrad);
-    ecef[2] = ((b2 / a2) * N + pos[0]) * sinlat;
+    ecef[0]             = nhcos * cos(lonrad);
+    ecef[1]             = nhcos * sin(lonrad);
+    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
   }
 }
 
@@ -329,16 +327,16 @@ void geodetic_los2ecef(VectorView ecef,
   // LOS goes
   // At the poles, no difference between geocentric and geodetic zenith
   if (fabs(pos[1]) > POLELATZZZ) {
-    const Numeric s = sign(pos[1]);
+    const Numeric s     = sign(pos[1]);
     const Numeric zarad = DEG2RAD * los[0];
     const Numeric aarad = DEG2RAD * los[1];
-    ecef[0] = 0;
-    ecef[1] = 0;
-    ecef[2] = s * (pos[0] + refellipsoid[1]);
-    decef[2] = s * cos(zarad);
-    decef[0] = sin(zarad);
-    decef[1] = decef[0] * sin(aarad);
-    decef[0] = decef[0] * cos(aarad);
+    ecef[0]             = 0;
+    ecef[1]             = 0;
+    ecef[2]             = s * (pos[0] + refellipsoid[1]);
+    decef[2]            = s * cos(zarad);
+    decef[0]            = sin(zarad);
+    decef[1]            = decef[0] * sin(aarad);
+    decef[0]            = decef[0] * cos(aarad);
   }
 
   else {
@@ -380,13 +378,13 @@ Numeric intersection_altitude(ConstVectorView ecef,
     const Numeric p =
         ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
     const Numeric pp = p * p;
-    const Numeric q = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
+    const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
                       ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
     if (q > pp)
       l = l_min - 1.0;
     else {
       const Numeric sq = sqrt(pp - q);
-      l = min_geq(-p - sq, -p + sq, l_min);
+      l                = min_geq(-p - sq, -p + sq, l_min);
     }
   }
 
@@ -394,15 +392,15 @@ Numeric intersection_altitude(ConstVectorView ecef,
   else {
     // Based on https://medium.com/@stephenhartzell/
     // satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
-    const Numeric a = ellipsoid[0];
-    const Numeric b = ellipsoid[0];
-    const Numeric c = ellipsoid[1];
-    const Numeric a2 = a * a;
-    const Numeric b2 = b * b;
-    const Numeric c2 = c * c;
-    const Numeric x2 = ecef[0] * ecef[0];
-    const Numeric y2 = ecef[1] * ecef[1];
-    const Numeric z2 = ecef[2] * ecef[2];
+    const Numeric a   = ellipsoid[0];
+    const Numeric b   = ellipsoid[0];
+    const Numeric c   = ellipsoid[1];
+    const Numeric a2  = a * a;
+    const Numeric b2  = b * b;
+    const Numeric c2  = c * c;
+    const Numeric x2  = ecef[0] * ecef[0];
+    const Numeric y2  = ecef[1] * ecef[1];
+    const Numeric z2  = ecef[2] * ecef[2];
     const Numeric dx2 = decef[0] * decef[0];
     const Numeric dy2 = decef[1] * decef[1];
     const Numeric dz2 = decef[2] * decef[2];
@@ -421,7 +419,7 @@ Numeric intersection_altitude(ConstVectorView ecef,
                           b2 * c2 * decef[0] * ecef[0];
       const Numeric mag = a2 * b2 * dz2 + a2 * c2 * dy2 + b2 * c2 * dx2;
       const Numeric abc = a * b * c * sqrt(rad);
-      l = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
+      l                 = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
     }
   }
   return l;
@@ -483,7 +481,7 @@ Numeric intersection_latitude(ConstVectorView ecef,
       pos2[1] = lat;
       geodetic_los2ecef(ecefn, n, pos2, los2, refellipsoid);
       const Numeric l2axis = ecefn[0] / n[0];
-      C[2] = ecefn[2] - l2axis * n[2];
+      C[2]                 = ecefn[2] - l2axis * n[2];
     }
     // V: Vector describing centre of cone
     Vector V(3);
@@ -491,20 +489,20 @@ Numeric intersection_latitude(ConstVectorView ecef,
     V[1] = 0;
     V[2] = lat > 0 ? 1 : -1;
     // Angle term (cos(lat)^2)
-    Numeric costerm = cos(DEG2RAD * (90 - fabs(lat)));
-    costerm *= costerm;
+    Numeric costerm  = cos(DEG2RAD * (90 - fabs(lat)));
+    costerm         *= costerm;
     // Rename to follow nomenclature on web page
     ConstVectorView D = decef;
     // Vector from C to O
     Vector CO(3);
     ecef_vector_distance(CO, C, ecef);
     // Dot products repeated
-    const Numeric DVdot = D * V;
-    const Numeric COVdot = CO * V;
+    const Numeric DVdot  = dot(D, V);
+    const Numeric COVdot = dot(CO, V);
     // The a, b, c and delta terms
     const Numeric a = DVdot * DVdot - costerm;
-    const Numeric b = 2 * (DVdot * COVdot - (D * CO) * costerm);
-    const Numeric c = COVdot * COVdot - (CO * CO) * costerm;
+    const Numeric b = 2 * (DVdot * COVdot - dot(D, CO) * costerm);
+    const Numeric c = COVdot * COVdot - dot(CO, CO) * costerm;
     const Numeric d = b * b - 4 * a * c;
     //
     if (d < 0) {
@@ -513,23 +511,23 @@ Numeric intersection_latitude(ConstVectorView ecef,
       return -b / (2 * a);
     } else {
       const Numeric sqrtd = sqrt(d);
-      const Numeric aa = 2 * a;
-      Numeric l1 = (-b - sqrtd) / aa;
-      Numeric l2 = (-b + sqrtd) / aa;
+      const Numeric aa    = 2 * a;
+      Numeric l1          = (-b - sqrtd) / aa;
+      Numeric l2          = (-b + sqrtd) / aa;
       // Check that crossing is not with -lat
       if (l1 > 0) {
         Vector P(3);
         ecef_at_distance(P, ecef, decef, l1);
         Vector PC(3);
         ecef_vector_distance(PC, C, P);
-        if (PC * V <= 0) l1 = -1;
+        if (dot(PC, V) <= 0) l1 = -1;
       }
       if (l2 > 0) {
         Vector P(3);
         ecef_at_distance(P, ecef, decef, l2);
         Vector PC(3);
         ecef_vector_distance(PC, C, P);
-        if (PC * V <= 0) l2 = -1;
+        if (dot(PC, V) <= 0) l2 = -1;
       }
       if (l1 > 0 && l2 > 0)
         return l1 < l2 ? l1 : l2;  // min of l1 and l2 is returned
@@ -567,10 +565,10 @@ bool is_ellipsoid_spherical(const Vector2 ellipsoid) {
 void los2enu(VectorView enu, ConstVectorView los) {
   const Numeric zarad = DEG2RAD * los[0];
   const Numeric aarad = DEG2RAD * los[1];
-  const Numeric st = sin(zarad);
-  enu[0] = st * sin(aarad);
-  enu[1] = st * cos(aarad);
-  enu[2] = cos(zarad);
+  const Numeric st    = sin(zarad);
+  enu[0]              = st * sin(aarad);
+  enu[1]              = st * cos(aarad);
+  enu[2]              = cos(zarad);
 }
 
 void poslos_at_distance(VectorView pos,

@@ -33,8 +33,7 @@
 
 #include <array.h>
 #include <arts_conversions.h>
-#include <matpack/matpack_data.h>
-#include <matpack/matpack_view.h>
+#include <matpack.h>
 #include <scattering/integration.h>
 
 #include <complex>
@@ -263,7 +262,7 @@ class SHT {
    */
   template <typename T>
   void set_spatial_coeffs(
-      const matpack::matpack_view<T, 2, true, true> &view) const {
+      const matpack::strided_view_t<const T, 2> &view) const {
     ARTS_ASSERT(view.nrows() == n_aa_);
     ARTS_ASSERT(view.ncols() == n_za_);
     Index index = 0;
@@ -288,7 +287,7 @@ class SHT {
    * and columns to zenith angles.
    */
   void set_spectral_coeffs(
-      const matpack::matpack_view<Complex, 1, true, true> &view) const;
+      const matpack::strided_view_t<const Complex, 1> &view) const;
 
   /**
    * Copy spherical harmonics coefficients into the array that holds spectral
@@ -298,7 +297,7 @@ class SHT {
    * representing the data.
    */
   void set_spectral_coeffs_cmplx(
-      const matpack::matpack_view<Complex, 1, true, true> &view) const;
+      const matpack::strided_view_t<const Complex, 1> &view) const;
 
   /**
    * Return content of the array that holds spatial data for
@@ -308,7 +307,7 @@ class SHT {
    * correspond to azimuth angles  and columns to zenith angles.
    * angle).
    */
-  ExhaustiveConstMatrixView get_spatial_coeffs() const;
+  StridedConstMatrixView get_spatial_coeffs() const;
 
   /**
    * Return content of the array that holds complex spatial data for
@@ -318,7 +317,7 @@ class SHT {
    * should correspond to azimuth angles and columns to zenith angles.
    *
    */
-  ExhaustiveConstComplexMatrixView get_spatial_coeffs_cmplx() const;
+  StridedConstComplexMatrixView get_spatial_coeffs_cmplx() const;
 
   /**
    * @return The size of the zenith-angle grid.
@@ -354,7 +353,7 @@ class SHT {
    * @return m  vector containing the spherical harmonics coefficients
    * representing the data.
    */
-  ExhaustiveConstComplexVectorView get_spectral_coeffs() const;
+  StridedConstComplexVectorView get_spectral_coeffs() const;
 
   /**
    * Return content of the array that holds spectral data for
@@ -363,7 +362,7 @@ class SHT {
    * @return m Vector containing the spherical harmonics coefficients
    * representing the data.
    */
-  ExhaustiveConstComplexVectorView get_spectral_coeffs_cmplx() const;
+  StridedConstComplexVectorView get_spectral_coeffs_cmplx() const;
 
   /** Apply forward SHT Transform *
    * Transforms discrete spherical data into spherical harmonics representation.
@@ -371,7 +370,7 @@ class SHT {
    * azimuth angles and columns to zenith angles.
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
-  ComplexVector transform(const ConstMatrixView &view);
+  ComplexVector transform(const StridedConstMatrixView &view);
 
   /** Apply forward SHT Transform
    *
@@ -380,7 +379,7 @@ class SHT {
    * azimuth angles and columns to zenith angles.
    * @return Coefficient vector containing the spherical harmonics coefficients.
    */
-  ComplexVector transform_cmplx(const ConstComplexMatrixView &view);
+  ComplexVector transform_cmplx(const StridedConstComplexMatrixView &view);
 
   /** Apply inverse SHT Transform
    *
@@ -391,7 +390,7 @@ class SHT {
    * representing the data.
    * @return GridCoeffs containing the spatial data.
    */
-  Matrix synthesize(const ConstComplexVectorView &view);
+  Matrix synthesize(const StridedConstComplexVectorView &view);
 
   /** Apply inverse SHT Transform for complex data.
    *
@@ -402,7 +401,7 @@ class SHT {
    * representing the data.
    * @return GridCoeffs containing the spatial data.
    */
-  ComplexMatrix synthesize_cmplx(const ConstComplexVectorView &view);
+  ComplexMatrix synthesize_cmplx(const StridedConstComplexVectorView &view);
 
   /** Evaluate spectral representation at given point.
    *
@@ -410,7 +409,7 @@ class SHT {
    * @param phi The azimuth angles in radians.
    * @return theta The zenith angle in radians.
    */
-  Numeric evaluate(const ConstComplexVectorView &view,
+  Numeric evaluate(const StridedConstComplexVectorView &view,
                    Numeric phi,
                    Numeric theta);
 
@@ -422,7 +421,7 @@ class SHT {
    * @return A vector containing the values corresponding to the points
    * in points.
    */
-  Vector evaluate(const ComplexVectorView &view, const MatrixView &points);
+  Vector evaluate(const StridedComplexVectorView &view, const StridedMatrixView &points);
 
   /** Evaluate 1D spectral representation at given point.
    *
@@ -436,23 +435,19 @@ class SHT {
    * @return A vector containing the values corresponding to the points
    * in points.
    */
-  Vector evaluate(const ConstComplexVectorView &view, const Vector &thetas);
+  Vector evaluate(const StridedConstComplexVectorView &view, const Vector &thetas);
 
   template <typename Vec1, typename Vec2>
-  friend matpack::matpack_data<typename Vec1::value_type, 1> add_coeffs(
+  friend matpack::data_t<typename Vec1::value_type, 1> add_coeffs(
       const SHT &sht_v, const Vec1 &v, const SHT &sht_w, const Vec2 &w);
-  template <typename T,
-            bool constant_1,
-            bool strided_1,
-            bool constant_2,
-            bool strided_2>
-  friend matpack::matpack_data<T, 2> add_coeffs(
+  template <typename T>
+  friend matpack::data_t<T, 2> add_coeffs(
       const SHT &sht_inc_v,
       const SHT &sht_scat_v,
-      const matpack::matpack_view<T, 2, constant_1, strided_1> &v,
+      const matpack::strided_view_t<const T, 2> &v,
       const SHT &sht_inc_w,
       const SHT &sht_scat_w,
-      const matpack::matpack_view<T, 2, constant_2, strided_2> &w);
+      const matpack::strided_view_t<const T, 2> &w);
 
  private:
   bool is_trivial_;
@@ -510,11 +505,11 @@ extern SHTProvider provider;
  * of the sum of v and w for the transform object sht_v.
  */
 template <typename Vec1, typename Vec2>
-matpack::matpack_data<typename Vec1::value_type, 1> add_coeffs(const SHT &sht_v,
+matpack::data_t<typename Vec1::value_type, 1> add_coeffs(const SHT &sht_v,
                                                                const Vec1 &v,
                                                                const SHT &sht_w,
                                                                const Vec2 &w) {
-  auto result = matpack::matpack_data<typename Vec1::value_type, 1>(v);
+  auto result = matpack::data_t<typename Vec1::value_type, 1>(v);
 
   if (sht_w.is_trivial_) {
     result[0] += w[0];
@@ -555,18 +550,14 @@ matpack::matpack_data<typename Vec1::value_type, 1> add_coeffs(const SHT &sht_v,
   * of the sum of v and w for the transform objects sht_inc_v and
   * sht_scat_v.
   */
-template <typename T,
-          bool constant_1,
-          bool strided_1,
-          bool constant_2,
-          bool strided_2>
-matpack::matpack_data<T, 2> add_coeffs(
+template <typename T>
+matpack::data_t<T, 2> add_coeffs(
     const SHT &sht_inc_v,
     const SHT &sht_scat_v,
-    const matpack::matpack_view<T, 2, constant_1, strided_1> &v,
+    const matpack::strided_view_t<const T, 2> &v,
     const SHT &sht_inc_w,
     const SHT &sht_scat_w,
-    const matpack::matpack_view<T, 2, constant_2, strided_2> &w) {
+    const matpack::strided_view_t<const T, 2> &w) {
   Index nlm_inc  = sht_inc_v.get_n_spectral_coeffs_cmplx();
   Index nlm_scat = sht_scat_v.get_n_spectral_coeffs();
   auto result    = ComplexMatrix(nlm_inc, nlm_scat);

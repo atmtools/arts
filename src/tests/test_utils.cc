@@ -5,10 +5,10 @@
 */
 
 #include "test_utils.h"
+
+#include <matpack.h>
+
 #include <cmath>
-#include "lin_alg.h"
-#include "matpack_sparse.h"
-#include "matpack_math.h"
 
 using std::abs;
 
@@ -21,7 +21,7 @@ using std::abs;
 void add_noise(VectorView v, Numeric scale) {
   Rand<Numeric> rand(0, scale);
 
-  for (Index i = 0; i < v.size(); i++) {
+  for (Size i = 0; i < v.size(); i++) {
     v[i] += rand();
   }
 }
@@ -39,7 +39,7 @@ is set to false.
                   [0,range], otherwise the values are taken from the interval
                   [-range, range].
 */
-void random_fill_matrix(MatrixView A, Numeric range, bool positive) {
+void random_fill_matrix(StridedMatrixView A, Numeric range, bool positive) {
   Index m = A.nrows();
   Index n = A.ncols();
 
@@ -51,7 +51,7 @@ void random_fill_matrix(MatrixView A, Numeric range, bool positive) {
     }
   }
 }
-void random_fill_matrix(ComplexMatrixView A, Numeric range, bool positive) {
+void random_fill_matrix(StridedComplexMatrixView A, Numeric range, bool positive) {
   Index m = A.nrows();
   Index n = A.ncols();
 
@@ -122,7 +122,7 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
     m1 = rand() % m;
     n1 = rand() % n;
 
-    A[m1, n1] = random_number();
+    A[m1, n1]    = random_number();
     B.rw(m1, n1) = A[m1, n1];
   }
 }
@@ -136,12 +136,12 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
   [-range, range]
   \param[in] positive See above.
 */
-void random_fill_matrix_symmetric(MatrixView A, Numeric range, bool positive) {
+void random_fill_matrix_symmetric(StridedMatrixView A, Numeric range, bool positive) {
   random_fill_matrix(A, range, positive);
   Matrix M(A);
   A += transpose(M);
 }
-void random_fill_matrix_symmetric(ComplexMatrixView A,
+void random_fill_matrix_symmetric(StridedComplexMatrixView A,
                                   Numeric range,
                                   bool positive) {
   random_fill_matrix(A, range, positive);
@@ -161,7 +161,7 @@ void random_fill_matrix_symmetric(ComplexMatrixView A,
   the are taken from the range [-range, range].
   \param[in] positive See above.
 */
-void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive) {
+void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positive) {
   Index n = A.ncols();
 
   // Ensure that A is square.
@@ -190,7 +190,7 @@ void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive) {
   the are taken from the range [-range, range].
   \param[in] positive See above.
 */
-void random_fill_matrix_pos_semi_def(MatrixView A,
+void random_fill_matrix_pos_semi_def(StridedMatrixView A,
                                      Numeric range,
                                      bool positive) {
   random_fill_matrix(A, range, positive);
@@ -223,15 +223,15 @@ void random_fill_vector(VectorView v, Numeric range, bool positive) {
 //! Pick random random submatrix of size m times n.
 /*!
   Randomly chooses a submatrix of the given matrix A and returns the
-  corresponding MatrixView.
+  corresponding StridedMatrixView.
 
   \param[in] A The matrix to choose the submatrix from.
   \param[in] m Number of rows of the submatrix.
   \param[in] n Number of columns of the submatrix.
 
-  \return ConstMatrixView corresponding to a randomly chosen m-by-n submatrix.
+  \return StridedConstMatrixView corresponding to a randomly chosen m-by-n submatrix.
 */
-MatrixView random_submatrix(MatrixView A, int m, int n) {
+StridedMatrixView random_submatrix(StridedMatrixView A, int m, int n) {
   Index m0(A.nrows()), n0(A.ncols());
   ARTS_ASSERT((0 <= m) && (m <= m0));
   ARTS_ASSERT((0 <= n) && (m <= n0));
@@ -315,8 +315,8 @@ Numeric get_maximum_error(ConstVectorView v1,
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric get_maximum_error(ConstMatrixView A1,
-                          ConstMatrixView A2,
+Numeric get_maximum_error(StridedConstMatrixView A1,
+                          StridedConstMatrixView A2,
                           bool relative) {
   Index m = std::min(A1.nrows(), A2.nrows());
   Index n = std::min(A1.ncols(), A2.ncols());
@@ -344,8 +344,8 @@ Numeric get_maximum_error(ConstMatrixView A1,
 
   return max;
 }
-Numeric get_maximum_error(ConstComplexMatrixView A1,
-                          ConstComplexMatrixView A2,
+Numeric get_maximum_error(StridedConstComplexMatrixView A1,
+                          StridedConstComplexMatrixView A2,
                           bool relative) {
   Index m = std::min(A1.nrows(), A2.nrows());
   Index n = std::min(A1.ncols(), A2.ncols());

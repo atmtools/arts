@@ -77,7 +77,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
   ARTS_USER_ERROR_IF(
       static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
               jacobian_targets.target_count() or
-          propagation_matrix_jacobian.ncols() not_eq f_grid.size(),
+          static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
+              f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
@@ -145,7 +146,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
 
     Numeric dnd_dt =
         dnumber_density_dt(atm_point.pressure, atm_point.temperature);
-    for (Index f = 0; f < f_grid.size(); f++) {
+    for (Size f = 0; f < f_grid.size(); f++) {
       propagation_matrix[f].A() += xsec_temp[f] * nd * vmr;
 
       if (temp_jac.first) {

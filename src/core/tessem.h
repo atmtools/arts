@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-#include "matpack_data.h"
+#include <matpack.h>
 
 struct TessemNN {
   Index nb_inputs;

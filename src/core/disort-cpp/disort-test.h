@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#include "matpack_iter.h"
 #include "nonstd.h"
 
 inline bool is_good(const auto& a, const auto& b) {
@@ -37,8 +36,8 @@ inline Tensor3 compute_u(const disort::main_data& dis,
   Vector ims;
   disort::tms_data tms_data;
 
-  for (Index j = 0; j < taus.size(); j++) {
-    for (Index i = 0; i < phis.size(); i++) {
+  for (Size j = 0; j < taus.size(); j++) {
+    for (Size i = 0; i < phis.size(); i++) {
       if (nt_corr) {
         dis.u_corr(u_data, ims, tms_data, taus[j], phis[i]);
       } else {
@@ -54,7 +53,7 @@ inline Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
   Matrix u0(taus.size(), dis.mu().size());
   disort::u0_data u0_data;
 
-  for (Index j = 0; j < taus.size(); j++) {
+  for (Size j = 0; j < taus.size(); j++) {
     dis.u0(u0_data, taus[j]);
     u0[j] = u0_data.u0;
   }
@@ -67,7 +66,7 @@ inline std::tuple<Vector, Vector, Vector> compute_flux(
       flux_down_direct(taus.size());
   disort::flux_data flux_data;
 
-  for (Index j = 0; j < taus.size(); j++) {
+  for (Size j = 0; j < taus.size(); j++) {
     auto [ds, dr]        = dis.flux_down(flux_data, taus[j]);
     flux_up[j]           = dis.flux_up(flux_data, taus[j]);
     flux_down_diffuse[j] = ds;
@@ -93,8 +92,8 @@ inline void compare(const std::string_view name,
 
   std::cout << std::format(
       "u_arts:\n{:B,}\nu0_arts:\n{:B,}\nflux_up_arts:\n{:B,}\nflux_down_diffuse_arts:\n{:B,}\nflux_down_direct_arts:\n{:B,}\n",
-      u_arts.flat_view(),
-      u0_arts.flat_view(),
+      u_arts.view_as(u_arts.size()),
+      u0_arts.view_as(u0_arts.size()),
       flux_up_arts,
       flux_down_diffuse_arts,
       flux_down_direct_arts);
@@ -117,7 +116,6 @@ inline void flat_print(const auto& a, const auto& b) {
   const auto bv = b.flat_view();
 
   for (Index i = 0; i < a.size(); i++) {
-    std::cout << i << ' ' << av[i] << ' ' << bv[i] << ' ' << (bv[i] / av[i] - 1)
-              << '\n';
+    std::cout << std::format("{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
   }
 }

@@ -1,7 +1,5 @@
 #include <disort-test.h>
 
-#include "sorted_grid.h"
-
 const Vector Leg_coeffs_ALL{
     1,      2.544,  3.883,  4.568,  5.235,  5.887,  6.457,  7.177,  7.859,
     8.494,  9.286,  9.856,  10.615, 11.229, 11.851, 12.503, 13.058, 13.626,
@@ -43,7 +41,7 @@ void test_5a() try {
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
+  for (Size i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
@@ -421,7 +419,7 @@ void test_5b() try {
   const Vector omega_arr{0.9};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
+  for (Size i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }
@@ -799,7 +797,7 @@ void test_5BDRF() try {
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.size(), 1);
-  for (Index i = 1; i < Leg_coeffs_ALL.size(); i++) {
+  for (Size i = 1; i < Leg_coeffs_ALL.size(); i++) {
     Leg_coeffs_all[0, i] =
         Leg_coeffs_ALL[i] / (static_cast<Numeric>(2 * i + 1));
   }

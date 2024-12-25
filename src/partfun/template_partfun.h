@@ -5,7 +5,7 @@
 #include <array>
 
 #include <enumsPartitionFunctionsType.h>
-#include <matpack_data.h>
+#include <matpack.h>
 
 namespace PartitionFunctions {
 struct Data {

@@ -40,8 +40,6 @@ add_subdirectory(legendre)
 # #####
 add_library(artscore STATIC
   absorptionlines.cc
-  check_input.cc
-  cloudbox.cc
   covariance_matrix.cc
   fastem.cc
   gas_abs_lookup.cc

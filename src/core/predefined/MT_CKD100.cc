@@ -75,7 +75,7 @@ Numeric XINT_FUN(const Numeric V1A,
   Numeric B2 = B * P;
 
   Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < A.size()) {
+  if (J - 1 > 0 && J + 2 < static_cast<int>(A.size())) {
     xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
            A[J + 2] * B2;
   }
@@ -307,7 +307,7 @@ void oxygen_cia(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > O2O2_O2F_ckd_mt_100_v1) && (V < O2O2_O2F_ckd_mt_100_v2)) {
@@ -364,10 +364,10 @@ void oxygen_cia(PropmatVector& propmat_clearsky,
              http://www.rtweb.aer.com/continuum_frame.html<br>
              <br>
        Oxygen band absorption model for the \f$a^1\Delta_g\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$X^3\Sigma^-_g\f$ band system considering the
              \f$\nu=0\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$\nu=0\f$
              transitions.
 
@@ -546,7 +546,7 @@ void oxygen_v0v0(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > O2_00_ckd_mt_100_v1) && (V < O2_00_ckd_mt_100_v2)) {
@@ -592,10 +592,10 @@ void oxygen_v0v0(PropmatVector& propmat_clearsky,
        http://www.rtweb.aer.com/continuum_frame.html<br>
              <br>
        Oxygen band absorption model for the \f$a^1\Delta_g\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$X^3\Sigma^-_g\f$ band system considering the
              \f$\nu=0\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$\nu=1\f$
              transitions.
 
@@ -719,7 +719,7 @@ void oxygen_v0v1(PropmatVector& propmat_clearsky,
 
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > V1S) && (V < V2S)) {

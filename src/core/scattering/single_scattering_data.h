@@ -54,8 +54,8 @@ struct SingleScatteringData {
     AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded>
         absorption_vector(t_grid, f_grid);
 
-    for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
-      for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
+    for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+      for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
         for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid);
              ++i_za_scat) {
           for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
@@ -173,9 +173,9 @@ template <std::floating_point Scalar,
 std::ostream &operator<<(
     std::ostream &out,
     SingleScatteringData<Scalar, format, repr>) {
-  out << "SingleScatteringData" << std::endl;
-  out << "\t Format:          " << format << std::endl;
-  out << "\t Representation:  " << repr << std::endl;
+  out << "SingleScatteringData" << '\n';
+  out << "\t Format:          " << format << '\n';
+  out << "\t Representation:  " << repr << '\n';
   return out;
 }
 

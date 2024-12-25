@@ -47,8 +47,6 @@ struct isot_map {
   void reserve(const size_t n) { data.reserve(n); }
   [[nodiscard]] std::size_t size() const { return data.size(); }
   [[nodiscard]] bool empty() const { return data.empty(); }
-
-  friend std::ostream& operator<<(std::ostream&, const isot_map&);
 };  // isot_map
 }  // namespace lbl::linemixing
 

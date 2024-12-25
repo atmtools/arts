@@ -1090,8 +1090,8 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
-  Index J = 1;
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  Size J = 1;
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < FCO2_ckd_mt_250_v2)) {
@@ -1140,10 +1140,10 @@ void carbon_dioxide(PropmatVector& propmat_clearsky,
        http://www.rtweb.aer.com/continuum_frame.html<br>
              <br>
        Oxygen band absorption model for the \f$a^1\Delta_g\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$X^3\Sigma^-_g\f$ band system considering the
              \f$\nu=0\f$
-             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\'\n'atexonly
              \f$\nu=1\f$
              transitions.
 
@@ -1464,8 +1464,8 @@ void oxygen_vis(PropmatVector& propmat_clearsky,
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
-  Index J = 1;
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  Size J = 1;
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > V1S) && (V < V2S)) {
@@ -1698,8 +1698,8 @@ void nitrogen_fun(PropmatVector& propmat_clearsky,
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
   VJ = V1C;
-  Index J = 1;
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  Size J = 1;
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > N2N2_N2F_ckd_mt_250_v1) && (V < N2N2_N2F_ckd_mt_250_v2)) {
@@ -1948,8 +1948,8 @@ void nitrogen_rot(PropmatVector& propmat_clearsky,
   // Loop input frequency array. The previously calculated cross section
   // has therefore to be interpolated on the input frequencies.
   Numeric VJ = V1C;
-  Index J = 1;
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  Size J = 1;
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // calculate the associated wave number (= 1/wavelength)
     Numeric V = f_grid[s] / (Constant::c * 1.00e2);  // [cm^-1]
     if ((V > 0.000e0) && (V < N2N2_CT220_ckd_mt_100_v2)) {

@@ -133,7 +133,7 @@ Sparse::Sparse(Index r, Index c) : matrix((int)r, (int)c) {
   // Nothing to do here.
 }
 
-Sparse Sparse::diagonal(ConstVectorView v) {
+Sparse Sparse::diagonal(StridedConstVectorView v) {
   Index n = v.size();
   ArrayOfIndex indices(n);
   for (Index i = 0; i < n; ++i) {
@@ -294,7 +294,7 @@ void Sparse::insert_row(Index r, Vector v) {
   // Check if the row index and the Vector length are valid
   ARTS_ASSERT(0 <= r);
   ARTS_ASSERT(r < nrows());
-  ARTS_ASSERT(v.size() == ncols());
+  ARTS_ASSERT(v.size() == static_cast<Size>(ncols()));
 
   for (int i = 0; i < ncols(); i++) {
     if (v[i] != 0) matrix.coeffRef((int)r, i) = v[i];
@@ -316,7 +316,7 @@ void Sparse::insert_row(Index r, Vector v) {
 void Sparse::insert_elements(Index nelems,
                              const ArrayOfIndex& rowind,
                              const ArrayOfIndex& colind,
-                             ConstVectorView data) {
+                             StridedConstVectorView data) {
   typedef Eigen::Triplet<Numeric> T;
   std::vector<T> tripletList(nelems);
 
@@ -393,10 +393,10 @@ void abs(Sparse& A, const Sparse& B) {
   \param M Matrix for multiplication (sparse).
   \param x Vector for multiplication.
 */
-void mult(VectorView y, const Sparse& M, ConstVectorView x) {
+void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.size() == M.nrows());
-  ARTS_ASSERT(M.ncols() == x.size());
+  ARTS_ASSERT(y.size() == static_cast<Size>(M.nrows()));
+  ARTS_ASSERT(static_cast<Size>(M.ncols()) == x.size());
 
     // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
@@ -405,9 +405,9 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
 
   Numeric* data;
-  data = x.unsafe_data_handle();
+  data = const_cast<Numeric*>(x.data_handle());
   ColumnMap x_map(data, x.size(), Stride(1, x.stride(0)));
-  data = y.unsafe_data_handle();
+  data = const_cast<Numeric*>(y.data_handle());
   ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
   y_map = M.matrix * x_map;
@@ -428,10 +428,10 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   \param M Matrix for multiplication (sparse).
   \param x Vector for multiplication.
 */
-void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
+void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.size() == M.ncols());
-  ARTS_ASSERT(M.nrows() == x.size());
+  ARTS_ASSERT(y.size() == static_cast<Size>(M.ncols()));
+  ARTS_ASSERT(static_cast<Size>(M.nrows()) == x.size());
 
     // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
@@ -440,9 +440,9 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
 
   Numeric* data;
-  data = x.unsafe_data_handle();
+  data = const_cast<Numeric*>(x.data_handle());
   ColumnMap x_map(data, x.size(), Stride(1, x.stride(0)));
-  data = y.unsafe_data_handle();
+  data = const_cast<Numeric*>(y.data_handle());
   ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
   y_map = x_map * M.matrix;
@@ -466,7 +466,7 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
+void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C) {
   // Check dimensions:
   ARTS_ASSERT(A.nrows() == B.nrows());
   ARTS_ASSERT(A.ncols() == C.ncols());
@@ -485,13 +485,13 @@ void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
   column_stride = C.stride(1);
 
   Numeric* data;
-  data = C.unsafe_data_handle();
+  data = const_cast<Numeric*>(C.data_handle());
   Stride c_stride(row_stride, column_stride);
   MatrixMap C_map(data, C.nrows(), C.ncols(), c_stride);
 
   row_stride = A.stride(0);
   column_stride = A.stride(1);
-  data = A.unsafe_data_handle();
+  data = A.data_handle();
   Stride a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
@@ -516,7 +516,7 @@ void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
+void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C) {
   // Check dimensions:
   ARTS_ASSERT(A.nrows() == B.nrows());
   ARTS_ASSERT(A.ncols() == C.ncols());
@@ -534,13 +534,13 @@ void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
   column_stride = B.stride(1);
 
   Numeric* data;
-  data = B.unsafe_data_handle();
+  data = const_cast<Numeric*>(B.data_handle());
   Stride b_stride(row_stride, column_stride);
   MatrixMap B_map(data, B.nrows(), B.ncols(), b_stride);
 
   row_stride = A.stride(0);
   column_stride = A.stride(1);
-  data = A.unsafe_data_handle();
+  data = A.data_handle();
   Stride a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 

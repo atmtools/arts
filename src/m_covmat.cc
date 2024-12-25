@@ -18,15 +18,15 @@ void add_diagonal_covmat(CovarianceMatrix& covmat,
   Range colrow(target.x_start, target.x_size);
 
   ARTS_USER_ERROR_IF(
-      matrix.ncols() != colrow.extent or matrix.nrows() != colrow.extent,
+      matrix.ncols() != colrow.nelem or matrix.nrows() != colrow.nelem,
       R"(The matrix must be square.  It must also have the same size as the target.
      shape(matrix) = {:B,},
      shape(target) = [{}, {}]
 Target: {}
 )",
       matrix.shape(),
-      colrow.extent,
-      colrow.extent,
+      colrow.nelem,
+      colrow.nelem,
       target.type);
 
   covmat.add_correlation({colrow,
@@ -36,15 +36,15 @@ Target: {}
 
   if (inverse.not_null()) {
     ARTS_USER_ERROR_IF(
-        inverse.ncols() != colrow.extent or inverse.nrows() != colrow.extent,
+        inverse.ncols() != colrow.nelem or inverse.nrows() != colrow.nelem,
         R"(The inverse matrix must be square.  It must also have the same size as the target.
      shape(matrix) = {:B,},
      shape(target) = [{}, {}]
 Target: {}
 )",
         inverse.shape(),
-        colrow.extent,
-        colrow.extent,
+        colrow.nelem,
+        colrow.nelem,
         target.type);
 
     covmat.add_correlation({colrow,

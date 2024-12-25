@@ -15,7 +15,7 @@
 #ifndef poly_roots_h
 #define poly_roots_h
 
-#include <matpack_data.h>
+#include "matpack_mdspan_data_t.h"
 
 int poly_root_solve(Matrix& roots, Vector& coeffs);
 

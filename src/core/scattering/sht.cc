@@ -96,9 +96,9 @@ Index SHT::get_coeff_index(Index l, Index m) {
 }
 
 void SHT::set_spectral_coeffs(
-    const matpack::matpack_view<Complex, 1, true, true> &view) const {
+    const matpack::strided_view_t<const Complex, 1> &view) const {
   // Input size must match number of spectral coefficients of SHT.
-  ARTS_ASSERT(view.size() == n_spectral_coeffs_);
+  ARTS_ASSERT(view.size() == static_cast<Size>(n_spectral_coeffs_));
   Index index = 0;
   for (auto &x : view) {
     spectral_coeffs_[index] = x;
@@ -107,9 +107,9 @@ void SHT::set_spectral_coeffs(
 }
 
 void SHT::set_spectral_coeffs_cmplx(
-    const matpack::matpack_view<Complex, 1, true, true> &view) const {
+    const matpack::strided_view_t<const Complex, 1> &view) const {
   // Input size must match number of spectral coefficients of SHT.
-  ARTS_ASSERT(view.size() == n_spectral_coeffs_cmplx_);
+  ARTS_ASSERT(view.size() == static_cast<Size>(n_spectral_coeffs_cmplx_));
   Index index = 0;
   for (auto &x : view) {
     spectral_coeffs_cmplx_[index] = x;
@@ -117,18 +117,18 @@ void SHT::set_spectral_coeffs_cmplx(
   }
 }
 
-ExhaustiveConstMatrixView SHT::get_spatial_coeffs() const {
-  return ExhaustiveConstMatrixView(spatial_coeffs_, {n_aa_, n_za_});
+StridedConstMatrixView SHT::get_spatial_coeffs() const {
+  return StridedConstMatrixView(spatial_coeffs_, std::array{n_aa_, n_za_});
 }
 
-ExhaustiveConstComplexMatrixView SHT::get_spatial_coeffs_cmplx() const {
-  return ExhaustiveConstComplexMatrixView(spatial_coeffs_cmplx_,
-                                          {n_aa_, n_za_});
+StridedConstComplexMatrixView SHT::get_spatial_coeffs_cmplx() const {
+  return StridedConstComplexMatrixView(spatial_coeffs_cmplx_,
+                                std::array{n_aa_, n_za_});
 }
 
-ExhaustiveConstComplexVectorView SHT::get_spectral_coeffs_cmplx() const {
-  return ExhaustiveConstComplexVectorView(spectral_coeffs_cmplx_,
-                                          {n_spectral_coeffs_cmplx_});
+StridedConstComplexVectorView SHT::get_spectral_coeffs_cmplx() const {
+  return StridedConstComplexVectorView(spectral_coeffs_cmplx_,
+                                std::array{n_spectral_coeffs_cmplx_});
 }
 
 Index SHT::get_n_zenith_angles() const { return n_za_; }
@@ -145,12 +145,12 @@ Index SHT::get_l_max() const { return l_max_; }
 
 Index SHT::get_m_max() const { return m_max_; }
 
-ExhaustiveConstComplexVectorView SHT::get_spectral_coeffs() const {
-  return ExhaustiveConstComplexVectorView(spectral_coeffs_,
-                                          {n_spectral_coeffs_});
+StridedConstComplexVectorView SHT::get_spectral_coeffs() const {
+  return StridedConstComplexVectorView(spectral_coeffs_,
+                                std::array{n_spectral_coeffs_});
 }
 
-ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
+ComplexVector SHT::transform(const StridedConstMatrixView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -161,16 +161,16 @@ ComplexVector SHT::transform(const ConstMatrixView &view [[maybe_unused]]) {
   }
   set_spatial_coeffs(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
-  
+
   shtns_mutex.lock();
   spat_to_SH(shtns, spatial_coeffs_, spectral_coeffs_);
   shtns_mutex.unlock();
-  
+
   return static_cast<ComplexVector>(get_spectral_coeffs());
 #endif
 }
 
-ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
+ComplexVector SHT::transform_cmplx(const StridedConstComplexMatrixView &view
                                    [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
@@ -186,12 +186,12 @@ ComplexVector SHT::transform_cmplx(const ConstComplexMatrixView &view
   shtns_mutex.lock();
   spat_cplx_to_SH(shtns, spatial_coeffs_cmplx_, spectral_coeffs_cmplx_);
   shtns_mutex.unlock();
-  
+
   return static_cast<ComplexVector>(get_spectral_coeffs_cmplx());
 #endif
 }
 
-Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
+Matrix SHT::synthesize(const StridedConstComplexVectorView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -200,20 +200,20 @@ Matrix SHT::synthesize(const ConstComplexVectorView &view [[maybe_unused]]) {
     result = view[0].real();
     return result;
   }
-  
+
   set_spectral_coeffs(view);
-  
+
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
-  
+
   shtns_mutex.lock();
   SH_to_spat(shtns, spectral_coeffs_, spatial_coeffs_);
   shtns_mutex.unlock();
-  
+
   return static_cast<Matrix>(get_spatial_coeffs());
 #endif
 }
 
-ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
+ComplexMatrix SHT::synthesize_cmplx(const StridedConstComplexVectorView &view
                                     [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
@@ -225,16 +225,16 @@ ComplexMatrix SHT::synthesize_cmplx(const ConstComplexVectorView &view
   }
   set_spectral_coeffs_cmplx(view);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
-  
+
   shtns_mutex.lock();
   SH_to_spat_cplx(shtns, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_);
   shtns_mutex.unlock();
-  
+
   return static_cast<ComplexMatrix>(get_spatial_coeffs_cmplx());
 #endif
 }
 
-Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
+Numeric SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
                       Numeric phi [[maybe_unused]],
                       Numeric theta [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
@@ -251,8 +251,8 @@ Numeric SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
 #endif
 }
 
-Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
-                     const MatrixView &points [[maybe_unused]]) {
+Vector SHT::evaluate(const StridedComplexVectorView &view [[maybe_unused]],
+                     const StridedMatrixView &points [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -265,38 +265,38 @@ Vector SHT::evaluate(const ComplexVectorView &view [[maybe_unused]],
   auto n_points = points.nrows();
   Vector result(n_points);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
-  
+
   shtns_mutex.lock();
   for (auto i = 0; i < n_points; ++i) {
-    result[i] =
-        SH_to_point(shtns, spectral_coeffs_, std::cos(points[i, 1]), points[i, 0]);
+    result[i] = SH_to_point(
+        shtns, spectral_coeffs_, std::cos(points[i, 1]), points[i, 0]);
   }
   shtns_mutex.lock();
-  
+
   return result;
 #endif
 }
 
-Vector SHT::evaluate(const ConstComplexVectorView &view [[maybe_unused]],
+Vector SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
                      const Vector &thetas [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     Vector results(view.size());
-    for (Index i = 0; i < view.size(); ++i) {
+    for (Size i = 0; i < view.size(); ++i) {
       results[i] = view[i].real();
     }
     return results;
   }
   ARTS_ASSERT(m_max_ == 0);
   set_spectral_coeffs(view);
-  auto n_points = thetas.size();
+  Size n_points = thetas.size();
   Vector result(n_points);
   auto shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
 
   shtns_mutex.lock();
-  for (auto i = 0; i < n_points; ++i) {
+  for (Size i = 0; i < n_points; ++i) {
     result[i] = SH_to_point(shtns, spectral_coeffs_, cos(thetas[i]), 0.0);
   }
   shtns_mutex.unlock();
@@ -350,14 +350,14 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
   } else {
     shtns_mutex.lock();
     shtns_reset();
-    shtns_          = shtns_init(sht_reg_fast,
+    shtns_ = shtns_init(sht_reg_fast,
                         static_cast<int>(l_max),
                         static_cast<int>(m_max),
                         1,
                         static_cast<int>(n_za),
                         static_cast<int>(n_aa));
     shtns_mutex.unlock();
-  
+
     current_config_ = config;
   }
   return shtns_;
@@ -382,12 +382,12 @@ SHT::SHT(Index l_max, Index m_max, Index n_aa, Index n_za)
     n_spectral_coeffs_cmplx_ = 1;
   } else {
     is_trivial_ = false;
-  
+
     shtns_mutex.lock();
     shtns_verbose(1);
     shtns_use_threads(0);
     shtns_mutex.unlock();
-    
+
     n_spectral_coeffs_       = calc_n_spectral_coeffs(l_max, m_max);
     n_spectral_coeffs_cmplx_ = calc_n_spectral_coeffs_cmplx(l_max, m_max);
     spectral_coeffs_ =

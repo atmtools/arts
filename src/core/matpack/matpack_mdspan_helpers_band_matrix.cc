@@ -1,4 +1,6 @@
-#include "matpack_band_matrix.h"
+#include "matpack_mdspan_helpers_band_matrix.h"
+
+#include <debug.h>
 
 extern "C" void dgbsv_(int* N,
                        int* KL,
@@ -61,9 +63,9 @@ Numeric& band_matrix::operator[](Index i, Index j) {
 }
 
 int band_matrix::solve(Vector& bx) {
-  int n = static_cast<int>(N);
-  int kl = static_cast<int>(KL);
-  int ku = static_cast<int>(KU);
+  int n    = static_cast<int>(N);
+  int kl   = static_cast<int>(KL);
+  int ku   = static_cast<int>(KU);
   int nrhs = 1;
   int ldab = 2 * kl + ku + 1;
   int info = 0;

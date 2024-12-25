@@ -23,7 +23,7 @@ bool test_single_scattering_data_from_legacy_tro() {
                                        scattering::Representation::Gridded>;
   auto ssd = SingleScatteringData::from_legacy_tro(legacy_data, legacy_meta);
 
-  Numeric err = max_error<Tensor3View>(
+  Numeric err = max_error<StridedTensor3View>(
       (*ssd.phase_matrix)[joker, 0, joker, joker],
       legacy_data.pha_mat_data[0, joker, joker, 0, 0, 0, joker]);
   if (err > 0) {
@@ -36,7 +36,7 @@ bool test_single_scattering_data_from_legacy_tro() {
     return false;
   }
 
-  err = max_error<MatrixView>(ssd.absorption_vector[joker, 0, joker],
+  err = max_error<StridedMatrixView>(ssd.absorption_vector[joker, 0, joker],
                               legacy_data.abs_vec_data[0, joker, 0, 0, joker]);
   if (err > 0) {
     return false;
@@ -60,9 +60,9 @@ int main() {
   //passed = test_single_scattering_data_from_legacy_tro();
   passed = true;
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
   return 0;

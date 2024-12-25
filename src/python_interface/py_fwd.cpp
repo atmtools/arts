@@ -33,7 +33,7 @@ void py_fwd(py::module_& m) try {
             StokvecVector out(frequency.size());
 
             if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1 or
-                frequency.size() < arts_omp_get_max_threads()) {
+                static_cast<Index>(frequency.size()) < arts_omp_get_max_threads()) {
               std::transform(
                   frequency.begin(),
                   frequency.end(),
@@ -42,7 +42,7 @@ void py_fwd(py::module_& m) try {
             } else {
               String error{};
 #pragma omp parallel for
-              for (Index i = 0; i < out.size(); ++i) {
+              for (Size i = 0; i < out.size(); ++i) {
                 try {
                   out[i] = srad_op(frequency[i], path);
                 } catch (std::exception& e) {

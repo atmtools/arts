@@ -8,7 +8,6 @@
 #include <stdexcept>
 
 #include "debug.h"
-#include "matpack_data.h"
 
 void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
   measurement_sensor = {};
@@ -45,7 +44,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  const Index n      = frequency_grid.size();
+  const Size n      = frequency_grid.size();
   const Size sz      = measurement_sensor.size();
   const Size nonzero = pol.nonzero_components();
 
@@ -62,12 +61,12 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index i = 0; i < n; i++) {
+  for (Size i = 0; i < n; i++) {
     try {
       StokvecMatrix w(1, n, pol);
 
       const gauss dist(frequency_grid[i], stds[i]);
-      for (Index j = 0; j < n; j++) {
+      for (Size j = 0; j < n; j++) {
         w[0, j] *= pdf(dist, frequency_grid[j]);
       }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matpack_data.h"
+#include "matpack_mdspan_data_t.h"
 
 namespace matpack {
 class band_matrix {

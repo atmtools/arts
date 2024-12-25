@@ -82,8 +82,8 @@ table::table(const SpeciesEnum& species,
 
 #pragma omp parallel for collapse(3) if (not arts_omp_in_parallel()) \
     firstprivate(pm, sv, dpm, dsv)
-  for (Index it = 0; it < t_pert_local.size(); ++it) {
-    for (Index iw = 0; iw < water_vmr_local.size(); ++iw) {
+  for (Size it = 0; it < t_pert_local.size(); ++it) {
+    for (Size iw = 0; iw < water_vmr_local.size(); ++iw) {
       for (Size ip = 0; ip < atmref.size(); ++ip) {
         try {
           AtmPoint atm_point     = atmref[ip];
@@ -105,7 +105,7 @@ table::table(const SpeciesEnum& species,
                          no_negative_absorption);
 
           const Numeric inv_nd = 1.0 / atm_point.number_density(species);
-          for (Index ifreq = 0; ifreq < f_grid->size(); ++ifreq) {
+          for (Size ifreq = 0; ifreq < f_grid->size(); ++ifreq) {
             xsec[it, iw, ip, ifreq] = pm[ifreq].A() * inv_nd;
           }
         } catch (std::runtime_error& e) {
@@ -179,7 +179,7 @@ LagrangeInterpolation table::temperature_lagrange(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void table::absorption(ExhaustiveVectorView absorption,
+void table::absorption(VectorView absorption,
                        const SpeciesEnum& species,
                        const Index& p_interp_order,
                        const Index& t_interp_order,
@@ -226,7 +226,7 @@ void table::absorption(ExhaustiveVectorView absorption,
   }
 
   const Numeric nd = atm_point.number_density(species);
-  for (Index i = 0; i < frequency_grid.size(); ++i) {
+  for (Size i = 0; i < frequency_grid.size(); ++i) {
     absorption[i] += xsec_local[i] * nd;
   }
 }
@@ -260,7 +260,7 @@ void table::check() const {
       f_size,
       xsec.shape());
 
-  ARTS_USER_ERROR_IF(water_atmref.size() != p_size,
+  ARTS_USER_ERROR_IF(water_atmref.size() != static_cast<Size>(p_size),
                      R"(Bad size of water_atmref
   Expected: {}
   Has size: {}
@@ -268,7 +268,7 @@ void table::check() const {
                      p_size,
                      water_atmref.size());
 
-  ARTS_USER_ERROR_IF(t_atmref.size() != p_size,
+  ARTS_USER_ERROR_IF(t_atmref.size() != static_cast<Size>(p_size),
                      R"(Bad size of t_atmref
   Expected: {}
   Has size: {}

@@ -47,7 +47,7 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
     auto& airdata = data[SpeciesEnum::Bath];
 
     bool first = true;
-    for (Index i = 0; i < vmrs.size(); i++) {
+    for (Size i = 0; i < vmrs.size(); i++) {
       const auto spec = specs[i];
       const auto vmr = vmrs[i];
 

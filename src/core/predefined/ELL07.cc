@@ -136,7 +136,7 @@ void compute(PropmatVector& propmat_clearsky,
   const Numeric tau5 = p17 + p18 * t_cels + p19 * pow2(t_cels);
 
   // Loop frequency:
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // real part of the complex permittivity of water (triple-debye + 2 resonances)
     const Numeric Reepsilon =
         epsilon_s -

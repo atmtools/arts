@@ -31,24 +31,17 @@
 #endif
 
 bool ZeemanModel::empty() const noexcept {
-    return std::isnan(mdata.gu) and std::isnan(mdata.gl);
-  }
+  return std::isnan(mdata.gu) and std::isnan(mdata.gl);
+}
 
-constexpr Numeric get_lande_spin_constant(
-    const SpeciesEnum species) noexcept {
+constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
   switch (species) {
-    case to<SpeciesEnum>("O2"):
-      return 2.002064;
-    case to<SpeciesEnum>("NO"):
-      return 2.00071;
-    case to<SpeciesEnum>("OH"):
-      return 2.00089;
-    case to<SpeciesEnum>("ClO"):
-      return 2.00072;
-    case to<SpeciesEnum>("SO"):
-      return 2.002106;
-    default:
-      break;
+    case to<SpeciesEnum>("O2"):  return 2.002064;
+    case to<SpeciesEnum>("NO"):  return 2.00071;
+    case to<SpeciesEnum>("OH"):  return 2.00089;
+    case to<SpeciesEnum>("ClO"): return 2.00072;
+    case to<SpeciesEnum>("SO"):  return 2.002106;
+    default:                     break;
   }
   return 2.00231930436182;
 }
@@ -63,10 +56,10 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
               QuantumNumberType::J,
               QuantumNumberType::Lambda,
               QuantumNumberType::S)) {
-    auto& Omega = qns[QuantumNumberType::Omega];
-    auto& J = qns[QuantumNumberType::J];
+    auto& Omega  = qns[QuantumNumberType::Omega];
+    auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S = qns[QuantumNumberType::S];
+    auto& S      = qns[QuantumNumberType::S];
     return {Zeeman::SimpleGCaseA(
                 Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
             Zeeman::SimpleGCaseA(
@@ -78,10 +71,10 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
               QuantumNumberType::J,
               QuantumNumberType::Lambda,
               QuantumNumberType::S)) {
-    auto& N = qns[QuantumNumberType::N];
-    auto& J = qns[QuantumNumberType::J];
+    auto& N      = qns[QuantumNumberType::N];
+    auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S = qns[QuantumNumberType::S];
+    auto& S      = qns[QuantumNumberType::S];
     return {
         Zeeman::SimpleGCaseB(N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
         Zeeman::SimpleGCaseB(N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
@@ -90,8 +83,7 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
   return {NAN, NAN};
 }
 
-Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid)
-     {
+Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   return SimpleG(qid.val, GS, GL);
@@ -150,33 +142,32 @@ constexpr Numeric closed_shell_trilinear(Rational k,
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
 
-Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
-     {
+Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
                     QuantumNumberType::v1)) {
       if (qid.val[QuantumNumberType::v1].low() == 0 and
           qid.val[QuantumNumberType::v1].upp() == 0) {
-        constexpr Numeric GS = 2.002084;
+        constexpr Numeric GS  = 2.002084;
         constexpr Numeric GLE = 2.77e-3;
-        constexpr Numeric GR = -1.16e-4;
-        constexpr Numeric B = 43100.44276e6;
-        constexpr Numeric D = 145.1271e3;
-        constexpr Numeric H = 49e-3;
-        constexpr Numeric lB = 59501.3438e6;
-        constexpr Numeric lD = 58.3680e3;
-        constexpr Numeric lH = 290.8e-3;
-        constexpr Numeric gB = -252.58634e6;
-        constexpr Numeric gD = -243.42;
-        constexpr Numeric gH = -1.46e-3;
+        constexpr Numeric GR  = -1.16e-4;
+        constexpr Numeric B   = 43100.44276e6;
+        constexpr Numeric D   = 145.1271e3;
+        constexpr Numeric H   = 49e-3;
+        constexpr Numeric lB  = 59501.3438e6;
+        constexpr Numeric lD  = 58.3680e3;
+        constexpr Numeric lH  = 290.8e-3;
+        constexpr Numeric gB  = -252.58634e6;
+        constexpr Numeric gD  = -243.42;
+        constexpr Numeric gH  = -1.46e-3;
 
-        auto JU = qid.val[QuantumNumberType::J].upp();
-        auto NU = qid.val[QuantumNumberType::N].upp();
+        auto JU    = qid.val[QuantumNumberType::J].upp();
+        auto NU    = qid.val[QuantumNumberType::N].upp();
         Numeric gu = case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        auto JL = qid.val[QuantumNumberType::J].low();
-        auto NL = qid.val[QuantumNumberType::N].low();
+        auto JL    = qid.val[QuantumNumberType::J].low();
+        auto NL    = qid.val[QuantumNumberType::N].low();
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {gu, gl};
@@ -188,25 +179,25 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
                     QuantumNumberType::v1)) {
       if (qid.val[QuantumNumberType::v1].low() == 0 and
           qid.val[QuantumNumberType::v1].upp() == 0) {
-        constexpr Numeric GS = 2.002025;
+        constexpr Numeric GS  = 2.002025;
         constexpr Numeric GLE = 2.813e-3;
-        constexpr Numeric GR = -1.26e-4;
-        constexpr Numeric B = 40707.38657e6;
-        constexpr Numeric D = 129.4142e3;
-        constexpr Numeric H = 0;
-        constexpr Numeric lB = 59499.0375e6;
-        constexpr Numeric lD = 54.9777e3;
-        constexpr Numeric lH = 272.1e-3;
-        constexpr Numeric gB = -238.51530e6;
-        constexpr Numeric gD = -217.77;
-        constexpr Numeric gH = -1.305e-3;
+        constexpr Numeric GR  = -1.26e-4;
+        constexpr Numeric B   = 40707.38657e6;
+        constexpr Numeric D   = 129.4142e3;
+        constexpr Numeric H   = 0;
+        constexpr Numeric lB  = 59499.0375e6;
+        constexpr Numeric lD  = 54.9777e3;
+        constexpr Numeric lH  = 272.1e-3;
+        constexpr Numeric gB  = -238.51530e6;
+        constexpr Numeric gD  = -217.77;
+        constexpr Numeric gH  = -1.305e-3;
 
-        auto JU = qid.val[QuantumNumberType::J].upp();
-        auto NU = qid.val[QuantumNumberType::N].upp();
+        auto JU    = qid.val[QuantumNumberType::J].upp();
+        auto NU    = qid.val[QuantumNumberType::N].upp();
         Numeric gu = case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        auto JL = qid.val[QuantumNumberType::J].low();
-        auto NL = qid.val[QuantumNumberType::N].low();
+        auto JL    = qid.val[QuantumNumberType::J].low();
+        auto NL    = qid.val[QuantumNumberType::N].low();
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {gu, gl};
@@ -232,7 +223,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "OCS-624"_isot) {
     constexpr Numeric gperp =
@@ -249,7 +240,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "CO2-626"_isot) {
     constexpr Numeric gperp =
@@ -266,7 +257,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   }
 
@@ -293,7 +284,8 @@ Eigen::Vector3d los_xyz_by_za_local(Numeric z, Numeric a) {
 Eigen::Vector3d ev_xyz_by_za_local(Numeric z, Numeric a) {
   using std::cos;
   using std::sin;
-  return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z)).normalized();
+  return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z))
+      .normalized();
 }
 
 Zeeman::Derived Zeeman::FromGrids(
@@ -306,7 +298,7 @@ Zeeman::Derived Zeeman::FromGrids(
     output = FromPreDerived(0, 0, 0);
   } else {
     // XYZ vectors normalized
-    const Eigen::Vector3d n = los_xyz_by_za_local(z, a);
+    const Eigen::Vector3d n  = los_xyz_by_za_local(z, a);
     const Eigen::Vector3d ev = ev_xyz_by_za_local(z, a);
     const Eigen::Vector3d nH = los_xyz_by_uvw_local(u, v, w);
 
@@ -318,7 +310,7 @@ Zeeman::Derived Zeeman::FromGrids(
     // Compute theta (and its derivatives if possible)
     const Numeric cos_theta = n.dot(nH);
     const Numeric sin_theta = std::sqrt(1 - Math::pow2(cos_theta));
-    output.theta = std::acos(cos_theta);
+    output.theta            = std::acos(cos_theta);
     if (sin_theta not_eq 0) {
       const Eigen::Vector3d dtheta =
           (nH * cos_theta - n) / (output.H * sin_theta);
@@ -333,9 +325,9 @@ Zeeman::Derived Zeeman::FromGrids(
 
     // Compute eta (and its derivatives if possible)
     const Eigen::Vector3d inplane = nH - nH.dot(n) * n;
-    const Numeric y = ev.cross(inplane).dot(n);
-    const Numeric x = ev.dot(inplane);
-    output.eta = std::atan2(y, x);
+    const Numeric y               = ev.cross(inplane).dot(n);
+    const Numeric x               = ev.dot(inplane);
+    output.eta                    = std::atan2(y, x);
     if (x not_eq 0 or y not_eq 0) {
       const Eigen::Vector3d deta =
           n.cross(nH) / (output.H * (Math::pow2(x) + Math::pow2(y)));
@@ -356,7 +348,7 @@ namespace Zeeman {
 Numeric Model::Strength(Rational Ju,
                         Rational Jl,
                         Zeeman::Polarization type,
-                        Index n) const  {
+                        Index n) const {
   ARTS_ASSERT(type not_eq Zeeman::Polarization::None);
   using Math::pow2;
 
@@ -442,66 +434,67 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
 const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
                                              Polarization type) noexcept {
   switch (type) {
-    case Polarization::SigmaMinus:
-      return data.sm;
-    case Polarization::Pi:
-      return data.pi;
-    case Polarization::SigmaPlus:
-      return data.sp;
-    case Polarization::None:
-      return data.sm;  //! This should never be reached
+    case Polarization::SigmaMinus: return data.sm;
+    case Polarization::Pi:         return data.pi;
+    case Polarization::SigmaPlus:  return data.sp;
+    case Polarization::None:       return data.sm;  //! This should never be reached
   }
 }
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
 
-void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
-                 const PolarizationVector &polvec) {
-  const Index n = pm.size();
+void sum_propmat(PropmatVectorView pm,
+                 const ConstComplexVectorView& abs,
+                 const PolarizationVector& polvec) {
+  const Size n = pm.size();
   ARTS_ASSERT(n == abs.size())
 
-  for (Index i = 0; i < n; i++) {
-      for (Index j = 0; j < 4; j++) {
+  for (Size i = 0; i < n; i++) {
+    for (Index j = 0; j < 4; j++) {
       pm[i][j] += polvec.att[j] * abs[i].real();
-      }
+    }
 
-      for (Index j = 0; j < 3; j++) {
+    for (Index j = 0; j < 3; j++) {
       pm[i][j + 4] += polvec.dis[j] * abs[i].imag();
-      }
+    }
   }
 }
 
-void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
-                 const PolarizationVector &polvec) {
-  const Index n = sv.size();
+void sum_stokvec(StokvecVectorView sv,
+                 const ConstComplexVectorView& abs,
+                 const PolarizationVector& polvec) {
+  const Size n = sv.size();
   ARTS_ASSERT(n == abs.size())
 
-  for (Index i = 0; i < n; i++) {
-    for (Index j = 0; j < 4; j++) {
+  for (Size i = 0; i < n; i++) {
+    for (int j = 0; j < 4; j++) {
       sv[i][j] += polvec.att[j] * abs[i].real();
     }
   }
 }
 
-void dsum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
-                  const ConstComplexVectorView &dabs,
-                  const PolarizationVector &polvec,
-                  const PolarizationVector &dpolvec_dtheta,
-                  const PolarizationVector &dpolvec_deta, const Numeric dH,
-                  const Numeric dt, const Numeric de) {
-  const Index n = pm.size();
+void dsum_propmat(PropmatVectorView pm,
+                  const ConstComplexVectorView& abs,
+                  const ConstComplexVectorView& dabs,
+                  const PolarizationVector& polvec,
+                  const PolarizationVector& dpolvec_dtheta,
+                  const PolarizationVector& dpolvec_deta,
+                  const Numeric dH,
+                  const Numeric dt,
+                  const Numeric de) {
+  const Size n = pm.size();
   ARTS_ASSERT(n == abs.size())
   ARTS_ASSERT(n == dabs.size())
 
-  for (Index i = 0; i < n; i++) {
-    for (Index j = 0; j < 4; j++) {
+  for (Size i = 0; i < n; i++) {
+    for (int j = 0; j < 4; j++) {
       pm[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +
                   de * dpolvec_deta.att[j] * abs[i].real();
     }
 
-    for (Index j = 0; j < 3; j++) {
+    for (int j = 0; j < 3; j++) {
       pm[i][j + 4] += dH * dabs[i].imag() * polvec.dis[j] +
                       dt * abs[i].imag() * dpolvec_dtheta.dis[j] +
                       de * abs[i].imag() * dpolvec_deta.dis[j];
@@ -509,18 +502,21 @@ void dsum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
   }
 }
 
-void dsum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
-                  const ConstComplexVectorView &dabs,
-                  const PolarizationVector &polvec,
-                  const PolarizationVector &dpolvec_dtheta,
-                  const PolarizationVector &dpolvec_deta, const Numeric dH,
-                  const Numeric dt, const Numeric de) {
-  const Index n = sv.size();
+void dsum_stokvec(StokvecVectorView sv,
+                  const ConstComplexVectorView& abs,
+                  const ConstComplexVectorView& dabs,
+                  const PolarizationVector& polvec,
+                  const PolarizationVector& dpolvec_dtheta,
+                  const PolarizationVector& dpolvec_deta,
+                  const Numeric dH,
+                  const Numeric dt,
+                  const Numeric de) {
+  const Size n = sv.size();
   ARTS_ASSERT(n == abs.size())
   ARTS_ASSERT(n == dabs.size())
 
-  for (Index i = 0; i < n; i++) {
-    for (Index j = 0; j < 4; j++) {
+  for (Size i = 0; i < n; i++) {
+    for (int j = 0; j < 4; j++) {
       sv[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +
                   de * dpolvec_deta.att[j] * abs[i].real();

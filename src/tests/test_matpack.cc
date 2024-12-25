@@ -5,47 +5,42 @@
 #include <iostream>
 #include "array.h"
 #include "exceptions.h"
-#include "logic.h"
 #include "math_funcs.h"
-#include "matpack_arrays.h"
-#include "matpack_data.h"
-#include "matpack_eigen.h"
-#include "matpack_math.h"
+#include "matpack.h"
+#include "matpack_mdspan_helpers_eigen.h"
 #include "mystring.h"
-#include "rational.h"
 #include "test_utils.h"
 #include "time.h"
 #include "wigner_functions.h"
 
 using std::cout;
-using std::endl;
 using std::runtime_error;
 
 Numeric by_reference(const Numeric& x) { return x + 1; }
 
 Numeric by_value(Numeric x) { return x + 1; }
 
-void fill_with_junk(VectorView x) { x = 999; }
+void fill_with_junk(StridedVectorView x) { x = 999; }
 
-void fill_with_junk(MatrixView x) { x = 888; }
+void fill_with_junk(StridedMatrixView x) { x = 888; }
 
 int test1() {
   Vector v(20);
 
   cout << "v.size() = " << v.size() << "\n";
 
-  for (Index i = 0; i < v.size(); ++i) v[i] = (Numeric)i;
+  for (Size i = 0; i < v.size(); ++i) v[i] = (Numeric)i;
 
   cout << "v.begin() = " << *v.begin() << "\n";
 
-  cout << "v = \n" << v << "\n";
+  cout << "v = \n" << std::format("{}", v) << "\n";
 
-  fill_with_junk(v[Range(1, 8, 2)][Range(2, joker)]);
+  fill_with_junk(v[StridedRange(1, 8, 2)][Range(2, v.size()-2)]);
   //  fill_with_junk(v);
 
   Vector v2{v[Range(2, 4)]};
 
-  cout << "v2 = \n" << v2 << "\n";
+  cout << "v2 = \n" << std::format("{}", v2) << "\n";
 
   for (Index i = 0; i < 1000; ++i) {
     Vector v3(1000);
@@ -56,19 +51,19 @@ int test1() {
 
   v2[Range(0, 2)] = 77;
 
-  cout << "v = \n" << v << "\n";
-  cout << "v2 = \n" << v2 << "\n";
+  cout << "v = \n" << std::format("{}", v) << "\n";
+  cout << "v2 = \n" << std::format("{}", v2) << "\n";
   cout << "v2.size() = \n" << v2.size() << "\n";
 
   Vector v3;
   v3.resize(v2.size());
   v3 = v2;
 
-  cout << "\nv3 = \n" << v3 << "\n";
+  cout << "\nv3 = \n" << std::format("{}", v3) << "\n";
   fill_with_junk((VectorView)v2);
-  cout << "\nv3 after junking v2 = \n" << v3 << "\n";
+  cout << "\nv3 after junking v2 = \n" << std::format("{}", v3) << "\n";
   v3 *= 2;
-  cout << "\nv3 after *2 = \n" << v3 << "\n";
+  cout << "\nv3 after *2 = \n" << std::format("{}", v3) << "\n";
 
   Matrix M(10, 15);
   {
@@ -77,36 +72,36 @@ int test1() {
       for (Index j = 0; j < M.ncols(); ++j) M[i, j] = ++n;
   }
 
-  cout << "\nM =\n" << M << "\n";
+  cout << "\nM =\n" << std::format("{}", M) << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4)) =\n"
-       << M[Range(2, 4), Range(2, 4)] << "\n";
+       << std::format("{}", M[Range(2, 4), Range(2, 4)]) << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
-       << M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)] << "\n";
+       << std::format("{}", M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)]) << "\n";
 
-  cout << "\nM(1,joker) =\n" << M[1, joker] << "\n";
+  cout << "\nM(1,joker) =\n" << std::format("{}", M[1, joker]) << "\n";
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
   fill_with_junk(M[1, Range(1, 2)]);
 
   cout << "\nM(Range(0,4),Range(0,4)) =\n"
-       << M[Range(0, 4), Range(0, 4)] << "\n";
+       <<std::format("{}",  M[Range(0, 4), Range(0, 4)]) << "\n";
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
 
-  MatrixView s = M[Range(4, 2, 2), Range(6, 3)];
+  StridedMatrixView s = M[StridedRange(4, 2, 2), Range(6, 3)];
   fill_with_junk(s);
 
-  cout << "\nM =\n" << M << "\n";
+  cout << "\nM =\n" << std::format("{}", M) << "\n";
 
   const Matrix C = M;
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
-       << C[Range(3, 4, 2), Range(2, 3, 3)] << "\n";
+       << std::format("{}", C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]) << "\n";
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
-       << transpose(C[Range(3, 4, 2), Range(2, 3, 3)]) << "\n";
+       << std::format("{}", transpose(C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)])) << "\n";
 
   return 0;
 }
@@ -123,32 +118,6 @@ void test2() {
   cout << "Done\n";
 }
 
-void test4() {
-  Vector a(10);
-  Vector b(a.size());
-
-  for (Index i = 0; i < a.size(); ++i) {
-    a[i] = (Numeric)(i + 1);
-    b[i] = (Numeric)(a.size() - i);
-  }
-
-  cout << "a = \n" << a << "\n";
-  cout << "b = \n" << b << "\n";
-  cout << "a*b \n= " << a * b << "\n";
-
-  Matrix A(11, 6);
-  Matrix B(10, 20);
-  Matrix C(20, 5);
-
-  B = 2;
-  C = 3;
-  mult(A[Range(1, joker), Range(1, joker)], B, C);
-
-  //  cout << "\nB =\n" << B << "\n";
-  //  cout << "\nC =\n" << C << "\n";
-  cout << "\nB*C =\n" << A << "\n";
-}
-
 void test5() {
   Vector a(10);
   Vector b(20);
@@ -158,19 +127,19 @@ void test5() {
   b = 1;
   M = 2;
 
-  cout << "b = \n" << b << "\n";
-  cout << "M =\n" << M << "\n";
+  cout << "b = \n" << std::format("{}", b) << "\n";
+  cout << "M =\n" << std::format("{}", M) << "\n";
 
   mult(a, M, b);  // a = M*b
-  cout << "\na = M*b = \n" << a << "\n";
+  cout << "\na = M*b = \n" << std::format("{}", a) << "\n";
 
-  mult(transpose((MatrixView)b), transpose((MatrixView)a), M);  // b^t = a^t * M
-  cout << "\nb^t = a^t * M = \n" << transpose((MatrixView)b) << "\n";
+  mult(transpose(b.view_as(1, b.size())), transpose(a.view_as(1, a.size())), M);  // b^t = a^t * M
+  cout << "\nb^t = a^t * M = \n" << std::format("{}", transpose(b.view_as(1, b.size()))) << "\n";
 }
 
 void test6() {
   Index n = 5000;
-  Vector x=uniform_grid(1, n, 1), y(n);
+  Vector x=matpack::uniform_grid(1, n, 1), y(n);
   Matrix M(n, n);
   M = 1;
   //  cout << "x = \n" << x << "\n";
@@ -181,7 +150,7 @@ void test6() {
   //  cout << "sin(x) =\n" << y << "\n";
   for (Index i = 0; i < 1000; ++i) {
     //      mult(y,M,x);
-    transform(y, sin, static_cast<MatrixView>(x));
+ y.unary_transform(x, [](auto z){return std::sin(z);});
     x += 1;
   }
   //  cout << "y =\n" << y << "\n";
@@ -190,15 +159,15 @@ void test6() {
 }
 
 void test7() {
-  Vector x=uniform_grid(1, 20000000, 1);
+  Vector x=matpack::uniform_grid(1, 20000000, 1);
   Vector y(x.size());
-  transform(y, sin, x);
+ y.unary_transform(x, [](auto z){return std::sin(z);});
   cout << "min(sin(x)), max(sin(x)) = " << min(y) << ", " << max(y) << "\n";
 }
 
 void test8() {
   Vector x(80000000);
-  for (Index i = 0; i < x.size(); ++i) x[i] = (Numeric)i;
+  for (Size i = 0; i < x.size(); ++i) x[i] = (Numeric)i;
   cout << "Done."
        << "\n";
 }
@@ -207,7 +176,7 @@ void test9() {
   // Initialization of Matrix with view of other Matrix:
   Matrix A(4, 8);
   Matrix B(A[joker, Range(0, 3)]);
-  cout << "B = " << B << "\n";
+  cout << "B = " << std::format("{}", B) << "\n";
 }
 
 void test10() {
@@ -215,9 +184,9 @@ void test10() {
 
   // At the moment doing this with a non-const Vector will result in a
   // warning message.
-  Vector v=uniform_grid(1, 8, 1);
-  Matrix M((const Vector)v);
-  cout << "M = " << M << "\n";
+  Vector v=matpack::uniform_grid(1, 8, 1);
+  Matrix M(v.view_as(1, v.size()));
+  cout << "M = " << std::format("{}", M) << "\n";
 }
 
 void test11() {
@@ -225,10 +194,10 @@ void test11() {
 
   // At the moment doing this with a non-const Vector will result in a
   // warning message.
-  Vector v=uniform_grid(1, 8, 1);
+  Vector v=matpack::uniform_grid(1, 8, 1);
   Matrix M(v.size(), 1);
-  M = MatrixView{v};
-  cout << "M = " << M << "\n";
+  M = v.view_as(1, v.size());
+  cout << "M = " << std::format("{}", M) << "\n";
 }
 
 void test12() {
@@ -250,12 +219,12 @@ void test12() {
 
 void test13() {
   // Mix vector and one-column matrix in += operator.
-  const Vector v=uniform_grid(1, 8, 1);  // The const is necessary here to
+  const Vector v=matpack::uniform_grid(1, 8, 1);  // The const is necessary here to
                             // avoid compiler warnings about
                             // different conversion paths.
-  Matrix M(v);
-  M += MatrixView{v};
-  cout << "M = \n" << M << "\n";
+  Matrix M(v.view_as(1, v.size()));
+  M += v.view_as(1, v.size());
+  cout << "M = \n" << std::format("{}", M) << "\n";
 }
 
 void test14() {
@@ -292,15 +261,15 @@ void test15() {
 
 void test17() {
   // Test Sum.
-  Vector a=uniform_grid(1, 10, 1);
+  Vector a=matpack::uniform_grid(1, 10, 1);
   cout << "a.sum() = " << sum(a) << "\n";  // FIXME: sum() is no longer a member function
 }
 
 void test18() {
   // Test elementvise square of a vector:
-  Vector a=uniform_grid(1, 10, 1);
+  Vector a=matpack::uniform_grid(1, 10, 1);
   a *= a;
-  cout << "a *= a =\n" << a << "\n";
+  cout << "a *= a =\n" << std::format("{}", a) << "\n";
 }
 
 void test19() {
@@ -308,16 +277,16 @@ void test19() {
   // Vector a(3,1.7).
   // But you can use the more general filling constructor with 3 arguments.
 
-  Vector a=uniform_grid(1, 10, 1);
-  Vector b=uniform_grid(5.3, 10, 0);
-  cout << "a =\n" << a << "\n";
-  cout << "b =\n" << b << "\n";
+  Vector a=matpack::uniform_grid(1, 10, 1);
+  Vector b=matpack::uniform_grid(5.3, 10, 0);
+  cout << "a =\n" << std::format("{}", a) << "\n";
+  cout << "b =\n" << std::format("{}", b) << "\n";
 }
 
 void test20() {
   // Test initialization list constructor:
   Vector a{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
 }
 
 void test21() {
@@ -345,23 +314,23 @@ void test22() {
 void test23() {
   // Test constructors that fills with constant:
   Vector a(10, 3.5);
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
   Matrix b(10, 10, 4.5);
-  cout << "b =\n" << b << "\n";
+  cout << "b =\n" << std::format("{}", b) << "\n";
 }
 
 void test24() {
   // Try element-vise multiplication of Matrix and Vector:
   Matrix a(5, 1, 2.5);
-  Vector b=uniform_grid(1, 5, 1);
-  a *= Matrix{b};
-  cout << "a*=b =\n" << a << "\n";
-  a /= MatrixView{b};
-  cout << "a/=b =\n" << a << "\n";
-  a += ExhaustiveMatrixView{b};
-  cout << "a+=b =\n" << a << "\n";
-  a -= ConstMatrixView{b};
-  cout << "a-=b =\n" << a << "\n";
+  Vector b=matpack::uniform_grid(1, 5, 1);
+  a *= Matrix{b.view_as(1, b.size())};
+  cout << "a*=b =\n" << std::format("{}", a) << "\n";
+  a /= MatrixView{b.view_as(1, b.size())};
+  cout << "a/=b =\n" << std::format("{}", a) << "\n";
+  a += MatrixView{b.view_as(1, b.size())};
+  cout << "a+=b =\n" << std::format("{}", a) << "\n";
+  a -= ConstMatrixView{b.view_as(1, b.size())};
+  cout << "a-=b =\n" << std::format("{}", a) << "\n";
 }
 
 void test25() {
@@ -380,15 +349,15 @@ void test27() {
   cout << "Test Arrays of Vectors:\n";
   Array<Vector> a;
   a.push_back({1.0, 2.0});
-  a.push_back(uniform_grid(1.0, 10, 1.0));
-  cout << "a =\n" << a << "\n";
+  a.push_back(matpack::uniform_grid(1.0, 10, 1.0));
+  cout << "a =\n" << std::format("{}", a) << "\n";
 }
 
 void test28() {
   cout << "Test default constructor for Matrix:\n";
   Matrix a;
   Matrix b(a);
-  cout << "b =\n" << b << "\n";
+  cout << "b =\n" << std::format("{}", b) << "\n";
 }
 
 void test29() {
@@ -412,7 +381,7 @@ void test29() {
   a[2].resize(4, 5);
   a[2] = 5;
 
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
 }
 
 void test30() {
@@ -421,19 +390,19 @@ void test30() {
   //  cout << "a(0,0) =\n" << a(0,0) << "\n";
   a.resize(2, 2);
   a = 1;
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
 
   Matrix b(3, 0);
   //  cout << "b(0,0) =\n" << b(0,0) << "\n";
   b.resize(b.nrows(), b.ncols() + 3);
   b = 2;
-  cout << "b =\n" << b << "\n";
+  cout << "b =\n" << std::format("{}", b) << "\n";
 
   Matrix c(0, 3);
   //  cout << "c(0,0) =\n" << c(0,0) << "\n";
   c.resize(c.nrows() + 3, c.ncols());
   c = 3;
-  cout << "c =\n" << c << "\n";
+  cout << "c =\n" << std::format("{}", c) << "\n";
 }
 
 void test31() {
@@ -448,33 +417,33 @@ void test31() {
     for (Index j = 0; j < a.nrows(); ++j)
       for (Index k = 0; k < a.ncols(); ++k) a[i, j, k] = (Numeric)(++fill);
 
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
 
   cout << "Taking out first row of first page:\n"
-       << a[0, 0, joker] << "\n";
+       << std::format("{}", a[0, 0, joker]) << "\n";
 
   cout << "Taking out last column of second page:\n"
-       << a[1, joker, a.ncols() - 1] << "\n";
+       << std::format("{}", a[1, joker, a.ncols() - 1]) << "\n";
 
   cout << "Taking out the first letter on every page:\n"
-       << a[joker, 0, 0] << "\n";
+       << std::format("{}", a[joker, 0, 0]) << "\n";
 
   cout << "Taking out first page:\n"
-       << a[0, joker, joker] << "\n";
+       << std::format("{}", a[0, joker, joker]) << "\n";
 
   cout << "Taking out last row of all pages:\n"
-       << a[joker, a.nrows() - 1, joker] << "\n";
+       << std::format("{}", a[joker, a.nrows() - 1, joker]) << "\n";
 
   cout << "Taking out second column of all pages:\n"
-       << a[joker, joker, 1] << "\n";
+       << std::format("{}", a[joker, joker, 1]) << "\n";
 
   a *= 2;
 
-  cout << "After element-vise multiplication with 2:\n" << a << "\n";
+  cout << "After element-vise multiplication with 2:\n" << std::format("{}", a) << "\n";
 
-  transform(a, sqrt, a);
+  a.unary_transform(a, [](auto z){return std::sqrt(z);});
 
-  cout << "After taking the square-root:\n" << a << "\n";
+  cout << "After taking the square-root:\n" << std::format("{}", a) << "\n";
 
   Index s = 200;
   cout << "Let's allocate a large tensor, "
@@ -509,13 +478,13 @@ void test32() {
       X[j, k] = 1;
       A[j, k] = (Numeric)(j + k);
     }
-  cout << "A:\n" << A << "\n";
-  cout << "X:\n" << X << "\n";
+  cout << "A:\n" << std::format("{}", A) << "\n";
+  cout << "X:\n" << std::format("{}", X) << "\n";
 
   mult(B, A, X);
-  cout << "B = A*X:\n" << B << "\n";
+  cout << "B = A*X:\n" << std::format("{}", B) << "\n";
   mult(X, A, X);
-  cout << "X = A*X:\n" << X << "\n";
+  cout << "X = A*X:\n" << std::format("{}", X) << "\n";
 
   cout << "This is not the same, and should not be, because you\n"
        << "are not allowed to use the same matrix as input and output\n"
@@ -529,7 +498,7 @@ void test33() {
     cout << "1. Make a scalar look like a vector:\n";
     Numeric a = 3.1415;  // Just any number here.
     VectorView av(a);
-    cout << "a, viewed as a vector: " << av << "\n";
+    cout << "a, viewed as a vector: " << std::format("{}", av) << "\n";
     cout << "Describe a: " << "DEPR" << "\n";  // FIXME: Removed describe for Numeric
     av[0] += 1;
     cout << "a, after the first element\n"
@@ -541,91 +510,70 @@ void test33() {
         << "\n2. Make a vector look like a matrix:\n"
         << "This is an exception, because the new dimension is added at the end.\n";
     Vector a{1, 2, 3, 4, 5};
-    MatrixView am{a};
-    cout << "a, viewed as a matrix:\n" << am << "\n";
-    cout << "Trasnpose view:\n" << transpose(am) << "\n";
-    cout << "Describe transpose(am): " << describe(transpose(am)) << "\n";
+    MatrixView am{a.view_as(1, a.size())};
+    cout << "a, viewed as a matrix:\n" << std::format("{}", am) << "\n";
+    cout << "Trasnpose view:\n" << std::format("{}", transpose(am)) << "\n";
 
     cout << "\n3. Make a matrix look like a tensor3:\n";
     Tensor3View at3 = Tensor3View{am};
-    cout << "at3 = \n" << at3 << "\n";
-    cout << "Describe at3: " << describe(at3) << "\n";
+    cout << "at3 = \n" << std::format("{}", at3) << "\n";
     at3[0, 2, 0] += 1;
-    cout << "a after Increasing element at3(0,2,0) by 1: \n" << a << "\n\n";
+    cout << "a after Increasing element at3(0,2,0) by 1: \n" << std::format("{}", a) << "\n\n";
 
     Tensor4View at4 = Tensor4View{at3};
-    cout << "at4 = \n" << at4 << "\n";
-    cout << "Describe at4: " << describe(at4) << "\n";
+    cout << "at4 = \n" << std::format("{}", at4) << "\n";
 
     Tensor5View at5 = Tensor5View{at4};
-    cout << "at5 = \n" << at5 << "\n";
-    cout << "Describe at5: " << describe(at5) << "\n";
+    cout << "at5 = \n" << std::format("{}", at5) << "\n";
 
     Tensor6View at6 = Tensor6View{at5};
-    cout << "at6 = \n" << at6 << "\n";
-    cout << "Describe at6: " << describe(at6) << "\n";
+    cout << "at6 = \n" << std::format("{}", at6) << "\n";
 
     Tensor7View at7 = Tensor7View{at6};
-    cout << "at7 = \n" << at7 << "\n";
-    cout << "Describe at7: " << describe(at7) << "\n";
+    cout << "at7 = \n" << std::format("{}", at7) << "\n";
 
     at7[0, 0, 0, 0, 0, 2, 0] -= 1;
 
     cout << "After subtracting 1 from at7(0,0,0,0,0,2,0)\n"
-         << "a = " << a << "\n";
+         << "a = " << std::format("{}", a) << "\n";
 
     cout << "\nAll in one go:\n";
     Numeric b = 3.1415;  // Just any number here.
     Tensor7View bt7 = Tensor7View{Tensor6View(
         Tensor5View(Tensor4View(Tensor3View(MatrixView(VectorView(b))))))};
-    cout << "bt7:\n" << bt7 << "\n";
-    cout << "Describe bt7: " << describe(bt7) << "\n";
+    cout << "bt7:\n" << std::format("{}", bt7) << "\n";
   }
-}
-
-void junk4(Tensor4View a) { cout << "Describe a: " << describe(a) << "\n"; }
-
-void junk2(ConstVectorView a) { cout << "Describe a: " << describe(a) << "\n"; }
-
-void test34() {
-  cout << "Test, if dimension expansion works implicitly.\n";
-
-  Tensor3 t3(2, 3, 4);
-  junk4(Tensor4View{t3});  // FIXME: No more implicit up-conversion
-
-  Numeric x;
-  junk2(ConstVectorView(x));
 }
 
 void test35() {
   cout << "Test the new copy semantics.\n";
-  Vector a=uniform_grid(1, 4, 1);
+  Vector a=matpack::uniform_grid(1, 4, 1);
   Vector b;
 
   b = a;
-  cout << "b = " << b << "\n";
+  cout << "b = " << std::format("{}", b) << "\n";
 
-  Vector aa=uniform_grid(1, 5, 1);
+  Vector aa=matpack::uniform_grid(1, 5, 1);
   ConstVectorView c = aa;
   b = c;
-  cout << "b = " << b << "\n";
+  cout << "b = " << std::format("{}", b) << "\n";
 
-  Vector aaa=uniform_grid(1, 6, 1);
+  Vector aaa=matpack::uniform_grid(1, 6, 1);
   VectorView d = aaa;
   b = d;
-  cout << "b = " << b << "\n";
+  cout << "b = " << std::format("{}", b) << "\n";
 }
 
 void test36() {
   cout << "Test using naked joker on Vector.\n";
-  Vector a=uniform_grid(1, 4, 1);
+  Vector a=matpack::uniform_grid(1, 4, 1);
   VectorView b = a[joker];
-  cout << "a = " << a << "\n";
-  cout << "b = " << b << "\n";
+  cout << "a = " << std::format("{}", a) << "\n";
+  cout << "b = " << std::format("{}", b) << "\n";
 }
 
 void test37(const Index& i) {
-  Vector v1=uniform_grid(5e-15, 10, 0.42e-15 / 11);
+  Vector v1=matpack::uniform_grid(5e-15, 10, 0.42e-15 / 11);
   Vector v2 = v1;
   //  Index i = 10000000;
 
@@ -635,37 +583,37 @@ void test37(const Index& i) {
   //  cout.setf(ios_base::scientific,ios_base::floatfield);
   v1 *= v1;
   v2 *= v2;
-  cout << v1 << endl;
-  cout << v2 << endl;
+  cout << std::format("{}", v1) << '\n';
+  cout << std::format("{}", v2) << '\n';
 }
 
 void test38() {
   Vector v(5, 0.);
-  Numeric* const a = v.unsafe_data_handle();
+  Numeric* const a = v.data_handle();
 
   a[4] = 5.;
 
-  cout << v << endl;
-  cout << endl << "========================" << endl << endl;
+  cout << std::format("{}", v) << '\n';
+  cout << '\n' << "========================" << '\n' << '\n';
 
   Matrix m(5, 5, 0.);
-  Numeric* const b = m.unsafe_data_handle();
+  Numeric* const b = m.data_handle();
 
   b[4] = 5.;
 
-  cout << m << endl;
-  cout << endl << "========================" << endl << endl;
+  cout << std::format("{}", m) << '\n';
+  cout << '\n' << "========================" << '\n' << '\n';
 
   Tensor3 t3(5, 6, 7, 0.);
-  Numeric* const c = t3.unsafe_data_handle();
+  Numeric* const c = t3.data_handle();
 
   c[6] = 5.;
 
-  cout << t3 << endl;
+  cout << std::format("{}", t3) << '\n';
 }
 
 void test39() {
-  Vector v1=uniform_grid(1, 5, 1), v2(5);  // FIXME: No more Vector(x,y,z) constructor
+  Vector v1=matpack::uniform_grid(1, 5, 1), v2(5);
 
   v2 = v1 * 2;
   // Unfortunately, this thing compiles, but at least it gives an
@@ -673,7 +621,7 @@ void test39() {
   // implicitly creates a one element vector out of the "2", then
   // tries to do a scalar product with v1.
 
-  cout << v2 << endl;
+  cout << std::format("{}", v2) << '\n';
 }
 
 void test40() {
@@ -681,7 +629,7 @@ void test40() {
 
   v = 5;
 
-  cout << v << endl;
+  cout << std::format("{}", v) << '\n';
 }
 
 void test41() {
@@ -689,18 +637,18 @@ void test41() {
 
   ConstVectorView vv = v1[Range(0, 5)];
 
-  cout << "Vector:     " << v1 << endl;
-  cout << "VectorView: " << vv << endl;
+  cout << "Vector:     " << std::format("{}", v1) << '\n';
+  cout << "VectorView: " << std::format("{}", vv) << '\n';
 
   try {
     //vv = 2;  FIXME: No more runtime errors for simple types
   } catch (const std::runtime_error& e) {
-    std::cerr << e.what() << endl;
+    std::cerr << e.what() << '\n';
     exit(EXIT_FAILURE);
   }
 
-  cout << "VectorView: " << vv << endl;
-  cout << "Vector:     " << v1 << endl;
+  cout << "VectorView: " << std::format("{}", vv) << '\n';
+  cout << "Vector:     " << std::format("{}", v1) << '\n';
 }
 
 // Test behaviour of VectorView::operator MatrixView, for which I have fixed
@@ -709,21 +657,10 @@ void test41() {
 void test42() {
   cout << "test42\n";
   Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  cout << "x: " << x << endl;
+  cout << "x: " << std::format("{}", x) << '\n';
 
-  VectorView y = x[Range(2, 4, 2)];
-  cout << "y: " << y << endl;
-
-  ConstMatrixView z((MatrixView)y);
-  cout << "z:\n" << z << endl;
-
-  cout << "Every other z:\n" << z[Range(1, 2, 2), joker] << endl;
-
-  // Try write access also:
-  MatrixView zz(y);
-  zz[Range(1, 2, 2), joker] = 0;
-  cout << "zz:\n" << zz << endl;
-  cout << "New x: " << x << endl;
+  StridedVectorView y = x[StridedRange(2, 4, 2)];
+  cout << "y: " << std::format("{}", y) << '\n';
 }
 
 
@@ -781,243 +718,14 @@ void test43() {
   static_assert(r7 == 2, "Rational fail to initialize properly");
 }
 
-void test44() {
-#define docheck(fn, val, expect)                                           \
-  cout << #fn << "(" << val << ") = " << fn(x) << " (expected " << #expect \
-       << ")" << std::endl;
-
-  Vector x{1, 2, 3};
-  docheck(is_increasing, x, 1) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 1)
-
-          x = {3, 2, 1};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 1)
-      docheck(is_sorted, x, 0)
-
-          x = {1, 2, 2};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 1)
-
-          x = {2, 2, 1};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 0)
-
-          x = {1, NAN, 2};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 0)
-
-          x = {2, NAN, 1};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 0)
-
-          x = {NAN, NAN, NAN};
-  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
-      docheck(is_sorted, x, 0)
-
-#undef docheck
-}
-
 void test46() {
   Vector v(5, 0.);
   nlinspace(v, 1, 10, 10);
   VectorView v1 = v;
   auto compare_func = [](Numeric n) { return n != 0; };
-  cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
+  cout << std::any_of(v1.begin(), v1.end(), compare_func) << '\n';
   v1 = 0.;
-  cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
-}
-
-//! Test diagonal vector.
-/*!
-  Generates ntest random (m,n)-matrices and checks if the returned diagonal
-  vector has the same entries as the diagonal. Also test transposed matrices
-  and submatrices of the generated matrix.
-
-  \param[in] ntests Number of tests to run.
-  \return True if all tests were passed, false otherwise.
-*/
-bool test_diagonal(Index ntests) {
-  Rand<Index> rand(1, 100);
-
-  Index n_diag;
-
-  bool pass = true;
-
-  for (Index i = 0; i < ntests; i++) {
-    Matrix A(rand(), rand());
-    n_diag = std::min(A.ncols(), A.nrows());
-
-    ConstMatrixView AT = transpose(A);
-    ConstMatrixView B = A;
-    if (n_diag > 3) {
-      B.set(A[Range(1, Joker(), 2), Range(1, Joker(), 2)]);  // FIXME: NO MORE = for ConstXYZ
-    }
-
-    ConstVectorView v(A.diagonal());
-    ConstVectorView vt(AT.diagonal());
-    ConstVectorView vb(B.diagonal());
-
-    random_fill_matrix(A, 10, true);
-
-    for (Index j = 0; j < n_diag; j++) {
-      pass = pass && (v[j] == A[j, j]);
-      pass = pass && (vt[j] == AT[j, j]);
-
-      if (j < vb.size()) pass = pass && (vb[j] == B[j, j]);
-    }
-    cout << endl;
-  }
-
-  if (pass)
-    cout << "test diagonal: Passed all tests." << endl;
-  else
-    cout << "test diagonal: Failed." << endl;
-
-  return pass;
-}
-
-Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
-  Numeric max_err = 0;
-  Matrix A(m, n);
-  Vector x(n), xt, x_ref(n), y(m), y_ref(m);
-
-  Rand<Index> random_row_stride(1, n / 4);
-  Rand<Index> random_column_stride(1, m / 4);
-
-  for (Index i = 0; i < ntests; i++) {
-    // A * x
-
-    random_fill_matrix(A, 1000, false);
-    random_fill_vector(x, 1000, false);
-
-    mult(y, A, x);
-    mult(y_ref, A, x);
-
-    Numeric err_mul = get_maximum_error(y, y_ref, true);
-    if (err_mul > max_err) max_err = err_mul;
-
-    if (verbose) {
-      cout << "\t A * x: max. rel. error = " << err_mul << endl;
-    }
-
-    // A^T  * y
-
-    mult(x, transpose(A), y);
-    mult(x_ref, transpose(A), y);
-
-    err_mul = get_maximum_error(x, x_ref, true);
-    if (err_mul > max_err) max_err = err_mul;
-
-    if (verbose) {
-      cout << "\t A^T * x: max. rel. error = " << err_mul << endl;
-    }
-
-    // Random stride
-    Index column_stride(random_column_stride()),
-        row_stride(random_row_stride());
-
-    Index m_sub, n_sub;
-    m_sub = (m - 1) / row_stride + 1;
-    n_sub = (n - 1) / column_stride + 1;
-
-    mult(y[Range(0, joker, row_stride)],
-         A[Range(0, m_sub), Range(0, n_sub)],
-         x[Range(0, joker, column_stride)]);
-    mult(y_ref[Range(0, joker, row_stride)],
-                 A[Range(0, m_sub), Range(0, n_sub)],
-                 x[Range(0, joker, column_stride)]);
-
-    err_mul = get_maximum_error(y[Range(0, joker, row_stride)],
-                                y_ref[Range(0, joker, row_stride)],
-                                true);
-    if (err_mul > max_err) max_err = err_mul;
-
-    if (verbose) {
-      cout << "\t Random stride: max. rel. error = " << err_mul << endl << endl;
-    }
-
-    // Random offset
-    if ((m > 1) && (n > 1)) {
-      Index y_offset = rand() % (m - 1);
-      Index x_offset = rand() % (n - 1);
-
-      m_sub = m - y_offset - 1;
-      n_sub = n - x_offset - 1;
-
-      mult(y[Range(y_offset, m_sub)],
-           A[Range(y_offset, m_sub), Range(x_offset, n_sub)],
-           x[Range(x_offset, n_sub)]);
-      mult(y_ref[Range(y_offset, m_sub)],
-                   A[Range(y_offset, m_sub), Range(x_offset, n_sub)],
-                   x[Range(x_offset, n_sub)]);
-
-      err_mul = get_maximum_error(
-          y[Range(y_offset, m_sub)], y_ref[Range(y_offset, m_sub)], true);
-      if (err_mul > max_err) max_err = err_mul;
-
-      if (verbose) {
-        cout << "\t Random offset: max. rel. error = " << err_mul << endl
-             << endl;
-      }
-    }
-  }
-
-  return max_err;
-}
-
-Numeric test_matrix_vector_multiplication(bool verbose) {
-  Numeric err, max_err;
-
-  if (verbose)
-    cout << "Matrix-Vector Multiplication: n = m = 100, ntests = 100" << endl;
-
-  max_err = matrix_vector_mult(100, 100, 100, verbose);
-  if (verbose) {
-    cout << endl;
-    cout << "Matrix-Vector Multiplication: n = 100, m = 20, ntests = 100"
-         << endl;
-  }
-
-  err = matrix_vector_mult(100, 20, 100, verbose);
-  if (err > max_err) max_err = err;
-  if (verbose) {
-    cout << endl;
-    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
-         << endl;
-  }
-
-  err = matrix_vector_mult(20, 100, 100, verbose);
-  if (err > max_err) max_err = err;
-  if (verbose) {
-    if (max_err < 1e-9)
-      cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
-    else
-      cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
-  }
-
-  err = matrix_vector_mult(100, 1, 100, verbose);
-  if (err > max_err) max_err = err;
-  if (verbose) {
-    cout << endl;
-    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
-         << endl;
-  }
-
-  err = matrix_vector_mult(1, 100, 100, verbose);
-  if (err > max_err) max_err = err;
-  if (verbose) {
-    cout << endl;
-    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
-         << endl;
-  }
-
-  if (verbose) {
-    if (max_err < 1e-9)
-      cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
-    else
-      cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
-  }
-  return max_err;
+  cout << std::any_of(v1.begin(), v1.end(), compare_func) << '\n';
 }
 
 //! Perform matrix multiplication test.
@@ -1052,7 +760,7 @@ Numeric matrix_mult(
     if (verbose) {
       cout.precision(15);
       cout << "MATRIX MULTIPLICATION: m = " << m << ", k = " << k;
-      cout << ", n = " << n << endl;
+      cout << ", n = " << n << '\n';
     }
 
     // A * B
@@ -1068,7 +776,7 @@ Numeric matrix_mult(
 
     if (verbose) {
       cout << "\t"
-           << "A * B: max. rel. error = " << err_mul << endl;
+           << "A * B: max. rel. error = " << err_mul << '\n';
     }
 
     // A^T * B
@@ -1083,7 +791,7 @@ Numeric matrix_mult(
 
     if (verbose) {
       cout << "\t"
-           << "A^T * B: max. rel. err = " << err_trans1 << endl;
+           << "A^T * B: max. rel. err = " << err_trans1 << '\n';
     }
 
     // A * B^T
@@ -1098,7 +806,7 @@ Numeric matrix_mult(
 
     if (verbose) {
       cout << "\t"
-           << "A * B^T: max. rel. err = " << err_trans2 << endl;
+           << "A * B^T: max. rel. err = " << err_trans2 << '\n';
     }
 
     // A^T * B^T
@@ -1110,8 +818,8 @@ Numeric matrix_mult(
 
     if (verbose) {
       cout << "\t"
-           << "A^T * B^T: max. rel. err = " << err_trans3 << endl;
-      cout << endl;
+           << "A^T * B^T: max. rel. err = " << err_trans3 << '\n';
+      cout << '\n';
     }
   }
 
@@ -1125,11 +833,11 @@ Numeric matrix_mult(
     Range r2(random_range(k1));
     Range r3(random_range(n1));
 
-    MatrixView C_sub(C[r1, r3]);
-    MatrixView C_sub_ref(C_ref[r1, r3]);
+    StridedMatrixView C_sub(C[r1, r3]);
+    StridedMatrixView C_sub_ref(C_ref[r1, r3]);
 
-    ConstMatrixView A_sub(A[r1, r2]);
-    ConstMatrixView B_sub(B[r2, r3]);
+    StridedConstMatrixView A_sub(A[r1, r2]);
+    StridedConstMatrixView B_sub(B[r2, r3]);
 
     mult(C_sub, A_sub, B_sub);
     mult(C_sub_ref, A_sub, B_sub);
@@ -1140,12 +848,12 @@ Numeric matrix_mult(
     if (verbose) {
       cout << "\t"
            << "Submatrix multiplication: max. rel. err = " << err;
-      cout << endl;
+      cout << '\n';
     }
   }
 
   if (verbose) {
-    cout << endl;
+    cout << '\n';
   }
 
   return max_err;
@@ -1207,110 +915,110 @@ Numeric test_matrix_multiplication(bool verbose) {
 //! Check if the empty function is working correctly
 void test_empty() {
   {
-    cout << "Array" << endl;
+    cout << "Array" << '\n';
     ArrayOfIndex v;
     v.resize(0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Vector" << endl;
+    cout << "Vector" << '\n';
     Vector v;
     v.resize(0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Matrix" << endl;
+    cout << "Matrix" << '\n';
     Matrix v;
     v.resize(0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Tensor3" << endl;
+    cout << "Tensor3" << '\n';
     Tensor3 v;
     v.resize(0, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Tensor4" << endl;
+    cout << "Tensor4" << '\n';
     Tensor4 v;
     v.resize(0, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Tensor5" << endl;
+    cout << "Tensor5" << '\n';
     Tensor5 v;
     v.resize(0, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 0, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Tensor6" << endl;
+    cout << "Tensor6" << '\n';
     Tensor6 v;
     v.resize(0, 1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 0, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 0, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
   {
-    cout << "Tensor7" << endl;
+    cout << "Tensor7" << '\n';
     Tensor7 v;
     v.resize(0, 1, 1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 0, 1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 0, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 0, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 0, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1, 0, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1, 1, 0);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
     v.resize(1, 1, 1, 1, 1, 1, 1);
-    cout << v.empty() << endl;
+    cout << v.empty() << '\n';
   }
 }
 
@@ -1322,463 +1030,9 @@ void test47() {
   VectorView vv = v[joker];
   MatrixView mv = m[joker, joker];
 
-  std::cout << "vv.size: " << vv.size() << std::endl;
+  std::cout << "vv.size: " << vv.size() << '\n';
   std::cout << "mv.nrows: " << mv.nrows() << " ";
-  std::cout << "mv.ncols: " << mv.ncols() << std::endl;
-
-  Matrix m2(0, 5);
-  MatrixView mv2 = MatrixView{m2[joker, 3]};
-  std::cout << "mv2.nrows: " << mv2.nrows() << " ";
-  std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
-}
-
-void test48() {
-  
-  // Test each simple reduction
-  std::cout << Tensor7(2, 2, 2, 2, 2, 2, 1, 8).reduce_rank<0, 1, 2, 3, 4, 5>() << '\n';
-  std::cout << Tensor7(2, 2, 2, 2, 2, 1, 1, 9).reduce_rank<0, 1, 2, 3, 4>() << '\n';
-  std::cout << Tensor7(2, 2, 2, 2, 1, 1, 1, 10).reduce_rank<0, 1, 2, 3>() << '\n';
-  std::cout << Tensor7(2, 2, 2, 1, 1, 1, 1, 11).reduce_rank<0, 1, 2>() << '\n';
-  std::cout << Tensor7(2, 2, 1, 1, 1, 1, 1, 12).reduce_rank<0, 1>() << '\n';
-  std::cout << Tensor7(2, 1, 1, 1, 1, 1, 1, 13).reduce_rank<0>() << '\n';
-  std::cout << Tensor7(1, 1, 1, 1, 1, 1, 1, 14) << '\n';
-  std::cout << Tensor6(2, 2, 2, 2, 2, 1, 15).reduce_rank<0, 1, 2, 3, 4>() << '\n';
-  std::cout << Tensor6(2, 2, 2, 2, 1, 1, 16).reduce_rank<0, 1, 2, 3>() << '\n';
-  std::cout << Tensor6(2, 2, 2, 1, 1, 1, 17).reduce_rank<0, 1, 2>() << '\n';
-  std::cout << Tensor6(2, 2, 1, 1, 1, 1, 18).reduce_rank<0, 1>() << '\n';
-  std::cout << Tensor6(2, 1, 1, 1, 1, 1, 19).reduce_rank<0>() << '\n';
-  std::cout << Tensor6(1, 1, 1, 1, 1, 1, 20) << '\n';
-  std::cout << Tensor5(2, 2, 2, 2, 1, 21).reduce_rank<0, 1, 2, 3>() << '\n';
-  std::cout << Tensor5(2, 2, 2, 1, 1, 22).reduce_rank<0, 1, 2>() << '\n';
-  std::cout << Tensor5(2, 2, 1, 1, 1, 23).reduce_rank<0, 1>() << '\n';
-  std::cout << Tensor5(2, 1, 1, 1, 1, 24).reduce_rank<0>() << '\n';
-  std::cout << Tensor5(1, 1, 1, 1, 1, 25) << '\n';
-  std::cout << Tensor4(2, 2, 2, 1, 26).reduce_rank<0, 1, 2>() << '\n';
-  std::cout << Tensor4(2, 2, 1, 1, 27).reduce_rank<0, 1>() << '\n';
-  std::cout << Tensor4(2, 1, 1, 1, 28).reduce_rank<0>() << '\n';
-  std::cout << Tensor4(1, 1, 1, 1, 29) << '\n';
-  std::cout << Tensor3(2, 2, 1, 30).reduce_rank<0, 1>() << '\n';
-  std::cout << Tensor3(2, 1, 1, 31).reduce_rank<0>() << '\n';
-  std::cout << Tensor3(1, 1, 1, 32) << '\n';
-  std::cout << Matrix(2, 1, 33).reduce_rank<0>() << '\n';
-  std::cout << Matrix(1, 1, 34) << '\n';
-  
-  // Test that the reductions work along different axis for Vector
-  std::cout << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 1>()).transpose() << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 2>()).transpose() << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 3>()).transpose() << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 4>()).transpose() << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 5>()).transpose() << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 6>()).transpose() << '\n';
-  
-  // Test that the reductions work along different axis for Matrix
-  std::cout << matpack::eigen::mat(Tensor7(2, 2, 1, 1, 1, 1, 1, 36).reduce_rank<0, 1>()) << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 2, 1, 1, 1, 1, 36).reduce_rank<0, 2>()) << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 2, 1, 1, 1, 36).reduce_rank<0, 3>()) << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 2, 1, 1, 36).reduce_rank<0, 4>()) << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 2, 1, 36).reduce_rank<0, 5>()) << '\n'
-            << matpack::eigen::mat(Tensor7(2, 1, 1, 1, 1, 1, 2, 36).reduce_rank<0, 6>()) << '\n';
-            
-  // Test that the right elements are accessed
-  {
-    Index val=1;
-    Tensor7 testvar(9, 2, 4, 3, 5, 7, 11);for (Index i=0; i<9; i++)
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                testvar[i, j, k, l, m, n, o] = Numeric(val++);
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    //  Vector test
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0>() << '\n';
-                std::cout << testvar[joker, j, k, l, m, n, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1>() << '\n';
-                std::cout << testvar[i, joker, k, l, m, n, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<2>() << '\n';
-                std::cout << testvar[i, j, joker, l, m, n, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<3>() << '\n';
-                std::cout << testvar[i, j, k, joker, m, n, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index n=0; n<7; n++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<4>() << '\n';
-                std::cout << testvar[i, j, k, l, joker, n, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index m=0; m<5; m++) {
-              for (Index o=0; o<11; o++) {
-                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<5>() << '\n';
-                std::cout << testvar[i, j, k, l, m, joker, o] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index m=0; m<5; m++) {
-              for (Index n=0; n<7; n++) {
-                std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<6>() << '\n';
-                std::cout << testvar[i, j, k, l, m, n, joker] << '\n';
-                std::cout << '\n';
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    // Matrix test
-    for (Index k=0; k<4; k++) {
-      for (Index l=0; l<3; l++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[joker, joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 1>() << '\n';
-              std::cout << testvar[joker, joker, k, l, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index j=0; j<2; j++) {
-      for (Index l=0; l<3; l++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[joker, Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 2>() << '\n';
-              std::cout << testvar[joker, j, joker, l, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<0, 3>() << '\n';
-              std::cout << testvar[joker, j, k, joker, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<0, 4>() << '\n';
-              std::cout << testvar[joker, j, k, l, joker, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<0, 5>() << '\n';
-              std::cout << testvar[joker, j, k, l, m, joker, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index j=0; j<2; j++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar[joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<0, 6>() << '\n';
-              std::cout << testvar[joker, j, k, l, m, n, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index l=0; l<3; l++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), joker, joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1, 2>() << '\n';
-              std::cout << testvar[i, joker, joker, l, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index k=0; k<4; k++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<1, 3>() << '\n';
-              std::cout << testvar[i, joker, k, joker, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<1, 4>() << '\n';
-              std::cout << testvar[i, joker, k, l, joker, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<1, 5>() << '\n';
-              std::cout << testvar[i, joker, k, l, m, joker, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index k=0; k<4; k++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar[Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<1, 6>() << '\n';
-              std::cout << testvar[i, joker, k, l, m, n, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index m=0; m<5; m++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, joker, Range(m, 1), Range(n, 1), Range(o, 1)]).reduce_rank<2, 3>() << '\n';
-              std::cout << testvar[i, j, joker, joker, m, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index l=0; l<3; l++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), joker, Range(n, 1), Range(o, 1)]).reduce_rank<2, 4>() << '\n';
-              std::cout << testvar[i, j, joker, l, joker, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), joker, Range(o, 1)]).reduce_rank<2, 5>() << '\n';
-              std::cout << testvar[i, j, joker, l, m, joker, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index l=0; l<3; l++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), joker]).reduce_rank<2, 6>() << '\n';
-              std::cout << testvar[i, j, joker, l, m, n, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index n=0; n<7; n++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, joker, Range(n, 1), Range(o, 1)]).reduce_rank<3, 4>() << '\n';
-              std::cout << testvar[i, j, k, joker, joker, n, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index m=0; m<5; m++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), joker, Range(o, 1)]).reduce_rank<3, 5>() << '\n';
-              std::cout << testvar[i, j, k, joker, m, joker, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index m=0; m<5; m++) {
-            for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), joker]).reduce_rank<3, 6>() << '\n';
-              std::cout << testvar[i, j, k, joker, m, n, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index o=0; o<11; o++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, joker, Range(o, 1)]).reduce_rank<4, 5>() << '\n';
-              std::cout << testvar[i, j, k, l, joker, joker, o] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index n=0; n<7; n++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), joker]).reduce_rank<4, 6>() << '\n';
-              std::cout << testvar[i, j, k, l, joker, n, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-    for (Index i=0; i<9; i++) {
-      for (Index j=0; j<2; j++) {
-        for (Index k=0; k<4; k++) {
-          for (Index l=0; l<3; l++) {
-            for (Index m=0; m<5; m++) {
-              std::cout << Tensor7(testvar[Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, joker]).reduce_rank<5, 6>() << '\n';
-              std::cout << testvar[i, j, k, l, m, joker, joker] << '\n';
-              std::cout << '\n';
-            }
-          }
-        }
-      }
-    }
-  }
+  std::cout << "mv.ncols: " << mv.ncols() << '\n';
 }
 
 void test_wigner_error() {
@@ -1816,9 +1070,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A (3, 3, 1);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
   {
     std::cout << "TEST 2 (y = A * x; NOT STRIDED):\n";
@@ -1826,9 +1080,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A = build_test_matrix(3, 3);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
   {
     std::cout << "TEST 3 (y = A * x; NOT STRIDED):\n";
@@ -1836,9 +1090,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2});
     Matrix A = build_test_matrix(3, 2);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
     {
     std::cout << "TEST 4 (y = A * x; STRIDED):\n";
@@ -1846,9 +1100,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A (3, 3, 1);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
   {
     std::cout << "TEST 5 (y = A * x; STRIDED):\n";
@@ -1856,9 +1110,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A = build_test_matrix(3, 3);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
   {
     std::cout << "TEST 6 (y = A * x; STRIDED):\n";
@@ -1866,9 +1120,9 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2});
     Matrix A = build_test_matrix(3, 2);
     mult(y, A, x);
-    std::cout << "A (in):\n" << A << '\n'
-              << "x (in):\n" << x << '\n'
-              << "y (out):\n" << y << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "x (in):\n" << std::format("{}", x) << '\n'
+              << "y (out):\n" << std::format("{}", y) << '\n';
   }
   {
     std::cout << "TEST 7 (C = A * B; NON STRIDED):\n";
@@ -1876,9 +1130,9 @@ void test_mult() {
     Matrix B(3, 3, 1);
     Matrix A (3, 3, 1);
     mult(C, A, B);
-    std::cout << "A (in):\n" << A << '\n'
-              << "B (in):\n" << B << '\n'
-              << "C (out):\n" << C << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "B (in):\n" << std::format("{}", B) << '\n'
+              << "C (out):\n" << std::format("{}", C) << '\n';
   }
   {
     std::cout << "TEST 8 (C = A * B; NON STRIDED):\n";
@@ -1886,9 +1140,9 @@ void test_mult() {
     Matrix A (3, 2, 1);
     Matrix B(2, 4, 1);
     mult(C, A, B);
-    std::cout << "A (in):\n" << A << '\n'
-              << "B (in):\n" << B << '\n'
-              << "C (out):\n" << C << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "B (in):\n" << std::format("{}", B) << '\n'
+              << "C (out):\n" << std::format("{}", C) << '\n';
   }
   {
     std::cout << "TEST 9 (C = A * B; NON STRIDED):\n";
@@ -1896,9 +1150,9 @@ void test_mult() {
     Matrix A = build_test_matrix(3, 2);
     Matrix B = build_test_matrix(2, 4);
     mult(C, A, B);
-    std::cout << "A (in):\n" << A << '\n'
-              << "B (in):\n" << B << '\n'
-              << "C (out):\n" << C << '\n';
+    std::cout << "A (in):\n" << std::format("{}", A) << '\n'
+              << "B (in):\n" << std::format("{}", B) << '\n'
+              << "C (out):\n" << std::format("{}", C) << '\n';
   }
   std::cout << "#/MULT TEST ######################################\n";
 }
@@ -1965,18 +1219,18 @@ int main() {
   //    error = test_matrix_vector_multiplication(false);
   //    cout << "Matrix Vector Multiplication: ";
   //    if (error > tolerance)
-  //        cout << "FAILED, maximum error: " << error << endl;
+  //        cout << "FAILED, maximum error: " << error << '\n';
   //    else
-  //        cout << "PASSED." << endl;
+  //        cout << "PASSED." << '\n';
   //
   //    // Matrix Matrix Multiplication.
   //    error = test_matrix_multiplication(false);
   //
   //    cout << "Matrix Matrix Multiplication: ";
   //    if (error > tolerance)
-  //        cout << "FAILED, maximum error: " << error << endl;
+  //        cout << "FAILED, maximum error: " << error << '\n';
   //    else
-  //        cout << "PASSED." << endl;
+  //        cout << "PASSED." << '\n';
 
   //test_diagonal( 100 );
   //test_empty();

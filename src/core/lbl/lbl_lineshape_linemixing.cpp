@@ -33,18 +33,4 @@ Numeric species_data::Omega(const Numeric T,
   
   return 1.0 / pow2(1 + pow2(wnnm2) * tauc_pow2 / 24.0);
 }
-
-std::ostream& operator<<(std::ostream&os , const isot_map& self) {
-  for (auto& [k, v]: self) {
-    os << k << ":\n";
-    for (auto& [k2, v2]: v) {
-      os << "  " << k2 << ":\n";
-      os << "    scaling:              " << v2.scaling << "\n";
-      os << "    beta:                 " << v2.beta << "\n";
-      os << "    lambda:               " << v2.lambda << "\n";
-      os << "    collisional_distance: " << v2.collisional_distance << "\n";
-    }
-  }
-  return os;
-}
 }  // namespace lbl::linemixing

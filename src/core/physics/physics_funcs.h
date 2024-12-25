@@ -13,6 +13,9 @@
   === External declarations
   ===========================================================================*/
 
+#include <arts_constexpr_math.h>
+#include <arts_conversions.h>
+#include <arts_constants.h>
 #include <matpack.h>
 
 /*===========================================================================
@@ -45,7 +48,9 @@ Numeric invrayjean(const Numeric& i, const Numeric& f);
  * @author Patrick Eriksson
  * @date   2000-04-08
  */
-constexpr Numeric number_density(Numeric p, Numeric t) noexcept {return p / (Constant::k * t);}
+constexpr Numeric number_density(Numeric p, Numeric t) noexcept {
+  return p / (Constant::k * t);
+}
 
 /** dnumber_density_dT
  * 
@@ -59,13 +64,15 @@ constexpr Numeric number_density(Numeric p, Numeric t) noexcept {return p / (Con
  * @author Richard Larsson
  * @date   2015-09-22
  */
-constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {return - p / (Constant::k * Math::pow2(t));}
+constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {
+  return -p / (Constant::k * Math::pow2(t));
+}
 
 Numeric planck(const Numeric& f, const Numeric& t);
 
-void planck(VectorView b, const ConstVectorView& f, const Numeric& t);
+void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t);
 
-Vector planck(const ConstVectorView& f, const Numeric& t);
+Vector planck(const StridedConstVectorView& f, const Numeric& t);
 
 Numeric dplanck_dt(const Numeric& f, const Numeric& t);
 

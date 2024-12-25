@@ -8,13 +8,11 @@
 
 #include "gas_abs_lookup.h"
 
+#include <matpack.h>
+
 #include <cfloat>
 #include <cmath>
 
-#include "check_input.h"
-#include "interp.h"
-#include "logic.h"
-#include "matpack_data.h"
 #include "physics_funcs.h"
 
 //! Find positions of new grid points in old grid.
@@ -139,23 +137,43 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // ... and pointing at valid species.
   for (Index i = 0; i < n_nls; ++i) {
-    std::ostringstream os;
-    os << "nonlinear_species[" << i << "]";
-    chk_if_in_range(os.str(), nonlinear_species[i], 0, n_species - 1);
+    ARTS_USER_ERROR_IF(
+        not in_range<Index>(nonlinear_species[i], 0, n_species - 1),
+        R"(Not in range [0, {1}): nonlinear_species[{0}] := {2})",
+        i,
+        n_species,
+        nonlinear_species[i]);
   }
 
   // Frequency grid:
-  chk_if_increasing("f_grid", f_grid);
+  ARTS_USER_ERROR_IF(not is_increasing(f_grid),
+                     R"(Not strictrly increasing:
+    
+    f_grid: {0:B,}
+  )",
+                     f_grid);
 
   // Pressure grid:
-  chk_if_decreasing("p_grid", p_grid);
+  ARTS_USER_ERROR_IF(not is_decreasing(p_grid),
+                     R"(Not strictrly decreasing:
+    
+    p_grid: {0:B,}
+  )",
+                     p_grid);
 
   // Reference VMRs:
-  chk_matrix_nrows("vmrs_ref", vmrs_ref, n_species);
-  chk_matrix_ncols("vmrs_ref", vmrs_ref, n_p_grid);
+  ARTS_USER_ERROR_IF(
+      not matpack::same_shape<2>({n_species, n_p_grid}, vmrs_ref),
+      R"(Expected shape [{}, {}], vmrs_ref shape: {:B,})",
+      n_species,
+      n_p_grid,
+      vmrs_ref.shape());
 
   // Reference temperatur:
-  chk_vector_length("t_ref", t_ref, n_p_grid);
+  ARTS_USER_ERROR_IF(not matpack::same_shape<1>({n_p_grid}, t_ref),
+                     R"(Expected shape [{}], t_ref shape: {:B,})",
+                     n_p_grid,
+                     t_ref.shape());
 
   // Temperature perturbations:
   // Nothing to check for t_pert, it seems.
@@ -164,7 +182,10 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   // Check that nls_pert is empty if and only if nonlinear_species is
   // empty:
   if (0 == n_nls) {
-    chk_vector_length("nls_pert", nls_pert, 0);
+    ARTS_USER_ERROR_IF(not matpack::same_shape<1>({0}, nls_pert),
+                       R"(Expected shape [{}], nls_pert shape: {:B,})",
+                       0,
+                       nls_pert.shape());
   } else {
     if (0 == n_nls_pert) {
       std::ostringstream os;
@@ -189,7 +210,15 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
       //     b = n_species
       //     c = n_f_grid
       //     d = n_p_grid
-      chk_size("xsec", xsec, 1, n_species, n_f_grid, n_p_grid);
+      ARTS_USER_ERROR_IF(
+          not matpack::same_shape<4>({Index{1}, n_species, n_f_grid, n_p_grid},
+                                     xsec),
+          R"(Expected shape [{}, {}, {}, {}], xsec shape: {:B,})",
+          1,
+          n_species,
+          n_f_grid,
+          n_p_grid,
+          xsec.shape());
     } else {
       //     Standard case (temperature perturbations,
       //     but no vmr perturbations):
@@ -197,7 +226,15 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
       //     b = n_species
       //     c = n_f_grid
       //     d = n_p_grid
-      chk_size("xsec", xsec, t_pert.size(), n_species, n_f_grid, n_p_grid);
+      ARTS_USER_ERROR_IF(
+          not same_shape<4>({t_pert.ncols(), n_species, n_f_grid, n_p_grid},
+                            xsec),
+          R"(Expected shape [{}, {}, {}, {}], xsec shape: {:B,})",
+          t_pert.size(),
+          n_species,
+          n_f_grid,
+          n_p_grid,
+          xsec.shape());
     }
   } else {
     //     Full case (with temperature perturbations and
@@ -210,8 +247,13 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     Index b = n_species + n_nls * (n_nls_pert - 1);
     Index c = n_f_grid;
     Index d = n_p_grid;
-
-    chk_size("xsec", xsec, a, b, c, d);
+    ARTS_USER_ERROR_IF(not matpack::same_shape<4>({a, b, c, d}, xsec),
+                       R"(Expected shape [{}, {}, {}, {}], xsec shape: {:B,})",
+                       a,
+                       b,
+                       c,
+                       d,
+                       xsec.shape());
   }
 
   // We also need indices to the positions of the original species
@@ -236,30 +278,40 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   }
 
   // The grid of current frequencies should be monotonically sorted:
-  chk_if_increasing("current_f_grid", current_f_grid);
+  ARTS_USER_ERROR_IF(not is_increasing(current_f_grid),
+                     R"(Not strictrly increasing:
+    
+    current_f_grid: {0:B,}
+  )",
+                     f_grid);
 
   // 1. Find and remember the indices of the current species in the
   //    lookup table. At the same time verify that each species is
   //    included in the table exactly once.
   ArrayOfIndex i_current_species(n_current_species);
   for (Index i = 0; i < n_current_species; ++i) {
-    try {
-      i_current_species[i] =
-          chk_contains("abs_species", species, current_species[i]);
+    auto [pos, status] = arr::contains(species, current_species[i]);
 
-    } catch (const runtime_error_not_found&) {
-      // Is this one of the trivial species?
-      const auto spec_type = current_species[i].Species();
-      if (spec_type == SpeciesEnum::free_electrons ||
-          spec_type == SpeciesEnum::particles) {
-        // Set to -1 to flag that this needs special handling later on.
-        i_current_species[i] = -1;
-      } else {
-        std::ostringstream os;
-        os << "Species " << current_species[i].Name()
-           << " is missing in absorption lookup table.";
-        throw std::runtime_error(os.str());
-      }
+    switch (status) {
+      using enum arr::CheckStatus;
+      case NotUnique:
+        ARTS_USER_ERROR(R"(Not unique species: {}
+
+  species list: {:B,}
+)",
+                        current_species[i],
+                        species);
+        break;
+      case NotFound:
+        if (const auto spec_type = current_species[i].Species();
+            spec_type == SpeciesEnum::free_electrons ||
+            spec_type == SpeciesEnum::particles) {
+          i_current_species[i] = -1;
+        } else {
+          ARTS_USER_ERROR("Species {} is not found", current_species[i].Name());
+        }
+        break;
+      case Unique: i_current_species[i] = pos; break;
     }
   }
 
@@ -328,8 +380,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   new_table.vmrs_ref.resize(n_current_species, n_p_grid);
   for (Index i = 0; i < n_current_species; ++i) {
     if (i_current_species[i] >= 0) {
-      new_table.vmrs_ref[i] =
-          vmrs_ref[i_current_species[i], joker];
+      new_table.vmrs_ref[i] = vmrs_ref[i_current_species[i], joker];
     } else {
       // Here we handle the case of the trivial species, for which we set
       // the reference VMR to NAN.
@@ -372,8 +423,8 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     else
       n_v = 1;
 
-    //      cout << "i_s / sp / n_v = " << i_s << " / " << sp << " / " << n_v << endl;
-    //      cout << "orig_pos = " << original_spec_pos_in_xsec[i_current_species[i_s]] << endl;
+    //      cout << "i_s / sp / n_v = " << i_s << " / " << sp << " / " << n_v << '\n';
+    //      cout << "orig_pos = " << original_spec_pos_in_xsec[i_current_species[i_s]] << '\n';
 
     // Do frequencies:
     for (Index i_f = 0; i_f < n_current_f_grid; ++i_f) {
@@ -392,7 +443,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
       //           cout << "result: " << xsec( joker,
       //                                       Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
       //                                       i_current_f_grid[i_f],
-      //                                       joker ) << endl;
+      //                                       joker ) << '\n';
     }
 
     sp += n_v;
@@ -403,7 +454,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // 5. Initialize log_p_grid.
   log_p_grid.resize(n_p_grid);
-  transform(log_p_grid, log, p_grid);
+  log_p_grid.unary_transform(p_grid, [](auto p) { return std::log(p); });
 
   // 6. Initialize flag_default.
   flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
@@ -524,13 +575,13 @@ void GasAbsLookup::Extract(Matrix& sga,
   }
 
   // Check that the dimension of vmrs_ref is consistent with species and p_grid:
-  ARTS_ASSERT(is_size(vmrs_ref, n_species, n_p_grid));
+  ARTS_ASSERT(matpack::same_shape<2>({n_species, n_p_grid}, vmrs_ref));
 
   // Check dimension of t_ref:
-  ARTS_ASSERT(is_size(t_ref, n_p_grid));
+  ARTS_ASSERT(matpack::same_shape<1>({n_p_grid}, t_ref));
 
   // Make sure that log_p_grid is initialized:
-  if (log_p_grid.size() != n_p_grid) {
+  if (log_p_grid.size() != static_cast<Size>(n_p_grid)) {
     std::ostringstream os;
     os << "The lookup table internal variable log_p_grid is not initialized.\n"
        << "Use the abs_lookupAdapt method!";
@@ -579,7 +630,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // 3. Checks on the input variables:
 
   // Check that abs_vmrs has the right dimension:
-  if (!is_size(abs_vmrs, n_species)) {
+  if (static_cast<Index>(abs_vmrs.size()) != n_species) {
     std::ostringstream os;
     os << "Number of species in lookup table does not match number\n"
        << "of species for which you want to extract absorption.\n"
@@ -841,7 +892,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Convert temperature to offset from t_ref:
       const Numeric T_offset = T - effective_T_ref;
 
-      //          cout << "T_offset = " << T_offset << endl;
+      //          cout << "T_offset = " << T_offset << '\n';
 
       // Check that temperature offset is inside the allowed range.
       {
@@ -951,8 +1002,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       // For interpolation result.
       // Fixed pressure level and species.
       // Free dimension is T, H2O, and frequency.
-      Tensor3View res(xsec_pre_interpolated[
-          pi, si, joker, joker, joker]);
+      Tensor3View res(xsec_pre_interpolated[pi, si, joker, joker, joker]);
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
@@ -982,10 +1032,10 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // Get the right view on xsec.
-      ConstTensor3View this_xsec =
-          xsec[joker,                 // Temperature range
+      StridedConstTensor3View this_xsec =
+          xsec[joker,                        // Temperature range
                Range(fpi, this_h2o_extent),  // VMR profile range
-               joker,                 // Frequency range
+               joker,                        // Frequency range
                this_p_grid_index];           // Pressure index
 
       // Do interpolation.

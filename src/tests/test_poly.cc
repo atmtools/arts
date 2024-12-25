@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include <poly_roots.h>
+
+#include <iostream>
 
 int main(void) {
   Vector v(9, 0);
@@ -12,8 +12,8 @@ int main(void) {
 
   int status = poly_root_solve(s, v);
 
-  std::cout << status << std::endl;
-  std::cout << s << std::endl;
+  std::cout << status << '\n';
+  std::cout << std::format("{}", s) << '\n';
 
   return (0);
 }

@@ -14,7 +14,7 @@
 #include "debug.h"
 #include "isotopologues.h"
 #include "jacobian.h"
-#include "logic.h"
+#include "matpack_mdspan_helpers_grid_t.h"
 #include "predefined_absorption_models.h"
 #include "species.h"
 #include "species_tags.h"
@@ -81,7 +81,7 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
           sz not_eq self_texp.size(),
       "Mismatching size, all vector inputs must be the same length")
   ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
-  ARTS_USER_ERROR_IF(not is_regularly_increasing_within_epsilon(wavenumbers),
+  ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
                      "The wavenumbers must be increasing in a regular manner")
 
   using Model = Absorption::PredefinedModel::MT_CKD400::WaterData;
@@ -125,7 +125,8 @@ void propagation_matrixAddPredefined(
             jacobian_targets.target_count(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
-        propagation_matrix_jacobian.ncols() not_eq f_grid.size(),
+        static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
+            f_grid.size(),
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 

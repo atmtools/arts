@@ -18,14 +18,17 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "poly_roots.h"
+
 #include <cmath>
 #include <iostream>
+
+#include "debug.h"
 
 /* C-style matrix elements */
 #define MAT(m, i, j, n) ((m)[(i) * (n) + (j)])
 
 /* Fortran-style matrix elements */
-#define FMAT(m, i, j, n) ((m)[((i)-1) * (n) + ((j)-1)])
+#define FMAT(m, i, j, n) ((m)[((i) - 1) * (n) + ((j) - 1)])
 
 #define GSL_DBL_EPSILON 2.2204460492503131e-16
 
@@ -39,7 +42,7 @@
 
 #define GSL_SET_COMPLEX_PACKED(zp, n, x, y) \
   do {                                      \
-    *((zp) + 2 * (n)) = (x);                \
+    *((zp) + 2 * (n))       = (x);          \
     *((zp) + (2 * (n) + 1)) = (y);          \
   } while (0)
 
@@ -117,7 +120,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   gsl_poly_complex_workspace *w;
 
   if (n == 0) {
-    std::cerr << "matrix size n must be positive integer" << std::endl;
+    std::cerr << "matrix size n must be positive integer" << '\n';
 
     return (NULL);
   }
@@ -125,7 +128,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   w = (gsl_poly_complex_workspace *)malloc(sizeof(gsl_poly_complex_workspace));
 
   if (w == 0) {
-    std::cerr << "failed to allocate space for struct" << std::endl;
+    std::cerr << "failed to allocate space for struct" << '\n';
 
     return (NULL);
   }
@@ -139,7 +142,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   if (w->matrix == 0) {
     free(w); /* error in constructor, avoid memory leak */
 
-    std::cerr << "failed to allocate space for workspace matrix" << std::endl;
+    std::cerr << "failed to allocate space for workspace matrix" << '\n';
 
     return (NULL);
   }
@@ -196,14 +199,14 @@ static void balance_companion_matrix(double *m, size_t nc) {
       s = col_norm + row_norm;
 
       while (col_norm < g) {
-        f *= RADIX;
+        f        *= RADIX;
         col_norm *= RADIX2;
       }
 
       g = row_norm * RADIX;
 
       while (col_norm > g) {
-        f /= RADIX;
+        f        /= RADIX;
         col_norm /= RADIX2;
       }
 
@@ -215,7 +218,7 @@ static void balance_companion_matrix(double *m, size_t nc) {
         if (i == 0) {
           MAT(m, 0, nc - 1, nc) *= g;
         } else {
-          MAT(m, i, i - 1, nc) *= g;
+          MAT(m, i, i - 1, nc)  *= g;
           MAT(m, i, nc - 1, nc) *= g;
         }
 
@@ -329,13 +332,13 @@ next_iteration:
   for (m = n - 2; m >= e; m--) {
     double a1, a2, a3;
 
-    z = FMAT(h, m, m, nc);
-    r = x - z;
-    s = y - z;
-    p = FMAT(h, m, m + 1, nc) + (r * s - w) / FMAT(h, m + 1, m, nc);
-    q = FMAT(h, m + 1, m + 1, nc) - z - r - s;
-    r = FMAT(h, m + 2, m + 1, nc);
-    s = fabs(p) + fabs(q) + fabs(r);
+    z  = FMAT(h, m, m, nc);
+    r  = x - z;
+    s  = y - z;
+    p  = FMAT(h, m, m + 1, nc) + (r * s - w) / FMAT(h, m + 1, m, nc);
+    q  = FMAT(h, m + 1, m + 1, nc) - z - r - s;
+    r  = FMAT(h, m + 2, m + 1, nc);
+    s  = fabs(p) + fabs(q) + fabs(r);
     p /= s;
     q /= s;
     r /= s;
@@ -388,9 +391,9 @@ next_iteration:
     }
 
     p += s;
-    x = p / s;
-    y = q / s;
-    z = r / s;
+    x  = p / s;
+    y  = q / s;
+    z  = r / s;
     q /= p;
     r /= p;
 
@@ -400,12 +403,12 @@ next_iteration:
       p = FMAT(h, k, j, nc) + q * FMAT(h, k + 1, j, nc);
 
       if (notlast) {
-        p += r * FMAT(h, k + 2, j, nc);
+        p                     += r * FMAT(h, k + 2, j, nc);
         FMAT(h, k + 2, j, nc) -= p * z;
       }
 
       FMAT(h, k + 1, j, nc) -= p * y;
-      FMAT(h, k, j, nc) -= p * x;
+      FMAT(h, k, j, nc)     -= p * x;
     }
 
     j = (k + 3 < n) ? (k + 3) : n;
@@ -416,11 +419,11 @@ next_iteration:
       p = x * FMAT(h, i, k, nc) + y * FMAT(h, i, k + 1, nc);
 
       if (notlast) {
-        p += z * FMAT(h, i, k + 2, nc);
+        p                     += z * FMAT(h, i, k + 2, nc);
         FMAT(h, i, k + 2, nc) -= p * r;
       }
       FMAT(h, i, k + 1, nc) -= p * q;
-      FMAT(h, i, k, nc) -= p;
+      FMAT(h, i, k, nc)     -= p;
     }
   }
 
@@ -446,25 +449,25 @@ static int gsl_poly_complex_solve(const double *a,
   double *m;
 
   if (n == 0) {
-    std::cerr << "number of terms must be a positive integer" << std::endl;
+    std::cerr << "number of terms must be a positive integer" << '\n';
 
     return (GSL_FAILURE);
   }
 
   if (n == 1) {
-    std::cerr << "cannot solve for only one term" << std::endl;
+    std::cerr << "cannot solve for only one term" << '\n';
 
     return (GSL_FAILURE);
   }
 
   if (a[n - 1] == 0) {
-    std::cerr << "leading term of polynomial must be non-zero" << std::endl;
+    std::cerr << "leading term of polynomial must be non-zero" << '\n';
 
     return (GSL_FAILURE);
   }
 
   if (w->nc != n - 1) {
-    std::cerr << "size of workspace does not match polynomial" << std::endl;
+    std::cerr << "size of workspace does not match polynomial" << '\n';
 
     return (GSL_FAILURE);
   }
@@ -478,7 +481,7 @@ static int gsl_poly_complex_solve(const double *a,
   status = qr_companion(m, n - 1, z);
 
   if (status) {
-    //std::cerr << "root solving qr method failed to converge" << std::endl;
+    //std::cerr << "root solving qr method failed to converge" << '\n';
 
     return (GSL_FAILURE);
   }

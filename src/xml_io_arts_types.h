@@ -23,7 +23,6 @@
 // Extras
 #include "fwd_spectral_radiance.h"
 #include "jacobian.h"
-#include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "path_point.h"

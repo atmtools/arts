@@ -15,8 +15,6 @@
 #include "atm.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "math_funcs.h"
-#include "matpack_constexpr.h"
 #include "nonstd.h"
 #include "surf.h"
 
@@ -43,7 +41,7 @@ constexpr bool is_polar_ecef(const Vector3 ecef) {
 Vector3 los2enu(const Vector2 los) {
   const Numeric zarad = Conversion::deg2rad(los[0]);
   const Numeric aarad = Conversion::deg2rad(los[1]);
-  const Numeric st = std::sin(zarad);
+  const Numeric st    = std::sin(zarad);
   return {st * std::sin(aarad), st * std::cos(aarad), std::cos(zarad)};
 }
 
@@ -74,14 +72,14 @@ Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
     const Numeric lonrad = Conversion::deg2rad(pos[2]);
     const Numeric sinlat = std::sin(latrad);
     const Numeric coslat = std::cos(latrad);
-    const Numeric a2 = refellipsoid[0] * refellipsoid[0];
-    const Numeric b2 = refellipsoid[1] * refellipsoid[1];
+    const Numeric a2     = refellipsoid[0] * refellipsoid[0];
+    const Numeric b2     = refellipsoid[1] * refellipsoid[1];
     const Numeric N =
         a2 / std::sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
     const Numeric nhcos = (N + pos[0]) * coslat;
-    ecef[0] = nhcos * std::cos(lonrad);
-    ecef[1] = nhcos * std::sin(lonrad);
-    ecef[2] = ((b2 / a2) * N + pos[0]) * sinlat;
+    ecef[0]             = nhcos * std::cos(lonrad);
+    ecef[1]             = nhcos * std::sin(lonrad);
+    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
   }
 
   return ecef;
@@ -96,16 +94,16 @@ std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
   // At the poles, no difference between geocentric and geodetic zenith
   Vector3 ecef, decef;
   if (nonstd::abs(pos[1]) > POLELAT) {
-    const Numeric s = sign(pos[1]);
+    const Numeric s     = sign(pos[1]);
     const Numeric zarad = Conversion::deg2rad(los[0]);
     const Numeric aarad = Conversion::deg2rad(los[1]);
-    ecef[0] = 0;
-    ecef[1] = 0;
-    ecef[2] = s * (pos[0] + ell[1]);
-    decef[2] = s * std::cos(zarad);
-    decef[0] = std::sin(zarad);
-    decef[1] = decef[0] * std::sin(aarad);
-    decef[0] = decef[0] * std::cos(aarad);
+    ecef[0]             = 0;
+    ecef[1]             = 0;
+    ecef[2]             = s * (pos[0] + ell[1]);
+    decef[2]            = s * std::cos(zarad);
+    decef[0]            = std::sin(zarad);
+    decef[1]            = decef[0] * std::sin(aarad);
+    decef[0]            = decef[0] * std::cos(aarad);
   }
 
   else {
@@ -148,13 +146,13 @@ Numeric intersection_altitude(const Vector3 ecef,
     const Numeric p =
         ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
     const Numeric pp = p * p;
-    const Numeric q = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
+    const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
                       ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
     if (q > pp)
       l = l_min - 1.0;
     else {
       const Numeric sq = std::sqrt(pp - q);
-      l = min_geq(-p - sq, -p + sq, l_min);
+      l                = min_geq(-p - sq, -p + sq, l_min);
     }
   }
 
@@ -162,15 +160,15 @@ Numeric intersection_altitude(const Vector3 ecef,
   else {
     // Based on https://medium.com/@stephenhartzell/
     // satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
-    const Numeric a = ellipsoid[0];
-    const Numeric b = ellipsoid[0];
-    const Numeric c = ellipsoid[1];
-    const Numeric a2 = a * a;
-    const Numeric b2 = b * b;
-    const Numeric c2 = c * c;
-    const Numeric x2 = ecef[0] * ecef[0];
-    const Numeric y2 = ecef[1] * ecef[1];
-    const Numeric z2 = ecef[2] * ecef[2];
+    const Numeric a   = ellipsoid[0];
+    const Numeric b   = ellipsoid[0];
+    const Numeric c   = ellipsoid[1];
+    const Numeric a2  = a * a;
+    const Numeric b2  = b * b;
+    const Numeric c2  = c * c;
+    const Numeric x2  = ecef[0] * ecef[0];
+    const Numeric y2  = ecef[1] * ecef[1];
+    const Numeric z2  = ecef[2] * ecef[2];
     const Numeric dx2 = decef[0] * decef[0];
     const Numeric dy2 = decef[1] * decef[1];
     const Numeric dz2 = decef[2] * decef[2];
@@ -189,7 +187,7 @@ Numeric intersection_altitude(const Vector3 ecef,
                           b2 * c2 * decef[0] * ecef[0];
       const Numeric mag = a2 * b2 * dz2 + a2 * c2 * dy2 + b2 * c2 * dx2;
       const Numeric abc = a * b * c * std::sqrt(rad);
-      l = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
+      l                 = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
     }
   }
   return l;
@@ -209,7 +207,7 @@ Vector3 ecef2geodetic(const Vector3 ecef, const Vector2 refellipsoid) {
   Vector3 pos;
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid)) {
-    pos = ecef2geocentric(ecef);
+    pos     = ecef2geocentric(ecef);
     pos[0] -= refellipsoid[0];
 
     // The general algorithm not stable for lat=+-90. Catch these cases
@@ -227,23 +225,23 @@ Vector3 ecef2geodetic(const Vector3 ecef, const Vector2 refellipsoid) {
     const Numeric Y = ecef[1];
     const Numeric Z = ecef[2];
 
-    const Numeric a2 = pow2(a);
-    const Numeric b2 = pow2(b);
-    const Numeric e2 = (a2 - b2) / a2;
+    const Numeric a2  = pow2(a);
+    const Numeric b2  = pow2(b);
+    const Numeric e2  = (a2 - b2) / a2;
     const Numeric DZ2 = (1 - e2) * Z * Z;
-    const Numeric r = std::hypot(X, Y);
+    const Numeric r   = std::hypot(X, Y);
     const Numeric e2p = (a2 - b2) / b2;
-    const Numeric F = 54 * pow2(b * Z);
-    const Numeric G = pow2(r) + DZ2 - e2 * (a2 - b2);
-    const Numeric c = pow2(e2) * F * pow2(r) / pow3(G);
-    const Numeric s = std::cbrt(1 + c + std::sqrt(pow2(c) + 2 * c));
-    const Numeric fP = F / (3 * pow2(G * (s + 1 / s + 1)));
-    const Numeric Q = std::sqrt(1 + 2 * pow2(e2) * fP);
-    const Numeric r0 = (-fP * e2 * r) / (1 + Q) +
+    const Numeric F   = 54 * pow2(b * Z);
+    const Numeric G   = pow2(r) + DZ2 - e2 * (a2 - b2);
+    const Numeric c   = pow2(e2) * F * pow2(r) / pow3(G);
+    const Numeric s   = std::cbrt(1 + c + std::sqrt(pow2(c) + 2 * c));
+    const Numeric fP  = F / (3 * pow2(G * (s + 1 / s + 1)));
+    const Numeric Q   = std::sqrt(1 + 2 * pow2(e2) * fP);
+    const Numeric r0  = (-fP * e2 * r) / (1 + Q) +
                        std::sqrt(0.5 * a2 * (1 + 1 / Q) -
                                  fP * DZ2 / (Q * (1 + Q)) - 0.5 * fP * pow2(r));
-    const Numeric U = std::hypot(r - e2 * r0, Z);
-    const Numeric V = std::sqrt(pow2(r - e2 * r0) + DZ2);
+    const Numeric U  = std::hypot(r - e2 * r0, Z);
+    const Numeric V  = std::sqrt(pow2(r - e2 * r0) + DZ2);
     const Numeric z0 = b2 * Z / (a * V);
 
     pos[0] = U * (1 - b2 / (a * V));
@@ -279,7 +277,7 @@ Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
                                          const Vector2 refellipsoid) {
   // Spherical case (length simply obtained by dot product)
   if (is_ellipsoid_spherical(refellipsoid)) {
-    return ecef_at_distance(ecef, decef, -(decef * ecef));
+    return ecef_at_distance(ecef, decef, -(dot(decef, ecef)));
   }
 
   // General case
@@ -295,14 +293,14 @@ Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
   const Numeric b2 = refellipsoid[1] * refellipsoid[1];
   Vector3 yunit, zunit;
 
-  zunit = cross3(decef, ecef);
+  zunit  = cross(decef, ecef);
   zunit /= std::hypot(zunit[0], zunit[1], zunit[2]);
-  yunit = cross3(zunit, decef);
+  yunit  = cross(zunit, decef);
   yunit /= std::hypot(yunit[0], yunit[1], yunit[2]);
 
-  const Numeric yr = ecef * yunit;
-  const Numeric xr = ecef * decef;
-  const Numeric B = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
+  const Numeric yr = dot(ecef, yunit);
+  const Numeric xr = dot(ecef, decef);
+  const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
                            (decef[2] * yunit[2]) / b2);
   Numeric xx;
   if (B == 0.0) {
@@ -312,12 +310,12 @@ Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
                       decef[2] * decef[2] / b2;
     const Numeric C = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
                       yunit[2] * yunit[2] / b2;
-    const Numeric K = -2.0 * A / B;
+    const Numeric K      = -2.0 * A / B;
     const Numeric factor = 1.0 / (A + (B + C * K) * K);
-    xx = std::sqrt(factor);
-    const Numeric yy = K * ecef[0];
-    const Numeric dist1 = (xr - xx) * (xr - xx) + (yr - yy) * (yr - yy);
-    const Numeric dist2 = (xr + xx) * (xr + xx) + (yr + yy) * (yr + yy);
+    xx                   = std::sqrt(factor);
+    const Numeric yy     = K * ecef[0];
+    const Numeric dist1  = (xr - xx) * (xr - xx) + (yr - yy) * (yr - yy);
+    const Numeric dist2  = (xr + xx) * (xr + xx) + (yr + yy) * (yr + yy);
     if (dist1 > dist2) xx = -xx;
   }
 
@@ -536,8 +534,8 @@ PropagationPathPoint init(const Vector3& pos,
   if (pos[0] > atm_field.top_of_atmosphere) {
     return PropagationPathPoint{.pos_type = space,
                                 .los_type = unknown,
-                                .pos = pos,
-                                .los = as_sensor ? mirror(los) : los};
+                                .pos      = pos,
+                                .los      = as_sensor ? mirror(los) : los};
   }
 
   const Numeric surface_alt = surface_altitude(surface_field, pos[1], pos[2]);
@@ -545,14 +543,14 @@ PropagationPathPoint init(const Vector3& pos,
   if (pos[0] < surface_alt) {
     return PropagationPathPoint{.pos_type = subsurface,
                                 .los_type = unknown,
-                                .pos = pos,
-                                .los = as_sensor ? mirror(los) : los};
+                                .pos      = pos,
+                                .los      = as_sensor ? mirror(los) : los};
   }
 
   return PropagationPathPoint{.pos_type = atm,
                               .los_type = unknown,
-                              .pos = pos,
-                              .los = as_sensor ? mirror(los) : los};
+                              .pos      = pos,
+                              .los      = as_sensor ? mirror(los) : los};
 }
 
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
@@ -570,26 +568,26 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
     const Vector2 ell) noexcept {
   using Math::pow2;
 
-  const Numeric x0 = ecef[0];
-  const Numeric y0 = ecef[1];
-  const Numeric z0 = ecef[2];
-  const Numeric dx = decef[0];
-  const Numeric dy = decef[1];
-  const Numeric dz = decef[2];
-  const Numeric a = ell[0] + alt;
-  const Numeric b = ell[1] + alt;
-  const Numeric a2 = pow2(a);
-  const Numeric b2 = pow2(b);
+  const Numeric x0  = ecef[0];
+  const Numeric y0  = ecef[1];
+  const Numeric z0  = ecef[2];
+  const Numeric dx  = decef[0];
+  const Numeric dy  = decef[1];
+  const Numeric dz  = decef[2];
+  const Numeric a   = ell[0] + alt;
+  const Numeric b   = ell[1] + alt;
+  const Numeric a2  = pow2(a);
+  const Numeric b2  = pow2(b);
   const Numeric den = a2 * pow2(dz) + b2 * (pow2(dx) + pow2(dy));
   const Numeric sqr_a =
       a2 * (den - pow2(dy * z0 - dz * y0) - pow2(dx * z0 - dz * x0));
-  const Numeric sqr_b = b2 * pow2(dy * x0 - dx * y0);
-  const Numeric sqr = std::sqrt(sqr_a - sqr_b);
-  const Numeric term = -a2 * dz * z0 - b2 * (dx * x0 + dy * y0);
+  const Numeric sqr_b  = b2 * pow2(dy * x0 - dx * y0);
+  const Numeric sqr    = std::sqrt(sqr_a - sqr_b);
+  const Numeric term   = -a2 * dz * z0 - b2 * (dx * x0 + dy * y0);
   const Numeric invden = 1 / den;
-  const Numeric t0 = (term + b * sqr) * invden;
-  const Numeric t1 = (term - b * sqr) * invden;
-  const Numeric& t = min_geq0(t0, t1);
+  const Numeric t0     = (term + b * sqr) * invden;
+  const Numeric t1     = (term - b * sqr) * invden;
+  const Numeric& t     = min_geq0(t0, t1);
 
   if (sqr == 0) return {t, nan};
   return {t, (&t == &t0) ? t1 : t0};
@@ -614,8 +612,8 @@ std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
     // of cone tip. The distance from (0,lat,0) to z-axis is l=x/dx, so
     // z of cone tip is z-l*dz.
     const auto [ecefn, n] = geodetic_poslos2ecef({0, lat, 0}, {0, 0}, ell);
-    const Numeric l2axis = ecefn[0] / n[0];
-    C[2] = ecefn[2] - l2axis * n[2];
+    const Numeric l2axis  = ecefn[0] / n[0];
+    C[2]                  = ecefn[2] - l2axis * n[2];
   }
 
   // V: Vector describing centre of cone
@@ -630,12 +628,12 @@ std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
   // Vector from C to O
   const Vector3 CO = ecef_vector_distance(C, ecef);
   // Dot products repeated
-  const Numeric DVdot = D * V;
-  const Numeric COVdot = CO * V;
+  const Numeric DVdot  = dot(D, V);
+  const Numeric COVdot = dot(CO, V);
   // The a, b, c and delta terms
   const Numeric a = DVdot * DVdot - costerm;
-  const Numeric b = 2 * (DVdot * COVdot - (D * CO) * costerm);
-  const Numeric c = COVdot * COVdot - (CO * CO) * costerm;
+  const Numeric b = 2 * (DVdot * COVdot - dot(D, CO) * costerm);
+  const Numeric c = COVdot * COVdot - dot(CO, CO) * costerm;
   const Numeric d = b * b - 4 * a * c;
 
   if (d < 0) {
@@ -647,21 +645,21 @@ std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
   }
 
   const Numeric sqrtd = std::sqrt(d);
-  const Numeric aa = 2 * a;
+  const Numeric aa    = 2 * a;
 
   Numeric l1 = (-b - sqrtd) / aa;
   // Check that crossing is not with -lat
   if (l1 > 0) {
-    const Vector3 P = ecef_at_distance(ecef, decef, l1);
+    const Vector3 P  = ecef_at_distance(ecef, decef, l1);
     const Vector3 PC = ecef_vector_distance(C, P);
-    if (PC * V <= 0) l1 = nan;
+    if (dot(PC, V) <= 0) l1 = nan;
   }
 
   Numeric l2 = (-b + sqrtd) / aa;
   if (l2 > 0) {
-    const Vector3 P = ecef_at_distance(ecef, decef, l2);
+    const Vector3 P  = ecef_at_distance(ecef, decef, l2);
     const Vector3 PC = ecef_vector_distance(C, P);
-    if (PC * V <= 0) l2 = nan;
+    if (dot(PC, V) <= 0) l2 = nan;
   }
 
   const Numeric& l = min_geq0(l1, l2);
@@ -759,14 +757,13 @@ Intersections pair_line_ellipsoid_intersect(
 
   const auto error = [&path](PathPositionType end) {
     PropagationPathPoint p = path;
-    p.los_type = end;
+    p.los_type             = end;
     return Intersections{p, p, false};
   };
 
   switch (path.pos_type) {
-    case unknown:
-      ARTS_USER_ERROR("Unknown start position");
-    case space: {
+    case unknown: ARTS_USER_ERROR("Unknown start position");
+    case space:   {
       if (not looking_down) {
         return error(space);
       }
@@ -799,8 +796,7 @@ Intersections pair_line_ellipsoid_intersect(
         return {get_point(r_surface, atm, surface), path, false};
       }
       return {get_point(get_r_atm().first, atm, space), path, false};
-    case subsurface:
-      ARTS_USER_ERROR("Unsupported subsurface start position")
+    case subsurface: ARTS_USER_ERROR("Unsupported subsurface start position")
   }
   ARTS_USER_ERROR("Invalid start position type");
 }
@@ -1057,8 +1053,8 @@ PropagationPathPoint find_geometric_limb(
                       (post_ecef[1] - pre_ecef[1]) / distance,
                       (post_ecef[2] - pre_ecef[2]) / distance};
 
-  const auto get_limb_point = [ell = surface_field.ellipsoid,
-                               ecef = pre_ecef,
+  const auto get_limb_point = [ell   = surface_field.ellipsoid,
+                               ecef  = pre_ecef,
                                decef = decef](Numeric dist) {
     return path_at_distance<false>(
         ecef, decef, ell, dist, PathPositionType::atm, PathPositionType::atm);
@@ -1068,10 +1064,10 @@ PropagationPathPoint find_geometric_limb(
   PropagationPathPoint cur = *pre_limb_point, next = get_limb_point(x);
   while (cur.los[0] != 90.0 and
          std::nextafter(cur.los[0], next.los[0]) != next.los[0]) {
-    cur = next;
+    cur                            = next;
     (cur.los[0] >= 90.0 ? x0 : x1) = x;
-    x = std::midpoint<Numeric>(x0, x1);
-    next = get_limb_point(x);
+    x                              = std::midpoint<Numeric>(x0, x1);
+    next                           = get_limb_point(x);
   }
 
   cur.los = mirror(cur.los);
@@ -1080,7 +1076,7 @@ PropagationPathPoint find_geometric_limb(
 
 ArrayOfPropagationPathPoint& fill_geometric_limb(
     ArrayOfPropagationPathPoint& x, const SurfaceField& surface_field) {
-  const auto limb = find_geometric_limb(x, surface_field);
+  const auto limb    = find_geometric_limb(x, surface_field);
   const auto min_pos = std::ranges::min_element(
       x, [](const auto& a, const auto& b) { return a.pos[0] < b.pos[0]; });
 
@@ -1124,46 +1120,12 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
   };
 
   const auto first = std::ranges::find_if(path, in_atm);
-  const auto last = std::ranges::find_if_not(first, path.end(), in_atm) - 1;
+  const auto last  = std::ranges::find_if_not(first, path.end(), in_atm) - 1;
 
   ARTS_USER_ERROR_IF(first == path.end(), "No path points in atmosphere")
 
   return ecef_distance(geodetic2ecef(first->pos, surface_field.ellipsoid),
                        geodetic2ecef(last->pos, surface_field.ellipsoid));
-}
-
-std::ostream& operator<<(std::ostream& os, const PropagationPathPoint& p) {
-  os << "pos: [" << p.pos << "], los: [" << p.los
-     << "], pos-type: " << p.pos_type << ", los-type: " << p.los_type
-     << ", nreal: " << p.nreal << ", ngroup: " << p.ngroup;
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfPropagationPathPoint& ps) {
-  std::string_view sep = "";
-  for (const auto& p : ps) {
-    os << std::exchange(sep, "\n") << p;
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfPropagationPathPoint& ps) {
-  std::string_view sep = "";
-  for (const auto& p : ps) {
-    os << std::exchange(sep, "\n") << p;
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfArrayOfPropagationPathPoint& ps) {
-  std::string_view sep = "";
-  for (const auto& p : ps) {
-    os << std::exchange(sep, "\n") << p;
-  }
-  return os;
 }
 
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
@@ -1194,7 +1156,7 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
 
   Numeric za0 = 0.0, za1 = 90.0;
   while (std::nextafter(za0, za1) != za1) {
-    const Numeric za = std::midpoint(za0, za1);
+    const Numeric za             = std::midpoint(za0, za1);
     (intersects(za) ? za0 : za1) = za;
   }
 
@@ -1229,4 +1191,11 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
 
   return path;
 }
+
+bool is_valid_old_pos(const StridedConstVectorView& pos) {
+  return pos.size() != 3 or pos[1] < -90 or pos[1] > 90 or pos[2] < -360 or
+         pos[2] > 360;
+}
+
+bool is_valid_old_pos(const Vector3& pos) { return is_valid_old_pos(pos.view()); }
 }  // namespace path

@@ -177,7 +177,6 @@ void make_h(const std::vector<std::string>& xmlfiles) {
   file_wrap os("auto_partfun.h",
                "array",
                "debug.h",
-               "matpack_concepts.h",
                "string_view",
                "template_partfun.h");
 

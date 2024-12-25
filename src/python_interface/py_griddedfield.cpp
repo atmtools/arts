@@ -1,9 +1,9 @@
+#include <debug.h>
 #include <nanobind/stl/bind_vector.h>
 #include <rtepack.h>
 
 #include <stdexcept>
 
-#include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"

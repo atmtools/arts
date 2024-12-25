@@ -6,7 +6,6 @@
 #include "arts_omp.h"
 #include "geodetic.h"
 #include "legendre.h"
-#include "matpack_constexpr.h"
 
 /** International Geomagnetic Reference Field version 13
  *
@@ -31,7 +30,7 @@
  */
 namespace IGRF {
 //! g-coefficients for 2020 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2020{
+constexpr matpack::cdata_t<Numeric, 14, 14> g2020{
     0.0,   0.0,     0.0,    0.0,    0.0,  0.0,      0.0,     0.0,     0.0,
     0.0,   0.0,     0.0,    0.0,    0.0,  -29404.8, -1450.9, 0.0,     0.0,
     0.0,   0.0,     0.0,    0.0,    0.0,  0.0,      0.0,     0.0,     0.0,
@@ -57,7 +56,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2020{
 };
 
 //! h-coefficients for 2020 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2020{
+constexpr matpack::cdata_t<Numeric, 14, 14> h2020{
     0.0,    0.0,  0.0,   0.0,    0.0,   0.0,    0.0,   0.0,   0.0,    0.0,
     0.0,    0.0,  0.0,   0.0,    0.0,   4652.5, 0.0,   0.0,   0.0,    0.0,
     0.0,    0.0,  0.0,   0.0,    0.0,   0.0,    0.0,   0.0,   0.0,    -2991.6,
@@ -81,7 +80,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2020{
 };
 
 //! g-coefficients for 2015 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2015{
+constexpr matpack::cdata_t<Numeric, 14, 14> g2015{
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,    0.0,       0.0,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,    -29441.46, -1501.77,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,    0.0,       0.0,
@@ -110,7 +109,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2015{
 };
 
 //! h-coefficients for 2015 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2015{
+constexpr matpack::cdata_t<Numeric, 14, 14> h2015{
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,      0.0,     0.0,
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,      0.0,     4795.99,
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,      0.0,     0.0,
@@ -139,7 +138,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2015{
 };
 
 //! g-coefficients for 2010 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2010{
+constexpr matpack::cdata_t<Numeric, 14, 14> g2010{
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     0.0,       0.0,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     -29496.57, -1586.42,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     0.0,       0.0,
@@ -168,7 +167,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2010{
 };
 
 //! h-coefficients for 2010 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2010{
+constexpr matpack::cdata_t<Numeric, 14, 14> h2010{
     0.0,    0.0,     0.0,     0.0,    0.0,     0.0,      0.0,     0.0,
     0.0,    0.0,     0.0,     0.0,    0.0,     0.0,      0.0,     4944.26,
     0.0,    0.0,     0.0,     0.0,    0.0,     0.0,      0.0,     0.0,
@@ -197,7 +196,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2010{
 };
 
 //! g-coefficients for 2005 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2005{
+constexpr matpack::cdata_t<Numeric, 14, 14> g2005{
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     0.0,       0.0,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     -29554.63, -1669.05,
     0.0,    0.0,     0.0,     0.0,      0.0,      0.0,     0.0,       0.0,
@@ -226,7 +225,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2005{
 };
 
 //! h-coefficients for 2005 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2005{
+constexpr matpack::cdata_t<Numeric, 14, 14> h2005{
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,     0.0,     0.0,
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,     0.0,     5077.99,
     0.0,    0.0,     0.0,     0.0,     0.0,     0.0,     0.0,     0.0,
@@ -255,7 +254,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2005{
 };
 
 //! g-coefficients for 2000 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2000{
+constexpr matpack::cdata_t<Numeric, 14, 14> g2000{
     0.0,   0.0,     0.0,    0.0,    0.0,   0.0,      0.0,     0.0,     0.0,
     0.0,   0.0,     0.0,    0.0,    0.0,   -29619.4, -1728.2, 0.0,     0.0,
     0.0,   0.0,     0.0,    0.0,    0.0,   0.0,      0.0,     0.0,     0.0,
@@ -281,7 +280,7 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2000{
 };
 
 //! h-coefficients for 2000 (14x14 matrix)
-constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2000{
+constexpr matpack::cdata_t<Numeric, 14, 14> h2000{
     0.0,    0.0,  0.0,   0.0,    0.0,   0.0,    0.0,   0.0,   0.0,    0.0,
     0.0,    0.0,  0.0,   0.0,    0.0,   5186.1, 0.0,   0.0,   0.0,    0.0,
     0.0,    0.0,  0.0,   0.0,    0.0,   0.0,    0.0,   0.0,   0.0,    -2481.6,

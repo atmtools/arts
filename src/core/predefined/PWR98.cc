@@ -205,7 +205,7 @@ void water(PropmatVector& propmat_clearsky,
                       ((0.543 * pda) + (17.96 * pvap * pow(ti, (Numeric)4.5)));
 
   // Loop over input frequency
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // input frequency in [GHz]
     const Numeric ff = f_grid[s] * 1e-9;
     // line contribution at position f
@@ -213,7 +213,7 @@ void water(PropmatVector& propmat_clearsky,
 
     // Loop over spectral lines
 
-    for (Index l = 0; l < 15; l++) {
+    for (Size l = 0; l < 15; l++) {
       const Numeric width = (PWRw3[l] * pda * pow(ti, PWRx[l])) +
                             (PWRws[l] * pvap * pow(ti, PWRxs[l]));
       //        Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) +
@@ -389,7 +389,7 @@ void oxygen(PropmatVector& propmat_clearsky,
   const Numeric CCONT = 1.23e-10 * pow2(TH) * p_pa;
 
   // Loop over input frequency
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // initial O2 line absorption at position ff
     // Numeric O2ABS  = 0.000e0;cd safff
 
@@ -401,7 +401,7 @@ void oxygen(PropmatVector& propmat_clearsky,
 
     // Loop over Rosnekranz '93 spectral line frequency:
     Numeric SUM = 0.000e0;
-    for (std::size_t l = 0; l < W300.size(); ++l) {
+    for (Size l = 0; l < W300.size(); ++l) {
       const Numeric DF =
           W300[l] * ((fabs((F[l] - 118.75)) < 0.10) ? DENS : DEN);  // [hPa]
       // 118 line update according to M. J. Schwartz, MIT, 1997

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <format_tags.h>
-#include <matpack_concepts.h>
+#include <matpack.h>
 #include <mystring.h>
 
 #include <memory>
@@ -61,7 +61,7 @@ struct std::formatter<Python::ValueHolder<T>> {
     fmt.format(*v.val, ctx);
 
     if constexpr (std::same_as<T, String>) {
-      if (tags.quoted)std::format_to(ctx.out(),R"(")");
+      if (tags.quoted) std::format_to(ctx.out(), R"(")");
     }
 
     return ctx.out();

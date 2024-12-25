@@ -19,12 +19,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "matpack_concepts.h"
-#include "matpack_constexpr.h"
-#include "matpack_data.h"
-#include "matpack_iter.h"
-#include "matpack_math.h"
-#include "matpack_math_extra.h"
+#include "matpack_mdspan.h"
 
 namespace my_interp {
 /*! Cycle once through a list
@@ -153,7 +148,7 @@ constexpr bool full_cycle(const Numeric xo, const Numeric xn) noexcept
  * @param[in] xvec The grid
  * @return Estimated position of x [0, xvec.size())
 */
-template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+template <matpack::exact_md<Numeric, 1> Vec = VectorView>
 constexpr Index start_pos_finder(const Numeric x, const Vec &xvec) {
   if (const Index n = xvec.size(); n > 1) {
     const Numeric x0     = xvec[0];
@@ -232,8 +227,8 @@ constexpr bool is_cyclic() {
  * @param[in] polyorder Polynominal orders
  */
 template <bool ascending,
-          template <cycle_limit lim> class Limit       = no_cycle,
-          matpack::ranked_matpack_type<Numeric, 1> Vec = Vector>
+          template <cycle_limit lim> class Limit = no_cycle,
+          matpack::exact_md<Numeric, 1> Vec      = VectorView>
 constexpr Index pos_finder(Index p0,
                            const Numeric x,
                            const Vec &xi,
@@ -290,8 +285,8 @@ constexpr Index pos_finder(Index p0,
  */
 template <bool ascending,
           Index polyorder,
-          template <cycle_limit lim> class Limit       = no_cycle,
-          matpack::ranked_matpack_type<Numeric, 1> Vec = Vector>
+          template <cycle_limit lim> class Limit = no_cycle,
+          matpack::exact_md<Numeric, 1> Vec      = VectorView>
 constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
   requires(test_cyclic_limit<Limit>())
 {
@@ -394,7 +389,7 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
 
 template <GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::ranked_matpack_type<Numeric, 1> Vec>
+          matpack::exact_md<Numeric, 1> Vec = VectorView>
 constexpr Numeric l_factor(const Numeric x,
                            const Vec &xi,
                            const Index j,
@@ -459,7 +454,7 @@ constexpr Numeric l_factor(const Numeric x,
  */
 template <GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::ranked_matpack_type<Numeric, 1> Vec>
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Numeric l(const Index p0,
                     const Index order,
                     const Numeric x,
@@ -486,7 +481,7 @@ constexpr Numeric l(const Index p0,
 template <Index order,
           GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::ranked_matpack_type<Numeric, 1> Vec>
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Numeric l(const Index p0,
                     const Numeric x,
                     const Vec &xi,
@@ -525,7 +520,7 @@ constexpr Numeric l(const Index p0,
  */
 template <GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::ranked_matpack_type<Numeric, 1> Vec,
+          matpack::exact_md<Numeric, 1> Vec,
           class LagrangeVectorType>
 constexpr double dl_dval(const Index p0,
                          const Index n,
@@ -614,7 +609,7 @@ constexpr double dl_dval(const Index p0,
  */
 template <GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::ranked_matpack_type<Numeric, 1> Vec,
+          matpack::exact_md<Numeric, 1> Vec,
           class LagrangeVectorType>
 constexpr Numeric dl(const Index p0,
                      const Index n,
@@ -631,12 +626,6 @@ constexpr Numeric dl(const Index p0,
     }
   }
   return dval;
-}
-
-//! Checks whether the Sorted Vector is ascending or not by checking its first two elements
-template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-constexpr bool is_ascending(const Vec &xi) {
-  return (xi.size() > 1) and xi[0] < xi[1];
 }
 
 //! Completely empty struct that may store as 0 bytes when used with [[no_unique_address]] on most compilers
@@ -703,7 +692,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   static constexpr auto lx_finder(const Numeric x,
                                   const Vec &xi,
                                   const Index pos,
@@ -728,7 +717,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   static constexpr auto lx_finder(const Numeric x,
                                   const Vec &xi,
                                   const Index pos)
@@ -759,7 +748,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   static constexpr auto dlx_finder(const Numeric x [[maybe_unused]],
                                    const Vec &xi [[maybe_unused]],
                                    const lx_type &lx [[maybe_unused]],
@@ -830,14 +819,14 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] polyorder Polynominal degree
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
                      Index polyorder)
     requires(runtime_polyorder())
-      : pos(is_ascending(xi) ? pos_finder<true, Limit>(p0, x, xi, polyorder)
-                             : pos_finder<false, Limit>(p0, x, xi, polyorder)),
+      : pos(is_increasing(xi) ? pos_finder<true, Limit>(p0, x, xi, polyorder)
+                              : pos_finder<false, Limit>(p0, x, xi, polyorder)),
         lx(lx_finder(x, xi, pos, polyorder + 1)),
         dlx(dlx_finder(x, xi, lx, pos)) {}
 
@@ -849,7 +838,7 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    * @param[in] flag For the order of xi
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -868,7 +857,7 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    * @param[in] flag For the order of xi
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -885,11 +874,11 @@ struct Lagrange {
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi)
     requires(not runtime_polyorder())
-      : pos(is_ascending(xi) ? pos_finder<true, PolyOrder, Limit>(p0, x, xi)
-                             : pos_finder<false, PolyOrder, Limit>(p0, x, xi)),
+      : pos(is_increasing(xi) ? pos_finder<true, PolyOrder, Limit>(p0, x, xi)
+                              : pos_finder<false, PolyOrder, Limit>(p0, x, xi)),
         lx(lx_finder(x, xi, pos)),
         dlx(dlx_finder(x, xi, lx, pos)) {}
 
@@ -900,7 +889,7 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] flag For the order of xi
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -917,7 +906,7 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] flag For the order of xi
    */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -927,7 +916,7 @@ struct Lagrange {
         lx(lx_finder(x, xi, pos)),
         dlx(dlx_finder(x, xi, lx, pos)) {}
 
-  /*! Friendly stream operator */
+  /*! Fri'\n'y stream operator */
   friend std::ostream &operator<<(std::ostream &os, const Lagrange &l) {
     os << "Lagrange interpolation ";
     if constexpr (not runtime_polyorder())
@@ -970,7 +959,7 @@ struct Lagrange {
     * @param[in] x {Min new x, Max new x} if non-cyclic
     * @param[in] extrapol Level of extrapolation allowed if non-cyclic
     */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   static void check(const Vec &xi,
                     const Index polyorder,
                     [[maybe_unused]] const std::pair<Numeric, Numeric> x =
@@ -983,15 +972,20 @@ struct Lagrange {
     const Index n = Index(xi.size());
 
     ARTS_USER_ERROR_IF(polyorder >= n,
-                       "Interpolation setup has for {} field!\n"
-                       "\tRequesting greater interpolation order "
-                       "than possible with given input grid",
-                       info)
+                       R"(Interpolation setup has failed for: {}
+
+Requesting greater interpolation order than possible with given input grid
+
+  Grid:                      {:B,}
+  Target order:              {},
+)",
+                       info,
+                       xi,
+                       polyorder);
 
     if constexpr (GridType::Cyclic not_eq type) {
-      ARTS_USER_ERROR_IF(extrapol < 0,
-                         "Must have a non-negative extrapolation for {} field",
-                         info)
+      ARTS_USER_ERROR_IF(
+          extrapol < 0, "Must have a non-negative extrapolation for: {}", info)
 
       if (polyorder != 0) {
         const Numeric xlow = xi[0] + extrapol * (xi[0] - xi[1]);
@@ -1000,7 +994,7 @@ struct Lagrange {
         const Numeric xmax = std::max(xlow, xupp);
 
         ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
-                           R"(Interpolation setup has failed for {} field!
+                           R"(Interpolation setup has failed for: {}
 
   Grid:                      {:B,}
   The input limit is:        {:B,}
@@ -1023,7 +1017,7 @@ struct Lagrange {
     * @param[in] x New grid position if non-cyclic
     * @param[in] extrapol Level of extrapolation allowed if non-cyclic
     */
-  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
   static constexpr void check(const Vec &xi,
                               const Index polyorder,
                               const Numeric x        = 0,
@@ -1100,8 +1094,8 @@ concept lagrange_type =
  * @return An array of Lagrange types
  */
 template <lagrange_type T,
-          matpack::ranked_matpack_type<Numeric, 1> NewVec,
-          matpack::ranked_matpack_type<Numeric, 1> Vec>
+          matpack::exact_md<Numeric, 1> NewVec = VectorView,
+          matpack::exact_md<Numeric, 1> Vec    = VectorView>
 constexpr Array<T> lagrange_interpolation_list(
     NewVec &&xs,
     Vec &&xi,
@@ -1117,7 +1111,7 @@ constexpr Array<T> lagrange_interpolation_list(
   Array<T> out;
   out.reserve(xs.size());
 
-  if (is_ascending(xi)) {
+  if (is_increasing(xi)) {
     for (auto x : xs) {
       out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi),
                        x,
@@ -1149,8 +1143,8 @@ constexpr Array<T> lagrange_interpolation_list(
  * @return An array of Lagrange types
  */
 template <lagrange_type T,
-          matpack::ranked_matpack_type<Numeric, 1> NewVec,
-          matpack::ranked_matpack_type<Numeric, 1> Vec>
+          matpack::exact_md<Numeric, 1> NewVec = VectorView,
+          matpack::exact_md<Numeric, 1> Vec    = VectorView>
 constexpr Array<T> lagrange_interpolation_list(
     NewVec &&xs,
     Vec &&xi,
@@ -1165,7 +1159,7 @@ constexpr Array<T> lagrange_interpolation_list(
   Array<T> out;
   out.reserve(xs.size());
 
-  if (is_ascending(xi)) {
+  if (is_increasing(xi)) {
     for (auto x : xs) {
       out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi),
                        x,
@@ -1237,8 +1231,8 @@ struct select_derivative {
  * @param[in] lag... Several (at least 1) Lagrange value
  */
 template <lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr void interpweights(
-    matpack::ranked_matpack_type<Numeric, N> auto &&out, const lags &...lag)
+constexpr void interpweights(matpack::exact_md<Numeric, N> auto &&out,
+                             const lags &...lag)
   requires(N > 0)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
@@ -1262,8 +1256,8 @@ constexpr void interpweights(
  * @param[in] lag... Several (at least 1) Lagrange value
  */
 template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr void dinterpweights(
-    matpack::ranked_matpack_type<Numeric, N> auto &&out, const lags &...lag)
+constexpr void dinterpweights(matpack::exact_md<Numeric, N> auto &&out,
+                              const lags &...lag)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
   ARTS_USER_ERROR_IF(std::array{lag.size()...} != out.shape(),
@@ -1290,13 +1284,11 @@ constexpr auto interpweights(const lags &...lag)
   requires(N > 0)
 {
   if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-    matpack::matpack_data<Numeric, N> out(lag.size()...);
+    matpack::data_t<Numeric, N> out(lag.size()...);
     interpweights(out, lag...);
     return out;
   } else {
-    matpack::matpack_constant_data<Numeric,
-                                   internal::compile_time_size<lags>()...>
-        out{};
+    matpack::cdata_t<Numeric, internal::compile_time_size<lags>()...> out{};
     interpweights(out, lag...);
     return out;
   }
@@ -1315,13 +1307,11 @@ constexpr auto dinterpweights(const lags &...lag)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
   if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-    matpack::matpack_data<Numeric, N> out(lag.size()...);
+    matpack::data_t<Numeric, N> out(lag.size()...);
     dinterpweights<dlx>(out, lag...);
     return out;
   } else {
-    matpack::matpack_constant_data<Numeric,
-                                   internal::compile_time_size<lags>()...>
-        out{};
+    matpack::cdata_t<Numeric, internal::compile_time_size<lags>()...> out{};
     dinterpweights<dlx>(out, lag...);
     return out;
   }
@@ -1344,7 +1334,7 @@ template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
 constexpr auto interpweights(const list_lags &...lags)
   requires(N > 0)
 {
-  matpack::matpack_data<Numeric, 2 * N> out(
+  matpack::data_t<Numeric, 2 * N> out(
       static_cast<Index>(lags.size())...,
       static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...,
       0.0);
@@ -1387,7 +1377,7 @@ template <Index dlx,
 constexpr auto dinterpweights(const list_lags &...lags)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
-  matpack::matpack_data<Numeric, 2 * N> out(
+  matpack::data_t<Numeric, 2 * N> out(
       static_cast<Index>(lags.size())...,
       static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...,
       0.0);
@@ -1428,10 +1418,10 @@ constexpr auto dinterpweights(const list_lags &...lags)
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
-                      const matpack::ranked_matpack_type<Numeric, N> auto &iw,
+constexpr auto interp(const matpack::ranked_md<N> auto &field,
+                      const matpack::exact_md<Numeric, N> auto &iw,
                       const lags &...lag) {
-  matpack::matpack_value_type<decltype(field)> out{0};
+  matpack::value_type<decltype(field)> out{0};
 
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{matpack::mdshape(iw)};
        pos.pos.front() < pos.shp.front();
@@ -1464,11 +1454,10 @@ constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr void reinterp(
-    matpack::strict_rank_matpack_type<N> auto &&out,
-    const matpack::strict_rank_matpack_type<N> auto &field,
-    const matpack::ranked_matpack_type<Numeric, 2 * N> auto &iw_field,
-    const lags &...list_lag) {
+constexpr void reinterp(matpack::ranked_md<N> auto &&out,
+                        const matpack::ranked_md<N> auto &field,
+                        const matpack::exact_md<Numeric, 2 * N> auto &iw_field,
+                        const lags &...list_lag) {
   for (matpack::flat_shape_pos<N> pos{out.shape()};
        pos.pos.front() < pos.shp.front();
        ++pos) {
@@ -1496,13 +1485,11 @@ constexpr void reinterp(
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr auto reinterp(
-    const matpack::strict_rank_matpack_type<N> auto &field,
-    const matpack::ranked_matpack_type<Numeric, 2 * N> auto &iw_field,
-    const lags &...list_lag) {
-  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
-                        sizeof...(lags)>
-  out(list_lag.size()...);
+constexpr auto reinterp(const matpack::ranked_md<N> auto &field,
+                        const matpack::exact_md<Numeric, 2 * N> auto &iw_field,
+                        const lags &...list_lag) {
+  matpack::data_t<matpack::value_type<decltype(field)>, sizeof...(lags)> out(
+      list_lag.size()...);
   reinterp(out, field, iw_field, list_lag...);
   return out;
 }
@@ -1517,9 +1504,9 @@ constexpr auto reinterp(
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
+constexpr auto interp(const matpack::ranked_md<N> auto &field,
                       const lags &...lag) {
-  matpack::matpack_value_type<decltype(field)> out{0};
+  matpack::value_type<decltype(field)> out{0};
 
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{std::array{lag.size()...}};
        pos.pos.front() < pos.shp.front();
@@ -1550,12 +1537,11 @@ constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr auto reinterp(const matpack::strict_rank_matpack_type<N> auto &field,
+constexpr auto reinterp(const matpack::ranked_md<N> auto &field,
                         const lags &...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
-  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
-                        sizeof...(lags)>
-  out(list_lag.size()...);
+  matpack::data_t<matpack::value_type<decltype(field)>, sizeof...(lags)> out(
+      list_lag.size()...);
 
   std::transform(in.begin(), in.end(), out.elem_begin(), [&](auto &&lag_t) {
     return std::apply([&](auto &&...lag) { return interp(field, lag...); },
@@ -1598,10 +1584,9 @@ constexpr auto flat_interpweights(const lags &...lag)
 template <list_of_lagrange_type... lags,
           std::size_t N = sizeof...(lags),
           typename T    = detail::flat_interpweights_t<lags...>>
-constexpr auto flat_interp(
-    const matpack::strict_rank_matpack_type<N> auto &field,
-    const std::vector<T> &iw,
-    const lags &...lag)
+constexpr auto flat_interp(const matpack::ranked_md<N> auto &field,
+                           const std::vector<T> &iw,
+                           const lags &...lag)
   requires(N > 0)
 {
   const std::array sz = {static_cast<Index>(iw.size()),
@@ -1611,7 +1596,7 @@ constexpr auto flat_interp(
                      "bad size")
 
   using F = decltype(field);
-  matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
+  matpack::data_t<matpack::value_type<F>, 1> out(n);
   for (Index i = 0; i < n; i++) out[i] = interp(field, iw[i], lag[i]...);
   return out;
 }
@@ -1619,8 +1604,8 @@ constexpr auto flat_interp(
 template <list_of_lagrange_type... lags,
           std::size_t N = sizeof...(lags),
           typename T    = detail::flat_interpweights_t<lags...>>
-constexpr auto flat_interp(
-    const matpack::strict_rank_matpack_type<N> auto &field, const lags &...lag)
+constexpr auto flat_interp(const matpack::ranked_md<N> auto &field,
+                           const lags &...lag)
   requires(N > 0)
 {
   const std::array sz = {static_cast<Index>(lag.size())...};
@@ -1629,7 +1614,7 @@ constexpr auto flat_interp(
                      "bad size")
 
   using F = decltype(field);
-  matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
+  matpack::data_t<matpack::value_type<F>, 1> out(n);
   for (Index i = 0; i < n; i++) out[i] = interp(field, lag[i]...);
   return out;
 }

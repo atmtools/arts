@@ -8,7 +8,7 @@ full::single::single(Numeric p, Numeric t, Numeric VMR, XsecRecord* xsec)
 
 Complex full::single::at(const Numeric frequency) const {
   Numeric out{};
-  xsecrec->Extract(ExhaustiveVectorView{out}, Vector{frequency}, P, T);
+  xsecrec->Extract(VectorView{out}, Vector{frequency}, P, T);
   return scl * out;
 }
 

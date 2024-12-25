@@ -964,7 +964,7 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
       .name = "PolarizationChoice",
       .desc = R"(Named polarization states to help create relevant *Stokvec*.
 
-Note that these are just user friendly suggestions and it is recommended to
+Note that these are just user fri'\n'y suggestions and it is recommended to
 create the correct *Stokvec* manually if the desired polarization state is not
 represented below.
 

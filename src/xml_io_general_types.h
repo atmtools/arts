@@ -14,22 +14,19 @@
 #ifndef xml_io_general_types_h
 #define xml_io_general_types_h
 
-#include <cfloat>
-#include <stdexcept>
-#include "sorted_grid.h"
-
-#include <supergeneric.h>
-
-#include <array.h>
 #include <binio/bifstream.h>
 #include <binio/bofstream.h>
 #include <matpack.h>
-#include <matpack_sparse.h>
+#include <mystring.h>
+#include <supergeneric.h>
 
-#define TMPL_XML_READ_WRITE_STREAM(what)                                       \
-  void xml_read_from_stream(std::istream &, what &, bifstream *);              \
-  void xml_write_to_stream(std::ostream &, const what &, bofstream *,          \
-                           const String &);
+#include <cfloat>
+#include <stdexcept>
+
+#define TMPL_XML_READ_WRITE_STREAM(what)                          \
+  void xml_read_from_stream(std::istream &, what &, bifstream *); \
+  void xml_write_to_stream(                                       \
+      std::ostream &, const what &, bofstream *, const String &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams

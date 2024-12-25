@@ -22,11 +22,11 @@
 
 #include "interpolation.h"
 
+#include <array.h>
+#include <matpack.h>
+
 #include <cmath>
 #include <iostream>
-
-#include <array.h>
-#include <matpack_math.h>
 
 // File-global constants:
 
@@ -138,14 +138,14 @@ std::ostream& operator<<(std::ostream& os, const GridPos& gp) {
  \date   Fri May  3 08:55:51 2002
 */
 void gridpos(ArrayOfGridPos& gp,
-             ConstVectorView old_grid,
-             ConstVectorView new_grid,
+             StridedConstVectorView old_grid,
+             StridedConstVectorView new_grid,
              const Numeric& extpolfac) {
   const Index n_old = old_grid.size();
   const Index n_new = new_grid.size();
 
   // Assert that gp has the right size:
-  ARTS_ASSERT(is_size(gp, n_new));
+  ARTS_ASSERT(gp.size() == static_cast<Size>(n_new));
 
   // Assert, that the old grid has more than one element
   ARTS_ASSERT(1 < n_old);
@@ -240,7 +240,7 @@ void gridpos(ArrayOfGridPos& gp,
 
         upper = old_grid[current_position + 1];
 
-        tgp.idx = current_position;
+        tgp.idx   = current_position;
         tgp.fd[0] = (tng - lower) / (upper - lower);
         tgp.fd[1] = 1.0 - tgp.fd[0];
       } else {
@@ -255,7 +255,7 @@ void gridpos(ArrayOfGridPos& gp,
 
           lower = old_grid[current_position];
 
-          tgp.idx = current_position;
+          tgp.idx   = current_position;
           tgp.fd[0] = (tng - lower) / (upper - lower);
           tgp.fd[1] = 1.0 - tgp.fd[0];
         } else {
@@ -267,13 +267,13 @@ void gridpos(ArrayOfGridPos& gp,
           // top of an old grid point, then you are now guaranteed to get
           // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
 
-          tgp.idx = current_position;
+          tgp.idx   = current_position;
           tgp.fd[0] = (tng - lower) / (upper - lower);
           tgp.fd[1] = 1.0 - tgp.fd[0];
         }
       }
 
-      //          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << endl;
+      //          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << '\n';
 
       // Safety check to ensure the above promise:
       ARTS_ASSERT(old_grid[tgp.idx] <= tng || tgp.idx == 0);
@@ -321,7 +321,7 @@ void gridpos(ArrayOfGridPos& gp,
     Numeric upper = old_grid[current_position + 1];
 
     for (Index i_new = 0; i_new < n_new; ++i_new) {
-      GridPos& tgp = gp[i_new];
+      GridPos& tgp      = gp[i_new];
       const Numeric tng = new_grid[i_new];
 
       // Verify that the new grid is within the limits of
@@ -344,7 +344,7 @@ void gridpos(ArrayOfGridPos& gp,
 
         upper = old_grid[current_position + 1];
 
-        tgp.idx = current_position;
+        tgp.idx   = current_position;
         tgp.fd[0] = (tng - lower) / (upper - lower);
         tgp.fd[1] = 1.0 - tgp.fd[0];
       } else {
@@ -358,7 +358,7 @@ void gridpos(ArrayOfGridPos& gp,
 
           lower = old_grid[current_position];
 
-          tgp.idx = current_position;
+          tgp.idx   = current_position;
           tgp.fd[0] = (tng - lower) / (upper - lower);
           tgp.fd[1] = 1.0 - tgp.fd[0];
         } else {
@@ -371,7 +371,7 @@ void gridpos(ArrayOfGridPos& gp,
           // top of an old grid point, then you are now guaranteed to get
           // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
 
-          tgp.idx = current_position;
+          tgp.idx   = current_position;
           tgp.fd[0] = (tng - lower) / (upper - lower);
           tgp.fd[1] = 1.0 - tgp.fd[0];
         }
@@ -406,7 +406,7 @@ void gridpos(ArrayOfGridPos& gp,
    \date   2008-03-03
 */
 void gridpos(GridPos& gp,
-             ConstVectorView old_grid,
+             StridedConstVectorView old_grid,
              const Numeric& new_grid,
              const Numeric& extpolfac) {
   ArrayOfGridPos agp(1);
@@ -430,16 +430,16 @@ void gridpos(GridPos& gp,
    \author Patrick Eriksson
    \date   2012-06-22
 */
-void gridpos_1to1(ArrayOfGridPos& gp, ConstVectorView grid) {
+void gridpos_1to1(ArrayOfGridPos& gp, StridedConstVectorView grid) {
   const Index n = grid.size();
   gp.resize(n);
 
   for (Index i = 0; i < n - 1; i++) {
-    gp[i].idx = i;
+    gp[i].idx   = i;
     gp[i].fd[0] = 0;
     gp[i].fd[1] = 1;
   }
-  gp[n - 1].idx = n - 2;
+  gp[n - 1].idx   = n - 2;
   gp[n - 1].fd[0] = 1;
   gp[n - 1].fd[1] = 0;
 }
@@ -455,7 +455,7 @@ void gridpos_1to1(ArrayOfGridPos& gp, ConstVectorView grid) {
    \date   2002-09-17
 */
 void gridpos_copy(GridPos& gp_new, const GridPos& gp_old) {
-  gp_new.idx = gp_old.idx;
+  gp_new.idx   = gp_old.idx;
   gp_new.fd[0] = gp_old.fd[0];
   gp_new.fd[1] = gp_old.fd[1];
 }
@@ -550,9 +550,9 @@ void gridpos_force_end_fd(GridPos& gp, const Index& n) {
 
   // End of complete grid range must be handled separately
   if (gp.idx == n - 1) {
-    gp.idx -= 1;
-    gp.fd[0] = 1;
-    gp.fd[1] = 0;
+    gp.idx   -= 1;
+    gp.fd[0]  = 1;
+    gp.fd[1]  = 0;
   }
 }
 
@@ -573,9 +573,9 @@ void gridpos_force_end_fd(GridPos& gp, const Index& n) {
 void gridpos_upperend_check(GridPos& gp, const Index& ie) {
   if (gp.idx == ie) {
     ARTS_ASSERT(gp.fd[0] < 0.005);  // To capture obviously bad cases
-    gp.idx -= 1;
-    gp.fd[0] = 1.0;
-    gp.fd[1] = 0.0;
+    gp.idx   -= 1;
+    gp.fd[0]  = 1.0;
+    gp.fd[1]  = 0.0;
   }
 }
 
@@ -597,9 +597,9 @@ void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
   for (Size i = 0; i < gp.size(); i++) {
     if (gp[i].idx == ie) {
       ARTS_ASSERT(gp[i].fd[0] < 0.005);  // To capture obviously bad cases
-      gp[i].idx -= 1;
-      gp[i].fd[0] = 1.0;
-      gp[i].fd[1] = 0.0;
+      gp[i].idx   -= 1;
+      gp[i].fd[0]  = 1.0;
+      gp[i].fd[1]  = 0.0;
     }
   }
 }
@@ -619,7 +619,7 @@ void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
 */
 void gp4length1grid(ArrayOfGridPos& gp) {
   for (Size i = 0; i < gp.size(); i++) {
-    gp[i].idx = 0;
+    gp[i].idx   = 0;
     gp[i].fd[0] = 0;
     gp[i].fd[1] = 1;
   }
@@ -722,9 +722,8 @@ Index gridpos2gridrange(const GridPos& gp, const bool& upwards) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw, const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 2));  // We must store 2 interpolation
-                            // weights.
+void interpweights(StridedVectorView itw, const GridPos& tc) {
+  ARTS_ASSERT(itw.size() == 2);  // We must store 2 interpolation weights.
 
   // Interpolation weights are stored in this order (l=lower
   // u=upper, c=column):
@@ -777,9 +776,10 @@ void interpweights(VectorView itw, const GridPos& tc) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 4));  // We must store 4 interpolation
-                            // weights.
+void interpweights(StridedVectorView itw,
+                   const GridPos& tr,
+                   const GridPos& tc) {
+  ARTS_ASSERT(itw.size() == 4);  // We must store 4 interpolation weights.
   Index iti = 0;
 
   LOOPIT(r)
@@ -805,12 +805,12 @@ void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw,
+void interpweights(StridedVectorView itw,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 8));  // We must store 8 interpolation
-                            // weights.
+  ARTS_ASSERT(itw.ncols() == 8);  // We must store 8 interpolation
+                                  // weights.
   Index iti = 0;
 
   LOOPIT(p)
@@ -838,13 +838,13 @@ void interpweights(VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw,
+void interpweights(StridedVectorView itw,
                    const GridPos& tb,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 16));  // We must store 16 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 16);  // We must store 16 interpolation
+                                  // weights.
   Index iti = 0;
 
   LOOPIT(b)
@@ -874,14 +874,14 @@ void interpweights(VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw,
+void interpweights(StridedVectorView itw,
                    const GridPos& ts,
                    const GridPos& tb,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 32));  // We must store 32 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 32);  // We must store 32 interpolation
+                                  // weights.
   Index iti = 0;
 
   LOOPIT(s)
@@ -913,15 +913,15 @@ void interpweights(VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights(VectorView itw,
+void interpweights(StridedVectorView itw,
                    const GridPos& tv,
                    const GridPos& ts,
                    const GridPos& tb,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 64));  // We must store 64 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 64);  // We must store 64 interpolation
+                                  // weights.
   Index iti = 0;
 
   LOOPIT(v)
@@ -951,13 +951,15 @@ void interpweights(VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation
-                            // weights.
+Numeric interp(StridedConstVectorView itw,
+               StridedConstVectorView a,
+               const GridPos& tc) {
+  ARTS_ASSERT(itw.size() == 2);  // We need 2 interpolation
+                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -988,16 +990,16 @@ Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc) {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw,
-               ConstMatrixView a,
+Numeric interp(StridedConstVectorView itw,
+               StridedConstMatrixView a,
                const GridPos& tr,
                const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 4));  // We need 4 interpolation
-                            // weights.
+  ARTS_ASSERT(itw.size() == 4);  // We need 4 interpolation
+                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1030,17 +1032,17 @@ Numeric interp(ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw,
-               ConstTensor3View a,
+Numeric interp(StridedConstVectorView itw,
+               StridedConstTensor3View a,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 8));  // We need 8 interpolation
-                            // weights.
+  ARTS_ASSERT(itw.size() == 8);  // We need 8 interpolation
+                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1075,18 +1077,18 @@ Numeric interp(ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw,
-               ConstTensor4View a,
+Numeric interp(StridedConstVectorView itw,
+               StridedConstTensor4View a,
                const GridPos& tb,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 16));  // We need 16 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 16);  // We need 16 interpolation
+                                  // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1096,8 +1098,7 @@ Numeric interp(ConstVectorView itw,
     for (Index p = 0; p < 2; ++p)
       for (Index r = 0; r < 2; ++r)
         for (Index c = 0; c < 2; ++c) {
-          tia += a[tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c] *
-                 itw[iti];
+          tia += a[tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c] * itw[iti];
           ++iti;
         }
 
@@ -1124,19 +1125,19 @@ Numeric interp(ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw,
-               ConstTensor5View a,
+Numeric interp(StridedConstVectorView itw,
+               StridedConstTensor5View a,
                const GridPos& ts,
                const GridPos& tb,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 32));  // We need 32 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 32);  // We need 32 interpolation
+                                  // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1147,12 +1148,9 @@ Numeric interp(ConstVectorView itw,
       for (Index p = 0; p < 2; ++p)
         for (Index r = 0; r < 2; ++r)
           for (Index c = 0; c < 2; ++c) {
-            tia += a[ts.idx + s,
-                         tb.idx + b,
-                         tp.idx + p,
-                         tr.idx + r,
-                         tc.idx + c] *
-                   itw[iti];
+            tia +=
+                a[ts.idx + s, tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c] *
+                itw[iti];
             ++iti;
           }
 
@@ -1180,20 +1178,20 @@ Numeric interp(ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp(ConstVectorView itw,
-               ConstTensor6View a,
+Numeric interp(StridedConstVectorView itw,
+               StridedConstTensor6View a,
                const GridPos& tv,
                const GridPos& ts,
                const GridPos& tb,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 64));  // We need 64 interpolation
-                             // weights.
+  ARTS_ASSERT(itw.size() == 64);  // We need 64 interpolation
+                                  // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1206,11 +1204,11 @@ Numeric interp(ConstVectorView itw,
           for (Index r = 0; r < 2; ++r)
             for (Index c = 0; c < 2; ++c) {
               tia += a[tv.idx + v,
-                           ts.idx + s,
-                           tb.idx + b,
-                           tp.idx + p,
-                           tr.idx + r,
-                           tc.idx + c] *
+                       ts.idx + s,
+                       tb.idx + b,
+                       tp.idx + p,
+                       tr.idx + r,
+                       tc.idx + c] *
                      itw[iti];
               ++iti;
             }
@@ -1238,10 +1236,11 @@ Numeric interp(ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
+void interpweights(StridedMatrixView itw, const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(itw, n, 2));  // We must store 2 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(same_shape<2>({n, 2},
+                            itw));  // We must store 2 interpolation
+                                    // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1307,13 +1306,15 @@ void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw,
+void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 4));  // We must store 4 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 4}, itw));  // We must store 4 interpolation
+                                             // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1361,15 +1362,18 @@ void interpweights(MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw,
+void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 8));  // We must store 8 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 8}, itw));  // We must store 8 interpolation
+                                             // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1412,17 +1416,21 @@ void interpweights(MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw,
+void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& bgp,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 16));  // We must store 16 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 16}, itw));  // We must store 16 interpolation
+                                              // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1468,19 +1476,24 @@ void interpweights(MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw,
+void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& sgp,
                    const ArrayOfGridPos& bgp,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 32));  // We must store 32 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(sgp.size() ==
+              static_cast<Size>(n));  // sgp must have same size as cgp.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 32}, itw));  // We must store 32 interpolation
+                                              // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1529,7 +1542,7 @@ void interpweights(MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(MatrixView itw,
+void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& vgp,
                    const ArrayOfGridPos& sgp,
                    const ArrayOfGridPos& bgp,
@@ -1537,13 +1550,19 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
-  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 64));  // We must store 64 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(vgp.size() ==
+              static_cast<Size>(n));  // vgp must have same size as cgp.
+  ARTS_ASSERT(sgp.size() ==
+              static_cast<Size>(n));  // sgp must have same size as cgp.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 64}, itw));  // We must store 64 interpolation
+                                              // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1585,20 +1604,20 @@ void interpweights(MatrixView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstVectorView a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstVectorView a,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 2));  // We need 2 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(matpack::same_shape<2>({n, 2}, itw));  // We need 2 interpolation
+      // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1608,11 +1627,11 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index c = 0; c < 2; ++c) {
-      ARTS_ASSERT(tc.idx + c < a.size());  // Temporary !?
+      ARTS_ASSERT(tc.idx + c < static_cast<Index>(a.size()));  // Temporary !?
       tia += a[tc.idx + c] * itw[i, iti];
       ++iti;
     }
@@ -1641,22 +1660,23 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstMatrixView a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstMatrixView a,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 4));  // We need 4 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(matpack::same_shape<2>({n, 4}, itw));  // We need 4 interpolation
+      // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1667,7 +1687,7 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index r = 0; r < 2; ++r)
@@ -1701,24 +1721,26 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstTensor3View a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstTensor3View a,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 8));  // We need 8 interpolation
-                               // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(matpack::same_shape<2>({n, 8}, itw));  // We need 8 interpolation
+      // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1730,7 +1752,7 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index p = 0; p < 2; ++p)
@@ -1766,26 +1788,30 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstTensor4View a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstTensor4View a,
             const ArrayOfGridPos& bgp,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 16));  // We need 16 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 16}, itw));  // We need 16 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1798,15 +1824,15 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index b = 0; b < 2; ++b)
       for (Index p = 0; p < 2; ++p)
         for (Index r = 0; r < 2; ++r)
           for (Index c = 0; c < 2; ++c) {
-            tia += a[tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c] *
-                   itw[i, iti];
+            tia +=
+                a[tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c] * itw[i, iti];
             ++iti;
           }
   }
@@ -1837,28 +1863,33 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstTensor5View a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstTensor5View a,
             const ArrayOfGridPos& sgp,
             const ArrayOfGridPos& bgp,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 32));  // We need 32 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(sgp.size() ==
+              static_cast<Size>(n));  // sgp must have same size as cgp.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 32}, itw));  // We need 32 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1872,7 +1903,7 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index s = 0; s < 2; ++s)
@@ -1881,10 +1912,10 @@ void interp(VectorView ia,
           for (Index r = 0; r < 2; ++r)
             for (Index c = 0; c < 2; ++c) {
               tia += a[ts.idx + s,
-                           tb.idx + b,
-                           tp.idx + p,
-                           tr.idx + r,
-                           tc.idx + c] *
+                       tb.idx + b,
+                       tp.idx + p,
+                       tr.idx + r,
+                       tc.idx + c] *
                      itw[i, iti];
               ++iti;
             }
@@ -1917,9 +1948,9 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(VectorView ia,
-            ConstMatrixView itw,
-            ConstTensor6View a,
+void interp(StridedVectorView ia,
+            StridedConstMatrixView itw,
+            StridedConstTensor6View a,
             const ArrayOfGridPos& vgp,
             const ArrayOfGridPos& sgp,
             const ArrayOfGridPos& bgp,
@@ -1927,20 +1958,26 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
-  ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
-  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
-  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
-  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
-  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
-  ARTS_ASSERT(is_size(itw, n, 64));  // We need 64 interpolation
-                                // weights for each position.
+  ARTS_ASSERT(ia.ncols() == n);  //  ia must have same size as cgp.
+  ARTS_ASSERT(vgp.size() ==
+              static_cast<Size>(n));  // vgp must have same size as cgp.
+  ARTS_ASSERT(sgp.size() ==
+              static_cast<Size>(n));  // sgp must have same size as cgp.
+  ARTS_ASSERT(bgp.size() ==
+              static_cast<Size>(n));  // bgp must have same size as cgp.
+  ARTS_ASSERT(pgp.size() ==
+              static_cast<Size>(n));  // pgp must have same size as cgp.
+  ARTS_ASSERT(rgp.size() ==
+              static_cast<Size>(n));  // rgp must have same size as cgp.
+  ARTS_ASSERT(
+      matpack::same_shape<2>({n, 64}, itw));  // We need 64 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(sum(itw[0]), 1, sum_check_epsilon));
+      is_same_within_epsilon<Numeric>(sum(itw[0]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1955,7 +1992,7 @@ void interp(VectorView ia,
     // Get handle to current element of output vector and initialize
     // it to zero:
     Numeric& tia = ia[i];
-    tia = 0;
+    tia          = 0;
 
     Index iti = 0;
     for (Index v = 0; v < 2; ++v)
@@ -1965,11 +2002,11 @@ void interp(VectorView ia,
             for (Index r = 0; r < 2; ++r)
               for (Index c = 0; c < 2; ++c) {
                 tia += a[tv.idx + v,
-                             ts.idx + s,
-                             tb.idx + b,
-                             tp.idx + p,
-                             tr.idx + r,
-                             tc.idx + c] *
+                         ts.idx + s,
+                         tb.idx + b,
+                         tp.idx + p,
+                         tr.idx + r,
+                         tc.idx + c] *
                        itw[i, iti];
                 ++iti;
               }
@@ -2002,13 +2039,14 @@ void interp(VectorView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(Tensor3View itw,
+void interpweights(StridedTensor3View itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We must store 4 interpolation
-                                    // weights for each position.
+  ARTS_ASSERT(
+      same_shape<3>({nr, nc, 4}, itw));  // We must store 4 interpolation
+                                         // weights for each position.
 
   // We have to loop all the points in the new grid:
   for (Index ir = 0; ir < nr; ++ir) {
@@ -2060,7 +2098,7 @@ void interpweights(Tensor3View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(Tensor4View itw,
+void interpweights(StridedTensor4View itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
@@ -2068,7 +2106,7 @@ void interpweights(Tensor4View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 8 interpolation weights for each position:
-  ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
+  ARTS_ASSERT(same_shape<4>({np, nr, nc, 8}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index ip = 0; ip < np; ++ip) {
@@ -2115,7 +2153,7 @@ void interpweights(Tensor4View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(Tensor5View itw,
+void interpweights(StridedTensor5View itw,
                    const ArrayOfGridPos& bgp,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
@@ -2125,7 +2163,7 @@ void interpweights(Tensor5View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 16 interpolation weights for each position:
-  ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
+  ARTS_ASSERT(same_shape<5>({nb, np, nr, nc, 16}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index ib = 0; ib < nb; ++ib) {
@@ -2177,7 +2215,7 @@ void interpweights(Tensor5View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(Tensor6View itw,
+void interpweights(StridedTensor6View itw,
                    const ArrayOfGridPos& sgp,
                    const ArrayOfGridPos& bgp,
                    const ArrayOfGridPos& pgp,
@@ -2189,7 +2227,7 @@ void interpweights(Tensor6View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 32 interpolation weights for each position:
-  ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
+  ARTS_ASSERT(same_shape<6>({ns, nb, np, nr, nc, 32}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index is = 0; is < ns; ++is) {
@@ -2210,8 +2248,7 @@ void interpweights(Tensor6View itw,
             LOOPIT(p)
             LOOPIT(r)
             LOOPIT(c) {
-              itw[is, ib, ip, ir, ic, iti] =
-                  (*s) * (*b) * (*p) * (*r) * (*c);
+              itw[is, ib, ip, ir, ic, iti] = (*s) * (*b) * (*p) * (*r) * (*c);
               ++iti;
             }
           }
@@ -2247,7 +2284,7 @@ void interpweights(Tensor6View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights(Tensor7View itw,
+void interpweights(StridedTensor7View itw,
                    const ArrayOfGridPos& vgp,
                    const ArrayOfGridPos& sgp,
                    const ArrayOfGridPos& bgp,
@@ -2261,7 +2298,7 @@ void interpweights(Tensor7View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 64 interpolation weights for each position:
-  ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
+  ARTS_ASSERT(same_shape<7>({nv, ns, nb, np, nr, nc, 64}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index iv = 0; iv < nv; ++iv) {
@@ -2319,21 +2356,21 @@ void interpweights(Tensor7View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(MatrixView ia,
-            ConstTensor3View itw,
-            ConstMatrixView a,
+void interp(StridedMatrixView ia,
+            StridedConstTensor3View itw,
+            StridedConstMatrixView a,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(ia, nr, nc));
-  ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We need 4 interpolation
-                                    // weights for each position.
+  ARTS_ASSERT(same_shape<2>({nr, nc}, ia));
+  ARTS_ASSERT(same_shape<3>({nr, nc, 4}, itw));  // We need 4 interpolation
+                                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  ARTS_ASSERT(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(
       sum(itw[0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2348,7 +2385,7 @@ void interp(MatrixView ia,
       // Get handle to current element of output tensor and initialize
       // it to zero:
       Numeric& tia = ia[ir, ic];
-      tia = 0;
+      tia          = 0;
 
       Index iti = 0;
       for (Index r = 0; r < 2; ++r)
@@ -2385,22 +2422,22 @@ void interp(MatrixView ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(Tensor3View ia,
-            ConstTensor4View itw,
-            ConstTensor3View a,
+void interp(StridedTensor3View ia,
+            StridedConstTensor4View itw,
+            StridedConstTensor3View a,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(ia, np, nr, nc));
-  ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
+  ARTS_ASSERT(same_shape<3>({np, nr, nc}, ia));
+  ARTS_ASSERT(same_shape<4>({np, nr, nc, 8}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  ARTS_ASSERT(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(
       sum(itw[0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2415,7 +2452,7 @@ void interp(Tensor3View ia,
         // Get handle to current element of output tensor and
         // initialize it to zero:
         Numeric& tia = ia[ip, ir, ic];
-        tia = 0;
+        tia          = 0;
 
         Index iti = 0;
         for (Index p = 0; p < 2; ++p)
@@ -2424,8 +2461,8 @@ void interp(Tensor3View ia,
               ARTS_ASSERT(tp.idx + p < a.npages());  // Temporary !?
               ARTS_ASSERT(tr.idx + r < a.nrows());   // Temporary !?
               ARTS_ASSERT(tc.idx + c < a.ncols());   // Temporary !?
-              tia += a[tp.idx + p, tr.idx + r, tc.idx + c] *
-                     itw[ip, ir, ic, iti];
+              tia +=
+                  a[tp.idx + p, tr.idx + r, tc.idx + c] * itw[ip, ir, ic, iti];
               ++iti;
             }
       }
@@ -2457,9 +2494,9 @@ void interp(Tensor3View ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(Tensor4View ia,
-            ConstTensor5View itw,
-            ConstTensor4View a,
+void interp(StridedTensor4View ia,
+            StridedConstTensor5View itw,
+            StridedConstTensor4View a,
             const ArrayOfGridPos& bgp,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
@@ -2468,13 +2505,13 @@ void interp(Tensor4View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(ia, nb, np, nr, nc));
-  ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
+  ARTS_ASSERT(same_shape<4>({nb, np, nr, nc}, ia));
+  ARTS_ASSERT(same_shape<5>({nb, np, nr, nc, 16}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  ARTS_ASSERT(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(
       sum(itw[0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2491,7 +2528,7 @@ void interp(Tensor4View ia,
           // Get handle to current element of output tensor and
           // initialize it to zero:
           Numeric& tia = ia[ib, ip, ir, ic];
-          tia = 0;
+          tia          = 0;
 
           Index iti = 0;
           for (Index b = 0; b < 2; ++b)
@@ -2533,9 +2570,9 @@ void interp(Tensor4View ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(Tensor5View ia,
-            ConstTensor6View itw,
-            ConstTensor5View a,
+void interp(StridedTensor5View ia,
+            StridedConstTensor6View itw,
+            StridedConstTensor5View a,
             const ArrayOfGridPos& sgp,
             const ArrayOfGridPos& bgp,
             const ArrayOfGridPos& pgp,
@@ -2546,13 +2583,13 @@ void interp(Tensor5View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(ia, ns, nb, np, nr, nc));
-  ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
+  ARTS_ASSERT(same_shape<5>({ns, nb, np, nr, nc}, ia));
+  ARTS_ASSERT(same_shape<6>({ns, nb, np, nr, nc, 32}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  ARTS_ASSERT(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(
       sum(itw[0, 0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2571,7 +2608,7 @@ void interp(Tensor5View ia,
             // Get handle to current element of output tensor and
             // initialize it to zero:
             Numeric& tia = ia[is, ib, ip, ir, ic];
-            tia = 0;
+            tia          = 0;
 
             Index iti = 0;
             for (Index s = 0; s < 2; ++s)
@@ -2580,10 +2617,10 @@ void interp(Tensor5View ia,
                   for (Index r = 0; r < 2; ++r)
                     for (Index c = 0; c < 2; ++c) {
                       tia += a[ts.idx + s,
-                                   tb.idx + b,
-                                   tp.idx + p,
-                                   tr.idx + r,
-                                   tc.idx + c] *
+                               tb.idx + b,
+                               tp.idx + p,
+                               tr.idx + r,
+                               tc.idx + c] *
                              itw[is, ib, ip, ir, ic, iti];
                       ++iti;
                     }
@@ -2620,9 +2657,9 @@ void interp(Tensor5View ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp(Tensor6View ia,
-            ConstTensor7View itw,
-            ConstTensor6View a,
+void interp(StridedTensor6View ia,
+            StridedConstTensor7View itw,
+            StridedConstTensor6View a,
             const ArrayOfGridPos& vgp,
             const ArrayOfGridPos& sgp,
             const ArrayOfGridPos& bgp,
@@ -2635,13 +2672,13 @@ void interp(Tensor6View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  ARTS_ASSERT(is_size(ia, nv, ns, nb, np, nr, nc));
-  ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
+  ARTS_ASSERT(same_shape<6>({nv, ns, nb, np, nr, nc}, ia));
+  ARTS_ASSERT(same_shape<7>({nv, ns, nb, np, nr, nc, 64}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  ARTS_ASSERT(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(
       sum(itw[0, 0, 0, 0, 0, 0, joker]), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2662,7 +2699,7 @@ void interp(Tensor6View ia,
               // Get handle to current element of output tensor and
               // initialize it to zero:
               Numeric& tia = ia[iv, is, ib, ip, ir, ic];
-              tia = 0;
+              tia          = 0;
 
               Index iti = 0;
               for (Index v = 0; v < 2; ++v)
@@ -2672,11 +2709,11 @@ void interp(Tensor6View ia,
                       for (Index r = 0; r < 2; ++r)
                         for (Index c = 0; c < 2; ++c) {
                           tia += a[tv.idx + v,
-                                       ts.idx + s,
-                                       tb.idx + b,
-                                       tp.idx + p,
-                                       tr.idx + r,
-                                       tc.idx + c] *
+                                   ts.idx + s,
+                                   tb.idx + b,
+                                   tp.idx + p,
+                                   tr.idx + r,
+                                   tc.idx + c] *
                                  itw[iv, is, ib, ip, ir, ic, iti];
                           ++iti;
                         }
@@ -2687,7 +2724,6 @@ void interp(Tensor6View ia,
     }
   }
 }
-
 
 //! Polynomial interpolation.
 /*! 
@@ -2711,8 +2747,8 @@ void interp(Tensor6View ia,
 */
 void polint(Numeric& y_int,
             Numeric& dy_int,
-            ConstVectorView xa,
-            ConstVectorView ya,
+            StridedConstVectorView xa,
+            StridedConstVectorView ya,
             const Index& n,
             const Numeric& x) {
   Index ns = 1;
@@ -2726,7 +2762,7 @@ void polint(Numeric& y_int,
   // Find the index of the closest table entry
   for (Index i = 0; i < n; i++) {
     if ((dift = abs(x - xa[i])) < dif) {
-      ns = i;
+      ns  = i;
       dif = dift;
     }
     // Initialize c and d
@@ -2738,13 +2774,13 @@ void polint(Numeric& y_int,
 
   for (Index m = 1; m < n; m++) {
     for (Index i = 0; i < n - m; i++) {
-      ho = xa[i] - x;
-      hp = xa[i + m] - x;
-      w = c[i + 1] - d[i];
+      ho  = xa[i] - x;
+      hp  = xa[i + m] - x;
+      w   = c[i + 1] - d[i];
       den = ho - hp;
       // This error occurs when two input xa's are identical.
       ARTS_ASSERT(den != 0.);
-      den = w / den;
+      den  = w / den;
       d[i] = hp * den;
       c[i] = ho * den;
     }
@@ -2768,13 +2804,13 @@ void polint(Numeric& y_int,
   \author Claudia Emde
   \date 2004-03-17
 */
-Numeric interp_poly(ConstVectorView x,
-                    ConstVectorView y,
+Numeric interp_poly(StridedConstVectorView x,
+                    StridedConstVectorView y,
                     const Numeric& x_i,
                     const GridPos& gp) {
   Index N_x = x.size();
 
-  ARTS_ASSERT(N_x == y.size());
+  ARTS_ASSERT(static_cast<Size>(N_x) == y.size());
   ARTS_ASSERT(N_x > 2);
 
   Vector xa(4), ya(4);
@@ -2918,12 +2954,14 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGridPos& a) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfGridPos& a) {
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfArrayOfGridPos& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfArrayOfGridPos& a) {
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfArrayOfArrayOfGridPos& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }

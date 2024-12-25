@@ -2,7 +2,6 @@
 #include <workspace.h>
 
 #include "debug.h"
-#include "mh_checks.h"
 
 void legendre_degreeFromDisortSettings(Index& legendre_degree,
                                        const DisortSettings& disort_settings) {
@@ -57,11 +56,11 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
   const auto& phase_matrix = phase_matrix_opt.value();
 
   ARTS_USER_ERROR_IF(
-      not same_shape(phase_matrix, phase_matrix_scattering_spectral) or
-          not same_shape(extinction_matrix,
-                         absorption_vector,
-                         propagation_matrix_scattering,
-                         absorption_vector_scattering),
+      not same_shape<2>(phase_matrix, phase_matrix_scattering_spectral) or
+          not same_shape<1>(extinction_matrix,
+                            absorption_vector,
+                            propagation_matrix_scattering,
+                            absorption_vector_scattering),
       R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
 Phase matrix shape (must match):
@@ -112,9 +111,9 @@ void ray_path_propagation_matrixAddScattering(
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(ray_path_propagation_matrix.front().shape(),
-                         ray_path_propagation_matrix,
-                         ray_path_propagation_matrix_scattering),
+      not all_same_shape<1>(ray_path_propagation_matrix.front().shape(),
+                            ray_path_propagation_matrix,
+                            ray_path_propagation_matrix_scattering),
       "The inner shapes of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering must be the same (first elem shape: {:B,}).",
       ray_path_propagation_matrix.front().shape())
 
@@ -137,7 +136,8 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
   const Size N = ray_path_frequency_grid.size();
 
   ARTS_USER_ERROR_IF(
-      not all_same_size(ray_path_frequency_grid, ray_path_atmospheric_point),
+      not arr::all_same_size(ray_path_frequency_grid,
+                             ray_path_atmospheric_point),
       R"(The size of ray_path_frequency_grid and ray_path_atmospheric_point must be the same.
   ray_path_frequency_grid.size():    {}
   ray_path_atmospheric_point.size(): {}

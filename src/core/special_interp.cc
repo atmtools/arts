@@ -42,10 +42,10 @@
   - Interpolation of Gridded fields of special types:
  */
 
-#include <cmath>
-
-#include "check_input.h"
 #include "special_interp.h"
+
+#include <cmath>
+#include "path_point.h"
 
 /*===========================================================================
   === Point interpolation functions for atmospheric grids and fields
@@ -93,13 +93,11 @@ Numeric interp_atmfield_by_gp(ConstTensor3View x_field,
 
   gridpos_copy(agp_p[0], gp_p);
 
-    agp_lat.resize(1);
-    gridpos_copy(agp_lat[0], gp_lat);
-  
+  agp_lat.resize(1);
+  gridpos_copy(agp_lat[0], gp_lat);
 
-    agp_lon.resize(1);
-    gridpos_copy(agp_lon[0], gp_lon);
-  
+  agp_lon.resize(1);
+  gridpos_copy(agp_lon[0], gp_lon);
 
   Vector x(1);
 
@@ -117,17 +115,17 @@ void interp_cloudfield_gp2itw(VectorView itw,
                               const GridPos& gp_lon_in,
                               const ArrayOfIndex& cloudbox_limits) {
   // Shift grid positions to cloud box grids
-    gridpos_copy(gp_p_out, gp_p_in);
-    gridpos_copy(gp_lat_out, gp_lat_in);
-    gridpos_copy(gp_lon_out, gp_lon_in);
-    gp_p_out.idx -= cloudbox_limits[0];
-    gp_lat_out.idx -= cloudbox_limits[2];
-    gp_lon_out.idx -= cloudbox_limits[4];
-    gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
-    gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
-    gridpos_upperend_check(gp_lon_out, cloudbox_limits[5] - cloudbox_limits[4]);
-    ARTS_ASSERT(itw.size() == 8);
-    interpweights(itw, gp_p_out, gp_lat_out, gp_lon_out);
+  gridpos_copy(gp_p_out, gp_p_in);
+  gridpos_copy(gp_lat_out, gp_lat_in);
+  gridpos_copy(gp_lon_out, gp_lon_in);
+  gp_p_out.idx   -= cloudbox_limits[0];
+  gp_lat_out.idx -= cloudbox_limits[2];
+  gp_lon_out.idx -= cloudbox_limits[4];
+  gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
+  gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
+  gridpos_upperend_check(gp_lon_out, cloudbox_limits[5] - cloudbox_limits[4]);
+  ARTS_ASSERT(itw.size() == 8);
+  interpweights(itw, gp_p_out, gp_lat_out, gp_lon_out);
 }
 
 /** Converts atmospheric grid positions to weights for interpolation of a
@@ -151,10 +149,10 @@ void interp_cloudfield_gp2itw(VectorView itw,
 void interp_atmsurface_gp2itw(Matrix& itw,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon) {
-    const Size n = gp_lat.size();
-    ARTS_ASSERT(n == gp_lon.size());
-    itw.resize(n, 4);
-    interpweights(itw, gp_lat, gp_lon);
+  const Size n = gp_lat.size();
+  ARTS_ASSERT(n == gp_lon.size());
+  itw.resize(n, 4);
+  interpweights(itw, gp_lat, gp_lon);
 }
 
 void interp_atmsurface_by_itw(VectorView x,
@@ -162,9 +160,9 @@ void interp_atmsurface_by_itw(VectorView x,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon,
                               ConstMatrixView itw) {
-    ARTS_ASSERT(static_cast<Size>(x.size()) == gp_lat.size());
-    ARTS_ASSERT(itw.ncols() == 4);
-    interp(x, itw, x_surface, gp_lat, gp_lon);
+  ARTS_ASSERT(static_cast<Size>(x.size()) == gp_lat.size());
+  ARTS_ASSERT(itw.ncols() == 4);
+  interp(x, itw, x_surface, gp_lat, gp_lon);
 }
 
 void interp_atmsurface_by_gp(VectorView x,
@@ -183,11 +181,11 @@ Numeric interp_atmsurface_by_gp(ConstMatrixView x_surface,
                                 const GridPos& gp_lon) {
   ArrayOfGridPos agp_lat(0), agp_lon(0);
 
-    agp_lat.resize(1);
-    gridpos_copy(agp_lat[0], gp_lat);
+  agp_lat.resize(1);
+  gridpos_copy(agp_lat[0], gp_lat);
 
-    agp_lon.resize(1);
-    gridpos_copy(agp_lon[0], gp_lon);
+  agp_lon.resize(1);
+  gridpos_copy(agp_lon[0], gp_lon);
 
   Vector x(1);
 
@@ -207,24 +205,24 @@ void regrid_atmfield_by_gp(Tensor3& field_new,
                            const ArrayOfGridPos& gp_lon) {
   const Size n1 = gp_p.size();
 
-    const Size n2 = gp_lat.size();
-    const Size n3 = gp_lon.size();
-    field_new.resize(n1, n2, n3);
-    Tensor4 itw(n1, n2, n3, 8);
-    interpweights(itw, gp_p, gp_lat, gp_lon);
-    interp(field_new, itw, field_old, gp_p, gp_lat, gp_lon);
+  const Size n2 = gp_lat.size();
+  const Size n3 = gp_lon.size();
+  field_new.resize(n1, n2, n3);
+  Tensor4 itw(n1, n2, n3, 8);
+  interpweights(itw, gp_p, gp_lat, gp_lon);
+  interp(field_new, itw, field_old, gp_p, gp_lat, gp_lon);
 }
 
 void regrid_atmsurf_by_gp(Matrix& field_new,
                           ConstMatrixView field_old,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon) {
-    const Size n1 = gp_lat.size();
-    const Size n2 = gp_lon.size();
-    field_new.resize(n1, n2);
-    Tensor3 itw(n1, n2, 4);
-    interpweights(itw, gp_lat, gp_lon);
-    interp(field_new, itw, field_old, gp_lat, gp_lon);
+  const Size n1 = gp_lat.size();
+  const Size n2 = gp_lon.size();
+  field_new.resize(n1, n2);
+  Tensor3 itw(n1, n2, 4);
+  interpweights(itw, gp_lat, gp_lon);
+  interp(field_new, itw, field_old, gp_lat, gp_lon);
 }
 
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
@@ -234,103 +232,100 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
                                const ArrayOfGridPos& gp_lon) {
   const Size n1 = gp_p.size();
 
-  const bool np_is1 = field_old.npages() == 1 ? true : false;
-  const bool nlat_is1 =
-      field_old.nrows() == 1 ? true : false;
-  const bool nlon_is1 =
-      field_old.ncols() == 1 ? true : false;
+  const bool np_is1   = field_old.npages() == 1 ? true : false;
+  const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
+  const bool nlon_is1 = field_old.ncols() == 1 ? true : false;
 
   // If no length 1, we can use standard function
   if (!np_is1 && !nlat_is1 && !nlon_is1) {
-    regrid_atmfield_by_gp(
-        field_new, field_old, gp_p, gp_lat, gp_lon);
+    regrid_atmfield_by_gp(field_new, field_old, gp_p, gp_lat, gp_lon);
   } else {
-      const Size n2 = gp_lat.size();
-      const Size n3 = gp_lon.size();
-      field_new.resize(n1, n2, n3);
-      //
-      if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
-      {
-        field_new = field_old[0, 0, 0];
-      }
+    const Size n2 = gp_lat.size();
+    const Size n3 = gp_lon.size();
+    field_new.resize(n1, n2, n3);
+    //
+    if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
+    {
+      field_new = field_old[0, 0, 0];
+    }
 
-      else if (np_is1)  // No pressure interpolation --------------
+    else if (np_is1)  // No pressure interpolation --------------
+    {
+      if (nlat_is1)  // 2: Just longitude interpolation
       {
-        if (nlat_is1)  // 2: Just longitude interpolation
-        {
-          Matrix itw(n3, 2);
-          interpweights(itw, gp_lon);
-          Vector tmp(n3);
-          interp(tmp, itw, field_old[0, 0, joker], gp_lon);
-          for (Size p = 0; p < n1; p++) {
-            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            for (Size lat = 0; lat < n2; lat++) {
-              ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-              field_new[p, lat, joker] = tmp;
-            }
-          }
-        } else if (nlon_is1)  // 3: Just latitude interpolation
-        {
-          Matrix itw(n2, 2);
-          interpweights(itw, gp_lat);
-          Vector tmp(n2);
-          interp(tmp, itw, field_old[0, joker, 0], gp_lat);
-          for (Size p = 0; p < n1; p++) {
-            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            for (Size lon = 0; lon < n3; lon++) {
-              ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-              field_new[p, joker, lon] = tmp;
-            }
-          }
-        } else  // 4: Both lat and lon interpolation
-        {
-          Tensor3 itw(n2, n3, 4);
-          interpweights(itw, gp_lat, gp_lon);
-          Matrix tmp(n2, n3);
-          interp(tmp, itw, field_old[0], gp_lat, gp_lon);
-          for (Size p = 0; p < n1; p++) {
-            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            field_new[p] = tmp;
+        Matrix itw(n3, 2);
+        interpweights(itw, gp_lon);
+        Vector tmp(n3);
+        interp(tmp, itw, field_old[0, 0, joker], gp_lon);
+        for (Size p = 0; p < n1; p++) {
+          ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
+          for (Size lat = 0; lat < n2; lat++) {
+            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
+            field_new[p, lat, joker] = tmp;
           }
         }
-      }
-
-      else  // Pressure interpolation --------------
+      } else if (nlon_is1)  // 3: Just latitude interpolation
       {
-        if (nlat_is1 && nlon_is1)  // 5: Just pressure interpolatiom
-        {
-          Matrix itw(n1, 2);
-          interpweights(itw, gp_p);
-          Vector tmp(n1);
-          interp(tmp, itw, field_old[joker, 0, 0], gp_p);
-          for (Size lat = 0; lat < n2; lat++) {
-            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            for (Size lon = 0; lon < n3; lon++) {
-              ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-              field_new[joker, lat, lon] = tmp;
-            }
-          }
-        } else if (nlat_is1)  // 6: Both p and lon interpolation
-        {
-          Tensor3 itw(n1, n3, 4);
-          interpweights(itw, gp_p, gp_lon);
-          Matrix tmp(n1, n3);
-          interp(tmp, itw, field_old[joker, 0, joker], gp_p, gp_lon);
-          for (Size lat = 0; lat < n2; lat++) {
-            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            field_new[joker, lat, joker] = tmp;
-          }
-        } else  // 7: Both p and lat interpolation
-        {
-          Tensor3 itw(n1, n2, 4);
-          interpweights(itw, gp_p, gp_lat);
-          Matrix tmp(n1, n2);
-          interp(tmp, itw, field_old[joker, joker, 0], gp_p, gp_lat);
+        Matrix itw(n2, 2);
+        interpweights(itw, gp_lat);
+        Vector tmp(n2);
+        interp(tmp, itw, field_old[0, joker, 0], gp_lat);
+        for (Size p = 0; p < n1; p++) {
+          ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
           for (Size lon = 0; lon < n3; lon++) {
             ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-            field_new[joker, joker, lon] = tmp;
+            field_new[p, joker, lon] = tmp;
           }
         }
+      } else  // 4: Both lat and lon interpolation
+      {
+        Tensor3 itw(n2, n3, 4);
+        interpweights(itw, gp_lat, gp_lon);
+        Matrix tmp(n2, n3);
+        interp(tmp, itw, field_old[0], gp_lat, gp_lon);
+        for (Size p = 0; p < n1; p++) {
+          ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
+          field_new[p] = tmp;
+        }
+      }
+    }
+
+    else  // Pressure interpolation --------------
+    {
+      if (nlat_is1 && nlon_is1)  // 5: Just pressure interpolatiom
+      {
+        Matrix itw(n1, 2);
+        interpweights(itw, gp_p);
+        Vector tmp(n1);
+        interp(tmp, itw, field_old[joker, 0, 0], gp_p);
+        for (Size lat = 0; lat < n2; lat++) {
+          ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
+          for (Size lon = 0; lon < n3; lon++) {
+            ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
+            field_new[joker, lat, lon] = tmp;
+          }
+        }
+      } else if (nlat_is1)  // 6: Both p and lon interpolation
+      {
+        Tensor3 itw(n1, n3, 4);
+        interpweights(itw, gp_p, gp_lon);
+        Matrix tmp(n1, n3);
+        interp(tmp, itw, field_old[joker, 0, joker], gp_p, gp_lon);
+        for (Size lat = 0; lat < n2; lat++) {
+          ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
+          field_new[joker, lat, joker] = tmp;
+        }
+      } else  // 7: Both p and lat interpolation
+      {
+        Tensor3 itw(n1, n2, 4);
+        interpweights(itw, gp_p, gp_lat);
+        Matrix tmp(n1, n2);
+        interp(tmp, itw, field_old[joker, joker, 0], gp_p, gp_lat);
+        for (Size lon = 0; lon < n3; lon++) {
+          ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
+          field_new[joker, joker, lon] = tmp;
+        }
+      }
     }
   }
 }
@@ -341,45 +336,43 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon) {
   // As 1D is so simple, let's do it here and not go to standard function
-    const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
-    const bool nlon_is1 =
-       field_old.ncols() == 1 ? true : false;
+  const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
+  const bool nlon_is1 = field_old.ncols() == 1 ? true : false;
 
-    // If no length 1, we can use standard function
-    if (!nlat_is1 && !nlon_is1) {
-      regrid_atmsurf_by_gp(
-          field_new, field_old, gp_lat, gp_lon);
-    } else {
-        const Index n1 = gp_lat.size();
-        const Index n2 = gp_lon.size();
-        field_new.resize(n1, n2);
-        //
-        if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
-        {
-          field_new = field_old[0, 0];
-        } else if (nlon_is1)  // 2: Just latitude interpolation
-        {
-          Matrix itw(n1, 2);
-          interpweights(itw, gp_lat);
-          Vector tmp(n1);
-          interp(tmp, itw, field_old[joker, 0], gp_lat);
-          for (Index lon = 0; lon < n2; lon++) {
-            ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
-            field_new[joker, lon] = tmp;
-          }
-        } else  // 2: Just longitude interpolation
-        {
-          Matrix itw(n2, 2);
-          interpweights(itw, gp_lon);
-          Vector tmp(n2);
-          interp(tmp, itw, field_old[0], gp_lon);
-          for (Index lat = 0; lat < n1; lat++) {
-            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            field_new[lat] = tmp;
-          }
-        }
+  // If no length 1, we can use standard function
+  if (!nlat_is1 && !nlon_is1) {
+    regrid_atmsurf_by_gp(field_new, field_old, gp_lat, gp_lon);
+  } else {
+    const Index n1 = gp_lat.size();
+    const Index n2 = gp_lon.size();
+    field_new.resize(n1, n2);
+    //
+    if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
+    {
+      field_new = field_old[0, 0];
+    } else if (nlon_is1)  // 2: Just latitude interpolation
+    {
+      Matrix itw(n1, 2);
+      interpweights(itw, gp_lat);
+      Vector tmp(n1);
+      interp(tmp, itw, field_old[joker, 0], gp_lat);
+      for (Index lon = 0; lon < n2; lon++) {
+        ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
+        field_new[joker, lon] = tmp;
+      }
+    } else  // 2: Just longitude interpolation
+    {
+      Matrix itw(n2, 2);
+      interpweights(itw, gp_lon);
+      Vector tmp(n2);
+      interp(tmp, itw, field_old[0], gp_lon);
+      for (Index lat = 0; lat < n1; lat++) {
+        ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
+        field_new[lat] = tmp;
       }
     }
+  }
+}
 
 /*===========================================================================
   === Conversion altitudes / pressure
@@ -390,16 +383,16 @@ void itw2p(VectorView p_values,
            const ArrayOfGridPos& gp,
            ConstMatrixView itw) {
   ARTS_ASSERT(itw.ncols() == 2);
-  ARTS_ASSERT(p_values.size() == itw.nrows());
+  ARTS_ASSERT(p_values.ncols() == itw.nrows());
 
   // Local variable to store log of the pressure grid:
   Vector logpgrid(p_grid.size());
 
-  transform(logpgrid, log, p_grid);
+  logpgrid.unary_transform(p_grid, [](auto p) { return std::log(p); });
 
   interp(p_values, itw, logpgrid, gp);
 
-  transform(p_values, exp, p_values);
+  p_values.unary_transform(p_values, [](auto p) { return std::exp(p); });
 }
 
 /** Calculates grid positions for pressure values.
@@ -434,8 +427,8 @@ void p2gridpos(ArrayOfGridPos& gp,
   Vector logold(old_pgrid.size());
   Vector lognew(new_pgrid.size());
 
-  transform(logold, log, old_pgrid);
-  transform(lognew, log, new_pgrid);
+  logold.unary_transform(old_pgrid, [](auto p) { return std::log(p); });
+  lognew.unary_transform(new_pgrid, [](auto p) { return std::log(p); });
 
   gridpos(gp, logold, lognew, extpolfac);
 }
@@ -448,32 +441,35 @@ void rte_pos2gridpos(GridPos& gp_p,
                      ConstVectorView lon_grid,
                      ConstTensor3View z_field,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(rte_pos);
+  ARTS_USER_ERROR_IF(
+      path::is_valid_old_pos(rte_pos), "Bad rte_pos values: {:B,}", rte_pos);
 
-    // Determine z at lat/lon (z_grid) by blue interpolation
-    const Index np = p_grid.size();
-    Vector z_grid(np);
-    ArrayOfGridPos agp_z, agp_lat(np);
-    //
-    gridpos_1to1(agp_z, p_grid);
-    //
-    chk_interpolation_grids("Latitude interpolation", lat_grid, rte_pos[1]);
-    gridpos(gp_lat, lat_grid, rte_pos[1]);
+  // Determine z at lat/lon (z_grid) by blue interpolation
+  const Index np = p_grid.size();
+  Vector z_grid(np);
+  ArrayOfGridPos agp_z, agp_lat(np);
+  //
+  gridpos_1to1(agp_z, p_grid);
+  //
+  LagrangeLogInterpolation::check(
+      lat_grid, 1, rte_pos[1], 0.5, "Latitude interpolation");
+  gridpos(gp_lat, lat_grid, rte_pos[1]);
+  LagrangeLogInterpolation::check(
+      lon_grid, 1, rte_pos[2], 0.5, "Longitude interpolation");
+  gridpos(gp_lon, lon_grid, rte_pos[2]);
+  ArrayOfGridPos agp_lon(np);
+  for (Index i = 0; i < np; i++) {
+    agp_lat[i] = gp_lat;
+    agp_lon[i] = gp_lon;
+  }
+  Matrix itw(np, 8);
+  interpweights(itw, agp_z, agp_lat, agp_lon);
+  interp(z_grid, itw, z_field, agp_z, agp_lat, agp_lon);
 
-      chk_interpolation_grids("Longitude interpolation", lon_grid, rte_pos[2]);
-      gridpos(gp_lon, lon_grid, rte_pos[2]);
-      ArrayOfGridPos agp_lon(np);
-      for (Index i = 0; i < np; i++) {
-        agp_lat[i] = gp_lat;
-        agp_lon[i] = gp_lon;
-      }
-      Matrix itw(np, 8);
-      interpweights(itw, agp_z, agp_lat, agp_lon);
-      interp(z_grid, itw, z_field, agp_z, agp_lat, agp_lon);
-
-    // And use z_grid to get gp_p (gp_al and gp_lon determined above)
-    chk_interpolation_grids("Altitude interpolation", z_grid, rte_pos[0]);
-    gridpos(gp_p, z_grid, rte_pos[0]);
+  // And use z_grid to get gp_p (gp_al and gp_lon determined above)
+  LagrangeLogInterpolation::check(
+      z_grid, 1, rte_pos[0], 0.5, "Altitude interpolation");
+  gridpos(gp_p, z_grid, rte_pos[0]);
 }
 
 void rte_pos2gridpos(GridPos& gp_lat,
@@ -481,13 +477,16 @@ void rte_pos2gridpos(GridPos& gp_lat,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(rte_pos);
+  ARTS_USER_ERROR_IF(
+      path::is_valid_old_pos(rte_pos), "Bad rte_pos values: {:B,}", rte_pos);
 
-    chk_interpolation_grids("Latitude interpolation", lat_grid, rte_pos[1]);
-    gridpos(gp_lat, lat_grid, rte_pos[1]);
+  LagrangeLogInterpolation::check(
+      lat_grid, 1, rte_pos[1], 0.5, "Latitude interpolation");
+  gridpos(gp_lat, lat_grid, rte_pos[1]);
 
-      chk_interpolation_grids("Longitude interpolation", lon_grid, rte_pos[2]);
-      gridpos(gp_lon, lon_grid, rte_pos[2]);
+  LagrangeLogInterpolation::check(
+      lon_grid, 1, rte_pos[2], 0.5, "Longitude interpolation");
+  gridpos(gp_lon, lon_grid, rte_pos[2]);
 }
 
 void z_at_lat_2d(VectorView z,
@@ -500,11 +499,11 @@ void z_at_lat_2d(VectorView z,
 #endif
                  ConstMatrixView z_field,
                  const GridPos& gp_lat) {
-  const Index np = p_grid.size();
+  const Size np = p_grid.size();
 
   ARTS_ASSERT(z.size() == np);
-  ARTS_ASSERT(z_field.nrows() == np);
-  ARTS_ASSERT(z_field.ncols() == lat_grid.size());
+  ARTS_ASSERT(static_cast<Size>(z_field.nrows()) == np);
+  ARTS_ASSERT(static_cast<Size>(z_field.ncols()) == lat_grid.size());
 
   Matrix z_matrix(np, 1);
   ArrayOfGridPos gp_z(np), agp_lat(1);
@@ -531,12 +530,12 @@ void z_at_latlon(VectorView z,
                  ConstTensor3View z_field,
                  const GridPos& gp_lat,
                  const GridPos& gp_lon) {
-  const Index np = p_grid.size();
+  const Size np = p_grid.size();
 
   ARTS_ASSERT(z.size() == np);
-  ARTS_ASSERT(z_field.npages() == np);
-  ARTS_ASSERT(z_field.nrows() == lat_grid.size());
-  ARTS_ASSERT(z_field.ncols() == lon_grid.size());
+  ARTS_ASSERT(static_cast<Size>(z_field.npages()) == np);
+  ARTS_ASSERT(static_cast<Size>(z_field.nrows()) == lat_grid.size());
+  ARTS_ASSERT(static_cast<Size>(z_field.ncols()) == lon_grid.size());
 
   Tensor3 z_tensor(np, 1, 1);
   ArrayOfGridPos agp_z(np), agp_lat(1), agp_lon(1);
@@ -573,8 +572,8 @@ void complex_n_interp(MatrixView n_real,
                      "Bad gridname for temperature");
 
   // Frequency and temperature grid sizes
-  const Index nf_in = complex_n.data.nrows();
-  const Index nt_in = complex_n.data.ncols();
+  const Index nf_in  = complex_n.data.nrows();
+  const Index nt_in  = complex_n.data.ncols();
   const Index nf_out = f_grid.size();
   const Index nt_out = t_grid.size();
 
@@ -595,7 +594,8 @@ void complex_n_interp(MatrixView n_real,
       nif[i] = complex_n.data[0].imag();
     }
   } else {
-    chk_interpolation_grids("Frequency interpolation", f_grid_in, f_grid);
+    LagrangeLogInterpolation::check(
+        f_grid_in, 1, minmax(f_grid), 0.5, "Frequency interpolation");
     //
     ArrayOfGridPos gp(nf_out);
     Matrix itw(nf_out, 2);
@@ -615,7 +615,8 @@ void complex_n_interp(MatrixView n_real,
       n_imag[joker, i] = nif[joker, 0];
     }
   } else {
-    chk_interpolation_grids("Temperature interpolation", t_grid_in, t_grid);
+    LagrangeLogInterpolation::check(
+        t_grid_in, 1, minmax(t_grid), 0.5, "Temperature interpolation");
     //
     ArrayOfGridPos gp(nt_out);
     Matrix itw(nt_out, 2);

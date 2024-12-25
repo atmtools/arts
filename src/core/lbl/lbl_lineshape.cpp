@@ -17,7 +17,7 @@
 
 namespace lbl {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
-    const ExhaustiveConstVectorView& f_grid,
+    const ConstVectorView& f_grid,
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
@@ -29,7 +29,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
   return nullptr;
 }
 std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
-    const ExhaustiveConstVectorView& f_grid,
+    const ConstVectorView& f_grid,
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
@@ -42,7 +42,7 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
 }
 
 std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
-    const ExhaustiveConstVectorView& f_grid,
+    const ConstVectorView& f_grid,
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
@@ -55,7 +55,7 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
 }
 
 std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
-    const ExhaustiveConstVectorView& f_grid,
+    const ConstVectorView& f_grid,
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
@@ -72,9 +72,9 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
 
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
-               matpack::matpack_view<Propmat, 2, false, true> dpm,
-               matpack::matpack_view<Stokvec, 2, false, true> dsv,
-               const ExhaustiveConstVectorView& f_grid,
+               matpack::strided_view_t<Propmat, 2> dpm,
+               matpack::strided_view_t<Stokvec, 2> dsv,
+               const ConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const SpeciesEnum species,
                const AbsorptionBands& bnds,

@@ -981,7 +981,7 @@ Numeric XINT_FUN(const Numeric V1A,
   const Numeric B2 = B * P;
 
   Numeric xint = 0.;
-  if (J - 1 > 0 && J + 2 < A.size()) {
+  if (J - 1 > 0 && J + 2 < static_cast<int>(A.size())) {
     xint = -A[J - 1] * B1 + A[J] * (1.00e0 - C + B2) + A[J + 1] * (C + B1) -
            A[J + 2] * B2;
   }

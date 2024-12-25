@@ -5,8 +5,8 @@
 #include <matpack.h>
 #include <rtepack.h>
 
-#include <limits>
 #include <iosfwd>
+#include <limits>
 #include <vector>
 
 #include "lbl_data.h"
@@ -108,19 +108,17 @@ struct band_shape {
   [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dH(
-      const ExhaustiveConstComplexVectorView& dz_dH, const Numeric f) const;
+      const ConstComplexVectorView& dz_dH, const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dT(
-      const ExhaustiveConstVectorView& dk_dT,
-      const ExhaustiveConstVectorView& de_ratio_dT,
-      const ExhaustiveConstComplexVectorView& dz_dT,
-      const ExhaustiveConstVectorView& dz_dT_fac,
+      const ConstVectorView& dk_dT,
+      const ConstVectorView& de_ratio_dT,
+      const ConstComplexVectorView& dz_dT,
+      const ConstVectorView& dz_dT_fac,
       const Numeric f) const;
 
-  using CutView =
-      matpack::matpack_view<std::pair<Complex, Complex>, 1, false, false>;
-  using CutViewConst =
-      matpack::matpack_view<std::pair<Complex, Complex>, 1, true, false>;
+  using CutView      = matpack::view_t<std::pair<Complex, Complex>, 1>;
+  using CutViewConst = matpack::view_t<const std::pair<Complex, Complex>, 1>;
 
   [[nodiscard]] std::pair<Complex, Complex> operator()(const CutViewConst& cut,
                                                        const Numeric f) const;
@@ -134,24 +132,24 @@ struct band_shape {
 
   [[nodiscard]] std::pair<Complex, Complex> dH(
       const CutViewConst& cut,
-      const ExhaustiveConstComplexVectorView& dz_dH,
+      const ConstComplexVectorView& dz_dH,
       const Numeric f) const;
 
-  void dH(CutView cut, const ExhaustiveConstComplexVectorView& df0_dH) const;
+  void dH(CutView cut, const ConstComplexVectorView& df0_dH) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dT(
       const CutViewConst& cut,
-      const ExhaustiveConstVectorView& dk_dT,
-      const ExhaustiveConstVectorView& de_ratio_dT,
-      const ExhaustiveConstComplexVectorView& dz_dT,
-      const ExhaustiveConstVectorView& dz_dT_fac,
+      const ConstVectorView& dk_dT,
+      const ConstVectorView& de_ratio_dT,
+      const ConstComplexVectorView& dz_dT,
+      const ConstVectorView& dz_dT_fac,
       const Numeric f) const;
 
   void dT(CutView cut,
-          const ExhaustiveConstVectorView& dk_dT,
-          const ExhaustiveConstVectorView& de_ratio_dT,
-          const ExhaustiveConstComplexVectorView& dz_dT,
-          const ExhaustiveConstVectorView& dz_dT_fac) const;
+          const ConstVectorView& dk_dT,
+          const ConstVectorView& de_ratio_dT,
+          const ConstComplexVectorView& dz_dT,
+          const ConstVectorView& dz_dT_fac) const;
 };
 
 void band_shape_helper(std::vector<single_shape>& lines,
@@ -168,7 +166,7 @@ struct ComputeData {
       lines{};  //! Line shapes; save for reuse, assume moved from
   std::vector<line_pos> pos{};  //! Save for reuse, size of line shapes
 
-  using PairDataC = matpack::matpack_data<std::pair<Complex, Complex>, 1>;
+  using PairDataC = matpack::data_t<std::pair<Complex, Complex>, 1>;
 
   PairDataC cut{};     //! Size of line shapes
   ComplexVector dz{};  //! Size of line shapes
@@ -188,7 +186,7 @@ struct ComputeData {
   Propmat dnpm_dw{};  //! The orientation of the polarization
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const ExhaustiveConstVectorView& f_grid,
+  ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
               const Vector2& los    = {},
               const zeeman::pol pol = zeeman::pol::no);
@@ -200,53 +198,50 @@ struct ComputeData {
   //! Sizes cut, dcut, dz, ds; sets shape
   void core_calc(const band_shape& shp,
                  const band_data& bnd,
-                 const ExhaustiveConstVectorView& f_grid);
+                 const ConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const QuantumIdentifier& qid,
                     const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const ExhaustiveConstVectorView& f_grid,
+                    const ConstVectorView& f_grid,
                     const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const ExhaustiveConstVectorView& f_grid,
+                        const ConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
-
-  //! Pure debug print, will never be the same
-  friend std::ostream& operator<<(std::ostream& os, const ComputeData& cd);
 };
 
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
-               matpack::matpack_view<Propmat, 2, false, true> dpm,
-               matpack::matpack_view<Stokvec, 2, false, true> dsv,
+               matpack::strided_view_t<Propmat, 2> dpm,
+               matpack::strided_view_t<Stokvec, 2> dsv,
                ComputeData& com_data,
-               const ExhaustiveConstVectorView& f_grid,
+               const ConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,

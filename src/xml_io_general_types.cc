@@ -15,7 +15,6 @@
 #include <print>
 
 #include "double_imanip.h"
-#include "matpack_constexpr.h"
 #include "xml_io_base.h"
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1032,7 +1031,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 }
 
-// Begin templates for matpack::matpack_constant_data
+// Begin templates for matpack::cdata_t
 
 template <class T = void>
 struct type {
@@ -1044,9 +1043,9 @@ struct type<Numeric> {
   static constexpr std::string_view name() { return "Numeric"; }
 };
 
-template <class T, Index... DIM>
+template <class T, Size... DIM>
 void xml_read_from_stream_tmpl(std::istream& is_xml,
-                               matpack::matpack_constant_data<T, DIM...>& group,
+                               matpack::cdata_t<T, DIM...>& group,
                                bifstream* pbifs) {
   static_assert(
       type<T>::name() != "any",
@@ -1060,7 +1059,7 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
   tag.get_attribute_value("nelem", nelem);
 
   if (pbifs == nullptr) {
-    for (Index i = 0; i < (DIM * ...); i++)
+    for (Size i = 0; i < (DIM * ...); i++)
       is_xml >> double_imanip{} >> group.data[i];
   } else {
     pbifs->readDoubleArray(group.data.data(), (DIM * ...));
@@ -1070,10 +1069,10 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
   tag.check_name(std::format("/MatpackData{}", type<T>::name()));
 }
 
-template <class T, Index... DIM>
+template <class T, Size... DIM>
 void xml_write_to_stream_tmpl(
     std::ostream& os_xml,
-    const matpack::matpack_constant_data<T, DIM...>& group,
+    const matpack::cdata_t<T, DIM...>& group,
     bofstream* pbofs,
     const String& name) {
   static_assert(
@@ -1088,9 +1087,9 @@ void xml_write_to_stream_tmpl(
   os_xml << '\n';
 
   if (pbofs == nullptr) {
-    for (Index i = 0; i < (DIM * ...); i++) os_xml << group.data[i] << '\n';
+    for (Size i = 0; i < (DIM * ...); i++) os_xml << group.data[i] << '\n';
   } else {
-    for (Index i = 0; i < (DIM * ...); i++) *pbofs << group.data[i];
+    for (Size i = 0; i < (DIM * ...); i++) *pbofs << group.data[i];
   }
 
   XMLTag close_tag;

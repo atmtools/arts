@@ -8,11 +8,11 @@
 #include <numbers>
 
 #include "integration.h"
-#include "matpack/matpack_math.h"
+#include "matpack/matpack.h"
 
 using std::numbers::pi_v;
 
-template <matpack::any_matpack_type IN>
+template <matpack::any_md IN>
 Numeric max_error(const IN& a, const IN& b) {
   auto delta = a;
   delta -= b;
@@ -138,12 +138,12 @@ bool test_calculate_downsampling_weights() {
   mult(y_sub, weights, y);
 
   Numeric y_int_ref = 0.0;
-  for (Index i = 0; i < y.size() - 1; ++i) {
+  for (Size i = 0; i < y.size() - 1; ++i) {
     y_int_ref += 0.5 * (y[i] + y[i + 1]) * (old_grid[i + 1] - old_grid[i]);
   }
 
   Numeric y_int = 0.0;
-  for (Index i = 0; i < y_sub.size() - 1; ++i) {
+  for (Size i = 0; i < y_sub.size() - 1; ++i) {
     y_int += 0.5 * (y_sub[i] + y_sub[i + 1]) * (new_grid[i + 1] - new_grid[i]);
   }
 
@@ -161,63 +161,63 @@ int main(int /*argc*/, const char** /*argv*/) {
   std::cout << "Testing Gauss-Legendre quadrature: ";
   passed &= test_gauss_legendre();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing double Gauss-Legendre quadrature: ";
   passed &= test_double_gauss();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing Lobatto quadrature: ";
   passed &= test_lobatto_quadrature();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing Clenshaw-Curtis quadrature: ";
   passed &= test_clenshaw_curtis_quadrature();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing Fejer quadrature: ";
   passed &= test_fejer_quadrature();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing zenith-angle integration: ";
   passed &= test_zenith_angle_integration();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   std::cout << "Testing zenith-angle integration: ";
   passed &= test_calculate_downsampling_weights();
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 #endif

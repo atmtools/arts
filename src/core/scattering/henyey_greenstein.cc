@@ -42,7 +42,7 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(
       t_grid, f_grid_ptr};
 
   auto zenith_angles = grid_vector(*zenith_angle_grid);
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     float extinction, ssa;
     std::tie(extinction, ssa) = ext_ssa_callback(f_grid[f_ind], atm_point);
     float scattering_xsec     = extinction * ssa;
@@ -50,7 +50,7 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_gridded(
     emd[0, f_ind, 0] = extinction;
     av[0, f_ind, 0]  = extinction - scattering_xsec;
     Numeric g2       = g * g;
-    for (Index ind = 0; ind < zenith_angles.size(); ++ind) {
+    for (Size ind = 0; ind < zenith_angles.size(); ++ind) {
       pm[0, f_ind, ind, 0]  = (1.0 - g2);
       pm[0, f_ind, ind, 0] /= std::pow(
           1.0 + g2 - 2.0 * g * cos(Conversion::deg2rad(zenith_angles[ind])),
@@ -79,7 +79,7 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_tro_spectral(
     f[ind] *= std::sqrt(2 * ind + 1) * std::pow(g, ind);
   }
 
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     const auto [extinction, ssa] = ext_ssa_callback(f_grid[f_ind], atm_point);
     const auto scattering_xsec   = extinction * ssa;
 

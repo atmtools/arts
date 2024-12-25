@@ -9,9 +9,7 @@
 #ifndef test_utils_h
 #define test_utils_h
 
-#include "matpack_complex.h"
-#include "matpack_data.h"
-#include "matpack_sparse.h"
+#include <matpack.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -61,8 +59,8 @@ class Rand<Index> {
 void add_noise(VectorView v, Numeric range);
 
 // Fill matrix with random values.
-void random_fill_matrix(MatrixView A, Numeric range, bool positive);
-void random_fill_matrix(ComplexMatrixView A, Numeric range, bool positive);
+void random_fill_matrix(StridedMatrixView A, Numeric range, bool positive);
+void random_fill_matrix(StridedComplexMatrixView A, Numeric range, bool positive);
 
 // Fill sparse matrix with random values.
 void random_fill_matrix(Sparse& A, Numeric range, bool positive);
@@ -71,16 +69,16 @@ void random_fill_matrix(Sparse& A, Numeric range, bool positive);
 void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive);
 
 // Fill matrix with random values symmetrically.
-void random_fill_matrix_symmetric(MatrixView A, Numeric range, bool positive);
-void random_fill_matrix_symmetric(ComplexMatrixView A,
+void random_fill_matrix_symmetric(StridedMatrixView A, Numeric range, bool positive);
+void random_fill_matrix_symmetric(StridedComplexMatrixView A,
                                   Numeric range,
                                   bool positive);
 
 // Generate random, positive semi-definite matrix.
-void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive);
+void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positive);
 
 // Generate random, positive semi-definite matrix.
-void random_fill_matrix_pos_semi_def(MatrixView A,
+void random_fill_matrix_pos_semi_def(StridedMatrixView A,
                                      Numeric range,
                                      bool positive);
 
@@ -88,18 +86,18 @@ void random_fill_matrix_pos_semi_def(MatrixView A,
 void random_fill_vector(VectorView A, Numeric range, bool positive);
 
 // Pick random submatrix.
-MatrixView random_submatrix(MatrixView A, Index m, Index n);
+StridedMatrixView random_submatrix(StridedMatrixView A, Index m, Index n);
 
 // Generate random range in the range [0, n - 1]
 Range random_range(Index n);
 
 // Maximum element-wise error of two matrices.
-Numeric get_maximum_error(ConstMatrixView A1,
-                          ConstMatrixView A2,
+Numeric get_maximum_error(StridedConstMatrixView A1,
+                          StridedConstMatrixView A2,
                           bool relative);
 
-Numeric get_maximum_error(ConstComplexMatrixView A1,
-                          ConstComplexMatrixView A2,
+Numeric get_maximum_error(StridedConstComplexMatrixView A1,
+                          StridedConstComplexMatrixView A2,
                           bool relative);
 
 // Maximum element-wise error of two matrices.

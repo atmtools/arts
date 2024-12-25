@@ -4,7 +4,7 @@
 #include <random>
 
 #include "arts_constants.h"
-#include "matpack/matpack_view.h"
+#include "matpack/matpack.h"
 #include "sht.h"
 
 #define TEST_DATA_PATH "@CMAKE_BINARY_DIR@/tests/testdata/"
@@ -43,8 +43,8 @@ inline Matrix evaluate_spherical_harmonic(Index l,
   norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
 
   Matrix results{n_lon, n_lat};
-  for (Index i = 0; i < n_lon; ++i) {
-    for (Index j = 0; j < n_lat; ++j) {
+  for (Size i = 0; i < n_lon; ++i) {
+    for (Size j = 0; j < n_lat; ++j) {
       auto clon = cos(static_cast<Numeric>(m) * lons[i]);
 
       auto clat = cos(lats[j]);
@@ -189,7 +189,7 @@ Numeric max_error(const A& a, const B& b) {
  * @tparam tensor The tensor to fill.
  * @tparam fun The function to use to fill the tensor.
  */
-template <matpack::any_matpack_type Tensor, typename Fun>
+template <matpack::any_md Tensor, typename Fun>
 void generate(Tensor& tensor, Fun fun) {
   constexpr Index rank = Tensor::rank();
   std::array<Index, rank> coords;
@@ -217,7 +217,7 @@ void generate(Tensor& tensor, Fun fun) {
  * @tparam Tensor The tensor type of the tensor to fill.
  * @param t The tensor to fill.
  */
-template <Index axis, matpack::any_matpack_type Tensor>
+template <Index axis, matpack::any_md Tensor>
 void fill_along_axis(Tensor& t) {
   auto get_coord = [](auto... params) {
     return std::get<axis>(std::make_tuple(params...));
@@ -234,7 +234,7 @@ void fill_along_axis(Tensor& t) {
  * @tparam Tensor The tensor type of the tensor to fill.
  * @param t The tensor to fill.
  */
-template <matpack::any_matpack_type Tensor>
+template <matpack::any_md Tensor>
 Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
   Tensor tensor(shape);
   std::random_device rd{};

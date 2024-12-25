@@ -16,7 +16,6 @@
 #define mc_interp_h
 
 #include "interpolation.h"
-#include "matpack_data.h"
 #include "optproperties.h"
 
 /** A 2D sequential linear interpolation (SLI) lookup table

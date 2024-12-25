@@ -62,7 +62,7 @@ class nlte {
   voigt::nlte::band_shape lines{};
 
   voigt::nlte::band_shape cutoff_lines{};
-  matpack::matpack_data<std::pair<Complex, Complex>, 1> cutoff;
+  matpack::data_t<std::pair<Complex, Complex>, 1> cutoff;
 
   void adapt();
 

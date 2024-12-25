@@ -24,7 +24,6 @@
 
 #include "array.h"
 #include "atm.h"
-#include "check_input.h"
 #include "config.h"
 #include "debug.h"
 #include "jacobian.h"
@@ -143,7 +142,7 @@ void OEM(const Workspace& ws,
   }
 
   // Check for start vector and precomputed yf, jacobian
-  if (model_state_vector.size() != n) {
+  if (model_state_vector.size() != static_cast<Size>(n)) {
     model_state_vector = model_state_vector_apriori;
     measurement_vector_fitted.resize(0);
     measurement_jacobian.resize(0, 0);
@@ -179,16 +178,16 @@ void OEM(const Workspace& ws,
     Vector dy   = measurement_vector;
     dy         -= measurement_vector_fitted;
     Vector sdy  = measurement_vector;
-    mult_inv(ExhaustiveMatrixView{sdy},
+    mult_inv(sdy.view_as(1, sdy.size()),
              measurement_vector_error_covariance_matrix,
-             ExhaustiveMatrixView{dy});
+             dy.view_as(1, dy.size()));
     Vector dx   = model_state_vector;
     dx         -= model_state_vector_apriori;
     Vector sdx  = model_state_vector;
-    mult_inv(ExhaustiveMatrixView{sdx},
+    mult_inv(sdx.view_as(1, sdx.size()),
              model_state_covariance_matrix,
-             ExhaustiveMatrixView{dx});
-    cost_start  = dx * sdx + dy * sdy;
+             dx.view_as(1, dx.size()));
+    cost_start  = dot(dx, sdx) + dot(dy, sdy);
     cost_start /= static_cast<Numeric>(m);
   }
   oem_diagnostics[1] = cost_start;
@@ -200,19 +199,19 @@ void OEM(const Workspace& ws,
     //
     if (display_progress) {
       std::cout << "\n   No OEM inversion, too high start cost:\n"
-                << "        Set limit : " << max_start_cost << std::endl
-                << "      Found value : " << cost_start << std::endl
-                << std::endl;
+                << "        Set limit : " << max_start_cost << '\n'
+                << "      Found value : " << cost_start << '\n'
+                << '\n';
     }
   }
   // Otherwise do inversion
   else {
     bool apply_norm = false;
     oem::Matrix T{};
-    if (model_state_covariance_matrix_normalization.size() == n) {
+    if (model_state_covariance_matrix_normalization.size() == static_cast<Size>(n)) {
       T.resize(n, n);
-      T            *= 0.0;
-      T.diagonal()  = model_state_covariance_matrix_normalization;
+      T           *= 0.0;
+      diagonal(static_cast<matpack::data_t<Numeric, 2>&>(T))  = model_state_covariance_matrix_normalization;
       for (Index i = 0; i < n; i++) {
         T(i, i) = model_state_covariance_matrix_normalization[i];
       }

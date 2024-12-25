@@ -9,11 +9,9 @@
 #include "debug.h"
 #include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
-#include "matpack_constexpr.h"
 #include "obsel.h"
 #include "path_point.h"
 #include "rtepack.h"
-#include "sorted_grid.h"
 #include "surf.h"
 #include "workspace_class.h"
 
@@ -299,7 +297,7 @@ void measurement_vectorFromOperatorPath(
 
   for (auto& [f_grid_ptr, poslos_set] : simulations) {
     for (auto& poslos_gs : poslos_set) {
-      for (Index ip = 0; ip < poslos_gs->size(); ++ip) {
+      for (Size ip = 0; ip < poslos_gs->size(); ++ip) {
         ArrayOfPropagationPathPoint ray_path;
         std::vector<fwd::path> path;
         StokvecVector spectral_radiance;

@@ -256,11 +256,11 @@ class ArtsLog {
   /** Finalizes log output if necessary.*/
   ~ArtsLog() {
     if ((verbosity_ >= 1) && (!finalized_)) {
-      std::cout << invlib::separator() << std::endl << std::endl;
-      std::cout << "Error during OEM computation." << std::endl;
-      std::cout << std::endl;
-      std::cout << invlib::center("----") << std::endl;
-      std::cout << std::endl;
+      std::cout << invlib::separator() << '\n' << '\n';
+      std::cout << "Error during OEM computation." << '\n';
+      std::cout << '\n';
+      std::cout << invlib::center("----") << '\n';
+      std::cout << '\n';
     }
   }
 
@@ -276,22 +276,16 @@ class ArtsLog {
 
       auto &y         = std::get<4>(tuple);
       scaling_factor_ = 1.0 / static_cast<Numeric>(y.size());
-      std::cout << std::endl;
-      std::cout << invlib::center("MAP Computation") << std::endl;
+      std::cout << '\n';
+      std::cout << invlib::center("MAP Computation") << '\n';
 
       // Print formulation.
       int formulation = static_cast<int>(std::get<6>(tuple));
       switch (formulation) {
-        case 0:
-          std::cout << "Formulation: Standard" << std::endl;
-          break;
-        case 1:
-          std::cout << "Formulation: N-Form" << std::endl;
-          break;
+        case 0: std::cout << "Formulation: Standard" << '\n'; break;
+        case 1: std::cout << "Formulation: N-Form" << '\n'; break;
 
-        case 2:
-          std::cout << "Formulation: M-Form" << std::endl;
-          break;
+        case 2: std::cout << "Formulation: M-Form" << '\n'; break;
       }
 
       // Print optimization method.
@@ -299,14 +293,14 @@ class ArtsLog {
           typename std::tuple_element<5, decltype(tuple)>::type>::type;
       std::cout << "Method:      "
                 << invlib::OptimizerLog<OptimizationType>::name;
-      std::cout << std::endl;
+      std::cout << '\n';
 
-      std::cout << std::endl;
+      std::cout << '\n';
       std::cout << std::setw(5) << "Step" << std::setw(15) << "Total Cost";
       std::cout << std::setw(15) << "x-Cost" << std::setw(15) << "y-Cost";
       std::cout << std::setw(15) << "Conv. Crit.";
       std::cout << std::setw(15) << OptimizerLog<OptimizationType>::header();
-      std::cout << std::endl << invlib::separator() << std::endl;
+      std::cout << '\n' << invlib::separator() << '\n';
     }
   }
 
@@ -338,7 +332,7 @@ class ArtsLog {
       }
       std::cout << OptimizerLog<OptimizationType>::log(
           std::get<5>(tuple), gamma_history_, std::get<0>(tuple));
-      std::cout << std::endl;
+      std::cout << '\n';
     }
   }
 
@@ -350,23 +344,23 @@ class ArtsLog {
   template <typename... Params>
   void finalize(const Params &...params) {
     if (verbosity_ >= 1) {
-      std::cout << invlib::separator() << std::endl;
+      std::cout << invlib::separator() << '\n';
 
       std::tuple<const Params &...> tuple(params...);
-      std::cout << std::endl;
+      std::cout << '\n';
 
       std::cout << "Total number of steps:            ";
-      std::cout << std::get<1>(tuple) << std::endl;
+      std::cout << std::get<1>(tuple) << '\n';
       std::cout << "Final scaled cost function value: ";
-      std::cout << std::get<2>(tuple) * scaling_factor_ << std::endl;
+      std::cout << std::get<2>(tuple) * scaling_factor_ << '\n';
 
       bool converged = std::get<0>(tuple);
       if (converged) {
-        std::cout << "OEM computation converged." << std::endl;
+        std::cout << "OEM computation converged." << '\n';
       } else if (linear_) {
-        std::cout << "Linear OEM computation finished." << std::endl;
+        std::cout << "Linear OEM computation finished." << '\n';
       } else {
-        std::cout << "OEM computation DID NOT converge!" << std::endl;
+        std::cout << "OEM computation DID NOT converge!" << '\n';
       }
     }
 
@@ -378,17 +372,17 @@ class ArtsLog {
   void time(const Params &...params) {
     if (verbosity_ >= 1) {
       std::tuple<const Params &...> tuple(params...);
-      std::cout << std::endl;
+      std::cout << '\n';
       std::cout << "Elapsed Time for Retrieval:                       ";
-      std::cout << std::get<0>(tuple) << std::endl;
+      std::cout << std::get<0>(tuple) << '\n';
       std::cout << "Time in inversion_iterate Agenda (No Jacobian):   ";
-      std::cout << std::get<1>(tuple) << std::endl;
+      std::cout << std::get<1>(tuple) << '\n';
       std::cout << "Time in inversion_iterate Agenda (With Jacobian): ";
-      std::cout << std::get<2>(tuple) << std::endl;
+      std::cout << std::get<2>(tuple) << '\n';
 
-      std::cout << std::endl;
-      std::cout << invlib::center("----") << std::endl;
-      std::cout << std::endl;
+      std::cout << '\n';
+      std::cout << invlib::center("----") << '\n';
+      std::cout << '\n';
     }
   }
 
@@ -684,26 +678,26 @@ void OEM_checks(const Workspace &ws,
                 const Vector &lm_ga_settings,
                 const Index &clear_matrices,
                 const Index &display_progress) {
-  const Index n  = xa.size();
-  const Index m  = y.size();
+  const Size n = xa.size();
+  const Size m = y.size();
 
   ARTS_USER_ERROR_IF((x.size() != n) && (x.size() != 0),
                      "The length of *x* must be either the same as *xa* or 0.");
   ARTS_USER_ERROR_IF(covmat_sx.ncols() != covmat_sx.nrows(),
                      "*covmat_sx* must be a square matrix.");
-  ARTS_USER_ERROR_IF(covmat_sx.ncols() != n,
+  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_sx.ncols()) != n,
                      "Inconsistency in size between *x* and *covmat_sx*.");
   ARTS_USER_ERROR_IF((yf.size() != m) && (yf.size() != 0),
                      "The length of *yf* must be either the same as *y* or 0.");
   ARTS_USER_ERROR_IF(covmat_se.ncols() != covmat_se.nrows(),
                      "*covmat_se* must be a square matrix.");
-  ARTS_USER_ERROR_IF(covmat_se.ncols() != m,
+  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_se.ncols()) != m,
                      "Inconsistency in size between *y* and *covmat_se*.");
   ARTS_USER_ERROR_IF(
-      (jacobian.nrows() != m) && (!jacobian.empty()),
+      (static_cast<Size>(jacobian.nrows()) != m) && (!jacobian.empty()),
       "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
   ARTS_USER_ERROR_IF(
-      (jacobian.ncols() != n) && (!jacobian.empty()),
+      (static_cast<Size>(jacobian.ncols()) != n) && (!jacobian.empty()),
       "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
 
   // Check GINs

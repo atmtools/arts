@@ -3,7 +3,7 @@
 #include <arts_constants.h>
 #include <configtypes.h>
 #include <debug.h>
-#include <matpack_math.h>
+#include <matpack.h>
 
 #include <cmath>
 #include <format>
@@ -89,7 +89,7 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
 
 inline std::ostream& operator<<(std::ostream& os,
                                 const ArrayOfScatteringSpecies& /*species*/) {
-  os << "An array of scattering species." << std::endl;
+  os << "An array of scattering species." << '\n';
   return os;
 }
 

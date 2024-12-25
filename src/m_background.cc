@@ -63,7 +63,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_background_jacobian.nrows()) not_eq
               jacobian_targets.x_size() or
-          spectral_radiance_background_jacobian.ncols() not_eq
+          static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
               frequency_grid.size(),
       "Bad size of spectral_radiance_background_jacobian ({}x{}"
       ").  It should have the same size as jacobian_targets ({}"
@@ -76,7 +76,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 ARTS_METHOD_ERROR_CATCH
 
 namespace detail {
-StokvecVector from_temp(const ExhaustiveConstVectorView& frequency_grid,
+StokvecVector from_temp(const ConstVectorView& frequency_grid,
                         const Numeric t) {
   StokvecVector v(frequency_grid.size(), 0.0);
   std::transform(frequency_grid.begin(),

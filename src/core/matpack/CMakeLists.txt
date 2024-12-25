@@ -1,13 +1,13 @@
 add_library(matpack STATIC
   double_imanip.cc
   lin_alg.cc
-  logic.cc
-  matpack_band_matrix.cc
-  matpack_math.cc
   matpack_sparse.cc
   rational.cc
-  math_funcs.cc
   poly_roots.cc
+  matpack_mdspan_math.cc
+  matpack_mdspan_helpers.cc
+  math_funcs.cc
+  matpack_mdspan_helpers_band_matrix.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
