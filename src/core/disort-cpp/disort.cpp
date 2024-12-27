@@ -204,7 +204,7 @@ void main_data::solve_for_coefs() {
       }
 
       if (BDRF_bool) {
-        mult(BDRF_LHS, R, G_collect_m[ln][Range{N, N}]);
+        mult(BDRF_LHS, R, G_collect_m[ln, Range{N, N}]);
       } else {
         BDRF_LHS = 0;
       }
@@ -339,9 +339,9 @@ void main_data::diagonalize() {
             amb, K[Range{0, N}], K[Range{N, N}], sqr, diag_work);
 
         for (Index i = 0; i < N; i++) {
-          G[i][Range{0, N}]  = amb[i][Range{0, N}];
-          G[i][Range{0, N}] *= 0.5;
-          G[i][Range{N, N}]  = G[i][Range{0, N}];
+          G[i, Range{0, N}]  = amb[i, Range{0, N}];
+          G[i, Range{0, N}] *= 0.5;
+          G[i, Range{N, N}]  = G[i, Range{0, N}];
 
           const Numeric sqrt_x = std::sqrt(K[i]);
           K[i]                 = -sqrt_x;
@@ -1094,6 +1094,15 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   const Numeric scaled_tau =
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
+  std::print(R"(
+scaled_tau_arr_l:   {}
+scaled_tau_arr_lm1: {}
+scaled_tau:         {}
+)",
+             scaled_tau_arr_l,
+             scaled_tau_arr_lm1,
+             scaled_tau);
+
   data.u0_neg.resize(N);
   if (has_source_poly) {
     data.src.resize(NQuad, Nscoeffs);
@@ -1108,6 +1117,11 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   } else {
     data.u0_neg = 0.0;
   }
+
+  std::print(R"(
+data.u0_neg:        {:B,}
+)",
+             data.u0_neg);
 
   const Numeric direct_beam =
       has_beam_source ? I0 * mu0 * std::exp(-tau / mu0) : 0;
@@ -1126,12 +1140,20 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
     data.exponent[i + N] =
         std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
+  std::print(R"(
+data.exponent:      {:B,}
+)",
+             data.exponent);
 
   mult(data.u0_neg,
        GC_collect[0, l, Range(N, N), joker],
        data.exponent,
        1.0,
        1.0);
+  std::print(R"(
+data.u0_neg:        {:B,}
+)",
+             data.u0_neg);
 
   return {I0_orig *
               (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(

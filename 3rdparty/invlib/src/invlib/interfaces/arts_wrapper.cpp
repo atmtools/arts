@@ -238,7 +238,7 @@ auto ArtsCovarianceMatrixWrapper::multiply(const ArtsVector &v) const
   ArtsVector w;
   w.resize(covmat_.nrows());
   if (is_inverse_) {
-    ::mult_inv(w.view_as(1, w.size()), covmat_, v.view_as(1, v.size()));
+    ::mult_inv(w.view_as(w.size(), 1), covmat_, v.view_as(v.size(), 1));
   } else {
     ::mult(w, covmat_, v);
   }
@@ -262,7 +262,7 @@ auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsVector &v) const
   ArtsVector w;
   w.resize(covmat_.ncols());
   if (is_inverse_) {
-    ::mult_inv(w.view_as(1, w.size()), covmat_, v.view_as(1, v.size()));
+    ::mult_inv(w.view_as(w.size(), 1), covmat_, v.view_as(v.size(), 1));
   } else {
     ::mult(w, covmat_, v);
   }

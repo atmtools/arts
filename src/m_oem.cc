@@ -178,15 +178,15 @@ void OEM(const Workspace& ws,
     Vector dy   = measurement_vector;
     dy         -= measurement_vector_fitted;
     Vector sdy  = measurement_vector;
-    mult_inv(sdy.view_as(1, sdy.size()),
+    mult_inv(sdy.view_as(sdy.size(), 1),
              measurement_vector_error_covariance_matrix,
-             dy.view_as(1, dy.size()));
+             dy.view_as(dy.size(), 1));
     Vector dx   = model_state_vector;
     dx         -= model_state_vector_apriori;
     Vector sdx  = model_state_vector;
-    mult_inv(sdx.view_as(1, sdx.size()),
+    mult_inv(sdx.view_as(sdx.size(), 1),
              model_state_covariance_matrix,
-             dx.view_as(1, dx.size()));
+             dx.view_as(dx.size(), 1));
     cost_start  = dot(dx, sdx) + dot(dy, sdy);
     cost_start /= static_cast<Numeric>(m);
   }
