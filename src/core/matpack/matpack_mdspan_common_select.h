@@ -130,9 +130,9 @@ constexpr decltype(auto) acc(Acc&&... i) {
 }
 
 template <Size N, typename Self, access_operator... Acc>
-constexpr decltype(auto) left_sub(Self&& self, Acc&&... i) {
+constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   return std::apply(
-      [s = std::forward<Self>(self)]<access_operator... AccT>(AccT&&... x) {
+      [&s]<access_operator... AccT>(AccT&&... x) {
         auto f = stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
         return f;
       },
@@ -156,14 +156,14 @@ template <Size M, Size N, typename T>
 }
 
 template <Size M, Size N, typename Self, access_operator Acc>
-constexpr decltype(auto) sub(Self&& self, Acc&& i) {
+constexpr decltype(auto) sub(Self&& v, Acc&& i) {
   if constexpr (M == 0) {
-    return left_sub(std::forward<Self>(self), std::forward<Acc>(i));
+    return left_sub(std::forward<Self>(v), std::forward<Acc>(i));
   } else if constexpr (std::same_as<std::remove_cvref_t<Acc>, Joker>) {
-    return std::forward<Self>(self);
+    return std::forward<Self>(v);
   } else {
     return strided_view_t<value_type<Self>, N - 1>{std::apply(
-        [v = std::forward<Self>(self)]<access_operator... AccT>(
+        [&v]<access_operator... AccT>(
             AccT&&... slices) {
           if constexpr (requires { v[std::forward<AccT>(slices)...]; }) {
             return v[std::forward<AccT>(slices)...];

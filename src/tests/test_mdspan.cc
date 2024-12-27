@@ -102,7 +102,7 @@ void test_view() {
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
 
     ComplexTensor3View v = x[Range(0, 2)];
-    v = 0;
+    v                    = 0;
 
     ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
@@ -124,7 +124,7 @@ void test_view() {
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
 
     StridedComplexTensor3View v = x[StridedRange(0, 2, 2)];
-    v = 0;
+    v                           = 0;
 
     ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -138,7 +138,8 @@ void test_view() {
   {
     std::array<Index, 3> exts{5, 5, 5};
     const Size N = matpack::mdsize(exts);
-    ComplexTensor3 x(matpack::uniform_grid(1, N, 1.0).reshape(exts), matpack::uniform_grid(2, N, 1.0).reshape(exts));
+    ComplexTensor3 x(matpack::uniform_grid(1, N, 1.0).reshape(exts),
+                     matpack::uniform_grid(2, N, 1.0).reshape(exts));
     StridedTensor3View xr{x.real()};
     StridedTensor3View xi{x.imag()};
 
@@ -785,6 +786,35 @@ void test_grid() {
   std::print("{}\n", x);
   std::print("{}\n", y);
 }
+
+void test_einsum() {
+  const Size n = 5, m = 3;
+  const Matrix A = matpack::uniform_grid(1.0, n * m, 1.0).reshape(n, m);
+  const Vector x = matpack::uniform_grid(1.0, m, 1.0);
+
+  // mat-vec mult
+  {
+    Vector y0(n), y1(n);
+
+    einsum<"i", "ij", "j">(y0, A, x);
+    mult(y1, A, x);
+    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+  }
+
+  // mat-vec collaps
+  {
+    Vector y0(m, 0), y1(m, 0);
+    einsum<"j", "ij", "j">(y0, A, x);
+
+    for (Size i = 0; i < n; i++) {
+      for (Size j = 0; j < m; j++) {
+        y1[j] += A[i, j] * x[j];
+      }
+    }
+
+    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+  }
+}
 }  // namespace
 
 #define EXECUTE_TEST(X)                                                       \
@@ -806,6 +836,7 @@ int main() try {
   EXECUTE_TEST(test_sorted_grid)
   EXECUTE_TEST(test_lapack_vector_mult)
   EXECUTE_TEST(test_grid)
+  EXECUTE_TEST(test_einsum)
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
