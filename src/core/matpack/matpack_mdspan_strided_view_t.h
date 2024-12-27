@@ -462,11 +462,13 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   //! std::vector-like
   template <typename Self>
   [[nodiscard]] constexpr decltype(auto) front(this Self&& self) {
+    assert(not self.empty());
     return std::forward<Self>(self).elem_at(0);
   }
 
   template <typename Self>
   [[nodiscard]] constexpr decltype(auto) back(this Self&& self) {
+    assert(not self.empty());
     return std::forward<Self>(self).elem_at(self.size() - 1);
   }
 

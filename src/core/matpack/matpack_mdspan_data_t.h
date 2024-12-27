@@ -221,11 +221,13 @@ class [[nodiscard]] data_t {
 
   template <typename Self>
   [[nodiscard]] constexpr decltype(auto) front(this Self&& self) {
+    assert(not self.empty());
     return std::forward<Self>(self)[0];
   }
 
   template <typename Self>
   [[nodiscard]] constexpr decltype(auto) back(this Self&& self) {
+    assert(not self.empty());
     const Size n = self.size();
     return std::forward<Self>(self)[n - 1];
   }
@@ -241,6 +243,7 @@ class [[nodiscard]] data_t {
   constexpr void pop_back()
     requires(N == 1)
   {
+    assert(not data.empty());
     data.pop_back();
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }
@@ -248,6 +251,7 @@ class [[nodiscard]] data_t {
   constexpr void erase(std::vector<T>::iterator pos)
     requires(N == 1)
   {
+    assert(not data.empty());
     data.erase(pos);
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }
@@ -255,6 +259,7 @@ class [[nodiscard]] data_t {
   constexpr void erase(std::vector<T>::const_iterator pos)
     requires(N == 1)
   {
+    assert(not data.empty());
     data.erase(pos);
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }
@@ -263,6 +268,7 @@ class [[nodiscard]] data_t {
                        std::vector<T>::iterator last)
     requires(N == 1)
   {
+    assert(not data.empty());
     data.erase(first, last);
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }
@@ -271,6 +277,7 @@ class [[nodiscard]] data_t {
                        std::vector<T>::const_iterator last)
     requires(N == 1)
   {
+    assert(not data.empty());
     data.erase(first, last);
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }

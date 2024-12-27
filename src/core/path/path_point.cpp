@@ -467,7 +467,7 @@ Vector2 enu2los(const Vector3 enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
-  ARTS_ASSERT(nonstd::abs(twonorm - 1.0) < 1e-6, "{:B,}", enu);
+  assert(nonstd::abs(twonorm - 1.0) < 1e-6);
   return {Conversion::acosd(enu[2] / twonorm),
           Conversion::atan2d(enu[0], enu[1])};
 }
@@ -776,14 +776,14 @@ Intersections pair_line_ellipsoid_intersect(
       const Numeric r_surface = get_r_surface();
 
       if (r_end_atm < r_surface or r_surface < 0) {
-        return {get_point(r_start_atm, space, atm),
-                get_point(r_end_atm, atm, space),
-                true};
+        return {.first           = get_point(r_start_atm, space, atm),
+                .second          = get_point(r_end_atm, atm, space),
+                .second_is_valid = true};
       }
 
-      return {get_point(r_start_atm, space, atm),
-              get_point(r_surface, atm, surface),
-              true};
+      return {.first           = get_point(r_start_atm, space, atm),
+              .second          = get_point(r_surface, atm, surface),
+              .second_is_valid = true};
     }
     case surface:
       if (looking_down) {
@@ -793,9 +793,13 @@ Intersections pair_line_ellipsoid_intersect(
     case atm:
       if (const Numeric r_surface = get_r_surface();
           r_surface > 0 or (looking_down and r_surface == 0.0)) {
-        return {get_point(r_surface, atm, surface), path, false};
+        return {.first           = get_point(r_surface, atm, surface),
+                .second          = path,
+                .second_is_valid = false};
       }
-      return {get_point(get_r_atm().first, atm, space), path, false};
+      return {.first           = get_point(get_r_atm().first, atm, space),
+              .second          = path,
+              .second_is_valid = false};
     case subsurface: ARTS_USER_ERROR("Unsupported subsurface start position")
   }
   ARTS_USER_ERROR("Invalid start position type");
@@ -1197,5 +1201,7 @@ bool is_valid_old_pos(const StridedConstVectorView& pos) {
          pos[2] > 360;
 }
 
-bool is_valid_old_pos(const Vector3& pos) { return is_valid_old_pos(pos.view()); }
+bool is_valid_old_pos(const Vector3& pos) {
+  return is_valid_old_pos(pos.view());
+}
 }  // namespace path

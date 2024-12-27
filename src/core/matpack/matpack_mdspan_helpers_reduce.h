@@ -79,8 +79,8 @@ template <any_md Self>
 constexpr auto minmax(const Self& self) {
   auto e      = elemwise_range(self);
   auto [a, b] = stdr::minmax_element(e);
-  assert(a != std::ranges::end(e));
-  assert(b != std::ranges::end(e));
+  assert(a != stdr::end(e));
+  assert(b != stdr::end(e));
   return std::pair{*a, *b};
 }
 
@@ -224,6 +224,12 @@ constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
 
 template <any_md Self>
 constexpr bool any_negative(const Self& self) {
-  return std::ranges::any_of(elemwise_range(self), Cmp::lt(value_type<Self>{}));
+  return stdr::any_of(elemwise_range(self), Cmp::lt(value_type<Self>{}));
+}
+
+template <any_md Self>
+constexpr bool any_nan(const Self& self) {
+  const auto isnan = [](auto& a) { return nonstd::isnan(a); };
+  return stdr::any_of(elemwise_range(self), isnan);
 }
 }  // namespace matpack

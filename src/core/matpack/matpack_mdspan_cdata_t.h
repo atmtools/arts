@@ -392,7 +392,7 @@ constexpr T operator-(const T& x, const T& y) {
 
 template <any_cdata T>
 constexpr T normalized(T x) {
-  x /= sum(x);
+  x /= hypot(x);
   return x;
 }
 }  // namespace matpack
