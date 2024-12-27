@@ -49,6 +49,10 @@ class [[nodiscard]] data_t {
   friend struct strided_view_t;
 
  public:
+  using base = view_t<T, N>::base;
+
+  auto base_md() const { return view.base_md(); }
+
   using extents_type     = view_t<T, N>::extents_type;
   using layout_type      = view_t<T, N>::layout_type;
   using accessor_type    = view_t<T, N>::accessor_type;
@@ -62,16 +66,16 @@ class [[nodiscard]] data_t {
   using reference        = view_t<T, N>::reference;
 
   explicit constexpr data_t(std::pair<std::array<Index, N>, T> x)
-      : data(mdsize(x.first), x.second), view(data.data(), x.first) {}
+      : data(mdsize(x.first), x.second), view(base{data.data(), x.first}) {}
 
   constexpr data_t(std::array<Index, N> sz, T x = {})
       : data_t(std::pair<std::array<Index, N>, T>{sz, x}) {}
 
   constexpr data_t() : data_t(std::array<Index, N>{}) {}
   constexpr data_t(const data_t& x)
-      : data(x.data), view(data.data(), x.shape()) {}
+      : data(x.data), view(base{data.data(), x.shape()}) {}
   constexpr data_t(data_t&& x) noexcept
-      : data(std::move(x.data)), view(data.data(), x.shape()) {}
+      : data(std::move(x.data)), view(base{data.data(), x.shape()}) {}
 
   template <std::integral... inds>
   explicit constexpr data_t(inds... ind)
@@ -90,8 +94,7 @@ class [[nodiscard]] data_t {
 
   explicit constexpr data_t(std::vector<T>&& r)
     requires(N == 1)
-      : data(std::move(r)),
-        view(data.data(), std::array{static_cast<Index>(data.size())}) {}
+      : data(std::move(r)), view(data) {}
 
   data_t(std::initializer_list<T> r)
     requires(N == 1)

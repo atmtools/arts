@@ -15,6 +15,8 @@ template <class T, Size N>
 struct strided_view_t final : public mdstrided_t<T, N> {
   using base = mdstrided_t<T, N>;
 
+  mdstrided_t<T, N> base_md() const { return *this; }
+
   using extents_type     = base::extents_type;
   using layout_type      = base::layout_type;
   using accessor_type    = base::accessor_type;
@@ -50,82 +52,43 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   static constexpr bool is_strided    = is_always_strided();
   static constexpr bool is_unique     = is_always_unique();
 
-  constexpr strided_view_t()                          = default;
-  constexpr strided_view_t(const strided_view_t&)     = default;
-  constexpr strided_view_t(strided_view_t&&) noexcept = default;
+  // Basic copy/move/default
+  constexpr strided_view_t() : base() {};
+  constexpr strided_view_t(const strided_view_t& x) : base(x) {};
+  constexpr strided_view_t(strided_view_t&& x) noexcept : base(std::move(x)) {};
 
-  constexpr strided_view_t(const mdstrided_t<T, N>& x) : base(x) {};
-  constexpr strided_view_t(mdstrided_t<T, N>&& x) : base(std::move(x)) {};
-  constexpr strided_view_t(const mdview_t<T, N>& x) : base(x) {};
-  constexpr strided_view_t(mdview_t<T, N>&& x) : base(std::move(x)) {};
+  // From non-const mdspan
+  constexpr strided_view_t(mdview_t<value_type, N> x) : base(x) {};
+  constexpr strided_view_t(mdstrided_t<value_type, N> x)
+      : base(std::move(x)) {};
 
-  explicit constexpr strided_view_t(base::data_handle_type p,
-                                    const std::array<Index, N>& ext)
-      : base(mdview_t<T, N>(p, ext)) {}
-  explicit constexpr strided_view_t(base::data_handle_type p,
-                                    const base::extents_type& ext)
-      : base(p, ext) {}
-  explicit constexpr strided_view_t(base::data_handle_type p,
-                                    const base::mapping_type& m)
-      : base(p, m) {}
-  explicit constexpr strided_view_t(base::data_handle_type p,
-                                    const base::mapping_type& m,
-                                    const base::accessor_type& a)
-      : base(p, m, a) {}
-
-  constexpr strided_view_t(const strided_view_t<value_type, N>& x)
+  // From const mdspan
+  constexpr strided_view_t(mdview_t<const value_type, N> x)
     requires(is_const)
-      : base(x) {}
-
-  constexpr strided_view_t(data_t<value_type, N>& x) : base(x.view) {}
-  constexpr strided_view_t(const data_t<value_type, N>& x) : base(x.view) {}
-
-  constexpr strided_view_t<value_type, N>(view_t<value_type, N>& x)
-    requires(not is_const)
-      : base(x) {}
-  constexpr strided_view_t<const value_type, N>(view_t<value_type, N>& x)
+      : base(x) {};
+  constexpr strided_view_t(mdstrided_t<const value_type, N> x)
     requires(is_const)
-      : base(x) {}
-  constexpr strided_view_t<const value_type, N>(const view_t<value_type, N>& x)
+      : base(std::move(x)) {};
+
+  // From non-const data holders
+  constexpr strided_view_t(data_t<value_type, N>& x) : base(x.view) {};
+  constexpr strided_view_t(view_t<value_type, N> x)
+      : strided_view_t(x.base_md()) {}
+
+  // Fron const othdata holdersers
+  constexpr strided_view_t(const data_t<value_type, N>& x)
     requires(is_const)
-      : base(x) {}
-  constexpr strided_view_t<const value_type, N>(
-      const view_t<const value_type, N>& x)
+      : base(x.view) {}
+  constexpr strided_view_t(const view_t<const value_type, N>& x)
     requires(is_const)
-      : base(x) {}
+      : base(static_cast<mdview_t<T, N>>(x)) {}
 
-  explicit constexpr strided_view_t(T& v) {
-    std::array<Index, N> exts{};
-    exts.fill(1);
-    base_set(base(&v, exts));
-  }
-
-  explicit constexpr strided_view_t(std::vector<value_type>& v)
-    requires(N == 1 and not is_const)
-      : base(const_cast<value_type*>(v.data()), v.size()) {}
-
-  explicit constexpr strided_view_t(const std::vector<value_type>& v)
-    requires(N == 1 and is_const)
-      : base(const_cast<value_type*>(v.data()), v.size()) {}
-
-  template <Size M>
-  explicit constexpr strided_view_t(const strided_view_t<T, M>& x)
-    requires(M < N)
-  {
-    std::array<Index, N> exts{}, strides{};
-    exts.fill(1);
-    strides.fill(1);
-    for (Size i = 0; i < M; i++) {
-      exts[i]    = x.extent(i);
-      strides[i] = x.stride(i);
-    }
-    base_set(base(x.data_handle(), exts, strides));
-  }
+  explicit constexpr strided_view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
 
   template <typename Self>
   constexpr view_t<T, N> unsafe_view(this Self&& self) {
     assert(self.base::is_exhaustive());
-    return view_t<T, N>{self.base::data_handle(), self.base::extents()};
+    return mdview_t<T, N>{self.base_md()};
   }
 
   [[nodiscard]] constexpr auto shape() const {
@@ -428,35 +391,37 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   }
 
   template <typename Self>
-  constexpr decltype(auto) real(this Self&& self)
+  constexpr auto real(this Self&& self)
     requires(complex_type<T>)
   {
-    using U   = std::remove_cvref_t<decltype(T{}.real())>;
-    using cU  = ComplexLayout<U>;
-    using ccU = std::conditional_t<std::is_const_v<Self>, const cU, cU>;
+    using U      = complex_subtype_t<T>;
+    using cU     = ComplexLayout<U>;
+    using ccU    = std::conditional_t<std::is_const_v<Self>, const cU, cU>;
+    using elem_t = std::conditional_t<std::is_const_v<Self>, const U, U>;
 
     std::array<Index, N> strides{};
     for (Size i = 0; i < N; i++) strides[i] = 2 * self.stride(i);
 
-    return strided_view_t<U, N>(
-        &(reinterpret_cast<ccU*>(self.data_handle())->real),
-        {self.shape(), strides});
+    return strided_view_t<elem_t, N>{
+        mdstrided_t<U, N>(&(reinterpret_cast<ccU*>(self.data_handle())->real),
+                          {self.shape(), strides})};
   }
 
   template <typename Self>
-  constexpr decltype(auto) imag(this Self&& self)
+  constexpr auto imag(this Self&& self)
     requires(complex_type<T>)
   {
-    using U   = std::remove_cvref_t<decltype(T{}.real())>;
-    using cU  = ComplexLayout<U>;
-    using ccU = std::conditional_t<std::is_const_v<Self>, const cU, cU>;
+    using U      = complex_subtype_t<T>;
+    using cU     = ComplexLayout<U>;
+    using ccU    = std::conditional_t<std::is_const_v<Self>, const cU, cU>;
+    using elem_t = std::conditional_t<std::is_const_v<Self>, const U, U>;
 
     std::array<Index, N> strides{};
     for (Size i = 0; i < N; i++) strides[i] = 2 * self.stride(i);
 
-    return strided_view_t<U, N>(
-        &(reinterpret_cast<ccU*>(self.data_handle())->imag),
-        {self.shape(), strides});
+    return strided_view_t<elem_t, N>{
+        mdstrided_t<U, N>(&(reinterpret_cast<ccU*>(self.data_handle())->imag),
+                          {self.shape(), strides})};
   }
 
   //! std::vector-like

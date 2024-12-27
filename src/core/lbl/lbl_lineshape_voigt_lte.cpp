@@ -1917,14 +1917,14 @@ void compute_derivative(PropmatVectorView dpm,
   switch (deriv.ls_var) {
     case LineShapeModelVariable::G0:
       com_data.dG0_core_calc(shape, bnd, f_grid, atm, deriv);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
     case LineShapeModelVariable::D0:
       com_data.dD0_core_calc(shape, bnd, f_grid, atm, deriv);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
@@ -1935,21 +1935,21 @@ void compute_derivative(PropmatVectorView dpm,
     case LineShapeModelVariable::ETA: return;
     case LineShapeModelVariable::Y:
       com_data.dY_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
     case LineShapeModelVariable::G:
       com_data.dG_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
     case LineShapeModelVariable::DV:
       com_data.dDV_core_calc(shape, bnd, f_grid, atm, deriv);
-      for (Index i = 0; i < f_grid.size(); i++) {
+      for (Size i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }

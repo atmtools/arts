@@ -118,16 +118,16 @@ void SHT::set_spectral_coeffs_cmplx(
 }
 
 StridedConstMatrixView SHT::get_spatial_coeffs() const {
-  return StridedConstMatrixView(spatial_coeffs_, std::array{n_aa_, n_za_});
+  return matpack::mdview_t<Numeric, 2>(spatial_coeffs_, std::array{n_aa_, n_za_});
 }
 
 StridedConstComplexMatrixView SHT::get_spatial_coeffs_cmplx() const {
-  return StridedConstComplexMatrixView(spatial_coeffs_cmplx_,
+  return matpack::mdview_t<Complex, 2>(spatial_coeffs_cmplx_,
                                 std::array{n_aa_, n_za_});
 }
 
 StridedConstComplexVectorView SHT::get_spectral_coeffs_cmplx() const {
-  return StridedConstComplexVectorView(spectral_coeffs_cmplx_,
+  return matpack::mdview_t<Complex, 1>(spectral_coeffs_cmplx_,
                                 std::array{n_spectral_coeffs_cmplx_});
 }
 
@@ -146,7 +146,7 @@ Index SHT::get_l_max() const { return l_max_; }
 Index SHT::get_m_max() const { return m_max_; }
 
 StridedConstComplexVectorView SHT::get_spectral_coeffs() const {
-  return StridedConstComplexVectorView(spectral_coeffs_,
+  return matpack::mdview_t<Complex, 1>(spectral_coeffs_,
                                 std::array{n_spectral_coeffs_});
 }
 

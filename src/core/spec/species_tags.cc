@@ -4,7 +4,6 @@
 #include <fast_float/fast_float.h>
 #include <isotopologues.h>
 #include <nonstd.h>
-#include <partfun.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -146,14 +145,6 @@ Array<Tag> parse_tags(std::string_view text) {
   }
 
   return tags;
-}
-
-Numeric Tag::Q(Numeric T) const {
-  return PartitionFunctions::Q(T, Isotopologue());
-}
-
-Numeric Tag::dQdT(Numeric T) const {
-  return PartitionFunctions::dQdT(T, Isotopologue());
 }
 
 Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}

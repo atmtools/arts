@@ -154,7 +154,9 @@ void py_species(py::module_& m) try {
               &SpeciesTag::cia_2nd_species,
               ":class:`~pyarts.arts.Species` CIA species")
       .def("partfun",
-           &SpeciesTag::Q,
+           [](const SpeciesTag& self, Numeric T) {
+            return PartitionFunctions::Q(T, self.Isotopologue());
+           },
            R"--(Compute the partition function at a given temperature
 
 Parameters

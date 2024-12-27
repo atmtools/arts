@@ -17,6 +17,8 @@ template <class T, Size N>
 struct view_t final : public mdview_t<T, N> {
   using base = mdview_t<T, N>;
 
+  mdview_t<T, N> base_md() const { return *this; }
+
   using extents_type     = base::extents_type;
   using layout_type      = base::layout_type;
   using accessor_type    = base::accessor_type;
@@ -52,62 +54,27 @@ struct view_t final : public mdview_t<T, N> {
   static constexpr bool is_strided    = is_always_strided();
   static constexpr bool is_unique     = is_always_unique();
 
-  constexpr view_t()                  = default;
-  constexpr view_t(const view_t&)     = default;
-  constexpr view_t(view_t&&) noexcept = default;
+  constexpr view_t() : base() {};
+  constexpr view_t(const view_t& x) : base(x) {};
+  constexpr view_t(view_t&& x) noexcept : base(std::move(x)) {};
 
-  constexpr view_t(const mdview_t<T, N>& x) : base(x) {};
-  constexpr view_t(mdview_t<T, N>&& x) : base(std::move(x)) {};
-
-  //! Forward the standard constructors
-  explicit constexpr view_t(base::data_handle_type p,
-                            const std::array<Index, N>& ext)
-      : base(p, ext) {}
-  explicit constexpr view_t(base::data_handle_type p,
-                            const base::extents_type& ext)
-      : base(p, ext) {}
-  explicit constexpr view_t(base::data_handle_type p,
-                            const base::mapping_type& m)
-      : base(p, m) {}
-  explicit constexpr view_t(base::data_handle_type p,
-                            const base::mapping_type& m,
-                            const base::accessor_type& a)
-      : base(p, m, a) {}
-
-  constexpr view_t(const view_t<value_type, N>& x)
+  constexpr view_t(mdview_t<value_type, N> x) : base(x) {};
+  constexpr view_t(mdview_t<const value_type, N> x)
     requires(is_const)
-      : base(x) {}
+      : base(x) {};
 
   constexpr view_t(const data_t<value_type, N>& x)
     requires(is_const)
       : base(x.view) {}
 
-  explicit constexpr view_t(T& v) {
-    std::array<Index, N> exts{};
-    exts.fill(1);
-    base_set(base(&v, exts));
-  }
+  explicit constexpr view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
 
   explicit constexpr view_t(std::vector<value_type>& v)
-    requires(N == 1 and not is_const)
+    requires(N == 1)
       : base(const_cast<value_type*>(v.data()), v.size()) {}
-
   explicit constexpr view_t(const std::vector<value_type>& v)
     requires(N == 1 and is_const)
       : base(const_cast<value_type*>(v.data()), v.size()) {}
-
-  template <class U>
-  constexpr view_t(strided_view_t<U, N>) = delete;  // Not from strided
-
-  template <Size M>
-  explicit constexpr view_t(const view_t<T, M>& x)
-    requires(M < N)
-  {
-    std::array<Index, N> exts{};
-    exts.fill(1);
-    for (Size i = 0; i < M; i++) exts[i] = x.extent(i);
-    base_set(base(x.data_handle(), exts));
-  }
 
   [[nodiscard]] constexpr auto shape() const {
     std::array<Index, N> out;
@@ -151,7 +118,7 @@ struct view_t final : public mdview_t<T, N> {
       M>
   view_as(this Self&& self, const std::array<Index, M>& exts) {
     assert(self.size() == mdsize(exts));
-    return view_t<T, M>{self.data_handle(), exts};
+    return mdview_t<T, M>{self.data_handle(), exts};
   }
 
   template <typename Self, std::integral... NewExtents>

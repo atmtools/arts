@@ -99,7 +99,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
 
   constexpr matpack::view_t<CoeffVector, 2>
   get_coeff_vector_view() {
-    return matpack::view_t<CoeffVector, 2>(
+    return matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
         {this->extent(0), this->extent(1)});
   }
@@ -243,8 +243,8 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
 
   constexpr matpack::view_t<CoeffVector, 3>
   get_coeff_vector_view() {
-    return matpack::view_t<CoeffVector, 3>(
-        reinterpret_cast<CoeffVector*>(this->data_handle()),
+    return matpack::mdview_t<CoeffVector, 3>(
+       reinterpret_cast<CoeffVector*>(this->data_handle()),
         {this->extent(0), this->extent(1), this->extent(2)});
   }
 

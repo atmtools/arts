@@ -32,15 +32,18 @@ struct cdata_t {
 
   std::array<T, ndata> data;
 
-  static constexpr std::array<Index, N> shape() { return {dims...}; }
+  static constexpr std::array<Index, N> shape_ = {dims...};
+  static constexpr const std::array<Index, N>& shape() { return shape_; }
 
   view_t<const T, N> view() const {
-    return view_t<T, N>{const_cast<T*>(data.data()), shape()};
+    return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
   }
 
   view_t<T, N> view() {
-    return mdview_t<T, N>{const_cast<T*>(data.data()), shape()};
+    return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
   }
+
+  auto base_md() const { return view().base_md(); }
 
   constexpr operator view_t<T, N>() { return view(); }
   constexpr operator view_t<const T, N>() const { return view(); }
