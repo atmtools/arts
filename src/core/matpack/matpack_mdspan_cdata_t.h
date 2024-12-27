@@ -44,12 +44,8 @@ struct cdata_t {
 
   constexpr operator view_t<T, N>() { return view(); }
   constexpr operator view_t<const T, N>() const { return view(); }
-  constexpr operator strided_view_t<T, N>() {
-    return strided_view_t<T, N>{view()};
-  }
-  constexpr operator strided_view_t<const T, N>() const {
-    return strided_view_t<T, N>{view()};
-  }
+  constexpr operator strided_view_t<T, N>() { return view(); }
+  constexpr operator strided_view_t<const T, N>() const { return view(); }
   explicit constexpr operator data_t<T, N>() const {
     return data_t<T, N>{view()};
   }
@@ -379,17 +375,6 @@ struct cdata_t {
                            std::forward<Proj2>(proj2));
   }
 };
-
-template <class T>
-concept any_cdata = std::remove_cvref_t<T>::magic_cdata_t_v;
-
-template <typename T, typename U, Index N>
-static constexpr bool is_cdata =
-    any_cdata<T> and std::same_as<typename T::element_type, U> and
-    rank<T>() == N;
-
-template <class T, Index N>
-concept ranked_cdata = is_cdata<std::remove_cvref_t<T>, value_type<T>, N>;
 
 template <any_cdata T>
 constexpr T operator+(const T& x, const T& y) {

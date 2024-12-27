@@ -178,7 +178,7 @@ struct view_t final : public mdview_t<T, N> {
   }
 
   constexpr view_t& operator=(const view_t& x) {
-    assert(size() == x.size());
+    assert(shape() == x.shape());
     std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
@@ -462,17 +462,6 @@ static_assert(not view_t<Numeric, 10>::is_const);
 static_assert(view_t<const Numeric, 10>::is_const);
 static_assert(view_t<Numeric, 10>::is_exhaustive);
 static_assert(view_t<Numeric, 10>::is_unique);
-
-template <typename T, typename U, Size N>
-static constexpr bool is_view =
-    std::same_as<std::remove_cvref_t<T>, view_t<U, N>>;
-
-template <class T, Size N>
-concept ranked_view =
-    is_view<T, typename std::remove_cvref_t<T>::element_type, N>;
-
-template <class T>
-concept any_view = ranked_view<T, rank<T>()>;
 }  // namespace matpack
 
 template <typename T, Size N>

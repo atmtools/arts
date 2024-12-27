@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <concepts>
 #include <functional>
 #include <iterator>
@@ -179,7 +180,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   }
 
   constexpr strided_view_t& operator=(const strided_view_t& x) {
-    assert(size() == x.size());
+    assert(shape() == x.shape());
     std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
@@ -488,17 +489,6 @@ static_assert(not strided_view_t<Numeric, 10>::is_const);
 static_assert(strided_view_t<const Numeric, 10>::is_const);
 static_assert(not strided_view_t<Numeric, 10>::is_exhaustive);
 static_assert(strided_view_t<Numeric, 10>::is_unique);
-
-template <typename T, typename U, Size N>
-static constexpr bool is_strided_view =
-    std::same_as<std::remove_cvref_t<T>, strided_view_t<U, N>>;
-
-template <class T, Size N>
-concept ranked_strided_view =
-    is_strided_view<T, typename std::remove_cvref_t<T>::element_type, N>;
-
-template <class T>
-concept any_strided_view = ranked_strided_view<T, rank<T>()>;
 }  // namespace matpack
 
 template <typename T, Size N>

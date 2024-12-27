@@ -67,9 +67,11 @@ class [[nodiscard]] data_t {
   constexpr data_t(std::array<Index, N> sz, T x = {})
       : data_t(std::pair<std::array<Index, N>, T>{sz, x}) {}
 
-  constexpr data_t() : data_t(std::array<Index, N>{}) {};
-  constexpr data_t(const data_t&)     = default;
-  constexpr data_t(data_t&&) noexcept = default;
+  constexpr data_t() : data_t(std::array<Index, N>{}) {}
+  constexpr data_t(const data_t& x)
+      : data(x.data), view(data.data(), x.shape()) {}
+  constexpr data_t(data_t&& x) noexcept
+      : data(std::move(x.data)), view(data.data(), x.shape()) {}
 
   template <std::integral... inds>
   explicit constexpr data_t(inds... ind)
@@ -96,11 +98,8 @@ class [[nodiscard]] data_t {
       : data_t(std::vector<T>(stdr::begin(r), stdr::end(r))) {}
 
   constexpr data_t(std::from_range_t, stdr::input_range auto&& r)
-    requires(N == 1) {
-      data.reserve(stdr::size(r));
-      for (auto&& i: r) data.emplace_back(static_cast<T>(i));
-      reset_view(std::array{static_cast<Index>(data.size())});
-    }
+    requires(N == 1)
+      : data_t(std::vector<T>(stdr::begin(r), stdr::end(r))) {}
 
   template <mdvalue_type_compatible<T> U>
   explicit constexpr data_t(const U& x) : data_t(mdshape(x)) {
@@ -108,13 +107,29 @@ class [[nodiscard]] data_t {
   }
 
   template <typename U>
-  explicit constexpr data_t(const view_t<U, N>& x) {
-    *this = x;
+  explicit constexpr data_t(const view_t<U, N>& x) : data_t(x.shape()) {
+    view = x;
   }
 
   template <typename U>
-  explicit constexpr data_t(const strided_view_t<U, N>& x) {
-    *this = x;
+  explicit constexpr data_t(const strided_view_t<U, N>& x) : data_t(x.shape()) {
+    view = x;
+  }
+
+  template <ranked_md<N> Real, ranked_md<N> Imag>
+  constexpr data_t(const Real& real, const Imag& imag)
+    requires(complex_type<T> and
+             std::same_as<typename Real::value_type, complex_subtype_t<T>> and
+             std::same_as<typename Imag::value_type, complex_subtype_t<T>>)
+      : data_t(real.shape()) {
+    assert(real.shape() == imag.shape());
+    auto r = elemwise_range(real);
+    auto i = elemwise_range(imag);
+    std::transform(stdr::begin(r),
+                   stdr::end(r),
+                   stdr::begin(i),
+                   data.begin(),
+                   [](auto a, auto b) { return T{a, b}; });
   }
 
   constexpr operator view_t<T, N>&() { return view; }
@@ -140,7 +155,8 @@ class [[nodiscard]] data_t {
   }
 
   constexpr data_t& operator=(const data_t& x) {
-    resize(x.shape()).view = x.view;
+    data = x.data;
+    reset_view(x.shape());
     return *this;
   }
 
@@ -580,17 +596,6 @@ class [[nodiscard]] data_t {
                            std::forward<Proj2>(proj2));
   }
 };
-
-template <typename T, typename U, Size N>
-static constexpr bool is_data =
-    std::same_as<std::remove_cvref_t<T>, data_t<U, N>>;
-
-template <class T, Size N>
-concept ranked_data =
-    is_data<T, typename std::remove_cvref_t<T>::element_type, N>;
-
-template <class T>
-concept any_data = ranked_data<std::remove_cvref_t<T>, rank<T>()>;
 }  // namespace matpack
 
 template <typename T, Size N>

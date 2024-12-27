@@ -18,6 +18,14 @@ concept complex_type =
       { a.imag() } -> arithmetic;
     } and sizeof(std::remove_cvref_t<decltype(T{}.real())>) * 2 == sizeof(T) and
     sizeof(std::remove_cvref_t<decltype(T{}.imag())>) * 2 == sizeof(T);
+
+template <complex_type T>
+struct complex_subtype {
+  using type = std::remove_cvref_t<typename T::value_type>;
+};
+
+template <complex_type T>
+using complex_subtype_t = typename complex_subtype<T>::type;
 }  // namespace matpack
 
 template <typename T>
@@ -127,7 +135,7 @@ constexpr std::complex<T> operator/(U c, std::complex<T> x) {
  * @return a^2 + b^2
  */
 template <matpack::complex_type T>
-constexpr auto abs2(T c) {
+constexpr matpack::complex_subtype<T> abs2(T c) {
   return c.real() * c.real() + c.imag() * c.imag();
 }
 

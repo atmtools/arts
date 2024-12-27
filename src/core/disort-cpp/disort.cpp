@@ -1060,6 +1060,11 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
     }
   }
 
+  std::print(R"(data.exponent.resize(NQuad);
+K_collect: {:B,}
+)",
+             K_collect);
+
   data.exponent.resize(NQuad);
   for (Index i = 0; i < N; i++) {
     data.exponent[i] =
@@ -1068,11 +1073,35 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
         std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
+  std::print(R"(mult(data.u0_pos,
+       GC_collect[0, l, Range(0, N), joker],
+       data.exponent,
+       1.0,
+       1.0);
+
+GC_collect[0, l, Range(0, N), joker]: {:B,}
+data.exponent:                        {:B,}
+)",
+             GC_collect[0, l, Range(0, N), joker],
+             data.exponent);
+
   mult(data.u0_pos,
        GC_collect[0, l, Range(0, N), joker],
        data.exponent,
        1.0,
        1.0);
+
+  std::print(R"(Constant::two_pi * I0_orig *
+         einsum<Numeric, "", "i", "i", "i">(
+             {{}}, mu_arr[Range{{0, N}}], W, data.u0_pos)
+
+I0_orig:     {}
+mu_arr:      {:B,}
+data.u0_pos: {:B,}
+)",
+             I0_orig,
+             mu_arr[Range{0, N}],
+             data.u0_pos);
 
   return Constant::two_pi * I0_orig *
          einsum<Numeric, "", "i", "i", "i">(

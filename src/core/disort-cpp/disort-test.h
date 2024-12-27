@@ -90,13 +90,38 @@ inline void compare(const std::string_view name,
   const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts] =
       compute_flux(dis, taus);
 
-  std::cout << std::format(
-      "u_arts:\n{:B,}\nu0_arts:\n{:B,}\nflux_up_arts:\n{:B,}\nflux_down_diffuse_arts:\n{:B,}\nflux_down_direct_arts:\n{:B,}\n",
-      u_arts.view_as(u_arts.size()),
-      u0_arts.view_as(u0_arts.size()),
-      flux_up_arts,
-      flux_down_diffuse_arts,
-      flux_down_direct_arts);
+  std::print(std::cout,
+             R"(
+u_arts:
+{0:B,}
+{5:B,}
+
+u0_arts:
+{1:B,}
+{6:B,}
+
+flux_up_arts:
+{2:B,}
+{7:B,}
+
+flux_down_diffuse_arts:
+{3:B,}
+{8:B,}
+
+flux_down_direct_arts:
+{4:B,}
+{9:B,}
+)",
+             u_arts.view_as(u_arts.size()),
+             u0_arts.view_as(u0_arts.size()),
+             flux_up_arts,
+             flux_down_diffuse_arts,
+             flux_down_direct_arts,
+             u.view_as(u.size()),
+             u0.view_as(u0.size()),
+             flux_up,
+             flux_down_diffuse,
+             flux_down_direct);
 
   ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test {}", name);
   ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test {}", name);
@@ -116,6 +141,7 @@ inline void flat_print(const auto& a, const auto& b) {
   const auto bv = b.flat_view();
 
   for (Index i = 0; i < a.size(); i++) {
-    std::cout << std::format("{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
+    std::cout << std::format(
+        "{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
   }
 }
