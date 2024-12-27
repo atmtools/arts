@@ -1,10 +1,11 @@
 #pragma once
 
-#include "matpack_mdspan_common_sizes.h"
 #include <configtypes.h>
 
 #include <experimental/mdspan>
 #include <ranges>
+
+#include "matpack_mdspan_common_sizes.h"
 
 namespace stdx = std::experimental;
 namespace stdr = std::ranges;
@@ -120,6 +121,10 @@ concept typed_md = any_md<T> and std::same_as<value_type<T>, U>;
 
 template <typename T, typename U, Size N>
 concept exact_md = ranked_md<T, N> and typed_md<T, U>;
+
+template <typename T, typename U, Size N>
+concept ranked_convertible_md =
+    ranked_md<T, N> and std::convertible_to<value_type<T>, U>;
 
 template <typename T, Size N>
 concept mut_ranked_md = ranked_md<T, N> and mdmutable<T>;

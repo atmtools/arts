@@ -19,9 +19,9 @@ class band_matrix {
 
   band_matrix() = default;
   band_matrix(const band_matrix&) = default;
-  band_matrix(band_matrix&&) = default;
+  band_matrix(band_matrix&&) noexcept = default;
   band_matrix& operator=(const band_matrix&) = default;
-  band_matrix& operator=(band_matrix&&) = default;
+  band_matrix& operator=(band_matrix&&) noexcept = default;
 
   [[nodiscard]] Index end_row(Index j) const;
 

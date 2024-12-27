@@ -116,7 +116,7 @@ class [[nodiscard]] data_t {
     view = x;
   }
 
-  template <ranked_md<N> Real, ranked_md<N> Imag>
+  template <ranked_convertible_md<T, N> Real, ranked_convertible_md<T, N> Imag>
   constexpr data_t(const Real& real, const Imag& imag)
     requires(complex_type<T> and
              std::same_as<typename Real::value_type, complex_subtype_t<T>> and
@@ -154,40 +154,37 @@ class [[nodiscard]] data_t {
     return resize({static_cast<Index>(ind)...});
   }
 
-  constexpr data_t& operator=(const data_t& x) {
-    data = x.data;
-    reset_view(x.shape());
-    return *this;
-  }
-
   constexpr data_t& operator=(data_t&& x) noexcept {
     data = std::move(x.data);
     reset_view(x.view.shape());
     return *this;
   }
 
-  template <typename U>
-  constexpr data_t& operator=(const view_t<U, N>& x) {
-    resize(x.shape());
-    std::ranges::copy(x.elem_begin(), x.elem_end(), data.begin());
+  constexpr data_t& operator=(const data_t& x) noexcept {
+    data = x.data;
+    reset_view(x.view.shape());
     return *this;
   }
 
-  template <typename U>
-  constexpr data_t& operator=(const strided_view_t<U, N>& x) {
-    resize(x.shape());
-    std::ranges::copy(x.elem_begin(), x.elem_end(), data.begin());
+  constexpr data_t& operator=(const value_type& x) {
+    view = x;
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr data_t& operator=(U&& x) {
-    view = std::forward<U>(x);
+  template <ranked_convertible_md<T, N> R>
+  constexpr data_t& operator=(const R& r)
+    requires(not(std::same_as<data_t, R> or std::same_as<value_type, R>))
+  {
+    resize(r.shape());
+    unary_transform(r, [](const auto& v) { return static_cast<T>(v); });
     return *this;
   }
 
   template <mdvalue_type_compatible<T> U>
-  constexpr data_t& operator=(const U& x) {
+  constexpr data_t& operator=(const U& x)
+    requires(not(std::same_as<data_t, U> or std::same_as<value_type, U> or
+                 ranked_convertible_md<U, T, N>))
+  {
     *this = data_t(x);
     return *this;
   }

@@ -179,31 +179,40 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     }
   }
 
-  constexpr strided_view_t& operator=(const strided_view_t& x) {
-    assert(shape() == x.shape());
-    std::copy(x.elem_begin(), x.elem_end(), elem_begin());
+  constexpr strided_view_t& operator=(const strided_view_t& r)
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
+    stdr::copy(elemwise_range(r), elem_begin());
     return *this;
   }
 
-  template <elemwise_mditerable R>
-  constexpr strided_view_t& operator=(R&& r) {
-    auto r1 = elemwise_range(std::forward<R>(r));
-    assert(size() == stdr::size(r1));
-    stdr::copy(r1, elem_begin());
+  constexpr strided_view_t& operator=(const value_type& x)
+    requires(not is_const)
+  {
+    std::fill(elem_begin(), elem_end(), x);
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator=(const U& x) {
-    std::fill(elem_begin(), elem_end(), static_cast<T>(x));
+  template <ranked_convertible_md<T, N> R>
+  constexpr strided_view_t& operator=(const R& r)
+    requires(not(is_const or std::same_as<strided_view_t, R> or
+                 std::same_as<value_type, R>))
+  {
+    assert(shape() == r.shape());
+    unary_transform(r, [](const auto& v) { return static_cast<T>(v); });
     return *this;
   }
 
   template <mdvalue_type_compatible<T> U>
-  constexpr strided_view_t& operator=(const U& x) {
+  constexpr strided_view_t& operator=(const U& x)
+    requires(not(is_const or std::same_as<strided_view_t, U> or
+                 std::same_as<value_type, U> or ranked_convertible_md<U, T, N>))
+  {
     const auto sh = shape();
     assert(sh == mdshape(x));
-    for (Size i = 0; i < size(); i++) elem_at(i) = mdvalue(x, sh, i);
+    for (Size i = 0; i < size(); i++)
+      elem_at(i) = static_cast<T>(mdvalue(x, sh, i));
     return *this;
   }
 
