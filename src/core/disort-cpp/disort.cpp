@@ -338,12 +338,6 @@ void main_data::diagonalize() {
         ::diagonalize_inplace(
             amb, K[Range{0, N}], K[Range{N, N}], sqr, diag_work);
 
-        std::print(R"(
-K[Range{{0, N}}] : {:B,}
-K[Range{{N, N}}] : {:B,}
-)",
-        K[Range{0, N}], K[Range{N, N}]);
-
         for (Index i = 0; i < N; i++) {
           G[i, Range{0, N}]  = amb[i, Range{0, N}];
           G[i, Range{0, N}] *= 0.5;
