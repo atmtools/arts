@@ -125,8 +125,12 @@ constexpr decltype(auto) to_base(Acc&& i) {
 
 template <Size N, access_operator... Acc>
 constexpr decltype(auto) acc(Acc&&... i) {
-  return std::tuple_cat(std::tuple{std::forward<Acc>(i)...},
-                        jokers<N - sizeof...(Acc)>());
+  if constexpr (N == sizeof...(Acc)) {
+    return std::forward_as_tuple(std::forward<Acc>(i)...);
+  } else {
+    return std::tuple_cat(std::forward_as_tuple(std::forward<Acc>(i)...),
+                          jokers<N - sizeof...(Acc)>());
+  }
 }
 
 template <Size N, typename Self, access_operator... Acc>
@@ -139,18 +143,18 @@ constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
 }
 
 //! Create a tuple to access an index surrounded by jokers
-template <Size M, Size N, typename T>
+template <Index M, Index N, typename T>
 [[nodiscard]] constexpr auto tup(T&& i) {
   if constexpr (M > 0 and N - M - 1 > 0) {
     return std::tuple_cat(
-        jokers<M>(), std::tuple{std::forward<T>(i)}, jokers<N - M - 1>());
+        jokers<M>(), std::forward_as_tuple(std::forward<T>(i)), jokers<N - M - 1>());
   } else if constexpr (M > 0) {
-    return std::tuple_cat(jokers<M>(), std::tuple{std::forward<T>(i)});
+    return std::tuple_cat(jokers<M>(), std::forward_as_tuple(std::forward<T>(i)));
   } else if constexpr (N - M - 1 > 0) {
-    return std::tuple_cat(std::tuple{to_base(std::forward<T>(i))},
+    return std::tuple_cat(std::forward_as_tuple(to_base(std::forward<T>(i))),
                           jokers<N - M - 1>());
   } else {
-    return std::tuple{std::forward<T>(i)};
+    return std::forward_as_tuple(std::forward<T>(i));
   }
 }
 
