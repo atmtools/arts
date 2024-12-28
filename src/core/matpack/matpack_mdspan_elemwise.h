@@ -1,11 +1,21 @@
 #pragma once
 
+#include <configtypes.h>
+
+#include <array>
+#include <cstddef>
 #include <iterator>
 #include <tuple>
+#include <utility>
 
 #include "matpack_mdspan_flat_shape_pos.h"
 
 namespace matpack {
+template <class... Formats, Size N, Size... Is>
+std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr,
+                                std::index_sequence<Is...>) {
+  return std::make_tuple(Formats{arr[Is]}...);
+}
 
 template <typename... iters>
   requires(((rank<iters>() == 1) and ...))
@@ -15,7 +25,7 @@ struct elemwise {
 
     matpack::flat_shape_pos<N> pos{std::array<Index, N>{}};
     const std::tuple<const iters* const...> orig{
-        as_tuple<const iters* const...>(std::array<nullptr_t, N>{})};
+        as_tuple<const iters* const...>(std::array<std::nullptr_t, N>{})};
 
     constexpr elemwise_iteration()                              = default;
     constexpr elemwise_iteration(elemwise_iteration&&) noexcept = default;
