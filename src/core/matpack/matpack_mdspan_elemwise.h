@@ -17,6 +17,13 @@ std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr,
   return std::make_tuple(Formats{arr[Is]}...);
 }
 
+template <class... Formats,
+          size_t N,
+          class = std::enable_if_t<(N == sizeof...(Formats))>>
+std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr) {
+  return as_tuple<Formats...>(arr, std::make_index_sequence<N>{});
+}
+
 template <typename... iters>
   requires(((rank<iters>() == 1) and ...))
 struct elemwise {
