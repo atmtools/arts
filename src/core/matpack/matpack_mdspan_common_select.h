@@ -3,10 +3,14 @@
 #include <configtypes.h>
 #include <format_tags.h>
 
+#include <array>
 #include <concepts>
+#include <cstdlib>
 #include <experimental/mdspan>
 #include <ranges>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "matpack_mdspan_common_sizes.h"
 #include "matpack_mdspan_common_types.h"

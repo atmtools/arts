@@ -10,7 +10,7 @@
 
 namespace matpack {
 template <typename T, Size... dims>
-struct cdata_t {
+struct [[nodiscard]] cdata_t {
   constexpr static bool magic_cdata_t_v = true;
   constexpr static Size N               = sizeof...(dims);
   constexpr static Size ndata           = (dims * ...);

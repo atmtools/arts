@@ -83,13 +83,13 @@ struct view_t final : public mdview_t<T, N> {
   }
 
   template <typename Self, access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self, Acc&&... i) {
-    if constexpr (sizeof...(Acc) == N and
-                  (std::integral<std::remove_cvref_t<Acc>> and ...))
+  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
+                                                    Acc&&... i) {
+    if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...))
       return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);
     else
-      return left_mdsel_t<T, N, is_const, is_exhaustive, Acc...>{
-          left_sub<N>(std::forward<Self>(self), std::forward<Acc>(i)...)};
+      return left_mdsel_t<T, N, is_const, is_exhaustive, Acc...>(
+          left_sub<N>(std::forward<Self>(self), std::forward<Acc>(i)...));
   }
 
   template <typename Self>
