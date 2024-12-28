@@ -98,8 +98,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   }
 
   template <typename Self, access_operator... Acc>
-  [[nodiscard]] constexpr auto operator[](this Self&& self, Acc&&... i)
-      -> left_mdsel_t<T, N, is_const, is_exhaustive, Acc...> {
+  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self, Acc&&... i) {
     if constexpr (sizeof...(Acc) == N and
                   (std::integral<std::remove_cvref_t<Acc>> and ...))
       return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);

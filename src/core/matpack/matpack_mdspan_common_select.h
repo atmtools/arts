@@ -133,8 +133,7 @@ template <Size N, typename Self, access_operator... Acc>
 constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   return std::apply(
       [&s]<access_operator... AccT>(AccT&&... x) {
-        auto f = stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
-        return f;
+        return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
       },
       acc<N>(std::forward<Acc>(i)...));
 }
@@ -173,6 +172,66 @@ constexpr decltype(auto) sub(Self&& v, Acc&& i) {
         },
         tup<M, N>(i))};
   }
+}
+
+//! Get a positional value
+template <rankable T, Size dim = rank<T>()>
+constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
+  if constexpr (any_md<T>) {
+    return v.base_md()[pos];
+  } else if constexpr (dim == 1) {
+    if constexpr (has_index_access<T>)
+      return v[pos[0]];
+    else
+      return *(std::begin(v) + pos[0]);
+  } else {
+    return std::apply(
+        [&v](auto... inds) {
+          if constexpr (requires { v(inds...); }) {
+            return v(inds...);
+          } else {
+            return v[inds...];
+          }
+        },
+        pos);
+  }
+}
+
+//! Test that you can convert the underlying value type of an object to a
+//! specific type
+template <typename U, typename T>
+concept mdvalue_type_compatible = requires(U a) {
+  { mdvalue(a, mdshape(a)) } -> std::convertible_to<T>;
+};
+
+template <Size N>
+constexpr Size mdsize(const std::array<Index, N>& shape) {
+  Size size = 1;
+  for (Size i = 0; i < N; i++) size *= shape[i];
+  return size;
+}
+
+template <Size N>
+constexpr std::array<Index, N> mdpos(const std::array<Index, N>& shape,
+                                     Index i) {
+  std::array<Index, N> pos{};
+
+  Index n = mdsize<N>(shape);
+  for (Size j = 0; j < N; j++) {
+    n              /= shape[j];
+    const auto res  = std::div(i, n);
+    pos[j]          = res.quot;
+    i               = res.rem;
+  }
+
+  return pos;
+}
+
+template <rankable T, Size dim = rank<T>()>
+constexpr auto mdvalue(const T& v,
+                       const std::array<Index, dim>& shape,
+                       const Index i) {
+  return mdvalue(v, mdpos(shape, i));
 }
 }  // namespace matpack
 
