@@ -124,7 +124,9 @@ constexpr decltype(auto) to_base(Acc&& i) {
 }
 
 template <Size N, access_operator... Acc>
-constexpr decltype(auto) acc(Acc&&... i) {
+constexpr decltype(auto) acc(Acc&&... i)
+  requires(sizeof...(Acc) <= N)
+{
   if constexpr (N == sizeof...(Acc)) {
     return std::forward_as_tuple(std::forward<Acc>(i)...);
   } else {
@@ -143,36 +145,45 @@ constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
 }
 
 //! Create a tuple to access an index surrounded by jokers
-template <Index M, Index N, typename T>
-[[nodiscard]] constexpr auto tup(T&& i) {
-  if constexpr (M > 0 and N - M - 1 > 0) {
+template <Size M, Size N, typename T>
+[[nodiscard]] constexpr auto tup(T&& i)
+  requires(M < N)
+{
+  constexpr Size l = M;
+  constexpr Size r = N - M - 1;
+  static_assert(l < N, "Left must be less than N");
+  static_assert(r < N, "Right must be less than N");
+  constexpr bool has_left  = l > 0;
+  constexpr bool has_right = r > 0;
+
+  if constexpr (has_left and has_right) {
     return std::tuple_cat(
-        jokers<M>(), std::forward_as_tuple(std::forward<T>(i)), jokers<N - M - 1>());
-  } else if constexpr (M > 0) {
-    return std::tuple_cat(jokers<M>(), std::forward_as_tuple(std::forward<T>(i)));
-  } else if constexpr (N - M - 1 > 0) {
+        jokers<l>(), std::forward_as_tuple(std::forward<T>(i)), jokers<r>());
+  } else if constexpr (has_left) {
+    return std::tuple_cat(jokers<l>(),
+                          std::forward_as_tuple(std::forward<T>(i)));
+  } else if constexpr (has_right) {
     return std::tuple_cat(std::forward_as_tuple(to_base(std::forward<T>(i))),
-                          jokers<N - M - 1>());
+                          jokers<r>());
   } else {
+    static_assert(M == 0, "M must be 0");
+    static_assert(N == 1, "N must be 1");
     return std::forward_as_tuple(std::forward<T>(i));
   }
 }
 
 template <Size M, Size N, typename Self, access_operator Acc>
-constexpr decltype(auto) sub(Self&& v, Acc&& i) {
+constexpr decltype(auto) sub(Self&& v, Acc&& i)
+  requires(M < N)
+{
   if constexpr (M == 0) {
     return left_sub(std::forward<Self>(v), std::forward<Acc>(i));
   } else if constexpr (std::same_as<std::remove_cvref_t<Acc>, Joker>) {
     return std::forward<Self>(v);
   } else {
     return strided_view_t<value_type<Self>, N - 1>{std::apply(
-        [&v]<access_operator... AccT>(
-            AccT&&... slices) {
-          if constexpr (requires { v[std::forward<AccT>(slices)...]; }) {
-            return v[std::forward<AccT>(slices)...];
-          } else {
-            return stdx::submdspan(v, to_base(std::forward<AccT>(slices))...);
-          }
+        [&v]<access_operator... AccT>(AccT&&... slices) {
+          return stdx::submdspan(v, to_base(std::forward<AccT>(slices))...);
         },
         tup<M, N>(i))};
   }
