@@ -135,7 +135,7 @@ constexpr std::complex<T> operator/(U c, std::complex<T> x) {
  * @return a^2 + b^2
  */
 template <matpack::complex_type T>
-constexpr matpack::complex_subtype<T> abs2(T c) {
+constexpr matpack::complex_subtype_t<T> abs2(T c) {
   return c.real() * c.real() + c.imag() * c.imag();
 }
 

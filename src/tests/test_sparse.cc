@@ -833,7 +833,8 @@ Numeric test_sparse_dense_multiplication(Index m,
     // Test standard multiplication.
     //
 
-    random_fill_matrix(static_cast<Matrix>(B_sparse), 10, false);
+    Matrix B_tmp = static_cast<Matrix>(B_sparse);
+    random_fill_matrix(B_tmp, 10, false);
     B = static_cast<Matrix>(B_sparse);
 
     // Sparse-sparse multiplication

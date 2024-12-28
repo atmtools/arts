@@ -374,7 +374,7 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
   constexpr matpack::view_t<CoeffVector, 2> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0), this->extent(1)});
+        std::array<Index, 2>{this->extent(0), this->extent(1)});
   }
 
   BackscatterMatrixData<Scalar, Format::TRO> extract_stokes_coeffs() const {
@@ -451,7 +451,7 @@ class BackscatterMatrixData<Scalar, Format::ARO>
   constexpr matpack::view_t<CoeffVector, 3> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2)});
+        std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)});
   }
 
   BackscatterMatrixData &operator=(const matpack::data_t<Scalar, 4> &data) {
@@ -782,7 +782,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   constexpr matpack::view_t<CoeffVector, 3> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2)});
+        std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)});
   }
 
   /** Calculate scattering-angle integral.
@@ -796,7 +796,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     Tensor3 results(this->extent(0), this->extent(1), n_stokes_coeffs);
     auto result_vec = matpack::view_t<CoeffVector, 2>(matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector *>(results.data_handle()),
-        {this->extent(0), this->extent(1)}));
+        std::array<Index, 2>{this->extent(0), this->extent(1)}));
     auto this_vec = get_coeff_vector_view();
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -1024,7 +1024,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
   constexpr matpack::view_t<CoeffVector, 3> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2)});
+        std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)});
   }
 
   std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
@@ -1281,7 +1281,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   constexpr matpack::view_t<CoeffVector, 5> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 5>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0),
+        std::array<Index, 5>{this->extent(0),
          this->extent(1),
          this->extent(2),
          this->extent(3),
@@ -1815,7 +1815,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
   constexpr matpack::view_t<CoeffVector, 4> get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 4>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2), this->extent(3)});
+        std::array<Index, 4>{this->extent(0), this->extent(1), this->extent(2), this->extent(3)});
   }
 
   /** Transform phase matrix to gridded format.

@@ -97,7 +97,7 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
   get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
-        {this->extent(0), this->extent(1)});
+        std::array<Index, 2>{this->extent(0), this->extent(1)});
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, repr>
@@ -221,7 +221,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
   get_coeff_vector_view() {
     return matpack::mdview_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2)});
+        std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)});
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> to_spectral() {

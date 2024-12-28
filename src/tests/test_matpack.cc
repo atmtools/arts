@@ -515,21 +515,21 @@ void test33() {
     cout << "Trasnpose view:\n" << std::format("{}", transpose(am)) << "\n";
 
     cout << "\n3. Make a matrix look like a tensor3:\n";
-    Tensor3View at3 = Tensor3View{am};
+    Tensor3View at3 = Tensor3View{am.view_as(am.nrows(), am.ncols(), 1)};
     cout << "at3 = \n" << std::format("{}", at3) << "\n";
     at3[0, 2, 0] += 1;
     cout << "a after Increasing element at3(0,2,0) by 1: \n" << std::format("{}", a) << "\n\n";
 
-    Tensor4View at4 = Tensor4View{at3};
+    Tensor4View at4 = Tensor4View{at3.view_as(at3.npages(), at3.nrows(), at3.ncols(), 1)};
     cout << "at4 = \n" << std::format("{}", at4) << "\n";
 
-    Tensor5View at5 = Tensor5View{at4};
+    Tensor5View at5 = Tensor5View{at4.view_as(at4.nbooks(), at4.npages(), at4.nrows(), at4.ncols(), 1)};
     cout << "at5 = \n" << std::format("{}", at5) << "\n";
 
-    Tensor6View at6 = Tensor6View{at5};
+    Tensor6View at6 = Tensor6View{at5.view_as(at5.nshelves(), at5.nbooks(), at5.npages(), at5.nrows(), at5.ncols(), 1)};
     cout << "at6 = \n" << std::format("{}", at6) << "\n";
 
-    Tensor7View at7 = Tensor7View{at6};
+    Tensor7View at7 = Tensor7View{at6.view_as(at6.nvitrines(), at6.nshelves(), at6.nbooks(), at6.npages(), at6.nrows(), at6.ncols(), 1)};
     cout << "at7 = \n" << std::format("{}", at7) << "\n";
 
     at7[0, 0, 0, 0, 0, 2, 0] -= 1;
@@ -539,8 +539,7 @@ void test33() {
 
     cout << "\nAll in one go:\n";
     Numeric b = 3.1415;  // Just any number here.
-    Tensor7View bt7 = Tensor7View{Tensor6View(
-        Tensor5View(Tensor4View(Tensor3View(MatrixView(VectorView(b))))))};
+    Tensor7View bt7 = Tensor7View{VectorView{b}.view_as(1, 1, 1, 1, 1, 1, 1)};
     cout << "bt7:\n" << std::format("{}", bt7) << "\n";
   }
 }

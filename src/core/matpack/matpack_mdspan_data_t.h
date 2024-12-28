@@ -100,9 +100,13 @@ class [[nodiscard]] data_t {
     requires(N == 1)
       : data_t(std::vector<T>(stdr::begin(r), stdr::end(r))) {}
 
-  constexpr data_t(std::from_range_t, stdr::input_range auto&& r)
-    requires(N == 1)
-      : data_t(std::vector<T>(stdr::begin(r), stdr::end(r))) {}
+  data_t(std::from_range_t, stdr::input_range auto&& r)
+    requires(N == 1) {
+      std::vector<T> v;
+      v.reserve(stdr::size(r));
+      for (auto&& x: r) v.emplace_back(static_cast<T>(x));
+      *this = std::move(v);
+    }
 
   template <mdvalue_type_compatible<T> U>
   explicit constexpr data_t(const U& x) : data_t(mdshape(x)) {
