@@ -135,11 +135,11 @@ constexpr decltype(auto) acc(Acc&&... i)
   }
 }
 
-template <Size N, typename Self, access_operator... Acc>
+template <Size N, any_md Self, access_operator... Acc>
 constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   return std::apply(
       [&s]<access_operator... AccT>(AccT&&... x) {
-        return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
+        return stdx::submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
       },
       acc<N>(std::forward<Acc>(i)...));
 }
@@ -172,7 +172,7 @@ template <Size M, Size N, typename T>
   }
 }
 
-template <Size M, Size N, typename Self, access_operator Acc>
+template <Size M, Size N, any_md Self, access_operator Acc>
 constexpr decltype(auto) sub(Self&& v, Acc&& i)
   requires(M < N)
 {
@@ -183,7 +183,7 @@ constexpr decltype(auto) sub(Self&& v, Acc&& i)
   } else {
     return strided_view_t<value_type<Self>, N - 1>{std::apply(
         [&v]<access_operator... AccT>(AccT&&... slices) {
-          return stdx::submdspan(v, to_base(std::forward<AccT>(slices))...);
+          return stdx::submdspan(v.base_md(), to_base(std::forward<AccT>(slices))...);
         },
         tup<M, N>(i))};
   }

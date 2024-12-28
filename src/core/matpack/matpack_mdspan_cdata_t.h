@@ -44,6 +44,7 @@ struct cdata_t {
   }
 
   auto base_md() const { return view().base_md(); }
+  auto base_md() { return view().base_md(); }
 
   constexpr operator view_t<T, N>() { return view(); }
   constexpr operator view_t<const T, N>() const { return view(); }
