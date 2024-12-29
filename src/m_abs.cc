@@ -210,7 +210,7 @@ void propagation_matrixAddFaraday(
     }
   }
 
-  const Vector rtp_los{ConstVectorView{path::mirror(path_point.los)}};
+  const Vector rtp_los{path::mirror(path_point.los)};
 
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *absorption_species* and "
