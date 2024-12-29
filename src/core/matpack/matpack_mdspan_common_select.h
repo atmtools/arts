@@ -139,11 +139,16 @@ constexpr decltype(auto) acc(Acc&&... i)
   }
 }
 
-template <Size N, any_md Self, access_operator... Acc>
+template <Size N, typename Self, access_operator... Acc>
 constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   return std::apply(
       [&s]<access_operator... AccT>(AccT&&... x) {
-        return stdx::submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
+        if constexpr (any_md<Self>) {
+          return stdx::submdspan(s.base_md(),
+                                 to_base(std::forward<AccT>(x))...);
+        } else {
+          return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
+        }
       },
       acc<N>(std::forward<Acc>(i)...));
 }
@@ -176,20 +181,23 @@ template <Size M, Size N, typename T>
   }
 }
 
-template <Size M, Size N, any_md Self, access_operator Acc>
-constexpr decltype(auto) sub(Self&& v, Acc&& i)
+template <Size M, Size N, typename Self, access_operator Acc>
+constexpr decltype(auto) sub(Self&& s, Acc&& i)
   requires(M < N)
 {
-  if constexpr (M == 0) {
-    return left_sub(std::forward<Self>(v), std::forward<Acc>(i));
-  } else if constexpr (std::same_as<std::remove_cvref_t<Acc>, Joker>) {
-    return std::forward<Self>(v);
+  if constexpr (std::same_as<std::remove_cvref_t<Acc>, Joker>) {
+    return std::forward<Self>(s);
   } else {
-    return strided_view_t<value_type<Self>, N - 1>{std::apply(
-        [&v]<access_operator... AccT>(AccT&&... slices) {
-          return stdx::submdspan(v.base_md(), to_base(std::forward<AccT>(slices))...);
+    return std::apply(
+        [&s]<access_operator... AccT>(AccT&&... x) {
+          if constexpr (any_md<Self>) {
+            return stdx::submdspan(s.base_md(),
+                                   to_base(std::forward<AccT>(x))...);
+          } else {
+            return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
+          }
         },
-        tup<M, N>(i))};
+        tup<M, N>(i));
   }
 }
 

@@ -1,16 +1,21 @@
 #pragma once
 
+#include <configtypes.h>
+
+#include <array>
 #include <algorithm>
 #include <concepts>
 #include <functional>
 #include <type_traits>
+#include  <utility>
+
 
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_elemwise_mditer.h"
 #include "matpack_mdspan_view_t.h"
 
 namespace matpack {
-namespace detail {
+namespace {
 template <typename T, Size N, Size I = 0, typename arg, typename... args>
 constexpr std::pair<std::array<Index, N>, T> to_pair_i(
     std::array<Index, N>& ret, arg&& x, args&&... y) {
@@ -27,7 +32,7 @@ constexpr std::pair<std::array<Index, N>, T> to_pair(args&&... y) {
   std::array<Index, N> ret{};
   return to_pair_i<T, N, 0>(ret, std::forward<args>(y)...);
 }
-}  // namespace detail
+}  // namespace
 
 template <typename T, Size N>
 class [[nodiscard]] data_t {
@@ -90,7 +95,7 @@ class [[nodiscard]] data_t {
   template <class... args>
   constexpr data_t(args... arg)
     requires(sizeof...(args) == (N + 1))
-      : data_t(detail::to_pair<T, N>(std::forward<args>(arg)...)) {}
+      : data_t(to_pair<T, N>(std::forward<args>(arg)...)) {}
 
   explicit constexpr data_t(std::vector<T>&& r)
     requires(N == 1)

@@ -1,7 +1,9 @@
 #pragma once
 
+#include <configtypes.h>
 #include <debug.h>
 
+#include <array>
 #include <limits>
 #include <tuple>
 #include <type_traits>
@@ -10,22 +12,22 @@
 #include "matpack_mdspan.h"
 
 namespace matpack {
-namespace detail {
-template <char c, std::array cs, std::size_t N = cs.size()>
-consteval std::size_t position_first() {
-  for (std::size_t i = 0; i < N; ++i) {
+namespace {
+template <char c, std::array cs, Size N = cs.size()>
+consteval Size position_first() {
+  for (Size i = 0; i < N; ++i) {
     if (cs[i] == c) {
       return i;
     }
   }
-  return std::numeric_limits<std::size_t>::max();
+  return std::numeric_limits<Size>::max();
 }
 
-template <char c, std::array cs, std::size_t N = cs.size()>
+template <char c, std::array cs, Size N = cs.size()>
 consteval std::array<char, N - 1> drop_first() {
   std::array<char, N - 1> result{};
   bool done = false;
-  for (std::size_t i = 0; i < N; ++i) {
+  for (Size i = 0; i < N; ++i) {
     if (cs[i] == c and not done) {
       done = true;
     } else {
@@ -35,10 +37,10 @@ consteval std::array<char, N - 1> drop_first() {
   return result;
 }
 
-template <char c, std::array cs, std::size_t N = cs.size()>
-consteval std::size_t count_char() {
-  std::size_t n = 0;
-  for (std::size_t i = 0; i < N; ++i) {
+template <char c, std::array cs, Size N = cs.size()>
+consteval Size count_char() {
+  Size n = 0;
+  for (Size i = 0; i < N; ++i) {
     n += cs[i] == c;
   }
   return n;
@@ -46,11 +48,12 @@ consteval std::size_t count_char() {
 
 template <char c,
           std::array cs,
-          std::size_t N = cs.size(),
-          std::size_t n = count_char<c, cs>()>
-constexpr decltype(auto) reduce_mdrank(auto&& arr, Index i [[maybe_unused]]) {
+          typename T,
+          Size N = cs.size(),
+          Size n = count_char<c, cs>()>
+constexpr decltype(auto) reduce_mdrank(T&& arr, Index i [[maybe_unused]]) {
   if constexpr (n == 0 or N == 0) {
-    return arr;
+    return std::forward<T>(arr);
   } else if constexpr (n == 1) {
     if constexpr (N == 1 or cs[0] == c) {
       return arr[i];
@@ -72,15 +75,15 @@ consteval auto reduce_charrank() {
   }
 }
 
-template <std::array cs, std::size_t N = cs.size()>
+template <std::array cs, Size N = cs.size()>
 consteval bool empty() {
   return N == 0;
 }
 
 template <std::array cf,
           std::array... cs,
-          std::size_t N = cf.size(),
-          std::size_t M = sizeof...(cs)>
+          Size N = cf.size(),
+          Size M = sizeof...(cs)>
 consteval char find_first_char() {
   if constexpr (N == 0 and M == 0) {
     return '\0';
@@ -93,26 +96,21 @@ consteval char find_first_char() {
   }
 }
 
-template <char c, std::array cf, std::array... cs, std::size_t N = cf.size()>
-constexpr std::size_t mddimsize(const auto& xf, const auto&... xs) {
+template <char c, std::array cf, std::array... cs, Size N = cf.size()>
+constexpr Size mddimsize(const auto& xf, const auto&... xs) {
   if constexpr (N > 0 and find_first_char<cf>() == c) {
-    constexpr std::size_t dim = position_first<c, cf>();
-    return static_cast<std::size_t>(std::get<dim>(mdshape(xf)));
-  } else if constexpr (sizeof...(cs) != 0) {
-    return mddimsize<c, cs...>(xs...);
+    constexpr Size dim = position_first<c, cf>();
+    return static_cast<Size>(std::get<dim>(mdshape(xf)));
+  } else if constexpr (sizeof...(cs) == 0) {
+    return std::numeric_limits<Size>::max();
   } else {
-    return std::numeric_limits<std::size_t>::max();
+    return mddimsize<c, cs...>(xs...);
   }
 }
 
-constexpr std::string shape(const any_md auto& x) {
-  std::ostringstream os;
-  std::string_view sep = "(";
-  for (auto c : x.shape()) {
-    os << std::exchange(sep, ", ") << c;
-  }
-  os << ')';
-  return os.str();
+template <any_md T>
+constexpr std::string shape(T&& x) {
+ return std::format("{:B,}", x.shape());
 }
 
 constexpr std::string shape(const auto&) { return "()"; }
@@ -125,37 +123,37 @@ std::string error_msg(const auto&... xs) {
 
 template <std::array... cs>
 constexpr bool good_sizes(const auto&... xs) {
-  constexpr char first_char = detail::find_first_char<cs...>();
-  const std::size_t n       = detail::mddimsize<first_char, cs...>(xs...);
-  return ((detail::mddimsize<first_char, cs>(xs) ==
-               std::numeric_limits<std::size_t>::max() or
-           n == detail::mddimsize<first_char, cs>(xs)) and
+  constexpr char first_char = find_first_char<cs...>();
+  const Size n              = mddimsize<first_char, cs...>(xs...);
+  return ((mddimsize<first_char, cs>(xs) ==
+               std::numeric_limits<Size>::max() or
+           n == mddimsize<first_char, cs>(xs)) and
           ...);
 }
-}  // namespace detail
+}  // namespace
 
 template <typename T, std::array... cs>
 constexpr T einsum_reduce(const auto&... xs) {
-  ARTS_ASSERT((detail::good_sizes<cs...>(xs...)),
+  ARTS_ASSERT((good_sizes<cs...>(xs...)),
               "einsum_reduce: {}",
-              detail::error_msg<cs...>(xs...))
+              error_msg<cs...>(xs...))
 
-  if constexpr ((detail::empty<cs>() and ...)) {
-    return static_cast<T>((xs * ...));
+  if constexpr ((empty<cs>() and ...)) {
+    return (static_cast<T>(xs) * ...);
   } else {
-    constexpr char first_char = detail::find_first_char<cs...>();
-    const std::size_t n       = detail::mddimsize<first_char, cs...>(xs...);
+    constexpr char first_char = find_first_char<cs...>();
+    const Size n              = mddimsize<first_char, cs...>(xs...);
 
     T sum{};
-    for (std::size_t i = 0; i < n; ++i) {
-      sum += einsum_reduce<T, detail::reduce_charrank<first_char, cs>()...>(
-          detail::reduce_mdrank<first_char, cs>(xs, i)...);
+    for (Size i = 0; i < n; ++i) {
+      sum += einsum_reduce<T, reduce_charrank<first_char, cs>()...>(
+          reduce_mdrank<first_char, cs>(xs, i)...);
     }
     return sum;
   }
 }
 
-namespace detail {
+namespace {
 template <std::array cr, std::array cs>
 consteval bool copy_chars() {
   if constexpr (cr.size() != cs.size()) {
@@ -175,9 +173,9 @@ consteval bool copy_chars()
 template <std::array A,
           std::array B,
           std::array C,
-          std::size_t NA = A.size(),
-          std::size_t NB = B.size(),
-          std::size_t NC = C.size()>
+          Size NA = A.size(),
+          Size NB = B.size(),
+          Size NC = C.size()>
 consteval bool multiply_chars() {
   if constexpr (NA == 2 and NB == 2 and NC == 2) {
     return A[0] == B[0] and A[1] == C[1] and B[1] == C[0];
@@ -207,10 +205,10 @@ constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 
 template <std::array cr, std::array... cs>
 constexpr void einsum_arr(auto&& xr, const auto&... xs) {
-  assert((detail::good_sizes<cr, cs...>(xr, xs...)));
-  ARTS_ASSERT((detail::good_sizes<cr, cs...>(xr, xs...)),
+  assert((good_sizes<cr, cs...>(xr, xs...)));
+  ARTS_ASSERT((good_sizes<cr, cs...>(xr, xs...)),
               "einsum: {}",
-              detail::error_msg<cr, cs...>(xr, xs...))
+              error_msg<cr, cs...>(xr, xs...))
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
   }
@@ -225,8 +223,8 @@ constexpr void einsum_arr(auto&& xr, const auto&... xs) {
 
   else {
     constexpr char first_char = find_first_char<cr>();
-    const std::size_t n       = mddimsize<first_char, cr>(xr);
-    for (std::size_t i = 0; i < n; i++) {
+    const Size n              = mddimsize<first_char, cr>(xr);
+    for (Size i = 0; i < n; i++) {
       einsum_arr<reduce_charrank<first_char, cr>(),
                  reduce_charrank<first_char, cs>()...>(
           reduce_mdrank<first_char, cr>(xr, i),
@@ -256,7 +254,7 @@ consteval bool einsum_arr_optpath() {
   }
 }
 
-template <std::size_t N>
+template <Size N>
 struct string_literal {
   constexpr string_literal(const char (&in)[N]) { std::copy_n(in, N, str); }
   char str[N];
@@ -267,21 +265,21 @@ struct string_literal {
     return out;
   }
 };
-}  // namespace detail
+}  // namespace
 
-template <detail::string_literal sr,
-          detail::string_literal... si,
-          std::size_t N = sr.to_array().size()>
+template <string_literal sr,
+          string_literal... si,
+          Size N = sr.to_array().size()>
 constexpr void einsum(auto&& xr, const auto&... xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
-  detail::einsum_arr<sr.to_array(), si.to_array()...>(
+  einsum_arr<sr.to_array(), si.to_array()...>(
       std::forward<decltype(xr)>(xr), xi...);
 }
 
 template <typename T,
-          detail::string_literal... s,
-          std::size_t N = std::get<0>(std::tuple{s...}).to_array().size()>
+          string_literal... s,
+          Size N = std::get<0>(std::tuple{s...}).to_array().size()>
 constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
   requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
 {
@@ -296,8 +294,8 @@ constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
   }
 }
 
-template <detail::string_literal... s>
+template <string_literal... s>
 consteval bool einsum_optpath() {
-  return detail::einsum_arr_optpath<s.to_array()...>();
+  return einsum_arr_optpath<s.to_array()...>();
 }
 }  // namespace matpack
