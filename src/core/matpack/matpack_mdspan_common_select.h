@@ -28,9 +28,8 @@ struct [[nodiscard]] StridedRange {
   Index nelem;
   Index stride;
 
-  using extent_type = Index;
-  using offset_type = Index;
-  using stride_type = Index;
+  template <integral Offset, integral Nelem, integral Stride>
+  constexpr StridedRange(Offset i0, Nelem n, Stride d) : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)), stride(static_cast<Index>(d)) {}
 
   [[nodiscard]] constexpr stdx::strided_slice<Index, Index, Index>
   to_strided_slice() const {
@@ -43,13 +42,11 @@ struct [[nodiscard]] Range {
   Index offset;
   Index nelem;
 
-  using extent_type = Index;
-  using offset_type = Index;
-  using stride_type = std::integral_constant<Index, 1>;
+  template <integral Offset, integral Nelem>
+  constexpr Range(Offset i0, Nelem n) : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
-  [[nodiscard]] constexpr stdx::
-      strided_slice<Index, Index, std::integral_constant<Index, 1>>
-      to_strided_slice() const {
+  [[nodiscard]] constexpr stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>
+  to_strided_slice() const {
     return {.offset = offset, .extent = nelem, .stride = {}};
   }
 };

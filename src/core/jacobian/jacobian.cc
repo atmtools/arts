@@ -298,7 +298,7 @@ void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
                      szx)
 
   set_y(y[Range(type.y_start, type.y_size)],
-        dy[matpack::Range(type.y_start, type.y_size), matpack::Range(x_start, x_size)],
+        dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
         x[Range(x_start, x_size)]);
 }
 
