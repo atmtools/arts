@@ -230,19 +230,13 @@ void default_x_sensor_set(ArrayOfSensorObsel& sensor,
 void AtmTarget::update(AtmField& atm, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(
-      atm,
-      type,
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))]);
+  set_model(atm, type, x[Range(x_start, x_size)]);
 }
 
 void AtmTarget::update(Vector& x, const AtmField& atm) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-      atm,
-      type);
+  set_state(x[Range(x_start, x_size)], atm, type);
 }
 
 bool AtmTarget::is_wind() const {
@@ -253,57 +247,39 @@ bool AtmTarget::is_wind() const {
 void SensorTarget::update(ArrayOfSensorObsel& sens, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(
-      sens,
-      type,
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))]);
+  set_model(sens, type, x[Range(x_start, x_size)]);
 }
 
 void SensorTarget::update(Vector& x, const ArrayOfSensorObsel& sens) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-      sens,
-      type);
+  set_state(x[Range(x_start, x_size)], sens, type);
 }
 
 void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(
-      surf,
-      type,
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))]);
+  set_model(surf, type, x[Range(x_start, x_size)]);
 }
 
 void SurfaceTarget::update(Vector& x, const SurfaceField& surf) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-      surf,
-      type);
+  set_state(x[Range(x_start, x_size)], surf, type);
 }
 
 void LineTarget::update(AbsorptionBands& absorption_bands,
                         const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(
-      absorption_bands,
-      type,
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))]);
+  set_model(absorption_bands, type, x[Range(x_start, x_size)]);
 }
 
 void LineTarget::update(Vector& x,
                         const AbsorptionBands& absorption_bands) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(
-      x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-      absorption_bands,
-      type);
+  set_state(x[Range(x_start, x_size)], absorption_bands, type);
 }
 
 void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
@@ -321,11 +297,9 @@ void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
                      szy,
                      szx)
 
-  set_y(y[Range{.offset=static_cast<Index>(type.y_start), .nelem=static_cast<Index>(type.y_size)}],
-        dy[Range(static_cast<Index>(type.y_start),
-                 static_cast<Index>(type.y_size)),
-           Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-        x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))]);
+  set_y(y[Range(type.y_start, type.y_size)],
+        dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
+        x[Range(x_start, x_size)]);
 }
 
 void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
@@ -337,13 +311,10 @@ void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
   const auto szy = static_cast<Size>(y.size());
   ARTS_USER_ERROR_IF(szy < (type.y_start + type.y_size), "Got too small y.")
 
-  Vector e(y[Range(
-      static_cast<Index>(type.y_start), static_cast<Index>(type.y_size))]);
-  e -= y0[Range(
-      static_cast<Index>(type.y_start), static_cast<Index>(type.y_size))];
+  Vector e(y[Range(type.y_start, type.y_size)]);
+  e -= y0[Range(type.y_start, type.y_size)];
 
-  set_x(x[Range(static_cast<Index>(x_start), static_cast<Index>(x_size))],
-        e);
+  set_x(x[Range(x_start, x_size)], e);
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {
