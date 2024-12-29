@@ -2,13 +2,12 @@
 
 #include <configtypes.h>
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <functional>
 #include <type_traits>
-#include  <utility>
-
+#include <utility>
 
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_elemwise_mditer.h"
@@ -82,14 +81,9 @@ class [[nodiscard]] data_t {
   constexpr data_t(data_t&& x) noexcept
       : data(std::move(x.data)), view(base{data.data(), x.shape()}) {}
 
-  template <std::integral... inds>
+  template <integral... inds>
   explicit constexpr data_t(inds... ind)
-    requires(sizeof...(inds) == N and N > 1)
-      : data_t(std::array{static_cast<Index>(ind)...}) {}
-  template <std::integral... inds>
-
-  explicit constexpr data_t(inds... ind)
-    requires(sizeof...(inds) == N and N == 1)
+    requires(sizeof...(inds) == N)
       : data_t(std::array{static_cast<Index>(ind)...}) {}
 
   template <class... args>
@@ -106,12 +100,13 @@ class [[nodiscard]] data_t {
       : data_t(std::vector<T>(stdr::begin(r), stdr::end(r))) {}
 
   data_t(std::from_range_t, stdr::input_range auto&& r)
-    requires(N == 1) {
-      std::vector<T> v;
-      v.reserve(stdr::size(r));
-      for (auto&& x: r) v.emplace_back(static_cast<T>(x));
-      *this = std::move(v);
-    }
+    requires(N == 1)
+  {
+    std::vector<T> v;
+    v.reserve(stdr::size(r));
+    for (auto&& x : r) v.emplace_back(static_cast<T>(x));
+    *this = std::move(v);
+  }
 
   template <mdvalue_type_compatible<T> U>
   explicit constexpr data_t(const U& x) : data_t(mdshape(x)) {
@@ -159,7 +154,7 @@ class [[nodiscard]] data_t {
     return *this;
   }
 
-  template <std::integral... inds>
+  template <integral... inds>
   constexpr data_t& resize(inds... ind)
     requires(sizeof...(inds) == N)
   {
@@ -210,7 +205,7 @@ class [[nodiscard]] data_t {
     return out;
   }
 
-  template <std::integral... inds>
+  template <integral... inds>
   constexpr auto reshape(inds... exts) && {
     return std::move(*this).template reshape<sizeof...(inds)>(
         std::array{static_cast<Index>(exts)...});
@@ -341,14 +336,16 @@ class [[nodiscard]] data_t {
     return std::forward<Self>(self).view.view_as(exts);
   }
 
-  template <typename Self, std::integral... inds>
+  template <typename Self, integral... inds>
   constexpr auto view_as(this Self&& self, inds... exts) {
     return std::forward<Self>(self).view.view_as(std::forward<inds>(exts)...);
   }
 
   template <typename Self, access_operator... Acc>
   [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
-                                                    Acc&&... i) {
+                                                    Acc&&... i)
+    requires(sizeof...(Acc) <= N)
+  {
     return std::forward<Self>(self).view[std::forward<Acc>(i)...];
   }
 
@@ -452,7 +449,7 @@ class [[nodiscard]] data_t {
   }
 
   template <typename Self>
-  constexpr auto stride(this Self&& self, std::integral auto i) {
+  constexpr auto stride(this Self&& self, integral auto i) {
     return std::forward<Self>(self).view.stride(i);
   }
 

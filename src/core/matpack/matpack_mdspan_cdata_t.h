@@ -93,18 +93,22 @@ struct [[nodiscard]] cdata_t {
     return std::forward<Self>(self).view().view_as(exts);
   }
 
-  template <typename Self, std::integral... inds>
+  template <typename Self, integral... inds>
   constexpr auto view_as(this Self&& self, inds... exts) {
     return std::forward<Self>(self).view().view_as(std::forward<inds>(exts)...);
   }
 
   template <access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) {
+  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i)
+    requires(sizeof...(Acc) <= N)
+  {
     return view()[std::forward<Acc>(i)...];
   }
 
   template <access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) const {
+  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) const
+    requires(sizeof...(Acc) <= N)
+  {
     return view()[std::forward<Acc>(i)...];
   }
 
@@ -203,7 +207,7 @@ struct [[nodiscard]] cdata_t {
   }
 
   template <typename Self>
-  constexpr auto stride(this Self&& self, std::integral auto i) {
+  constexpr auto stride(this Self&& self, integral auto i) {
     return std::forward<Self>(self).view().stride(i);
   }
 

@@ -84,7 +84,9 @@ struct view_t final : public mdview_t<T, N> {
 
   template <typename Self, access_operator... Acc>
   [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
-                                                    Acc&&... i) {
+                                                    Acc&&... i)
+    requires(sizeof...(Acc) <= N)
+  {
     if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...))
       return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);
     else
@@ -120,7 +122,7 @@ struct view_t final : public mdview_t<T, N> {
     return mdview_t<T, M>{self.data_handle(), exts};
   }
 
-  template <typename Self, std::integral... NewExtents>
+  template <typename Self, integral... NewExtents>
   constexpr auto view_as(this Self&& self, NewExtents... exts) {
     return std::forward<Self>(self).view_as(
         std::array{static_cast<Index>(exts)...});

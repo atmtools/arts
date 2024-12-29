@@ -99,7 +99,9 @@ struct strided_view_t final : public mdstrided_t<T, N> {
 
   template <typename Self, access_operator... Acc>
   [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
-                                                    Acc&&... i) {
+                                                    Acc&&... i)
+    requires(sizeof...(Acc) <= N)
+  {
     if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...))
       return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);
     else

@@ -89,8 +89,7 @@ struct left_mdsel {
   static constexpr bool access_exhaustive =
       is_exhaustive and left_exhaustive<Acc...>();
 
-  static constexpr Size reduces_rank =
-      (std::integral<std::remove_cvref_t<Acc>> + ...);
+  static constexpr Size reduces_rank = (integral<Acc> + ...);
 
   using _new_T = std::conditional_t<is_const, const T, T>;
 
