@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <concepts>
-#include <functional>
 #include <iterator>
 #include <type_traits>
 
@@ -136,8 +135,8 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(static_cast<Index>(self.size()) > i);
 
     if constexpr (N > 1) {
-      auto sh = self.shape();
-      return std::forward<Self>(self).base::operator[](mdpos<N>(sh, i));
+      return std::forward<Self>(self).base::operator[](
+          mdpos<N>(self.shape(), i));
     } else {
       return std::forward<Self>(self).base::operator[](i);
     }
@@ -147,7 +146,9 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     requires(not is_const)
   {
     assert(shape() == r.shape());
-    stdr::copy(elemwise_range(r), elem_begin());
+
+    if (this != &r) stdr::copy(elemwise_range(r), elem_begin());
+
     return *this;
   }
 
@@ -164,7 +165,15 @@ struct strided_view_t final : public mdstrided_t<T, N> {
                  std::same_as<value_type, R>))
   {
     assert(shape() == r.shape());
-    unary_transform(r, [](const auto& v) { return static_cast<T>(v); });
+
+    if constexpr (std::same_as<T, matpack::value_type<R>>) {
+      stdr::copy(elemwise_range(r), elem_begin());
+    } else {
+      stdr::transform(elemwise_range(r), elem_begin(), [](const auto& a) -> T {
+        return a;
+      });
+    }
+
     return *this;
   }
 
@@ -174,220 +183,134 @@ struct strided_view_t final : public mdstrided_t<T, N> {
                  std::same_as<value_type, U> or ranked_convertible_md<U, T, N>))
   {
     const auto sh = shape();
+
     assert(sh == mdshape(x));
+
     for (Size i = 0; i < size(); i++)
       elem_at(i) = static_cast<T>(mdvalue(x, sh, i));
+
     return *this;
   }
 
-  /** Reduce self by binary reduce operation.
-   * 
-   * Example use: see matpack_mdspan_helpers_reduce.h
-   * 
-   * Possible usecase: summing all elements in a object.
-   * 
-   * By default, this will sum all elements in the object.
-   * 
-   * @param self The self object
-   * @param init The initial value, defaults to 0 for most common types
-   * @param op The reduction operation, defaults to std::plus<>{}
-   * @return As specified by std::reduce
-   */
-  template <typename Self, class U = T, class BinaryOp = std::plus<>>
-  constexpr decltype(auto) reduce(this Self&& self,
-                                  U&& init      = {},
-                                  BinaryOp&& op = std::plus<>{}) {
-    return std::reduce(self.elem_begin(),
-                       self.elem_end(),
-                       std::forward<U>(init),
-                       std::forward<BinaryOp>(op));
-  }
+  template <ranked_convertible_md<T, N> R>
+  constexpr strided_view_t& operator+=(const R& r)
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
 
-  /** Reduce self by unary transform followed by binary reduce.
-   * 
-   * Example use: see matpack_mdspan_helpers_reduce.h
-   * 
-   * Possible usecase: sum ignoring all NaN by using unary transform to set NaN to 0, then binary reduce by sum.
-   * 
-   * Note that by default this function acts exactly like the reduce() member function, but the
-   * latter does not invoke a transformation.  So unless you change the default unary transform
-   * operation, you should use reduce() instead.
-   * 
-   * @param self The self object
-   * @param init The initial value, defaults to 0 for most common types
-   * @param reduce The binary reduce operation, defaults to std::plus<>{}
-   * @param transform The unary transform operation, defaults to std::identity{}
-   * @return As specified by std::transform_reduce
-   */
-  template <typename Self,
-            class U        = T,
-            class BinaryOp = std::plus<>,
-            class UnaryOp  = std::identity>
-  constexpr auto unary_transform_reduce(this Self&& self,
-                                        U&& init            = {},
-                                        BinaryOp&& reduce   = std::plus<>{},
-                                        UnaryOp&& transform = std::identity{}) {
-    return std::transform_reduce(self.elem_begin(),
-                                 self.elem_end(),
-                                 std::forward<U>(init),
-                                 std::forward<BinaryOp>(reduce),
-                                 std::forward<UnaryOp>(transform));
-  }
+    if constexpr (std::same_as<T, matpack::value_type<R>>) {
+      stdr::transform(elemwise_range(*this),
+                      elemwise_range(r),
+                      elem_begin(),
+                      [](auto&& a, auto&& b) -> T { return a + b; });
+    } else {
+      stdr::transform(
+          elemwise_range(*this),
+          elemwise_range(r),
+          elem_begin(),
+          [](auto&& a, auto&& b) -> T { return a + static_cast<T>(b); });
+    }
 
-  /** Reduce self and another by binary transform followed by binary reduce.
-   * 
-   * Example use: see matpack_mdspan_helpers_reduce.h
-   * 
-   * Possible usecase: the sum of the mutliplication of two objects.  I.e., the dot-product
-   * 
-   * By default, this will sum the elementwise product of the two objects.
-   * 
-   * @param self The self object
-   * @param other The other object
-   * @param init The initial value, defaults to 0 for most common types
-   * @param reduce The binary reduce operation, defaults to std::plus<>{}
-   * @param transform The binary transform operation, defaults to std::multiplies{}
-   * @return As specified by std::transform_reduce
-   */
-  template <typename Self,
-            elemwise_mditerable Other,
-            class U         = T,
-            class BinaryOp1 = std::plus<>,
-            class BinaryOp2 = std::multiplies<>>
-  constexpr decltype(auto) binary_transform_reduce(
-      this Self&& self,
-      Other&& other,
-      U&& init              = {},
-      BinaryOp1&& reduce    = std::plus<>{},
-      BinaryOp2&& transform = std::multiplies<>{}) {
-    auto r = elemwise_range(std::forward<Other>(other));
-    assert(stdr::size(r) == self.size());
-    return std::transform_reduce(stdr::begin(r),
-                                 stdr::end(r),
-                                 std::forward<Self>(self).elem_begin(),
-                                 std::forward<U>(init),
-                                 std::forward<BinaryOp1>(reduce),
-                                 std::forward<BinaryOp2>(transform));
-  }
-
-  /** Transform self by unary operation on other range.
-   * 
-   * Example use: See operator overloads of this class.
-   * 
-   * Possible usecase: Add a constant with operator+= to self, the other range is then also self.
-   * 
-   * See stdr::transform for more information on projections.
-   * 
-   * @param self The self object
-   * @param other The other range
-   * @param unary_op The operation to apply to each element
-   * @param proj A projection to apply to each element before applying the unary operation, defaults to no projection
-   * @return As defined by stdr::transform
-   */
-  template <typename Self,
-            elemwise_mditerable Other,
-            std::copy_constructible F,
-            class Proj = std::identity>
-  constexpr decltype(auto) unary_transform(this Self&& self,
-                                           Other&& other,
-                                           F&& unary_op,
-                                           Proj&& proj = {}) {
-    auto r = elemwise_range(std::forward<Other>(other));
-    assert(stdr::size(r) == self.size());
-    return stdr::transform(r,
-                           std::forward<Self>(self).elem_begin(),
-                           std::forward<F>(unary_op),
-                           std::forward<Proj>(proj));
-  }
-
-  /** Transform self by binary operation on other ranges.
-   * 
-   * Example use: See operator overloads of this class.
-   * 
-   * Possible usecase: Add elementwise with operator+= to self, one of the other ranges is then also self.
-   * 
-   * See stdr::transform for more information on projections.
-   * 
-   * @param self The self object
-   * @param other1 The other range
-   * @param other2 The other range
-   * @param binary_op The operation to apply to the pair of each element
-   * @param proj1 A projection to apply to each element of other1 before the binary operation, defaults to no projection
-   * @param proj2 A projection to apply to each element of other2 before the binary operation, defaults to no projection
-   * @return As defined by stdr::transform
-   */
-  template <typename Self,
-            elemwise_mditerable Other1,
-            elemwise_mditerable Other2,
-            std::copy_constructible F,
-            class Proj1 = std::identity,
-            class Proj2 = std::identity>
-  constexpr decltype(auto) binary_transform(this Self&& self,
-                                            Other1&& other1,
-                                            Other2&& other2,
-                                            F&& binary_op,
-                                            Proj1&& proj1 = {},
-                                            Proj2&& proj2 = {}) {
-    auto r1 = elemwise_range(std::forward<Other1>(other1));
-    auto r2 = elemwise_range(std::forward<Other2>(other2));
-    assert(stdr::size(r1) == self.size() and stdr::size(r2) == self.size());
-    return stdr::transform(r1,
-                           r2,
-                           std::forward<Self>(self).elem_begin(),
-                           std::forward<F>(binary_op),
-                           std::forward<Proj1>(proj1),
-                           std::forward<Proj2>(proj2));
-  }
-
-  template <elemwise_mditerable R>
-  constexpr strided_view_t& operator+=(const R& r1) {
-    binary_transform(*this, r1, std::plus<>{});
     return *this;
   }
 
-  template <elemwise_mditerable R>
-  constexpr strided_view_t& operator-=(const R& r1) {
-    binary_transform(*this, r1, std::minus<>{});
+  template <ranked_convertible_md<T, N> R>
+  constexpr strided_view_t& operator-=(const R& r)
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
+
+    if constexpr (std::same_as<T, matpack::value_type<R>>) {
+      stdr::transform(elemwise_range(*this),
+                      elemwise_range(r),
+                      elem_begin(),
+                      [](auto&& a, auto&& b) -> T { return a - b; });
+    } else {
+      stdr::transform(
+          elemwise_range(*this),
+          elemwise_range(r),
+          elem_begin(),
+          [](auto&& a, auto&& b) -> T { return a - static_cast<T>(b); });
+    }
+
     return *this;
   }
 
-  template <elemwise_mditerable R>
-  constexpr strided_view_t& operator*=(const R& r1) {
-    binary_transform(*this, r1, std::multiplies<>{});
+  template <ranked_convertible_md<T, N> R>
+  constexpr strided_view_t& operator*=(const R& r)
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
+
+    if constexpr (std::same_as<T, matpack::value_type<R>>) {
+      stdr::transform(elemwise_range(*this),
+                      elemwise_range(r),
+                      elem_begin(),
+                      [](auto&& a, auto&& b) -> T { return a * b; });
+    } else {
+      stdr::transform(
+          elemwise_range(*this),
+          elemwise_range(r),
+          elem_begin(),
+          [](auto&& a, auto&& b) -> T { return a * static_cast<T>(b); });
+    }
+
     return *this;
   }
 
-  template <elemwise_mditerable R>
-  constexpr strided_view_t& operator/=(const R& r1) {
-    binary_transform(*this, r1, std::divides<>{});
+  template <ranked_convertible_md<T, N> R>
+  constexpr strided_view_t& operator/=(const R& r)
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
+    if constexpr (std::same_as<T, matpack::value_type<R>>) {
+      stdr::transform(elemwise_range(*this),
+                      elemwise_range(r),
+                      elem_begin(),
+                      [](auto&& a, auto&& b) -> T { return a / b; });
+    } else {
+      stdr::transform(
+          elemwise_range(*this),
+          elemwise_range(r),
+          elem_begin(),
+          [](auto&& a, auto&& b) -> T { return a / static_cast<T>(b); });
+    }
     return *this;
   }
 
   template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator+=(U&& r) {
-    const auto add = [v = std::forward_like<T>(r)](auto&& x) { return x + v; };
-    unary_transform(*this, add);
+  constexpr strided_view_t& operator+=(U&& r)
+    requires(not is_const)
+  {
+    stdr::for_each(elemwise_range(*this),
+                   [v = std::forward_like<T>(r)](T& x) { return x += v; });
     return *this;
   }
 
   template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator-=(U&& r) {
-    const auto red = [v = std::forward_like<T>(r)](auto&& x) { return x - v; };
-    unary_transform(*this, red);
+  constexpr strided_view_t& operator-=(U&& r)
+    requires(not is_const)
+  {
+    stdr::for_each(elemwise_range(*this),
+                   [v = std::forward_like<T>(r)](T& x) { return x -= v; });
     return *this;
   }
 
   template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator/=(U&& r) {
-    const auto div = [v = std::forward_like<T>(r)](auto&& x) { return x / v; };
-    unary_transform(*this, div);
+  constexpr strided_view_t& operator*=(U&& r)
+    requires(not is_const)
+  {
+    stdr::for_each(elemwise_range(*this),
+                   [v = std::forward_like<T>(r)](T& x) { return x *= v; });
     return *this;
   }
 
   template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator*=(U&& r) {
-    const auto mul = [v = std::forward_like<T>(r)](auto&& x) { return x * v; };
-    unary_transform(*this, mul);
+  constexpr strided_view_t& operator/=(U&& r)
+    requires(not is_const)
+  {
+    stdr::for_each(elemwise_range(*this),
+                   [v = std::forward_like<T>(r)](T& x) { return x /= v; });
     return *this;
   }
 

@@ -454,7 +454,8 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // 5. Initialize log_p_grid.
   log_p_grid.resize(n_p_grid);
-  log_p_grid.unary_transform(p_grid, [](auto p) { return std::log(p); });
+  stdr::transform(
+      p_grid, log_p_grid.begin(), [](auto p) { return std::log(p); });
 
   // 6. Initialize flag_default.
   flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(

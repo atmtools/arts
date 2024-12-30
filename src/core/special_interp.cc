@@ -388,11 +388,11 @@ void itw2p(VectorView p_values,
   // Local variable to store log of the pressure grid:
   Vector logpgrid(p_grid.size());
 
-  logpgrid.unary_transform(p_grid, [](auto p) { return std::log(p); });
+  stdr::transform(p_grid, logpgrid.begin(), [](auto p) { return std::log(p); });
 
   interp(p_values, itw, logpgrid, gp);
 
-  p_values.unary_transform(p_values, [](auto p) { return std::exp(p); });
+  stdr::transform(p_values, p_values.begin(), [](auto p) { return std::exp(p); });
 }
 
 /** Calculates grid positions for pressure values.
@@ -427,8 +427,8 @@ void p2gridpos(ArrayOfGridPos& gp,
   Vector logold(old_pgrid.size());
   Vector lognew(new_pgrid.size());
 
-  logold.unary_transform(old_pgrid, [](auto p) { return std::log(p); });
-  lognew.unary_transform(new_pgrid, [](auto p) { return std::log(p); });
+  stdr::transform(old_pgrid, logold.begin(), [](auto p) { return std::log(p); });
+  stdr::transform(new_pgrid, lognew.begin(), [](auto p) { return std::log(p); });
 
   gridpos(gp, logold, lognew, extpolfac);
 }

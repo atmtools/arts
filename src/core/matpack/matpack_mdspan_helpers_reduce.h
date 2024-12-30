@@ -3,6 +3,8 @@
 #include <compare.h>
 #include <nonstd.h>
 
+#include <algorithm>
+
 #include "matpack_mdspan.h"
 
 namespace matpack {
@@ -13,7 +15,7 @@ namespace matpack {
  */
 template <any_md Self>
 constexpr auto sum(const Self& self) {
-  return self.reduce();
+  return std::reduce(self.elem_begin(), self.elem_end());
 }
 
 /** The mean of all elements in the range using it's reduce operation after scaling the value by the size of the range
@@ -31,7 +33,11 @@ constexpr auto mean(const Self& self) {
   const auto scale = [n = static_cast<Numeric>(self.size())](auto& a) {
     return a / n;
   };
-  return self.unary_transform_reduce({}, {}, scale);
+  return std::transform_reduce(self.elem_begin(),
+                               self.elem_end(),
+                               value_type<Self>{},
+                               std::plus<>{},
+                               scale);
 }
 
 /** The mean of all elements in the range using it's reduce operation after scaling the value by the size of the range
@@ -111,7 +117,12 @@ constexpr auto nansum(const Self& self) {
     if (nonstd::isnan(a)) return {};
     return a;
   };
-  return self.unary_transform_reduce({}, {}, sum_nonnan);
+
+  return std::transform_reduce(self.elem_begin(),
+                               self.elem_end(),
+                               value_type<Self>{},
+                               std::plus<>{},
+                               sum_nonnan);
 }
 
 /** Find the mean of all elements in the range that are not NaN
@@ -130,7 +141,12 @@ constexpr auto nanmean(const Self& self) {
     if (nonstd::isnan(a)) return {};
     return a / n;
   };
-  return self.unary_transform_reduce({}, {}, scale_nonnan);
+
+  return std::transform_reduce(self.elem_begin(),
+                               self.elem_end(),
+                               value_type<Self>{},
+                               std::plus<>{},
+                               scale_nonnan);
 }
 
 /** Find the mean of all elements in the range that are not NaN
@@ -176,11 +192,13 @@ constexpr auto nanmax(const Self& self) {
  * 
  * @param self One of the ranges
  * @param other The other range
+ * @param init The initial value, defaults to 0 for most common types.  Beware the type.
  * @return The dot-product of the two ranges
  */
-template <any_md Self, any_md Other>
-constexpr auto dot(const Self& self, Other&& other) {
-  return self.binary_transform_reduce(std::forward<Other>(other));
+template <any_md Self, any_md Other, class T = value_type<Self>>
+constexpr T dot(const Self& self, const Other& other, T init = {}) {
+  return std::transform_reduce(
+      self.elem_begin(), self.elem_end(), other.elem_begin(), init);
 }
 
 /** Get the sum of the elementwise product of two ranges

@@ -96,7 +96,7 @@ void test_view() {
     const Size N = matpack::mdsize(exts);
     Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
     ComplexTensor3 x(xt.shape());
-    x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -118,7 +118,7 @@ void test_view() {
     const Size N = matpack::mdsize(exts);
     Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
     ComplexTensor3 x(xt.shape());
-    x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -173,7 +173,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
           StridedTensor3View xr{x.real()};
           StridedTensor3View xi{x.imag()};
@@ -214,7 +214,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
           auto xr{x.real()};
           auto xi{x.imag()};
@@ -255,7 +255,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
           auto xr{x.real()};
           auto xi{x.imag()};
@@ -294,7 +294,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
       auto xr{x.real()};
       auto xi{x.imag()};
@@ -331,7 +331,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
       auto xr{x.real()};
       auto xi{x.imag()};
@@ -368,7 +368,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      x.unary_transform(xt, [](auto a) { return Complex{a, a + 1.0}; });
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
       auto xr{x.real()};
       auto xi{x.imag()};

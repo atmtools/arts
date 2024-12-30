@@ -19,10 +19,10 @@ auto ArtsVector::data_pointer() const -> const Numeric * {
 }
 
 auto ArtsVector::accumulate(const ArtsVector &w) -> void {
-  this->operator+=(w);
+  this->operator+=(dynamic_cast<const matpack::data_t<Numeric, 1>&>(w));
 }
 
-auto ArtsVector::subtract(const ArtsVector &w) -> void { this->operator-=(w); }
+auto ArtsVector::subtract(const ArtsVector &w) -> void { this->operator-=(dynamic_cast<const matpack::data_t<Numeric, 1>&>(w)); }
 
 auto ArtsVector::scale(Numeric c) -> void { this->operator*=(c); }
 
@@ -66,7 +66,7 @@ auto ArtsMatrix::operator()(Index i, Index j) const -> RealType {
 
 auto ArtsMatrix::data_pointer() -> Numeric * { return this->data_handle(); }
 
-void ArtsMatrix::accumulate(const MatrixType &B) { this->operator+=(B); }
+void ArtsMatrix::accumulate(const MatrixType &B) { this->operator+=(dynamic_cast<const matpack::data_t<Numeric, 2>&>(B)); }
 
 void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper &B) {
   if (B.is_inverse()) {
@@ -87,7 +87,7 @@ auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper &B) -> ArtsMatrix {
   return C;
 }
 
-void ArtsMatrix::subtract(const ArtsMatrix &B) { this->operator-=(B); }
+void ArtsMatrix::subtract(const ArtsMatrix &B) { this->operator-=(dynamic_cast<const matpack::data_t<Numeric, 2>&>(B)); }
 
 auto ArtsMatrix::multiply(const ArtsMatrix &B) const -> ArtsMatrix {
   ArtsMatrix C;

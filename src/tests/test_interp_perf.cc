@@ -55,7 +55,7 @@ auto reinterp_indirect(const auto& f, const SomeLags&... lag) {
 std::vector<Timing> test_2x_reinterp_vector(Index n) {
   Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  yi.unary_transform(xi, [](auto zi){return std::sin(zi);});
+  stdr::transform(xi, yi.begin(), [](auto zi){return std::sin(zi);});
   Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;
@@ -200,7 +200,7 @@ std::vector<Timing> test_2x_reinterp_vector(Index n) {
 std::vector<Timing> test_linear_startup_cost(Index n) {
   Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  yi.unary_transform(xi, [](auto zi){return std::sin(zi);});
+  stdr::transform(xi, yi.begin(), [](auto zi){return std::sin(zi);});
   Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;
@@ -246,7 +246,7 @@ std::vector<Timing> test_linear_startup_cost(Index n) {
 std::vector<Timing> test_linear_interpweights_cost(Index n) {
   Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  yi.unary_transform(xi, [](auto zi){return std::sin(zi);});
+  stdr::transform(xi, yi.begin(),[](auto zi){return std::sin(zi);});
   Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;

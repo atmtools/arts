@@ -39,9 +39,9 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
 
   // Sine and cosine of scattering angle
   Vector sterm = sa;
-  sterm.unary_transform(sterm, [](Numeric x) { return std::sin(x); });
+  stdr::transform(sterm, sterm.begin(), [](Numeric x) { return std::sin(x); });
   Vector cterm = sa;
-  cterm.unary_transform(cterm, [](Numeric x) { return std::cos(x); });
+  stdr::transform(cterm, cterm.begin(), [](Numeric x) { return std::cos(x); });
 
   // Functions to integrate 
   Vector f1(n), f2(n);

@@ -7,6 +7,8 @@
 #include <ranges>
 #include <type_traits>
 
+#include "matpack_mdspan_common_types.h"
+
 namespace matpack {
 template <class T>
 struct elemwise_mditer {
@@ -92,21 +94,14 @@ struct elemwise_mditer {
   }
 };
 
-template <typename T>
-concept elemwise_mditerable = requires(T a) {
-  a.elem_at(Index{});
-  a.elem_begin();
-  a.elem_end();
-};
-
-// Catch-all for non-iterable types -- fallback, if you are here you are probably doing something weird
-template <typename T>
-auto elemwise_range(T&& x) {
-  return std::ranges::subrange{x.begin(), x.end()};
-};
-
-template <elemwise_mditerable T>
+template <any_md T>
 auto elemwise_range(T&& x) {
   return std::ranges::subrange{x.elem_begin(), x.elem_end()};
+};
+
+// Catch for non-matpack types (might not work, be careful)
+template <typename T>
+auto elemwise_range(T&& x) requires(rank<T>() == 1 and not any_md<T>) {
+  return std::ranges::subrange{x.begin(), x.end()};
 };
 }  // namespace matpack
