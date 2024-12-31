@@ -526,8 +526,8 @@ class main_data {
   //! The azimuthal angle of the beam source
   [[nodiscard]] auto&& beam_azimuth() const { return phi0; }
 
-  //! The optical thicknesses grid - NLayers
-  [[nodiscard]] auto tau() { return AscendingGridView{tau_arr}; }
+  //! Set the optical thicknesses grid - NLayers
+  void set_tau(Vector x) { assert(x.size() == tau_arr.size()); tau_arr = std::move(x); }
 
   //! The single scattering albedo - NLayers
   [[nodiscard]] auto omega() { return VectorView{omega_arr}; }

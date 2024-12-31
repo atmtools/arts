@@ -1,5 +1,5 @@
 Multidimensional data
-=====================
+#####################
 
 The two general purpose multidimensional data classes are ``data_t`` and ``cdata_t``.
 The former is for dynamically allocated data, while the latter is for data that has
@@ -10,7 +10,7 @@ template classes that can define their rank and data type.
 All operations available for ``view_t`` are available for ``data_t`` and ``cdata_t``.
 
 ``data_t``
-----------
+==========
 
 The ``data_t`` class is a dynamically allocated multidimensional array.  It is
 a template of the data type and of the rank of the array.  The rank of an array
@@ -55,7 +55,7 @@ Some types made available via the python interface are:
   so a ``data_t<data_t<Numeric, 1>, 1>``, for example, is not contiguous since ``std::vector`` hold pointers to its data.
 
 ``cdata_t``
------------
+===========
 
 The ``cdata_t`` class is a statically allocated multidimensional array.  It is
 a template of the data type and of the shape of the array.  For example, a ``4x4``
@@ -92,3 +92,11 @@ Some types made available via the python interface are:
   a ``MxN`` matrix in memory.  This is a very useful property for fixed-size arrays,
   since it means that ``data_t<cdata_t<Numeric, N>, M>`` is also a contiguous array.
   This array-type has runtime size ``M`` and compile-time size ``N``.
+
+Relevant files
+==============
+
+The relevant files for the data holding core matpack types are:
+
+- ``matpack/matpack_mdspan_data_t.h`` - the ``data_t`` class.
+- ``matpack/matpack_mdspan_cdata_t.cpp`` - the ``cdata_t`` class.

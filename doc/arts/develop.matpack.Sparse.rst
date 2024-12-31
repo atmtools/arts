@@ -1,5 +1,5 @@
 Sparse matrices
-===============
+###############
 
 Sparse matrices are special matrices that have many zero elements.
 These zero elements are not stored in memory, which can save a lot of space,
@@ -19,3 +19,11 @@ Like :doc:`develop.matpack.band_matrix`, this is a very simple class that
 has very specialized use cases.  It is not recommended using this class
 for general purpose linear algebra, but it can be very useful for specific
 problems.
+
+
+Relevant files
+==============
+
+The relevant files for the data holding core matpack types are:
+
+- ``matpack/matpack_sparse.h`` - the ``Sparse`` class.

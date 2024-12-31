@@ -1,5 +1,5 @@
 Sorted grids
-============
+############
 
 Sorted grids are a wrapper around the :class:`~pyarts.arts.Vector` class
 that demands that all elements fulfill a certain condition.  This condition
@@ -21,3 +21,10 @@ To modify a sorted grid, move the :class:`~pyarts.arts.Vector` out of the class 
 
 For convenience, ``grid_t`` provides a static helper method that can be used to check if your :class:`~pyarts.arts.Vector` or view thereof is sorted.  This method is called:
 ``grid_t<>::is_sorted(vec)`` and simply returns a boolean value for the state of the vector as a grid.  ``true`` being sorted and ``false`` being not sorted.
+
+Relevant files
+==============
+
+The relevant files for the data holding core matpack types are:
+
+- ``matpack/matpack_mdspan_helpers_grid_t.h`` - the ``grid_t`` class.

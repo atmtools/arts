@@ -1,5 +1,5 @@
 Gridded data
-============
+############
 
 A gridded data object is a multidimensional array of data, where each of the dimensions have a grid associated with them.
 The grid is a one-dimensional array of values that represent the coordinates of the data in that dimension.
@@ -27,7 +27,7 @@ The effective layout of the class is:
   };
 
 Member methods
---------------
+==============
 
 The available member methods are a subset of those available for the ``data_t`` as well as helper methods to deal with interpolation.  The methods are:
 
@@ -45,7 +45,7 @@ The available member methods are a subset of those available for the ``data_t`` 
 - ``interp<...>`` - Wraps calling ``lag`` and then ``::interp``.  The input is the values on the grid to interpolate to.  Example: ``gridded_data.interp<...>(my_alt, my_lat, my_lon)``.  See the interpolation section below for more information.
 
 Interpolation
--------------
+=============
 
 To understand how to use the interpolation methods of the gridded data class, you should first read and understand how
 non-linear interpolation works in ARTS.  This is available at :doc:`develop.matpack.interpolation`.  The section of interest
@@ -54,7 +54,7 @@ is the one on higher order interpolation.
 Rather than go through the exact details, here are a couple of code examples to show how to use the interpolation methods.
 
 For 1D data
-~~~~~~~~~~~
+-----------
 
 .. code-block:: C++
 
@@ -90,7 +90,7 @@ For 1D data
   Numeric: -0.5
 
 For 2D data
-~~~~~~~~~~~
+-----------
 
 .. code-block:: C++
 
@@ -143,3 +143,10 @@ For 2D data
   ]
   Numeric: -3
   Numeric: -8
+
+Relevant files
+==============
+
+The relevant files for the data holding core matpack types are:
+
+- ``matpack/matpack_mdspan_helpers_gridded_data_t.h`` - the ``gridded_data_t`` class.

@@ -13,36 +13,12 @@ template <class Compare>
 class grid_t;
 
 template <class Compare>
-class grid_view_t {
-  grid_t<Compare>& x;
-
- public:
-  [[nodiscard]] Index size() const { return x.x.size(); }
-
-  grid_view_t(grid_t<Compare>& x_) : x(x_) {}
-
-  [[nodiscard]] const Vector& vec() const { return x.x; }
-
-  grid_view_t& operator=(const grid_t<Compare>& y) {
-    if (&y.x != &x.x) VectorView{x.x} = y.x;
-    return *this;
-  }
-
-  grid_view_t& operator=(const ConstVectorView& y) {
-    *this = grid_t<Compare>{y};
-    return *this;
-  }
-};
-
-template <class Compare>
 class grid_t {
   Vector x;
 
-  friend class grid_view_t<Compare>;
-
  public:
-  [[nodiscard]] const Vector& vec() const { return x; }
-  [[nodiscard]] Vector vec() && { return std::move(x); }
+  [[nodiscard]] constexpr const Vector& vec() const & { return x; }
+  [[nodiscard]] constexpr Vector vec() && { return std::move(x); }
 
   using value_type = Numeric;
 
@@ -50,54 +26,68 @@ class grid_t {
     return stdr::is_sorted(x, Compare{});
   }
 
-  static void assert_sorted(const Vector& x) {
+  static constexpr void assert_sorted(const Vector& x) {
     ARTS_USER_ERROR_IF(not is_sorted(x), "Wrong sorting:\n{:B,}", x);
   }
 
-  //! Unsafe constructor
-  grid_t(Index N) : x(N) {}
+  grid_t(Index N) : x(N) {
+    constexpr Numeric mi        = std::numeric_limits<Numeric>::lowest();
+    constexpr Numeric ma        = std::numeric_limits<Numeric>::max();
+    constexpr bool is_ascending = Compare{}(mi, ma);
+    constexpr Numeric val0      = is_ascending ? mi : ma;
+    constexpr Numeric val1      = is_ascending ? ma : mi;
+
+    Numeric val{val0};
+    for (Index i = 0; i < N; i++) {
+      x[i] = val;
+      val  = std::nextafter(val, val1);
+    }
+
+    // Safety check
+    assert_sorted(x);
+  }
 
   grid_t(std::initializer_list<Numeric> il) : x(il) { assert_sorted(x); }
 
   template <typename... Ts>
-  explicit grid_t(Ts&&... ts)
+  explicit constexpr grid_t(Ts&&... ts)
     requires std::constructible_from<Vector, Ts...>
       : x(Vector{std::forward<Ts>(ts)...}) {
     assert_sorted(x);
   }
 
   template <class Iterator, class Func>
-  grid_t(const Iterator& begin, const Iterator& end, Func fun)
+  constexpr grid_t(const Iterator& begin, const Iterator& end, Func fun)
       : x(std::distance(begin, end)) {
     std::transform(begin, end, x.begin(), fun);
     assert_sorted(x);
   }
 
-  grid_t(Vector&& in) : x(std::move(in)) { assert_sorted(x); }
+  constexpr grid_t(Vector&& in) : x(std::move(in)) { assert_sorted(x); }
 
-  grid_t& operator=(Vector&& in) {
+  constexpr grid_t& operator=(Vector&& in) {
     assert_sorted(in);
     x = std::move(in);
     return *this;
   }
 
   template <typename T>
-  grid_t& operator=(const T& in) {
+  constexpr grid_t& operator=(const T& in) {
     assert_sorted(in);
     x = in;
     return *this;
   }
 
-  grid_t()                         = default;
-  grid_t(grid_t&&)                 = default;
-  grid_t(const grid_t&)            = default;
-  grid_t& operator=(grid_t&&)      = default;
-  grid_t& operator=(const grid_t&) = default;
+  constexpr grid_t()                         = default;
+  constexpr grid_t(grid_t&&)                 = default;
+  constexpr grid_t(const grid_t&)            = default;
+  constexpr grid_t& operator=(grid_t&&)      = default;
+  constexpr grid_t& operator=(const grid_t&) = default;
 
-  operator Vector() && { return Vector{std::move(x)}; }
-  operator const Vector&() const { return vec(); }
-  operator ConstVectorView() const { return vec(); }
-  operator StridedConstVectorView() const { return vec(); }
+  constexpr operator Vector() && { return Vector{std::move(x)}; }
+  constexpr operator const Vector&() const { return vec(); }
+  constexpr operator ConstVectorView() const { return vec(); }
+  constexpr operator StridedConstVectorView() const { return vec(); }
 
   template <access_operator Op>
   [[nodiscard]] constexpr auto operator[](const Op& op) const {
@@ -150,7 +140,6 @@ template <class Compare, exact_md<Numeric, 1> md>
 }  // namespace matpack
 
 using AscendingGrid        = matpack::grid_t<std::less_equal<>>;
-using AscendingGridView    = matpack::grid_view_t<std::less_equal<>>;
 using DescendingGrid       = matpack::grid_t<std::greater_equal<>>;
 using ArrayOfAscendingGrid = std::vector<AscendingGrid>;
 
@@ -170,24 +159,5 @@ struct std::formatter<matpack::grid_t<Compare>> {
   FmtContext::iterator format(const matpack::grid_t<Compare>& v,
                               FmtContext& ctx) const {
     return fmt.format(v, ctx);
-  }
-};
-
-template <class Compare>
-struct std::formatter<matpack::grid_view_t<Compare>> {
-  std::formatter<Vector> fmt;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const matpack::grid_view_t<Compare>& v,
-                              FmtContext& ctx) const {
-    return fmt.format(v.vec(), ctx);
   }
 };

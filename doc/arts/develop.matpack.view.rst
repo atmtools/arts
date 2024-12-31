@@ -1,5 +1,5 @@
 Multidimensional views
-======================
+######################
 
 There are two view classes in Matpack: ``view_t`` and ``strided_view_t``.
 The former is for contiguous data, while the latter is for strided data as the name implies.
@@ -26,7 +26,7 @@ They are implemented with public inheritance from ``std::mdspan``.  ``view_t`` i
 The ``view_t`` and ``strided_view_t`` classes are not available via the python interface.
 
 Member methods
---------------
+==============
 
 The list below is all the methods available for both ``view_t`` and ``strided_view_t``.
 The examples will assume a ``4x5`` matrix of ``view_t<Complex, 2>``, a complex matrix, called ``mat`` and ``mat2``.
@@ -71,7 +71,7 @@ These methods are only available for ``view_t`` but are not available for ``stri
 - ``view_as`` - view the data as if it had a different shape.  The size must remain constant.  Example: ``mat.view_as(2, 2, 5)`` will produce a ``view_t<Complex, 3>`` of shape ``2x2x5``.
 
 Accessing data - ``operator[]``
--------------------------------
+===============================
 
 The access operator - ``operator[]`` - is a template that accepts any integer, ``Joker``, ``Range``, or ``StridedRange`` as its arguments.
 They work as follows:
@@ -96,3 +96,11 @@ even if you later access your new ``strided_view_t`` in a manner that would norm
   Omitting dangling ``joker`` is perfectly fine.  The access operator will automatically fill in
   all missing right-most arguments with ``joker``.  This is especially useful when you want to access,
   for instance, a matrix view from a tensor view of rank 3 or higher.
+
+Relevant files
+==============
+
+The relevant files for the data holding core matpack types are:
+
+- ``matpack/matpack_mdspan_view_t.h`` - the ``view_t`` class.
+- ``matpack/matpack_mdspan_strided_view_t.h`` - the ``strided_view_t`` class.

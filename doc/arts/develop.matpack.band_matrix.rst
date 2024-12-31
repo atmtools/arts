@@ -1,5 +1,5 @@
 Band matrices
-=============
+#############
 
 Band matrices are special matrices that have many zero elements away from the diagonal.
 These zero elements are not stored in memory, which can save a lot of space,
@@ -22,3 +22,11 @@ Like :doc:`develop.matpack.Sparse`, this is a very simple class that
 has very specialized use cases.  It is not recommended using this class
 for general purpose linear algebra, but it can be very useful for specific
 problems.
+
+Relevant files
+==============
+
+The relevant files for the band matrix are:
+
+- ``matpack/matpack_mdspan_helpers_band_matrix.h`` - the header file for the band matrix.
+- ``matpack/matpack_mdspan_helpers_band_matrix.cpp`` - the implementation file for the band matrix.

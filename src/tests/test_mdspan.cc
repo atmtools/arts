@@ -745,20 +745,14 @@ void test_lapack_vector_mult() {
 void test_grid() {
   AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
 
-  AscendingGridView y{x};
+  std::print("{}\n", x);
 
   std::print("{}\n", x);
-  std::print("{}\n", y);
-
-  y = {1, 2, 3, 4, 5, 6, 7, 9};
-  std::print("{}\n", x);
-  std::print("{}\n", y);
 
   Vector xtmp = std::move(x).vec();
   xtmp.emplace_back(10);
   x = std::move(xtmp);
   std::print("{}\n", x);
-  std::print("{}\n", y);
 
   bool set_low;
   xtmp = std::move(x).vec();
@@ -789,14 +783,7 @@ void test_grid() {
   Vector z{1, 2, 3, 4, 5, 6, 7, 9, 20};
   std::print(std::cout, "{:B,}\n", x);
   std::print(std::cout, "{:B,}\n", z);
-
-  y = z;
   std::print("{}\n", x);
-  std::print("{}\n", y);
-
-  y = VectorView{z};
-  std::print("{}\n", x);
-  std::print("{}\n", y);
 }
 
 void test_einsum() {
