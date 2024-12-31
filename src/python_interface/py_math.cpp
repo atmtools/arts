@@ -182,7 +182,7 @@ w6 : float
       "leggauss",
       [](Index deg) {
         if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
-        auto out = std::make_pair<Vector, Vector>(deg, deg);
+        std::pair<Vector, Vector> out{Vector(deg), Vector(deg)};
         Legendre::GaussLegendre(out.first, out.second);
         return out;
       },
@@ -195,7 +195,7 @@ w6 : float
       [](Index deg) {
         if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
         if (deg % 2) throw std::invalid_argument("Degree must be even");
-        auto out = std::make_pair<Vector, Vector>(deg / 2, deg / 2);
+        std::pair<Vector, Vector> out{Vector(deg / 2), Vector(deg / 2)};
         Legendre::PositiveDoubleGaussLegendre(out.first, out.second);
         return out;
       },
@@ -219,7 +219,7 @@ w : List[float]
       "pleggauss",
       [](Index deg) {
         if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
-        auto out = std::make_pair<Vector, Vector>(deg, deg);
+        std::pair<Vector, Vector> out{Vector(deg), Vector(deg)};
         Legendre::PositiveGaussLegendre(out.first, out.second);
         return out;
       },

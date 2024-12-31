@@ -23,12 +23,8 @@
 #include <vector>
 
 #include "lapack.h"
-#include "matpack_math.h"
-#include "matpack_view.h"
-
-#ifndef NDEBUG
-#include "logic.h"
-#endif
+#include "matpack_mdspan.h"
+#include "matpack_mdspan_helpers.h"
 
 //! LU decomposition.
 /*!
@@ -42,7 +38,7 @@
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   // Assert that A is quadratic.
   const Index n = A.nrows();
-  ARTS_ASSERT(is_size(LU, n, n));
+  assert((LU.shape() == std::array{n, n}));
 
   int n_int, info;
   auto ipiv = std::vector<int>(n);
@@ -82,28 +78,28 @@ void lubacksub(VectorView x,
   /* Check if the dimensions of the input matrix and vectors agree and if LU
      is a quadratic matrix.*/
 
-  ARTS_ASSERT(is_size(LU, n, n));
-  ARTS_ASSERT(is_size(b, n));
-  ARTS_ASSERT(is_size(indx, n));
+  ARTS_ASSERT((LU.shape() == std::array{n, n}));
+  ARTS_ASSERT(b.size() == static_cast<Size>(n));
+  ARTS_ASSERT(indx.size() == static_cast<Size>(n));
   ARTS_ASSERT(LU.stride(1) == 1);
   ARTS_ASSERT(b.stride(0) == 1);
 
   char trans = 'N';
-  int n_int = (int)n;
-  int one = (int)1;
+  int n_int  = (int)n;
+  int one    = (int)1;
   std::vector<int> ipiv(n);
   std::vector<double> rhs(n);
   int info;
 
   for (Index i = 0; i < n; i++) {
     ipiv[i] = (int)indx[i];
-    rhs[i] = b[i];
+    rhs[i]  = b[i];
   }
 
   lapack::dgetrs_(&trans,
                   &n_int,
                   &one,
-                  LU.unsafe_data_handle(),
+                  const_cast<Numeric*>(LU.data_handle()),
                   &n_int,
                   ipiv.data(),
                   rhs.data(),
@@ -130,8 +126,8 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
 
   // Check dimensions of the system.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == x.size());
-  ARTS_ASSERT(n == b.size());
+  ARTS_ASSERT(n == static_cast<Index>(x.size()));
+  ARTS_ASSERT(n == static_cast<Index>(b.size()));
 
   // Allocate matrix and index vector for the LU decomposition.
   Matrix LU = Matrix(n, n);
@@ -144,7 +140,7 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   lubacksub(x, LU, b, indx);
 }
 
-void inv_inplace(ExhaustiveMatrixView A, inv_workdata& wo) {
+void inv_inplace(MatrixView A, inv_workdata& wo) {
   Index n = A.ncols();
 
   // A must be a square matrix.
@@ -184,7 +180,7 @@ void inv_inplace(ExhaustiveMatrixView A, inv_workdata& wo) {
   \param[out] Ainv The MatrixView to contain the inverse of A.
   \param[in] A The matrix to be inverted.
 */
-void inv_inplace(ExhaustiveMatrixView A) {
+void inv_inplace(MatrixView A) {
   inv_workdata wo(A.ncols());
   inv_inplace(A, wo);
 }
@@ -212,16 +208,20 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   Index n = A.ncols();
 
   // Workdata
-  Ainv = A;
+  Ainv      = A;
   int n_int = int(n), lwork = n_int, info;
   std::vector<int> ipiv(n);
   std::vector<Complex> work(lwork);
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::zgetrf_(
-      &n_int, &n_int, Ainv.unsafe_data_handle(), &n_int, ipiv.data(), &info);
+  lapack::zgetrf_(&n_int,
+                  &n_int,
+                  const_cast<Complex*>(Ainv.data_handle()),
+                  &n_int,
+                  ipiv.data(),
+                  &info);
   lapack::zgetri_(&n_int,
-                  Ainv.unsafe_data_handle(),
+                  const_cast<Complex*>(Ainv.data_handle()),
                   &n_int,
                   ipiv.data(),
                   work.data(),
@@ -233,17 +233,17 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
                      "Error inverting matrix: Matrix not of full rank.");
 }
 
-void diagonalize_inplace(ExhaustiveMatrixView P,
-                         ExhaustiveVectorView WR,
-                         ExhaustiveVectorView WI,
-                         ExhaustiveMatrixView A,
+void diagonalize_inplace(MatrixView P,
+                         VectorView WR,
+                         VectorView WI,
+                         MatrixView A,
                          diagonalize_workdata& wo) {
   Index n = A.ncols();
 
   // A must be a square matrix.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == WR.size());
-  ARTS_ASSERT(n == WI.size());
+  ARTS_ASSERT(n == static_cast<Index>(WR.size()));
+  ARTS_ASSERT(n == static_cast<Index>(WI.size()));
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
   ARTS_ASSERT(n == static_cast<Index>(wo.N));
@@ -262,7 +262,7 @@ void diagonalize_inplace(ExhaustiveMatrixView P,
   int lwork = 2 * n_int + n_int * n_int;
 
   // Memory references
-  double* adata = A.data_handle();
+  double* adata  = A.data_handle();
   double* rpdata = P.data_handle();
   double* wrdata = WR.data_handle();
   double* widata = WI.data_handle();
@@ -287,10 +287,10 @@ void diagonalize_inplace(ExhaustiveMatrixView P,
   inplace_transpose(P);
 }
 
-void diagonalize_inplace(ExhaustiveMatrixView P,
-                         ExhaustiveVectorView WR,
-                         ExhaustiveVectorView WI,
-                         ExhaustiveMatrixView A) {
+void diagonalize_inplace(MatrixView P,
+                         VectorView WR,
+                         VectorView WI,
+                         MatrixView A) {
   diagonalize_workdata wo(A.ncols());
   diagonalize_inplace(P, WR, WI, A, wo);
 }
@@ -325,7 +325,7 @@ void diagonalize(MatrixView P,
   diagonalize_inplace(P2, WR2, WI2, A_tmp);
 
   // Re-order.  This can be done better?
-  P = P2;
+  P  = P2;
   WI = WI2;
   WR = WR2;
 }
@@ -343,7 +343,7 @@ void diagonalize(MatrixView P,
   diagonalize_inplace(P2, WR2, WI2, A_tmp, wo);
 
   // Re-order.  This can be done better?
-  P = P2;
+  P  = P2;
   WI = WI2;
   WR = WR2;
 }
@@ -367,7 +367,7 @@ void diagonalize(ComplexMatrixView P,
 
   // A must be a square matrix.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == W.size());
+  ARTS_ASSERT(n == static_cast<Index>(W.size()));
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
@@ -392,10 +392,10 @@ void diagonalize(ComplexMatrixView P,
                  &n_int,
                  A_tmp.data_handle(),
                  &LDA,
-                 W.unsafe_data_handle(),
+                 W.data_handle(),
                  lpdata.data_handle(),
                  &LDA_L,
-                 P.unsafe_data_handle(),
+                 P.data_handle(),
                  &LDA_R,
                  work.data_handle(),
                  &lwork,
@@ -425,8 +425,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  ARTS_ASSERT(is_size(A, n, n));
-  ARTS_ASSERT(is_size(F, n, n));
+  ARTS_ASSERT((A.shape() == std::array{n, n}));
+  ARTS_ASSERT((F.shape() == std::array{n, n}));
 
   Numeric A_norm_inf, c;
   Numeric j;
@@ -442,7 +442,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   auto j_index = (Index)(j);
 
   // Scale matrix
-  F = A;
+  F  = A;
   F /= pow(2, j);
 
   /* The higher q the more accurate is the computation,
@@ -455,15 +455,15 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   c = 1.;
 
   for (Index k = 0; k < q; k++) {
-    auto k_n = (Numeric)(k + 1);
-    c *= (q_n - k_n + 1) / ((2 * q_n - k_n + 1) * k_n);
+    auto k_n  = (Numeric)(k + 1);
+    c        *= (q_n - k_n + 1) / ((2 * q_n - k_n + 1) * k_n);
     mult(B, F, X);  // X = F * X
-    X = B;
-    cX = X;
+    X   = B;
+    cX  = X;
     cX *= c;             // cX = X*c
-    N += cX;             // N = N + X*c
+    N  += cX;            // N = N + X*c
     cX *= pow(-1, k_n);  // cX = (-1)^k*c*X
-    D += cX;             // D = D + (-1)^k*c*X
+    D  += cX;            // D = D + (-1)^k*c*X
   }
 
   /*Solve the equation system DF=N for F using LU decomposition,
@@ -496,7 +496,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 */
 Numeric norm2(ConstVectorView v) {
   ARTS_ASSERT(v.size());
-  return sqrt(v * v);
+  return sqrt(dot(v, v));
 }
 
 //! Maximum absolute row sum norm
@@ -586,7 +586,7 @@ Numeric det(ConstMatrixView A) {
     \date   2013-01-25
 */
 void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
-  const Index n = x.size();
+  const Size n = x.size();
 
   ARTS_ASSERT(y.size() == n);
 
@@ -618,15 +618,15 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
 
   Numeric s1 = 0, xm = 0, s3 = 0, s4 = 0;
 
-  for (Index i = 0; i < n; i++) {
+  for (Size i = 0; i < n; i++) {
     xm += x[i] / Numeric(n);
   }
 
-  for (Index i = 0; i < n; i++) {
-    const Numeric xv = x[i] - xm;
-    s1 += xv * y[i];
-    s3 += y[i];
-    s4 += xv * xv;
+  for (Size i = 0; i < n; i++) {
+    const Numeric xv  = x[i] - xm;
+    s1               += xv * y[i];
+    s3               += y[i];
+    s4               += xv * xv;
   }
 
   p[1] = s1 / s4;
@@ -653,21 +653,19 @@ Numeric lsf(VectorView x,
     Vector r(n);
     mult(r, ATA, x);
     r -= ATy;
-    return r * r;
+    return dot(r, r);
   }
 
   return 0;
 }
 
-void solve_inplace(ExhaustiveVectorView X,
-                   ExhaustiveMatrixView A,
-                   solve_workdata& wo) {
+void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
   // Assert that A is quadratic.
   const Index n = A.nrows();
-  ARTS_ASSERT(is_size(A, n, n));
+  ARTS_ASSERT((A.shape() == std::array{n, n}));
 
   char trans = 'N';
-  int n_int = static_cast<int>(n);
+  int n_int  = static_cast<int>(n);
   int info{};
   int one = 1;
 
@@ -678,7 +676,7 @@ void solve_inplace(ExhaustiveVectorView X,
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::dgetrf_(&n_int,
                   &n_int,
-                  inplace_transpose(A).data_handle(),
+                  const_cast<Numeric*>(inplace_transpose(A).data_handle()),
                   &n_int,
                   wo.ipiv.data(),
                   &info);
@@ -686,7 +684,7 @@ void solve_inplace(ExhaustiveVectorView X,
   lapack::dgetrs_(&trans,
                   &n_int,
                   &one,
-                  A.unsafe_data_handle(),
+                  A.data_handle(),
                   &n_int,
                   wo.ipiv.data(),
                   X.data_handle(),
@@ -694,7 +692,7 @@ void solve_inplace(ExhaustiveVectorView X,
                   &info);
 }
 
-void solve_inplace(ExhaustiveVectorView X, ExhaustiveMatrixView A) {
+void solve_inplace(VectorView X, MatrixView A) {
   solve_workdata wo(A.ncols());
   solve_inplace(X, A, wo);
 }

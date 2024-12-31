@@ -281,7 +281,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         new_cost = J.cost_function(xnew, robust);
 
         RealType dxBdx = dot(dx, B * dx);
-        c = (new_cost - current_cost) / (dot(g,dx) + 0.5 * dxBdx);
+        c = (new_cost - current_cost) / (invlib::dot(g,dx) + 0.5 * dxBdx);
 
         if (c > 0.75) {
             if (first_step) {

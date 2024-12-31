@@ -2953,9 +2953,9 @@ int main() {
   dis.positive_boundary()             = 0.0;
   dis.negative_boundary()             = 0.0;
   dis.brdf_modes()[0] =
-      disort::BDRF{[](ExhaustiveMatrixView x,
-                      const ExhaustiveConstVectorView&,
-                      const ExhaustiveConstVectorView&) { x = 0.0; }};
+      disort::BDRF{[](MatrixView x,
+                      const ConstVectorView&,
+                      const ConstVectorView&) { x = 0.0; }};
 
   Tensor3 disort_intensities(nv, N, NQuad);
 
@@ -2964,7 +2964,7 @@ int main() {
     dis.source_poly() = src[iv];
     dis.check_input_size();
     dis.update_all(0.0);
-    dis.gridded_u(disort_intensities[iv].reshape_as(N, 1, NQuad), {0.0});
+    dis.gridded_u(disort_intensities[iv].view_as(N, 1, NQuad), {0.0});
   }
 
   std::cout << std::format("arts = {:B,}\n", disort_intensities);

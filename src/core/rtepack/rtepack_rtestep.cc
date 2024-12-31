@@ -14,21 +14,26 @@ void two_level_linear_emission_step(stokvec_vector_view I,
                                     const muelmat_vector_const_view &PiT,
                                     const muelmat_matrix_const_view &dT1,
                                     const muelmat_matrix_const_view &dT2) {
-  const Index N = I.size();
-  const Index M = dI1.nrows();
+  const Size N = I.size();
+  const Size M = dI1.nrows();
 
-  ARTS_ASSERT(N == dI1.ncols() and N == dI2.ncols() and N == J1.size() and
-              N == J2.size() and N == dJ1.ncols() and N == dJ2.ncols() and
-              N == T.size() and N == PiT.size() and N == dT1.ncols() and
-              N == dT2.ncols())
-  ARTS_ASSERT(M == dI2.nrows() and M == dJ1.nrows() and M == dJ2.nrows() and
-              M == dT1.nrows() and M == dT2.nrows())
+  ARTS_ASSERT(N == static_cast<Size>(dI1.ncols()) and
+              N == static_cast<Size>(dI2.ncols()) and N == J1.size() and
+              N == J2.size() and N == static_cast<Size>(dJ1.ncols()) and
+              N == static_cast<Size>(dJ2.ncols()) and N == T.size() and
+              N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
+              N == static_cast<Size>(dT2.ncols()))
+  ARTS_ASSERT(M == static_cast<Size>(dI2.nrows()) and
+              M == static_cast<Size>(dJ1.nrows()) and
+              M == static_cast<Size>(dJ2.nrows()) and
+              M == static_cast<Size>(dT1.nrows()) and
+              M == static_cast<Size>(dT2.nrows()))
 
-  for (Index i = 0; i < N; i++) {
+  for (Size i = 0; i < N; i++) {
     const auto J = avg(J1[i], J2[i]);
     I[i]         = I[i] - J;
 
-    for (Index j = 0; j < M; j++) {
+    for (Size j = 0; j < M; j++) {
       dI1[j, i] += PiT[i] * dT1[j, i] * I[i] + dJ1[j, i] - T[i] * dJ1[j, i];
       dI2[j, i] += PiT[i] * dT2[j, i] * I[i] + dJ2[j, i] - T[i] * dJ2[j, i];
     }
@@ -41,10 +46,10 @@ void two_level_linear_emission_step(stokvec_vector_view I,
                                     const stokvec_vector_const_view &J1,
                                     const stokvec_vector_const_view &J2,
                                     const muelmat_vector_const_view &T) {
-  const Index N = I.size();
+  const Size N = I.size();
   ARTS_ASSERT(N == J1.size() and N == J2.size() and N == T.size())
 
-  for (Index i = 0; i < N; i++) {
+  for (Size i = 0; i < N; i++) {
     const auto J = avg(J1[i], J2[i]);
     I[i]         = T[i] * (I[i] - J) + J;
   }
@@ -57,20 +62,24 @@ void two_level_linear_transmission_step(stokvec_vector_view I,
                                         const muelmat_vector_const_view &PiT,
                                         const muelmat_matrix_const_view &dT1,
                                         const muelmat_matrix_const_view &dT2) {
-  const Index N = I.size();
-  const Index M = dI1.nrows();
-  ARTS_ASSERT(N == dI1.ncols() and N == dI2.ncols() and N == T.size() and
-              N == PiT.size() and N == dT1.ncols() and N == dT2.ncols())
-  ARTS_ASSERT(M == dI2.nrows() and M == dT1.nrows() and M == dT2.nrows())
+  const Size N = I.size();
+  const Size M = dI1.nrows();
+  ARTS_ASSERT(N == static_cast<Size>(dI1.ncols()) and
+              N == static_cast<Size>(dI2.ncols()) and N == T.size() and
+              N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
+              N == static_cast<Size>(dT2.ncols()))
+  ARTS_ASSERT(M == static_cast<Size>(dI2.nrows()) and
+              M == static_cast<Size>(dT1.nrows()) and
+              M == static_cast<Size>(dT2.nrows()))
 
-  for (Index j = 0; j < M; j++) {
-    for (Index i = 0; i < N; i++) {
+  for (Size j = 0; j < M; j++) {
+    for (Size i = 0; i < N; i++) {
       dI1[j, i] += PiT[i] * dT1[j, i] * I[i];
       dI2[j, i] += PiT[i] * dT2[j, i] * I[i];
     }
   }
 
-  for (Index i = 0; i < N; i++) {
+  for (Size i = 0; i < N; i++) {
     I[i] = T[i] * I[i];
   }
 }
@@ -84,18 +93,17 @@ void two_level_linear_emission_step_by_step_full(
     const std::vector<stokvec_vector> &Js,
     const std::vector<stokvec_matrix> &dJs,
     const stokvec_vector &I0) {
-  const Index nv = I0.size();
-  const Size N   = Ts.size();
+  const Size nv = I0.size();
+  const Size N  = Ts.size();
 
-  ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels ({}) in Ts and dTs",
-                     N);
+  ARTS_USER_ERROR_IF(
+      N != dTs.size(), "Must have same number of levels ({}) in Ts and dTs", N);
 
   ARTS_USER_ERROR_IF(
       N != Js.size(), "Must have same number of levels ({}) in Ts and Js", N);
 
-  ARTS_USER_ERROR_IF(N != dJs.size(),
-                     "Must have same number of levels ({}) in Ts and dJs", N);
+  ARTS_USER_ERROR_IF(
+      N != dJs.size(), "Must have same number of levels ({}) in Ts and dJs", N);
 
   I = I0;
   dI.resize(N);
@@ -108,15 +116,22 @@ void two_level_linear_emission_step_by_step_full(
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements ({}) in all Ts:s", nv);
+      std::ranges::any_of(elemwise_range(Ts),
+                          Cmp::ne(nv),
+                          [](const auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all Ts:s",
+      nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Js, Cmp::ne(nv), &stokvec_vector::size),
-      "Must have same number of frequency elements ({}) in all Js:s", nv);
+      std::ranges::any_of(elemwise_range(Js),
+                          Cmp::ne(nv),
+                          [](const auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all Js:s",
+      nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
+      std::ranges::any_of(
+          dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
       "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
@@ -124,7 +139,8 @@ void two_level_linear_emission_step_by_step_full(
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dJs, Cmp::ne(nv), &stokvec_matrix::ncols) or
+      std::ranges::any_of(
+          dJs, Cmp::ne(static_cast<Index>(nv)), &stokvec_matrix::ncols) or
           std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
       "Must have same number of derivative elements ({}, {}) in all dJs:s",
       nq,
@@ -133,7 +149,7 @@ void two_level_linear_emission_step_by_step_full(
   if (N == 0) return;
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     stokvec &Iv = I[iv];
     for (Size i = N - 2; i < N; i--) {
       const stokvec Jv = avg(Js[i][iv], Js[i + 1][iv]);
@@ -165,18 +181,17 @@ void two_level_linear_emission_cumulative_full(
     const std::vector<stokvec_vector> &Js,
     const std::vector<stokvec_matrix> &dJs,
     const stokvec_vector &I0) {
-  const Index nv = I0.size();
-  const Size N   = Ts.size();
+  const Size nv = I0.size();
+  const Size N  = Ts.size();
 
-  ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels ({}) in Ts and dTs",
-                     N);
+  ARTS_USER_ERROR_IF(
+      N != dTs.size(), "Must have same number of levels ({}) in Ts and dTs", N);
 
   ARTS_USER_ERROR_IF(
       N != Js.size(), "Must have same number of levels ({}) in Ts and Js", N);
 
-  ARTS_USER_ERROR_IF(N != dJs.size(),
-                     "Must have same number of levels ({}) in Ts and dJs", N);
+  ARTS_USER_ERROR_IF(
+      N != dJs.size(), "Must have same number of levels ({}) in Ts and dJs", N);
 
   I.resize(nv);
   dI.resize(N);
@@ -189,15 +204,22 @@ void two_level_linear_emission_cumulative_full(
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements ({}) in all Ts:s", nv);
+      std::ranges::any_of(elemwise_range(Ts),
+                          Cmp::ne(nv),
+                          [](const auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all Ts:s",
+      nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Js, Cmp::ne(nv), &stokvec_vector::size),
-      "Must have same number of frequency elements ({}) in all Js:s", nv);
+      std::ranges::any_of(elemwise_range(Js),
+                          Cmp::ne(nv),
+                          [](const auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all Js:s",
+      nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
+      std::ranges::any_of(
+          dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
       "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
@@ -205,7 +227,8 @@ void two_level_linear_emission_cumulative_full(
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dJs, Cmp::ne(nv), &stokvec_matrix::ncols) or
+      std::ranges::any_of(
+          dJs, Cmp::ne(static_cast<Index>(nv)), &stokvec_matrix::ncols) or
           std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
       "Must have same number of derivative elements ({}, {}) in all dJs:s",
       nq,
@@ -217,7 +240,7 @@ void two_level_linear_emission_cumulative_full(
   }
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     I[iv] = Pi.back()[iv] * (I0[iv] - 0.5 * (Js[N - 2][iv] + Js[N - 1][iv])) +
             0.5 * (Js[0][iv] + Js[1][iv]);
 
@@ -228,9 +251,9 @@ void two_level_linear_emission_cumulative_full(
 
   if (nq == 0) return;
 
-    // Add non-transmittance
+  // Add non-transmittance
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     for (Index iq = 0; iq < nq; iq++) {
       dI[0][iq, iv]     += 0.5 * dJs[0][iq, iv];
       dI[1][iq, iv]     += 0.5 * dJs[1][iq, iv];
@@ -246,7 +269,7 @@ void two_level_linear_emission_cumulative_full(
 
   // Add transmittance background
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     const auto src = (I0[iv] - 0.5 * (Js[N - 2][iv] + Js[N - 1][iv]));
 
     muelmat P = 1.0;
@@ -267,7 +290,7 @@ void two_level_linear_emission_cumulative_full(
 
   // Add transmittance layers
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     for (Size j = 1; j < N - 1; j++) {
       const auto jsrc = 0.5 * (Js[j + 1][iv] - Js[j - 1][iv]);
 
@@ -295,12 +318,11 @@ void two_level_linear_transmission_step(stokvec_vector &I,
                                         const std::vector<muelmat_vector> &Pi,
                                         const std::vector<muelmat_tensor3> &dTs,
                                         const stokvec_vector &I0) {
-  const Index nv = I0.size();
-  const Size N   = Ts.size();
+  const Size nv = I0.size();
+  const Size N  = Ts.size();
 
-  ARTS_USER_ERROR_IF(N != dTs.size(),
-                     "Must have same number of levels ({}) in Ts and dTs",
-                     N);
+  ARTS_USER_ERROR_IF(
+      N != dTs.size(), "Must have same number of levels ({}) in Ts and dTs", N);
 
   I.resize(nv);
   dI.resize(N);
@@ -313,11 +335,15 @@ void two_level_linear_transmission_step(stokvec_vector &I,
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Ts, Cmp::ne(nv), &muelmat_vector::size),
-      "Must have same number of frequency elements ({}) in all Ts:s", nv);
+      std::ranges::any_of(elemwise_range(Ts),
+                          Cmp::ne(nv),
+                          [](const auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all Ts:s",
+      nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dTs, Cmp::ne(nv), &muelmat_tensor3::ncols) or
+      std::ranges::any_of(
+          dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
           std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
           std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
       "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
@@ -330,15 +356,15 @@ void two_level_linear_transmission_step(stokvec_vector &I,
   }
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     I[iv] = Pi.back()[iv] * I0[iv];
   }
 
   if (nq == 0) return;
 
-    // Add transmittance background
+  // Add transmittance background
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     const auto src = I0[iv];
 
     muelmat P = 1.0;

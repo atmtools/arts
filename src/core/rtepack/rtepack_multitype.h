@@ -121,7 +121,7 @@ constexpr stokvec operator*(const propmat &k, const stokvec s) {
 }
 
 //! Transform a matrix of shape (N, 4) to a list of Stokes (absorption) vectors
-stokvec_vector to_stokvec_vector(const ExhaustiveConstMatrixView &v);
+stokvec_vector to_stokvec_vector(const ConstMatrixView &v);
 
 //! Transform a list Mueller matrices to a Tensor3 of shape (N, 4, 4)
 Tensor3 to_tensor3(const muelmat_vector_const_view &m);

@@ -12,11 +12,9 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "jacobian.h"
-#include "mh_checks.h"
 #include "path_point.h"
 #include "physics_funcs.h"
 #include "rtepack.h"
-#include "sorted_grid.h"
 #include "sun.h"
 #include "sun_methods.h"
 #include "workspace_class.h"
@@ -244,7 +242,7 @@ void propagation_matrix_scatteringAirSimple(
     PropmatVector& propagation_matrix_scattering,
     const AscendingGrid& frequency_grid,
     const AtmPoint& atmospheric_point) {
-  const Index nf = frequency_grid.size();
+  const Size nf = frequency_grid.size();
   ARTS_USER_ERROR_IF(
       propagation_matrix_scattering.size() != nf,
       "Mismatch in size of propagation_matrix_scattering and frequency_grid")
@@ -254,7 +252,7 @@ void propagation_matrix_scatteringAirSimple(
 
   const Numeric nd =
       number_density(atmospheric_point.pressure, atmospheric_point.temperature);
-  for (Index f = 0; f < nf; f++) {
+  for (Size f = 0; f < nf; f++) {
     const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
     Numeric sum           = 0;
     Numeric pows          = 1;
@@ -322,20 +320,20 @@ void ray_path_spectral_radiance_sourceAddScattering(
       "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
 
   if (np == 0) return;
-  const Index nf = ray_path_propagation_matrix.front().size();
+  const Size nf = ray_path_propagation_matrix.front().size();
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(
-          ray_path_spectral_radiance_source, Cmp::ne(nf), &StokvecVector::size),
+          ray_path_spectral_radiance_source, Cmp::ne(nf), [](auto& v){return v.size();}),
       "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_source")
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(ray_path_spectral_radiance_scattering,
                           Cmp::ne(nf),
-                          &StokvecVector::size),
+                          [](auto& v){return v.size();}),
       "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_scattering")
 
   if (arts_omp_in_parallel()) {
     for (Size ip = 0; ip < np; ip++) {
-      for (Index iv = 0; iv < nf; iv++) {
+      for (Size iv = 0; iv < nf; iv++) {
         ray_path_spectral_radiance_source[ip][iv] +=
             inv(ray_path_propagation_matrix[ip][iv]) *
             ray_path_spectral_radiance_scattering[ip][iv];
@@ -344,7 +342,7 @@ void ray_path_spectral_radiance_sourceAddScattering(
   } else {
 #pragma omp parallel for collapse(2)
     for (Size ip = 0; ip < np; ip++) {
-      for (Index iv = 0; iv < nf; iv++) {
+      for (Size iv = 0; iv < nf; iv++) {
         ray_path_spectral_radiance_source[ip][iv] +=
             inv(ray_path_propagation_matrix[ip][iv]) *
             ray_path_spectral_radiance_scattering[ip][iv];
@@ -391,11 +389,11 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
                           &ArrayOfArrayOfPropagationPathPoint::size),
       "Bad ray_path_suns_path: incorrect number of suns")
 
-  const Index nf = frequency_grid.size();
+  const Size nf = frequency_grid.size();
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(ray_path_spectral_radiance_scattering,
                           Cmp::ne(nf),
-                          &StokvecVector::size),
+                          [](auto& v){return v.size();}),
       "Bad ray_path_spectral_radiance_source: incorrect number of frequencies")
 
   StokvecVector spectral_radiance{};
@@ -470,7 +468,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             (4 * pi);
 
         // Add the source to the target
-        for (Index iv = 0; iv < nf; iv++) {
+        for (Size iv = 0; iv < nf; iv++) {
           spectral_radiance_scattered[iv] += propagation_matrix_scattering[iv] *
                                              scatmat * radiance_2_irradiance *
                                              spectral_radiance[iv];

@@ -665,7 +665,7 @@ void xml_write_footer_to_stream(std::ostream& os) {
   tag.set_name("/arts");
   tag.write_to_stream(os);
 
-  os << std::endl;
+  os << '\n';
 }
 
 void xml_set_stream_precision(std::ostream& os) {

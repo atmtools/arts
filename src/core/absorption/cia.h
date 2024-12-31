@@ -18,7 +18,6 @@
 
 #include <memory>
 
-#include "gridded_data.h"
 #include "mystring.h"
 #include "species.h"
 
@@ -91,11 +90,11 @@ class CIARecord {
 
   /** Return frequency grid for given dataset.
      */
-  [[nodiscard]] ExhaustiveConstVectorView FrequencyGrid(Size dataset) const;
+  [[nodiscard]] ConstVectorView FrequencyGrid(Size dataset) const;
 
   /** Return temperatur grid for given dataset.
      */
-  [[nodiscard]] ExhaustiveConstVectorView TemperatureGrid(Size dataset) const;
+  [[nodiscard]] ConstVectorView TemperatureGrid(Size dataset) const;
 
   /** Return CIA dataset.
      */

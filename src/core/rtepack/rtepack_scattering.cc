@@ -108,7 +108,7 @@ void setBackscatterTransmission(stokvec_vector &out,
                                 const muelmat_vector &Tr,
                                 const muelmat_vector &Tf,
                                 const muelmat_vector &Z) {
-  for (Index i = 0; i < out.size(); i++) out[i] = Tr[i] * Z[i] * Tf[i] * I0[i];
+  for (Size i = 0; i < out.size(); i++) out[i] = Tr[i] * Z[i] * Tf[i] * I0[i];
 }
 
 void setBackscatterTransmissionDerivative(stokvec_matrix &out,

@@ -75,7 +75,7 @@ void oxygen(PropmatVector& propmat_clearsky,
       G0 * (G0A * pdry * pow(TH, XG0d) + G0B * ph2o * pow(TH, XG0w));
 
   // Loop over frequency grid:
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // division by vmr of O2 is necessary because of the absorption calculation
     // abs = vmr * pxsec.
     propmat_clearsky[s].A() +=
@@ -135,7 +135,7 @@ void nitrogen(PropmatVector& propmat_clearsky,
   // ---------------------------------------------------------------------------------------
 
   // Loop over frequency grid:
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     // The second N2-VMR will be multiplied at the stage of absorption
     // calculation: abs = vmr * pxsec.
     propmat_clearsky[s].A() +=
@@ -197,7 +197,7 @@ void water_foreign(PropmatVector& propmat_clearsky,
   const Numeric dummy = C * pow(300. / t, x + 3) * p_pa * pdry;
 
   // Loop frequency:
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]);
   }
 }
@@ -246,7 +246,7 @@ void water_self(PropmatVector& propmat_clearsky,
   const Numeric dummy = C * pow(300. / t, x + 3) * pow2(p_pa) * h2o;
 
   // Loop over frequency grid:
-  for (Index s = 0; s < f_grid.size(); ++s) {
+  for (Size s = 0; s < f_grid.size(); ++s) {
     propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]);
     //    cout << "pxsec(" << s << "," << i << "): " << pxsec(s,i) << "\n";
   }

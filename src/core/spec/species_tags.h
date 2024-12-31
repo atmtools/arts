@@ -48,10 +48,6 @@ struct Tag {
     return Isotopologue().mass;
   }
 
-  [[nodiscard]] Numeric Q(Numeric T) const;
-
-  [[nodiscard]] Numeric dQdT(Numeric T) const;
-
   [[nodiscard]] String FullName() const noexcept;
 
   [[nodiscard]] constexpr SpeciesEnum Spec() const noexcept {

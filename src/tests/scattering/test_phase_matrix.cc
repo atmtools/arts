@@ -7,11 +7,11 @@
 
 #include "arts_conversions.h"
 #include "interpolation.h"
-#include "matpack/matpack_concepts.h"
-#include "matpack/matpack_math.h"
+#include "matpack/matpack.h"
 #include "scattering/mie.h"
 #include "scattering/phase_matrix.h"
 #include "test_utils.h"
+#include "matpack/matpack_mdspan_helpers_eigen.h"
 
 using namespace scattering;
 
@@ -42,8 +42,8 @@ PhaseMatrixTROGridded make_phase_matrix(
   Vector aa_grid(1);
   aa_grid = 0.0;
 
-  for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
-    for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
+  for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+    for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
         phase_matrix[i_t, Range(i_f, 1), joker, i_s] =
             evaluate_spherical_harmonic(i_f, 0, aa_grid, za_grid);
@@ -63,8 +63,8 @@ PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid) {
   PhaseMatrixTROGridded phase_matrix(t_grid, f_grid, za_scat_grid);
 
-  for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
-    for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
+  for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+    for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       auto scat_data = scattering::MieSphere<Numeric>::Liquid(
           (*f_grid)[i_f], (*t_grid)[i_t], 1e-3, Vector(grid_vector(*za_scat_grid)));
       auto scat_matrix = scat_data.get_scattering_matrix_compact();
@@ -95,9 +95,9 @@ PhaseMatrixAROGridded make_phase_matrix(
   Vector za_grid  = Vector{grid_vector(*za_scat_grid)};
   za_grid        *= Conversion::deg2rad(1.0);
 
-  for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
-    for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
-      for (Index i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
+  for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+    for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
+      for (Size i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
         for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
           Index l = i_t;
           Index m = std::min(i_t, i_f);
@@ -161,8 +161,8 @@ bool test_phase_matrix_tro() {
   auto phase_matrix_lab = phase_matrix_liquid.to_lab_frame(
       za_inc_grid, delta_aa_grid, za_scat_grid_new);
 
-  for (Index i_t = 0; i_t < t_grid->size(); ++i_t) {
-    for (Index i_f = 0; i_f < f_grid->size(); ++i_f) {
+  for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+    for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       // Backward scattering direction. Only two independent elements.
       // Off-diagonal elements must be close to 0.
       auto pm_f           = phase_matrix_lab[i_t, i_f, 0, 0, 0, joker];
@@ -244,7 +244,7 @@ bool test_phase_matrix_tro() {
 
   auto phase_matrix_liquid_spectral_1 =
       phase_matrix_liquid_spectral.extract_stokes_coeffs();
-  err = max_error<matpack::matpack_view<std::complex<Numeric>, 4, true, true>>(
+  err = max_error<matpack::strided_view_t<const std::complex<Numeric>, 4>>(
       phase_matrix_liquid_spectral_1,
       phase_matrix_liquid_spectral);
   // Extraction of stokes parameters should be exact.
@@ -354,7 +354,7 @@ bool test_phase_matrix_regrid_tro() {
   for (Index i_t = 0; i_t < 2; ++i_t) {
     for (Index i_f = 0; i_f < 2; ++i_f) {
       for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat) {
-        phase_matrix_ref += static_cast<matpack::matpack_data<double, 1>>(
+        phase_matrix_ref += static_cast<matpack::data_t<double, 1>>(
             0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat, joker]);
       }
     }
@@ -377,7 +377,7 @@ bool test_phase_matrix_regrid_tro() {
   for (Index i_t = 0; i_t < 2; ++i_t) {
     for (Index i_f = 0; i_f < 2; ++i_f) {
       phase_matrix_spectral_ref +=
-          static_cast<matpack::matpack_data<double, 2>>(
+          static_cast<matpack::data_t<double, 2>>(
               0.25 * phase_matrix_gridded[i_t, i_f, joker, joker]);
     }
   }
@@ -399,7 +399,7 @@ bool test_phase_matrix_regrid_tro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       phase_matrix_gridded));
 
   (*t_grid_new)[0]       = 1.2345;
@@ -415,7 +415,7 @@ bool test_phase_matrix_regrid_tro() {
   }
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 4> &>(
+      reinterpret_cast<matpack::data_t<std::complex<Numeric>, 4> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
@@ -425,7 +425,7 @@ bool test_phase_matrix_regrid_tro() {
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
@@ -434,7 +434,7 @@ bool test_phase_matrix_regrid_tro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 4> &>(
+      reinterpret_cast<matpack::data_t<std::complex<Numeric>, 4> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
@@ -444,7 +444,7 @@ bool test_phase_matrix_regrid_tro() {
 
   // Test interpolation along za-scat-axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
@@ -492,7 +492,7 @@ bool test_backscatter_matrix_regrid_tro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(
+  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 3> &>(
       backscatter_matrix));
 
   (*t_grid_new)[0]       = 1.2345;
@@ -508,7 +508,7 @@ bool test_backscatter_matrix_regrid_tro() {
   }
 
   // Test interpolation along f-axis.
-  fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(
+  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 3> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
   err = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
@@ -657,9 +657,9 @@ bool test_phase_matrix_regrid_aro() {
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);
   std::shared_ptr<const Vector> za_inc_grid_inc = std::make_shared<Vector>(
-      Vector{std::views::iota(0, za_inc_grid->size())});
+      std::from_range_t{}, std::views::iota(Size{0}, za_inc_grid->size()));
   std::shared_ptr<const Vector> aa_scat_grid_inc = std::make_shared<Vector>(
-      Vector{std::views::iota(0, delta_aa_grid->size())});
+      std::from_range_t{}, std::views::iota(Size{0}, delta_aa_grid->size()));
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid_inc =
       std::make_shared<ZenithAngleGrid>(
           IrregularZenithAngleGrid(Vector{std::views::iota(0, grid_size(*za_scat_grid))})
@@ -667,7 +667,7 @@ bool test_phase_matrix_regrid_aro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
+  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 6> &>(
       phase_matrix_gridded));
 
   (*t_grid_new)[0]       = 1.2345;
@@ -696,7 +696,7 @@ bool test_phase_matrix_regrid_aro() {
   }
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
+      reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
@@ -706,7 +706,7 @@ bool test_phase_matrix_regrid_aro() {
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
+  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
@@ -715,7 +715,7 @@ bool test_phase_matrix_regrid_aro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
+      reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
@@ -725,7 +725,7 @@ bool test_phase_matrix_regrid_aro() {
 
   // Test interpolation along za_inc axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
+  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
@@ -734,7 +734,7 @@ bool test_phase_matrix_regrid_aro() {
   }
 
   fill_along_axis<2>(
-      reinterpret_cast<matpack::matpack_data<std::complex<Numeric>, 5> &>(
+      reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5> &>(
           phase_matrix_spectral));
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   err = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
@@ -743,7 +743,7 @@ bool test_phase_matrix_regrid_aro() {
   }
 
   // Test interpolation along aa_scat axis.
-  fill_along_axis<3>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
+  fill_along_axis<3>(reinterpret_cast<matpack::data_t<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
@@ -752,7 +752,7 @@ bool test_phase_matrix_regrid_aro() {
   }
 
   // Test interpolation along aa_scat axis.
-  fill_along_axis<4>(reinterpret_cast<matpack::matpack_data<Numeric, 6> &>(
+  fill_along_axis<4>(reinterpret_cast<matpack::data_t<Numeric, 6> &>(
       phase_matrix_gridded));
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
@@ -812,16 +812,16 @@ bool test_backscatter_matrix_regrid_aro() {
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);
   std::shared_ptr<const Vector> za_inc_grid_inc = std::make_shared<Vector>(
-      Vector{std::views::iota(0, za_inc_grid->size())});
+      std::from_range_t{}, std::views::iota(Size{0}, za_inc_grid->size()));
   std::shared_ptr<const Vector> aa_scat_grid_inc = std::make_shared<Vector>(
-      Vector{std::views::iota(0, delta_aa_grid->size())});
+      std::from_range_t{}, std::views::iota(Size{0}, delta_aa_grid->size()));
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid_inc =
       std::make_shared<ZenithAngleGrid>(
           IrregularZenithAngleGrid(Vector{std::views::iota(0, grid_size(*za_scat_grid))}));
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       backscatter_matrix));
 
   (*t_grid_new)[0]       = 1.2345;
@@ -850,7 +850,7 @@ bool test_backscatter_matrix_regrid_aro() {
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
   err = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
@@ -860,7 +860,7 @@ bool test_backscatter_matrix_regrid_aro() {
 
   // Test interpolation along za_inc axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(
+  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 4> &>(
       backscatter_matrix));
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
   err = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
@@ -877,63 +877,63 @@ int main() {
   std::cout << "Testing phase matrix (TRO): ";
   passed = test_phase_matrix_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing phase matrix copy constructor (TRO): ";
   passed = test_phase_matrix_copy_const_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing phase matrix regridding (TRO): ";
   passed = test_phase_matrix_regrid_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing backscatter matrix regridding (TRO): ";
   passed = test_backscatter_matrix_regrid_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing phase matrix (ARO): ";
   passed = test_phase_matrix_aro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing phase matrix regridding (ARO): ";
   passed = test_phase_matrix_regrid_aro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing backscatter matrix regridding (ARO): ";
   passed = test_backscatter_matrix_regrid_aro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 #endif

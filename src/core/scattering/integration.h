@@ -37,9 +37,7 @@
 
 #include "arts_conversions.h"
 #include "debug.h"
-#include "matpack/matpack_data.h"
-#include "matpack/matpack_math.h"
-#include "matpack/matpack_sparse.h"
+#include <matpack.h>
 
 namespace scattering {
 
@@ -259,6 +257,7 @@ class ZenithAngleGrid : public Vector {
  public:
   ZenithAngleGrid() : Vector() {}
   ZenithAngleGrid(const Vector& zenith_angles) : Vector(zenith_angles) {}
+  ZenithAngleGrid(Index i) : Vector(i) {}
 
   virtual ~ZenithAngleGrid(){};
 
@@ -370,12 +369,12 @@ using ZenithAngleGrid = std::variant<
     return std::visit([](const auto &grd) { return grd.size(); }, grid);
   }
 
-  inline VectorView grid_vector(ZenithAngleGrid &grid) {
-    return std::visit([](auto &grd) { return static_cast<VectorView>(grd); }, grid);
+  inline StridedVectorView grid_vector(ZenithAngleGrid &grid) {
+    return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd); }, grid);
   }
 
-   inline ConstVectorView grid_vector(const ZenithAngleGrid &grid) {
-    return std::visit([](const auto &grd) { return static_cast<ConstVectorView>(grd); }, grid);
+   inline StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
+    return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd); }, grid);
   }
 
 
@@ -433,12 +432,12 @@ Numeric integrate_sphere(MatrixType&& data,
  * @param new_grid: The new, low-resolution grid.
  */
 template <std::floating_point Scalar>
-Sparse calculate_downsampling_matrix(const VectorView& old_grid,
-                                     const VectorView& new_grid) {
-  using WeightMatrix = matpack::matpack_data<Scalar, 2>;
+Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid,
+                                     const StridedVectorView& new_grid) {
+  using WeightMatrix = matpack::data_t<Scalar, 2>;
   Index n_old = old_grid.size();
   Index n_new = new_grid.size();
-  matpack::matpack_data<Scalar, 1> limits(n_new + 1);
+  matpack::data_t<Scalar, 1> limits(n_new + 1);
   for (Index i = 1; i < n_new; ++i) {
     limits[i] = 0.5 * (new_grid[i - 1] + new_grid[i]);
   }

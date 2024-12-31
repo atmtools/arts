@@ -11,25 +11,24 @@ struct specmat final : cmat44 {
       : cmat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
   constexpr specmat(Complex a,
-                            Complex b,
-                            Complex c,
-                            Complex d,
-                            Complex e,
-                            Complex f,
-                            Complex g,
-                            Complex h,
-                            Complex i,
-                            Complex j,
-                            Complex k,
-                            Complex l,
-                            Complex m,
-                            Complex n,
-                            Complex o,
-                            Complex p) noexcept
+                    Complex b,
+                    Complex c,
+                    Complex d,
+                    Complex e,
+                    Complex f,
+                    Complex g,
+                    Complex h,
+                    Complex i,
+                    Complex j,
+                    Complex k,
+                    Complex l,
+                    Complex m,
+                    Complex n,
+                    Complex o,
+                    Complex p) noexcept
       : cmat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
 
-  constexpr specmat(std::array<Complex, 16> data) noexcept
-      : cmat44{data} {}
+  constexpr specmat(std::array<Complex, 16> data) noexcept : cmat44{data} {}
 
   //! The identity matrix
   static constexpr specmat id() { return specmat{1.0}; }
@@ -128,34 +127,20 @@ struct specmat final : cmat44 {
 };
 
 //! Addition between specmat matrices
-constexpr specmat operator+(specmat a,
-                                    const specmat &b) {
-  return a += b;
-}
+constexpr specmat operator+(specmat a, const specmat &b) { return a += b; }
 
-constexpr specmat operator+(Complex a, specmat b) {
-  return specmat{a} + b;
-}
+constexpr specmat operator+(Complex a, specmat b) { return specmat{a} + b; }
 
 //! Subtraction between specmat matrices
-constexpr specmat operator-(specmat a,
-                                    const specmat &b) {
-  return a -= b;
-}
+constexpr specmat operator-(specmat a, const specmat &b) { return a -= b; }
 
-constexpr specmat operator-(Complex a, specmat b) {
-  return specmat{a} - b;
-}
+constexpr specmat operator-(Complex a, specmat b) { return specmat{a} - b; }
 
 //! Scaling a specmat matrix
-constexpr specmat operator*(specmat a, const Complex &b) {
-  return a *= b;
-}
+constexpr specmat operator*(specmat a, const Complex &b) { return a *= b; }
 
 //! Scaling a specmat matrix
-constexpr specmat operator*(const Complex &a, specmat b) {
-  return b * a;
-}
+constexpr specmat operator*(const Complex &a, specmat b) { return b * a; }
 
 //! Scaling a specmat matrix
 constexpr specmat operator/(specmat a, const Complex &b) {
@@ -164,10 +149,7 @@ constexpr specmat operator/(specmat a, const Complex &b) {
 }
 
 //! Scaling a specmat matrix
-constexpr specmat operator*(specmat a,
-                                    const specmat &b) {
-  return a *= b;
-}
+constexpr specmat operator*(specmat a, const specmat &b) { return a *= b; }
 
 //! Take the average of two specmat matrices
 constexpr specmat avg(specmat a, const specmat &b) {
@@ -188,56 +170,50 @@ constexpr specmat inv(const specmat &A) {
              d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m);
 
   return div * specmat{(f * k * p - f * l * o - g * j * p + g * l * n +
-                                h * j * o - h * k * n),
-                               (-b * k * p + b * l * o + c * j * p - c * l * n -
-                                d * j * o + d * k * n),
-                               (b * g * p - b * h * o - c * f * p + c * h * n +
-                                d * f * o - d * g * n),
-                               (-b * g * l + b * h * k + c * f * l - c * h * j -
-                                d * f * k + d * g * j),
-                               (-e * k * p + e * l * o + g * i * p - g * l * m -
-                                h * i * o + h * k * m),
-                               (a * k * p - a * l * o - c * i * p + c * l * m +
-                                d * i * o - d * k * m),
-                               (-a * g * p + a * h * o + c * e * p - c * h * m -
-                                d * e * o + d * g * m),
-                               (a * g * l - a * h * k - c * e * l + c * h * i +
-                                d * e * k - d * g * i),
-                               (e * j * p - e * l * n - f * i * p + f * l * m +
-                                h * i * n - h * j * m),
-                               (-a * j * p + a * l * n + b * i * p - b * l * m -
-                                d * i * n + d * j * m),
-                               (a * f * p - a * h * n - b * e * p + b * h * m +
-                                d * e * n - d * f * m),
-                               (-a * f * l + a * h * j + b * e * l - b * h * i -
-                                d * e * j + d * f * i),
-                               (-e * j * o + e * k * n + f * i * o - f * k * m -
-                                g * i * n + g * j * m),
-                               (a * j * o - a * k * n - b * i * o + b * k * m +
-                                c * i * n - c * j * m),
-                               (-a * f * o + a * g * n + b * e * o - b * g * m -
-                                c * e * n + c * f * m),
-                               (a * f * k - a * g * j - b * e * k + b * g * i +
-                                c * e * j - c * f * i)};
+                        h * j * o - h * k * n),
+                       (-b * k * p + b * l * o + c * j * p - c * l * n -
+                        d * j * o + d * k * n),
+                       (b * g * p - b * h * o - c * f * p + c * h * n +
+                        d * f * o - d * g * n),
+                       (-b * g * l + b * h * k + c * f * l - c * h * j -
+                        d * f * k + d * g * j),
+                       (-e * k * p + e * l * o + g * i * p - g * l * m -
+                        h * i * o + h * k * m),
+                       (a * k * p - a * l * o - c * i * p + c * l * m +
+                        d * i * o - d * k * m),
+                       (-a * g * p + a * h * o + c * e * p - c * h * m -
+                        d * e * o + d * g * m),
+                       (a * g * l - a * h * k - c * e * l + c * h * i +
+                        d * e * k - d * g * i),
+                       (e * j * p - e * l * n - f * i * p + f * l * m +
+                        h * i * n - h * j * m),
+                       (-a * j * p + a * l * n + b * i * p - b * l * m -
+                        d * i * n + d * j * m),
+                       (a * f * p - a * h * n - b * e * p + b * h * m +
+                        d * e * n - d * f * m),
+                       (-a * f * l + a * h * j + b * e * l - b * h * i -
+                        d * e * j + d * f * i),
+                       (-e * j * o + e * k * n + f * i * o - f * k * m -
+                        g * i * n + g * j * m),
+                       (a * j * o - a * k * n - b * i * o + b * k * m +
+                        c * i * n - c * j * m),
+                       (-a * f * o + a * g * n + b * e * o - b * g * m -
+                        c * e * n + c * f * m),
+                       (a * f * k - a * g * j - b * e * k + b * g * i +
+                        c * e * j - c * f * i)};
 }
 
-using specmat_vector = matpack::matpack_data<specmat, 1>;
-using specmat_vector_view =
-    matpack::matpack_view<specmat, 1, false, false>;
-using specmat_vector_const_view =
-    matpack::matpack_view<specmat, 1, true, false>;
+using specmat_vector            = matpack::data_t<specmat, 1>;
+using specmat_vector_view       = matpack::view_t<specmat, 1>;
+using specmat_vector_const_view = matpack::view_t<const specmat, 1>;
 
-using specmat_matrix = matpack::matpack_data<specmat, 2>;
-using specmat_matrix_view =
-    matpack::matpack_view<specmat, 2, false, false>;
-using specmat_matrix_const_view =
-    matpack::matpack_view<specmat, 2, true, false>;
+using specmat_matrix            = matpack::data_t<specmat, 2>;
+using specmat_matrix_view       = matpack::view_t<specmat, 2>;
+using specmat_matrix_const_view = matpack::view_t<const specmat, 2>;
 
-using specmat_tensor3 = matpack::matpack_data<specmat, 3>;
-using specmat_tensor3_view =
-    matpack::matpack_view<specmat, 3, false, false>;
-using specmat_tensor3_const_view =
-    matpack::matpack_view<specmat, 3, true, false>;
+using specmat_tensor3            = matpack::data_t<specmat, 3>;
+using specmat_tensor3_view       = matpack::view_t<specmat, 3>;
+using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
 }  // namespace rtepack
 
 template <>

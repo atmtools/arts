@@ -10,19 +10,19 @@
 
 */
 
-#include "absorptionlines.h"
-#include "debug.h"
-#include "isotopologues.h"
-#include "sorted_grid.h"
-#include "species_tags.h"
+#include <rtepack.h>
 #include <workspace.h>
-#include "xml_io.h"
-#include "xml_io_array_macro.h"
-#include "xml_io_arts_types.h"
+
 #include <stdexcept>
 #include <type_traits>
 
-#include <rtepack.h>
+#include "absorptionlines.h"
+#include "debug.h"
+#include "isotopologues.h"
+#include "species_tags.h"
+#include "xml_io.h"
+#include "xml_io_array_macro.h"
+#include "xml_io_arts_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -51,8 +51,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   Index n;
   try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, agpos[n], pbifs);
+    for (n = 0; n < nelem; n++) xml_read_from_stream(is_xml, agpos[n], pbifs);
   } catch (const std::runtime_error& e) {
     std::ostringstream os;
     os << "Error reading ArrayOfGridPos: "
@@ -88,8 +87,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (const auto & agpo : agpos)
-    xml_write_to_stream(os_xml, agpo, pbofs, "");
+  for (const auto& agpo : agpos) xml_write_to_stream(os_xml, agpo, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -120,8 +118,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   Index n;
   try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, astag[n], pbifs);
+    for (n = 0; n < nelem; n++) xml_read_from_stream(is_xml, astag[n], pbifs);
   } catch (const std::runtime_error& e) {
     std::ostringstream os;
     os << "Error reading ArrayOfSpeciesTag: "
@@ -157,8 +154,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (auto n : astag)
-    xml_write_to_stream(os_xml, n, pbofs, "");
+  for (auto n : astag) xml_write_to_stream(os_xml, n, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -190,9 +186,7 @@ void xml_read_from_stream(std::istream& /*is_xml*/,
 void xml_write_to_stream(std::ostream& /*os_xml*/,
                          const ArrayOfScatteringSpecies& /*species*/,
                          bofstream* /*pbofs*/,
-                         const String& /*name*/) {
-}
-
+                         const String& /*name*/) {}
 
 //=== ArrayOfSun =========================================================
 
@@ -255,7 +249,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (const auto & n : astar) {
+  for (const auto& n : astar) {
     xml_write_to_stream(os_xml, n, pbofs, "");
   }
 
@@ -287,8 +281,7 @@ void xml_parse_from_stream(std::istream& is_xml,
 
   Index n;
   try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, astring[n], pbifs);
+    for (n = 0; n < nelem; n++) xml_read_from_stream(is_xml, astring[n], pbifs);
   } catch (const std::runtime_error& e) {
     std::ostringstream os;
     os << "Error reading ArrayOfString: "
@@ -321,8 +314,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   Index n;
   try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, axd[n], pbifs);
+    for (n = 0; n < nelem; n++) xml_read_from_stream(is_xml, axd[n], pbifs);
   } catch (const std::runtime_error& e) {
     std::ostringstream os;
     os << "Error reading ArrayOfXsecRecord: "
@@ -358,8 +350,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (const auto & n : axd)
-    xml_write_to_stream(os_xml, n, pbofs, "");
+  for (const auto& n : axd) xml_write_to_stream(os_xml, n, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);

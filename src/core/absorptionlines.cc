@@ -22,7 +22,6 @@
 #include "hitran_species.h"
 #include "jpl_species.h"
 #include "lineshapemodel.h"
-#include "matpack_math.h"
 #include "quantum_numbers.h"
 #include "rational.h"
 #include "wigner_functions.h"
@@ -897,7 +896,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
     // If zero, set to agam:
     if (0 == sgam) sgam = agam;
 
-    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+    //    cout << "agam, sgam = " << magam << ", " << msgam << '\n';
   }
 
   // Lower state energy.
@@ -920,7 +919,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
 
     // Set self broadening temperature coefficient to the same value:
     nself = nair;
-    //    cout << "mnair = " << mnair << endl;
+    //    cout << "mnair = " << mnair << '\n';
   }
 
   // Pressure shift.
@@ -1161,7 +1160,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
     // If zero, set to agam:
     if (0 == sgam) sgam = agam;
 
-    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+    //    cout << "agam, sgam = " << magam << ", " << msgam << '\n';
   }
 
   // Lower state energy.
@@ -1184,7 +1183,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
 
     // Set self broadening temperature coefficient to the same value:
     nself = nair;
-    //    cout << "mnair = " << mnair << endl;
+    //    cout << "mnair = " << mnair << '\n';
   }
 
   // Pressure shift.
@@ -1376,7 +1375,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
 
     // ARTS position in Hz:
     data.line.F0 = v * w2Hz;
-    //    cout << "mf = " << mf << endl;
+    //    cout << "mf = " << mf << '\n';
   }
 
   // Intensity.
@@ -1436,7 +1435,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
     // If zero, set to agam:
     if (0 == sgam) sgam = agam;
 
-    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+    //    cout << "agam, sgam = " << magam << ", " << msgam << '\n';
   }
 
   // Lower state energy.
@@ -1459,7 +1458,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
 
     // Set self broadening temperature coefficient to the same value:
     nself = nair;
-    //    cout << "mnair = " << mnair << endl;
+    //    cout << "mnair = " << mnair << '\n';
   }
 
   // Pressure shift.
@@ -1614,7 +1613,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
 
     // ARTS position in Hz:
     data.line.F0 = v * w2Hz;
-    //    cout << "mf = " << mf << endl;
+    //    cout << "mf = " << mf << '\n';
   }
 
   // Intensity.
@@ -1676,7 +1675,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
     // If zero, set to agam:
     if (0 == sgam) sgam = agam;
 
-    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+    //    cout << "agam, sgam = " << magam << ", " << msgam << '\n';
   }
 
   // Lower state energy.
@@ -1699,7 +1698,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
 
     // Set self broadening temperature coefficient to the same value:
     nself = nair;
-    //    cout << "mnair = " << mnair << endl;
+    //    cout << "mnair = " << mnair << '\n';
   }
 
   // Pressure shift.
@@ -2108,7 +2107,7 @@ Vector Absorption::Lines::BroadeningSpeciesMass(
 Numeric Absorption::Lines::SelfVMR(
     const ConstVectorView& atm_vmrs,
     const ArrayOfArrayOfSpeciesTag& atm_spec) const {
-  ARTS_USER_ERROR_IF(atm_vmrs.size() not_eq static_cast<Index>(atm_spec.size()),
+  ARTS_USER_ERROR_IF(atm_vmrs.size() != atm_spec.size(),
                      "Bad species and vmr lists");
 
   for (Size i = 0; i < atm_spec.size(); i++)

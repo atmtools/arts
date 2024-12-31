@@ -253,7 +253,7 @@ Parameters
              const Vector &hv,
              const Vector &latv,
              const Vector &lonv) {
-            const Index N = hv.size();
+            const Size N = hv.size();
             if (latv.size() != lonv.size() or N != latv.size())
               throw std::logic_error(std::format(R"(Not same size:
   h:   {:B,} (size: {})
@@ -268,7 +268,7 @@ Parameters
                                                  lonv.size()));
             ArrayOfAtmPoint out;
             out.reserve(N);
-            for (Index i = 0; i < N; i++)
+            for (Size i = 0; i < N; i++)
               out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
             return out;
           },
@@ -869,8 +869,8 @@ Parameters
 
     const Size n = atm.size();
 
-    if (std::ranges::any_of(dict, [N = static_cast<Index>(n)](auto &v) {
-          return v.second.size() != N;
+    if (std::ranges::any_of(dict, [n](auto &v) {
+          return v.second.size() != n;
         })) {
       throw std::runtime_error(
           "All values in the dictionary must have the same length to match the AtmPoint-list length.");

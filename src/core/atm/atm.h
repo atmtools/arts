@@ -170,8 +170,6 @@ struct Point {
       const QuantumIdentifier &band) const;
 
   void check_and_fix();
-
-  friend std::ostream &operator<<(std::ostream &os, const Point &atm);
 };
 
 //! All the field data; if these types grow too much we might want to
@@ -254,9 +252,9 @@ struct Data {
 
   [[nodiscard]] Numeric at(const Vector3 pos) const;
 
-  [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
+  [[nodiscard]] ConstVectorView flat_view() const;
 
-  [[nodiscard]] ExhaustiveVectorView flat_view();
+  [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions in an atmosphere
   [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
@@ -317,8 +315,6 @@ struct Field final : FieldMap::Map<Data,
 
   [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
 
-  friend std::ostream &operator<<(std::ostream &os, const Field &atm);
-
   [[nodiscard]] Field gridded(const AscendingGrid &alt,
                               const AscendingGrid &lat,
                               const AscendingGrid &lon) const;
@@ -339,8 +335,6 @@ static_assert(
     std::same_as<typename Field::KeyVal, KeyVal>,
     "The order of arguments in the template of which Field inherits from is "
     "wrong.  KeyVal must be defined in the same way for this to work.");
-
-std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
 
 /** Returns true if the pressure is increasing
  * 
@@ -402,8 +396,6 @@ bool operator==(const SpeciesEnum &, const AtmKeyVal &);
 bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
 bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
 bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
-
-std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
 
 template <>
 struct std::formatter<AtmKeyVal> {

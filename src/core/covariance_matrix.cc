@@ -15,7 +15,6 @@
 #include <ostream>
 
 #include "lin_alg.h"
-#include "matpack_math.h"
 
 BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
   data = std::move(dense);
@@ -69,7 +68,7 @@ const Sparse &BlockMatrix::sparse() const {
 }
 
 Vector BlockMatrix::diagonal() const {
-  if (is_dense()) return ::diagonal(*std::get<std::shared_ptr<Matrix>>(data));
+  if (is_dense()) return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
   return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
 }
 
@@ -102,13 +101,13 @@ std::array<Index, 2> BlockMatrix::shape() const {
 //------------------------------------------------------------------------------
 // Correlations
 //------------------------------------------------------------------------------
-void mult(MatrixView C, ConstMatrixView A, const Block &B) {
+void mult(StridedMatrixView C, StridedConstMatrixView A, const Block &B) {
   ARTS_ASSERT(B.not_null());
 
-  MatrixView CView(C[joker, B.get_column_range()]);
-  MatrixView CTView(C[joker, B.get_row_range()]);
-  ConstMatrixView AView(A[joker, B.get_row_range()]);
-  ConstMatrixView ATView(A[joker, B.get_column_range()]);
+  StridedMatrixView CView(C[joker, B.get_column_range()]);
+  StridedMatrixView CTView(C[joker, B.get_row_range()]);
+  StridedConstMatrixView AView(A[joker, B.get_row_range()]);
+  StridedConstMatrixView ATView(A[joker, B.get_column_range()]);
 
   Index i, j;
   std::tie(i, j) = B.get_indices();
@@ -132,13 +131,13 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B) {
   }
 }
 
-void mult(MatrixView C, const Block &A, ConstMatrixView B) {
+void mult(StridedMatrixView C, const Block &A, StridedConstMatrixView B) {
   ARTS_ASSERT(A.not_null());
 
-  MatrixView CView(C[A.get_row_range(), joker]);
-  MatrixView CTView(C[A.get_column_range(), joker]);
-  ConstMatrixView BView(B[A.get_column_range(), joker]);
-  ConstMatrixView BTView(B[A.get_row_range(), joker]);
+  StridedMatrixView CView(C[A.get_row_range(), joker]);
+  StridedMatrixView CTView(C[A.get_column_range(), joker]);
+  StridedConstMatrixView BView(B[A.get_column_range(), joker]);
+  StridedConstMatrixView BTView(B[A.get_row_range(), joker]);
 
   if (A.is_dense()) {
     mult(CView, A.get_dense(), BView);
@@ -162,9 +161,9 @@ void mult(MatrixView C, const Block &A, ConstMatrixView B) {
   }
 }
 
-void mult(VectorView w, const Block &A, ConstVectorView v) {
-  VectorView wview(w[A.get_row_range()]), wtview(w[A.get_column_range()]);
-  ConstVectorView vview(v[A.get_column_range()]), vtview(v[A.get_row_range()]);
+void mult(StridedVectorView w, const Block &A, StridedConstVectorView v) {
+  StridedVectorView wview(w[A.get_row_range()]), wtview(w[A.get_column_range()]);
+  StridedConstVectorView vview(v[A.get_column_range()]), vtview(v[A.get_row_range()]);
 
   if (A.is_dense()) {
     mult(wview, A.get_dense(), vview);
@@ -184,9 +183,9 @@ void mult(VectorView w, const Block &A, ConstVectorView v) {
   }
 }
 
-MatrixView operator+=(MatrixView A, const Block &B) {
-  MatrixView Aview(A[B.get_row_range(), B.get_column_range()]);
-  MatrixView ATview(A[B.get_column_range(), B.get_row_range()]);
+StridedMatrixView operator+=(StridedMatrixView A, const Block &B) {
+  StridedMatrixView Aview(A[B.get_row_range(), B.get_column_range()]);
+  StridedMatrixView ATview(A[B.get_column_range(), B.get_row_range()]);
   if (B.is_dense()) {
     Aview += B.get_dense();
   } else {
@@ -215,7 +214,7 @@ CovarianceMatrix::operator Matrix() const {
   A = 0.0;
 
   for (const Block &c : correlations_) {
-    MatrixView Aview = A[c.get_row_range(), c.get_column_range()];
+    StridedMatrixView Aview = A[c.get_row_range(), c.get_column_range()];
     if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
@@ -225,7 +224,7 @@ CovarianceMatrix::operator Matrix() const {
     Index ci, cj;
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
-      MatrixView ATview = A[c.get_column_range(), c.get_row_range()];
+      StridedMatrixView ATview = A[c.get_column_range(), c.get_row_range()];
       if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
@@ -242,7 +241,7 @@ Matrix CovarianceMatrix::get_inverse() const {
   A = 0.0;
 
   for (const Block &c : inverses_) {
-    MatrixView Aview = A[c.get_row_range(), c.get_column_range()];
+    StridedMatrixView Aview = A[c.get_row_range(), c.get_column_range()];
     if (c.is_dense()) {
       Aview = c.get_dense();
     } else {
@@ -252,7 +251,7 @@ Matrix CovarianceMatrix::get_inverse() const {
     Index ci, cj;
     std::tie(ci, cj) = c.get_indices();
     if (ci != cj) {
-      MatrixView ATview = A[c.get_column_range(), c.get_row_range()];
+      StridedMatrixView ATview = A[c.get_column_range(), c.get_row_range()];
       if (c.is_dense()) {
         ATview = transpose(c.get_dense());
       } else {
@@ -368,7 +367,7 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     Index row_start  = jis[i][0];
     Index row_extent = jis[i][1] - jis[i][0] + 1;
     Range row_range  = b.get_row_range();
-    if ((row_range.offset != row_start) || (row_range.extent != row_extent)) {
+    if ((row_range.offset != row_start) || (row_range.nelem != row_extent)) {
       return false;
     }
 
@@ -376,7 +375,7 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     Index column_extent = jis[j][1] - jis[j][0] + 1;
     Range column_range  = b.get_column_range();
     if ((column_range.offset != column_start) ||
-        (column_range.extent != column_extent)) {
+        (column_range.nelem != column_extent)) {
       return false;
     }
     return true;
@@ -516,10 +515,10 @@ void CovarianceMatrix::invert_correlation_block(
     std::tie(ci, cj) = blocks[i]->get_indices();
 
     if (ci == cj) {
-      Index extent = blocks[i]->get_row_range().extent;
+      Index extent = blocks[i]->get_row_range().nelem;
       block_start.insert(std::make_pair(ci, blocks[i]->get_row_range().offset));
       block_extent.insert(
-          std::make_pair(ci, blocks[i]->get_row_range().extent));
+          std::make_pair(ci, blocks[i]->get_row_range().nelem));
       block_start_cont.insert(std::make_pair(ci, n));
       block_extent_cont.insert(std::make_pair(ci, extent));
       block_indices.push_back(ci);
@@ -536,7 +535,7 @@ void CovarianceMatrix::invert_correlation_block(
     std::tie(ci, cj) = blocks[i]->get_indices();
     Range row_range(block_start_cont[ci], block_extent_cont[ci]);
     Range column_range(block_start_cont[cj], block_extent_cont[cj]);
-    MatrixView A_view = A[row_range, column_range];
+    StridedMatrixView A_view = A[row_range, column_range];
 
     if (blocks[i]->is_dense()) {
       A_view = blocks[i]->get_dense();
@@ -575,7 +574,7 @@ void CovarianceMatrix::invert_correlation_block(
         Range column_range_A(block_start_cont[bj], block_extent_cont[bj]);
         Range row_range(block_start[bi], block_extent[bi]);
         Range column_range(block_start[bj], block_extent[bj]);
-        MatrixView A_view = A[row_range_A, column_range_A];
+        StridedMatrixView A_view = A[row_range_A, column_range_A];
         inverses.push_back(Block(row_range,
                                  column_range,
                                  std::make_pair(bi, bj),
@@ -619,7 +618,7 @@ Vector CovarianceMatrix::inverse_diagonal() const {
   return diag;
 }
 
-void mult(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B) {
+void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.correlations_) {
@@ -629,7 +628,7 @@ void mult(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B) {
   }
 }
 
-void mult(MatrixView C, const CovarianceMatrix &A, ConstMatrixView B) {
+void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.correlations_) {
@@ -639,7 +638,7 @@ void mult(MatrixView C, const CovarianceMatrix &A, ConstMatrixView B) {
   }
 }
 
-void mult(VectorView w, const CovarianceMatrix &A, ConstVectorView v) {
+void mult(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.correlations_) {
@@ -649,7 +648,7 @@ void mult(VectorView w, const CovarianceMatrix &A, ConstVectorView v) {
   }
 }
 
-void mult_inv(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B) {
+void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.inverses_) {
@@ -659,7 +658,7 @@ void mult_inv(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B) {
   }
 }
 
-void mult_inv(MatrixView C, const CovarianceMatrix &A, ConstMatrixView B) {
+void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.inverses_) {
@@ -669,7 +668,7 @@ void mult_inv(MatrixView C, const CovarianceMatrix &A, ConstMatrixView B) {
   }
 }
 
-void solve(VectorView w, const CovarianceMatrix &A, ConstVectorView v) {
+void solve(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.inverses_) {
@@ -679,14 +678,14 @@ void solve(VectorView w, const CovarianceMatrix &A, ConstVectorView v) {
   }
 }
 
-MatrixView operator+=(MatrixView A, const CovarianceMatrix &B) {
+StridedMatrixView operator+=(StridedMatrixView A, const CovarianceMatrix &B) {
   for (const Block &c : B.correlations_) {
     A += c;
   }
   return A;
 }
 
-void add_inv(MatrixView A, const CovarianceMatrix &B) {
+void add_inv(StridedMatrixView A, const CovarianceMatrix &B) {
   for (const Block &c : B.inverses_) {
     A += c;
   }
@@ -695,16 +694,16 @@ void add_inv(MatrixView A, const CovarianceMatrix &B) {
 std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
   os << "Covariance Matrix, ";
   os << "\tDimensions: [" << covmat.nrows() << " x " << covmat.ncols() << "]"
-     << std::endl;
-  os << "Blocks:" << std::endl;
+     << '\n';
+  os << "Blocks:" << '\n';
   for (const Block &b : covmat.correlations_) {
     Index i, j;
     std::tie(i, j) = b.get_indices();
-    os << "\ti = " << i << ", j = " << j << ": " << b.get_row_range().extent;
-    os << " x " << b.get_column_range().extent;
+    os << "\ti = " << i << ", j = " << j << ": " << b.get_row_range().nelem;
+    os << " x " << b.get_column_range().nelem;
     os << ", has inverse: "
        << (covmat.has_inverse(std::make_pair(i, j)) ? "yes" : "no");
-    os << std::endl;
+    os << '\n';
   }
   return os;
 }

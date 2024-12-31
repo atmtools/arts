@@ -19,7 +19,7 @@ bool test_particle_habit_from_legacy_tro() {
 
   for (Index ind = 0; ind < habit.size(); ++ind) {
 
-    Numeric err = max_error<Tensor3View>((*std::get<SSD>(habit[ind]).phase_matrix)[joker, 0, joker, joker],
+    Numeric err = max_error<StridedTensor3View>((*std::get<SSD>(habit[ind]).phase_matrix)[joker, 0, joker, joker],
                                          legacy_data[ind].pha_mat_data[0, joker, joker, 0, 0, 0, joker]);
     if (err > 0) {
       return false;
@@ -31,7 +31,7 @@ bool test_particle_habit_from_legacy_tro() {
       return false;
     }
 
-    err = max_error<MatrixView>(std::get<SSD>(habit[ind]).absorption_vector[joker, 0, joker],
+    err = max_error<StridedMatrixView>(std::get<SSD>(habit[ind]).absorption_vector[joker, 0, joker],
                                 legacy_data[ind].abs_vec_data[0, joker, 0, 0, joker]);
     if (err > 0) {
       return false;
@@ -45,9 +45,9 @@ int main() {
   std::cout << "Test conversion from legacy format (TRO): ";
   passed = test_particle_habit_from_legacy_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
   return 0;

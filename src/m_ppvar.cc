@@ -12,7 +12,6 @@
 #include "debug.h"
 #include "rtepack.h"
 #include "rtepack_mueller_matrix.h"
-#include "sorted_grid.h"
 
 void ray_path_spectral_radianceCalcTransmission(
     ArrayOfStokvecVector &ray_path_spectral_radiance,
@@ -41,7 +40,7 @@ void ray_path_spectral_radianceCalcTransmission(
       "ray_path_transmission_matrix_jacobian must (2 x np) elements")
 
   ARTS_USER_ERROR_IF(
-      spectral_radiance_background.size() != nf,
+      static_cast<Index>(spectral_radiance_background.size()) != nf,
       "spectral_radiance_background must have (nf) elements. Should have ({}"
       ") vs have ({})",
       nf,
@@ -53,7 +52,9 @@ void ray_path_spectral_radianceCalcTransmission(
     return;
   }
 
-  const auto test_nf = [nf](auto &v) { return v.size() != nf; };
+  const auto test_nf = [nf](auto &v) {
+    return static_cast<Index>(v.size()) != nf;
+  };
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_transmission_matrix.begin(),
                   ray_path_transmission_matrix.end(),
@@ -365,8 +366,10 @@ void ray_path_spectral_radianceCalcClearsky(
   const Index nq = ray_path_spectral_radiance_source_jacobian.front().nrows();
   const Index nf = ray_path_spectral_radiance_source_jacobian.front().ncols();
 
-  const auto test_nf = [nf](auto &v) { return v.size() != nf; };
-  ARTS_USER_ERROR_IF(nf != background_rad.size(),
+  const auto test_nf = [nf](auto &v) {
+    return static_cast<Index>(v.size()) != nf;
+  };
+  ARTS_USER_ERROR_IF(static_cast<Size>(nf) != background_rad.size(),
                      "background_rad must have nf elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_spectral_radiance_source.begin(),

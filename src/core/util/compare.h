@@ -23,7 +23,7 @@ constexpr auto ge(auto v) {
 
 //! Returns a 'not equal to' lambda expression for use in, e.g., std::any_of
 constexpr auto ne(auto v) {
-  return [v](const auto& x) { return x not_eq v; };
+  return [v](const auto& x) { return x != v; };
 }
 
 //! Returns an 'equal to' lambda expression for use in, e.g., std::any_of

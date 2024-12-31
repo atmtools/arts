@@ -18,8 +18,6 @@
 #include "atm.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
 #include "species.h"
 
 bool LineShape::modelparameterEmpty(const ModelParameters mp) noexcept {
@@ -629,7 +627,7 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   // Renormalize, if bath-species exist this is automatic.
   if (auto sl = sum(line_vmrs); sl == 0) {  // Special case
   } else if (bath) {
-    line_mass[n - 1] = (line_vmrs * line_mass) / sl;
+    line_mass[n - 1] = dot(line_vmrs, line_mass) / sl;
   }
 
   return line_mass;

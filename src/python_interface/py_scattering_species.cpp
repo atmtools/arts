@@ -24,7 +24,7 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
                                           scattering::Format::TRO,
                                           scattering::Representation::Gridded>;
 
-  py::class_<PMD, matpack::matpack_data<Scalar, 4>> s(m, class_name.c_str());
+  py::class_<PMD, matpack::data_t<Scalar, 4>> s(m, class_name.c_str());
   s.def(py::init<std::shared_ptr<const Vector>,
                  std::shared_ptr<const Vector>,
                  std::shared_ptr<const scattering::ZenithAngleGrid>>(),
@@ -40,7 +40,6 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
            &PMD::extract_forwardscatter_matrix,
            "Extract forward scatter matrix")
 
-      // Bind grid accessors
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
       .def("get_za_scat_grid",
@@ -74,7 +73,7 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m,
   using PMD = scattering::PhaseMatrixData<Scalar,
                                           scattering::Format::TRO,
                                           scattering::Representation::Spectral>;
-  py::class_<PMD, matpack::matpack_data<std::complex<Scalar>, 4>> s(
+  py::class_<PMD, matpack::data_t<std::complex<Scalar>, 4>> s(
       m, class_name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
@@ -113,7 +112,7 @@ template <typename Scalar, scattering::Representation repr>
 auto bind_absorption_vector_data_tro(py::module_& m, const std::string& name) {
   using AVD =
       scattering::AbsorptionVectorData<Scalar, scattering::Format::TRO, repr>;
-  py::class_<AVD, matpack::matpack_data<Scalar, 3>> s(m, name.c_str());
+  py::class_<AVD, matpack::data_t<Scalar, 3>> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
@@ -130,7 +129,7 @@ template <typename Scalar, scattering::Representation repr>
 auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
   using AVD =
       scattering::AbsorptionVectorData<Scalar, scattering::Format::ARO, repr>;
-  py::class_<AVD, matpack::matpack_data<Scalar, 4>> s(m, name.c_str());
+  py::class_<AVD, matpack::data_t<Scalar, 4>> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
@@ -154,7 +153,7 @@ template <typename Scalar, scattering::Representation repr>
 auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
   using EMD =
       scattering::ExtinctionMatrixData<Scalar, scattering::Format::TRO, repr>;
-  py::class_<EMD, matpack::matpack_data<Scalar, 3>> s(m, name.c_str());
+  py::class_<EMD, matpack::data_t<Scalar, 3>> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
@@ -176,7 +175,7 @@ template <typename Scalar, scattering::Representation repr>
 auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
   using EMD =
       scattering::ExtinctionMatrixData<Scalar, scattering::Format::ARO, repr>;
-  py::class_<EMD, matpack::matpack_data<Scalar, 4>> s(m, name.c_str());
+  py::class_<EMD, matpack::data_t<Scalar, 4>> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>,
@@ -330,10 +329,10 @@ void py_scattering_species(py::module_& m) try {
   // Modified gamma PSD
   //
 
-  //   using BulkScatteringPropertiesTROSpectral =
-  //       std::variant<scattering::BulkScatteringProperties<
-  //           scattering::Format::TRO,
-  //           scattering::Representation::Spectral>>;
+//   using BulkScatteringPropertiesTROSpectral =
+//       std::variant<scattering::BulkScatteringProperties<
+//           scattering::Format::TRO,
+//           scattering::Representation::Spectral>>;
   using BulkScatteringPropertiesTROGridded =
       std::variant<scattering::BulkScatteringProperties<
           scattering::Format::TRO,

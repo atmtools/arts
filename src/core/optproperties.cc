@@ -26,7 +26,6 @@
 #include <cfloat>
 #include <cmath>
 
-#include "check_input.h"
 #include "interpolation.h"
 
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
@@ -352,11 +351,12 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
           T_lag.emplace_back(this_T_interp_order);
         } else {
           if (grid_unchecked) {
-            chk_interpolation_grids(
-                "Temperature interpolation in pha_mat_1ScatElem",
+            LagrangeInterpolation::check(
                 T_grid,
-                T_array[Range(iT, 1)],
-                this_T_interp_order);
+                this_T_interp_order,
+                T_array[iT],
+                0.5,
+                "Temperature interpolation in pha_mat_1ScatElem");
             grid_unchecked = false;
           }
           T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order);
@@ -430,13 +430,13 @@ void opt_prop_1ScatElem(  //Output
   const Index nf = ext_mat.nshelves();
   ARTS_ASSERT(abs_vec.nbooks() == nf);
   if (nf > 1) {
-    ARTS_ASSERT(nf == ssd.f_grid.size());
+    ARTS_ASSERT(nf == static_cast<Index>(ssd.f_grid.size()));
   }
 
   const Index nTout = T_array.size();
   ARTS_ASSERT(ext_mat.nbooks() == nTout);
   ARTS_ASSERT(abs_vec.npages() == nTout);
-  ARTS_ASSERT(t_ok.size() == nTout);
+  ARTS_ASSERT(static_cast<Index>(t_ok.size()) == nTout);
 
   const Index nDir = dir_array.nrows();
   ARTS_ASSERT(ext_mat.npages() == nDir);
@@ -930,12 +930,12 @@ void pha_mat_1ScatElem(   //Output
 
   const Index nf = pha_mat.nvitrines();
   if (nf > 1) {
-    ARTS_ASSERT(nf == ssd.f_grid.size());
+    ARTS_ASSERT(static_cast<Size>(nf) == ssd.f_grid.size());
   }
 
   const Index nTout = T_array.size();
   ARTS_ASSERT(pha_mat.nshelves() == nTout);
-  ARTS_ASSERT(t_ok.size() == nTout);
+  ARTS_ASSERT(static_cast<Index>(t_ok.size()) == nTout);
 
   const Index npDir = pdir_array.nrows();
   ARTS_ASSERT(pha_mat.nbooks() == npDir);
@@ -1099,14 +1099,18 @@ void pha_mat_1ScatElem(   //Output
 
         for (Index ist1 = 0; ist1 < 4; ist1++)
           for (Index ist2 = 0; ist2 < 4; ist2++)
-            interp(
-                pha_mat_int[joker, ist1, ist2],
-                dir_itw,
-                ssd.pha_mat_data[
-                    find + f_start, 0, joker, joker, joker, 0, ist1 * 4 + ist2],
-                pza_gp,
-                daa_gp,
-                iza_gp);
+            interp(pha_mat_int[joker, ist1, ist2],
+                   dir_itw,
+                   ssd.pha_mat_data[find + f_start,
+                                    0,
+                                    joker,
+                                    joker,
+                                    joker,
+                                    0,
+                                    ist1 * 4 + ist2],
+                   pza_gp,
+                   daa_gp,
+                   iza_gp);
 
         // sort direction-combined 1D-array back into prop and incident
         // direction matrix
@@ -1454,7 +1458,7 @@ void pha_matTransform(  //Output
       //but it is compressed a little.  Details elsewhere.
       {
         ARTS_ASSERT(pha_mat_data.ncols() == 16);
-        ARTS_ASSERT(pha_mat_data.npages() == za_datagrid.size());
+        ARTS_ASSERT(pha_mat_data.npages() == za_datagrid.ncols());
         Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
                            (aa_sca - aa_inc > 180) *
                                360;  //delta_aa corresponds to the "books"
@@ -1470,159 +1474,135 @@ void pha_matTransform(  //Output
 
         interpweights(itw, za_sca_gp, delta_aa_gp, za_inc_gp);
 
-        pha_mat_lab[0, 0] =
-            interp(itw,
-                   pha_mat_data[joker, joker, joker, 0, 0],
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
+        pha_mat_lab[0, 0] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 0],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
 
-        pha_mat_lab[0, 1] =
-            interp(itw,
-                   pha_mat_data[joker, joker, joker, 0, 1],
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab[1, 0] =
-            interp(itw,
-                   pha_mat_data[joker, joker, joker, 0, 4],
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab[1, 1] =
-            interp(itw,
-                   pha_mat_data[joker, joker, joker, 0, 5],
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
+        pha_mat_lab[0, 1] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 1],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
+        pha_mat_lab[1, 0] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 4],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
+        pha_mat_lab[1, 1] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 5],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
 
         if (delta_aa >= 0) {
-          pha_mat_lab[0, 2] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 2],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[1, 2] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 6],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[2, 0] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 8],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[2, 1] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 9],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
+          pha_mat_lab[0, 2] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 2],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[1, 2] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 6],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[2, 0] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 8],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[2, 1] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 9],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
         } else {
-          pha_mat_lab[0, 2] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 2],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[1, 2] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 6],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[2, 0] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 8],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[2, 1] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 9],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
+          pha_mat_lab[0, 2] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 2],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[1, 2] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 6],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[2, 0] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 8],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[2, 1] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 9],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
         }
-        pha_mat_lab[2, 2] = interp(
-            itw,
-            pha_mat_data[joker, joker, joker, 0, 10],
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
+        pha_mat_lab[2, 2] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 10],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
 
         if (delta_aa >= 0) {
-          pha_mat_lab[0, 3] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 3],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[1, 3] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 7],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[3, 0] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 12],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[3, 1] = interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 13],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
+          pha_mat_lab[0, 3] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 3],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[1, 3] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 7],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[3, 0] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 12],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
+          pha_mat_lab[3, 1] = interp(itw,
+                                     pha_mat_data[joker, joker, joker, 0, 13],
+                                     za_sca_gp,
+                                     delta_aa_gp,
+                                     za_inc_gp);
         } else {
-          pha_mat_lab[0, 3] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 3],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[1, 3] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 7],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[3, 0] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 12],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
-          pha_mat_lab[3, 1] = -interp(
-              itw,
-              pha_mat_data[joker, joker, joker, 0, 13],
-              za_sca_gp,
-              delta_aa_gp,
-              za_inc_gp);
+          pha_mat_lab[0, 3] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 3],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[1, 3] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 7],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[3, 0] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 12],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
+          pha_mat_lab[3, 1] = -interp(itw,
+                                      pha_mat_data[joker, joker, joker, 0, 13],
+                                      za_sca_gp,
+                                      delta_aa_gp,
+                                      za_inc_gp);
         }
-        pha_mat_lab[2, 3] = interp(
-            itw,
-            pha_mat_data[joker, joker, joker, 0, 11],
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab[3, 2] = interp(
-            itw,
-            pha_mat_data[joker, joker, joker, 0, 14],
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab[3, 3] = interp(
-            itw,
-            pha_mat_data[joker, joker, joker, 0, 15],
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
+        pha_mat_lab[2, 3] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 11],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
+        pha_mat_lab[3, 2] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 14],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
+        pha_mat_lab[3, 3] = interp(itw,
+                                   pha_mat_data[joker, joker, joker, 0, 15],
+                                   za_sca_gp,
+                                   delta_aa_gp,
+                                   za_inc_gp);
         break;
       }
 
@@ -2131,31 +2111,58 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   os_ext_mat << "ext_mat ";
   std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
-  chk_size(os_pha_mat.str(),
-           ssd.pha_mat_data,
-           ssd.f_grid.size(),
-           ssd.T_grid.size(),
-           ssd.za_grid.size(),
-           ssd.aa_grid.size(),
-           ssd.za_grid.size() / 2 + 1,
-           1,
-           16);
 
-  chk_size(os_ext_mat.str(),
-           ssd.ext_mat_data,
-           ssd.f_grid.size(),
-           ssd.T_grid.size(),
-           ssd.za_grid.size() / 2 + 1,
-           1,
-           3);
+  ARTS_USER_ERROR_IF(
+      not same_shape<7>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()),
+                         static_cast<Index>(ssd.aa_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         16},
+                        ssd.pha_mat_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
+      os_pha_mat.str(),
+      ssd.f_grid.size(),
+      ssd.T_grid.size(),
+      ssd.za_grid.size(),
+      ssd.aa_grid.size(),
+      ssd.za_grid.size() / 2 + 1,
+      1,
+      16,
+      ssd.pha_mat_data.shape());
 
-  chk_size(os_abs_vec.str(),
-           ssd.abs_vec_data,
-           ssd.f_grid.size(),
-           ssd.T_grid.size(),
-           ssd.za_grid.size() / 2 + 1,
-           1,
-           2);
+  ARTS_USER_ERROR_IF(
+      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         3},
+                        ssd.ext_mat_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+      os_ext_mat.str(),
+      static_cast<Index>(ssd.f_grid.size()),
+      static_cast<Index>(ssd.T_grid.size()),
+      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      1,
+      3,
+      ssd.ext_mat_data.shape());
+
+  ARTS_USER_ERROR_IF(
+      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         2},
+                        ssd.abs_vec_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+      os_abs_vec.str(),
+      static_cast<Index>(ssd.f_grid.size()),
+      static_cast<Index>(ssd.T_grid.size()),
+      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      1,
+      2,
+      ssd.abs_vec_data.shape());
 
   // Now that we are sure that za_grid is properly symmetric, we just need to
   // copy over the data (ie no interpolation).
@@ -2191,8 +2198,8 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           ssd.za_grid.size(),
                           tmpT7.nrows(),
                           tmpT7.ncols());
-  ssd.pha_mat_data[
-      joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
+  ssd.pha_mat_data
+      [joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
 
   // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
   // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
@@ -2204,8 +2211,8 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // original data in both incident and scattered polar angle around 90deg "planes".
   for (Index i = 0; i < nza / 2; i++)
     for (Index j = 0; j < nza; j++)
-      ssd.pha_mat_data[
-          joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
+      ssd.pha_mat_data
+          [joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
           tmpT7[joker, joker, j, joker, i, joker, joker];
 }
 
@@ -2379,7 +2386,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
     if (nvals > 0) {
       // Temperature-only interpolation weights
       ArrayOfGridPos gp_t(nvals);
-      gridpos(gp_t, scat_data[ie].T_grid, T_values[Range(0, nvals)]);
+      gridpos(gp_t, scat_data[ie].T_grid, T_values[Range{0, nvals}]);
       Matrix itw1(nvals, 2);
       interpweights(itw1, gp_t);
 

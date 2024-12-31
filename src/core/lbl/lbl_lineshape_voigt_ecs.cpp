@@ -13,7 +13,6 @@
 #include "debug.h"
 #include "isotopologues.h"
 #include "lbl_lineshape_linemixing.h"
-#include "matpack_math.h"
 #include "partfun.h"
 #include "sorting.h"
 #include "species.h"
@@ -32,7 +31,7 @@ namespace makarov {
  */
 Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N);
 
-void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
+void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
@@ -49,7 +48,7 @@ Numeric reduced_dipole(const Rational Jf,
                        const Rational li,
                        const Rational k = 1);
 
-void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
+void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
@@ -59,7 +58,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const AtmPoint& atm);
 }  // namespace hartmann
 
-ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
+ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
                          const zeeman::pol pol)
@@ -103,7 +102,7 @@ void ComputeData::core_calc_eqv() {
   const auto n = pop.size();
   const auto m = vmrs.size();
 
-  for (Index k = 0; k < m; k++) {
+  for (Size k = 0; k < m; k++) {
     auto V = Vs[k];
     auto W = Ws[k];
     inplace_transpose(W);
@@ -113,17 +112,17 @@ void ComputeData::core_calc_eqv() {
     diagonalize(V, eqv_val, W);
 
     // Do the matrix forward multiplication
-    for (Index i = 0; i < n; i++) {
-      for (Index j = 0; j < n; j++) {
+    for (Size i = 0; i < n; i++) {
+      for (Size j = 0; j < n; j++) {
         eqv_str[i] += dip[j] * V[j, i];
       }
     }
 
     // Do the matrix backward multiplication
     inv(V, V);
-    for (Index i = 0; i < n; i++) {
+    for (Size i = 0; i < n; i++) {
       Complex z(0, 0);
-      for (Index j = 0; j < n; j++) {
+      for (Size j = 0; j < n; j++) {
         z += pop[j] * dip[j] * V[i, j];
       }
       eqv_str[i] *= z;
@@ -131,18 +130,18 @@ void ComputeData::core_calc_eqv() {
   }
 }
 
-void ComputeData::core_calc(const ExhaustiveConstVectorView& f_grid) {
+void ComputeData::core_calc(const ConstVectorView& f_grid) {
   core_calc_eqv();
 
   const auto m = vmrs.size();
   const auto n = f_grid.size();
   shape = 0;
 
-  for (Index k = 0; k < m; k++) {
-    for (Index i = 0; i < eqv_strs[k].size(); i++) {
+  for (Size k = 0; k < m; k++) {
+    for (Size i = 0; i < eqv_strs[k].size(); i++) {
       const Numeric gamd = gd_fac * eqv_vals[k][i].real();
       const Numeric cte = Constant::sqrt_ln_2 / gamd;
-      for (Index iv = 0; iv < n; iv++) {
+      for (Size iv = 0; iv < n; iv++) {
         const Complex z = (eqv_vals[k][i] - f_grid[iv]) * cte;
         const Complex w = Faddeeva::w(z);
         shape[iv] += vmrs[k] * eqv_strs[k][i] * w / gamd;
@@ -415,10 +414,11 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   }
 }
 
-void calculate(PropmatVectorView pm,
-               matpack::matpack_view<Propmat, 2, false, true>,
+void calculate(PropmatVectorView pm_,
+               PropmatMatrixView,
                ComputeData& com_data,
-               const ExhaustiveConstVectorView& f_grid,
+               const ConstVectorView f_grid_,
+               const Range& f_range,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -433,6 +433,9 @@ void calculate(PropmatVectorView pm,
         "Zeeman effect and ECS in combination is not yet possible.")
     return;
   }
+
+  PropmatVectorView pm = pm_[f_range];
+  const ConstVectorView f_grid = f_grid_[f_range];
 
   ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
                      "No Jacobian support.")
@@ -449,7 +452,7 @@ void calculate(PropmatVectorView pm,
 
   com_data.core_calc(f_grid);
 
-  for (Index i = 0; i < f_grid.size(); ++i) {
+  for (Size i = 0; i < f_grid.size(); ++i) {
     const auto F = Constant::sqrt_ln_2 / Constant::sqrt_pi *
                    atm[bnd_qid.Species()] * atm[bnd_qid.Isotopologue()] *
                    com_data.scl[i] * com_data.shape[i];
@@ -458,8 +461,8 @@ void calculate(PropmatVectorView pm,
   }
 }
 
-void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
-                       ExhaustiveComplexTensor3View eqv_val,
+void equivalent_values(ComplexTensor3View eqv_str,
+                       ComplexTensor3View eqv_val,
                        ComputeData& com_data,
                        const QuantumIdentifier& bnd_qid,
                        const band_data& bnd,
@@ -471,7 +474,7 @@ void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
 
   ARTS_USER_ERROR_IF(eqv_val.shape() != eqv_val.shape(),
                      "eqv_str and eqv_val must have the same shape.")
-  ARTS_USER_ERROR_IF(T.size() != k,
+  ARTS_USER_ERROR_IF(T.size() != static_cast<Size>(k),
                      "T must have the same size as eqv_str pages.")
   ARTS_USER_ERROR_IF(bnd.size() != static_cast<Size>(m),
                      "bnd must have the same size as eqv_str cols.")

@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include "lbl_zeeman.h"
-#include "py_macros.h"
 #include "python_interface.h"
 
 NB_MAKE_OPAQUE(lbl::zeeman::pol)
@@ -134,12 +133,6 @@ void py_zeeman(py::module_& m) try {
       .def_prop_ro("deta_dw",
                    &lbl::zeeman::magnetic_angles::deta_dw,
                    "Derivative of eta with respect to w")
-      .def("__repr__",
-           [](const lbl::zeeman::magnetic_angles& m) {
-             std::ostringstream os;
-             os << m;
-             return std::string{os.str()};
-           })
       .doc() =
       "Magnetic angles for the Zeeman effect, note that the numbers are in radians.";
 

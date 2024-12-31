@@ -109,7 +109,7 @@ public:
     return ptr[ind];
   }
   
-  /*! Friendly stream operator */
+  /*! Fri'\n'y stream operator */
   friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
     const std::size_t nel = g.size();
     for (std::size_t i = 0; i < nel; i++) {
@@ -184,7 +184,7 @@ public:
     return ptr[ind];
   }
   
-  /*! Friendly stream operator */
+  /*! Fri'\n'y stream operator */
   friend std::ostream& operator<<(std::ostream& os, const FixedGrid& g) {
     constexpr std::size_t nel = mul(Sizes...);
     constexpr std::size_t last_of = (std::array<std::size_t, N>{std::size_t(Sizes)...}).back();

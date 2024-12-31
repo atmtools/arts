@@ -36,7 +36,7 @@
 
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
-#include "matpack/matpack_data.h"
+#include "matpack/matpack.h"
 
 namespace scattering {
 
@@ -178,9 +178,9 @@ std::complex<Scalar> refr_index_ice_matzler06(Scalar frequency,
 }
 
 template <typename Scalar>
-using VectorGen = matpack::matpack_data<Scalar, 1>;
+using VectorGen = matpack::data_t<Scalar, 1>;
 template <typename Scalar>
-using MatrixGen = matpack::matpack_data<Scalar, 2>;
+using MatrixGen = matpack::data_t<Scalar, 2>;
 
 /** Calculation of the log-derivative using downward recursion.
  *

@@ -15,8 +15,7 @@
 
 #include <array.h>
 
-#include "matpack_data.h"
-#include "matpack_math.h"
+#include "matpack_mdspan.h"
 
 Numeric fac(const Index n);
 
@@ -181,14 +180,6 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
  * @param x Vector evaluation points
  */
 void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x);
-
-/** Checks for negative values */
-template <typename MatpackType>
-constexpr bool any_negative(const MatpackType& var) noexcept {
-  if (var.empty()) return false;
-  if (min(var) < 0) return true;
-  return false;
-}
 
 /** Computes std::pow(-1, x) without std::pow
  * 

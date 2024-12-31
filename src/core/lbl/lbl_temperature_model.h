@@ -132,20 +132,20 @@ Numeric dDPL_dT0(
 Numeric dDPL_dT(
     Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
 
-Numeric POLY(const ExhaustiveConstVectorView& x, Numeric T);
-constexpr Numeric dPOLY_dX0(const ExhaustiveConstVectorView&, Numeric) {
+Numeric POLY(const ConstVectorView& x, Numeric T);
+constexpr Numeric dPOLY_dX0(const ConstVectorView&, Numeric) {
   return 1.0;
 }
-constexpr Numeric dPOLY_dX1(const ExhaustiveConstVectorView&, Numeric T) {
+constexpr Numeric dPOLY_dX1(const ConstVectorView&, Numeric T) {
   return T;
 }
-constexpr Numeric dPOLY_dX2(const ExhaustiveConstVectorView&, Numeric T) {
+constexpr Numeric dPOLY_dX2(const ConstVectorView&, Numeric T) {
   return T * T;
 }
-constexpr Numeric dPOLY_dX3(const ExhaustiveConstVectorView&, Numeric T) {
+constexpr Numeric dPOLY_dX3(const ConstVectorView&, Numeric T) {
   return T * T * T;
 }
-Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T);
+Numeric dPOLY_dT(const ConstVectorView& x, Numeric T);
 EMPTY(POLY, T0)
 
 #undef EMPTY
@@ -161,7 +161,6 @@ class data {
   [[nodiscard]] Numeric& X(LineShapeModelCoefficient);
   [[nodiscard]] const Numeric& X(LineShapeModelCoefficient) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
   constexpr data(LineShapeModelType type = LineShapeModelType::T0,

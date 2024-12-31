@@ -5,9 +5,9 @@
 #include <matpack.h>
 
 #include <algorithm>
+#include <iosfwd>
 #include <limits>
 #include <mutex>
-#include <iosfwd>
 #include <random>
 #include <vector>
 
@@ -34,7 +34,7 @@ class RandomNumberGenerator {
   // Keep the seed so we can "copy" the RandomNumberGenerator
   int_t current_seed;
 
-public:
+ public:
   /** Construct a new Random Number Generator object
    *
    * @param t Time, defaults to the time when the object was initiated
@@ -97,11 +97,11 @@ public:
    * @param x The parameters to construct the random_distribution
    * @return auto A callable generator of random numbers
    */
-  template <template <typename>
-            class random_distribution = std::uniform_real_distribution,
+  template <template <typename> class random_distribution =
+                std::uniform_real_distribution,
             typename... Ts>
   auto get(Ts &&...x) const {
-    return [nv = new_generator(),
+    return [nv   = new_generator(),
             draw = random_distribution(std::forward<Ts>(x)...)]() mutable {
       return draw(nv);
     };
@@ -137,15 +137,14 @@ public:
       seed_as_is = false;
 
       auto minmax = std::minmax_element(seeds.begin(), seeds.end());
-      int_t min = *minmax.first;
-      int_t max = *minmax.second;
+      int_t min   = *minmax.first;
+      int_t max   = *minmax.second;
 
       if (min not_eq min_v) {
         n = add_one(max);
       } else if (static_cast<std::size_t>(max - min) <= seeds.size()) {
         n = add_one(max);
-        if (n == min)
-          seeds.clear();
+        if (n == min) seeds.clear();
       } else {
         do {
           n = add_one(n);
@@ -196,21 +195,23 @@ public:
  * @tparam Generator As for RandomNumberGenerator
  * @param sz Size of output matpack data
  * @param x The parameters passed to get_par<>(x...)
- * @return matpack_data A new object of random numbers of size sz
+ * @return data_t A new object of random numbers of size sz
  */
 template <std::size_t N,
-          template <typename>
-          class random_distribution = std::uniform_real_distribution,
+          template <typename> class random_distribution =
+              std::uniform_real_distribution,
           std::uniform_random_bit_generator Generator = std::mt19937_64,
-          typename... param_types, class RNG = RandomNumberGenerator<Generator>,
-          class T = decltype(RNG{}.template get<random_distribution>(
+          typename... param_types,
+          class RNG = RandomNumberGenerator<Generator>,
+          class T   = decltype(RNG{}.template get<random_distribution>(
               param_types{}...)())>
-matpack::matpack_data<T, N> random_numbers(std::array<Index, N> sz,
-                                           param_types &&...x) {
-  matpack::matpack_data<T, N> out(sz);
-  std::generate(out.elem_begin(), out.elem_end(),
-                RNG{}.template get<random_distribution>(
-                    std::forward<param_types>(x)...));
+matpack::data_t<T, N> random_numbers(std::array<Index, N> sz,
+                                     param_types &&...x) {
+  matpack::data_t<T, N> out(sz);
+  std::generate(
+      out.elem_begin(),
+      out.elem_end(),
+      RNG{}.template get<random_distribution>(std::forward<param_types>(x)...));
   return out;
 }
 
@@ -218,8 +219,8 @@ matpack::matpack_data<T, N> random_numbers(std::array<Index, N> sz,
  *
  * See random_numbers above for more details
  */
-template <template <typename>
-          class random_distribution = std::uniform_real_distribution,
+template <template <typename> class random_distribution =
+              std::uniform_real_distribution,
           std::uniform_random_bit_generator Generator = std::mt19937_64,
           typename... param_types>
 auto random_numbers(Index n, param_types &&...x) {

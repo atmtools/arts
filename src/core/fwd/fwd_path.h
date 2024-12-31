@@ -13,8 +13,6 @@ struct path {
   Numeric lat_weight;
   Numeric lon_weight;
   Numeric distance;  //! From the past point to this point
-
-  friend std::ostream& operator<<(std::ostream&, const path&);
 };
 
 std::vector<path> geometric_planar(const Vector3 pos,
@@ -37,6 +35,4 @@ std::vector<path> path_from_propagation_path(
     const AscendingGrid& lat,
     const AscendingGrid& lon,
     const Vector2 ellipsoid);
-
-std::ostream& operator<<(std::ostream&, const std::vector<path>&);
 }  // namespace fwd

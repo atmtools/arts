@@ -10,7 +10,7 @@
 Array<Timing> test_sum(Index N) {
   Numeric X;
   Vector a(N, 1);
-  auto b = static_cast<ExhaustiveVectorView>(a);
+  auto b = static_cast<VectorView>(a);
   VectorView c = a;
 
   Array<Numeric> results_;
@@ -22,7 +22,7 @@ Array<Timing> test_sum(Index N) {
   out.emplace_back("sum(Vector)")([&]() { X = sum(a); });
   results_.push_back(X);
 
-  out.emplace_back("sum(ExhaustiveVectorView)")([&]() { X = sum(b); });
+  out.emplace_back("sum(VectorView)")([&]() { X = sum(b); });
   results_.push_back(X);
 
   out.emplace_back("sum(VectorView)")([&]() { X = sum(c); });
@@ -31,7 +31,7 @@ Array<Timing> test_sum(Index N) {
   out.emplace_back("mean(Vector)")([&]() { X = mean(a); });
   results_.push_back(X);
 
-  out.emplace_back("mean(ExhaustiveVectorView)")([&]() { X = mean(b); });
+  out.emplace_back("mean(VectorView)")([&]() { X = mean(b); });
   results_.push_back(X);
 
   out.emplace_back("mean(VectorView)")([&]() { X = mean(c); });
@@ -40,7 +40,7 @@ Array<Timing> test_sum(Index N) {
   out.emplace_back("nanmean(Vector)")([&]() { X = nanmean(a); });
   results_.push_back(X);
 
-  out.emplace_back("nanmean(ExhaustiveVectorView)")([&]() { X = nanmean(b); });
+  out.emplace_back("nanmean(VectorView)")([&]() { X = nanmean(b); });
   results_.push_back(X);
 
   out.emplace_back("nanmean(VectorView)")([&]() { X = nanmean(c); });
@@ -55,8 +55,8 @@ Array<Timing> test_dot(Index N) {
   Vector a(N, 1);
   Vector b(N, 1);
 
-  auto ae = static_cast<ExhaustiveVectorView>(a);
-  auto be = static_cast<ExhaustiveVectorView>(b);
+  auto ae = static_cast<VectorView>(a);
+  auto be = static_cast<VectorView>(b);
 
   VectorView av = a;
   VectorView bv = b;
@@ -65,16 +65,16 @@ Array<Timing> test_dot(Index N) {
   Array<Timing> out;
 
   Numeric X;
-  { X = a * b + a * b + a * b + a * b + a * b + a * b; };
+  { X = dot(a , b) + dot(a, b) + dot(a, b) + dot(a, b) + dot(a, b) + dot(a, b); };
   results_.push_back(X);
 
-  out.emplace_back("Vector*Vector")([&]() { X = a * b; });
+  out.emplace_back("Vector*Vector")([&]() { X = dot(a, b); });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView*ExhaustiveVectorView")([&]() { X = ae * be; });
+  out.emplace_back("VectorView*VectorView")([&]() { X = dot(ae, be); });
   results_.push_back(X);
 
-  out.emplace_back("VectorView*VectorView")([&]() { X = av * bv; });
+  out.emplace_back("VectorView*VectorView")([&]() { X = dot(av, bv); });
   results_.push_back(X);
 
   out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
@@ -87,9 +87,9 @@ Array<Timing> test_Vector_mult(Index N) {
   Matrix A(N, N, 1);
   Vector y(N, 1);
 
-  auto xe = static_cast<ExhaustiveVectorView>(x);
-  MatrixView Ae = static_cast<ExhaustiveMatrixView>(A);
-  auto ye = static_cast<ExhaustiveVectorView>(y);
+  auto xe = static_cast<VectorView>(x);
+  MatrixView Ae = static_cast<MatrixView>(A);
+  auto ye = static_cast<VectorView>(y);
 
   VectorView xv = x;
   MatrixView Av = A;
@@ -119,7 +119,7 @@ Array<Timing> test_Vector_mult(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("mult(ExhaustiveVectorView,ExhaustiveMatrixView,ExhaustiveVectorView)")([&]() {
+  out.emplace_back("mult(VectorView,MatrixView,VectorView)")([&]() {
     mult(xe, Ae, ye);
     X = xe[0] + xe[N - 1];
   });
@@ -138,9 +138,9 @@ Array<Timing> test_Vector_mult(Index N) {
 
 Array<Timing> test_Matrix_multiply(Index N) {
   Matrix A(N, N), C(N, N, 1), B(N, N, 1);
-  auto Ae = static_cast<ExhaustiveMatrixView>(A),
-       Be = static_cast<ExhaustiveMatrixView>(B),
-       Ce = static_cast<ExhaustiveMatrixView>(C);
+  auto Ae = static_cast<MatrixView>(A),
+       Be = static_cast<MatrixView>(B),
+       Ce = static_cast<MatrixView>(C);
   MatrixView Av = A, Bv = B, Cv = C;
 
   Array<Numeric> results_;
@@ -162,7 +162,7 @@ Array<Timing> test_Matrix_multiply(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("mult(ExhaustiveMatrixView,ExhaustiveMatrixView,ExhaustiveMatrixView)")([&]() {
+  out.emplace_back("mult(MatrixView,MatrixView,MatrixView)")([&]() {
     mult(Ae, Be, Ce);
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -181,7 +181,7 @@ Array<Timing> test_Matrix_multiply(Index N) {
 
 Array<Timing> test_elementary_ops_Vector(Index N) {
   Vector A(N, 1);
-  auto Ae = static_cast<ExhaustiveVectorView>(A);
+  auto Ae = static_cast<VectorView>(A);
   VectorView Av = A;
 
   Array<Numeric> results_;
@@ -204,7 +204,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator=(Numeric)")([&]() {
+  out.emplace_back("VectorView::operator=(Numeric)")([&]() {
     Ae = 1;
     X = Ae[0] + Ae[N - 1];
   });
@@ -222,7 +222,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator+=(Numeric)")([&]() {
+  out.emplace_back("VectorView::operator+=(Numeric)")([&]() {
     Ae += 1.33;
     X = Ae[0] + Ae[N - 1];
   });
@@ -240,7 +240,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator-=(Numeric)")([&]() {
+  out.emplace_back("VectorView::operator-=(Numeric)")([&]() {
     Ae -= 1.5;
     X = Ae[0] + Ae[N - 1];
   });
@@ -258,7 +258,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator*=(Numeric)")([&]() {
+  out.emplace_back("VectorView::operator*=(Numeric)")([&]() {
     Ae *= 3.5;
     X = Ae[0] + Ae[N - 1];
   });
@@ -276,7 +276,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator/=(Numeric)")([&]() {
+  out.emplace_back("VectorView::operator/=(Numeric)")([&]() {
     Ae /= 7.77;
     X = Ae[0] + Ae[N - 1];
   });
@@ -295,7 +295,7 @@ Array<Timing> test_elementary_ops_Vector(Index N) {
 
 Array<Timing> test_elementary_ops_Matrix(Index N) {
   Matrix A(N, N, 1);
-  auto Ae = static_cast<ExhaustiveMatrixView>(A);
+  auto Ae = static_cast<MatrixView>(A);
   MatrixView Av = A;
 
   Array<Numeric> results_;
@@ -318,7 +318,7 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator=(Numeric)")([&]() {
+  out.emplace_back("MatrixView::operator=(Numeric)")([&]() {
     Ae = 1;
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -336,7 +336,7 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator+=(Numeric)")([&]() {
+  out.emplace_back("MatrixView::operator+=(Numeric)")([&]() {
     Ae += 1.33;
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -354,7 +354,7 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator-=(Numeric)")([&]() {
+  out.emplace_back("MatrixView::operator-=(Numeric)")([&]() {
     Ae -= 1.5;
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -372,7 +372,7 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator*=(Numeric)")([&]() {
+  out.emplace_back("MatrixView::operator*=(Numeric)")([&]() {
     Ae *= 3.5;
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -390,7 +390,7 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator/=(Numeric)")([&]() {
+  out.emplace_back("MatrixView::operator/=(Numeric)")([&]() {
     Ae /= 7.77;
     X = Ae[0, 0] + Ae[N - 1, N - 1];
   });
@@ -410,8 +410,8 @@ Array<Timing> test_elementary_ops_Matrix(Index N) {
 Array<Timing> test_ops_Vector(Index N) {
   Vector a(N, 1.1);
   Vector b(N, 2.2);
-  auto ae = static_cast<ExhaustiveVectorView>(a);
-  auto be = static_cast<ExhaustiveVectorView>(b);
+  auto ae = static_cast<VectorView>(a);
+  auto be = static_cast<VectorView>(b);
   VectorView av = a;
   VectorView bv = b;
 
@@ -434,7 +434,7 @@ Array<Timing> test_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator+=(ExhaustiveVectorView)")([&]() {
+  out.emplace_back("VectorView::operator+=(VectorView)")([&]() {
     ae += be;
     X = ae[0] + ae[N - 1];
   });
@@ -452,7 +452,7 @@ Array<Timing> test_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator-=(ExhaustiveVectorView)")([&]() {
+  out.emplace_back("VectorView::operator-=(VectorView)")([&]() {
     ae -= be;
     X = ae[0] + ae[N - 1];
   });
@@ -470,7 +470,7 @@ Array<Timing> test_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator*=(ExhaustiveVectorView)")([&]() {
+  out.emplace_back("VectorView::operator*=(VectorView)")([&]() {
     ae *= be;
     X = ae[0] + ae[N - 1];
   });
@@ -488,7 +488,7 @@ Array<Timing> test_ops_Vector(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveVectorView::operator/=(ExhaustiveVectorView)")([&]() {
+  out.emplace_back("VectorView::operator/=(VectorView)")([&]() {
     ae /= be;
     X = ae[0] + ae[N - 1];
   });
@@ -508,8 +508,8 @@ Array<Timing> test_ops_Vector(Index N) {
 Array<Timing> test_ops_Matrix(Index N) {
   Matrix a(N, N, 1.1);
   Matrix b(N, N, 2.2);
-  auto ae = static_cast<ExhaustiveMatrixView>(a);
-  auto be = static_cast<ExhaustiveMatrixView>(b);
+  auto ae = static_cast<MatrixView>(a);
+  auto be = static_cast<MatrixView>(b);
   MatrixView av = a;
   MatrixView bv = b;
 
@@ -532,7 +532,7 @@ Array<Timing> test_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator+=(ExhaustiveMatrixView)")([&]() {
+  out.emplace_back("MatrixView::operator+=(MatrixView)")([&]() {
     ae += be;
     X = ae[0, 0] + ae[N - 1, N - 1];
   });
@@ -550,7 +550,7 @@ Array<Timing> test_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator-=(ExhaustiveMatrixView)")([&]() {
+  out.emplace_back("MatrixView::operator-=(MatrixView)")([&]() {
     ae -= be;
     X = ae[0, 0] + ae[N - 1, N - 1];
   });
@@ -568,7 +568,7 @@ Array<Timing> test_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator*=(ExhaustiveMatrixView)")([&]() {
+  out.emplace_back("MatrixView::operator*=(MatrixView)")([&]() {
     ae *= be;
     X = ae[0, 0] + ae[N - 1, N - 1];
   });
@@ -586,7 +586,7 @@ Array<Timing> test_ops_Matrix(Index N) {
   });
   results_.push_back(X);
 
-  out.emplace_back("ExhaustiveMatrixView::operator/=(ExhaustiveMatrixView)")([&]() {
+  out.emplace_back("MatrixView::operator/=(MatrixView)")([&]() {
     ae /= be;
     X = ae[0, 0] + ae[N - 1, N - 1];
   });

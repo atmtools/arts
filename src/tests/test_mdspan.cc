@@ -1,3 +1,5 @@
+#include <debug.h>
+
 #include <algorithm>
 #include <complex>
 #include <cstdint>
@@ -6,321 +8,472 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <ranges>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
 
-#include "artstime/artstime.h"
-#include "debug.h"
-#include "interp.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "matpack_algo.h"
-#include "matpack_arrays.h"
-#include "matpack_complex.h"
-#include "matpack_concepts.h"
-#include "matpack_constexpr.h"
-#include "matpack_data.h"
-#include "matpack_eigen.h"
-#include "matpack_einsum.h"
-#include "matpack_iter.h"
-#include "matpack_math.h"
-#include "matpack_view.h"
-#include "sorted_grid.h"
+#include "matpack.h"
+#include "matpack_mdspan_helpers.h"
+#include "matpack_mdspan_helpers_eigen.h"
+#include "matpack_mdspan_helpers_vector.h"
 
+namespace {
 void test_view() {
-  //! Simply test that some standard operators work
   {
-    std::vector<Numeric> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ConstTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{
-        x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    for (Index i = 0; i < 2; i++) {
-      [[maybe_unused]] auto g =
-          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
-      [[maybe_unused]] auto h = y[i][i][i];
-      static_assert(std::same_as<decltype(g), decltype(h)>);
-      static_assert(std::same_as<decltype(g), Numeric>);
-    }
+    Vector x{1, 2, 3, 4, 5, 6, 7, 8};
 
-    Numeric d = 1.0;
-    for (auto a : y)
-      for (auto b : a)
-        for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
-          d += 1.0;
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0 and x[4] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+
+    VectorView v = x[Range(0, 3)];
+    v            = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0 and x[4] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(&x[2] != &v[2], "Pointing error (Vector and views)");
+  }
+
+  {
+    Vector x{1, 2, 3, 4, 5, 6, 7, 8};
+
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0 and x[4] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+
+    StridedVectorView v = x[StridedRange(0, 3, 2)];
+    v                   = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0 and x[4] == 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(&x[2] != &v[1],
+                       "Pointing error (Vector and strided views)");
+  }
+
+  {
+    std::array<Index, 3> exts{5, 5, 5};
+    const Size N = matpack::mdsize(exts);
+    Tensor3 x    = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    Tensor3View v = x[Range(0, 3)];
+    v             = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(),
+                       "Pointing error (Tensor3 and views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
+                       "Pointing error (Tensor3 and views)");
+  }
+
+  {
+    std::array<Index, 3> exts{5, 5, 5};
+    const Size N = matpack::mdsize(exts);
+    Tensor3 x    = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    StridedTensor3View v = x[StridedRange(0, 3, 2)];
+    v                    = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[1].base::data_handle(),
+                       "Pointing error (Tensor3 and strided views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
+                       "Pointing error (Tensor3 and strided views)");
+  }
+
+  {
+    std::array<Index, 3> exts{5, 5, 5};
+    const Size N = matpack::mdsize(exts);
+    Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    ComplexTensor3 x(xt.shape());
+    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    ComplexTensor3View v = x[Range(0, 2)];
+    v                    = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(),
+                       "Pointing error (ComplexTensor3 and views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
+                       "Pointing error (ComplexTensor3 and views)");
+  }
+
+  {
+    std::array<Index, 3> exts{5, 5, 5};
+    const Size N = matpack::mdsize(exts);
+    Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    ComplexTensor3 x(xt.shape());
+    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    StridedComplexTensor3View v = x[StridedRange(0, 2, 2)];
+    v                           = 0;
+
+    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
+    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[1].base::data_handle(),
+                       "Pointing error (ComplexTensor3 and views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
+                       "Pointing error (ComplexTensor3 and views)");
+  }
+
+  {
+    std::array<Index, 3> exts{5, 5, 5};
+    const Size N = matpack::mdsize(exts);
+    ComplexTensor3 x(matpack::uniform_grid(1, N, 1.0).reshape(exts),
+                     matpack::uniform_grid(2, N, 1.0).reshape(exts));
+    StridedTensor3View xr{x.real()};
+    StridedTensor3View xi{x.imag()};
+
+    ARTS_USER_ERROR_IF(not(xr[0] != 0 and xr[2] != 0), "real {:B}", x);
+    ARTS_USER_ERROR_IF(not(xr[1] != 0 and xr[3] != 0), "real {:B}", x);
+    ARTS_USER_ERROR_IF(not(xi[0] != 0 and xi[2] != 0), "imag {:B}", x);
+    ARTS_USER_ERROR_IF(not(xi[1] != 0 and xi[3] != 0), "imag {:B}", x);
+
+    xr[StridedRange(0, 2, 2)] = 0;
+    xi[StridedRange(1, 2, 2)] = 0;
+
+    ARTS_USER_ERROR_IF(not(xr[0] == 0 and xr[2] == 0), "real {:B}", x);
+    ARTS_USER_ERROR_IF(not(xr[1] != 0 and xr[3] != 0), "real {:B}", x);
+    ARTS_USER_ERROR_IF(not(xi[0] != 0 and xi[2] != 0), "imag {:B}", x);
+    ARTS_USER_ERROR_IF(not(xi[1] == 0 and xi[3] == 0), "imag {:B}", x);
+
+    ARTS_USER_ERROR_IF(xr[2].base::data_handle() !=
+                           xr[StridedRange(0, 3, 2)][1].base::data_handle(),
+                       "Pointing error (ComplexTensor3 real views)");
+
+    ARTS_USER_ERROR_IF(xi[2].base::data_handle() !=
+                           xi[StridedRange(0, 3, 2)][1].base::data_handle(),
+                       "Pointing error (ComplexTensor3 imag views)");
+  }
+
+  for (Index RIJ = 0; RIJ < 5; RIJ++) {
+    for (Index RIK = 0; RIK < 5; RIK++) {
+      for (Index IIJ = 0; IIJ < 5; IIJ++) {
+        for (Index IIK = 0; IIK < 5; IIK++) {
+          std::array<Index, 3> exts{5, 5, 5};
+          const Size N = matpack::mdsize(exts);
+          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3 x(xt.shape());
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+          StridedTensor3View xr{x.real()};
+          StridedTensor3View xi{x.imag()};
+          ComplexTensor3 y(xr, xi);
+
+          xr[joker, RIJ, RIK] = 0;
+          xi[joker, IIJ, IIK] = 0;
+
+          for (Index i = 0; i < 5; i++) {
+            for (Index j = 0; j < 5; j++) {
+              for (Index k = 0; k < 5; k++) {
+                const bool r_zero = (j == RIJ and k == RIK);
+                const bool i_zero = (j == IIJ and k == IIK);
+
+                Complex c{r_zero ? 0 : y[i, j, k].real(),
+                          i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF(
+                    (x[i, j, k] != c),
+                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                    i,
+                    j,
+                    k,
+                    x[i, j, k],
+                    c);
+              }
+            }
+          }
         }
-  }
-
-  //! Simply test that some standard operators work
-  {
-    std::vector<Numeric> x{1, 2, 3, 4, 5, 6, 7, 8};
-    Tensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{
-        x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    for (Index i = 0; i < 2; i++) {
-      [[maybe_unused]] auto& g =
-          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
-      [[maybe_unused]] auto& h = y[i][i][i];
-      static_assert(std::same_as<decltype(g), decltype(h)>);
-      static_assert(std::same_as<decltype(g), Numeric&>);
+      }
     }
-
-    Numeric d = 1.0;
-    for (const auto& a : y)
-      for (auto b : a)
-        for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
-          d += 1.0;
-        }
   }
 
-  //! Simply test that some standard operators work
-  {
-    std::vector<Numeric> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ExhaustiveConstTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{
-        x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    for (Index i = 0; i < 2; i++) {
-      [[maybe_unused]] auto g =
-          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
-      [[maybe_unused]] auto h = y[i][i][i];
-      static_assert(std::same_as<decltype(g), decltype(h)>);
-      static_assert(std::same_as<decltype(g), Numeric>);
+  for (Index RII = 0; RII < 5; RII++) {
+    for (Index RIK = 0; RIK < 5; RIK++) {
+      for (Index III = 0; III < 5; III++) {
+        for (Index IIK = 0; IIK < 5; IIK++) {
+          std::array<Index, 3> exts{5, 5, 5};
+          const Size N = matpack::mdsize(exts);
+          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3 x(xt.shape());
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+          auto xr{x.real()};
+          auto xi{x.imag()};
+          ComplexTensor3 y(xr, xi);
+
+          xr[RII, joker, RIK] = 0;
+          xi[III, joker, IIK] = 0;
+
+          for (Index i = 0; i < 5; i++) {
+            for (Index j = 0; j < 5; j++) {
+              for (Index k = 0; k < 5; k++) {
+                const bool r_zero = (i == RII and k == RIK);
+                const bool i_zero = (i == III and k == IIK);
+
+                Complex c{r_zero ? 0 : y[i, j, k].real(),
+                          i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF(
+                    (x[i, j, k] != c),
+                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                    i,
+                    j,
+                    k,
+                    x[i, j, k],
+                    c);
+              }
+            }
+          }
+        }
+      }
     }
-
-    Numeric d = 1.0;
-    for (auto a : y)
-      for (auto b : a)
-        for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
-          d += 1.0;
-        }
   }
 
-  //! Simply test that some standard operators work
-  {
-    std::vector<Numeric> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ExhaustiveTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{
-        x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    for (Index i = 0; i < 2; i++) {
-      [[maybe_unused]] auto& g =
-          y[i, joker, matpack::matpack_strided_access{joker}][i, i];
-      [[maybe_unused]] auto& h = y[i][i][i];
-      static_assert(std::same_as<decltype(g), decltype(h)>);
-      static_assert(std::same_as<decltype(g), Numeric&>);
+  for (Index RII = 0; RII < 5; RII++) {
+    for (Index RIJ = 0; RIJ < 5; RIJ++) {
+      for (Index III = 0; III < 5; III++) {
+        for (Index IIJ = 0; IIJ < 5; IIJ++) {
+          std::array<Index, 3> exts{5, 5, 5};
+          const Size N = matpack::mdsize(exts);
+          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3 x(xt.shape());
+          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+          auto xr{x.real()};
+          auto xi{x.imag()};
+          ComplexTensor3 y(xr, xi);
+
+          xr[RII, RIJ, joker] = 0;
+          xi[III, IIJ, joker] = 0;
+
+          for (Index i = 0; i < 5; i++) {
+            for (Index j = 0; j < 5; j++) {
+              for (Index k = 0; k < 5; k++) {
+                const bool r_zero = (i == RII and j == RIJ);
+                const bool i_zero = (i == III and j == IIJ);
+
+                Complex c{r_zero ? 0 : y[i, j, k].real(),
+                          i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF(
+                    (x[i, j, k] != c),
+                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                    i,
+                    j,
+                    k,
+                    x[i, j, k],
+                    c);
+              }
+            }
+          }
+        }
+      }
     }
+  }
 
-    Numeric d = 1.0;
-    for (const auto& a : y)
-      for (auto b : a)
-        for (auto c : b) {
-          ARTS_USER_ERROR_IF(c != d, "{} {}", c, d);
-          d += 1.0;
+  for (Index RII = 0; RII < 5; RII++) {
+    for (Index III = 0; III < 5; III++) {
+      std::array<Index, 3> exts{5, 5, 5};
+      const Size N = matpack::mdsize(exts);
+      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3 x(xt.shape());
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
+
+      auto xr{x.real()};
+      auto xi{x.imag()};
+      ComplexTensor3 y(xr, xi);
+
+      xr[RII, joker, joker] = 0;
+      xi[III, joker, joker] = 0;
+
+      for (Index i = 0; i < 5; i++) {
+        for (Index j = 0; j < 5; j++) {
+          for (Index k = 0; k < 5; k++) {
+            const bool r_zero = (i == RII);
+            const bool i_zero = (i == III);
+
+            Complex c{r_zero ? 0 : y[i, j, k].real(),
+                      i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF(
+                (x[i, j, k] != c),
+                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                i,
+                j,
+                k,
+                x[i, j, k],
+                c);
+          }
         }
+      }
+    }
   }
 
-  //! Allow assignment between views
-  {
-    std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    std::vector<Numeric> xr{1, 2, 3, 4, 5, 6, 7, 8};
-    std::vector<Numeric> xi{0, 0, 0, 0, 0, 0, 0, 0};
-    ExhaustiveComplexTensor3View y{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{
-            x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    const ExhaustiveTensor3View yr{matpack::exhaustive_mdspan<Numeric, 3>{
-        xr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    const ExhaustiveTensor3View yi{matpack::exhaustive_mdspan<Numeric, 3>{
-        xi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+  for (Index RIJ = 0; RIJ < 5; RIJ++) {
+    for (Index IIJ = 0; IIJ < 5; IIJ++) {
+      std::array<Index, 3> exts{5, 5, 5};
+      const Size N = matpack::mdsize(exts);
+      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3 x(xt.shape());
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-    ARTS_ASSERT(yr != yi)
-    ARTS_ASSERT(y.real() != y.imag())
-    ARTS_ASSERT(y.real() == yr)
-    ARTS_ASSERT(y.imag() == yi)
-    ARTS_ASSERT(y.imag() != yr)
+      auto xr{x.real()};
+      auto xi{x.imag()};
+      ComplexTensor3 y(xr, xi);
 
-    y.imag() = y.real();
+      xr[joker, RIJ, joker] = 0;
+      xi[joker, IIJ, joker] = 0;
 
-    ARTS_ASSERT(yr != yi)
-    ARTS_ASSERT(y.real() == y.imag())
-    ARTS_ASSERT(y.real() == yr)
-    ARTS_ASSERT(y.imag() != yi)
-    ARTS_ASSERT(y.imag() == yr)
-  }
-  {
-    std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    std::vector<Numeric> xr{1, 2, 3, 4, 5, 6, 7, 8};
-    std::vector<Numeric> xi{0, 0, 0, 0, 0, 0, 0, 0};
-    ExhaustiveComplexTensor3View y{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{
-            x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    const ExhaustiveTensor3View yr{matpack::exhaustive_mdspan<Numeric, 3>{
-        xr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    const ExhaustiveTensor3View yi{matpack::exhaustive_mdspan<Numeric, 3>{
-        xi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    auto z = y[joker, matpack::matpack_strided_access(0, -1, 2), joker];
+      for (Index i = 0; i < 5; i++) {
+        for (Index j = 0; j < 5; j++) {
+          for (Index k = 0; k < 5; k++) {
+            const bool r_zero = (j == RIJ);
+            const bool i_zero = (j == IIJ);
 
-    std::vector<Numeric> reszr{1, 2, 3, 4, 5, 6, 7, 8};
-    std::vector<Numeric> reszi{1, 2, 0, 0, 5, 6, 0, 0};
-    const ExhaustiveTensor3View zr{matpack::exhaustive_mdspan<Numeric, 3>{
-        reszr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-    const ExhaustiveTensor3View zi{matpack::exhaustive_mdspan<Numeric, 3>{
-        reszi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
-
-    ARTS_ASSERT(yr != yi)
-    ARTS_ASSERT(y.real() != y.imag())
-    ARTS_ASSERT(z.real() != z.imag())
-    ARTS_ASSERT(y.real() == yr)
-    ARTS_ASSERT(y.imag() == yi)
-    ARTS_ASSERT(y.real() == zr)
-    ARTS_ASSERT(y.imag() != zi)
-
-    z.imag() = z.real();
-
-    ARTS_ASSERT(yr != yi)
-    ARTS_ASSERT(y.real() != y.imag())
-    ARTS_ASSERT(z.real() == z.imag())
-    ARTS_ASSERT(y.real() == yr)
-    ARTS_ASSERT(y.imag() != yi)
-    ARTS_ASSERT(y.real() == zr)
-    ARTS_ASSERT(y.imag() == zi)
+            Complex c{r_zero ? 0 : y[i, j, k].real(),
+                      i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF(
+                (x[i, j, k] != c),
+                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                i,
+                j,
+                k,
+                x[i, j, k],
+                c);
+          }
+        }
+      }
+    }
   }
 
-  //! Test basic +=, -=, *=, /=, = for arithmetic change or assignment
-  {
-    std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ExhaustiveComplexTensor3View y{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{
-            x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+  for (Index RIK = 0; RIK < 5; RIK++) {
+    for (Index IIK = 0; IIK < 5; IIK++) {
+      std::array<Index, 3> exts{5, 5, 5};
+      const Size N = matpack::mdsize(exts);
+      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3 x(xt.shape());
+      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-    std::vector<std::complex<Numeric>> copy = x;
-    const ExhaustiveComplexTensor3View test{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{
-            copy.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+      auto xr{x.real()};
+      auto xi{x.imag()};
+      ComplexTensor3 y(xr, xi);
 
-    ARTS_ASSERT(y == test)
+      xr[joker, joker, RIK] = 0;
+      xi[joker, joker, IIK] = 0;
 
-    y += 3;
-    for (auto& a : copy) a += 3;
-    ARTS_ASSERT(y == test)
+      for (Index i = 0; i < 5; i++) {
+        for (Index j = 0; j < 5; j++) {
+          for (Index k = 0; k < 5; k++) {
+            const bool r_zero = (k == RIK);
+            const bool i_zero = (k == IIK);
 
-    y /= 3;
-    for (auto& a : copy) a /= 3;
-    ARTS_ASSERT(y == test)
-
-    y.imag() -= 2;
-    for (auto& a : copy) a -= std::complex<Numeric>(0, 2);
-    ARTS_ASSERT(y == test)
-
-    y -= 5;
-    for (auto& a : copy) a -= 5;
-    ARTS_ASSERT(y == test)
-
-    y *= 5;
-    for (auto& a : copy) a *= 5;
-    ARTS_ASSERT(y == test)
-
-    y = 42;
-    for (auto& a : copy) a = 42;
-    ARTS_ASSERT(y == test)
-  }
-
-  //! Test external assignment
-  {
-    std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexVectorView y{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{x.data(), 8}};
-    std::vector<std::complex<Numeric>> copy = x;
-    const ComplexVectorView test{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{copy.data(), 8}};
-
-    for (auto& a : copy) a += std::complex<Numeric>(3, 2);
-
-    ARTS_ASSERT(y != test)
-
-    y = copy;
-
-    ARTS_ASSERT(y == test)
+            Complex c{r_zero ? 0 : y[i, j, k].real(),
+                      i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF(
+                (x[i, j, k] != c),
+                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                i,
+                j,
+                k,
+                x[i, j, k],
+                c);
+          }
+        }
+      }
+    }
   }
 }
 
 void test_eigen() {
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView y{{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-            copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView test{{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
 
-    y = 2 * matpack::eigen::as_eigen(y);
+    y = 2 * y;
 
-    ARTS_ASSERT(y != test)
+    ARTS_USER_ERROR_IF(not(y != test), "Error")
     for (auto& a : copy) a *= 2;
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
+
+    ComplexMatrix SSS;
+    SSS = 2 * y;
   }
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexVectorView y{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{x.data(), 8}};
+    ComplexVectorView y{{x.data(), std::array<Index, 1>{8}}};
 
-    const std::complex<Numeric> z = y * y;
+    const std::complex<Numeric> z = dot(y, y);
     ARTS_USER_ERROR_IF(
         z != std::transform_reduce(
                  x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}),
-        "{}", z)
+        "{}",
+        z)
   }
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView y{{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-            copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView test{{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
 
-    y = 2 * matpack::eigen::as_eigen(y) + y;
+    y = 2 * y + y;
 
-    ARTS_ASSERT(y != test)
+    ARTS_USER_ERROR_IF(not(y != test), "Error")
     for (auto& a : copy) a = 2.0 * a + a;
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
   }
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView y{{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{
-        matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{
-            copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView test{{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
 
-    y = 2 * matpack::eigen::as_eigen(y) - y;
+    y = 2 * y - y;
 
-    ARTS_ASSERT(y == test)
+    ARTS_USER_ERROR_IF(not(y == test), "Error")
   }
 }
 
 void test_data() {
-  matpack::matpack_data<Numeric, 3> x(4, 2, 3, 2.1);
-  std::cout << x << '\n' << '\n';
-  std::cout << x[0] << '\n' << '\n';
-  std::cout << x[0][0] << '\n' << '\n';
-  std::cout << x[0][0][0] << '\n' << '\n';
+  matpack::data_t<Numeric, 3> x(4, 2, 3, 2.1);
+  std::print("{}\n\n", x);
+  std::print("{}\n\n", x[0]);
+  std::print("{}\n\n", x[0][0]);
+  std::print("{}\n\n", x[0][0][0]);
   x[0][0][0] += 1;
-  std::cout << x << '\n' << '\n';
+  std::print("{}\n\n", x);
 
   auto y = std::move(x).flatten();
-  std::cout << y << '\n';
-  std::cout << x << '\n';
+  std::print("{}\n\n", y);
+  std::print("{}\n\n", x);
 
-  matpack::matpack_data<Numeric, 1> z;
+  matpack::data_t<Numeric, 1> z;
   z.swap(y);
 }
 
@@ -329,160 +482,152 @@ void test_complex() {
     Complex x{0, 0};
     const Complex y{0, 0};
     ARTS_USER_ERROR_IF(x != y, "{} {}", x, y)
-    ARTS_ASSERT(real_val(x) == real_val(y))
-    ARTS_ASSERT(imag_val(x) == imag_val(y))
-  }
-
-  {
-    Complex x{1, 1};
-    x = 2. + x;
-    ARTS_ASSERT(x == (Complex{3, 1}))
-    x = 2. - x;
-    ARTS_ASSERT(x == (Complex{-1, -1}))
-    x = 2. * x;
-    ARTS_ASSERT(x == (Complex{-2, -2}))
-    x = 2. / x;
-    ARTS_ASSERT(x == (Complex{-0.5, 0.5}))
-  }
-
-  {
-    Complex x{1, 1};
-    x = x + 2.;
-    ARTS_ASSERT(x == (Complex{3, 1}))
-    x = x - 2.;
-    ARTS_ASSERT(x == (Complex{1, 1}))
-    x = x * 2.;
-    ARTS_ASSERT(x == (Complex{2, 2}))
-    x = x / 2.;
-    ARTS_ASSERT(x == (Complex{1, 1}))
+    ARTS_USER_ERROR_IF(not(real_val(x) == real_val(y)), "Error")
+    ARTS_USER_ERROR_IF(not(imag_val(x) == imag_val(y)), "Error")
   }
 
   {
     Complex x{1, 1};
     x = 2 + x;
-    ARTS_ASSERT(x == (Complex{3, 1}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
     x = 2 - x;
-    ARTS_ASSERT(x == (Complex{-1, -1}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{-1, -1})), "Error")
     x = 2 * x;
-    ARTS_ASSERT(x == (Complex{-2, -2}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{-2, -2})), "Error")
     x = 2 / x;
-    ARTS_ASSERT(x == (Complex{-0.5, 0.5}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{-0.5, 0.5})), "Error")
   }
 
   {
     Complex x{1, 1};
     x = x + 2;
-    ARTS_ASSERT(x == (Complex{3, 1}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
     x = x - 2;
-    ARTS_ASSERT(x == (Complex{1, 1}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
     x = x * 2;
-    ARTS_ASSERT(x == (Complex{2, 2}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{2, 2})), "Error")
     x = x / 2;
-    ARTS_ASSERT(x == (Complex{1, 1}))
+    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
   }
 
   {
-    Complex x{3, 3};
-    const std::complex<int> y{3, 3};
-    x = x + y;
-    ARTS_ASSERT(x == (Complex{6, 6}))
-    x = x - y;
-    ARTS_ASSERT(x == (Complex{3, 3}))
-    x = x * y;
-    ARTS_ASSERT(x == (Complex{0, 18}))
-    x = x / y;
-    ARTS_ASSERT(x == (Complex{3, 3}))
+    Complex x{1, 1};
+    x = 2 + x;
+    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    x = 2 - x;
+    ARTS_USER_ERROR_IF(not(x == (Complex{-1, -1})), "Error")
+    x = 2 * x;
+    ARTS_USER_ERROR_IF(not(x == (Complex{-2, -2})), "Error")
+    x = 2 / x;
+    ARTS_USER_ERROR_IF(not(x == (Complex{-0.5, 0.5})), "Error")
+  }
+
+  {
+    Complex x{1, 1};
+    x = x + 2;
+    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    x = x - 2;
+    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
+    x = x * 2;
+    ARTS_USER_ERROR_IF(not(x == (Complex{2, 2})), "Error")
+    x = x / 2;
+    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
   }
 }
 
 void test_math() {
   {
     Vector x{0, 1, 2, 3, 4};
-    ARTS_ASSERT(min(x) == 0)
-    ARTS_ASSERT(min(ExhaustiveVectorView{x}) == 0)
-    ARTS_ASSERT(min(ExhaustiveConstVectorView{x}) == 0)
-    ARTS_ASSERT(min(VectorView{x}) == 0)
-    ARTS_ASSERT(min(ConstVectorView{x}) == 0)
+
+    ARTS_USER_ERROR_IF(not(max(x) == 4), "Error")
+    ARTS_USER_ERROR_IF(not(max(VectorView{x}) == 4), "Error")
+    ARTS_USER_ERROR_IF(not(max(ConstVectorView{x}) == 4), "Error")
+    ARTS_USER_ERROR_IF(not(max(StridedVectorView{x}) == 4), "Error")
+    ARTS_USER_ERROR_IF(not(max(StridedConstVectorView{x}) == 4), "Error")
+
+    ARTS_USER_ERROR_IF(not(min(x) == 0), "min(x) == {}\n {:B,}", min(x), x)
+    ARTS_USER_ERROR_IF(not(min(VectorView{x}) == 0), "Error")
+    ARTS_USER_ERROR_IF(not(min(ConstVectorView{x}) == 0), "Error")
+    ARTS_USER_ERROR_IF(not(min(StridedVectorView{x}) == 0), "Error")
+    ARTS_USER_ERROR_IF(not(min(StridedConstVectorView{x}) == 0), "Error")
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveVectorView{x}.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstVectorView{x}.elem_begin())>);
     static_assert(
         std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
     static_assert(
         std::random_access_iterator<decltype(ConstVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<
+                  decltype(StridedVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<
+                  decltype(StridedConstVectorView{x}.elem_begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ExhaustiveVectorView{x}.begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstVectorView{x}.begin())>);
     static_assert(std::random_access_iterator<decltype(VectorView{x}.begin())>);
     static_assert(
         std::random_access_iterator<decltype(ConstVectorView{x}.begin())>);
+    static_assert(
+        std::random_access_iterator<decltype(StridedVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<
+                  decltype(StridedConstVectorView{x}.begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.elem_end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveVectorView{x}.elem_end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstVectorView{x}.elem_end())>);
     static_assert(
         std::random_access_iterator<decltype(VectorView{x}.elem_end())>);
     static_assert(
         std::random_access_iterator<decltype(ConstVectorView{x}.elem_end())>);
+    static_assert(
+        std::random_access_iterator<decltype(StridedVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<
+                  decltype(StridedConstVectorView{x}.elem_end())>);
 
     static_assert(std::random_access_iterator<decltype(x.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ExhaustiveVectorView{x}.end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstVectorView{x}.end())>);
     static_assert(std::random_access_iterator<decltype(VectorView{x}.end())>);
     static_assert(
         std::random_access_iterator<decltype(ConstVectorView{x}.end())>);
+    static_assert(
+        std::random_access_iterator<decltype(StridedVectorView{x}.end())>);
+    static_assert(
+        std::random_access_iterator<decltype(StridedConstVectorView{x}.end())>);
   }
 
   {
     Matrix x(3, 3, 0);
-    ARTS_ASSERT(min(x) == 0)
-    ARTS_ASSERT(min(ExhaustiveMatrixView{x}) == 0)
-    ARTS_ASSERT(min(ExhaustiveConstMatrixView{x}) == 0)
+    ARTS_USER_ERROR_IF(not(min(x) == 0), "Error")
+    ARTS_USER_ERROR_IF(not(min(MatrixView{x}) == 0), "Error")
+    ARTS_USER_ERROR_IF(not(min(ConstMatrixView{x}) == 0), "Error")
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveMatrixView{x}.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstMatrixView{x}.elem_begin())>);
+    static_assert(
+        std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
+    static_assert(
+        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
     static_assert(
         std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
     static_assert(
         std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.begin())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.begin())>);
     static_assert(
-        std::random_access_iterator<decltype(ExhaustiveMatrixView{x}.begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstMatrixView{x}.begin())>);
+        std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.begin())>);
     static_assert(
         std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.elem_end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveMatrixView{x}.elem_end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstMatrixView{x}.elem_end())>);
+    static_assert(
+        std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
+    static_assert(
+        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
     static_assert(
         std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
     static_assert(
         std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
 
     static_assert(std::random_access_iterator<decltype(x.end())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.end())>);
     static_assert(
-        std::random_access_iterator<decltype(ExhaustiveMatrixView{x}.end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(ExhaustiveConstMatrixView{x}.end())>);
+        std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.end())>);
     static_assert(
         std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
@@ -494,8 +639,8 @@ void test_mult() {
     Matrix A(4, 4, 1);
     for (Index i = 0; i < 4; i++)
       for (Index j = 0; j < 4; j++) A[i, j] = static_cast<Numeric>(i);
-    Vector y({1, 2, 3, 4}), x(4);
-
+    const Vector y({1, 2, 3, 4});
+    Vector x(4);
     Vector eig_x{A * y};
     mult(x, A, y);
     ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
@@ -513,60 +658,48 @@ void test_mult() {
   }
 }
 
-void test_const_view() {
-  std::array<double, 3 * 3> x{1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::array<double, 3> x3{1, 2, 3};
-
-  {
-    matpack::matpack_constant_view<double, false, 3, 3> xv(x);
-    ARTS_USER_ERROR_IF(xv != xv, "Bad")
-    ARTS_USER_ERROR_IF((xv[2, 2] != x.back()), "Bad")
-    ARTS_USER_ERROR_IF((xv[0, 0] != x.front()), "Bad")
-    ARTS_USER_ERROR_IF(
-        xv[0] != (matpack::matpack_constant_view<double, false, 3>{x3}), "Bad")
-    ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")
-  }
-
-  {
-    matpack::matpack_constant_view<double, true, 3, 3> xv(x);
-    ARTS_USER_ERROR_IF(xv != xv, "Bad")
-    ARTS_USER_ERROR_IF((xv[2, 2] != x.back()), "Bad")
-    ARTS_USER_ERROR_IF((xv[0, 0] != x.front()), "Bad")
-    ARTS_USER_ERROR_IF(
-        xv[0] != (matpack::matpack_constant_view<double, true, 3>{x3}), "Bad")
-    ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")
-  }
-}
-
 void test_const_data() {
-  constexpr matpack::matpack_constant_data<Numeric, 3> x{1, 2, 3};
-  Vector y(x);
-  constexpr matpack::matpack_constant_data<Numeric, 3, 3> z{2, 3, 4};
-  Matrix t(z);
+  {
+    constexpr matpack::cdata_t<Numeric, 3> x{1, 2, 3};
+    Vector y(x);
+
+    ARTS_USER_ERROR_IF(x != y, "Bad")
+    ARTS_USER_ERROR_IF((x[2] != y.back()), "Bad")
+    ARTS_USER_ERROR_IF((x[0] != y.front()), "Bad")
+  }
+  {
+    constexpr matpack::cdata_t<Numeric, 3, 3> x{2, 3, 4};
+    Matrix y(x);
+
+    ARTS_USER_ERROR_IF(x != y, "Bad")
+    ARTS_USER_ERROR_IF((x[2, 2] != y[2, 2]), "Bad")
+    ARTS_USER_ERROR_IF((x[0, 0] != y[0, 0]), "Bad")
+  }
 }
 
 void test_my_interp() {
   my_interp::Lagrange<1, true> x(
-      0, 3.5, matpack::matpack_constant_data<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+      0, 3.5, matpack::cdata_t<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
   my_interp::Lagrange<1, false> x2(
-      0, 3.5, matpack::matpack_constant_data<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+      0, 3.5, matpack::cdata_t<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
   auto iw = interpweights(std::array{x, x}, std::array{x2, x2});
 
   interp(Matrix(7, 7, 1), interpweights(x, x2), x, x2);
 
-  reinterp(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2});
+  [[maybe_unused]] auto f =
+      reinterp(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2});
 
-  Matrix Z = uniform_grid(-5, 49, 0.2).reshape(7, 7);
-  Vector X = uniform_grid(1, 7, 1);
-  Vector Y = uniform_grid(1, 7, 1);
-  Vector XN = uniform_grid(1, 14, 0.5);
-  Vector YN = uniform_grid(1, 28, 0.25);
+  Matrix Z  = matpack::uniform_grid(-5, 49, 0.2).reshape(7, 7);
+  Vector X  = matpack::uniform_grid(1, 7, 1);
+  Vector Y  = matpack::uniform_grid(1, 7, 1);
+  Vector XN = matpack::uniform_grid(1, 14, 0.5);
+  Vector YN = matpack::uniform_grid(1, 28, 0.25);
 
   for (auto mx : XN) {
     for (auto my : YN) {
       auto lagx = my_interp::Lagrange<1, false>(0, mx, X);
       auto lagy = my_interp::Lagrange<1, false>(0, my, Y);
-      auto iw2 = my_interp::interpweights(lagx, lagy);
+      auto iw2  = my_interp::interpweights(lagx, lagy);
       ARTS_USER_ERROR_IF(
           std::abs(interp(Z, iw2, lagx, lagy) - interp(Z, lagx, lagy)) > 1e-16,
           "Bad");
@@ -612,47 +745,76 @@ void test_lapack_vector_mult() {
 void test_grid() {
   AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
 
-  AscendingGridView y{x};
+  std::print("{}\n", x);
 
-  std::cout << x << '\n';
-  std::cout << y << '\n';
+  std::print("{}\n", x);
 
-  y = {1, 2, 3, 4, 5, 6, 7, 9};
-  std::cout << x << '\n';
-  std::cout << y << '\n';
-
-  x.emplace_back(10);
-  std::cout << x << '\n';
-  std::cout << y << '\n';
+  Vector xtmp = std::move(x).vec();
+  xtmp.emplace_back(10);
+  x = std::move(xtmp);
+  std::print("{}\n", x);
 
   bool set_low;
+  xtmp = std::move(x).vec();
+  xtmp.emplace_back(8);
   try {
-    x.emplace_back(8);
+    x = std::move(xtmp);
     set_low = true;
   } catch (...) {
     set_low = false;
   }
   ARTS_USER_ERROR_IF(set_low, "Should not be able to set low value");
+  xtmp.pop_back();
+  x = std::move(xtmp);
 
   bool set_same;
+  xtmp = std::move(x).vec();
+  xtmp.emplace_back(xtmp.back());
   try {
-    x.emplace_back(x.back());
+    x = std::move(xtmp);
     set_same = true;
   } catch (...) {
-    {};
     set_same = false;
   }
   ARTS_USER_ERROR_IF(set_same, "Should not be able to set same value");
+  xtmp.pop_back();
+  x = std::move(xtmp);
 
   Vector z{1, 2, 3, 4, 5, 6, 7, 9, 20};
-  y = z;
-  std::cout << x << '\n';
-  std::cout << y << '\n';
-
-  y = VectorView{z};
-  std::cout << x << '\n';
-  std::cout << y << '\n';
+  std::print(std::cout, "{:B,}\n", x);
+  std::print(std::cout, "{:B,}\n", z);
+  std::print("{}\n", x);
 }
+
+void test_einsum() {
+  const Size n = 5, m = 3;
+  const Matrix A = matpack::uniform_grid(1.0, n * m, 1.0).reshape(n, m);
+  const Vector x = matpack::uniform_grid(1.0, m, 1.0);
+
+  // mat-vec mult
+  {
+    Vector y0(n), y1(n);
+
+    einsum<"i", "ij", "j">(y0, A, x);
+    mult(y1, A, x);
+    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+  }
+
+  // mat-vec collaps
+  {
+    Vector y0(m, 0), y1(m, 0);
+    einsum<"j", "ij", "j">(y0, A, x);
+
+    for (Size i = 0; i < n; i++) {
+      for (Size j = 0; j < m; j++) {
+        y1[j] += A[i, j] * x[j];
+      }
+    }
+
+    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+  }
+}
+}  // namespace
 
 #define EXECUTE_TEST(X)                                                       \
   std::cout << "#########################################################\n"; \
@@ -661,17 +823,23 @@ void test_grid() {
   X();                                                                        \
   std::cout << "#########################################################\n";
 
-int main() {
+int main() try {
   EXECUTE_TEST(test_view)
   EXECUTE_TEST(test_eigen)
   EXECUTE_TEST(test_data)
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
-  EXECUTE_TEST(test_const_view)
   EXECUTE_TEST(test_const_data)
   EXECUTE_TEST(test_my_interp)
   EXECUTE_TEST(test_sorted_grid)
   EXECUTE_TEST(test_lapack_vector_mult)
   EXECUTE_TEST(test_grid)
+  EXECUTE_TEST(test_einsum)
+
+  return EXIT_SUCCESS;
+} catch (std::exception& e) {
+  std::print(
+      std::cerr, "ERROR: See below\n\n{}\n\nERROR: See above\n", e.what());
+  return EXIT_FAILURE;
 }

@@ -20,22 +20,18 @@
 #include <variant>
 
 #include "atm.h"
-#include "cloudbox.h"
 #include "configtypes.h"
 #include "covariance_matrix.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "gridded_data.h"
 #include "isotopologues.h"
 #include "jacobian.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
-#include "matpack_data.h"
 #include "mystring.h"
 #include "obsel.h"
 #include "path_point.h"
 #include "rtepack.h"
-#include "sorted_grid.h"
 #include "surf.h"
 #include "xml_io.h"
 #include "xml_io_base.h"
@@ -302,9 +298,9 @@ void xml_write_to_stream(std::ostream& os_xml,
     Range row_range    = c.get_row_range();
     Range column_range = c.get_column_range();
     block_tag.add_attribute("row_start", row_range.offset);
-    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("row_extent", row_range.nelem);
     block_tag.add_attribute("column_start", column_range.offset);
-    block_tag.add_attribute("column_extent", column_range.extent);
+    block_tag.add_attribute("column_extent", column_range.nelem);
     block_tag.add_attribute("is_inverse", Index(0));
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
@@ -333,9 +329,9 @@ void xml_write_to_stream(std::ostream& os_xml,
     Range row_range    = c.get_row_range();
     Range column_range = c.get_column_range();
     block_tag.add_attribute("row_start", row_range.offset);
-    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("row_extent", row_range.nelem);
     block_tag.add_attribute("column_start", column_range.offset);
-    block_tag.add_attribute("column_extent", column_range.extent);
+    block_tag.add_attribute("column_extent", column_range.nelem);
     block_tag.add_attribute("is_inverse", Index(1));
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
@@ -513,10 +509,11 @@ void xml_write_to_stream(std::ostream& os_xml,
 //=== GriddedField ===========================================================
 
 template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
-void xml_read_from_stream_recursive(std::istream& is_xml,
-                                    matpack::gridded_data<T, Grids...>& gfield,
-                                    bifstream* pbifs,
-                                    XMLTag& tag) {
+void xml_read_from_stream_recursive(
+    std::istream& is_xml,
+    matpack::gridded_data_t<T, Grids...>& gfield,
+    bifstream* pbifs,
+    XMLTag& tag) {
   if constexpr (M > N) {
     xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
     xml_read_from_stream_recursive<N + 1>(is_xml, gfield, pbifs, tag);
@@ -531,10 +528,10 @@ void xml_read_from_stream_recursive(std::istream& is_xml,
 */
 template <typename T, typename... Grids>
 void xml_read_from_stream_gf(std::istream& is_xml,
-                             matpack::gridded_data<T, Grids...>& gfield,
+                             matpack::gridded_data_t<T, Grids...>& gfield,
                              bifstream* pbifs,
                              Index version) {
-  using GF = matpack::gridded_data<T, Grids...>;
+  using GF = matpack::gridded_data_t<T, Grids...>;
 
   XMLTag tag;
 
@@ -657,7 +654,7 @@ void xml_read_from_stream_gf(std::istream& is_xml,
 template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
 void xml_write_to_stream_recursive(
     std::ostream& os_xml,
-    const matpack::gridded_data<T, Grids...>& gfield,
+    const matpack::gridded_data_t<T, Grids...>& gfield,
     bofstream* pbofs) {
   if constexpr (M > N) {
     xml_write_to_stream(os_xml,
@@ -676,7 +673,7 @@ void xml_write_to_stream_recursive(
 */
 template <typename T, typename... Grids>
 void xml_write_to_stream_gf(std::ostream& os_xml,
-                            const matpack::gridded_data<T, Grids...>& gfield,
+                            const matpack::gridded_data_t<T, Grids...>& gfield,
                             bofstream* pbofs,
                             const String& /* name */) {
   xml_write_to_stream(
@@ -860,6 +857,255 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
+void chk_scat_data(const SingleScatteringData& scat_data_single) {
+  ARTS_ASSERT(scat_data_single.ptype == PTYPE_GENERAL ||
+              scat_data_single.ptype == PTYPE_TOTAL_RND ||
+              scat_data_single.ptype == PTYPE_AZIMUTH_RND);
+
+  ARTS_USER_ERROR_IF(scat_data_single.za_grid[0] != 0.,
+                     "The first value of the zenith angle grid in the single"
+                     " scattering properties data must be 0.")
+
+  ARTS_USER_ERROR_IF(last(scat_data_single.za_grid) != 180.,
+                     "The last value of the zenith angle grid in the single"
+                     " scattering properties data must be 180.")
+
+  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_GENERAL &&
+                         scat_data_single.aa_grid[0] != -180.,
+                     "For ptype = \"general\" the first value"
+                     " of the azimuth angle grid in the single scattering"
+                     " properties data must be -180.")
+
+  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
+                         scat_data_single.aa_grid[0] != 0.,
+                     "For ptype = \"azimuthally_random\""
+                     " the first value"
+                     " of the azimuth angle grid in the single scattering"
+                     " properties data must be 0.")
+
+  ARTS_USER_ERROR_IF(scat_data_single.ptype != PTYPE_TOTAL_RND &&
+                         last(scat_data_single.aa_grid) != 180.,
+                     "For ptypes = \"azimuthally_random\" and \"general\""
+                     " the last value of the azimuth angle grid in the single"
+                     " scattering properties data must be 180.")
+
+  std::ostringstream os_pha_mat;
+  os_pha_mat << "pha_mat ";
+  std::ostringstream os_ext_mat;
+  os_ext_mat << "ext_mat ";
+  std::ostringstream os_abs_vec;
+  os_abs_vec << "abs_vec ";
+
+  switch (scat_data_single.ptype) {
+    case PTYPE_GENERAL:
+
+      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            scat_data_single.aa_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            scat_data_single.aa_grid.size(),
+                                            16},
+                                           scat_data_single.pha_mat_data),
+                         R"(The shape of the pha_mat_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_pha_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         scat_data_single.aa_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         scat_data_single.aa_grid.size(),
+                         16,
+                         scat_data_single.pha_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            scat_data_single.aa_grid.size(),
+                                            7},
+                                           scat_data_single.ext_mat_data),
+                         R"(The shape of the ext_mat_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_ext_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         scat_data_single.aa_grid.size(),
+                         7,
+                         scat_data_single.ext_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            scat_data_single.aa_grid.size(),
+                                            4},
+                                           scat_data_single.abs_vec_data),
+                         R"(The shape of the abs_vec_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_abs_vec.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         scat_data_single.aa_grid.size(),
+                         4,
+                         scat_data_single.abs_vec_data.shape());
+
+      break;
+
+    case PTYPE_TOTAL_RND:
+
+      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            1,
+                                            1,
+                                            1,
+                                            6},
+                                           scat_data_single.pha_mat_data),
+                         R"(The shape of the pha_mat data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_pha_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         1,
+                         1,
+                         6,
+                         scat_data_single.pha_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            1,
+                                            1,
+                                            1},
+                                           scat_data_single.ext_mat_data),
+                         R"(The shape of the ext_mat_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_ext_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         1,
+                         1,
+                         1,
+                         scat_data_single.ext_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            1,
+                                            1,
+                                            1},
+                                           scat_data_single.abs_vec_data),
+                         R"(The shape of the abs_vec_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_abs_vec.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         1,
+                         1,
+                         1,
+                         scat_data_single.abs_vec_data.shape());
+
+      break;
+
+    case PTYPE_AZIMUTH_RND:
+
+      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            scat_data_single.aa_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            1,
+                                            16},
+                                           scat_data_single.pha_mat_data),
+                         R"(The shape of the pha_mat_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_pha_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         scat_data_single.aa_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         16,
+                         scat_data_single.pha_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            1,
+                                            3},
+                                           scat_data_single.ext_mat_data),
+                         R"(The shape of the ext_mat_data data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_ext_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         3,
+                         scat_data_single.ext_mat_data.shape());
+
+      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
+                                            scat_data_single.T_grid.size(),
+                                            scat_data_single.za_grid.size(),
+                                            1,
+                                            2},
+                                           scat_data_single.abs_vec_data),
+                         R"(The shape of the abs_vec_data is wrong: {}
+      
+  Expected size: [{}, {}, {}, {}, {}]
+  Got shape:     {:B,}
+)",
+                         os_abs_vec.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         2,
+                         scat_data_single.abs_vec_data.shape());
+
+      break;
+  }
+
+  // Here we only check whether the temperature grid is of the unit K, not
+  // whether it corresponds to the required values in t_field. The second
+  // option is not trivial since here one has to look whether the pnd_field
+  // is non-zero for the corresponding temperature. This check is done in the
+  // functions where the multiplication with the particle number density is
+  // done.
+  ARTS_USER_ERROR_IF(
+      scat_data_single.T_grid[0] < 0. || last(scat_data_single.T_grid) > 1001.,
+      "The temperature values in the single scattering data"
+      " are negative or very large. Check whether you use the "
+      "right unit [Kelvin].")
+}
+
 //=== SingleScatteringData ======================================
 
 //! Reads SingleScatteringData from XML input stream
@@ -918,7 +1164,8 @@ void xml_read_from_stream(std::istream& is_xml,
   xml_read_from_stream(is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream(is_xml, ssdata.pha_mat_data, pbifs);
-  if (ssdata.pha_mat_data.nlibraries() != ssdata.f_grid.size()) {
+  if (static_cast<Size>(ssdata.pha_mat_data.nlibraries()) !=
+      ssdata.f_grid.size()) {
     throw std::runtime_error(
         "Number of frequencies in f_grid and pha_mat_data "
         "not matching!!!");
@@ -2390,7 +2637,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 
   for (auto& line : data) {
-    os_xml << line << '\n';
+    std::print(os_xml, "{}\n", line);
   }
 
   ArtsXMLTag close_tag;
@@ -2544,8 +2791,12 @@ void xml_write_to_stream(std::ostream& os_xml,
     for (auto& [ikey, ivalue] : value) {
       tag spec_tag{os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
 
-      os_xml << ivalue.beta << ' ' << ivalue.collisional_distance << ' '
-             << ivalue.lambda << ' ' << ivalue.scaling;
+      std::print(os_xml,
+                 "{} {} {} {}",
+                 ivalue.beta,
+                 ivalue.collisional_distance,
+                 ivalue.lambda,
+                 ivalue.scaling);
       spec_tag.close();
     }
     isot_tag.close();

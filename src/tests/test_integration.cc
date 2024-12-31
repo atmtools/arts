@@ -7,6 +7,8 @@
   
 */
 
+#include <matpack.h>
+
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -15,12 +17,9 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "test_perf.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "matpack_data.h"
 
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric PI      = Constant::pi;
 
 void init_xy(float stepsize,
              int frequency,
@@ -91,14 +90,14 @@ Numeric test_x_fixedstep(int vsize, int frequency);
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
-    std::cerr << argv[0] << " requires one parameter" << std::endl;
+    std::cerr << argv[0] << " requires one parameter" << '\n';
     exit(1);
   }
 
-  std::cout << "Uebergabewert von argv : " << argv[1] << std::endl;
+  std::cout << "Uebergabewert von argv : " << argv[1] << '\n';
 
   int frequency = (int)strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
-  std::cout << "Wert von frequency    : " << frequency << std::endl;
+  std::cout << "Wert von frequency    : " << frequency << '\n';
 
   //  test_x(1801, 0.1, frequency);
   //  test_x_fixedstep(1801, frequency);
@@ -132,20 +131,19 @@ void init_x(int vsize,
   //  Integrand.resize(vsize); // function to be integrated
   //  Theta.resize(vsize);     // Theta values
 
-  for (int i = 0; i < Integrand.size(); i++)
-    Integrand[i] = (float)i * stepsize;
+  for (Size i = 0; i < Integrand.size(); i++) Integrand[i] = (float)i * stepsize;
 
   //Theta is between 0 and 180
-  for (int i = 0; i < Theta.size(); i++) Theta[i] = (float)i * stepsize;
+  for (Size i = 0; i < Theta.size(); i++) Theta[i] = (float)i * stepsize;
 
-  std::cout << "function Y = X" << std::endl
-       << "vsize = " << vsize << std::endl
-       << "stepsize = " << stepsize << std::endl
-       << "frequency = " << frequency << std::endl
-       << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.size() - 1] << std::endl
-       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
-       << std::endl;
+  std::cout << "function Y = X" << '\n'
+            << "vsize = " << vsize << '\n'
+            << "stepsize = " << stepsize << '\n'
+            << "frequency = " << frequency << '\n'
+            << "Integrand: von " << Integrand[0] << " bis "
+            << Integrand[Integrand.size() - 1] << '\n'
+            << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
+            << '\n';
 }
 
 //! init_xy
@@ -172,19 +170,19 @@ void init_xy(float stepsize,
   //aa_grid (Phi) is between 0 and 360
   for (Index i = 0; i < n_aa; i++) aa_grid[i] = (float)i * stepsize;
 
-  std::cout << "function x^2 + y^2 + z^2 = 1" << std::endl
-       << "n_za = " << n_za << std::endl
-       << "n_aa = " << n_aa << std::endl
-       << "stepsize = " << stepsize << std::endl
-       << "frequency = " << frequency << std::endl
-       << "Integrand(*,0): von " << Integrand[0, 0] << " bis "
-       << Integrand[n_za - 1, 0] << std::endl
-       << "Integrand(0,*): von " << Integrand[0, 0] << " bis "
-       << Integrand[0, n_aa - 1] << std::endl
-       << "za_grid (Theta): von " << za_grid[0] << " bis "
-       << za_grid[za_grid.size() - 1] << std::endl
-       << "aa_grid (Phi)  : von " << aa_grid[0] << " bis "
-       << aa_grid[aa_grid.size() - 1] << std::endl;
+  std::cout << "function x^2 + y^2 + z^2 = 1" << '\n'
+            << "n_za = " << n_za << '\n'
+            << "n_aa = " << n_aa << '\n'
+            << "stepsize = " << stepsize << '\n'
+            << "frequency = " << frequency << '\n'
+            << "Integrand(*,0): von " << Integrand[0, 0] << " bis "
+            << Integrand[n_za - 1, 0] << '\n'
+            << "Integrand(0,*): von " << Integrand[0, 0] << " bis "
+            << Integrand[0, n_aa - 1] << '\n'
+            << "za_grid (Theta): von " << za_grid[0] << " bis "
+            << za_grid[za_grid.size() - 1] << '\n'
+            << "aa_grid (Phi)  : von " << aa_grid[0] << " bis "
+            << aa_grid[aa_grid.size() - 1] << '\n';
   std::cout << "---------------init_xy---------------<<<<<\n";
 }
 
@@ -206,7 +204,7 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT(same_shape<2>({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -243,7 +241,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT(same_shape<2>({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -283,7 +281,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT(same_shape<2>({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -322,7 +320,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT(same_shape<2>({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -334,8 +332,8 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
     res1[i] += Integrand[i, m - 1];
     res1[i] *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
   }
-  Numeric res = 0.0;
-  res += res1[0];
+  Numeric res  = 0.0;
+  res         += res1[0];
   for (Index i = 1; i < n - 1; i++) {
     res += res1[i] * 2;
   }
@@ -367,7 +365,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT(same_shape<2>({n, m}, Integrand));
 
   Numeric temp = 0.0;
 
@@ -376,9 +374,9 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
     for (Index j = 1; j < m - 1; j++) {
       temp += Integrand[i, j] * 2;
     }
-    temp += Integrand[i, m - 1];
-    temp *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
-    res1[i] = temp;
+    temp    += Integrand[i, m - 1];
+    temp    *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
+    res1[i]  = temp;
   }
 
   Numeric res = res1[0];
@@ -399,7 +397,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
 Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
                                         ConstVectorView za_grid) {
   Index n = za_grid.size();
-  ARTS_ASSERT(is_size(Integrand, n));
+  ARTS_ASSERT(same_shape<1>({n}, Integrand));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
@@ -422,17 +420,17 @@ Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
                                          ConstVectorView za_grid,
                                          Numeric stepsize) {
   Index n = za_grid.size();
-  ARTS_ASSERT(is_size(Integrand, n));
+  ARTS_ASSERT(same_shape<1>({n}, Integrand));
 
   Numeric res = 0.0;
-  // std::cout << "Stepsize: " << stepsize << std::endl;
+  // std::cout << "Stepsize: " << stepsize << '\n';
   res += (Integrand[0] * sin(za_grid[0] * DEG2RAD));
   for (Index i = 1; i < n - 1; ++i) {
     res += (Integrand[i] * sin(za_grid[i] * DEG2RAD) * 2);
-    // std::cout << i << std::endl;
+    // std::cout << i << '\n';
   }
   res += ((Integrand[n - 1] * sin(za_grid[n - 1] * DEG2RAD)));
-  // std::cout << n-1 << std::endl;
+  // std::cout << n-1 << '\n';
   // normally ther would be a 2* here, but it's already in the equations above
   res *= PI * DEG2RAD * stepsize;
 
@@ -471,15 +469,15 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_xy----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "z_size         : " << z_size << '\n'
+            << "a_size         : " << a_size << '\n'
+            << "1 is           : " << result / (4 * PI) << '\n'
+            << "The result is  : " << result << '\n'
+            << "The error is   : " << error * 100 << " %\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "----------------test_xy----------<<<<<\n";
 
   return result;
 }
@@ -515,15 +513,15 @@ Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_xy_opt----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "z_size         : " << z_size << '\n'
+            << "a_size         : " << a_size << '\n'
+            << "1 is           : " << result / (4 * PI) << '\n'
+            << "The result is  : " << result << '\n'
+            << "The error is   : " << error * 100 << " %\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "----------------test_xy_opt----------<<<<<\n";
 
   return result;
 }
@@ -563,15 +561,15 @@ Numeric test_xy_fixedstep(int z_size,
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_xy_fixedstep----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "z_size         : " << z_size << '\n'
+            << "a_size         : " << a_size << '\n'
+            << "1 is           : " << result / (4 * PI) << '\n'
+            << "The result is  : " << result << '\n'
+            << "The error is   : " << error * 100 << " %\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "----------------test_xy_fixedstep----------<<<<<\n";
 
   return result;
 }
@@ -611,15 +609,15 @@ Numeric test_xy_fixedstep_opt(int z_size,
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_xy_fixedstep_opt----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "z_size         : " << z_size << '\n'
+            << "a_size         : " << a_size << '\n'
+            << "1 is           : " << result / (4 * PI) << '\n'
+            << "The result is  : " << result << '\n'
+            << "The error is   : " << error * 100 << " %\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "----------------test_xy_fixedstep_opt----------<<<<<\n";
 
   return result;
 }
@@ -659,15 +657,15 @@ Numeric test_xy_fixedstep_opt2(int z_size,
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_xy_fixedstep_opt2----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "z_size         : " << z_size << '\n'
+            << "a_size         : " << a_size << '\n'
+            << "1 is           : " << result / (4 * PI) << '\n'
+            << "The result is  : " << result << '\n'
+            << "The error is   : " << error * 100 << " %\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "----------------test_xy_fixedstep_opt2----------<<<<<\n";
 
   return result;
 }
@@ -690,7 +688,8 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
                                          int a_size,
                                          float stepsize,
                                          int frequency) {
-  std::cout << ">>>>>-----------test_AngIntegrate_trapezoid_opti---------------\n";
+  std::cout
+      << ">>>>>-----------test_AngIntegrate_trapezoid_opti---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -704,9 +703,9 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
   //grid_stepsize[0] = -1;
   //grid_stepsize[1] = -1;
 
-  //  std::cout << za_grid << std::endl;
-  //  std::cout << grid_stepsize[0] << std::endl;
-  //  std::cout << grid_stepsize[1] << std::endl;
+  //  std::cout << za_grid << '\n';
+  //  std::cout << grid_stepsize[0] << '\n';
+  //  std::cout << grid_stepsize[1] << '\n';
 
   Numeric result = 0;
 
@@ -720,15 +719,16 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
   double error = result / (4 * PI) - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "z_size         : " << z_size << std::endl
-       << "a_size         : " << a_size << std::endl
-       << "1 is           : " << result / (4 * PI) << std::endl
-       << "The result is  : " << result << std::endl
-       << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "----------------test_AngIntegrate_trapezoid_opti----------<<<<<\n";
+  std::cout
+      << "stepsize is    : " << stepsize << '\n'
+      << "z_size         : " << z_size << '\n'
+      << "a_size         : " << a_size << '\n'
+      << "1 is           : " << result / (4 * PI) << '\n'
+      << "The result is  : " << result << '\n'
+      << "The error is   : " << error * 100 << " %\n"
+      << "Number of loops: " << frequency << '\n'
+      << "elapsed time   : " << t.dt << '\n'
+      << "----------------test_AngIntegrate_trapezoid_opti----------<<<<<\n";
 
   return result;
 }
@@ -765,14 +765,14 @@ Numeric test_x(int vsize, float stepsize, int frequency) {
   double error = result / PI - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "number of steps: " << vsize << std::endl
-       << "1 is           : " << PI / PI << std::endl
-       << "The result is  : " << result / PI << std::endl
-       << "The error is   : " << error * 100 << "%\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "---------------test_x-----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "number of steps: " << vsize << '\n'
+            << "1 is           : " << PI / PI << '\n'
+            << "The result is  : " << result / PI << '\n'
+            << "The error is   : " << error * 100 << "%\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "---------------test_x-----------<<<<<\n";
 
   return result;
 }
@@ -796,17 +796,17 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
   stepsize =
       180.0 /
       (vsize - 1);  // attention this only works with eaqually spaced intervals
-  std::cout << "Neue berechnete Stepsize: " << stepsize << std::endl;
+  std::cout << "Neue berechnete Stepsize: " << stepsize << '\n';
 
-  for (int i = 0; i < Integrand.size(); i++) Integrand[i] = i * stepsize;
+  for (Size i = 0; i < Integrand.size(); i++) Integrand[i] = static_cast<Numeric>(i) * stepsize;
 
   //Theta is between 0 and 180
-  for (int i = 0; i < Theta.size(); i++) Theta[i] = i * stepsize;
+  for (Size i = 0; i < Theta.size(); i++) Theta[i] = static_cast<Numeric>(i) * stepsize;
 
   std::cout << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.size() - 1] << std::endl
-       << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
-       << std::endl;
+            << Integrand[Integrand.size() - 1] << '\n'
+            << "Theta: von " << Theta[0] << " bis " << Theta[Theta.size() - 1]
+            << '\n';
 
   Numeric result = 0;
 
@@ -822,14 +822,14 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
   double error = result / PI - 1;
 
   std::cout.precision(15);
-  std::cout << "stepsize is    : " << stepsize << std::endl
-       << "number of steps: " << vsize << std::endl
-       << "1 is          : " << PI / PI << std::endl
-       << "The result is  : " << result / PI << std::endl
-       << "The error is   : " << error * 100 << "%\n"
-       << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << t.dt << std::endl
-       << "---------------test_x_fixedstep----------<<<<<\n";
+  std::cout << "stepsize is    : " << stepsize << '\n'
+            << "number of steps: " << vsize << '\n'
+            << "1 is          : " << PI / PI << '\n'
+            << "The result is  : " << result / PI << '\n'
+            << "The error is   : " << error * 100 << "%\n"
+            << "Number of loops: " << frequency << '\n'
+            << "elapsed time   : " << t.dt << '\n'
+            << "---------------test_x_fixedstep----------<<<<<\n";
 
   return result;
 }

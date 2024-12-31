@@ -4,15 +4,15 @@
 #include <limits>
 
 #include "debug.h"
-#include "matpack_band_matrix.h"
+#include <matpack.h>
 
 int main() {
   const Matrix ex = []() {
     Matrix out(4, 4);
-    out[0] = {-0.23, 2.54, -3.66, 0.0};
-    out[1] = {-6.98, 2.46, -2.73, -2.13};
-    out[2] = {0.0, 2.56, 2.46, 4.07};
-    out[3] = {0.0, 0.0, -4.78, -3.82};
+    out[0] = std::array{-0.23, 2.54, -3.66, 0.0};
+    out[1] = std::array{-6.98, 2.46, -2.73, -2.13};
+    out[2] = std::array{0.0, 2.56, 2.46, 4.07};
+    out[3] = std::array{0.0, 0.0, -4.78, -3.82};
     return out;
   }();
 

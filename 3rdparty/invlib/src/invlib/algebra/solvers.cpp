@@ -129,10 +129,10 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
     int i = 0;
     while (!settings.converged(r, v))
     {
-        alpha = dot(r, r) / dot(p, A * p);
+        alpha = invlib::dot(r, r) / invlib::dot(p, A * p);
         xnew  = x + alpha *     p;
         rnew  = r + alpha * A * p;
-        beta  = dot(rnew, rnew) / dot(r, r);
+        beta  = invlib::dot(rnew, rnew) / invlib::dot(r, r);
         pnew  = beta * p - rnew;
 
         x = xnew;

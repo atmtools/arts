@@ -31,17 +31,6 @@ void forward_atm_path(ArrayOfAtmPoint &ppvar_atm,
 ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
                                  const AtmField &atm_field);
 
-/** Set the size of the output
- * 
- * @param[out] ppvar_f As WSV
- * @param[in] f_grid As WSV
- * @param[in] ppvar_atm As WSV
- * @return ArrayOfVector& As ppvar_f WSV
- */
-ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &ppvar_f,
-                                       const AscendingGrid &f_grid,
-                                       const ArrayOfAtmPoint &ppvar_atm);
-
 /** Frequency shift at a single ray path ppoint
  * 
  * @param path_freq Shifted frequency grid

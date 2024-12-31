@@ -65,15 +65,15 @@ void model_state_vectorUpdateError(Vector& model_state_vector,
 struct polyfit {
   Vector t;
 
-  void operator()(ExhaustiveVectorView y,
-                  MatrixView dy,
-                  const ExhaustiveConstVectorView p) const {
+  void operator()(VectorView y,
+                  StridedMatrixView dy,
+                  const ConstVectorView p) const {
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
-    ARTS_USER_ERROR_IF(y.size() != dy.nrows(), "Mismatched y and dy sizes.")
-    ARTS_USER_ERROR_IF(dy.ncols() != p.size(), "Mismatched dy and p sizes.")
+    ARTS_USER_ERROR_IF(static_cast<Index>(y.size()) != dy.nrows(), "Mismatched y and dy sizes.")
+    ARTS_USER_ERROR_IF(dy.ncols() != static_cast<Index>(p.size()), "Mismatched dy and p sizes.")
 
-    for (Index j = 0; j < t.size(); j++) {
-      for (Index i = 0; i < p.size(); i++) {
+    for (Size j = 0; j < t.size(); j++) {
+      for (Size i = 0; i < p.size(); i++) {
         const Numeric xn  = std::pow(t[j], i);
         y[j]             += p[i] * xn;
         dy[j, i]          = xn;
@@ -81,8 +81,8 @@ struct polyfit {
     }
   }
 
-  void operator()(ExhaustiveVectorView p,
-                  const ExhaustiveConstVectorView y) const {
+  void operator()(VectorView p,
+                  const ConstVectorView y) const {
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
     Jacobian::polyfit(p, t, y);
   }

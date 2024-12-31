@@ -42,7 +42,7 @@ bool test_initialize_sht() try {
 
   return true;
 } catch (std::exception& e) {
-  std::cerr << "fail test_initialize_sht" << std::endl;
+  std::cerr << "fail test_initialize_sht" << '\n';
   throw e;
 }
 
@@ -63,9 +63,9 @@ bool test_transform_harmonics() try {
       spatial_coeffs   = evaluate_spherical_harmonic(l, m, a_angs, z_angs);
       spectral_coeffs  = sht.transform(spatial_coeffs);
       auto coeff_index = sht.get_coeff_index(l, m);
-      for (int i = 0; i < spectral_coeffs.size(); ++i) {
+      for (Size i = 0; i < spectral_coeffs.size(); ++i) {
         double diff = 0.0;
-        if (i == coeff_index) {
+        if (static_cast<Index>(i) == coeff_index) {
           if (m < 0) {
             diff = spectral_coeffs[i].real() - 1.0 * pow(-1.0, m);
           } else {
@@ -82,7 +82,7 @@ bool test_transform_harmonics() try {
   }
   return true;
 } catch (std::exception& e) {
-  std::cerr << "fail test_transform_harmonics" << std::endl;
+  std::cerr << "fail test_transform_harmonics" << '\n';
   throw e;
 }
 
@@ -104,7 +104,7 @@ bool test_symmetry(int n_trials) try {
   }
   return true;
 } catch (std::exception& e) {
-  std::cerr << "fail test_symmetry" << std::endl;
+  std::cerr << "fail test_symmetry" << '\n';
   throw e;
 }
 
@@ -135,7 +135,7 @@ bool test_add_coefficients(int n_trials) try {
   }
   return true;
 } catch (std::exception& e) {
-  std::cerr << "fail test_add_coefficients" << std::endl;
+  std::cerr << "fail test_add_coefficients" << '\n';
   throw e;
 }
 
@@ -176,7 +176,7 @@ bool test_grids() try {
 
   return true;
 } catch (std::exception& e) {
-  std::cerr << "fail test_grids" << std::endl;
+  std::cerr << "fail test_grids" << '\n';
   throw e;
 }
 
@@ -185,52 +185,52 @@ int main(int /*nargs*/, char** /*argv*/) try {
   bool passed = test_initialize_sht();
   std::cout << "test_initialization: ";
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   passed = test_transform_harmonics();
   std::cout << "test_transform_harmonics: ";
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   passed = test_symmetry(10);
   std::cout << "test_symmetry: ";
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   passed = test_add_coefficients(10);
   std::cout << "test_add_coefficients: ";
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 
   passed = test_grids();
   std::cout << "test_grids: ";
   if (passed) {
-    std::cout << "PASSED" << std::endl;
+    std::cout << "PASSED" << '\n';
   } else {
-    std::cout << "FAILED" << std::endl;
+    std::cout << "FAILED" << '\n';
     return 1;
   }
 #endif
 
-  std::cout << "All tests passed!" << std::endl;
+  std::cout << "All tests passed!" << '\n';
   return 0;
 } catch (std::exception& e) {
-  std::cerr << e.what() << std::endl;
+  std::cerr << e.what() << '\n';
   return EXIT_FAILURE;
 }

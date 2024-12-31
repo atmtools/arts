@@ -8,7 +8,7 @@
 #include "obsel.h"
 
 namespace Jacobian {
-void default_atm_x_set(ExhaustiveVectorView x,
+void default_atm_x_set(VectorView x,
                        const AtmField& atm,
                        const AtmKeyVal& key) {
   ARTS_USER_ERROR_IF(
@@ -27,7 +27,7 @@ void default_atm_x_set(ExhaustiveVectorView x,
 
 void default_x_atm_set(AtmField& atm,
                        const AtmKeyVal& key,
-                       const ExhaustiveConstVectorView x) {
+                       const ConstVectorView x) {
   ARTS_USER_ERROR_IF(
       not atm.contains(key), "Atmosphere does not contain key value {}", key)
 
@@ -42,7 +42,7 @@ void default_x_atm_set(AtmField& atm,
   xn = x;
 }
 
-void default_surf_x_set(ExhaustiveVectorView x,
+void default_surf_x_set(VectorView x,
                         const SurfaceField& surf,
                         const SurfaceKeyVal& key) {
   ARTS_USER_ERROR_IF(
@@ -61,7 +61,7 @@ void default_surf_x_set(ExhaustiveVectorView x,
 
 void default_x_surf_set(SurfaceField& surf,
                         const SurfaceKeyVal& key,
-                        const ExhaustiveConstVectorView x) {
+                        const ConstVectorView x) {
   ARTS_USER_ERROR_IF(
       not surf.contains(key), "Surface does not contain key value {}", key)
 
@@ -76,7 +76,7 @@ void default_x_surf_set(SurfaceField& surf,
   xn = x;
 }
 
-void default_line_x_set(ExhaustiveVectorView x,
+void default_line_x_set(VectorView x,
                         const AbsorptionBands& bands,
                         const LblLineKey& key) {
   x = key.get_value(bands);
@@ -84,11 +84,11 @@ void default_line_x_set(ExhaustiveVectorView x,
 
 void default_x_line_set(AbsorptionBands& bands,
                         const LblLineKey& key,
-                        const ExhaustiveConstVectorView x) {
-  ExhaustiveVectorView{key.get_value(bands)} = x;
+                        const ConstVectorView x) {
+  VectorView{key.get_value(bands)} = x;
 }
 
-Vector rem_frq(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
                      "Bad size. x.size(): {}, f_grid().size(): {}",
                      x.size(),
@@ -102,7 +102,7 @@ Vector rem_frq(const SensorObsel& v, const ExhaustiveConstVectorView x) {
 }
 
 template <bool pos, Index k>
-Vector rem_poslos(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_poslos(const SensorObsel& v, const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
                      "Bad size. x.size(): {}, poslos_grid().size(): {}",
                      x.size(),
@@ -125,29 +125,29 @@ Vector rem_poslos(const SensorObsel& v, const ExhaustiveConstVectorView x) {
   return out;
 }
 
-Vector rem_alt(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_alt(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<true, 0>(v, x);
 }
 
-Vector rem_lat(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_lat(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<true, 1>(v, x);
 }
 
-Vector rem_lon(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_lon(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<true, 2>(v, x);
 }
 
-Vector rem_zag(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_zag(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<false, 0>(v, x);
 }
 
-Vector rem_aag(const SensorObsel& v, const ExhaustiveConstVectorView x) {
+Vector rem_aag(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<false, 1>(v, x);
 }
 
-void polyfit(ExhaustiveVectorView param,
-             const ExhaustiveConstVectorView x,
-             const ExhaustiveConstVectorView y) {
+void polyfit(VectorView param,
+             const ConstVectorView x,
+             const ConstVectorView y) {
   ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
 
   using namespace Minimize;
@@ -162,7 +162,7 @@ void polyfit(ExhaustiveVectorView param,
                      x,
                      y,
                      Vector{fit})
-  ARTS_USER_ERROR_IF(fit.size() != param.size(),
+  ARTS_USER_ERROR_IF(static_cast<Size>(fit.size()) != param.size(),
                      "Bad size. fit.size(): {}, param.size(): {}",
                      fit.size(),
                      param.size())
@@ -170,7 +170,7 @@ void polyfit(ExhaustiveVectorView param,
   param = fit;
 }
 
-void default_sensor_x_set(ExhaustiveVectorView x,
+void default_sensor_x_set(VectorView x,
                           const ArrayOfSensorObsel& sensor,
                           const SensorKey& key) {
   const SensorObsel& v = sensor.at(key.measurement_elem);
@@ -193,16 +193,15 @@ void default_sensor_x_set(ExhaustiveVectorView x,
 }
 
 // Returns p + x[0] + x[1]*p + x[2]*p^2 + ...
-Vector polynomial_offset_evaluate(const ExhaustiveConstVectorView x,
-                                  const Vector& p) {
+Vector polynomial_offset_evaluate(const ConstVectorView x, const Vector& p) {
   ARTS_USER_ERROR_IF(x.empty(), "Must have some polynomial coefficients.")
 
   Vector out(p);
 
-  for (Index i = 0; i < p.size(); ++i) {
+  for (Size i = 0; i < p.size(); ++i) {
     out[i]    += x[0];
     Numeric v  = 1.0;
-    for (Index j = 1; j < x.size(); ++j) {
+    for (Size j = 1; j < x.size(); ++j) {
       out[i] += x[j] * (v *= p[i]);
     }
   }
@@ -212,7 +211,7 @@ Vector polynomial_offset_evaluate(const ExhaustiveConstVectorView x,
 
 void default_x_sensor_set(ArrayOfSensorObsel& sensor,
                           const SensorKey& key,
-                          const ExhaustiveConstVectorView x) {
+                          const ConstVectorView x) {
   auto& v = sensor.at(key.measurement_elem);
 
   using enum SensorKeyType;
@@ -231,13 +230,13 @@ void default_x_sensor_set(ArrayOfSensorObsel& sensor,
 void AtmTarget::update(AtmField& atm, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(atm, type, x.slice(x_start, x_size));
+  set_model(atm, type, x[Range(x_start, x_size)]);
 }
 
 void AtmTarget::update(Vector& x, const AtmField& atm) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x.slice(x_start, x_size), atm, type);
+  set_state(x[Range(x_start, x_size)], atm, type);
 }
 
 bool AtmTarget::is_wind() const {
@@ -248,39 +247,39 @@ bool AtmTarget::is_wind() const {
 void SensorTarget::update(ArrayOfSensorObsel& sens, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(sens, type, x.slice(x_start, x_size));
+  set_model(sens, type, x[Range(x_start, x_size)]);
 }
 
 void SensorTarget::update(Vector& x, const ArrayOfSensorObsel& sens) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x.slice(x_start, x_size), sens, type);
+  set_state(x[Range(x_start, x_size)], sens, type);
 }
 
 void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(surf, type, x.slice(x_start, x_size));
+  set_model(surf, type, x[Range(x_start, x_size)]);
 }
 
 void SurfaceTarget::update(Vector& x, const SurfaceField& surf) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x.slice(x_start, x_size), surf, type);
+  set_state(x[Range(x_start, x_size)], surf, type);
 }
 
 void LineTarget::update(AbsorptionBands& absorption_bands,
                         const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(absorption_bands, type, x.slice(x_start, x_size));
+  set_model(absorption_bands, type, x[Range(x_start, x_size)]);
 }
 
 void LineTarget::update(Vector& x,
                         const AbsorptionBands& absorption_bands) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x.slice(x_start, x_size), absorption_bands, type);
+  set_state(x[Range(x_start, x_size)], absorption_bands, type);
 }
 
 void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
@@ -298,9 +297,9 @@ void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
                      szy,
                      szx)
 
-  set_y(y.slice(type.y_start, type.y_size),
+  set_y(y[Range(type.y_start, type.y_size)],
         dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
-        x.slice(x_start, x_size));
+        x[Range(x_start, x_size)]);
 }
 
 void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
@@ -312,10 +311,10 @@ void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
   const auto szy = static_cast<Size>(y.size());
   ARTS_USER_ERROR_IF(szy < (type.y_start + type.y_size), "Got too small y.")
 
-  Vector e(y.slice(type.y_start, type.y_size));
-  e -= y0.slice(type.y_start, type.y_size);
+  Vector e(y[Range(type.y_start, type.y_size)]);
+  e -= y0[Range(type.y_start, type.y_size)];
 
-  set_x(x.slice(x_start, x_size), e);
+  set_x(x[Range(x_start, x_size)], e);
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {

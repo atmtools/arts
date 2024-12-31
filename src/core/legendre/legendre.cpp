@@ -133,7 +133,7 @@ constexpr Numeric next(Numeric p0, Numeric p1, Numeric ni, Numeric x) {
   return ((2.0 * ni + 1.0) * x * p1 - ni * p0) / (ni + 1.0);
 }
 
-Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x) {
+Numeric legendre_sum(const ConstVectorView& s, const Numeric& x) {
   using boost::math::legendre_next;
 
   ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
@@ -175,34 +175,34 @@ Numeric assoc_legendre(Index l, Index m, Numeric x) {
   return legendre_p(static_cast<int>(l), static_cast<int>(m), x);
 }
 
-void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
-                                 ExhaustiveVectorView w) {
-  const Index n = x.size();
+void PositiveDoubleGaussLegendre(VectorView x,
+                                 VectorView w) {
+  const Size n = x.size();
   ARTS_ASSERT(n == w.size());  // same size
 
-  for (Index k = 0; k < n; k++) {
+  for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(n, n - k);
     x[k]   = 0.5 * (1.0 + p.x());
     w[k]   = 0.5 * p.weight;
   }
 }
 
-void PositiveGaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w) {
-  const Index n = x.size();
+void PositiveGaussLegendre(VectorView x, VectorView w) {
+  const Size n = x.size();
   ARTS_ASSERT(n == w.size());
 
-  for (Index k = 0; k < n; k++) {
+  for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(2 * n, 2 * n - k - n);
     x[k]   = p.x();
     w[k]   = p.weight;
   }
 }
 
-void GaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w) {
-  const Index n = x.size();
+void GaussLegendre(VectorView x, VectorView w) {
+  const Size n = x.size();
   ARTS_ASSERT(n == w.size());
 
-  for (Index k = 0; k < n; k++) {
+  for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(n, n - k);
     x[k]   = p.x();
     w[k]   = p.weight;

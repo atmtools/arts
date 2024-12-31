@@ -4,7 +4,6 @@
 
 #include "configtypes.h"
 #include "debug.h"
-#include "mh_checks.h"
 #include "rtepack.h"
 
 void ray_path_transmission_matrixFromPath(
@@ -19,20 +18,21 @@ void ray_path_transmission_matrixFromPath(
     const Index& hse_derivative) try {
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
 
-  ARTS_USER_ERROR_IF(not all_same_size(ray_path,
-                                       ray_path_propagation_matrix,
-                                       ray_path_propagation_matrix_jacobian,
-                                       ray_path_atmospheric_point),
-                     R"(Not same sizes:
+  ARTS_USER_ERROR_IF(
+      not arr::all_same_size(ray_path,
+                             ray_path_propagation_matrix,
+                             ray_path_propagation_matrix_jacobian,
+                             ray_path_atmospheric_point),
+      R"(Not same sizes:
 
 ray_path.size()                             = {},
 ray_path_propagation_matrix.size()          = {},
 ray_path_propagation_matrix_jacobian.size() = {},
 ray_path_atmospheric_point.size()           = {})",
-                     ray_path.size(),
-                     ray_path_propagation_matrix.size(),
-                     ray_path_propagation_matrix_jacobian.size(),
-                     ray_path_atmospheric_point.size());
+      ray_path.size(),
+      ray_path_propagation_matrix.size(),
+      ray_path_propagation_matrix_jacobian.size(),
+      ray_path_atmospheric_point.size());
 
   // HSE variables
   const Index temperature_derivative_position =

@@ -8,7 +8,6 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
-#include "sorted_grid.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {

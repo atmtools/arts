@@ -364,8 +364,8 @@ void two_level_exp(muelmat &t,
                    const propmat_vector_const_view &dk1,
                    const propmat_vector_const_view &dk2,
                    const Numeric r,
-                   const ExhaustiveConstVectorView &dr1,
-                   const ExhaustiveConstVectorView &dr2) {
+                   const ConstVectorView &dr1,
+                   const ConstVectorView &dr2) {
   ARTS_ASSERT(dk1.size() == dk2.size() and dk1.size() == dr1.size() and
               dk1.size() == dr2.size())
 
@@ -388,28 +388,28 @@ void two_level_exp(muelmat_vector_view tv,
                    const propmat_matrix_const_view &dk1v,
                    const propmat_matrix_const_view &dk2v,
                    const Numeric rv,
-                   const ExhaustiveConstVectorView &dr1v,
-                   const ExhaustiveConstVectorView &dr2v) {
-  const Index nf = tv.size();
-  const Index nq = dr1v.size();
+                   const ConstVectorView &dr1v,
+                   const ConstVectorView &dr2v) {
+  const Size nf = tv.size();
+  const Size nq = dr1v.size();
 
   ARTS_ASSERT(nf == k1v.size());
   ARTS_ASSERT(nf == k2v.size());
-  ARTS_ASSERT(nf == dk1v.ncols());
-  ARTS_ASSERT(nf == dk2v.ncols());
-  ARTS_ASSERT(nq == dk1v.nrows());
-  ARTS_ASSERT(nq == dk2v.nrows());
-  ARTS_ASSERT(nf == dt1v.ncols());
-  ARTS_ASSERT(nf == dt2v.ncols());
-  ARTS_ASSERT(nq == dt1v.nrows());
-  ARTS_ASSERT(nq == dt2v.nrows());
+  ARTS_ASSERT(nf == static_cast<Size>(dk1v.ncols()));
+  ARTS_ASSERT(nf == static_cast<Size>(dk2v.ncols()));
+  ARTS_ASSERT(nq == static_cast<Size>(dk1v.nrows()));
+  ARTS_ASSERT(nq == static_cast<Size>(dk2v.nrows()));
+  ARTS_ASSERT(nf == static_cast<Size>(dt1v.ncols()));
+  ARTS_ASSERT(nf == static_cast<Size>(dt2v.ncols()));
+  ARTS_ASSERT(nq == static_cast<Size>(dt1v.nrows()));
+  ARTS_ASSERT(nq == static_cast<Size>(dt2v.nrows()));
   ARTS_ASSERT(nq == dr2v.size());
 
-  for (Index i = 0; i < nf; ++i) {
+  for (Size i = 0; i < nf; ++i) {
     const tran tran_state{k1v[i], k2v[i], rv};
     tv[i] = tran_state();
 
-    for (Index j = 0; j < nq; j++) {
+    for (Size j = 0; j < nq; j++) {
       dt1v[j, i] =
           tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
       dt2v[j, i] =
@@ -460,7 +460,7 @@ void two_level_exp(std::vector<muelmat_vector> &T,
 
   if (N == 0) return;
 
-  const Index nv = K[0].size();
+  const Size nv  = K[0].size();
   const Index nq = dr.ncols();
 
   for (auto &x : T) {
@@ -474,12 +474,12 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(K, Cmp::ne(nv), &propmat_vector::size),
+      std::ranges::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
       "Must have same number of frequency elements ({}) in all K:s as in K[0]",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dK, Cmp::ne(nv), &propmat_matrix::ncols),
+      std::ranges::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
       "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
       nv);
 

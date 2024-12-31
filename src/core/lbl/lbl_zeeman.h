@@ -391,9 +391,6 @@ struct model {
   [[nodiscard]] Index size(const QuantumNumberValueList &qn,
                            pol type) const noexcept;
 
-  /** Output operator for Zeeman::Model */
-  friend std::ostream &operator<<(std::ostream &os, const model &m);
-
   /** Input operator for Zeeman::Model */
   friend std::istream &operator>>(std::istream &is, model &m);
 };  // Model;
@@ -435,8 +432,6 @@ struct magnetic_angles {
   [[nodiscard]] Numeric deta_du() const;
   [[nodiscard]] Numeric deta_dv() const;
   [[nodiscard]] Numeric deta_dw() const;
-
-  friend std::ostream &operator<<(std::ostream &os, const magnetic_angles &m);
 };
 
 Propmat norm_view(pol p, Vector3 mag, Vector2 los);

@@ -6,10 +6,7 @@
 #include "artstime.h"
 #include "interp.h"
 #include "interpolation.h"
-#include "matpack_data.h"
-#include "matpack_iter.h"
-#include "matpack_math.h"
-#include "matpack_math_extra.h"
+#include <matpack.h>
 #include "test_perf.h"
 
 using LinearRuntime = my_interp::Lagrange<-1>;
@@ -56,10 +53,10 @@ auto reinterp_indirect(const auto& f, const SomeLags&... lag) {
 }
 
 std::vector<Timing> test_2x_reinterp_vector(Index n) {
-  Vector xi = uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
+  Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  transform(yi, sin, xi);
-  Vector xs = uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
+  stdr::transform(xi, yi.begin(), [](auto zi){return std::sin(zi);});
+  Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;
   std::vector<Timing> out;
@@ -67,7 +64,7 @@ std::vector<Timing> test_2x_reinterp_vector(Index n) {
 
   //! Startup
   out.emplace_back("dummy")(
-      [&]() { X = sum(xi) + sum(xs) + xi * xi + xs * xs; });
+      [&]() { X = sum(xi) + sum(xs) + dot(xi, xi) + dot(xs, xs); });
   xvec.push_back(X);
 
   //// 1D LINEAR
@@ -201,17 +198,17 @@ std::vector<Timing> test_2x_reinterp_vector(Index n) {
 }
 
 std::vector<Timing> test_linear_startup_cost(Index n) {
-  Vector xi = uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
+  Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  transform(yi, sin, xi);
-  Vector xs = uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
+  stdr::transform(xi, yi.begin(), [](auto zi){return std::sin(zi);});
+  Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;
   std::vector<Timing> out;
   Numeric X;
   //! Startup
   out.emplace_back("dummy")(
-      [&]() { X = sum(xi) + sum(xs) + xi * xi + xs * xs; });
+      [&]() { X = sum(xi) + sum(xs) + dot(xi, xi) + dot(xs, xs); });
   xvec.push_back(X);
 
   out.emplace_back("gridpos")([&]() {
@@ -247,17 +244,17 @@ std::vector<Timing> test_linear_startup_cost(Index n) {
 }
 
 std::vector<Timing> test_linear_interpweights_cost(Index n) {
-  Vector xi = uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
+  Vector xi = matpack::uniform_grid(0, n, 1.0 / static_cast<Numeric>(n - 1));
   Vector yi(n);
-  transform(yi, sin, xi);
-  Vector xs = uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
+  stdr::transform(xi, yi.begin(),[](auto zi){return std::sin(zi);});
+  Vector xs = matpack::uniform_grid(0, 2 * n - 1, 1.0 / static_cast<Numeric>(2 * n - 2));
 
   std::vector<Numeric> xvec;
   std::vector<Timing> out;
   Numeric X;
   //! Startup
   out.emplace_back("dummy")(
-      [&]() { X = sum(xi) + sum(xs) + xi * xi + xs * xs; });
+      [&]() { X = sum(xi) + sum(xs) + dot(xi, xi) + dot(xs, xs); });
   xvec.push_back(X);
 
   ArrayOfGridPos gp(xs.size());
@@ -290,15 +287,15 @@ std::vector<Timing> test_linear_interpweights_cost(Index n) {
 
 std::vector<Timing> test_tensor5_reinterp(Index n) {
   Vector x0 =
-      uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
+      matpack::uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
   Vector x1 =
-      uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
+      matpack::uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
   Vector x2 =
-      uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
+      matpack::uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
   Vector x3 =
-      uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
+      matpack::uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
   Vector x4 =
-      uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
+      matpack::uniform_grid(0, n / 3125, 1.0 / static_cast<Numeric>(n / 3125 - 1));
 
   Tensor5 ys(n / 3125, n / 3125, n / 3125, n / 3125, n / 3125);
   auto x = matpack::elemwise{x0, x1, x2, x3, x4};
@@ -308,15 +305,15 @@ std::vector<Timing> test_tensor5_reinterp(Index n) {
            std::sin(std::get<4>(X));
   });
 
-  Vector xs0 = uniform_grid(
+  Vector xs0 = matpack::uniform_grid(
       0, 2 * n / 3125 - 1, 1.0 / static_cast<Numeric>(2 * n / 3125 - 2));
-  Vector xs1 = uniform_grid(
+  Vector xs1 = matpack::uniform_grid(
       0, 2 * n / 3125 - 1, 1.0 / static_cast<Numeric>(2 * n / 3125 - 2));
-  Vector xs2 = uniform_grid(
+  Vector xs2 = matpack::uniform_grid(
       0, 2 * n / 3125 - 1, 1.0 / static_cast<Numeric>(2 * n / 3125 - 2));
-  Vector xs3 = uniform_grid(
+  Vector xs3 = matpack::uniform_grid(
       0, 2 * n / 3125 - 1, 1.0 / static_cast<Numeric>(2 * n / 3125 - 2));
-  Vector xs4 = uniform_grid(
+  Vector xs4 = matpack::uniform_grid(
       0, 2 * n / 3125 - 1, 1.0 / static_cast<Numeric>(2 * n / 3125 - 2));
 
   std::vector<Numeric> xvec;

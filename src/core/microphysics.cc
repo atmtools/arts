@@ -28,7 +28,7 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 Numeric asymmetry_parameter(ConstVectorView sa_grid,
                             ConstVectorView pfun)
 {
-  const Index n = sa_grid.size();
+  const Size n = sa_grid.size();
   
   ARTS_ASSERT(abs(sa_grid[0]-0.0) < 1.0e-3);
   ARTS_ASSERT(abs(sa_grid[n-1]-180.0) < 1.0e-3);
@@ -39,13 +39,13 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
 
   // Sine and cosine of scattering angle
   Vector sterm = sa;
-  transform(sterm, sin, sterm);
+  stdr::transform(sterm, sterm.begin(), [](Numeric x) { return std::sin(x); });
   Vector cterm = sa;
-  transform(cterm, cos, cterm);
+  stdr::transform(cterm, cterm.begin(), [](Numeric x) { return std::cos(x); });
 
   // Functions to integrate 
   Vector f1(n), f2(n);
-  for (Index i=0; i<n; ++i) {
+  for (Size i=0; i<n; ++i) {
     f1[i] = sterm[i] * pfun[i];
     f2[i] = cterm[i] * f1[i];
   }

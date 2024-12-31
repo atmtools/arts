@@ -2253,8 +2253,8 @@ void abs_lines_per_speciesSetEmpty(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines,
                       const AscendingGrid& frequency_grid) {
-  const Numeric fmax = max(frequency_grid);
-  const Numeric fmin = min(frequency_grid);
+  const Numeric fmax = max(frequency_grid.vec());
+  const Numeric fmin = min(frequency_grid.vec());
 
   for (auto& band : abs_lines) {
     for (Index k = band.NumLines() - 1; k >= 0; k--) {
@@ -2350,7 +2350,7 @@ void frequency_gridFromAbsorptionLines(
 
   std::sort(fout.begin(), fout.end());
   fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
-  frequency_grid = std::move(fout);
+  frequency_grid = Vector(std::move(fout));
 }
 
 /////////////////////////////////////////////////////////

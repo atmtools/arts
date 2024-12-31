@@ -147,11 +147,6 @@ std::pair<Numeric, Numeric> AtmPoint::levels(
   return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
 }
 
-std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
-  std::visit([&os](const auto &k) { os << k; }, key);
-  return os;
-}
-
 template <>
 const Atm::Data &
 FieldMap::Map<Atm::Data,
@@ -289,48 +284,6 @@ std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops() {
 
 bool Point::contains(const KeyVal &key) const {
   return std::visit([this](auto &x) { return has(x); }, key);
-}
-
-std::ostream &operator<<(std::ostream &os, const Point &atm) {
-  os << "Temperature: " << atm.temperature << " K,\n";
-  os << "Pressure: " << atm.pressure << " Pa,\n";
-  os << "Wind Field: [u: " << atm.wind[0] << ", v: " << atm.wind[1]
-     << ", w: " << atm.wind[2] << "] m/s,\n";
-  os << "Magnetic Field: [u: " << atm.mag[0] << ", v: " << atm.mag[1]
-     << ", w: " << atm.mag[2] << "] T";
-
-  for (auto &spec : atm.specs) {
-    os << ",\n" << toString<1>(spec.first) << ": " << spec.second;
-  }
-  for (auto &spec : atm.isots) {
-    os << ",\n" << spec.first << ": " << spec.second;
-  }
-
-  for (auto &vals : atm.nlte) {
-    os << ",\n" << vals.first << ": " << vals.second;
-  }
-
-  return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const Field &atm) {
-  const auto printer = [&](auto &data) {
-    using T = decltype(data);
-    if constexpr (isFunctionalDataType<T>)
-      os << " Functional";
-    else if constexpr (isNumeric<T>)
-      os << ' ' << data;
-    else
-      os << '\n' << data;
-  };
-
-  std::string_view space = "";
-  for (auto &&key : atm.keys()) {
-    os << std::exchange(space, ",\n") << key << ":";
-    std::visit(printer, atm[key].data);
-  }
-
-  return os;
 }
 
 Numeric Point::mean_mass(SpeciesEnum s) const {
@@ -561,18 +514,18 @@ Array<std::array<std::pair<Index, Numeric>, 8>> tvec_interpgrid_weights(
   constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
   Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
 
-  const Index n = lat_grid.size();
-  const Index m = lon_grid.size();
+  const Size n = lat_grid.size();
+  const Size m = lon_grid.size();
 
-  for (Index i = 0; i < alt.size(); i++) {
-    const Index alt0 = interpolater.lags_alt[i].pos * m * n;
-    const Index lat0 = interpolater.lags_lat[i].pos * m;
-    const Index lon0 = interpolater.lags_lon[i].pos;
+  for (Size i = 0; i < alt.size(); i++) {
+    const Size alt0 = interpolater.lags_alt[i].pos * m * n;
+    const Size lat0 = interpolater.lags_lat[i].pos * m;
+    const Size lon0 = interpolater.lags_lon[i].pos;
 
-    Index j = 0;
-    for (Index idx0 = 0; idx0 < 1 + poly_alt; idx0++) {
-      for (Index idx1 = 0; idx1 < 1 + poly_lat; idx1++) {
-        for (Index idx2 = 0; idx2 < 1 + poly_lon; idx2++) {
+    Size j = 0;
+    for (Size idx0 = 0; idx0 < 1 + poly_alt; idx0++) {
+      for (Size idx1 = 0; idx1 < 1 + poly_lat; idx1++) {
+        for (Size idx2 = 0; idx2 < 1 + poly_lon; idx2++) {
           out[i][j].first = alt0 + lat0 + lon0 + idx0 * n * m + idx1 * m + idx2;
           out[i][j].second = interpolater.lags_alt[i].lx[idx0] *
                              interpolater.lags_lat[i].lx[idx1] *
@@ -848,21 +801,16 @@ Numeric &Point::operator[](const KeyVal &k) {
       k);
 }
 
-std::ostream &operator<<(std::ostream &os, const Array<Point> &a) {
-  for (auto &x : a) os << x << '\n';
-  return os;
-}
-
-ExhaustiveConstVectorView Data::flat_view() const {
+ConstVectorView Data::flat_view() const {
   return std::visit(
-      [](auto &X) -> ExhaustiveConstVectorView {
+      [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField3>)
-          return X.data.flat_view();
+          return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
-          return ExhaustiveConstVectorView{X};
+          return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
-          return ExhaustiveConstVectorView{};
+          return ConstVectorView{};
         else
           static_assert(
               RawDataType<T>,
@@ -871,16 +819,16 @@ ExhaustiveConstVectorView Data::flat_view() const {
       data);
 }
 
-ExhaustiveVectorView Data::flat_view() {
+VectorView Data::flat_view() {
   return std::visit(
-      [](auto &X) -> ExhaustiveVectorView {
+      [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField3>)
-          return X.data.flat_view();
+          return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
-          return ExhaustiveVectorView{X};
+          return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
-          return ExhaustiveVectorView{};
+          return VectorView{};
         else
           static_assert(
               RawDataType<T>,
@@ -1412,7 +1360,7 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
     altitudes  = AscendingGrid{};
     latitudes  = AscendingGrid{};
     longitudes = AscendingGrid{};
-    data       = {};
+    data       = Tensor4{};
     return;
   }
 
@@ -1441,8 +1389,8 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
                        key)
     const auto &gf3 = std::get<GriddedField3>(atm_data);
     ARTS_USER_ERROR_IF(
-        gf3.grid<0>() != altitudes or gf3.grid<1>() != latitudes or
-            gf3.grid<2>() != longitudes,
+        gf3.grid<0>() != altitudes.vec() or gf3.grid<1>() != latitudes.vec() or
+            gf3.grid<2>() != longitudes.vec(),
         R"(Grids for key {0} is not the same as the first key (first key: {1})
 
 Grids for {0}:

@@ -45,7 +45,7 @@ void propagation_matrixAddCIA(  // WS Output:
   const Index nq = jacobian_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(propagation_matrix.size() not_eq nf,
+  ARTS_USER_ERROR_IF(static_cast<Index>(propagation_matrix.size()) not_eq nf,
                      "*f_grid* must match *propagation_matrix*")
   ARTS_USER_ERROR_IF(
       propagation_matrix_jacobian.nrows() not_eq nq,
@@ -53,7 +53,7 @@ void propagation_matrixAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(
       propagation_matrix_jacobian.ncols() not_eq nf,
       "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(any_negative(f_grid),
+  ARTS_USER_ERROR_IF(any_negative(f_grid.vec()),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
@@ -74,7 +74,7 @@ void propagation_matrixAddCIA(  // WS Output:
 
   if (do_wind_jac) {
     dfreq.resize(f_grid.size());
-    for (Index iv = 0; iv < f_grid.size(); iv++) dfreq[iv] = f_grid[iv] + df;
+    for (Size iv = 0; iv < f_grid.size(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
   Vector dxsec_temp_dF(do_wind_jac ? f_grid.size() : 0),
@@ -147,7 +147,7 @@ void propagation_matrixAddCIA(  // WS Output:
     const Numeric dnd_dt_sec =
         dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
         atm_point[this_cia.Species(1)];
-    for (Index iv = 0; iv < f_grid.size(); iv++) {
+    for (Size iv = 0; iv < f_grid.size(); iv++) {
       propagation_matrix[iv].A() +=
           nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 

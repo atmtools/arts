@@ -1,8 +1,9 @@
+#include <matpack.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include "matpack_data.h"
 
 // Simple element access operator benchmark
 void test1() {

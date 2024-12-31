@@ -3,8 +3,6 @@
 #include <algorithm>
 
 #include "debug.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -26,12 +24,12 @@ Tensor3 to_tensor3(const muelmat_vector_const_view &m) {
   return out;
 }
 
-stokvec_vector to_stokvec_vector(const ExhaustiveConstMatrixView &v) {
+stokvec_vector to_stokvec_vector(const ConstMatrixView &v) {
   ARTS_ASSERT(v.ncols() == 4)
 
   stokvec_vector out(v.nrows());
   std::transform(
-      v.begin(), v.end(), out.begin(), [](const ExhaustiveConstVectorView &a) {
+      v.begin(), v.end(), out.begin(), [](const ConstVectorView &a) {
         return stokvec{a[0], a[1], a[2], a[3]};
       });
   return out;

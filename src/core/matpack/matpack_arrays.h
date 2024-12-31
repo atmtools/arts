@@ -1,80 +1,25 @@
 #pragma once
 
-#include <array.h>
+#include <vector>
 
-#include "matpack_constexpr.h"
-#include "matpack_data.h"
+#include "matpack_mdspan.h"
 
-//! An array of vectors of Numeric
-using ArrayOfVector = Array<Vector>;
-
-//! An array of matrices of Numeric
-using ArrayOfMatrix = Array<Matrix>;
-
-//! An array of tensors of Numeric of rank 3
-using ArrayOfTensor3 = Array<Tensor3>;
-
-//! An array of tensors of Numeric of rank 4
-using ArrayOfTensor4 = Array<Tensor4>;
-
-//! An array of tensors of Numeric of rank 5
-using ArrayOfTensor5 = Array<Tensor5>;
-
-//! An array of tensors of Numeric of rank 6
-using ArrayOfTensor6 = Array<Tensor6>;
-
-//! An array of tensors of Numeric of rank 7
-using ArrayOfTensor7 = Array<Tensor7>;
-
-//! An array of an array of vectors of Numeric
-using ArrayOfArrayOfVector = Array<ArrayOfVector>;
-
-//! An array of an array of matrices of Numeric
-using ArrayOfArrayOfMatrix = Array<ArrayOfMatrix>;
-
-//! An array of an array of tensors of Numeric of rank 3
-using ArrayOfArrayOfTensor3 = Array<ArrayOfTensor3>;
-
-//! An array of an array of tensors of Numeric of rank 4
-using ArrayOfArrayOfTensor4 = Array<ArrayOfTensor4>;
-
-//! An array of an array of tensors of Numeric of rank 5
-using ArrayOfArrayOfTensor5 = Array<ArrayOfTensor5>;
-
-//! An array of an array of tensors of Numeric of rank 6
-using ArrayOfArrayOfTensor6 = Array<ArrayOfTensor6>;
-
-//! An array of an array of tensors of Numeric of rank 7
-using ArrayOfArrayOfTensor7 = Array<ArrayOfTensor7>;
-
-//! An array of vectors of Complex
-using ArrayOfComplexVector = Array<ComplexVector>;
-
-//! An array of matrices of Complex
-using ArrayOfComplexMatrix = Array<ComplexMatrix>;
-
-//! An array of Vectors of length 2 of Numeric
-using ArrayOfVector2 = Array<Vector2>;
-
-//! An array of Vectors of length 3 of Numeric
-using ArrayOfVector3 = Array<Vector3>;
-
-namespace matpack {
-template <any_matpack_type T>
-std::ostream& operator<<(std::ostream& os, const Array<T>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-template <any_matpack_type T>
-std::ostream& operator<<(std::ostream& os, const Array<Array<T>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-template <any_matpack_type T>
-std::ostream& operator<<(std::ostream& os, const Array<Array<Array<T>>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-}  // namespace matpack
+using ArrayOfIndex          = std::vector<Index>;
+using ArrayOfVector         = std::vector<Vector>;
+using ArrayOfMatrix         = std::vector<Matrix>;
+using ArrayOfTensor3        = std::vector<Tensor3>;
+using ArrayOfTensor4        = std::vector<Tensor4>;
+using ArrayOfTensor5        = std::vector<Tensor5>;
+using ArrayOfTensor6        = std::vector<Tensor6>;
+using ArrayOfTensor7        = std::vector<Tensor7>;
+using ArrayOfArrayOfVector  = std::vector<ArrayOfVector>;
+using ArrayOfArrayOfMatrix  = std::vector<ArrayOfMatrix>;
+using ArrayOfArrayOfTensor3 = std::vector<ArrayOfTensor3>;
+using ArrayOfArrayOfTensor4 = std::vector<ArrayOfTensor4>;
+using ArrayOfArrayOfTensor5 = std::vector<ArrayOfTensor5>;
+using ArrayOfArrayOfTensor6 = std::vector<ArrayOfTensor6>;
+using ArrayOfArrayOfTensor7 = std::vector<ArrayOfTensor7>;
+using ArrayOfComplexVector  = std::vector<ComplexVector>;
+using ArrayOfComplexMatrix  = std::vector<ComplexMatrix>;
+using ArrayOfVector2        = std::vector<Vector2>;
+using ArrayOfVector3        = std::vector<Vector3>;

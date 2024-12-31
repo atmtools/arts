@@ -24,7 +24,6 @@
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "lineshapemodel.h"
-#include "matpack_view.h"
 #include "minimize.h"
 #include "path_point.h"
 #include "quantum_numbers.h"
@@ -582,13 +581,15 @@ void propagation_matrixAddLines(PropmatVector& pm,
                                 const AtmPoint& atm_point,
                                 const PropagationPathPoint& path_point,
                                 const Index& no_negative_absorption) try {
-  const auto n = arts_omp_get_max_threads();
-  if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
+  const Size n = arts_omp_get_max_threads();
+  if (n == 1 or static_cast<Size>(arts_omp_in_parallel()) or
+      n > f_grid.size()) {
     lbl::calculate(pm,
                    sv,
                    dpm,
                    dsv,
                    f_grid,
+                   Range(0, f_grid.size()),
                    jacobian_targets,
                    species,
                    absorption_bands,
@@ -600,14 +601,17 @@ void propagation_matrixAddLines(PropmatVector& pm,
     const auto ompv = omp_offset_count(f_grid.size(), n);
     std::string error;
 #pragma omp parallel for
-    for (Index i = 0; i < n; i++) {
+    for (Size i = 0; i < n; i++) {
       try {
-        lbl::calculate(pm.slice(ompv[i].first, ompv[i].second),
-                       sv.slice(ompv[i].first, ompv[i].second),
-                       dpm[joker, Range(ompv[i].first, ompv[i].second)],
-                       dsv[joker, Range(ompv[i].first, ompv[i].second)],
-                       static_cast<const Vector&>(f_grid).slice(ompv[i].first,
-                                                                ompv[i].second),
+        const Index offset = ompv[i].first;
+        const Index nelem  = ompv[i].second;
+        const Range f_range(offset, nelem);
+        lbl::calculate(pm,
+                       sv,
+                       dpm,
+                       dsv,
+                       f_grid,
+                       f_range,
                        jacobian_targets,
                        species,
                        absorption_bands,
@@ -685,7 +689,7 @@ void absorption_bandsLineMixingAdaptation(
                      "Only 1 or 2 is supported for the ordered fit")
   ARTS_USER_ERROR_IF(
       polynomial_fit_degree < 1 or
-          polynomial_fit_degree > temperatures.size() - 1,
+          polynomial_fit_degree > static_cast<Index>(temperatures.size()) - 1,
       "Polynomial degree must be between 1 and the number of temperatures - 1")
 
   auto& band = get_value(band_key, absorption_bands);

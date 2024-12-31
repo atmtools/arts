@@ -11,7 +11,6 @@
 
 #include "tessem.h"
 #include "double_imanip.h"
-#include "matpack_data.h"
 
 /*! Read TESSEM2 neural network parameters
 
@@ -65,11 +64,11 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
   \param[in] nx  Input data.
 */
 void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
-  ARTS_USER_ERROR_IF (nx.size() != net.nb_inputs,
+  ARTS_USER_ERROR_IF (nx.ncols() != net.nb_inputs,
     "Tessem NN requires ", net.nb_inputs,
     " values, but input vector has {} elements", nx.size())
 
-  ARTS_USER_ERROR_IF (ny.size() != net.nb_outputs,
+  ARTS_USER_ERROR_IF (ny.ncols() != net.nb_outputs,
     "Tessem NN generates {} values, but output vector has {} element.", net.nb_outputs, ny.size())
 
   // preprocessing

@@ -12,8 +12,8 @@ void two_level_exp(muelmat &t,
                    const propmat_vector_const_view &dk1,
                    const propmat_vector_const_view &dk2,
                    const Numeric r,
-                   const ExhaustiveConstVectorView &dr1,
-                   const ExhaustiveConstVectorView &dr2);
+                   const ConstVectorView &dr1,
+                   const ConstVectorView &dr2);
 
 void two_level_exp(muelmat_vector_view t,
                    muelmat_matrix_view dt1,
@@ -23,8 +23,8 @@ void two_level_exp(muelmat_vector_view t,
                    const propmat_matrix_const_view &dk1,
                    const propmat_matrix_const_view &dk2,
                    const Numeric r,
-                   const ExhaustiveConstVectorView &dr1,
-                   const ExhaustiveConstVectorView &dr2);
+                   const ConstVectorView &dr1,
+                   const ConstVectorView &dr2);
 
 muelmat exp (propmat k, Numeric r=1.0);
 

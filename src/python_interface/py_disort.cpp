@@ -10,10 +10,7 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "hpy_arts.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 #include "operators.h"
-#include "sorted_grid.h"
 #include "sorting.h"
 
 namespace Python {
@@ -48,9 +45,9 @@ void py_disort(py::module_& m) try {
       .def(
           "__init__",
           [](DisortBDRF* b, const DisortBDRFOperator& f) {
-            new (b) DisortBDRF([f](ExhaustiveMatrixView mat,
-                                   const ExhaustiveConstVectorView& a,
-                                   const ExhaustiveConstVectorView& b) {
+            new (b) DisortBDRF([f](MatrixView mat,
+                                   const ConstVectorView& a,
+                                   const ConstVectorView& b) {
               const Matrix out = f(Vector{a}, Vector{b});
               if (out.shape() != mat.shape()) {
                 throw std::runtime_error(
@@ -166,7 +163,7 @@ void py_disort(py::module_& m) try {
             dis.ungridded_u(res, tau, phi);
 
             Tensor3 out(dis.mu().size(), tau.size(), phi.size());
-            for (Index i = 0; i < tau.size(); i++) {
+            for (Size i = 0; i < tau.size(); i++) {
               out[joker, i, joker] = transpose(res[sorting[i]]);
             }
             return out;
@@ -189,7 +186,7 @@ void py_disort(py::module_& m) try {
             dis.ungridded_flux(res[0], res[1], res[2], tau);
 
             Vector out(tau.size());
-            for (Index i = 0; i < tau.size(); i++) {
+            for (Size i = 0; i < tau.size(); i++) {
               out[i] = res[0, sorting[i]];
             }
             return out;
@@ -211,7 +208,7 @@ void py_disort(py::module_& m) try {
             dis.ungridded_flux(res[0], res[1], res[2], tau);
 
             ArrayOfVector out(2, Vector(tau.size()));
-            for (Index i = 0; i < tau.size(); i++) {
+            for (Size i = 0; i < tau.size(); i++) {
               out[0][i] = res[1, sorting[i]];
               out[1][i] = res[2, sorting[i]];
             }

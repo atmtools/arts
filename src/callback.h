@@ -16,8 +16,6 @@ struct CallbackOperator {
   std::vector<std::string> outputs{};
 
   void operator()(Workspace& ws) const;
-
-  friend std::ostream& operator<<(std::ostream& os, const CallbackOperator&);
 };
 
 template <>

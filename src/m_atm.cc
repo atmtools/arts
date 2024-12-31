@@ -21,7 +21,6 @@
 #include "interpolation.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
-#include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "predef_data.h"
@@ -578,9 +577,9 @@ struct atmospheric_fieldHydrostaticPressureData {
         lat(pre0.grid<0>()),
         lon(pre0.grid<1>()) {
     pre[0] = pre0.data;
-    for (Index i = 1; i < alt.size(); i++) {
-      for (Index j = 0; j < lat.size(); j++) {
-        for (Index k = 0; k < lon.size(); k++) {
+    for (Size i = 1; i < alt.size(); i++) {
+      for (Size j = 0; j < lat.size(); j++) {
+        for (Size k = 0; k < lon.size(); k++) {
           const Numeric h  = alt[i] - alt[i - 1];
           const Numeric p0 = pre[i - 1, j, k];
           const Numeric d0 = grad_p[i - 1, j, k];
@@ -591,8 +590,8 @@ struct atmospheric_fieldHydrostaticPressureData {
     }
   }
 
-  [[nodiscard]] std::pair<Index, Numeric> find_alt(Numeric al) const {
-    auto i  = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
+  [[nodiscard]] std::pair<Size, Numeric> find_alt(Numeric al) const {
+    Size i  = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
     i      -= (i == alt.size());
     while (i > 0 and alt[i] > al) {
       i--;
@@ -796,9 +795,9 @@ lon: {:Bs,} [{} elements]
       .grids      = {alt, lat, lon},
   };
 
-  for (Index i = 0; i < alt.size(); i++) {
-    for (Index j = 0; j < lat.size(); j++) {
-      for (Index k = 0; k < lon.size(); k++) {
+  for (Size i = 0; i < alt.size(); i++) {
+    for (Size j = 0; j < lat.size(); j++) {
+      for (Size k = 0; k < lon.size(); k++) {
         new_field[i, j, k] = data.at(alt[i], lat[j], lon[k]);
       }
     }

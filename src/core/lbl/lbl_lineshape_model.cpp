@@ -5,12 +5,6 @@
 #include "double_imanip.h"
 #include "species.h"
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
-  return os << x.first << ' ' << x.second;
-}
-
 std::istream& operator>>(
     std::istream& is,
     std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
@@ -20,15 +14,6 @@ std::istream& operator>>(
   x.first = to<LineShapeModelVariable>(name);
 
   return is;
-}
-
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::vector<
-        std::pair<LineShapeModelVariable, lbl::temperature::data>>& x) {
-  os << x.size();
-  for (auto& y : x) os << ' ' << y;
-  return os;
 }
 
 std::istream& operator>>(
@@ -310,22 +295,11 @@ VARIABLE(DV);
 
 #undef VARIABLE
 
-std::ostream& operator<<(std::ostream& os, const species_model& x) {
-  return os << toString<1>(x.species) << ' ' << x.data;
-}
-
 std::istream& operator>>(std::istream& is, species_model& x) {
   String name;
   is >> name >> x.data;
   x.species = to<SpeciesEnum>(name);
   return is;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const std::vector<species_model>& x) {
-  os << x.size();
-  for (auto& y : x) os << ' ' << y;
-  return os;
 }
 
 std::istream& operator>>(std::istream& is, std::vector<species_model>& x) {
@@ -334,10 +308,6 @@ std::istream& operator>>(std::istream& is, std::vector<species_model>& x) {
   x.resize(n);
   for (auto& y : x) is >> y;
   return is;
-}
-
-std::ostream& operator<<(std::ostream& os, const model& x) {
-  return os << x.T0 << ' ' << x.one_by_one << ' ' << x.single_models;
 }
 
 std::istream& operator>>(std::istream& is, model& x) {

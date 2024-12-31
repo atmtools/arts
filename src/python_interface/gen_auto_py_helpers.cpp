@@ -165,7 +165,7 @@ Parameters
       writer.emplace_back(AgendaIO{true, false, wsvs.at(var).type, var});
   }
 
-  constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
+  constexpr matpack::cdata_t<std::string_view, 2, 2> inout{
       "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
   for (auto& var : writer) {
     out += std::format(R"({0} : ~pyarts.arts.{1}
@@ -174,7 +174,7 @@ Parameters
                        var.name,
                        var.group,
                        unwrap_stars(short_doc(var.name)),
-                       inout[var.in][var.out]);
+                       inout[var.in, var.out]);
   }
 
   return writer.size() ? out + "\n\n" : "";

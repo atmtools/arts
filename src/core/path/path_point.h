@@ -37,9 +37,6 @@ struct PropagationPathPoint {
     return pos_type == x or los_type == x;
   }
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const PropagationPathPoint& p);
-
   [[nodiscard]] constexpr Numeric altitude() const noexcept { return pos[0]; }
   [[nodiscard]] constexpr Numeric& altitude() noexcept { return pos[0]; }
   [[nodiscard]] constexpr Numeric latitude() const noexcept { return pos[1]; }
@@ -57,15 +54,6 @@ using ArrayOfArrayOfPropagationPathPoint =
     std::vector<ArrayOfPropagationPathPoint>;
 using ArrayOfArrayOfArrayOfPropagationPathPoint =
     std::vector<ArrayOfArrayOfPropagationPathPoint>;
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfPropagationPathPoint& p);
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfPropagationPathPoint& p);
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfArrayOfPropagationPathPoint& p);
 
 /** Mirror the line-of-sight
  * 
@@ -277,6 +265,9 @@ ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path);
  */
 ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
     ArrayOfPropagationPathPoint& path);
+
+bool is_valid_old_pos(const Vector3& pos);
+bool is_valid_old_pos(const StridedConstVectorView& pos);
 }  // namespace path
 
 using PropagationPathPoint        = path::PropagationPathPoint;

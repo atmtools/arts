@@ -10,8 +10,8 @@
 #ifndef linalg_h
 #define linalg_h
 
-#include "array.h"
-#include "matpack_data.h"
+#include "matpack_arrays.h"
+#include "matpack_mdspan.h"
 
 // LU decomposition
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A);
@@ -29,11 +29,11 @@ struct solve_workdata {
   std::size_t N{};
   std::vector<int> ipiv{};
 
-  constexpr solve_workdata() = default;
-  constexpr solve_workdata(const solve_workdata&) = default;
-  constexpr solve_workdata(solve_workdata&&) = default;
+  constexpr solve_workdata()                                 = default;
+  constexpr solve_workdata(const solve_workdata&)            = default;
+  constexpr solve_workdata(solve_workdata&&)                 = default;
   constexpr solve_workdata& operator=(const solve_workdata&) = default;
-  constexpr solve_workdata& operator=(solve_workdata&&) = default;
+  constexpr solve_workdata& operator=(solve_workdata&&)      = default;
 
   constexpr solve_workdata(std::size_t N_) : N(N_), ipiv(N) {}
   constexpr void resize(std::size_t N_) {
@@ -50,23 +50,21 @@ struct solve_workdata {
   * @param[in]     A   As equation, it is destroyed on output (LU decomposition)
   * @throws If the system cannot be solved according to Lapack info
   */
-void solve_inplace(ExhaustiveVectorView X,
-                   ExhaustiveMatrixView A,
-                   solve_workdata& wo);
+void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo);
 
 //! As above but allocates WO
-void solve_inplace(ExhaustiveVectorView X, ExhaustiveMatrixView A);
+void solve_inplace(VectorView X, MatrixView A);
 
 struct inv_workdata {
   std::size_t N{};
   std::vector<int> ipiv{};
   std::vector<Numeric> work{};
 
-  constexpr inv_workdata() = default;
-  constexpr inv_workdata(const inv_workdata&) = default;
-  constexpr inv_workdata(inv_workdata&&) = default;
+  constexpr inv_workdata()                               = default;
+  constexpr inv_workdata(const inv_workdata&)            = default;
+  constexpr inv_workdata(inv_workdata&&)                 = default;
   constexpr inv_workdata& operator=(const inv_workdata&) = default;
-  constexpr inv_workdata& operator=(inv_workdata&&) = default;
+  constexpr inv_workdata& operator=(inv_workdata&&)      = default;
 
   constexpr inv_workdata(std::size_t N_) : N(N_), ipiv(N), work(N) {}
   constexpr void resize(std::size_t N_) {
@@ -80,10 +78,10 @@ struct inv_workdata {
 void inv(MatrixView Ainv, ConstMatrixView A);
 
 // Matrix inverse in place with destructive consequences
-void inv_inplace(ExhaustiveMatrixView A);
+void inv_inplace(MatrixView A);
 
 // Matrix inverse in place with destructive consequences
-void inv_inplace(ExhaustiveMatrixView A, inv_workdata& wo);
+void inv_inplace(MatrixView A, inv_workdata& wo);
 
 // Matrix inverse
 void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A);
@@ -92,9 +90,9 @@ struct diagonalize_workdata {
   std::size_t N{};
   std::vector<Numeric> w{};
 
-  constexpr diagonalize_workdata() = default;
+  constexpr diagonalize_workdata()                            = default;
   constexpr diagonalize_workdata(const diagonalize_workdata&) = default;
-  constexpr diagonalize_workdata(diagonalize_workdata&&) = default;
+  constexpr diagonalize_workdata(diagonalize_workdata&&)      = default;
   constexpr diagonalize_workdata& operator=(const diagonalize_workdata&) =
       default;
   constexpr diagonalize_workdata& operator=(diagonalize_workdata&&) = default;
@@ -115,16 +113,16 @@ void diagonalize(MatrixView P,
                  diagonalize_workdata& wo);
 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
-void diagonalize_inplace(ExhaustiveMatrixView P,
-                         ExhaustiveVectorView WR,
-                         ExhaustiveVectorView WI,
-                         ExhaustiveMatrixView A);
+void diagonalize_inplace(MatrixView P,
+                         VectorView WR,
+                         VectorView WI,
+                         MatrixView A);
 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
-void diagonalize_inplace(ExhaustiveMatrixView P,
-                         ExhaustiveVectorView WR,
-                         ExhaustiveVectorView WI,
-                         ExhaustiveMatrixView A,
+void diagonalize_inplace(MatrixView P,
+                         VectorView WR,
+                         VectorView WI,
+                         MatrixView A,
                          diagonalize_workdata& wo);
 
 // Matrix diagonalization with lapack

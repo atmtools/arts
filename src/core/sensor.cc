@@ -21,11 +21,10 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "interpolation.h"
-#include "logic.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
 #include "sensor.h"
 #include "sorting.h"
+
+#include <path_point.h>
 
 inline constexpr Numeric PI        = Constant::pi;
 inline constexpr Numeric NAT_LOG_2 = Constant::ln_2;
@@ -156,7 +155,7 @@ void antenna1d_matrix(Sparse& H,
         //
         const Index ii = f * n_pol + ip;
         //
-        hrow[Range(ii, n_za, nfpol)] = hza;
+        hrow[StridedRange(ii, n_za, nfpol)] = hza;
         //
         H.insert_row(ia * nfpol + ii, hrow);
         //
@@ -195,7 +194,7 @@ void antenna2d_gridded_dlos(Sparse& H,
                      "must be a product of two integers.");
   const Index naa = n_dlos / nza;
   const Vector za_grid{mblock_dlos[Range(0, nza), 0]};
-  const Vector aa_grid{mblock_dlos[Range(0, naa, nza), 1]};
+  const Vector aa_grid{mblock_dlos[StridedRange(0, naa, nza), 1]};
   for (Index i = 0; i < n_dlos; i++) {
     ARTS_USER_ERROR_IF(
         i >= nza && abs(mblock_dlos[i, 0] - mblock_dlos[i - nza, 0]) > 1e-6,
@@ -400,7 +399,7 @@ void antenna2d_gridded_dlos(Sparse& H,
         //
         const Index ii = f * n_pol + ip;
         //
-        hrow[Range(ii, n_dlos, nfpol)] = hza;
+        hrow[StridedRange(ii, n_dlos, nfpol)] = hza;
         //
         H.insert_row(ia * nfpol + ii, hrow);
         //
@@ -429,7 +428,7 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(antenna_dim == 2);
   ARTS_ASSERT(n_dlos >= 1);
   ARTS_ASSERT(n_pol >= 1);
-  ARTS_ASSERT(n_dlos == solid_angles.size());
+  ARTS_ASSERT(static_cast<Size>(n_dlos) == solid_angles.size());
 
   // Extract antenna_response grids
   const Index n_ar_pol              = antenna_response.grid<0>().size();
@@ -573,7 +572,7 @@ void antenna2d_interp_response(Sparse& H,
         //
         const Index ii = f * n_pol + ip;
         //
-        hrow[Range(ii, n_dlos, nfpol)] = hdlos;
+        hrow[StridedRange(ii, n_dlos, nfpol)] = hdlos;
         //
         H.insert_row(ia * nfpol + ii, hrow);
         //
@@ -631,7 +630,7 @@ void mixer_matrix(Sparse& H,
   // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
   std::list<Numeric> l_mixer;
-  for (Index i = 0; i < f_grid.size(); i++) {
+  for (Size i = 0; i < f_grid.size(); i++) {
     if (fabs(f_grid[i] - lo) >= lim_low && fabs(f_grid[i] - lo) <= lim_high) {
       l_mixer.push_back(fabs(f_grid[i] - lo));
     }
@@ -658,7 +657,7 @@ void mixer_matrix(Sparse& H,
   Vector if_grid{f_grid};
   if_grid -= lo;
   //
-  for (Index i = 0; i < f_mixer.size(); i++) {
+  for (Size i = 0; i < f_mixer.size(); i++) {
     summation_by_vecmult(
         row_temp, filter.data, filter_grid, if_grid, f_mixer[i], -f_mixer[i]);
 
@@ -671,7 +670,7 @@ void mixer_matrix(Sparse& H,
       for (Index a = 0; a < n_sp; a++) {
         // Distribute elements of row_temp to row_final.
         row_final = 0.0;
-        row_final[Range(a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] =
+        row_final[StridedRange(a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] =
             row_temp;
         H.insert_row(a * f_mixer.size() * n_pol + p + i * n_pol, row_final);
       }
@@ -927,7 +926,7 @@ void spectrometer_matrix(Sparse& H,
     for (Index sp = 0; sp < n_sp; sp++) {
       for (Index pol = 0; pol < n_pol; pol++) {
         // Distribute the compact weight vector into weight_long
-        weights_long[Range(sp * nin_f * n_pol + pol, nin_f, n_pol)] = weights;
+        weights_long[StridedRange(sp * nin_f * n_pol + pol, nin_f, n_pol)] = weights;
 
         // Insert temp_long into H at the correct row
         H.insert_row(sp * nout_f * n_pol + ifr * n_pol + pol, weights_long);
@@ -1005,7 +1004,7 @@ void stokes2pol(VectorView w, const Index& ipol_1based, const Numeric nv) {
 */
 bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
   const Index nf = fmin.size();
-  ARTS_ASSERT(fmax.size() == nf);
+  ARTS_ASSERT(static_cast<Index>(fmax.size()) == nf);
   ARTS_ASSERT(i >= 0 && i < nf);
   ARTS_ASSERT(j >= 0 && j < nf);
   ARTS_ASSERT(fmin[i] <= fmin[j]);
@@ -1094,7 +1093,7 @@ void find_effective_channel_boundaries(  // Output:
     const Vector& backend_filter = backend_channel_response[idx].data;
     if (backend_filter.size() >
         2) {  // only run this code when there is more then two elements in the backend
-      for (Index idy = 1; idy < backend_filter.size(); ++idy) {
+      for (Size idy = 1; idy < backend_filter.size(); ++idy) {
         if ((backend_filter[idy] > 0) && (backend_filter[idy - 1] == 0)) {
           numPB++;  // Two consecutive zeros gives the border between two passbands
         }
@@ -1153,7 +1152,7 @@ void find_effective_channel_boundaries(  // Output:
     if (backend_filter.size() >=
         4)  // Is the passband frequency response given explicitly ? e.g. [0,>0,>0,0]
     {
-      for (Index idy = 1; idy < backend_filter.size(); ++idy) {
+      for (Size idy = 1; idy < backend_filter.size(); ++idy) {
         if (idy == 1) {
           fmin_pb[pbIdx] = f_backend[idx] + backend_f_grid[0];
         } else if ((backend_filter[idy] > 0) &&
@@ -1206,7 +1205,7 @@ void find_effective_channel_boundaries(  // Output:
   //
   // Note that fmin.size() changes, as the loop is
   // iterated. Nevertheless this is the correct stop condition.
-  for (Index i = 0; i < fmin.size() - 1; ++i) {
+  for (Size i = 0; i < fmin.size() - 1; ++i) {
     bool continue_checking = true;
     // The "i<fmin.size()" condition below is necessary, since
     // fmin.size() can decrease while the loop is executed, due to
@@ -1233,8 +1232,8 @@ void integration_func_by_vecmult(VectorView h,
   const Index ng = x_g_in.size();
 
   // Asserts
-  ARTS_ASSERT(h.size() == ng);
-  ARTS_ASSERT(f.size() == nf);
+  ARTS_ASSERT(static_cast<Index>(h.size()) == ng);
+  ARTS_ASSERT(static_cast<Index>(f.size()) == nf);
   ARTS_ASSERT(is_increasing(x_f_in));
   ARTS_ASSERT(is_increasing(x_g_in) || is_decreasing(x_g_in));
   // More ARTS_ASSERTs below
@@ -1296,7 +1295,7 @@ void integration_func_by_vecmult(VectorView h,
   Index i_g = 0;
   Numeric dx, a0, b0, c0, a1, b1, c1, x3, x2, x1;
   //
-  for (Index i = 0; i < x_ref.size() - 1; i++) {
+  for (Size i = 0; i < x_ref.size() - 1; i++) {
     // Find for what index in x_g (which is the same as for h) and f
     // calculation corresponds to
     while (x_g[i_g + 1] <= x_ref[i]) {
@@ -1362,7 +1361,7 @@ void integration_bin_by_vecmult(VectorView h,
                                 const Numeric& limit1,
                                 const Numeric& limit2) {
   // Basic sizes
-  const Index ng = x_g_in.size();
+  const Size ng = x_g_in.size();
 
   // Asserts
   ARTS_ASSERT(ng > 1);
@@ -1386,7 +1385,7 @@ void integration_bin_by_vecmult(VectorView h,
   // Bin covers complete x_g:
   else if (limit1 == x_g[0] && limit2 == x_g[ng - 1]) {
     h[0] = (x_g[1] - x_g[0]) / 2.0;
-    for (Index i = 1; i < ng - 1; i++) {
+    for (Size i = 1; i < ng - 1; i++) {
       h[i] = (x_g[i + 1] - x_g[i - 1]) / 2.0;
     }
     h[ng - 1] = (x_g[ng - 1] - x_g[ng - 2]) / 2.0;
@@ -1397,7 +1396,7 @@ void integration_bin_by_vecmult(VectorView h,
   Numeric x1 = 0,
           x2 =
               0;  // End points of bin, inside basis range of present grid point
-  for (Index i = 0; i < ng; i++) {
+  for (Size i = 0; i < ng; i++) {
     bool inside = false;
 
     if (i == 0) {
@@ -1473,21 +1472,21 @@ void summation_by_vecmult(VectorView h,
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.
   ArrayOfGridPos gp1g(1), gp1f(1);
-  gridpos(gp1g, x_g, ExhaustiveConstVectorView{x1});
-  gridpos(gp1f, x_f, ExhaustiveConstVectorView{x1});
+  gridpos(gp1g, x_g, ConstVectorView{x1});
+  gridpos(gp1f, x_f, ConstVectorView{x1});
   Matrix itw1(1, 2);
   interpweights(itw1, gp1f);
   Numeric f1;
-  interp(ExhaustiveVectorView{f1}, itw1, f, gp1f);
+  interp(VectorView{f1}, itw1, f, gp1f);
 
   // Same for point 2
   ArrayOfGridPos gp2g(1), gp2f(1);
-  gridpos(gp2g, x_g, ExhaustiveConstVectorView{x2});
-  gridpos(gp2f, x_f, ExhaustiveConstVectorView{x2});
+  gridpos(gp2g, x_g, ConstVectorView{x2});
+  gridpos(gp2f, x_f, ConstVectorView{x2});
   Matrix itw2(1, 2);
   interpweights(itw2, gp2f);
   Numeric f2;
-  interp(ExhaustiveVectorView{f2}, itw2, f, gp2f);
+  interp(VectorView{f2}, itw2, f, gp2f);
 
   //Initialise h at zero and store calculated weighting components
   h                   = 0.0;

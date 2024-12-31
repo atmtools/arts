@@ -126,9 +126,9 @@ class Block {
   ~Block() = default;
 
   /*! Number of rows of this block */
-  [[nodiscard]] Index nrows() const { return row_range_.extent; }
+  [[nodiscard]] Index nrows() const { return row_range_.nelem; }
   /*! Number of columns of this block */
-  [[nodiscard]] Index ncols() const { return column_range_.extent; }
+  [[nodiscard]] Index ncols() const { return column_range_.nelem; }
 
   /*! The row range of this block*/
   [[nodiscard]] Range get_row_range() const { return row_range_; }
@@ -165,11 +165,11 @@ class Block {
   Sparse &get_sparse() { return matrix_.sparse(); }
 
   // Friend declarations.
-  friend void mult(MatrixView, ConstMatrixView, const Block &);
-  friend void mult(MatrixView, const Block &, ConstMatrixView);
-  friend void mult(VectorView, const Block &, ConstVectorView);
+  friend void mult(StridedMatrixView, StridedConstMatrixView, const Block &);
+  friend void mult(StridedMatrixView, const Block &, StridedConstMatrixView);
+  friend void mult(StridedVectorView, const Block &, StridedConstVectorView);
 
-  friend MatrixView operator+=(MatrixView, const Block &);
+  friend StridedMatrixView operator+=(StridedMatrixView, const Block &);
 
  private:
   Range row_range_, column_range_;
@@ -178,12 +178,12 @@ class Block {
   BlockMatrix matrix_;
 };
 
-void mult(MatrixView, ConstMatrixView, const Block &);
-void mult(MatrixView, const Block &, ConstMatrixView);
-void mult(VectorView, const Block &, ConstVectorView);
+void mult(StridedMatrixView, StridedConstMatrixView, const Block &);
+void mult(StridedMatrixView, const Block &, StridedConstMatrixView);
+void mult(StridedVectorView, const Block &, StridedConstVectorView);
 
-MatrixView operator+=(MatrixView, const Block &);
-void add_inv(MatrixView A, const Block &);
+StridedMatrixView operator+=(StridedMatrixView, const Block &);
+void add_inv(StridedMatrixView A, const Block &);
 
 //------------------------------------------------------------------------------
 // Covariance Matrices
@@ -356,16 +356,16 @@ class CovarianceMatrix {
   Vector inverse_diagonal() const;
 
   // Friend declarations.
-  friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-  friend void mult(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-  friend void mult(VectorView, const CovarianceMatrix &, ConstVectorView);
+  friend void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+  friend void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+  friend void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-  friend void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-  friend void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-  friend void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
+  friend void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+  friend void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+  friend void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-  friend MatrixView operator+=(MatrixView, const CovarianceMatrix &);
-  friend void add_inv(MatrixView, const CovarianceMatrix &);
+  friend StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
+  friend void add_inv(StridedMatrixView, const CovarianceMatrix &);
 
   friend void xml_read_from_stream(std::istream &,
                                    CovarianceMatrix &,
@@ -386,16 +386,16 @@ class CovarianceMatrix {
   mutable std::vector<Block> inverses_;
 };
 
-void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-void mult(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-void mult(VectorView, const CovarianceMatrix &, ConstVectorView);
+void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
+void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-MatrixView operator+=(MatrixView, const CovarianceMatrix &);
-void add_inv(MatrixView, const CovarianceMatrix &);
+StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
+void add_inv(StridedMatrixView, const CovarianceMatrix &);
 
 template <>
 struct std::formatter<BlockMatrix> {

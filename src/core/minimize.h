@@ -35,10 +35,10 @@ struct Polynom {
   const int m_values;
   
   //! Temperature grid
-  const ConstVectorView& X;
+  const StridedConstVectorView& X;
   
   //! Spectroscopic values at grid
-  const ConstVectorView& Y;
+  const StridedConstVectorView& Y;
   
   //! Size: The number of inputs required by the 
   [[nodiscard]] int inputs() const { return m_inputs; }
@@ -52,8 +52,8 @@ struct Polynom {
     * @param[in] y The measured/simulated values
     * @param[in] order The max degree of the polynominal (e.g., 3 means x**3 is largest factor)
     */
-  Polynom(const ConstVectorView& x,
-          const ConstVectorView& y,
+  Polynom(const StridedConstVectorView& x,
+          const StridedConstVectorView& y,
           const Index order
   ) : m_inputs(int(order + 1)),
     m_values(int(x.size())), X(x), Y(y) {}
@@ -94,10 +94,10 @@ struct T4 {
   const int m_values;
   
   //! Temperature grid
-  const ConstVectorView& T;
+  const StridedConstVectorView& T;
   
   //! Spectroscopic values at grid
-  const ConstVectorView& Y;
+  const StridedConstVectorView& Y;
   
   //! Reference temperature
   const Numeric T0;
@@ -118,8 +118,8 @@ struct T4 {
     * @param[in] t0 The model's reference temperature
     * @param[in] exp0 Some exponent to start the function at
     */
-  T4(const ConstVectorView& x,
-     const ConstVectorView& y,
+  T4(const StridedConstVectorView& x,
+     const StridedConstVectorView& y,
      const Numeric t0,
      const Numeric exp0) :
     m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
@@ -161,10 +161,10 @@ struct DPL {
   const int m_values;
   
   //! Temperature grid
-  const ConstVectorView& T;
+  const StridedConstVectorView& T;
   
   //! Spectroscopic values at grid
-  const ConstVectorView& Y;
+  const StridedConstVectorView& Y;
   
   //! Reference temperature
   const Numeric T0;
@@ -185,8 +185,8 @@ struct DPL {
     * @param[in] t0 The model's reference temperature
     * @param[in] exp0 Some exponent to start the function at
     */
-  DPL(const ConstVectorView& x,
-      const ConstVectorView& y,
+  DPL(const StridedConstVectorView& x,
+      const StridedConstVectorView& y,
       const Numeric t0,
       const Numeric exp0) :
     m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
@@ -271,7 +271,7 @@ std::pair<bool, typename Functor::InputType>
  * 
  * struct Functor {
  * 
- *  Functor(const ConstVectorView& X, const ConstVectorView& Y, std::forward<Inputs>(ins)...);
+ *  Functor(const StridedConstVectorView& X, const StridedConstVectorView& Y, std::forward<Inputs>(ins)...);
  * 
  * };
  *
@@ -288,8 +288,8 @@ std::pair<bool, typename Functor::InputType>
  */
 template <class Functor, typename ... Inputs> 
 std::pair<bool, typename Functor::InputType>
-  curve_fit(const ConstVectorView& X,
-            const ConstVectorView& Y,
+  curve_fit(const StridedConstVectorView& X,
+            const StridedConstVectorView& Y,
             Inputs&& ... ins) {
   return curve_fit(Functor(X, Y, std::forward<Inputs>(ins)...));
 }

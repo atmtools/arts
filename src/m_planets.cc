@@ -34,11 +34,9 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "check_input.h"
 #include "debug.h"
 #include "operators.h"
 #include "rtepack.h"
-#include "sorted_grid.h"
 #include "surf.h"
 
 inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
@@ -228,17 +226,34 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
 void surface_fieldInit(SurfaceField &surface_field,
                        const Numeric &r_equatorial,
                        const Numeric &r_polar) {
+  ARTS_USER_ERROR_IF(r_equatorial <= 0 || r_polar <= 0,
+                     R"(Ellipsoid with a: {}, b: {} is invalid.
+
+We do not support negative "a" or "b".
+
+A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
+)",
+                     r_equatorial,
+                     r_polar);
+  ARTS_USER_ERROR_IF(std::abs(r_polar / r_equatorial - 1) > 0.5,
+                     R"(Ellipsoid with a: {}, b: {} is invalid.
+
+The ellipsoid is too flat.
+
+A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
+)",
+                     r_equatorial,
+                     r_polar);
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = 0.0;
 
   surface_field.ellipsoid[0] = r_equatorial;
   surface_field.ellipsoid[1] = r_polar;
-  chk_refellipsoid(surface_field.ellipsoid);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldPlanet(SurfaceField &surface_field,
-                         const String &option) {
+void surface_fieldPlanet(SurfaceField &surface_field, const String &option) {
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
     case Earth:

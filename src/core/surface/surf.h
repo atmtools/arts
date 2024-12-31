@@ -17,8 +17,6 @@ struct SurfacePropertyTag {
   String name;
 
   auto operator<=>(const SurfacePropertyTag &x) const = default;
-
-  friend std::ostream &operator<<(std::ostream &, const SurfacePropertyTag &);
 };
 
 namespace std {
@@ -31,8 +29,6 @@ struct hash<SurfacePropertyTag> {
 }  // namespace std
 
 using SurfaceKeyVal = std::variant<SurfaceKey, SurfacePropertyTag>;
-
-std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key);
 
 namespace Surf {
 template <typename T>
@@ -81,8 +77,6 @@ struct Point {
   constexpr bool has(Ts &&...keys) const {
     return (contains<Ts>(std::forward<Ts>(keys)) and ...);
   }
-
-  friend std::ostream &operator<<(std::ostream &, const Point &);
 };
 
 using FunctionalData = NumericBinaryOperator;
@@ -140,9 +134,9 @@ struct Data {
 
   void rescale(Numeric);
 
-  [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
+  [[nodiscard]] ConstVectorView flat_view() const;
 
-  [[nodiscard]] ExhaustiveVectorView flat_view();
+  [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions on the surface
   [[nodiscard]] std::array<std::pair<Index, Numeric>, 4> flat_weights(
@@ -188,8 +182,6 @@ struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
       const KeyVal &key) const;
 
   [[nodiscard]] bool constant_value(const KeyVal &key) const;
-
-  friend std::ostream &operator<<(std::ostream &, const Field &);
 };
 
 static_assert(

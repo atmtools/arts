@@ -15,8 +15,6 @@
 
 #include "arts_constants.h"
 #include "math_funcs.h"
-#include "matpack_complex.h"
-#include "matpack_data.h"
 #include "optproperties.h"
 
 void calc_phamat(Matrix& z,
@@ -892,12 +890,12 @@ void tmatrix_random_orientation(Numeric& cext,
        csca,
        walb,
        asymm,
-       f11.unsafe_data_handle(),
-       f22.unsafe_data_handle(),
-       f33.unsafe_data_handle(),
-       f44.unsafe_data_handle(),
-       f12.unsafe_data_handle(),
-       f34.unsafe_data_handle(),
+       f11.data_handle(),
+       f22.data_handle(),
+       f33.data_handle(),
+       f44.data_handle(),
+       f12.data_handle(),
+       f34.data_handle(),
        errmsg);
 
   if (strlen(errmsg)) {
@@ -1384,12 +1382,12 @@ void tmatrix_tmd_test() {
        csca,
        walb,
        asymm,
-       f11.unsafe_data_handle(),
-       f22.unsafe_data_handle(),
-       f33.unsafe_data_handle(),
-       f44.unsafe_data_handle(),
-       f12.unsafe_data_handle(),
-       f34.unsafe_data_handle(),
+       f11.data_handle(),
+       f22.data_handle(),
+       f33.data_handle(),
+       f44.data_handle(),
+       f12.data_handle(),
+       f34.data_handle(),
        errmsg);
 }
 

@@ -20,21 +20,15 @@
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "atm.h"
-#include "check_input.h"
 #include "debug.h"
 #include "enumsAtmKey.h"
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"
 #include "lbl_data.h"
-#include "math_funcs.h"
-#include "matpack_concepts.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 #include "nlte.h"
 #include "optproperties.h"
 #include "path_point.h"
-#include "sorted_grid.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -216,7 +210,7 @@ void propagation_matrixAddFaraday(
     }
   }
 
-  const Vector rtp_los{ExhaustiveConstVectorView{path::mirror(path_point.los)}};
+  const Vector rtp_los{path::mirror(path_point.los)};
 
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *absorption_species* and "
@@ -278,7 +272,7 @@ void propagation_matrixAddFaraday(
                dmag;
     }
 
-    for (Index iv = 0; iv < frequency_grid.size(); iv++) {
+    for (Size iv = 0; iv < frequency_grid.size(); iv++) {
       const Numeric f2            = frequency_grid[iv] * frequency_grid[iv];
       const Numeric r             = ne * c1 / f2;
       propagation_matrix[iv].U() += r;
@@ -425,21 +419,21 @@ void propagation_matrixAddParticles(
                            i_ss,
                            i_se)
         if (use_abs_as_ext) {
-          for (Index iv = 0; iv < frequency_grid.size(); iv++) {
+          for (Size iv = 0; iv < frequency_grid.size(); iv++) {
             internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 0];
             internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 1];
             internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 2];
             internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 3];
           }
         } else {
-          for (Index iv = 0; iv < frequency_grid.size(); iv++) {
+          for (Size iv = 0; iv < frequency_grid.size(); iv++) {
             internal_propmat[iv] = rtepack::to_propmat(
                 ext_mat_Nse[i_ss][i_se][iv, 0, 0, joker, joker]);
           }
         }
 
         const Numeric vmr = atm_point[absorption_species[sp].Species()];
-        for (Index iv = 0; iv < frequency_grid.size(); iv++) {
+        for (Size iv = 0; iv < frequency_grid.size(); iv++) {
           propagation_matrix[iv] += vmr * internal_propmat[iv];
         }
       }
@@ -465,7 +459,7 @@ void propagation_matrixAddParticles(
         tmp *= atm_point[absorption_species[sp].Species()];
         tmp /= dT;
 
-        for (Index iv = 0; iv < frequency_grid.size(); iv++) {
+        for (Size iv = 0; iv < frequency_grid.size(); iv++) {
           if (use_abs_as_ext) {
             propagation_matrix_jacobian[iq, iv].A() += tmp[iv, 0, 0];
             propagation_matrix_jacobian[iq, iv].B() += tmp[iv, 1, 0];
@@ -482,7 +476,7 @@ void propagation_matrixAddParticles(
           jac_species.first) {
         const auto iq = jac_species.second->target_pos;
 
-        for (Index iv = 0; iv < frequency_grid.size(); iv++)
+        for (Size iv = 0; iv < frequency_grid.size(); iv++)
           propagation_matrix_jacobian[iq, iv] += internal_propmat[iv];
       }
 
@@ -500,7 +494,7 @@ void propagation_matrixZero(PropmatVector& propagation_matrix,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
-  for (Index i = 0; i < propagation_matrix.size(); i++)
+  for (Size i = 0; i < propagation_matrix.size(); i++)
     if (propagation_matrix[i].A() < 0.0) propagation_matrix[i] = 0.0;
   ;
 }

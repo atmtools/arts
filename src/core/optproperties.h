@@ -17,10 +17,8 @@
 #define optproperties_h
 
 #include <matpack.h>
+#include <mystring.h>
 #include <rtepack.h>
-
-#include "matpack_data.h"
-#include "mystring.h"
 
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).

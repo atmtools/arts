@@ -203,20 +203,17 @@ constexpr muelmat inv(const muelmat &A) {
                         c * e * j - c * f * i)};
 }
 
-using muelmat_vector      = matpack::matpack_data<muelmat, 1>;
-using muelmat_vector_view = matpack::matpack_view<muelmat, 1, false, false>;
-using muelmat_vector_const_view =
-    matpack::matpack_view<muelmat, 1, true, false>;
+using muelmat_vector            = matpack::data_t<muelmat, 1>;
+using muelmat_vector_view       = matpack::view_t<muelmat, 1>;
+using muelmat_vector_const_view = matpack::view_t<const muelmat, 1>;
 
-using muelmat_matrix      = matpack::matpack_data<muelmat, 2>;
-using muelmat_matrix_view = matpack::matpack_view<muelmat, 2, false, false>;
-using muelmat_matrix_const_view =
-    matpack::matpack_view<muelmat, 2, true, false>;
+using muelmat_matrix            = matpack::data_t<muelmat, 2>;
+using muelmat_matrix_view       = matpack::view_t<muelmat, 2>;
+using muelmat_matrix_const_view = matpack::view_t<const muelmat, 2>;
 
-using muelmat_tensor3      = matpack::matpack_data<muelmat, 3>;
-using muelmat_tensor3_view = matpack::matpack_view<muelmat, 3, false, false>;
-using muelmat_tensor3_const_view =
-    matpack::matpack_view<muelmat, 3, true, false>;
+using muelmat_tensor3            = matpack::data_t<muelmat, 3>;
+using muelmat_tensor3_view       = matpack::view_t<muelmat, 3>;
+using muelmat_tensor3_const_view = matpack::view_t<const muelmat, 3>;
 
 void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
                                      const Array<muelmat_vector> &T);

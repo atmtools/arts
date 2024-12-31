@@ -9,7 +9,6 @@
 #ifndef radiation_field_h
 #define radiation_field_h
 
-#include "matpack_data.h"
 #include "mystring.h"
 
 #include <rtepack.h>

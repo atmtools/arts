@@ -2,8 +2,6 @@
 
 #include "artstime.h"
 #include "disort.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
 
 void test_11a_1layer() try {
   const AscendingGrid tau_arr{8.};
@@ -57,7 +55,7 @@ void test_11a_1layer() try {
       0.6354625877794251,
       6.354625877794252,
   }
-                        .reshape_as(3)};
+                        .reshape(3)};
 
   const Vector phis{Vector{
       0.0,
@@ -66,7 +64,7 @@ void test_11a_1layer() try {
       4.71163898038469,
       6.282185307179586,
   }
-                        .reshape_as(5)};
+                        .reshape(5)};
 
   const Tensor3 u{Vector{
       -67450758.16951953,  -68163936.52049603,  -69234833.32187165,
@@ -150,7 +148,7 @@ void test_11a_1layer() try {
       -6476486177.443929,  -6475639420.811412,  -6474608811.336026,
       -6473576485.232804,  -6472737952.128993,  -6472232973.386706,
   }
-                      .reshape_as(5, 3, 16)};
+                      .reshape(5, 3, 16)};
 
   const Matrix u0{Vector{
       -67450757.82621326, -68163936.19030188,  -69234833.04060522,
@@ -170,22 +168,22 @@ void test_11a_1layer() try {
       -6476486177.423901, -6475639420.782612,  -6474608811.295008,
       -6473576485.182222, -6472737952.082489,  -6472232973.361435,
   }
-                      .reshape_as(3, 16)};
+                      .reshape(3, 16)};
 
   const Vector flux_down_diffuse{
       Vector{-203346309.84111682, -2033298515.7799737, -20339001823.603107}
-          .reshape_as(3)};
+          .reshape(3)};
 
   const Vector flux_down_direct{Vector{
       14.796267664990843,
       5.704076430616008,
       0.00041353941227710225,
   }
-                                    .reshape_as(3)};
+                                    .reshape(3)};
 
   const Vector flux_up{
       Vector{-226730089.1295884, -2057655944.8032463, -20350383841.43313}
-          .reshape_as(3)};
+          .reshape(3)};
 
   //flat_print(u, compute_u(dis, taus, phis, true) );
   //const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
@@ -202,7 +200,8 @@ void test_11a_1layer() try {
           flux_up,
           true);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11a-1layer:\n{}", e.what()));
+  throw std::runtime_error(
+      std::format("Error in test-11a-1layer:\n{}", e.what()));
 }
 
 void test_11a_multilayer() try {
@@ -212,14 +211,15 @@ void test_11a_multilayer() try {
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(tau_arr.size(), 32);
   for (auto&& v : Leg_coeffs_all)
-    v = {1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
-         3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
-         1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
-         3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
-         1.00225958e-02, 7.51694682e-03, 5.63771011e-03, 4.22828259e-03,
-         3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
-         1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
-         3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04};
+    v = std::array{
+        1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
+        3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
+        1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
+        3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
+        1.00225958e-02, 7.51694682e-03, 5.63771011e-03, 4.22828259e-03,
+        3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
+        1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
+        3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04};
 
   const Numeric mu0  = 0.6;
   const Numeric I0   = Constant::pi / mu0;
@@ -231,7 +231,8 @@ void test_11a_multilayer() try {
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);
-  for (auto&& v : s_poly_coeffs) v = {172311.79936609, -102511.4417051};
+  for (auto&& v : s_poly_coeffs)
+    v = std::array{172311.79936609, -102511.4417051};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)
@@ -258,7 +259,7 @@ void test_11a_multilayer() try {
       0.6354625877794251,
       6.354625877794252,
   }
-                        .reshape_as(3)};
+                        .reshape(3)};
 
   const Vector phis{Vector{
       0.0,
@@ -267,7 +268,7 @@ void test_11a_multilayer() try {
       4.71163898038469,
       6.282185307179586,
   }
-                        .reshape_as(5)};
+                        .reshape(5)};
 
   const Tensor3 u{
       Vector{-67450758.14903769,  -68163936.50382535,  -69234833.29132824,
@@ -350,7 +351,7 @@ void test_11a_multilayer() try {
              -6477469392.354253,  -6477337708.559765,  -6477051473.086717,
              -6476486177.50207,   -6475639420.858608,  -6474608811.388416,
              -6473576485.320588,  -6472737952.175774,  -6472232973.392494}
-          .reshape_as(5, 3, 16)};
+          .reshape(5, 3, 16)};
 
   const Matrix u0{
       Vector{-67450757.8061632,  -68163936.17421912, -69234833.01082006,
@@ -369,22 +370,22 @@ void test_11a_multilayer() try {
              -6477469392.354126, -6477337708.552801, -6477051473.078132,
              -6476486177.490063, -6475639420.841084, -6474608811.37826,
              -6473576485.251894, -6472737952.175217, -6472232973.442459}
-          .reshape_as(3, 16)};
+          .reshape(3, 16)};
 
   const Vector flux_down_diffuse{
       Vector{-203346309.85131612, -2033298515.7140882, -20339001823.843243}
-          .reshape_as(3)};
+          .reshape(3)};
 
   const Vector flux_down_direct{Vector{
       14.796267664990843,
       5.704076430616008,
       0.00041353941227710225,
   }
-                                    .reshape_as(3)};
+                                    .reshape(3)};
 
   const Vector flux_up{
       Vector{-226730088.99771807, -2057655944.7039967, -20350383841.64821}
-          .reshape_as(3)};
+          .reshape(3)};
 
   //flat_print(u, compute_u(dis, taus, phis, true) );
   //  const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);

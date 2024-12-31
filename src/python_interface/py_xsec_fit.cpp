@@ -214,7 +214,7 @@ abs : Vector
                 py::cast<Vector>(data_vars["fitmaxtemperatures"]["data"]);
 
             out.FitCoeffs().reserve(out.FitMinPressures().size());
-            for (Index i = 0; i < out.FitMinPressures().size(); ++i) {
+            for (Size i = 0; i < out.FitMinPressures().size(); ++i) {
               const String band_fgrid    = std::format("band{}_fgrid", i);
               const String band_coeffs   = std::format("band{}_coeffs", i);
               const auto band_fgrid_key  = py::str(band_fgrid.c_str());

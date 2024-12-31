@@ -15,7 +15,6 @@
 #include "enumsSensorJacobianModelType.h"
 #include "fwd.h"
 #include "rtepack_stokes_vector.h"
-#include "sorted_grid.h"
 #include "workspace_agenda_class.h"
 
 void spectral_radiance_jacobianEmpty(
@@ -33,7 +32,7 @@ void spectral_radiance_jacobianFromBackground(
     const StokvecMatrix &spectral_radiance_background_jacobian,
     const MuelmatVector &background_transmittance) try {
   ARTS_USER_ERROR_IF(
-      spectral_radiance_background_jacobian.ncols() !=
+      static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
           background_transmittance.size(),
       "spectral_radiance_background_jacobian must have same number of rows as the "
       "size of jacobian_targets")
@@ -142,7 +141,7 @@ void spectral_radiance_jacobianApplyUnit(
                      "spectral_radiance must have same size as frequency_grid")
   ARTS_USER_ERROR_IF(
       spectral_radiance_jacobian.size() != 0 and
-          spectral_radiance_jacobian.ncols() != frequency_grid.size(),
+          static_cast<Size>(spectral_radiance_jacobian.ncols()) != frequency_grid.size(),
       "spectral_radiance must have same size as frequency_grid")
 
   const auto dF =
@@ -212,9 +211,8 @@ frequency_grid.size()    = {}
       frequency_grid.size())
 
   ARTS_USER_ERROR_IF(
-      (spectral_radiance_jacobian.shape() !=
-       std::array{static_cast<Index>(jacobian_targets.x_size()),
-                  frequency_grid.size()}),
+      not same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()},
+                        spectral_radiance_jacobian),
       R"(spectral_radiance_jacobian must be x-grid times frequency grid
 
 spectral_radiance_jacobian.shape() = {:B,},
@@ -258,7 +256,6 @@ frequency_grid.size()              = {}
     // Convert to perturbed Jacobian
     dsrad -= spectral_radiance;
     for (auto &v : dsrad) v /= d;
-    return dsrad;
   };
 
   const auto &x = frequency_grid;
@@ -267,12 +264,12 @@ frequency_grid.size()              = {}
 
   bool find_any = false;
   for (auto &target : jacobian_targets.sensor()) {
-    ARTS_USER_ERROR_IF(
-        measurement_sensor.size() <= static_cast<Size>(target.type.measurement_elem),
-        "Sensor element out of bounds");
+    ARTS_USER_ERROR_IF(measurement_sensor.size() <=
+                           static_cast<Size>(target.type.measurement_elem),
+                       "Sensor element out of bounds");
 
     auto &elem = measurement_sensor[target.type.measurement_elem];
-    auto m = spectral_radiance_jacobian.slice(target.x_start, target.x_size);
+    auto m = spectral_radiance_jacobian[Range(target.x_start, target.x_size)];
     const Numeric d = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
@@ -303,18 +300,18 @@ frequency_grid.size()              = {}
               "Expects the frequency grid to be the same size as the original grid")
 
           for (Size i = 0; i < target.x_size; i++) {
-            for (Index iv = 0; iv < x.size(); iv++) {
+            for (Size iv = 0; iv < x.size(); iv++) {
               m[i, iv] += dsrad[iv] * std::pow(o[iv], i);
             }
           }
         } else {
           ARTS_USER_ERROR_IF(
-              static_cast<Index>(target.x_size) != o.size(),
+              target.x_size != o.size(),
               "Expects original grid to be the same as the required x-parameters in the jacobian target")
 
           for (Size i = 0; i < target.x_size; i++) {
             const Numeric g = std::pow(o[i], i);
-            for (Index iv = 0; iv < x.size(); iv++) {
+            for (Size iv = 0; iv < x.size(); iv++) {
               m[i, iv] += dsrad[iv] * g;
             }
           }
@@ -324,7 +321,7 @@ frequency_grid.size()              = {}
         if (target.type.type == f) {
           ARTS_USER_ERROR_IF(m.ncols() != m.nrows(),
                              "Expects square matrix for frequency derivative")
-          m.diagonal() += dsrad;
+          diagonal(m) += dsrad;
         } else {
           ARTS_USER_ERROR_IF(static_cast<Size>(iposlos) >= target.x_size,
                              "Bad pos-los index");
@@ -378,7 +375,7 @@ void measurement_vectorFromSensor(
 
   for (auto &[f_grid_ptr, poslos_set] : simulations) {
     for (auto &poslos_gs : poslos_set) {
-      for (Index ip = 0; ip < poslos_gs->size(); ++ip) {
+      for (Size ip = 0; ip < poslos_gs->size(); ++ip) {
         StokvecVector spectral_radiance;
         StokvecMatrix spectral_radiance_jacobian;
         ArrayOfPropagationPathPoint ray_path;
@@ -409,8 +406,9 @@ f_grid_ptr->size()       = {}
             f_grid_ptr->size())
 
         ARTS_USER_ERROR_IF(
-            (spectral_radiance_jacobian.shape() !=
-             std::array{measurement_jacobian.ncols(), f_grid_ptr->size()}),
+            not same_shape<2>({measurement_jacobian.ncols(),
+                               static_cast<Index>(f_grid_ptr->size())},
+                              spectral_radiance_jacobian),
             R"(spectral_radiance_jacobian must be targets x frequency grid size
 
 spectral_radiance_jacobian.shape()  = {:B,},

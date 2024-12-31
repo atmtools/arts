@@ -93,9 +93,9 @@ void test_geometric_fill(Size n) {
   const auto atm_field     = atm();
   const auto surface_field = surf();
 
-  const Vector alts = uniform_grid(1e3, 99, 1e3);
-  const Vector lats = uniform_grid(-90, 181, 1.);
-  const Vector lons = uniform_grid(-180, 361, 1.);
+  const Vector alts = matpack::uniform_grid(1e3, 99, 1e3);
+  const Vector lats = matpack::uniform_grid(-90, 181, 1.);
+  const Vector lons = matpack::uniform_grid(-180, 361, 1.);
 
   const auto test = [&](const ArrayOfPropagationPathPoint& x,
                         const Numeric start_alt) {

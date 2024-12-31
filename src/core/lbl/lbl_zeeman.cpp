@@ -311,11 +311,6 @@ Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
   return static_cast<Index>(type == pol::no);
 }
 
-std::ostream& operator<<(std::ostream& os, const model& m) {
-  os << std::noboolalpha << m.on << ' ' << m.mdata.gu << ' ' << m.mdata.gl;
-  return os;
-}
-
 std::istream& operator>>(std::istream& is, model& m) {
   Index i;
   is >> i >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
@@ -400,48 +395,6 @@ Numeric magnetic_angles::deta_dw() const {
   return H == 0 ? 0
                 : sz * (ca * u - sa * v) /
                       (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
-}
-
-std::ostream& operator<<(std::ostream& os, const magnetic_angles& m) {
-  os << std::format(R"(Magnetic angles:
-    u:         {}
-    v:         {}
-    w:         {}
-    sa:        {}
-    ca:        {}
-    sz:        {}
-    cz:        {}
-    H:         {}
-    uct:       {}
-    duct:      {}
-    theta:     {}
-    dtheta_du: {}
-    dtheta_dv: {}
-    dtheta_dw: {}
-    eta:       {}
-    deta_du:   {}
-    deta_dv:   {}
-    deta_dw:   {}
-)",
-                    m.u,
-                    m.v,
-                    m.w,
-                    m.sa,
-                    m.ca,
-                    m.sz,
-                    m.cz,
-                    m.H,
-                    m.uct,
-                    m.duct,
-                    m.theta(),
-                    m.dtheta_du(),
-                    m.dtheta_dv(),
-                    m.dtheta_dw(),
-                    m.eta(),
-                    m.deta_du(),
-                    m.deta_dv(),
-                    m.deta_dw());
-  return os;
 }
 
 Propmat norm_view(pol p, Vector3 mag, Vector2 los) {

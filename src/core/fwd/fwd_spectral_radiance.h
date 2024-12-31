@@ -3,16 +3,13 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 
-#include <memory>
 #include <iosfwd>
+#include <memory>
 
 #include "atm.h"
 #include "fwd_path.h"
 #include "fwd_propmat.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 #include "rtepack.h"
-#include "sorted_grid.h"
 #include "surf.h"
 
 namespace fwd {
@@ -20,12 +17,12 @@ struct spectral_radiance {
   AscendingGrid alt;
   AscendingGrid lat;
   AscendingGrid lon;
-  matpack::matpack_data<std::shared_ptr<AtmPoint>, 3> atm;
-  matpack::matpack_data<propmat, 3> pm;
+  matpack::data_t<std::shared_ptr<AtmPoint>, 3> atm;
+  matpack::data_t<propmat, 3> pm;
 
-  matpack::matpack_data<std::function<Stokvec(Numeric, Vector2)>, 2>
+  matpack::data_t<std::function<Stokvec(Numeric, Vector2)>, 2>
       spectral_radiance_surface;
-  matpack::matpack_data<std::function<Stokvec(Numeric, Vector2)>, 2>
+  matpack::data_t<std::function<Stokvec(Numeric, Vector2)>, 2>
       spectral_radiance_space;
 
   Vector2 ellipsoid;
@@ -66,8 +63,6 @@ struct spectral_radiance {
   [[nodiscard]] const AscendingGrid& altitude() const { return alt; }
   [[nodiscard]] const AscendingGrid& latitude() const { return lat; }
   [[nodiscard]] const AscendingGrid& longitude() const { return lon; }
-
-  friend std::ostream& operator<<(std::ostream&, const spectral_radiance&);
 
   [[nodiscard]] std::vector<path> geometric_planar(const Vector3 pos,
                                                    const Vector2 los) const;

@@ -51,7 +51,7 @@ void test_expm() {
 
     t_test_diff -= t_expm;
     t_test_diff /= t_expm;
-    std::cout << t_test_diff << '\n';
+    std::cout << std::format("{}", t_test_diff) << '\n';
     std::cout << '\n';
   }
 }
@@ -108,8 +108,8 @@ void test_dexpm() {
       m[i][j] /= dt[0][i][j] * x * 2.0;
     }
   }
-  std::cout << dt << '\n';
-  std::cout << m << '\n';
+  std::cout << std::format("{}", dt) << '\n';
+  std::cout << std::format("{}", m) << '\n';
 }
 
 void test_inv() {
@@ -161,7 +161,7 @@ void test_inv() {
       inv_k[i][j] /= m[i][j];
     }
   }
-  std::cout << inv_k << '\n';
+  std::print(std::cout, "{}\n", inv_k);
 }
 
 int main() {

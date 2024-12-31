@@ -199,14 +199,14 @@ int main(int argc, const char** argv) {
   String result_path = argv[2];
   Numeric resolution = std::stoi(argv[3]);
 
-  std::cout << "Atlas file:  " << atlas_file << std::endl;
-  std::cout << "Result path: " << result_path << std::endl;
+  std::cout << "Atlas file:  " << atlas_file << '\n';
+  std::cout << "Result path: " << result_path << '\n';
 
   // Reading of emissivities.
 
   Numeric error = test_telsem_read(atlas_file, result_path, resolution);
   std::cout << "Maximum error reading emissivities:       " << error
-            << std::endl;
+            << '\n';
 
   // Interpolation of emissivities.
 
@@ -215,6 +215,6 @@ int main(int argc, const char** argv) {
   error = test_telsem_interpolate(
       atlas_file, result_path, resolution, theta, frequencies);
   std::cout << "Maximum error interpolating emissivities: " << error
-            << std::endl;
+            << '\n';
   return 0;
 }

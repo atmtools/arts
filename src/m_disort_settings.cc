@@ -11,8 +11,6 @@
 #include "atm.h"
 #include "debug.h"
 #include "enumsSurfaceKey.h"
-#include "mh_checks.h"
-#include "sorted_grid.h"
 #include "sun_methods.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,21 +58,21 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
   const Numeric sin2_alpha =
       sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
 
-  const Index nv = frequency_grid.size();
+  const Size nv = frequency_grid.size();
 
-  ARTS_USER_ERROR_IF(
-      disort_settings.solar_source.size() != nv or sun.spectrum.nrows() != nv,
-      R"(Solar spectrum not agreeing with frequency grids:
+  ARTS_USER_ERROR_IF(disort_settings.solar_source.size() != nv or
+                         static_cast<Size>(sun.spectrum.nrows()) != nv,
+                     R"(Solar spectrum not agreeing with frequency grids:
 
 frequency_grid.size():              {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",
-      nv,
-      disort_settings.solar_source.size(),
-      sun.spectrum.nrows())
+                     nv,
+                     disort_settings.solar_source.size(),
+                     sun.spectrum.nrows())
 
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     disort_settings.solar_source[iv] = sun.spectrum[iv, 0] * sin2_alpha;
   }
 
@@ -101,14 +99,15 @@ void disort_settingsLayerThermalEmissionLinearInTau(
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
   ARTS_USER_ERROR_IF(
-      not same_shape(std::array<Index, 2>{nv, static_cast<Index>(N) - 1},
-                     disort_settings.optical_thicknesses),
-      "Incorrect shape: {:B,} vs {:B,}",
-      std::array<Index, 2>{nv, static_cast<Index>(N) - 1},
+      not same_shape<2>({static_cast<Index>(nv), static_cast<Index>(N) - 1},
+                        disort_settings.optical_thicknesses),
+      "Incorrect shape: [{}, {}] vs {:B,}",
+      nv,
+      N - 1,
       disort_settings.optical_thicknesses.shape());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     const Numeric& f = frequency_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
@@ -150,7 +149,8 @@ void disort_settingsSurfaceEmissionByTemperature(
   disort_settings.positive_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(
-      nv != disort_settings.positive_boundary_condition.npages(),
+      static_cast<Index>(nv) !=
+          disort_settings.positive_boundary_condition.npages(),
       "Frequency grid size does not match the positive boundary condition size: {} vs {}",
       nv,
       disort_settings.positive_boundary_condition.npages())
@@ -159,7 +159,7 @@ void disort_settingsSurfaceEmissionByTemperature(
       disort_settings.positive_boundary_condition.nrows() < 1,
       "Must have at least one fourier mode to use the positive boundary condition.")
 
-  for (Index iv = 0; iv < nv; iv++) {
+  for (Size iv = 0; iv < nv; iv++) {
     disort_settings.positive_boundary_condition[iv, 0, joker] =
         planck(frequency_grid[iv], T);
   }
@@ -234,7 +234,7 @@ void disort_settingsOpticalThicknessFromPath(
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(std::array{nv}, ray_path_propagation_matrix),
+      not all_same_shape<1>({nv}, ray_path_propagation_matrix),
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
@@ -277,7 +277,7 @@ ray_path: {:B,}
             disort_settings.optical_thicknesses[iv, i - 1];
 
         ARTS_USER_ERROR_IF((disort_settings.optical_thicknesses[iv, i] <=
-                               disort_settings.optical_thicknesses[iv, i - 1]),
+                            disort_settings.optical_thicknesses[iv, i - 1]),
                            R"(
 Not strictly increasing optical thicknesses between layers.
 
@@ -315,10 +315,9 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
 
   for (Index iv = 0; iv < disort_settings.nfreq; iv++) {
     disort_settings.bidirectional_reflectance_distribution_functions[iv, 0] =
-        DisortBDRF{
-            [value = vec[iv]](ExhaustiveMatrixView x,
-                              const ExhaustiveConstVectorView&,
-                              const ExhaustiveConstVectorView&) { x = value; }};
+        DisortBDRF{[value = vec[iv]](MatrixView x,
+                                     const ConstVectorView&,
+                                     const ConstVectorView&) { x = value; }};
   }
 }
 
@@ -327,10 +326,9 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
       disort_settings.nfreq, 1);
 
-  const auto f =
-      DisortBDRF{[value](ExhaustiveMatrixView x,
-                         const ExhaustiveConstVectorView&,
-                         const ExhaustiveConstVectorView&) { x = value; }};
+  const auto f = DisortBDRF{[value](MatrixView x,
+                                    const ConstVectorView&,
+                                    const ConstVectorView&) { x = value; }};
 
   disort_settings.bidirectional_reflectance_distribution_functions = f;
 }
@@ -365,14 +363,13 @@ void disort_settingsLegendreCoefficientsFromPath(
       ray_path_phase_matrix_scattering_spectral.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(std::array{F, L},
-                         ray_path_phase_matrix_scattering_spectral),
+      not all_same_shape<2>({static_cast<Index>(F), static_cast<Index>(L)},
+                            ray_path_phase_matrix_scattering_spectral),
       "The shape of ray_path_phase_matrix_scattering_spectral must be {:B,}, at least one is not",
       std::array{F, L});
 
   ARTS_USER_ERROR_IF(
-      not same_shape(std::array{F, static_cast<Index>(N), L},
-                     disort_settings.legendre_coefficients),
+      not same_shape<3>({F, N, L}, disort_settings.legendre_coefficients),
       R"(The shape of disort_settings.legendre_coefficients must be {:B,}, but is {:B,})",
       std::array{F, static_cast<Index>(N), L},
       disort_settings.legendre_coefficients.shape());
@@ -446,15 +443,14 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       ray_path_absorption_vector_scattering.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(std::array{F},
-                         ray_path_absorption_vector_scattering,
-                         ray_path_propagation_matrix_scattering),
+      not all_same_shape<1>({F},
+                            ray_path_absorption_vector_scattering,
+                            ray_path_propagation_matrix_scattering),
       "The shape of ray_path_propagation_matrix_scattering and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
-      not same_shape(std::array{F, static_cast<Index>(N)},
-                     disort_settings.single_scattering_albedo),
+      not same_shape<2>({F, N}, disort_settings.single_scattering_albedo),
       R"(The shape of disort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
       std::array{F, static_cast<Index>(N)},
       disort_settings.single_scattering_albedo.shape());

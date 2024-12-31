@@ -49,7 +49,7 @@ void matvec(int N) {
       const Vector x(m, 1);
       Vector y(n);
       for (Index v = 0; v < n; v++) {
-        y[v] = A[v] * x;
+        y[v] = dot(A[v], x);
       }
       some_results.push_back(y[0]);
     });
@@ -149,7 +149,7 @@ void matmat(int N) {
       Matrix C(m, p);
       for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
-          C[x, j] = A[x] * B[joker, j];
+          C[x, j] = dot(A[x], B[joker, j]);
         }
       }
       some_results.push_back(C[0, 0]);

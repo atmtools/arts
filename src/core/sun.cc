@@ -14,10 +14,9 @@
 #include "sun.h"
 
 #include "arts_conversions.h"
-#include "check_input.h"
 #include "debug.h"
+#include "interp.h"
 #include "interpolation.h"
-#include "matpack_data.h"
 #include "physics_funcs.h"
 
 using Constant::pi;
@@ -32,24 +31,24 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
   os << " Distance: " << sun.distance << "m \n";
   os << " Latitude: " << sun.latitude << "° \n";
   os << " Longitude: " << sun.longitude << "° \n";
-  os << " Spectrum [W/m2/Hz]: \n" << sun.spectrum;
+  os << std::format(" Spectrum [W/m2/Hz]: \n{}", sun.spectrum);
   return os;
 }
 
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
                            const Vector& f_grid,
                            const Numeric& temperature) {
-  const Index nf = f_grid.size();
+  const Index nf            = f_grid.size();
   const Vector& data_f_grid = sun_spectrum_raw.grid<0>();
-  const Numeric data_fmin = data_f_grid[0];
-  const Numeric data_fmax = data_f_grid[data_f_grid.size() - 1];
+  const Numeric data_fmin   = data_f_grid[0];
+  const Numeric data_fmax   = data_f_grid[data_f_grid.size() - 1];
 
   // Result array
   Matrix int_data(f_grid.size(), 4, 0.);
 
-  const Numeric* f_grid_begin = f_grid.unsafe_data_handle();
-  const Numeric* f_grid_end = f_grid_begin + f_grid.size();
-  const Index i_fstart = std::distance(
+  const Numeric* f_grid_begin = f_grid.data_handle();
+  const Numeric* f_grid_end   = f_grid_begin + f_grid.size();
+  const Index i_fstart        = std::distance(
       f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
   const Index i_fstop =
       std::distance(
@@ -68,8 +67,8 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
   const Numeric f_grid_fmin = f_grid[i_fstart];
   const Numeric f_grid_fmax = f_grid[i_fstop];
 
-  const Numeric* data_f_grid_begin = data_f_grid.unsafe_data_handle();
-  const Numeric* data_f_grid_end = data_f_grid_begin + data_f_grid.size() - 1;
+  const Numeric* data_f_grid_begin = data_f_grid.data_handle();
+  const Numeric* data_f_grid_end   = data_f_grid_begin + data_f_grid.size() - 1;
   const Index i_data_fstart =
       std::distance(
           data_f_grid_begin,
@@ -88,8 +87,11 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
   const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
   // Check if frequency is inside the range covered by the data:
-  chk_interpolation_grids(
-      "Frequency interpolation for cross sections", data_f_grid, f_grid_active);
+  LagrangeInterpolation::check(data_f_grid,
+                               1,
+                               minmax(f_grid_active),
+                               0.5,
+                               "Frequency grid for sun spectrum");
 
   {
     // Find frequency grid positions:
@@ -167,12 +169,12 @@ Numeric refell2r(const Vector2 ell, const Numeric lat) {
 
   const auto [a, b] = ell;
 
-  ARTS_ASSERT(a > 0);
-  ARTS_ASSERT(b > 0);
-  ARTS_ASSERT(a >= b);
+  assert(a > 0);
+  assert(b > 0);
+  assert(a >= b);
 
   const Numeric e2 = 1 - Math::pow2(b / a);
-  const Numeric c = 1 - e2;
+  const Numeric c  = 1 - e2;
 
   const Numeric ct = cosd(lat);
   const Numeric st = sind(lat);
@@ -200,12 +202,12 @@ Numeric refell2r(const Vector2 ell, const Numeric lat) {
 Vector3 sph2cart(const Vector3 sph) {
   using Conversion::cosd;
   using Conversion::sind;
-  
+
   const auto& [r, lat, lon] = sph;
 
-  ARTS_ASSERT(std::abs(lat) <= 90);
-  ARTS_ASSERT(std::abs(lon) <= 360);
-  ARTS_ASSERT(r > 0);
+  assert(std::abs(lat) <= 90);
+  assert(std::abs(lon) <= 360);
+  assert(r > 0);
 
   return {r * cosd(lat) * cosd(lon), r * cosd(lat) * sind(lon), r * sind(lat)};
 }
@@ -235,11 +237,11 @@ std::pair<Vector3, Vector3> poslos2cart(const Vector3 sph, const Vector2 los) {
   using Conversion::sind;
 
   const auto [r, lat, lon] = sph;
-  const auto [za, aa] = los;
+  const auto [za, aa]      = los;
 
-  ARTS_ASSERT(r > 0);
-  ARTS_ASSERT(std::abs(lat) <= 90);
-  ARTS_ASSERT(za >= 0 && za <= 180);
+  assert(r > 0);
+  assert(std::abs(lat) <= 90);
+  assert(za >= 0 && za <= 180);
 
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
@@ -255,12 +257,12 @@ std::pair<Vector3, Vector3> poslos2cart(const Vector3 sph, const Vector2 los) {
   const Numeric sinlat = sind(lat);
   const Numeric coslon = cosd(lon);
   const Numeric sinlon = sind(lon);
-  const Numeric cosza = cosd(za);
-  const Numeric sinza = sind(za);
-  const Numeric cosaa = cosd(aa);
-  const Numeric sinaa = sind(aa);
+  const Numeric cosza  = cosd(za);
+  const Numeric sinza  = sind(za);
+  const Numeric cosaa  = cosd(aa);
+  const Numeric sinaa  = sind(aa);
 
-  const Numeric dr = cosza;
+  const Numeric dr   = cosza;
   const Numeric dlat = sinza * cosaa;  // r-term cancel out below
   const Numeric dlon = sinza * sinaa / coslat;
 
@@ -315,20 +317,21 @@ std::pair<Numeric, bool> hit_sun(const Sun& sun,
 Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const try {
   using Math::pow2;
 
-  const auto[alt, lat, lon] = pos;
+  const auto [alt, lat, lon] = pos;
 
   // r_sun
   const Numeric R_rte = refell2r(ell, lat) + alt;
-  const auto r_sun = sph2cart({distance, latitude, longitude});
-  const auto r_rte = sph2cart({R_rte, lat, lon});
+  const auto r_sun    = sph2cart({distance, latitude, longitude});
+  const auto r_rte    = sph2cart({R_rte, lat, lon});
 
   const auto d = r_sun - r_rte;
 
   //abs value of r_ps
-  const Numeric r_ps2 = d * d;
+  const Numeric r_ps2 = dot(d, d);
 
   return pow2(radius) / (pow2(radius) + r_ps2);
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 //! Returns true if the sun was hit, false otherwise.  Sets the spectral radiance if the sun was hit.
 bool set_spectral_radiance_if_sun_intersection(
@@ -337,12 +340,8 @@ bool set_spectral_radiance_if_sun_intersection(
     const PropagationPathPoint& propagation_path_point,
     const SurfaceField& surface_field) {
   const Index nf = spectral_radiance.size();
-  ARTS_ASSERT(
-      nf == sun.spectrum.nrows(),
-      "Spectral radiance and sun spectrum must have the same frequency size")
-  ARTS_ASSERT(
-      4 == sun.spectrum.ncols(),
-      "Spectral radiance and sun spectrum must have the same stokes size")
+  assert(nf == sun.spectrum.nrows());
+  assert(4 == sun.spectrum.ncols());
 
   //Check if we see the sun.
   if (propagation_path_point.los_type == PathPositionType::space and

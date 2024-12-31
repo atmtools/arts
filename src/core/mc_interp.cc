@@ -51,11 +51,11 @@ void interp(MatrixView tia,
             ConstVectorView itw,
             const ArrayOfMatrix& a,
             const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation weights.
+  ARTS_ASSERT(itw.ncols() == 2);  // We need 2 interpolation weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, 1e-6));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, 1e-6));
 
   Index anr = a[0].nrows();
   Index anc = a[0].ncols();
@@ -74,17 +74,17 @@ void interp(VectorView tia,
             ConstVectorView itw,
             const ArrayOfVector& a,
             const GridPos& tc) {
-  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation weights.
+  ARTS_ASSERT(itw.ncols() == 2);  // We need 2 interpolation weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, 1e-6));
+  ARTS_ASSERT(is_same_within_epsilon<Numeric>(sum(itw), 1, 1e-6));
 
-  Index an = a[0].size();
+  Size an = a[0].size();
 
   ARTS_ASSERT(tia.size() == an);
 
-  for (Index i = 0; i < an; ++i) {
+  for (Size i = 0; i < an; ++i) {
     tia[i] = a[tc.idx][i] * itw[0] + a[tc.idx + 1][i] * itw[1];
   }
 }
@@ -119,7 +119,7 @@ void interp_scat_angle_temperature(  //Output:
     const Numeric aa_sca_rad = aa_sca * DEG2RAD;
     const Numeric aa_inc_rad = aa_inc * DEG2RAD;
 
-    // cout << "Interpolation on scattering angle" << endl;
+    // cout << "Interpolation on scattering angle" << '\n';
     ARTS_ASSERT(scat_data_single.pha_mat_data.ncols() == 6);
     // Calculation of the scattering angle:
     theta_rad =

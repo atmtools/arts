@@ -11,8 +11,6 @@
 #include "arts_conversions.h"
 #include "debug.h"
 #include "enumsSurfaceKey.h"
-#include "interp.h"
-#include "matpack_math.h"
 
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
@@ -141,39 +139,6 @@ std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
 }
 
 namespace Surf {
-std::ostream &operator<<(std::ostream &os, const Point &surf) {
-  os << "Elevation: " << surf.elevation << " m,\n";
-  os << "Temperature: " << surf.temperature << " K\n,";
-  os << "Normal: [za: " << surf.normal[0] << ", aa: " << surf.normal[1]
-     << "] degrees,\n";
-
-  return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const Field &surf) {
-  const auto printer = [&](auto &d) {
-    if constexpr (std::same_as<std::remove_cvref_t<decltype(d)>,
-                               FunctionalData>)
-      os << "Functional Data";
-    else
-      os << d;
-  };
-
-  bool first = true;
-
-  const auto keys = surf.keys();
-  for (auto &key : surf.keys()) {
-    if (not first) os << '\n';
-    first = false;
-
-    std::visit(printer, key);
-    os << ":\n";
-    std::visit(printer, surf[key].data);
-  }
-
-  return os;
-}
-
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
@@ -396,7 +361,7 @@ std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
 }
 
 std::pair<Numeric, Numeric> minmax(const GriddedField2 &x) {
-  return ::minmax(x.data);
+  return matpack::minmax(x.data);
 }
 }  // namespace detail
 
@@ -419,16 +384,16 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
 
-[[nodiscard]] ExhaustiveConstVectorView Data::flat_view() const {
+[[nodiscard]] ConstVectorView Data::flat_view() const {
   return std::visit(
-      [](auto &X) -> ExhaustiveConstVectorView {
+      [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField2>)
-          return X.data.flat_view();
+          return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
-          return ExhaustiveConstVectorView{X};
+          return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
-          return ExhaustiveConstVectorView{};
+          return ConstVectorView{};
         ARTS_ASSERT(
             false,
             "Cannot be reached, you have added a new type but not done the plumbing...");
@@ -436,16 +401,16 @@ bool Field::constant_value(const KeyVal &key) const {
       data);
 }
 
-[[nodiscard]] ExhaustiveVectorView Data::flat_view() {
+[[nodiscard]] VectorView Data::flat_view() {
   return std::visit(
-      [](auto &X) -> ExhaustiveVectorView {
+      [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField2>)
-          return X.data.flat_view();
+          return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
-          return ExhaustiveVectorView{X};
+          return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
-          return ExhaustiveVectorView{};
+          return VectorView{};
         ARTS_ASSERT(
             false,
             "Cannot be reached, you have added a new type but not done the plumbing...");

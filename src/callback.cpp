@@ -7,18 +7,6 @@
 
 #include <workspace.h>
 
-std::ostream& operator<<(std::ostream& os, const CallbackOperator& op) {
-  os << "CallbackOperator\nInputs: [";
-  for (auto& n: op.inputs) {
-    os << n << ", ";
-  }
-  os << "]\nOutputs: [";
-  for (auto& n: op.outputs) {
-    os << n << ", ";
-  }
-  return os << ']';
-}
-
 void CallbackOperator::operator()(Workspace& ws_in) const try {
   ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n{}", *this);
   

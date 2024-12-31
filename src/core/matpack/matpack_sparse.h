@@ -45,7 +45,7 @@
 #endif
 
 #include "array.h"
-#include "matpack_data.h"
+#include "matpack_mdspan_data_t.h"
 
 //! The Sparse class.
 /*!
@@ -71,7 +71,7 @@ struct Sparse {
   void insert_elements(Index nnz,
                        const ArrayOfIndex& rowind,
                        const ArrayOfIndex& colind,
-                       ConstVectorView data);
+                       StridedConstVectorView data);
 
   // Resize function:
   void resize(Index r, Index c);
@@ -88,7 +88,7 @@ struct Sparse {
      * @return Sparse matrix with the elements of the given vector
      *     on the diagonal.
      */
-  static Sparse diagonal(ConstVectorView v);
+  static Sparse diagonal(StridedConstVectorView v);
 
   /** Diagonal elements as vector
      *
@@ -134,13 +134,13 @@ struct Sparse {
 // Functions for general matrix operations
 void abs(Sparse& A, const Sparse& B);
 
-void mult(VectorView y, const Sparse& M, ConstVectorView x);
+void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
 
-void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x);
+void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
 
-void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C);
+void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C);
 
-void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C);
+void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C);
 
 void mult(Sparse& A, const Sparse& B, const Sparse& C);
 

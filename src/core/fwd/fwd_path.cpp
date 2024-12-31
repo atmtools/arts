@@ -4,7 +4,6 @@
 
 #include "debug.h"
 #include "path_point.h"
-#include "sorted_grid.h"
 
 namespace fwd {
 constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) try {
@@ -193,18 +192,5 @@ std::vector<path> geometric_planar(const Vector3 pos,
   }
 
   return path;
-}
-
-std::ostream& operator<<(std::ostream& os, const path& pp) {
-  return os << pp.point << ' ' << pp.alt_index << ' ' << pp.lat_index << ' '
-            << pp.lon_index << ' ' << pp.alt_weight << ' ' << pp.lat_weight
-            << ' ' << pp.lon_weight << ' ' << pp.distance;
-}
-
-std::ostream& operator<<(std::ostream& os, const std::vector<path>& pps) {
-  for (auto& pp : pps) {
-    os << pp << '\n';
-  }
-  return os;
 }
 }  // namespace fwd

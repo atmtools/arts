@@ -48,7 +48,7 @@ struct table {
         std::shared_ptr<const AscendingGrid> t_pert = nullptr,
         std::shared_ptr<const AscendingGrid> w_pert = nullptr);
 
-  void absorption(ExhaustiveVectorView absorption,
+  void absorption(VectorView absorption,
                   const SpeciesEnum& species,
                   const Index& p_interp_order,
                   const Index& t_interp_order,

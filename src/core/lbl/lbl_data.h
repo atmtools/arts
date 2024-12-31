@@ -136,8 +136,6 @@ struct line {
   [[nodiscard]] Numeric hitran_s(const SpeciesIsotope& isot,
                                  const Numeric T0 = 296.0) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const line& x);
-
   friend std::istream& operator>>(std::istream& is, line& x);
 };
 
@@ -189,8 +187,6 @@ struct band_data {
 
   //! Returns true if the line is new for the band_data (based on quantum numbers)
   bool merge(const line& linedata);
-
-  friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };
 
 struct line_pos {
@@ -230,19 +226,11 @@ struct line_key {
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const line_key& x);
-
   [[nodiscard]] Numeric& get_value(
       std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
   [[nodiscard]] const Numeric& get_value(
       const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
-
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::unordered_map<QuantumIdentifier, band_data>& x);
 
 /** Returns all species in the band, including those that are broadening species
  * 

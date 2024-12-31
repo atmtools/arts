@@ -33,7 +33,7 @@ void py_surf(py::module_ &m) try {
       .def(
           "__call__",
           [](const SurfaceData &surf, const Vector &latv, const Vector &lonv) {
-            const Index N = latv.size();
+            const Size N = latv.size();
             if (N != lonv.size())
               throw std::logic_error(std::format(R"(Not same size:
   lat: {:B,} (size: {})
@@ -45,7 +45,7 @@ void py_surf(py::module_ &m) try {
                                                  lonv.size()));
 
             Vector out(N);
-            for (Index i = 0; i < N; i++) {
+            for (Size i = 0; i < N; i++) {
               out[i] = surf.at(latv[i], lonv[i]);
             }
             return out;
@@ -179,7 +179,7 @@ void py_surf(py::module_ &m) try {
       .def(
           "__call__",
           [](const SurfaceField &surf, const Vector &latv, const Vector &lonv) {
-            const Index N = latv.size();
+            const Size N = latv.size();
             if (N != lonv.size())
               throw std::logic_error(std::format(R"(Not same size:
   lat: {:B,} (size: {})
@@ -191,7 +191,7 @@ void py_surf(py::module_ &m) try {
                                                  lonv.size()));
 
             Array<SurfacePoint> out(N);
-            for (Index i = 0; i < N; i++) {
+            for (Size i = 0; i < N; i++) {
               out[i] = surf.at(latv[i], lonv[i]);
             }
             return out;

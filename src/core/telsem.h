@@ -16,13 +16,14 @@
 #ifndef telsem_h
 #define telsem_h
 
+#include <matpack.h>
+
 #include <array>
 #include <iosfwd>
 
 #include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
-#include "matpack_data.h"
 #include "mystring.h"
 
 /** A telsem atlas
@@ -53,10 +54,10 @@ class TelsemAtlas {
      */
   TelsemAtlas(String filename);
 
-  void set_month(Index m) ;
-  Index get_month() const ;
+  void set_month(Index m);
+  Index get_month() const;
 
-  const Tensor3 &get_correl() const ;
+  const Tensor3 &get_correl() const;
   void set_correl(const Tensor3 &t);
 
   /*! Check if cell is contained in atlas.
@@ -64,7 +65,7 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for given coordinates obtained from
      * calc cellnum.
      */
-  bool contains(Size cellnumber) const ;
+  bool contains(Size cellnumber) const;
 
   /*! Class of a given cell.
      * Return the class1 value of the given cell. Indexed by cellnumber
@@ -76,7 +77,7 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for which to lookup the class.
      * @return The index representing the class1 value of the cell.
      */
-  Index get_class1(Index cellnumber) const ;
+  Index get_class1(Index cellnumber) const;
 
   /*! Class of a given cell.
      * Return the class2 value of the given cell. Indexed by cellnumber
@@ -88,7 +89,7 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for which to lookup the class.
      * @return The index representing the class2 value of the cell.
      */
-  Index get_class2(Index cellnumber) const ;
+  Index get_class2(Index cellnumber) const;
 
   /*! Verically polarized emissivities at 19, 37 and 85 GHz.
      *
@@ -99,7 +100,7 @@ class TelsemAtlas {
      * @param cellnum The atlas' cellunmber from which to extract the emissivities.
      * @return 3-element vector containing the emissivities.
      */
-  Vector get_emis_v(Index i) const ;
+  Vector get_emis_v(Index i) const;
 
   /*! Horizontally polarized emissivities at 19, 37 and 85 GHz.
      *

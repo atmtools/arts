@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
@@ -9,95 +10,60 @@
 
 #include <algorithm>
 
-#include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
-#include "matpack_view.h"
-#include "rtepack_rtestep.h"
 
 namespace Python {
-void copy(Propmat &x, const ExhaustiveConstVectorView y) {
-  ARTS_ASSERT(y.size() == 7)
-  std::copy(y.begin(), y.end(), x.data.begin());
-}
-
-void copy(Stokvec &x, const ExhaustiveConstVectorView y) {
-  ARTS_ASSERT(y.size() == 4)
-  std::copy(y.begin(), y.end(), x.data.begin());
-}
-
-void copy(Muelmat &x, const ExhaustiveConstVectorView y) {
-  ARTS_ASSERT(y.size() == 16)
-  std::copy(y.begin(), y.end(), x.data.begin());
-}
-
-void copy(Specmat &x, const ExhaustiveConstComplexVectorView y) {
-  ARTS_ASSERT(y.size() == 16)
-  std::copy(y.begin(), y.end(), x.data.begin());
-}
-
-template <typename T, Index M>
-void copy(matpack::matpack_view<T, M, false, false> &&x,
-          matpack::matpack_view<Complex, M + 1, true, false> &&y) {
-  ARTS_ASSERT(x.shape()[0] == y.shape()[0])
-  for (Index i = 0; i < x.shape()[0]; i++) {
-    copy(x[i], y[i]);
-  }
-}
-
-template <typename T, Index M>
-void copy(matpack::matpack_view<T, M, false, false> &&x,
-          matpack::matpack_view<Numeric, M + 1, true, false> &&y) {
-  ARTS_ASSERT(x.shape()[0] == y.shape()[0])
-  for (Index i = 0; i < x.shape()[0]; i++) {
-    copy(x[i], y[i]);
-  }
-}
-
 template <typename T, Index M, size_t... N>
-void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
+void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
   using U = T::value_type;
 
   c.def(
       "__init__",
-      [](matpack::matpack_data<T, M> *y, const matpack::matpack_data<U, M> &x) {
-        new (y) matpack::matpack_data<T, M>(x.shape());
+      [](matpack::data_t<T, M> *y, const matpack::data_t<U, M> &x) {
+        new (y) matpack::data_t<T, M>(x.shape());
         std::transform(
             x.elem_begin(), x.elem_end(), y->elem_begin(), [](const U &z) {
               return T(z);
             });
       },
       "x"_a);
-  py::implicitly_convertible<matpack::matpack_data<U, M>,
-                             matpack::matpack_data<T, M>>();
+  py::implicitly_convertible<matpack::data_t<U, M>, matpack::data_t<T, M>>();
   c.def(
       "__init__",
-      [](matpack::matpack_data<T, M> *y,
-         const matpack::matpack_data<U, M + 1> &x) {
-        if (x.size() != 0 and x.shape().back() != T::sz) {
+      [](matpack::data_t<T, M> *y, const matpack::data_t<U, M + 1> &x) {
+        const Size sz = T{}.size();
+
+        if (x.size() != 0 and static_cast<Size>(x.shape().back()) != sz) {
           throw std::invalid_argument(std::format(
               "Last dimension of input must be equal to the size of the "
               "underlying rtepack type.  "
               "The shape is {:B,} and the size of the underlying rtepack type is {}",
               x.shape(),
-              T::sz));
+              sz));
         }
 
         std::array<Index, M> shape{};
-        for (Size i = 0; i < M; i++) {
-          shape[i] = x.extent(i);
+        for (Size i = 0; i < M; i++) shape[i] = x.extent(i);
+
+        new (y) matpack::data_t<T, M>(shape);
+
+        auto outview = y->view_as(y->size());
+        auto inview  = x.view_as(y->size(), sz);
+        for (Size i = 0; i < y->size(); i++) {
+          for (Size j = 0; j < sz; j++) {
+            outview[i][j] = inview[i, j];
+          }
         }
-        new (y) matpack::matpack_data<T, M>(shape);
-        copy(matpack::matpack_view<T, M, false, false>(*y), x);
       },
       "x"_a);
-  py::implicitly_convertible<matpack::matpack_data<U, M + 1>,
-                             matpack::matpack_data<T, M>>();
+  py::implicitly_convertible<matpack::data_t<U, M + 1>,
+                             matpack::data_t<T, M>>();
 
   c.def(
       "__array__",
-      [](matpack::matpack_data<T, M> &v, py::object dtype, py::object copy) {
+      [](matpack::data_t<T, M> &v, py::object dtype, py::object copy) {
         constexpr auto n = M + sizeof...(N);
         std::array<size_t, n> shape{};
         std::ranges::copy(v.shape(), shape.begin());
@@ -114,9 +80,7 @@ void rtepack_array(py::class_<matpack::matpack_data<T, M>> &c) {
   c.def_prop_rw(
       "value",
       [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
-      [](matpack::matpack_data<T, M> &x, matpack::matpack_data<T, M> &y) {
-        x = y;
-      },
+      [](matpack::data_t<T, M> &x, matpack::data_t<T, M> &y) { x = y; },
       "A :class:`~numpy.ndarray` of the object.");
 
   common_ndarray(c);
@@ -397,31 +361,31 @@ void py_rtepack(py::module_ &m) try {
   workspace_group_interface(c5);
   vector_interface(c5);
 
-//   auto d1 =
-//       py::bind_vector<ArrayOfSpecmatVector, py::rv_policy::reference_internal>(
-//           m, "ArrayOfSpecmatVector");
-//   workspace_group_interface(d1);
-//   vector_interface(d1);
-//   auto d2 = py::bind_vector<ArrayOfArrayOfSpecmatVector,
-//                             py::rv_policy::reference_internal>(
-//       m, "ArrayOfArrayOfSpecmatVector");
-//   workspace_group_interface(d2);
-//   vector_interface(d2);
+  //   auto d1 =
+  //       py::bind_vector<ArrayOfSpecmatVector, py::rv_policy::reference_internal>(
+  //           m, "ArrayOfSpecmatVector");
+  //   workspace_group_interface(d1);
+  //   vector_interface(d1);
+  //   auto d2 = py::bind_vector<ArrayOfArrayOfSpecmatVector,
+  //                             py::rv_policy::reference_internal>(
+  //       m, "ArrayOfArrayOfSpecmatVector");
+  //   workspace_group_interface(d2);
+  //   vector_interface(d2);
   auto d3 =
       py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfSpecmatMatrix");
   workspace_group_interface(d3);
   vector_interface(d3);
-//   auto d4 = py::bind_vector<ArrayOfArrayOfSpecmatMatrix,
-//                             py::rv_policy::reference_internal>(
-//       m, "ArrayOfArrayOfSpecmatMatrix");
-//   workspace_group_interface(d4);
-//   vector_interface(d4);
-//   auto d5 =
-//       py::bind_vector<ArrayOfSpecmatTensor3, py::rv_policy::reference_internal>(
-//           m, "ArrayOfSpecmatTensor3");
-//   workspace_group_interface(d5);
-//   vector_interface(d5);
+  //   auto d4 = py::bind_vector<ArrayOfArrayOfSpecmatMatrix,
+  //                             py::rv_policy::reference_internal>(
+  //       m, "ArrayOfArrayOfSpecmatMatrix");
+  //   workspace_group_interface(d4);
+  //   vector_interface(d4);
+  //   auto d5 =
+  //       py::bind_vector<ArrayOfSpecmatTensor3, py::rv_policy::reference_internal>(
+  //           m, "ArrayOfSpecmatTensor3");
+  //   workspace_group_interface(d5);
+  //   vector_interface(d5);
 
   auto rtepack  = m.def_submodule("rtepack");
   rtepack.doc() = "Interface to some of the core RTE functionality";

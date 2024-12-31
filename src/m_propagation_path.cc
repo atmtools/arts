@@ -31,6 +31,16 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
                        const Index& remove_non_atm,
                        const Index& fix_updown_azimuth,
                        const Index& surface_safe_search) {
+  ARTS_USER_ERROR_IF(any_nan(pos) or any_nan(los) or nonstd::isnan(max_step),
+                     R"(There are NAN in the pos or los vector:
+pos:      {:B,}
+los:      {:B,}
+max_step: {}
+)",
+                     pos,
+                     los,
+                     max_step);
+
   ray_path.resize(1);
   ray_path[0] = path::init(
       pos, los, atm_field, surface_field, static_cast<bool>(as_sensor));
@@ -106,8 +116,9 @@ void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
       });
 }
 
-void ray_path_pointHighestFromPath(PropagationPathPoint& ray_path_point,
-                                  const ArrayOfPropagationPathPoint& ray_path) {
+void ray_path_pointHighestFromPath(
+    PropagationPathPoint& ray_path_point,
+    const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
   ray_path_point = *std::ranges::max_element(

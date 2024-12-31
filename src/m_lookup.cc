@@ -5,8 +5,6 @@
 #include <ranges>
 #include <set>
 
-#include "mh_checks.h"
-
 void absorption_lookup_tableInit(
     AbsorptionLookupTables& absorption_lookup_table) {
   absorption_lookup_table.clear();
@@ -72,7 +70,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         f_interp_order,
         extpolfac);
 
-    for (Index i = 0; i < frequency_grid.size(); i++) {
+    for (Size i = 0; i < frequency_grid.size(); i++) {
       if (no_negative_absorption == 0 or absorption[i] > 0.0) {
         propagation_matrix[i].A() += absorption[i];
       }
@@ -128,7 +126,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         }
 
         const Numeric d_inv = 1.0 / jacobian_target.d;
-        for (Index i = 0; i < frequency_grid.size(); i++) {
+        for (Size i = 0; i < frequency_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
             propagation_matrix_jacobian[jacobian_target.target_pos, i].A() =
                 (d_absorption[i] - absorption[i]) * d_inv;
@@ -283,21 +281,21 @@ void absorption_lookup_tableFromProfiles(
   ArrayOfAtmPoint ray_path_atmospheric_point(
       pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
-  ARTS_USER_ERROR_IF(not same_shape(pressure_profile, temperature_profile),
+  ARTS_USER_ERROR_IF(not same_shape<1>(pressure_profile.vec(), temperature_profile),
                      "Pressure and temperature profiles must agree in size.");
 
-  for (Index i = 0; i < pressure_profile.size(); i++) {
+  for (Size i = 0; i < pressure_profile.size(); i++) {
     ray_path_atmospheric_point[i].pressure    = pressure_profile[i];
     ray_path_atmospheric_point[i].temperature = temperature_profile[i];
   }
 
   for (auto& [spec, prof] : vmr_profiles) {
     ARTS_USER_ERROR_IF(
-        not same_shape(pressure_profile, prof),
+        not same_shape<1>(pressure_profile.vec(), prof),
         "Pressure and VMR profiles must agree in size, fails for species {}",
         spec);
 
-    for (Index i = 0; i < prof.size(); i++) {
+    for (Size i = 0; i < prof.size(); i++) {
       ray_path_atmospheric_point[i][spec] = prof[i];
     }
   }

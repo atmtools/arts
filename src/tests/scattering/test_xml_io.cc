@@ -102,9 +102,9 @@ int main() {
   std::cout << "Testing SHT serialization: ";
   passed = test_serialize_sht();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 #endif
@@ -112,54 +112,54 @@ int main() {
   std::cout << "Testing IrregularZenithAngleGridSerialization: ";
   passed = test_serialize_irregular_zenith_angle_grid();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing GaussLegendreGrid: ";
   passed = test_serialize_quadrature_grid<scattering::GaussLegendreGrid>();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing DoubleGaussGrid: ";
   passed = test_serialize_quadrature_grid<scattering::DoubleGaussGrid>();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing LobattoGrid: ";
   passed = test_serialize_quadrature_grid<scattering::LobattoGrid>();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing FejerGrid: ";
   passed = test_serialize_quadrature_grid<scattering::FejerGrid>();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
   std::cout << "Testing generic zenith angle grid: ";
   passed = test_serialize_zenith_angle_grid();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 

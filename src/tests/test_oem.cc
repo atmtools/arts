@@ -23,7 +23,7 @@
 
 using std::abs;
 using std::cout;
-using std::endl;
+using '\n';
 using std::min;
 using std::ofstream;
 using std::setw;
@@ -178,7 +178,7 @@ void write_matrix(ConstMatrixView A, const char* filename) {
       ofs << std::setprecision(40) << A(i, j) << " ";
     }
     ofs << A(i, n - 1);
-    ofs << endl;
+    ofs << '\n';
   }
   ofs.close();
 }
@@ -195,7 +195,7 @@ void write_vector(ConstVectorView v, const char* filename) {
   ofstream ofs(filename, ofstream::out);
 
   for (Index i = 0; i < n; i++) {
-    ofs << std::setprecision(20) << v[i] << endl;
+    ofs << std::setprecision(20) << v[i] << '\n';
   }
   ofs.close();
 }
@@ -384,11 +384,11 @@ void benchmark_inv(Engine* eng, Index n0, Index n1, Index ntests) {
 
   ofstream ofs("times_inv.txt", ofstream::out);
   ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
-  ofs << setw(10) << "arts" << setw(10) << "Matlab" << endl;
+  ofs << setw(10) << "arts" << setw(10) << "Matlab" << '\n';
 
-  cout << endl << "N TIMES N MATRIX INVERSION" << endl << endl;
+  cout << '\n' << "N TIMES N MATRIX INVERSION" << '\n' << '\n';
   cout << setw(5) << "n" << setw(10) << "BLAS" << setw(10);
-  cout << setw(10) << "arts" << setw(10) << "Matlab" << endl;
+  cout << setw(10) << "arts" << setw(10) << "Matlab" << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     Matrix A(n, n), B(n, n);
@@ -411,13 +411,13 @@ void benchmark_inv(Engine* eng, Index n0, Index n1, Index ntests) {
     t_m = run_test_matlab(eng, "test_inv.m");
 
     ofs << setw(5) << n << setw(10) << t_blas << setw(10);
-    ofs << t << setw(10) << t_m << endl;
+    ofs << t << setw(10) << t_m << '\n';
     cout << setw(5) << n << setw(10) << t_blas << setw(10);
-    cout << t << setw(10) << t_m << endl;
+    cout << t << setw(10) << t_m << '\n';
 
     n += step;
   }
-  cout << endl << endl;
+  cout << '\n' << '\n';
 
   // Tidy up
   ofs.close();
@@ -444,11 +444,11 @@ void benchmark_mult(Engine* eng, Index n0, Index n1, Index ntests) {
 
   ofstream ofs("times_mult.txt", ofstream::out);
   ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
-  ofs << setw(10) << "arts" << setw(10) << "Matlab" << endl;
+  ofs << setw(10) << "arts" << setw(10) << "Matlab" << '\n';
 
-  cout << endl << "N TIMES N MATRIX MULTIPLICATION" << endl << endl;
+  cout << '\n' << "N TIMES N MATRIX MULTIPLICATION" << '\n' << '\n';
   cout << setw(5) << "n" << setw(10) << "BLAS" << setw(10);
-  cout << setw(10) << "arts" << setw(10) << "Matlab" << endl;
+  cout << setw(10) << "arts" << setw(10) << "Matlab" << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     Matrix A(n, n), B(n, n);
@@ -471,13 +471,13 @@ void benchmark_mult(Engine* eng, Index n0, Index n1, Index ntests) {
     t_m = run_test_matlab(eng, "test_mult.m");
 
     ofs << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
-    ofs << t_m << endl;
+    ofs << t_m << '\n';
     cout << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
-    cout << t_m << endl;
+    cout << t_m << '\n';
 
     n += step;
   }
-  cout << endl << endl;
+  cout << '\n' << '\n';
 
   // Tidy up
   ofs.close();
@@ -503,11 +503,11 @@ void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
   ofstream ofs("times_linear.txt", ofstream::out);
 
   ofs << "#" << setw(4) << "n" << setw(10) << "Matlab";
-  ofs << setw(10) << "C++" << endl;
+  ofs << setw(10) << "C++" << '\n';
 
-  cout << endl << "LINEAR OEM" << endl << endl;
+  cout << '\n' << "LINEAR OEM" << '\n' << '\n';
   cout << setw(5) << "n" << setw(10) << "C++" << setw(10);
-  cout << "Matlab" << setw(20) << "Max. Rel. Error" << endl;
+  cout << "Matlab" << setw(20) << "Max. Rel. Error" << '\n';
 
   // Run tests.
   for (Index i = 0; i < ntests; i++) {
@@ -549,13 +549,13 @@ void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
     t_m = run_oem_matlab(x_m, G_m, eng, "test_oem");
 
     ofs << setw(5) << n << setw(10) << t << setw(10) << 42;  // Dummy column
-    ofs << setw(10) << t_m << endl;
+    ofs << setw(10) << t_m << '\n';
     cout << setw(5) << n << setw(10) << t << setw(10) << t_m;
-    cout << endl << endl;
+    cout << '\n' << '\n';
 
     n += step;
   }
-  cout << endl << endl;
+  cout << '\n' << '\n';
 
   // Tidy up
   ofs.close();
@@ -574,11 +574,11 @@ void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
 */
 void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
   cout << "Testing linear OEM: m = " << m << ", n = ";
-  cout << n << ", ntests = " << ntests << endl << endl;
+  cout << n << ", ntests = " << ntests << '\n' << '\n';
 
   cout << "Test No. " << setw(15) << "Gauss-Newton";
   cout << setw(20) << "Levenberg-Marquardt" << setw(15) << "Gain Matrix"
-       << endl;
+       << '\n';
 
   // Run tests.
   for (Index i = 0; i < ntests; i++) {
@@ -665,9 +665,9 @@ void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
 
     cout << setw(8) << i + 1;
     cout << setw(15) << err << setw(20) << err_lm << setw(15) << err_G;
-    cout << setw(15) << err_norm << endl;
+    cout << setw(15) << err_norm << '\n';
   }
-  cout << endl;
+  cout << '\n';
 }
 
 //! Test non-linear OEM
@@ -685,10 +685,10 @@ void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
 */
 void test_oem_gauss_newton(Engine* eng, Index m, Index n, Index ntests) {
   cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
-  cout << n << ", ntests = " << ntests << endl << endl;
+  cout << n << ", ntests = " << ntests << '\n' << '\n';
 
   cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
+  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate random quadratic model.
@@ -755,7 +755,7 @@ void test_oem_gauss_newton(Engine* eng, Index m, Index n, Index ntests) {
 
     cout << setw(9) << i + 1;
     cout << setw(15) << e1 << setw(15) << e2 << setw(15) << e3;
-    cout << setw(15) << e4 << std::endl;
+    cout << setw(15) << e4 << '\n';
 
     map_prec.compute(x, y0, gn);
     map_prec.compute(x_pre, y0, gn_pre);
@@ -769,9 +769,9 @@ void test_oem_gauss_newton(Engine* eng, Index m, Index n, Index ntests) {
 
     cout << setw(9) << i + 1;
     cout << setw(15) << e1 << setw(15) << e2 << setw(15) << e3;
-    cout << setw(15) << e4 << std::endl;
+    cout << setw(15) << e4 << '\n';
   }
-  cout << endl;
+  cout << '\n';
 }
 
 //! Test non-linear OEM
@@ -789,10 +789,10 @@ void test_oem_gauss_newton(Engine* eng, Index m, Index n, Index ntests) {
 */
 void test_oem_levenberg_marquardt(Engine* eng, Index m, Index n, Index ntests) {
   cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
-  cout << n << ", ntests = " << ntests << endl << endl;
+  cout << n << ", ntests = " << ntests << '\n' << '\n';
 
   cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
+  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate random quadratic model.
@@ -862,7 +862,7 @@ void test_oem_levenberg_marquardt(Engine* eng, Index m, Index n, Index ntests) {
 
     cout << setw(9) << i + 1;
     cout << setw(15) << e1 << setw(15) << e2 << setw(15) << e3;
-    cout << setw(15) << e4 << std::endl;
+    cout << setw(15) << e4 << '\n';
 
     map_prec.compute(x, y0, lm);
     map_prec.compute(x_pre, y0, lm_pre);
@@ -876,9 +876,9 @@ void test_oem_levenberg_marquardt(Engine* eng, Index m, Index n, Index ntests) {
 
     cout << setw(9) << i + 1;
     cout << setw(15) << e1 << setw(15) << e2 << setw(15) << e3;
-    cout << setw(15) << e4 << std::endl;
+    cout << setw(15) << e4 << '\n';
   }
-  cout << endl;
+  cout << '\n';
 }
 
 //! Test sparse non-linear OEM
@@ -896,10 +896,10 @@ void test_oem_levenberg_marquardt(Engine* eng, Index m, Index n, Index ntests) {
 */
 void test_oem_gauss_newton_sparse(Index m, Index n, Index ntests) {
   cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
-  cout << n << ", ntests = " << ntests << endl << endl;
+  cout << n << ", ntests = " << ntests << '\n' << '\n';
 
   cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
+  cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate random quadratic model.
@@ -964,9 +964,9 @@ void test_oem_gauss_newton_sparse(Index m, Index n, Index ntests) {
 
     cout << setw(9) << i + 1;
     cout << setw(15) << e1 << setw(15) << e2 << setw(15) << e3;
-    cout << setw(15) << e4 << std::endl;
+    cout << setw(15) << e4 << '\n';
   }
-  cout << endl;
+  cout << '\n';
 }
 
 //! Test sparse non-linear OEM

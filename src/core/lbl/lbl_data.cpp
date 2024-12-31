@@ -58,13 +58,6 @@ void band_data::sort(LineByLineVariable v) {
   }
 }
 
-std::ostream& operator<<(std::ostream& os, const line& x) {
-  return os << std::setprecision(std::numeric_limits<Numeric>::digits10 + 1)
-            << x.f0 << ' ' << x.a << ' ' << x.e0 << ' ' << x.gu << ' ' << x.gl
-            << ' ' << x.z << ' ' << x.ls << ' ' << x.qn.val.size() << ' '
-            << x.qn.val;
-}
-
 std::istream& operator>>(std::istream& is, line& x) {
   Size s{};
 
@@ -75,31 +68,6 @@ std::istream& operator>>(std::istream& is, line& x) {
   ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}", x.qn)
 
   return is;
-}
-
-std::ostream& operator<<(std::ostream& os, const std::vector<line>& x) {
-  constexpr std::string_view endl = "\n";
-  std::string_view sep            = "";
-  for (auto& l : x) {
-    os << sep << l;
-    std::exchange(sep, endl);
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const band_data& x) {
-  return os << x.lineshape << ' ' << x.cutoff << ' ' << x.cutoff_value << '\n'
-            << x.lines;
-}
-
-std::ostream& operator<<(std::ostream& os, const AbsorptionBands& x) {
-  constexpr std::string_view endl = "\n";
-  std::string_view sep            = "";
-  for (auto& [key, data] : x) {
-    os << sep << key << '\n' << data;
-    std::exchange(sep, endl);
-  }
-  return os;
 }
 
 //! Gets all the lines between (f0-cutoff, f1+cutoff) and the offset from the front
@@ -124,13 +92,6 @@ Rational band_data::max(QuantumNumberType x) const {
     out      = std::max(out, std::max(qn.upp(), qn.low()));
   }
   return out;
-}
-
-std::ostream& operator<<(std::ostream& os, const line_key& x) {
-  return os << "line_key:\n  band: " << x.band << "\n  line: " << x.line
-            << "\n  spec: " << x.spec << "\n  var: " << x.var
-            << "\n  ls_var: " << x.ls_var << "\n  ls_coeff: " << x.ls_coeff
-            << '\n';
 }
 
 template <typename T>

@@ -20,7 +20,6 @@
 #include "double_imanip.h"
 #include "file.h"
 #include "interp.h"
-#include "matpack_concepts.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
@@ -70,13 +69,13 @@ SpeciesEnum CIARecord::Species(const Index i) const {
   return mspecies[i];
 }
 
-ExhaustiveConstVectorView CIARecord::FrequencyGrid(Size dataset) const {
+ConstVectorView CIARecord::FrequencyGrid(Size dataset) const {
   ARTS_ASSERT(dataset < mdata.size());
 
   return mdata[dataset].grid<0>();
 }
 
-ExhaustiveConstVectorView CIARecord::TemperatureGrid(Size dataset) const {
+ConstVectorView CIARecord::TemperatureGrid(Size dataset) const {
   ARTS_ASSERT(dataset < mdata.size());
 
   return mdata[dataset].grid<1>();
@@ -114,7 +113,7 @@ void cia_interpolation(VectorView result,
   const Index nf = f_grid.size();
 
   // Assert that result vector has right size:
-  ARTS_ASSERT(result.size() == nf);
+  ARTS_ASSERT(result.size() == static_cast<Size>(nf));
 
   // Get data grids:
   ConstVectorView data_f_grid = cia_data.grid<0>();
@@ -190,42 +189,39 @@ void cia_interpolation(VectorView result,
         reinterp(cia_data.data[joker, 0], interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
-    const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
+    const auto Tnew = matpack::cdata_t<Numeric, 1>{temperature};
     if (T_order == 1) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .template reduce_rank<0>();
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
     } else if (T_order == 2) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .template reduce_rank<0>();
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
     } else if (T_order == 3) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .template reduce_rank<0>();
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
     } else {
       throw std::runtime_error(
           "Cannot have this T_order, you must update the code...");
     }
   }
 
-  //    cout << "result_active before: " << result_active << endl;
+  //    cout << "result_active before: " << result_active << '\n';
 
   // Set negative values to zero. (These could happen due to overshooting
   // of the higher order interpolation.)
-  for (Index i = 0; i < result_active.size(); ++i)
+  for (Size i = 0; i < result_active.size(); ++i)
     if (result_active[i] < 0) result_active[i] = 0;
 
-  //    cout << "result_active after: " << result_active << endl;
+  //    cout << "result_active after: " << result_active << '\n';
 } catch (const std::exception&) {
   if (robust) {
     result = NAN;
@@ -477,7 +473,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
   //    {
   //        cout << i << " ";
   //        cout << mdata[i].get_numeric_grid(0).size() << " ";
-  //        cout << mdata[i].get_numeric_grid(1).size() << endl;
+  //        cout << mdata[i].get_numeric_grid(1).size() << '\n';
   //    }
 }
 
@@ -495,7 +491,7 @@ void CIARecord::AppendDataset(const Vector& freq,
   dataset.grid<1>()     = temp_t;
   dataset.gridname<1>() = "Temperature";
 
-  for (Index t = 0; t < temp.size(); t++) dataset.data[joker, t] = cia[t];
+  for (Size t = 0; t < temp.size(); t++) dataset.data[joker, t] = cia[t];
   mdata.push_back(dataset);
 }
 

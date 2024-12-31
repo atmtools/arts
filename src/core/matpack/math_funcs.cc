@@ -23,11 +23,8 @@
 
 #include <cmath>
 
-#include "matpack_math.h"
-
-#ifndef NDEBUG
-#include "logic.h"
-#endif
+#include "matpack_mdspan.h"
+#include "matpack_mdspan_helpers.h"
 
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 inline constexpr Numeric PI      = Constant::pi;
@@ -73,8 +70,9 @@ Numeric fac(const Index n) {
     \date   2002-08-11
 */
 Index integer_div(const Index& x, const Index& y) {
-  ARTS_ASSERT(is_multiple(x, y));
-  return x / y;
+  const auto retval = std::div(x, y);
+  ARTS_ASSERT(retval.rem == 0)
+  return retval.quot;
 }
 
 //! Lagrange Interpolation (internal function).
@@ -218,8 +216,9 @@ void nlinspace(Vector& x,
                const Numeric start,
                const Numeric stop,
                const Index n) {
-  ARTS_ASSERT(1 < n);  // Number of points must be greater 1.
   x.resize(n);
+  if (x.empty()) return;
+  
   Numeric step = (stop - start) / ((double)n - 1);
   for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
   x[n - 1] = stop;
@@ -293,10 +292,10 @@ Vector nlogspace(const Numeric start, const Numeric stop, const Index step) {
     \date 2022-03-06
 */
 Numeric trapz(ConstVectorView x, ConstVectorView y) {
-  const Index n = x.size();
+  const Size n = x.size();
   ARTS_ASSERT(y.size() == n);
   Numeric sum = 0.0;
-  for (Index i = 1; i < n; ++i) sum += (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
+  for (Size i = 1; i < n; ++i) sum += (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
   return sum / 2.0;
 }
 
@@ -313,10 +312,10 @@ Numeric trapz(ConstVectorView x, ConstVectorView y) {
     \date 2022-12-22
 */
 void cumsum(VectorView csum, ConstVectorView x) {
-  const Index n = x.size();
+  const Size n = x.size();
   ARTS_ASSERT(csum.size() == n);
   csum[0] = x[0];
-  for (Index i = 1; i < n; ++i) csum[i] = csum[i - 1] + x[i];
+  for (Size i = 1; i < n; ++i) csum[i] = csum[i - 1] + x[i];
 }
 
 //! AngIntegrate_trapezoid
@@ -336,7 +335,7 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  ARTS_ASSERT(is_size(Integrand, n, m));
+  ARTS_ASSERT((Integrand.shape() == std::array{n, m}));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -385,7 +384,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
     Vector res1(n);
-    ARTS_ASSERT(is_size(Integrand, n, m));
+    ARTS_ASSERT((Integrand.shape() == std::array{n, m}));
 
     Numeric temp = 0.0;
 
@@ -430,7 +429,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
                                ConstVectorView za_grid) {
   Index n = za_grid.size();
-  ARTS_ASSERT(is_size(Integrand, n));
+  ARTS_ASSERT((Integrand.shape() == std::array{n}));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
@@ -458,12 +457,9 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
     \date   2000-06-27
 */
 Numeric sign(const Numeric& x) {
-  if (x < 0)
-    return -1.0;
-  else if (x == 0)
-    return 0.0;
-  else
-    return 1.0;
+  if (x < 0) return -1.0;
+  if (x == 0) return 0.0;
+  return 1.0;
 }
 
 //! sign
@@ -507,11 +503,8 @@ Index n_int_between(const Numeric x, const Numeric y) {
 
 Index int_at_step(const Numeric gp, const Index step) {
   ARTS_ASSERT(step != 0);
-  if (step > 0) {
-    return Index(std::floor(gp)) + step;
-  } else {
-    return Index(std::ceil(gp)) + step;
-  }
+  if (step > 0) return Index(std::floor(gp)) + step;
+  return Index(std::ceil(gp)) + step;
 }
 
 /*! Modified gamma distribution
@@ -539,14 +532,14 @@ void mgd(VectorView psd,
          const Numeric& mu,
          const Numeric& la,
          const Numeric& ga) {
-  const Index nx = x.size();
+  const Size nx = x.size();
 
   ARTS_ASSERT(psd.size() == nx);
 
   if (ga == 1) {
     if (mu == 0) {
       // Exponential distribution
-      for (Index ix = 0; ix < nx; ix++) {
+      for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
       }
@@ -556,7 +549,7 @@ void mgd(VectorView psd,
                          "Seems unreasonable. Have you mixed up the inputs?",
                          mu)
       // Gamma distribution
-      for (Index ix = 0; ix < nx; ix++) {
+      for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         const Numeric xterm = pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
@@ -573,7 +566,7 @@ void mgd(VectorView psd,
                        "Given gamma is {}\n"
                        "Seems unreasonable. Have you mixed up the inputs?",
                        ga)
-    for (Index ix = 0; ix < nx; ix++) {
+    for (Size ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
       const Numeric xterm = pow(x[ix], mu);
@@ -617,16 +610,16 @@ void mgd_with_derivatives(VectorView psd,
                           const bool& do_mu_jac,
                           const bool& do_la_jac,
                           const bool& do_ga_jac) {
-  const Index nx = x.size();
+  const Size nx = x.size();
 
   ARTS_ASSERT(psd.size() == nx);
-  ARTS_ASSERT(jac_data.nrows() == 4);
-  ARTS_ASSERT(jac_data.ncols() == nx);
+  ARTS_ASSERT(static_cast<Size>(jac_data.nrows()) == 4);
+  ARTS_ASSERT(static_cast<Size>(jac_data.ncols()) == nx);
 
   if (ga == 1 && !do_ga_jac) {
     if (mu == 0 && !do_mu_jac) {
       // Exponential distribution
-      for (Index ix = 0; ix < nx; ix++) {
+      for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
         if (do_n0_jac) {
@@ -642,7 +635,7 @@ void mgd_with_derivatives(VectorView psd,
                          "Seems unreasonable. Have you mixed up the inputs?",
                          mu)
       // Gamma distribution
-      for (Index ix = 0; ix < nx; ix++) {
+      for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
         const Numeric xterm = pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
@@ -660,15 +653,15 @@ void mgd_with_derivatives(VectorView psd,
     }
   } else {
     // Complete MGD
-      ARTS_USER_ERROR_IF(mu > 10,
-                         "Given mu is {}\n"
-                         "Seems unreasonable. Have you mixed up the inputs?",
-                         mu)
-      ARTS_USER_ERROR_IF(ga > 10,
-                         "Given gamma is {}\n"
-                         "Seems unreasonable. Have you mixed up the inputs?",
-                         ga)
-    for (Index ix = 0; ix < nx; ix++) {
+    ARTS_USER_ERROR_IF(mu > 10,
+                       "Given mu is {}\n"
+                       "Seems unreasonable. Have you mixed up the inputs?",
+                       mu)
+    ARTS_USER_ERROR_IF(ga > 10,
+                       "Given gamma is {}\n"
+                       "Seems unreasonable. Have you mixed up the inputs?",
+                       ga)
+    for (Size ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
       const Numeric xterm = pow(x[ix], mu);
@@ -701,7 +694,7 @@ void delanoe_shape_with_derivative(VectorView psd,
   Numeric f_d  = tgamma((alpha + 5.0) / beta);
   f_d         /= tgamma((alpha + 4.0) / beta);
 
-  for (Index i = 0; i < x.size(); ++i) {
+  for (Size i = 0; i < x.size(); ++i) {
     Numeric xi = x[i];
     psd[i]     = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
     jac_data[0, i] =
@@ -767,8 +760,8 @@ Numeric mod_gamma_dist(
 void unitl(Vector& x) {
   ARTS_ASSERT(x.size() > 0);
 
-  const Numeric l = sqrt(x * x);
-  for (Index i = 0; i < x.size(); i++) x[i] /= l;
+  const Numeric l = sqrt(dot(x, x));
+  for (Size i = 0; i < x.size(); i++) x[i] /= l;
 }
 
 //! flat
@@ -785,7 +778,7 @@ void unitl(Vector& x) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstMatrixView X) {
-  ARTS_ASSERT(x.size() == X.nrows() * X.ncols());
+  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols());
 
   Index i = 0;
 
@@ -811,7 +804,7 @@ void flat(VectorView x, ConstMatrixView X) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstTensor3View X) {
-  ARTS_ASSERT(x.size() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -839,7 +832,7 @@ void flat(VectorView x, ConstTensor3View X) {
     \date   2015-09-10
 */
 void reshape(Tensor3View X, ConstVectorView x) {
-  ARTS_ASSERT(x.size() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -867,7 +860,7 @@ void reshape(Tensor3View X, ConstVectorView x) {
     \date   2015-09-10
 */
 void reshape(MatrixView X, ConstVectorView x) {
-  ARTS_ASSERT(x.size() == X.nrows() * X.ncols());
+  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols());
 
   Index i = 0;
 

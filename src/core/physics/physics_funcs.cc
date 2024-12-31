@@ -16,9 +16,6 @@
 
 #include <cmath>
 
-#include "arts_constants.h"
-#include "arts_conversions.h"
-
 inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
@@ -209,10 +206,10 @@ Numeric planck(const Numeric& f, const Numeric& t) {
  * @author Patrick Eriksson
  * @date   2015-12-15
  */
-void planck(VectorView b, const ConstVectorView& f, const Numeric& t) {
+void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (b.size() not_eq f.size(),
                       "Vector size mismatch: frequency dim is bad")
-  for (Index i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
+  for (Size i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
 }
 
 /** planck
@@ -230,9 +227,9 @@ void planck(VectorView b, const ConstVectorView& f, const Numeric& t) {
  * @author Patrick Eriksson
  * @date   2015-12-15
  */
-Vector planck(const ConstVectorView& f, const Numeric& t) {
+Vector planck(const StridedConstVectorView& f, const Numeric& t) {
   Vector b(f.size());
-  for (Index i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
+  for (Size i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
   return b;
 }
 
@@ -278,7 +275,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
 void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (dbdt.size() not_eq f.size(),
                       "Vector size mismatch: frequency dim is bad")
-  for (Index i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
+  for (Size i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
 }
 
 /** dplanck_dt
@@ -296,7 +293,7 @@ void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
  */
 Vector dplanck_dt(const ConstVectorView& f, const Numeric& t) {
   Vector dbdt(f.size());
-  for (Index i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
+  for (Size i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
   return dbdt;
 }
 
@@ -340,7 +337,7 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
  */
 Vector dplanck_df(const ConstVectorView& f, const Numeric& t)  {
   Vector dbdf(f.size());
-  for (Index i = 0; i < f.size(); i++) dbdf[i] = dplanck_df(f[i], t);
+  for (Size i = 0; i < f.size(); i++) dbdf[i] = dplanck_df(f[i], t);
   return dbdf;
 }
 

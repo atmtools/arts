@@ -33,7 +33,7 @@ bool test_extinction_matrix_tro() {
   fill_along_axis<0>(*f_grid);
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(extinction_matrix));
+      reinterpret_cast<matpack::data_t<Numeric, 3> &>(extinction_matrix));
   (*t_grid_new)[0] = 1.2345;
   (*f_grid_new)[0] = 1.2346;
   grids = scattering::ScatteringDataGrids{t_grid_new, f_grid_new, nullptr};
@@ -46,7 +46,7 @@ bool test_extinction_matrix_tro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 3> &>(extinction_matrix));
+      reinterpret_cast<matpack::data_t<Numeric, 3> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
   err = std::abs(extinction_matrix_interp[0, 0, 0] - 1.2346);
   if (err > 1e-10) {
@@ -64,7 +64,7 @@ bool test_extinction_matrix_aro() {
 
   auto t_grid = std::make_shared<Vector>(Vector{210.0, 240.0, 270.0});
   auto f_grid = std::make_shared<Vector>(Vector{1e9, 10e9, 100e9});
-  auto za_inc_grid = std::make_shared<Vector>(uniform_grid(0.0, 10.0, 19));
+  auto za_inc_grid = std::make_shared<Vector>(matpack::uniform_grid(0.0, 10.0, 19));
 
   ExtinctionMatrix extinction_matrix{t_grid, f_grid, za_inc_grid};
   extinction_matrix = random_tensor<Tensor4>(extinction_matrix.shape());
@@ -90,7 +90,7 @@ bool test_extinction_matrix_aro() {
   fill_along_axis<0>(*za_inc_grid);
 
   fill_along_axis<0>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(extinction_matrix));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(extinction_matrix));
   (*t_grid_new)[0] = 1.2345;
   (*f_grid_new)[0] = 1.2346;
   (*za_inc_grid_new)[0] = 1.2347;
@@ -105,7 +105,7 @@ bool test_extinction_matrix_aro() {
   }
 
   fill_along_axis<1>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(extinction_matrix));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
   err = std::abs(extinction_matrix_interp[0, 0, 0, 0] - 1.2346);
   if (err > 1e-10) {
@@ -113,7 +113,7 @@ bool test_extinction_matrix_aro() {
   }
 
   fill_along_axis<2>(
-      reinterpret_cast<matpack::matpack_data<Numeric, 4> &>(extinction_matrix));
+      reinterpret_cast<matpack::data_t<Numeric, 4> &>(extinction_matrix));
   extinction_matrix_interp = extinction_matrix.regrid(grids, weights);
   err = std::abs(extinction_matrix_interp[0, 0, 0, 0] - 1.2347);
   if (err > 1e-10) {
@@ -129,9 +129,9 @@ int main() {
   std::cout << "Testing extinction matrix (TRO): ";
   passed = test_extinction_matrix_tro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 
@@ -139,9 +139,9 @@ int main() {
   std::cout << "Testing extinction matrix (ARO): ";
   passed = test_extinction_matrix_aro();
   if (passed) {
-    std::cout << "PASSED." << std::endl;
+    std::cout << "PASSED." << '\n';
   } else {
-    std::cout << "FAILED." << std::endl;
+    std::cout << "FAILED." << '\n';
     return 1;
   }
 

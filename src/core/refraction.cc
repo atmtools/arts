@@ -20,8 +20,6 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "check_input.h"
-#include "matpack_complex.h"
 
 inline constexpr Numeric DEG2RAD  = Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG  = Conversion::rad2deg(1);
@@ -55,9 +53,21 @@ inline constexpr Numeric TEMP_0_C = Constant::temperature_at_0c;
 void complex_n_water_liebe93(Matrix& complex_n,
                              const Vector& f_grid,
                              const Numeric& t) {
-  chk_if_in_range("t", t, TEMP_0_C - 40, TEMP_0_C + 100);
-  chk_if_in_range("min of f_grid", min(f_grid), 10e9, 1000e9);
-  chk_if_in_range("max of f_grid", max(f_grid), 10e9, 1000e9);
+  ARTS_USER_ERROR_IF(not in_range(t, TEMP_0_C - 40, TEMP_0_C + 100),
+                     "t out of range [{1}, {2}): {0}",
+                     t,
+                     TEMP_0_C - 40,
+                     TEMP_0_C + 100);
+  ARTS_USER_ERROR_IF(not in_range(min(f_grid), 10e9, 1000e9),
+                     "min(f_grid) out of range [{1}, {2}): {0}",
+                     min(f_grid),
+                     10e9,
+                     1000e9);
+  ARTS_USER_ERROR_IF(not in_range(max(f_grid), 10e9, 1000e9),
+                     "max(f_grid) out of range [{1}, {2}): {0}",
+                     max(f_grid),
+                     10e9,
+                     1000e9);
 
   const Index nf = f_grid.size();
 
@@ -105,9 +115,21 @@ void complex_n_water_liebe93(Matrix& complex_n,
 void complex_n_ice_matzler06(Matrix& complex_n,
                              const Vector& f_grid,
                              const Numeric& t) {
-  chk_if_in_range("t", t, 20., 280.);
-  chk_if_in_range("min of f_grid", min(f_grid), 10e6, 3000e9);
-  chk_if_in_range("max of f_grid", max(f_grid), 10e6, 3000e9);
+  ARTS_USER_ERROR_IF(not in_range(t, 20., 280.),
+                     "t out of range [{1}, {2}): {0}",
+                     t,
+                     20.,
+                     280.);
+  ARTS_USER_ERROR_IF(not in_range(min(f_grid), 10e6, 3000e9),
+                     "min(f_grid) out of range [{1}, {2}): {0}",
+                     min(f_grid),
+                     10e6,
+                     3000e9);
+  ARTS_USER_ERROR_IF(not in_range(max(f_grid), 10e6, 3000e9),
+                     "max(f_grid) out of range [{1}, {2}): {0}",
+                     max(f_grid),
+                     10e6,
+                     3000e9);
 
   const Index nf = f_grid.size();
 

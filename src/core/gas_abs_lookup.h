@@ -9,8 +9,8 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "interp.h"
-#include "matpack_data.h"
+#include <matpack.h>
+
 #include "species_tags.h"
 
 // Declare existance of some classes:

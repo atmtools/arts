@@ -84,14 +84,14 @@ void XsecRecord::Extract(VectorView result,
                          const Vector& f_grid,
                          const Numeric pressure,
                          const Numeric temperature) const {
-  const Index nf = f_grid.size();
+  const Size nf = f_grid.size();
 
   ARTS_ASSERT(result.size() == nf)
 
   result = 0.;
 
-  const Index ndatasets = mfitcoeffs.size();
-  for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
+  const Size ndatasets = mfitcoeffs.size();
+  for (Size this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].grid<0>();
     const Numeric data_fmin   = data_f_grid[0];
     const Numeric data_fmax   = data_f_grid[data_f_grid.size() - 1];
@@ -111,7 +111,7 @@ void XsecRecord::Extract(VectorView result,
         1;
 
     // Ignore band if all frequencies are below or above data_f_grid:
-    if (i_fstart == nf || i_fstop == -1) continue;
+    if (static_cast<Size>(i_fstart) == nf || i_fstop == -1) continue;
 
     const Index f_extent = i_fstop - i_fstart + 1;
 
@@ -183,7 +183,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
                           const Index dataset,
                           const Numeric pressure,
                           const Numeric temperature) const {
-  for (Index i = 0; i < xsec.size(); i++) {
+  for (Size i = 0; i < xsec.size(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data[i, joker];
     xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
               coeffs[P20] * temperature * temperature;

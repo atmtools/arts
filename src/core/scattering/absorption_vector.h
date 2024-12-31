@@ -3,8 +3,7 @@
 
 #include <memory>
 
-#include "matpack/matpack_data.h"
-#include "matpack/matpack_eigen.h"
+#include <matpack.h>
 #include "phase_matrix.h"
 #include "sht.h"
 
@@ -37,12 +36,12 @@ class AbsorptionVectorData;
 
 template <std::floating_point Scalar, Representation repr>
 class AbsorptionVectorData<Scalar, Format::TRO, repr>
-    : public matpack::matpack_data<Scalar, 3> {
+    : public matpack::data_t<Scalar, 3> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<Scalar, 3>::resize;
-  using matpack::matpack_data<Scalar, 3>::reshape;
+  using matpack::data_t<Scalar, 3>::resize;
+  using matpack::data_t<Scalar, 3>::reshape;
 
  public:
   using AbsorptionVectorDataLabFrame =
@@ -69,17 +68,17 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
    */
   AbsorptionVectorData(std::shared_ptr<const Vector> t_grid,
                        std::shared_ptr<const Vector> f_grid)
-      : matpack::matpack_data<Scalar, 3>(
+      : matpack::data_t<Scalar, 3>(
             t_grid->size(), f_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid) {
-    matpack::matpack_data<Scalar, 3>::operator=(0.0);
+    matpack::data_t<Scalar, 3>::operator=(0.0);
   }
 
   AbsorptionVectorData& operator=(
-      const matpack::matpack_data<Scalar, 3>& data) {
+      const matpack::data_t<Scalar, 3>& data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -89,23 +88,23 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
     ARTS_USER_ERROR_IF(
         data.shape()[2] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 3>::operator=(data);
+    this->template data_t<Scalar, 3>::operator=(data);
     return *this;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 2, false, false>
+  constexpr matpack::view_t<CoeffVector, 2>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 2, false, false>(
+    return matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
-        {this->extent(0), this->extent(1)});
+        std::array<Index, 2>{this->extent(0), this->extent(1)});
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, repr>
   to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) {
     AbsorptionVectorData<Scalar, Format::ARO, repr> av_new{t_grid_, f_grid_, za_inc_grid};
-    for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
-      for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
-        for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
+    for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+      for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+        for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
           av_new[t_ind, f_ind, za_inc_ind, 0] = this->operator[](t_ind, f_ind, 0);
         }
       }
@@ -115,7 +114,7 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
 
   AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> to_spectral() {
     AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> avd_new(t_grid_, f_grid_);
-    reinterpret_cast<matpack::matpack_data<Scalar, 3>&>(avd_new) = *this;
+    reinterpret_cast<matpack::data_t<Scalar, 3>&>(avd_new) = *this;
     return avd_new;
   }
 
@@ -159,12 +158,12 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
 
 template <std::floating_point Scalar, Representation repr>
 class AbsorptionVectorData<Scalar, Format::ARO, repr>
-    : public matpack::matpack_data<Scalar, 4> {
+    : public matpack::data_t<Scalar, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::matpack_data<Scalar, 4>::resize;
-  using matpack::matpack_data<Scalar, 4>::reshape;
+  using matpack::data_t<Scalar, 4>::resize;
+  using matpack::data_t<Scalar, 4>::reshape;
 
  public:
   constexpr static Index n_stokes_coeffs =
@@ -186,7 +185,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
   AbsorptionVectorData(std::shared_ptr<const Vector> t_grid,
                        std::shared_ptr<const Vector> f_grid,
                        std::shared_ptr<const Vector> za_inc_grid)
-      : matpack::matpack_data<Scalar, 4>(t_grid->size(),
+      : matpack::data_t<Scalar, 4>(t_grid->size(),
                                          f_grid->size(),
                                          za_inc_grid->size(),
                                          n_stokes_coeffs),
@@ -196,11 +195,11 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
         f_grid_(f_grid),
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid) {
-    matpack::matpack_data<Scalar, 4>::operator=(0.0);
+    matpack::data_t<Scalar, 4>::operator=(0.0);
   }
 
   AbsorptionVectorData& operator=(
-      const matpack::matpack_data<Scalar, 4>& data) {
+      const matpack::data_t<Scalar, 4>& data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
         "Provided backscatter coefficient data do not match temperature grid.");
@@ -213,20 +212,20 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
     ARTS_USER_ERROR_IF(
         data.shape()[3] != n_stokes_coeffs,
         "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template matpack_data<Scalar, 4>::operator=(data);
+    this->template data_t<Scalar, 4>::operator=(data);
     return *this;
   }
 
-  constexpr matpack::matpack_view<CoeffVector, 3, false, false>
+  constexpr matpack::view_t<CoeffVector, 3>
   get_coeff_vector_view() {
-    return matpack::matpack_view<CoeffVector, 3, false, false>(
+    return matpack::mdview_t<CoeffVector, 3>(
         reinterpret_cast<CoeffVector*>(this->data_handle()),
-        {this->extent(0), this->extent(1), this->extent(2)});
+        std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)});
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> to_spectral() {
     AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> avd_new(t_grid_, f_grid_, za_inc_grid_);
-    reinterpret_cast<matpack::matpack_data<Scalar, 4>&>(avd_new) = *this;
+    reinterpret_cast<matpack::data_t<Scalar, 4>&>(avd_new) = *this;
     return avd_new;
   }
 
