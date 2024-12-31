@@ -53,18 +53,14 @@ void forward_path_freq(AscendingGrid &path_freq,
                                 std::cos(aa_f - aa_p)));
   };
 
-  const Numeric fac =
-      1.0 - dot_prod() / Constant::speed_of_light;
+  const Numeric fac = 1.0 - dot_prod() / Constant::speed_of_light;
 
   ARTS_USER_ERROR_IF(
       fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
 
-  Vector tmp = std::move(path_freq);
-  std::transform(main_freq.begin(),
-                 main_freq.end(),
-                 tmp.begin(),
-                 [fac](const auto &f) { return fac * f; });
-  path_freq = std::move(tmp);
+  ExtendAscendingGrid tmp = path_freq;
+  stdr::transform(
+      main_freq, tmp.begin(), [fac](const auto &f) { return fac * f; });
 }
 
 void forward_path_freq(ArrayOfAscendingGrid &path_freq,
@@ -73,20 +69,14 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
                        const ArrayOfAtmPoint &atm_path) {
   if (arts_omp_in_parallel()) {
     for (Size ip = 0; ip < atm_path.size(); ip++) {
-      forward_path_freq(path_freq[ip],
-                        main_freq,
-                        rad_path[ip],
-                        atm_path[ip]);
+      forward_path_freq(path_freq[ip], main_freq, rad_path[ip], atm_path[ip]);
     }
   } else {
     String error{};
 #pragma omp parallel for
     for (Size ip = 0; ip < atm_path.size(); ip++) {
       try {
-        forward_path_freq(path_freq[ip],
-                          main_freq,
-                          rad_path[ip],
-                          atm_path[ip]);
+        forward_path_freq(path_freq[ip], main_freq, rad_path[ip], atm_path[ip]);
       } catch (const std::exception &e) {
 #pragma omp critical
         error = std::format("{}\n", std::string_view(e.what()));
@@ -130,7 +120,7 @@ ArrayOfAtmPoint extract1D(const AtmField &atm_field,
   const Index l = lon_grid.size();
 
   ArrayOfAtmPoint atm_path(std::max({n, m, l}));
-  
+
   extract1D(atm_path, atm_field, z_grid, lat_grid, lon_grid);
 
   return atm_path;

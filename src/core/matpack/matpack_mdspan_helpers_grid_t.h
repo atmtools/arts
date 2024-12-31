@@ -12,13 +12,39 @@ namespace matpack {
 template <class Compare>
 class grid_t;
 
+//! Class that wraps using Vector to set a grid_t
+template <class Compare>
+class extend_grid_t {
+  grid_t<Compare>& grid;
+
+ public:
+  constexpr extend_grid_t(grid_t<Compare>& grid_)
+      : grid(grid_) {}
+
+  constexpr void push_back(Numeric v) { grid.x.push_back(v); }
+  constexpr Numeric& emplace_back(Numeric v) { return grid.x.emplace_back(v); }
+  constexpr void resize(Index n) { grid.x.resize(n); }
+  constexpr auto begin() { return grid.x.begin(); }
+  constexpr auto end() { return grid.x.end(); }
+  constexpr auto size() { return grid.x.size(); }
+  template <access_operator Op>
+  constexpr decltype(auto) operator[](Op&& op) { return grid.x[op]; }
+  constexpr decltype(auto) operator=(auto&& v) { grid.x = v; return *this; }
+
+  ~extend_grid_t() noexcept(false) { grid.assert_sorted(grid.x); }
+};
+
+template <class Compare>
+extend_grid_t(grid_t<Compare>&) -> extend_grid_t<Compare>;
+
 template <class Compare>
 class grid_t {
   Vector x;
 
+  friend class extend_grid_t<Compare>;
+
  public:
-  [[nodiscard]] constexpr const Vector& vec() const & { return x; }
-  [[nodiscard]] constexpr Vector vec() && { return std::move(x); }
+  [[nodiscard]] constexpr const Vector& vec() const { return x; }
 
   using value_type = Numeric;
 
@@ -141,7 +167,11 @@ template <class Compare, exact_md<Numeric, 1> md>
 
 using AscendingGrid        = matpack::grid_t<std::less_equal<>>;
 using DescendingGrid       = matpack::grid_t<std::greater_equal<>>;
+
 using ArrayOfAscendingGrid = std::vector<AscendingGrid>;
+
+using ExtendAscendingGrid  = matpack::extend_grid_t<std::less_equal<>>;
+using ExtendDescendingGrid = matpack::extend_grid_t<std::greater_equal<>>;
 
 template <class Compare>
 struct std::formatter<matpack::grid_t<Compare>> {

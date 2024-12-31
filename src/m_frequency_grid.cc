@@ -49,12 +49,12 @@ ray_path_point.los:     {:B,}
   }
 
   // shift the frequency grid
-  Vector tmp = std::move(frequency_grid);
-  std::transform(tmp.begin(),
-                 tmp.end(),
-                 tmp.begin(),
-                 [fac](const Numeric& f) { return fac * f; });
-  frequency_grid = std::move(tmp);
+  {
+    ExtendAscendingGrid tmp = frequency_grid;
+    stdr::transform(tmp, tmp.begin(), [fac](const Numeric& f) {
+      return fac * f;
+    });
+  }
 
   {
     const Numeric df_du    = (f == 0) ? 1.0 : u / f;
@@ -104,16 +104,18 @@ void propagation_matrix_jacobianWindFix(
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   propagation_matrix_jacobian[i].begin(),
-                   propagation_matrix_jacobian[i].begin(),
-                   [df_du](const Numeric f, const Propmat& x) { return x * f * df_du; });
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   [df_du](const Numeric f, const Stokvec& x) { return x * f * df_du; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        propagation_matrix_jacobian[i].begin(),
+        propagation_matrix_jacobian[i].begin(),
+        [df_du](const Numeric f, const Propmat& x) { return x * f * df_du; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        source_vector_nonlte_jacobian[i].begin(),
+        source_vector_nonlte_jacobian[i].begin(),
+        [df_du](const Numeric f, const Stokvec& x) { return x * f * df_du; });
   }
 
   if (auto ptr = std::ranges::find_if(
@@ -121,16 +123,18 @@ void propagation_matrix_jacobianWindFix(
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   propagation_matrix_jacobian[i].begin(),
-                   propagation_matrix_jacobian[i].begin(),
-                   [df_dv](const Numeric f, const Propmat& x) { return x * f * df_dv; });
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   [df_dv](const Numeric f, const Stokvec& x) { return x * f * df_dv; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        propagation_matrix_jacobian[i].begin(),
+        propagation_matrix_jacobian[i].begin(),
+        [df_dv](const Numeric f, const Propmat& x) { return x * f * df_dv; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        source_vector_nonlte_jacobian[i].begin(),
+        source_vector_nonlte_jacobian[i].begin(),
+        [df_dv](const Numeric f, const Stokvec& x) { return x * f * df_dv; });
   }
 
   if (auto ptr = std::ranges::find_if(
@@ -138,15 +142,17 @@ void propagation_matrix_jacobianWindFix(
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   propagation_matrix_jacobian[i].begin(),
-                   propagation_matrix_jacobian[i].begin(),
-                   [df_dw](const Numeric f, const Propmat& x) { return x * f * df_dw; });
-    std::transform(frequency_grid.begin(),
-                   frequency_grid.end(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   source_vector_nonlte_jacobian[i].begin(),
-                   [df_dw](const Numeric f, const Stokvec& x) { return x * f * df_dw; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        propagation_matrix_jacobian[i].begin(),
+        propagation_matrix_jacobian[i].begin(),
+        [df_dw](const Numeric f, const Propmat& x) { return x * f * df_dw; });
+    std::transform(
+        frequency_grid.begin(),
+        frequency_grid.end(),
+        source_vector_nonlte_jacobian[i].begin(),
+        source_vector_nonlte_jacobian[i].begin(),
+        [df_dw](const Numeric f, const Stokvec& x) { return x * f * df_dw; });
   }
 }

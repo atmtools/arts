@@ -1,7 +1,6 @@
 #pragma once
 
 #include <matpack.h>
-#include <matpack_mdspan_helpers_eigen.h>
 
 #include <memory>
 

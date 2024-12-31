@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <matpack.h>
-#include <matpack_mdspan_helpers_eigen.h>
 #include "phase_matrix.h"
 #include "sht.h"
 

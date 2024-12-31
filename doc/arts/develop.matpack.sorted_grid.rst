@@ -17,14 +17,30 @@ The member methods that they provide are a limited subset of the :class:`~pyarts
 state of the :class:`~pyarts.arts.Vector` in any way.  Constant iteration (``begin`` and ``end``), size-queries (``size`` and ``shape``),
 as well as constant element and ranged access (``operator[]``).
 To create a sorted grid, simply pass a :class:`~pyarts.arts.Vector` to the constructor or the ``operator=``.
-To modify a sorted grid, move the :class:`~pyarts.arts.Vector` out of the class and then back in again, to let the class check that the grid is still sorted.
 
 For convenience, ``grid_t`` provides a static helper method that can be used to check if your :class:`~pyarts.arts.Vector` or view thereof is sorted.  This method is called:
 ``grid_t<>::is_sorted(vec)`` and simply returns a boolean value for the state of the vector as a grid.  ``true`` being sorted and ``false`` being not sorted.
+
+Extending a grid
+================
+
+Because we want to ensure that all grids are always sorted properly, the
+safest way to extend a grid is to simply copy the values it holds into a
+:class:`~pyarts.arts.Vector` and then modify your new :class:`~pyarts.arts.Vector` as needed.
+The last step is to move then to move your now modified :class:`~pyarts.arts.Vector` back into the grid.
+
+For cases where you know this will not work well, you can use the ``extend_grid_t`` class.
+It takes a reference to the grid and exposes the :class:`~pyarts.arts.Vector` interface
+directly.  Upon destroying the ``extend_grid_t`` object, the grid is checked to ensure the sorting is correct.
+
+.. warn::
+
+  Do not have a living instance of a ``extend_grid_t``-object in the same context you intend to consume ``grid_t``.
+  The sorting is never guaranteed to be correct until the ``extend_grid_t`` object is destroyed.
 
 Relevant files
 ==============
 
 The relevant files for the data holding core matpack types are:
 
-- ``matpack/matpack_mdspan_helpers_grid_t.h`` - the ``grid_t`` class.
+- ``matpack/matpack_mdspan_helpers_grid_t.h`` - the ``grid_t`` and ``extend_grid_t`` classes.

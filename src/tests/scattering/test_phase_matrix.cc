@@ -11,6 +11,7 @@
 #include "scattering/mie.h"
 #include "scattering/phase_matrix.h"
 #include "test_utils.h"
+#include "matpack/matpack_mdspan_helpers_eigen.h"
 
 using namespace scattering;
 
