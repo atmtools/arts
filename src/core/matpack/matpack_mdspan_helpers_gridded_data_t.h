@@ -75,14 +75,9 @@ struct gridded_data_t {
     return std::equal(a.begin(), a.end(), b.begin(), b.end());
   }
 
-  template <access_operator... Access>
-  [[nodiscard]] decltype(auto) operator[](Access&&... access) const {
-    return data[std::forward<Access>(access)...];
-  }
-
-  template <access_operator... Access>
-  [[nodiscard]] decltype(auto) operator[](Access&&... access) {
-    return data[std::forward<Access>(access)...];
+  template <typename Self, access_operator... Access>
+  [[nodiscard]] decltype(auto) operator[](this Self&& self, Access&&... access) {
+    return std::forward<Self>(self).data[std::forward<Access>(access)...];
   }
 
   template <typename... sz>

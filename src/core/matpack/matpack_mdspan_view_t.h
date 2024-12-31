@@ -15,9 +15,11 @@ namespace matpack {
 //! A wrapper for mdspan that's always C-like in layout
 template <class T, Size N>
 struct view_t final : public mdview_t<T, N> {
+  constexpr static bool matpack_magic_view = true;
+
   using base = mdview_t<T, N>;
 
-  mdview_t<T, N> base_md() const { return *this; }
+  constexpr mdview_t<T, N> base_md() const { return *this; }
 
   using extents_type     = base::extents_type;
   using layout_type      = base::layout_type;
@@ -47,7 +49,7 @@ struct view_t final : public mdview_t<T, N> {
   using base::size;
   using base::stride;
 
-  void base_set(base v) noexcept { static_cast<base&>(*this) = v; }
+  constexpr void base_set(base v) noexcept { static_cast<base&>(*this) = v; }
 
   static constexpr bool is_const      = std::is_const_v<T>;
   static constexpr bool is_exhaustive = is_always_exhaustive();

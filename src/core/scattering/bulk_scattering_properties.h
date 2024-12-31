@@ -53,21 +53,14 @@ namespace scattering {
     }
 
     BulkScatteringProperties& operator+=(const BulkScatteringProperties& other) {
-    using PM_T = decltype(*other.phase_matrix);
-    using PHAMAT = matpack::data_t<matpack::value_type<PM_T>, matpack::rank<PM_T>()>;
-    using EM_T = decltype(other.extinction_matrix);
-    using EXTMAT = matpack::data_t<matpack::value_type<EM_T>, matpack::rank<EM_T>()>;
-    using AV_T = decltype(other.absorption_vector);
-    using ABSVEC = matpack::data_t<matpack::value_type<AV_T>, matpack::rank<AV_T>()>;
-
       if (phase_matrix.has_value()) {
         if (!other.phase_matrix.has_value()) {
           ARTS_USER_ERROR("Phase matrix missing in calculation of bulk scattering properties.");
         }
-        *phase_matrix += dynamic_cast<const PHAMAT&>(*other.phase_matrix);
+        *phase_matrix += *other.phase_matrix;
       }
-      extinction_matrix += dynamic_cast<const EXTMAT&>(other.extinction_matrix);
-      absorption_vector += dynamic_cast<const ABSVEC&>(other.absorption_vector);
+      extinction_matrix += other.extinction_matrix;
+      absorption_vector += other.absorption_vector;
       return *this;
     }
   };

@@ -53,9 +53,11 @@ class [[nodiscard]] data_t {
   friend struct strided_view_t;
 
  public:
+  constexpr static bool matpack_magic_data = true;
+
   using base = view_t<T, N>::base;
 
-  auto base_md() const { return view.base_md(); }
+  constexpr auto base_md() const { return view.base_md(); }
 
   using extents_type     = view_t<T, N>::extents_type;
   using layout_type      = view_t<T, N>::layout_type;
@@ -79,7 +81,9 @@ class [[nodiscard]] data_t {
   constexpr data_t(const data_t& x)
       : data(x.data), view(base{data.data(), x.shape()}) {}
   constexpr data_t(data_t&& x) noexcept
-      : data(std::move(x.data)), view(base{data.data(), x.shape()}) {x.clear();}
+      : data(std::move(x.data)), view(base{data.data(), x.shape()}) {
+    x.clear();
+  }
 
   template <integral... inds>
   explicit constexpr data_t(inds... ind)
@@ -184,9 +188,7 @@ class [[nodiscard]] data_t {
     requires(not(std::same_as<data_t, R> or std::same_as<value_type, R>))
   {
     resize(r.shape());
-    stdr::transform(elemwise_range(r), elem_begin(), [](auto v) {
-      return static_cast<T>(v);
-    });
+    view = r;
     return *this;
   }
 
@@ -215,7 +217,8 @@ class [[nodiscard]] data_t {
   }
 
   constexpr auto flatten() && {
-    return std::move(*this).reshape(mdsize<N>(shape()));
+    const auto n = size();
+    return std::move(*this).reshape(n);
   }
 
   constexpr void swap(data_t& other) noexcept {

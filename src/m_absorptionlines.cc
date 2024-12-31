@@ -2350,7 +2350,7 @@ void frequency_gridFromAbsorptionLines(
 
   std::sort(fout.begin(), fout.end());
   fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
-  frequency_grid = std::move(fout);
+  frequency_grid = Vector(std::move(fout));
 }
 
 /////////////////////////////////////////////////////////

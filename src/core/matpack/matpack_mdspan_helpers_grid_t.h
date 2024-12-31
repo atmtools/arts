@@ -42,6 +42,7 @@ class grid_t {
 
  public:
   [[nodiscard]] const Vector& vec() const { return x; }
+  [[nodiscard]] Vector vec() && { return std::move(x); }
 
   using value_type = Numeric;
 
@@ -75,15 +76,15 @@ class grid_t {
   grid_t(Vector&& in) : x(std::move(in)) { assert_sorted(x); }
 
   grid_t& operator=(Vector&& in) {
+    assert_sorted(in);
     x = std::move(in);
-    assert_sorted(x);
     return *this;
   }
 
   template <typename T>
-  grid_t& operator=(T&& in) {
-    x = std::forward<T>(in);
-    assert_sorted(x);
+  grid_t& operator=(const T& in) {
+    assert_sorted(in);
+    x = in;
     return *this;
   }
 
@@ -93,6 +94,7 @@ class grid_t {
   grid_t& operator=(grid_t&&)      = default;
   grid_t& operator=(const grid_t&) = default;
 
+  operator Vector() && { return Vector{std::move(x)}; }
   operator const Vector&() const { return vec(); }
   operator ConstVectorView() const { return vec(); }
   operator StridedConstVectorView() const { return vec(); }
@@ -108,28 +110,10 @@ class grid_t {
   [[nodiscard]] constexpr auto empty() const { return x.empty(); }
   [[nodiscard]] constexpr Numeric front() const { return x.front(); }
   [[nodiscard]] constexpr Numeric back() const { return x.back(); }
-  void clear() { x.clear(); }
-  void reserve(Size n) { x.reserve(n); }
-  void erase(auto... it) { x.erase(it...); }
-  constexpr Numeric& emplace_back(Numeric v) {
-    return x.size() == 0 ? x.emplace_back(v)
-           : Compare{}(v, x.back())
-               ? throw std::runtime_error("grid::emplace_back: not sorted")
-               : x.emplace_back(v);
-  }
 
   [[nodiscard]] constexpr std::array<Index, 1> shape() const {
     return x.shape();
   }
-
-  void unsafe_resize(const Index n) { x.resize(n); }
-  [[nodiscard]] constexpr auto unsafe_begin() { return x.begin(); }
-  [[nodiscard]] constexpr auto unsafe_end() { return x.end(); }
-  void unsafe_push_back(Numeric v) { x.push_back(v); }
-  Numeric& unsafe_emplace_back(Numeric v) { return x.emplace_back(v); }
-
-  //! Return a pointer to this object's allocated data
-  [[nodiscard]] constexpr auto data_handle() const { return x.data_handle(); }
 };
 
 template <class C1, class C2>

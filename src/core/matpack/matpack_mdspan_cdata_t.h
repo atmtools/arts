@@ -4,6 +4,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "experimental/__p0009_bits/extents.hpp"
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_elemwise_mditer.h"
@@ -11,9 +12,10 @@
 namespace matpack {
 template <typename T, Size... dims>
 struct [[nodiscard]] cdata_t {
-  constexpr static bool magic_cdata_t_v = true;
-  constexpr static Size N               = sizeof...(dims);
-  constexpr static Size ndata           = (dims * ...);
+  constexpr static bool matpack_magic_cdata = true;
+
+  constexpr static Size N     = sizeof...(dims);
+  constexpr static Size ndata = (dims * ...);
 
   using extents_type     = view_t<T, N>::extents_type;
   using layout_type      = view_t<T, N>::layout_type;
@@ -28,23 +30,33 @@ struct [[nodiscard]] cdata_t {
   using reference        = view_t<T, N>::reference;
 
   static_assert(not std::is_const_v<T>);
-  static_assert(N > 0);
+  static_assert(ndata > 0);
 
   std::array<T, ndata> data;
 
   static constexpr std::array<Index, N> shape_ = {dims...};
   static constexpr const std::array<Index, N>& shape() { return shape_; }
 
-  view_t<const T, N> view() const {
+  constexpr stdx::mdspan<const T, stdx::extents<Size, dims...>> cview() const {
+    return stdx::mdspan<const T, stdx::extents<Size, dims...>>{
+        const_cast<T*>(data.data())};
+  }
+
+  constexpr stdx::mdspan<T, stdx::extents<Size, dims...>> cview() {
+    return stdx::mdspan<T, stdx::extents<Size, dims...>>{
+        const_cast<T*>(data.data())};
+  }
+
+  constexpr view_t<const T, N> view() const {
     return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
   }
 
-  view_t<T, N> view() {
+  constexpr view_t<T, N> view() {
     return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
   }
 
-  auto base_md() const { return view().base_md(); }
-  auto base_md() { return view().base_md(); }
+  constexpr auto base_md() const { return cview(); }
+  constexpr auto base_md() { return cview(); }
 
   constexpr operator view_t<T, N>() { return view(); }
   constexpr operator view_t<const T, N>() const { return view(); }
@@ -102,14 +114,22 @@ struct [[nodiscard]] cdata_t {
   [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i)
     requires(sizeof...(Acc) <= N)
   {
-    return view()[std::forward<Acc>(i)...];
+    if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
+      return cview()[std::forward<Acc>(i)...];
+    } else {
+      return view()[std::forward<Acc>(i)...];
+    }
   }
 
   template <access_operator... Acc>
   [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) const
     requires(sizeof...(Acc) <= N)
   {
-    return view()[std::forward<Acc>(i)...];
+    if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
+      return cview()[std::forward<Acc>(i)...];
+    } else {
+      return view()[std::forward<Acc>(i)...];
+    }
   }
 
   template <typename U>

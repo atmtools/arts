@@ -144,7 +144,7 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
-        auto x  = nd(v.data_handle(), 1, shape.data(), py::cast(v));
+        auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
         return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),

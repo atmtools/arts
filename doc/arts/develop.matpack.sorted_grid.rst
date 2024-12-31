@@ -1,0 +1,23 @@
+Sorted grids
+============
+
+Sorted grids are a wrapper around the :class:`~pyarts.arts.Vector` class
+that demands that all elements fulfill a certain condition.  This condition
+is a template the class take as input, which is used to ensure that the elements are sorted.
+It is implemented as the class ``grid_t`` in the C++ code.
+
+There are only two classes named of the type:
+
+- :class:`~pyarts.arts.AscendingGrid` which is a grid where every subsequent element must be strictly not less or equal to the previous element.
+- :class:`~pyarts.arts.DescendingGrid` which is a grid where every subsequent element must be strictly not greater or equal to the previous element.
+
+The usefulness of these classes is simply that you know that their values are sorted.
+
+The member methods that they provide are a limited subset of the :class:`~pyarts.arts.Vector` class that do not modify 
+state of the :class:`~pyarts.arts.Vector` in any way.  Constant iteration (``begin`` and ``end``), size-queries (``size`` and ``shape``),
+as well as constant element and ranged access (``operator[]``).
+To create a sorted grid, simply pass a :class:`~pyarts.arts.Vector` to the constructor or the ``operator=``.
+To modify a sorted grid, move the :class:`~pyarts.arts.Vector` out of the class and then back in again, to let the class check that the grid is still sorted.
+
+For convenience, ``grid_t`` provides a static helper method that can be used to check if your :class:`~pyarts.arts.Vector` or view thereof is sorted.  This method is called:
+``grid_t<>::is_sorted(vec)`` and simply returns a boolean value for the state of the vector as a grid.  ``true`` being sorted and ``false`` being not sorted.

@@ -35,14 +35,6 @@ ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
   return atm_path;
 }
 
-ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &path_freq,
-                                       const AscendingGrid &main_freq,
-                                       const ArrayOfAtmPoint &atm_path) {
-  path_freq.resize(atm_path.size());
-  for (auto &v : path_freq) v.unsafe_resize(main_freq.size());
-  return path_freq;
-}
-
 void forward_path_freq(AscendingGrid &path_freq,
                        const AscendingGrid &main_freq,
                        const PropagationPathPoint &rad_path,
@@ -67,10 +59,12 @@ void forward_path_freq(AscendingGrid &path_freq,
   ARTS_USER_ERROR_IF(
       fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
 
+  Vector tmp = std::move(path_freq);
   std::transform(main_freq.begin(),
                  main_freq.end(),
-                 path_freq.unsafe_begin(),
+                 tmp.begin(),
                  [fac](const auto &f) { return fac * f; });
+  path_freq = std::move(tmp);
 }
 
 void forward_path_freq(ArrayOfAscendingGrid &path_freq,

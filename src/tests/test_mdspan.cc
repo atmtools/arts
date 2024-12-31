@@ -754,30 +754,42 @@ void test_grid() {
   std::print("{}\n", x);
   std::print("{}\n", y);
 
-  x.emplace_back(10);
+  Vector xtmp = std::move(x).vec();
+  xtmp.emplace_back(10);
+  x = std::move(xtmp);
   std::print("{}\n", x);
   std::print("{}\n", y);
 
   bool set_low;
+  xtmp = std::move(x).vec();
+  xtmp.emplace_back(8);
   try {
-    x.emplace_back(8);
+    x = std::move(xtmp);
     set_low = true;
   } catch (...) {
     set_low = false;
   }
   ARTS_USER_ERROR_IF(set_low, "Should not be able to set low value");
+  xtmp.pop_back();
+  x = std::move(xtmp);
 
   bool set_same;
+  xtmp = std::move(x).vec();
+  xtmp.emplace_back(xtmp.back());
   try {
-    x.emplace_back(x.back());
+    x = std::move(xtmp);
     set_same = true;
   } catch (...) {
-    {};
     set_same = false;
   }
   ARTS_USER_ERROR_IF(set_same, "Should not be able to set same value");
+  xtmp.pop_back();
+  x = std::move(xtmp);
 
   Vector z{1, 2, 3, 4, 5, 6, 7, 9, 20};
+  std::print(std::cout, "{:B,}\n", x);
+  std::print(std::cout, "{:B,}\n", z);
+
   y = z;
   std::print("{}\n", x);
   std::print("{}\n", y);

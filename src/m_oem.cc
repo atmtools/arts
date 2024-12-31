@@ -211,7 +211,7 @@ void OEM(const Workspace& ws,
     if (model_state_covariance_matrix_normalization.size() == static_cast<Size>(n)) {
       T.resize(n, n);
       T           *= 0.0;
-      diagonal(static_cast<matpack::data_t<Numeric, 2>&>(T))  = model_state_covariance_matrix_normalization;
+      diagonal(T)  = model_state_covariance_matrix_normalization;
       for (Index i = 0; i < n; i++) {
         T(i, i) = model_state_covariance_matrix_normalization[i];
       }

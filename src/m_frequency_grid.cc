@@ -49,10 +49,12 @@ ray_path_point.los:     {:B,}
   }
 
   // shift the frequency grid
-  std::transform(frequency_grid.begin(),
-                 frequency_grid.end(),
-                 frequency_grid.unsafe_begin(),
+  Vector tmp = std::move(frequency_grid);
+  std::transform(tmp.begin(),
+                 tmp.end(),
+                 tmp.begin(),
                  [fac](const Numeric& f) { return fac * f; });
+  frequency_grid = std::move(tmp);
 
   {
     const Numeric df_du    = (f == 0) ? 1.0 : u / f;

@@ -225,7 +225,7 @@ bool test_phase_matrix_tro() {
       phase_matrix_liquid_spectral.extract_backscatter_matrix();
   err            = max_error<Tensor3>(backscatter_matrix, backscatter_matrix_2);
   Tensor3 delta  = backscatter_matrix;
-  delta         -= dynamic_cast<matpack::data_t<Numeric, 3>&>(backscatter_matrix_2);
+  delta         -= backscatter_matrix_2;
   if (err > 1e-15) return false;
 
   auto forwardscatter_matrix_2 =
