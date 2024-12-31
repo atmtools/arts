@@ -72,9 +72,10 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
 
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
-               matpack::strided_view_t<Propmat, 2> dpm,
-               matpack::strided_view_t<Stokvec, 2> dsv,
-               const ConstVectorView& f_grid,
+               PropmatMatrixView dpm,
+               StokvecMatrixView dsv,
+               const ConstVectorView f_grid,
+               const Range& f_range,
                const Jacobian::Targets& jacobian_targets,
                const SpeciesEnum species,
                const AbsorptionBands& bnds,
@@ -82,11 +83,11 @@ void calculate(PropmatVectorView pm,
                const AtmPoint& atm,
                const Vector2 los,
                const bool no_negative_absorption) {
-  auto voigt_lte_data = init_voigt_lte_data(f_grid, bnds, atm, los);
+  auto voigt_lte_data = init_voigt_lte_data(f_grid[f_range], bnds, atm, los);
   auto voigt_lte_mirror_data =
-      init_voigt_lte_mirrored_data(f_grid, bnds, atm, los);
-  auto voigt_line_nlte_data = init_voigt_line_nlte_data(f_grid, bnds, atm, los);
-  auto voigt_ecs_data = init_voigt_ecs_data(f_grid, bnds, atm, los);
+      init_voigt_lte_mirrored_data(f_grid[f_range], bnds, atm, los);
+  auto voigt_line_nlte_data = init_voigt_line_nlte_data(f_grid[f_range], bnds, atm, los);
+  auto voigt_ecs_data = init_voigt_ecs_data(f_grid[f_range], bnds, atm, los);
 
   const auto calc_voigt_lte = [&](const QuantumIdentifier& bnd_key,
                                   const band_data& bnd,
@@ -95,6 +96,7 @@ void calculate(PropmatVectorView pm,
                           dpm,
                           *voigt_lte_data,
                           f_grid,
+                          f_range,
                           jacobian_targets,
                           bnd_key,
                           bnd,
@@ -110,6 +112,7 @@ void calculate(PropmatVectorView pm,
                                  dpm,
                                  *voigt_lte_mirror_data,
                                  f_grid,
+                                 f_range,
                                  jacobian_targets,
                                  bnd_key,
                                  bnd,
@@ -127,6 +130,7 @@ void calculate(PropmatVectorView pm,
                            dsv,
                            *voigt_line_nlte_data,
                            f_grid,
+                           f_range,
                            jacobian_targets,
                            bnd_key,
                            bnd,
@@ -147,6 +151,7 @@ void calculate(PropmatVectorView pm,
                           dpm,
                           *voigt_ecs_data,
                           f_grid,
+                          f_range,
                           jacobian_targets,
                           bnd_key,
                           bnd,

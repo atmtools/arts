@@ -86,12 +86,6 @@ struct strided_view_t final : public mdstrided_t<T, N> {
 
   explicit constexpr strided_view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
 
-  template <typename Self>
-  constexpr view_t<T, N> unsafe_view(this Self&& self) {
-    assert(self.base::is_exhaustive());
-    return mdview_t<T, N>{self.base_md()};
-  }
-
   [[nodiscard]] constexpr auto shape() const {
     std::array<Index, N> out;
     for (Size i = 0; i < N; i++) out[i] = this->extent(i);

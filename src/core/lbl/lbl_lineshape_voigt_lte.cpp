@@ -1967,10 +1967,11 @@ void compute_derivative(PropmatVectorView,
                         const zeeman::pol,
                         const auto&) {}
 
-void calculate(PropmatVectorView pm,
-               matpack::strided_view_t<Propmat, 2> dpm,
+void calculate(PropmatVectorView pm_,
+               PropmatMatrixView dpm,
                ComputeData& com_data,
-               const ConstVectorView& f_grid,
+               const ConstVectorView f_grid_,
+               const Range& f_range,
                const JacobianTargets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -1979,6 +1980,9 @@ void calculate(PropmatVectorView pm,
                const bool no_negative_absorption) {
   if (std::ranges::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 
+  PropmatVectorView pm         = pm_[f_range];
+  const ConstVectorView f_grid = f_grid_[f_range];
+
   const Size nf = f_grid.size();
   if (nf == 0) return;
 
@@ -1986,10 +1990,9 @@ void calculate(PropmatVectorView pm,
   const Numeric fmin        = f_grid.front();
   const Numeric fmax        = f_grid.back();
 
-  ARTS_ASSERT(jacobian_targets.target_count() ==
-                  static_cast<Size>(dpm.nrows()) and
-              nf == static_cast<Size>(dpm.ncols()))
-  ARTS_ASSERT(nf == pm.size())
+  assert(jacobian_targets.target_count() == static_cast<Size>(dpm.nrows()) and
+         f_grid_.size() == static_cast<Size>(dpm.ncols()));
+  assert(nf == pm.size());
 
   band_shape_helper(
       com_data.lines, com_data.pos, spec, bnd, atm, fmin, fmax, pol);
@@ -2009,7 +2012,7 @@ void calculate(PropmatVectorView pm,
   for (auto& atm_target : jacobian_targets.atm()) {
     std::visit(
         [&](auto& target) {
-          compute_derivative(dpm[atm_target.target_pos].unsafe_view(),
+          compute_derivative(dpm[atm_target.target_pos, f_range],
                              com_data,
                              f_grid,
                              spec,
@@ -2024,7 +2027,7 @@ void calculate(PropmatVectorView pm,
 
   for (auto& line_target : jacobian_targets.line()) {
     if (line_target.type.band == bnd_qid) {
-      compute_derivative(dpm[line_target.target_pos].unsafe_view(),
+      compute_derivative(dpm[line_target.target_pos, f_range],
                          com_data,
                          f_grid,
                          spec,

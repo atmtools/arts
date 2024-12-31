@@ -10,9 +10,10 @@ namespace lbl {
 //! NOTE: dpm and dsv are strided as input because the outer dimension is jacobian targets, however, the inner frequency dimension must be contiguous, or the code will terminate.
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
-               matpack::strided_view_t<Propmat, 2> dpm,
-               matpack::strided_view_t<Stokvec, 2> dsv,
-               const ConstVectorView& f_grid,
+               PropmatMatrixView dpm,
+               StokvecMatrixView dsv,
+               const ConstVectorView f_grid,
+               const Range& f_range,
                const Jacobian::Targets& jacobian_targets,
                const SpeciesEnum species,
                const AbsorptionBands& bnds,

@@ -414,10 +414,11 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   }
 }
 
-void calculate(PropmatVectorView pm,
-               matpack::strided_view_t<Propmat, 2>,
+void calculate(PropmatVectorView pm_,
+               PropmatMatrixView,
                ComputeData& com_data,
-               const ConstVectorView& f_grid,
+               const ConstVectorView f_grid_,
+               const Range& f_range,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -432,6 +433,9 @@ void calculate(PropmatVectorView pm,
         "Zeeman effect and ECS in combination is not yet possible.")
     return;
   }
+
+  PropmatVectorView pm = pm_[f_range];
+  const ConstVectorView f_grid = f_grid_[f_range];
 
   ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
                      "No Jacobian support.")

@@ -523,9 +523,10 @@ struct ComputeData {
 };
 
 void calculate(PropmatVectorView pm,
-               matpack::strided_view_t<Propmat, 2> dpm,
+               PropmatMatrixView dpm,
                ComputeData& com_data,
-               const ConstVectorView& f_grid,
+               const ConstVectorView f_grid,
+               const Range& f_range,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,

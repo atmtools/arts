@@ -66,10 +66,6 @@ These are the common member methods for both classes:
 - ``base_set``.  This overwrites the view with another view.
 - ``base_md``.  This returns the base ``std::mdspan`` of the view.  Useful for interfacing with libraries that use ``std::mdspan``.
 
-These methods are only available for ``strided_view_t`` but are not available for ``view_t``:
-
-- ``unsafe_view`` - to convert a ``strided_view_t`` to a ``view_t``.  This is unsafe and should be used with caution.  All cases where this is used should be documented.  This will be removed in the future.
-
 These methods are only available for ``view_t`` but are not available for ``strided_view_t``:
 
 - ``view_as`` - view the data as if it had a different shape.  The size must remain constant.  Example: ``mat.view_as(2, 2, 5)`` will produce a ``view_t<Complex, 3>`` of shape ``2x2x5``.
@@ -95,4 +91,8 @@ These are:
 Any other combination will produce a ``strided_view_t``.  And there is no safe way to go back to a ``view_t`` from a ``strided_view_t``,
 even if you later access your new ``strided_view_t`` in a manner that would normally produce a ``view_t``.
 
+.. tip::
 
+  Omitting dangling ``joker`` is perfectly fine.  The access operator will automatically fill in
+  all missing right-most arguments with ``joker``.  This is especially useful when you want to access,
+  for instance, a matrix view from a tensor view of rank 3 or higher.
