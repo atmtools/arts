@@ -1,16 +1,15 @@
 #include "disort.h"
 
+#include <arts_constants.h>
+#include <compare.h>
+#include <debug.h>
+#include <legendre.h>
 #include <matpack.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <vector>
-
-#include "arts_constants.h"
-#include "compare.h"
-#include "debug.h"
-#include "legendre.h"
 
 namespace disort {
 void BDRF::operator()(MatrixView x,
@@ -29,6 +28,7 @@ Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
 
 std::ostream& operator<<(std::ostream& os, const BDRF&) { return os << "BDRF"; }
 
+namespace {
 void mathscr_v(VectorView um,
                mathscr_v_data& data,
                const Numeric tau,
@@ -75,6 +75,7 @@ void mathscr_v(VectorView um,
 
   mult(um, G[Range{Ni0, Ni}], data.k1, scl, add);
 }
+}  // namespace
 
 void main_data::solve_for_coefs() {
   const Index ln  = NLayers - 1;
@@ -263,7 +264,9 @@ void main_data::solve_for_coefs() {
   }
 }
 
+namespace {
 Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
+}  // namespace
 
 void main_data::diagonalize() {
   auto GmG = Gml[Range{0, N}];
@@ -890,6 +893,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   data.u0 *= I0_orig;
 }
 
+namespace {
 Numeric calculate_nu(const Numeric mu,
                      const Numeric phi,
                      const Numeric mu_p,
@@ -912,6 +916,7 @@ void calculate_nu(Vector& nu,
       [mu_p, scl = std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi)](
           auto&& x) { return x * mu_p + scl * std::sqrt(1.0 - x * x); });
 }
+}  // namespace
 
 void main_data::TMS(tms_data& data,
                     const Numeric tau,

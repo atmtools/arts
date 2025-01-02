@@ -13,9 +13,9 @@
   === External declarations
   ===========================================================================*/
 
+#include <arts_constants.h>
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
-#include <arts_constants.h>
 #include <matpack.h>
 
 /*===========================================================================

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "atm.h"
+#include <atm.h>
+
 #include "path_point.h"
 
 /** Helper function that resizes the input ArrayOfAtmPoint.

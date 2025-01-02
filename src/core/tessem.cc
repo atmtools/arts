@@ -10,7 +10,8 @@
 */
 
 #include "tessem.h"
-#include "double_imanip.h"
+
+#include <double_imanip.h>
 
 /*! Read TESSEM2 neural network parameters
 
@@ -28,23 +29,29 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
 
   net.w1.resize(net.nb_cache, net.nb_inputs);
   for (Index i = 0; i < net.nb_cache; i++)
-    for (Index j = 0; j < net.nb_inputs; j++) is >> double_imanip() >> net.w1[i, j];
+    for (Index j = 0; j < net.nb_inputs; j++)
+      is >> double_imanip() >> net.w1[i, j];
 
   net.w2.resize(net.nb_outputs, net.nb_cache);
   for (Index i = 0; i < net.nb_outputs; i++)
-    for (Index j = 0; j < net.nb_cache; j++) is >> double_imanip() >> net.w2[i, j];
+    for (Index j = 0; j < net.nb_cache; j++)
+      is >> double_imanip() >> net.w2[i, j];
 
   net.x_min.resize(net.nb_inputs);
-  for (Index i = 0; i < net.nb_inputs; i++) is >> double_imanip() >> net.x_min[i];
+  for (Index i = 0; i < net.nb_inputs; i++)
+    is >> double_imanip() >> net.x_min[i];
 
   net.x_max.resize(net.nb_inputs);
-  for (Index i = 0; i < net.nb_inputs; i++) is >> double_imanip() >> net.x_max[i];
+  for (Index i = 0; i < net.nb_inputs; i++)
+    is >> double_imanip() >> net.x_max[i];
 
   net.y_min.resize(net.nb_outputs);
-  for (Index i = 0; i < net.nb_outputs; i++) is >> double_imanip() >> net.y_min[i];
+  for (Index i = 0; i < net.nb_outputs; i++)
+    is >> double_imanip() >> net.y_min[i];
 
   net.y_max.resize(net.nb_outputs);
-  for (Index i = 0; i < net.nb_outputs; i++) is >> double_imanip() >> net.y_max[i];
+  for (Index i = 0; i < net.nb_outputs; i++)
+    is >> double_imanip() >> net.y_max[i];
 }
 
 /*! Tessem emissivity calculation
@@ -64,12 +71,17 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
   \param[in] nx  Input data.
 */
 void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
-  ARTS_USER_ERROR_IF (nx.ncols() != net.nb_inputs,
-    "Tessem NN requires ", net.nb_inputs,
-    " values, but input vector has {} elements", nx.size())
+  ARTS_USER_ERROR_IF(nx.ncols() != net.nb_inputs,
+                     "Tessem NN requires ",
+                     net.nb_inputs,
+                     " values, but input vector has {} elements",
+                     nx.size())
 
-  ARTS_USER_ERROR_IF (ny.ncols() != net.nb_outputs,
-    "Tessem NN generates {} values, but output vector has {} element.", net.nb_outputs, ny.size())
+  ARTS_USER_ERROR_IF(
+      ny.ncols() != net.nb_outputs,
+      "Tessem NN generates {} values, but output vector has {} element.",
+      net.nb_outputs,
+      ny.size())
 
   // preprocessing
   Vector new_x(nx);

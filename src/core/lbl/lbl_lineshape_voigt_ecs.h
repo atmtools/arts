@@ -1,8 +1,8 @@
 #pragma once
 
+#include <array.h>
 #include <rtepack.h>
 
-#include "array.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 
@@ -45,7 +45,7 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los = {},
+              const Vector2& los    = {},
               const zeeman::pol pol = zeeman::pol::no);
 
   void update_zeeman(const Vector2& los,

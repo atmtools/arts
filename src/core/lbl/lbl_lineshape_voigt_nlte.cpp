@@ -1,28 +1,27 @@
 #include "lbl_lineshape_voigt_nlte.h"
 
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
+#include <atm.h>
+#include <debug.h>
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
+#include <quantum_numbers.h>
+#include <rtepack.h>
 #include <sorting.h>
 
 #include <Faddeeva/Faddeeva.hh>
 #include <cmath>
-#include <iostream>
 #include <iterator>
 #include <limits>
 #include <numeric>
 
-#include "arts_constants.h"
-#include "arts_constexpr_math.h"
-#include "atm.h"
-#include "debug.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
-#include "quantum_numbers.h"
-#include "rtepack.h"
-#include "species.h"
 
 namespace lbl::voigt::nlte {
+namespace {
 std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
                                                const QuantumIdentifier& qid,
                                                const line& line,
@@ -124,32 +123,32 @@ Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
   return line.ls.dD0_dT(atm);
 }
 
-Numeric dline_center_calc_dVMR(const line& line,
-                               const SpeciesEnum spec,
-                               const AtmPoint& atm) {
-  return line.ls.dD0_dVMR(atm, spec);
-}
+// Numeric dline_center_calc_dVMR(const line& line,
+//                                const SpeciesEnum spec,
+//                                const AtmPoint& atm) {
+//   return line.ls.dD0_dVMR(atm, spec);
+// }
 
 Numeric line_center_calc(const line& line, const AtmPoint& atm, Size ispec) {
   const auto& ls = line.ls.single_models[ispec];
   return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure);
 }
 
-Numeric dline_center_calc_dT(const line& line,
-                             const AtmPoint& atm,
-                             Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
-  return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure);
-}
-
-Numeric dline_center_calc_dVMR(const line& line,
-                               const SpeciesEnum spec,
-                               const AtmPoint& atm,
-                               Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
-  return ls.species == spec ? ls.D0(line.ls.T0, atm.temperature, atm.pressure)
-                            : 0;
-}
+// Numeric dline_center_calc_dT(const line& line,
+//                              const AtmPoint& atm,
+//                              Size ispec) {
+//   const auto& ls = line.ls.single_models[ispec];
+//   return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure);
+// }
+//
+// Numeric dline_center_calc_dVMR(const line& line,
+//                                const SpeciesEnum spec,
+//                                const AtmPoint& atm,
+//                                Size ispec) {
+//   const auto& ls = line.ls.single_models[ispec];
+//   return ls.species == spec ? ls.D0(line.ls.T0, atm.temperature, atm.pressure)
+//                             : 0;
+// }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
   constexpr auto c = Constant::doppler_broadening_const_squared;
@@ -214,6 +213,7 @@ struct single_shape_builder {
     return s;
   }
 };
+}  // namespace
 
 single_shape::single_shape(const QuantumIdentifier& qid,
                            const line& line,
@@ -321,6 +321,7 @@ std::pair<Complex, Complex> single_shape::dT(const Numeric dk_dT,
           de_ratio_dT * F_ + e_ratio * (dz_dT + dz_dT_fac * z_) * dF_};
 }
 
+namespace {
 constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
@@ -335,14 +336,12 @@ constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
   return {0, lines.size()};
 }
 
-namespace detail {
 constexpr auto frequency_span(const auto& list,
                               const Size start,
                               const Size count) {
   std::span out{list};
   return out.subspan(start, count);
 }
-}  // namespace detail
 
 template <typename... Ts>
 constexpr auto frequency_spans(const Numeric cutoff,
@@ -353,8 +352,8 @@ constexpr auto frequency_spans(const Numeric cutoff,
 
   const auto [start, count] =
       find_offset_and_count_of_frequency_range(lines, f, cutoff);
-  return std::tuple{detail::frequency_span(lines, start, count),
-                    detail::frequency_span(lists, start, count)...};
+  return std::tuple{frequency_span(lines, start, count),
+                    frequency_span(lists, start, count)...};
 }
 
 Size count_lines(const band_data& bnd, const zeeman::pol type) {
@@ -427,6 +426,7 @@ void lines_push_back(std::vector<single_shape>& lines,
     }
   }
 }
+}  // namespace
 
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
@@ -466,6 +466,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
 band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut)
     : lines(std::move(ls)), cutoff(cut) {}
 
+namespace {
 constexpr auto add_pair = [](auto&& lhs,
                              auto&& rhs) -> std::pair<Complex, Complex> {
   return {lhs.first + rhs.first, lhs.second + rhs.second};
@@ -474,6 +475,7 @@ constexpr auto add_pair = [](auto&& lhs,
 constexpr std::pair<Complex, Complex> rem_pair(auto&& lhs, auto&& rhs) {
   return {lhs.first - rhs.first, lhs.second - rhs.second};
 };
+}  // namespace
 
 std::pair<Complex, Complex> band_shape::operator()(const Numeric f) const {
   return std::transform_reduce(lines.begin(),
@@ -861,6 +863,8 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
   }
 }
 
+namespace {
+/*
 void compute_derivative(PropmatVectorView dpm,
                         StokvecVectorView dsv,
                         ComputeData& com_data,
@@ -988,6 +992,7 @@ void compute_derivative(PropmatVectorView,
                         const line_key&) {
   ARTS_USER_ERROR("Not supported")
 }
+*/
 
 void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
@@ -999,6 +1004,7 @@ void compute_derivative(PropmatVectorView,
                         const AtmPoint&,
                         const zeeman::pol,
                         const auto&) {}
+}  // namespace
 
 void calculate(PropmatVectorView pm_,
                StokvecVectorView sv_,

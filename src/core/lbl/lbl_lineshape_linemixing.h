@@ -1,11 +1,11 @@
 #pragma once
 
-#include <iosfwd>
+#include <isotopologues.h>
+#include <species.h>
+
 #include <unordered_map>
 
-#include "isotopologues.h"
 #include "lbl_temperature_model.h"
-#include "species.h"
 
 namespace lbl::linemixing {
 struct species_data {

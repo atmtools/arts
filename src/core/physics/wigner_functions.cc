@@ -12,7 +12,7 @@
 
 #include <algorithm>
 
-#include "debug.h"
+#include <debug.h>
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -141,13 +141,15 @@ Index make_wigner_ready(int largest, [[maybe_unused]] int fastest, int size) {
   return 0;
 }
 
+namespace {
 constexpr int wigner3_size(const Rational& J) { return 1 + 2 * J.toInt(6); }
 
 constexpr int wigner6_size(const Rational& J) { return J.toInt(4) + 1; }
 
-Rational wigner3_revere_size(const int j) { return Rational{(j - 1) / 2, 6}; }
+constexpr Rational wigner3_revere_size(const int j) { return Rational{(j - 1) / 2, 6}; }
 
-Rational wigner6_revere_size(const int j) { return Rational{j - 1, 4}; }
+constexpr Rational wigner6_revere_size(const int j) { return Rational{j - 1, 4}; }
+}  // namespace
 
 extern "C" int wigxjpf_max_prime_decomp;
 
@@ -163,7 +165,9 @@ bool is_wigner6_ready(const Rational& J) {
   return is_wigner_ready(test);
 }
 
+namespace {
 constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
+}  // namespace
 
 Numeric dwigner3j(Index M, Index J1, Index J2, Index J) {
   auto CJM = [](Index j, Index m) {

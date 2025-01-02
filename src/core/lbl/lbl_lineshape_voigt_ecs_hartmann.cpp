@@ -1,8 +1,7 @@
-#include <wigner_functions.h>
+#include "lbl_lineshape_voigt_ecs_hartmann.h"
 
-#include "atm.h"
-#include "lbl_data.h"
-#include "lbl_lineshape_linemixing.h"
+#include <atm.h>
+#include <wigner_functions.h>
 
 namespace lbl::voigt::ecs::hartmann {
 #if DO_FAST_WIGNER
@@ -13,6 +12,7 @@ namespace lbl::voigt::ecs::hartmann {
 #define WIGNER6 wig6jj
 #endif
 
+namespace {
 Numeric wig3(const Rational& a,
              const Rational& b,
              const Rational& c,
@@ -45,12 +45,13 @@ std::function<Numeric(Rational)> erot_selection(const SpeciesIsotope& isot) {
     return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();
   };
 }
+}  // namespace
 
 Numeric reduced_dipole(const Rational Jf,
                        const Rational Ji,
                        const Rational lf,
                        const Rational li,
-                       const Rational k = 1) {
+                       const Rational k) {
   if (not iseven(Jf + lf + 1))
     return -sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
   return +sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);

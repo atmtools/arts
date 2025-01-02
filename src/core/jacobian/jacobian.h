@@ -4,17 +4,15 @@
 #include <lbl.h>
 #include <matpack.h>
 #include <obsel.h>
+#include <operators.h>
 #include <surf.h>
 
 #include <concepts>
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <unordered_map>
 #include <variant>
 #include <vector>
-
-#include "operators.h"
 
 struct ErrorKey {
   Size y_start;
@@ -33,50 +31,38 @@ struct std::hash<ErrorKey> {
   }
 };
 
-using AtmTargetSetState     = CustomOperator<void,
-                                             VectorView,
-                                             const AtmField&,
-                                             const AtmKeyVal&>;
-using AtmTargetSetModel     = CustomOperator<void,
-                                             AtmField&,
-                                             const AtmKeyVal&,
-                                             const ConstVectorView>;
-using SurfaceTargetSetState = CustomOperator<void,
-                                             VectorView,
-                                             const SurfaceField&,
-                                             const SurfaceKeyVal&>;
+using AtmTargetSetState =
+    CustomOperator<void, VectorView, const AtmField&, const AtmKeyVal&>;
+using AtmTargetSetModel =
+    CustomOperator<void, AtmField&, const AtmKeyVal&, const ConstVectorView>;
+using SurfaceTargetSetState =
+    CustomOperator<void, VectorView, const SurfaceField&, const SurfaceKeyVal&>;
 using SurfaceTargetSetModel = CustomOperator<void,
                                              SurfaceField&,
                                              const SurfaceKeyVal&,
                                              const ConstVectorView>;
-using LineTargetSetState    = CustomOperator<void,
-                                             VectorView,
-                                             const AbsorptionBands&,
-                                             const LblLineKey&>;
-using LineTargetSetModel    = CustomOperator<void,
-                                             AbsorptionBands&,
-                                             const LblLineKey&,
-                                             const ConstVectorView>;
-using SensorTargetSetState  = CustomOperator<void,
-                                             VectorView,
-                                             const ArrayOfSensorObsel&,
-                                             const SensorKey&>;
-using SensorTargetSetModel  = CustomOperator<void,
-                                             ArrayOfSensorObsel&,
-                                             const SensorKey&,
-                                             const ConstVectorView>;
-using ErrorTargetSetState   = CustomOperator<void,
-                                             VectorView,
-                                             StridedMatrixView,
-                                             const ConstVectorView>;
+using LineTargetSetState =
+    CustomOperator<void, VectorView, const AbsorptionBands&, const LblLineKey&>;
+using LineTargetSetModel   = CustomOperator<void,
+                                            AbsorptionBands&,
+                                            const LblLineKey&,
+                                            const ConstVectorView>;
+using SensorTargetSetState = CustomOperator<void,
+                                            VectorView,
+                                            const ArrayOfSensorObsel&,
+                                            const SensorKey&>;
+using SensorTargetSetModel = CustomOperator<void,
+                                            ArrayOfSensorObsel&,
+                                            const SensorKey&,
+                                            const ConstVectorView>;
+using ErrorTargetSetState =
+    CustomOperator<void, VectorView, StridedMatrixView, const ConstVectorView>;
 using ErrorTargetSetModel =
     CustomOperator<void, VectorView, const ConstVectorView>;
 
 namespace Jacobian {
 void default_atm_x_set(VectorView, const AtmField&, const AtmKeyVal&);
-void default_x_atm_set(AtmField&,
-                       const AtmKeyVal&,
-                       const ConstVectorView);
+void default_x_atm_set(AtmField&, const AtmKeyVal&, const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
@@ -115,9 +101,7 @@ struct AtmTarget {
   [[nodiscard]] bool is_wind() const;
 };
 
-void default_surf_x_set(VectorView,
-                        const SurfaceField&,
-                        const SurfaceKeyVal&);
+void default_surf_x_set(VectorView, const SurfaceField&, const SurfaceKeyVal&);
 void default_x_surf_set(SurfaceField&,
                         const SurfaceKeyVal&,
                         const ConstVectorView);
@@ -157,9 +141,7 @@ struct SurfaceTarget {
   void update(Vector& x, const SurfaceField& surf) const;
 };
 
-void default_line_x_set(VectorView,
-                        const AbsorptionBands&,
-                        const LblLineKey&);
+void default_line_x_set(VectorView, const AbsorptionBands&, const LblLineKey&);
 void default_x_line_set(AbsorptionBands&,
                         const LblLineKey&,
                         const ConstVectorView);

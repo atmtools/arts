@@ -1,9 +1,9 @@
 #ifndef minimize_h
 #define minimize_h
 
-#include <utility>
-
 #include <matpack.h>
+
+#include <utility>
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
@@ -22,30 +22,30 @@ namespace Minimize {
 //! Functor for minimizing X0 + X1 * X + X2 * X**2 + ... XN * X**N - Y
 struct Polynom {
   // typedef needed by the functional-style optimizer
-  using Scalar = Numeric;
-  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using Scalar       = Numeric;
+  using InputType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
   using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
-  
+  using QRSolver     = Eigen::ColPivHouseholderQR<JacobianType>;
+
   // Size: The number of parameters to optimize towards
   const int m_inputs;
-  
-  // Size: The number of inputs required by the 
+
+  // Size: The number of inputs required by the
   const int m_values;
-  
+
   //! Temperature grid
   const StridedConstVectorView& X;
-  
+
   //! Spectroscopic values at grid
   const StridedConstVectorView& Y;
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   [[nodiscard]] int inputs() const { return m_inputs; }
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   [[nodiscard]] int values() const { return m_values; }
-  
+
   /*! The only constructor
     * 
     * @param[in] x The grid of the problem
@@ -54,10 +54,9 @@ struct Polynom {
     */
   Polynom(const StridedConstVectorView& x,
           const StridedConstVectorView& y,
-          const Index order
-  ) : m_inputs(int(order + 1)),
-    m_values(int(x.size())), X(x), Y(y) {}
-  
+          const Index order)
+      : m_inputs(int(order + 1)), m_values(int(x.size())), X(x), Y(y) {}
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -65,7 +64,7 @@ struct Polynom {
     * @return 0
     */
   int operator()(const InputType& p, ValueType& f) const;
-    
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -73,7 +72,7 @@ struct Polynom {
     * @return 0
     */
   int df(const InputType& p, JacobianType& J) const;
-  
+
   //! start values helper function, operator()(...) must be not too bad
   [[nodiscard]] InputType x0() const;
 };
@@ -81,36 +80,36 @@ struct Polynom {
 //! Functor for minimizing (X0 + X1 (T0 / T - 1)) * (T0 / T) ** X2 - Y
 struct T4 {
   // typedef needed by the functional-style optimizer
-  using Scalar = Numeric;
-  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using Scalar       = Numeric;
+  using InputType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
   using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
-  
+  using QRSolver     = Eigen::ColPivHouseholderQR<JacobianType>;
+
   // Size: The number of parameters to optimize towards
-  static constexpr int m_inputs=3;
-  
-  // Size: The number of inputs required by the 
+  static constexpr int m_inputs = 3;
+
+  // Size: The number of inputs required by the
   const int m_values;
-  
+
   //! Temperature grid
   const StridedConstVectorView& T;
-  
+
   //! Spectroscopic values at grid
   const StridedConstVectorView& Y;
-  
+
   //! Reference temperature
   const Numeric T0;
-  
+
   //! Reference start exponent
   const Numeric EXP0;
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   static constexpr int inputs() { return m_inputs; }
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   [[nodiscard]] int values() const { return m_values; }
-  
+
   /*! The only constructor
     * 
     * @param[in] x The grid of the problem (Temperatures)
@@ -121,9 +120,9 @@ struct T4 {
   T4(const StridedConstVectorView& x,
      const StridedConstVectorView& y,
      const Numeric t0,
-     const Numeric exp0) :
-    m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
-  
+     const Numeric exp0)
+      : m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -131,7 +130,7 @@ struct T4 {
     * @return 0
     */
   int operator()(const InputType& p, ValueType& f) const;
-    
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -139,45 +138,44 @@ struct T4 {
     * @return 0
     */
   int df(const InputType& p, JacobianType& J) const;
-  
+
   //! start values helper function, operator()(...) must be not too bad
   [[nodiscard]] InputType x0() const;
 };
 
-
 //! Functor for minimizing X0 * (T0 / T) ** X1 + X2 * (T0 / T) ** X3 - Y
 struct DPL {
   // typedef needed by the functional-style optimizer
-  using Scalar = Numeric;
-  using InputType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-  using ValueType = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using Scalar       = Numeric;
+  using InputType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+  using ValueType    = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
   using JacobianType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-  using QRSolver = Eigen::ColPivHouseholderQR<JacobianType>;
-  
+  using QRSolver     = Eigen::ColPivHouseholderQR<JacobianType>;
+
   // Size: The number of parameters to optimize towards
-  static constexpr int m_inputs=4;
-  
-  // Size: The number of inputs required by the 
+  static constexpr int m_inputs = 4;
+
+  // Size: The number of inputs required by the
   const int m_values;
-  
+
   //! Temperature grid
   const StridedConstVectorView& T;
-  
+
   //! Spectroscopic values at grid
   const StridedConstVectorView& Y;
-  
+
   //! Reference temperature
   const Numeric T0;
-  
+
   //! Reference start exponent
   const Numeric EXP0;
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   static constexpr int inputs() { return m_inputs; }
-  
-  //! Size: The number of inputs required by the 
+
+  //! Size: The number of inputs required by the
   [[nodiscard]] int values() const { return m_values; }
-  
+
   /*! The only constructor
     * 
     * @param[in] x The grid of the problem (Temperatures)
@@ -188,9 +186,9 @@ struct DPL {
   DPL(const StridedConstVectorView& x,
       const StridedConstVectorView& y,
       const Numeric t0,
-      const Numeric exp0) :
-    m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
-  
+      const Numeric exp0)
+      : m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -198,7 +196,7 @@ struct DPL {
     * @return 0
     */
   int operator()(const InputType& p, ValueType& f) const;
-    
+
   /*!  Opeartor evaluating the function
     * 
     * @param[in] p inputs()-sized parameter list
@@ -206,7 +204,7 @@ struct DPL {
     * @return 0
     */
   int df(const InputType& p, JacobianType& J) const;
-  
+
   //! start values helper function, operator()(...) must be not too bad
   [[nodiscard]] InputType x0() const;
 };
@@ -252,15 +250,13 @@ struct DPL {
  * @param[in] fun A Functor fulfilling the above conditions
  * @return {true if successful curve fit else false, list of parameters that minimizes the functor}
  */
-template <class Functor> 
-std::pair<bool, typename Functor::InputType>
-  curve_fit(const Functor& fun) {
+template <class Functor>
+std::pair<bool, typename Functor::InputType> curve_fit(const Functor& fun) {
   typename Functor::InputType p = fun.x0();
   Eigen::LevenbergMarquardt lm(fun);
   const auto status = lm.minimize(p);
   return {goodStatus(status), p};
 }
-
 
 /*! Fit a curve to data values
  * 
@@ -286,13 +282,13 @@ std::pair<bool, typename Functor::InputType>
  * @param[in] ins Inputs to forward to the constructor of Functor
  * @return See curve_fit(Functor(X, Y, std::forward<Inputs>(ins)...))
  */
-template <class Functor, typename ... Inputs> 
-std::pair<bool, typename Functor::InputType>
-  curve_fit(const StridedConstVectorView& X,
-            const StridedConstVectorView& Y,
-            Inputs&& ... ins) {
+template <class Functor, typename... Inputs>
+std::pair<bool, typename Functor::InputType> curve_fit(
+    const StridedConstVectorView& X,
+    const StridedConstVectorView& Y,
+    Inputs&&... ins) {
   return curve_fit(Functor(X, Y, std::forward<Inputs>(ins)...));
 }
-} // namespace Minimize
+}  // namespace Minimize
 
 #endif  // minimize_wrap_h

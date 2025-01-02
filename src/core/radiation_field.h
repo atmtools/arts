@@ -9,9 +9,9 @@
 #ifndef radiation_field_h
 #define radiation_field_h
 
-#include "mystring.h"
-
 #include <rtepack.h>
+
+#include "mystring.h"
 
 /** Throws an error if integration values are bad
  * 

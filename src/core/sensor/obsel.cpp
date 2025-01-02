@@ -1,10 +1,10 @@
 #include "obsel.h"
 
+#include <compare.h>
+#include <debug.h>
+
 #include <algorithm>
 #include <utility>
-
-#include "compare.h"
-#include "debug.h"
 
 bool SensorKey::operator==(const SensorKey& other) const {
   return other.sensor_elem == sensor_elem and
@@ -162,13 +162,13 @@ Vector Obsel::flat(const SensorKeyType& key) const {
 }
 
 Index Obsel::find(const Vector3& pos, const Vector2& los) const {
-  const auto first       = poslos->begin();
-  const auto last        = poslos->end();
+  const auto&& first       = poslos->begin();
+  const auto&& last        = poslos->end();
   const auto same_poslos = [&](const auto& p) {
     return &pos == &p.pos and & los == &p.los;
   };
 
-  const auto it = std::find_if(first, last, same_poslos);
+  const auto&& it = std::find_if(first, last, same_poslos);
 
   return (it == last) ? dont_have : std::distance(first, it);
 }
@@ -254,6 +254,7 @@ void make_exhaustive(ArrayOfSensorObsel& obsels) {
   }
 }
 
+namespace {
 void set_frq(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
              const ConstVectorView x) {
@@ -340,6 +341,7 @@ void set_aag(const SensorObsel& v,
              const ConstVectorView x) {
   set_poslos<false, 1>(v, sensor, x);
 }
+}  // namespace
 
 void unflatten(ArrayOfSensorObsel& sensor,
                const ConstVectorView& x,

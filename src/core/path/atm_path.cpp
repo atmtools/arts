@@ -1,15 +1,13 @@
 #include "atm_path.h"
 
 #include <arts_conversions.h>
+#include <arts_omp.h>
+#include <debug.h>
+#include <nonstd.h>
 
 #include <algorithm>
-#include <array>
-#include <memory>
 #include <vector>
 
-#include "arts_omp.h"
-#include "debug.h"
-#include "nonstd.h"
 #include "path_point.h"
 
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
@@ -87,6 +85,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
   }
 }
 
+namespace {
 void extract1D(ArrayOfAtmPoint &atm_path,
                const AtmField &atm_field,
                const Vector &z_grid,
@@ -110,6 +109,7 @@ void extract1D(ArrayOfAtmPoint &atm_path,
     atm_path[i] = atm_field.at(at(z_grid, i), at(lat_grid, i), at(lon_grid, i));
   }
 }
+}  // namespace
 
 ArrayOfAtmPoint extract1D(const AtmField &atm_field,
                           const Vector &z_grid,

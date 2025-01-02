@@ -34,6 +34,7 @@ bool ZeemanModel::empty() const noexcept {
   return std::isnan(mdata.gu) and std::isnan(mdata.gl);
 }
 
+namespace {
 constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
   switch (species) {
     case to<SpeciesEnum>("O2"):  return 2.002064;
@@ -82,6 +83,7 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
 
   return {NAN, NAN};
 }
+}  // namespace
 
 Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) {
   const Numeric GS = get_lande_spin_constant(qid.Species());
@@ -89,6 +91,7 @@ Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) {
   return SimpleG(qid.val, GS, GL);
 }
 
+namespace {
 Numeric case_b_g_coefficient_o2(Rational J,
                                 Rational N,
                                 Numeric GS,
@@ -141,6 +144,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
   if (k.isUndefined() or j.isUndefined() or j == 0) return 0;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
+}  // namespace
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
@@ -271,6 +275,7 @@ Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
   *this = m;
 }
 
+namespace {
 Eigen::Vector3d los_xyz_by_uvw_local(Numeric u, Numeric v, Numeric w) {
   return Eigen::Vector3d(v, u, w).normalized();
 }
@@ -287,6 +292,7 @@ Eigen::Vector3d ev_xyz_by_za_local(Numeric z, Numeric a) {
   return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z))
       .normalized();
 }
+}  // namespace
 
 Zeeman::Derived Zeeman::FromGrids(
     Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept {

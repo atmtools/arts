@@ -2,12 +2,7 @@
 #include <matpack.h>
 #include <spec/isotopologues.h>
 #include <spec/species.h>
-
-#include "template_partfun.h"
-
 #include <xml_io_base.h>
-
-#include "xml_io_partfun.h"
 
 #include <cstdlib>
 #include <exception>
@@ -20,6 +15,10 @@
 #include <string_view>
 #include <vector>
 
+#include "template_partfun.h"
+#include "xml_io_partfun.h"
+
+namespace {
 struct file_wrap {
   std::ofstream os;
   template <typename... Headers>
@@ -39,7 +38,7 @@ struct file_wrap {
 
 void print_data(const PartitionFunctionsData& data, auto& os) {
   constexpr int cutline = 10;
-  const Index n = data.data.nrows();
+  const Index n         = data.data.nrows();
 
   using enum PartitionFunctionsType;
   switch (data.type) {
@@ -73,17 +72,18 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
       os << "};\n";
       break;
     case StaticInterp:
-        os << "static inline constexpr std::array<Numeric, " << n << "> data{";
-        for (Index i = 0; i < n; i++) {
-          if (i % cutline == 0) {
-            os << '\n';
-          }
-          os << data.data[i, 1] << ',' << ' ';
+      os << "static inline constexpr std::array<Numeric, " << n << "> data{";
+      for (Index i = 0; i < n; i++) {
+        if (i % cutline == 0) {
+          os << '\n';
         }
-        os << "};\n\n";
+        os << data.data[i, 1] << ',' << ' ';
+      }
+      os << "};\n\n";
 
-        os << "static constexpr inline Numeric dT = " << data.data[0, 0] << ";\n";
-        os << "static constexpr inline Numeric T0 = " << data.data[1, 0] - data.data[0, 0] << ";\n";
+      os << "static constexpr inline Numeric dT = " << data.data[0, 0] << ";\n";
+      os << "static constexpr inline Numeric T0 = "
+         << data.data[1, 0] - data.data[0, 0] << ";\n";
       break;
   }
 }
@@ -91,12 +91,8 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
 void print_method(const PartitionFunctionsType& type, auto& os) {
   using enum PartitionFunctionsType;
   switch (type) {
-    case Interp:
-      os << "return linterp<derivative>(grid, data, T);\n";
-      break;
-    case Coeff:
-      os << "return polynom<derivative>(coeff, T);\n";
-      break;
+    case Interp: os << "return linterp<derivative>(grid, data, T);\n"; break;
+    case Coeff:  os << "return polynom<derivative>(coeff, T);\n"; break;
     case StaticInterp:
       os << "return STATIC_LINTERP(derivative, data, T, dT, T0);\n";
       break;
@@ -158,7 +154,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
     std::map<SpeciesEnum, std::vector<std::string>> x;
     for (auto& xmlfile : xmlfiles) {
       const auto spec_name = spec_from_xml(xmlfile);
-      const auto delim = spec_name.find('-');
+      const auto delim     = spec_name.find('-');
       ARTS_USER_ERROR_IF(delim == spec_name.npos,
                          "Cannot find isotopologue split")
       const auto spec = spec_name.substr(0, delim);
@@ -166,7 +162,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
       x[to<SpeciesEnum>(spec)].push_back(isot);
     }
 
-    for (auto& isot: Species::Isotopologues) {
+    for (auto& isot : Species::Isotopologues) {
       if (x.end() == x.find(isot.spec)) x[isot.spec];
     }
 
@@ -201,17 +197,19 @@ void make_h(const std::vector<std::string>& xmlfiles) {
       os << "Numeric " << func_name(species_name(spec.first, isot), true)
          << "(Numeric T) noexcept;\n";
     }
-  os << '\n';
+    os << '\n';
   }
 
   // Write the call operator
   for (auto& spec : data) {
     Index i = 0;
 
-    os << "\ntemplate<Derivatives deriv>\nNumeric compute" << toString<0>(spec.first)
+    os << "\ntemplate<Derivatives deriv>\nNumeric compute"
+       << toString<0>(spec.first)
        << "(Numeric T, const std::string_view isot) {\n";
     for (auto& isot : spec.second) {
-      os << "  if (isot == std::get<" << i++ << ">(has" << toString<0>(spec.first)
+      os << "  if (isot == std::get<" << i++ << ">(has"
+         << toString<0>(spec.first)
          << ")) {\n"
             "    if constexpr (deriv == Derivatives::No) return "
          << func_name(species_name(spec.first, isot), false)
@@ -225,6 +223,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
     os << "}\n";
   }
 }
+}  // namespace
 
 int main(int argn, char** argv) try {
   if (argn < 2)

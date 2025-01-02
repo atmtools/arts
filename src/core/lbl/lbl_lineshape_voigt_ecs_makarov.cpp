@@ -1,7 +1,6 @@
-#include <wigner_functions.h>
+#include "lbl_lineshape_voigt_ecs_makarov.h"
 
-#include "lbl_data.h"
-#include "lbl_lineshape_linemixing.h"
+#include <wigner_functions.h>
 
 namespace lbl::voigt::ecs::makarov {
 #if DO_FAST_WIGNER
@@ -12,6 +11,7 @@ namespace lbl::voigt::ecs::makarov {
 #define WIGNER6 wig6jj
 #endif
 
+namespace {
 Numeric wig3(const Rational& a,
              const Rational& b,
              const Rational& c,
@@ -31,12 +31,14 @@ Numeric wig6(const Rational& a,
   return WIGNER6(
       a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }
+}  // namespace
 
 Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
   return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2 * Jl + 1) * (2 * Ju + 1)) *
          wigner6j(1, 1, 1, Jl, Ju, N);
 };
 
+namespace {
 /*! Compute the rotational energy of ground-state O2 at N and J
  * 
  * If the template argument evaluates true, the erot<false>(1, 0)
@@ -88,6 +90,7 @@ constexpr Numeric erot(const Rational N, const Rational j = -1) {
     return mhz2joule(C1);
   }
 }
+}  // namespace
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
@@ -100,7 +103,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   using Conversion::kelvin2joule;
 
   ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
-                     "Bad isotopologue: {}", bnd_qid.Isotopologue())
+                     "Bad isotopologue: {}",
+                     bnd_qid.Isotopologue())
 
   if (bnd.size() == 0) return;
 

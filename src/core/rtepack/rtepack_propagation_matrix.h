@@ -1,6 +1,7 @@
 #pragma once
 
-#include "compare.h"
+#include <compare.h>
+
 #include "rtepack_concepts.h"
 
 namespace rtepack {

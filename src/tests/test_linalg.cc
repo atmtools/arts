@@ -277,7 +277,7 @@ void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
       cout << "A:" << '\n' << std::format("{}", A) << '\n' << '\n';
       cout << "x0:" << '\n' << std::format("{}", x0) << '\n' << '\n';
       cout << "x:" << '\n' << std::format("{}", x) << '\n' << '\n';
-      cout << "Permutation Vector:" << '\n' << indx << '\n';
+      cout << "Permutation Vector:" << '\n' << std::format("{}", indx) << '\n';
       cout << '\n';
     }
   }

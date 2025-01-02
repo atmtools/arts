@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iomanip>
 #include <limits>
 #include <ranges>
 #include <sstream>
@@ -11,6 +10,7 @@
 
 using Value = std::vector<std::string>;
 
+namespace {
 std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
@@ -1023,6 +1023,7 @@ radiation).
 
   return opts;
 }
+}  // namespace
 
 const std::vector<EnumeratedOption>& internal_options() {
   static std::vector<EnumeratedOption> opts = internal_options_create();
@@ -1059,10 +1060,12 @@ std::string EnumeratedOption::docs() const {
   return os.str();
 }
 
+namespace {
 int format_ind(const std::string& name) {
   if (name == "SpeciesEnum") return 1;
   return 0;
 }
+}  // namespace
 
 std::string EnumeratedOption::tail() const {
   std::ostringstream os;

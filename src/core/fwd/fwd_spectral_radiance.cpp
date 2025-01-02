@@ -1,18 +1,17 @@
 #include "fwd_spectral_radiance.h"
 
+#include <arts_constants.h>
+#include <arts_omp.h>
+#include <configtypes.h>
+#include <debug.h>
 #include <path_point.h>
+#include <rtepack.h>
 
 #include <algorithm>
 #include <memory>
-#include <ostream>
 #include <ranges>
 
-#include "arts_constants.h"
-#include "arts_omp.h"
-#include "configtypes.h"
-#include "debug.h"
 #include "fwd_path.h"
-#include "rtepack.h"
 
 namespace fwd {
 Stokvec spectral_radiance::B(
@@ -69,7 +68,7 @@ std::pair<Propmat, Stokvec> spectral_radiance::PM(
 std::array<spectral_radiance::weighted_position, 8>
 spectral_radiance::pos_weights(const path& pp) const {
   std::array<weighted_position, 8> out;
-  auto ptr = out.begin();
+  auto&& ptr = out.begin();
   for (Size i : {0, 1}) {
     for (Size j : {0, 1}) {
       for (Size k : {0, 1}) {

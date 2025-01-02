@@ -47,8 +47,7 @@ class Parameters {
         baseurl(""),
         daemon(false),
         gui(false),
-        check_docs(false) { /* Nothing to be done here */
-    }
+        check_docs(false) { /* Nothing to be done here */ }
 
   /** Short message how to call the program. */
   String usage;

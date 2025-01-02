@@ -1,23 +1,19 @@
 #include "quantum_numbers.h"
 
+#include <debug.h>
+#include <isotopologues.h>
+
 #include <algorithm>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
 
-#include "debug.h"
-#include "isotopologues.h"
-#include "species.h"
-
 namespace Quantum::Number {
 std::ostream& operator<<(std::ostream& os, QuantumNumberValueType x) {
   switch (x) {
-    case QuantumNumberValueType::S:
-      return os << "S";
-    case QuantumNumberValueType::I:
-      return os << "I";
-    case QuantumNumberValueType::H:
-      return os << "H";
+    case QuantumNumberValueType::S: return os << "S";
+    case QuantumNumberValueType::I: return os << "I";
+    case QuantumNumberValueType::H: return os << "H";
   }
   return os;
 }
@@ -59,158 +55,86 @@ std::strong_ordering StringValue::operator<=>(const StringValue& sv) const {
 std::ostream& operator<<(std::ostream& os, ValueDescription x) {
   os << x.type << ' ';
   switch (x.type) {
-    case QuantumNumberValueType::S:
-      return os << x.val.s.val();
-    case QuantumNumberValueType::I:
-      return os << x.val.i.x;
-    case QuantumNumberValueType::H:
-      return os << Rational(x.val.h.x, 2);
+    case QuantumNumberValueType::S: return os << x.val.s.val();
+    case QuantumNumberValueType::I: return os << x.val.i.x;
+    case QuantumNumberValueType::H: return os << Rational(x.val.h.x, 2);
   }
   return os;
 }
 
 QuantumNumberValueType common_value_type(QuantumNumberType type) noexcept {
   switch (type) {
-    case QuantumNumberType::alpha:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::config:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::ElecStateLabel:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::F:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F1:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F10:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F11:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F12:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F2:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F3:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F4:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F5:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F6:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F7:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F8:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::F9:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::I:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::J:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::K:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::Ka:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::Kc:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::L:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::Lambda:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::N:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::Omega:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::S:
-      return QuantumNumberValueType::H;
-    case QuantumNumberType::Sigma:
-      return QuantumNumberValueType::H;
+    case QuantumNumberType::alpha:          return QuantumNumberValueType::S;
+    case QuantumNumberType::config:         return QuantumNumberValueType::S;
+    case QuantumNumberType::ElecStateLabel: return QuantumNumberValueType::S;
+    case QuantumNumberType::F:              return QuantumNumberValueType::H;
+    case QuantumNumberType::F1:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F10:            return QuantumNumberValueType::H;
+    case QuantumNumberType::F11:            return QuantumNumberValueType::H;
+    case QuantumNumberType::F12:            return QuantumNumberValueType::H;
+    case QuantumNumberType::F2:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F3:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F4:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F5:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F6:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F7:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F8:             return QuantumNumberValueType::H;
+    case QuantumNumberType::F9:             return QuantumNumberValueType::H;
+    case QuantumNumberType::I:              return QuantumNumberValueType::I;
+    case QuantumNumberType::J:              return QuantumNumberValueType::H;
+    case QuantumNumberType::K:              return QuantumNumberValueType::I;
+    case QuantumNumberType::Ka:             return QuantumNumberValueType::I;
+    case QuantumNumberType::Kc:             return QuantumNumberValueType::I;
+    case QuantumNumberType::L:              return QuantumNumberValueType::I;
+    case QuantumNumberType::Lambda:         return QuantumNumberValueType::I;
+    case QuantumNumberType::N:              return QuantumNumberValueType::I;
+    case QuantumNumberType::Omega:          return QuantumNumberValueType::H;
+    case QuantumNumberType::S:              return QuantumNumberValueType::H;
+    case QuantumNumberType::Sigma:          return QuantumNumberValueType::H;
     case QuantumNumberType::SpinComponentLabel:
       return QuantumNumberValueType::I;
-    case QuantumNumberType::asSym:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::elecInv:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::elecRefl:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::elecSym:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::kronigParity:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::l:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l1:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l10:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l11:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l12:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l2:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l3:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l4:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l5:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l6:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l7:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l8:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::l9:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::n:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::parity:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::r:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::rotSym:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::rovibSym:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::sym:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::tau:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::term:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::v:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v1:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v10:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v11:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v12:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v2:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v3:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v4:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v5:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v6:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v7:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v8:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::v9:
-      return QuantumNumberValueType::I;
-    case QuantumNumberType::vibInv:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::vibRefl:
-      return QuantumNumberValueType::S;
-    case QuantumNumberType::vibSym:
-      return QuantumNumberValueType::S;
+    case QuantumNumberType::asSym:        return QuantumNumberValueType::S;
+    case QuantumNumberType::elecInv:      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecRefl:     return QuantumNumberValueType::S;
+    case QuantumNumberType::elecSym:      return QuantumNumberValueType::S;
+    case QuantumNumberType::kronigParity: return QuantumNumberValueType::S;
+    case QuantumNumberType::l:            return QuantumNumberValueType::I;
+    case QuantumNumberType::l1:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l10:          return QuantumNumberValueType::I;
+    case QuantumNumberType::l11:          return QuantumNumberValueType::I;
+    case QuantumNumberType::l12:          return QuantumNumberValueType::I;
+    case QuantumNumberType::l2:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l3:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l4:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l5:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l6:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l7:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l8:           return QuantumNumberValueType::I;
+    case QuantumNumberType::l9:           return QuantumNumberValueType::I;
+    case QuantumNumberType::n:            return QuantumNumberValueType::S;
+    case QuantumNumberType::parity:       return QuantumNumberValueType::S;
+    case QuantumNumberType::r:            return QuantumNumberValueType::I;
+    case QuantumNumberType::rotSym:       return QuantumNumberValueType::S;
+    case QuantumNumberType::rovibSym:     return QuantumNumberValueType::S;
+    case QuantumNumberType::sym:          return QuantumNumberValueType::S;
+    case QuantumNumberType::tau:          return QuantumNumberValueType::S;
+    case QuantumNumberType::term:         return QuantumNumberValueType::S;
+    case QuantumNumberType::v:            return QuantumNumberValueType::I;
+    case QuantumNumberType::v1:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v10:          return QuantumNumberValueType::I;
+    case QuantumNumberType::v11:          return QuantumNumberValueType::I;
+    case QuantumNumberType::v12:          return QuantumNumberValueType::I;
+    case QuantumNumberType::v2:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v3:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v4:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v5:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v6:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v7:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v8:           return QuantumNumberValueType::I;
+    case QuantumNumberType::v9:           return QuantumNumberValueType::I;
+    case QuantumNumberType::vibInv:       return QuantumNumberValueType::S;
+    case QuantumNumberType::vibRefl:      return QuantumNumberValueType::S;
+    case QuantumNumberType::vibSym:       return QuantumNumberValueType::S;
   }
   std::unreachable();
 }
@@ -232,13 +156,9 @@ QuantumNumberValueType common_value_type(QuantumNumberValueType a,
 ValueHolder::ValueHolder(QuantumNumberValueType t) noexcept
     : s(StringValue{"NODEF"}) {
   switch (t) {
-    case QuantumNumberValueType::H:
-      h = HalfIntegerValue{0};
-      break;
-    case QuantumNumberValueType::I:
-      i = IntegerValue{0};
-      break;
-    default: {
+    case QuantumNumberValueType::H: h = HalfIntegerValue{0}; break;
+    case QuantumNumberValueType::I: i = IntegerValue{0}; break;
+    default:                        {
     }
   }
 }
@@ -396,10 +316,8 @@ Rational cast_qnrat(std::string_view s) noexcept {
 ValueDescription value_holder(std::string_view s, QuantumNumberType t) {
   switch (common_value_type(t)) {
     case QuantumNumberValueType::I:
-    case QuantumNumberValueType::H:
-      return value_holder(cast_qnrat(s));
-    case QuantumNumberValueType::S:
-      return value_holder(s);
+    case QuantumNumberValueType::H: return value_holder(cast_qnrat(s));
+    case QuantumNumberValueType::S: return value_holder(s);
   }
   std::unreachable();
 }
@@ -507,11 +425,9 @@ Value::Value(std::string_view s) : Value(to<QuantumNumberType>(items(s, 0))) {
 
 Rational Value::upp() const noexcept {
   switch (common_value_type(type)) {
-    case QuantumNumberValueType::I:
-      return qn.upp.i.val();
-    case QuantumNumberValueType::H:
-      return qn.upp.h.val();
-    default: {
+    case QuantumNumberValueType::I: return qn.upp.i.val();
+    case QuantumNumberValueType::H: return qn.upp.h.val();
+    default:                        {
     }
   }
   return RATIONAL_UNDEFINED;
@@ -519,11 +435,9 @@ Rational Value::upp() const noexcept {
 
 Rational Value::low() const noexcept {
   switch (common_value_type(type)) {
-    case QuantumNumberValueType::I:
-      return qn.low.i.val();
-    case QuantumNumberValueType::H:
-      return qn.low.h.val();
-    default: {
+    case QuantumNumberValueType::I: return qn.low.i.val();
+    case QuantumNumberValueType::H: return qn.low.h.val();
+    default:                        {
     }
   }
   return RATIONAL_UNDEFINED;
@@ -646,6 +560,7 @@ bool ValueList::has_unique_increasing_types() const {
          }) == values.end();
 }
 
+namespace {
 //! Fix legacy catalog, where some values are rationals even though they shouldn't be
 std::pair<std::string_view, String> fix_legacy(std::string_view key,
                                                std::string_view val) {
@@ -690,6 +605,7 @@ std::pair<std::string_view, String> fix_legacy(std::string_view key,
 error:
   ARTS_USER_ERROR("Cannot read combination {} {}", key, val)
 }
+}  // namespace
 
 ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
   const Index n = count_items(s);
@@ -808,6 +724,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
   }
 }
 
+namespace {
 /** Returns some input "ASDASDS=asdAS" as ["ASDASDS", "asdAS"] for Hitran online data
  * 
  * Note that there is a special exception for F#XYZ values
@@ -826,6 +743,7 @@ std::pair<std::string_view, std::string_view> split_hitran_qn(
 
   return out;
 }
+}  // namespace
 
 ValueList from_hitran(std::string_view upp, std::string_view low) {
   ValueList out;
@@ -1715,12 +1633,8 @@ void LocalState::set_unsorted_qns(const Array<QuantumNumberType>& vals) {
 
 bofstream& Quantum::Number::Value::write(bofstream& bof) const {
   switch (common_value_type(type)) {
-    case QuantumNumberValueType::I:
-      bof << qn.upp.i.x << qn.low.i.x;
-      break;
-    case QuantumNumberValueType::H:
-      bof << qn.upp.h.x << qn.low.h.x;
-      break;
+    case QuantumNumberValueType::I: bof << qn.upp.i.x << qn.low.i.x; break;
+    case QuantumNumberValueType::H: bof << qn.upp.h.x << qn.low.h.x; break;
     case QuantumNumberValueType::S:
       bof.writeString(qn.upp.s.x.data(), StringValue::N);
       bof.writeString(qn.low.s.x.data(), StringValue::N);
@@ -1731,12 +1645,8 @@ bofstream& Quantum::Number::Value::write(bofstream& bof) const {
 
 bifstream& Quantum::Number::Value::read(bifstream& bif) {
   switch (common_value_type(type)) {
-    case QuantumNumberValueType::I:
-      bif >> qn.upp.i.x >> qn.low.i.x;
-      break;
-    case QuantumNumberValueType::H:
-      bif >> qn.upp.h.x >> qn.low.h.x;
-      break;
+    case QuantumNumberValueType::I: bif >> qn.upp.i.x >> qn.low.i.x; break;
+    case QuantumNumberValueType::H: bif >> qn.upp.h.x >> qn.low.h.x; break;
     case QuantumNumberValueType::S:
       bif.readString(qn.upp.s.x.data(), StringValue::N);
       bif.readString(qn.low.s.x.data(), StringValue::N);

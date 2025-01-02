@@ -17,10 +17,7 @@
 #include <cmath>
 #include <concepts>
 #include <cstddef>
-#include <exception>
 #include <format>
-#include <functional>
-#include <iosfwd>
 #include <limits>
 #include <type_traits>
 #include <unordered_map>

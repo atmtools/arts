@@ -9,6 +9,8 @@
 #ifndef debug_h
 #define debug_h
 
+#include <format_tags.h>
+
 #include <cassert>
 #include <format>
 #include <version>
@@ -51,16 +53,16 @@ std::string artsformat();
 #define CURRENT_SOURCE_FUNCTION std::format(__FILE__ ":{}", __LINE__)
 #endif
 
-#define ARTS_METHOD_ERROR_CATCH                                                \
-  catch (std::logic_error & e) {                                               \
-    throw std::runtime_error(                                                  \
-        std::format("Assertion error caught in:\n{}\n\n{}",                    \
-                    CURRENT_SOURCE_FUNCTION,                                   \
-                    std::string_view(e.what())));                              \
-  }                                                                            \
-  catch (std::exception & e) {                                                 \
-    throw std::runtime_error(std::format(                                      \
-        "{}\n{}", CURRENT_SOURCE_FUNCTION, std::string_view(e.what())));       \
+#define ARTS_METHOD_ERROR_CATCH                                          \
+  catch (std::logic_error & e) {                                         \
+    throw std::runtime_error(                                            \
+        std::format("Assertion error caught in:\n{}\n\n{}",              \
+                    CURRENT_SOURCE_FUNCTION,                             \
+                    std::string_view(e.what())));                        \
+  }                                                                      \
+  catch (std::exception & e) {                                           \
+    throw std::runtime_error(std::format(                                \
+        "{}\n{}", CURRENT_SOURCE_FUNCTION, std::string_view(e.what()))); \
   }
 
 #ifndef NDEBUG

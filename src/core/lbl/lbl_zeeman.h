@@ -6,11 +6,8 @@
 
 #include <limits>
 
-#include "debug.h"
-
 /** Implements Zeeman modeling */
 namespace lbl::zeeman {
-
 /** Zeeman polarization selection */
 enum class pol : char { sm, pi, sp, no };
 

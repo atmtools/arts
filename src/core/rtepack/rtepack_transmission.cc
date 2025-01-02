@@ -479,7 +479,8 @@ void two_level_exp(std::vector<muelmat_vector> &T,
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
+      std::ranges::any_of(
+          dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
       "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
       nv);
 

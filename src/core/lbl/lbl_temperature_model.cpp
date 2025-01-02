@@ -3,8 +3,8 @@
 #include <limits>
 #include <utility>
 
-#include "debug.h"
-#include "double_imanip.h"
+#include <debug.h>
+#include <double_imanip.h>
 
 namespace lbl::temperature {
 namespace model {

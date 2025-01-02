@@ -1,15 +1,13 @@
 #pragma once
 
+#include <array.h>
+#include <configtypes.h>
 #include <fast_float/fast_float.h>
 
 #include <charconv>
-#include <iosfwd>
+#include <sstream>
 #include <string>
 #include <string_view>
-
-#include "array.h"
-#include "configtypes.h"
-#include "format_tags.h"
 
 /** The String type for ARTS. Implementation. */
 using String = std::string;
@@ -22,11 +20,6 @@ using ArrayOfArrayOfString = Array<Array<String>>;
 
 /** Name string_view as we named string */
 using StringView = std::string_view;
-
-namespace std {
-std::ostream& operator<<(std::ostream& os, const ArrayOfString& x);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfString& x);
-}  // namespace std
 
 /** Extract something from the beginning of a string. This is just a small helper
  function to safe some typing.

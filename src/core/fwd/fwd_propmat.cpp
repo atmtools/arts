@@ -1,10 +1,10 @@
 #include "fwd_propmat.h"
 
+#include <lbl_zeeman.h>
+#include <rtepack.h>
+
 #include <functional>
 #include <numeric>
-
-#include "lbl_zeeman.h"
-#include "rtepack.h"
 
 namespace fwd {
 propmat::propmat(std::shared_ptr<AtmPoint> atm_,

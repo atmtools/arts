@@ -24,7 +24,8 @@ namespace Calibration {
  * @param[in] th \f$ T_h \f$, hot load temperature
  * @return \f$ T_a \f$, atmospheric temperature
  */
-constexpr Numeric calibration(Numeric pc, Numeric pa, Numeric ph, Numeric tc, Numeric th) noexcept {
+constexpr Numeric calibration(
+    Numeric pc, Numeric pa, Numeric ph, Numeric tc, Numeric th) noexcept {
   return tc + (th - tc) * (pa - pc) / (ph - pc);
 }
 
@@ -39,7 +40,11 @@ constexpr Numeric calibration(Numeric pc, Numeric pa, Numeric ph, Numeric tc, Nu
  * @param[in] th \f$ T_h \f$, hot load temperature
  * @return \f$ \vec{T}_a \f$, atmospheric temperature
  */
-Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric tc, Numeric th) noexcept;
+Vector calibration(const Vector& pc,
+                   const Vector& pa,
+                   const Vector& ph,
+                   Numeric tc,
+                   Numeric th) noexcept;
 
 /** Computes the linear receiver temperature formula
  * 
@@ -51,8 +56,11 @@ Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric
  * @param[in] th \f$ T_h \f$, hot load temperature
  * @return \f$ T_r \f$, receiver temperature
  */
-constexpr Numeric systemtemp(Numeric pc, Numeric ph, Numeric tc, Numeric th) noexcept {
-  return (th*pc - tc*ph) / (ph - pc);
+constexpr Numeric systemtemp(Numeric pc,
+                             Numeric ph,
+                             Numeric tc,
+                             Numeric th) noexcept {
+  return (th * pc - tc * ph) / (ph - pc);
 }
 
 /** Computes the linear receiver temperature formula elementwise
@@ -65,7 +73,10 @@ constexpr Numeric systemtemp(Numeric pc, Numeric ph, Numeric tc, Numeric th) noe
  * @param[in] th \f$ T_h \f$, hot load temperature
  * @return \f$ \vec{T}_r \f$, receiver temperature
  */
-Vector systemtemp(const Vector& pc, const Vector& ph, Numeric tc, Numeric th) noexcept;
+Vector systemtemp(const Vector& pc,
+                  const Vector& ph,
+                  Numeric tc,
+                  Numeric th) noexcept;
 
 /** Calibrate the data by CAHA
  * 
@@ -80,8 +91,11 @@ Vector systemtemp(const Vector& pc, const Vector& ph, Numeric tc, Numeric th) no
  * @param[in] first_c_index The position of the first C in data [must be positive]
  * @return Calibrated values [use calibration() if calib, else use systemtemp()]
  */
-ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector& thvec, const Index first_c_index);
-} // namespace Calibration
+ArrayOfVector caha(const ArrayOfVector& data,
+                   const Vector& tcvec,
+                   const Vector& thvec,
+                   const Index first_c_index);
+}  // namespace Calibration
 
 namespace Average {
 /** Compute the average of the ranged ys
@@ -94,7 +108,10 @@ namespace Average {
  * @param[in] end Past last index representation
  * @return y
  */
-VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView avg(VectorView y,
+               const ArrayOfVector& ys,
+               const Index start = 0,
+               const Index end   = -1);
 
 /** Compute the average of the ranged ys ignoring all non-normal values
  * 
@@ -108,7 +125,10 @@ VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start=0, const
  * @param[in] end Past last index representation
  * @return y
  */
-VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView nanavg(VectorView y,
+                  const ArrayOfVector& ys,
+                  const Index start = 0,
+                  const Index end   = -1);
 
 /** Compute the standard deviation of the ranged ys
  * 
@@ -121,7 +141,11 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start=0, co
  * @param[in] end Past last index representation
  * @return std
  */
-VectorView std(VectorView std, const Vector& y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView std(VectorView std,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start = 0,
+               const Index end   = -1);
 
 /** Compute the standard deviation of the ranged ys ignoring all non-normal values
  * 
@@ -136,7 +160,11 @@ VectorView std(VectorView std, const Vector& y, const ArrayOfVector& ys, const I
  * @param[in] end Past last index representation
  * @return std
  */
-VectorView nanstd(VectorView std, const Vector& y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView nanstd(VectorView std,
+                  const Vector& y,
+                  const ArrayOfVector& ys,
+                  const Index start = 0,
+                  const Index end   = -1);
 
 /** Compute the variance of the ranged ys
  * 
@@ -149,7 +177,11 @@ VectorView nanstd(VectorView std, const Vector& y, const ArrayOfVector& ys, cons
  * @param[in] end Past last index representation
  * @return var
  */
-VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView var(VectorView var,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start = 0,
+               const Index end   = -1);
 
 /** Compute the variance of the ranged ys ignoring all non-normal values
  * 
@@ -164,7 +196,11 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
  * @param[in] end Past last index representation
  * @return var
  */
-VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+VectorView nanvar(VectorView var,
+                  const Vector& y,
+                  const ArrayOfVector& ys,
+                  const Index start = 0,
+                  const Index end   = -1);
 
 /** Compute the covariance matrix of the ranged ys
  * 
@@ -177,7 +213,11 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
  * @param[in] end Past last index representation
  * @return cov
  */
-MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const Index start=0, const Index end=-1);
+MatrixView cov(MatrixView cov,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start = 0,
+               const Index end   = -1);
 
 /** Get the median of the vector in the range
  * 
@@ -187,7 +227,8 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
  * @param[in] pos Positions to use in the vector
  * @return The median
  */
-Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos=ArrayOfIndex{});
+Numeric median(const ConstVectorView& v,
+               const ArrayOfIndex& pos = ArrayOfIndex{});
 
 /** Get the median of the vector in the range ignoring all non-normal values
  * 
@@ -197,8 +238,9 @@ Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos=ArrayOfIndex{})
  * @param[in] pos Positions to use in the vector
  * @return The median ignoring all non-normal values (or NaN)
  */
-Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos=ArrayOfIndex{});
-} // namespace Average
+Numeric nanmedian(const ConstVectorView& v,
+                  const ArrayOfIndex& pos = ArrayOfIndex{});
+}  // namespace Average
 
 namespace Reduce {
 /** Returns the relative position scale for each value in x
@@ -225,7 +267,9 @@ namespace Reduce {
  * @param[in] dx A stepsize so that can be used to compute a relative step
  * @return Scaling of some positions (same size at x)
  */
-ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeric dx);
+ArrayOfIndex focus_doublescaling(const Vector& x,
+                                 const Numeric x0,
+                                 const Numeric dx);
 
 /** Returns the re-averaged values of x according to scaling
  * 
@@ -271,7 +315,7 @@ Vector focus(const Vector& x, const ArrayOfIndex& scaling);
  * @return A rescaled and focused x
  */
 Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling);
-} // namespace Reduce
+}  // namespace Reduce
 
 namespace Mask {
 /** Masks values that are out of bounds in x
@@ -285,7 +329,9 @@ namespace Mask {
  * @param[in] xmax The maximum acceptable value of x
  * @return A mask (true is masked, false is unmasked)
  */
-std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numeric xmax);
+std::vector<bool> out_of_bounds(const Vector& x,
+                                const Numeric xmin,
+                                const Numeric xmax);
 
 /** Masks all true entries of masking in x by turning them into NaN
  * 
@@ -294,7 +340,7 @@ std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numer
  * @return x masked (note, x is masked in-place anyways)
  */
 VectorView mask(VectorView x, const std::vector<bool>& masking);
-} // namespace Mask
+}  // namespace Mask
 
 namespace Correction {
 /** Naive tropospheric correction parameterization
@@ -315,7 +361,9 @@ namespace Correction {
  * @param[in] target_bt \f$ \overline{T_{b, target}(f)} \f$
  * @return \f$ \overline{\tau(f)} \f$ as equations above
  */
-Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt, const Numeric trop_bt, const Numeric target_bt);
+Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt,
+                                            const Numeric trop_bt,
+                                            const Numeric target_bt);
 
 /** Apply tropospheric correction
  * 
@@ -341,7 +389,9 @@ Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt, const Num
  * @param[in] trop_bt \f$ \overline{T_{b, trop}(f)} \f$
  * @return \f$ T_{b, 1}(f) \f$
  */
-VectorView naive_tropospheric(VectorView bt, const Numeric tau, const Numeric trop_bt);
-} // namespace Correction
-} // namespace Raw
+VectorView naive_tropospheric(VectorView bt,
+                              const Numeric tau,
+                              const Numeric trop_bt);
+}  // namespace Correction
+}  // namespace Raw
 #endif  // RAW_H

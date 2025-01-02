@@ -6,35 +6,48 @@
  * @brief  Stuff related to generating y-data from raw data
 */
 
-#include <algorithm>
-
 #include "raw.h"
 
+#include <algorithm>
+
+namespace {
 template <typename T>
-constexpr bool isnormal_or_zero(T x) noexcept {return std::isnormal(x) or x == 0;}
+constexpr bool isnormal_or_zero(T x) noexcept {
+  return std::isnormal(x) or x == 0;
+}
+}  // namespace
 
 namespace Raw {
 namespace Calibration {
-Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric tc, Numeric th) noexcept
-{
+Vector calibration(const Vector& pc,
+                   const Vector& pa,
+                   const Vector& ph,
+                   Numeric tc,
+                   Numeric th) noexcept {
   const auto N = Index(pc.size());
   Vector calib(N);
-  for (Index i=0; i<N; i++) calib[i] = calibration(pc[i], pa[i], ph[i], tc, th);
+  for (Index i = 0; i < N; i++)
+    calib[i] = calibration(pc[i], pa[i], ph[i], tc, th);
   return calib;
 }
 
-Vector systemtemp(const Vector& pc, const Vector& ph, Numeric tc, Numeric th) noexcept
-{
+Vector systemtemp(const Vector& pc,
+                  const Vector& ph,
+                  Numeric tc,
+                  Numeric th) noexcept {
   const auto N = Index(pc.size());
   Vector systemp(N);
-  for (Index i=0; i<N; i++) systemp[i] = systemtemp(Numeric(pc[i]), Numeric(ph[i]), tc, th);
+  for (Index i = 0; i < N; i++)
+    systemp[i] = systemtemp(Numeric(pc[i]), Numeric(ph[i]), tc, th);
   return systemp;
 }
 
-ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector& thvec, const Index first_c_index)
-{
+ArrayOfVector caha(const ArrayOfVector& data,
+                   const Vector& tcvec,
+                   const Vector& thvec,
+                   const Index first_c_index) {
   assert(first_c_index >= 0);
-  
+
   /* Must compute the positions due to c-Index offset
    * 
    * The start position should be on C or H
@@ -48,23 +61,23 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
    * two indices behind the cold position, whichever
    * is lowest and positive and below 4 */
   const Index start = first_c_index - ((first_c_index > 1) ? 2 : 0);
-  const Index cpos = first_c_index % 4;
-  const Index hpos = cpos + ((cpos < 2) ? 2 : -2);
-  
+  const Index cpos  = first_c_index % 4;
+  const Index hpos  = cpos + ((cpos < 2) ? 2 : -2);
+
   // Initialize pointers and values of interest
-  const Vector * pc = nullptr;
-  const Vector * pa = nullptr;
-  const Vector * ph = nullptr;
-  Numeric tc=0, th=0;
-  
+  const Vector* pc = nullptr;
+  const Vector* pa = nullptr;
+  const Vector* ph = nullptr;
+  Numeric tc = 0, th = 0;
+
   // Output vector
   ArrayOfVector out;
-  
+
   // For all data entries
-  for (Size i=start; i<data.size(); i++) {
+  for (Size i = start; i < data.size(); i++) {
     // Cycle is CAHA → 4 steps
     const Index pos = i % 4;
-    
+
     // Set the values when we are at the correct position
     if (pos == cpos) {
       pc = &data[i];
@@ -75,7 +88,7 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
     } else {
       pa = &data[i];
     }
-    
+
     /* Add new measurement if we are at C or H since we have
      *  then completed a new calibration cycle 
      * 
@@ -84,48 +97,51 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
       out.emplace_back(calibration(*pc, *pa, *ph, tc, th));
     }
   }
-  
+
   return out;
 }
-} // namespace Calibration
+}  // namespace Calibration
 
 namespace Average {
-VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{ 
+VectorView avg(VectorView y,
+               const ArrayOfVector& ys,
+               const Index start,
+               const Index end_tmp) {
   // True end
   const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
-  
+
   // Scale
   const Numeric scale = 1 / Numeric(end - start);
-  
+
   // Reset
   y = 0;
-  
+
   // Compute
-  for (Index k=start; k<end; k++)
-    for (Size i=0; i<y.size(); i++)
-      y[i] += ys[k][i] * scale;
+  for (Index k = start; k < end; k++)
+    for (Size i = 0; i < y.size(); i++) y[i] += ys[k][i] * scale;
   return y;
 }
 
-VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{ 
+VectorView nanavg(VectorView y,
+                  const ArrayOfVector& ys,
+                  const Index start,
+                  const Index end_tmp) {
   // True end
   const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
-  
+
   // Reset y
   y = 0;
-  
+
   // Compute the averages ignoring all NaN
-  for (Size i=0; i<y.size(); i++) {
-    Index numnormal=0;
-    for (Index k=start; k<end; k++) {
+  for (Size i = 0; i < y.size(); i++) {
+    Index numnormal = 0;
+    for (Index k = start; k < end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
         y[i] += ys[k][i];
         numnormal++;
       }
     }
-    
+
     // Compute the average or set to NaN
     if (numnormal) {
       y[i] /= Numeric(numnormal);
@@ -133,46 +149,52 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, cons
       y[i] = std::numeric_limits<Numeric>::quiet_NaN();
     }
   }
-  
+
   return y;
 }
 
-VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{
+VectorView var(VectorView var,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start,
+               const Index end_tmp) {
   // True end
   const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
-  
+
   // Scale
   const Numeric scale = 1 / Numeric(end - start);
-  
+
   // Reset
   var = 0;
-  
+
   // Compute
-  for (Index k=start; k<end; k++)
-    for (Size i=0; i<y.size(); i++)
+  for (Index k = start; k < end; k++)
+    for (Size i = 0; i < y.size(); i++)
       var[i] += Math::pow2(ys[k][i] - y[i]) * scale;
   return var;
 }
 
-VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{
+VectorView nanvar(VectorView var,
+                  const Vector& y,
+                  const ArrayOfVector& ys,
+                  const Index start,
+                  const Index end_tmp) {
   // True end
   const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
-  
+
   // Reset
   var = 0;
-  
+
   // Compute
-  for (Size i=0; i<y.size(); i++) {
-    Index numnormal=0;
-    for (Index k=start; k<end; k++) {
+  for (Size i = 0; i < y.size(); i++) {
+    Index numnormal = 0;
+    for (Index k = start; k < end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
         var[i] += Math::pow2(ys[k][i] - y[i]);
         numnormal++;
       }
     }
-    
+
     // Compute the average or set to NaN
     if (numnormal > 0) {
       var[i] /= Numeric(numnormal);
@@ -183,225 +205,241 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
   return var;
 }
 
-VectorView std(VectorView std, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{
+VectorView std(VectorView std,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start,
+               const Index end_tmp) {
   var(std, y, ys, start, end_tmp);
-  std::transform(std.begin(), std.end(), std.begin(), [](const auto& x){return std::sqrt(x);});
+  std::transform(std.begin(), std.end(), std.begin(), [](const auto& x) {
+    return std::sqrt(x);
+  });
   return std;
 }
 
-VectorView nanstd(VectorView std, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{
+VectorView nanstd(VectorView std,
+                  const Vector& y,
+                  const ArrayOfVector& ys,
+                  const Index start,
+                  const Index end_tmp) {
   nanvar(std, y, ys, start, end_tmp);
-  std::transform(std.begin(), std.end(), std.begin(), [](const auto& x){return std::sqrt(x);});
+  std::transform(std.begin(), std.end(), std.begin(), [](const auto& x) {
+    return std::sqrt(x);
+  });
   return std;
 }
 
-MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
-{
+MatrixView cov(MatrixView cov,
+               const Vector& y,
+               const ArrayOfVector& ys,
+               const Index start,
+               const Index end_tmp) {
   // True end
   const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
-  
+
   // Scale
   const Numeric scale = 1 / Numeric(end - start - 1);
-  
+
   // Reset
   cov = 0;
-  
+
   // Compute
-  for (Index k=start; k<end; k++)
-    for (Size i=0; i<y.size(); i++)
-      for (Size j=0; j<y.size(); j++)
+  for (Index k = start; k < end; k++)
+    for (Size i = 0; i < y.size(); i++)
+      for (Size j = 0; j < y.size(); j++)
         cov[i, j] += (ys[k][i] - y[i]) * (ys[k][j] - y[j]) * scale;
   return cov;
 }
 
-Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos)
-{
+Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos) {
   // Size of problem
   const Index n = pos.size() ? pos.size() : v.size();
-  
+
   // Create a vector to sort
   ArrayOfNumeric calc(n);
-  for (Index i=0; i<n; i++)
+  for (Index i = 0; i < n; i++)
     if (pos.size())
       calc[i] = v[pos[i]];
     else
       calc[i] = v[i];
-  
+
   // Sort the vector
   std::sort(calc.begin(), calc.end());
-  
+
   // Return the median
-  if (n % 2)
-    return calc[n/2];
-  return (calc[(n-1)/2] + calc[n/2]) / 2;
+  if (n % 2) return calc[n / 2];
+  return (calc[(n - 1) / 2] + calc[n / 2]) / 2;
 }
 
-Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos)
-{
+Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos) {
   // Size of problem
   const Index n = pos.size() ? pos.size() : v.size();
-  
+
   // Create a vector to sort
   ArrayOfNumeric calc(n);
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     if (pos.size()) {
       calc[i] = v[pos[i]];
     } else {
       calc[i] = v[i];
     }
   }
-    
+
   // Sort the vector
   std::sort(calc.begin(), calc.end());
-  
+
   // Remove non-normal
-  auto newend = std::remove_if(calc.begin(), calc.end(), [](auto x){return not isnormal_or_zero(x);});
+  auto newend = std::remove_if(
+      calc.begin(), calc.end(), [](auto x) { return not isnormal_or_zero(x); });
   const Index numnormal = n - Index(calc.end() - newend);
-  
+
   // Return the median
   if (numnormal) {
-    if (numnormal % 2)
-      return calc[numnormal/2];
-    return (calc[(numnormal-1)/2] + calc[numnormal/2]) / 2;
+    if (numnormal % 2) return calc[numnormal / 2];
+    return (calc[(numnormal - 1) / 2] + calc[numnormal / 2]) / 2;
   }
 
   return std::numeric_limits<Numeric>::quiet_NaN();
 }
-} // namespace Average
+}  // namespace Average
 
 namespace Reduce {
-ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeric dx)
-{
+ArrayOfIndex focus_doublescaling(const Vector& x,
+                                 const Numeric x0,
+                                 const Numeric dx) {
   ArrayOfIndex scale(x.size());
-  
+
   // Scaling function, rounds down an Index
   auto scaling = [](Numeric X, Numeric X0, Numeric DX) {
-    const Index p = 1 + Index(std::abs(X - X0) / DX);  // floor + 1 is close enough
+    const Index p =
+        1 + Index(std::abs(X - X0) / DX);  // floor + 1 is close enough
     Index this_scale = 0;
     while ((p >> this_scale) > 1) this_scale++;
     return 1 << this_scale;
   };
-  
-  for (Size i=0; i<x.size(); i++) scale[i] = scaling(x[i], x0, dx);
+
+  for (Size i = 0; i < x.size(); i++) scale[i] = scaling(x[i], x0, dx);
   return scale;
 }
 
-std::pair<Index, Index> find_first_and_last_1(const ArrayOfIndex& x)
-{
-  Index first=x.size() - 1;
-  Index last=0;
-  for (Size i=0; i<x.size(); i++) {
+namespace {
+
+std::pair<Index, Index> find_first_and_last_1(const ArrayOfIndex& x) {
+  Index first = x.size() - 1;
+  Index last  = 0;
+  for (Size i = 0; i < x.size(); i++) {
     if (x[i] == 1) {
-      last = std::max<Index>(i, last);
+      last  = std::max<Index>(i, last);
       first = std::min<Index>(i, first);
     }
   }
-  
+
   assert(first <= last);
   return {first, last};
 }
+}  // namespace
 
-Vector focus(const Vector& x, const ArrayOfIndex& scaling)
-{
+Vector focus(const Vector& x, const ArrayOfIndex& scaling) {
   const Index N = x.size();
   Index first_i, last_i;
-  
+
   // Find the first and last one in scaling
   const auto [firstone, lastone] = find_first_and_last_1(scaling);
-  
+
   // All the central numbers
   std::vector<Numeric> out;
-  for (Index i=firstone; i<=lastone; i++) out.emplace_back(x[i]);
-  
+  for (Index i = firstone; i <= lastone; i++) out.emplace_back(x[i]);
+
   // All the last numbers appended
   first_i = lastone + 1;
   while (first_i not_eq N) {
     last_i = first_i + scaling[first_i];
     if (last_i > N) last_i = N;
-    out.emplace_back(mean(x[Range(first_i, last_i-first_i)]));
+    out.emplace_back(mean(x[Range(first_i, last_i - first_i)]));
     first_i = last_i;
   }
-  
+
   // All the first numbers prepended
   std::vector<Numeric> fx(0);
   last_i = firstone;
   while (last_i > 0) {
     first_i = last_i - scaling[last_i];
     if (first_i < 0) first_i = 0;
-    out.insert(out.begin(), mean(x[Range(first_i, last_i-first_i)]));
+    out.insert(out.begin(), mean(x[Range(first_i, last_i - first_i)]));
     last_i = first_i;
   }
-  
+
   return Vector{std::move(out)};
 }
 
-Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling)
-{
+Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling) {
   const Index N = x.size();
   Index first_i, last_i;
-  
+
   // Find the first and last one in scaling
   const auto [firstone, lastone] = find_first_and_last_1(scaling);
-  
+
   // All the central numbers
   std::vector<Numeric> out;
-  for (Index i=firstone; i<=lastone; i++) {
+  for (Index i = firstone; i <= lastone; i++) {
     if (isnormal_or_zero(x[i])) {
       out.emplace_back(x[i]);
     } else {
       out.emplace_back(std::numeric_limits<Numeric>::quiet_NaN());
     }
   }
-  
+
   // All the last numbers appended
   first_i = lastone + 1;
   while (first_i not_eq N) {
     last_i = first_i + scaling[first_i];
     if (last_i > N) last_i = N;
-    out.emplace_back(nanmean(x[Range(first_i, last_i-first_i)]));
+    out.emplace_back(nanmean(x[Range(first_i, last_i - first_i)]));
     first_i = last_i;
   }
-  
+
   // All the first numbers prepended
   std::vector<Numeric> fx(0);
   last_i = firstone;
   while (last_i > 0) {
     first_i = last_i - scaling[last_i];
     if (first_i < 0) first_i = 0;
-    out.insert(out.begin(), nanmean(x[Range(first_i, last_i-first_i)]));
+    out.insert(out.begin(), nanmean(x[Range(first_i, last_i - first_i)]));
     last_i = first_i;
   }
-  
+
   return Vector{std::move(out)};
 }
-} // namespace Reduce
+}  // namespace Reduce
 
 namespace Mask {
-std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numeric xmax)
-{
+std::vector<bool> out_of_bounds(const Vector& x,
+                                const Numeric xmin,
+                                const Numeric xmax) {
   std::vector<bool> mask(x.size(), false);
-  for (Size i=0; i<x.size(); i++) mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not isnormal_or_zero(x[i]));
+  for (Size i = 0; i < x.size(); i++)
+    mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not isnormal_or_zero(x[i]));
   return mask;
 }
 
-VectorView mask(VectorView x, const std::vector<bool>& masking)
-{
+VectorView mask(VectorView x, const std::vector<bool>& masking) {
   const Index N = x.size();
-  for (Index i=0; i<N; i++)
-    if (masking[i])
-      x[i] = std::numeric_limits<Numeric>::quiet_NaN();
+  for (Index i = 0; i < N; i++)
+    if (masking[i]) x[i] = std::numeric_limits<Numeric>::quiet_NaN();
   return x;
 }
-} // namespace Mask
+}  // namespace Mask
 
 namespace Correction {
-  Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt, const Numeric trop_bt, const Numeric target_bt) {
-    return - std::log((trop_bt - Average::nanmedian(bt)) / (trop_bt - target_bt));
+Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt,
+                                            const Numeric trop_bt,
+                                            const Numeric target_bt) {
+  return -std::log((trop_bt - Average::nanmedian(bt)) / (trop_bt - target_bt));
 }
 
-VectorView naive_tropospheric(VectorView bt, const Numeric tau, const Numeric trop_bt) {
+VectorView naive_tropospheric(VectorView bt,
+                              const Numeric tau,
+                              const Numeric trop_bt) {
   const Numeric t = std::exp(-tau);
   if (std::isnormal(t)) {
     bt /= t;
@@ -409,5 +447,5 @@ VectorView naive_tropospheric(VectorView bt, const Numeric tau, const Numeric tr
   }
   return bt;
 }
-} // namespace Correction
-} // namespace Raw
+}  // namespace Correction
+}  // namespace Raw

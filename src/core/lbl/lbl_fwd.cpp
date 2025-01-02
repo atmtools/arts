@@ -1,12 +1,12 @@
 #include "lbl_fwd.h"
 
+#include <configtypes.h>
+#include <debug.h>
 #include <physics_funcs.h>
 
 #include <iomanip>
 #include <limits>
 
-#include "configtypes.h"
-#include "debug.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_voigt_lte.h"
 #include "lbl_zeeman.h"

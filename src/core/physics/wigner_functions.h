@@ -9,13 +9,12 @@
 #ifndef wigner_functions_h
 #define wigner_functions_h
 
+#include <rational.h>
 #include <wigner/wigxjpf/inc/wigxjpf.h>
 
 #include <algorithm>
 #include <array>
 #include <iosfwd>
-
-#include "rational.h"
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1

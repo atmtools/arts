@@ -13,8 +13,6 @@
 
 #include <format_tags.h>
 
-#include <iosfwd>
-
 //! A placeholder for any type.
 /*!  Used to mark supergeneric methods in file
   methods.cc.

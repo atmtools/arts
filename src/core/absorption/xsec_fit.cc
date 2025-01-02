@@ -53,6 +53,7 @@ Vector& XsecRecord::FitMaxTemperatures() { return mfitmaxtemperatures; };
 /** Get coefficients */
 ArrayOfGriddedField1Named& XsecRecord::FitCoeffs() { return mfitcoeffs; };
 
+namespace {
 void RemoveNegativeXsec(Vector& xsec) {
   Numeric sum_xsec{};
   Numeric sum_xsec_non_negative{};
@@ -66,6 +67,7 @@ void RemoveNegativeXsec(Vector& xsec) {
     xsec *= sum_xsec / sum_xsec_non_negative;
   }
 }
+}  // namespace
 
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion

@@ -1,13 +1,12 @@
 #pragma once
 
 #include <atm.h>
+#include <interp.h>
 #include <isotopologues.h>
 #include <lbl.h>
 #include <matpack.h>
 
 #include <unordered_map>
-
-#include "interp.h"
 
 namespace lookup {
 struct table {

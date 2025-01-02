@@ -1,10 +1,11 @@
 #include "lbl_lineshape_model.h"
 
+#include <double_imanip.h>
+#include <species.h>
+
 #include <ranges>
 
-#include "double_imanip.h"
-#include "species.h"
-
+namespace {
 std::istream& operator>>(
     std::istream& is,
     std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
@@ -15,6 +16,7 @@ std::istream& operator>>(
 
   return is;
 }
+}  // namespace
 
 std::istream& operator>>(
     std::istream& is,
@@ -256,14 +258,10 @@ VARIABLE(X3);
       const AtmPoint& atm, const Size spec, LineShapeModelCoefficient coeff) \
       const {                                                                \
     switch (coeff) {                                                         \
-      case LineShapeModelCoefficient::X0:                                    \
-        return d##name##_dX0(atm, spec);                                     \
-      case LineShapeModelCoefficient::X1:                                    \
-        return d##name##_dX1(atm, spec);                                     \
-      case LineShapeModelCoefficient::X2:                                    \
-        return d##name##_dX2(atm, spec);                                     \
-      case LineShapeModelCoefficient::X3:                                    \
-        return d##name##_dX3(atm, spec);                                     \
+      case LineShapeModelCoefficient::X0: return d##name##_dX0(atm, spec);   \
+      case LineShapeModelCoefficient::X1: return d##name##_dX1(atm, spec);   \
+      case LineShapeModelCoefficient::X2: return d##name##_dX2(atm, spec);   \
+      case LineShapeModelCoefficient::X3: return d##name##_dX3(atm, spec);   \
     }                                                                        \
     return 0.0;                                                              \
   }                                                                          \
@@ -271,14 +269,10 @@ VARIABLE(X3);
       Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)     \
       const {                                                                \
     switch (coeff) {                                                         \
-      case LineShapeModelCoefficient::X0:                                    \
-        return d##name##_dX0(T0, T, P);                                      \
-      case LineShapeModelCoefficient::X1:                                    \
-        return d##name##_dX1(T0, T, P);                                      \
-      case LineShapeModelCoefficient::X2:                                    \
-        return d##name##_dX2(T0, T, P);                                      \
-      case LineShapeModelCoefficient::X3:                                    \
-        return d##name##_dX3(T0, T, P);                                      \
+      case LineShapeModelCoefficient::X0: return d##name##_dX0(T0, T, P);    \
+      case LineShapeModelCoefficient::X1: return d##name##_dX1(T0, T, P);    \
+      case LineShapeModelCoefficient::X2: return d##name##_dX2(T0, T, P);    \
+      case LineShapeModelCoefficient::X3: return d##name##_dX3(T0, T, P);    \
     }                                                                        \
     return 0.0;                                                              \
   }

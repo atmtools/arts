@@ -831,7 +831,12 @@ struct std::formatter<QuantumIdentifier> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumIdentifier& v,
                               FmtContext& ctx) const {
-    return format_to(ctx.out(), "{}{} {}{}"sv, tags.quote(), v.Isotopologue().FullName(), v.val, tags.quote());
+    return format_to(ctx.out(),
+                     "{}{} {}{}"sv,
+                     tags.quote(),
+                     v.Isotopologue().FullName(),
+                     v.val,
+                     tags.quote());
   }
 };
 

@@ -1,15 +1,15 @@
 #pragma once
 
+#include <atm.h>
 #include <lbl.h>
+#include <lbl_data.h>
+#include <rtepack.h>
 
 #include <memory>
 
-#include "atm.h"
 #include "fwd_cia.h"
 #include "fwd_hxsec.h"
 #include "fwd_predef.h"
-#include "lbl_data.h"
-#include "rtepack.h"
 
 namespace fwd {
 class propmat {
@@ -22,11 +22,11 @@ class propmat {
   hxsec::full xsec{};
 
  public:
-  propmat() = default;
-  propmat(const propmat&) = default;
-  propmat(propmat&&) = default;
+  propmat()                          = default;
+  propmat(const propmat&)            = default;
+  propmat(propmat&&)                 = default;
   propmat& operator=(const propmat&) = default;
-  propmat& operator=(propmat&&) = default;
+  propmat& operator=(propmat&&)      = default;
 
   propmat(std::shared_ptr<AtmPoint> atm,
           std::shared_ptr<AbsorptionBands> lines,
@@ -34,7 +34,7 @@ class propmat {
           std::shared_ptr<ArrayOfXsecRecord> xsec,
           std::shared_ptr<PredefinedModelData> predef,
           Numeric ciaextrap = {},
-          Index ciarobust = {});
+          Index ciarobust   = {});
 
   std::pair<Propmat, Stokvec> operator()(const Numeric frequency,
                                          const Vector2 los) const;

@@ -13,8 +13,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "arts_constants.h"
-#include "math_funcs.h"
+#include <arts_constants.h>
+#include <math_funcs.h>
 #include "optproperties.h"
 
 void calc_phamat(Matrix& z,

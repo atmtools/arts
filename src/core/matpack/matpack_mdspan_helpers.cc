@@ -20,6 +20,7 @@ ComplexVector uniform_grid(Complex x0, Index N, Complex dx) {
   });
   return out;
 }
+
 void gaussian_grid(Vector &y,
                    const Vector &x,
                    const Numeric &x0,

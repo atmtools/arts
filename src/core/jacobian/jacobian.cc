@@ -1,11 +1,11 @@
 #include "jacobian.h"
 
+#include <compare.h>
+#include <minimize.h>
+#include <obsel.h>
+
 #include <algorithm>
 #include <utility>
-
-#include "compare.h"
-#include "minimize.h"
-#include "obsel.h"
 
 namespace Jacobian {
 void default_atm_x_set(VectorView x,
@@ -88,6 +88,7 @@ void default_x_line_set(AbsorptionBands& bands,
   VectorView{key.get_value(bands)} = x;
 }
 
+namespace {
 Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
                      "Bad size. x.size(): {}, f_grid().size(): {}",
@@ -144,6 +145,7 @@ Vector rem_zag(const SensorObsel& v, const ConstVectorView x) {
 Vector rem_aag(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<false, 1>(v, x);
 }
+}  // namespace
 
 void polyfit(VectorView param,
              const ConstVectorView x,
@@ -192,6 +194,7 @@ void default_sensor_x_set(VectorView x,
   }
 }
 
+namespace {
 // Returns p + x[0] + x[1]*p + x[2]*p^2 + ...
 Vector polynomial_offset_evaluate(const ConstVectorView x, const Vector& p) {
   ARTS_USER_ERROR_IF(x.empty(), "Must have some polynomial coefficients.")
@@ -208,6 +211,7 @@ Vector polynomial_offset_evaluate(const ConstVectorView x, const Vector& p) {
 
   return out;
 }
+}  // namespace
 
 void default_x_sensor_set(ArrayOfSensorObsel& sensor,
                           const SensorKey& key,

@@ -12,11 +12,12 @@
 
 #include "mc_antenna.h"
 
+#include <arts_constants.h>
+#include <arts_conversions.h>
+
 #include <cfloat>
 #include <random>
 
-#include "arts_constants.h"
-#include "arts_conversions.h"
 #include "rng.h"
 
 inline constexpr Numeric PI      = Constant::pi;

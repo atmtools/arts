@@ -219,11 +219,11 @@ void test12() {
 
   Array<String> sb(sa), sc(sa.size());
 
-  cout << "sb = \n" << sb << "\n";
+  cout << "sb = \n" << std::format("{}", sb) << "\n";
 
   sc = sa;
 
-  cout << "sc = \n" << sc << "\n";
+  cout << "sc = \n" << std::format("{}", sc) << "\n";
 }
 
 void test13() {
@@ -242,9 +242,9 @@ void test14() {
   Array<String> a{"Test"};
   Array<Index> b{1, 2};
   Array<Numeric> c{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
-  cout << "a = \n" << a << "\n";
-  cout << "b = \n" << b << "\n";
-  cout << "c = \n" << c << "\n";
+  cout << "a = \n" << std::format("{}",a) << "\n";
+  cout << "b = \n" << std::format("{}",b) << "\n";
+  cout << "c = \n" << std::format("{}",c) << "\n";
 }
 
 void test15() {
@@ -353,7 +353,7 @@ void test25() {
 void test26() {
   cout << "Test filling constructor for Array:\n";
   Array<String> a(4, "Hello");
-  cout << "a =\n" << a << "\n";
+  cout << "a =\n" << std::format("{}", a) << "\n";
 }
 
 void test27() {

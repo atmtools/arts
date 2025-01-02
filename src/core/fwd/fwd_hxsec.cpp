@@ -1,6 +1,6 @@
 #include "fwd_hxsec.h"
 
-#include "physics_funcs.h"
+#include <physics_funcs.h>
 
 namespace fwd::hxsec {
 full::single::single(Numeric p, Numeric t, Numeric VMR, XsecRecord* xsec)

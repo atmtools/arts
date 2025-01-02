@@ -18,11 +18,11 @@
 
 #include "geodetic.h"
 
-#include "arts_constexpr_math.h"
-#include "arts_conversions.h"
-#include "debug.h"
-#include "lin_alg.h"
-#include "math_funcs.h"
+#include <arts_constexpr_math.h>
+#include <arts_conversions.h>
+#include <debug.h>
+#include <lin_alg.h>
+#include <math_funcs.h>
 
 using Math::pow2;
 

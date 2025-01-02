@@ -1,24 +1,23 @@
 #include "path_point.h"
 
+#include <arts_constexpr_math.h>
+#include <arts_conversions.h>
+#include <atm.h>
+#include <configtypes.h>
+#include <debug.h>
+#include <nonstd.h>
+#include <surf.h>
+
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <iomanip>
 #include <limits>
 #include <numeric>
 #include <ranges>
-#include <stdexcept>
 #include <utility>
 
-#include "arts_constexpr_math.h"
-#include "arts_conversions.h"
-#include "atm.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "nonstd.h"
-#include "surf.h"
-
 namespace path {
+namespace {
 /** Size of north and south poles
   
     Latitudes with an absolute value > POLELAT are considered to be on
@@ -38,14 +37,14 @@ constexpr bool is_polar_ecef(const Vector3 ecef) {
   return nonstd::abs(ecef[0]) < test and nonstd::abs(ecef[1]) < test;
 }
 
-Vector3 los2enu(const Vector2 los) {
+constexpr Vector3 los2enu(const Vector2 los) {
   const Numeric zarad = Conversion::deg2rad(los[0]);
   const Numeric aarad = Conversion::deg2rad(los[1]);
   const Numeric st    = std::sin(zarad);
   return {st * std::sin(aarad), st * std::cos(aarad), std::cos(zarad)};
 }
 
-Vector3 geocentric2ecef(const Vector3 pos) {
+constexpr Vector3 geocentric2ecef(const Vector3 pos) {
   const Numeric latrad = Conversion::deg2rad(pos[1]);
   const Numeric lonrad = Conversion::deg2rad(pos[2]);
   Vector3 ecef;
@@ -60,7 +59,7 @@ constexpr bool is_ellipsoid_spherical(const Vector2 ellipsoid) {
   return nonstd::abs(ellipsoid[0] - ellipsoid[1]) < ellipsoid_radii_threshold;
 }
 
-Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
+constexpr Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
   Vector3 ecef;
 
   // Use geocentric function if geoid is spherical
@@ -85,9 +84,9 @@ Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
   return ecef;
 }
 
-std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
-                                                 const Vector2 los,
-                                                 const Vector2 ell) {
+constexpr std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
+                                                           const Vector2 los,
+                                                           const Vector2 ell) {
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -130,11 +129,11 @@ std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
   return {ecef, decef};
 }
 
-Numeric intersection_altitude(const Vector3 ecef,
-                              const Vector3 decef,
-                              const Vector2 refellipsoid,
-                              const Numeric altitude,
-                              const Numeric l_min) {
+constexpr Numeric intersection_altitude(const Vector3 ecef,
+                                        const Vector3 decef,
+                                        const Vector2 refellipsoid,
+                                        const Numeric altitude,
+                                        const Numeric l_min) {
   Numeric l;
   Vector2 ellipsoid{refellipsoid};
   ellipsoid += altitude;
@@ -193,7 +192,7 @@ Numeric intersection_altitude(const Vector3 ecef,
   return l;
 }
 
-Vector3 ecef2geocentric(const Vector3 ecef) {
+constexpr Vector3 ecef2geocentric(const Vector3 ecef) {
   Vector3 pos;
   pos[0] = std::hypot(ecef[0], ecef[1], ecef[2]);
   pos[1] = Conversion::asind(ecef[2] / pos[0]);
@@ -201,7 +200,8 @@ Vector3 ecef2geocentric(const Vector3 ecef) {
   return pos;
 }
 
-Vector3 ecef2geodetic(const Vector3 ecef, const Vector2 refellipsoid) {
+constexpr Vector3 ecef2geodetic(const Vector3 ecef,
+                                const Vector2 refellipsoid) {
   using Math::pow2, Math::pow3;
 
   Vector3 pos;
@@ -260,21 +260,21 @@ constexpr Vector3 ecef_at_distance(const Vector3 ecef0,
           ecef0[2] + l * decef[2]};
 }
 
-Vector3 pos_at_distance(const Vector3 ecef,
-                        const Vector3 decef,
-                        const Vector2 refellipsoid,
-                        const Numeric l) {
+constexpr Vector3 pos_at_distance(const Vector3 ecef,
+                                  const Vector3 decef,
+                                  const Vector2 refellipsoid,
+                                  const Numeric l) {
   return ecef2geodetic(ecef_at_distance(ecef, decef, l), refellipsoid);
 }
 
-Numeric ecef_distance(const Vector3 ecef1, const Vector3 ecef2) {
+constexpr Numeric ecef_distance(const Vector3 ecef1, const Vector3 ecef2) {
   return std::hypot(
       ecef2[0] - ecef1[0], ecef2[1] - ecef1[1], ecef2[2] - ecef1[2]);
 }
 
-Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
-                                         const Vector3 decef,
-                                         const Vector2 refellipsoid) {
+constexpr Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
+                                                   const Vector3 decef,
+                                                   const Vector2 refellipsoid) {
   // Spherical case (length simply obtained by dot product)
   if (is_ellipsoid_spherical(refellipsoid)) {
     return ecef_at_distance(ecef, decef, -(dot(decef, ecef)));
@@ -324,28 +324,29 @@ Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
           decef[2] * xx + yunit[2] * yr};
 }
 
-Numeric surface_altitude(const SurfaceField& surface_field,
-                         const Numeric lat,
-                         const Numeric lon) {
+constexpr Numeric surface_altitude(const SurfaceField& surface_field,
+                                   const Numeric lat,
+                                   const Numeric lon) {
   return surface_field.has(SurfaceKey::h)
              ? surface_field.single_value(SurfaceKey::h, lat, lon)
              : 0.0;
 }
 
-std::pair<Numeric, Numeric> minmax_surface_altitude(
+constexpr std::pair<Numeric, Numeric> minmax_surface_altitude(
     const SurfaceField& surface_field) {
   return surface_field.has(SurfaceKey::h)
              ? surface_field.minmax_single_value(SurfaceKey::h)
              : std::pair<Numeric, Numeric>{0.0, 0.0};
 }
 
-Numeric find_crossing_with_surface_z(const Vector3 pos,
-                                     const Vector2 los,
-                                     const Vector3 ecef,
-                                     const Vector3 decef,
-                                     const SurfaceField& surface_field,
-                                     const Numeric& surface_search_accuracy,
-                                     const bool surface_search_safe) {
+constexpr Numeric find_crossing_with_surface_z(
+    const Vector3 pos,
+    const Vector2 los,
+    const Vector3 ecef,
+    const Vector3 decef,
+    const SurfaceField& surface_field,
+    const Numeric& surface_search_accuracy,
+    const bool surface_search_safe) {
   // Find min and max surface altitude
   const auto [z_min, z_max] = minmax_surface_altitude(surface_field);
 
@@ -463,7 +464,7 @@ Numeric find_crossing_with_surface_z(const Vector3 pos,
   return std::midpoint(l_min, l_max);
 }
 
-Vector2 enu2los(const Vector3 enu) {
+constexpr Vector2 enu2los(const Vector3 enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
@@ -472,9 +473,8 @@ Vector2 enu2los(const Vector3 enu) {
           Conversion::atan2d(enu[0], enu[1])};
 }
 
-std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
-                                                 const Vector3 decef,
-                                                 const Vector2 refellipsoid) {
+constexpr std::pair<Vector3, Vector2> ecef2geodetic_poslos(
+    const Vector3 ecef, const Vector3 decef, const Vector2 refellipsoid) {
   const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = Conversion::deg2rad(pos[1]);
@@ -502,26 +502,20 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
 
   return {pos, los};
 }
+}  // namespace
 
-Vector2 mirror(const Vector2 los) {
-  Vector2 los_mirrored;
-  los_mirrored[0] = 180 - los[0];
-  los_mirrored[1] = los[1] + 180;
-  if (los_mirrored[1] > 180) {
-    los_mirrored[1] -= 360;
-  }
-  return los_mirrored;
-}
-
-std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
-                                               const Vector3 decef,
-                                               const Vector2 ell,
-                                               const Numeric distance) {
+namespace {
+constexpr std::pair<Vector3, Vector2> poslos_at_distance(
+    const Vector3 ecef,
+    const Vector3 decef,
+    const Vector2 ell,
+    const Numeric distance) {
   const Vector3 new_ecef{ecef[0] + distance * decef[0],
                          ecef[1] + distance * decef[1],
                          ecef[2] + distance * decef[2]};
   return ecef2geodetic_poslos(new_ecef, decef, ell);
 }
+}  // namespace
 
 PropagationPathPoint init(const Vector3& pos,
                           const Vector2& los,
@@ -553,6 +547,7 @@ PropagationPathPoint init(const Vector3& pos,
                               .los      = as_sensor ? mirror(los) : los};
 }
 
+namespace {
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
 constexpr const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
@@ -561,7 +556,7 @@ constexpr const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
   return at and bt ? std::min(a, b) : at ? a : bt ? b : nan;
 }
 
-std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
+constexpr std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
     const Numeric alt,
     const Vector3 ecef,
     const Vector3 decef,
@@ -598,7 +593,7 @@ constexpr Vector3 ecef_vector_distance(const Vector3 ecef0,
   return {ecef1[0] - ecef0[0], ecef1[1] - ecef0[1], ecef1[2] - ecef0[2]};
 }
 
-std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
+constexpr std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
     const Numeric lat,
     const Vector3 ecef,
     const Vector3 decef,
@@ -666,11 +661,11 @@ std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
   return {l, (&l == &l1) ? l2 : l1};
 }
 
-Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
-                                           const Vector3 pos,
-                                           const Vector2 los,
-                                           const Vector3 ecef,
-                                           const Vector3 decef) {
+constexpr Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
+                                                     const Vector3 pos,
+                                                     const Vector2 los,
+                                                     const Vector3 ecef,
+                                                     const Vector3 decef) {
   if ((los[1] == 0) or (nonstd::abs(los[1]) == 180) or
       (pos[2] > lon and los[1] > 0) or (pos[2] < lon and los[1] < 0)) {
     return nan;
@@ -681,12 +676,12 @@ Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
 }
 
 template <bool mirror_los = true>
-PropagationPathPoint path_at_distance(const Vector3 ecef,
-                                      const Vector3 decef,
-                                      const Vector2 ell,
-                                      const Numeric l,
-                                      const PathPositionType start,
-                                      const PathPositionType end) {
+constexpr PropagationPathPoint path_at_distance(const Vector3 ecef,
+                                                const Vector3 decef,
+                                                const Vector2 ell,
+                                                const Numeric l,
+                                                const PathPositionType start,
+                                                const PathPositionType end) {
   const auto [pos, los] = poslos_at_distance(ecef, decef, ell, l);
 
   if constexpr (mirror_los)
@@ -695,7 +690,7 @@ PropagationPathPoint path_at_distance(const Vector3 ecef,
   else
     return PropagationPathPoint{
         .pos_type = start, .los_type = end, .pos = pos, .los = los};
-};
+}
 
 struct Intersections {
   PropagationPathPoint first;
@@ -703,7 +698,7 @@ struct Intersections {
   bool second_is_valid;
 };
 
-Intersections pair_line_ellipsoid_intersect(
+constexpr Intersections pair_line_ellipsoid_intersect(
     const PropagationPathPoint& path,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
@@ -806,6 +801,7 @@ Intersections pair_line_ellipsoid_intersect(
 }
 
 constexpr bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
+}  // namespace
 
 ArrayOfPropagationPathPoint& set_geometric_extremes(
     ArrayOfPropagationPathPoint& path,

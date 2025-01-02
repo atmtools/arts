@@ -11,7 +11,6 @@
 
 #include <matpack.h>
 
-
 //! asymmetry_parameter
 /*! Calculates the asymmetry parameter, TRO data only
 
@@ -23,8 +22,7 @@
     \author Patrick Eriksson
     \date 2022-03-06
 */
-Numeric asymmetry_parameter(ConstVectorView za_grid,
-                            ConstVectorView pfun);
+Numeric asymmetry_parameter(ConstVectorView za_grid, ConstVectorView pfun);
 
 /*! Derives a and b for relationship mass = a * x^b
 
