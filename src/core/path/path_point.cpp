@@ -37,14 +37,14 @@ constexpr bool is_polar_ecef(const Vector3 ecef) {
   return nonstd::abs(ecef[0]) < test and nonstd::abs(ecef[1]) < test;
 }
 
-constexpr Vector3 los2enu(const Vector2 los) {
+Vector3 los2enu(const Vector2 los) {
   const Numeric zarad = Conversion::deg2rad(los[0]);
   const Numeric aarad = Conversion::deg2rad(los[1]);
   const Numeric st    = std::sin(zarad);
   return {st * std::sin(aarad), st * std::cos(aarad), std::cos(zarad)};
 }
 
-constexpr Vector3 geocentric2ecef(const Vector3 pos) {
+Vector3 geocentric2ecef(const Vector3 pos) {
   const Numeric latrad = Conversion::deg2rad(pos[1]);
   const Numeric lonrad = Conversion::deg2rad(pos[2]);
   Vector3 ecef;
@@ -192,7 +192,7 @@ constexpr Numeric intersection_altitude(const Vector3 ecef,
   return l;
 }
 
-constexpr Vector3 ecef2geocentric(const Vector3 ecef) {
+Vector3 ecef2geocentric(const Vector3 ecef) {
   Vector3 pos;
   pos[0] = std::hypot(ecef[0], ecef[1], ecef[2]);
   pos[1] = Conversion::asind(ecef[2] / pos[0]);
@@ -267,7 +267,7 @@ constexpr Vector3 pos_at_distance(const Vector3 ecef,
   return ecef2geodetic(ecef_at_distance(ecef, decef, l), refellipsoid);
 }
 
-constexpr Numeric ecef_distance(const Vector3 ecef1, const Vector3 ecef2) {
+Numeric ecef_distance(const Vector3 ecef1, const Vector3 ecef2) {
   return std::hypot(
       ecef2[0] - ecef1[0], ecef2[1] - ecef1[1], ecef2[2] - ecef1[2]);
 }
@@ -464,7 +464,7 @@ constexpr Numeric find_crossing_with_surface_z(
   return std::midpoint(l_min, l_max);
 }
 
-constexpr Vector2 enu2los(const Vector3 enu) {
+Vector2 enu2los(const Vector3 enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
@@ -473,7 +473,7 @@ constexpr Vector2 enu2los(const Vector3 enu) {
           Conversion::atan2d(enu[0], enu[1])};
 }
 
-constexpr std::pair<Vector3, Vector2> ecef2geodetic_poslos(
+std::pair<Vector3, Vector2> ecef2geodetic_poslos(
     const Vector3 ecef, const Vector3 decef, const Vector2 refellipsoid) {
   const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
@@ -556,7 +556,7 @@ constexpr const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
   return at and bt ? std::min(a, b) : at ? a : bt ? b : nan;
 }
 
-constexpr std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
+std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
     const Numeric alt,
     const Vector3 ecef,
     const Vector3 decef,
