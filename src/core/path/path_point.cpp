@@ -505,7 +505,7 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(
 }  // namespace
 
 namespace {
-constexpr std::pair<Vector3, Vector2> poslos_at_distance(
+std::pair<Vector3, Vector2> poslos_at_distance(
     const Vector3 ecef,
     const Vector3 decef,
     const Vector2 ell,

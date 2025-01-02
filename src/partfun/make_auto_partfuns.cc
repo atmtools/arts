@@ -294,8 +294,8 @@ Numeric d{0}(Numeric T) noexcept;
       compute += std::format(
           R"(
   if (isot == std::get<{0}>(has{1})) {{
-    if constexpr (deriv == Yes) return  {2}(T);
-    if constexpr (deriv == No)  return d{2}(T);
+    if constexpr (deriv == No)  return  {2}(T);
+    if constexpr (deriv == Yes) return d{2}(T);
   }}
 )",
           i,
