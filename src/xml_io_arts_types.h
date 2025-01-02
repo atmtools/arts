@@ -26,7 +26,7 @@
 #include "mc_interp.h"
 #include "operators.h"
 #include "path_point.h"
-#include "template_partfun.h"
+#include "partition_function_data.h"
 #include "xml_io_general_types.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                          \

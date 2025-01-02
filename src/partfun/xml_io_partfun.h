@@ -3,8 +3,7 @@
 
 #include <filesystem>
 
-#include "template_partfun.h"
-
+#include "partition_function_data.h"
 namespace PartitionFunctions {
 Data data_read_file(const std::filesystem::path& path);
 }  // namespace PartitionFunctions
