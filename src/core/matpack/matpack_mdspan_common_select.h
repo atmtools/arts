@@ -29,7 +29,10 @@ struct [[nodiscard]] StridedRange {
   Index stride;
 
   template <integral Offset, integral Nelem, integral Stride>
-  constexpr StridedRange(Offset i0, Nelem n, Stride d) : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)), stride(static_cast<Index>(d)) {}
+  constexpr StridedRange(Offset i0, Nelem n, Stride d)
+      : offset(static_cast<Index>(i0)),
+        nelem(static_cast<Index>(n)),
+        stride(static_cast<Index>(d)) {}
 
   [[nodiscard]] constexpr stdx::strided_slice<Index, Index, Index>
   to_strided_slice() const {
@@ -43,10 +46,12 @@ struct [[nodiscard]] Range {
   Index nelem;
 
   template <integral Offset, integral Nelem>
-  constexpr Range(Offset i0, Nelem n) : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
+  constexpr Range(Offset i0, Nelem n)
+      : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
-  [[nodiscard]] constexpr stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>
-  to_strided_slice() const {
+  [[nodiscard]] constexpr stdx::
+      strided_slice<Index, Index, std::integral_constant<Index, 1>>
+      to_strided_slice() const {
     return {.offset = offset, .extent = nelem, .stride = {}};
   }
 };
@@ -77,34 +82,26 @@ consteval bool left_exhaustive() {
   }
 }
 
-template <class T,
-          Size N,
-          bool is_const,
-          bool is_exhaustive,
-          access_operator... Acc>
+template <class T, Size N, bool is_exhaustive, access_operator... Acc>
+  requires(not std::is_reference_v<T>)
 struct left_mdsel {
   static constexpr bool access_exhaustive =
       is_exhaustive and left_exhaustive<Acc...>();
 
   static constexpr Size reduces_rank = (integral<Acc> + ...);
 
-  using _new_T = std::conditional_t<is_const, const T, T>;
+  static_assert(N >= reduces_rank, "Rank reduction is too large");
 
   using type = std::conditional_t<
-      ((N - reduces_rank) == 0),
-      _new_T&,
+      N - reduces_rank == 0,
+      T&,
       std::conditional_t<access_exhaustive,
-                         view_t<_new_T, N - reduces_rank>,
-                         strided_view_t<_new_T, N - reduces_rank>>>;
+                         view_t<T, N - reduces_rank>,
+                         strided_view_t<T, N - reduces_rank>>>;
 };
 
-template <class T,
-          Size N,
-          bool is_const,
-          bool is_exhaustive,
-          access_operator... Acc>
-using left_mdsel_t =
-    typename left_mdsel<T, N, is_const, is_exhaustive, Acc...>::type;
+template <class T, Size N, bool is_exhaustive, access_operator... Acc>
+using left_mdsel_t = typename left_mdsel<T, N, is_exhaustive, Acc...>::type;
 
 template <Size N>
 consteval std::array<Joker, N> jokers() {

@@ -193,8 +193,8 @@ head_data make_header_data(const std::string_view filename) {
 
   assert(N > 4);
 
-  SpeciesEnum spec;
-  std::string isot;
+  SpeciesEnum spec{};
+  std::string isot{};
   isot.reserve(N);
   for (Size i = 0; i < N - 4; i++) {
     if (filename[i] == '-') {

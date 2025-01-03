@@ -8,6 +8,7 @@
 #include <ranges>
 #include <type_traits>
 
+#include "matpack_mdspan_common_types.h"
 #include "matpack_mdspan_elemwise_mditer.h"
 #include "matpack_mdspan_strided_view_t.h"
 
@@ -60,20 +61,31 @@ struct view_t final : public mdview_t<T, N> {
   constexpr view_t(const view_t& x) : base(x) {};
   constexpr view_t(view_t&& x) noexcept : base(std::move(x)) {};
 
-  constexpr view_t(mdview_t<value_type, N> x) : base(x) {};
-  constexpr view_t(mdview_t<const value_type, N> x)
-    requires(is_const)
-      : base(x) {};
+  //! Create from ANY mdspan - it is your responsibility to ensure that this is runtime valid
+  template <class OtherElementType,
+            class OtherExtents,
+            class OtherLayoutPolicy,
+            class OtherAccessor>
+  explicit constexpr view_t(const stdx::mdspan<OtherElementType,
+                                               OtherExtents,
+                                               OtherLayoutPolicy,
+                                               OtherAccessor>& other)
+      : base(other) {}
 
   constexpr view_t(const data_t<value_type, N>& x)
     requires(is_const)
-      : base(x.view) {}
+      : base(x.base_md()) {}
+
+  constexpr view_t(const view_t<value_type, N>& x)
+    requires(is_const)
+      : base(x.base_md()) {}
 
   explicit constexpr view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
 
   explicit constexpr view_t(std::vector<value_type>& v)
     requires(N == 1)
       : base(const_cast<value_type*>(v.data()), v.size()) {}
+
   explicit constexpr view_t(const std::vector<value_type>& v)
     requires(N == 1 and is_const)
       : base(const_cast<value_type*>(v.data()), v.size()) {}
@@ -89,11 +101,23 @@ struct view_t final : public mdview_t<T, N> {
                                                     Acc&&... i)
     requires(sizeof...(Acc) <= N)
   {
-    if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...))
-      return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);
-    else
-      return left_mdsel_t<T, N, is_const, is_exhaustive, Acc...>(
-          left_sub<N>(std::forward<Self>(self), std::forward<Acc>(i)...));
+    using U = decltype(std::forward<Self>(self));
+
+    if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
+      if constexpr (const_forwarded<U>)
+        return std::as_const(
+            std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...));
+      else
+        return std::forward<Self>(self).base::operator[](
+            std::forward<Acc>(i)...);
+    } else {
+      if constexpr (const_forwarded<U>)
+        return left_mdsel_t<std::add_const_t<T>, N, is_exhaustive, Acc...>(
+            left_sub<N>(std::forward<Self>(self), std::forward<Acc>(i)...));
+      else
+        return left_mdsel_t<T, N, is_exhaustive, Acc...>(
+            left_sub<N>(std::forward<Self>(self), std::forward<Acc>(i)...));
+    }
   }
 
   template <typename Self>
@@ -101,7 +125,7 @@ struct view_t final : public mdview_t<T, N> {
     if constexpr (N == 1) {
       return std::forward<Self>(self).elem_begin();
     } else {
-      return left_mditer(std::forward<Self>(self));
+      return left_mditer(self);
     }
   }
 
@@ -111,17 +135,16 @@ struct view_t final : public mdview_t<T, N> {
       return std::forward<Self>(self).elem_end();
     } else {
       const auto n = self.extent(0);
-      return left_mditer(std::forward<Self>(self)) + n;
+      return std::forward<Self>(self).begin() + n;
     }
   }
 
   template <typename Self, Size M>
-  constexpr view_t<
-      std::conditional_t<std::is_const_v<Self>, std::add_const_t<T>, T>,
-      M>
-  view_as(this Self&& self, const std::array<Index, M>& exts) {
+  constexpr auto view_as(this Self&& self, const std::array<Index, M>& exts) {
     assert(self.size() == mdsize(exts));
-    return mdview_t<T, M>{self.data_handle(), exts};
+    return view_t<
+        std::conditional_t<const_forwarded<Self>, std::add_const_t<T>, T>,
+        M>{mdview_t<T, M>{self.data_handle(), exts}};
   }
 
   template <typename Self, integral... NewExtents>
@@ -132,13 +155,18 @@ struct view_t final : public mdview_t<T, N> {
 
   template <typename Self>
   [[nodiscard]] constexpr auto elem_begin(this Self&& self) {
-    return std::forward<Self>(self).data_handle();
+    using U = decltype(std::forward<Self>(self));
+
+    if constexpr (const_forwarded<U>)
+      return const_cast<const T*>(std::forward<Self>(self).data_handle());
+    else
+      return std::forward<Self>(self).data_handle();
   }
 
   template <typename Self>
   [[nodiscard]] constexpr auto elem_end(this Self&& self) {
     const auto n = self.size();
-    return std::forward<Self>(self).data_handle() + n;
+    return std::forward<Self>(self).elem_begin() + n;
   }
 
   template <typename Self>
@@ -151,9 +179,9 @@ struct view_t final : public mdview_t<T, N> {
     requires(not is_const)
   {
     assert(shape() == r.shape());
-    
+
     if (this != &r) stdr::copy(elemwise_range(r), elem_begin());
-    
+
     return *this;
   }
 

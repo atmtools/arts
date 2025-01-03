@@ -48,11 +48,12 @@ struct [[nodiscard]] cdata_t {
   }
 
   constexpr view_t<const T, N> view() const {
-    return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
+    return view_t<const T, N>{
+        mdview_t<T, N>{const_cast<T*>(data.data()), shape_}};
   }
 
   constexpr view_t<T, N> view() {
-    return mdview_t<T, N>{const_cast<T*>(data.data()), shape_};
+    return view_t<T, N>{mdview_t<T, N>{const_cast<T*>(data.data()), shape_}};
   }
 
   constexpr auto base_md() const { return cview(); }
