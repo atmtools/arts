@@ -15,7 +15,6 @@
 #define nc_io_types_h
 
 #include "array.h"
-#include "gas_abs_lookup.h"
 #include "matpack_arrays.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what)             \
@@ -35,9 +34,6 @@ TMPL_NC_READ_WRITE_FILE(Tensor5)
 TMPL_NC_READ_WRITE_FILE(Vector)
 
 //=== Compound Types =======================================================
-
-TMPL_NC_READ_WRITE_FILE(Agenda)
-TMPL_NC_READ_WRITE_FILE(GasAbsLookup)
 
 //=== Array Types ==========================================================
 

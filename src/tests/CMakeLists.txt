@@ -97,10 +97,6 @@ add_executable(test_time test_time.cc)
 target_link_libraries(test_time artsworkspace)
 
 # ########## next testcase ###############
-add_executable(test_telsem test_telsem.cc)
-target_link_libraries(test_telsem artsworkspace)
-
-# ########## next testcase ###############
 add_executable(test_hitran test_hitran.cc)
 target_link_libraries(test_hitran artsworkspace)
 

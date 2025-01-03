@@ -38,15 +38,6 @@ class ArtsXMLTag : public XMLTag {
    * @param[in] value Set value
    */
   void add_attribute(const String& aname, const std::vector<QuantumNumberType>& value);
-  
-  /** Adds value of attribute
-   * 
-   * @param[in] aname Attribute name
-   * @param[in] value SpeciesTag(s) for all lines.  Basic initialization at self and bath
-   * @param[in] self True if LineShape::self_broadening in list
-   * @param[in] bath True if LineShape::bath_broadening in list
-   */
-  void add_attribute(const String& aname, const ArrayOfSpeciesEnum& value, const bool self, const bool bath);
 
   using XMLTag::get_attribute_value;
 
@@ -59,18 +50,6 @@ class ArtsXMLTag : public XMLTag {
    * @param[out] value Return value
    */
   void get_attribute_value(const String& aname, SpeciesTag& value);
-  
-  /** Returns value of attribute as type ArrayOfSpeciesTag
-   * 
-   * Searches for the matching attribute and returns it value. If no
-   * attribute with the given name exists, it fails exceptionally.
-   * 
-   * @param[in] aname Attribute name
-   * @param[out] value SpeciesTag(s) for all lines.  Basic initialization at self and bath
-   * @param[out] self True if LineShape::self_broadening in list
-   * @param[out] bath True if LineShape::bath_broadening in list
-   */
-  void get_attribute_value(const String& aname, ArrayOfSpeciesEnum& value, bool& self, bool& bath);
   
   /** Returns value of attribute as type ArrayOfSpeciesTag
    * 

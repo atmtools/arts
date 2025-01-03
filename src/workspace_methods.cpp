@@ -586,23 +586,6 @@ The units of the data are described in *absorption_cia_dataReadFromCIA*.
            R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
   };
 
-  wsm_data["abs_lines_per_speciesReadSpeciesSplitCatalog"] = {
-      .desc =
-          R"--(Reads old style catalog but only for *absorption_species*
-)--",
-      .author    = {"Richard Larsson"},
-      .gout      = {"abs_lines_per_species"},
-      .gout_type = {"ArrayOfArrayOfAbsorptionLines"},
-      .gout_desc = {R"--(Absorption lines per species)--"},
-      .in        = {"absorption_species"},
-      .gin       = {"basename", "robust"},
-      .gin_type  = {"String", "Index"},
-      .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The path to the split catalog files)--",
-           R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
-  };
-
   wsm_data["absorption_predefined_model_dataReadSpeciesSplitCatalog"] = {
       .desc =
           R"--(Reads *absorption_predefined_model_data* catalog but only for *absorption_species*
@@ -673,18 +656,6 @@ after the regridding at all positions.
            "The latitude grid",
            "The longitude grid",
            "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
-  };
-
-  wsm_data["absorption_bandsFromAbsorbtionLines"] = {
-      .desc      = R"--(Gets modern line catalog from old style
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_species"},
-      .gin       = {"abs_lines_per_species"},
-      .gin_type  = {"ArrayOfArrayOfAbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Absorption lines per species)--"},
   };
 
   wsm_data["absorption_speciesDefineAll"] = {

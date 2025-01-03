@@ -39,31 +39,14 @@ add_subdirectory(legendre)
 
 # #####
 add_library(artscore STATIC
-  absorptionlines.cc
   covariance_matrix.cc
-  fastem.cc
-  gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
   igrf13.cc
   interpolation.cc
-  jpl_species.cc
-  lineshapemodel.cc
-  mc_antenna.cc
-  mc_interp.cc
-  microphysics.cc
   minimize.cc
-  nlte.cc
-  optproperties.cc
-  radiation_field.cc
-  raw.cc
-  refraction.cc
-  sensor.cc
   special_interp.cc
   sun.cc
-  telsem.cc
-  tessem.cc
-  tmatrix.cc
 )
 
 target_link_libraries(artscore PUBLIC

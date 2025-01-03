@@ -16,7 +16,6 @@ NB_MAKE_OPAQUE(
 NB_MAKE_OPAQUE(std::vector<lbl::line_shape::species_model>);
 NB_MAKE_OPAQUE(std::vector<lbl::line>)
 NB_MAKE_OPAQUE(Array<LagrangeInterpolation>);
-NB_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 NB_MAKE_OPAQUE(Array<Array<SpeciesTag>>);
 
 namespace Python {

@@ -8,12 +8,6 @@ std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
 
-  wsg_data["AbsorptionLines"] = {
-      .file = "absorptionlines.h",
-      .desc =
-          "Contains line-by-line absorption information for a number of related absorption lines\n",
-  };
-
   wsg_data["AbsorptionBand"] = {
       .file = "lbl.h",
       .desc =
@@ -41,16 +35,6 @@ internal_workspace_groups_creator() {
       .file = "supergeneric.h",
       .desc =
           "Meta type for when methods can take any argument (avoid manual use)\n",
-  };
-
-  wsg_data["ArrayOfAbsorptionLines"] = {
-      .file = "absorptionlines.h",
-      .desc = "A list of *AbsorptionLines*\n",
-  };
-
-  wsg_data["ArrayOfArrayOfAbsorptionLines"] = {
-      .file = "absorptionlines.h",
-      .desc = "A list of *ArrayOfAbsorptionLines*\n",
   };
 
   wsg_data["ArrayOfAgenda"] = {
@@ -250,11 +234,6 @@ longitude in the sky of the planet and the type)-x-",
       .desc = "A list of *String*\n",
   };
 
-  wsg_data["ArrayOfTelsemAtlas"] = {
-      .file = "matpack.h",
-      .desc = "A list of *TelsemAtlas*\n",
-  };
-
   wsg_data["ArrayOfTensor3"] = {
       .file = "matpack.h",
       .desc = "A list of *Tensor3*\n",
@@ -347,16 +326,6 @@ units of m^5 molec^(-2)
   wsg_data["CovarianceMatrix"] = {
       .file = "covariance_matrix.h",
       .desc = "A covariance matrix\n",
-  };
-
-  wsg_data["GasAbsLookup"] = {
-      .file = "gas_abs_lookup.h",
-      .desc = R"--(An absorption lookup table
-
-This class holds an absorption lookup table, as well as all
-information that is necessary to use the table to extract
-absorption
-)--",
   };
 
   wsg_data["GriddedField1"] = {
@@ -481,11 +450,6 @@ Both the data and the grid may be named
 )--",
   };
 
-  wsg_data["MCAntenna"] = {
-      .file = "mc_antenna.h",
-      .desc = "An antenna object used by ``MCGeneral``\n",
-  };
-
   wsg_data["Matrix"] = {
       .file = "matpack.h",
       .desc = "A 2 dimensional array of *Numeric*\n",
@@ -573,23 +537,6 @@ Keeps point values for the surface, including the local normal vector.
 )--",
   };
 
-  wsg_data["TelsemAtlas"] = {
-      .file = "telsem.h",
-      .desc = R"--(A telsem atlas
-
-Represents a Telsem2 atlas containing land surface microwave emissivities.
-Since the Atlas contains emissivities only for land surfaces, the data is
-stored in a sparse format.
- 
-The emissivities are represented on an equal area grid and numbered
-sequentially starting with the first latitude band at -90 degrees and
-moving up to 90 degrees.
-
-The correspondance array contains the data indices for each cellnumber
-if it is contained in the Atlas and NAN otherwise.
-)--",
-  };
-
   wsg_data["Tensor3"] = {
       .file = "matpack.h",
       .desc = "A 3 dimensional array of *Numeric*\n",
@@ -621,19 +568,9 @@ if it is contained in the Atlas and NAN otherwise.
 )",
   };
 
-  wsg_data["TessemNN"] = {
-      .file = "tessem.h",
-      .desc = "Data required by TESSEM to calculate surface emissivity\n",
-  };
-
   wsg_data["Vector"] = {
       .file = "matpack.h",
       .desc = "A 1 dimensional array of *Numeric*\n",
-  };
-
-  wsg_data["VibrationalEnergyLevels"] = {
-      .file = "nlte.h",
-      .desc = "A map of vibrational energy levels for NLTE calculations\n",
   };
 
   wsg_data["Propmat"] = {
