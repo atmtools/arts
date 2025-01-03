@@ -1,63 +1,27 @@
 #include "lbl_lineshape_voigt_ecs.h"
 
+#include <arts_omp.h>
+#include <atm.h>
+#include <configtypes.h>
+#include <debug.h>
+#include <isotopologues.h>
 #include <jacobian.h>
+#include <partfun.h>
 #include <physics_funcs.h>
+#include <sorting.h>
 
 #include <Faddeeva.hh>
 #include <algorithm>
 #include <cmath>
 
-#include "arts_omp.h"
-#include "atm.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "isotopologues.h"
 #include "lbl_lineshape_linemixing.h"
-#include "partfun.h"
-#include "sorting.h"
-#include "species.h"
+#include "lbl_lineshape_voigt_ecs_hartmann.h"
+#include "lbl_lineshape_voigt_ecs_makarov.h"
 
 #undef WIGNER3
 #undef WIGNER6
 
 namespace lbl::voigt::ecs {
-namespace makarov {
-/*! Returns the reduced dipole
- * 
- * @param[in] Ju Main rotational number with spin of the upper level
- * @param[in] Jl Main rotational number with spin of the lower level
- * @param[in] N Main rotational number of both levels
- * @return The reduced dipole
- */
-Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N);
-
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
-                                   const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm);
-}  // namespace makarov
-
-namespace hartmann {
-Numeric reduced_dipole(const Rational Jf,
-                       const Rational Ji,
-                       const Rational lf,
-                       const Rational li,
-                       const Rational k = 1);
-
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
-                                   const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm);
-}  // namespace hartmann
-
 ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
@@ -135,16 +99,16 @@ void ComputeData::core_calc(const ConstVectorView& f_grid) {
 
   const auto m = vmrs.size();
   const auto n = f_grid.size();
-  shape = 0;
+  shape        = 0;
 
   for (Size k = 0; k < m; k++) {
     for (Size i = 0; i < eqv_strs[k].size(); i++) {
       const Numeric gamd = gd_fac * eqv_vals[k][i].real();
-      const Numeric cte = Constant::sqrt_ln_2 / gamd;
+      const Numeric cte  = Constant::sqrt_ln_2 / gamd;
       for (Size iv = 0; iv < n; iv++) {
-        const Complex z = (eqv_vals[k][i] - f_grid[iv]) * cte;
-        const Complex w = Faddeeva::w(z);
-        shape[iv] += vmrs[k] * eqv_strs[k][i] * w / gamd;
+        const Complex z  = (eqv_vals[k][i] - f_grid[iv]) * cte;
+        const Complex w  = Faddeeva::w(z);
+        shape[iv]       += vmrs[k] * eqv_strs[k][i] * w / gamd;
       }
     }
   }
@@ -172,32 +136,32 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   Ws.resize(m, n, n);
   Vs.resize(m, n, n);
 
-  Ws = 0;
-  vmrs = 0;
+  Ws       = 0;
+  vmrs     = 0;
   eqv_strs = 0;
   eqv_vals = 0;
 
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
                      atm.temperature / bnd_qid.Isotopologue().mass);
 
-  const Numeric T = atm.temperature;
+  const Numeric T  = atm.temperature;
   const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
 
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
-    pop[i] = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i] = 0.5 * Constant::c *
+    pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
+    dip[i]           = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
-      dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& N  = bnd.lines[i].qn.val[QuantumNumberType::N];
+      dipr[i]  = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& l2 = bnd_qid.val[QuantumNumberType::l2];
-      dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
+      dipr[i]  = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
@@ -224,8 +188,8 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
       return out;
     };
 
-    pop = presorter(pop);
-    dip = presorter(dip);
+    pop  = presorter(pop);
+    dip  = presorter(dip);
     dipr = presorter(dipr);
   }
 
@@ -298,32 +262,32 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   Ws.resize(1, n, n);
   Vs.resize(1, n, n);
 
-  Ws = 0;
-  vmrs = 1;
+  Ws       = 0;
+  vmrs     = 1;
   eqv_strs = 0;
   eqv_vals = 0;
 
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
                      atm.temperature / bnd_qid.Isotopologue().mass);
 
-  const Numeric T = atm.temperature;
+  const Numeric T  = atm.temperature;
   const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
 
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
-    pop[i] = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i] = 0.5 * Constant::c *
+    pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
+    dip[i]           = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
-      dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& N  = bnd.lines[i].qn.val[QuantumNumberType::N];
+      dipr[i]  = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& l2 = bnd_qid.val[QuantumNumberType::l2];
-      dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
+      dipr[i]  = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
@@ -350,8 +314,8 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       return out;
     };
 
-    pop = presorter(pop);
-    dip = presorter(dip);
+    pop  = presorter(pop);
+    dip  = presorter(dip);
     dipr = presorter(dipr);
   }
 
@@ -378,8 +342,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     ARTS_USER_ERROR_IF(
         rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
-    const Numeric this_vmr =
-        spec == SpeciesEnum::Bath ? 1 - vmr : atm[spec];
+    const Numeric this_vmr = spec == SpeciesEnum::Bath ? 1 - vmr : atm[spec];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
@@ -434,7 +397,7 @@ void calculate(PropmatVectorView pm_,
     return;
   }
 
-  PropmatVectorView pm = pm_[f_range];
+  PropmatVectorView pm         = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];
 
   ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
@@ -492,7 +455,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
   if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > 1) {
 #pragma omp parallel for firstprivate(com_data)
     for (Index i = 0; i < k; ++i) {
-      AtmPoint atm_copy = atm;
+      AtmPoint atm_copy    = atm;
       atm_copy.temperature = T[i];
       if (one_by_one) {
         com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
@@ -505,7 +468,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
     }
   } else {
     for (Index i = 0; i < k; ++i) {
-      AtmPoint atm_copy = atm;
+      AtmPoint atm_copy    = atm;
       atm_copy.temperature = T[i];
       if (one_by_one) {
         com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <atm.h>
+
 #include <memory>
 
-#include "atm.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_voigt_lte.h"
 #include "lbl_lineshape_voigt_lte_mirrored.h"
@@ -28,8 +29,9 @@ class lte {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
-  zeeman::pol pol);
+  void set(std::shared_ptr<AbsorptionBands> bands,
+           std::shared_ptr<AtmPoint> atm,
+           zeeman::pol pol);
 };
 
 class lte_mirror {
@@ -50,8 +52,9 @@ class lte_mirror {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
-  zeeman::pol pol);
+  void set(std::shared_ptr<AbsorptionBands> bands,
+           std::shared_ptr<AtmPoint> atm,
+           zeeman::pol pol);
 };
 
 class nlte {
@@ -72,8 +75,9 @@ class nlte {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(zeeman::pol pol);
-  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm,
-  zeeman::pol pol);
+  void set(std::shared_ptr<AbsorptionBands> bands,
+           std::shared_ptr<AtmPoint> atm,
+           zeeman::pol pol);
 };
 }  // namespace models
 
@@ -86,16 +90,17 @@ class line_storage {
   std::array<models::nlte, 4> nlte{};
 
  public:
-  line_storage() = default;
-  line_storage(const line_storage&) = default;
-  line_storage(line_storage&&) = default;
+  line_storage()                               = default;
+  line_storage(const line_storage&)            = default;
+  line_storage(line_storage&&)                 = default;
   line_storage& operator=(const line_storage&) = default;
-  line_storage& operator=(line_storage&&) = default;
+  line_storage& operator=(line_storage&&)      = default;
 
   line_storage(std::shared_ptr<AtmPoint> atm,
                std::shared_ptr<AbsorptionBands> bands);
 
-  std::pair<Complex, Complex> operator()(const Numeric frequency, const zeeman::pol pol) const;
+  std::pair<Complex, Complex> operator()(const Numeric frequency,
+                                         const zeeman::pol pol) const;
 
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);

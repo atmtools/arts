@@ -15,6 +15,7 @@
 #include "lbl_zeeman.h"
 
 namespace lbl::voigt::lte {
+namespace {
 Complex line_strength_calc(const Numeric inv_gd,
                            const SpeciesIsotope& spec,
                            const line& line,
@@ -312,24 +313,24 @@ Numeric line_center_calc(const line& line, const AtmPoint& atm, Size ispec) {
          ls.DV(line.ls.T0, atm.temperature, atm.pressure);
 }
 
-Numeric dline_center_calc_dT(const line& line,
-                             const AtmPoint& atm,
-                             Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
-  return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure) +
-         ls.dDV_dT(line.ls.T0, atm.temperature, atm.pressure);
-}
+// Numeric dline_center_calc_dT(const line& line,
+//                              const AtmPoint& atm,
+//                              Size ispec) {
+//   const auto& ls = line.ls.single_models[ispec];
+//   return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure) +
+//          ls.dDV_dT(line.ls.T0, atm.temperature, atm.pressure);
+// }
 
-Numeric dline_center_calc_dVMR(const line& line,
-                               const SpeciesEnum spec,
-                               const AtmPoint& atm,
-                               Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
-  return ls.species == spec
-             ? ls.D0(line.ls.T0, atm.temperature, atm.pressure) +
-                   ls.DV(line.ls.T0, atm.temperature, atm.pressure)
-             : 0;
-}
+// Numeric dline_center_calc_dVMR(const line& line,
+//                                const SpeciesEnum spec,
+//                                const AtmPoint& atm,
+//                                Size ispec) {
+//   const auto& ls = line.ls.single_models[ispec];
+//   return ls.species == spec
+//              ? ls.D0(line.ls.T0, atm.temperature, atm.pressure) +
+//                    ls.DV(line.ls.T0, atm.temperature, atm.pressure)
+//              : 0;
+// }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
   constexpr auto c = Constant::doppler_broadening_const_squared;
@@ -395,6 +396,7 @@ struct single_shape_builder {
     return s;
   }
 };
+}  // namespace
 
 single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
@@ -536,6 +538,7 @@ Size count_lines(const band_data& bnd, const zeeman::pol type) {
       });
 }
 
+namespace {
 void zeeman_push_back(std::vector<single_shape>& lines,
                       std::vector<line_pos>& pos,
                       const single_shape_builder& s,
@@ -597,6 +600,7 @@ void lines_push_back(std::vector<single_shape>& lines,
     }
   }
 }
+}  // namespace
 
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
@@ -1780,6 +1784,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
   }
 }
 
+namespace {
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ConstVectorView& f_grid,
@@ -1966,6 +1971,7 @@ void compute_derivative(PropmatVectorView,
                         const AtmPoint&,
                         const zeeman::pol,
                         const auto&) {}
+}  // namespace
 
 void calculate(PropmatVectorView pm_,
                PropmatMatrixView dpm,

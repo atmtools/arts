@@ -75,67 +75,6 @@ Index integer_div(const Index& x, const Index& y) {
   return retval.quot;
 }
 
-//! Lagrange Interpolation (internal function).
-/*! 
-  This function calculates the Lagrange interpolation of four interpolation 
-  points as described in 
-  <a href="http://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html">
-  Lagrange Interpolating Polynomial</a>.<br>
-  The input are the four x-axis values [x0,x1,x2,x3] and their associated 
-  y-axis values [y0,y1,y2,y3]. Furthermore the x-axis point "a" at which the 
-  interpolation should be calculated must be given as input. NOTE that 
-  the relation x2 =< x < x3 MUST hold!
-
-  \param x     x-vector with four elements [x0,x1,x2,x3]
-  \param y     y-vector with four elements: yj = y(xj), j=0,1,2,3
-  \param a     interpolation point on the x-axis with x1 =< a < x2 
-
-  \return FIXME
-
-  \author Thomas Kuhn
-  \date   2003-11-25
-*/
-
-Numeric LagrangeInterpol4(ConstVectorView x,
-                          ConstVectorView y,
-                          const Numeric a) {
-  // lowermost grid spacing on x-axis
-  const Numeric Dlimit = 1.00000e-15;
-
-  // Check that dimensions of x and y vector agree
-  const Index n_x = x.size();
-  const Index n_y = y.size();
-  ARTS_USER_ERROR_IF(
-      (n_x != 4) || (n_y != 4),
-      "The vectors x and y must all have the same length of 4 elements!\n"
-      "Actual lengths:\n"
-      "x: {}, "
-      "y: {}.",
-      n_x,
-      n_y)
-
-  // assure that x1 =< a < x2 holds
-  ARTS_USER_ERROR_IF(
-      (a < x[1]) || (a > x[2]),
-      "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
-      "No interpolation can be calculated.\n")
-
-  // calculate the Lagrange polynomial coefficients for a polynomial of the order of 3
-  Numeric b[4];
-  for (Index i = 0; i < 4; ++i) {
-    b[i] = 1.000e0;
-    for (Index k = 0; k < 4; ++k) {
-      if ((k != i) && (fabs(x[i] - x[k]) > Dlimit))
-        b[i] = b[i] * ((a - x[k]) / (x[i] - x[k]));
-    };
-  };
-
-  Numeric ya = 0.000e0;
-  for (Index i = 0; i < n_x; ++i) ya = ya + b[i] * y[i];
-
-  return ya;
-}
-
 //! last
 /*! 
     Returns the last value of a vector.

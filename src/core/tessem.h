@@ -8,9 +8,9 @@
 #ifndef tessem_h
 #define tessem_h
 
-#include <fstream>
-
 #include <matpack.h>
+
+#include <fstream>
 
 struct TessemNN {
   Index nb_inputs;

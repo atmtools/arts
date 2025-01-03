@@ -1,7 +1,8 @@
 #include "rtepack_source.h"
 
-#include "debug.h"
-#include "physics_funcs.h"
+#include <debug.h>
+#include <physics_funcs.h>
+
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"

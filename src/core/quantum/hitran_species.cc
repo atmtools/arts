@@ -1,10 +1,11 @@
 #include "hitran_species.h"
 
+#include <isotopologues.h>
+
 #include <map>
 
-#include "isotopologues.h"
-
 namespace Hitran {
+namespace {
 using HitranMap = std::map<Index, std::map<char, std::pair<Index, Numeric>>>;
 
 /** The latest version of the HITRAN online molparam.txt file as a map
@@ -421,9 +422,12 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
 
   // Search the map with pointers so that we can throw manually if something is bad
 
-  if (auto species_list = hitmap.find(molnum); species_list not_eq hitmap.cend()) {
-    if (auto species_info = species_list -> second.find(isonum); species_info not_eq species_list -> second.cend()) {
-      return QuantumIdentifier{Species::find_species_index(species_info->second)};
+  if (auto species_list = hitmap.find(molnum);
+      species_list not_eq hitmap.cend()) {
+    if (auto species_info = species_list->second.find(isonum);
+        species_info not_eq species_list->second.cend()) {
+      return QuantumIdentifier{
+          Species::find_species_index(species_info->second)};
     }
   }
   ARTS_USER_ERROR(
@@ -431,15 +435,8 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
       " does not exist in ARTS' HITRAN implementation\n"
       "If you are using a new version of HITRAN that has added the species, please consider\n"
       "contacting the ARTS developers so we can append the species to our list and make this work.\n",
-      molnum, isonum);
-}
-
-QuantumIdentifier id_from_lookup(Index mol, char isochar) {
-  return from_mol_iso(mol, isochar);
-}
-
-Numeric ratio_from_lookup(Index mol, char isochar) {
-  return molparam_map.at(mol).at(isochar).second;
+      molnum,
+      isonum);
 }
 
 SpeciesIsotopologueRatios isotopologue_ratios_impl(const HitranMap& data) {
@@ -450,6 +447,15 @@ SpeciesIsotopologueRatios isotopologue_ratios_impl(const HitranMap& data) {
     }
   }
   return out;
+}
+}  // namespace
+
+QuantumIdentifier id_from_lookup(Index mol, char isochar) {
+  return from_mol_iso(mol, isochar);
+}
+
+Numeric ratio_from_lookup(Index mol, char isochar) {
+  return molparam_map.at(mol).at(isochar).second;
 }
 
 SpeciesIsotopologueRatios isotopologue_ratios() {

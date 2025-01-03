@@ -1,16 +1,16 @@
 #include "surf.h"
 
+#include <arts_constexpr_math.h>
+#include <arts_conversions.h>
+#include <debug.h>
+#include <enumsSurfaceKey.h>
+
 #include <cmath>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
 #include <variant>
-
-#include "arts_constexpr_math.h"
-#include "arts_conversions.h"
-#include "debug.h"
-#include "enumsSurfaceKey.h"
 
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
@@ -72,7 +72,7 @@ bool FieldMap::Map<Surf::Data, SurfaceKey, SurfacePropertyTag>::contains(
       key);
 }
 
-namespace geodetic {
+namespace {
 Vector3 to_xyz(Vector2 ell, Vector3 pos) {
   using Conversion::cosd;
   using Conversion::sind;
@@ -131,12 +131,12 @@ Vector2 from_xyz_dxyz(Vector3 xyz, Vector3 dxyz) {
 
   return los;
 }
-}  // namespace geodetic
 
 std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
   std::visit([&](auto &k) { os << k; }, key);
   return os;
 }
+}  // namespace
 
 namespace Surf {
 String Data::data_type() const {
@@ -171,7 +171,7 @@ Numeric Point::operator[](const SurfaceKeyVal &x) const {
       [this](auto &key) -> Numeric { return this->operator[](key); }, x);
 }
 
-namespace detail {
+namespace {
 Numeric numeric_interpolation(
     const GriddedField2 &data,
     Numeric lat,
@@ -271,13 +271,13 @@ auto interpolation_function(Numeric lat, Numeric lon) {
                        lat_extrap = std::pair{data.lat_low, data.lat_upp},
                        lon_extrap =
                            std::pair{data.lon_low, data.lon_upp}](auto &&x) {
-      return detail::numeric_interpolation(x, lat, lon, lat_extrap, lon_extrap);
+      return numeric_interpolation(x, lat, lon, lat_extrap, lon_extrap);
     };
 
     return std::visit(call, data.data);
   };
 }
-}  // namespace detail
+}  // namespace
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   ARTS_USER_ERROR_IF(ellipsoid[0] <= 0. or ellipsoid[1] <= 0.,
@@ -296,18 +296,18 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
     return up;
   }
 
-  alt = std::isnan(alt) ? detail::interpolation_function(lat, lon)(z) : alt;
+  alt = std::isnan(alt) ? interpolation_function(lat, lon)(z) : alt;
 
   constexpr Numeric offset = 1e-3;
   const Numeric lat1 = (lat + offset > 90) ? (lat - offset) : (lat + offset),
                 lon1 = lon,
-                alt1 = detail::interpolation_function(lat1, lon1)(z);
+                alt1 = interpolation_function(lat1, lon1)(z);
   const Numeric lat2 = lat, lon2 = lon + offset,
-                alt2 = detail::interpolation_function(lat2, lon2)(z);
+                alt2 = interpolation_function(lat2, lon2)(z);
 
-  const Vector3 xyz  = geodetic::to_xyz(ellipsoid, {alt, lat, lon});
-  const Vector3 xyz1 = geodetic::to_xyz(ellipsoid, {alt1, lat1, lon1});
-  const Vector3 xyz2 = geodetic::to_xyz(ellipsoid, {alt2, lat2, lon2});
+  const Vector3 xyz  = to_xyz(ellipsoid, {alt, lat, lon});
+  const Vector3 xyz1 = to_xyz(ellipsoid, {alt1, lat1, lon1});
+  const Vector3 xyz2 = to_xyz(ellipsoid, {alt2, lat2, lon2});
   const Vector3 r1{xyz1[0] - xyz[0], xyz1[1] - xyz[1], xyz1[2] - xyz[2]};
   const Vector3 r2{xyz2[0] - xyz[0], xyz2[1] - xyz[1], xyz2[2] - xyz[2]};
 
@@ -315,7 +315,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
                      r1[2] * r2[0] - r1[0] * r2[2],
                      r1[0] * r2[1] - r1[1] * r2[0]};
 
-  return geodetic::from_xyz_dxyz(xyz, dxyz);
+  return from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
   throw std::runtime_error(std::format(
       "Cannot find a normal to the surface at position {} {}\nThe internal error reads: {}",
@@ -325,7 +325,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
 }
 
 Numeric Data::at(const Numeric lat, const Numeric lon) const {
-  return detail::interpolation_function(lat, lon)(*this);
+  return interpolation_function(lat, lon)(*this);
 }
 
 Point Field::at(Numeric lat, Numeric lon) const {
@@ -346,12 +346,12 @@ Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
       "Surface field does not possess the key: {}",
       key)
 
-  const auto interp = detail::interpolation_function(lat, lon);
+  const auto interp = interpolation_function(lat, lon);
 
   return interp(this->operator[](key));
 }
 
-namespace detail {
+namespace {
 constexpr std::pair<Numeric, Numeric> minmax(Numeric x) { return {x, x}; }
 
 std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
@@ -363,7 +363,7 @@ std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
 std::pair<Numeric, Numeric> minmax(const GriddedField2 &x) {
   return matpack::minmax(x.data);
 }
-}  // namespace detail
+}  // namespace
 
 std::pair<Numeric, Numeric> Field::minmax_single_value(
     const KeyVal &key) const {
@@ -371,7 +371,7 @@ std::pair<Numeric, Numeric> Field::minmax_single_value(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
       "Surface field does not possess the key: ",
       key)
-  return std::visit([](auto &a) { return detail::minmax(a); },
+  return std::visit([](auto &a) { return minmax(a); },
                     this->operator[](key).data);
 }
 
@@ -418,6 +418,7 @@ bool Field::constant_value(const KeyVal &key) const {
       data);
 }
 
+namespace {
 std::array<std::pair<Index, Numeric>, 4> flat_weights_(const Numeric &,
                                                        const Numeric &,
                                                        const Numeric &) {
@@ -482,6 +483,7 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
           std::pair<Index, Numeric>{sz(wlat.pos + 1, wlon.pos + 1),
                                     wlat.lx[1] * wlon.lx[1]}};
 }
+}  // namespace
 
 //! Flat weights for the positions in an atmosphere
 std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
@@ -547,8 +549,4 @@ std::string std::formatter<SurfaceKeyVal>::to_string(
         return std::vformat(fmt.c_str(), std::make_format_args(val));
       },
       v);
-}
-
-std::ostream &operator<<(std::ostream &os, const SurfacePropertyTag &ppt) {
-  return os << ppt.name;
 }

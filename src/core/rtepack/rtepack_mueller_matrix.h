@@ -1,6 +1,7 @@
 #pragma once
 
-#include "array.h"
+#include <array.h>
+
 #include "rtepack_concepts.h"
 
 namespace rtepack {

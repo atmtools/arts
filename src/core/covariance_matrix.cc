@@ -8,13 +8,13 @@
 
 #include "covariance_matrix.h"
 
+#include <lin_alg.h>
+
+#include <ostream>
 #include <queue>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <ostream>
-
-#include "lin_alg.h"
 
 BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
   data = std::move(dense);
@@ -68,7 +68,8 @@ const Sparse &BlockMatrix::sparse() const {
 }
 
 Vector BlockMatrix::diagonal() const {
-  if (is_dense()) return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
+  if (is_dense())
+    return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
   return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
 }
 
@@ -162,8 +163,10 @@ void mult(StridedMatrixView C, const Block &A, StridedConstMatrixView B) {
 }
 
 void mult(StridedVectorView w, const Block &A, StridedConstVectorView v) {
-  StridedVectorView wview(w[A.get_row_range()]), wtview(w[A.get_column_range()]);
-  StridedConstVectorView vview(v[A.get_column_range()]), vtview(v[A.get_row_range()]);
+  StridedVectorView wview(w[A.get_row_range()]),
+      wtview(w[A.get_column_range()]);
+  StridedConstVectorView vview(v[A.get_column_range()]),
+      vtview(v[A.get_row_range()]);
 
   if (A.is_dense()) {
     mult(wview, A.get_dense(), vview);
@@ -517,8 +520,7 @@ void CovarianceMatrix::invert_correlation_block(
     if (ci == cj) {
       Index extent = blocks[i]->get_row_range().nelem;
       block_start.insert(std::make_pair(ci, blocks[i]->get_row_range().offset));
-      block_extent.insert(
-          std::make_pair(ci, blocks[i]->get_row_range().nelem));
+      block_extent.insert(std::make_pair(ci, blocks[i]->get_row_range().nelem));
       block_start_cont.insert(std::make_pair(ci, n));
       block_extent_cont.insert(std::make_pair(ci, extent));
       block_indices.push_back(ci);
@@ -618,7 +620,9 @@ Vector CovarianceMatrix::inverse_diagonal() const {
   return diag;
 }
 
-void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
+void mult(StridedMatrixView C,
+          StridedConstMatrixView A,
+          const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.correlations_) {
@@ -628,7 +632,9 @@ void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix 
   }
 }
 
-void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
+void mult(StridedMatrixView C,
+          const CovarianceMatrix &A,
+          StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.correlations_) {
@@ -638,7 +644,9 @@ void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView
   }
 }
 
-void mult(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
+void mult(StridedVectorView w,
+          const CovarianceMatrix &A,
+          StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.correlations_) {
@@ -648,7 +656,9 @@ void mult(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView
   }
 }
 
-void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
+void mult_inv(StridedMatrixView C,
+              StridedConstMatrixView A,
+              const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.inverses_) {
@@ -658,7 +668,9 @@ void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMat
   }
 }
 
-void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
+void mult_inv(StridedMatrixView C,
+              const CovarianceMatrix &A,
+              StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.inverses_) {
@@ -668,7 +680,9 @@ void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrix
   }
 }
 
-void solve(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
+void solve(StridedVectorView w,
+           const CovarianceMatrix &A,
+           StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.inverses_) {

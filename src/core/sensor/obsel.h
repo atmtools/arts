@@ -5,9 +5,7 @@
 #include <matpack.h>
 #include <rtepack.h>
 
-#include <array>
 #include <memory>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -169,7 +167,14 @@ struct std::formatter<SensorKey> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem, tags.sep(), v.model);
+    return tags.format(ctx,
+                       v.type,
+                       tags.sep(),
+                       v.sensor_elem,
+                       tags.sep(),
+                       v.measurement_elem,
+                       tags.sep(),
+                       v.model);
   }
 };
 

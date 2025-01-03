@@ -1,9 +1,8 @@
 #include "quantum_term_symbol.h"
 
-#include "debug.h"
+#include <debug.h>
 
-namespace Quantum::Helpers {
-namespace detail {
+namespace {
 constexpr std::string_view select_molecular_lambda(Index lambda) {
   switch (lambda) {
     case 0: return R"(\Sigma)";
@@ -13,8 +12,9 @@ constexpr std::string_view select_molecular_lambda(Index lambda) {
   }
   ARTS_USER_ERROR("Cannot translate lambda {} to symbolic value", lambda);
 }
-}  // namespace detail
+}  // namespace
 
+namespace Quantum::Helpers {
 std::string molecular_term_symbol(const QuantumIdentifier& qid) {
   std::string upp, low;
 
@@ -35,10 +35,10 @@ std::string molecular_term_symbol(const QuantumIdentifier& qid) {
 
   if (qid.val.has(QuantumNumberType::Lambda)) {
     upp += std::format("${{{}}}$",
-                       detail::select_molecular_lambda(
+                       select_molecular_lambda(
                            qid.val[QuantumNumberType::Lambda].upp().toIndex()));
     low += std::format("${{{}}}$",
-                       detail::select_molecular_lambda(
+                       select_molecular_lambda(
                            qid.val[QuantumNumberType::Lambda].low().toIndex()));
   } else {
     upp += "$?$";

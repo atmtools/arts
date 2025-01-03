@@ -8,6 +8,7 @@
 
 #include "artstime.h"
 
+#include <debug.h>
 #include <enumsTimeStepType.h>
 
 #include <charconv>
@@ -17,8 +18,6 @@
 #include <iomanip>
 #include <iostream>
 #include <print>
-
-#include "debug.h"
 
 Time::Time() : time(std::chrono::system_clock::now()) {}
 
@@ -117,12 +116,9 @@ TimeStep time_stepper_selection(const String& time_step) {
   const TimeStepType t = to<TimeStepType>(type);
 
   switch (t) {
-    case TimeStepType::hour:
-      return TimeStep(std::chrono::hours(length));
-    case TimeStepType::minute:
-      return TimeStep(std::chrono::minutes(length));
-    case TimeStepType::second:
-      return TimeStep(std::chrono::seconds(length));
+    case TimeStepType::hour:   return TimeStep(std::chrono::hours(length));
+    case TimeStepType::minute: return TimeStep(std::chrono::minutes(length));
+    case TimeStepType::second: return TimeStep(std::chrono::seconds(length));
   }
   return {};
 }

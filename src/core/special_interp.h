@@ -9,8 +9,9 @@
 #ifndef special_interp_h
 #define special_interp_h
 
+#include <jacobian.h>
+
 #include "interpolation.h"
-#include "jacobian.h"
 
 /*===========================================================================
   === Interpolation functions for atmospheric grids, fields and surfaces
@@ -125,7 +126,7 @@ void interp_atmfield_by_gp(VectorView x,
     @date   2002-11-13
  */
 Numeric interp_atmfield_by_gp(ConstTensor3View x_field,
-                              const GridPos& gp_p = {0, {0, 1}},
+                              const GridPos& gp_p   = {0, {0, 1}},
                               const GridPos& gp_lat = {0, {0, 1}},
                               const GridPos& gp_lon = {0, {0, 1}});
 
@@ -301,7 +302,6 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon);
 
-
 /** Determines grid positions for regridding of atmospheric fields to retrieval
  *  grids
  *
@@ -331,7 +331,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                            const Vector& p_grid,
+                           const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
@@ -359,9 +359,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                            const Vector& lat_grid,
+                           const Vector& lat_grid,
                            const Vector& lon_grid);
-
 
 /** Regridding of atmospheric field OEM-type
  *
@@ -378,7 +377,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
  * @date   2018-04-12
  */
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
-                                    ConstTensor3View field_old,
+                               ConstTensor3View field_old,
                                const ArrayOfGridPos& gp_p,
                                const ArrayOfGridPos& gp_lat,
                                const ArrayOfGridPos& gp_lon);

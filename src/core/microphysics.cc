@@ -7,31 +7,29 @@
 */
 
 #include "microphysics.h"
-#include "arts_constants.h"
-#include "arts_conversions.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
-inline constexpr Numeric DENSITY_OF_WATER=Constant::denity_of_water_at_4c;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+#include <arts_constants.h>
+#include <arts_conversions.h>
 
+inline constexpr Numeric PI               = Constant::pi;
+inline constexpr Numeric DENSITY_OF_ICE   = Constant::density_of_ice_at_0c;
+inline constexpr Numeric DENSITY_OF_WATER = Constant::denity_of_water_at_4c;
+inline constexpr Numeric DEG2RAD          = Conversion::deg2rad(1);
 
 /*===========================================================================
   === External declarations
   ===========================================================================*/
-#include <cmath>
-#include <stdexcept>
-
 #include <math_funcs.h>
 #include <sorting.h>
 
-Numeric asymmetry_parameter(ConstVectorView sa_grid,
-                            ConstVectorView pfun)
-{
+#include <cmath>
+#include <stdexcept>
+
+Numeric asymmetry_parameter(ConstVectorView sa_grid, ConstVectorView pfun) {
   const Size n = sa_grid.size();
-  
-  ARTS_ASSERT(abs(sa_grid[0]-0.0) < 1.0e-3);
-  ARTS_ASSERT(abs(sa_grid[n-1]-180.0) < 1.0e-3);
+
+  ARTS_ASSERT(abs(sa_grid[0] - 0.0) < 1.0e-3);
+  ARTS_ASSERT(abs(sa_grid[n - 1] - 180.0) < 1.0e-3);
   ARTS_ASSERT(pfun.size() == n);
 
   Vector sa{sa_grid};
@@ -43,9 +41,9 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
   Vector cterm = sa;
   stdr::transform(cterm, cterm.begin(), [](Numeric x) { return std::cos(x); });
 
-  // Functions to integrate 
+  // Functions to integrate
   Vector f1(n), f2(n);
-  for (Size i=0; i<n; ++i) {
+  for (Size i = 0; i < n; ++i) {
     f1[i] = sterm[i] * pfun[i];
     f2[i] = cterm[i] * f1[i];
   }
@@ -59,7 +57,6 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
     return trapz(sa, f2) / normfac;
   }
 }
-
 
 void derive_scat_species_a_and_b(Numeric& a,
                                  Numeric& b,
@@ -82,9 +79,9 @@ void derive_scat_species_a_and_b(Numeric& a,
       throw std::runtime_error("NaN found among particle mass data.");
 
     if (x[i] >= x_fit_start && x[i] <= x_fit_end) {
-      x_unsorted[nsev] = x[i];
-      m_unsorted[nsev] = mass[i];
-      nsev += 1;
+      x_unsorted[nsev]  = x[i];
+      m_unsorted[nsev]  = mass[i];
+      nsev             += 1;
     }
   }
 
@@ -106,4 +103,3 @@ void derive_scat_species_a_and_b(Numeric& a,
   a = exp(q[0]);
   b = q[1];
 }
-

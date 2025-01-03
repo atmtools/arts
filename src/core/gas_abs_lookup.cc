@@ -13,7 +13,7 @@
 #include <cfloat>
 #include <cmath>
 
-#include "physics_funcs.h"
+#include <physics_funcs.h>
 
 //! Find positions of new grid points in old grid.
 /*! 
@@ -131,7 +131,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   if (!is_unique(nonlinear_species)) {
     std::ostringstream os;
     os << "The table must not have duplicate nonlinear species.\n"
-       << "Value of *nonlinear_species*: " << nonlinear_species;
+       << "Value of *nonlinear_species*: " << std::format("{}", nonlinear_species);
     throw std::runtime_error(os.str());
   }
 

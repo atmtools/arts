@@ -1,26 +1,23 @@
 #include "atm.h"
 
+#include <compare.h>
+#include <configtypes.h>
+#include <debug.h>
+#include <enumsFieldComponent.h>
+#include <hitran_species.h>
+#include <interp.h>
+#include <isotopologues.h>
 #include <matpack.h>
 #include <physics_funcs.h>
 
 #include <algorithm>
-#include <iomanip>
 #include <limits>
 #include <optional>
-#include <ostream>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include "compare.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "enumsFieldComponent.h"
-#include "hitran_species.h"
-#include "interp.h"
-#include "isotopologues.h"
 
 void Atm::Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<GriddedField3>(data)) {
@@ -381,7 +378,7 @@ String Data::data_type() const {
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
-namespace detail {
+namespace {
 struct Limits {
   Numeric alt_low{std::numeric_limits<Numeric>::lowest()};
   Numeric alt_upp{std::numeric_limits<Numeric>::max()};
@@ -407,24 +404,6 @@ Limits find_limits(const GriddedField3 &gf3) {
           gf3.grid<1>().back(),
           gf3.grid<2>().front(),
           gf3.grid<2>().back()};
-}
-
-Vector vec_interp(const Numeric &v,
-                  const Vector &alt,
-                  const Vector &,
-                  const Vector &) {
-  Vector out(alt.size(), v);
-  return out;
-}
-
-Vector vec_interp(const FunctionalData &v,
-                  const Vector &alt,
-                  const Vector &lat,
-                  const Vector &lon) {
-  const Index n = alt.size();
-  Vector out(n);
-  for (Index i = 0; i < n; i++) out[i] = v(alt[i], lat[i], lon[i]);
-  return out;
 }
 
 template <Index poly_alt,
@@ -552,63 +531,6 @@ Vector tvec_interp(const Tensor3 &v,
   return interpolater(v);
 }
 
-Vector vec_interp(const GriddedField3 &v,
-                  const Vector &alt,
-                  const Vector &lat,
-                  const Vector &lon) {
-  ARTS_ASSERT(v.shape()[0] > 0)
-  ARTS_ASSERT(v.shape()[1] > 0)
-  ARTS_ASSERT(v.shape()[2] > 0)
-
-  const bool d1 = v.shape()[0] == 1;
-  const bool d2 = v.shape()[1] == 1;
-  const bool d3 = v.shape()[2] == 1;
-
-  const Index n = alt.size();
-
-  if (d1 and d2 and d3) return Vector(n, v.data[0, 0, 0]);
-  if (d1 and d2)
-    return tvec_interp<0, 0, 1>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d1 and d3)
-    return tvec_interp<0, 1, 0>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d2 and d3)
-    return tvec_interp<1, 0, 0>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d1)
-    return tvec_interp<0, 1, 1>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d2)
-    return tvec_interp<1, 0, 1>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  if (d3)
-    return tvec_interp<1, 1, 0>(
-        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-  return tvec_interp<1, 1, 1>(
-      v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
-}
-
-Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
-  ARTS_USER_ERROR_IF(
-      lim.type == InterpolationExtrapolation::None,
-      "Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
-      lim.alt,
-      lim.lat,
-      lim.lon)
-
-  if (lim.type == InterpolationExtrapolation::Zero) return 0;
-
-  if (lim.type == InterpolationExtrapolation::Nearest)
-    return std::visit(
-        [&](auto &d) {
-          return vec_interp(d, {lim.alt}, {lim.lat}, {lim.lon})[0];
-        },
-        data.data);
-
-  return orig;
-}
-
 constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
                                              InterpolationExtrapolation b) {
   using enum InterpolationExtrapolation;
@@ -679,30 +601,11 @@ ComputeLimit find_limit(const Data &data,
 
   return out;
 }
-
-Vector vec_interp(const Data &data,
-                  const Vector &alt,
-                  const Vector &lat,
-                  const Vector &lon) {
-  const auto compute = [&](auto &d) { return vec_interp(d, alt, lat, lon); };
-
-  // Perform the interpolation
-  Vector out = std::visit(compute, data.data);
-
-  // Fix the extrapolations for ZERO and NONE and NEAREST
-  const auto lim =
-      std::visit([](auto &d) { return find_limits(d); }, data.data);
-  const Index n = alt.size();
-  for (Index i = 0; i < n; i++) {
-    out[i] = limit(data, find_limit(data, lim, alt[i], lat[i], lon[i]), out[i]);
-  }
-
-  return out;
-}
-}  // namespace detail
+}  // namespace
 
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
+namespace {
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
 std::vector<AtmKey> get_keys(
     const std::unordered_map<Key, T, Hash, KeyEqual, Allocator> &map) {
@@ -711,6 +614,7 @@ std::vector<AtmKey> get_keys(
       map.begin(), map.end(), out.begin(), [](auto &v) { return v.first; });
   return out;
 }
+}  // namespace
 
 ArrayOfQuantumIdentifier Field::nlte_keys() const {
   return keys<QuantumIdentifier>();
@@ -838,6 +742,7 @@ VectorView Data::flat_view() {
 }
 
 namespace interp {
+namespace {
 using altlag1 = my_interp::Lagrange<1>;
 using altlag0 = my_interp::Lagrange<0>;
 
@@ -889,8 +794,10 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &gf3,
       nlon == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
                 : lonlags{gf3.lag<2, lonlag1>(lon)});
 }
+}  // namespace
 }  // namespace interp
 
+namespace {
 std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &data,
                                                       Numeric alt,
                                                       Numeric lat,
@@ -914,6 +821,7 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const FunctionalData &,
   constexpr std::pair<Index, Numeric> v0{0, 0.0};
   return {v0, v0, v0, v0, v0, v0, v0, v0};
 }
+}  // namespace
 
 //! Flat weights for the positions in an atmosphere
 std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
@@ -956,11 +864,13 @@ Data &Data::operator=(FunctionalData x) {
 }
 }  // namespace Atm
 
+namespace {
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
   return ptr and * ptr == key;
 }
+}  // namespace
 
 bool operator==(const AtmKeyVal &keyval, AtmKey key) {
   return cmp(keyval, key);
@@ -978,23 +888,11 @@ bool operator==(const SpeciesEnum &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const SpeciesIsotope &key) {
-  return cmp(keyval, key);
-}
-
-bool operator==(const SpeciesIsotope &key, const AtmKeyVal &keyval) {
-  return cmp(keyval, key);
-}
-
 bool operator==(const AtmKeyVal &keyval, const QuantumIdentifier &key) {
   return cmp(keyval, key);
 }
 
 bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
-  return cmp(keyval, key);
-}
-
-bool operator==(const AtmKeyVal &keyval, const ScatteringSpeciesProperty &key) {
   return cmp(keyval, key);
 }
 
@@ -1004,6 +902,7 @@ bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
 
 namespace Atm {
 namespace interp {
+namespace {
 Numeric get(const GriddedField3 &gf3,
             const Numeric alt,
             const Numeric lat,
@@ -1051,9 +950,9 @@ std::optional<Numeric> get_optional_limit(const Data &data,
                                           const Numeric alt,
                                           const Numeric lat,
                                           const Numeric lon) {
-  const auto lim = detail::find_limit(
+  const auto lim = Atm::find_limit(
       data,
-      std::visit([](auto &d) { return detail::find_limits(d); }, data.data),
+      std::visit([](auto &d) { return Atm::find_limits(d); }, data.data),
       alt,
       lat,
       lon);
@@ -1072,6 +971,7 @@ std::optional<Numeric> get_optional_limit(const Data &data,
 
   return std::nullopt;
 }
+}  // namespace
 }  // namespace interp
 
 Numeric Data::at(const Numeric alt,

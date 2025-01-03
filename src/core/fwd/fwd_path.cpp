@@ -1,11 +1,12 @@
 #include "fwd_path.h"
 
+#include <debug.h>
+#include <path_point.h>
+
 #include <algorithm>
 
-#include "debug.h"
-#include "path_point.h"
-
 namespace fwd {
+namespace {
 constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) try {
   if (x_grid.size() == 1) return 0;
 
@@ -74,8 +75,8 @@ constexpr path find_path(const Vector3 pos,
           {
               .pos_type = PathPositionType::atm,
               .los_type = PathPositionType::atm,
-              .pos = pos,
-              .los = los,
+              .pos      = pos,
+              .los      = los,
           },
 
       .alt_index = ialt,
@@ -91,25 +92,26 @@ constexpr path find_path(const Vector3 pos,
 
   if (alt.size() > 1 and out.alt_weight == 0.0 and
       not std::ranges::binary_search(alt, pos[0])) {
-    out.alt_index -= 1;
-    out.alt_weight = 1.0;
+    out.alt_index  -= 1;
+    out.alt_weight  = 1.0;
   }
 
   if (alt.size() > 1 and out.lat_weight == 0.0 and
       not std::ranges::binary_search(lat, pos[1])) {
-    out.lat_index -= 1;
-    out.lat_weight = 1.0;
+    out.lat_index  -= 1;
+    out.lat_weight  = 1.0;
   }
 
   if (alt.size() > 1 and out.lon_weight == 0.0 and
       not std::ranges::binary_search(lon, pos[2])) {
-    out.lon_index -= 1;
-    out.lon_weight = 1.0;
+    out.lon_index  -= 1;
+    out.lon_weight  = 1.0;
   }
 
   return out;
 }
 ARTS_METHOD_ERROR_CATCH
+}  // namespace
 
 void path_from_propagation_path(
     std::vector<path>& out,
@@ -153,7 +155,7 @@ std::vector<path> geometric_planar(const Vector3 pos,
                                    const AscendingGrid& lat,
                                    const AscendingGrid& lon) {
   const bool up_looking = los[0] > 90.0;
-  const Numeric csc = std::abs(1.0 / Conversion::cosd(los[0]));
+  const Numeric csc     = std::abs(1.0 / Conversion::cosd(los[0]));
 
   std::vector<path> path;
   path.reserve(alt.size());
@@ -162,11 +164,11 @@ std::vector<path> geometric_planar(const Vector3 pos,
   if (up_looking) {
     while (path.back().point.altitude() != alt.back()) {
       const auto oldpos = path.back();
-      auto& newpos = path.emplace_back(oldpos);
+      auto& newpos      = path.emplace_back(oldpos);
 
-      newpos.alt_index += oldpos.alt_weight == 1.0;
-      newpos.alt_weight = 1.0;
-      newpos.point.altitude() = alt[newpos.alt_index];
+      newpos.alt_index        += oldpos.alt_weight == 1.0;
+      newpos.alt_weight        = 1.0;
+      newpos.point.altitude()  = alt[newpos.alt_index];
       newpos.distance =
           std::abs(newpos.point.altitude() - oldpos.point.altitude()) * csc;
     }
@@ -175,11 +177,11 @@ std::vector<path> geometric_planar(const Vector3 pos,
   } else {
     while (path.back().point.altitude() != alt.front()) {
       const auto oldpos = path.back();
-      auto& newpos = path.emplace_back(oldpos);
+      auto& newpos      = path.emplace_back(oldpos);
 
-      newpos.alt_index -= oldpos.alt_weight == 1.0;
-      newpos.alt_weight = 1.0;
-      newpos.point.altitude() = alt[newpos.alt_index];
+      newpos.alt_index        -= oldpos.alt_weight == 1.0;
+      newpos.alt_weight        = 1.0;
+      newpos.point.altitude()  = alt[newpos.alt_index];
       newpos.distance =
           std::abs(newpos.point.altitude() - oldpos.point.altitude()) * csc;
     }

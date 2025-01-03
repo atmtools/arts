@@ -6,86 +6,84 @@
 
 #include "telsem.h"
 
+#include <arts_constants.h>
+#include <arts_conversions.h>
+#include <double_imanip.h>
+
 #include <cmath>
 #include <utility>
 
-#include "arts_constants.h"
-#include "arts_conversions.h"
-#include "double_imanip.h"
-
-inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
+inline constexpr Numeric DEG2RAD      = Conversion::deg2rad(1);
+inline constexpr Numeric PI           = Constant::pi;
 
 ////////////////////////////////////////////////////////////////////////////////
 // TelsemAtlas Class
 ////////////////////////////////////////////////////////////////////////////////
 
+void TelsemAtlas::set_month(Index m) { month = m; }
+Index TelsemAtlas::get_month() const { return month; }
 
+const Tensor3& TelsemAtlas::get_correl() const { return correl; }
+void TelsemAtlas::set_correl(const Tensor3& t) { correl = t; }
 
-  void TelsemAtlas::set_month(Index m) { month = m; }
-  Index TelsemAtlas::get_month() const { return month; }
-
-  const Tensor3 &TelsemAtlas::get_correl() const { return correl; }
-  void TelsemAtlas::set_correl(const Tensor3 &t) { correl = t; }
-
-  bool TelsemAtlas::contains(Size cellnumber) const {
-    if (cellnumber >= correspondence.size()) {
-      return false;
-    }
-    return correspondence[cellnumber] >= 0;
+bool TelsemAtlas::contains(Size cellnumber) const {
+  if (cellnumber >= correspondence.size()) {
+    return false;
   }
+  return correspondence[cellnumber] >= 0;
+}
 
-   Index TelsemAtlas::get_class1(Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    }
-    return classes1[ind];
+Index TelsemAtlas::get_class1(Index cellnumber) const {
+  Index ind = correspondence[cellnumber];
+  if (ind < 0) {
+    throw std::runtime_error("The cell is not contained in the atlas.");
   }
+  return classes1[ind];
+}
 
-    Index TelsemAtlas::get_class2(Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    }
-    return classes2[ind];
+Index TelsemAtlas::get_class2(Index cellnumber) const {
+  Index ind = correspondence[cellnumber];
+  if (ind < 0) {
+    throw std::runtime_error("The cell is not contained in the atlas.");
   }
+  return classes2[ind];
+}
 
-  Vector TelsemAtlas::get_emis_v(Index i) const {
-    Index ind = correspondence[i];
-    Vector e_v(3);
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      e_v[0] = emis[ind, 0];
-      e_v[1] = emis[ind, 3];
-      e_v[2] = emis[ind, 5];
-    }
-    return e_v;
+Vector TelsemAtlas::get_emis_v(Index i) const {
+  Index ind = correspondence[i];
+  Vector e_v(3);
+  if (ind < 0) {
+    throw std::runtime_error("The cell is not contained in the atlas.");
+  } else {
+    e_v[0] = emis[ind, 0];
+    e_v[1] = emis[ind, 3];
+    e_v[2] = emis[ind, 5];
   }
+  return e_v;
+}
 
-  Vector TelsemAtlas::get_emis_h(Index cellnum) const {
-    Index ind = correspondence[cellnum];
-    Vector e_h(3);
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      e_h[0] = emis[ind, 1];
-      e_h[1] = emis[ind, 4];
-      e_h[2] = emis[ind, 6];
-    }
-    return e_h;
+Vector TelsemAtlas::get_emis_h(Index cellnum) const {
+  Index ind = correspondence[cellnum];
+  Vector e_h(3);
+  if (ind < 0) {
+    throw std::runtime_error("The cell is not contained in the atlas.");
+  } else {
+    e_h[0] = emis[ind, 1];
+    e_h[1] = emis[ind, 4];
+    e_h[2] = emis[ind, 6];
   }
+  return e_h;
+}
 
-  ConstVectorView TelsemAtlas::operator[](Index cellnumber) const {
-    Index ind = correspondence[cellnumber];
-    if (ind < 0) {
-      throw std::runtime_error("The cell is not contained in the atlas.");
-    } else {
-      return emis[ind];
-    }
+ConstVectorView TelsemAtlas::operator[](Index cellnumber) const {
+  Index ind = correspondence[cellnumber];
+  if (ind < 0) {
+    throw std::runtime_error("The cell is not contained in the atlas.");
+  } else {
+    return emis[ind];
   }
+}
 
 TelsemAtlas::TelsemAtlas(String filename) {
   std::ifstream ifs(filename, std::ifstream::in);
@@ -93,9 +91,9 @@ TelsemAtlas::TelsemAtlas(String filename) {
 }
 
 void TelsemAtlas::read(std::istream& is) {
-  name = "ssmi_mean_emis_climato";
+  name  = "ssmi_mean_emis_climato";
   nchan = 7;
-  dlat = 0.25;
+  dlat  = 0.25;
   is >> ndat;
   emis.resize(ndat, nchan);
   emis = NAN;
@@ -114,18 +112,18 @@ void TelsemAtlas::read(std::istream& is) {
   Index ipos = -1;
   for (Index j = 0; j < ndat; j++) {
     is >> cellnum;
-    ARTS_USER_ERROR_IF (is.fail(), "Error reading cellnum.");
+    ARTS_USER_ERROR_IF(is.fail(), "Error reading cellnum.");
     for (Index nssmi = 0; nssmi < 2 * nchan; nssmi++) {
       is >> double_imanip() >> ssmi[nssmi];
-      ARTS_USER_ERROR_IF (is.fail(), "Error reading emissivity.");
+      ARTS_USER_ERROR_IF(is.fail(), "Error reading emissivity.");
     }
 
     is >> class1 >> class2;
-    ARTS_USER_ERROR_IF (is.fail(), "Error reading classes.");
+    ARTS_USER_ERROR_IF(is.fail(), "Error reading classes.");
     if (class1 > 0 && class2 > 0 && ipos < ndat) {
       ipos++;
       for (Index i = 0; i < nchan; i++) {
-        emis[ipos, i] = ssmi[i];
+        emis[ipos, i]     = ssmi[i];
         emis_err[ipos, i] = std::sqrt(ssmi[nchan + i]);
       }
       cellnums[ipos] = cellnum;
@@ -147,26 +145,26 @@ void TelsemAtlas::equare() {
 
   Numeric rcelat = dlat * PI / 180.0;
 
-  Numeric hezon = EARTH_RADIUS * sin(rcelat);
-  Numeric aezon = 2.0 * PI * EARTH_RADIUS * hezon;
+  Numeric hezon  = EARTH_RADIUS * sin(rcelat);
+  Numeric aezon  = 2.0 * PI * EARTH_RADIUS * hezon;
   Numeric aecell = aezon * dlat / 360.0;
 
   for (Index i = 0; i < maxlat / 2; ++i) {
-    Numeric xlatb = static_cast<Numeric>(i) * dlat;
-    Numeric xlate = xlatb + dlat;
-    Numeric rlatb = DEG2RAD * xlatb;
-    Numeric rlate = DEG2RAD * xlate;
-    Numeric htb = EARTH_RADIUS * sin(rlatb);
-    Numeric hte = EARTH_RADIUS * sin(rlate);
+    Numeric xlatb  = static_cast<Numeric>(i) * dlat;
+    Numeric xlate  = xlatb + dlat;
+    Numeric rlatb  = DEG2RAD * xlatb;
+    Numeric rlate  = DEG2RAD * xlate;
+    Numeric htb    = EARTH_RADIUS * sin(rlatb);
+    Numeric hte    = EARTH_RADIUS * sin(rlate);
     Numeric htzone = hte - htb;
-    Numeric azone = 2.0 * PI * EARTH_RADIUS * htzone;
+    Numeric azone  = 2.0 * PI * EARTH_RADIUS * htzone;
     Numeric rcells = azone / aecell;
-    Index icellr = static_cast<Index>(rcells + 0.5);
+    Index icellr   = static_cast<Index>(rcells + 0.5);
 
     //totcel += 2 * icellr;
 
-    Index lat1 = i + maxlat / 2;
-    Index lat2 = maxlat / 2 - 1 - i;
+    Index lat1   = i + maxlat / 2;
+    Index lat2   = maxlat / 2 - 1 - i;
     ncells[lat1] = icellr;
     ncells[lat2] = icellr;
   }
@@ -185,11 +183,11 @@ void TelsemAtlas::telsem_calc_correspondence() {
 }
 
 Index TelsemAtlas::calc_cellnum(Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF ((lat < -90.0) || (lat > 90.0),
-        "Latitude input must be within the range [-90.0, 90.0].");
+  ARTS_USER_ERROR_IF((lat < -90.0) || (lat > 90.0),
+                     "Latitude input must be within the range [-90.0, 90.0].");
 
-  ARTS_USER_ERROR_IF ((lon < 0.0) || (lon > 360.0),
-        "Longitude input must be within the range [0.0, 360.0].");
+  ARTS_USER_ERROR_IF((lon < 0.0) || (lon > 360.0),
+                     "Longitude input must be within the range [0.0, 360.0].");
 
   // Avoid corner cases that hit the outermost edge of the atlas cells.
   if (lat == 90.0) {
@@ -201,7 +199,7 @@ Index TelsemAtlas::calc_cellnum(Numeric lat, Numeric lon) const {
   }
 
   Index cellnum = 0;
-  Index ilat = static_cast<Index>((lat + 90.0) / dlat);
+  Index ilat    = static_cast<Index>((lat + 90.0) / dlat);
   Index ilon =
       static_cast<Index>(lon / (360.0 / static_cast<Numeric>(ncells[ilat]))) +
       1;
@@ -214,8 +212,8 @@ Index TelsemAtlas::calc_cellnum(Numeric lat, Numeric lon) const {
 
 std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum) const {
   Index index_lat_max = static_cast<Index>(180.0 / dlat);
-  Index index_lat = -1;
-  Index index_lon = -1;
+  Index index_lat     = -1;
+  Index index_lon     = -1;
   if (cellnum >= firstcells[index_lat_max - 1]) {
     index_lat = index_lat_max;
     index_lon = cellnum - firstcells[index_lat_max];
@@ -244,11 +242,11 @@ Numeric TelsemAtlas::interp_freq2(Numeric emiss19,
   } else if ((19.35 < f) && (f <= 37.0)) {
     const Numeric a = (37.0 - f) / (37.0 - 19.35);
     const Numeric b = (f - 19.35) / (37.0 - 19.35);
-    emiss = a * emiss19 + b * emiss37;
+    emiss           = a * emiss19 + b * emiss37;
   } else if ((f > 37.0) && (f < 85.5)) {
     const Numeric b = (85.5 - f) / (85.5 - 37.0);
     const Numeric c = (f - 37.0) / (85.5 - 37.0);
-    emiss = b * emiss37 + c * emiss85;
+    emiss           = b * emiss37 + c * emiss85;
   } else if (85.5 <= f) {
     emiss = emiss85;
     if ((class2 > 9) && (class2 < 14) && (emiss85 > emiss37)) {
@@ -298,19 +296,19 @@ std::pair<Numeric, Numeric> TelsemAtlas::emis_interp(
     Numeric b2 = b2_eveh[i + (class1 - 1) * 3];
     Numeric b3 = b3_eveh[i + (class1 - 1) * 3];
 
-    Numeric s1_v = (theta - 53.0) / -53.0 * (e0 - a0) / a0;
+    Numeric s1_v   = (theta - 53.0) / -53.0 * (e0 - a0) / a0;
     Numeric em53_v = a3 * pow(53.0, 3.0) + a2 * pow(53.0, 2.0) + a1 * 53.0 + a0;
-    Numeric s2_v = theta / 53.0 * (ev[i] - em53_v) / em53_v;
-    Numeric s_v = 1.0 + s1_v + s2_v;
+    Numeric s2_v   = theta / 53.0 * (ev[i] - em53_v) / em53_v;
+    Numeric s_v    = 1.0 + s1_v + s2_v;
 
     Numeric emtheta_v =
         a3 * pow(theta, 3) + a2 * pow(theta, 2) + a1 * theta + a0;
     emiss_scal_v[i] = s_v * emtheta_v;
 
-    Numeric s1_h = (theta - 53.0) / -53.0 * (e0 - b0) / b0;
+    Numeric s1_h   = (theta - 53.0) / -53.0 * (e0 - b0) / b0;
     Numeric em53_h = b3 * pow(53.0, 3.0) + b2 * pow(53.0, 2.0) + b1 * 53.0 + b0;
-    Numeric s2_h = theta / 53.0 * (eh[i] - em53_h) / em53_h;
-    Numeric s_h = 1.0 + s1_h + s2_h;
+    Numeric s2_h   = theta / 53.0 * (eh[i] - em53_h) / em53_h;
+    Numeric s_h    = 1.0 + s1_h + s2_h;
 
     Numeric emtheta_h =
         b3 * pow(theta, 3) + b2 * pow(theta, 2) + b1 * theta + b0;

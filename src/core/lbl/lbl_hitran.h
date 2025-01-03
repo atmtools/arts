@@ -1,9 +1,10 @@
 #pragma once
 
 #include <enumsHitranLineStrengthOption.h>
-#include <lbl_data.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
+
+#include "lbl_data.h"
 
 namespace lbl {
 struct hitran_record {

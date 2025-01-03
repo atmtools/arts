@@ -1,13 +1,9 @@
 #include <debug.h>
+#include <enumsSpeciesEnum.h>
 #include <matpack.h>
 #include <spec/isotopologues.h>
 #include <spec/species.h>
-
-#include "template_partfun.h"
-
 #include <xml_io_base.h>
-
-#include "xml_io_partfun.h"
 
 #include <cstdlib>
 #include <exception>
@@ -20,211 +16,349 @@
 #include <string_view>
 #include <vector>
 
-struct file_wrap {
-  std::ofstream os;
-  template <typename... Headers>
-  file_wrap(const std::string& x, Headers&&... hs) : os(x) {
-    if (std::filesystem::path(x).extension() == ".h") os << "#pragma once\n\n";
-    ((os << "#include <" << std::forward<Headers>(hs) << ">\n"), ...);
-    os << '\n';
-    os << "namespace PartitionFunctions {\n";
-  }
-  ~file_wrap() { os << "}  //namespace PartitionFunctions \n"; }
+#include "xml_io_partfun.h"
 
-  template <typename T>
-  friend std::ostream& operator<<(file_wrap& lhs, T&& rhs) {
-    return lhs.os << std::forward<T>(rhs);
-  }
+namespace {
+struct func_body {
+  std::string data{};
+  std::string main{};
+  std::string deriv{};
+  std::vector<std::string> includes{};
 };
 
-void print_data(const PartitionFunctionsData& data, auto& os) {
-  constexpr int cutline = 10;
-  const Index n = data.data.nrows();
+func_body make_cpp_string_interp(const Matrix& data) {
+  assert(data.size() > 3);
+  const auto Tv = data[joker, 0];
+  const auto q  = data[joker, 1];
 
-  using enum PartitionFunctionsType;
+  for (Size i = 1; i < Tv.size(); i++) {
+    if (Tv[i] <= Tv[i - 1])
+      throw std::runtime_error("Temperature grid must be increasing");
+  }
+
+  return {.data = std::format(
+              R"(
+inline constexpr std::array<Numeric, {0}> coef{{ {1:,} }};
+inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};
+)",
+              q.size(),
+              q,
+              Tv),
+          .main     = std::format(R"(
+  const Index i_low =
+      std::distance(grid.cbegin(), std::lower_bound(grid.cbegin(), grid.cend(), T));
+  const Size i = std::min<Size>(i_low - (i_low > 0), Size{{{}}});
+
+  return coef[i] + (T - grid[i]) * (coef[i + 1] - coef[i]) / (grid[i + 1] - grid[i]);
+)",
+                              q.size() - 2),
+          .deriv    = std::format(R"(
+  const Index i_low =
+      std::distance(grid.cbegin(), std::lower_bound(grid.cbegin(), grid.cend(), T));
+  const Size i = std::min<Size>(i_low - (i_low > 0), Size{{{}}});
+
+  return (coef[i + 1] - coef[i]) / (grid[i + 1] - grid[i]);
+)",
+                               q.size() - 2),
+          .includes = {"<algorithm>", "<array>"}};
+}
+
+func_body make_cpp_string_coeff(const Matrix& data) {
+  assert(data.size() > 1);
+
+  const auto q = data[joker, 0];
+
+  return {.data = std::format(
+              R"(
+inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
+)",
+              q.size(),
+              q),
+          .main     = std::format(R"(
+  Numeric result = Q[0];
+  Numeric TN     = 1.0;
+
+  for (int i = 1; i < {0}; i++) {{
+    TN     *= T;
+    result += TN * Q[i];
+  }}
+
+  return result;
+)",
+                              q.size()),
+          .deriv    = std::format(R"(
+  Numeric result = Q[1];
+  Numeric TN     = 1.0;
+
+  for (int i = 2; i < {0}; i++) {{
+    TN     *= T;
+    result += static_cast<Numeric>(i) * TN * Q[i];
+  }}
+
+  return result;
+)",
+                               q.size()),
+          .includes = {"<array>"}};
+}
+
+func_body make_cpp_string_static_interp(const Matrix& data) {
+  assert(data.size() > 3);
+  const auto Tv = data[joker, 0];
+  const auto q  = data[joker, 1];
+
+  const Numeric r_dT = 1.0 / (Tv[1] - Tv[0]);
+  for (Size i = 1; i < Tv.size(); i++) {
+    if (Tv[i] <= Tv[i - 1])
+      throw std::runtime_error("Temperature grid must be increasing");
+    if (not is_same_within_epsilon(r_dT, 1.0 / (Tv[i] - Tv[i - 1])))
+      throw std::runtime_error("Temperature grid must be equidistant");
+  }
+
+  return {.data = std::format(
+              R"(
+inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
+)",
+              q.size(),
+              q),
+          .main     = std::format(R"(
+  const Numeric Tx = (T - {1}) * {0};
+  const Size iTx   = static_cast<Size>(Tx);
+  const Size i     = (iTx > {2}) ? {2} : iTx;
+  const Numeric To = Tx - static_cast<Numeric>(i);
+
+  return Q[i] + To * (Q[i + 1] - Q[i]);
+)",
+                              r_dT,
+                              Tv[0],
+                              Tv.size() - 2),
+          .deriv    = std::format(R"(
+  const Numeric Tx = (T - {1}) * {0};
+  const Size iTx   = static_cast<Size>(Tx);
+  const Size i     = (iTx > {2}) ? {2} : iTx;
+
+  return (Q[i + 1] - Q[i]) * {0};
+)",
+                               r_dT,
+                               Tv[0],
+                               Tv.size() - 2),
+          .includes = {"<array>"}};
+}
+
+std::string make_call_signature(const std::string_view filename) {
+  const Size N = filename.size();
+  assert(N > 4);
+
+  std::string out;
+
+  out.reserve(N);
+  for (Size i = 0; i < N - 4; i++) {
+    if (filename[i] == '-') continue;
+    if (filename[i] == '+') {
+      out.push_back('p');
+      out.push_back('l');
+      out.push_back('u');
+      out.push_back('s');
+    } else {
+      out.push_back(filename[i]);
+    }
+  }
+
+  return out;
+}
+
+//! take XY+-X.xml and return XYZ.cpp (change 'xml' to 'cpp')
+std::string make_cpp_filename(const std::string_view filename) {
+  const Size N = filename.size();
+
+  assert(N > 4);
+
+  std::string out;
+
+  out        = filename;
+  out[N - 3] = 'c';
+  out[N - 2] = 'p';
+  out[N - 1] = 'p';
+
+  return out;
+}
+
+struct head_data {
+  SpeciesEnum spec;
+  std::string isot;
+  std::string call;
+};
+
+head_data make_header_data(const std::string_view filename) {
+  const Size N = filename.size();
+
+  assert(N > 4);
+
+  SpeciesEnum spec{};
+  std::string isot{};
+  isot.reserve(N);
+  for (Size i = 0; i < N - 4; i++) {
+    if (filename[i] == '-') {
+      spec = to<SpeciesEnum>(isot);
+      isot.clear();
+      continue;
+    }
+    isot.push_back(filename[i]);
+  }
+
+  return {.spec = spec, .isot = isot, .call = make_call_signature(filename)};
+}
+
+//! take XY+-X.xml and return XYplusZ (drop '-' and extension, replace '+' with "plus")
+std::string make_cpp_string_impl(const std::string_view filename,
+                                 const func_body& body) {
+  std::string includes{"#include <configtypes.h>\n\n"};
+
+  for (const auto& include : body.includes) {
+    includes += std::format("#include {}\n", include);
+  }
+
+  return std::format(R"(//! auto-generated file
+
+{4}
+
+namespace {{{1}}}  // namespace
+
+namespace PartitionFunctions {{
+Numeric {0}(Numeric T) noexcept {{{2}}}
+
+Numeric d{0}(Numeric T) noexcept {{{3}}}
+}}  // namespace PartitionFunctions
+)",
+                     make_call_signature(filename),
+                     body.data,
+                     body.main,
+                     body.deriv,
+                     includes);
+}
+
+std::string make_cpp_string(const std::string_view filename,
+                            const PartitionFunctionsData& data) {
   switch (data.type) {
+    using enum PartitionFunctionsType;
     case Interp:
-      os << "static inline constexpr std::array<Numeric, " << n << "> data{";
-      for (Index i = 0; i < n; i++) {
-        if (i % cutline == 0) {
-          os << '\n';
-        }
-        os << data.data[i, 1] << ',' << ' ';
-      }
-      os << "};\n\n";
-
-      os << "static inline constexpr std::array<Numeric, " << n << "> grid{";
-      for (Index i = 0; i < n; i++) {
-        if (i % cutline == 0) {
-          os << '\n';
-        }
-        os << data.data[i, 0] << ',' << ' ';
-      }
-      os << "};\n";
-      break;
+      return make_cpp_string_impl(filename, make_cpp_string_interp(data.data));
     case Coeff:
-      os << "static inline constexpr std::array<Numeric, " << n << "> coeff{";
-      for (Index i = 0; i < n; i++) {
-        if (i % cutline == 0) {
-          os << '\n';
-        }
-        os << data.data[i, 0] << ',' << ' ';
-      }
-      os << "};\n";
-      break;
+      return make_cpp_string_impl(filename, make_cpp_string_coeff(data.data));
     case StaticInterp:
-        os << "static inline constexpr std::array<Numeric, " << n << "> data{";
-        for (Index i = 0; i < n; i++) {
-          if (i % cutline == 0) {
-            os << '\n';
-          }
-          os << data.data[i, 1] << ',' << ' ';
-        }
-        os << "};\n\n";
-
-        os << "static constexpr inline Numeric dT = " << data.data[0, 0] << ";\n";
-        os << "static constexpr inline Numeric T0 = " << data.data[1, 0] - data.data[0, 0] << ";\n";
-      break;
-  }
-}
-
-void print_method(const PartitionFunctionsType& type, auto& os) {
-  using enum PartitionFunctionsType;
-  switch (type) {
-    case Interp:
-      os << "return linterp<derivative>(grid, data, T);\n";
-      break;
-    case Coeff:
-      os << "return polynom<derivative>(coeff, T);\n";
-      break;
-    case StaticInterp:
-      os << "return STATIC_LINTERP(derivative, data, T, dT, T0);\n";
-      break;
-  }
-}
-
-std::string spec_from_xml(const std::filesystem::path& xmlfile) {
-  return std::filesystem::path(xmlfile).filename().stem().string();
-}
-
-std::string func_name(std::string spec, bool deriv) {
-  spec.replace(spec.find('-'), 1, "");
-  if (auto plus = spec.find('+'); plus not_eq spec.npos)
-    spec.replace(plus, 1, "plus");
-  if (deriv) spec = "d" + spec;
-  return spec;
-}
-
-void make_cc(const std::filesystem::path& xmlfile) {
-  if (xmlfile.extension() not_eq ".xml")
-    throw std::runtime_error("Not an xml file");
-
-  // Read data
-  const PartitionFunctionsData data = [&] {
-    return PartitionFunctions::data_read_file(xmlfile);
-  }();
-
-  // Names of species and function calls
-  const std::string spec{spec_from_xml(xmlfile)};
-  file_wrap os{spec + ".cc", "template_partfun.h"};
-
-  // Write static data
-  print_data(data, os);
-
-  // Write function call
-  os << '\n'
-     << "Numeric " << func_name(spec, false)
-     << "(Numeric T) noexcept {\n"
-        "  constexpr auto derivative = Derivatives::No;\n  ";
-  print_method(data.type, os);
-  os << '}' << '\n';
-
-  // Write derivative of function call
-  os << '\n'
-     << "Numeric " << func_name(spec, true)
-     << "(Numeric T) noexcept {\n"
-        "  constexpr auto derivative = Derivatives::Yes;\n  ";
-  print_method(data.type, os);
-  os << '}' << '\n';
-}
-
-std::string species_name(SpeciesEnum spec, const std::string& isot) {
-  return std::string{toString<1>(spec)} + "-" + isot;
-}
-
-void make_h(const std::vector<std::string>& xmlfiles) {
-  // Make a complete species list and isotopologues:
-  const auto data = [&] {
-    std::map<SpeciesEnum, std::vector<std::string>> x;
-    for (auto& xmlfile : xmlfiles) {
-      const auto spec_name = spec_from_xml(xmlfile);
-      const auto delim = spec_name.find('-');
-      ARTS_USER_ERROR_IF(delim == spec_name.npos,
-                         "Cannot find isotopologue split")
-      const auto spec = spec_name.substr(0, delim);
-      const auto isot = spec_name.substr(delim + 1);
-      x[to<SpeciesEnum>(spec)].push_back(isot);
-    }
-
-    for (auto& isot: Species::Isotopologues) {
-      if (x.end() == x.find(isot.spec)) x[isot.spec];
-    }
-
-    return x;
-  }();
-
-  // Open file
-  file_wrap os("auto_partfun.h",
-               "array",
-               "debug.h",
-               "string_view",
-               "template_partfun.h");
-
-  // Write if the data exist
-  for (auto& spec : data) {
-    os << "inline constexpr std::array<std::string_view, " << spec.second.size()
-       << "> has" << toString<0>(spec.first) << "{\n";
-    for (auto& isot : spec.second) os << "  \"" << isot << "\",\n";
-    os << "};\n\n";
+      return make_cpp_string_impl(filename,
+                                  make_cpp_string_static_interp(data.data));
   }
 
-  // Declare existence of functions
-  for (auto& spec : data) {
-    for (auto& isot : spec.second) {
-      os << "Numeric " << func_name(species_name(spec.first, isot), false)
-         << "(Numeric T) noexcept;\n";
-    }
-
-    os << '\n';
-
-    for (auto& isot : spec.second) {
-      os << "Numeric " << func_name(species_name(spec.first, isot), true)
-         << "(Numeric T) noexcept;\n";
-    }
-  os << '\n';
-  }
-
-  // Write the call operator
-  for (auto& spec : data) {
-    Index i = 0;
-
-    os << "\ntemplate<Derivatives deriv>\nNumeric compute" << toString<0>(spec.first)
-       << "(Numeric T, const std::string_view isot) {\n";
-    for (auto& isot : spec.second) {
-      os << "  if (isot == std::get<" << i++ << ">(has" << toString<0>(spec.first)
-         << ")) {\n"
-            "    if constexpr (deriv == Derivatives::No) return "
-         << func_name(species_name(spec.first, isot), false)
-         << "(T);\n"
-            "    if constexpr (deriv == Derivatives::Yes) return "
-         << func_name(species_name(spec.first, isot), true) << "(T);\n  }\n\n";
-    }
-    os << "  if (isot == \"*\") return T * std::numeric_limits<Numeric>::signaling_NaN();\n";
-    os << R"--(  ARTS_USER_ERROR("Cannot find ", isot, " for species )--"
-       << toString<1>(spec.first) << "\")\n";
-    os << "}\n";
-  }
+  return {};
 }
+
+std::string make_h_string(
+    std::map<SpeciesEnum, std::vector<std::pair<std::string, std::string>>>&
+        data) {
+  std::string exists;
+  std::string calls;
+  std::string compute;
+  exists.reserve(1025);
+  calls.reserve(1025);
+  compute.reserve(1025);
+
+  for (auto& spec : enumtyps::SpeciesEnumTypes) {
+    const auto& v                  = data[spec];
+    const std::string_view specstr = toString<0>(spec);
+
+    exists += std::format(
+        "inline constexpr std::array<std::string_view, {0}> has{1}{{",
+        v.size(),
+        specstr);
+
+    compute += std::format(
+        R"(template<Derivatives deriv>
+Numeric compute{0}(Numeric T [[maybe_unused]], const std::string_view isot) {{
+  using enum Derivatives;
+)",
+        specstr);
+
+    for (Size i = 0; i < v.size(); i++) {
+      auto& [isot, call] = v[i];
+
+      exists += std::format(R"( "{}"sv,
+)",
+                            isot);
+
+      calls += std::format(
+          R"(Numeric  {0}(Numeric T) noexcept;
+Numeric d{0}(Numeric T) noexcept;
+)",
+          call);
+
+      compute += std::format(
+          R"(
+  if (isot == std::get<{0}>(has{1})) {{
+    if constexpr (deriv == No)  return  {2}(T);
+    if constexpr (deriv == Yes) return d{2}(T);
+  }}
+)",
+          i,
+          specstr,
+          call);
+    }
+    exists += "};\n\n";
+
+    compute += std::format(
+        R"(
+  ARTS_USER_ERROR("No partition function for {}-{{}}", isot);
+}}
+)",
+        spec);
+  }
+
+  return std::format(
+      R"(//! auto-generated file
+
+#pragma once
+
+#include <configtypes.h>
+#include <debug.h>
+
+#include <array>
+#include <string_view>
+
+enum class Derivatives : bool {{
+  Yes = true,
+  No  = false
+}};
+
+namespace PartitionFunctions {{
+{}
+
+{}
+
+{}
+}}  // namespace PartitionFunctions
+)",
+      exists,
+      calls,
+      compute);
+}
+
+void make_files(const std::vector<std::string>& full_filenames) {
+  std::map<SpeciesEnum, std::vector<std::pair<std::string, std::string>>> data;
+
+  for (auto& full_filename : full_filenames) {
+    auto filename = std::filesystem::path(full_filename).filename().string();
+
+    const std::string cpp = make_cpp_string(
+        filename, PartitionFunctions::data_read_file(full_filename));
+
+    std::ofstream(make_cpp_filename(filename)) << cpp;
+
+    const auto [s, i, c] = make_header_data(filename);
+    data[s].emplace_back(i, c);
+  }
+
+  std::ofstream("auto_partfun.h") << make_h_string(data);
+}
+}  // namespace
 
 int main(int argn, char** argv) try {
   if (argn < 2)
@@ -232,12 +366,14 @@ int main(int argn, char** argv) try {
         "USAGE: PROG INPUT1.XML INPUT2.xml ... INPUTX.xml");
   const std::vector<std::string> xmlfiles{argv + 1, argv + argn};
 
-  for (auto& fn : xmlfiles) {
-    auto xmlfile = std::filesystem::canonical(fn);
-    make_cc(xmlfile);
-  }
+  make_files(xmlfiles);
 
-  make_h(xmlfiles);
+  // for (auto& fn : xmlfiles) {
+  //   auto xmlfile = std::filesystem::canonical(fn);
+  //   make_cc(xmlfile);
+  // }
+
+  // make_h(xmlfiles);
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {

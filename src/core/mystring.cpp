@@ -1,17 +1,6 @@
 #include "mystring.h"
-#include "nonstd.h"
 
-namespace std {
-std::ostream& operator<<(std::ostream& os, const ArrayOfString& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfString& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
-}  // namespace std
+#include <nonstd.h>
 
 void tolower(String& x) {
   std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c) {

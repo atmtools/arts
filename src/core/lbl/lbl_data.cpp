@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include <utility>
 
-#include "arts_constants.h"
-#include "arts_constexpr_math.h"
-#include "debug.h"
-#include "double_imanip.h"
-#include "hitran_species.h"
-#include "partfun.h"
-#include "quantum_numbers.h"
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
+#include <debug.h>
+#include <double_imanip.h>
+#include <hitran_species.h>
+#include <partfun.h>
+#include <quantum_numbers.h>
 
 //! In CPP file
 using Constant::c;
@@ -94,6 +94,7 @@ Rational band_data::max(QuantumNumberType x) const {
   return out;
 }
 
+namespace {
 template <typename T>
 auto local_get_value(T& absorption_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
@@ -146,6 +147,7 @@ auto local_get_value(T& absorption_bands, const line_key& type)
 
   std::unreachable();
 }
+}  // namespace
 
 Numeric& line_key::get_value(AbsorptionBands& b) const {
   return local_get_value(b, *this);

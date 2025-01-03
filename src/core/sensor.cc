@@ -15,16 +15,15 @@
 
 #include "sensor.h"
 
+#include <arts_constants.h>
+#include <arts_conversions.h>
+#include <path_point.h>
+#include <sorting.h>
+
 #include <cmath>
 #include <list>
 
-#include "arts_constants.h"
-#include "arts_conversions.h"
 #include "interpolation.h"
-#include "sensor.h"
-#include "sorting.h"
-
-#include <path_point.h>
 
 inline constexpr Numeric PI        = Constant::pi;
 inline constexpr Numeric NAT_LOG_2 = Constant::ln_2;
@@ -669,9 +668,9 @@ void mixer_matrix(Sparse& H,
       // Loop over number of zenith angles/antennas
       for (Index a = 0; a < n_sp; a++) {
         // Distribute elements of row_temp to row_final.
-        row_final = 0.0;
-        row_final[StridedRange(a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] =
-            row_temp;
+        row_final                                                 = 0.0;
+        row_final[StridedRange(
+            a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] = row_temp;
         H.insert_row(a * f_mixer.size() * n_pol + p + i * n_pol, row_final);
       }
     }
@@ -926,7 +925,8 @@ void spectrometer_matrix(Sparse& H,
     for (Index sp = 0; sp < n_sp; sp++) {
       for (Index pol = 0; pol < n_pol; pol++) {
         // Distribute the compact weight vector into weight_long
-        weights_long[StridedRange(sp * nin_f * n_pol + pol, nin_f, n_pol)] = weights;
+        weights_long[StridedRange(sp * nin_f * n_pol + pol, nin_f, n_pol)] =
+            weights;
 
         // Insert temp_long into H at the correct row
         H.insert_row(sp * nout_f * n_pol + ifr * n_pol + pol, weights_long);
@@ -971,6 +971,7 @@ void stokes2pol(VectorView w, const Index& ipol_1based, const Numeric nv) {
   }
 }
 
+namespace {
 // Functions by Stefan, needed for HIRS:
 
 //! Test if two instrument channels overlap, and if so, merge them.
@@ -1043,6 +1044,7 @@ bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
 
   return false;
 }
+}  // namespace
 
 void find_effective_channel_boundaries(  // Output:
     Vector& fmin,

@@ -6,7 +6,6 @@
 #include <rtepack.h>
 
 #include <limits>
-#include <iosfwd>
 #include <vector>
 
 #include "lbl_data.h"
@@ -261,8 +260,7 @@ struct band_shape {
                            const ConstComplexVectorView& dz_dH,
                            const Numeric f) const;
 
-  void dH(ComplexVectorView cut,
-          const ConstComplexVectorView& df0_dH) const;
+  void dH(ComplexVectorView cut, const ConstComplexVectorView& df0_dH) const;
 
   [[nodiscard]] Complex dT(const ConstComplexVectorView& cut,
                            const ConstComplexVectorView& ds_dT,

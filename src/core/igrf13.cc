@@ -1,12 +1,14 @@
 #include "igrf13.h"
 
+#include <arts_conversions.h>
+#include <arts_omp.h>
+#include <legendre.h>
+
 #include <cmath>
 
-#include "arts_conversions.h"
-#include "arts_omp.h"
 #include "geodetic.h"
-#include "legendre.h"
 
+namespace {
 /** International Geomagnetic Reference Field version 13
  *
  * The data from the years 2000-2020 inclusive is available below
@@ -28,7 +30,6 @@
  * The magnetic field itself is computed from the gradients of \f$ V(r, \theta,
  * \phi, t) \f$
  */
-namespace IGRF {
 //! g-coefficients for 2020 (14x14 matrix)
 constexpr matpack::cdata_t<Numeric, 14, 14> g2020{
     0.0,   0.0,     0.0,    0.0,    0.0,  0.0,      0.0,     0.0,     0.0,
@@ -381,7 +382,8 @@ Vector3 igrf_impl(const Matrix &g,
           1e-9 * (-ca * mag[1] - sa * mag[0]),
           1e-9 * (-sa * mag[1] + ca * mag[0])};
 }
-
+}  // namespace
+namespace IGRF {
 Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   static const Time y2020("2020-01-01 00:00:00");
   static const Matrix mg2020{g2020};

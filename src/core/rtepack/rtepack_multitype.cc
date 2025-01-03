@@ -1,8 +1,9 @@
 #include "rtepack_multitype.h"
 
+#include <debug.h>
+
 #include <algorithm>
 
-#include "debug.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -28,10 +29,9 @@ stokvec_vector to_stokvec_vector(const ConstMatrixView &v) {
   ARTS_ASSERT(v.ncols() == 4)
 
   stokvec_vector out(v.nrows());
-  std::transform(
-      v.begin(), v.end(), out.begin(), [](const ConstVectorView &a) {
-        return stokvec{a[0], a[1], a[2], a[3]};
-      });
+  std::transform(v.begin(), v.end(), out.begin(), [](const ConstVectorView &a) {
+    return stokvec{a[0], a[1], a[2], a[3]};
+  });
   return out;
 }
 
@@ -74,8 +74,9 @@ stokvec to_stokvec(const ConstVectorView &a) {
 propmat to_propmat(const ConstMatrixView &a) {
   ARTS_ASSERT(a.ncols() == 4 and a.nrows() == 4, "Must be 4x4")
 
-  ARTS_ASSERT((a[0, 0] == a[1, 1] and a[1, 1] == a[2, 2] and a[2, 2] == a[3, 3]),
-              "Must be 00 - 11 - 22 - 33 symmetric")
+  ARTS_ASSERT(
+      (a[0, 0] == a[1, 1] and a[1, 1] == a[2, 2] and a[2, 2] == a[3, 3]),
+      "Must be 00 - 11 - 22 - 33 symmetric")
   ARTS_ASSERT((a[0, 1] == a[1, 0]), "Must be 10 - 01 symmetric")
   ARTS_ASSERT((a[0, 2] == a[2, 0]), "Must be 20 - 02 symmetric")
   ARTS_ASSERT((a[0, 3] == a[3, 0]), "Must be 30 - 03 symmetric")

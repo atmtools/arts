@@ -51,8 +51,6 @@ void antenna1d_matrix(Sparse& H,
                       const Index n_pol,
                       const Index do_norm);
 
-
-
 //! antenna2d_interp_gridded_dlos
 /*!
   The radiances are treated as a bi-linear function, but the antenna response
@@ -77,8 +75,6 @@ void antenna2d_gridded_dlos(Sparse& H,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
                             const Index n_pol);
-
-
 
 //! antenna2d_interp_response
 /*!
@@ -105,7 +101,6 @@ void antenna2d_interp_response(Sparse& H,
                                ConstVectorView solid_angles,
                                ConstVectorView f_grid,
                                const Index n_pol);
-
 
 //! mixer_matrix
 /*!
@@ -142,9 +137,6 @@ void mixer_matrix(Sparse& H,
                   const Index& n_sp,
                   const Index& do_norm);
 
-
-
-
 //! muellersparse_rotation
 /*!
    Returns the Mueller matrix for a rotation of the coordinate system defining
@@ -166,9 +158,7 @@ void mixer_matrix(Sparse& H,
    \author Patrick Eriksson
    \date   2014-09-23
 */
-void muellersparse_rotation(Sparse& H,
-                            const Numeric& rotangle);
-
+void muellersparse_rotation(Sparse& H, const Numeric& rotangle);
 
 /** Calculate polarisation H-matrix
  
@@ -183,8 +173,6 @@ void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& pol,
                                  const Numeric dza,
                                  const String& iy_unit);
-
-
 
 //! sensor_aux_vectors
 /*!
@@ -210,8 +198,6 @@ void sensor_aux_vectors(Vector& sensor_response_f,
                         ConstVectorView sensor_response_f_grid,
                         const ArrayOfIndex& sensor_response_pol_grid,
                         ConstMatrixView sensor_response_dlos_grid);
-
-
 
 //! spectrometer_matrix
 /*!
@@ -240,8 +226,6 @@ void spectrometer_matrix(Sparse& H,
                          const Index& n_sp,
                          const Index& do_norm);
 
-
-
 //! stokes2pol
 /*!
    Sets up a vector to convert the Stokes vector to different polarsiations.
@@ -262,11 +246,7 @@ void spectrometer_matrix(Sparse& H,
    \author Patrick Eriksson
    \date   2011-11-01 and 2018-03-16
 */
-void stokes2pol(VectorView w,
-                const Index& ipol_1based,
-                const Numeric nv = 1);
-
-
+void stokes2pol(VectorView w, const Index& ipol_1based, const Numeric nv = 1);
 
 //! Calculate channel boundaries from instrument response functions.
 /*!
@@ -301,8 +281,6 @@ void find_effective_channel_boundaries(  // Output:
     const ArrayOfGriddedField1& backend_channel_response,
     const Numeric& delta);
 
-
-
 //! integration_func_by_vecmult
 /*!
    Calculates the (row) vector that multiplied with an unknown (column) vector
@@ -332,8 +310,6 @@ void integration_func_by_vecmult(VectorView h,
                                  ConstVectorView x_f_in,
                                  ConstVectorView x_g_in);
 
-
-
 //! integration_bin_by_vecmult
 /*!
    Calculates the (row) vector that multiplied with an unknown (column) vector,
@@ -360,7 +336,6 @@ void integration_bin_by_vecmult(VectorView h,
                                 ConstVectorView x_g_in,
                                 const Numeric& limit1,
                                 const Numeric& limit2);
-
 
 //! summation_by_vecmult
 /*!

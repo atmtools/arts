@@ -1,10 +1,11 @@
+#include "lbl_hitran.h"
+
 #include <fast_float/fast_float.h>
 #include <hitran_species.h>
-#include <lbl_hitran.h>
-
-#include "partfun.h"
+#include <partfun.h>
 
 namespace lbl {
+namespace {
 struct reader {
   std::string::const_iterator it;
   std::string::const_iterator end;
@@ -102,6 +103,7 @@ bool read_hitran_par_record(hitran_record& record,
       e.what(),
       linedata);
 }
+}  // namespace
 
 hitran_data read_hitran_par(std::istream& file,
                             const Vector2& frequency_range) {

@@ -18,7 +18,7 @@
 
 #include "rng.h"
 
-enum AntennaType {
+enum AntennaType : char {
   ANTENNA_TYPE_PENCIL_BEAM = 1,
   ANTENNA_TYPE_GAUSSIAN    = 2,
   ANTENNA_TYPE_LOOKUP      = 3

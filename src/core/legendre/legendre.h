@@ -1,9 +1,8 @@
 #pragma once
 
+#include <configtypes.h>
+#include <grids.h>
 #include <matpack.h>
-
-#include "configtypes.h"
-#include "grids.h"
 
 namespace Legendre {
 
@@ -116,8 +115,7 @@ Numeric tgamma_ratio(Numeric x, Numeric y);
  * @param x The coordinates
  * @param w The weights
  */
-void PositiveDoubleGaussLegendre(VectorView x,
-                                 VectorView w);
+void PositiveDoubleGaussLegendre(VectorView x, VectorView w);
 
 /** Computes the Gauss Legendre quadrature
   * 

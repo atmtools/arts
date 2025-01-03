@@ -11,15 +11,14 @@
 
 #include "lbl_zeeman.h"
 
+#include <arts_constexpr_math.h>
+#include <double_imanip.h>
+#include <quantum_numbers.h>
+#include <wigner_functions.h>
+
 #include <utility>
 
-#include "arts_constexpr_math.h"
-#include "debug.h"
-#include "double_imanip.h"
-#include "quantum_numbers.h"
-#include "wigner_functions.h"
-
-namespace lbl::zeeman {
+namespace {
 constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
   switch (species) {
     case to<SpeciesEnum>("O2"):  return 2.002064;
@@ -34,9 +33,9 @@ constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
 
 constexpr Numeric get_lande_lambda_constant() noexcept { return 1.0; }
 
-data SimpleG(const Quantum::Number::ValueList& qns,
-             const Numeric& GS,
-             const Numeric& GL) noexcept {
+lbl::zeeman::data SimpleG(const Quantum::Number::ValueList& qns,
+                          const Numeric& GS,
+                          const Numeric& GL) noexcept {
   if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hunda) and
       qns.has(QuantumNumberType::Omega,
               QuantumNumberType::J,
@@ -46,10 +45,10 @@ data SimpleG(const Quantum::Number::ValueList& qns,
     auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
     auto& S      = qns[QuantumNumberType::S];
-    return {
-        .gu = SimpleGCaseA(Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-        .gl =
-            SimpleGCaseA(Omega.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseA(
+                Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseA(
+                Omega.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
   }
 
   if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hundb) and
@@ -61,18 +60,13 @@ data SimpleG(const Quantum::Number::ValueList& qns,
     auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
     auto& S      = qns[QuantumNumberType::S];
-    return {
-        .gu = SimpleGCaseB(N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-        .gl = SimpleGCaseB(N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseB(
+                N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseB(
+                N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
   }
 
   return {};
-}
-
-data GetSimpleModel(const QuantumIdentifier& qid) {
-  const Numeric GS = get_lande_spin_constant(qid.Species());
-  const Numeric GL = get_lande_lambda_constant();
-  return SimpleG(qid.val, GS, GL);
 }
 
 Numeric case_b_g_coefficient_o2(Rational J,
@@ -127,6 +121,14 @@ constexpr Numeric closed_shell_trilinear(Rational k,
   if (k.isUndefined() or j.isUndefined() or j == 0) return 0;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
+}  // namespace
+
+namespace lbl::zeeman {
+data GetSimpleModel(const QuantumIdentifier& qid) {
+  const Numeric GS = ::get_lande_spin_constant(qid.Species());
+  const Numeric GL = ::get_lande_lambda_constant();
+  return ::SimpleG(qid.val, GS, GL);
+}
 
 data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.Isotopologue() == "O2-66"_isot) {
@@ -154,9 +156,9 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         auto JL       = J.low();
         auto NL       = N.low();
 
-        Numeric gu = case_b_g_coefficient_o2(
+        Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        Numeric gl = case_b_g_coefficient_o2(
+        Numeric gl = ::case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {.gu = gu, .gl = gl};
       }
@@ -186,9 +188,9 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         auto JL       = J.low();
         auto NL       = N.low();
 
-        Numeric gu = case_b_g_coefficient_o2(
+        Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        Numeric gl = case_b_g_coefficient_o2(
+        Numeric gl = ::case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {.gu = gu, .gl = gl};
       }
@@ -214,8 +216,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       auto JL        = J.low();
       auto KL        = Ka.low();
 
-      return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "OCS-624"_isot) {
     constexpr Numeric gperp =
@@ -233,8 +235,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       auto JL        = J.low();
       auto KL        = Ka.low();
 
-      return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "CO2-626"_isot) {
     constexpr Numeric gperp =
@@ -252,8 +254,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       auto JL        = J.low();
       auto KL        = Ka.low();
 
-      return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   }
 
@@ -316,20 +318,6 @@ std::istream& operator>>(std::istream& is, model& m) {
   is >> i >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
   m.on = static_cast<bool>(i);
   return is;
-}
-
-constexpr Vector3 cross(const Vector3 a, const Vector3 b) {
-  return {a[1] * b[2] - a[2] * b[1],
-          a[2] * b[0] - a[0] * b[2],
-          a[0] * b[1] - a[1] * b[0]};
-}
-
-constexpr Numeric dot(const Vector3 a, const Vector3 b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-
-constexpr Vector3 proj(const Vector3 a, const Vector3 b, const Numeric ct) {
-  return {a[0] - ct * b[0], a[1] - ct * b[1], a[2] - ct * b[2]};
 }
 
 magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)

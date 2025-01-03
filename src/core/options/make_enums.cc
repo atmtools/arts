@@ -3,6 +3,7 @@
 
 #include "arts_options.h"
 
+namespace {
 void create_headers() {
   std::ofstream common("enums-common-helper.h");
   common << R"--(#pragma once
@@ -70,6 +71,7 @@ void create_cc() {
     os << opt.impl() << '\n';
   }
 }
+}  // namespace
 
 int main() try {
   create_header();

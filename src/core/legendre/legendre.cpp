@@ -1,11 +1,11 @@
 #include "legendre.h"
 
+#include <arts_conversions.h>
+#include <debug.h>
+
 #include <boost/math/special_functions/legendre.hpp>
 #include <cmath>
-#include <iostream>
 
-#include "arts_conversions.h"
-#include "debug.h"
 #include "fastgl.h"
 
 namespace Legendre {
@@ -15,12 +15,14 @@ Numeric SphericalField::total_horizontal() const noexcept {
   return std::hypot(S, E);
 }
 
+namespace {
 //! Clamps the longitude in the range [-180, 180)
 constexpr Numeric longitude_clamp(Numeric lon) {
   while (lon <= -180) lon += 360;
   while (lon > 180) lon -= 360;
   return lon;
 }
+}  // namespace
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
@@ -129,10 +131,6 @@ Vector3 schmidt_fieldcalc(const Matrix& g,
 #pragma GCC diagnostic pop
 #endif
 
-constexpr Numeric next(Numeric p0, Numeric p1, Numeric ni, Numeric x) {
-  return ((2.0 * ni + 1.0) * x * p1 - ni * p0) / (ni + 1.0);
-}
-
 Numeric legendre_sum(const ConstVectorView& s, const Numeric& x) {
   using boost::math::legendre_next;
 
@@ -175,8 +173,7 @@ Numeric assoc_legendre(Index l, Index m, Numeric x) {
   return legendre_p(static_cast<int>(l), static_cast<int>(m), x);
 }
 
-void PositiveDoubleGaussLegendre(VectorView x,
-                                 VectorView w) {
+void PositiveDoubleGaussLegendre(VectorView x, VectorView w) {
   const Size n = x.size();
   ARTS_ASSERT(n == w.size());  // same size
 

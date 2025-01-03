@@ -13,13 +13,12 @@
 
 #include "sun.h"
 
-#include "arts_conversions.h"
-#include "debug.h"
-#include "interp.h"
-#include "interpolation.h"
-#include "physics_funcs.h"
+#include <arts_conversions.h>
+#include <debug.h>
+#include <interp.h>
+#include <physics_funcs.h>
 
-using Constant::pi;
+#include "interpolation.h"
 
 /*===========================================================================
   === The functions
@@ -137,6 +136,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a) {
   return os;
 }
 
+namespace {
 /*!
     Reference ellipsoid radius, directly from *refellipsoid*.
 
@@ -181,6 +181,7 @@ Numeric refell2r(const Vector2 ell, const Numeric lat) {
 
   return b / std::sqrt(c * ct * ct + st * st);
 }
+}  // namespace
 
 /*! 
    Conversion from spherical to cartesian coordinates.
@@ -212,6 +213,7 @@ Vector3 sph2cart(const Vector3 sph) {
   return {r * cosd(lat) * cosd(lon), r * cosd(lat) * sind(lon), r * sind(lat)};
 }
 
+namespace {
 /*! 
    Conversion from position and LOS to cartesian coordinates
 
@@ -272,6 +274,7 @@ std::pair<Vector3, Vector3> poslos2cart(const Vector3 sph, const Vector2 los) {
        coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon,
        sinlat * dr + coslat * dlat}};
 }
+}  // namespace
 
 std::pair<Numeric, bool> hit_sun(const Sun& sun,
                                  const Vector3 pos,

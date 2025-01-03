@@ -8,7 +8,7 @@
 namespace matpack {
 template <class T>
 struct left_mditer {
-  const T* data{nullptr};
+  T* data{nullptr};
   Index pos{0};
 
   using difference_type = Index;
@@ -20,7 +20,6 @@ struct left_mditer {
   constexpr left_mditer& operator=(left_mditer&&) noexcept = default;
   constexpr left_mditer& operator=(const left_mditer&)     = default;
 
-  constexpr left_mditer(const T& x) : data(&x) {}
   constexpr left_mditer(T& x) : data(&x) {}
 
   constexpr left_mditer& operator++() noexcept {

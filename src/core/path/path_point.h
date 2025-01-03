@@ -60,7 +60,13 @@ using ArrayOfArrayOfArrayOfPropagationPathPoint =
  * @param los A line-of-sight [zenith, azimuth] in degrees
  * @return The mirrored line-of-sight [zenith, azimuth] in degrees
  */
-Vector2 mirror(const Vector2 los);
+constexpr Vector2 mirror(const Vector2 los) {
+  Vector2 los_mirrored;
+  los_mirrored[0] = 180 - los[0];
+  los_mirrored[1] = los[1] + 180;
+  if (los_mirrored[1] > 180) los_mirrored[1] -= 360;
+  return los_mirrored;
+}
 
 /** Initializes a propagation path point
  *

@@ -44,8 +44,9 @@
 
 #include "special_interp.h"
 
+#include <path_point.h>
+
 #include <cmath>
-#include "path_point.h"
 
 /*===========================================================================
   === Point interpolation functions for atmospheric grids and fields
@@ -392,7 +393,8 @@ void itw2p(VectorView p_values,
 
   interp(p_values, itw, logpgrid, gp);
 
-  stdr::transform(p_values, p_values.begin(), [](auto p) { return std::exp(p); });
+  stdr::transform(
+      p_values, p_values.begin(), [](auto p) { return std::exp(p); });
 }
 
 /** Calculates grid positions for pressure values.
@@ -427,8 +429,10 @@ void p2gridpos(ArrayOfGridPos& gp,
   Vector logold(old_pgrid.size());
   Vector lognew(new_pgrid.size());
 
-  stdr::transform(old_pgrid, logold.begin(), [](auto p) { return std::log(p); });
-  stdr::transform(new_pgrid, lognew.begin(), [](auto p) { return std::log(p); });
+  stdr::transform(
+      old_pgrid, logold.begin(), [](auto p) { return std::log(p); });
+  stdr::transform(
+      new_pgrid, lognew.begin(), [](auto p) { return std::log(p); });
 
   gridpos(gp, logold, lognew, extpolfac);
 }

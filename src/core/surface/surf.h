@@ -7,7 +7,6 @@
 #include <mystring.h>
 #include <operators.h>
 
-#include <iosfwd>
 #include <limits>
 #include <type_traits>
 #include <unordered_map>

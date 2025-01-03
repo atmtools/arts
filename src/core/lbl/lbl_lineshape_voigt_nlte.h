@@ -3,15 +3,13 @@
 #include <arts_constants.h>
 #include <atm.h>
 #include <matpack.h>
+#include <quantum_numbers.h>
 #include <rtepack.h>
 
-#include <iosfwd>
-#include <limits>
 #include <vector>
 
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
-#include "quantum_numbers.h"
 
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {

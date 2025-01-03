@@ -112,7 +112,7 @@ constexpr muelmat operator*(const muelmat &m, const propmat &k) {
 //! Multiply a propagation matrix with a stokvec vector
 constexpr stokvec operator*(const propmat &k, const stokvec s) {
   const auto [a, b, c, d, u, v, w] = k.data;
-  const auto [s1, s2, s3, s4] = s.data;
+  const auto [s1, s2, s3, s4]      = s.data;
 
   return stokvec{a * s1 + b * s2 + c * s3 + d * s4,
                  a * s2 + b * s1 + s3 * u + s4 * v,
@@ -136,11 +136,11 @@ Matrix to_matrix(const propmat &v);
 Vector to_vector(const stokvec &v);
 
 //! Transform a matpack type to a stokvec
-stokvec to_stokvec(const ConstVectorView& a);
+stokvec to_stokvec(const ConstVectorView &a);
 
 //! Transform a matpack type to a propmat
-propmat to_propmat(const ConstMatrixView& a);
+propmat to_propmat(const ConstMatrixView &a);
 
 //! Transform a matpack type to a muelmat
-muelmat to_muelmat(const ConstMatrixView& a);
+muelmat to_muelmat(const ConstMatrixView &a);
 }  // namespace rtepack

@@ -118,17 +118,18 @@ void SHT::set_spectral_coeffs_cmplx(
 }
 
 StridedConstMatrixView SHT::get_spatial_coeffs() const {
-  return matpack::mdview_t<Numeric, 2>(spatial_coeffs_, std::array{n_aa_, n_za_});
+  return StridedConstMatrixView{
+      matpack::mdview_t<Numeric, 2>(spatial_coeffs_, std::array{n_aa_, n_za_})};
 }
 
 StridedConstComplexMatrixView SHT::get_spatial_coeffs_cmplx() const {
-  return matpack::mdview_t<Complex, 2>(spatial_coeffs_cmplx_,
-                                std::array{n_aa_, n_za_});
+  return StridedConstComplexMatrixView{matpack::mdview_t<Complex, 2>(
+      spatial_coeffs_cmplx_, std::array{n_aa_, n_za_})};
 }
 
 StridedConstComplexVectorView SHT::get_spectral_coeffs_cmplx() const {
-  return matpack::mdview_t<Complex, 1>(spectral_coeffs_cmplx_,
-                                std::array{n_spectral_coeffs_cmplx_});
+  return StridedConstComplexVectorView{matpack::mdview_t<Complex, 1>(
+      spectral_coeffs_cmplx_, std::array{n_spectral_coeffs_cmplx_})};
 }
 
 Index SHT::get_n_zenith_angles() const { return n_za_; }
@@ -146,11 +147,12 @@ Index SHT::get_l_max() const { return l_max_; }
 Index SHT::get_m_max() const { return m_max_; }
 
 StridedConstComplexVectorView SHT::get_spectral_coeffs() const {
-  return matpack::mdview_t<Complex, 1>(spectral_coeffs_,
-                                std::array{n_spectral_coeffs_});
+  return StridedConstComplexVectorView{matpack::mdview_t<Complex, 1>(
+      spectral_coeffs_, std::array{n_spectral_coeffs_})};
 }
 
-ComplexVector SHT::transform(const StridedConstMatrixView &view [[maybe_unused]]) {
+ComplexVector SHT::transform(const StridedConstMatrixView &view
+                             [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -191,7 +193,8 @@ ComplexVector SHT::transform_cmplx(const StridedConstComplexMatrixView &view
 #endif
 }
 
-Matrix SHT::synthesize(const StridedConstComplexVectorView &view [[maybe_unused]]) {
+Matrix SHT::synthesize(const StridedConstComplexVectorView &view
+                       [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
 #else
@@ -234,7 +237,8 @@ ComplexMatrix SHT::synthesize_cmplx(const StridedConstComplexVectorView &view
 #endif
 }
 
-Numeric SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
+Numeric SHT::evaluate(const StridedConstComplexVectorView &view
+                      [[maybe_unused]],
                       Numeric phi [[maybe_unused]],
                       Numeric theta [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS

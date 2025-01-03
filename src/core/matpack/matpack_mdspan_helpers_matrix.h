@@ -29,7 +29,7 @@ constexpr MAT &inplace_transpose(MAT &x)
 template <ranked_md<2> MAT>
 constexpr strided_view_t<element_type<MAT>, 1> diagonal(MAT &&A) {
   assert(A.nrows() == A.ncols());
-  return mdstrided_t<element_type<MAT>, 1>{
-      A.data_handle(), {std::array{A.extent(0)}, std::array{A.extent(0) + 1}}};
+  return strided_view_t<element_type<MAT>, 1>{mdstrided_t<element_type<MAT>, 1>{
+      A.data_handle(), {std::array{A.extent(0)}, std::array{A.extent(0) + 1}}}};
 }
 }  // namespace matpack

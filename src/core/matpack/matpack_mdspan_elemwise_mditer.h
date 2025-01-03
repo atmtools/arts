@@ -12,7 +12,7 @@
 namespace matpack {
 template <class T>
 struct elemwise_mditer {
-  const T* data{nullptr};
+  T* data{nullptr};
   Index pos{0};
 
   using difference_type = Index;
@@ -24,7 +24,6 @@ struct elemwise_mditer {
   constexpr elemwise_mditer& operator=(elemwise_mditer&&) noexcept = default;
   constexpr elemwise_mditer& operator=(const elemwise_mditer&)     = default;
 
-  constexpr elemwise_mditer(const T& x) : data(&x) {}
   constexpr elemwise_mditer(T& x) : data(&x) {}
 
   constexpr elemwise_mditer& operator++() noexcept {
@@ -101,7 +100,9 @@ auto elemwise_range(T&& x) {
 
 // Catch for non-matpack types (might not work, be careful)
 template <typename T>
-auto elemwise_range(T&& x) requires(rank<T>() == 1 and not any_md<T>) {
+auto elemwise_range(T&& x)
+  requires(rank<T>() == 1 and not any_md<T>)
+{
   return std::ranges::subrange{x.begin(), x.end()};
 };
 }  // namespace matpack

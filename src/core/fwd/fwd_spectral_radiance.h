@@ -1,16 +1,14 @@
 #pragma once
 
+#include <atm.h>
+#include <fwd_path.h>
+#include <fwd_propmat.h>
 #include <path_point.h>
 #include <physics_funcs.h>
+#include <rtepack.h>
+#include <surf.h>
 
-#include <iosfwd>
 #include <memory>
-
-#include "atm.h"
-#include "fwd_path.h"
-#include "fwd_propmat.h"
-#include "rtepack.h"
-#include "surf.h"
 
 namespace fwd {
 struct spectral_radiance {

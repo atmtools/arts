@@ -16,15 +16,14 @@
 #ifndef telsem_h
 #define telsem_h
 
+#include <array.h>
+#include <bifstream.h>
+#include <bofstream.h>
 #include <matpack.h>
+#include <mystring.h>
 
 #include <array>
 #include <iosfwd>
-
-#include "array.h"
-#include "bifstream.h"
-#include "bofstream.h"
-#include "mystring.h"
 
 /** A telsem atlas
  *

@@ -8,7 +8,7 @@ target_include_directories(partfun_generator PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 file(GLOB_RECURSE partfun_xml_files LIST_DIRECTORIES FALSE RELATIVE ${ARTS_PARTFUN_DATA_PATH} "*.xml")
 set(partfun_cpp_files ${partfun_xml_files})
-list(TRANSFORM partfun_cpp_files REPLACE ".xml" ".cc")
+list(TRANSFORM partfun_cpp_files REPLACE ".xml" ".cpp")
 list(TRANSFORM partfun_xml_files PREPEND "${ARTS_PARTFUN_DATA_PATH}/")
 
 # Generate auto_partfun.h for the ARTS interface

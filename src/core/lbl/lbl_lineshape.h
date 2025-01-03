@@ -7,7 +7,6 @@ struct Targets;
 }  // namespace Jacobian
 
 namespace lbl {
-//! NOTE: dpm and dsv are strided as input because the outer dimension is jacobian targets, however, the inner frequency dimension must be contiguous, or the code will terminate.
 void calculate(PropmatVectorView pm,
                StokvecVectorView sv,
                PropmatMatrixView dpm,

@@ -1,14 +1,13 @@
 #include "fwd_cia.h"
 
 #include <arts_constexpr_math.h>
+#include <cia.h>
+#include <debug.h>
 #include <physics_funcs.h>
 
 #include <algorithm>
 #include <functional>
 #include <numeric>
-
-#include "cia.h"
-#include "debug.h"
 
 namespace fwd::cia {
 full::single::single(Numeric p,

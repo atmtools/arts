@@ -7,21 +7,18 @@
  */
 #include "predefined_absorption_models.h"
 
+#include <atm.h>
+#include <debug.h>
+#include <isotopologues.h>
+#include <jacobian.h>
 #include <predef.h>
 
-#include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
 #include <stdexcept>
 #include <variant>
 
-#include "atm.h"
-#include "debug.h"
-#include "isotopologues.h"
-#include "jacobian.h"
-#include "predefined/predef_data.h"
-#include "species.h"
-
 namespace Absorption::PredefinedModel {
+namespace {
 /** Compute the selected model and returns if it can be computed
  *
  * Remember to use the "if constexpr (not check_exist)" statement
@@ -161,12 +158,14 @@ bool compute_selection(
 } catch (std::exception&) {
   throw;
 }
+}  // namespace
 
 bool can_compute(const SpeciesIsotope& model) {
   PropmatVector pm;
   return compute_selection<true>(pm, model, {}, {}, {});
 }
 
+namespace {
 /** Compute the partial VMR derivative
  *
  * Sets dpm to the expected value (does not add, but really sets)
@@ -199,6 +198,7 @@ void compute_vmr_deriv(
   dpm -= pm;
   dpm /= dvmr;
 }
+}  // namespace
 
 void compute(
     PropmatVector& propmat_clearsky,

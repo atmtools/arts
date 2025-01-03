@@ -7,15 +7,11 @@
 
 #include <algorithm>
 #include <cfloat>
-#include <iomanip>
 #include <iterator>
 #include <string_view>
-#include <system_error>
-
-#include "species.h"
 
 namespace Species {
-namespace detail {
+namespace {
 constexpr void trim(std::string_view& text) {
   while (text.size() and nonstd::isspace(text.front())) text.remove_prefix(1);
   while (text.size() and nonstd::isspace(text.back())) text.remove_suffix(1);
@@ -57,28 +53,6 @@ constexpr Index isot(SpeciesEnum species,
   return spec_ind;
 }
 
-constexpr Numeric freq(std::string_view part,
-                       std::string_view orig [[maybe_unused]]) {
-  Numeric f;
-  if (part.size() == 1 and part.front() == '*')
-    f = -1;
-  else {
-    auto err =
-        fast_float::from_chars(part.data(), part.data() + part.size(), f);
-    ARTS_USER_ERROR_IF(err.ec == std::errc::invalid_argument,
-                       "Invalid argument: \"{}",
-                       "\"\nThe original tag reads \"{}\"",
-                       part,
-                       orig);
-    ARTS_USER_ERROR_IF(err.ec == std::errc::result_out_of_range,
-                       "Out-of-range: \"{}"
-                       "\"\nThe original tag reads \"{}\"",
-                       part,
-                       orig);
-  }
-  return f;
-}
-
 constexpr void check(std::string_view text, std::string_view orig) {
   ARTS_USER_ERROR_IF(
       text.size(),
@@ -88,14 +62,14 @@ constexpr void check(std::string_view text, std::string_view orig) {
       text,
       orig)
 }
-}  // namespace detail
+}  // namespace
 
 String SpeciesTag::FullName() const noexcept {
   return Isotopologue().FullName();
 }
 
+namespace {
 SpeciesTag parse_tag(std::string_view text) {
-  using namespace detail;
   trim(text);
 
   const std::string_view orig = text;
@@ -134,9 +108,9 @@ SpeciesTag parse_tag(std::string_view text) {
 
   return tag;
 }
+}  // namespace
 
 Array<Tag> parse_tags(std::string_view text) {
-  using namespace detail;
   trim(text);
 
   Array<Tag> tags;
@@ -315,18 +289,10 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
   for (auto& species_list : abs_species) {
     for (auto& tag : species_list) {
       switch (tag.type) {
-        case SpeciesTagType::Plain:
-          Plain = true;
-          break;
-        case SpeciesTagType::Predefined:
-          Predefined = true;
-          break;
-        case SpeciesTagType::Cia:
-          Cia = true;
-          break;
-        case SpeciesTagType::XsecFit:
-          XsecFit = true;
-          break;
+        case SpeciesTagType::Plain:      Plain = true; break;
+        case SpeciesTagType::Predefined: Predefined = true; break;
+        case SpeciesTagType::Cia:        Cia = true; break;
+        case SpeciesTagType::XsecFit:    XsecFit = true; break;
       }
     }
   }

@@ -51,6 +51,10 @@ template <has_is_const T>
 constexpr bool mdmutable = not std::remove_cvref_t<T>::is_const;
 
 template <typename T>
+concept const_forwarded =
+    std::is_const_v<T> or std::is_const_v<std::remove_reference_t<T>>;
+
+template <typename T>
 concept has_element_type =
     requires { typename std::remove_cvref_t<T>::element_type; };
 
@@ -69,7 +73,6 @@ template <typename T, typename U, Size N>
 static constexpr bool is_data =
     std::same_as<std::remove_cvref_t<T>, data_t<U, N>>;
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Any matpack core type - /////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +90,8 @@ template <class T>
 concept any_cdata = std::remove_cvref_t<T>::matpack_magic_cdata;
 
 template <class T>
-concept any_md = any_data<T> or any_strided_view<T> or any_view<T> or any_cdata<T>;
+concept any_md =
+    any_data<T> or any_strided_view<T> or any_view<T> or any_cdata<T>;
 
 template <class T>
 concept mut_any_md = any_md<T> and mdmutable<T>;
@@ -139,7 +143,9 @@ template <class T, class U>
 concept typed_view = any_view<T> and std::same_as<value_type<T>, U>;
 
 template <class T, class U>
-concept typed_strided_view = any_strided_view<T> and std::same_as<value_type<T>, U>;;
+concept typed_strided_view =
+    any_strided_view<T> and std::same_as<value_type<T>, U>;
+;
 
 template <class T, class U>
 concept typed_cdata = any_cdata<T> and std::same_as<value_type<T>, U>;
@@ -164,7 +170,8 @@ template <typename T, typename U, Size N>
 concept exact_view = ranked_view<T, N> and typed_view<T, U>;
 
 template <typename T, typename U, Size N>
-concept exact_strided_view = ranked_strided_view<T, N> and typed_strided_view<T, U>;
+concept exact_strided_view =
+    ranked_strided_view<T, N> and typed_strided_view<T, U>;
 
 template <typename T, typename U, Size N>
 concept exact_cdata = ranked_cdata<T, N> and typed_cdata<T, U>;

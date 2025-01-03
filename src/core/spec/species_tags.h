@@ -5,7 +5,6 @@
 #include <matpack.h>
 #include <mystring.h>
 
-#include <algorithm>
 #include <set>
 
 namespace Species {

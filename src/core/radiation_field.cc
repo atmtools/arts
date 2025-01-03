@@ -7,16 +7,17 @@
  */
 
 #include "radiation_field.h"
-#include "arts_conversions.h"
-#include "sorting.h"
+
+#include <arts_conversions.h>
+#include <sorting.h>
 
 void error_in_integrate(const String& error_msg,
-                        const Numeric& value_that_should_be_unity) {
-  ARTS_USER_ERROR_IF (std::abs(value_that_should_be_unity - 1.0) > 1e-4,
-    "Failure in normalization:\n{}\n", error_msg)
-}
+                        const Numeric& value_that_should_be_unity){
+    ARTS_USER_ERROR_IF(std::abs(value_that_should_be_unity - 1.0) > 1e-4,
+                       "Failure in normalization:\n{}\n",
+                       error_msg)}
 
-Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> &F,
+Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd>& F,
                                  const Vector& f) {
   Numeric val = 0.0;
 

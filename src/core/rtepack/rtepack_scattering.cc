@@ -1,6 +1,7 @@
 #include "rtepack_scattering.h"
 
-#include "debug.h"
+#include <debug.h>
+
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
@@ -103,6 +104,7 @@ Array<muelmat_matrix> bulk_backscatter_derivative(
   return aoaotm;
 }
 
+namespace {
 void setBackscatterTransmission(stokvec_vector &out,
                                 const stokvec_vector &I0,
                                 const muelmat_vector &Tr,
@@ -120,6 +122,7 @@ void setBackscatterTransmissionDerivative(stokvec_matrix &out,
     for (Index i = 0; i < dZ.ncols(); i++)
       out[j, i] += Tr[i] * dZ[j, i] * Tf[i] * I0[i];
 }
+}  // namespace
 
 void bulk_backscatter_commutative_transmission_rte(
     Array<stokvec_vector> &I,
@@ -162,6 +165,7 @@ void bulk_backscatter_commutative_transmission_rte(
   }
 }
 
+namespace {
 Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
   using Conversion::cosd;
   using Conversion::sind;
@@ -175,6 +179,7 @@ Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
   // Fix potential overflows by clamping numerical errors
   return std::clamp(theta, -1.0, 1.0);
 }
+}  // namespace
 
 muelmat rayleigh_scattering(const Vector2 &los_in,
                             const Vector2 &los_out,

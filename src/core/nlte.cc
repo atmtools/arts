@@ -8,9 +8,9 @@
 
 #include "nlte.h"
 
-#include "arts_constants.h"
-#include "interp.h"
-#include "quantum_numbers.h"
+#include <arts_constants.h>
+#include <interp.h>
+#include <quantum_numbers.h>
 
 std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib) {
   bool any = false;

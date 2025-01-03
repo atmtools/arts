@@ -1,20 +1,9 @@
-/*!
- * @file   fullmodel.h
- * @author Richard Larsson
- * @date   2020-01-29
- * 
- * @brief  Full absorption models of various kinds
- */
+#pragma once
 
-#ifndef fullmodel_h
-#define fullmodel_h
-
+#include <atm.h>
+#include <jacobian.h>
+#include <predef_data.h>
 #include <rtepack.h>
-
-#include "atm.h"
-#include "jacobian.h"
-#include "predefined/predef_data.h"
-#include "species.h"
 
 namespace Absorption::PredefinedModel {
 
@@ -42,5 +31,3 @@ void compute(
     const JacobianTargets& jacobian_targets,
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
 }  // namespace Absorption::PredefinedModel
-
-#endif  // fullmodel_h

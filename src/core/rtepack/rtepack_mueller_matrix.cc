@@ -1,6 +1,6 @@
 #include "rtepack_mueller_matrix.h"
 
-#include "configtypes.h"
+#include <configtypes.h>
 
 namespace rtepack {
 void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
