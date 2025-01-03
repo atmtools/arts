@@ -1,7 +1,6 @@
 add_library(absorption STATIC
   cia.cc
   xsec_fit.cc
-  zeemandata.cc
   predefined_absorption_models.cc
 )
 target_link_libraries(absorption PUBLIC path predef physics lbl)

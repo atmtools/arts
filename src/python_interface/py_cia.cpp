@@ -1,6 +1,5 @@
 #include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
-#include <zeemandata.h>
 
 #include <algorithm>
 #include <memory>
