@@ -12,10 +12,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <exception>
 #include <utility>
 
-#include "absorptionlines.h"
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
@@ -26,10 +24,7 @@
 #include "hitran_species.h"
 #include "jacobian.h"
 #include "lbl_data.h"
-#include "nlte.h"
-#include "optproperties.h"
 #include "path_point.h"
-#include "species.h"
 #include "species_tags.h"
 
 #ifdef ENABLE_NETCDF
@@ -294,194 +289,6 @@ void propagation_matrixAddFaraday(
       if (jacs[6].first) {
         propagation_matrix_jacobian[jacs[6].second->target_pos, iv].U() += r;
       }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddParticles(
-    // WS Output:
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
-    // WS Input:
-    const Vector& frequency_grid,
-    const ArrayOfArrayOfSpeciesTag& absorption_species,
-    const ArrayOfSpeciesTag& select_absorption_species,
-    const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& path_point,
-    const AtmPoint& atm_point,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& scat_data_checked,
-    const Index& use_abs_as_ext) {
-  ARTS_USER_ERROR_IF(select_absorption_species.size(), R"--(
-  We do not yet support select_absorption_species for lookup table calculations
-  )--")
-
-  // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
-  // though, i.e. we need to check it here explicitly. (Also, cloudboxOff sets
-  // scat_data_checked=0 as it does not check it and as we ususally don't need
-  // scat_data for clearsky cases, hence don't want to check them by
-  // scat_data_checkedCalc in that case. This approach seems to be the more
-  // handy compared to cloudboxOff setting scat_data_checked=1 without checking
-  // it assuming we won't use it anyways.)
-  ARTS_USER_ERROR_IF(scat_data_checked != 1,
-                     "The scat_data must be flagged to have "
-                     "passed a consistency check (scat_data_checked=1).")
-
-  const Index ns = TotalNumberOfElements(scat_data);
-  Index np       = 0;
-  for (Size sp = 0; sp < absorption_species.size(); sp++) {
-    if (absorption_species[sp].Particles()) {
-      np++;
-    }
-  }
-
-  ARTS_USER_ERROR_IF(
-      np == 0,
-      "For applying propagation_matrixAddParticles, *absorption_species* needs to"
-      "contain species 'particles', but it does not.\n")
-
-  ARTS_USER_ERROR_IF(
-      ns != np,
-      "Number of 'particles' entries in absorption_species and of elements in\n"
-      "*scat_data* needs to be identical. But you have {} 'particles' entries\nand {} *scat_data* elements.\n",
-      np,
-      ns)
-
-  const auto jac_temperature =
-      jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
-  const Numeric dT = jac_temperature.first ? jac_temperature.second->d : 0.0;
-
-  const Index na = absorption_species.size();
-  const Vector rtp_los_back{path_point.los};
-
-  // creating temporary output containers
-  ArrayOfArrayOfTensor5 ext_mat_Nse;
-  ArrayOfArrayOfTensor4 abs_vec_Nse;
-  ArrayOfArrayOfIndex ptypes_Nse;
-  Matrix t_ok;
-
-  // preparing input in format needed
-  Vector T_array;
-  if (jac_temperature.first) {
-    T_array.resize(2);
-    T_array     = atm_point.temperature;
-    T_array[1] += dT;
-  } else {
-    T_array.resize(1);
-    T_array = atm_point.temperature;
-  }
-  Matrix dir_array(1, 2);
-  dir_array[0] = rtp_los_back;
-
-  // ext/abs per scat element for all freqs at once
-  opt_prop_NScatElems(ext_mat_Nse,
-                      abs_vec_Nse,
-                      ptypes_Nse,
-                      t_ok,
-                      scat_data,
-                      T_array,
-                      dir_array,
-                      -1);
-
-  const Index nf = abs_vec_Nse[0][0].nbooks();
-  Tensor3 tmp(nf, 4, 4);
-
-  // Internal computations necessary since it relies on zero start
-  PropmatVector internal_propmat(propagation_matrix.size());
-
-  // loop over the scat_data and link them with correct vmr_field entry according
-  // to the position of the particle type entries in absorption_species.
-  Index sp        = 0;
-  Index i_se_flat = 0;
-  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
-    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
-      // forward to next particle entry in absorption_species
-      while (sp < na && not absorption_species[sp].Particles()) sp++;
-      internal_propmat = 0.0;
-
-      // running beyond number of absorption_species entries when looking for next
-      // particle entry. shouldn't happen, though.
-      ARTS_ASSERT(sp < na);
-      ARTS_USER_ERROR_IF(
-          atm_point[absorption_species[sp].Species()] < 0.,
-          "Negative absorbing particle 'vmr' (aka number density)"
-          " encountered:\n"
-          "scat species #{}, scat elem #{} (vmr_field entry #{})\n",
-          i_ss,
-          i_se,
-          sp)
-
-      if (atm_point[absorption_species[sp].Species()] > 0.) {
-        ARTS_USER_ERROR_IF((t_ok[i_se_flat, 0] < 0.),
-                           "Temperature interpolation error:\n"
-                           "scat species #{}, scat elem #{}\n",
-                           i_ss,
-                           i_se)
-        if (use_abs_as_ext) {
-          for (Size iv = 0; iv < frequency_grid.size(); iv++) {
-            internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 0];
-            internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 1];
-            internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 2];
-            internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se][iv, 0, 0, 3];
-          }
-        } else {
-          for (Size iv = 0; iv < frequency_grid.size(); iv++) {
-            internal_propmat[iv] = rtepack::to_propmat(
-                ext_mat_Nse[i_ss][i_se][iv, 0, 0, joker, joker]);
-          }
-        }
-
-        const Numeric vmr = atm_point[absorption_species[sp].Species()];
-        for (Size iv = 0; iv < frequency_grid.size(); iv++) {
-          propagation_matrix[iv] += vmr * internal_propmat[iv];
-        }
-      }
-
-      // For temperature derivatives (so we don't need to check it in jac loop)
-      ARTS_USER_ERROR_IF((jac_temperature.first and t_ok[i_se_flat, 1] < 0.),
-                         "Temperature interpolation error (in perturbation):\n"
-                         "scat species #{}, scat elem #{}\n",
-                         i_ss,
-                         i_se)
-
-      if (jac_temperature.first) {
-        const auto iq = jac_temperature.second->target_pos;
-
-        if (use_abs_as_ext) {
-          tmp[joker, joker, 0]  = abs_vec_Nse[i_ss][i_se][joker, 1, 0, joker];
-          tmp[joker, joker, 0] -= abs_vec_Nse[i_ss][i_se][joker, 0, 0, joker];
-        } else {
-          tmp  = ext_mat_Nse[i_ss][i_se][joker, 1, 0, joker, joker];
-          tmp -= ext_mat_Nse[i_ss][i_se][joker, 0, 0, joker, joker];
-        }
-
-        tmp *= atm_point[absorption_species[sp].Species()];
-        tmp /= dT;
-
-        for (Size iv = 0; iv < frequency_grid.size(); iv++) {
-          if (use_abs_as_ext) {
-            propagation_matrix_jacobian[iq, iv].A() += tmp[iv, 0, 0];
-            propagation_matrix_jacobian[iq, iv].B() += tmp[iv, 1, 0];
-            propagation_matrix_jacobian[iq, iv].C() += tmp[iv, 2, 0];
-            propagation_matrix_jacobian[iq, iv].D() += tmp[iv, 3, 0];
-          } else {
-            propagation_matrix_jacobian[iq, iv] += rtepack::to_propmat(tmp[iv]);
-          }
-        }
-      }
-
-      if (const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(
-              absorption_species[sp].Species());
-          jac_species.first) {
-        const auto iq = jac_species.second->target_pos;
-
-        for (Size iv = 0; iv < frequency_grid.size(); iv++)
-          propagation_matrix_jacobian[iq, iv] += internal_propmat[iv];
-      }
-
-      sp++;
-      i_se_flat++;
     }
   }
 }

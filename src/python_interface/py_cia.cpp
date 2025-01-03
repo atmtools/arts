@@ -1,4 +1,3 @@
-#include <lineshapemodel.h>
 #include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 #include <zeemandata.h>
@@ -8,7 +7,6 @@
 #include <string>
 #include <utility>
 
-#include "absorptionlines.h"
 #include "cia.h"
 #include "debug.h"
 #include "hpy_arts.h"

@@ -353,70 +353,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
-//=== GasAbsLookup ===========================================================
-
-//! Reads GasAbsLookup from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param gal     GasAbsLookup return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(std::istream& is_xml,
-                          GasAbsLookup& gal,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("GasAbsLookup");
-
-  xml_read_from_stream(is_xml, gal.species, pbifs);
-  xml_read_from_stream(is_xml, gal.nonlinear_species, pbifs);
-  xml_read_from_stream(is_xml, gal.f_grid, pbifs);
-  xml_read_from_stream(is_xml, gal.p_grid, pbifs);
-  xml_read_from_stream(is_xml, gal.vmrs_ref, pbifs);
-  xml_read_from_stream(is_xml, gal.t_ref, pbifs);
-  xml_read_from_stream(is_xml, gal.t_pert, pbifs);
-  xml_read_from_stream(is_xml, gal.nls_pert, pbifs);
-  xml_read_from_stream(is_xml, gal.xsec, pbifs);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/GasAbsLookup");
-}
-
-//! Writes GasAbsLookup to XML output stream
-/*!
-  \param os_xml  XML Output stream
-  \param gal     GasAbsLookup
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
-*/
-void xml_write_to_stream(std::ostream& os_xml,
-                         const GasAbsLookup& gal,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("GasAbsLookup");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-
-  xml_write_to_stream(os_xml, gal.species, pbofs, "");
-  xml_write_to_stream(os_xml, gal.nonlinear_species, pbofs, "NonlinearSpecies");
-  xml_write_to_stream(os_xml, gal.f_grid, pbofs, "FrequencyGrid");
-  xml_write_to_stream(os_xml, gal.p_grid, pbofs, "PressureGrid");
-  xml_write_to_stream(os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles");
-  xml_write_to_stream(os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile");
-  xml_write_to_stream(os_xml, gal.t_pert, pbofs, "TemperaturePerturbations");
-  xml_write_to_stream(
-      os_xml, gal.nls_pert, pbofs, "NonlinearSpeciesVmrPerturbations");
-  xml_write_to_stream(os_xml, gal.xsec, pbofs, "AbsorptionCrossSections");
-
-  close_tag.set_name("/GasAbsLookup");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== ComplexMatrix ==========================================================
 
 //! Reads ComplexMatrix from XML input stream
@@ -1108,6 +1044,142 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
 //=== SingleScatteringData ======================================
 
+//! Convert azimuthally-random oriented SingleScatteringData to latest version.
+/*!
+ Converts SingleScatteringData to version 3.
+
+ \param[in,out]  ssd  SingleScatteringData
+
+ \author Jana Mendrok
+*/
+void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
+  // First check that input fulfills requirements on older data formats:
+  // 1) Is za_grid symmetric and includes 90deg?
+  Index nza = ssd.za_grid.size();
+  for (Index i = 0; i < nza / 2; i++) {
+    ARTS_USER_ERROR_IF(
+        !is_same_within_epsilon(
+            180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * DBL_EPSILON),
+        "Zenith grid of azimuthally_random single scattering data\n"
+        "is not symmetric with respect to 90degree.")
+  }
+  ARTS_USER_ERROR_IF(
+      !is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * DBL_EPSILON),
+      "Zenith grid of azimuthally_random single scattering data\n"
+      "does not contain 90 degree grid point.")
+
+  // 2) Are data sizes correct?
+  std::ostringstream os_pha_mat;
+  os_pha_mat << "pha_mat ";
+  std::ostringstream os_ext_mat;
+  os_ext_mat << "ext_mat ";
+  std::ostringstream os_abs_vec;
+  os_abs_vec << "abs_vec ";
+
+  ARTS_USER_ERROR_IF(
+      not same_shape<7>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()),
+                         static_cast<Index>(ssd.aa_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         16},
+                        ssd.pha_mat_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
+      os_pha_mat.str(),
+      ssd.f_grid.size(),
+      ssd.T_grid.size(),
+      ssd.za_grid.size(),
+      ssd.aa_grid.size(),
+      ssd.za_grid.size() / 2 + 1,
+      1,
+      16,
+      ssd.pha_mat_data.shape());
+
+  ARTS_USER_ERROR_IF(
+      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         3},
+                        ssd.ext_mat_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+      os_ext_mat.str(),
+      static_cast<Index>(ssd.f_grid.size()),
+      static_cast<Index>(ssd.T_grid.size()),
+      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      1,
+      3,
+      ssd.ext_mat_data.shape());
+
+  ARTS_USER_ERROR_IF(
+      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
+                         static_cast<Index>(ssd.T_grid.size()),
+                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+                         1,
+                         2},
+                        ssd.abs_vec_data),
+      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+      os_abs_vec.str(),
+      static_cast<Index>(ssd.f_grid.size()),
+      static_cast<Index>(ssd.T_grid.size()),
+      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      1,
+      2,
+      ssd.abs_vec_data.shape());
+
+  // Now that we are sure that za_grid is properly symmetric, we just need to
+  // copy over the data (ie no interpolation).
+  Tensor5 tmpT5 = ssd.abs_vec_data;
+  ssd.abs_vec_data.resize(tmpT5.nshelves(),
+                          tmpT5.nbooks(),
+                          ssd.za_grid.size(),
+                          tmpT5.nrows(),
+                          tmpT5.ncols());
+  ssd.abs_vec_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
+  for (Index i = 0; i < nza / 2; i++) {
+    ssd.abs_vec_data[joker, joker, nza - 1 - i, joker, joker] =
+        tmpT5[joker, joker, i, joker, joker];
+  }
+
+  tmpT5 = ssd.ext_mat_data;
+  ssd.ext_mat_data.resize(tmpT5.nshelves(),
+                          tmpT5.nbooks(),
+                          ssd.za_grid.size(),
+                          tmpT5.nrows(),
+                          tmpT5.ncols());
+  ssd.ext_mat_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
+  for (Index i = 0; i < nza / 2; i++) {
+    ssd.ext_mat_data[joker, joker, nza - 1 - i, joker, joker] =
+        tmpT5[joker, joker, i, joker, joker];
+  }
+
+  Tensor7 tmpT7 = ssd.pha_mat_data;
+  ssd.pha_mat_data.resize(tmpT7.nlibraries(),
+                          tmpT7.nvitrines(),
+                          tmpT7.nshelves(),
+                          tmpT7.nbooks(),
+                          ssd.za_grid.size(),
+                          tmpT7.nrows(),
+                          tmpT7.ncols());
+  ssd.pha_mat_data
+      [joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
+
+  // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
+  // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(2, 2)]  *= -1.;
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(6, 4)]  *= -1.;
+  tmpT7[joker, joker, joker, joker, joker, joker, Range(12, 2)] *= -1.;
+
+  // For second half of incident polar angles (>90deg), we need to mirror the
+  // original data in both incident and scattered polar angle around 90deg "planes".
+  for (Index i = 0; i < nza / 2; i++)
+    for (Index j = 0; j < nza; j++)
+      ssd.pha_mat_data
+          [joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
+          tmpT7[joker, joker, j, joker, i, joker, joker];
+}
+
 //! Reads SingleScatteringData from XML input stream
 /*!
   \param is_xml  XML Input stream
@@ -1204,7 +1276,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
 
   os_xml << '\n';
-  xml_write_to_stream(os_xml, PTypeToString(ssdata.ptype), pbofs, "");
+  xml_write_to_stream(os_xml, String{PTypeToString(ssdata.ptype)}, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.T_grid, pbofs, "");
@@ -1285,50 +1357,6 @@ void xml_write_to_stream(std::ostream& os_xml,
       os_xml, smdata.diameter_area_equ_aerodynamical, pbofs, "");
 
   close_tag.set_name("/ScatteringMetaData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-//=== SLIData2 =====================================================
-//! Reads SLIData2 from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param slidata  SLIData return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-
-void xml_read_from_stream(std::istream& is_xml,
-                          SLIData2& slidata,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("SLIData2");
-
-  xml_read_from_stream(is_xml, slidata.x1a, pbifs);
-  xml_read_from_stream(is_xml, slidata.x2a, pbifs);
-  xml_read_from_stream(is_xml, slidata.ya, pbifs);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/SLIData2");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const SLIData2& slidata,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("SLIData2");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-
-  xml_write_to_stream(os_xml, slidata.x1a, pbofs, "");
-  xml_write_to_stream(os_xml, slidata.x2a, pbofs, "");
-  xml_write_to_stream(os_xml, slidata.ya, pbofs, "");
-
-  close_tag.set_name("/SLIData2");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
@@ -1549,74 +1577,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/Sun");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-//=== TelsemAtlas ======================================================
-
-//! Reads TelsemAtlas from XML input stream
-/*!
- * \param is_xml     XML Input stream
- * \param pm         TelsemAtlas return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(std::istream& is_xml,
-                          TelsemAtlas& ta,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("TelsemAtlas");
-
-  xml_read_from_stream(is_xml, ta.ndat, pbifs);
-  xml_read_from_stream(is_xml, ta.nchan, pbifs);
-  xml_read_from_stream(is_xml, ta.name, pbifs);
-  xml_read_from_stream(is_xml, ta.month, pbifs);
-  xml_read_from_stream(is_xml, ta.dlat, pbifs);
-  xml_read_from_stream(is_xml, ta.emis, pbifs);
-  xml_read_from_stream(is_xml, ta.correl, pbifs);
-  xml_read_from_stream(is_xml, ta.emis_err, pbifs);
-  xml_read_from_stream(is_xml, ta.classes1, pbifs);
-  xml_read_from_stream(is_xml, ta.classes2, pbifs);
-  xml_read_from_stream(is_xml, ta.cellnums, pbifs);
-  ta.telsem_calc_correspondence();
-  tag.read_from_stream(is_xml);
-  tag.check_name("/TelsemAtlas");
-}
-
-//! Writes TelsemAtlas to XML output stream
-/*!
- * \param os_xml     XML Output stream
- * \param pm         TelsemAtlas
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const TelsemAtlas& ta,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("TelsemAtlas");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-  xml_write_to_stream(os_xml, ta.ndat, pbofs, "ndat");
-  xml_write_to_stream(os_xml, ta.nchan, pbofs, "nchan");
-  xml_write_to_stream(os_xml, ta.name, pbofs, "name");
-  xml_write_to_stream(os_xml, ta.month, pbofs, "month");
-  xml_write_to_stream(os_xml, ta.dlat, pbofs, "dlat");
-  xml_write_to_stream(os_xml, ta.emis, pbofs, "emis");
-  xml_write_to_stream(os_xml, ta.correl, pbofs, "correl");
-  xml_write_to_stream(os_xml, ta.emis_err, pbofs, "emis_err");
-  xml_write_to_stream(os_xml, ta.classes1, pbofs, "class1");
-  xml_write_to_stream(os_xml, ta.classes2, pbofs, "class2");
-  xml_write_to_stream(os_xml, ta.cellnums, pbofs, "cellnum");
-  close_tag.set_name("/TelsemAtlas");
-  close_tag.write_to_stream(os_xml);
-
   os_xml << '\n';
 }
 
@@ -2447,101 +2407,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.set_name("Any");
   open_tag.write_to_stream(os_xml);
   close_tag.set_name("/Any");
-  close_tag.write_to_stream(os_xml);
-}
-
-//=== MCAntenna ================================================
-
-void xml_read_from_stream(std::istream& is_xml,
-                          MCAntenna& m,
-                          bifstream* pbifs) {
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("MCAntenna");
-
-  Index n;
-  xml_read_from_stream(is_xml, n, pbifs);
-  m.atype = static_cast<AntennaType>(n);
-  xml_read_from_stream(is_xml, m.sigma_aa, pbifs);
-  xml_read_from_stream(is_xml, m.sigma_za, pbifs);
-  xml_read_from_stream(is_xml, m.aa_grid, pbifs);
-  xml_read_from_stream(is_xml, m.za_grid, pbifs);
-  xml_read_from_stream(is_xml, m.G_lookup, pbifs);
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/MCAntenna");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const MCAntenna& m,
-                         bofstream* pbofs,
-                         const String&) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("MCAntenna");
-  open_tag.write_to_stream(os_xml);
-
-  const auto n = static_cast<Index>(m.atype);
-  xml_write_to_stream(os_xml, n, pbofs, "");
-  xml_write_to_stream(os_xml, m.sigma_aa, pbofs, "");
-  xml_write_to_stream(os_xml, m.sigma_za, pbofs, "");
-  xml_write_to_stream(os_xml, m.aa_grid, pbofs, "");
-  xml_write_to_stream(os_xml, m.za_grid, pbofs, "");
-  xml_write_to_stream(os_xml, m.G_lookup, pbofs, "");
-
-  close_tag.set_name("/MCAntenna");
-  close_tag.write_to_stream(os_xml);
-}
-
-//=== TessemNN ================================================
-
-void xml_read_from_stream(std::istream& is_xml, TessemNN& t, bifstream* pbifs) {
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("TessemNN");
-
-  xml_read_from_stream(is_xml, t.nb_inputs, pbifs);
-  xml_read_from_stream(is_xml, t.nb_outputs, pbifs);
-  xml_read_from_stream(is_xml, t.nb_cache, pbifs);
-  xml_read_from_stream(is_xml, t.b1, pbifs);
-  xml_read_from_stream(is_xml, t.b2, pbifs);
-  xml_read_from_stream(is_xml, t.w1, pbifs);
-  xml_read_from_stream(is_xml, t.w2, pbifs);
-  xml_read_from_stream(is_xml, t.x_min, pbifs);
-  xml_read_from_stream(is_xml, t.x_max, pbifs);
-  xml_read_from_stream(is_xml, t.y_min, pbifs);
-  xml_read_from_stream(is_xml, t.y_max, pbifs);
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/TessemNN");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const TessemNN& t,
-                         bofstream* pbofs,
-                         const String&) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("TessemNN");
-  open_tag.write_to_stream(os_xml);
-
-  xml_write_to_stream(os_xml, t.nb_inputs, pbofs, "");
-  xml_write_to_stream(os_xml, t.nb_outputs, pbofs, "");
-  xml_write_to_stream(os_xml, t.nb_cache, pbofs, "");
-  xml_write_to_stream(os_xml, t.b1, pbofs, "");
-  xml_write_to_stream(os_xml, t.b2, pbofs, "");
-  xml_write_to_stream(os_xml, t.w1, pbofs, "");
-  xml_write_to_stream(os_xml, t.w2, pbofs, "");
-  xml_write_to_stream(os_xml, t.x_min, pbofs, "");
-  xml_write_to_stream(os_xml, t.x_max, pbofs, "");
-  xml_write_to_stream(os_xml, t.y_min, pbofs, "");
-  xml_write_to_stream(os_xml, t.y_max, pbofs, "");
-
-  close_tag.set_name("/TessemNN");
   close_tag.write_to_stream(os_xml);
 }
 

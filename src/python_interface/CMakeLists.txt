@@ -114,22 +114,16 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_lbl.cpp
     py_disort.cpp
     py_time.cpp
-    py_tessem.cpp
-    py_rte.cpp
-    py_telsem.cpp
     py_species.cpp
     py_sparse.cpp
-    py_mcantenna.cpp
     py_scattering.cpp
     py_scattering_species.cpp
     py_quantum.cpp
     py_physics.cpp
-    py_spectroscopy.cpp
     py_jac.cpp
     py_global.cpp
     py_lookup.cpp
     py_xsec_fit.cpp
-    py_nlte.cpp
     py_constant.cpp
     py_retrieval.cpp
     py_convert.cpp

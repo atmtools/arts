@@ -68,15 +68,16 @@ void py_scattering(py::module_& m) try {
       .def("__setstate__", [](SingleScatteringData* self, const py::tuple& t) {
         ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-        new (self) SingleScatteringData{py::cast<PType>(t[0]),
-                                        py::cast<String>(t[1]),
-                                        py::cast<Vector>(t[2]),
-                                        py::cast<Vector>(t[3]),
-                                        py::cast<Vector>(t[4]),
-                                        py::cast<Vector>(t[5]),
-                                        py::cast<Tensor7>(t[6]),
-                                        py::cast<Tensor5>(t[7]),
-                                        py::cast<Tensor5>(t[8])};
+        new (self)
+            SingleScatteringData{.ptype        = py::cast<PType>(t[0]),
+                                 .description  = py::cast<String>(t[1]),
+                                 .f_grid       = py::cast<Vector>(t[2]),
+                                 .T_grid       = py::cast<Vector>(t[3]),
+                                 .za_grid      = py::cast<Vector>(t[4]),
+                                 .aa_grid      = py::cast<Vector>(t[5]),
+                                 .pha_mat_data = py::cast<Tensor7>(t[6]),
+                                 .ext_mat_data = py::cast<Tensor5>(t[7]),
+                                 .abs_vec_data = py::cast<Tensor5>(t[8])};
       });
 
   py::class_<ScatteringMetaData> smdb(m, "ScatteringMetaData");
@@ -113,13 +114,14 @@ void py_scattering(py::module_& m) try {
       .def("__setstate__", [](ScatteringMetaData* self, const py::tuple& t) {
         ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-        new (self) ScatteringMetaData{py::cast<String>(t[0]),
-                                      py::cast<String>(t[1]),
-                                      py::cast<String>(t[2]),
-                                      py::cast<Numeric>(t[3]),
-                                      py::cast<Numeric>(t[4]),
-                                      py::cast<Numeric>(t[5]),
-                                      py::cast<Numeric>(t[6])};
+        new (self) ScatteringMetaData{
+            .description                     = py::cast<String>(t[0]),
+            .source                          = py::cast<String>(t[1]),
+            .refr_index                      = py::cast<String>(t[2]),
+            .mass                            = py::cast<Numeric>(t[3]),
+            .diameter_max                    = py::cast<Numeric>(t[4]),
+            .diameter_volume_equ             = py::cast<Numeric>(t[5]),
+            .diameter_area_equ_aerodynamical = py::cast<Numeric>(t[6])};
       });
 
   auto a1 = py::bind_vector<ArrayOfScatteringMetaData,

@@ -21,7 +21,6 @@
 #include "interpolation.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
-#include "mc_interp.h"
 #include "operators.h"
 #include "predef_data.h"
 #include "predefined_absorption_models.h"
@@ -311,21 +310,6 @@ void atmospheric_fieldAppendTagsSpeciesData(
               0,
               keys,
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
-}
-
-void atmospheric_fieldAppendLookupTableSpeciesData(
-    AtmField &atmospheric_field,
-    const GasAbsLookup &absorption_lookup_table_data,
-    const String &basename,
-    const String &extrapolation,
-    const Index &missing_is_zero,
-    const Index &replace_existing) {
-  atmospheric_fieldAppendTagsSpeciesData(atmospheric_field,
-                                         absorption_lookup_table_data.Species(),
-                                         basename,
-                                         extrapolation,
-                                         missing_is_zero,
-                                         replace_existing);
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,

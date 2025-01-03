@@ -39,63 +39,11 @@ void ArtsXMLTag::add_attribute(const String& aname,
   add_attribute(aname, v.str());
 }
 
-void ArtsXMLTag::add_attribute(const String& aname,
-                               const ArrayOfSpeciesEnum& value,
-                               const bool self,
-                               const bool bath) {
-  std::ostringstream v;
-
-  if (self) v << LineShape::self_broadening;
-  for (Size i = self; i < value.size() - bath; i++)
-    v << ' ' << toString<1>(value[i]);
-  if (bath) {
-    v << ' ' << LineShape::bath_broadening;
-  }
-
-  add_attribute(aname, v.str());
-}
-
 void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
   String attribute_value;
 
   get_attribute_value(aname, attribute_value);
   value = SpeciesTag(attribute_value);
-}
-
-void ArtsXMLTag::get_attribute_value(const String& aname,
-                                     ArrayOfSpeciesEnum& value,
-                                     bool& self,
-                                     bool& bath) {
-  value.resize(0);
-  self = false;
-  bath = false;
-
-  String attribute_value;
-  std::istringstream strstr("");
-
-  get_attribute_value(aname, attribute_value);
-  if (attribute_value.size() == 0) return;
-
-  strstr.str(attribute_value);
-  String val;
-
-  while (not strstr.eof()) {
-    strstr >> val;
-    if (strstr.fail()) {
-      xml_parse_error("Error while parsing value of " + aname + " from <" +
-                      name + ">");
-    }
-
-    if (val == LineShape::self_broadening) {
-      value.push_back(static_cast<SpeciesEnum>(-1));
-      self = true;
-    } else if (val == LineShape::bath_broadening) {
-      value.push_back(SpeciesEnum::Bath);
-      bath = true;
-    } else {
-      value.push_back(to<SpeciesEnum>(val));
-    }
-  }
 }
 
 void ArtsXMLTag::get_attribute_value(const String& aname,

@@ -16,7 +16,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "absorptionlines.h"
 #include "debug.h"
 #include "isotopologues.h"
 #include "species_tags.h"
@@ -358,9 +357,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAgenda)
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField3)
@@ -387,7 +384,6 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSparse)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfString)
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor3)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor4)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor5)

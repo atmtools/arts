@@ -7,7 +7,6 @@ if(NETCDF_FOUND)
     nc_io.cc
     nc_io_array_types.cc
     nc_io_basic_types.cc
-    nc_io_compound_types.cc
   )
 endif(NETCDF_FOUND)
 
@@ -111,9 +110,7 @@ add_library(artsworkspace STATIC
   workspace_method_class.cpp
   workspace_method_extra_doc.cpp
   workspace_class.cpp
-  compile_time_tests.cc
   m_abs.cc
-  m_absorptionlines.cc
   m_atm.cc
   m_background.cc
   m_cat.cc
