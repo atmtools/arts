@@ -143,12 +143,6 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfAgenda(self):
-        y = cxx.Agenda()
-        x = cxx.ArrayOfAgenda([y])
-
-        test.array(x)
-
     def testArrayOfArrayOfAbsorptionLines(self):
         lineshapemodel = cxx.LineShapeModel(
             [

@@ -139,14 +139,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
                 ag.set_name(n);
                 ag.finalize();
               }
-            } else if (ptr.holds<ArrayOfAgenda>()) {
-              auto& ags = ptr.get_unsafe<ArrayOfAgenda>();
-              for (auto& ag : ags) {
-                if (not ag.is_checked()) {
-                  ag.set_name(n);
-                  ag.finalize();
-                }
-              }
             }
           },
           "name"_a,

@@ -176,42 +176,6 @@ so Copy(a, out=b) will not even see the b variable.
           "methods",
           [](const Agenda& agenda) { return agenda.get_methods(); },
           "The methods of the agenda");
-
-  auto aag = py::bind_vector<ArrayOfAgenda, py::rv_policy::reference_internal>(
-      m, "ArrayOfAgenda");
-  workspace_group_interface(aag);
-  aag.def(
-         "__init__",
-         [](ArrayOfAgenda* a, std::vector<Agenda> va) {
-           for (auto& ag_ : va) {
-             ARTS_USER_ERROR_IF(
-                 ag_.get_name() not_eq va.front().get_name(),
-                 "An ArrayOfAgenda must only consist of agendas with the same name\n"
-                 "You have input a list of agendas that contains disimilar names.\n"
-                 "\nThe first item is named: \"{}\"\n"
-                 "A later item in the list is names: \"{}\"\n",
-                 va.front().get_name(),
-                 ag_.get_name())
-           }
-           new (a) ArrayOfAgenda(std::move(va));
-         },
-         "Create from :class:`list`")
-      .def(
-          "finalize",
-          [](ArrayOfAgenda& aa) {
-            for (auto& a : aa) a.finalize();
-          },
-          "Checks if the agenda works")
-      .def_prop_rw(
-          "name",
-          [](ArrayOfAgenda& a) -> String {
-            if (a.size() == 0) return "";
-            return a.front().get_name();
-          },
-          [](ArrayOfAgenda& aa, const String& name) {
-            for (auto& a : aa) a.set_name(name);
-          },
-          ":class:`~pyarts.arts.String` Name of the array of agenda");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));

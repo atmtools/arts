@@ -4,6 +4,18 @@
 
 #include <stdexcept>
 
+#include "workspace_agendas.h"
+
+void agenda_operators(
+    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data) {
+  for (auto& [name, ag] : internal_workspace_agendas()) {
+    wsg_data[name + "Operator"] = {
+        .file = "auto_agenda_operators.h",
+        .desc = ag.desc,
+    };
+  }
+}
+
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
@@ -35,11 +47,6 @@ internal_workspace_groups_creator() {
       .file = "supergeneric.h",
       .desc =
           "Meta type for when methods can take any argument (avoid manual use)\n",
-  };
-
-  wsg_data["ArrayOfAgenda"] = {
-      .file = "workspace_agenda_class.h",
-      .desc = "A list of *Agenda*\n",
   };
 
   wsg_data["ArrayOfArrayOfGriddedField1"] = {
@@ -960,6 +967,8 @@ well as the sampling device's polarization response.
         .desc = g.docs(),
     };
   }
+
+  agenda_operators(wsg_data);
 
   return wsg_data;
 }

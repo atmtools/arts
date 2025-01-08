@@ -166,15 +166,6 @@ startover:
         ag.copy_workspace(out, in, true);
         goto startover;
       }
-    } else if (var.second.holds<ArrayOfAgenda>()) {
-      if (not handle.has(var.first)) {
-        auto& aag = var.second.get<ArrayOfAgenda>();
-        handle.set(var.first);
-        for (auto& ag : aag) {
-          ag.copy_workspace(out, in, true);
-        }
-        goto startover;
-      }
     }
   }
 }
@@ -319,11 +310,6 @@ std::ostream& operator<<(std::ostream& os, const Agenda& a) {
     }
   }
 
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfAgenda& a) {
-  for (auto& ag : a) os << ag << '\n';
   return os;
 }
 

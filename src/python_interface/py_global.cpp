@@ -124,7 +124,6 @@ Return
       .def_ro("desc", &WorkspaceAgendaInternalRecord::desc, "Description")
       .def_ro("output", &WorkspaceAgendaInternalRecord::output, "Outputs")
       .def_ro("input", &WorkspaceAgendaInternalRecord::input, "Inputs")
-      .def_ro("array", &WorkspaceAgendaInternalRecord::array, "Is array")
       .doc() = "Agenda records used as workspace variables";
 
   global.def(

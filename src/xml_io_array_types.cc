@@ -357,7 +357,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAgenda)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField3)

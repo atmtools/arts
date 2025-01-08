@@ -135,12 +135,8 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
     auto wsa_ptr = wsa.find(str);
     if (wsa_ptr != wsa.end()) {
-      if (wsa_ptr->second.array)
-        os << comma(first, spaces) << "ArrayOfAgenda"
-           << "& " << str;
-      else
-        os << comma(first, spaces) << "Agenda"
-           << "& " << str;
+      os << comma(first, spaces) << "Agenda"
+         << "& " << str;
       continue;
     }
 
@@ -169,12 +165,8 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
     auto wsa_ptr = wsa.find(str);
     if (wsa_ptr != wsa.end()) {
-      if (wsa_ptr->second.array)
-        os << comma(first, spaces) << "const ArrayOfAgenda"
-           << "& " << str;
-      else
-        os << comma(first, spaces) << "const Agenda"
-           << "& " << str;
+      os << comma(first, spaces) << "const Agenda"
+         << "& " << str;
       continue;
     }
 
@@ -267,13 +259,27 @@ void add_agenda_methods(
     std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [agname, ag] : internal_workspace_agendas()) {
     if (wsm_data.contains(agname + "Execute") or
-        wsm_data.contains(agname + "Set"))
-      throw std::runtime_error(
-          "Agenda method to Execute and/or Set must be generated automatically: " +
-          agname);
+        wsm_data.contains(agname + "Set") or
+        wsm_data.contains(agname + "ExecuteOperator") or
+        wsm_data.contains(agname + "SetOperator"))
+      throw std::runtime_error(std::format(R"(
+
+The following methods are predefined.  Do not manually define these:
+
+{0}Execute
+{0}ExecuteOperator
+{0}Set
+{0}SetOperator
+
+Remove the manual definition of these methods from workspace_methods.cpp.
+)",
+                                           agname));
 
     std::vector<std::string> input = ag.input;
     input.push_back(agname);
+    std::vector<std::string> input_op = ag.input;
+    input_op.push_back(agname + "_operator");
+
     wsm_data[agname + "Execute"] = {
         .desc   = "Executes *" + agname + "*, see it for more details\n",
         .author = {"``Automatically Generated``"},
@@ -282,10 +288,31 @@ void add_agenda_methods(
         .pass_workspace = true,
     };
 
+    wsm_data[agname + "ExecuteOperator"] = {
+        .desc = "Executes an operator emulating *" + agname + "*, see it for more details\n",
+        .author    = {"``Automatically Generated``"},
+        .out       = ag.output,
+        .in        = ag.input,
+        .gin       = {agname + "_operator"},
+        .gin_type  = {agname + "Operator"},
+        .gin_value = {std::nullopt},
+        .gin_desc  = {"Operator for *" + agname + "*"},
+    };
+
+    wsm_data[agname + "SetOperator"] = {
+        .desc      = "Set *" + agname + "* to exclusively use provided external operator\n",
+        .author    = {"``Automatically Generated``"},
+        .out       = {agname},
+        .gin       = {"f"},
+        .gin_type  = {agname + "Operator"},
+        .gin_value = {std::nullopt},
+        .gin_desc  = {"Operator for *" + agname + "*"},
+    };
+
     if (ag.enum_options.empty()) continue;
 
     wsm_data[agname + "Set"] = {
-        .desc      = "Set *" + agname + "* to a specific value\n",
+        .desc      = "Set *" + agname + "* to a specific predefined option\n",
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"option"},

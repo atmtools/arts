@@ -64,7 +64,3 @@ class Agenda {
 
   friend std::ostream& operator<<(std::ostream& os, const Agenda& a);
 };
-
-using ArrayOfAgenda = Array<Agenda>;
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfAgenda& a);

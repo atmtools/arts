@@ -18,10 +18,12 @@ file(GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 
 # ####
-add_library(workspace_group STATIC
+add_library(workspace_core STATIC
+  workspace_agendas.cpp
   workspace_groups.cpp
+  workspace_variables.cpp
 )
-target_link_libraries(workspace_group PRIVATE arts_options)
+target_link_libraries(workspace_core PRIVATE arts_options)
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
 add_custom_command(OUTPUT
@@ -34,21 +36,19 @@ add_custom_command(OUTPUT
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace groups"
 )
-target_link_libraries(make_auto_wsg PRIVATE workspace_group)
+target_link_libraries(make_auto_wsg PRIVATE workspace_core)
 
 # ####
 add_library(workspace_internals STATIC
   workspace_agenda_class_default_constructor.cpp
-  workspace_agendas.cpp
   workspace_meta_methods.cpp
   workspace_methods.cpp
-  workspace_variables.cpp
   workspace_variables_keywords.cpp
   workspace_wsv.cpp
   auto_wsg_init.cpp
   auto_wsg_share.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group artscore scattering)
+target_link_libraries(workspace_internals PUBLIC workspace_core artscore scattering)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -87,8 +87,8 @@ add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp auto_wsmmeta.cpp ${ARTS_WORKSP
 target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
 # ####
-add_executable(make_auto_wsa make_auto_wsa.cpp)
-add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
+add_executable(make_auto_wsa make_auto_wsa.cpp )
+add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp auto_wsa_operators.cpp
   COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -103,6 +103,7 @@ add_library(artsworkspace STATIC
   auto_wsmmeta.cpp
   auto_wsa.cpp
   auto_workspace.cpp
+  auto_agenda_operators.cpp
   ${ARTS_WORKSPACE_METHODS}
   callback.cpp
   workspace_agenda_class.cpp

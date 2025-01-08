@@ -44,15 +44,11 @@ std::string variable(const std::string& name,
     os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
        << "\");\n      ws_val.set_name(\"" << name
        << "\");\n      ws_val.finalize();\n";
-  if (wsv.type == "ArrayOfAgenda")
-    os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
-       << "\");\n      for (auto&ws_value: ws_val) {\n        ws_value.set_name(\""
-       << name << "\");\n        ws_value.finalize();\n      }\n";
 
   os << "    }, R\"-x-(:class:`~pyarts.arts." << wsv.type << "` "
      << unwrap_stars(wsv.desc) << "\n\n";
 
-  if (wsv.type == "Agenda" or wsv.type == "ArrayOfAgenda") {
+  if (wsv.type == "Agenda") {
     os << get_agenda_io(name);
   }
 

@@ -466,10 +466,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
       auto wsaptr = wsas.find(outvar);
       if (wsaptr != wsas.end()) {
-        if (wsaptr->second.array)
-          code << "  ArrayOfAgenda " << outvar << ";\n";
-        else
-          code << "  Agenda " << outvar << ";\n";
+        code << "  Agenda " << outvar << ";\n";
         continue;
       }
 

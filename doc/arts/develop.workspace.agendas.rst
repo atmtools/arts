@@ -12,7 +12,6 @@ The workspace agenda definitions are located in the ``wsa_data`` map object.  Th
 - ``inputs`` - the workspace variables that are consumed by the agenda as a list of strings.
 - ``enum_options`` - a list of strings that are the options for the agenda.  Defaults to empty.
 - ``enum_defaults`` - the default enum option for the agenda.  Defaults to no-default by being empty.
-- ``array`` - a boolean for whether the agenda is described as an :class:`~pyarts.arts.ArrayOfAgenda` (if true) or an :class:`~pyarts.arts.Agenda` (if false, default).
 
 The two enum-variables, if set, will generate workspace methods that allow setting the agenda to a specific named option.
 This is useful for agendas that have known "modes".  However, it puts some constraints on the implementation of the agenda.

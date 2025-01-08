@@ -1,5 +1,17 @@
 #include "workspace_variables.h"
 
+#include "workspace_agendas.h"
+
+void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
+                 wsv_data) {
+  for (auto& [name, ag] : internal_workspace_agendas()) {
+    wsv_data[name] = {
+        .desc = ag.desc,
+        .type = "Agenda",
+    };
+  }
+}
+
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
@@ -109,8 +121,7 @@ See *atmospheric_field* for the data that may be available in the atmospheric po
   };
 
   wsv_data["propagation_matrix_jacobian"] = {
-      .desc = R"--(
-Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
+      .desc = R"--(Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
 
 The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
 )--",
@@ -134,7 +145,7 @@ Dimensions: [num Isotopologues] [num Species]
 Used in line-by-line calculations requiring ECS data.
 )--",
       .type          = "LinemixingEcsData",
-      .default_value = LinemixingEcsData{},
+      .default_value = " ",
   };
 
   wsv_data["frequency_grid"] = {
@@ -157,7 +168,7 @@ wind shift Jacobian calculations.
 The order is ``[df_du, df_dv, df_fw]``
 )--",
       .type          = "Vector3",
-      .default_value = Vector3{0.0, 0.0, 0.0},
+      .default_value = "0.0, 0.0, 0.0",
   };
 
   wsv_data["ray_path_frequency_grid_wind_shift_jacobian"] = {
@@ -306,7 +317,7 @@ Dimension: *frequency_grid*.
       .desc          = R"--(Species selection.
 )--",
       .type          = "SpeciesEnum",
-      .default_value = SpeciesEnum::Bath,
+      .default_value = "SpeciesEnum::Bath",
   };
 
   wsv_data["select_species_list"] = {.desc = R"--(Species selection.
@@ -514,7 +525,7 @@ it is called, the use of *spectral_radiance_unit* with a different unit than "1"
 undesired results.
 )--",
       .type          = "SpectralRadianceUnitType",
-      .default_value = SpectralRadianceUnitType::unit,
+      .default_value = "SpectralRadianceUnitType::unit",
   };
 
   wsv_data["spectral_radiance"] = {
@@ -549,7 +560,7 @@ size of the local *spectral_radiance* as columns.
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
 )--",
       .type = "JacobianTargets",
-      .default_value = JacobianTargets{},
+      .default_value = " ",
   };
 
   wsv_data["ray_path_point"] = {
@@ -604,7 +615,7 @@ radiance.
 In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`x`.
 )",
       .type          = "Vector",
-      .default_value = Vector{},
+      .default_value = " ",
   };
 
   wsv_data["model_state_vector_apriori"] = {
@@ -641,7 +652,7 @@ This should often be the same size as *measurement_sensor*.
 In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
 )",
       .type          = "Vector",
-      .default_value = Vector{},
+      .default_value = " ",
   };
 
   wsv_data["measurement_gain_matrix"] = {
@@ -670,14 +681,14 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
       .desc          = R"(A counter for the inversion iterate agenda.
 )",
       .type          = "Index",
-      .default_value = Index{0},
+      .default_value = "0",
   };
 
   wsv_data["inversion_iterate_agenda_do_jacobian"] = {
       .desc = R"(A boolean for if Jacobian calculations should be done.
 )",
       .type = "Index",
-      .default_value = Index{1},
+      .default_value = "1",
   };
 
   wsv_data["measurement_vector_error_covariance_matrix"] = {
@@ -828,6 +839,8 @@ The inner "3" is in order: upwelling, diffuse downwelling, and direct downwellin
 )",
       .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
   };
+
+  agendas(wsv_data);
 
   return wsv_data;
 }

@@ -1,10 +1,12 @@
 #include <algorithm>
+#include <format>
 #include <fstream>
 #include <iostream>
-#include <format>
 #include <vector>
 
+#include "workspace_agendas.h"
 #include "workspace_groups.h"
+#include "workspace_variables.h"
 
 const auto& data = internal_workspace_groups();
 
@@ -25,9 +27,20 @@ std::vector<std::pair<std::string, std::vector<std::string>>> files() {
   std::sort(files.begin(), files.end(), [](auto& a, auto& b) {
     return a.first < b.first;
   });
+
   for (auto& [file, groups] : files) {
     std::sort(groups.begin(), groups.end());
   }
+
+  // auto_wsa_operators.h must be last as it is auto-generated and need all the other types:
+  auto ptr = std::find_if(files.begin(), files.end(), [](auto& p) {
+    return p.first == "auto_agenda_operators.h";
+  });
+
+  if (ptr == files.end())
+    throw std::logic_error("Missing auto_agenda_operators.h");
+
+  std::rotate(ptr, ptr + 1, files.end());
 
   return files;
 }
@@ -320,6 +333,103 @@ This fails one of the following:
   }
 }
 
+void agenda_operators() {
+  const auto& wsv = internal_workspace_variables();
+  const auto& wsa = internal_workspace_agendas();
+
+  std::ofstream h("auto_agenda_operators.h");
+  std::ofstream cpp("auto_agenda_operators.cpp");
+
+  std::print(h, R"(#pragma once
+
+)");
+
+  std::print(cpp, R"(#include "auto_wsg.h"
+
+#include <workspace_agenda_creator.h>
+)");
+
+  std::string errors{};
+
+  for (auto& [name, ag] : wsa) {
+    std::print(h,
+               R"(
+using {0}Operator
+   = CustomOperator<std::tuple<)",
+               name);
+
+    std::string_view sep = "";
+    for (auto& var : ag.output) {
+      std::print(h, "{}{}", std::exchange(sep, ", "), wsv.at(var).type);
+    }
+
+    h << '>';
+
+    for (auto& var : ag.input) {
+      std::print(h, ", const {}&", wsv.at(var).type);
+    }
+
+    h << ">;\n";
+
+    const std::string spaces(5 + name.size() + 8 + 8, ' ');
+
+    cpp << "\nvoid " << name << "ExecuteOperator(";
+
+    sep = "";
+    for (auto& v : ag.output) {
+      cpp << std::exchange(sep, ",\n" + spaces) << wsv.at(v).type << "& " << v;
+    }
+
+    for (auto& v : ag.input) {
+      if (not std::ranges::contains(ag.output, v)) {
+        cpp << ",\n" << spaces << "const " << wsv.at(v).type << "& " << v;
+      }
+    }
+
+    cpp << ",\n"
+        << spaces << "const " << name << "Operator& " << name
+        << "_operator) {\n";
+
+    cpp << "  auto _tup = " << name << "_operator(";
+    sep = "";
+    for (auto& v : ag.input) {
+      if (not std::ranges::contains(ag.output, v)) {
+        cpp << std::exchange(sep, ", ") << v;
+      }
+    }
+    cpp << ");\n";
+
+    for (std::size_t i = 0; i < ag.output.size(); ++i) {
+      cpp << "  " << ag.output[i] << " = std::get<" << i << ">(_tup);\n";
+    }
+    cpp << "}\n";
+
+    std::print(
+        cpp,
+        R"(
+void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
+  AgendaCreator agenda("{0}");
+  agenda.add("{0}ExecuteOperator",
+             SetWsv{{"{0}_operator", {0}_operator}});
+  {0} = std::move(agenda).finalize(false);
+}}
+)",
+        name);
+
+    std::print(cpp,
+               R"(
+void xml_read_from_stream(std::istream&, {0}Operator&, bifstream*) {{throw std::runtime_error("Cannot read {0}Operator");}}
+void xml_write_to_stream(std::ostream&, const {0}Operator&, bofstream*, const String&) {{throw std::runtime_error("Cannot save {0}Operator");}}
+)",
+               name);
+  }
+
+  if (not errors.empty()) {
+    std::cerr << "Please add the following to workspace_groups.cpp:\n\n"
+              << errors << '\n';
+  }
+}
+
 int main() try {
   std::ofstream head("auto_wsg.h");
   std::ofstream init("auto_wsg_init.cpp");
@@ -331,6 +441,8 @@ int main() try {
   std::ofstream ws_os("auto_workspace.cpp");
   auto_workspace(ws_os);
   static_assert_for_vector_and_map(ws_os);
+
+  agenda_operators();
 } catch (std::exception& e) {
   std::cerr << "Cannot create the automatic groups with error:\n\n"
             << e.what() << '\n';
