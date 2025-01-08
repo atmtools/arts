@@ -31,6 +31,8 @@ add_custom_command(OUTPUT
   auto_wsg_init.cpp
   auto_wsg_share.cpp
   auto_workspace.cpp
+  auto_agenda_operators.h
+  auto_agenda_operators.cpp
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
