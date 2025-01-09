@@ -48,6 +48,7 @@ void py_zeeman(py::module_& m);
 void py_retrieval(py::module_& m);
 void py_lookup(py::module_& m);
 void py_file(py::module_& m);
+void py_auto_agenda_operators(py::module_& m);
 
 /** Construct a new nanobind module object to hold all the Arts types and functions
  * 
@@ -130,6 +131,7 @@ NB_MODULE(arts, m) try {
   py_disort(m);
   py_retrieval(m);
   py_lookup(m);
+  py_auto_agenda_operators(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(ws);

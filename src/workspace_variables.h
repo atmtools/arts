@@ -1,15 +1,12 @@
 #pragma once
 
-#include <optional>
 #include <string>
 #include <unordered_map>
-
-#include "workspace_wsv.h"
 
 struct WorkspaceVariableInternalRecord {
   std::string desc;
   std::string type;
-  std::optional<Wsv> default_value{std::nullopt};
+  std::string default_value{""};
 };
 
 const std::unordered_map<std::string, WorkspaceVariableInternalRecord>&

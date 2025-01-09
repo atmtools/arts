@@ -25,8 +25,7 @@ In ``workspace_agendas.cpp``
 ----------------------------
 
 See the page on :doc:`develop.workspace.agendas` for more information.  The workspace variable defined from the workspace agenda will
-have no default value.  It will be of the type :class:`~pyarts.arts.Agenda` by default but of type :class:`~pyarts.arts.ArrayOfAgenda`
-if the field ``array`` is ``true``.
+have no default value.  It will be of the type :class:`~pyarts.arts.Agenda`.
 
 What qualifies as a workspace variable?
 =======================================

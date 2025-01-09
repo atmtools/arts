@@ -1,6 +1,7 @@
 #include <workspace.h>
 
 #include <iostream>
+#include <string>
 
 #include "pydocs.h"
 
@@ -215,7 +216,97 @@ struct PythonWorkspaceGroupInfo<)"
   }
 }
 
+void agenda_operators() {
+  const auto& wsv = internal_workspace_variables();
+
+  std::ofstream cpp("py_auto_agenda_operators.cpp");
+
+  cpp << R"(#include <python_interface.h>
+
+#include <hpy_arts.h>
+#include <nanobind/stl/function.h>
+
+namespace Python {
+
+void py_auto_agenda_operators(py::module_& m) {
+)";
+
+  for (auto& [name, ag] : internal_workspace_agendas()) {
+    std::vector<std::string> input;
+    std::vector<std::string> vars;
+    std::string params;
+    std::string retval;
+
+    input.reserve(ag.input.size());
+    vars.reserve(ag.input.size());
+    params.reserve(ag.input.size());
+    for (auto&& v : ag.input) {
+      input.push_back(std::format("const {}& {}", wsv.at(v).type, v));
+      vars.push_back(std::format(R"("{}"_a)", v));
+      params += std::format(
+          R"({0} : :class:`~pyarts.arts.{1}`
+     {2} See also :attr:`~pyarts.workspace.Workspace.{0}`.
+)",
+          v,
+          wsv.at(v).type,
+          unwrap_stars(short_doc(v)));
+    }
+
+    retval.reserve(ag.output.size());
+    for (auto&& v : ag.output) {
+      retval += std::format(
+          R"({0} : :class:`~pyarts.arts.{1}`
+     {2} See also :attr:`~pyarts.workspace.Workspace.{0}`.
+)",
+          v,
+          wsv.at(v).type,
+          unwrap_stars(short_doc(v)));
+    }
+
+    std::print(cpp,
+               R"(
+  py::class_<{0}Operator> {0}_operator(m, "{0}Operator");
+    {0}_operator.def("__init__",
+            []({0}Operator* op, {0}Operator::func_t f) {{
+              new (op) {0}Operator([f = std::move(f)]({1:,}) {{
+                py::gil_scoped_acquire gil{{}};
+                return f({2:,});
+              }});
+            }})
+        .def(
+            "__call__",
+            []({0}Operator& f, {1:,}) {{
+              return f.f({2:,});
+            }},
+            {3:,},
+            R"-x-(Execute the method directly in python
+
+Parameters
+----------
+{4}
+
+Returns
+-------
+{5}
+)-x-"
+            );
+    workspace_group_interface({0}_operator);
+    py::implicitly_convertible<{0}Operator::func_t,
+                               {0}Operator>();
+)",
+               name,
+               input,
+               ag.input,
+               vars,
+               params,
+               retval);
+  }
+
+  cpp << "}}\n";
+}
+
 int main() {
   groups("py_auto_wsg");
   groupdocs("py_auto_wsgdocs.h");
+  agenda_operators();
 }

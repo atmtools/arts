@@ -5,6 +5,7 @@
 #include <map>
 #include <utility>
 
+#include "auto_wsg.h"
 #include "workspace_agendas.h"
 #include "workspace_variables.h"
 
@@ -16,7 +17,6 @@ struct auto_ag {
   std::string desc;
   std::vector<std::pair<std::string, std::string>> o;
   std::vector<std::pair<std::string, std::string>> i;
-  bool array;
 };
 
 void helper_auto_ag(std::ostream& os,
@@ -30,11 +30,7 @@ void helper_auto_ag(std::ostream& os,
       os << R"(static_assert(false, "\n\nCould not find workspace variable \")"
          << var << R"(\" of agenda \")" << name << "\\\"\\n\\n\");\n";
     } else {
-      if (ag_ptr->second.array) {
-        vars.emplace_back("ArrayOfAgenda", var);
-      } else {
-        vars.emplace_back("Agenda", var);
-      }
+      vars.emplace_back("Agenda", var);
     }
   } else {
     vars.emplace_back(ptr->second.type, var);
@@ -47,7 +43,6 @@ std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
   for (const auto& [name, record] : wsa) {
     auto& ag = map[name];
     ag.desc  = record.desc;
-    ag.array = record.array;
 
     for (const auto& out : record.output) {
       helper_auto_ag(os, ag.o, name, out);
@@ -114,14 +109,7 @@ void call_operator(std::ostream& os,
       os << ",\n" << spaces << "const " << type << "& " << name;
   }
 
-  os << ",\n" << spaces << "const ";
-
-  if (ag.array) {
-    os << "ArrayOf";
-  }
-
-  os << "Agenda& " << agname;
-  os << ")";
+  os << ",\n" << spaces << "const Agenda& " << agname << ")";
 }
 
 void header(std::ostream& os) {
@@ -180,25 +168,12 @@ struct WorkspaceAgendaBoolHandler {
   }
 }
 
-void agenda_checker(std::ostream& os, const std::string& name, bool array) {
-  if (array) {
-    os << "  if (agenda_array_index < 0 or static_cast<std::size_t>(agenda_array_index) >= "
-       << name
-       << ".size()) {\n"
-          "    throw std::runtime_error(R\"--(Array index out-of-bounds)--\");\n  }\n\n";
-  }
-
+void agenda_checker(std::ostream& os, const std::string& name) {
   os << "  if (not " << name;
-  if (array) {
-    os << "[agenda_array_index]";
-  }
   os << ".is_checked()) {\n"
         "    throw std::runtime_error(R\"--(\nYou have somehow created the agenda without checking it.\n\nPlease manually call finalize() on the agenda)--\");\n  }\n\n";
 
   os << "  if (const auto& n = " << name;
-  if (array) {
-    os << "[agenda_array_index]";
-  }
   os << ".get_name(); n != \"" << name
      << "\") {\n"
         "    throw std::runtime_error(std::format(\"Mismatch with name: {}\", n));\n  }\n";
@@ -220,9 +195,6 @@ void workspace_setup_and_exec(std::ostream& os,
   os << "\n"
         "  // Copy and share data from old workspace (this will copy pure inputs that are modified)\n  ";
   os << name;
-  if (ag.array) {
-    os << "[agenda_array_index]";
-  }
   os << ".copy_workspace(_lws, ws);\n";
 
   os << "\n  // Modified data must be copied here\n";
@@ -232,9 +204,6 @@ void workspace_setup_and_exec(std::ostream& os,
   }
 
   os << "\n  // Run all the methods\n  " << name;
-  if (ag.array) {
-    os << "[agenda_array_index]";
-  }
   os << ".execute(_lws);\n";
 }
 
@@ -308,7 +277,7 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
   for (const auto& [name, ag] : agmap) {
     call_operator(os, ag, name);
     os << " try {\n";
-    agenda_checker(os, name, ag.array);
+    agenda_checker(os, name);
     workspace_setup_and_exec(os, name, ag);
     os << "} catch(std::exception& e) {\n  throw std::runtime_error(std::format(R\"--(Error executing agenda "
        << '"' << name << '"' << ":\n{})--\", e.what()));\n}\n\n";

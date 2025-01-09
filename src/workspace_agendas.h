@@ -10,7 +10,6 @@ struct WorkspaceAgendaInternalRecord {
   std::vector<std::string> input{};
   std::vector<std::string> enum_options{};
   std::string enum_default{};
-  bool array{false};
 };
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&

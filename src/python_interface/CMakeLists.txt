@@ -69,7 +69,7 @@ target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py_groups PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
-    OUTPUT py_auto_wsg.cpp py_auto_wsg.h py_auto_wsgdocs.h
+    OUTPUT py_auto_wsg.cpp py_auto_wsg.h py_auto_wsgdocs.h py_auto_agenda_operators.cpp
     COMMAND gen_auto_py_groups
     DEPENDS gen_auto_py_groups
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -142,6 +142,8 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_zeeman.cpp
     py_module.cpp
     py_file.cpp
+
+    py_auto_agenda_operators.cpp
 
     gen_auto_py_helpers.cpp
 )
