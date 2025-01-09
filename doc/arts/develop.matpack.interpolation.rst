@@ -36,14 +36,13 @@ examples.
 Green and blue interpolation
 ----------------------------
 
-.. image:: Figs/interpolation/interpolation_types.svg
+.. figure:: Figs/interpolation/interpolation_types.svg
   :width: 800
 
-Figure:
-The two different types of interpolation. Green (dotted):
-Interpolation to a new grid, output has same dimension as input,
-in this case 2D. Blue (dashed): Interpolation to a sequence of
-points, output is always 1D.
+  The two different types of interpolation. Green (dotted):
+  Interpolation to a new grid, output has same dimension as input,
+  in this case 2D. Blue (dashed): Interpolation to a sequence of
+  points, output is always 1D.
 
 There are two different types of interpolation in ARTS:
 
@@ -223,17 +222,16 @@ where :math:`t` and :math:`u` are the fractional distances between the
 corner points in the two dimensions, :math:`y_i` are the field values
 at the corner points, and :math:`w_i` are the interpolation weights.
 
-.. image:: Figs/interpolation/interpolation_square.svg
-   :width: 400
+.. figure:: Figs/interpolation/interpolation_square.svg
+  :width: 400
 
-The grid square for 2D interpolation. The numbers 1... 4
-mark the corner points, IP is the interpolation point, :math:`t` and :math:`u`
-are the fractional distances in the two dimensions.
-
-(By the way, I have discovered that this is exactly the result that
-you get if you first interpolate linearly in one dimension, then in
-the other. I was playing around with this a bit, but it is the more
-efficient way to pre-calculate the :math:`w_i` and do all dimensions at once.)
+  The grid square for 2D interpolation. The numbers 1... 4
+  mark the corner points, IP is the interpolation point, :math:`t` and :math:`u`
+  are the fractional distances in the two dimensions.
+  (By the way, I have discovered that this is exactly the result that
+  you get if you first interpolate linearly in one dimension, then in
+  the other. I was playing around with this a bit, but it is the more
+  efficient way to pre-calculate the :math:`w_i` and do all dimensions at once.)
 
 How many interpolation weights one needs for a multilinear
 interpolation depends on the dimension of the interpolation: There are
