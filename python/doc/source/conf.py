@@ -41,6 +41,7 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'nbsphinx',
     'sphinx.ext.graphviz',
+    'sphinxcontrib.bibtex',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -353,3 +354,7 @@ favicons = [
 ]
 
 graphviz_output_format = 'svg'
+
+bibtex_bibfiles = ['j_full.bib', 'references.bib']
+bibtex_default_style = 'plain'
+

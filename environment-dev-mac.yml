@@ -33,6 +33,7 @@ dependencies:
         - sphinx-favicon
         - sphinx-rtd-theme=3
         - sphinxcontrib-jquery
+        - sphinxcontrib-bibtex
         - tqdm
         - xarray
         - zlib

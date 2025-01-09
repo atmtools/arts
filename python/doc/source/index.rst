@@ -29,4 +29,5 @@ are available on the `ARTS website <https://www.radiativetransfer.org>`_.
    pyarts
    develop
    indices
+   bibliography
    contact
