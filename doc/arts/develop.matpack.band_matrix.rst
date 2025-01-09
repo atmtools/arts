@@ -10,7 +10,7 @@ is actually banded to use this type.
 
 It is implemented in the class ``band_matrix`` in the ``matpack`` namespace.  The
 implementation is just a wrap of ``Matrix`` with special item access.
-The only operation it supports is solving :mat:`\mathrm{A}\vec{x} = \vec{b}` for :math:`\vec{x}`,
+The only operation it supports is solving :math:`\mathrm{A}\vec{x} = \vec{b}` for :math:`\vec{x}`,
 where :math:`\mathrm{A}` is a band matrix and :math:`\vec{b}` is a vector.
 It implements this solution by wrapping LAPACK's ``dgbsv``.
 Please see its documentation for more details on the layout of the band matrix.
