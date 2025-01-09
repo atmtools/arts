@@ -36,7 +36,7 @@ examples.
 Green and blue interpolation
 ----------------------------
 
-.. image:: Figs/Interpolation/interpolation_types.pdf
+.. image:: Figs/interpolation/interpolation_types.pdf
   :width: 800
 
 Figure:
@@ -223,7 +223,7 @@ where :math:`t` and :math:`u` are the fractional distances between the
 corner points in the two dimensions, :math:`y_i` are the field values
 at the corner points, and :math:`w_i` are the interpolation weights.
 
-.. image:: Figs/Interpolation/interpolation_square.pdf
+.. image:: Figs/interpolation/interpolation_square.pdf
    :width: 400
 
 The grid square for 2D interpolation. The numbers 1... 4
