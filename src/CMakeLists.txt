@@ -90,7 +90,7 @@ target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
 # ####
 add_executable(make_auto_wsa make_auto_wsa.cpp )
-add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp auto_wsa_operators.cpp
+add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
   COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
