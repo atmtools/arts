@@ -4,6 +4,7 @@ Errors inside the C++ code
 Use of macros in `debug.h`
 ==========================
 
+
 What does it achieve?
 ---------------------
 
