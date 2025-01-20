@@ -1,8 +1,8 @@
 For Developers
 ==============
 
-This section is for developers of the ARTS project.
-It contains design descriptions and guidelines for the development of ARTS.
+This section is for ARTS developers.
+It contains design descriptions, development guidelines, and practical tips.
 
 .. toctree::
    :maxdepth: 2
