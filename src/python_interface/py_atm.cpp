@@ -388,6 +388,52 @@ Parameters
     If True, the scattering species properties data will be included.  Default is True.
 )");
 
+  fld.def(
+      "keys",
+      [](const AtmField &atm,
+         bool core,
+         bool specs,
+         bool isots,
+         bool nlte,
+         bool ssprops) {
+        using std::back_inserter;
+
+        std::vector<Atm::KeyVal> out;
+        if (core) stdr::copy(atm.other() | stdv::keys, back_inserter(out));
+        if (specs) stdr::copy(atm.specs() | stdv::keys, back_inserter(out));
+        if (isots) stdr::copy(atm.isots() | stdv::keys, back_inserter(out));
+        if (nlte) stdr::copy(atm.nlte() | stdv::keys, back_inserter(out));
+        if (ssprops) stdr::copy(atm.ssprops() | stdv::keys, back_inserter(out));
+
+        return out;
+      },
+      "core"_a    = true,
+      "specs"_a   = true,
+      "isots"_a   = true,
+      "nlte"_a    = true,
+      "ssprops"_a = true,
+      R"(Get a list of the keys from an atmospheric field.
+
+>>> from pyarts.arts import AtmField
+>>> field = AtmField()
+>>> field["t"] = 273
+>>> k = AtmField.keys(isots=False)  # Get list of keys ignoring isotopologue ratios
+["t"]
+
+Parameters
+----------
+  core : bool, optional
+    If True, the core atmospheric keys will be included (i.e., temperature, pressure, etc).  Default is True.
+  specs : bool, optional
+    If True, the species VMR keys will be included.  Default is True.
+  isots : bool, optional
+    If True, the isotopologue ratio keys will be included.  Default is True.
+  nlte : bool, optional
+    If True, the NLTE keys will be included.  Default is True.
+  ssprops : bool, optional
+    If True, the scattering species property keys will be included.  Default is True.
+)");
+
   const auto update_field =
       [](AtmField &atm,
          const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
