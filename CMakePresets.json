@@ -118,7 +118,7 @@
       "name": "macintel-clang-conda",
       "inherits": "default-clang-conda",
       "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.3"
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.5"
       }
     },
     {

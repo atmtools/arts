@@ -73,7 +73,7 @@ $(Q) : $(GSH) shtns_make
 	@$(SED) $(eo) $(tor)  $(GSH) >> $(T)
 	@$(SED) $(eo) $(scal) $(GSH) >> $(Q)
 	@$(SED) $(eo) $(v3d)  $(GSH) >> $(QST)
-	@echo "SH*_to_spat code generated."
+#	@echo "SH*_to_spat code generated."
 
 # spat_to_SH generation
 $(SC) : $(GSP) shtns_make
@@ -89,7 +89,7 @@ $(SC) : $(GSP) shtns_make
 	@$(SED) $(eo) $(v3d)  $(GSP) >> $(V3)
 #	@$(SED) $(eo) $(sph)  $(GSP) >> $(VS0)
 #	@$(SED) $(eo) $(tor)  $(GSP) >> $(VT0)
-	@echo "spat_to_SH* code generated."
+#	@echo "spat_to_SH* code generated."
 
 clean:
 	rm -f spat_to_SH* SH*
