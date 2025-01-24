@@ -32,6 +32,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; },
+      py::for_getter(py::rv_policy::reference_internal),
       "A :class:`~numpy.ndarray` of the object.");
 
   c.def("__getstate__",
@@ -204,6 +205,7 @@ void gridded_data_interface(
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; },
+      py::for_getter(py::rv_policy::reference_internal),
       "A :class:`~numpy.ndarray` of the object.");
 
   c.def(

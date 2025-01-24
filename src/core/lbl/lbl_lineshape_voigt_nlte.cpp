@@ -26,7 +26,7 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
                                                const QuantumIdentifier& qid,
                                                const line& line,
                                                const AtmPoint& atm) {
-  using Constant::h, Constant::inv_sqrt_pi;
+  using Constant::h, Constant::c, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
   const Numeric ru = atm[qid.UpperLevel()];
@@ -37,14 +37,14 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
   const Numeric f      = line.f0;
   constexpr Numeric kB = Constant::k;
   const Numeric T      = atm.temperature;
-  const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
+  const Numeric B_part = f * f * f / std::expm1(h * f / (kB * T));
 
   const Numeric r = atm[qid.Isotopologue()];
   const Numeric x = atm[qid.Isotopologue().spec];
 
   //! Missing factor is c^2 f / 8pi
   return {inv_sqrt_pi * inv_gd * r * x * k,
-          inv_sqrt_pi * inv_gd * r * x * (e * inv_b - k)};
+          2 * h * inv_sqrt_pi * inv_gd * r * x * (e - k * B_part) / (c * c)};
 }
 
 std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,

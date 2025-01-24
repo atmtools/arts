@@ -656,6 +656,62 @@ Parameters
                   k[i]) = v[i];
           });
 
+  fld.def_prop_rw(
+         "nlte",
+         [](AtmField &atm) -> std::unordered_map<QuantumIdentifier, AtmData> & {
+           return atm.nlte();
+         },
+         [](AtmField &atm,
+            const std::unordered_map<QuantumIdentifier, AtmData> &in) {
+           atm.nlte() = in;
+         },
+         py::for_getter(py::rv_policy::reference_internal),
+         "NLTE data")
+      .def_prop_rw(
+          "specs",
+          [](AtmField &atm) -> std::unordered_map<SpeciesEnum, AtmData> & {
+            return atm.specs();
+          },
+          [](AtmField &atm,
+             const std::unordered_map<SpeciesEnum, AtmData> &in) {
+            atm.specs() = in;
+          },
+          py::for_getter(py::rv_policy::reference_internal),
+          "Species data")
+      .def_prop_rw(
+          "isots",
+          [](AtmField &atm) -> std::unordered_map<SpeciesIsotope, AtmData> & {
+            return atm.isots();
+          },
+          [](AtmField &atm,
+             const std::unordered_map<SpeciesIsotope, AtmData> &in) {
+            atm.isots() = in;
+          },
+          py::for_getter(py::rv_policy::reference_internal),
+          "Isotopologue ratio data")
+      .def_prop_rw(
+          "other",
+          [](AtmField &atm) -> std::unordered_map<AtmKey, AtmData> & {
+            return atm.other();
+          },
+          [](AtmField &atm, const std::unordered_map<AtmKey, AtmData> &in) {
+            atm.other() = in;
+          },
+          py::for_getter(py::rv_policy::reference_internal),
+          "Other data")
+      .def_prop_rw(
+          "ssprops",
+          [](AtmField &atm)
+              -> std::unordered_map<ScatteringSpeciesProperty, AtmData> & {
+            return atm.ssprops();
+          },
+          [](AtmField &atm,
+             const std::unordered_map<ScatteringSpeciesProperty, AtmData> &in) {
+            atm.ssprops() = in;
+          },
+          py::for_getter(py::rv_policy::reference_internal),
+          "Scattering species properties data");
+
   pnt.def(
       "to_dict",
       [](const AtmPoint &atm,
@@ -915,9 +971,8 @@ Parameters
 
     const Size n = atm.size();
 
-    if (std::ranges::any_of(dict, [n](auto &v) {
-          return v.second.size() != n;
-        })) {
+    if (std::ranges::any_of(dict,
+                            [n](auto &v) { return v.second.size() != n; })) {
       throw std::runtime_error(
           "All values in the dictionary must have the same length to match the AtmPoint-list length.");
     }

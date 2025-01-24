@@ -132,6 +132,7 @@ add_library(artsworkspace STATIC
   m_measurement_vector.cc
   m_model_state.cc
   m_nc.cc
+  m_nlte.cc
   m_obsel.cc
   m_oem.cc
   m_operators.cc

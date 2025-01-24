@@ -289,7 +289,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
-        .desc = "Executes an operator emulating *" + agname + "*, see it for more details\n",
+        .desc = "Executes an operator emulating *" + agname +
+                "*, see it for more details\n",
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
@@ -300,7 +301,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "SetOperator"] = {
-        .desc      = "Set *" + agname + "* to exclusively use provided external operator\n",
+        .desc = "Set *" + agname +
+                "* to exclusively use provided external operator\n",
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
@@ -4283,6 +4285,33 @@ See *jacobian_targetsFinalize* for more information.
                  "surface_field",
                  "absorption_bands",
                  "measurement_sensor"},
+  };
+
+  wsm_data["absorption_bandsSetNonLTE"] = {
+      .desc =
+          R"--(Set all bands to use non-LTE calculations.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_bands"},
+      .in     = {"absorption_bands"},
+  };
+
+  wsm_data["atmospheric_fieldInitializeNonLTE"] = {
+      .desc =
+          R"--(Initialize the non-LTE atmospheric field from the LTE temperature field.
+
+Note that the bands have to be 1-line long to work.
+
+This is because of how non-LTE is implemented in ARTS.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field", "absorption_bands"},
+      .gin       = {"normalization"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{0.0}},
+      .gin_desc =
+          {"Normalization factor for the non-LTE field - all species of same isotopologue will be summed to this value (non-positive means no normalization)"},
   };
 
   /* 
