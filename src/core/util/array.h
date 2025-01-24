@@ -94,9 +94,72 @@ constexpr std::pair<Index, CheckStatus> contains(const Array<T>& x,
   return {indpos, CheckStatus::NotUnique};
 }
 
-/** Check that all std vectors have the same size. */
-template <typename T, typename... Rest>
-constexpr bool all_same_size(const std::vector<T>& x, const Rest&... rest) {
+template <typename T>
+concept sizeable = requires(T& x) { x.size(); };
+
+/** Check that all have the same size. */
+template <sizeable T, sizeable... Rest>
+constexpr bool same_size(const T& x, const Rest&... rest)
+  requires(sizeof...(rest) > 0)
+{
   return ((x.size() == rest.size()) && ...);
+}
+
+template <typename T>
+concept elemwise_sizeable = sizeable<T> and requires(T& x) { x[0].size(); };
+
+/** Check that all and their elements have the same size. */
+template <elemwise_sizeable T, elemwise_sizeable... Rest>
+constexpr bool elemwise_same_size(const T& x, const Rest&... rest) {
+  if constexpr (sizeof...(rest) != 0) {
+    if (not same_size(x, rest...)) return false;
+  }
+
+  for (Size i = 0; i < x.size(); i++) {
+    if (not same_size(x[i], x[0], rest[i]...)) return false;
+  }
+
+  return true;
+}
+
+template <typename T, typename U>
+concept resizeable = requires(T& x, U sz) { x.resize(sz); };
+
+//! Resize all the vectors/arrays using .resize(sz)
+template <typename SZ, resizeable<SZ> T, resizeable<SZ>... Rest>
+void resize(const SZ& sz, T& x, Rest&... rest) {
+  x.resize(sz);
+
+  if constexpr (sizeof...(rest) > 0) {
+    resize(sz, rest...);
+  }
+}
+
+template <typename T, typename U>
+concept reserveable = requires(T& x, U sz) { x.reserve(sz); };
+
+//! Reserve all the vectors/arrays using .reserve(sz)
+template <typename SZ, reserveable<SZ> T, reserveable<SZ>... Rest>
+void reserve(const SZ& sz, T& x, Rest&... rest) {
+  x.reserve(sz);
+
+  if constexpr (sizeof...(rest) > 0) {
+    reserve(sz, rest...);
+  }
+}
+
+template <typename T, typename U>
+concept elemwise_resizeable = requires(T& x, U sz) { (*x.begin()).resize(sz); };
+
+//! Resize all the sub-vectors/sub-arrays using .resize(sz)
+template <typename SZ,
+          elemwise_resizeable<SZ> T,
+          elemwise_resizeable<SZ>... Rest>
+void elemwise_resize(const SZ& sz, T& x, Rest&... rest) {
+  for (auto& v : x) v.resize(sz);
+
+  if constexpr (sizeof...(rest) > 0) {
+    elemwise_resize(sz, rest...);
+  }
 }
 }  // namespace arr

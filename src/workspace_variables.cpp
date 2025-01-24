@@ -581,6 +581,20 @@ size of the local *spectral_radiance* as columns.
       .type = "ArrayOfPropagationPathPoint",
   };
 
+  wsv_data["ray_path_field"] = {
+      .desc = R"--(A list of *ray_path* intended to build up a field of observations.
+)--",
+      .type = "ArrayOfArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["ray_path_observers"] = {
+      .desc = R"--(A list path points making up the observers of a propagation path.
+
+These can be used directly for *spectral_radiance_observer_position* and *spectral_radiance_observer_line_of_sight*
+)--",
+      .type = "ArrayOfPropagationPathPoint",
+  };
+
   wsv_data["spectral_radiance_observer_position"] = {
       .desc = R"--(The position of an observer of spectral radiance.
 

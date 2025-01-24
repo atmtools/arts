@@ -289,7 +289,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
-        .desc = "Executes an operator emulating *" + agname + "*, see it for more details\n",
+        .desc = "Executes an operator emulating *" + agname +
+                "*, see it for more details\n",
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
@@ -300,7 +301,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "SetOperator"] = {
-        .desc      = "Set *" + agname + "* to exclusively use provided external operator\n",
+        .desc = "Set *" + agname +
+                "* to exclusively use provided external operator\n",
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
@@ -2672,6 +2674,22 @@ variables are not considered
       .gin_desc  = {"Absolute or relative path to the directory"},
   };
 
+  wsm_data["ray_pathAddGeometricGridCrossings"] = {
+      .desc =
+          R"--(Adds all crossings of the ray path with the grid of the atmospheric field parameter.
+
+The atmospheric field parameter must be gridded.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "atmospheric_field", "surface_field"},
+      .gin       = {"atm_key", "remove_non_crossings"},
+      .gin_type  = {"AtmKey", "Index"},
+      .gin_value = {std::nullopt, Index{0}},
+      .gin_desc  = {"The atmospheric key",
+                    "Remove points that are not crossings"},
+  };
+
   wsm_data["ray_pathGeometricUplooking"] = {
       .desc =
           R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
@@ -4283,6 +4301,78 @@ See *jacobian_targetsFinalize* for more information.
                  "surface_field",
                  "absorption_bands",
                  "measurement_sensor"},
+  };
+
+  wsm_data["ray_path_observersFieldProfilePseudo2D"] = {
+      .desc =
+          R"(Get a list of observer positions and line of sights to represent observing all angles of a profile.
+
+Three observer types are added:
+
+- Downward looking.  At the top-of-atmosphere, cover [za+e, 180] degrees zenith.
+- Limb looking.  At top of the atmosphere, cover [90, za-e] degrees zenith.
+- Upward looking.  At the surface, cover [0, 90] degrees zenith.
+
+Here za is the surface tangent zenith angle from the top of the atmosphere. e indicates
+the smallest possible numerical offset from that angle in the signed direction.
+
+.. note::
+
+    Each position has their zenith angle coverage linearly separated in degrees.
+    To avoid the top-of-atmosphere limb singularity and bottom of atmosphere limb
+    overlap, the limb zentih angle grid is divided into `nlimb+1` segments.
+    The 90 degree angle is then discarded.
+
+Below is an example using this method to create a *ray_path_field*.
+
+.. plot::
+    :include-source:
+
+    import pyarts
+    import numpy as np
+
+    ws = pyarts.Workspace()
+
+    ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
+    ws.surface_fieldEarth()
+    ws.ray_path_observer_agendaSet(option="GeometricGridded")
+    ws.ray_path_observersFieldProfilePseudo2D(nup=3, nlimb=3, ndown=3)
+    ws.ray_path_fieldFromObserverAgenda()
+
+    f, a = None, None
+    for x in ws.ray_path_field:
+        f, a = pyarts.plots.ray_path.polar_ray_path(
+            x, draw_za_aa=True, draw_map=False, fig=f, axes=a
+        )
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_observers"},
+      .in  = {"atmospheric_field", "surface_field", "ray_path_observer_agenda"},
+      .gin = {"lat", "lon", "azimuth", "nup", "nlimb", "ndown"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index", "Index", "Index"},
+      .gin_value = {Numeric{0.0},
+                    Numeric{0.0},
+                    Numeric{0.0},
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt},
+      .gin_desc  = {"Latitude",
+                    "Longitude",
+                    "Azimuth angle for the observer",
+                    "Number of upward looking observers (min 2)",
+                    "Number of limb looking observers (min 2)",
+                    "Number of downward looking observers (min 2)"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["ray_path_fieldFromObserverAgenda"] = {
+      .desc =
+          R"(Create a ray path field from a set of observers.
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_field"},
+      .in             = {"ray_path_observers", "ray_path_observer_agenda"},
+      .pass_workspace = true,
   };
 
   /* 

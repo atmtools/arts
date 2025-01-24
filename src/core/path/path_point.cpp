@@ -345,8 +345,8 @@ constexpr Numeric find_crossing_with_surface_z(
     const Vector3 ecef,
     const Vector3 decef,
     const SurfaceField& surface_field,
-    const Numeric& surface_search_accuracy,
-    const bool surface_search_safe) {
+    const Numeric& safe_search_accuracy,
+    const bool search_safe) {
   // Find min and max surface altitude
   const auto [z_min, z_max] = minmax_surface_altitude(surface_field);
 
@@ -358,7 +358,7 @@ constexpr Numeric find_crossing_with_surface_z(
   // Check that observation position is above ground
   if (pos[0] < z_max) {
     const Numeric z_surf = surface_altitude(surface_field, pos[1], pos[2]);
-    if (pos[0] < z_surf - surface_search_accuracy)
+    if (pos[0] < z_surf - safe_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
           "The sensor altitude is at {} m\n"
@@ -370,8 +370,8 @@ constexpr Numeric find_crossing_with_surface_z(
           pos[2]);
   }
 
-  // Constant surface altitude (in comparison to *surface_search_accuracy*)
-  if (z_max - z_min < surface_search_accuracy / 100) {
+  // Constant surface altitude (in comparison to *safe_search_accuracy*)
+  if (z_max - z_min < safe_search_accuracy / 100) {
     // Catch cases with position on the ground, as they can fail if
     // intersection_altitude is used
     if (pos[0] <= z_max) {
@@ -419,12 +419,12 @@ constexpr Numeric find_crossing_with_surface_z(
 
   // Safe but slow approach
   // ----------------------
-  if (surface_search_safe) {
+  if (search_safe) {
     Numeric l_test =
-        l_min - surface_search_accuracy / 2;  // Remove l/2 to get exact result
+        l_min - safe_search_accuracy / 2;  // Remove l/2 to get exact result
     bool above_surface = true;                // if true l_test is 0
     while (above_surface && l_test < l_max) {
-      l_test += surface_search_accuracy;
+      l_test += safe_search_accuracy;
       Vector3 local_pos =
           pos_at_distance(ecef, decef, surface_field.ellipsoid, l_test);
       const Numeric z_surf =
@@ -434,7 +434,7 @@ constexpr Numeric find_crossing_with_surface_z(
     if (above_surface) {
       return -1;
     }
-    return l_test - surface_search_accuracy / 2;
+    return l_test - safe_search_accuracy / 2;
   }
 
   // Bisection search
@@ -450,7 +450,7 @@ constexpr Numeric find_crossing_with_surface_z(
     if (local_pos[0] > z_surf) return -1;
   }
   // Start bisection
-  while (l_max - l_min > 2 * surface_search_accuracy) {
+  while (l_max - l_min > 2 * safe_search_accuracy) {
     const Numeric l_test = std::midpoint(l_min, l_max);
     Vector3 local_pos =
         pos_at_distance(ecef, decef, surface_field.ellipsoid, l_test);
@@ -473,8 +473,9 @@ Vector2 enu2los(const Vector3 enu) {
           Conversion::atan2d(enu[0], enu[1])};
 }
 
-std::pair<Vector3, Vector2> ecef2geodetic_poslos(
-    const Vector3 ecef, const Vector3 decef, const Vector2 refellipsoid) {
+std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
+                                                 const Vector3 decef,
+                                                 const Vector2 refellipsoid) {
   const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = Conversion::deg2rad(pos[1]);
@@ -505,11 +506,10 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(
 }  // namespace
 
 namespace {
-std::pair<Vector3, Vector2> poslos_at_distance(
-    const Vector3 ecef,
-    const Vector3 decef,
-    const Vector2 ell,
-    const Numeric distance) {
+std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
+                                               const Vector3 decef,
+                                               const Vector2 ell,
+                                               const Numeric distance) {
   const Vector3 new_ecef{ecef[0] + distance * decef[0],
                          ecef[1] + distance * decef[1],
                          ecef[2] + distance * decef[2]};
@@ -702,8 +702,8 @@ constexpr Intersections pair_line_ellipsoid_intersect(
     const PropagationPathPoint& path,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
-    const Numeric surface_search_accuracy,
-    const bool surface_search_safe) {
+    const Numeric safe_search_accuracy,
+    const bool search_safe) {
   using enum PathPositionType;
 
   const auto [surf_h_min, surf_h_max] = minmax_surface_altitude(surface_field);
@@ -729,8 +729,8 @@ constexpr Intersections pair_line_ellipsoid_intersect(
                                         ecef,
                                         decef,
                                         surface_field,
-                                        surface_search_accuracy,
-                                        surface_search_safe);
+                                        safe_search_accuracy,
+                                        search_safe);
   };
 
   const auto get_r_atm = [&, ecef = x.first, decef = x.second]() {
@@ -750,10 +750,10 @@ constexpr Intersections pair_line_ellipsoid_intersect(
         return p;
       };
 
-  const auto error = [&path](PathPositionType end) {
+  const auto error = [&path](PathPositionType end) -> Intersections {
     PropagationPathPoint p = path;
     p.los_type             = end;
-    return Intersections{p, p, false};
+    return {.first = p, .second = p, .second_is_valid = false};
   };
 
   switch (path.pos_type) {
@@ -785,16 +785,31 @@ constexpr Intersections pair_line_ellipsoid_intersect(
         return error(surface);
       }
       [[fallthrough]];
-    case atm:
-      if (const Numeric r_surface = get_r_surface();
-          r_surface > 0 or (looking_down and r_surface == 0.0)) {
+    case atm: {
+      const Numeric r_surface = get_r_surface();
+      if (r_surface > 0 or (looking_down and r_surface == 0.0)) {
         return {.first           = get_point(r_surface, atm, surface),
                 .second          = path,
                 .second_is_valid = false};
       }
-      return {.first           = get_point(get_r_atm().first, atm, space),
-              .second          = path,
+
+      const auto [r0, r1] = get_r_atm();
+      if (r1 < 0) {
+        return {.first           = get_point(r0, atm, space),
+                .second          = path,
+                .second_is_valid = false};
+      }
+
+      if (search_safe and r0 < safe_search_accuracy) {
+        return {.first           = get_point(r1, atm, space),
+                .second          = path,
+                .second_is_valid = false};
+      }
+
+      return {.first           = get_point(r0, atm, space),
+              .second          = get_point(r1, atm, space),
               .second_is_valid = false};
+    }
     case subsurface: ARTS_USER_ERROR("Unsupported subsurface start position")
   }
   ARTS_USER_ERROR("Invalid start position type");
@@ -807,8 +822,8 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
     ArrayOfPropagationPathPoint& path,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
-    const Numeric surface_search_accuracy,
-    const bool surface_search_safe) {
+    const Numeric safe_search_accuracy,
+    const bool search_safe) {
   ARTS_USER_ERROR_IF(
       path.size() == 0,
       "Must have at least one path point, please call some init() first")
@@ -826,8 +841,8 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
       pair_line_ellipsoid_intersect(path.back(),
                                     atm_field,
                                     surface_field,
-                                    surface_search_accuracy,
-                                    surface_search_safe);
+                                    safe_search_accuracy,
+                                    search_safe);
   path.back().los_type = first.pos_type;
   path.push_back(first);
   if (second_is_valid) path.push_back(second);
@@ -1020,6 +1035,21 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
     }
   }
 
+  return path;
+}
+
+ArrayOfPropagationPathPoint& fill_geometric_crossings(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Vector& alt_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid) {
+  if (not alt_grid.empty())
+    fill_geometric_altitude_crossings(path, surface_field, alt_grid);
+  if (not lat_grid.empty())
+    fill_geometric_latitude_crossings(path, surface_field, lat_grid);
+  if (not lon_grid.empty())
+    fill_geometric_longitude_crossings(path, surface_field, lon_grid);
   return path;
 }
 

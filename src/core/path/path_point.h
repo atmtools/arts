@@ -94,8 +94,8 @@ PropagationPathPoint init(const Vector3& pos,
  * @param path The propagation path
  * @param atm_field The atmospheric field (as the WSV)
  * @param surface_field The surface field (as the WSV)
- * @param surface_search_accuracy The surface search accuracy in meters
- * @param surface_search_safe Flag to search the surface safely or fast
+ * @param safe_search_accuracy The surface search accuracy in meters AND the minimum distance for the first atmospheric point
+ * @param search_safe Flag to search the surface safely or fast AND if the minumum distance should be enforced for the first atmospheric point
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& set_geometric_extremes(
@@ -158,6 +158,22 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
 ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
     ArrayOfPropagationPathPoint& path,
     const SurfaceField& surface_field,
+    const Vector& lon_grid);
+
+/** Adds all grid crossings to a propagation path
+ * 
+ * @param path The propagation path
+ * @param surface_field The surface field (as the WSV)
+ * @param alt_grid The altitude grid
+ * @param lat_grid The latitude grid
+ * @param lon_grid The longitude grid
+ * @return The input for piping
+ */
+ArrayOfPropagationPathPoint& fill_geometric_crossings(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Vector& alt_grid,
+    const Vector& lat_grid,
     const Vector& lon_grid);
 
 /** Finds the geometric limb of a propagation path
