@@ -136,8 +136,7 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
   const Size N = ray_path_frequency_grid.size();
 
   ARTS_USER_ERROR_IF(
-      not arr::all_same_size(ray_path_frequency_grid,
-                             ray_path_atmospheric_point),
+      not arr::same_size(ray_path_frequency_grid, ray_path_atmospheric_point),
       R"(The size of ray_path_frequency_grid and ray_path_atmospheric_point must be the same.
   ray_path_frequency_grid.size():    {}
   ray_path_atmospheric_point.size(): {}
