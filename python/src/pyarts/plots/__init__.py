@@ -1,7 +1,7 @@
 """This module provides functions related to plotting ARTS data."""
 
 from pyarts.plots.arts_lookup import *  # noqa
-from pyarts.plots.ppath import *  # noqa
+from pyarts.plots.ray_path import *  # noqa
 from pyarts.plots.ppvar_atm import * # noqa
 
 from . import AtmField

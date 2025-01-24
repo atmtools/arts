@@ -20,7 +20,7 @@ void apply_options(ArrayOfPropagationPathPoint& ray_path,
 }
 
 void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
-                       const AtmField& atm_field,
+                       const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
                        const Vector3& pos,
                        const Vector2& los,
@@ -43,10 +43,10 @@ max_step: {}
 
   ray_path.resize(1);
   ray_path[0] = path::init(
-      pos, los, atm_field, surface_field, static_cast<bool>(as_sensor));
+      pos, los, atmospheric_field, surface_field, static_cast<bool>(as_sensor));
 
   path::set_geometric_extremes(ray_path,
-                               atm_field,
+                               atmospheric_field,
                                surface_field,
                                surface_search_accuracy,
                                static_cast<bool>(surface_safe_search));
@@ -57,8 +57,34 @@ max_step: {}
       ray_path, surface_field, add_limb, remove_non_atm, fix_updown_azimuth);
 }
 
+void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
+                                       const AtmField& atmospheric_field,
+                                       const SurfaceField& surface_field,
+                                       const AtmKey& atm_key,
+                                       const Index& remove_non_crossings) {
+  const auto& data = atmospheric_field[atm_key];
+  ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(data.data),
+                     "The data for key {} is not a GriddedField3",
+                     atm_key);
+  const auto& field = std::get<GriddedField3>(data.data);
+  const auto& alt   = field.grid<0>();
+  const auto& lat   = field.grid<1>();
+  const auto& lon   = field.grid<2>();
+
+  path::fill_geometric_crossings(ray_path, surface_field, alt, lat, lon);
+  path::fix_updown_azimuth_to_first(ray_path);
+
+  if (remove_non_crossings) {
+    std::erase_if(ray_path, [&alt, &lat, &lon](auto& p) {
+      return not(stdr::contains(alt, p.altitude()) or
+                 stdr::contains(lat, p.latitude()) or
+                 stdr::contains(lon, p.longitude()));
+    });
+  }
+}
+
 void ray_pathGeometricTangentAltitude(ArrayOfPropagationPathPoint& ray_path,
-                                      const AtmField& atm_field,
+                                      const AtmField& atmospheric_field,
                                       const SurfaceField& surface_field,
                                       const Vector3& pos,
                                       const Numeric& tangent_altitude,
@@ -76,9 +102,9 @@ void ray_pathGeometricTangentAltitude(ArrayOfPropagationPathPoint& ray_path,
   const Vector2 los{za, aa};
 
   ray_path.resize(1);
-  ray_path[0] = path::init(pos, los, atm_field, surface_field, false);
+  ray_path[0] = path::init(pos, los, atmospheric_field, surface_field, false);
 
-  path::set_geometric_extremes(ray_path, atm_field, surface_field);
+  path::set_geometric_extremes(ray_path, atmospheric_field, surface_field);
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(
