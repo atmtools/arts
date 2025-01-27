@@ -1,7 +1,9 @@
 .. _Sec Atmospheric Field:
 
-The atmosphere
+The Atmosphere
 ##############
+
+The atmosphere of ARTS is always fully 3D with coordinates of altitude, geodetic latitude, and longitude.
 
 The atmosphere in ARTS is represented by three key components:
 the atmospheric field, the atmospheric field data, and the atmospheric point.
@@ -27,9 +29,7 @@ Key notations:
 The full atmospheric field
 **************************
 
-An atmospheric field is represented by the class :class:`~pyarts.arts.AtmField`.  It is
-often presumed in ARTS that it is possible to draw a path through the atmosphere that
-either hits the top of the atmosphere or the surface of the planet.
+An atmospheric field is represented by the class :class:`~pyarts.arts.AtmField`.
 
 The atmospheric field holds a collection of atmospheric field data, :class:`~pyarts.arts.AtmData`,
 that can be accessed and modified through a :class:`dict`-like interface.
@@ -37,13 +37,13 @@ An atmospheric field has a maximum altitude, :attr:`~pyarts.arts.AtmField.top_of
 It has no minimum altitude, instead relying on an external ellipsoid and elevation field to define the surface of the planet below it.
 The ellipsoid and the elevation field are (often) part of the :class:`~pyarts.arts.SurfaceField` class
 and are described in :ref:`Sec Surface Field`.
-The atmospheric field can be called as if it were a function taking altitude, latitude, and longitude 
+The atmospheric field can be called as if it were a function taking altitude, geodetic latitude, and longitude 
 coordinate arguments to compute or extract the local atmospheric state, :class:`~pyarts.arts.AtmPoint`.
 
 The core operations on ``atm_field`` are:
 
 - ``atm_field[key]``: Accessing relevant atmospheric field data: :class:`~pyarts.arts.AtmData`. See `Atmospheric field/point data access`_ for more information on what constitutes a valid ``key``
-- ``atm_field.top_of_atmosphere``: The maximum altitude of the atmosphere in meters.
+- ``atm_field.top_of_atmosphere``: The maximum altitude of the atmosphere.
   This is the altitude above which the atmospheric field is undefined.
 - ``atm_field(alt, lat, lon)``: Compute the local atmospheric state (:class:`~pyarts.arts.AtmPoint`) at the given coordinate.
   It is an error to call this with ``alt > atm_field.top_of_atmosphere``.
@@ -201,8 +201,8 @@ The atmospheric field data is a core component of the atmospheric field.
 It is stored in an instance of :class:`~pyarts.arts.AtmData`.
 This type holds the entire atmospheric data for a single atmospheric property,
 such as the full 3D temperature field, the full 3D pressure field, etc.
-It also holds the logic for how to interpolate and extrapolate this data to any altitude, latitude, and longitude point.
-As such, atmospheric field data can also be called as if it were a function taking altitude, latitude, and longitude
+It also holds the logic for how to interpolate and extrapolate this data to any altitude, geodetic latitude, and longitude point.
+As such, atmospheric field data can also be called as if it were a function taking altitude, geodetic latitude, and longitude
 to return the local floating point state of the atmospheric property it holds.
 
 These are the core operations on ``atm_data``:
@@ -212,16 +212,16 @@ These are the core operations on ``atm_data``:
   What is "allowed" is defined by the data type.
 - ``atm_data.alt_low``: The settings for how to extrapolate below the allowed altitude.
   What is "allowed" is defined by the data type.
-- ``atm_data.lat_upp``: The settings for how to extrapolate above the allowed latitude.
+- ``atm_data.lat_upp``: The settings for how to extrapolate above the allowed geodetic latitude.
   What is "allowed" is defined by the data type.
-- ``atm_data.lat_low``: The settings for how to extrapolate below the allowed latitude.
+- ``atm_data.lat_low``: The settings for how to extrapolate below the allowed geodetic latitude.
   What is "allowed" is defined by the data type.
 - ``atm_data.lon_upp``: The settings for how to extrapolate above the allowed longitude.
   What is "allowed" is defined by the data type.
 - ``atm_data.lon_low``: The settings for how to extrapolate below the allowed longitude.
   What is "allowed" is defined by the data type.
 - ``atm_data(alt, lat, lon)``: Extract the floating point value of the data at one
-  specific altitude, latitude, and longitude.  Returns a single float.
+  specific altitude, geodetic latitude, and longitude.  Returns a single float.
   Cannot respect the top of the atmosphere because it is not available to the data.
   Instead, will strictly respect the extrapolation settings.
 
@@ -313,7 +313,7 @@ GriddedField3
 ^^^^^^^^^^^^^
 
 If the atmospheric data is of the type :class:`~pyarts.arts.GriddedField3`,
-the data is defined on a grid of altitude, latitude, and longitude.
+the data is defined on a grid of altitude, geodetic latitude, and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
 This data type fully respects the rules of extrapolation outside its grid.
@@ -359,7 +359,7 @@ NumericTernaryOperator
 ^^^^^^^^^^^^^^^^^^^^^^
 
 This operator (:class:`~pyarts.arts.NumericTernaryOperator`) represents that the atmospheric property is purely
-a function of altitude, latitude, and longitude.  The operator takes three arguments and returns a float.
+a function of altitude, geodetic latitude, and longitude.  The operator takes three arguments and returns a float.
 Extrapolation rules are not relevant for this data type as it is a function.
 An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric field data is given in the following code block.
 

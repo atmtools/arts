@@ -3,6 +3,9 @@
 The surface and planet
 ######################
 
+The surface of ARTS is always fully 2D in geodetic latitude and longitude.
+It holds the basic shape of the planet, the ellipsoid.
+
 The surface in ARTS is represented by three key components: the surface field,
 the surface field data, and the surface point.
 
@@ -29,7 +32,6 @@ The full surface field
 **********************
 
 A surface field is represented by the class :class:`~pyarts.arts.SurfaceField`.
-It is presumed that a surface field can be intersected by a ray.
 
 The surface field holds a collection of surface field data, :class:`~pyarts.arts.SurfaceData`,
 that can be accessed and modified through a :class:`dict`-like interface.
@@ -38,7 +40,7 @@ planet it represents.
 It may contain an elevation field that modifies the shape of the surface.  It is often accompanied by an
 atmospheric field that defines the state of the surface above the surface.  See :ref:`Sec surface Field`
 for more details on the atmospheric field.
-The surface field can be called as if it were a function taking latitude and longitude 
+The surface field can be called as if it were a function taking geodetic latitude and longitude 
 coordinate arguments to compute or extract the local surface state, :class:`~pyarts.arts.SurfacePoint`.
 
 The core operations on ``surf_field`` are:
@@ -176,23 +178,23 @@ The surface field data is a core component of the surface field.
 It is stored in an instance of :class:`~pyarts.arts.SurfaceData`.
 This type holds the entire surface data for a single surface property,
 such as the full 2D temperature field, the full 2D elevation field, etc.
-It also holds the logic for how to interpolate and extrapolate this data to any latitude and longitude point.
-As such, surface field data can also be called as if it were a function taking latitude and longitude
+It also holds the logic for how to interpolate and extrapolate this data to any geodetic latitude and longitude point.
+As such, surface field data can also be called as if it were a function taking geodetic latitude and longitude
 to return the local floating point state of the surface property it holds.
 
 These are the core operations on ``surf_data``:
 
 - ``surf_data.data``: The core data in variant form.  See `Data types`_ for what it represents.
-- ``surf_data.lat_upp``: The settings for how to extrapolate above the allowed latitude.
+- ``surf_data.lat_upp``: The settings for how to extrapolate above the allowed geodetic latitude.
   What is "allowed" is defined by the data type.
-- ``surf_data.lat_low``: The settings for how to extrapolate below the allowed latitude.
+- ``surf_data.lat_low``: The settings for how to extrapolate below the allowed geodetic latitude.
   What is "allowed" is defined by the data type.
 - ``surf_data.lon_upp``: The settings for how to extrapolate above the allowed longitude.
   What is "allowed" is defined by the data type.
 - ``surf_data.lon_low``: The settings for how to extrapolate below the allowed longitude.
   What is "allowed" is defined by the data type.
 - ``surf_data(lat, lon)``: Extract the floating point value of the data at one
-  specific latitude and longitude.  Returns a single float.
+  specific geodetic latitude and longitude.  Returns a single float.
 
 Shorthand graph:
 
@@ -271,7 +273,7 @@ GriddedField2
 ^^^^^^^^^^^^^
 
 If the surface data is of the type :class:`~pyarts.arts.GriddedField2`,
-the data is defined on a grid of latitude and longitude.
+the data is defined on a grid of geodetic latitude and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
 This data type fully respects the rules of extrapolation outside its grid.
@@ -286,7 +288,7 @@ NumericBinaryOperator
 ^^^^^^^^^^^^^^^^^^^^^
 
 This operator (:class:`~pyarts.arts.NumericBinaryOperator`) represents that the surface property is purely
-a function of latitude and longitude.  The operator takes two arguments and returns a float.
+a function of geodetic latitude and longitude.  The operator takes two arguments and returns a float.
 Extrapolation rules are not relevant for this data type as it is a function.
 
 .. tip::
