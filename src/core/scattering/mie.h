@@ -191,7 +191,7 @@ using MatrixGen = matpack::data_t<Scalar, 2>;
  *
  * @param rho: The product of relative refractive index n and size parameter x.
  * @param n_steps: The number of steps in the downward recursion.
- * @return An Eigen vector containing the 'n_steps' calculated complex values
+ * @return A vector containing the 'n_steps' calculated complex values
  * of the logarithmic derivative
  */
 template <std::floating_point Scalar>
@@ -333,7 +333,7 @@ class MieSphere {
      *
      * This method implements Eq. 4.77 from [1].
      *
-     * @return An Eigen::Matrix holding the four scattering matrix elements along its columns
+     * @return A matrix holding the four scattering matrix elements along its columns
      * for all requested scattering angles.
      */
   MatrixGen<Scalar> get_scattering_matrix_compact() {

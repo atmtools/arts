@@ -8,6 +8,8 @@
 #include "interpolation.h"
 #include "sht.h"
 
+#include "scattering/utils.h"
+
 namespace scattering {
 
 using sht::SHT;
@@ -584,6 +586,8 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  using matpack::data_t<Scalar, 4>::operator[];
+
   PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
@@ -746,8 +750,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
 
   BackscatterMatrixData<Scalar, Format::TRO> extract_backscatter_matrix() {
     BackscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
-    GridPos interp;
-    gridpos(interp, grid_vector(*za_scat_grid_), 180.0, 1e99);
+    GridPos interp = find_interp_weights(grid_vector(*za_scat_grid_), 180.0);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {

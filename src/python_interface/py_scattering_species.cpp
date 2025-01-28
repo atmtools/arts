@@ -543,6 +543,7 @@ void py_scattering_species(py::module_& m) try {
       .def_rw("d_max", &scattering::ParticleProperties::d_max, "Max diameter")
       .doc() = "Particle properties";
 
+
   bind_single_scattering_data<double,
                               scattering::Format::TRO,
                               scattering::Representation::Gridded>(
@@ -573,6 +574,8 @@ void py_scattering_species(py::module_& m) try {
                                   scattering::Representation::Spectral>(
       m, "BulkScatteringPropertiesTROSpectral4")
       .doc() = "Bulk scattering properties";
+
+
 
   py::class_<ParticleHabit>(m, "ParticleHabit")
       .def_static("from_legacy_tro",

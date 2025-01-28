@@ -52,6 +52,8 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
       absorption::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  using matpack::data_t<Scalar, 3>::operator[];
+
   AbsorptionVectorData() {};
 
   /** Create a new AbsorptionVectorData container.
