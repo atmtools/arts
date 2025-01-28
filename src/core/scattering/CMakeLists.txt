@@ -5,6 +5,7 @@ add_library(scattering STATIC
    properties.cc
    psd.cc
    sht.cc
+   utils.cc
    phase_matrix.cc
    henyey_greenstein.cc
 )

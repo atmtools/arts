@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <variant>
+#include <iostream>
 
 #include "scattering/single_scattering_data.h"
 
@@ -36,9 +37,11 @@ class ParticleHabit {
   public:
   static ParticleHabit from_legacy_tro(std::vector<::SingleScatteringData> ssd_,
                                        std::vector<::ScatteringMetaData> meta_) {
+
     std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> ssd;
     ssd.reserve(ssd_.size());
     for (auto ind = 0; ind < Index(ssd_.size()); ++ind) {
+      std::cout << "IND :: " << ind << std::endl;
       ssd.push_back(SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>::from_legacy_tro(ssd_[ind], meta_[ind]));
     }
     return ParticleHabit(ssd);

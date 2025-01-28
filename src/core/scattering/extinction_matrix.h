@@ -55,6 +55,8 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
       extinction::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
+  using matpack::data_t<Scalar, 3>::operator[];
+
   ExtinctionMatrixData() = default;
   /** Create a new ExtinctionMatrixData container.
    *
