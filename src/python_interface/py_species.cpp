@@ -1,6 +1,6 @@
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <partfun.h>
@@ -22,10 +22,38 @@
 std::string docs_isotopes() {
   std::ostringstream os;
 
-  os << "The valid isotopologues are:\n\n";
+  const auto isotrat = Species::isotopologue_ratiosInitFromBuiltin();
+
+  std::print(os,
+             R"(The valid isotopologues are:
+
+.. list-table::
+  :header-rows: 1
+
+  * - Name
+    - Mass (g/mol)
+    - Degeneracy
+    - Default Ratio
+    - Predefined or Joker or Normal
+)");
+
   for (auto& x : Species::Isotopologues) {
-    os << "- ``\"" << x.FullName() << "\"``\n";
+    std::print(
+        os,
+        R"(  * - {}
+    - {}
+    - {}
+    - {}
+    - {}
+)",
+        x.FullName(),
+        x.mass,
+        x.gi,
+        isotrat[x],
+        x.joker() ? "Joker"
+                  : (Species::is_predefined_model(x) ? "Predefined" : "Normal"));
   }
+
   os << '\n';
   return os.str();
 }
@@ -81,6 +109,9 @@ void py_species(py::module_& m) try {
 
   py::class_<SpeciesIsotope> siso(m, "SpeciesIsotope");
   workspace_group_interface(siso);
+  siso.doc() = std::format("{}\n\n{}\n\n",
+                           PythonWorkspaceGroupInfo<SpeciesIsotope>::desc,
+                           docs_isotopes());
   siso.def(
           "__init__",
           [](SpeciesIsotope* self, Index i) {
@@ -153,11 +184,12 @@ void py_species(py::module_& m) try {
       .def_rw("cia_2nd_species",
               &SpeciesTag::cia_2nd_species,
               ":class:`~pyarts.arts.Species` CIA species")
-      .def("partfun",
-           [](const SpeciesTag& self, Numeric T) {
+      .def(
+          "partfun",
+          [](const SpeciesTag& self, Numeric T) {
             return PartitionFunctions::Q(T, self.Isotopologue());
-           },
-           R"--(Compute the partition function at a given temperature
+          },
+          R"--(Compute the partition function at a given temperature
 
 Parameters
 ----------
@@ -169,7 +201,7 @@ Returns
   Q : Numeric
     Partition function [-]
 )--",
-           "T"_a)
+          "T"_a)
       .def_prop_ro("full_name",
                    &SpeciesTag::FullName,
                    ":class:`~pyarts.arts.String` The full name")
