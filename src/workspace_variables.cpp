@@ -95,14 +95,14 @@ large swaths of the atmosphere to be inaccessible.
 
 The atmospheric field may, but does not have to, consist of the following:
 
-  -  Temperature                             - Kelvin
-  -  Pressure                                - Pascal
-  -  Wind                                    - Meters per second
-  -  Magnetic Field                          - Tesla
-  -  Species content                         - See user guide for relevant species
-  -  Isotopologue ratios                     - Unitless
-  -  Non-local thermodynamics ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
-  -  Scattering species content              - See user guide for relevant species
+-  Temperature                     - Atmospheric temperatures in Kelvin
+-  Pressure                        - Atmospheric pressure in Pascal
+-  Wind                            - Atmospheric wind field in meters per second
+-  Magnetic Field                  - Magnetic field in Tesla
+-  Species content                 - Usually the volume-mixing ratio of various species, with some exceptions. See *SpeciesEnum* for more details.
+-  Isotopologue ratios             - The isotopologue ratios of various species.  See *SpeciesIsotope* for more details.
+-  Non-local thermodynamics ratios - Unitless [pure-style] OR Kelvin [vibrational-style] ratios replacing the Boltzman distribution used in the LTE calculations.
+-  Scattering species content      - See user guide for more information.  This is custom data to aid scattering calculations.
 )--",
       .type = "AtmField",
   };
@@ -282,10 +282,9 @@ Can currently only contain data for new MT CKD models of water.
 
   wsv_data["propagation_matrix"] = {
       .desc =
-          R"--(This contains the propagation matrix for the current path point.
+          R"--(This contains the fully polarized propagation matrix for the current path point.
 
-The propagation matrix can be used to computed the transmission through a layer
-as:
+The propagation matrix can be used to computed the transmission matrix as:
 
 .. math:: \mathbf{T} = \exp\left(-\mathbf{K} r\right),
 
@@ -593,6 +592,12 @@ size of the local *spectral_radiance* as columns.
 These can be used directly for *spectral_radiance_observer_position* and *spectral_radiance_observer_line_of_sight*
 )--",
       .type = "ArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["spectral_flux_profile"] = {
+      .desc = R"--(An altitude profile of spectral flux
+)--",
+      .type = "Matrix",
   };
 
   wsv_data["spectral_radiance_observer_position"] = {

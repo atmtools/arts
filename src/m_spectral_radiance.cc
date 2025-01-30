@@ -96,27 +96,6 @@ void spectral_radianceStepByStepEmission(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceCumulativeEmission(
-    StokvecVector& spectral_radiance,
-    ArrayOfStokvecMatrix& ray_path_spectral_radiance_jacobian,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
-    const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
-    const ArrayOfStokvecMatrix& ray_path_spectral_radiance_source_jacobian,
-    const StokvecVector& spectral_radiance_background) try {
-  rtepack::two_level_linear_emission_cumulative_full(
-      spectral_radiance,
-      ray_path_spectral_radiance_jacobian,
-      ray_path_transmission_matrix,
-      ray_path_transmission_matrix_cumulative,
-      ray_path_transmission_matrix_jacobian,
-      ray_path_spectral_radiance_source,
-      ray_path_spectral_radiance_source_jacobian,
-      spectral_radiance_background);
-}
-ARTS_METHOD_ERROR_CATCH
-
 void spectral_radianceCumulativeTransmission(
     StokvecVector& spectral_radiance,
     ArrayOfStokvecMatrix& ray_path_spectral_radiance_jacobian,

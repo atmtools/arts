@@ -106,7 +106,7 @@ void py_surf(py::module_ &m) try {
       "__init__",
       [](SurfaceField *sf, const String &planet) {
         new (sf) SurfaceField();
-        surface_fieldPlanet(*sf, planet);
+        surface_fieldPlanet(*sf, planet, 0.0);
       },
       "planet"_a);
   workspace_group_interface(fld);

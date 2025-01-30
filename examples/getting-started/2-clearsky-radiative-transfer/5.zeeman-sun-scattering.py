@@ -38,7 +38,7 @@ ws.sunsAddSun(suns=ws.suns)
 ws.spectral_radiance_unit = "Tb"
 ws.spectral_radiance_space_agendaSet(option="SunOrCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
-ws.ray_path_observer_agendaSet(option="Geometric")
+ws.ray_path_observer_agendaSetGeometric()
 ws.propagation_matrix_scattering_agendaSet(option="AirSimple")
 
 # %% Core calculations

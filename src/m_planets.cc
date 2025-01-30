@@ -98,9 +98,11 @@ void g0Io(Numeric &g0) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
+void surface_fieldEarth(SurfaceField &surface_field,
+                        const String &model,
+                        const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<EarthEllipsoid>(model)) {
     case EarthEllipsoid::WGS84:
@@ -116,9 +118,11 @@ void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
+void surface_fieldJupiter(SurfaceField &surface_field,
+                          const String &model,
+                          const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<JupiterEllipsoid>(model)) {
     case JupiterEllipsoid::Sphere:
@@ -133,9 +137,11 @@ void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldMars(SurfaceField &surface_field, const String &model) {
+void surface_fieldMars(SurfaceField &surface_field,
+                       const String &model,
+                       const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<MarsEllipsoid>(model)) {
     case MarsEllipsoid::Sphere:
@@ -150,9 +156,11 @@ void surface_fieldMars(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
+void surface_fieldMoon(SurfaceField &surface_field,
+                       const String &model,
+                       const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<MoonEllipsoid>(model)) {
     case MoonEllipsoid::Sphere:
@@ -168,9 +176,11 @@ void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldIo(SurfaceField &surface_field, const String &model) {
+void surface_fieldIo(SurfaceField &surface_field,
+                     const String &model,
+                     const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<IoEllipsoid>(model)) {
     case IoEllipsoid::Sphere:
@@ -182,9 +192,11 @@ void surface_fieldIo(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
+void surface_fieldEuropa(SurfaceField &surface_field,
+                         const String &model,
+                         const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<EuropaEllipsoid>(model)) {
     case EuropaEllipsoid::Sphere:
@@ -196,9 +208,11 @@ void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldGanymede(SurfaceField &surface_field, const String &model) {
+void surface_fieldGanymede(SurfaceField &surface_field,
+                           const String &model,
+                           const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<GanymedeEllipsoid>(model)) {
     case GanymedeEllipsoid::Sphere:
@@ -210,9 +224,11 @@ void surface_fieldGanymede(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
+void surface_fieldVenus(SurfaceField &surface_field,
+                        const String &model,
+                        const Numeric &surface_elevation) {
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   switch (to<VenusEllipsoid>(model)) {
     case VenusEllipsoid::Sphere:
@@ -225,7 +241,8 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldInit(SurfaceField &surface_field,
                        const Numeric &r_equatorial,
-                       const Numeric &r_polar) {
+                       const Numeric &r_polar,
+                       const Numeric &surface_elevation) {
   ARTS_USER_ERROR_IF(r_equatorial <= 0 || r_polar <= 0,
                      R"(Ellipsoid with a: {}, b: {} is invalid.
 
@@ -246,38 +263,40 @@ A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
                      r_polar);
 
   surface_field                = {};
-  surface_field[SurfaceKey::h] = 0.0;
+  surface_field[SurfaceKey::h] = surface_elevation;
 
   surface_field.ellipsoid[0] = r_equatorial;
   surface_field.ellipsoid[1] = r_polar;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldPlanet(SurfaceField &surface_field, const String &option) {
+void surface_fieldPlanet(SurfaceField &surface_field,
+                         const String &option,
+                         const Numeric &surface_elevation) {
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
     case Earth:
-      surface_fieldEarth(surface_field, "WGS84");
+      surface_fieldEarth(surface_field, "WGS84", surface_elevation);
       // molarmass_dry_air = 28.966;
       // planet_rotation_period = 86164.1;
       break;
     case Io:
-      surface_fieldIo(surface_field, "Sphere");
+      surface_fieldIo(surface_field, "Sphere", surface_elevation);
       // molarmass_dry_air = 63.110068828000003;
       // planet_rotation_period = 152853;
       break;
     case Jupiter:
-      surface_fieldJupiter(surface_field, "Sphere");
+      surface_fieldJupiter(surface_field, "Sphere", surface_elevation);
       // molarmass_dry_air = 2.22;
       // planet_rotation_period = 35730;
       break;
     case Mars:
-      surface_fieldMars(surface_field, "Sphere");
+      surface_fieldMars(surface_field, "Sphere", surface_elevation);
       // molarmass_dry_air = 43.34;
       // planet_rotation_period = 88643;
       break;
     case Venus:
-      surface_fieldVenus(surface_field, "Sphere");
+      surface_fieldVenus(surface_field, "Sphere", surface_elevation);
       // molarmass_dry_air = 43.45;
       // planet_rotation_period = -2.0997e7;
       break;

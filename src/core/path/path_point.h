@@ -94,8 +94,8 @@ PropagationPathPoint init(const Vector3& pos,
  * @param path The propagation path
  * @param atm_field The atmospheric field (as the WSV)
  * @param surface_field The surface field (as the WSV)
- * @param safe_search_accuracy The surface search accuracy in meters AND the minimum distance for the first atmospheric point
- * @param search_safe Flag to search the surface safely or fast AND if the minumum distance should be enforced for the first atmospheric point
+ * @param safe_search_accuracy The surface search accuracy in meters
+ * @param search_safe Flag to search the surface safely or fast
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& set_geometric_extremes(
@@ -120,6 +120,24 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_stepwise(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Numeric max_step);
+
+/** Fills a propagation path with geometrically spaced points
+ *
+ * Only looks at propagation path point pairs that are both in the atmosphere
+ * according to PropagationPathPoint::has(PathPositionType::atm)
+ *
+ * From the first point, a new point is added halfway between two existing points
+ * if the distance between them is larger than max_step.
+ * 
+ * @param path The propagation path
+ * @param surface_field The surface field (as the WSV)
+ * @param max_step The maximum step size in meters in path after this method completes
+ * @return The input for piping
+ */
+ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
     ArrayOfPropagationPathPoint& path,
     const SurfaceField& surface_field,
     const Numeric max_step);
@@ -234,6 +252,15 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
 Numeric distance(const Vector3 pos1,
                  const Vector3 pos2,
                  const Vector2 ellipsoid);
+
+/** Return distance between neighboring points in a path
+ * 
+ * @param path A list of path points
+ * @param ellipsoid The ellipsoid of the body
+ * @return Vector 
+ */
+Vector distance(const ArrayOfPropagationPathPoint& path,
+                const Vector2 ellipsoid);
 
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by
  * a sensor at a given position

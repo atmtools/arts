@@ -145,6 +145,7 @@ add_library(artsworkspace STATIC
   m_retrieval.cc
   m_rad.cc
   m_scattering_species.cc
+  m_spectral_flux.cc
   m_spectral_radiance.cc
   m_sun.cc
   m_surf.cc

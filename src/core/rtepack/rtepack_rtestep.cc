@@ -172,142 +172,42 @@ void two_level_linear_emission_step_by_step_full(
   }
 }
 
-void two_level_linear_emission_cumulative_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
+void two_level_linear_emission_step_by_step_full(
+    std::vector<stokvec_vector> &Is,
     const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0) {
-  const Size nv = I0.size();
-  const Size N  = Ts.size();
+    const std::vector<stokvec_vector> &Js) {
+  const Size N = Ts.size();
+
+  ARTS_USER_ERROR_IF(not arr::same_size(Is, Ts, Js),
+                     R"(Not same sizes:
+
+Is.size() = {},
+Ts.size() = {},
+Js.size() = {}
+)",
+                     Is.size(),
+                     Ts.size(),
+                     Js.size())
+
+  if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      N != dTs.size(), "Must have same number of levels ({}) in Ts and dTs", N);
+      not arr::elemwise_same_size(Is, Ts, Js),
+      "Not all elements have the same number of frequency elements")
 
-  ARTS_USER_ERROR_IF(
-      N != Js.size(), "Must have same number of levels ({}) in Ts and Js", N);
+  const Size nv = Is.front().size();
 
-  ARTS_USER_ERROR_IF(
-      N != dJs.size(), "Must have same number of levels ({}) in Ts and dJs", N);
-
-  I.resize(nv);
-  dI.resize(N);
-
-  const Index nq = dJs[0].nrows();
-
-  for (auto &x : dI) {
-    x.resize(nq, nv);
-    x = 0.0;
-  }
-
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(elemwise_range(Ts),
-                          Cmp::ne(nv),
-                          [](const auto &x) { return x.size(); }),
-      "Must have same number of frequency elements ({}) in all Ts:s",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(elemwise_range(Js),
-                          Cmp::ne(nv),
-                          [](const auto &x) { return x.size(); }),
-      "Must have same number of frequency elements ({}) in all Js:s",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
-          std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
-          std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
-      "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
-      nq,
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          dJs, Cmp::ne(static_cast<Index>(nv)), &stokvec_matrix::ncols) or
-          std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
-      "Must have same number of derivative elements ({}, {}) in all dJs:s",
-      nq,
-      nv);
-
-  if (N == 0) {
-    I = I0;
-    return;
-  }
+  for (Size i = N - 2; i < N; i--) {
+    stokvec_vector &I0       = Is[i + 1];
+    stokvec_vector &I1       = Is[i];
+    const stokvec_vector &J0 = Js[i + 1];
+    const stokvec_vector &J1 = Js[i];
+    const muelmat_vector &T  = Ts[i + 1];
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size iv = 0; iv < nv; iv++) {
-    I[iv] = Pi.back()[iv] * (I0[iv] - 0.5 * (Js[N - 2][iv] + Js[N - 1][iv])) +
-            0.5 * (Js[0][iv] + Js[1][iv]);
-
-    for (Size i = 1; i < N - 1; i++) {
-      I[iv] += 0.5 * Pi[i][iv] * (Js[i + 1][iv] - Js[i - 1][iv]);
-    }
-  }
-
-  if (nq == 0) return;
-
-  // Add non-transmittance
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size iv = 0; iv < nv; iv++) {
-    for (Index iq = 0; iq < nq; iq++) {
-      dI[0][iq, iv]     += 0.5 * dJs[0][iq, iv];
-      dI[1][iq, iv]     += 0.5 * dJs[1][iq, iv];
-      dI[N - 2][iq, iv] -= 0.5 * Pi.back()[iv] * dJs[N - 2][iq, iv];
-      dI[N - 1][iq, iv] -= 0.5 * Pi.back()[iv] * dJs[N - 1][iq, iv];
-
-      for (Size j = 1; j < N - 1; j++) {
-        dI[j + 1][iq, iv] += 0.5 * Pi[j][iv] * dJs[j + 1][iq, iv];
-        dI[j - 1][iq, iv] -= 0.5 * Pi[j][iv] * dJs[j - 1][iq, iv];
-      }
-    }
-  }
-
-  // Add transmittance background
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size iv = 0; iv < nv; iv++) {
-    const auto src = (I0[iv] - 0.5 * (Js[N - 2][iv] + Js[N - 1][iv]));
-
-    muelmat P = 1.0;
-    for (Size i = N - 2; i > 0; i--) {
-      const muelmat R = Ts[i + 1][iv] * P;
-      for (Index iq = 0; iq < nq; iq++) {
-        dI[i][iq, iv] += Pi[i][iv] * dTs[i][0, iq, iv] * P * src;
-        dI[i][iq, iv] += Pi[i - 1][iv] * dTs[i][1, iq, iv] * R * src;
-      }
-      P = R;
-    }
-
-    for (Index iq = 0; iq < nq; iq++) {
-      dI[0][iq, iv]     += Pi[0][iv] * dTs[0][0, iq, iv] * P * src;
-      dI[N - 1][iq, iv] += Pi[N - 2][iv] * dTs[N - 1][1, iq, iv] * src;
-    }
-  }
-
-  // Add transmittance layers
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size iv = 0; iv < nv; iv++) {
-    for (Size j = 1; j < N - 1; j++) {
-      const auto jsrc = 0.5 * (Js[j + 1][iv] - Js[j - 1][iv]);
-
-      muelmat P = 1.0;
-      for (Size i = j - 1; i > 0; i--) {
-        const muelmat R = Ts[i + 1][iv] * P;
-        for (Index iq = 0; iq < nq; iq++) {
-          dI[i][iq, iv] += Pi[i][iv] * dTs[i][0, iq, iv] * P * jsrc;
-          dI[i][iq, iv] += Pi[i - 1][iv] * dTs[i][1, iq, iv] * R * jsrc;
-        }
-        P = R;
-      }
-
-      for (Index iq = 0; iq < nq; iq++) {
-        dI[j][iq, iv] += Pi[j - 1][iv] * dTs[j][1, iq, iv] * jsrc;
-        dI[0][iq, iv] += (dTs[0][0, iq, iv] + dTs[0][1, iq, iv]) * P * jsrc;
-      }
+    for (Size iv = 0; iv < nv; iv++) {
+      const stokvec Jv = avg(J0[iv], J1[iv]);
+      I1[iv]           = T[iv] * (I0[iv] - Jv) + Jv;
     }
   }
 }
