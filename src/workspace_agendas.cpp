@@ -52,8 +52,6 @@ position and line of sight.
       .output       = {"ray_path"},
       .input        = {"spectral_radiance_observer_position",
                        "spectral_radiance_observer_line_of_sight"},
-      .enum_options = {"Geometric", "GeometricGridded"},
-      .enum_default = "Geometric",
   };
 
   wsa_data["spectral_radiance_observer_agenda"] = {

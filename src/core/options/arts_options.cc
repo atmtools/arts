@@ -15,6 +15,17 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "ray_path_observer_agendaSetGeometricMaxStep",
+      .desc =
+          R"(For use with *ray_path_observer_agendaSetGeometric*.  Determines how to densify the geometric path.
+)",
+      .values_and_desc = {
+          Value{"half", "1/2", "Use *ray_pathFillGeometricHalfStep*"},
+          Value{"step", "linear", "Use *ray_pathFillGeometricStepwise*"},
+          Value{"None", "0", "Do not use any step filling method"},
+      }});
+
+  opts.emplace_back(EnumeratedOption{
       .name = "disort_settings_agenda_setup_layer_emission_type",
       .desc =
           R"(For atmospheric emission settings with *disort_settings_agendaSetup*.

@@ -347,22 +347,6 @@ This method can ignore any workspace variable you want.
       .gin_desc  = {R"--(Variable to be ignored.)--"},
   };
 
-  wsm_data["surface_fieldPlanet"] = {
-      .desc =
-          R"--(Initialize the surface field with the ellipsoid of a planet.
-
-The elevation will be set to 0.
-
-See *PlanetOrMoonType* for valid ``option``.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"surface_field"},
-      .gin       = {"option"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {R"--(Choice of planet or moon)--"},
-  };
-
   wsm_data["ReadXML"] = {
       .desc      = R"--(Reads a workspace variable from an XML file.
 
@@ -1615,6 +1599,21 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
       .in     = {"jacobian_targets", "frequency_grid"},
   };
 
+  wsm_data["surface_fieldPlanet"] = {
+      .desc =
+          R"--(Initialize the surface field with the ellipsoid of a planet.
+
+See *PlanetOrMoonType* for valid ``option``.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"surface_field"},
+      .gin       = {"option", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.0}},
+      .gin_desc  = {R"--(Choice of planet or moon)--",
+                    "Surface elevation over the full field"},
+  };
+
   wsm_data["surface_fieldEarth"] = {
       .desc      = R"--(Earth reference ellipsoids.
 
@@ -1624,10 +1623,11 @@ See *EarthEllipsoid* for valid ``model``
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldEuropa"] = {
@@ -1639,10 +1639,11 @@ See *EuropaEllipsoid* for valid ``model``.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldGanymede"] = {
@@ -1652,10 +1653,11 @@ See *GanymedeEllipsoid* for valid ``model``.
 )--",
       .author    = {"Takayoshi Yamada"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldInit"] = {
@@ -1667,11 +1669,12 @@ reference ellipsoid.
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"a", "b"},
-      .gin_type  = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
+      .gin       = {"a", "b", "surface_elevation"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}},
       .gin_desc  = {R"--(Average or equatorial radius.)--",
-                    R"--(Average or polar radius.)--"},
+                    R"--(Average or polar radius.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldIo"] = {
@@ -1683,10 +1686,11 @@ See *IoEllipsoid* for valid ``model``.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldJupiter"] = {
@@ -1698,10 +1702,11 @@ See *JupiterEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldMars"] = {
@@ -1713,10 +1718,11 @@ See *MarsEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldMoon"] = {
@@ -1728,10 +1734,11 @@ See *MoonEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["surface_fieldVenus"] = {
@@ -1743,10 +1750,11 @@ See *VenusEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
       .out       = {"surface_field"},
-      .gin       = {"model"},
-      .gin_type  = {"String"},
-      .gin_value = {String("Sphere")},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--"},
+      .gin       = {"model", "surface_elevation"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {String("Sphere"), Numeric{0.0}},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
+                    "Surface elevation over the full field"},
   };
 
   wsm_data["water_equivalent_pressure_operatorMK05"] = {
@@ -1832,6 +1840,25 @@ Gets the ellispoid from *surface_field*
       .gin_value = {std::nullopt},
       .gin_desc =
           {"Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"},
+  };
+
+  wsm_data["spectral_flux_profileFromPathField"] = {
+      .desc           = R"--(Computes the spectral flux
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_flux_profile"},
+      .in             = {"ray_path_field",
+                         "atmospheric_field",
+                         "propagation_matrix_agenda",
+                         "spectral_radiance_space_agenda",
+                         "spectral_radiance_surface_agenda",
+                         "surface_field",
+                         "frequency_grid"},
+      .gin            = {"altitude_grid"},
+      .gin_type       = {"AscendingGrid"},
+      .gin_value      = {std::nullopt},
+      .gin_desc       = {"Altitude grid for the spectral flux profile"},
+      .pass_workspace = true,
   };
 
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
@@ -2676,18 +2703,220 @@ variables are not considered
 
   wsm_data["ray_pathAddGeometricGridCrossings"] = {
       .desc =
-          R"--(Adds all crossings of the ray path with the grid of the atmospheric field parameter.
+          R"--(Fill the path with geometric step points.
 
-The atmospheric field parameter must be gridded.
+This process is repeated until there are no more neighboring points for which the premise is true.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
       .in        = {"ray_path", "atmospheric_field", "surface_field"},
-      .gin       = {"atm_key", "remove_non_crossings"},
-      .gin_type  = {"AtmKey", "Index"},
+      .gin       = {"atm_key"},
+      .gin_type  = {"AtmKey"},
+      .gin_value = {AtmKey::t},
+      .gin_desc =
+          {"The atmospheric field key for which the grid is expected if adding grid crossings is desired"},
+  };
+
+  wsm_data["ray_pathFillGeometricHalfStep"] = {
+      .desc =
+          R"--(Fill the path with geometric step points.
+
+If two path points are more than ``max_step`` apart, additional points are added
+at half the distance between these two points.
+
+This process is repeated until there are no more neighboring points for which the premise is true.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "surface_field"},
+      .gin       = {"max_step"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e3}},
+      .gin_desc  = {"The maximum step length"},
+  };
+
+  wsm_data["ray_pathFillGeometricStepwise"] = {
+      .desc =
+          R"--(Fill the path with geometric step points.
+
+If two path points are more than ``max_step`` apart, additional points are added
+by propagating one of the points towards the other with a step length of ``max_step``.
+
+This process is repeated until there are no more neighboring points for which the premise is true.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "surface_field"},
+      .gin       = {"max_step"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e3}},
+      .gin_desc  = {"The maximum step length"},
+  };
+
+  wsm_data["ray_pathFixUpdownAzimuth"] = {
+      .desc =
+          R"--(Fix azimuth angle errors that can occur for 180 and 0 degrees zenith.
+
+These only matter for polarized radiative transfer.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path"},
+  };
+
+  wsm_data["ray_pathAddLimbPoint"] = {
+      .desc =
+          R"--(Add the limb point to the ray path
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "surface_field"},
+  };
+
+  wsm_data["ray_pathRemoveNonAtm"] = {
+      .desc =
+          R"--(Remove non-atmospheric points to the ray path
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path"},
+  };
+
+  wsm_data["ray_pathInit"] = {
+      .desc =
+          R"--(Initialize the ray path with a single point.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"atmospheric_field", "surface_field"},
+      .gin       = {"pos", "los", "as_sensor"},
+      .gin_type  = {"Vector3", "Vector2", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Index{1}},
+      .gin_desc =
+          {"The start position",
+           "The start line-of-sight",
+           "Whether or not the position is the sensor position or the observer position"},
+  };
+
+  wsm_data["ray_pathRemoveNearby"] = {
+      .desc =
+          R"--(Remove points that are too close to each other.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "surface_field"},
+      .gin       = {"min_distance", "first"},
+      .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc  = {"The atmospheric key",
-                    "Remove points that are not crossings"},
+      .gin_desc  = {"The minimum distance between points",
+                    "Whether to remove the first or second point"},
+  };
+
+  wsm_data["ray_pathRemoveNonGeometricGridCrossings"] = {
+      .desc =
+          R"--(Remove all non-geometric grid crossings from the ray path.
+
+The atmospheric field parameter must be gridded. All points overlapping with any of the three
+grids are kept.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "atmospheric_field"},
+      .gin       = {"atm_key"},
+      .gin_type  = {"AtmKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The atmospheric key"},
+  };
+
+  wsm_data["ray_pathSetGeometricExtremes"] = {
+      .desc =
+          R"--(Adds all crossings of the ray path with the grid of the atmospheric field parameter.
+
+The atmospheric field parameter must be gridded.  Only grids with size() > 1 are considered.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path", "atmospheric_field", "surface_field"},
+      .gin       = {"surface_search_accuracy", "surface_safe_search"},
+      .gin_type  = {"Numeric", "Index"},
+      .gin_value = {Numeric{0.1}, Index{1}},
+      .gin_desc =
+          {"The accuracy within which the surface intersection is counted as a hit",
+           "Whether or not to search for the surface intersection in a safer but slower manner"},
+  };
+
+  wsm_data["ray_path_observer_agendaSetGeometric"] = {
+      .desc =
+          R"--(Set *ray_path_observer_agenda* from programmable geometric settings.
+
+The default settings essentially call the default settings for *ray_pathGeometric*.
+
+Options:
+
+- ``max_step_option`` and ``max_step``: Choose the maximum distance between two points.
+  The first string tells the behavior, and the second the distance.
+- ``surface_search_accuracy`` and ``surface_safe_search``: The accuracy to search for
+  surface intersections and whether or not to do it at all. 
+- ``remove_nearby`` and ``remove_nearby_first``: The minimum distance between points, ignored if 0 or less.
+  The second option tells which point to remove if they are too close.
+- ``atm_key`` and ``add_crossings`` and ``remove_non_crossings``: The atmospheric field key for which the
+  grid is expected if adding grid crossings is desired.  The other two options tell whether to add all grid
+  points or remove non-crossings.  The removal happens after the filling of the path.
+- ``fix_updown_azimuth``: Fix the azimuth angle when looking at 0 or 180 degrees.
+- ``add_limb``: Add the limb point.
+- ``remove_non_atm``: Remove points in space or in the subsurface.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_observer_agenda"},
+      .gin       = {"max_step_option",
+                    "surface_search_accuracy",
+                    "max_step",
+                    "remove_nearby",
+                    "atm_key",
+                    "surface_safe_search",
+                    "remove_nearby_first",
+                    "add_crossings",
+                    "remove_non_crossings",
+                    "fix_updown_azimuth",
+                    "add_limb",
+                    "remove_non_atm"},
+      .gin_type  = {"String",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "AtmKey",
+                    "Index",
+                    "Index",
+                    "Index",
+                    "Index",
+                    "Index",
+                    "Index",
+                    "Index"},
+      .gin_value = {String{"step"},
+                    Numeric{0.1},
+                    Numeric{1e3},
+                    Numeric{0.0},
+                    AtmKey::t,
+                    Index{1},
+                    Index{1},
+                    Index{0},
+                    Index{0},
+                    Index{1},
+                    Index{0},
+                    Index{1}},
+      .gin_desc =
+          {"Option for max stepping.  See *ray_path_observer_agendaSetGeometricMaxStep*",
+           "The accuracy to search for surface intersections",
+           "The distance to step in-case max stepping is required",
+           "The minimum distance between points, ignroed if 0 or less",
+           "The atmospheric field key for which the grid is expected if adding grid crossings is desired",
+           "Whether or not to search for the surface intersection in a safer but slower manner",
+           "Which point (first or second) to remove if they are too close",
+           "Add all grid crossings",
+           "Remove non-crossings",
+           "Fix the azimuth angle when looking at 0 or 180 degrees",
+           "Add the limb point",
+           "Remove non-atmospheric points"},
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
@@ -2788,78 +3017,6 @@ bad angles if this is turned off.
            "Wheter or not to keep only atmospheric points",
            "Whether or not to attempt fix a potential issue with the path azimuthal angle",
            "Whether or not to search for the surface intersection in a safer but slower manner"},
-  };
-
-  wsm_data["ray_pathGeometricTangentAltitude"] = {
-      .desc =
-          R"--(Get a geometric radiation path that crosses the tangent altitude
-
-The path is defined by an azimuth, a position, and a tangent altitude.
-If the path ends up crossing the surface altitude, an error is thrown.
-
-The ``pos`` is either at the end or at the beginning of the path depending 
-on the ``as_observer`` flag.  A value that evaluates to true means that it
-is at the end of the path.  If ``as_observer`` is true, the ``azimuth`` is
-therefore looking backwards along the path.  Basically, ``as_observer`` true
-means that ``pos`` and ``azimuth`` behaves as sensor pos and azimuth.
-
-The ``max_step`` is the maximum step length in meters.  The path is first
-created between the two extremes of space and space.  Afterwards,
-there are additional points added every ``max_step`` meters between these
-points until no more fits (the last step is shorter or exactly ``max_step``).
-
-Upon closing the method, the following options are available to modify
-the output:
-
-If ``add_limb`` is true, the limb point is added to the path at the end.  It
-is computed using bisections to ensure that the zenith angle of the tangent
-point is as close to 90 degrees as it can numerically be.
-
-If ``remove_non_atm`` is true, all points that are not in the atmosphere are
-removed.  It is recommended to remove these points as multiple methods will
-either perform poorly or not at all with these points present.
-
-If ``fix_updown_azimuth`` is true, the azimuthal angle of the path is
-fixed to the initial azimuthal angle of the path.  Because calculations
-of the azimuth angle makes use of IEEE atan2, some paths may produce
-bad angles if this is turned off.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path"},
-      .in        = {"atmospheric_field", "surface_field"},
-      .gin       = {"pos",
-                    "tangent_altitude",
-                    "azimuth",
-                    "max_step",
-                    "as_observer",
-                    "add_limb",
-                    "remove_non_atm",
-                    "fix_updown_azimuth"},
-      .gin_type  = {"Vector3",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{1e3},
-                    Index{1},
-                    Index{1},
-                    Index{1},
-                    Index{1}},
-      .gin_desc =
-          {"The origo of the radiation path",
-           "The tangent altitude of the radiation path",
-           "The azimuth from the origo of the radiation path towards the tangent altitude",
-           "The maximum step length",
-           "Whether or not the path is as seen by the sensor or by the radiation (see text)",
-           "Wheter or not to add the limb point",
-           "Wheter or not to keep only atmospheric points",
-           "Whether or not to attempt fix a potential issue with the path azimuthal angle"},
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
@@ -3725,22 +3882,6 @@ This uses a step-by-step solver to propagate background radiation along the path
                  "spectral_radiance_background"},
   };
 
-  wsm_data["spectral_radianceCumulativeEmission"] = {
-      .desc   = R"--(Gets the spectral radiance from the path emission.
-
-Also get the Jacobian of the spectral radiance with regards to the
-path parameters.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
-      .in     = {"ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian",
-                 "ray_path_spectral_radiance_source",
-                 "ray_path_spectral_radiance_source_jacobian",
-                 "spectral_radiance_background"},
-  };
-
   wsm_data["spectral_radianceCumulativeTransmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path transmission.
 
@@ -4329,7 +4470,7 @@ This is because of how non-LTE is implemented in ARTS.
       .gin_desc =
           {"Normalization factor for the non-LTE field - all species of same isotopologue will be summed to this value (non-positive means no normalization)"},
   };
- 
+
   wsm_data["ray_path_observersFieldProfilePseudo2D"] = {
       .desc =
           R"(Get a list of observer positions and line of sights to represent observing all angles of a profile.

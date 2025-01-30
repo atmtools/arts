@@ -42,7 +42,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 ws.spectral_radiance_unit = "Tb"
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
-ws.ray_path_observer_agendaSet(option="Geometric")
+ws.ray_path_observer_agendaSetGeometric()
 ws.spectral_radiance_observer_agendaSet(option="Emission")
 
 # %% Set up a sensor with Gaussian channel widths on individual frequency ranges

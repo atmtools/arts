@@ -422,7 +422,7 @@ constexpr Numeric find_crossing_with_surface_z(
   if (search_safe) {
     Numeric l_test =
         l_min - safe_search_accuracy / 2;  // Remove l/2 to get exact result
-    bool above_surface = true;                // if true l_test is 0
+    bool above_surface = true;             // if true l_test is 0
     while (above_surface && l_test < l_max) {
       l_test += safe_search_accuracy;
       Vector3 local_pos =
@@ -794,21 +794,28 @@ constexpr Intersections pair_line_ellipsoid_intersect(
       }
 
       const auto [r0, r1] = get_r_atm();
+
+      if (atm_field.top_of_atmosphere == path.altitude()) {
+        return {.first           = get_point(std::max(r0, r1), atm, space),
+                .second          = path,
+                .second_is_valid = false};
+      }
+
       if (r1 < 0) {
         return {.first           = get_point(r0, atm, space),
                 .second          = path,
                 .second_is_valid = false};
       }
 
-      if (search_safe and r0 < safe_search_accuracy) {
+      if (r0 < 0) {
         return {.first           = get_point(r1, atm, space),
                 .second          = path,
                 .second_is_valid = false};
       }
 
-      return {.first           = get_point(r0, atm, space),
-              .second          = get_point(r1, atm, space),
-              .second_is_valid = false};
+      return {.first           = get_point(std::min(r0, r1), atm, space),
+              .second          = get_point(std::max(r0, r1), atm, space),
+              .second_is_valid = true};
     }
     case subsurface: ARTS_USER_ERROR("Unsupported subsurface start position")
   }
@@ -837,12 +844,8 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
     return path;
   }
 
-  const auto [first, second, second_is_valid] =
-      pair_line_ellipsoid_intersect(path.back(),
-                                    atm_field,
-                                    surface_field,
-                                    safe_search_accuracy,
-                                    search_safe);
+  const auto [first, second, second_is_valid] = pair_line_ellipsoid_intersect(
+      path.back(), atm_field, surface_field, safe_search_accuracy, search_safe);
   path.back().los_type = first.pos_type;
   path.push_back(first);
   if (second_is_valid) path.push_back(second);
@@ -878,6 +881,40 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
                                             PathPositionType::atm));
         ++i;
       }
+    }
+  }
+
+  return path;
+}
+
+ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Numeric max_step) {
+  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
+  if (path.size() == 0) return path;
+
+  //! NOTE: grows path as it loops, so we cannot use iterators
+  for (Size i = 0; i < path.size() - 1; ++i) {
+    const auto& p1 = path[i];
+    const auto& p2 = path[i + 1];
+
+    if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
+      const auto [rad_start, rad_dir] =
+          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+      const Numeric distance = ecef_distance(
+          rad_start, geodetic2ecef(p1.pos, surface_field.ellipsoid));
+
+      if (distance <= max_step) continue;
+
+      path.insert(path.begin() + 1 + i,
+                  path_at_distance<false>(rad_start,
+                                          rad_dir,
+                                          surface_field.ellipsoid,
+                                          0.5 * distance,
+                                          PathPositionType::atm,
+                                          PathPositionType::atm));
+      --i;
     }
   }
 
@@ -1044,11 +1081,11 @@ ArrayOfPropagationPathPoint& fill_geometric_crossings(
     const Vector& alt_grid,
     const Vector& lat_grid,
     const Vector& lon_grid) {
-  if (not alt_grid.empty())
+  if (alt_grid.size() > 1)
     fill_geometric_altitude_crossings(path, surface_field, alt_grid);
-  if (not lat_grid.empty())
+  if (lat_grid.size() > 1)
     fill_geometric_latitude_crossings(path, surface_field, lat_grid);
-  if (not lon_grid.empty())
+  if (lon_grid.size() > 1)
     fill_geometric_longitude_crossings(path, surface_field, lon_grid);
   return path;
 }
@@ -1198,6 +1235,19 @@ Numeric distance(const Vector3 pos1,
                  const Vector2 ellipsoid) {
   return ecef_distance(geodetic2ecef(pos1, ellipsoid),
                        geodetic2ecef(pos2, ellipsoid));
+}
+
+Vector distance(const ArrayOfPropagationPathPoint& path,
+                const Vector2 ellipsoid) {
+  const Size N = path.size();
+  assert(N != 0);
+
+  Vector dists(N - 1);
+  for (Size i = 0; i < N - 1; ++i) {
+    dists[i] = distance(path[i].pos, path[i + 1].pos, ellipsoid);
+  }
+
+  return dists;
 }
 
 ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(

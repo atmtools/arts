@@ -132,28 +132,3 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
 
   return std::move(agenda).finalize(true);
 }
-
-Agenda get_ray_path_observer_agenda(const std::string& option) {
-  AgendaCreator agenda("ray_path_observer_agenda");
-
-  using enum ray_path_observer_agendaPredefined;
-  switch (to<ray_path_observer_agendaPredefined>(option)) {
-    case Geometric:
-      agenda.add("ray_pathGeometric",
-                 SetWsv{"pos", "spectral_radiance_observer_position"},
-                 SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
-                 SetWsv{"as_observer", Index{1}});
-      break;
-    case GeometricGridded:
-      agenda.add("ray_pathGeometric",
-                 SetWsv{"pos", "spectral_radiance_observer_position"},
-                 SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
-                 SetWsv{"as_observer", Index{1}});
-      agenda.add("ray_pathAddGeometricGridCrossings",
-                 SetWsv{"atm_key", AtmKey::t},
-                 SetWsv{"remove_non_crossings", Index{1}});
-      break;
-  }
-
-  return std::move(agenda).finalize(false);
-}
