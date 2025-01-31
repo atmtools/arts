@@ -20,6 +20,7 @@ void py_quantum(py::module_& m);
 void py_rtepack(py::module_& m);
 void py_species(py::module_& m);
 void py_sparse(py::module_& m);
+void py_nlte(py::module_& m);
 void py_scattering(py::module_& m);
 void py_scattering_species(py::module_& m);
 void py_jac(py::module_& m);
@@ -131,6 +132,7 @@ NB_MODULE(arts, m) try {
   py_disort(m);
   py_retrieval(m);
   py_lookup(m);
+  py_nlte(m);
   py_auto_agenda_operators(m);
 
   // Must be last, it contains automatic conversion operations

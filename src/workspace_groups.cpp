@@ -378,6 +378,16 @@ Both the data and the grid may be named
 )--",
   };
 
+  wsg_data["NonlteLineFluxProfile"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map of line flux profiles.
+
+The key is a *QuantumIdentifier* and the value is a *Vector*.
+)--",
+.map_type=true
+  };
+
   wsg_data["NamedGriddedField2"] = {
       .file = "matpack.h",
       .desc =

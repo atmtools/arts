@@ -13,3 +13,5 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
 
 //! Match collision rate to quantum identifier - as a function of temperature
 using NonlteCollision = std::unordered_map<QuantumIdentifier, GriddedField1>;
+
+using NonlteLineFluxProfile = std::unordered_map<QuantumIdentifier, Vector>;
