@@ -13,6 +13,7 @@ add_library(lbl STATIC
   lbl_lineshape_voigt_nlte.cpp
   lbl_nlte.cpp
   lbl_temperature_model.cpp
+  lbl_voigt.cpp
   lbl_zeeman.cpp
 )
 

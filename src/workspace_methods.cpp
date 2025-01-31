@@ -1861,6 +1861,16 @@ Gets the ellispoid from *surface_field*
       .pass_workspace = true,
   };
 
+  wsm_data["flux_profileIntegrate"] = {
+      .desc      = R"--(Computes the spectral flux
+)--",
+      .author    = {"Richard Larsson"},
+      .gout      = {"flux_profile"},
+      .gout_type = {"Vector"},
+      .gout_desc = {"The spectral flux profile"},
+      .in        = {"spectral_flux_profile", "frequency_grid"},
+  };
+
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
       .desc           = R"--(Computes the background radiation.
 )--",
