@@ -595,9 +595,15 @@ These can be used directly for *spectral_radiance_observer_position* and *spectr
   };
 
   wsv_data["spectral_flux_profile"] = {
-      .desc = R"--(An altitude profile of spectral flux
+      .desc = R"--(An altitude profile of spectral flux.
 )--",
       .type = "Matrix",
+  };
+
+  wsv_data["nlte_line_flux_profile"] = {
+      .desc = R"--(A per-line flux profile.
+)--",
+      .type = "NonlteLineFluxProfile",
   };
 
   wsv_data["spectral_radiance_observer_position"] = {

@@ -1871,6 +1871,17 @@ Gets the ellispoid from *surface_field*
       .in        = {"spectral_flux_profile", "frequency_grid"},
   };
 
+  wsm_data["nlte_line_flux_profileIntegrate"] = {
+      .desc   = R"--(Integrate the spectral flux profile to get the line non-LTE flux
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"nlte_line_flux_profile"},
+      .in     = {"spectral_flux_profile",
+                 "absorption_bands",
+                 "ray_path_atmospheric_point",
+                 "frequency_grid"},
+  };
+
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
       .desc           = R"--(Computes the background radiation.
 )--",

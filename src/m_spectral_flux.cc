@@ -143,7 +143,7 @@ void spectral_flux_profileFromPathField(
 
   ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(
+  ARTS_USER_ERROR_IF(not arr::each_same_size(
                          ray_path_spectral_radiance_field, ray_path_field),
                      "Not all ray paths have the same altitude count")
 
@@ -218,16 +218,15 @@ void flux_profileIntegrate(Vector& flux_profile,
 }
 
 void nlte_line_flux_profileIntegrate(
-    std::unordered_map<Quantum::Number::GlobalState, Vector>&
-        nlte_line_flux_profile,
+    NonlteLineFluxProfile& nlte_line_flux_profile,
     const Matrix& spectral_flux_profile,
     const AbsorptionBands& absorption_bands,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const AscendingGrid& frequency_grid) {
   const Size K = spectral_flux_profile.extent(0);
+  const Size M = spectral_flux_profile.extent(1);
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
-                         spectral_flux_profile.extent(1),
+  ARTS_USER_ERROR_IF(frequency_grid.size() != M,
                      "Frequency grid and spectral flux profile size mismatch")
 
   ARTS_USER_ERROR_IF(
@@ -241,7 +240,7 @@ void nlte_line_flux_profileIntegrate(
     ARTS_USER_ERROR_IF(not is_voigt(band.lineshape),
                        "Only one line per band is supported");
 
-    Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape());
+    Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape(), 0.0);
 
     for (Size k = 0; k < K; k++) {
       lbl::compute_voigt(weighted_spectral_flux_profile[k],

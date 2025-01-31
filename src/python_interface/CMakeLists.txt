@@ -143,6 +143,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_module.cpp
     py_file.cpp
     py_fast_inaccurate_lookup.cpp
+    py_nlte.cpp
 
     py_auto_agenda_operators.cpp
 

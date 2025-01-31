@@ -105,6 +105,20 @@ constexpr bool same_size(const T& x, const Rest&... rest)
   return ((x.size() == rest.size()) && ...);
 }
 
+/** Check that all have the same size. */
+template <sizeable T, sizeable... Rest>
+constexpr bool each_same_size(const std::vector<T>& x,
+                              const std::vector<Rest>&... rest)
+  requires(sizeof...(rest) > 0)
+{
+  if (not same_size(x, rest...)) return false;
+
+  for (Size i = 0; i < x.size(); i++) {
+    if (not same_size(x[i], rest[i]...)) return false;
+  }
+  return true;
+}
+
 template <typename T>
 concept elemwise_sizeable = sizeable<T> and requires(T& x) { x[0].size(); };
 
