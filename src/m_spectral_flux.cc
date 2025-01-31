@@ -143,11 +143,9 @@ void spectral_flux_profileFromPathField(
 
   ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 
-  for (Size n = 0; n < N; n++) {
-    ARTS_USER_ERROR_IF(
-        ray_path_spectral_radiance_field[n].size() != ray_path_field[n].size(),
-        "Not all ray paths have the same altitude count")
-  }
+  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(
+                         ray_path_spectral_radiance_field, ray_path_field),
+                     "Not all ray paths have the same altitude count")
 
   ARTS_USER_ERROR_IF(
       stdr::any_of(ray_path_spectral_radiance_field | stdv::join,
@@ -195,3 +193,68 @@ void spectral_flux_profileFromPathField(
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+void flux_profileIntegrate(Vector& flux_profile,
+                           const Matrix& spectral_flux_profile,
+                           const AscendingGrid& frequency_grid) {
+  ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
+                         spectral_flux_profile.extent(1),
+                     "Frequency grid and spectral flux profile size mismatch")
+
+  const Size K = spectral_flux_profile.extent(0);
+
+  flux_profile.resize(K);
+  flux_profile = 0.0;
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size k = 0; k < K; k++) {
+    auto s  = spectral_flux_profile[k];
+    auto& y = flux_profile[k];
+    for (Size i = 0; i < frequency_grid.size() - 1; i++) {
+      const auto w  = 0.5 * (frequency_grid[i + 1] - frequency_grid[i]);
+      y            += w * (s[i] + s[i + 1]);
+    }
+  }
+}
+
+void nlte_line_flux_profileIntegrate(
+    std::unordered_map<Quantum::Number::GlobalState, Vector>&
+        nlte_line_flux_profile,
+    const Matrix& spectral_flux_profile,
+    const AbsorptionBands& absorption_bands,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const AscendingGrid& frequency_grid) {
+  const Size K = spectral_flux_profile.extent(0);
+
+  ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
+                         spectral_flux_profile.extent(1),
+                     "Frequency grid and spectral flux profile size mismatch")
+
+  ARTS_USER_ERROR_IF(
+      ray_path_atmospheric_point.size() != K,
+      "Atmospheric point and spectral flux profile size mismatch");
+
+  nlte_line_flux_profile.clear();
+  for (const auto& [key, band] : absorption_bands) {
+    ARTS_USER_ERROR_IF(band.size() != 1, "Only one line per band is supported");
+
+    ARTS_USER_ERROR_IF(not is_voigt(band.lineshape),
+                       "Only one line per band is supported");
+
+    Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape());
+
+    for (Size k = 0; k < K; k++) {
+      lbl::compute_voigt(weighted_spectral_flux_profile[k],
+                         band.lines.front(),
+                         frequency_grid,
+                         ray_path_atmospheric_point[k],
+                         key.Isotopologue().mass);
+    }
+
+    weighted_spectral_flux_profile *= spectral_flux_profile;
+
+    flux_profileIntegrate(nlte_line_flux_profile[key],
+                          weighted_spectral_flux_profile,
+                          frequency_grid);
+  }
+}
