@@ -22,6 +22,17 @@ def _download_and_extract(url, extract_dir=".", verbose=False):
         f.extractall(extract_dir)
 
 
+def _get_latest_stable_version(version):
+    """
+    Decrement version to previous stable version.
+
+    Parameters:
+        version (str): Version string in format "major.minor.micro".
+    """
+    major, minor, micro = map(int, version.split("."))
+    return f"{major}.{minor}.{micro - 1 if micro % 2 else micro}"
+
+
 def retrieve(download_dir=None, version=None, verbose=False):
     """
     Download and extract the ARTS XML and catalog data files from github.
@@ -45,7 +56,15 @@ def retrieve(download_dir=None, version=None, verbose=False):
     """
     if version is None:
         from pyarts import __version__
-        version = __version__
+
+        version = _get_latest_stable_version(__version__)
+        if version != __version__:
+            if verbose:
+                print(
+                    f"No downloadable catalogs are available for development versions of ARTS.\n"
+                    f"Downloading the latest stable version {version} of the catalogs instead.\n"
+                    f"Check out the catalogs with svn if you need the latest developmen version."
+                )
 
     if download_dir is None:
         download_dir = os.path.join(os.getenv("HOME"), ".cache", "arts")
@@ -61,9 +80,6 @@ def retrieve(download_dir=None, version=None, verbose=False):
         if verbose:
             print("Skipping download, environment variable ARTS_INCLUDE_PATH already set.")
         return
-    if int(version[-1]) % 2:
-        raise RuntimeError(f"Version {version} is not a release version.\n"
-                           f"Please check out the current catalogs with svn instead.")
 
     def retrieve_catalog(catname):
         if not os.path.exists(os.path.join(download_dir, catname)):
@@ -71,6 +87,8 @@ def retrieve(download_dir=None, version=None, verbose=False):
             _download_and_extract(GITHUB_URL + catname + ".zip",
                                   download_dir,
                                   verbose=verbose)
+        elif verbose:
+            print(f"Skipping download, data already exists at {download_dir}/{catname}")
 
     retrieve_catalog(artsxmldata)
     retrieve_catalog(artscatdata)
