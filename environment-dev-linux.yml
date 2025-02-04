@@ -27,6 +27,7 @@ dependencies:
         - sphinx
         - sphinx-favicon
         - sphinx_rtd_theme
+        - tqdm
         - xarray
         - zlib
         - mesa-libgl-devel-cos7-x86_64

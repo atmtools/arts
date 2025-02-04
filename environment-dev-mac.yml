@@ -23,6 +23,7 @@ dependencies:
         - sphinx
         - sphinx-favicon
         - sphinx_rtd_theme
+        - tqdm
         - xarray
         - zlib
 channels:

@@ -1,6 +1,14 @@
 import os
 import urllib.request
 import zipfile
+from tqdm import tqdm
+
+
+class _DownloadProgressBar(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        return self.update(b * bsize - self.n)
 
 
 def _download_and_extract(url, extract_dir=".", verbose=False):
@@ -15,7 +23,10 @@ def _download_and_extract(url, extract_dir=".", verbose=False):
     if verbose:
         print(f"Downloading {url}")
     try:
-        zip_path, _ = urllib.request.urlretrieve(url)
+        with _DownloadProgressBar(
+            unit="B", unit_scale=True, miniters=1, desc=url.split("/")[-1]
+        ) as t:
+            zip_path, _ = urllib.request.urlretrieve(url, reporthook=t.update_to)
     except urllib.request.HTTPError as e:
         raise RuntimeError(f"Failed to download {url}: {e}")
     with zipfile.ZipFile(zip_path, "r") as f:
@@ -63,7 +74,7 @@ def retrieve(download_dir=None, version=None, verbose=False):
                 print(
                     f"No downloadable catalogs are available for development versions of ARTS.\n"
                     f"Downloading the latest stable version {version} of the catalogs instead.\n"
-                    f"Check out the catalogs with svn if you need the latest developmen version."
+                    f"Check out the catalogs with svn if you need the latest development version."
                 )
 
     if download_dir is None:
