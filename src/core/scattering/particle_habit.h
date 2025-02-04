@@ -15,17 +15,12 @@ using ParticleData = std::variant<
   SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>
   >;
 
-using ScatteringData = std::variant<
-    std::vector<
-        SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>>,
-    std::vector<SingleScatteringData<Numeric,
-                                     Format::TRO,
-                                     Representation::Spectral>>,
-    std::vector<
-        SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>>,
-    std::vector<SingleScatteringData<Numeric,
-                                     Format::ARO,
-                                     Representation::Spectral>>>;
+using ScatteringData = std::vector<ParticleData>;
+
+
+Format get_format(const ParticleData& pd) {
+  return std::visit([](const auto& ssd) {return ssd.get_format();}, pd);
+}
 
 /** A habit of scattering particles.
  *
@@ -64,24 +59,104 @@ class ParticleHabit {
    */
    template<Format format, Representation representation>
      ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_)
-      : scattering_data(scattering_data_) {}
+     {
+       scattering_data.resize(scattering_data.size());
+       std::transform(scattering_data_.begin(),
+                      scattering_data_.end(),
+                      scattering_data.begin(),
+                      [](const auto& ssd) {return ssd;});
+     }
 
+   template<Format format, Representation representation>
+     ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_,
+                   ScatteringDataGrids grids_)
+      : grids(grids_) {
+       scattering_data.resize(scattering_data.size());
+       std::transform(scattering_data_.begin(),
+                      scattering_data_.end(),
+                      scattering_data.begin(),
+                      [](const auto& ssd) {return ssd;});
+   }
 
   template <Format format, Representation repr>
     void append_particle(const SingleScatteringData<Numeric, format, repr> &ssd) {
-    auto append = [&ssd](auto vec) {vec.push_back(ssd);};
-    std::visit(append, scattering_data);
+    if (grids.has_value()) {
+      scattering_data.push_back(ssd.regrid(grids));
+    } else {
+      scattering_data.push_back(ssd);
+    }
+  }
+
+
+
+
+  ParticleHabit to_tro_spectral(const Vector& t_grid, const Vector& f_grid, Index l) {
+    auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid),
+                                         std::make_shared<Vector>(f_grid));
+
+    std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>> new_scat_data;
+    auto regrid_and_transform = [&l, &new_grids](const auto& ssd)
+      -> SingleScatteringData<Numeric, Format::TRO, Representation::Spectral> {
+      if constexpr (ssd.get_format() == Format::ARO) {
+        ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
+      } else {
+        return ssd.to_spectral(l, 0).regrid(new_grids);
+      }
+    };
+    std::transform(scattering_data.begin(),
+                   scattering_data.end(),
+                   new_scat_data.begin(),
+                   [&regrid_and_transform](const ParticleData& pd) {return std::visit(regrid_and_transform, pd);});
+    return ParticleHabit(new_scat_data, new_grids);
+  }
+
+  ParticleHabit to_tro_gridded(const Vector& t_grid, const Vector& f_grid, const Vector &za_scat_grid) {
+    auto new_grids = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
+                                         std::make_shared<const Vector>(f_grid),
+                                         std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)));
+
+    auto regrid_and_transform = [&new_grids](const auto& ssd)
+    -> SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>{
+      if constexpr (ssd.get_format() == Format::ARO) {
+        ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
+      } else if constexpr (ssd.get_representation() == Representation::Gridded) {
+        return ssd.regrid(new_grids);
+      } else {
+        auto gridded = ssd.to_gridded();
+        return gridded.regrid(new_grids);
+      }
+    };
+
+    std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> new_scattering_data;
+    new_scattering_data.reserve(scattering_data.size());
+    for (const ParticleData& pd : scattering_data) {
+      new_scattering_data.push_back(std::visit(regrid_and_transform, pd));
+    }
+    return ParticleHabit(new_scattering_data, new_grids);
+  }
+
+  ParticleHabit to_aro_spectral(const Vector& t_grid, const Vector& f_grid, Index l, Index m) {
+
+    return {};
+  }
+
+  ParticleHabit to_aro_gridded(const Vector& t_grid, const Vector& f_grid, const Vector &za_scat_grid) {
+    return {};
   }
 
   Index size() {
-    return std::visit([](auto vec){return vec.size();}, scattering_data);
+    return scattering_data.size();
   }
 
   ParticleData operator[](Index ind) {
-    return std::visit([&ind](auto vec){return ParticleData(vec[ind]);}, scattering_data);
+    return scattering_data[ind];
   }
 
  private:
+
   ScatteringData scattering_data;
+  std::optional<ScatteringDataGrids> grids;
+
 };
+
 }  // namespace scattering

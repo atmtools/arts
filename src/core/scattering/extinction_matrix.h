@@ -113,7 +113,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
   }
 
   ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral>
-  to_spectral() {
+  to_spectral() const {
     ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral> emd_new{
         t_grid_, f_grid_};
     reinterpret_cast<matpack::data_t<Scalar, 3>&>(emd_new) = *this;
@@ -137,7 +137,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
   }
 
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
-                              const RegridWeights& weights) {
+                              const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -160,6 +160,11 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
       }
     }
     return result;
+  }
+
+  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
+    auto weights = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, grids);
+    return regrid(weights, grids);
   }
 
  protected:
@@ -260,7 +265,7 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
   }
 
   ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral>
-  to_spectral();
+  to_spectral() const;
 
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
                               const RegridWeights& weights) {
@@ -327,10 +332,10 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
 
 template <std::floating_point Scalar, Representation repr>
 ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral>
-ExtinctionMatrixData<Scalar, Format::ARO, repr>::to_spectral() {
+ExtinctionMatrixData<Scalar, Format::ARO, repr>::to_spectral() const {
   ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> emd_new{
       t_grid_, f_grid_, za_inc_grid_};
-  emd_new = reinterpret_cast<matpack::data_t<Scalar, 4>&>(*this);
+  emd_new = reinterpret_cast<const matpack::data_t<Scalar, 4>&>(*this);
   return emd_new;
 }
 

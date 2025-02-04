@@ -242,6 +242,15 @@ constexpr Index get_n_mat_elems(Format format) {
 /// The grid over which the scattering data is defined.
 struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
+                      std::shared_ptr<const Vector> f_grid_)
+      : t_grid(t_grid_),
+        f_grid(f_grid_),
+        aa_inc_grid(nullptr),
+        za_inc_grid(nullptr),
+        aa_scat_grid(nullptr),
+        za_scat_grid(nullptr) {}
+
+  ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
       : t_grid(t_grid_),
@@ -392,7 +401,7 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
   }
 
   BackscatterMatrixData regrid(const ScatteringDataGrids &grids,
-                               const RegridWeights &weights) {
+                               const RegridWeights &weights) const {
     BackscatterMatrixData result(grids.t_grid, grids.f_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -412,6 +421,11 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
       }
     }
     return result;
+  }
+
+  BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
+    return regrid(grids, weights);
   }
 
  protected:
@@ -491,7 +505,7 @@ class BackscatterMatrixData<Scalar, Format::ARO>
   }
 
   BackscatterMatrixData regrid(const ScatteringDataGrids &grids,
-                               const RegridWeights &weights) {
+                               const RegridWeights &weights) const {
     BackscatterMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -751,6 +765,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   BackscatterMatrixData<Scalar, Format::TRO> extract_backscatter_matrix() {
     BackscatterMatrixData<Scalar, Format::TRO> result(t_grid_, f_grid_);
     GridPos interp = find_interp_weights(grid_vector(*za_scat_grid_), 180.0);
+    //gridpos(interp, grid_vector(*za_scat_grid_), 180.0);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
@@ -836,7 +851,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   }
 
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
-                         const RegridWeights &weights) {
+                         const RegridWeights &weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_scat_grid);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -901,6 +916,11 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
       }
     }
     return result;
+  }
+
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, za_scat_grid_, grids);
+    return regrid(grids, weights);
   }
 
  protected:
@@ -1151,7 +1171,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
   }
 
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
-                         const RegridWeights weights) {
+                         const RegridWeights weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, sht_);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -1200,6 +1220,11 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
       }
     }
     return result;
+  }
+
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
+    return regrid(grids, weights);
   }
 
  protected:
@@ -1431,7 +1456,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   }
 
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
-                         const RegridWeights &weights) {
+                         const RegridWeights &weights) const {
     PhaseMatrixData result(grids.t_grid,
                            grids.f_grid,
                            grids.za_inc_grid,
@@ -1716,6 +1741,17 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
     return result;
   }
 
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_,
+                                       f_grid_,
+                                       nullptr,
+                                       za_inc_grid_,
+                                       delta_aa_grid_,
+                                       za_scat_grid_,
+                                       grids);
+    return regrid(grids, weights);
+  }
+
  protected:
   /// The size of the temperature grid.
   Index n_temps_;
@@ -1957,7 +1993,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
   }
 
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
-                         const RegridWeights weights) {
+                         const RegridWeights weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
     auto coeffs_this = get_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -2032,6 +2068,17 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
       }
     }
     return result;
+  }
+
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_,
+                                       f_grid_,
+                                       nullptr,
+                                       za_inc_grid_,
+                                       nullptr,
+                                       nullptr,
+                                       grids);
+    return regrid(grids, weights);
   }
 
  protected:

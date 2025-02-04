@@ -115,7 +115,7 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
   }
 
   AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral>
-  to_spectral() {
+  to_spectral() const {
     AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> avd_new(
         t_grid_, f_grid_);
     reinterpret_cast<matpack::data_t<Scalar, 3>&>(avd_new) = *this;
@@ -227,7 +227,7 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral>
-  to_spectral() {
+  to_spectral() const {
     AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> avd_new(
         t_grid_, f_grid_, za_inc_grid_);
     reinterpret_cast<matpack::data_t<Scalar, 4>&>(avd_new) = *this;
