@@ -52,8 +52,8 @@ struct SingleScatteringData {
                                                                                 za_grid_ptr);
     ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction_matrix(t_grid_ptr, f_grid_ptr);
     AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption_vector(t_grid_ptr, f_grid_ptr);
-    BackscatterMatrixData<Numeric, Format::TRO> backward_scattering_matrix(t_grid_ptr, f_grid_ptr);
-    ForwardscatterMatrixData<Numeric, Format::TRO> forward_scattering_matrix(t_grid_ptr, f_grid_ptr);
+    BackscatterMatrixData<Numeric, Format::TRO> backscatter_matrix(t_grid_ptr, f_grid_ptr);
+    ForwardscatterMatrixData<Numeric, Format::TRO> forwardscatter_matrix(t_grid_ptr, f_grid_ptr);
 
     for (const auto[temp_ind, temp] : std::ranges::views::enumerate(*t_grid_ptr)) {
         for (const auto[freq_ind, freq] : std::ranges::views::enumerate(*f_grid_ptr)) {
@@ -77,8 +77,8 @@ struct SingleScatteringData {
                                 phase_matrix,
                                 extinction_matrix,
                                 absorption_vector,
-                                backward_scattering_matrix,
-                                forward_scattering_matrix);
+                                backscatter_matrix,
+                                forwardscatter_matrix);
 
   }
 
@@ -183,6 +183,83 @@ struct SingleScatteringData {
         absorption_vector(absorption_vector_),
         backscatter_matrix(backscatter_matrix_),
         forwardscatter_matrix(forwardscatter_matrix_) {}
+
+  /** Create SingleScatteringDat container with particle propreties.
+   *
+   * @param properties_ The properties of the particle.
+   * @param phase_matrix_ The phase matrix data.
+   * @param extinction_matrix_ The extinction matrix data.
+   * @param absorption_vector_ The absorption vector data.
+   * @param backscatter_matrix_ The backscatter matrix.
+   * @param forwardscatter_matrix_ The forwardscatter matrix.
+   */
+  SingleScatteringData(
+      std::optional<ParticleProperties> properties_,
+      std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix_,
+      ExtinctionMatrixData<Scalar, format, repr> extinction_matrix_,
+      AbsorptionVectorData<Scalar, format, repr> absorption_vector_,
+      BackscatterMatrixData<Scalar, format> backscatter_matrix_,
+      ForwardscatterMatrixData<Scalar, format> forwardscatter_matrix_
+                       )
+      : properties(properties_),
+        phase_matrix(phase_matrix_),
+        extinction_matrix(extinction_matrix_),
+        absorption_vector(absorption_vector_),
+        backscatter_matrix(backscatter_matrix_),
+        forwardscatter_matrix(forwardscatter_matrix_) {}
+
+  SingleScatteringData(const SingleScatteringData &) = default;
+
+  constexpr Format get_format() const {
+    return format;
+  }
+
+  constexpr Representation get_representation() const {
+    return repr;
+  }
+
+  SingleScatteringData regrid(const ScatteringDataGrids grids,
+                              const RegridWeights weights) const {
+    return SingleScatteringData(properties,
+                                phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
+                                extinction_matrix.regrid(grids, weights),
+                                absorption_vector.regrid(grids, weights),
+                                backscatter_matrix.regrid(grids, weights),
+                                forwardscatter_matrix.regrid(grids, weights));
+  }
+
+  SingleScatteringData regrid(const ScatteringDataGrids grids) const {
+    return SingleScatteringData(properties,
+                                phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
+                                extinction_matrix.regrid(grids),
+                                absorption_vector.regrid(grids),
+                                backscatter_matrix.regrid(grids),
+                                forwardscatter_matrix.regrid(grids));
+  }
+
+  SingleScatteringData<Numeric, format, Representation::Spectral> to_spectral(Index l, Index m=0) const {
+    ARTS_USER_ERROR_IF((format == Format::TRO) && (m > 0),
+                       "Order of SHT representation must be 0 for scattering data in TRO format");
+    auto new_phase_matrix = phase_matrix.transform([&l, &m](const auto &pm) {return pm.to_spectral(l, m);});
+    return SingleScatteringData<Numeric, format, Representation::Spectral>(properties,
+                                                                           new_phase_matrix,
+                                                                           extinction_matrix.to_spectral(),
+                                                                           absorption_vector.to_spectral(),
+                                                                           backscatter_matrix,
+                                                                           forwardscatter_matrix);
+  }
+
+  SingleScatteringData<Numeric, format, Representation::Gridded> to_gridded() const {
+    auto new_phase_matrix = phase_matrix.transform([](const auto &pm) {return pm.to_gridded();});
+    return SingleScatteringData(properties,
+                                new_phase_matrix,
+                                extinction_matrix.to_gridded(),
+                                absorption_vector.to_gridded(),
+                                backscatter_matrix.to_gridded(),
+                                forwardscatter_matrix.to_gridded());
+  }
+
+
 
   std::optional<ParticleProperties> properties;
   std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix;
