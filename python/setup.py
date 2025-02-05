@@ -60,6 +60,7 @@ setup(
         "numpy>=1.13",
         "scipy>=0.15.1",
         "setuptools>=0.7.2",
+        "tqdm",
     ],
     extras_require={
         "docs": ["sphinx_rtd_theme"],
