@@ -122,7 +122,7 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
 }
 
 IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector& zenith_angles)
-    : ZenithAngleGrid(zenith_angles),
+    : data(zenith_angles),
       weights_(zenith_angles.size()),
       cos_theta_(zenith_angles),
       type_(QuadratureType::Trapezoidal) {
@@ -132,7 +132,7 @@ IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector& zenith_angles)
       cos_theta_.begin(),
       [](Numeric lat) { return -1.0 * cos(Conversion::deg2rad(lat)); });
   weights_ = 0.0;
-  Index n  = static_cast<Index>(Vector::size());
+  Index n  = static_cast<Index>(data.size());
   for (Index i = 0; i < n - 1; ++i) {
     auto dx          = 0.5 * (cos_theta_[i + 1] - cos_theta_[i]);
     weights_[i]     += dx;

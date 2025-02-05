@@ -245,45 +245,11 @@ class QuadratureProvider {
   std::map<Index, Quadrature> quadratures_;
 };
 
-namespace detail {
-/** Base class for zenith-angle grids.
-*
-* This class defines the basic interface for zenith-angle grids.
-* It is used to store the cosine values of the grid points and,
-* in addition to that, the integration weights of the corresponding
-* quadrature.
-*/
-class ZenithAngleGrid : public Vector {
+
+class IrregularZenithAngleGrid {
  public:
-  ZenithAngleGrid() : Vector() {}
-  ZenithAngleGrid(const Vector& zenith_angles) : Vector(zenith_angles) {}
-  ZenithAngleGrid(Index i) : Vector(i) {}
+  Vector data;
 
-  virtual ~ZenithAngleGrid(){};
-
-  ZenithAngleGrid(const ZenithAngleGrid&) = default;
-  ZenithAngleGrid& operator=(const ZenithAngleGrid&) = default;
-  ZenithAngleGrid(ZenithAngleGrid&&) = default;
-  ZenithAngleGrid& operator=(ZenithAngleGrid&&) = default;
-
-  /// The cosine of the grid points.
-  virtual const Vector& get_angle_cosines() const = 0;
-  /// The grid points in radians.
-  virtual const Vector& get_angles() const { return *this; }
-  /// The integration weights.
-  virtual const Vector& get_weights() const = 0;
-
-  /// The type of quadrature.
-  virtual QuadratureType get_type() = 0;
-};
-}
-
-
-using ZenithAngleGridPtr = std::shared_ptr<detail::ZenithAngleGrid>;
-using ConstZenithAngleGridPtr = std::shared_ptr<const detail::ZenithAngleGrid>;
-
-class IrregularZenithAngleGrid : public detail::ZenithAngleGrid {
- public:
   IrregularZenithAngleGrid() = default;
   /** Create new zenith-angle grid.
   * @param zenith_angles Vector containing the zenith-angle grid points in radians.
@@ -307,8 +273,10 @@ class IrregularZenithAngleGrid : public detail::ZenithAngleGrid {
 };
 
 template <typename Quadrature>
-class QuadratureZenithAngleGrid : public detail::ZenithAngleGrid {
+class QuadratureZenithAngleGrid {
  public:
+  Vector data;
+
   /** Create new quadrature zenith-angle grid with given number of points.
   *
   * Creates a zenith-angle grid using the nodes and weights of the given quadrature
@@ -318,12 +286,12 @@ class QuadratureZenithAngleGrid : public detail::ZenithAngleGrid {
   * weights of the quadrature.
   * @param degree The number of points of the quadrature.
   */
-  QuadratureZenithAngleGrid() : detail::ZenithAngleGrid() {}
+  QuadratureZenithAngleGrid() : data() {}
   QuadratureZenithAngleGrid(const QuadratureZenithAngleGrid&) = default;
   QuadratureZenithAngleGrid(Index n_points)
-      : detail::ZenithAngleGrid(n_points), quadrature_(n_points) {
+      : data(n_points), quadrature_(n_points) {
     auto nodes = quadrature_.get_nodes();
-    std::transform(nodes.begin(), nodes.end(), begin(), [](Numeric x) {
+    std::transform(nodes.begin(), nodes.end(), data.begin(), [](Numeric x) {
       return Conversion::rad2deg(acos(-1.0 * x));
     });
   }
@@ -366,15 +334,15 @@ using ZenithAngleGrid = std::variant<
   >;
 
   inline Index grid_size(const ZenithAngleGrid &grid) {
-    return std::visit([](const auto &grd) { return grd.size(); }, grid);
+    return std::visit([](const auto &grd) { return grd.data.size(); }, grid);
   }
 
   inline StridedVectorView grid_vector(ZenithAngleGrid &grid) {
-    return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd); }, grid);
+    return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd.data); }, grid);
   }
 
    inline StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
-    return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd); }, grid);
+    return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd.data); }, grid);
   }
 
 
