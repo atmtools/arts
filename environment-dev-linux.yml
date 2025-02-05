@@ -19,7 +19,7 @@ dependencies:
         - libclang
         - libcxx
         - llvm-openmp
-        - nanobind
+        - nanobind < 2.5.0
         - nbsphinx
         - matplotlib
         - netcdf4
