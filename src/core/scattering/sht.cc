@@ -463,7 +463,7 @@ ArrayOfIndex SHT::get_m_indices() {
 FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
   auto result = FejerGrid(n_za);
   if (radians) {
-    result *= Conversion::deg2rad(1.0);
+    result.data *= Conversion::deg2rad(1.0);
   }
   return result;
 };
