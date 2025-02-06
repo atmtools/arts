@@ -53,4 +53,3 @@ ws.disort_fourier_mode_dimension = 1
 ws.disort_legendre_polynomial_dimension = 1
 ws.disort_settings_agendaSetup()
 ws.disort_settings_agendaExecute()
-

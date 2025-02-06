@@ -1,6 +1,9 @@
 #include <arts_omp.h>
 #include <workspace.h>
 
+#include "auto_wsm.h"
+#include "jacobian.h"
+
 void absorption_bandsSetNonLTE(AbsorptionBands& absorption_bands) {
   ARTS_TIME_REPORT
 
