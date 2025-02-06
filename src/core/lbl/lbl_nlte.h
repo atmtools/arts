@@ -11,7 +11,6 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
     const Numeric& normalizing_factor);
 }  // namespace lbl::nlte
 
-//! Match collision rate to quantum identifier - as a function of temperature
-using NonlteCollision = std::unordered_map<QuantumIdentifier, GriddedField1>;
-
-using NonlteLineFluxProfile = std::unordered_map<QuantumIdentifier, Vector>;
+using QuantumIdentifierGriddedField1Map = std::unordered_map<QuantumIdentifier, GriddedField1>;
+using QuantumIdentifierVectorMap = std::unordered_map<QuantumIdentifier, Vector>;
+using QuantumIdentifierNumericMap = std::unordered_map<QuantumIdentifier, Numeric>;

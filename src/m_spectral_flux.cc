@@ -143,9 +143,9 @@ void spectral_flux_profileFromPathField(
 
   ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 
-  ARTS_USER_ERROR_IF(not arr::each_same_size(
-                         ray_path_spectral_radiance_field, ray_path_field),
-                     "Not all ray paths have the same altitude count")
+  ARTS_USER_ERROR_IF(
+      not arr::each_same_size(ray_path_spectral_radiance_field, ray_path_field),
+      "Not all ray paths have the same altitude count")
 
   ARTS_USER_ERROR_IF(
       stdr::any_of(ray_path_spectral_radiance_field | stdv::join,
@@ -218,7 +218,7 @@ void flux_profileIntegrate(Vector& flux_profile,
 }
 
 void nlte_line_flux_profileIntegrate(
-    NonlteLineFluxProfile& nlte_line_flux_profile,
+    QuantumIdentifierVectorMap& nlte_line_flux_profile,
     const Matrix& spectral_flux_profile,
     const AbsorptionBands& absorption_bands,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
