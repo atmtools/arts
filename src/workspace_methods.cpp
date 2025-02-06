@@ -879,6 +879,44 @@ is breached.
       .pass_workspace = true,
   };
 
+  /*  For testing...
+  wsm_data["atmospheric_fieldDisortFitNonLTE"] = {
+      .desc =
+          R"--(
+Same as *atmospheric_fieldFitNonLTE* but uses Disort to compute the spectral flux.
+
+Note that the state of *disort_settings* is changed by this method to be the latest
+iteration.  Also note that the input settings must be valid for a call to
+*disort_spectral_flux_fieldCalc* as is.  Subsequent iterations,
+*ray_path_propagation_matrixFromPath*, *disort_settingsOpticalThicknessFromPath*, and
+*disort_settingsLayerNonThermalEmissionLinearInTau* are used to update the state of the disort settings.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field", "disort_settings"},
+      .in        = {"atmospheric_field",
+                    "disort_settings",
+                    "absorption_bands",
+                    "ray_path",
+                    "propagation_matrix_agenda",
+                    "frequency_grid"},
+      .gin       = {"collision_data",
+                    "levels",
+                    "convergence_criterion",
+                    "iteration_limit"},
+      .gin_type  = {"QuantumIdentifierGriddedField1Map",
+                    "ArrayOfQuantumIdentifier",
+                    "Numeric",
+                    "Index"},
+      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
+      .gin_desc =
+          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
+           "The order of the energy levels (if empty, the order is taken from the line-data)",
+           "Convergence criterion for the energy level distribution",
+           "Maximum number of iterations"},
+      .pass_workspace = true,
+  };
+  */
+
   wsm_data["atmospheric_fieldInit"] = {
       .desc =
           R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
