@@ -106,14 +106,16 @@ void ray_path_observersFluxProfile(
 
   ray_path_observers.reserve(n * alt_g.size() + 2);
   for (Index i = 0; i < n; i++) {
-    ray_path_observers.append_range(alt_g | stdv::drop(1) | stdv::take(n) |
-                                    stdv::transform([&](Numeric alt) {
-                                      return PropagationPathPoint{
-                                          .pos_type = PathPositionType::atm,
-                                          .los_type = PathPositionType::atm,
-                                          .pos      = {alt, lat, lon},
-                                          .los      = {zas_g[i], azimuth}};
-                                    }));
+    for (PropagationPathPoint p : alt_g | stdv::drop(1) | stdv::take(n) |
+                                      stdv::transform([&](Numeric alt) {
+                                        return PropagationPathPoint{
+                                            .pos_type = PathPositionType::atm,
+                                            .los_type = PathPositionType::atm,
+                                            .pos      = {alt, lat, lon},
+                                            .los      = {zas_g[i], azimuth}};
+                                      })) {
+      ray_path_observers.push_back(p);
+    }
   }
   ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                 .los_type = PathPositionType::atm,
