@@ -29,8 +29,6 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric(add_crossings=True, remove_non_crossings=True)
 ws.propagation_matrix_agendaAuto()
 
-ws.ray_path_fieldFluxProfile(dza=10)
-
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 
 ws.frequency_gridFitNonLTE(nf=301, df=1e-4)

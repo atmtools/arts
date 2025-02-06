@@ -803,7 +803,6 @@ returned as well.
           R"--(Fits non-LTE distributions to the level data.
 
 The spectral flux is computed from the pseudo-2D assumption.
-
 This method fits non-LTE distributions to the level data in the
 atmospheric field.  It only works for absorption band data that
 is separated by single-lines-per-band, and will produce nonsense
