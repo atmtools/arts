@@ -8,11 +8,12 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
+#include <stdexcept>
 
 #include "hpy_arts.h"
+#include "hpy_numpy.h"
 #include "py_macros.h"
 
-NB_MAKE_OPAQUE(scattering::ZenithAngleGrid);
 
 namespace Python {
 
@@ -25,13 +26,20 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
                                           scattering::Representation::Gridded>;
 
   py::class_<PMD, matpack::data_t<Scalar, 4>> s(m, class_name.c_str());
-  s.def(py::init<std::shared_ptr<const Vector>,
-                 std::shared_ptr<const Vector>,
-                 std::shared_ptr<const scattering::ZenithAngleGrid>>(),
-        py::arg("t_grid"),
-        py::arg("f_grid"),
-        py::arg("za_scat_grid"))
-
+  s.def(
+       "__init__",
+       [](PMD* self,
+          std::shared_ptr<const Vector> t_grid,
+          std::shared_ptr<const Vector> f_grid,
+          scattering::ZenithAngleGrid za_grid) {
+         new (self) PMD{
+             t_grid,
+             f_grid,
+             std::make_shared<const scattering::ZenithAngleGrid>(std::move(za_grid))};
+       },
+       py::arg("t_grid"),
+       py::arg("f_grid"),
+       py::arg("za_scat_grid"))
       // Bind methods, such as `extract_backscatter_matrix` and `extract_forwardscatter_matrix`
       .def("extract_backscatter_matrix",
            &PMD::extract_backscatter_matrix,
@@ -42,9 +50,13 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
 
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
-      .def("get_za_scat_grid",
-           &PMD::get_za_scat_grid,
-           "Get scattering zenith angle grid")
+      .def(
+          "get_za_scat_grid",
+          [](const PMD& pmd) {
+            if (pmd.get_za_scat_grid()) return *(pmd.get_za_scat_grid());
+            throw std::runtime_error("PMD Zenith angle grid not initialized");
+          },
+          "Get scattering zenith angle grid")
 
       .def(
           "to_spectral",
@@ -373,10 +385,10 @@ void py_scattering_species(py::module_& m) try {
           [](const HenyeyGreensteinScatterer& hg,
              const AtmPoint& atm_point,
              const Vector& f_grid,
-             std::shared_ptr<scattering::ZenithAngleGrid> za_grid) {
+             scattering::ZenithAngleGrid za_grid) {
             return BulkScatteringPropertiesTROGridded{
                 hg.get_bulk_scattering_properties_tro_gridded(
-                    atm_point, f_grid, za_grid)};
+                    atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
@@ -384,30 +396,36 @@ void py_scattering_species(py::module_& m) try {
           "Get bulk scattering properties")
       .doc() = "Henyey-Greenstein scatterer";
 
-  py::class_<scattering::IrregularZenithAngleGrid>(m,
-                                                   "IrregularZenithAngleGrid")
-      .def(py::init<Vector>())
+  py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m,
+                                                   "IrregularZenithAngleGrid");
+      irr_grid.def(py::init<Vector>())
+      .def_rw("value", &scattering::IrregularZenithAngleGrid::angles, "Zenith angle grid")
       .doc() = "Irregular zenith angle grid";
-  py::class_<scattering::GaussLegendreGrid>(m, "GaussLegendreGrid")
-      .def(py::init<Index>())
-      .doc() = "Gaussian Legendre grid";
-  py::class_<scattering::DoubleGaussGrid>(m, "DoubleGaussGrid")
-      .def(py::init<Index>())
-      .doc() = "Double Gaussian grid";
-  py::class_<scattering::LobattoGrid>(m, "LobattoGrid")
-      .def(py::init<Index>())
-      .doc() = "Lobatto grid";
-  py::class_<scattering::FejerGrid>(m, "FejerGrid")
-      .def(py::init<Index>())
-      .doc() = "Fejer grid";
+      common_ndarray(irr_grid);
 
-  py::class_<scattering::ZenithAngleGrid>(m, "ZenithAngleGrid")
-      .def(py::init<scattering::IrregularZenithAngleGrid>())
-      .def(py::init<scattering::GaussLegendreGrid>())
-      .def(py::init<scattering::DoubleGaussGrid>())
-      .def(py::init<scattering::LobattoGrid>())
-      .def(py::init<scattering::FejerGrid>())
-      .doc() = "Zenith angle grid";
+  py::class_<scattering::GaussLegendreGrid> gauss_grid(m, "GaussLegendreGrid");
+      gauss_grid.def(py::init<Index>())
+      .def_rw("value", &scattering::GaussLegendreGrid::angles, "Zenith angle grid for Legendre calculations")
+      .doc() = "Gaussian Legendre grid";
+      common_ndarray(gauss_grid);
+
+  py::class_<scattering::DoubleGaussGrid> double_gauss_grid(m, "DoubleGaussGrid");
+      double_gauss_grid.def(py::init<Index>())
+      .def_rw("value", &scattering::DoubleGaussGrid::angles, "Zenith angle grid for Double Gauss calculations")
+      .doc() = "Double Gaussian grid";
+      common_ndarray(double_gauss_grid);
+
+  py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
+      lobatto_grid.def(py::init<Index>())
+      .def_rw("value", &scattering::LobattoGrid::angles, "Zenith angle grid for Lobatto calculations")
+      .doc() = "Lobatto grid";
+      common_ndarray(lobatto_grid);
+
+  py::class_<scattering::FejerGrid> fejer_grid(m, "FejerGrid");
+      fejer_grid.def(py::init<Index>())
+      .def_rw("value", &scattering::FejerGrid::angles, "Zenith angle grid for Fejer calculations")
+      .doc() = "Fejer grid";
+      common_ndarray(fejer_grid);
 
   py::class_<ArrayOfScatteringSpecies> aoss(m, "ArrayOfScatteringSpecies");
   aoss.def(py::init<>())
@@ -431,10 +449,10 @@ void py_scattering_species(py::module_& m) try {
           [](const ArrayOfScatteringSpecies& aoss,
              const AtmPoint& atm_point,
              const Vector& f_grid,
-             std::shared_ptr<scattering::ZenithAngleGrid> za_grid) {
+             scattering::ZenithAngleGrid za_grid) {
             return BulkScatteringPropertiesTROGridded{
                 aoss.get_bulk_scattering_properties_tro_gridded(
-                    atm_point, f_grid, za_grid)};
+                    atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
@@ -447,13 +465,13 @@ void py_scattering_species(py::module_& m) try {
              const Vector& f_grid,
              const Vector& za_inc_grid,
              const Vector& delta_aa_grid,
-             std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) {
+             scattering::ZenithAngleGrid za_scat_grid) {
             return BulkScatteringPropertiesAROGridded{
                 aoss.get_bulk_scattering_properties_aro_gridded(atm_point,
                                                                 f_grid,
                                                                 za_inc_grid,
                                                                 delta_aa_grid,
-                                                                za_scat_grid)};
+                                                                std::make_shared<scattering::ZenithAngleGrid>(std::move(za_scat_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
