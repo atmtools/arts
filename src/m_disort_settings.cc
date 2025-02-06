@@ -103,8 +103,8 @@ void disort_settingsLayerThermalEmissionLinearInTau(
     const AscendingGrid& frequency_grid) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
-  const auto N  = ray_path_atmospheric_point.size();
+  const Size nv = frequency_grid.size();
+  const Size N  = ray_path_atmospheric_point.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -126,6 +126,81 @@ void disort_settingsLayerThermalEmissionLinearInTau(
 
       const Numeric y0 = planck(f, t0);
       const Numeric y1 = planck(f, t1);
+
+      const Numeric x0 =
+          i == 0 ? 0.0 : disort_settings.optical_thicknesses[iv, i - 1];
+      const Numeric x1 = disort_settings.optical_thicknesses[iv, i];
+
+      const Numeric b                             = (y1 - y0) / (x1 - x0);
+      disort_settings.source_polynomial[iv, i, 0] = y0 - b * x0;
+      disort_settings.source_polynomial[iv, i, 1] = b;
+    }
+  }
+}
+
+void disort_settingsLayerNonThermalEmissionLinearInTau(
+    DisortSettings& disort_settings,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfStokvecVector&
+        ray_path_propagation_matrix_source_vector_nonlte,
+    const AscendingGrid& frequency_grid) {
+  const Size nv = frequency_grid.size();
+  const Size N  = ray_path_atmospheric_point.size();
+
+  disort_settings.source_polynomial.resize(nv, N - 1, 2);
+
+  ARTS_USER_ERROR_IF(
+      not same_shape<2>({static_cast<Index>(nv), static_cast<Index>(N) - 1},
+                        disort_settings.optical_thicknesses),
+      "Incorrect shape: [{}, {}] vs {:B,}",
+      nv,
+      N - 1,
+      disort_settings.optical_thicknesses.shape());
+
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(ray_path_atmospheric_point,
+                         ray_path_propagation_matrix,
+                         ray_path_propagation_matrix_source_vector_nonlte),
+      R"(Not same size:
+
+ray_path_atmospheric_point.size():   {}
+ray_path_propagation_matrix.size():  {}
+ray_path_source_vector_nonlte.size(): {}
+)",
+      ray_path_atmospheric_point.size(),
+      ray_path_propagation_matrix.size(),
+      ray_path_propagation_matrix_source_vector_nonlte.size());
+
+  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(
+                         ray_path_propagation_matrix,
+                         ray_path_propagation_matrix_source_vector_nonlte),
+                     R"(Not same size:
+
+ray_path_propagation_matrix.size():   {}
+ray_path_source_vector_nonlte.size(): {}
+)",
+                     ray_path_propagation_matrix.size(),
+                     ray_path_propagation_matrix_source_vector_nonlte.size());
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size iv = 0; iv < nv; iv++) {
+    const Numeric& f = frequency_grid[iv];
+
+    for (Size i = 0; i < N - 1; i++) {
+      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
+      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
+
+      const Muelmat invK0 = inv(ray_path_propagation_matrix[i + 0][iv]);
+      const Muelmat invK1 = inv(ray_path_propagation_matrix[i + 1][iv]);
+
+      const Stokvec& S0 =
+          ray_path_propagation_matrix_source_vector_nonlte[i + 0][iv];
+      const Stokvec& S1 =
+          ray_path_propagation_matrix_source_vector_nonlte[i + 1][iv];
+
+      const Numeric y0 = planck(f, t0) + (invK0 * S0).I();
+      const Numeric y1 = planck(f, t1) + (invK1 * S1).I();
 
       const Numeric x0 =
           i == 0 ? 0.0 : disort_settings.optical_thicknesses[iv, i - 1];
@@ -245,7 +320,8 @@ void disort_settingsNoFractionalScattering(DisortSettings& disort_settings) {
 void disort_settingsOpticalThicknessFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix) {
+    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const Index& allow_fixing) {
   ARTS_TIME_REPORT
 
   const Index N  = disort_settings.nlay;
@@ -300,9 +376,11 @@ ray_path: {:B,}
         disort_settings.optical_thicknesses[iv, i] +=
             disort_settings.optical_thicknesses[iv, i - 1];
 
-        ARTS_USER_ERROR_IF((disort_settings.optical_thicknesses[iv, i] <=
-                            disort_settings.optical_thicknesses[iv, i - 1]),
-                           R"(
+        if (0 == allow_fixing and
+            (disort_settings.optical_thicknesses[iv, i] <=
+             disort_settings.optical_thicknesses[iv, i - 1])) {
+          ARTS_USER_ERROR(
+              R"(
 Not strictly increasing optical thicknesses between layers.
 
 Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
@@ -313,11 +391,16 @@ Old layer:            {}
 New layer:            {}
 Frequency grid point: {}
 )",
-                           disort_settings.optical_thicknesses[iv, i - 1],
-                           disort_settings.optical_thicknesses[iv, i],
-                           i - 1,
-                           i,
-                           iv);
+              disort_settings.optical_thicknesses[iv, i - 1],
+              disort_settings.optical_thicknesses[iv, i],
+              i - 1,
+              i,
+              iv);
+        } else {
+          disort_settings.optical_thicknesses[iv, i] =
+              std::nextafter(disort_settings.optical_thicknesses[iv, i - 1],
+                             std::numeric_limits<Numeric>::max());
+        }
       }
     }
   }
@@ -557,6 +640,9 @@ void disort_settings_agendaSetup(
     using enum disort_settings_agenda_setup_layer_emission_type;
     case LinearInTau:
       agenda.add("disort_settingsLayerThermalEmissionLinearInTau");
+      break;
+    case LinearInTauNonLTE:
+      agenda.add("disort_settingsLayerNonThermalEmissionLinearInTau");
       break;
     case None: agenda.add("disort_settingsNoLayerThermalEmission"); break;
   }

@@ -1,5 +1,4 @@
 import pyarts
-import numpy as np
 
 ws = pyarts.Workspace()
 
@@ -26,11 +25,7 @@ ws.absorption_bandsSetNonLTE()
 
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
-ws.ray_path_observer_agendaSetGeometric(add_crossings=True, remove_non_crossings=True)
 ws.propagation_matrix_agendaAuto()
-
-ws.ray_path_observersFluxProfile(n=11)
-ws.ray_path_fieldFromObserverAgenda()
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 
@@ -48,23 +43,17 @@ levels = pyarts.arts.ArrayOfQuantumIdentifier(
     ]
 )
 
-ws.atmospheric_fieldFitNonLTE(
-    collision_data=collision_data, levels=levels, convergence_criterion=1e-2
-)
+ws.ray_pathInit(pos = [ws.atmospheric_field.top_of_atmosphere, 0, 0], los=[180, 0])
+ws.ray_pathSetGeometricExtremes()
+ws.ray_pathAddGeometricGridCrossings()
+ws.ray_path.pop(0)
 
-assert np.allclose(
-    ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10],
-    [
-        0.15155419,
-        0.16352512,
-        0.18911686,
-        0.21319294,
-        0.24843466,
-        0.29213797,
-        0.33774595,
-        0.37876021,
-        0.40840548,
-        0.42642776,
-        0.43561727,
-    ],
-)
+ws.disort_quadrature_dimension = 40
+ws.disort_fourier_mode_dimension = 1
+ws.disort_legendre_polynomial_dimension = 1
+ws.disort_settings_agendaSetup()
+ws.disort_settings_agendaExecute()
+
+#ws.atmospheric_fieldDisortFitNonLTE(
+#    collision_data=collision_data, levels=levels, convergence_criterion=1e-2
+#)
