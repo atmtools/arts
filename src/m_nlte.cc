@@ -1,5 +1,8 @@
 #include <workspace.h>
 
+#include "auto_wsm.h"
+#include "jacobian.h"
+
 void absorption_bandsSetNonLTE(AbsorptionBands& absorption_bands) {
   for (auto& [_, band] : absorption_bands) {
     band.lineshape = LineByLineLineshape::VP_LINE_NLTE;
@@ -188,32 +191,6 @@ struct UppLow {
   Size upp, low;
 };
 
-std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromKeys(
-    const AbsorptionBands& absorption_bands) try {
-  std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
-  band_level_map.reserve(absorption_bands.size());
-
-  std::vector<QuantumIdentifier> level_keys;
-  level_keys.reserve(absorption_bands.size());
-
-  for (const auto& key : absorption_bands | stdv::keys) {
-    UppLow& ul = band_level_map[key];
-
-    const auto lower      = key.LowerLevel();
-    const auto lower_find = stdr::find(level_keys, lower);
-    ul.low                = std::distance(stdr::begin(level_keys), lower_find);
-    if (lower_find == stdr::end(level_keys)) level_keys.push_back(lower);
-
-    const auto upper      = key.UpperLevel();
-    const auto upper_find = stdr::find(level_keys, upper);
-    ul.upp                = std::distance(stdr::begin(level_keys), upper_find);
-    if (upper_find == stdr::end(level_keys)) level_keys.push_back(upper);
-  }
-
-  return band_level_map;
-}
-ARTS_METHOD_ERROR_CATCH
-
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
     const AbsorptionBands& absorption_bands,
     const ArrayOfQuantumIdentifier& level_keys) try {
@@ -291,56 +268,14 @@ Matrix statistical_equilibrium_equation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-Vector nlte_ratio_sum(const AtmField& atmospheric_field, const Size nalt) try {
-  Vector r(nalt);
-
-  for (Size i = 0; i < nalt; i++) {
-    r[i] = std::transform_reduce(
-        atmospheric_field.nlte().begin(),
-        atmospheric_field.nlte().end(),
-        0.0,
-        std::plus{},
-        [i](const auto& x) {
-          return std::get<GriddedField3>(x.second.data)[i, 0, 0];
-        });
-  }
-
-  return r;
-}
-ARTS_METHOD_ERROR_CATCH
-
-Numeric set_atmospheric_field(
-    AtmField& atmospheric_field,
-    const std::unordered_map<QuantumIdentifier, UppLow>& band_level_map,
-    const Vector& x,
-    Size atmi) try {
-  std::vector<bool> changed(atmospheric_field.nlte().size(), false);
-
-  Numeric max_change = 0.0;
-
-  for (auto& [key, ul] : band_level_map) {
-    if (not changed[ul.low]) {
-      changed[ul.low] = true;
-      const auto low  = key.LowerLevel();
-      auto& data = std::get<GriddedField3>(atmospheric_field.nlte()[low].data);
-      Numeric& a = data[atmi, 0, 0];
-      const Numeric& b = x[ul.low];
-      max_change       = std::max(max_change, std::abs(a - b));
-      a                = b;
-    }
-
-    if (not changed[ul.upp]) {
-      changed[ul.upp] = true;
-      const auto upp  = key.UpperLevel();
-      auto& data = std::get<GriddedField3>(atmospheric_field.nlte()[upp].data);
-      Numeric& a = data[atmi, 0, 0];
-      const Numeric& b = x[ul.upp];
-      max_change       = std::max(max_change, std::abs(a - b));
-      a                = b;
-    }
-  }
-
-  return max_change;
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
+  return Vector(
+      std::from_range,
+      ray_path_atmospheric_point | stdv::transform([](const AtmPoint& atm) {
+        Numeric s{0.0};
+        for (Numeric x : atm.nlte | stdv::values) s += x;
+        return s;
+      }));
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -354,6 +289,23 @@ Numeric set_atmospheric_field(AtmField& atmospheric_field,
   for (Size i = 0; i < level_keys.size(); i++) {
     auto& key = level_keys[i];
     auto& v = std::get<GriddedField3>(atmospheric_field[key].data)[atmi, 0, 0];
+    max_change = std::max(max_change, std::abs(v - x[i]));
+    v          = x[i];
+  }
+
+  return max_change;
+}
+ARTS_METHOD_ERROR_CATCH
+
+Numeric set_atmospheric_point(AtmPoint& atmospheric_point,
+                              const ArrayOfQuantumIdentifier& level_keys,
+                              const Vector& x) try {
+  assert(x.size() == level_keys.size());
+  Numeric max_change = 0.0;
+
+  for (Size i = 0; i < level_keys.size(); i++) {
+    auto& key  = level_keys[i];
+    auto& v    = atmospheric_point[key];
     max_change = std::max(max_change, std::abs(v - x[i]));
     v          = x[i];
   }
@@ -413,6 +365,7 @@ void atmospheric_fieldFitNonLTE(
     const Index& iteration_limit) try {
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
+  ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
 
   const auto& grid{nlte_grid(atmospheric_field)};
   const AscendingGrid altitude_grid{std::get<0>(grid)};
@@ -427,11 +380,15 @@ void atmospheric_fieldFitNonLTE(
   const auto Cji = createCji(Cij, absorption_bands, ray_path_atmospheric_point);
 
   const auto band_level_map =
-      levels.empty() ? band_level_mapFromKeys(absorption_bands)
-                     : band_level_mapFromLevelKeys(absorption_bands, levels);
-  const Size nlevels = level_count(band_level_map);
-  const Vector r_sum = nlte_ratio_sum(atmospheric_field, altitude_grid.size());
+      band_level_mapFromLevelKeys(absorption_bands, levels);
+  const Size nlevels      = level_count(band_level_map);
+  const Vector r_sum      = nlte_ratio_sum(ray_path_atmospheric_point);
   const Size unique_level = band_level_mapUniquestIndex(band_level_map);
+
+  Matrix A;
+  Matrix spectral_flux_profile;
+  QuantumIdentifierVectorMap nlte_line_flux_profile;
+  Vector r(nlevels, 0.0), x(nlevels, 0.0);
 
   int i              = 0;
   Numeric max_change = 1e99;
@@ -439,7 +396,6 @@ void atmospheric_fieldFitNonLTE(
     i++;
     max_change = 0.0;
 
-    Matrix spectral_flux_profile;
     spectral_flux_profileFromPathField(ws,
                                        spectral_flux_profile,
                                        ray_path_field,
@@ -451,7 +407,6 @@ void atmospheric_fieldFitNonLTE(
                                        frequency_grid,
                                        altitude_grid);
 
-    QuantumIdentifierVectorMap nlte_line_flux_profile;
     nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
                                     spectral_flux_profile,
                                     absorption_bands,
@@ -459,16 +414,15 @@ void atmospheric_fieldFitNonLTE(
                                     frequency_grid);
 
     for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
-      Matrix A = statistical_equilibrium_equation(Aij,
-                                                  Bij,
-                                                  Bji,
-                                                  Cij,
-                                                  Cji,
-                                                  nlte_line_flux_profile,
-                                                  band_level_map,
-                                                  atmi,
-                                                  nlevels);
-      Vector r(nlevels, 0.0), x(nlevels, 0.0);
+      A = statistical_equilibrium_equation(Aij,
+                                           Bij,
+                                           Bji,
+                                           Cij,
+                                           Cji,
+                                           nlte_line_flux_profile,
+                                           band_level_map,
+                                           atmi,
+                                           nlevels);
 
       A[unique_level] = 1.0;
       r[unique_level] = r_sum[atmi];
@@ -476,12 +430,136 @@ void atmospheric_fieldFitNonLTE(
       solve(x, A, r);
 
       const Numeric max_change_local =
-          levels.empty()
-              ? set_atmospheric_field(
-                    atmospheric_field, band_level_map, x, atmi)
-              : set_atmospheric_field(atmospheric_field, levels, x, atmi);
+          set_atmospheric_field(atmospheric_field, levels, x, atmi);
       max_change = std::max(max_change, max_change_local);
     }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void atmospheric_fieldDisortFitNonLTE(
+    const Workspace& ws,
+    AtmField& atmospheric_field,
+    DisortSettings& disort_settings,
+    const AbsorptionBands& absorption_bands,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const Agenda& propagation_matrix_agenda,
+    const AscendingGrid& frequency_grid,
+    const QuantumIdentifierGriddedField1Map& collision_data,
+    const ArrayOfQuantumIdentifier& levels,
+    const Numeric& convergence_limit,
+    const Index& iteration_limit) try {
+  ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
+                     "Convergence limit and iteration limit must be positive")
+  ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
+
+  const auto& grid{nlte_grid(atmospheric_field)};
+  const AscendingGrid altitude_grid{std::get<0>(grid)};
+  ArrayOfAtmPoint ray_path_atmospheric_point = extract(
+      atmospheric_field, altitude_grid, std::get<1>(grid), std::get<2>(grid));
+
+  const auto Aij = createAij(absorption_bands);
+  const auto Bij = createBij(absorption_bands);
+  const auto Bji = createBji(Bij, absorption_bands);
+  const auto Cij =
+      createCij(absorption_bands, collision_data, ray_path_atmospheric_point);
+  const auto Cji = createCji(Cij, absorption_bands, ray_path_atmospheric_point);
+
+  const auto band_level_map =
+      band_level_mapFromLevelKeys(absorption_bands, levels);
+  const Size nlevels      = level_count(band_level_map);
+  const Vector r_sum      = nlte_ratio_sum(ray_path_atmospheric_point);
+  const Size unique_level = band_level_mapUniquestIndex(band_level_map);
+
+  ArrayOfPropmatVector ray_path_propagation_matrix{};
+  ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte{};
+  ArrayOfPropmatMatrix d0{};
+  ArrayOfStokvecMatrix d1{};
+  ArrayOfAscendingGrid ray_path_frequency_grid(ray_path.size(), frequency_grid);
+  ArrayOfVector3 ray_path_frequency_grid_wind_shift_jacobian(ray_path.size());
+  Tensor3 disort_spectral_flux_field{};
+  Matrix spectral_flux_profile(ray_path_atmospheric_point.size(),
+                               frequency_grid.size());
+  QuantumIdentifierVectorMap nlte_line_flux_profile{};
+  JacobianTargets jacobian_targets{};
+  Matrix A{};
+  Vector r(nlevels, 0.0), x(nlevels, 0.0);
+
+  int i              = 0;
+  Numeric max_change = 1e99;
+  while (max_change > convergence_limit and i < iteration_limit) {
+    max_change = 0.0;
+
+    if (i++ != 0) {
+      ray_path_propagation_matrixFromPath(
+          ws,
+          ray_path_propagation_matrix,
+          ray_path_propagation_matrix_source_vector_nonlte,
+          d0,
+          d1,
+          propagation_matrix_agenda,
+          ray_path_frequency_grid,
+          ray_path_frequency_grid_wind_shift_jacobian,
+          jacobian_targets,
+          ray_path,
+          ray_path_atmospheric_point);
+
+      disort_settingsOpticalThicknessFromPath(
+          disort_settings, ray_path, ray_path_propagation_matrix, 1);
+
+      disort_settingsLayerNonThermalEmissionLinearInTau(
+          disort_settings,
+          ray_path_atmospheric_point,
+          ray_path_propagation_matrix,
+          ray_path_propagation_matrix_source_vector_nonlte,
+          frequency_grid);
+    }
+
+    disort_spectral_flux_fieldCalc(disort_spectral_flux_field, disort_settings);
+
+std::println("{:B,}", disort_spectral_flux_field[200, joker, joker]);
+    StridedMatrixView v = transpose(spectral_flux_profile);
+    v  = transpose(disort_spectral_flux_field[joker, 0, joker]);
+    v += transpose(disort_spectral_flux_field[joker, 1, joker]);
+    v += transpose(disort_spectral_flux_field[joker, 2, joker]);
+
+    nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
+                                    spectral_flux_profile,
+                                    absorption_bands,
+                                    ray_path_atmospheric_point,
+                                    frequency_grid);
+
+                                    for (auto x:nlte_line_flux_profile|stdv::values){
+                                      std::println("a.append({:B,})", x);
+                                    }std::println("");
+
+    for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
+      A = statistical_equilibrium_equation(Aij,
+                                           Bij,
+                                           Bji,
+                                           Cij,
+                                           Cji,
+                                           nlte_line_flux_profile,
+                                           band_level_map,
+                                           atmi,
+                                           nlevels);
+
+      A[unique_level] = 1.0;
+      r[unique_level] = r_sum[atmi];
+
+      solve(x, A, r);
+
+      const Numeric max_change_local =
+          set_atmospheric_point(ray_path_atmospheric_point[atmi], levels, x);
+      max_change = std::max(max_change, max_change_local);
+    }
+  }
+
+  const AtmField new_atm = atm_from_profile(ray_path_atmospheric_point,
+                                            altitude_grid,
+                                            InterpolationExtrapolation::Linear);
+  for (auto& [key, data] : new_atm.nlte()) {
+    atmospheric_field[key].data = data.data;
   }
 }
 ARTS_METHOD_ERROR_CATCH

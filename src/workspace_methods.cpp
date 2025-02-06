@@ -771,6 +771,8 @@ spherical harmonics and is only valid for a limited time period.
       .desc =
           R"--(Fits non-LTE distributions to the level data.
 
+The spectral flux is computed from the *ray_path_field*.
+
 This method fits non-LTE distributions to the level data in the
 atmospheric field.  It only works for absorption band data that
 is separated by single-lines-per-band, and will produce nonsense
@@ -819,7 +821,7 @@ is breached.
                     "ArrayOfQuantumIdentifier",
                     "Numeric",
                     "Index"},
-      .gin_value = {std::nullopt, ArrayOfQuantumIdentifier{}, 1e-6, Index{100}},
+      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
       .gin_desc =
           {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
            "The order of the energy levels (if empty, the order is taken from the line-data)",
@@ -827,6 +829,44 @@ is breached.
            "Maximum number of iterations"},
       .pass_workspace = true,
   };
+
+  /*  For testing...
+  wsm_data["atmospheric_fieldDisortFitNonLTE"] = {
+      .desc =
+          R"--(
+Same as *atmospheric_fieldFitNonLTE* but uses Disort to compute the spectral flux.
+
+Note that the state of *disort_settings* is changed by this method to be the latest
+iteration.  Also note that the input settings must be valid for a call to
+*disort_spectral_flux_fieldCalc* as is.  Subsequent iterations,
+*ray_path_propagation_matrixFromPath*, *disort_settingsOpticalThicknessFromPath*, and
+*disort_settingsLayerNonThermalEmissionLinearInTau* are used to update the state of the disort settings.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field", "disort_settings"},
+      .in        = {"atmospheric_field",
+                    "disort_settings",
+                    "absorption_bands",
+                    "ray_path",
+                    "propagation_matrix_agenda",
+                    "frequency_grid"},
+      .gin       = {"collision_data",
+                    "levels",
+                    "convergence_criterion",
+                    "iteration_limit"},
+      .gin_type  = {"QuantumIdentifierGriddedField1Map",
+                    "ArrayOfQuantumIdentifier",
+                    "Numeric",
+                    "Index"},
+      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
+      .gin_desc =
+          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
+           "The order of the energy levels (if empty, the order is taken from the line-data)",
+           "Convergence criterion for the energy level distribution",
+           "Maximum number of iterations"},
+      .pass_workspace = true,
+  };
+  */
 
   wsm_data["atmospheric_fieldInit"] = {
       .desc =
@@ -4370,6 +4410,19 @@ Note that you must have set the optical thickness before calling this.
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
   };
 
+  wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
+      .desc =
+          R"(Same as *disort_settingsLayerThermalEmissionLinearInTau* but considers non-LTE
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings",
+                 "ray_path_atmospheric_point",
+                 "ray_path_propagation_matrix",
+                 "ray_path_propagation_matrix_source_vector_nonlte",
+                 "frequency_grid"},
+  };
+
   wsm_data["disort_settingsNoSpaceEmission"] = {
       .desc =
           R"(Turns off boundary condition from space for Disort calculations.
@@ -4438,6 +4491,11 @@ Note that you must have set the optical thickness before calling this.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
+      .gin    = {"allow_fixing"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc =
+          {"Flag to allow fixing of the optical thickness - it must be strictly increasing, this does that"},
   };
 
   wsm_data["disort_settingsNoSurfaceScattering"] = {
