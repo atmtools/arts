@@ -405,25 +405,25 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<scattering::GaussLegendreGrid> gauss_grid(m, "GaussLegendreGrid");
       gauss_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::GaussLegendreGrid::data, "Zenith angle grid for Legendre calculations")
+      .def_rw("value", &scattering::GaussLegendreGrid::angles, "Zenith angle grid for Legendre calculations")
       .doc() = "Gaussian Legendre grid";
       common_ndarray(gauss_grid);
 
   py::class_<scattering::DoubleGaussGrid> double_gauss_grid(m, "DoubleGaussGrid");
       double_gauss_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::DoubleGaussGrid::data, "Zenith angle grid for Double Gauss calculations")
+      .def_rw("value", &scattering::DoubleGaussGrid::angles, "Zenith angle grid for Double Gauss calculations")
       .doc() = "Double Gaussian grid";
       common_ndarray(double_gauss_grid);
 
   py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
       lobatto_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::LobattoGrid::data, "Zenith angle grid for Lobatto calculations")
+      .def_rw("value", &scattering::LobattoGrid::angles, "Zenith angle grid for Lobatto calculations")
       .doc() = "Lobatto grid";
       common_ndarray(lobatto_grid);
 
   py::class_<scattering::FejerGrid> fejer_grid(m, "FejerGrid");
       fejer_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::FejerGrid::data, "Zenith angle grid for Fejer calculations")
+      .def_rw("value", &scattering::FejerGrid::angles, "Zenith angle grid for Fejer calculations")
       .doc() = "Fejer grid";
       common_ndarray(fejer_grid);
 
