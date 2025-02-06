@@ -328,6 +328,7 @@ static QuadratureProvider<FejerQuadrature> quadratures =
 
 using ZenithAngleGrid = std::variant<
   IrregularZenithAngleGrid,
+  DoubleGaussGrid,
   GaussLegendreGrid,
   LobattoGrid,
   FejerGrid
