@@ -61,7 +61,7 @@ void ray_path_observersFieldProfilePseudo2D(
 
   for (auto za : upp) {
     ray_path_observers.push_back({.pos_type = PathPositionType::surface,
-                                  .los_type = PathPositionType::space,
+                                  .los_type = PathPositionType::atm,
                                   .pos      = bot_pos,
                                   .los      = {za, azimuth}});
   }
@@ -69,17 +69,60 @@ void ray_path_observersFieldProfilePseudo2D(
   // Skip 90.0
   for (auto za : lmb | stdv::drop(1)) {
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
-                                  .los_type = PathPositionType::space,
+                                  .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
                                   .los      = {za, azimuth}});
   }
 
   for (auto za : dwn) {
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
-                                  .los_type = PathPositionType::surface,
+                                  .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
                                   .los      = {za, azimuth}});
   }
+}
+
+void ray_path_observersFluxProfile(
+    ArrayOfPropagationPathPoint& ray_path_observers,
+    const AtmField& atmospheric_field,
+    const Numeric& azimuth,
+    const Index& n,
+    const AtmKey& atm_key) {
+  ray_path_observers.clear();
+
+  ARTS_USER_ERROR_IF(
+      n < 3 or (n % 2) == 0,
+      "Must have at least 3 observers, and an uneven number of them.")
+
+  const auto& data = atmospheric_field[atm_key].get<GriddedField3>();
+
+  const auto& alt_g  = data.grid<0>();
+  const auto& lat    = data.grid<1>()[0];
+  const auto& lon    = data.grid<2>()[0];
+  const Vector zas_g = nlinspace(0.0, 180.0, n + 2);
+
+  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
+                     "Data size does not match altitude grid size")
+
+  ray_path_observers.reserve(n * alt_g.size() + 2);
+  for (Index i = 0; i < n; i++) {
+    ray_path_observers.append_range(alt_g | stdv::drop(1) | stdv::take(n) |
+                                    stdv::transform([&](Numeric alt) {
+                                      return PropagationPathPoint{
+                                          .pos_type = PathPositionType::atm,
+                                          .los_type = PathPositionType::atm,
+                                          .pos      = {alt, lat, lon},
+                                          .los      = {zas_g[i], azimuth}};
+                                    }));
+  }
+  ray_path_observers.push_back({.pos_type = PathPositionType::atm,
+                                .los_type = PathPositionType::atm,
+                                .pos      = {alt_g.front(), lat, lon},
+                                .los      = {0, azimuth}});
+  ray_path_observers.push_back({.pos_type = PathPositionType::atm,
+                                .los_type = PathPositionType::atm,
+                                .pos      = {alt_g.back(), lat, lon},
+                                .los      = {180, azimuth}});
 }
 
 void ray_path_fieldFromObserverAgenda(

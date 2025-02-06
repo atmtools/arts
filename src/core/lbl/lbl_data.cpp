@@ -1,13 +1,5 @@
 #include "lbl_data.h"
 
-#include <algorithm>
-#include <cmath>
-#include <iomanip>
-#include <limits>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-
 #include <arts_constants.h>
 #include <arts_constexpr_math.h>
 #include <debug.h>
@@ -15,6 +7,14 @@
 #include <hitran_species.h>
 #include <partfun.h>
 #include <quantum_numbers.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <limits>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 //! In CPP file
 using Constant::c;
@@ -270,5 +270,13 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
   }
 
   return out;
+}
+
+Size count_lines(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands) {
+  return std::transform_reduce(
+      bands.begin(), bands.end(), Size{0}, std::plus{}, [](const auto& x) {
+        return x.second.size();
+      });
 }
 }  // namespace lbl

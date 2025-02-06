@@ -603,7 +603,7 @@ These can be used directly for *spectral_radiance_observer_position* and *spectr
   wsv_data["nlte_line_flux_profile"] = {
       .desc = R"--(A per-line flux profile.
 )--",
-      .type = "NonlteLineFluxProfile",
+      .type = "QuantumIdentifierVectorMap",
   };
 
   wsv_data["spectral_radiance_observer_position"] = {

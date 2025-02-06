@@ -277,6 +277,8 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
     const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
     const Numeric T0 = 296);
+
+Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 }  // namespace lbl
 
 //! Support hashing of line keys
@@ -312,7 +314,7 @@ struct std::formatter<lbl::line> {
     const std::string_view sep = tags.sep();
 
     tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.a, sep, v.f0, sep, v.e0, sep, v.gu, sep, v.gl);
+    tags.format(ctx, v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
     if (not tags.short_str) tags.format(ctx, sep, v.z, sep, v.ls, sep, v.qn);
     tags.add_if_bracket(ctx, ']');
 
