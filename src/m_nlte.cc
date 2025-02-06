@@ -1,10 +1,6 @@
 #include <arts_omp.h>
 #include <workspace.h>
 
-#include "arts_constants.h"
-#include "auto_wsm.h"
-#include "jacobian.h"
-
 void absorption_bandsSetNonLTE(AbsorptionBands& absorption_bands) {
   for (auto& [_, band] : absorption_bands) {
     band.lineshape = LineByLineLineshape::VP_LINE_NLTE;
@@ -192,32 +188,6 @@ ARTS_METHOD_ERROR_CATCH
 struct UppLow {
   Size upp, low;
 };
-
-std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromKeys(
-    const AbsorptionBands& absorption_bands) try {
-  std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
-  band_level_map.reserve(absorption_bands.size());
-
-  std::vector<QuantumIdentifier> level_keys;
-  level_keys.reserve(absorption_bands.size());
-
-  for (const auto& key : absorption_bands | stdv::keys) {
-    UppLow& ul = band_level_map[key];
-
-    const auto lower      = key.LowerLevel();
-    const auto lower_find = stdr::find(level_keys, lower);
-    ul.low                = std::distance(stdr::begin(level_keys), lower_find);
-    if (lower_find == stdr::end(level_keys)) level_keys.push_back(lower);
-
-    const auto upper      = key.UpperLevel();
-    const auto upper_find = stdr::find(level_keys, upper);
-    ul.upp                = std::distance(stdr::begin(level_keys), upper_find);
-    if (upper_find == stdr::end(level_keys)) level_keys.push_back(upper);
-  }
-
-  return band_level_map;
-}
-ARTS_METHOD_ERROR_CATCH
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
     const AbsorptionBands& absorption_bands,
