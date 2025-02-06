@@ -378,6 +378,30 @@ Both the data and the grid may be named
 )--",
   };
 
+  wsg_data["QuantumIdentifierVectorMap"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map from *QuantumIdentifier* to *Vector*.
+)--",
+.map_type=true
+  };
+
+  wsg_data["QuantumIdentifierNumericMap"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map from *QuantumIdentifier* to *Numeric*.
+)--",
+.map_type=true
+  };
+
+  wsg_data["QuantumIdentifierGriddedField1Map"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map from *QuantumIdentifier* to *GriddedField1*.
+)--",
+.map_type=true
+  };
+
   wsg_data["NamedGriddedField2"] = {
       .file = "matpack.h",
       .desc =

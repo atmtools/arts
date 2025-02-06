@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Map type="GriddedField1" key="QuantumIdentifier" nelem="9">
+<QuantumIdentifier version="1"> H2O-161 J 3 2 Ka 2 1 Kc 1 2 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 3.174e-16 4.1129e-16 4.9368e-16 5.4977e-16 5.8441e-16 6.0469e-16 6.1607e-16 6.2035e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 3 2 Ka 1 2 Kc 2 1 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 3.304e-16 2.9924e-16 2.527e-16 2.1933e-16 2e-16 2e-16 2e-16 2e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 3 2 Ka 0 1 Kc 3 2 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.269e-15 9.4761e-16 8.2755e-16 7.633e-16 7.1836e-16 6.8161e-16 6.5058e-16 6.2445e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 3 3 Ka 1 0 Kc 2 3 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.065e-15 9.7835e-16 8.5349e-16 7.604e-16 6.9244e-16 6.4019e-16 6.0074e-16 5.6979e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 2 2 Ka 2 1 Kc 1 2 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.124e-15 8.1028e-16 6.9618e-16 6.3286e-16 5.8657e-16 5.4907e-16 5.1766e-16 4.9191e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 3 3 Ka 2 1 Kc 1 2 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.122e-15 1.1027e-15 9.8068e-16 8.7828e-16 8.0046e-16 7.4078e-16 6.9276e-16 6.5451e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 2 1 Ka 2 1 Kc 1 0 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.044e-15 1.0316e-15 1.0493e-15 1.0512e-15 1.0414e-15 1.0271e-15 1.0097e-15 9.9065e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 2 1 Ka 1 0 Kc 2 1 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.569e-15 1.1088e-15 9.5641e-16 8.7828e-16 8.2423e-16 7.8219e-16 7.4773e-16 7.16e-16 </Vector></GriddedField1>
+<QuantumIdentifier version="1"> H2O-161 J 1 1 Ka 1 0 Kc 0 1 </QuantumIdentifier>
+<GriddedField1 name="" version="1">
+<Array name="GridNames" type="String" nelem="1">
+<String name="0">"Temperature"</String>
+</Array>
+<Vector nelem="8" name="Temperature"> 100 200 300 400 500 600 700 800 </Vector><Vector nelem="8" name="Data"> 1.413e-15 9.0662e-16 8.083e-16 7.3238e-16 6.7407e-16 6.3072e-16 5.9562e-16 5.6843e-16 </Vector></GriddedField1>
+</Map>
+</arts>

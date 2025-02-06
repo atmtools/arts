@@ -754,6 +754,120 @@ spherical harmonics and is only valid for a limited time period.
       .gin_desc  = {"Time of data to use"},
   };
 
+  wsm_data["frequency_gridFitNonLTE"] = {
+      .desc      = "Frequency grid useful for *atmospheric_fieldFitNonLTE*\n",
+      .author    = {"Richard Larsson"},
+      .out       = {"frequency_grid"},
+      .in        = {"absorption_bands"},
+      .gin       = {"df", "nf"},
+      .gin_type  = {"Numeric", "Index"},
+      .gin_value = {std::nullopt, Index{401}},
+      .gin_desc =
+          {R"--(Frequency grid spacing around the line-center.  The range will be f0 * (1-df) to f0 * (1 +df) of each absorption line..)--",
+           R"--(Number of frequency points per line.)--"},
+  };
+
+  wsm_data["atmospheric_fieldFitNonLTE"] = {
+      .desc =
+          R"--(Fits non-LTE distributions to the level data.
+
+The spectral flux is computed from the *ray_path_field*.
+
+This method fits non-LTE distributions to the level data in the
+atmospheric field.  It only works for absorption band data that
+is separated by single-lines-per-band, and will produce nonsense
+for overlapping line data.  If the lines overlap, the method will
+keep introducing more-and-more energy into the system, meaning
+that the method will not converge or turn to some extreme stable
+state.
+
+The statistical equilibrium equation is given by finding valid set of energy level distribution
+:math:`n` such that for all valid energy level combination of upper levels :math:`i` and
+lower levels :math:`j` the rate of change is zero for some :math:`n` that satisfies the equation
+
+.. math::
+
+    \frac{d n_i}{dt} =
+        \sum_{j > i} \left[ n_j A_{ji} - \left( n_i B_{ij} - n_j B_{ji} \right) J_{ij} \right]
+      - \sum_{j < i} \left[ n_i A_{ij} - \left( n_j B_{ji} - n_i B_{ij} \right) J_{ij} \right]
+      + \sum_{j} \left[ n_j C_{ji} - n_i C_{ij} \right],
+
+where :math:`A_{ij}` is the spontaneous emission rate, :math:`B_{ij}` is the
+stimulated emission rate, :math:`B_{ij}` is the photon absorption rate,
+:math:`J_{ij}` is the line-integrated flux, and :math:`C_{ij}`
+is the collisional rate.
+
+Generally, you need :math:`n` to compute :math:`J_{ij}`, making the problem non-linear.
+Thus an iterative process is used to find the solution.  The iteration is considered
+converged when the relative change in the energy level distribution is below the
+convergence criterion.  Alternatively, the iteration is halted if the iteration count limit
+is breached.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field",
+                    "absorption_bands",
+                    "ray_path_field",
+                    "propagation_matrix_agenda",
+                    "spectral_radiance_space_agenda",
+                    "spectral_radiance_surface_agenda",
+                    "surface_field",
+                    "frequency_grid"},
+      .gin       = {"collision_data",
+                    "levels",
+                    "convergence_criterion",
+                    "iteration_limit"},
+      .gin_type  = {"QuantumIdentifierGriddedField1Map",
+                    "ArrayOfQuantumIdentifier",
+                    "Numeric",
+                    "Index"},
+      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
+      .gin_desc =
+          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
+           "The order of the energy levels (if empty, the order is taken from the line-data)",
+           "Convergence criterion for the energy level distribution",
+           "Maximum number of iterations"},
+      .pass_workspace = true,
+  };
+
+  /*  For testing...
+  wsm_data["atmospheric_fieldDisortFitNonLTE"] = {
+      .desc =
+          R"--(
+Same as *atmospheric_fieldFitNonLTE* but uses Disort to compute the spectral flux.
+
+Note that the state of *disort_settings* is changed by this method to be the latest
+iteration.  Also note that the input settings must be valid for a call to
+*disort_spectral_flux_fieldCalc* as is.  Subsequent iterations,
+*ray_path_propagation_matrixFromPath*, *disort_settingsOpticalThicknessFromPath*, and
+*disort_settingsLayerNonThermalEmissionLinearInTau* are used to update the state of the disort settings.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field", "disort_settings"},
+      .in        = {"atmospheric_field",
+                    "disort_settings",
+                    "absorption_bands",
+                    "ray_path",
+                    "propagation_matrix_agenda",
+                    "frequency_grid"},
+      .gin       = {"collision_data",
+                    "levels",
+                    "convergence_criterion",
+                    "iteration_limit"},
+      .gin_type  = {"QuantumIdentifierGriddedField1Map",
+                    "ArrayOfQuantumIdentifier",
+                    "Numeric",
+                    "Index"},
+      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
+      .gin_desc =
+          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
+           "The order of the energy levels (if empty, the order is taken from the line-data)",
+           "Convergence criterion for the energy level distribution",
+           "Maximum number of iterations"},
+      .pass_workspace = true,
+  };
+  */
+
   wsm_data["atmospheric_fieldInit"] = {
       .desc =
           R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
@@ -1859,6 +1973,28 @@ Gets the ellispoid from *surface_field*
       .gin_value      = {std::nullopt},
       .gin_desc       = {"Altitude grid for the spectral flux profile"},
       .pass_workspace = true,
+  };
+
+  wsm_data["flux_profileIntegrate"] = {
+      .desc      = R"--(Computes the spectral flux
+)--",
+      .author    = {"Richard Larsson"},
+      .gout      = {"flux_profile"},
+      .gout_type = {"Vector"},
+      .gout_desc = {"The spectral flux profile"},
+      .in        = {"spectral_flux_profile", "frequency_grid"},
+  };
+
+  wsm_data["nlte_line_flux_profileIntegrate"] = {
+      .desc =
+          R"--(Integrate the spectral flux profile to get the line non-LTE flux
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"nlte_line_flux_profile"},
+      .in     = {"spectral_flux_profile",
+                 "absorption_bands",
+                 "ray_path_atmospheric_point",
+                 "frequency_grid"},
   };
 
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
@@ -4274,6 +4410,19 @@ Note that you must have set the optical thickness before calling this.
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
   };
 
+  wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
+      .desc =
+          R"(Same as *disort_settingsLayerThermalEmissionLinearInTau* but considers non-LTE
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings",
+                 "ray_path_atmospheric_point",
+                 "ray_path_propagation_matrix",
+                 "ray_path_propagation_matrix_source_vector_nonlte",
+                 "frequency_grid"},
+  };
+
   wsm_data["disort_settingsNoSpaceEmission"] = {
       .desc =
           R"(Turns off boundary condition from space for Disort calculations.
@@ -4342,6 +4491,11 @@ Note that you must have set the optical thickness before calling this.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
+      .gin    = {"allow_fixing"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc =
+          {"Flag to allow fixing of the optical thickness - it must be strictly increasing, this does that"},
   };
 
   wsm_data["disort_settingsNoSurfaceScattering"] = {
@@ -4531,6 +4685,23 @@ Below is an example using this method to create a *ray_path_field*.
                     "Number of limb looking observers (min 2)",
                     "Number of downward looking observers (min 2)"},
       .pass_workspace = true,
+  };
+
+  wsm_data["ray_path_observersFluxProfile"] = {
+      .desc =
+          R"(Add :math:`n` observers per altitude point.
+
+The number :math:`n` must be uneven and larger than 2.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_observers"},
+      .in        = {"atmospheric_field"},
+      .gin       = {"azimuth", "n", "atm_key"},
+      .gin_type  = {"Numeric", "Index", "AtmKey"},
+      .gin_value = {Numeric{0.0}, std::nullopt, AtmKey::t},
+      .gin_desc  = {"Azimuth angle for the observer",
+                    "Number of limb looking observers (min 2)",
+                    "The altitude profile key in the atmosphere"},
   };
 
   wsm_data["ray_path_fieldFromObserverAgenda"] = {

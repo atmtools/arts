@@ -33,6 +33,7 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc = {
           Value{"None", "No atmospheric emission"},
           Value{"LinearInTau", "Layer emission is linear in optical depth"},
+          Value{"LinearInTauNonLTE", "Layer emission is linear in optical depth taking non-LTE into account"},
       }});
 
   opts.emplace_back(EnumeratedOption{

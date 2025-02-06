@@ -133,7 +133,7 @@ struct Point {
       return has_(*this, std::forward<T>(key));
   }
 
-  [[nodiscard]] bool contains(const KeyVal&) const;
+  [[nodiscard]] bool contains(const KeyVal &) const;
 
   [[nodiscard]] Numeric mean_mass() const;
   [[nodiscard]] Numeric mean_mass(SpeciesEnum) const;
@@ -228,16 +228,22 @@ struct Data {
   [[nodiscard]] String data_type() const;
 
   template <RawDataType T>
-  [[nodiscard]] T get() const {
+  [[nodiscard]] const T &get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    ARTS_USER_ERROR_IF(out == nullptr,
+                       "Contains {}, not {}",
+                       data_type(),
+                       Data{T{}}.data_type())
     return *out;
   }
 
   template <RawDataType T>
-  [[nodiscard]] T get() {
+  [[nodiscard]] T &get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    ARTS_USER_ERROR_IF(out == nullptr,
+                       "Contains {}, not {}",
+                       data_type(),
+                       Data{T{}}.data_type())
     return *out;
   }
 
