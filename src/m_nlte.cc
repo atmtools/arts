@@ -169,9 +169,55 @@ const GriddedField3::grids_t& nlte_grid(const AtmField& atmospheric_field) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
+ArrayOfAtmPoint extract(const AtmField& atmospheric_field,
+                        const Vector& altitude_grid,
+                        const Vector& latitude_grid,
+                        const Vector& longitude_grid) try {
+  ArrayOfAtmPoint atm_point;
+  atm_point.reserve(altitude_grid.size() * latitude_grid.size() *
+                    longitude_grid.size());
+
+  for (const auto& alt : altitude_grid) {
+    for (const auto& lat : latitude_grid) {
+      for (const auto& lon : longitude_grid) {
+        atm_point.push_back(atmospheric_field.at(alt, lat, lon));
+      }
+    }
+  }
+
+  return atm_point;
+}
+ARTS_METHOD_ERROR_CATCH
+
 struct UppLow {
   Size upp, low;
 };
+
+std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromKeys(
+    const AbsorptionBands& absorption_bands) try {
+  std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
+  band_level_map.reserve(absorption_bands.size());
+
+  std::vector<QuantumIdentifier> level_keys;
+  level_keys.reserve(absorption_bands.size());
+
+  for (const auto& key : absorption_bands | stdv::keys) {
+    UppLow& ul = band_level_map[key];
+
+    const auto lower      = key.LowerLevel();
+    const auto lower_find = stdr::find(level_keys, lower);
+    ul.low                = std::distance(stdr::begin(level_keys), lower_find);
+    if (lower_find == stdr::end(level_keys)) level_keys.push_back(lower);
+
+    const auto upper      = key.UpperLevel();
+    const auto upper_find = stdr::find(level_keys, upper);
+    ul.upp                = std::distance(stdr::begin(level_keys), upper_find);
+    if (upper_find == stdr::end(level_keys)) level_keys.push_back(upper);
+  }
+
+  return band_level_map;
+}
+ARTS_METHOD_ERROR_CATCH
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
     const AbsorptionBands& absorption_bands,
@@ -258,6 +304,59 @@ Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
         for (Numeric x : atm.nlte | stdv::values) s += x;
         return s;
       }));
+}
+ARTS_METHOD_ERROR_CATCH
+
+Vector nlte_ratio_sum(const AtmField& atmospheric_field, const Size nalt) try {
+  Vector r(nalt);
+
+  for (Size i = 0; i < nalt; i++) {
+    r[i] = std::transform_reduce(
+        atmospheric_field.nlte().begin(),
+        atmospheric_field.nlte().end(),
+        0.0,
+        std::plus{},
+        [i](const auto& x) {
+          return std::get<GriddedField3>(x.second.data)[i, 0, 0];
+        });
+  }
+
+  return r;
+}
+ARTS_METHOD_ERROR_CATCH
+
+Numeric set_atmospheric_field(
+    AtmField& atmospheric_field,
+    const std::unordered_map<QuantumIdentifier, UppLow>& band_level_map,
+    const Vector& x,
+    Size atmi) try {
+  std::vector<bool> changed(atmospheric_field.nlte().size(), false);
+
+  Numeric max_change = 0.0;
+
+  for (auto& [key, ul] : band_level_map) {
+    if (not changed[ul.low]) {
+      changed[ul.low] = true;
+      const auto low  = key.LowerLevel();
+      auto& data = std::get<GriddedField3>(atmospheric_field.nlte()[low].data);
+      Numeric& a = data[atmi, 0, 0];
+      const Numeric& b = x[ul.low];
+      max_change       = std::max(max_change, std::abs(a - b));
+      a                = b;
+    }
+
+    if (not changed[ul.upp]) {
+      changed[ul.upp] = true;
+      const auto upp  = key.UpperLevel();
+      auto& data = std::get<GriddedField3>(atmospheric_field.nlte()[upp].data);
+      Numeric& a = data[atmi, 0, 0];
+      const Numeric& b = x[ul.upp];
+      max_change       = std::max(max_change, std::abs(a - b));
+      a                = b;
+    }
+  }
+
+  return max_change;
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -417,6 +516,7 @@ void atmospheric_profileFitNonLTE(
 
       const Numeric max_change_local =
           set_atmospheric_point(atmospheric_profile[atmi], levels, x);
+
       max_change = std::max(max_change, max_change_local);
     }
   }
