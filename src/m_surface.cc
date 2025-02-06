@@ -140,7 +140,7 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
   // Basic checks and sizes
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos, true);
   gfield2.checksize_strict();
   //
   chk_griddedfield_gridname(gfield2, gfield_latID, "Latitude");
@@ -196,7 +196,7 @@ void InterpSurfaceFieldToPosition(Numeric& outvalue,
   chk_atm_grids(atmosphere_dim, uniform_grid(2, 2, -1), lat_grid, lon_grid);
   chk_atm_surface(
       "input argument *field*", field, atmosphere_dim, lat_grid, lon_grid);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos, true);
   //
   const Numeric zmax = max(z_surface);
   const Numeric zmin = min(z_surface);
@@ -383,8 +383,8 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   // Input checks
   ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   // Check surface_data
@@ -696,8 +696,8 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   // Input checks
   ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   // Check surface_data
@@ -1026,8 +1026,8 @@ void iySurfaceLambertian(Workspace& ws,
                      "All values in *surface_scalar_reflectivity* must be inside [0,1].");
   ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.");
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   // Check surface_data
@@ -1355,7 +1355,7 @@ void iySurfaceLambertianDirect(
                      "All values in *surface_scalar_reflectivity* must be inside [0,1].");
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos, true);
 
 
   //do something only if there is a sun
@@ -1496,8 +1496,8 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Verbosity&) {
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
 
   // Call *surface_rtprop_agenda*
   surface_rtprop_agendaExecute(ws,
@@ -1641,8 +1641,8 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Verbosity&) {
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
 
   // Check provided surface rtprop variables
   const Index nlos = surface_los.nrows();
@@ -1795,8 +1795,8 @@ void specular_losCalcNoTopography(Vector& specular_los,
                                   const Index& atmosphere_dim,
                                   const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
 
   surface_normal.resize(max(Index(1), atmosphere_dim - 1));
   specular_los.resize(max(Index(1), atmosphere_dim - 1));
@@ -1837,8 +1837,8 @@ void specular_losCalc(Vector& specular_los,
                       const Index& ignore_surface_slope,
                       const Verbosity& verbosity) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_if_in_range("ignore_surface_slope", ignore_surface_slope, 0, 1);
 
   // Use special function if there is no slope, or it is ignored
@@ -1945,8 +1945,8 @@ void surfaceBlackbody(Matrix& surface_los,
                       const Numeric& surface_skin_t,
                       const Verbosity& verbosity) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   CREATE_OUT2;
@@ -1990,8 +1990,8 @@ void surfaceFastem(Matrix& surface_los,
                    const Verbosity& verbosity) {
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_if_in_range("wind_direction", wind_direction, -180, 180);
 
   const Index nf = f_grid.nelem();
@@ -2163,9 +2163,9 @@ void surfaceTelsem(Matrix& surface_los,
                    const Verbosity& verbosity) {
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_if_in_range_exclude(
       "surface skin temperature", surface_skin_t, 190.0, 373.0);
 
@@ -2266,8 +2266,8 @@ void surfaceTessem(Matrix& surface_los,
                    const Verbosity& verbosity) {
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_if_in_range_exclude(
       "surface skin temperature", surface_skin_t, 260.0, 373.0);
   chk_if_in_range_exclude_high("salinity", salinity, 0, 1);
@@ -2346,9 +2346,9 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
 
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   // Interpolate *surface_complex_refr_index*
@@ -2415,9 +2415,9 @@ void surfaceFlatReflectivity(Matrix& surface_los,
 
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   const Index nf = f_grid.nelem();
@@ -2497,9 +2497,9 @@ void surfaceFlatRvRh(Matrix& surface_los,
                      const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   const Index nf = f_grid.nelem();
@@ -2578,9 +2578,9 @@ void surfaceFlatRvRhEvEh(Matrix& surface_los,
                          const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   const Index nf = f_grid.nelem();
@@ -2683,9 +2683,9 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
                                    const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-  chk_rte_los(atmosphere_dim, specular_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
+  chk_los(atmosphere_dim, specular_los, false, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
   const Index nf = f_grid.nelem();
@@ -2753,8 +2753,8 @@ void surfaceLambertianSimple(Matrix& surface_los,
 
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   chk_not_negative("surface_skin_t", surface_skin_t);
   chk_if_in_range("za_pos", za_pos, 0, 1);
 
@@ -2856,7 +2856,7 @@ void surface_complex_refr_indexFromGriddedField5(
   // Basic checks and sizes
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos, true);
   complex_n_field.checksize_strict();
   //
   chk_griddedfield_gridname(complex_n_field, gfield_fID, "Frequency");
@@ -2948,8 +2948,8 @@ void surface_reflectivityFromGriddedField6(Tensor3& surface_reflectivity,
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   r_field.checksize_strict();
   chk_griddedfield_gridname(r_field, 0, "Frequency");
   chk_griddedfield_gridname(r_field, 1, "Stokes element");
@@ -3083,8 +3083,8 @@ void surface_scalar_reflectivityFromGriddedField4(
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 1);
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_pos(atmosphere_dim, rtp_pos, true);
+  chk_los(atmosphere_dim, rtp_los, true);
   r_field.checksize_strict();
   chk_griddedfield_gridname(r_field, 0, "Frequency");
   chk_griddedfield_gridname(r_field, 1, "Incidence angle");
@@ -3207,7 +3207,7 @@ void InterpSurfaceTypeMask(Index& surface_type,
   // Basic checks and sizes
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos, true);
   surface_type_mask.checksize_strict();
   //
   chk_griddedfield_gridname(surface_type_mask, gfield_latID, "Latitude");

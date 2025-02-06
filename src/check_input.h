@@ -333,11 +333,15 @@ void chk_atm_surface(const String& x_name,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid);
 
-void chk_rte_pos(const Index& atmosphere_dim,
-                 ConstVectorView rte_pos,
-                 const bool& is_rte_pos2 = false);
+void chk_pos(const Index& atmosphere_dim,
+             ConstVectorView rte_pos,
+             const bool is_rtp = false,
+             const bool is_rte_pos2 = false);
 
-void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
+void chk_los(const Index& atmosphere_dim,
+             ConstVectorView rte_los,
+             const bool is_rtp = false,
+             const bool is_specular = false);
 
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,
