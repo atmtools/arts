@@ -94,6 +94,7 @@ void atmospheric_profileFitNonLTE(
   while (max_change > convergence_limit and i < iteration_limit) {
     i++;
     max_change = 0.0;
+
     spectral_flux_profilePseudo2D(ws,
                                   spectral_flux_profile,
                                   altitude_grid,
