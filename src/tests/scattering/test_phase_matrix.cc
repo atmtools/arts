@@ -459,7 +459,7 @@ bool test_backscatter_matrix_regrid_tro() {
   auto sht          = sht::provider.get_instance(1, 32);
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(sht->get_zenith_angle_grid().data));
+  auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(sht->get_zenith_angle_grid().angles));
   auto phase_matrix = make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
 
