@@ -313,7 +313,7 @@ In equation form:
 
   L = \frac{\sum_i x_i L_i}{\sum_i x_i},
 
-where :math:`L` is a placeholder for any of the line shape parameters, and :math:`x` is the volume mixing ratio, and :math:`i` is a species index.
+where :math:`L` is a placeholder for any of the line shape parameters, and :math:`x` is the volume-mixing ratio, and :math:`i` is a species index.
 The normalization is there to allow fewer than all species to contribute to the line shape parameters.
 
 The temperature dependencies of the individual :math:`L_i` are computed based on avaiable data.
@@ -370,7 +370,15 @@ For local thermodynamic equilibrium (LTE), the line strength is given by
 .. math::
 
   S_{LTE} = \rho \frac{c^2\nu}{8\pi} \left[1 - \exp\left(-\frac{h\nu}{kT}\right)\right]
-  \frac{g_u\exp\left(-\frac{E_l}{kT}\right)}{Q(T)} \frac{A_{lu}}{\nu_0^3}
+  \frac{g_u\exp\left(-\frac{E_l}{kT}\right)}{Q(T)} \frac{A_{lu}}{\nu_0^3},
+
+where :math:`\rho` is the number density of the absorbing species,
+
+.. math::
+
+  \rho = \mathrm{VMR}\frac{P}{kT},
+
+where VMR is the volume-mixing ratio of the absorbing species.
 
 .. _lbl-nlte:
 
