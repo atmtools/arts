@@ -520,8 +520,8 @@ void ppathFixedLstep(Ppath& ppath,
   ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_los(atmosphere_dim, rte_los);
+  chk_pos(atmosphere_dim, rte_pos);
+  chk_los(atmosphere_dim, rte_los);
   ARTS_USER_ERROR_IF (cloudbox_on,
         "This method does not yet handle an active cloudbox.");
   ARTS_USER_ERROR_IF (ppath_lmax <= 0,
@@ -1346,8 +1346,8 @@ void ppathPlaneParallel(Ppath& ppath,
   // Basics checks of input
   ARTS_USER_ERROR_IF (atmosphere_dim != 1,
                       "The function can only be used for 1D atmospheres.");
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_los(atmosphere_dim, rte_los);
+  chk_pos(atmosphere_dim, rte_pos);
+  chk_los(atmosphere_dim, rte_los);
   ARTS_USER_ERROR_IF (ppath_inside_cloudbox_do && !cloudbox_on,
         "The WSV *ppath_inside_cloudbox_do* can only be set "
         "to 1 if also *cloudbox_on* is 1.");
@@ -2046,8 +2046,8 @@ void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
                                          const Vector& rte_pos2,
                                          const Verbosity&) {
   // Check input
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_pos(atmosphere_dim, rte_pos2, true);
+  chk_pos(atmosphere_dim, rte_pos);
+  chk_pos(atmosphere_dim, rte_pos2, false, true);
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1 =

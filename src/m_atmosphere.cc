@@ -3622,7 +3622,7 @@ void InterpAtmFieldToPosition(Numeric& outvalue,
                 p_grid,
                 lat_grid,
                 lon_grid);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_pos(atmosphere_dim, rtp_pos);
 
   // Determine grid positions
   GridPos gp_p, gp_lat, gp_lon;

@@ -1583,15 +1583,14 @@ void chk_atm_surface(const String& x_name,
     \author Patrick Eriksson 
     \date   2012-03-26
 */
-void chk_rte_pos(const Index& atmosphere_dim,
-                 ConstVectorView rte_pos,
-                 const bool& is_rte_pos2)
+void chk_pos(const Index& atmosphere_dim,
+             ConstVectorView rte_pos,
+             const bool is_rtp,
+             const bool is_rte_pos2)
 
 {
-  String vname = "*rte_pos*";
-  if (is_rte_pos2) {
-    vname = "*rte_pos2*";
-  }
+  std::string_view vname{is_rtp ? "*rtp_pos*"
+                                : (is_rte_pos2 ? "*rte_pos2*" : "*rte_pos*")};
 
   if (atmosphere_dim == 1) {
     if (!is_rte_pos2) {
@@ -1631,29 +1630,34 @@ void chk_rte_pos(const Index& atmosphere_dim,
     \author Patrick Eriksson 
     \date   2012-03-26
 */
-void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los)
+void chk_los(const Index& atmosphere_dim,
+             ConstVectorView rte_los,
+             const bool is_rtp,
+             const bool is_specular)
 
 {
+  std::string_view vname{is_specular ? "a specular los vector"
+                                     : (is_rtp ? "*rtp_los*" : "rte_los")};
+
   if (atmosphere_dim == 1) {
     ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
-                        "For 1D, los-vectors must have length 1.");
+                        "For 1D, ", vname, " must have length 1.");
     ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
-          "For 1D, the zenith angle of a los-vector must "
+          "For 1D, the zenith angle of ", vname, " must "
           "be in the range [0,180].");
   } else if (atmosphere_dim == 2) {
     ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
-          "For 2D, los-vectors must have length 1.");
+          "For 2D, ", vname, " must have length 1.");
     ARTS_USER_ERROR_IF (rte_los[0] < -180 || rte_los[0] > 180,
-          "For 2D, the zenith angle of a los-vector must "
+          "For 2D, the zenith angle of ", vname, " must "
           "be in the range [-180,180].");
   } else {
     ARTS_USER_ERROR_IF (rte_los.nelem() != 2,
-          "For 3D, los-vectors must have length 2.");
+          "For 3D, ", vname, " must have length 2.");
     ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
-          "For 3D, the zenith angle of a los-vector must "
-          "be in the range [0,180].");
+          "For 3D, the zenith angle of ", vname, " must be in the range [0,180].");
     ARTS_USER_ERROR_IF (rte_los[1] < -180 || rte_los[1] > 180,
-          "For 3D, the azimuth angle of a los-vector must "
+          "For 3D, the azimuth angle of ", vname, " must "
           "be in the range [-180,180].");
   }
 }

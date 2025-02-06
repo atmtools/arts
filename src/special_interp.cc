@@ -762,7 +762,7 @@ void rte_pos2gridpos(GridPos& gp_p,
                      ConstVectorView lon_grid,
                      ConstTensor3View z_field,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(atmosphere_dim, rte_pos);
+  chk_pos(atmosphere_dim, rte_pos);
 
   if (atmosphere_dim == 1) {
     chk_interpolation_grids(
@@ -811,7 +811,7 @@ void rte_pos2gridpos(GridPos& gp_lat,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(atmosphere_dim, rte_pos);
+  chk_pos(atmosphere_dim, rte_pos);
 
   if (atmosphere_dim == 1) {
   } else {

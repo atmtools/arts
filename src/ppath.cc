@@ -5184,8 +5184,8 @@ void ppath_calc(Workspace& ws,
   // position and LOS.
 
   //--- Check input -----------------------------------------------------------
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_los(atmosphere_dim, rte_los);
+  chk_pos(atmosphere_dim, rte_pos);
+  chk_los(atmosphere_dim, rte_los);
   ARTS_USER_ERROR_IF (ppath_inside_cloudbox_do && !cloudbox_on,
         "The WSV *ppath_inside_cloudbox_do* can only be set "
         "to 1 if also *cloudbox_on* is 1.");
