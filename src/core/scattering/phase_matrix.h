@@ -327,11 +327,11 @@ inline RegridWeights calc_regrid_weights(
   }
   if ((za_scat_grid) && (new_grids.za_scat_grid)) {
     res.za_scat_grid_weights = ArrayOfGridPos(std::visit(
-        [](const auto &grd) { return grd.data.size(); }, *new_grids.za_scat_grid));
+        [](const auto &grd) { return grd.angles.size(); }, *new_grids.za_scat_grid));
     gridpos(res.za_scat_grid_weights,
-            std::visit([](const auto &grd) { return static_cast<Vector>(grd.data); },
+            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); },
                        *za_scat_grid),
-            std::visit([](const auto &grd) { return static_cast<Vector>(grd.data); },
+            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); },
                        *new_grids.za_scat_grid),
             1e99);
   }

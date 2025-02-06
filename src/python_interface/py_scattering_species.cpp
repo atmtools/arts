@@ -399,7 +399,7 @@ void py_scattering_species(py::module_& m) try {
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m,
                                                    "IrregularZenithAngleGrid");
       irr_grid.def(py::init<Vector>())
-      .def_rw("value", &scattering::IrregularZenithAngleGrid::data, "Zenith angle grid")
+      .def_rw("value", &scattering::IrregularZenithAngleGrid::angles, "Zenith angle grid")
       .doc() = "Irregular zenith angle grid";
       common_ndarray(irr_grid);
 
