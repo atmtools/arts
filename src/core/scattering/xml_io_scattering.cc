@@ -43,7 +43,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   ArtsXMLTag open_tag, close_tag;
   open_tag.set_name("IrregularZenithAngleGrid");
   open_tag.write_to_stream(os_xml);
-  xml_write_to_stream(os_xml, static_cast<const Vector&>(grid), pbofs, name);
+  xml_write_to_stream(os_xml, grid.angles, pbofs, name);
   close_tag.set_name("/IrregularZenithAngleGrid");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
@@ -56,7 +56,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("IrregularZenithAngleGrid");
-  xml_read_from_stream(is_xml, static_cast<Vector&>(grid), pbifs);
+  xml_read_from_stream(is_xml, grid.angles, pbifs);
 }
 
 
