@@ -4704,6 +4704,31 @@ The number :math:`n` must be uneven and larger than 2.
                     "The altitude profile key in the atmosphere"},
   };
 
+  wsm_data["ray_path_fieldFluxProfile"] = {
+      .desc =
+          R"(Adds observers that covers all zenith angles for each altitude point.
+
+By default, up-looking from surface, downlooking from top of atmosphere and limb looking
+just hitting the surface and just missing the surface are added.
+
+In addition to these, all up-looking ppoints will have additional observers for max ``dza``
+resolution and all downlooking points will have additional observers for max ``dza``
+resolution.
+
+Additional work is requires if proper coverage of the limb is required
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_field"},
+      .in             = {"atmospheric_field", "ray_path_observer_agenda"},
+      .gin            = {"azimuth", "dza", "atm_key"},
+      .gin_type       = {"Numeric", "Numeric", "AtmKey"},
+      .gin_value      = {Numeric{0.0}, Numeric{180.0}, AtmKey::t},
+      .gin_desc       = {"Azimuth angle for the observer",
+                         "The minimum step coverage in zenith angles",
+                         "The altitude profile key in the atmosphere"},
+      .pass_workspace = true,
+  };
+
   wsm_data["ray_path_fieldFromObserverAgenda"] = {
       .desc =
           R"(Create a ray path field from a set of observers.

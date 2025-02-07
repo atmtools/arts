@@ -102,26 +102,133 @@ void ray_path_observersFluxProfile(
 
   ray_path_observers.reserve(n * alt_g.size() + 2);
   for (Index i = 0; i < n; i++) {
-    for (PropagationPathPoint p : alt_g | stdv::drop(1) | stdv::take(n) |
-                                      stdv::transform([&](Numeric alt) {
-                                        return PropagationPathPoint{
-                                            .pos_type = PathPositionType::atm,
-                                            .los_type = PathPositionType::atm,
-                                            .pos      = {alt, lat, lon},
-                                            .los      = {zas_g[i], azimuth}};
-                                      })) {
+    for (PropagationPathPoint p :
+         alt_g | stdv::transform([za = zas_g[i + 1], lat, lon, azimuth](
+                                     Numeric alt) {
+           return PropagationPathPoint{.pos_type = PathPositionType::atm,
+                                       .los_type = PathPositionType::atm,
+                                       .pos      = {alt, lat, lon},
+                                       .los      = {za, azimuth}};
+         })) {
       ray_path_observers.push_back(p);
     }
   }
   ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                 .los_type = PathPositionType::atm,
                                 .pos      = {alt_g.front(), lat, lon},
-                                .los      = {0, azimuth}});
+                                .los      = {0.0, azimuth}});
   ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                 .los_type = PathPositionType::atm,
                                 .pos      = {alt_g.back(), lat, lon},
-                                .los      = {180, azimuth}});
+                                .los      = {180.0, azimuth}});
 }
+
+Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
+  assert(dx >= 0.0);
+
+  Numeric d = x1 - x0;
+
+  if (d < dx) return {x0, x1};
+
+  d      *= 0.5;
+  Size s = 1, dn = 1;
+  while (d > dx) {
+    d  *= 0.5;
+    dn *= 2;
+    s  += dn;
+  }
+
+  return nlinspace(x0, x1, s + 2);
+}
+
+void ray_path_fieldFluxProfile(
+    const Workspace& ws,
+    ArrayOfArrayOfPropagationPathPoint& ray_path_field,
+    const AtmField& atmospheric_field,
+    const Agenda& ray_path_observer_agenda,
+    const Numeric& azimuth,
+    const Numeric& dza,
+    const AtmKey& atm_key) try {
+  ARTS_USER_ERROR_IF(dza <= 0.0, "Zenith angle step must be positive")
+
+  ray_path_field.clear();
+
+  const auto& data  = atmospheric_field[atm_key].get<GriddedField3>();
+  const auto& alt_g = data.grid<0>();
+  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
+                     "Data size does not match altitude grid size")
+  const auto& lat = data.grid<1>()[0];
+  const auto& lon = data.grid<2>()[0];
+
+  const Numeric za_limb = surface_tangent_zenithFromAgenda(
+      ws, {alt_g.back(), lat, lon}, ray_path_observer_agenda, azimuth);
+  const Numeric za_limb_miss = std::nextafter(za_limb, 0.0);
+  const Numeric za_limb_hit  = std::nextafter(za_limb, 180.0);
+
+  const Vector looking_down = half_grid(za_limb_hit, 180.0, dza);
+  const Vector looking_up   = half_grid(0.0, 90, dza);
+
+  // 4 extra points already added by
+  ray_path_field.resize(looking_down.size() + looking_up.size());
+
+  ray_path_observer_agendaExecute(ws,
+                                  ray_path_field.front(),
+                                  {alt_g.front(), lat, lon},
+                                  {0, azimuth},
+                                  ray_path_observer_agenda);
+
+  String error;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i = 1; i < looking_up.size() - 1; i++) {
+    try {
+      ray_path_observer_agendaExecute(ws,
+                                      ray_path_field[i],
+                                      {alt_g.front(), lat, lon},
+                                      {looking_up[i], azimuth},
+                                      ray_path_observer_agenda);
+    } catch (const std::exception& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+  ARTS_USER_ERROR_IF(not error.empty(), "{}", error);
+
+  ray_path_observer_agendaExecute(ws,
+                                  ray_path_field[looking_up.size() - 1],
+                                  {alt_g.back(), lat, lon},
+                                  {za_limb_miss, azimuth},
+                                  ray_path_observer_agenda);
+
+  ray_path_observer_agendaExecute(ws,
+                                  ray_path_field[looking_up.size()],
+                                  {alt_g.back(), lat, lon},
+                                  {za_limb_hit, azimuth},
+                                  ray_path_observer_agenda);
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i = 1; i < looking_down.size() - 1; i++) {
+    try {
+      ray_path_observer_agendaExecute(ws,
+                                      ray_path_field[looking_up.size() + i],
+                                      {alt_g.back(), lat, lon},
+                                      {looking_down[i], azimuth},
+                                      ray_path_observer_agenda);
+    } catch (const std::exception& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+  ARTS_USER_ERROR_IF(not error.empty(), "{}", error);
+
+  ray_path_observer_agendaExecute(ws,
+                                  ray_path_field.back(),
+                                  {alt_g.back(), lat, lon},
+                                  {180, azimuth},
+                                  ray_path_observer_agenda);
+
+  std::erase_if(ray_path_field, [](const auto& x) { return x.size() < 2; });
+}
+ARTS_METHOD_ERROR_CATCH
 
 void ray_path_fieldFromObserverAgenda(
     const Workspace& ws,

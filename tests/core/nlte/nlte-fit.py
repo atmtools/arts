@@ -29,8 +29,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric(add_crossings=True, remove_non_crossings=True)
 ws.propagation_matrix_agendaAuto()
 
-ws.ray_path_observersFluxProfile(n=11)
-ws.ray_path_fieldFromObserverAgenda()
+ws.ray_path_fieldFluxProfile(dza=10)
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 
@@ -48,34 +47,14 @@ levels = pyarts.arts.ArrayOfQuantumIdentifier(
     ]
 )
 
-# import matplotlib.pyplot as plt
-# for x in levels:
-#     plt.plot(ws.atmospheric_field[x].data.flatten())
-# plt.show()
-
 ws.atmospheric_fieldFitNonLTE(
-    collision_data=collision_data, levels=levels, convergence_criterion=1e-2
+    collision_data=collision_data, levels=levels, convergence_criterion=5e-1
 )
 
-# for x in levels:
-#     plt.plot(ws.atmospheric_field[x].data.flatten())
-# plt.show()
+ref = [0.14906513, 0.16333853, 0.17919964, 0.19362265, 0.21227294,
+       0.23620497, 0.26243519, 0.28530674, 0.30159183, 0.3133241 ,
+       0.32257162]
 
-ref = [
-    0.15155419,
-    0.16352512,
-    0.18911686,
-    0.21319294,
-    0.24843466,
-    0.29213797,
-    0.33774595,
-    0.37876021,
-    0.40840548,
-    0.42642776,
-    0.43561727,
-]
-
-# FIXME: The values are not close enough, there's a difference between compilers
 assert np.allclose(
-    ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10], ref, rtol=1e-1
+    ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10], ref
 ), f"{ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10]} vs {ref}"
