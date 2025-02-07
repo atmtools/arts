@@ -189,8 +189,12 @@ ray_path_source_vector_nonlte.size(): {}
       const Stokvec& S1 =
           ray_path_propagation_matrix_source_vector_nonlte[i + 1][iv];
 
-      const Numeric y0 = planck(f, t0) + (invK0 * S0).I();
-      const Numeric y1 = planck(f, t1) + (invK1 * S1).I();
+      Numeric y0 = planck(f, t0) + (invK0 * S0).I();
+      Numeric y1 = planck(f, t1) + (invK1 * S1).I();
+
+      // Numerically, these may be slightly negative even though they can mathematically only be exactly 0.
+      if (y0 < 0) y0 = 0.0;
+      if (y1 < 0) y1 = 0.0;
 
       const Numeric x0 =
           i == 0 ? 0.0 : disort_settings.optical_thicknesses[iv, i - 1];
@@ -349,7 +353,11 @@ ray_path: {:B,}
           r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
                                ray_path_propagation_matrix[i + 0][iv].A());
       if (i > 0) {
-        if (disort_settings.optical_thicknesses[iv, i - 1] <= 0.0) {
+        disort_settings.optical_thicknesses[iv, i] +=
+            disort_settings.optical_thicknesses[iv, i - 1];
+
+        if (disort_settings.optical_thicknesses[iv, i] <=
+            disort_settings.optical_thicknesses[iv, i - 1]) {
           if (allow_fixing != 0) {
             disort_settings.optical_thicknesses[iv, i] =
                 std::nextafter(disort_settings.optical_thicknesses[iv, i - 1],
@@ -367,9 +375,6 @@ Frequency grid index: {}
                 disort_settings.optical_thicknesses[iv, i - 1],
                 iv);
           }
-        } else {
-          disort_settings.optical_thicknesses[iv, i] +=
-              disort_settings.optical_thicknesses[iv, i - 1];
         }
       }
     }
