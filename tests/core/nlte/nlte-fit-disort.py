@@ -54,6 +54,16 @@ ws.disort_legendre_polynomial_dimension = 1
 ws.disort_settings_agendaSetup()
 ws.disort_settings_agendaExecute()
 
-#ws.atmospheric_fieldDisortFitNonLTE(
-#    collision_data=collision_data, levels=levels, convergence_criterion=1e-2
-#)
+# import matplotlib.pyplot as plt
+#
+# for x in levels:
+#   plt.plot(ws.atmospheric_field[x].data.flatten())
+# plt.show()
+#
+# ws.atmospheric_fieldDisortFitNonLTE(
+#    collision_data=collision_data, levels=levels, convergence_criterion=1e-1
+# )
+#
+# for x in levels:
+#   plt.plot(ws.atmospheric_field[x].data.flatten())
+# plt.show()

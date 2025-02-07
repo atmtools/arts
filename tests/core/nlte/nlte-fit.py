@@ -52,19 +52,20 @@ ws.atmospheric_fieldFitNonLTE(
     collision_data=collision_data, levels=levels, convergence_criterion=1e-2
 )
 
+ref = [
+    0.15155419,
+    0.16352512,
+    0.18911686,
+    0.21319294,
+    0.24843466,
+    0.29213797,
+    0.33774595,
+    0.37876021,
+    0.40840548,
+    0.42642776,
+    0.43561727,
+]
 assert np.allclose(
     ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10],
-    [
-        0.15155419,
-        0.16352512,
-        0.18911686,
-        0.21319294,
-        0.24843466,
-        0.29213797,
-        0.33774595,
-        0.37876021,
-        0.40840548,
-        0.42642776,
-        0.43561727,
-    ],
-)
+    ref,
+), f"{ws.atmospheric_field.nlte[levels[0]].data.flatten()[::10]} vs {ref}"
