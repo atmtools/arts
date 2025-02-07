@@ -349,33 +349,27 @@ ray_path: {:B,}
           r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
                                ray_path_propagation_matrix[i + 0][iv].A());
       if (i > 0) {
-        disort_settings.optical_thicknesses[iv, i] +=
-            disort_settings.optical_thicknesses[iv, i - 1];
-
-        if (0 == allow_fixing and
-            (disort_settings.optical_thicknesses[iv, i] <=
-             disort_settings.optical_thicknesses[iv, i - 1])) {
-          ARTS_USER_ERROR(
-              R"(
+        if (disort_settings.optical_thicknesses[iv, i - 1] <= 0.0) {
+          if (allow_fixing != 0) {
+            disort_settings.optical_thicknesses[iv, i] =
+                std::nextafter(disort_settings.optical_thicknesses[iv, i - 1],
+                               std::numeric_limits<Numeric>::max());
+          } else {
+            ARTS_USER_ERROR(
+                R"(
 Not strictly increasing optical thicknesses between layers.
 
 Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
 
-Old value:            {}
-New value:            {}
-Old layer:            {}
-New layer:            {}
-Frequency grid point: {}
+Value:                {}
+Frequency grid index: {}
 )",
-              disort_settings.optical_thicknesses[iv, i - 1],
-              disort_settings.optical_thicknesses[iv, i],
-              i - 1,
-              i,
-              iv);
+                disort_settings.optical_thicknesses[iv, i - 1],
+                iv);
+          }
         } else {
-          disort_settings.optical_thicknesses[iv, i] =
-              std::nextafter(disort_settings.optical_thicknesses[iv, i - 1],
-                             std::numeric_limits<Numeric>::max());
+          disort_settings.optical_thicknesses[iv, i] +=
+              disort_settings.optical_thicknesses[iv, i - 1];
         }
       }
     }
