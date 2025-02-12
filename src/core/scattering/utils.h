@@ -9,6 +9,7 @@
 
 namespace scattering {
 GridPos find_interp_weights(StridedConstVectorView grid, Numeric x_new);
+Index digitize(const Vector& boundaries, Numeric value);
 
 }
 
