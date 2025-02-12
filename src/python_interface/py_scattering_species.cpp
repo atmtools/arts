@@ -336,9 +336,6 @@ void py_scattering_species(py::module_& m) try {
               &ScatteringSpeciesProperty::pproperty,
               "Particulate property");
 
-  //
-  // Modified gamma PSD
-  //
 
 //   using BulkScatteringPropertiesTROSpectral =
 //       std::variant<scattering::BulkScatteringProperties<
@@ -357,8 +354,10 @@ void py_scattering_species(py::module_& m) try {
 //           scattering::Format::ARO,
 //           scattering::Representation::Gridded>>;
 
-  py::class_<MGDSingleMoment>(m, "MGDSingleMoment").doc() =
-      "Modified gamma PSD single moment";
+  //
+  // Modified gamma PSD
+  //
+
   py::class_<ScatteringHabit>(m, "ScatteringHabit").doc() = "Scattering habit";
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
       .def(py::init<ExtSSACallback, Numeric>(), "func"_a, "g"_a)

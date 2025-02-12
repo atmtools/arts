@@ -173,6 +173,7 @@ constexpr auto f44(const VectorType &v) {
   return v[5];
 }
 
+
 template <typename Scalar, bool strided>
 void expand_and_transform(StridedVectorView output,
                           const StridedConstVectorView &input,
@@ -238,6 +239,20 @@ constexpr Index get_n_mat_elems(Format format) {
 }
 
 }  // namespace detail
+
+/** Expand phase matrix from compressed coefficient form. */
+inline Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
+  Matrix mat{4, 4};
+  mat[0, 0] = detail::f11(compact);
+  mat[0, 1] = detail::f12(compact);
+  mat[1, 0] = detail::f12(compact);
+  mat[1, 1] = detail::f22(compact);
+  mat[2, 2] = detail::f33(compact);
+  mat[2, 3] = detail::f34(compact);
+  mat[3, 2] = detail::f34(compact);
+  mat[3, 3] = detail::f33(compact);
+  return mat;
+}
 
 /// The grid over which the scattering data is defined.
 struct ScatteringDataGrids {
@@ -387,6 +402,12 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
         std::array<Index, 2>{this->extent(0), this->extent(1)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 2> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 2>{matpack::mdview_t<const CoeffVector, 2>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 2>{this->extent(0), this->extent(1)})};
+  }
+
   BackscatterMatrixData<Scalar, Format::TRO> extract_stokes_coeffs() const {
     constexpr Index n_stokes_coeffs_new = detail::get_n_mat_elems(format);
     BackscatterMatrixData<Scalar, format> result(t_grid_, f_grid_);
@@ -403,7 +424,7 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
   BackscatterMatrixData regrid(const ScatteringDataGrids &grids,
                                const RegridWeights &weights) const {
     BackscatterMatrixData result(grids.t_grid, grids.f_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t  = weights.t_grid_weights[i_t];
@@ -426,6 +447,10 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
   BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
     return regrid(grids, weights);
+  }
+
+  BackscatterMatrixData to_gridded() const {
+    return *this;
   }
 
  protected:
@@ -470,6 +495,13 @@ class BackscatterMatrixData<Scalar, Format::ARO>
             this->extent(0), this->extent(1), this->extent(2)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 3> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 3>{matpack::mdview_t<const CoeffVector, 3>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 3>{
+            this->extent(0), this->extent(1), this->extent(2)})};
+  }
+
   BackscatterMatrixData &operator=(const matpack::data_t<Scalar, 4> &data) {
     ARTS_USER_ERROR_IF(
         data.shape()[0] != n_temps_,
@@ -507,7 +539,7 @@ class BackscatterMatrixData<Scalar, Format::ARO>
   BackscatterMatrixData regrid(const ScatteringDataGrids &grids,
                                const RegridWeights &weights) const {
     BackscatterMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t  = weights.t_grid_weights[i_t];
@@ -804,6 +836,13 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
             this->extent(0), this->extent(1), this->extent(2)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 3> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 3>{matpack::mdview_t<const CoeffVector, 3>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 3>{
+            this->extent(0), this->extent(1), this->extent(2)})};
+  }
+
   /** Calculate scattering-angle integral.
    *
    * Integrates the phase matrix over the scattering angles.
@@ -853,7 +892,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
                          const RegridWeights &weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_scat_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size());
          ++i_t) {
@@ -1053,6 +1092,13 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
             this->extent(0), this->extent(1), this->extent(2)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 3> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 3>{matpack::mdview_t<const CoeffVector, 3>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 3>{
+            this->extent(0), this->extent(1), this->extent(2)})};
+  }
+
   std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
   std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
   std::shared_ptr<SHT> get_sht() const { return sht_; }
@@ -1170,10 +1216,25 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
     return *this;
   }
 
+  PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
+    auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
+    PhaseMatrixData pm_new(t_grid_, f_grid_, sht_new);
+    for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+      for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+        for (Index coeff_ind = 0;
+             coeff_ind < std::min(this->extent(3), pm_new.extent(3)); ++coeff_ind) {
+          pm_new[t_ind, f_ind, coeff_ind] =
+            this->operator[](t_ind, f_ind, coeff_ind);
+        }
+      }
+    }
+    return pm_new;
+  }
+
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
                          const RegridWeights weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, sht_);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos gp_t  = weights.t_grid_weights[i_t];
@@ -1312,6 +1373,16 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   constexpr matpack::view_t<CoeffVector, 5> get_coeff_vector_view() {
     return matpack::view_t<CoeffVector, 5>{matpack::mdview_t<CoeffVector, 5>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
+        std::array<Index, 5>{this->extent(0),
+                             this->extent(1),
+                             this->extent(2),
+                             this->extent(3),
+                             this->extent(4)})};
+  }
+
+  constexpr matpack::view_t<const CoeffVector, 5> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 5>{matpack::mdview_t<const CoeffVector, 5>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
         std::array<Index, 5>{this->extent(0),
                              this->extent(1),
                              this->extent(2),
@@ -1462,7 +1533,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
                            grids.za_inc_grid,
                            grids.aa_scat_grid,
                            grids.za_scat_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
 
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
@@ -1863,6 +1934,15 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
                              this->extent(3)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 4> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 4>{matpack::mdview_t<const CoeffVector, 4>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 4>{this->extent(0),
+                             this->extent(1),
+                             this->extent(2),
+                             this->extent(3)})};
+  }
+
   /** Transform phase matrix to gridded format.
    *
    * @param Pointer to the SHT to use for the transformation.
@@ -1899,7 +1979,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
         for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid_->size();
              ++za_inc_ind) {
           for (Index coeff_ind = 0;
-               coeff_ind < std::min(this->size(4), pm_new.size(4));
+               coeff_ind < std::min(this->extent(4), pm_new.extent(4));
                ++coeff_ind) {
             pm_new[t_ind, f_ind, za_inc_ind, coeff_ind] =
                 (*this)(t_ind, f_ind, za_inc_ind, coeff_ind);
@@ -1995,7 +2075,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
   PhaseMatrixData regrid(const ScatteringDataGrids &grids,
                          const RegridWeights weights) const {
     PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
 
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
