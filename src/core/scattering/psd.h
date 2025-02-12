@@ -2,11 +2,20 @@
 #define ARTS_CORE_SCATTERING_PSD_H_
 
 #include <matpack.h>
-
 #include <optional>
 
 #include "atm.h"
 #include "properties.h"
+#include "utils.h"
+
+namespace scattering {
+
+enum class SizeParameter {
+    Mass,
+    MaximumDiameter,
+    VolumeEqDiameter
+};
+
 
 /*** Single-moment modified gamma distribution
  *
@@ -90,4 +99,58 @@ struct MGDSingleMoment {
                   const Numeric& scat_species_b) const;
 };
 
+
+/*** Binned PSD
+ *
+ * The BinnedPSD class represents a particle size distribution using a fixed number of particle counts
+ * over a sequence of size bins. Particles with sizes outside the size and temperature range are set
+ * to zero.
+ */
+struct BinnedPSD {
+  Vector bins;
+  Vector counts;
+  Numeric t_min = 0.0;
+  Numeric t_max = 350.0;
+
+  BinnedPSD() = default;
+
+  BinnedPSD(Vector bins_,
+            Vector counts_,
+            Numeric t_min_ = 0.0,
+            Numeric t_max_ = 350.0):
+  bins(bins_), counts(counts_), t_min(t_min_), t_max(t_max_) {
+    if (bins_.size() != (counts_.size() + 1)) {
+        ARTS_USER_ERROR("The bin vector must have exactly one element more than the counts vector.");
+    }
+    if (!std::is_sorted(bins.begin(), bins.end())) {
+        ARTS_USER_ERROR("The bins vector must be strictly increasing.");
+    }
+  }
+
+  Vector evaluate(const AtmPoint& point,
+                  const Vector& particle_sizes,
+                  const Numeric& scat_species_a,
+                  const Numeric& scat_species_b) const {
+
+    Index n_parts = particle_sizes.size();
+    Vector pnd = Vector(n_parts);
+    for (Index ind = 0; ind < n_parts; ++ind) {
+      if ((point.temperature < t_min) || (t_max < point.temperature)) {
+        pnd[ind] = 0.0;
+      } else {
+        Index bin_ind = digitize(bins, particle_sizes[ind]);
+        if (bin_ind < 0) {
+          pnd[ind] = 0.0;
+        } else if (bin_ind >= bins.size()) {
+          pnd[ind] = 0.0;
+        } else {
+          pnd[ind] = counts[bin_ind];
+        }
+      }
+    }
+    return pnd;
+  }
+};
+
+}
 #endif  // ARTS_CORE_PSD_H_
