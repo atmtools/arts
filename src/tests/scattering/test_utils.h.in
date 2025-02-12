@@ -275,7 +275,7 @@ Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
 }
 
 template<typename Scalar >
-bool is_close(const Scalar &a, const Scalar &b, rtol=1e-6) {
+bool is_close(const Scalar &a, const Scalar &b, const Scalar & rtol=1e-6) {
   return std::abs((a - b) / b) < rtol;
 }
 
