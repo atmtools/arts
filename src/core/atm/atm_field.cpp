@@ -203,6 +203,7 @@ Field::Field(const Field &)                = default;
 Field::Field(Field &&) noexcept            = default;
 Field &Field::operator=(const Field &)     = default;
 Field &Field::operator=(Field &&) noexcept = default;
+Point::Point(Numeric p, Numeric t) : pressure(p), temperature(t) {}
 Point::Point(const Point &)                = default;
 Point::Point(Point &&) noexcept            = default;
 Point &Point::operator=(const Point &)     = default;
