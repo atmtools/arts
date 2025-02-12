@@ -100,6 +100,12 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
         std::array<Index, 2>{this->extent(0), this->extent(1)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 2> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 2>{matpack::mdview_t<const CoeffVector, 2>(
+        reinterpret_cast<const CoeffVector*>(this->data_handle()),
+        std::array<Index, 2>{this->extent(0), this->extent(1)})};
+  }
+
   /** Extract single scattering data for given stokes dimension.
    *
    * @return A new extinction matrix data object containing only data required
@@ -139,7 +145,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
                               const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size());
          ++i_t) {
@@ -163,8 +169,14 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
   }
 
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
-    auto weights = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, grids);
-    return regrid(weights, grids);
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
+    return regrid(grids, weights);
+  }
+
+  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> to_gridded() const {
+    auto new_ext = ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
+    new_ext = *this;
+    return new_ext;
   }
 
  protected:
@@ -251,6 +263,13 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
             this->extent(0), this->extent(1), this->extent(2)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 3> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 3>{matpack::mdview_t<const CoeffVector, 3>(
+        reinterpret_cast<const CoeffVector*>(this->data_handle()),
+        std::array<Index, 3>{
+            this->extent(0), this->extent(1), this->extent(2)})};
+  }
+
   /** Extract single scattering data for given stokes dimension.
    *
    * @return A new extinction matrix data object containing only data required
@@ -270,7 +289,7 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
                               const RegridWeights& weights) {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size());
          ++i_t) {

@@ -98,6 +98,12 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
         std::array<Index, 2>{this->extent(0), this->extent(1)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 2> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 2>{matpack::mdview_t<const CoeffVector, 2>(
+        reinterpret_cast<const CoeffVector*>(this->data_handle()),
+        std::array<Index, 2>{this->extent(0), this->extent(1)})};
+  }
+
   AbsorptionVectorData<Scalar, Format::ARO, repr> to_lab_frame(
       std::shared_ptr<const Vector> za_inc_grid) {
     AbsorptionVectorData<Scalar, Format::ARO, repr> av_new{
@@ -123,9 +129,9 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
   }
 
   AbsorptionVectorData regrid(const ScatteringDataGrids grids,
-                              const RegridWeights weights) {
+                              const RegridWeights weights) const  {
     AbsorptionVectorData result(grids.t_grid, grids.f_grid);
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size());
          ++i_t) {
@@ -146,6 +152,17 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
       }
     }
     return result;
+  }
+
+  AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
+    return regrid(grids, weights);
+  }
+
+  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> to_gridded() const {
+    auto abs_new = AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
+    abs_new = *this;
+    return abs_new;
   }
 
  protected:
@@ -226,6 +243,13 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
             this->extent(0), this->extent(1), this->extent(2)})};
   }
 
+  constexpr matpack::view_t<const CoeffVector, 3> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 3>{matpack::mdview_t<const CoeffVector, 3>(
+        reinterpret_cast<const CoeffVector*>(this->data_handle()),
+        std::array<Index, 3>{
+            this->extent(0), this->extent(1), this->extent(2)})};
+  }
+
   AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral>
   to_spectral() const {
     AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> avd_new(
@@ -235,12 +259,12 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
   }
 
   AbsorptionVectorData regrid(const ScatteringDataGrids& grids,
-                              const RegridWeights& weights) {
+                              const RegridWeights& weights) const {
     AbsorptionVectorData result(
         grids.t_grid,
         grids.f_grid,
         std::make_shared<Vector>(grid_vector(*grids.za_inc_grid)));
-    auto coeffs_this = get_coeff_vector_view();
+    auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
     for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size());
          ++i_t) {
@@ -281,6 +305,11 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
       }
     }
     return result;
+  }
+
+  AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, za_inc_grid_, nullptr, nullptr, nullptr, grids);
+    return regrid(grids, weights);
   }
 
  protected:

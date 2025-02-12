@@ -8,6 +8,7 @@
 #include "scattering/absorption_vector.h"
 #include "scattering/extinction_matrix.h"
 #include "scattering/phase_matrix.h"
+#include "scattering/psd.h"
 
 
 namespace scattering {
@@ -41,10 +42,13 @@ struct SingleScatteringData {
  public:
 
   static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>
-  liquid_sphere(Vector t_grid, Vector f_grid, Numeric diameter, ZenithAngleGrid za_grid) {
+  liquid_sphere(const StridedVectorView &t_grid,
+                const StridedVectorView &f_grid,
+                Numeric diameter,
+                const ZenithAngleGrid &za_grid) {
 
     auto t_grid_ptr = std::make_shared<Vector>(t_grid);
-    auto f_grid_ptr = std::make_shared<Vector>(t_grid);
+    auto f_grid_ptr = std::make_shared<Vector>(f_grid);
     auto za_grid_ptr = std::make_shared<ZenithAngleGrid>(za_grid);
 
     PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase_matrix(t_grid_ptr,
@@ -55,12 +59,14 @@ struct SingleScatteringData {
     BackscatterMatrixData<Numeric, Format::TRO> backscatter_matrix(t_grid_ptr, f_grid_ptr);
     ForwardscatterMatrixData<Numeric, Format::TRO> forwardscatter_matrix(t_grid_ptr, f_grid_ptr);
 
-    for (const auto[temp_ind, temp] : std::ranges::views::enumerate(*t_grid_ptr)) {
-        for (const auto[freq_ind, freq] : std::ranges::views::enumerate(*f_grid_ptr)) {
-            auto sphere = MieSphere<Scalar>::Liquid(freq, temp, diameter / 2.0, grid_vector(*za_grid_ptr));
-            phase_matrix[temp_ind, freq_ind] = sphere.get_scattering_matrix_compact();
-            extinction_matrix[temp_ind, freq_ind] = sphere.get_extinction_coeff();
-            absorption_vector[temp_ind, freq_ind] = sphere.get_absorption_coeff();
+    for (size_t temp_ind = 0; temp_ind < t_grid_ptr->size(); ++temp_ind) {
+      Numeric temp = t_grid_ptr->operator[](temp_ind);
+      for (Index freq_ind = 0; freq_ind < f_grid_ptr->size(); ++freq_ind) {
+        Numeric freq = f_grid_ptr->operator[](freq_ind);
+        auto sphere = MieSphere<Scalar>::Liquid(freq, temp, diameter / 2.0, grid_vector(*za_grid_ptr));
+        phase_matrix[temp_ind, freq_ind] = sphere.get_scattering_matrix_compact();
+        extinction_matrix[temp_ind, freq_ind] = sphere.get_extinction_coeff();
+        absorption_vector[temp_ind, freq_ind] = sphere.get_absorption_coeff();
       }
     }
 
@@ -210,12 +216,26 @@ struct SingleScatteringData {
 
   SingleScatteringData(const SingleScatteringData &) = default;
 
-  constexpr Format get_format() const {
+  constexpr Format get_format() const noexcept {
     return format;
   }
 
-  constexpr Representation get_representation() const {
+   constexpr Representation get_representation() const noexcept {
     return repr;
+  }
+
+  std::optional<Numeric> get_size(SizeParameter param) const {
+    auto extract_size = [&param](const ParticleProperties &part_props) {
+      if (param ==  SizeParameter::Mass) {
+        return part_props.mass;
+      } else if (param == SizeParameter::MaximumDiameter) {
+        return part_props.d_max;
+      } else if (param == SizeParameter::VolumeEqDiameter) {
+        return part_props.d_veq;
+      }
+      ARTS_USER_ERROR("Encountered unsupported size parameter.");
+    };
+    return properties.transform(extract_size);
   }
 
   SingleScatteringData regrid(const ScatteringDataGrids grids,
@@ -251,12 +271,12 @@ struct SingleScatteringData {
 
   SingleScatteringData<Numeric, format, Representation::Gridded> to_gridded() const {
     auto new_phase_matrix = phase_matrix.transform([](const auto &pm) {return pm.to_gridded();});
-    return SingleScatteringData(properties,
-                                new_phase_matrix,
-                                extinction_matrix.to_gridded(),
-                                absorption_vector.to_gridded(),
-                                backscatter_matrix.to_gridded(),
-                                forwardscatter_matrix.to_gridded());
+    return SingleScatteringData<Numeric, format, Representation::Gridded>(properties,
+                                                                          new_phase_matrix,
+                                                                          extinction_matrix.to_gridded(),
+                                                                          absorption_vector.to_gridded(),
+                                                                          backscatter_matrix.to_gridded(),
+                                                                          forwardscatter_matrix.to_gridded());
   }
 
 

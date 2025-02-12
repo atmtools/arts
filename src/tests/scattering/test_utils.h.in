@@ -179,6 +179,34 @@ Numeric max_error(const A& a, const B& b) {
   return max;
 }
 
+/** Calculate maximum relative error between two tensors.
+ *
+ * Calculates the maximum of the absolute element-wise
+ * difference between two tensors A and B.
+ *
+ * @param The tensor A
+ * @param The tensor B
+ *
+ * @return The maximum absolute value of the element-wise difference
+ * of A and B.
+ */
+template <typename A, typename B>
+Numeric max_rel_error(const A& a, const B& b) {
+  Numeric max = 0.0;
+  auto a_it   = a.elem_begin();
+  auto b_it   = b.elem_begin();
+  auto a_end  = a.elem_end();
+  while (a_it != a_end) {
+    Numeric delta = std::abs((*a_it - *b_it) / *b_it);
+    if (delta > max) {
+      max = delta;
+    }
+    ++a_it;
+    ++b_it;
+  }
+  return max;
+}
+
 /** Functional filling of tensor.
  *
  * Applies a given function mapping element coordinates to tensor
@@ -244,6 +272,11 @@ Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
   std::transform(
       tensor.elem_begin(), tensor.elem_end(), tensor.elem_begin(), fill_fun);
   return tensor;
+}
+
+template<typename Scalar >
+bool is_close(const Scalar &a, const Scalar &b, rtol=1e-6) {
+  return std::abs((a - b) / b) < rtol;
 }
 
 #endif  // TEST_UTILS_H_

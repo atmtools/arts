@@ -13,27 +13,11 @@
 #include "henyey_greenstein.h"
 #include "particle_habit.h"
 #include "properties.h"
-#include "psd.h"
 #include "general_tro_spectral.h"
+#include "scattering_habit.h"
 
 namespace scattering {
 
-using PSD = std::variant<MGDSingleMoment>;
-
-/*** A scattering habit
- *
- * A scattering habit combines a particle habit with an additional PSD
- * and thus defines a mapping between atmospheric scattering species properties
- * and corresponding bulk skattering properties.
- */
-class ScatteringHabit {
- public:
-  ScatteringHabit() {};
-
- private:
-  ParticleHabit particle_habit;
-  PSD psd;
-};
 
 struct ScatteringDataSpec {};
 

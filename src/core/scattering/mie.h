@@ -227,7 +227,7 @@ class MieSphere {
   MieSphere(Scalar lambda,
             Scalar radius,
             std::complex<Scalar> n,
-            VectorGen<Scalar> theta)
+            StridedVectorView theta)
       : lambda_(lambda),
         r_(radius),
         x_(2.0 * std::numbers::pi_v<Scalar> * radius / lambda_),
@@ -253,7 +253,7 @@ class MieSphere {
   static MieSphere Liquid(Scalar frequency,
                           Scalar temperature,
                           Scalar radius,
-                          VectorGen<Scalar> theta) {
+                          StridedVectorView theta) {
     Scalar c = 2.99792458e8;
     Scalar lambda = c / frequency;
     std::complex n = refr_index_water_ellison07(frequency, temperature);
