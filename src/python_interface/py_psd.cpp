@@ -50,7 +50,8 @@ void py_psd(py::module_& m) try {
   //
 
   py::class_<scattering::BinnedPSD>(m, "BinnedPSD")
-    .def(py::init<Vector, Vector, Numeric, Numeric>(),
+    .def(py::init<SizeParameter, Vector, Vector, Numeric, Numeric>(),
+         "size_parameter"_a,
          "bins"_a,
          "counts"_a,
          "t_min"_a,

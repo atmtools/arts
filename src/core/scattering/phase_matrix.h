@@ -254,6 +254,19 @@ inline Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
   return mat;
 }
 
+inline ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact) {
+  ComplexMatrix mat{4, 4};
+  mat[0, 0] = detail::f11(compact);
+  mat[0, 1] = detail::f12(compact);
+  mat[1, 0] = detail::f12(compact);
+  mat[1, 1] = detail::f22(compact);
+  mat[2, 2] = detail::f33(compact);
+  mat[2, 3] = detail::f34(compact);
+  mat[3, 2] = detail::f34(compact);
+  mat[3, 3] = detail::f33(compact);
+  return mat;
+}
+
 /// The grid over which the scattering data is defined.
 struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
@@ -725,6 +738,16 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     assert(sht->get_n_azimuth_angles() == 1);
     assert(sht->get_n_zenith_angles() == n_za_scat_);
 
+    // Regrid phase matrix along zenith-angles to ensure that it is on the grid
+    // expected by SHT.
+    if (!std::holds_alternative<FejerGrid>(*za_scat_grid_)) {
+      auto new_grids = ScatteringDataGrids(t_grid_,
+                                           f_grid_,
+                                           std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()));
+      return regrid(new_grids).to_spectral(sht);
+    }
+
+    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, sht);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {

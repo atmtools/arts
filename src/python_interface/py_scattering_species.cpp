@@ -359,7 +359,6 @@ void py_scattering_species(py::module_& m) try {
   // Modified gamma PSD
   //
 
-  py::class_<ScatteringHabit>(m, "ScatteringHabit").doc() = "Scattering habit";
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
       .def(py::init<ExtSSACallback, Numeric>(), "func"_a, "g"_a)
       .def(py::init<>())
@@ -582,7 +581,27 @@ void py_scattering_species(py::module_& m) try {
                   "ssd"_a,
                   "smd"_a,
                   "Create from legacy TRO")
+      .def("to_tro_spectral",
+           &ParticleHabit::to_tro_spectral,
+           "t_grid"_a,
+           "f_grid"_a,
+           "l"_a,
+           "Convert scattering data to TRO spectral format")
+      .def("__getitem__",
+           [](ParticleHabit &habit, Index ind) {return habit[ind % habit.size()];},
+           py::rv_policy::reference_internal)
+      .def("__len__", [](ParticleHabit &habit) {return habit.size();})
+      .def("size", [](ParticleHabit &habit) {return habit.size();})
+      .def("get_size_mass_info", [](ParticleHabit &habit, const SizeParameter &param) {return habit.get_size_mass_info(param);})
       .doc() = "Particle habit";
+
+  py::class_<ScatteringHabit>(m, "ScatteringHabit")
+    .def(py::init<const ParticleHabit &, const PSD &, Numeric, Numeric>(),
+         py::arg("particle_habit"),
+         py::arg("psd"),
+         py::arg("mass_size_rel_a") = -1.0,
+         py::arg("mass_size_rel_b") = -1.0)
+    .doc() = "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
