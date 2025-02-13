@@ -5,16 +5,11 @@
 #include <optional>
 
 #include "atm.h"
+#include "enums.h"
 #include "properties.h"
 #include "utils.h"
 
 namespace scattering {
-
-enum class SizeParameter {
-    Mass,
-    MaximumDiameter,
-    VolumeEqDiameter
-};
 
 
 /*** Single-moment modified gamma distribution
@@ -82,6 +77,10 @@ struct MGDSingleMoment {
     }
   }
 
+  SizeParameter get_size_parameter() const {
+    return SizeParameter::DVeq;
+  }
+
   /** Evaluate PSD at given atmospheric point.
    *
    * @param point The atmospheric point.
@@ -97,6 +96,7 @@ struct MGDSingleMoment {
                   const Vector& particle_sizes,
                   const Numeric& scat_species_a,
                   const Numeric& scat_species_b) const;
+
 };
 
 
@@ -107,6 +107,8 @@ struct MGDSingleMoment {
  * to zero.
  */
 struct BinnedPSD {
+
+  SizeParameter size_parameter = SizeParameter::DVeq;
   Vector bins;
   Vector counts;
   Numeric t_min = 0.0;
@@ -114,17 +116,22 @@ struct BinnedPSD {
 
   BinnedPSD() = default;
 
-  BinnedPSD(Vector bins_,
+  BinnedPSD(SizeParameter size_parameter_,
+            Vector bins_,
             Vector counts_,
             Numeric t_min_ = 0.0,
             Numeric t_max_ = 350.0):
-  bins(bins_), counts(counts_), t_min(t_min_), t_max(t_max_) {
+    size_parameter(size_parameter_), bins(bins_), counts(counts_), t_min(t_min_), t_max(t_max_) {
     if (bins_.size() != (counts_.size() + 1)) {
         ARTS_USER_ERROR("The bin vector must have exactly one element more than the counts vector.");
     }
     if (!std::is_sorted(bins.begin(), bins.end())) {
         ARTS_USER_ERROR("The bins vector must be strictly increasing.");
     }
+  }
+
+  SizeParameter get_size_parameter() const {
+    return SizeParameter::DVeq;
   }
 
   Vector evaluate(const AtmPoint& point,

@@ -127,10 +127,8 @@ struct SingleScatteringData {
       }
     }
 
-    std::cout << "INTERP BEGIN " << std::endl;
     //auto backscatter_matrix = BackscatterMatrixData<Numeric, Format::TRO>{t_grid, f_grid,};// = phase_matrix.extract_backscatter_matrix();
     auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
-    std::cout << "INTERP END " << std::endl;
     auto forwardscatter_matrix = ForwardscatterMatrixData<Numeric, Format::TRO>{t_grid, f_grid};// = phase_matrix.extract_forwardscatter_matrix();
 
     auto properties = ParticleProperties{
@@ -224,13 +222,17 @@ struct SingleScatteringData {
     return repr;
   }
 
-  std::optional<Numeric> get_size(SizeParameter param) const {
-    auto extract_size = [&param](const ParticleProperties &part_props) {
+  std::optional<Numeric> get_mass() const {
+    auto extract_size = [](const ParticleProperties &part_props) {return part_props.mass;};
+    return properties.transform(extract_size);
+  }
+
+  std::optional<Numeric> get_size(SizeParameter param) const {auto extract_size = [&param](const ParticleProperties &part_props) {
       if (param ==  SizeParameter::Mass) {
         return part_props.mass;
-      } else if (param == SizeParameter::MaximumDiameter) {
+      } else if (param == SizeParameter::DMax) {
         return part_props.d_max;
-      } else if (param == SizeParameter::VolumeEqDiameter) {
+      } else if (param == SizeParameter::DVeq) {
         return part_props.d_veq;
       }
       ARTS_USER_ERROR("Encountered unsupported size parameter.");

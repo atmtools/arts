@@ -9,7 +9,7 @@ bool test_binned_psd() {
   Vector bins = {0.1, 0.5, 1.0};
   Vector counts = {1.0, 2.0};
 
-  scattering::BinnedPSD psd{bins, counts, 272.5, 350};
+  scattering::BinnedPSD psd{SizeParameter::DVeq, bins, counts, 272.5, 350};
 
   auto point = AtmPoint{1e4, 300};
 

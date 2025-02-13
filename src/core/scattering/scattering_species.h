@@ -23,8 +23,7 @@ namespace scattering {
 
 struct ScatteringDataSpec {};
 
-using Species =
-    std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO>;
+using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO, ScatteringHabit>;
 
 }  // namespace scattering
 
