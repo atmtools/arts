@@ -26,7 +26,9 @@ class ScatteringHabit {
     : particle_habit(particle_habit_), mass_size_rel_a(mass_size_rel_a_), mass_size_rel_b(mass_size_rel_b_), psd(psd_) {
     if ((mass_size_rel_a < 0.0) || (mass_size_rel_b < 0.0)) {
       auto size_param = std::visit([](auto const& psd){return psd.get_size_parameter();}, psd);
-      auto [sizes, mass_size_rel_a, mass_size_rel_b] = particle_habit.get_size_mass_info(size_param);
+      auto [sizes, mass_size_rel_a_, mass_size_rel_b_] = particle_habit.get_size_mass_info(size_param);
+      mass_size_rel_a = mass_size_rel_a_;
+      mass_size_rel_b = mass_size_rel_b_;
     }
   }
 
