@@ -29,7 +29,7 @@ namespace scattering {
         Numeric x1 = grid[index];
 
         Numeric t = (x_new - x0) / (x1 - x0);
-        return GridPos(index, {{1.0 - t, t}});
+        return GridPos(index - 1, {{1.0 - t, t}});
 
     }
 
