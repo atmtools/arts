@@ -344,13 +344,13 @@ void disort_settingsOpticalThicknessFromPath(
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_propagation_matrix,
-                          [](const PropmatVector& pms) {
-                            return std::ranges::any_of(
-                                pms, Cmp::eq(true), &Propmat::is_polarized);
-                          }),
-      "No implementation for polarized propagation matrices.");
+  //ARTS_USER_ERROR_IF(
+  //    std::ranges::any_of(ray_path_propagation_matrix,
+  //                        [](const PropmatVector& pms) {
+  //                          return std::ranges::any_of(
+  //                              pms, Cmp::eq(true), &Propmat::is_polarized);
+  //                        }),
+  //    "No implementation for polarized propagation matrices.");
 
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
