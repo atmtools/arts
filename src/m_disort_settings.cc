@@ -344,13 +344,13 @@ void disort_settingsOpticalThicknessFromPath(
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
-  //ARTS_USER_ERROR_IF(
-  //    std::ranges::any_of(ray_path_propagation_matrix,
-  //                        [](const PropmatVector& pms) {
-  //                          return std::ranges::any_of(
-  //                              pms, Cmp::eq(true), &Propmat::is_polarized);
-  //                        }),
-  //    "No implementation for polarized propagation matrices.");
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(ray_path_propagation_matrix,
+                          [](const PropmatVector& pms) {
+                            return std::ranges::any_of(
+                                pms, Cmp::eq(true), &Propmat::is_polarized);
+                          }),
+      "No implementation for polarized propagation matrices.");
 
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
@@ -578,6 +578,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
+
       const Numeric x =
           1.0 -
           std::midpoint((inv(ray_path_propagation_matrix_scattering[i][iv]) *
