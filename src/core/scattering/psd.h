@@ -131,7 +131,7 @@ struct BinnedPSD {
   }
 
   SizeParameter get_size_parameter() const {
-    return SizeParameter::DVeq;
+    return SizeParameter::Mass;
   }
 
   Vector evaluate(const AtmPoint& point,

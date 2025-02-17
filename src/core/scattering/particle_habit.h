@@ -138,7 +138,7 @@ class ParticleHabit {
     Vector masses(n_particles);
 
     for (Index ind = 0; ind < n_particles; ++ind) {
-      auto mass = std::visit([&ind](const auto& ssd) {return ssd.get_mass();}, scattering_data[ind]);
+      auto mass = std::visit([](const auto& ssd) {return ssd.get_mass();}, scattering_data[ind]);
       auto size = std::visit([&size_parameter, &ind](const auto& ssd) {return ssd.get_size(size_parameter);}, scattering_data[ind]);
       if (mass.has_value()) {
         masses[ind] = mass.value();
@@ -208,7 +208,7 @@ class ParticleHabit {
     auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid),
                                          std::make_shared<Vector>(f_grid));
     auto transform = [&new_grids, &l](const auto& ssd) {return ssd_to_tro_spectral(new_grids, l, ssd);};
-    for (Index p_ind = 0; p_ind < scattering_data.size(); ++p_ind) {
+    for (size_t p_ind = 0; p_ind < scattering_data.size(); ++p_ind) {
       new_scat_data.push_back(std::visit(transform, scattering_data[p_ind]));
     }
     return ParticleHabit(new_scat_data, new_grids);
