@@ -61,7 +61,7 @@ struct SingleScatteringData {
 
     for (size_t temp_ind = 0; temp_ind < t_grid_ptr->size(); ++temp_ind) {
       Numeric temp = t_grid_ptr->operator[](temp_ind);
-      for (Index freq_ind = 0; freq_ind < f_grid_ptr->size(); ++freq_ind) {
+      for (size_t freq_ind = 0; freq_ind < f_grid_ptr->size(); ++freq_ind) {
         Numeric freq = f_grid_ptr->operator[](freq_ind);
         auto sphere = MieSphere<Scalar>::Liquid(freq, temp, diameter / 2.0, grid_vector(*za_grid_ptr));
         phase_matrix[temp_ind, freq_ind] = sphere.get_scattering_matrix_compact();
