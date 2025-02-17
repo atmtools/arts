@@ -60,7 +60,7 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
 
       .def(
           "to_spectral",
-          [](const PMD& obj) { obj.to_spectral(); },
+          [](const PMD& obj) {return obj.to_spectral(); },
           "Convert to spectral")
 
       // Bind other member functions
@@ -592,6 +592,7 @@ void py_scattering_species(py::module_& m) try {
            py::rv_policy::reference_internal)
       .def("__len__", [](ParticleHabit &habit) {return habit.size();})
       .def("size", [](ParticleHabit &habit) {return habit.size();})
+      .def("get_sizes", [](ParticleHabit &habit, const SizeParameter &param) {return habit.get_sizes(param);})
       .def("get_size_mass_info", [](ParticleHabit &habit, const SizeParameter &param) {return habit.get_size_mass_info(param);})
       .doc() = "Particle habit";
 
@@ -601,6 +602,11 @@ void py_scattering_species(py::module_& m) try {
          py::arg("psd"),
          py::arg("mass_size_rel_a") = -1.0,
          py::arg("mass_size_rel_b") = -1.0)
+    .def("get_bulk_scattering_properties_tro_spectral",
+         &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
+         "point"_a,
+         "f_grid"_a,
+         "f_tol"_a)
     .doc() = "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 
 } catch (std::exception& e) {
