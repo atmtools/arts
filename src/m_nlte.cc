@@ -1,6 +1,7 @@
 #include <arts_omp.h>
 #include <workspace.h>
 
+#include "arts_constants.h"
 #include "auto_wsm.h"
 #include "jacobian.h"
 
