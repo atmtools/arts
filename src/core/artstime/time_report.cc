@@ -41,8 +41,13 @@ std::string get_report(bool clear) {
     const auto min = *stdr::min_element(deltas);
 
     total_time.push_back(sum);
-    vec.push_back(std::format(
-        "| {0} | {1} | {2} | {3} | {4} | {5} |\n", name, avg, N, min, max, sum));
+    vec.push_back(std::format("| {0} | {1} | {2} | {3} | {4} | {5} |\n",
+                              name,
+                              avg,
+                              N,
+                              min,
+                              max,
+                              sum));
   }
 
   if (clear) profile_report.clear();
@@ -53,7 +58,8 @@ std::string get_report(bool clear) {
       vec);
 
   return std::format(
-      "| Function | Average Time | Times called | Min delta | Max delta | Total time |\n"
+      "| Function | Average time | Times called | Min time | Max time | Total time |\n"
+      "| -------- | ------------ | ------------ | -------- | -------- | ---------- |\n"
       "{}",
       vec);
 }
