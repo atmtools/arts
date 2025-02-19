@@ -102,6 +102,7 @@ void sunBlackbody(Sun& sun,
 
 void sunsAddSun(ArrayOfSun& suns, const Sun& sun) {
   ARTS_TIME_REPORT
+
   suns.push_back(sun);
 }
 

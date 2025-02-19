@@ -145,6 +145,8 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Size nv = frequency_grid.size();
   const Size N  = ray_path_atmospheric_point.size();
 
