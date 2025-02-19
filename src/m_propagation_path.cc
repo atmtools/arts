@@ -1,13 +1,6 @@
-#include <path_point.h>
+#include <workspace.h>
 
 #include <algorithm>
-#include <functional>
-
-#include "atm.h"
-#include "auto_wsa_options.h"
-#include "surf.h"
-#include "workspace_agenda_creator.h"
-#include "workspace_class.h"
 
 void apply_options(ArrayOfPropagationPathPoint& ray_path,
                    const SurfaceField& surface_field,
@@ -27,6 +20,8 @@ void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const Vector3& pos,
                   const Vector2& los,
                   const Index& as_sensor) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(any_nan(pos) or any_nan(los),
                      R"(There are NAN in the pos or los vector:
 pos:      {:B,}
@@ -44,6 +39,8 @@ void ray_pathRemoveNearby(ArrayOfPropagationPathPoint& ray_path,
                           const SurfaceField& surface_field,
                           const Numeric& min_dist,
                           const Index& first) {
+  ARTS_TIME_REPORT
+
   path::erase_closeby(ray_path, surface_field, min_dist, first);
 }
 
@@ -52,6 +49,8 @@ void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy,
                                   const Index& surface_safe_search) {
+  ARTS_TIME_REPORT
+
   path::set_geometric_extremes(ray_path,
                                atmospheric_field,
                                surface_field,
@@ -63,6 +62,8 @@ void ray_pathRemoveNonGeometricGridCrossings(
     ArrayOfPropagationPathPoint& ray_path,
     const AtmField& atmospheric_field,
     const AtmKey& atm_key) {
+  ARTS_TIME_REPORT
+
   const auto& data = atmospheric_field[atm_key];
   ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(data.data),
                      "The data for key {} is not a GriddedField3",
@@ -83,6 +84,8 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
                                        const AtmField& atmospheric_field,
                                        const SurfaceField& surface_field,
                                        const AtmKey& atm_key) {
+  ARTS_TIME_REPORT
+
   const auto& data = atmospheric_field[atm_key];
   ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(data.data),
                      "The data for key {} is not a GriddedField3",
@@ -98,25 +101,35 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
 void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,
                                    const SurfaceField& surface_field,
                                    const Numeric& max_step) {
+  ARTS_TIME_REPORT
+
   path::fill_geometric_by_half_steps(ray_path, surface_field, max_step);
 }
 
 void ray_pathFillGeometricStepwise(ArrayOfPropagationPathPoint& ray_path,
                                    const SurfaceField& surface_field,
                                    const Numeric& max_step) {
+  ARTS_TIME_REPORT
+
   path::fill_geometric_stepwise(ray_path, surface_field, max_step);
 }
 
 void ray_pathFixUpdownAzimuth(ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   path::fix_updown_azimuth_to_first(ray_path);
 }
 
 void ray_pathAddLimbPoint(ArrayOfPropagationPathPoint& ray_path,
                           const SurfaceField& surface_field) {
+  ARTS_TIME_REPORT
+
   path::fill_geometric_limb(ray_path, surface_field);
 }
 
 void ray_pathRemoveNonAtm(ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   path::keep_only_atm(ray_path);
 }
 
@@ -134,6 +147,8 @@ void ray_path_observer_agendaSetGeometric(
     const Index& fix_updown_azimuth,
     const Index& add_limb,
     const Index& remove_non_atm) {
+  ARTS_TIME_REPORT
+
   AgendaCreator creator("ray_path_observer_agenda");
 
   creator.add("ray_pathInit",
@@ -193,6 +208,8 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
                        const Index& remove_non_atm,
                        const Index& fix_updown_azimuth,
                        const Index& surface_safe_search) {
+  ARTS_TIME_REPORT
+
   ray_pathInit(ray_path, atmospheric_field, surface_field, pos, los, as_sensor);
   ray_pathSetGeometricExtremes(ray_path,
                                atmospheric_field,
@@ -207,18 +224,24 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
 
 void ray_path_pointBackground(PropagationPathPoint& ray_path_point,
                               const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
   ray_path_point = ray_path.back();
 }
 
 void ray_path_pointForeground(PropagationPathPoint& ray_path_point,
                               const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
   ray_path_point = ray_path.front();
 }
 
 void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
                                   const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
   ray_path_point = *std::ranges::min_element(
@@ -231,6 +254,8 @@ void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
 void ray_path_pointHighestFromPath(
     PropagationPathPoint& ray_path_point,
     const ArrayOfPropagationPathPoint& ray_path) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
   ray_path_point = *std::ranges::max_element(
@@ -246,6 +271,8 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                 const Numeric& latitude,
                                 const Numeric& longitude,
                                 const Numeric& max_step) {
+  ARTS_TIME_REPORT
+
   ray_pathGeometric(
       ray_path,
       atmospheric_field,
@@ -269,6 +296,8 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
                                   const Numeric& latitude,
                                   const Numeric& longitude,
                                   const Numeric& max_step) {
+  ARTS_TIME_REPORT
+
   ray_pathGeometric(ray_path,
                     atmospheric_field,
                     surface_field,

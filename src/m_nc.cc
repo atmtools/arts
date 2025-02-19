@@ -11,6 +11,8 @@ template <WorkspaceGroup T>
 void ReaderNetCDF(  // WS Generic Input:
     T& v [[maybe_unused]],
     const String& f [[maybe_unused]]) {
+  ARTS_TIME_REPORT
+
 #ifdef ENABLE_NETCDF
   nca_read_from_file(f, v);
 #else
@@ -24,6 +26,8 @@ template <WorkspaceGroup T>
 void WriterNetCDF(  // WS Generic Input:
     const T& v [[maybe_unused]],
     const String& f [[maybe_unused]]) {
+  ARTS_TIME_REPORT
+
 #ifdef ENABLE_NETCDF
   String filename = f;
 
@@ -44,6 +48,8 @@ void WriterNetCDFIndexed(  //WS Input:
     // WS Generic Input:
     const T& v [[maybe_unused]],
     const String& f [[maybe_unused]]) {
+  ARTS_TIME_REPORT
+
 #ifdef ENABLE_NETCDF
   String filename = f;
 

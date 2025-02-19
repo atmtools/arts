@@ -13,6 +13,8 @@ void ray_path_propagation_matrixFromPath(
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path.size();
   ray_path_propagation_matrix.resize(np);
   ray_path_source_vector_nonlte.resize(np);
@@ -53,6 +55,8 @@ void select_species_listCollectAbsorption(
     const ArrayOfXsecRecord &absorption_xsec_fit_data,
     const ArrayOfCIARecord &absorption_cia_data,
     const AbsorptionBands &absorption_bands) try {
+  ARTS_TIME_REPORT
+
   std::set<SpeciesEnum> s;
 
   for (auto &[qid, _] : absorption_bands) s.insert(qid.Species());
@@ -70,9 +74,10 @@ void ray_path_propagation_matrix_species_splitFromPath(
     ArrayOfArrayOfPropmatVector &ray_path_propagation_matrix_species_split,
     ArrayOfArrayOfStokvecVector
         &ray_path_propagation_matrix_source_vector_nonlte_species_split,
-    ArrayOfArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian_species_split,
-    ArrayOfArrayOfStokvecMatrix
-        &ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split,
+    ArrayOfArrayOfPropmatMatrix
+        &ray_path_propagation_matrix_jacobian_species_split,
+    ArrayOfArrayOfStokvecMatrix &
+        ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split,
     const Agenda &propagation_matrix_agenda,
     const ArrayOfAscendingGrid &ray_path_frequency_grid,
     const ArrayOfVector3 &ray_path_frequency_grid_wind_shift_jacobian,
@@ -80,17 +85,21 @@ void ray_path_propagation_matrix_species_splitFromPath(
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point,
     const ArrayOfSpeciesEnum &select_species_list) try {
+  ARTS_TIME_REPORT
+
   const Size ns = select_species_list.size();
   const Size np = ray_path.size();
 
   ray_path_propagation_matrix_species_split.resize(ns);
   ray_path_propagation_matrix_source_vector_nonlte_species_split.resize(ns);
   ray_path_propagation_matrix_jacobian_species_split.resize(ns);
-  ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split.resize(ns);
+  ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split
+      .resize(ns);
   for (auto &s : ray_path_propagation_matrix_species_split) s.resize(np);
   for (auto &s : ray_path_propagation_matrix_source_vector_nonlte_species_split)
     s.resize(np);
-  for (auto &s : ray_path_propagation_matrix_jacobian_species_split) s.resize(np);
+  for (auto &s : ray_path_propagation_matrix_jacobian_species_split)
+    s.resize(np);
   for (auto &s :
        ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split)
     s.resize(np);
@@ -104,10 +113,11 @@ void ray_path_propagation_matrix_species_splitFromPath(
         propagation_matrix_agendaExecute(
             ws,
             ray_path_propagation_matrix_species_split[is][ip],
-            ray_path_propagation_matrix_source_vector_nonlte_species_split[is][ip],
+            ray_path_propagation_matrix_source_vector_nonlte_species_split[is]
+                                                                          [ip],
             ray_path_propagation_matrix_jacobian_species_split[is][ip],
-            ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split[is]
-                                                                           [ip],
+            ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split
+                [is][ip],
             ray_path_frequency_grid[ip],
             ray_path_frequency_grid_wind_shift_jacobian[ip],
             jacobian_targets,

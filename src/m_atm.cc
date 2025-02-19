@@ -32,12 +32,16 @@
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
                            const String &default_isotopologue) {
+  ARTS_TIME_REPORT
+
   atmospheric_field = AtmField{to<IsoRatioOption>(default_isotopologue)};
   atmospheric_field.top_of_atmosphere = top_of_atmosphere;
 }
 
 void atmospheric_pointInit(AtmPoint &atmospheric_point,
                            const String &default_isotopologue) {
+  ARTS_TIME_REPORT
+
   atmospheric_point = AtmPoint{to<IsoRatioOption>(default_isotopologue)};
 }
 
@@ -110,6 +114,8 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                                      const Index &replace_existing,
                                      const Index &allow_missing_pressure,
                                      const Index &allow_missing_temperature) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<AtmKey, Index> keys;
 
   for (auto &key : enumtyps::AtmKeyTypes) {
@@ -202,6 +208,8 @@ void atmospheric_fieldAppendLineSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_bands);
 
@@ -231,6 +239,8 @@ void atmospheric_fieldAppendLineIsotopologueData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesIsotope, Index> keys;
   keysIsotopologue(keys, absorption_bands);
 
@@ -265,6 +275,8 @@ void atmospheric_fieldAppendLineLevelData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<QuantumIdentifier, Index> keys;
   keysNLTE(keys, absorption_bands);
 
@@ -299,6 +311,8 @@ void atmospheric_fieldAppendTagsSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_species);
 
@@ -330,6 +344,8 @@ void atmospheric_fieldAppendCIASpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_cia_data);
 
@@ -359,6 +375,8 @@ void atmospheric_fieldAppendXsecSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_xsec_fit_data);
 
@@ -388,6 +406,8 @@ void atmospheric_fieldAppendPredefSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_predefined_model_data);
 
@@ -409,6 +429,8 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
                                            const Index &replace_existing,
                                            const Index &load_isot,
                                            const Index &load_nlte) {
+  ARTS_TIME_REPORT
+
   std::unordered_map<SpeciesEnum, Index> keys;
 
   if (const String lines_str = "absorption_bands";
@@ -471,6 +493,8 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 }
 
 void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
+  ARTS_TIME_REPORT
+
   using IGRF::igrf;
 
   //! We need explicit planet-size as IGRF requires the radius
@@ -610,6 +634,8 @@ void atmospheric_fieldHydrostaticPressure(
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
+  ARTS_TIME_REPORT
+
   using enum atmospheric_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
@@ -721,6 +747,8 @@ void atmospheric_fieldHydrostaticPressure(
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       not atmospheric_field.has(AtmKey::t),
       "Must have a temperature field to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
@@ -802,8 +830,11 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No scattering species key "{}" in atmospheric_field)", key)
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No scattering species key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -815,8 +846,11 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No VMR key "{}" in atmospheric_field)", key)
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No VMR key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -828,8 +862,11 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No isotopologue ratio key "{}" in atmospheric_field)", key)
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No isotopologue ratio key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -841,8 +878,11 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No NLTE key "{}" in atmospheric_field)", key)
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No NLTE key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -854,8 +894,11 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No atmospheric key "{}" in atmospheric_field)", key)
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No atmospheric key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -866,6 +909,8 @@ void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
                                 const AscendingGrid &lat,
                                 const AscendingGrid &lon,
                                 const String &extrapolation) {
+  ARTS_TIME_REPORT
+
   for (auto &[key, data] : atmospheric_field.map<ScatteringSpeciesProperty>()) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }

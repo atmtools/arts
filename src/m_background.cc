@@ -19,6 +19,8 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const SurfaceField& surface_field,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda) try {
+  ARTS_TIME_REPORT
+
   using enum PathPositionType;
   switch (ray_path_point.los_type) {
     case atm:
@@ -27,9 +29,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     case subsurface:
       ARTS_USER_ERROR("Undefined what to do with a subsurface background")
       break;
-    case unknown:
-      ARTS_USER_ERROR("Undefined background type");
-      break;
+    case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
       spectral_radiance_space_agendaExecute(
           ws,
@@ -89,7 +89,9 @@ StokvecVector from_temp(const ConstVectorView& frequency_grid,
 
 void spectral_radianceUniformCosmicBackground(
     StokvecVector& spectral_radiance, const AscendingGrid& frequency_grid) {
-  constexpr auto t = Constant::cosmic_microwave_background_temperature;
+  ARTS_TIME_REPORT
+
+  constexpr auto t  = Constant::cosmic_microwave_background_temperature;
   spectral_radiance = detail::from_temp(frequency_grid, t);
 }
 
@@ -99,6 +101,8 @@ void spectral_radianceSunOrCosmicBackground(
     const ArrayOfPropagationPathPoint& sun_path,
     const Sun& sun,
     const SurfaceField& surface_field) try {
+  ARTS_TIME_REPORT
+
   spectral_radiance.resize(frequency_grid.size());
 
   if (set_spectral_radiance_if_sun_intersection(
@@ -106,7 +110,8 @@ void spectral_radianceSunOrCosmicBackground(
     return;
 
   spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceSunsOrCosmicBackground(
     StokvecVector& spectral_radiance,
@@ -114,6 +119,8 @@ void spectral_radianceSunsOrCosmicBackground(
     const PropagationPathPoint& ray_path_point,
     const ArrayOfSun& suns,
     const SurfaceField& surface_field) {
+  ARTS_TIME_REPORT
+
   spectral_radiance.resize(frequency_grid.size());
 
   for (auto& sun : suns) {
@@ -133,6 +140,8 @@ void spectral_radianceSurfaceBlackbody(
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
   constexpr auto key = SurfaceKey::t;
 
   ARTS_USER_ERROR_IF(not surface_field.contains(key),
@@ -148,7 +157,7 @@ void spectral_radianceSurfaceBlackbody(
   if (auto pair =
           jacobian_targets.find<Jacobian::SurfaceTarget>(SurfaceKeyVal{key});
       pair.first) {
-    const auto x_start = pair.second->x_start;
+    const auto x_start    = pair.second->x_start;
     const auto& surf_data = surface_field[key];
     const auto weights =
         surf_data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
@@ -171,18 +180,24 @@ void spectral_radianceSurfaceBlackbody(
 void transmission_matrix_backgroundFromPathPropagationBack(
     MuelmatVector& transmission_matrix_background,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background = ray_path_transmission_matrix_cumulative.back();
+  transmission_matrix_background =
+      ray_path_transmission_matrix_cumulative.back();
 }
 ARTS_METHOD_ERROR_CATCH
 
 void transmission_matrix_backgroundFromPathPropagationFront(
     MuelmatVector& transmission_matrix_background,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background = ray_path_transmission_matrix_cumulative.front();
+  transmission_matrix_background =
+      ray_path_transmission_matrix_cumulative.front();
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -191,6 +206,8 @@ void spectral_radianceDefaultTransmission(
     StokvecMatrix& spectral_radiance_background,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
   const Index nf = frequency_grid.size();
   const Index nq = jacobian_targets.x_size();
 

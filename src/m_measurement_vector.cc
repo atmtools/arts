@@ -1,5 +1,4 @@
-#include <jacobian.h>
-#include <matpack.h>
+#include <workspace.h>
 
 #include <limits>
 
@@ -7,6 +6,8 @@ void measurement_vector_errorInitStandard(Vector& measurement_vector_error,
                                           Matrix& measuremen_jacobian_error,
                                           const Vector& measurement_vector,
                                           const Matrix& measuremen_jacobian) {
+  ARTS_TIME_REPORT
+
   measurement_vector_error.resize(measurement_vector.shape());
   measuremen_jacobian_error.resize(measuremen_jacobian.shape());
   measurement_vector_error  = 0.0;
@@ -18,6 +19,8 @@ void measurement_vector_errorAddErrorState(
     Matrix& measuremen_jacobian_error,
     const JacobianTargets& jacobian_targets,
     const Vector& model_state_vector) {
+  ARTS_TIME_REPORT
+
   for (auto& elem : jacobian_targets.error()) {
     elem.update_y(measurement_vector_error,
                   measuremen_jacobian_error,
@@ -29,6 +32,8 @@ void measurement_vectorAddError(Vector& measurement_vector,
                                 Matrix& measuremen_jacobian,
                                 const Vector& measurement_vector_error,
                                 const Matrix& measuremen_jacobian_error) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       measurement_vector.shape() != measurement_vector_error.shape(),
       R"(Mismatched shapes:
@@ -56,6 +61,8 @@ void model_state_vectorUpdateError(Vector& model_state_vector,
                                    const JacobianTargets& jacobian_targets,
                                    const Vector& measurement_vector,
                                    const Vector& measurement_vector_fitted) {
+  ARTS_TIME_REPORT
+
   for (auto& elem : jacobian_targets.error()) {
     elem.update_x(
         model_state_vector, measurement_vector, measurement_vector_fitted);
@@ -69,8 +76,10 @@ struct polyfit {
                   StridedMatrixView dy,
                   const ConstVectorView p) const {
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
-    ARTS_USER_ERROR_IF(static_cast<Index>(y.size()) != dy.nrows(), "Mismatched y and dy sizes.")
-    ARTS_USER_ERROR_IF(dy.ncols() != static_cast<Index>(p.size()), "Mismatched dy and p sizes.")
+    ARTS_USER_ERROR_IF(static_cast<Index>(y.size()) != dy.nrows(),
+                       "Mismatched y and dy sizes.")
+    ARTS_USER_ERROR_IF(dy.ncols() != static_cast<Index>(p.size()),
+                       "Mismatched dy and p sizes.")
 
     for (Size j = 0; j < t.size(); j++) {
       for (Size i = 0; i < p.size(); i++) {
@@ -81,8 +90,7 @@ struct polyfit {
     }
   }
 
-  void operator()(VectorView p,
-                  const ConstVectorView y) const {
+  void operator()(VectorView p, const ConstVectorView y) const {
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
     Jacobian::polyfit(p, t, y);
   }
@@ -94,6 +102,8 @@ void jacobian_targetsAddErrorPolyFit(
     const Vector& t,
     const Index& sensor_elem,
     const Index& polyorder) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
 

@@ -25,6 +25,8 @@ void spectral_radiance_operatorClearsky1D(
     const Numeric& longitude,
     const Numeric& cia_extrapolation,
     const Index& cia_robust) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
 
   using lines_t  = AbsorptionBands;
@@ -67,6 +69,8 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
+  ARTS_TIME_REPORT
+
   const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
   const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
   const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
@@ -180,6 +184,8 @@ void spectral_radiance_fieldFromOperatorPath(
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
+  ARTS_TIME_REPORT
+
   const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
   const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
   const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
@@ -285,6 +291,8 @@ void measurement_vectorFromOperatorPath(
     const ArrayOfSensorObsel& measurement_vector_sensor,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const Agenda& ray_path_observer_agenda) try {
+  ARTS_TIME_REPORT
+
   measurement_vector.resize(measurement_vector_sensor.size());
   measurement_vector = 0.0;
   if (measurement_vector_sensor.empty()) return;
@@ -314,7 +322,7 @@ void measurement_vectorFromOperatorPath(
                          return spectral_radiance_operator(f, path);
                        });
 
-        for (Size iv=0; iv<measurement_vector_sensor.size(); ++iv) {
+        for (Size iv = 0; iv < measurement_vector_sensor.size(); ++iv) {
           const SensorObsel& obsel = measurement_vector_sensor[iv];
           if (obsel.same_freqs(f_grid_ptr)) {
             measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);

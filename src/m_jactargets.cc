@@ -1,13 +1,16 @@
-#include <enumsFieldComponent.h>
-#include <jacobian.h>
+#include <workspace.h>
 
 #include <ranges>
 
 void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.clear();
 }
 
 void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
   jacobian_targetsOff(jacobian_targets);
 }
 
@@ -16,6 +19,8 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const SurfaceField& surface_field,
                               const AbsorptionBands& absorption_bands,
                               const ArrayOfSensorObsel& measurement_sensor) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.finalize(
       atmospheric_field, surface_field, absorption_bands, measurement_sensor);
 }
@@ -23,52 +28,70 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
 void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
                                 const SurfaceKey& key,
                                 const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);
 }
 
 void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
                                 const SurfacePropertyTag& key,
                                 const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);
 }
 
 void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
                                    const AtmKey& key,
                                    const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
 void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
                                    const SpeciesEnum& key,
                                    const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
 void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
                                    const SpeciesIsotope& key,
                                    const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
 void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
                                    const QuantumIdentifier& key,
                                    const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
                                     const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{AtmKey::t}, d);
 }
 
 void jacobian_targetsAddPressure(JacobianTargets& jacobian_targets,
                                  const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{AtmKey::p}, d);
 }
 
 void jacobian_targetsAddMagneticField(JacobianTargets& jacobian_targets,
                                       const String& component,
                                       const Numeric& d) {
+  ARTS_TIME_REPORT
+
   using enum FieldComponent;
   switch (to<FieldComponent>(component)) {
     case u: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::mag_u}, d); break;
@@ -80,6 +103,8 @@ void jacobian_targetsAddMagneticField(JacobianTargets& jacobian_targets,
 void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
                                   const String& component,
                                   const Numeric& d) {
+  ARTS_TIME_REPORT
+
   using enum FieldComponent;
   switch (to<FieldComponent>(component)) {
     case u: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_u}, d); break;
@@ -91,6 +116,8 @@ void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
 void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
                                    const SpeciesEnum& species,
                                    const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{species}, d);
 }
 
@@ -98,6 +125,8 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
     JacobianTargets& jacobian_targets,
     const SpeciesIsotope& species,
     const Numeric& d) {
+  ARTS_TIME_REPORT
+
   jacobian_targets.emplace_back(AtmKeyVal{species}, d);
 }
 
@@ -107,6 +136,8 @@ void jacobian_targetsAddSensorFrequencyPolyFit(
     const Numeric& d,
     const Index& sensor_elem,
     const Index& polyorder) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
 

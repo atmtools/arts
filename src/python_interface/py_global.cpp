@@ -18,11 +18,19 @@ struct global_data {
 #else
       false;
 #endif
+
   static constexpr bool has_sht = not is_lgpl and
 #ifdef _MSC_VER
                                   false;
 #else
                                   true;
+#endif
+
+  static constexpr bool has_profiling = 
+#if ARTS_PROFILING
+  true;
+#else
+  false;
 #endif
 };
 
@@ -179,12 +187,17 @@ Parameters
 
   py::class_<global_data>(global, "data")
       .def(py::init<>())
-      .def_ro_static("is_lgpl",
-                     &global_data::is_lgpl,
-                     "Whether the ARTS library is compiled licensed under the LGPL")
-      .def_ro_static("has_sht",
-                     &global_data::has_sht,
-                     "Whether the ARTS library is compiled to be able to use the SHT library")
+      .def_ro_static(
+          "is_lgpl",
+          &global_data::is_lgpl,
+          "Whether the ARTS library is compiled licensed under the LGPL")
+      .def_ro_static(
+          "has_sht",
+          &global_data::has_sht,
+          "Whether the ARTS library is compiled to be able to use the SHT library")
+      .def_ro_static("has_profiling",
+                     &global_data::has_profiling,
+                     "Whether the ARTS library is compiled with time profiling")
       .def("__repr__",
            [](const global_data&) {
              return std::format(R"(Global state of ARTS:
@@ -198,7 +211,10 @@ has_sht: {}
       .doc() =
       "A set of global data that we might need from ARTS inside pyarts";
 
-      global.def("time_report", &arts::get_report, "clear"_a=true, "Get the time report");
+  global.def("time_report",
+             &arts::get_report,
+             "clear"_a = true,
+             "Get the time report");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
