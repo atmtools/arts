@@ -165,26 +165,6 @@ const GriddedField3::grids_t& nlte_grid(const AtmField& atmospheric_field) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-ArrayOfAtmPoint extract(const AtmField& atmospheric_field,
-                        const Vector& altitude_grid,
-                        const Vector& latitude_grid,
-                        const Vector& longitude_grid) try {
-  ArrayOfAtmPoint atm_point;
-  atm_point.reserve(altitude_grid.size() * latitude_grid.size() *
-                    longitude_grid.size());
-
-  for (const auto& alt : altitude_grid) {
-    for (const auto& lat : latitude_grid) {
-      for (const auto& lon : longitude_grid) {
-        atm_point.push_back(atmospheric_field.at(alt, lat, lon));
-      }
-    }
-  }
-
-  return atm_point;
-}
-ARTS_METHOD_ERROR_CATCH
-
 struct UppLow {
   Size upp, low;
 };
