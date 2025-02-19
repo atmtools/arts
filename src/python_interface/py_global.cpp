@@ -197,6 +197,8 @@ has_sht: {}
            })
       .doc() =
       "A set of global data that we might need from ARTS inside pyarts";
+
+      global.def("time_report", &arts::get_report, "clear"_a=true, "Get the time report");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
