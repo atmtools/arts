@@ -18,3 +18,7 @@
 #include <auto_wsg.h>
 #include <auto_wsm.h>
 #include <auto_wsv.h>
+
+// For help
+#include <time_report.h>
+
