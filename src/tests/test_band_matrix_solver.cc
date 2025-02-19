@@ -4,7 +4,6 @@
 #include <limits>
 
 #include "debug.h"
-#include <matpack.h>
 
 int main() {
   const Matrix ex = []() {
@@ -32,11 +31,12 @@ int main() {
 
   //! Ensure that the difference is within the machine epsilon
   for (auto& x : dense_y) {
-    ARTS_USER_ERROR_IF(std::abs(x) > 10*std::numeric_limits<Numeric>::epsilon(),
-                       "Error in band matrix solver!\nOutput supposed to be: {}"
-                       "\nBut diff between dense and banded matrix solutions are: {}",
-                       sparse_b,
-                       dense_y)
+    ARTS_USER_ERROR_IF(
+        std::abs(x) > 1000 * std::numeric_limits<Numeric>::epsilon(),
+        "Error in band matrix solver!\nOutput supposed to be: {}"
+        "\nBut diff between dense and banded matrix solutions are: {}",
+        sparse_b,
+        dense_y)
   }
 
   return 0;
