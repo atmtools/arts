@@ -15,6 +15,23 @@ void ray_path_propagation_matrixFromPath(
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(ray_path,
+                         ray_path_atmospheric_point,
+                         ray_path_frequency_grid,
+                         ray_path_frequency_grid_wind_shift_jacobian),
+      R"(Not same size:
+
+ray_path                                    size: {} element(s)
+ray_path_atmospheric_point                  size: {} element(s)
+ray_path_frequency_grid                     size: {} element(s)
+ray_path_frequency_grid_wind_shift_jacobian size: {} element(s)
+)",
+      ray_path.size(),
+      ray_path_atmospheric_point.size(),
+      ray_path_frequency_grid.size(),
+      ray_path_frequency_grid_wind_shift_jacobian.size())
+
   const Size np = ray_path.size();
   ray_path_propagation_matrix.resize(np);
   ray_path_source_vector_nonlte.resize(np);

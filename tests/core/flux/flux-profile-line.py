@@ -49,7 +49,7 @@ ws.spectral_flux_profileFromPathField(
 )
 
 # Atmospheric point definition along the ray path
-ws.ray_path_atmospheric_point = [
+ws.atmospheric_profile = [
     ws.atmospheric_field(x, 0, 0) for x in ws.atmospheric_field["t"].data.grids[0]
 ]
 

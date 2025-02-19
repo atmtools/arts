@@ -257,3 +257,95 @@ void nlte_line_flux_profileIntegrate(
                           frequency_grid);
   }
 }
+
+void spectral_flux_profileFromSpectralRadianceField(
+    Matrix& spectral_flux_profile,
+    const StokvecGriddedField6& spectral_radiance_field,
+    const Stokvec& pol) {
+  using Constant::pi;
+  using Conversion::cosd;
+  using Conversion::deg2rad;
+
+  const Size NALT = spectral_radiance_field.grid<0>().size();
+  const Size NLAT = spectral_radiance_field.grid<1>().size();
+  const Size NLON = spectral_radiance_field.grid<2>().size();
+  const Size NZA  = spectral_radiance_field.grid<3>().size();
+  const Size NAA  = spectral_radiance_field.grid<4>().size();
+  const Size NFRE = spectral_radiance_field.grid<5>().size();
+
+  const auto& za = spectral_radiance_field.grid<3>();
+  const auto& aa = spectral_radiance_field.grid<4>();
+
+  ARTS_USER_ERROR_IF(not spectral_radiance_field.ok(),
+                     R"(Spectral radiance field is not OK (shape is wrong):
+
+spectral_radiance_field.data.shape(): {:B,}
+Should be:                            [NALT, NLAT, NLON, NZA, NAA, NFRE]
+
+NALT: {}
+NLAT: {}
+NLON: {}
+NZA:  {}
+NAA:  {}
+NFRE: {}
+)",
+                     spectral_radiance_field.data.shape(),
+                     NALT,
+                     NLAT,
+                     NLON,
+                     NZA,
+                     NAA,
+                     NFRE);
+  ARTS_USER_ERROR_IF(NLAT != 1, "Only for one latitude point");
+  ARTS_USER_ERROR_IF(NLON != 1, "Only for one longitude point");
+  ARTS_USER_ERROR_IF(
+      NZA < 2 or za.front() != 0.0 or za.back() != 180.0,
+      "Must have more than one zenith angle and cover [0, 180] degrees.  Zenith angle grid: {:B,}",
+      za);
+  ARTS_USER_ERROR_IF(
+      NAA != 1 and (aa.front() != 0.0 or aa.back() != 360.0),
+      "Azimuth grid must be 1-long or [0, 360] degrees.  Azimuth angle grid: {:B,}",
+      aa)
+
+  spectral_flux_profile.resize(NALT, NFRE);
+  spectral_flux_profile = 0.0;
+
+  if (NAA == 1) {
+    const auto&& s = spectral_radiance_field.data.view_as(NALT, NZA, NFRE);
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+    for (Size i = 0; i < NALT; i++) {
+      for (Size j = 0; j < NFRE; j++) {
+        for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
+          const Size iza1   = iza0 + 1;
+          const Numeric wza = 0.5 * pi * (cosd(za[iza0]) - cosd(za[iza1]));
+
+          spectral_flux_profile[i, j] +=
+              wza * (dot(s[i, iza0, j], pol) + dot(s[i, iza1, j], pol));
+        }
+      }
+    }
+  } else {
+    const auto&& s = spectral_radiance_field.data.view_as(NALT, NZA, NAA, NFRE);
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+    for (Size i = 0; i < NALT; i++) {
+      for (Size j = 0; j < NFRE; j++) {
+        for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
+          const Size iza1   = iza0 + 1;
+          const Numeric wza = 0.25 * (cosd(za[iza0]) - cosd(za[iza1]));
+
+          for (Size iaa0 = 0; iaa0 < NAA - 1; iaa0++) {
+            const Size iaa1 = iaa0 + 1;
+            const Numeric w = wza * deg2rad(aa[iaa0] - aa[iaa1]);
+
+            spectral_flux_profile[i, j] +=
+                w *
+                (dot(s[i, iza0, iaa0, j], pol) + dot(s[i, iza1, iaa0, j], pol) +
+                 dot(s[i, iza0, iaa1, j], pol) + dot(s[i, iza1, iaa1, j], pol));
+          }
+        }
+      }
+    }
+  }
+}

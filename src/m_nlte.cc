@@ -1,5 +1,7 @@
+#include <arts_omp.h>
 #include <workspace.h>
 
+#include "arts_constants.h"
 #include "auto_wsm.h"
 #include "jacobian.h"
 
@@ -167,26 +169,6 @@ const GriddedField3::grids_t& nlte_grid(const AtmField& atmospheric_field) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-ArrayOfAtmPoint extract(const AtmField& atmospheric_field,
-                        const Vector& altitude_grid,
-                        const Vector& latitude_grid,
-                        const Vector& longitude_grid) try {
-  ArrayOfAtmPoint atm_point;
-  atm_point.reserve(altitude_grid.size() * latitude_grid.size() *
-                    longitude_grid.size());
-
-  for (const auto& alt : altitude_grid) {
-    for (const auto& lat : latitude_grid) {
-      for (const auto& lon : longitude_grid) {
-        atm_point.push_back(atmospheric_field.at(alt, lat, lon));
-      }
-    }
-  }
-
-  return atm_point;
-}
-ARTS_METHOD_ERROR_CATCH
-
 struct UppLow {
   Size upp, low;
 };
@@ -349,40 +331,42 @@ void frequency_gridFitNonLTE(AscendingGrid& frequency_grid,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atmospheric_fieldFitNonLTE(
+void atmospheric_profileFitNonLTE(
     const Workspace& ws,
-    AtmField& atmospheric_field,
+    ArrayOfAtmPoint& atmospheric_profile,
     const AbsorptionBands& absorption_bands,
-    const ArrayOfArrayOfPropagationPathPoint& ray_path_field,
     const Agenda& propagation_matrix_agenda,
-    const Agenda& spectral_radiance_space_agenda,
-    const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
+    const AscendingGrid& altitude_grid,
+    const Numeric& latitude,
+    const Numeric& longitude,
     const QuantumIdentifierGriddedField1Map& collision_data,
     const ArrayOfQuantumIdentifier& levels,
+    const Stokvec& pol,
+    const Numeric& azimuth,
+    const Numeric& dza,
     const Numeric& convergence_limit,
-    const Index& iteration_limit) try {
+    const Index& iteration_limit,
+    const Index& consider_limb) try {
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(altitude_grid, atmospheric_profile),
+      "Altitude grid and atmospheric point grid must have the same size")
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
   ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
-
-  const auto& grid{nlte_grid(atmospheric_field)};
-  const AscendingGrid altitude_grid{std::get<0>(grid)};
-  const ArrayOfAtmPoint ray_path_atmospheric_point = extract(
-      atmospheric_field, altitude_grid, std::get<1>(grid), std::get<2>(grid));
 
   const auto Aij = createAij(absorption_bands);
   const auto Bij = createBij(absorption_bands);
   const auto Bji = createBji(Bij, absorption_bands);
   const auto Cij =
-      createCij(absorption_bands, collision_data, ray_path_atmospheric_point);
-  const auto Cji = createCji(Cij, absorption_bands, ray_path_atmospheric_point);
+      createCij(absorption_bands, collision_data, atmospheric_profile);
+  const auto Cji = createCji(Cij, absorption_bands, atmospheric_profile);
 
   const auto band_level_map =
       band_level_mapFromLevelKeys(absorption_bands, levels);
   const Size nlevels      = level_count(band_level_map);
-  const Vector r_sum      = nlte_ratio_sum(ray_path_atmospheric_point);
+  const Vector r_sum      = nlte_ratio_sum(atmospheric_profile);
   const Size unique_level = band_level_mapUniquestIndex(band_level_map);
 
   Matrix A;
@@ -395,22 +379,24 @@ void atmospheric_fieldFitNonLTE(
   while (max_change > convergence_limit and i < iteration_limit) {
     i++;
     max_change = 0.0;
-
-    spectral_flux_profileFromPathField(ws,
-                                       spectral_flux_profile,
-                                       ray_path_field,
-                                       atmospheric_field,
-                                       propagation_matrix_agenda,
-                                       spectral_radiance_space_agenda,
-                                       spectral_radiance_surface_agenda,
-                                       surface_field,
-                                       frequency_grid,
-                                       altitude_grid);
+    spectral_flux_profilePseudo2D(ws,
+                                  spectral_flux_profile,
+                                  altitude_grid,
+                                  atmospheric_profile,
+                                  frequency_grid,
+                                  latitude,
+                                  longitude,
+                                  propagation_matrix_agenda,
+                                  surface_field,
+                                  pol,
+                                  dza,
+                                  consider_limb,
+                                  azimuth);
 
     nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
                                     spectral_flux_profile,
                                     absorption_bands,
-                                    ray_path_atmospheric_point,
+                                    atmospheric_profile,
                                     frequency_grid);
 
     for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
@@ -430,136 +416,9 @@ void atmospheric_fieldFitNonLTE(
       solve(x, A, r);
 
       const Numeric max_change_local =
-          set_atmospheric_field(atmospheric_field, levels, x, atmi);
+          set_atmospheric_point(atmospheric_profile[atmi], levels, x);
       max_change = std::max(max_change, max_change_local);
     }
-  }
-}
-ARTS_METHOD_ERROR_CATCH
-
-void atmospheric_fieldDisortFitNonLTE(
-    const Workspace& ws,
-    AtmField& atmospheric_field,
-    DisortSettings& disort_settings,
-    const AbsorptionBands& absorption_bands,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const Agenda& propagation_matrix_agenda,
-    const AscendingGrid& frequency_grid,
-    const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfQuantumIdentifier& levels,
-    const Numeric& convergence_limit,
-    const Index& iteration_limit) try {
-  ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
-                     "Convergence limit and iteration limit must be positive")
-  ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
-
-  const auto& grid{nlte_grid(atmospheric_field)};
-  const AscendingGrid altitude_grid{std::get<0>(grid)};
-  ArrayOfAtmPoint ray_path_atmospheric_point = extract(
-      atmospheric_field, altitude_grid, std::get<1>(grid), std::get<2>(grid));
-
-  const auto Aij = createAij(absorption_bands);
-  const auto Bij = createBij(absorption_bands);
-  const auto Bji = createBji(Bij, absorption_bands);
-  const auto Cij =
-      createCij(absorption_bands, collision_data, ray_path_atmospheric_point);
-  const auto Cji = createCji(Cij, absorption_bands, ray_path_atmospheric_point);
-
-  const auto band_level_map =
-      band_level_mapFromLevelKeys(absorption_bands, levels);
-  const Size nlevels      = level_count(band_level_map);
-  const Vector r_sum      = nlte_ratio_sum(ray_path_atmospheric_point);
-  const Size unique_level = band_level_mapUniquestIndex(band_level_map);
-
-  ArrayOfPropmatVector ray_path_propagation_matrix{};
-  ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte{};
-  ArrayOfPropmatMatrix d0{};
-  ArrayOfStokvecMatrix d1{};
-  ArrayOfAscendingGrid ray_path_frequency_grid(ray_path.size(), frequency_grid);
-  ArrayOfVector3 ray_path_frequency_grid_wind_shift_jacobian(ray_path.size());
-  Tensor3 disort_spectral_flux_field{};
-  Matrix spectral_flux_profile(ray_path_atmospheric_point.size(),
-                               frequency_grid.size());
-  QuantumIdentifierVectorMap nlte_line_flux_profile{};
-  JacobianTargets jacobian_targets{};
-  Matrix A{};
-  Vector r(nlevels, 0.0), x(nlevels, 0.0);
-
-  int i              = 0;
-  Numeric max_change = 1e99;
-  while (max_change > convergence_limit and i < iteration_limit) {
-    max_change = 0.0;
-
-    if (i++ != 0) {
-      ray_path_propagation_matrixFromPath(
-          ws,
-          ray_path_propagation_matrix,
-          ray_path_propagation_matrix_source_vector_nonlte,
-          d0,
-          d1,
-          propagation_matrix_agenda,
-          ray_path_frequency_grid,
-          ray_path_frequency_grid_wind_shift_jacobian,
-          jacobian_targets,
-          ray_path,
-          ray_path_atmospheric_point);
-
-      disort_settingsOpticalThicknessFromPath(
-          disort_settings, ray_path, ray_path_propagation_matrix, 1);
-
-      disort_settingsLayerNonThermalEmissionLinearInTau(
-          disort_settings,
-          ray_path_atmospheric_point,
-          ray_path_propagation_matrix,
-          ray_path_propagation_matrix_source_vector_nonlte,
-          frequency_grid);
-    }
-
-    disort_spectral_flux_fieldCalc(disort_spectral_flux_field, disort_settings);
-
-std::println("{:B,}", disort_spectral_flux_field[200, joker, joker]);
-    StridedMatrixView v = transpose(spectral_flux_profile);
-    v  = transpose(disort_spectral_flux_field[joker, 0, joker]);
-    v += transpose(disort_spectral_flux_field[joker, 1, joker]);
-    v += transpose(disort_spectral_flux_field[joker, 2, joker]);
-
-    nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
-                                    spectral_flux_profile,
-                                    absorption_bands,
-                                    ray_path_atmospheric_point,
-                                    frequency_grid);
-
-                                    for (auto x:nlte_line_flux_profile|stdv::values){
-                                      std::println("a.append({:B,})", x);
-                                    }std::println("");
-
-    for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
-      A = statistical_equilibrium_equation(Aij,
-                                           Bij,
-                                           Bji,
-                                           Cij,
-                                           Cji,
-                                           nlte_line_flux_profile,
-                                           band_level_map,
-                                           atmi,
-                                           nlevels);
-
-      A[unique_level] = 1.0;
-      r[unique_level] = r_sum[atmi];
-
-      solve(x, A, r);
-
-      const Numeric max_change_local =
-          set_atmospheric_point(ray_path_atmospheric_point[atmi], levels, x);
-      max_change = std::max(max_change, max_change_local);
-    }
-  }
-
-  const AtmField new_atm = atm_from_profile(ray_path_atmospheric_point,
-                                            altitude_grid,
-                                            InterpolationExtrapolation::Linear);
-  for (auto& [key, data] : new_atm.nlte()) {
-    atmospheric_field[key].data = data.data;
   }
 }
 ARTS_METHOD_ERROR_CATCH

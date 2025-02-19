@@ -41,12 +41,12 @@ using Constant::pi;
 void sunFromGrid(Sun& sun,
                  // Inputs:
                  const AscendingGrid& f_grid,
+                 const Numeric& latitude,
+                 const Numeric& longitude,
                  const GriddedField2& sun_spectrum_raw,
                  const Numeric& radius,
                  const Numeric& distance,
                  const Numeric& temperature,
-                 const Numeric& latitude,
-                 const Numeric& longitude,
                  const String& description) {
   ARTS_TIME_REPORT
 
@@ -73,11 +73,11 @@ void sunFromGrid(Sun& sun,
 void sunBlackbody(Sun& sun,
                   // Inputs:
                   const AscendingGrid& frequency_grid,
+                  const Numeric& latitude,
+                  const Numeric& longitude,
                   const Numeric& radius,
                   const Numeric& distance,
-                  const Numeric& temperature,
-                  const Numeric& latitude,
-                  const Numeric& longitude) {
+                  const Numeric& temperature) {
   ARTS_TIME_REPORT
 
   // some sanity checks
