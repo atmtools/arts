@@ -1,8 +1,6 @@
 #include "time_report.h"
 
 #include <sorting.h>
-
-#include <chrono>
 #include <mutex>
 
 namespace {
