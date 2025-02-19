@@ -54,6 +54,8 @@ inline constexpr Numeric DEG2RAD      = Conversion::deg2rad(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void g0Earth(Numeric &g0, const Numeric &lat) {
+  ARTS_TIME_REPORT
+
   // "Small g" at altitude=0, g0:
   // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
   // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
@@ -73,6 +75,8 @@ void g0Earth(Numeric &g0, const Numeric &lat) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void g0Jupiter(Numeric &g0) {
+  ARTS_TIME_REPORT
+
   // value from MPS, ESA-planetary
   g0 = 23.12;
   // value (1bar level) from
@@ -81,18 +85,24 @@ void g0Jupiter(Numeric &g0) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void g0Mars(Numeric &g0) {
+  ARTS_TIME_REPORT
+
   // value from MPS, ESA-planetary
   g0 = 3.690;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void g0Venus(Numeric &g0) {
+  ARTS_TIME_REPORT
+
   // value via MPS, ESA-planetary from Ahrens, 1995
   g0 = 8.870;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void g0Io(Numeric &g0) {
+  ARTS_TIME_REPORT
+
   // value via Wikipedia
   g0 = 1.796;
 }
@@ -101,6 +111,8 @@ void g0Io(Numeric &g0) {
 void surface_fieldEarth(SurfaceField &surface_field,
                         const String &model,
                         const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -121,6 +133,8 @@ void surface_fieldEarth(SurfaceField &surface_field,
 void surface_fieldJupiter(SurfaceField &surface_field,
                           const String &model,
                           const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -140,6 +154,8 @@ void surface_fieldJupiter(SurfaceField &surface_field,
 void surface_fieldMars(SurfaceField &surface_field,
                        const String &model,
                        const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -159,6 +175,8 @@ void surface_fieldMars(SurfaceField &surface_field,
 void surface_fieldMoon(SurfaceField &surface_field,
                        const String &model,
                        const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -179,6 +197,8 @@ void surface_fieldMoon(SurfaceField &surface_field,
 void surface_fieldIo(SurfaceField &surface_field,
                      const String &model,
                      const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -195,6 +215,8 @@ void surface_fieldIo(SurfaceField &surface_field,
 void surface_fieldEuropa(SurfaceField &surface_field,
                          const String &model,
                          const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -211,6 +233,8 @@ void surface_fieldEuropa(SurfaceField &surface_field,
 void surface_fieldGanymede(SurfaceField &surface_field,
                            const String &model,
                            const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -227,6 +251,8 @@ void surface_fieldGanymede(SurfaceField &surface_field,
 void surface_fieldVenus(SurfaceField &surface_field,
                         const String &model,
                         const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   surface_field                = {};
   surface_field[SurfaceKey::h] = surface_elevation;
 
@@ -243,6 +269,8 @@ void surface_fieldInit(SurfaceField &surface_field,
                        const Numeric &r_equatorial,
                        const Numeric &r_polar,
                        const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(r_equatorial <= 0 || r_polar <= 0,
                      R"(Ellipsoid with a: {}, b: {} is invalid.
 
@@ -273,6 +301,8 @@ A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
 void surface_fieldPlanet(SurfaceField &surface_field,
                          const String &option,
                          const Numeric &surface_elevation) {
+  ARTS_TIME_REPORT
+
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
     case Earth:
@@ -306,6 +336,8 @@ void surface_fieldPlanet(SurfaceField &surface_field,
 void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
                                  const SurfaceField &surface_field,
                                  const Numeric &mass) {
+  ARTS_TIME_REPORT
+
   struct Gravity {
     Numeric GM;
     Numeric a;
@@ -336,8 +368,8 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
       surface_field.ellipsoid)
 
   gravity_operator = NumericTernaryOperator{
-      Gravity{Constant::G * mass,
-              surface_field.ellipsoid[0],
-              std::sqrt(1 - Math::pow2(surface_field.ellipsoid[1] /
-                                       surface_field.ellipsoid[0]))}};
+      Gravity{.GM = Constant::G * mass,
+              .a  = surface_field.ellipsoid[0],
+              .e  = std::sqrt(1 - Math::pow2(surface_field.ellipsoid[1] /
+                                            surface_field.ellipsoid[0]))}};
 }

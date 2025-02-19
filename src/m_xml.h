@@ -15,6 +15,7 @@
 #endif
 
 #include <workspace.h>
+
 #include "xml_io.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -23,6 +24,8 @@ void ReadXML(  // WS Generic Output:
     T& v,
     // WS Generic Input:
     const String& f) {
+  ARTS_TIME_REPORT
+
   String filename = f;
 
   // Create default filename if empty
@@ -40,6 +43,8 @@ void ReadXMLIndexed(  // WS Generic Output:
     // WS Generic Input:
     const String& f,
     const Index& digits) {
+  ARTS_TIME_REPORT
+
   String filename = f;
 
   // Create default filename if empty
@@ -58,6 +63,8 @@ void WriteXML(  //WS Input:
     const Index& no_clobber)
 
 {
+  ARTS_TIME_REPORT
+
   // If MPI is enabled make sure only master process performs the write.
 #ifdef ENABLE_MPI
   int initialized;
@@ -90,7 +97,7 @@ void WriteXML(  //WS Input:
     }
   }
 
-  ARTS_USER_ERROR_IF (errmsg.length(), "{}", errmsg);
+  ARTS_USER_ERROR_IF(errmsg.length(), "{}", errmsg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -102,6 +109,8 @@ void WriteXMLIndexed(  //WS Input:
     const T& v,
     const String& f,
     const Index& digits) {
+  ARTS_TIME_REPORT
+
   String filename = f;
 
   // Create default filename if empty

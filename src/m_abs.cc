@@ -34,6 +34,7 @@
 #endif
 
 void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
+  ARTS_TIME_REPORT
   los_mirrored.resize(2);
   los_mirrored[0] = 180 - los[0];
   los_mirrored[1] = los[1] + 180;
@@ -46,6 +47,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
                          const Numeric& w) {
+  ARTS_TIME_REPORT
   // Strength of field
   const Numeric f = sqrt(u * u + v * v + w * w);
 
@@ -73,6 +75,7 @@ void absorption_speciesSet(  // WS Output:
     ArrayOfArrayOfSpeciesTag& absorption_species,
     // Control Parameters:
     const ArrayOfString& names) try {
+  ARTS_TIME_REPORT
   absorption_species.resize(names.size());
 
   //cout << "Names: " << names << "\n";
@@ -92,6 +95,8 @@ void absorption_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
     // Control Parameters:
     const String& basename) {
+  ARTS_TIME_REPORT
+
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
 
@@ -122,6 +127,8 @@ void absorption_speciesDefineAllInScenario(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_speciesDefineAll(  // WS Output:
     ArrayOfArrayOfSpeciesTag& absorption_species) {
+  ARTS_TIME_REPORT
+
   // Species lookup data:
 
   // We want to make lists of all species
@@ -166,6 +173,8 @@ void propagation_matrixInit(  //WS Output
     //WS Input
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Index nf = frequency_grid.size();
   const Index nq = jacobian_targets.target_count();
 
@@ -198,6 +207,8 @@ void propagation_matrixAddFaraday(
     const JacobianTargets& jacobian_targets,
     const AtmPoint& atm_point,
     const PropagationPathPoint& path_point) {
+  ARTS_TIME_REPORT
+
   Index ife = -1;
   for (Size sp = 0; sp < absorption_species.size() && ife < 0; sp++) {
     if (absorption_species[sp].FreeElectrons()) {
@@ -296,11 +307,15 @@ void propagation_matrixAddFaraday(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixZero(PropmatVector& propagation_matrix,
                             const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   propagation_matrix = PropmatVector(frequency_grid.size());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
+  ARTS_TIME_REPORT
+
   for (Size i = 0; i < propagation_matrix.size(); i++)
     if (propagation_matrix[i].A() < 0.0) propagation_matrix[i] = 0.0;
   ;
@@ -309,12 +324,16 @@ void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromBuiltin(
     SpeciesIsotopologueRatios& isotopologue_ratios) {
+  ARTS_TIME_REPORT
+
   isotopologue_ratios = Species::isotopologue_ratiosInitFromBuiltin();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromHitran(
     SpeciesIsotopologueRatios& isotopologue_ratios) {
+  ARTS_TIME_REPORT
+
   isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
@@ -333,6 +352,8 @@ void propagation_matrix_agendaAuto(
     const Index& water_interp_order,
     const Index& f_interp_order,
     const Numeric& extpolfac) {
+  ARTS_TIME_REPORT
+
   AgendaCreator agenda("propagation_matrix_agenda");
 
   const SpeciesTagTypeStatus any_species(absorption_species);

@@ -40,6 +40,8 @@ void propagation_matrixAddCIA(  // WS Output:
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
+  ARTS_TIME_REPORT
+
   // Size of problem
   const Index nf = f_grid.size();
   const Index nq = jacobian_targets.target_count();
@@ -193,6 +195,8 @@ void CIARecordReadFromFile(  // WS GOutput:
     // WS Generic Input:
     const String& species_tag,
     const String& filename) {
+  ARTS_TIME_REPORT
+
   SpeciesTag species(species_tag);
 
   ARTS_USER_ERROR_IF(species.Type() != SpeciesTagType::Cia,
@@ -211,6 +215,8 @@ void absorption_cia_dataAddCIARecord(  // WS Output:
     // WS GInput:
     const CIARecord& cia_record,
     const Index& clobber) {
+  ARTS_TIME_REPORT
+
   Index cia_index = cia_get_index(
       absorption_cia_data, cia_record.Species(0), cia_record.Species(1));
   if (cia_index == -1)
@@ -227,6 +233,8 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
+  ARTS_TIME_REPORT
+
   ArrayOfString subfolders;
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
@@ -310,6 +318,8 @@ void absorption_cia_dataReadFromXML(  // WS Output:
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& filename) {
+  ARTS_TIME_REPORT
+
   xml_read_from_file(filename, absorption_cia_data);
 
   // Check that all CIA tags from abs_species are present in the
@@ -358,6 +368,8 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& ignore_missing_) try {
+  ARTS_TIME_REPORT
+
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   ArrayOfString names{};

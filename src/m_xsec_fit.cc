@@ -21,6 +21,8 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& ignore_missing_) try {
+  ARTS_TIME_REPORT
+
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   // Build a set of species indices. Duplicates are ignored.
@@ -68,6 +70,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
     const ArrayOfXsecRecord& absorption_xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t) {
+  ARTS_TIME_REPORT
+
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
       propagation_matrix.size() not_eq f_grid.size(),
