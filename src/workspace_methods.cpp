@@ -4686,7 +4686,9 @@ Below is an example using this method to create a *ray_path_field*.
 
     ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
     ws.surface_fieldEarth()
-    ws.ray_path_observer_agendaSet(option="GeometricGridded")
+    ws.ray_path_observer_agendaSetGeometric(
+        add_crossings=True, remove_non_crossings=True
+    )
     ws.ray_path_observersFieldProfilePseudo2D(nup=3, nlimb=3, ndown=3)
     ws.ray_path_fieldFromObserverAgenda()
 
