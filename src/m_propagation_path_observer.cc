@@ -6,6 +6,8 @@ Numeric surface_tangent_zenithFromAgenda(const Workspace& ws,
                                          const Vector3& pos,
                                          const Agenda& ray_path_observer_agenda,
                                          const Numeric azimuth) {
+  ARTS_TIME_REPORT
+
   ArrayOfPropagationPathPoint ray_path;
   Numeric za0 = 180.0, za1 = 90.0;
   while (std::nextafter(za0, za1) != za1) {
@@ -33,6 +35,8 @@ void ray_path_observersFieldProfilePseudo2D(
     const Index& nup,
     const Index& nlimb,
     const Index& ndown) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 
@@ -235,6 +239,8 @@ void ray_path_fieldFromObserverAgenda(
     ArrayOfArrayOfPropagationPathPoint& ray_path_field,
     const ArrayOfPropagationPathPoint& ray_path_observers,
     const Agenda& ray_path_observer_agenda) {
+  ARTS_TIME_REPORT
+
   const Size N = ray_path_observers.size();
   ARTS_USER_ERROR_IF(N == 0, "Must have at least one observer.")
 

@@ -23,6 +23,8 @@ void disort_settingsInit(DisortSettings& disort_settings,
                          const Index& quadrature_dimension,
                          const Index& legendre_polynomial_dimension,
                          const Index& fourier_mode_dimension) {
+  ARTS_TIME_REPORT
+
   disort_settings   = DisortSettings();
   const Index nfreq = frequency_grid.size();
   const Index nlay  = ray_path.size() - 1;
@@ -38,6 +40,8 @@ void disort_settingsInit(DisortSettings& disort_settings,
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSun(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.solar_source        = 0.0;
   disort_settings.solar_zenith_angle  = 0.0;
   disort_settings.solar_azimuth_angle = 0.0;
@@ -48,6 +52,8 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                            const SurfaceField& surface_field,
                            const Sun& sun,
                            const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
   const Numeric h =
       surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
 
@@ -85,6 +91,8 @@ sun.spectrum.nrows():                {}
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoLayerThermalEmission(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.source_polynomial.resize(
       disort_settings.nfreq, disort_settings.nlay, 0);
 }
@@ -93,6 +101,8 @@ void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Size nv = frequency_grid.size();
   const Size N  = ray_path_atmospheric_point.size();
 
@@ -135,6 +145,8 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Size nv = frequency_grid.size();
   const Size N  = ray_path_atmospheric_point.size();
 
@@ -212,6 +224,8 @@ ray_path_source_vector_nonlte.size(): {}
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.positive_boundary_condition = 0.0;
 }
 
@@ -220,6 +234,8 @@ void disort_settingsSurfaceEmissionByTemperature(
     const AscendingGrid& frequency_grid,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surface_field) {
+  ARTS_TIME_REPORT
+
   const auto nv = frequency_grid.size();
 
   const Numeric T = surface_field.single_value(
@@ -249,11 +265,15 @@ void disort_settingsSurfaceEmissionByTemperature(
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.negative_boundary_condition = 0.0;
 }
 
 void disort_settingsCosmicMicrowaveBackgroundRadiation(
     DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Index nv = frequency_grid.size();
 
   disort_settings.negative_boundary_condition = 0.0;
@@ -279,6 +299,8 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoLegendre(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       disort_settings.legendre_coefficients.nrows() < 1,
       "Must have at least one Legendre mode to use the Legendre coefficients.")
@@ -292,6 +314,8 @@ void disort_settingsNoLegendre(DisortSettings& disort_settings) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoFractionalScattering(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.fractional_scattering = 0.0;
 }
 
@@ -304,6 +328,8 @@ void disort_settingsOpticalThicknessFromPath(
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const Index& allow_fixing) {
+  ARTS_TIME_REPORT
+
   const Index N  = disort_settings.nlay;
   const Index nv = disort_settings.nfreq;
 
@@ -386,12 +412,16 @@ Frequency grid index: {}
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSurfaceScattering(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
       disort_settings.nfreq, 0);
 }
 
 void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
                                       const Vector& vec) {
+  ARTS_TIME_REPORT
+
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
       disort_settings.nfreq, 1);
 
@@ -405,6 +435,8 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
 
 void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
                                       const Numeric& value) {
+  ARTS_TIME_REPORT
+
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
       disort_settings.nfreq, 1);
 
@@ -420,6 +452,8 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   disort_settings.single_scattering_albedo = 0.0;
 }
 
@@ -430,6 +464,8 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
     const ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral) try {
+  ARTS_TIME_REPORT
+
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
   const Index L = disort_settings.legendre_polynomial_dimension;
@@ -501,6 +537,8 @@ void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
+  ARTS_TIME_REPORT
+
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
 
@@ -564,6 +602,8 @@ void disort_settings_agendaSetup(
     const disort_settings_agenda_setup_sun_type& sun_setting,
     const disort_settings_agenda_setup_surface_type& surface_setting,
     const Vector& surface_lambertian_value) {
+  ARTS_TIME_REPORT
+
   AgendaCreator agenda("disort_settings_agenda");
 
   agenda.add("jacobian_targetsOff");
@@ -659,6 +699,8 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
                                  const String& sun_setting,
                                  const String& surface_setting,
                                  const Vector& surface_lambertian_value) {
+  ARTS_TIME_REPORT
+
   disort_settings_agendaSetup(
       disort_settings_agenda,
       to<disort_settings_agenda_setup_layer_emission_type>(

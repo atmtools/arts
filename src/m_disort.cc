@@ -22,6 +22,8 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
                                         Vector& disort_quadrature_weights,
                                         const DisortSettings& disort_settings,
                                         const Vector& phis) {
+  ARTS_TIME_REPORT
+
   using Conversion::acosd;
 
   const Index nv    = disort_settings.nfreq;
@@ -53,11 +55,14 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
+  ARTS_USER_ERROR_IF(
+      error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 
 void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
                                     const DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
   const Index nv = disort_settings.nfreq;
   const Index np = disort_settings.nlay;
 
@@ -93,11 +98,15 @@ void spectral_radianceIntegrateDisort(
     const Tensor4& /*disort_spectral_radiance_field*/,
     const Vector& /*disort_quadrature_angles*/,
     const Vector& /*disort_quadrature_weights*/) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR("Not implemented")
 }
 
 void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
                         Matrix& /*spectral_flux_field_down*/,
                         const Tensor3& /*disort_spectral_flux_field*/) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR("Not implemented")
 }

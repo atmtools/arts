@@ -21,6 +21,8 @@ void ray_path_spectral_radianceCalcTransmission(
     const ArrayOfMuelmatVector &ray_path_transmission_matrix_cumulative,
     const ArrayOfArrayOfMuelmatMatrix
         &ray_path_transmission_matrix_jacobian) try {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path_transmission_matrix.size();
   const Index nq =
       ray_path_transmission_matrix_jacobian.front().front().nrows();
@@ -105,6 +107,8 @@ void ray_path_zeeman_magnetic_fieldFromPath(
     ArrayOfVector3 &ray_path_zeeman_magnetic_field,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path_atmospheric_point.size();
   ARTS_USER_ERROR_IF(
       np != ray_path.size(),
@@ -134,6 +138,8 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfAscendingGrid &ray_path_frequency_grid,
     const ArrayOfAtmPoint &ray_path_atmospheric_point,
     const JacobianTargets &jacobian_targets) try {
+  ARTS_TIME_REPORT
+
   String error{};
 
   const Index np = ray_path_atmospheric_point.size();
@@ -188,6 +194,8 @@ void ray_path_atmospheric_pointFromPath(
     ArrayOfAtmPoint &ray_path_atmospheric_point,
     const ArrayOfPropagationPathPoint &ray_path,
     const AtmField &atm_field) try {
+  ARTS_TIME_REPORT
+
   forward_atm_path(atm_path_resize(ray_path_atmospheric_point, ray_path),
                    ray_path,
                    atm_field);
@@ -200,6 +208,8 @@ void ray_path_frequency_gridFromPath(
     const AscendingGrid &frequency_grid,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+  ARTS_TIME_REPORT
+
   std::string error;
 
   ray_path_frequency_grid.resize(ray_path.size());
@@ -232,6 +242,8 @@ void ray_path_spectral_radianceCalcClearsky(
     const ArrayOfMuelmatVector &ray_path_transmission_matrix_cumulative,
     const ArrayOfArrayOfMuelmatMatrix
         &ray_path_transmission_matrix_jacobian) try {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path_spectral_radiance_source.size();
 
   ARTS_USER_ERROR_IF(
@@ -326,6 +338,8 @@ ARTS_METHOD_ERROR_CATCH
 void ray_path_transmission_matrix_cumulativeFromPath(
     ArrayOfMuelmatVector &ray_path_transmission_matrix_cumulative,
     const ArrayOfMuelmatVector &ray_path_transmission_matrix) try {
+  ARTS_TIME_REPORT
+
   forward_cumulative_transmission(ray_path_transmission_matrix_cumulative,
                                   ray_path_transmission_matrix);
 }

@@ -18,7 +18,7 @@ struct profiler {
 std::string get_report(bool clear=true);
 }  // namespace arts
 
-#if ARTS_PROFILER
+#if ARTS_PROFILING
 #define ARTS_TIME_REPORT arts::profiler _arts_prof_var_name_{};
 #else
 #define ARTS_TIME_REPORT

@@ -16,6 +16,8 @@ void ray_path_transmission_matrixFromPath(
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
     const Index& hse_derivative) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
 
   ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
@@ -84,6 +86,8 @@ void spectral_radianceStepByStepEmission(
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const ArrayOfStokvecMatrix& ray_path_spectral_radiance_source_jacobian,
     const StokvecVector& spectral_radiance_background) try {
+  ARTS_TIME_REPORT
+
   rtepack::two_level_linear_emission_step_by_step_full(
       spectral_radiance,
       ray_path_spectral_radiance_jacobian,
@@ -103,6 +107,8 @@ void spectral_radianceCumulativeTransmission(
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative,
     const ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
     const StokvecVector& spectral_radiance_background) try {
+  ARTS_TIME_REPORT
+
   rtepack::two_level_linear_transmission_step(
       spectral_radiance,
       ray_path_spectral_radiance_jacobian,

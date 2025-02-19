@@ -13,6 +13,8 @@ void ray_path_propagation_matrixFromPath(
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       not arr::same_size(ray_path,
                          ray_path_atmospheric_point,
@@ -70,6 +72,8 @@ void select_species_listCollectAbsorption(
     const ArrayOfXsecRecord &absorption_xsec_fit_data,
     const ArrayOfCIARecord &absorption_cia_data,
     const AbsorptionBands &absorption_bands) try {
+  ARTS_TIME_REPORT
+
   std::set<SpeciesEnum> s;
 
   for (auto &[qid, _] : absorption_bands) s.insert(qid.Species());
@@ -98,6 +102,8 @@ void ray_path_propagation_matrix_species_splitFromPath(
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point,
     const ArrayOfSpeciesEnum &select_species_list) try {
+  ARTS_TIME_REPORT
+
   const Size ns = select_species_list.size();
   const Size np = ray_path.size();
 

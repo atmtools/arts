@@ -48,6 +48,8 @@ void sunFromGrid(Sun& sun,
                  const Numeric& distance,
                  const Numeric& temperature,
                  const String& description) {
+  ARTS_TIME_REPORT
+
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun (",
@@ -76,6 +78,8 @@ void sunBlackbody(Sun& sun,
                   const Numeric& radius,
                   const Numeric& distance,
                   const Numeric& temperature) {
+  ARTS_TIME_REPORT
+
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun ({} m) \n"
@@ -96,7 +100,11 @@ void sunBlackbody(Sun& sun,
   sun.longitude   = longitude;
 }
 
-void sunsAddSun(ArrayOfSun& suns, const Sun& sun) { suns.push_back(sun); }
+void sunsAddSun(ArrayOfSun& suns, const Sun& sun) {
+  ARTS_TIME_REPORT
+
+  suns.push_back(sun);
+}
 
 void sun_pathFromObserverAgenda(const Workspace& ws,
                                 ArrayOfPropagationPathPoint& sun_path,
@@ -107,6 +115,8 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                                 const Numeric& angle_cut,
                                 const Index& refinements,
                                 const Index& just_hit) {
+  ARTS_TIME_REPORT
+
   find_sun_path(ws,
                 sun_path,
                 sun,
@@ -128,6 +138,8 @@ void ray_path_sun_pathFromPathObserver(
     const Numeric& angle_cut,
     const Index& refinements,
     const Index& just_hit) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
   const Size np = ray_path.size();
@@ -181,6 +193,8 @@ void ray_path_suns_pathFromPathObserver(
     const Numeric& angle_cut,
     const Index& refinements,
     const Index& just_hit) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
   const Size np    = ray_path.size();
@@ -234,6 +248,8 @@ void ray_path_suns_pathFromPathObserver(
 void propagation_matrix_scatteringInit(
     PropmatVector& propagation_matrix_scattering,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   propagation_matrix_scattering.resize(frequency_grid.size());
   propagation_matrix_scattering = 0.0;
 }
@@ -271,6 +287,8 @@ void ray_path_propagation_matrix_scatteringFromPath(
     const Agenda& propagation_matrix_scattering_agenda,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
     const ArrayOfAtmPoint& ray_path_atmospheric_point) {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path_frequency_grid.size();
   ARTS_USER_ERROR_IF(
       np != ray_path_atmospheric_point.size(),
@@ -311,6 +329,8 @@ void ray_path_spectral_radiance_sourceAddScattering(
     ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const ArrayOfStokvecVector& ray_path_spectral_radiance_scattering,
     const ArrayOfPropmatVector& ray_path_propagation_matrix) {
+  ARTS_TIME_REPORT
+
   const Size np = ray_path_propagation_matrix.size();
   ARTS_USER_ERROR_IF(
       np != ray_path_spectral_radiance_source.size(),
@@ -322,13 +342,14 @@ void ray_path_spectral_radiance_sourceAddScattering(
   if (np == 0) return;
   const Size nf = ray_path_propagation_matrix.front().size();
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          ray_path_spectral_radiance_source, Cmp::ne(nf), [](auto& v){return v.size();}),
+      std::ranges::any_of(ray_path_spectral_radiance_source,
+                          Cmp::ne(nf),
+                          [](auto& v) { return v.size(); }),
       "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_source")
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(ray_path_spectral_radiance_scattering,
                           Cmp::ne(nf),
-                          [](auto& v){return v.size();}),
+                          [](auto& v) { return v.size(); }),
       "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_scattering")
 
   if (arts_omp_in_parallel()) {
@@ -372,6 +393,8 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     const Agenda& propagation_matrix_agenda,
     const Numeric& depolarization_factor,
     const Index& hse_derivative) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
                      "Cannot have any Jacobian targets")
 
@@ -393,7 +416,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(ray_path_spectral_radiance_scattering,
                           Cmp::ne(nf),
-                          [](auto& v){return v.size();}),
+                          [](auto& v) { return v.size(); }),
       "Bad ray_path_spectral_radiance_source: incorrect number of frequencies")
 
   StokvecVector spectral_radiance{};

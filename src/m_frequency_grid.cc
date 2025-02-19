@@ -1,14 +1,11 @@
-#include <atm.h>
-#include <jacobian.h>
-#include <path_point.h>
-#include <rtepack.h>
-
-#include "arts_constants.h"
+#include <workspace.h>
 
 void frequency_gridWindShift(AscendingGrid& frequency_grid,
                              Vector3& frequency_grid_wind_shift_jacobian,
                              const AtmPoint& atmospheric_point,
                              const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
   constexpr Numeric c = Constant::speed_of_light;
 
   const auto& [u, v, w] = atmospheric_point.wind;
@@ -51,9 +48,8 @@ ray_path_point.los:     {:B,}
   // shift the frequency grid
   {
     ExtendAscendingGrid tmp = frequency_grid;
-    stdr::transform(tmp, tmp.begin(), [fac](const Numeric& f) {
-      return fac * f;
-    });
+    stdr::transform(
+        tmp, tmp.begin(), [fac](const Numeric& f) { return fac * f; });
   }
 
   {
@@ -93,6 +89,8 @@ void propagation_matrix_jacobianWindFix(
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets,
     const Vector3& frequency_grid_wind_shift_jacobian) {
+  ARTS_TIME_REPORT
+
   using enum AtmKey;
 
   const auto& atm = jacobian_targets.atm();
