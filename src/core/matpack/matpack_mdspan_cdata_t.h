@@ -264,6 +264,24 @@ constexpr T operator-(const T& x, const T& y) {
 }
 
 template <any_cdata T>
+constexpr T operator*(T x, const std::convertible_to<value_type<T>> auto& y) {
+  x *= static_cast<value_type<T>>(y);
+  return x;
+}
+
+template <any_cdata T>
+constexpr T operator*(const std::convertible_to<value_type<T>> auto& y, T x) {
+  x *= static_cast<value_type<T>>(y);
+  return x;
+}
+
+template <any_cdata T>
+constexpr T operator/(T x, const std::convertible_to<value_type<T>> auto& y) {
+  x /= static_cast<value_type<T>>(y);
+  return x;
+}
+
+template <any_cdata T>
 constexpr T normalized(T x) {
   x /= hypot(x);
   return x;

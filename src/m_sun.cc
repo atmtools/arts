@@ -41,12 +41,12 @@ using Constant::pi;
 void sunFromGrid(Sun& sun,
                  // Inputs:
                  const AscendingGrid& f_grid,
+                 const Numeric& latitude,
+                 const Numeric& longitude,
                  const GriddedField2& sun_spectrum_raw,
                  const Numeric& radius,
                  const Numeric& distance,
                  const Numeric& temperature,
-                 const Numeric& latitude,
-                 const Numeric& longitude,
                  const String& description) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
@@ -71,11 +71,11 @@ void sunFromGrid(Sun& sun,
 void sunBlackbody(Sun& sun,
                   // Inputs:
                   const AscendingGrid& frequency_grid,
+                  const Numeric& latitude,
+                  const Numeric& longitude,
                   const Numeric& radius,
                   const Numeric& distance,
-                  const Numeric& temperature,
-                  const Numeric& latitude,
-                  const Numeric& longitude) {
+                  const Numeric& temperature) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun ({} m) \n"

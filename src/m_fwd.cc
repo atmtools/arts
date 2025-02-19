@@ -81,18 +81,18 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   spectral_radiance_field = StokvecGriddedField6{
       .data_name = "Spectral Radiance Field",
       .data      = StokvecTensor6(
-          nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
-      .grid_names = {"Zenith angle",
-                     "Azimuth angle",
-                     "Altitude",
+          nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
+      .grid_names = {"Altitude",
                      "Latitude",
                      "Longitude",
+                     "Zenith angle",
+                     "Azimuth angle",
                      "Frequency"},
-      .grids      = {zenith_grid,
-                     azimuth_grid,
-                     altitude_grid,
+      .grids      = {altitude_grid,
                      latitude_grid,
                      longitude_grid,
+                     zenith_grid,
+                     azimuth_grid,
                      frequency_grid}};
 
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
@@ -144,7 +144,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       for (Index j = 0; j < naa; ++j) {
         const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
-          spectral_radiance_field.data[i, j, joker, 0, 0, n] =
+          spectral_radiance_field.data[joker, 0, 0, i, j, n] =
               freqstep(frequency_grid[n], zenith_grid[i], path);
         }
       }
@@ -158,7 +158,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
         try {
           const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
           for (Index n = 0; n < nfreq; ++n) {
-            spectral_radiance_field.data[i, j, joker, 0, 0, n] =
+            spectral_radiance_field.data[joker, 0, 0, i, j, n] =
                 freqstep(frequency_grid[n], zenith_grid[i], path);
           }
         } catch (std::exception& e) {
@@ -192,28 +192,28 @@ void spectral_radiance_fieldFromOperatorPath(
   const Index nfreq = frequency_grid.size();
 
   spectral_radiance_field = StokvecGriddedField6{
-      .data_name = "Spectral Radiance Field",
+      .data_name = "spectral_radiance_fieldFromOperatorPath",
       .data      = StokvecTensor6(
-          nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
-      .grid_names = {"Zenith angle",
-                     "Azimuth angle",
-                     "Altitude",
+          nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
+      .grid_names = {"Altitude",
                      "Latitude",
                      "Longitude",
+                     "Zenith angle",
+                     "Azimuth angle",
                      "Frequency"},
-      .grids      = {zenith_grid,
-                     azimuth_grid,
-                     altitude_grid,
+      .grids      = {altitude_grid,
                      latitude_grid,
                      longitude_grid,
+                     zenith_grid,
+                     azimuth_grid,
                      frequency_grid}};
 
   if (arts_omp_in_parallel()) {
-    for (Index iza = 0; iza < nza; ++iza) {
-      for (Index iaa = 0; iaa < naa; ++iaa) {
-        for (Index ialt = 0; ialt < nalt; ++ialt) {
-          for (Index ilat = 0; ilat < nlat; ++ilat) {
-            for (Index ilon = 0; ilon < nlon; ++ilon) {
+    for (Index ialt = 0; ialt < nalt; ++ialt) {
+      for (Index ilat = 0; ilat < nlat; ++ilat) {
+        for (Index ilon = 0; ilon < nlon; ++ilon) {
+          for (Index iza = 0; iza < nza; ++iza) {
+            for (Index iaa = 0; iaa < naa; ++iaa) {
               ArrayOfPropagationPathPoint ray_path;
               ray_path_observer_agendaExecute(
                   ws,
@@ -223,10 +223,9 @@ void spectral_radiance_fieldFromOperatorPath(
                    longitude_grid[ilon]},
                   {zenith_grid[iza], azimuth_grid[iaa]},
                   ray_path_observer_agenda);
-              std::transform(
-                  frequency_grid.begin(),
-                  frequency_grid.end(),
-                  spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
+              stdr::transform(
+                  frequency_grid,
+                  spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
                       .begin(),
                   [path = spectral_radiance_operator.from_path(ray_path),
                    &spectral_radiance_operator](Numeric f) {
@@ -241,11 +240,11 @@ void spectral_radiance_fieldFromOperatorPath(
     String errors{};
 
 #pragma omp parallel for collapse(5)
-    for (Index iza = 0; iza < nza; ++iza) {
-      for (Index iaa = 0; iaa < naa; ++iaa) {
-        for (Index ialt = 0; ialt < nalt; ++ialt) {
-          for (Index ilat = 0; ilat < nlat; ++ilat) {
-            for (Index ilon = 0; ilon < nlon; ++ilon) {
+    for (Index ialt = 0; ialt < nalt; ++ialt) {
+      for (Index ilat = 0; ilat < nlat; ++ilat) {
+        for (Index ilon = 0; ilon < nlon; ++ilon) {
+          for (Index iza = 0; iza < nza; ++iza) {
+            for (Index iaa = 0; iaa < naa; ++iaa) {
               try {
                 ArrayOfPropagationPathPoint ray_path;
                 ray_path_observer_agendaExecute(
@@ -256,10 +255,9 @@ void spectral_radiance_fieldFromOperatorPath(
                      longitude_grid[ilon]},
                     {zenith_grid[iza], azimuth_grid[iaa]},
                     ray_path_observer_agenda);
-                std::transform(
-                    frequency_grid.begin(),
-                    frequency_grid.end(),
-                    spectral_radiance_field[iza, iaa, ialt, ilat, ilon, joker]
+                stdr::transform(
+                    frequency_grid,
+                    spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
                         .begin(),
                     [path = spectral_radiance_operator.from_path(ray_path),
                      &spectral_radiance_operator](Numeric f) {
@@ -314,7 +312,7 @@ void measurement_vectorFromOperatorPath(
                          return spectral_radiance_operator(f, path);
                        });
 
-        for (Size iv=0; iv<measurement_vector_sensor.size(); ++iv) {
+        for (Size iv = 0; iv < measurement_vector_sensor.size(); ++iv) {
           const SensorObsel& obsel = measurement_vector_sensor[iv];
           if (obsel.same_freqs(f_grid_ptr)) {
             measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);

@@ -83,10 +83,11 @@ constexpr Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
 
   return ecef;
 }
+}  // namespace
 
-constexpr std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
-                                                           const Vector2 los,
-                                                           const Vector2 ell) {
+std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
+                                                 const Vector2 los,
+                                                 const Vector2 ell) noexcept {
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -129,11 +130,11 @@ constexpr std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
   return {ecef, decef};
 }
 
-constexpr Numeric intersection_altitude(const Vector3 ecef,
-                                        const Vector3 decef,
-                                        const Vector2 refellipsoid,
-                                        const Numeric altitude,
-                                        const Numeric l_min) {
+Numeric intersection_altitude(const Vector3 ecef,
+                              const Vector3 decef,
+                              const Vector2 refellipsoid,
+                              const Numeric altitude,
+                              const Numeric l_min) {
   Numeric l;
   Vector2 ellipsoid{refellipsoid};
   ellipsoid += altitude;
@@ -192,6 +193,7 @@ constexpr Numeric intersection_altitude(const Vector3 ecef,
   return l;
 }
 
+namespace {
 Vector3 ecef2geocentric(const Vector3 ecef) {
   Vector3 pos;
   pos[0] = std::hypot(ecef[0], ecef[1], ecef[2]);
@@ -472,10 +474,12 @@ Vector2 enu2los(const Vector3 enu) {
   return {Conversion::acosd(enu[2] / twonorm),
           Conversion::atan2d(enu[0], enu[1])};
 }
+}  // namespace
 
-std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
-                                                 const Vector3 decef,
-                                                 const Vector2 refellipsoid) {
+std::pair<Vector3, Vector2> ecef2geodetic_poslos(
+    const Vector3 ecef,
+    const Vector3 decef,
+    const Vector2 refellipsoid) noexcept {
   const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = Conversion::deg2rad(pos[1]);
@@ -503,7 +507,6 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
 
   return {pos, los};
 }
-}  // namespace
 
 namespace {
 std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
@@ -555,12 +558,13 @@ constexpr const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
   const bool bt = b > 0;
   return at and bt ? std::min(a, b) : at ? a : bt ? b : nan;
 }
+}  // namespace
 
 std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
     const Numeric alt,
     const Vector3 ecef,
     const Vector3 decef,
-    const Vector2 ell) noexcept {
+    const Vector2 ell) {
   using Math::pow2;
 
   const Numeric x0  = ecef[0];
@@ -588,6 +592,7 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
   return {t, (&t == &t0) ? t1 : t0};
 }
 
+namespace {
 constexpr Vector3 ecef_vector_distance(const Vector3 ecef0,
                                        const Vector3 ecef1) {
   return {ecef1[0] - ecef0[0], ecef1[1] - ecef0[1], ecef1[2] - ecef0[2]};
@@ -1206,20 +1211,19 @@ ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
 }
 
 Numeric geometric_tangent_zenith(const Vector3 pos,
-                                 const SurfaceField& surface_field,
+                                 const Vector2& ell,
                                  const Numeric alt,
                                  const Numeric azimuth) {
   ARTS_USER_ERROR_IF(alt >= pos[0],
                      "Tangent altitude cannot be above the position")
 
-  const auto intersects =
-      [pos, alt, azimuth, ell = surface_field.ellipsoid](const Numeric za) {
-        const auto [ecef, decef] =
-            geodetic_poslos2ecef(pos, mirror({za, azimuth}), ell);
-        const auto [l0, l1] =
-            line_ellipsoid_altitude_intersect(alt, ecef, decef, ell);
-        return l0 > 0 and l1 > 0;
-      };
+  const auto intersects = [pos, alt, azimuth, ell](const Numeric za) {
+    const auto [ecef, decef] =
+        geodetic_poslos2ecef(pos, mirror({za, azimuth}), ell);
+    const auto [l0, l1] =
+        line_ellipsoid_altitude_intersect(alt, ecef, decef, ell);
+    return l0 > 0 and l1 > 0;
+  };
 
   Numeric za0 = 0.0, za1 = 90.0;
   while (std::nextafter(za0, za1) != za1) {

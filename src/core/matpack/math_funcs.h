@@ -30,6 +30,8 @@ void linspace(Vector& x,
               const Numeric stop,
               const Numeric step);
 
+Vector linspace(const Numeric start, const Numeric stop, const Numeric step);
+
 void nlinspace(Vector& x,
                const Numeric start,
                const Numeric stop,
@@ -48,6 +50,8 @@ void nlogspace(Vector& x,
                const Index n);
 
 Vector nlogspace(const Numeric start, const Numeric stop, const Index n);
+
+Vector binary_grid(const Numeric x0, const Numeric xn, const Numeric dx);
 
 Numeric trapz(ConstVectorView x, ConstVectorView y);
 

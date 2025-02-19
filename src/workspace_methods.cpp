@@ -627,24 +627,17 @@ after the regridding.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atmospheric_field"},
-      .in     = {"atmospheric_field"},
-      .gin    = {"parameter", "alt", "lat", "lon", "extrapolation"},
+      .in     = {"atmospheric_field",
+                 "altitude_grid",
+                 "latitude_grid",
+                 "longitude_grid"},
+      .gin    = {"parameter", "extrapolation"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
-           "AscendingGrid",
-           "AscendingGrid",
-           "AscendingGrid",
            "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String{"Nearest"}},
+      .gin_value = {std::nullopt, String{"Nearest"}},
       .gin_desc =
           {"The parameter to regrid",
-           "The altitude grid",
-           "The latitude grid",
-           "The longitude grid",
            "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
   };
 
@@ -655,20 +648,17 @@ after the regridding.
 The atmospheric field will have a *GriddedField3* with the input grid
 after the regridding at all positions.
 )--",
-      .author   = {"Richard Larsson"},
-      .out      = {"atmospheric_field"},
-      .in       = {"atmospheric_field"},
-      .gin      = {"alt", "lat", "lon", "extrapolation"},
-      .gin_type = {"AscendingGrid", "AscendingGrid", "AscendingGrid", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String{"Nearest"}},
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field",
+                    "altitude_grid",
+                    "latitude_grid",
+                    "longitude_grid"},
+      .gin       = {"extrapolation"},
+      .gin_type  = {"String"},
+      .gin_value = {String{"Nearest"}},
       .gin_desc =
-          {"The altitude grid",
-           "The latitude grid",
-           "The longitude grid",
-           "The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
+          {"The extrapolation to use (post regridding - pre regridding the current extrapolation is used)"},
   };
 
   wsm_data["absorption_speciesDefineAll"] = {
@@ -755,7 +745,7 @@ spherical harmonics and is only valid for a limited time period.
   };
 
   wsm_data["frequency_gridFitNonLTE"] = {
-      .desc      = "Frequency grid useful for *atmospheric_fieldFitNonLTE*\n",
+      .desc      = "Frequency grid useful for *atmospheric_profileFitNonLTE*\n",
       .author    = {"Richard Larsson"},
       .out       = {"frequency_grid"},
       .in        = {"absorption_bands"},
@@ -763,15 +753,56 @@ spherical harmonics and is only valid for a limited time period.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
       .gin_desc =
-          {R"--(Frequency grid spacing around the line-center.  The range will be f0 * (1-df) to f0 * (1 +df) of each absorption line..)--",
+          {R"--(Frequency grid spacing around the line-center.  The range will be f0 * (1-df) to f0 * (1 +df) of each absorption line.)--",
            R"--(Number of frequency points per line.)--"},
   };
 
-  wsm_data["atmospheric_fieldFitNonLTE"] = {
+  wsm_data["atmospheric_fieldFromProfile"] = {
+      .desc =
+          R"--(Sets the atmospheric field to the atmospheric profile.
+
+The top of the atmosphere is the last value of the altitude grid.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_profile", "altitude_grid"},
+      .gin       = {"altitude_extrapolation"},
+      .gin_type  = {"InterpolationExtrapolation"},
+      .gin_value = {InterpolationExtrapolation::Linear},
+      .gin_desc  = {"Extrapolation method along the altitude grid"},
+  };
+
+  wsm_data["atmospheric_profileExtract"] = {
+      .desc =
+          R"--(Extract an atmospheric profile.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_profile"},
+      .in     = {"atmospheric_field", "altitude_grid", "latitude", "longitude"},
+  };
+
+  wsm_data["atmospheric_profileFromGrid"] = {
+      .desc =
+          R"--(Extract an atmospheric profile and its grids.
+
+The key is used to find a *GriddedField3* in the atmospheric field.  Its grids
+must form a profile.  The profile is extracted and returned.  The grids are
+returned as well.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_profile", "altitude_grid", "latitude", "longitude"},
+      .in  = {"atmospheric_field"},
+      .gin = {"key"},
+      .gin_type  = {"AtmKey"},
+      .gin_value = {AtmKey::t},
+      .gin_desc  = {"Key to find the *GriddedField3* in the atmospheric field"},
+  };
+
+  wsm_data["atmospheric_profileFitNonLTE"] = {
       .desc =
           R"--(Fits non-LTE distributions to the level data.
 
-The spectral flux is computed from the *ray_path_field*.
+The spectral flux is computed from the pseudo-2D assumption.
 
 This method fits non-LTE distributions to the level data in the
 atmospheric field.  It only works for absorption band data that
@@ -804,69 +835,50 @@ convergence criterion.  Alternatively, the iteration is halted if the iteration 
 is breached.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field",
+      .out       = {"atmospheric_profile"},
+      .in        = {"atmospheric_profile",
                     "absorption_bands",
-                    "ray_path_field",
                     "propagation_matrix_agenda",
-                    "spectral_radiance_space_agenda",
-                    "spectral_radiance_surface_agenda",
                     "surface_field",
-                    "frequency_grid"},
+                    "frequency_grid",
+                    "altitude_grid",
+                    "latitude",
+                    "longitude"},
       .gin       = {"collision_data",
                     "levels",
-                    "convergence_criterion",
-                    "iteration_limit"},
+                    "pol",
+                    "azimuth",
+                    "dza",
+                    "convergence_limit",
+                    "iteration_limit",
+                    "consider_limb"},
       .gin_type  = {"QuantumIdentifierGriddedField1Map",
                     "ArrayOfQuantumIdentifier",
+                    "Stokvec",
                     "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Index",
                     "Index"},
-      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    Stokvec{1.0, 0.0, 0.0, 0.0},
+                    Numeric{0.0},
+                    Numeric{5.0},
+                    Numeric{1e-6},
+                    Index{100},
+                    Index{1}},
       .gin_desc =
           {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
-           "The order of the energy levels (if empty, the order is taken from the line-data)",
+           "The order of the energy levels",
+           "The polarization selection vector (use the default unless you know what you are doing)",
+           "The azimuth of the radiation",
+           "The zenith angle limit for the internal call to *zenith_gridProfilePseudo2D*",
            "Convergence criterion for the energy level distribution",
-           "Maximum number of iterations"},
+           "Maximum number of iterations",
+           "Whether to add extra limb points in *zenith_gridProfilePseudo2D*"},
       .pass_workspace = true,
   };
-
-  /*  For testing...
-  wsm_data["atmospheric_fieldDisortFitNonLTE"] = {
-      .desc =
-          R"--(
-Same as *atmospheric_fieldFitNonLTE* but uses Disort to compute the spectral flux.
-
-Note that the state of *disort_settings* is changed by this method to be the latest
-iteration.  Also note that the input settings must be valid for a call to
-*disort_spectral_flux_fieldCalc* as is.  Subsequent iterations,
-*ray_path_propagation_matrixFromPath*, *disort_settingsOpticalThicknessFromPath*, and
-*disort_settingsLayerNonThermalEmissionLinearInTau* are used to update the state of the disort settings.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atmospheric_field", "disort_settings"},
-      .in        = {"atmospheric_field",
-                    "disort_settings",
-                    "absorption_bands",
-                    "ray_path",
-                    "propagation_matrix_agenda",
-                    "frequency_grid"},
-      .gin       = {"collision_data",
-                    "levels",
-                    "convergence_criterion",
-                    "iteration_limit"},
-      .gin_type  = {"QuantumIdentifierGriddedField1Map",
-                    "ArrayOfQuantumIdentifier",
-                    "Numeric",
-                    "Index"},
-      .gin_value = {std::nullopt, std::nullopt, 1e-6, Index{100}},
-      .gin_desc =
-          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
-           "The order of the energy levels (if empty, the order is taken from the line-data)",
-           "Convergence criterion for the energy level distribution",
-           "Maximum number of iterations"},
-      .pass_workspace = true,
-  };
-  */
 
   wsm_data["atmospheric_fieldInit"] = {
       .desc =
@@ -978,22 +990,6 @@ Sets N2 and O2 speces
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
 
-  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
-      .desc      = R"--(Gets the atmospheric points along the path.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_atmospheric_point"},
-      .in        = {"ray_path_atmospheric_point"},
-      .gin       = {"extended_max_pressure",
-                    "extended_min_pressure",
-                    "extrapolation_option"},
-      .gin_type  = {"Numeric", "Numeric", "String"},
-      .gin_value = {Numeric{NAN}, Numeric{NAN}, String{"Nearest"}},
-      .gin_desc  = {R"--(Maximum pressure to extend to.)--",
-                    R"--(Minimum pressure to extend to.)--",
-                    R"--(Extrapolation option.)--"},
-  };
-
   wsm_data["frequency_gridWindShift"] = {
       .desc =
           R"--(Applies wind shift to the *frequency_grid* for the local frequency grid.
@@ -1021,6 +1017,15 @@ If the wind is 0 or nan
       .gin_desc  = {R"--(Maximum pressure to extend to.)--",
                     R"--(Minimum pressure to extend to.)--",
                     R"--(Extrapolation option.)--"},
+  };
+
+  wsm_data["ray_path_atmospheric_pointFromProfile"] = {
+      .desc =
+          R"--(Set ``ray_path_atmospheric_point = atmospheric_profile``.  Purely compositional.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_atmospheric_point"},
+      .in     = {"atmospheric_profile"},
   };
 
   wsm_data["ray_path_atmospheric_pointFromPath"] = {
@@ -1898,7 +1903,7 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
   };
 
   wsm_data["atmospheric_fieldHydrostaticPressure"] = {
-      .desc   = R"-x-(Add the hydrostatic pressure to the atmospheric field
+      .desc      = R"-x-(Add the hydrostatic pressure to the atmospheric field
     
 The field must already be able to compute temperature as a function of
 altitude, latitude, and longitude.
@@ -1917,24 +1922,20 @@ as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
 )-x-",
-      .author = {"Richard Larsson"},
-      .out    = {"atmospheric_field"},
-      .in     = {"atmospheric_field", "gravity_operator"},
-      .gin    = {"p0",
-                 "alts",
-                 "fixed_specific_gas_constant",
-                 "fixed_atmospheric_temperature",
-                 "hydrostatic_option"},
-      .gin_type =
-          {"GriddedField2,Numeric", "Vector", "Numeric", "Numeric", "String"},
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field", "gravity_operator", "altitude_grid"},
+      .gin       = {"p0",
+                    "fixed_specific_gas_constant",
+                    "fixed_atmospheric_temperature",
+                    "hydrostatic_option"},
+      .gin_type  = {"GriddedField2,Numeric", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
-                    std::nullopt,
                     Numeric{-1},
                     Numeric{-1},
                     String{"HydrostaticEquation"}},
       .gin_desc =
           {"Lowest altitude pressure field",
-           "Altitude vector",
            "Specific gas constant if larger than 0",
            "Constant atmospheric temprature if larger than 0",
            "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"},
@@ -1967,12 +1968,22 @@ Gets the ellispoid from *surface_field*
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda",
                          "surface_field",
-                         "frequency_grid"},
-      .gin            = {"altitude_grid"},
-      .gin_type       = {"AscendingGrid"},
-      .gin_value      = {std::nullopt},
-      .gin_desc       = {"Altitude grid for the spectral flux profile"},
+                         "frequency_grid",
+                         "altitude_grid"},
       .pass_workspace = true,
+  };
+
+  wsm_data["spectral_flux_profileFromSpectralRadianceField"] = {
+      .desc =
+          R"--(Computes the spectral flux.  The input field must be a profile.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_flux_profile"},
+      .in        = {"spectral_radiance_field"},
+      .gin       = {"pol"},
+      .gin_type  = {"Stokvec"},
+      .gin_value = {Stokvec{1.0, 0.0, 0.0, 0.0}},
+      .gin_desc  = {"Polarization vector for the spectral flux profile"},
   };
 
   wsm_data["flux_profileIntegrate"] = {
@@ -1993,7 +2004,7 @@ Gets the ellispoid from *surface_field*
       .out    = {"nlte_line_flux_profile"},
       .in     = {"spectral_flux_profile",
                  "absorption_bands",
-                 "ray_path_atmospheric_point",
+                 "atmospheric_profile",
                  "frequency_grid"},
   };
 
@@ -3059,26 +3070,26 @@ Options:
       .desc =
           R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path"},
-      .in        = {"atmospheric_field", "surface_field"},
-      .gin       = {"latitude", "longitude", "max_step"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
-      .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
+      .gin    = {"max_step"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e3}},
+      .gin_desc  = {"The maximum step length"},
   };
 
   wsm_data["ray_pathGeometricDownlooking"] = {
       .desc =
           R"--(Wraps *ray_pathGeometric* for straight downlooking paths from the top-of-the-atmosphere altitude
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path"},
-      .in        = {"atmospheric_field", "surface_field"},
-      .gin       = {"latitude", "longitude", "max_step"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}},
-      .gin_desc  = {"The Latitude", "The Longitude", "The maximum step length"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
+      .gin    = {"max_step"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e3}},
+      .gin_desc  = {"The maximum step length"},
   };
 
   wsm_data["ray_pathGeometric"] = {
@@ -3156,7 +3167,7 @@ bad angles if this is turned off.
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
-      .desc     = R"--(Set up a 1D spectral radiance operator
+      .desc           = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
 a 1D atmospheric profile.
@@ -3165,23 +3176,61 @@ This method will share line-by-line,cross-section, collision-induced absorption,
 predefined model data with the workspace (if they exist already when this method is
 called).
 )--",
-      .author   = {"Richard Larsson"},
-      .out      = {"spectral_radiance_operator"},
-      .in       = {"atmospheric_field", "surface_field"},
-      .gin      = {"altitude_grid",
-                   "latitude",
-                   "longitude",
-                   "cia_extrapolation",
-                   "cia_robust"},
-      .gin_type = {"AscendingGrid", "Numeric", "Numeric", "Numeric", "Index"},
-      .gin_value =
-          {std::nullopt, Numeric{0.0}, Numeric{0.0}, Numeric{0.0}, Index{0}},
-      .gin_desc       = {"The altitude grid",
-                         "The latitude",
-                         "The longitude",
-                         "The extrapolation distance for cia",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance_operator"},
+      .in             = {"atmospheric_field",
+                         "surface_field",
+                         "altitude_grid",
+                         "latitude",
+                         "longitude"},
+      .gin            = {"cia_extrapolation", "cia_robust"},
+      .gin_type       = {"Numeric", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{0}},
+      .gin_desc       = {"The extrapolation distance for cia",
                          "The robustness of the cia extrapolation"},
       .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radiance_fieldProfilePseudo2D"] = {
+      .desc =
+          R"--(Computes the spectral radiance field assuming a profile and a pseudo-2D path.
+
+A profile is defined as having space blackbody emission from the top and surface temperature
+blackbody emissision from the surface.
+
+Limb paths are only considered when the zenith angle misses the next lower level using the
+same mechanism as in *zenith_gridProfilePseudo2D*.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance_field"},
+      .in             = {"propagation_matrix_agenda",
+                         "atmospheric_profile",
+                         "surface_field",
+                         "frequency_grid",
+                         "zenith_grid",
+                         "altitude_grid",
+                         "latitude",
+                         "longitude"},
+      .gin            = {"azimuth"},
+      .gin_type       = {"Numeric"},
+      .gin_value      = {Numeric{0}},
+      .gin_desc       = {"The azimuth"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["zenith_gridProfilePseudo2D"] = {
+      .desc =
+          R"--(A custom zenith grid for *spectral_radiance_fieldProfilePseudo2D*
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"zenith_grid"},
+      .in        = {"surface_field", "altitude_grid", "latitude", "longitude"},
+      .gin       = {"dza", "azimuth", "consider_limb"},
+      .gin_type  = {"Numeric", "Numeric", "Index"},
+      .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
+      .gin_desc  = {"The zenith grid max step size",
+                    "The azimuth",
+                    "Whether or not special care is given to the limb"},
   };
 
   wsm_data["spectral_radiance_fieldFromOperatorPlanarGeometric"] = {
@@ -3196,15 +3245,13 @@ Limitations:
 
 - The zenith grid is not allowed to contain the value 90 degrees.
 )--",
-      .author    = {"Richard Larsson"},
-      .gout      = {"spectral_radiance_field"},
-      .gout_type = {"StokvecGriddedField6"},
-      .gout_desc = {"The spectral radiance field"},
-      .in        = {"spectral_radiance_operator", "frequency_grid"},
-      .gin       = {"zenith_grid", "azimuth_grid"},
-      .gin_type  = {"AscendingGrid", "AscendingGrid"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc  = {"The zenith grid", "The azimuth grid"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance_field"},
+      .in     = {"spectral_radiance_operator", "frequency_grid", "zenith_grid"},
+      .gin    = {"azimuth_grid"},
+      .gin_type  = {"AscendingGrid"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The azimuth grid"},
   };
 
   wsm_data["spectral_radiance_fieldFromOperatorPath"] = {
@@ -3219,16 +3266,15 @@ If the code is not already in parallel operation mode when this method is called
 the first 5 dimensions are computed in parallel.
 )--",
       .author         = {"Richard Larsson"},
-      .gout           = {"spectral_radiance_field"},
-      .gout_type      = {"StokvecGriddedField6"},
-      .gout_desc      = {"The spectral radiance field"},
+      .out            = {"spectral_radiance_field"},
       .in             = {"spectral_radiance_operator",
                          "ray_path_observer_agenda",
-                         "frequency_grid"},
-      .gin            = {"zenith_grid", "azimuth_grid"},
-      .gin_type       = {"AscendingGrid", "AscendingGrid"},
-      .gin_value      = {std::nullopt, std::nullopt},
-      .gin_desc       = {"The zenith grid", "The azimuth grid"},
+                         "frequency_grid",
+                         "zenith_grid"},
+      .gin            = {"azimuth_grid"},
+      .gin_type       = {"AscendingGrid"},
+      .gin_value      = {std::nullopt},
+      .gin_desc       = {"The azimuth grid"},
       .pass_workspace = true,
   };
 
@@ -3798,21 +3844,19 @@ have sorted *suns* by distance before running this code.
     with the effective temperature of the sun. The blackbody sun
     strongly overestimates the UV radiation.
 )--",
-      .author = {"Jon Petersen", "Richard Larsson"},
-      .out    = {"sun"},
-      .in     = {"frequency_grid"},
-      .gin    = {"radius", "distance", "temperature", "latitude", "longitude"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
-      .gin_value = {6.963242e8, 1.495978707e11, 5772.0, 0.0, 0.0},
+      .author    = {"Jon Petersen", "Richard Larsson"},
+      .out       = {"sun"},
+      .in        = {"frequency_grid", "latitude", "longitude"},
+      .gin       = {"radius", "distance", "temperature"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric"},
+      .gin_value = {6.963242e8, 1.495978707e11, 5772.0},
       .gin_desc =
           {"The radius of the sun in meter. "
            "Default is the radius of our sun. ",
            "The average distance between the sun and the planet in meter. "
            "Default value is set to 1 a.u. ",
            "The effective temperature of the suns photosphere in Kelvin. "
-           "Default is the temperature of our sun - 5772 Kelvin ",
-           "The latitude or the zenith position of the sun in the sky. ",
-           "The longitude or azimuthal position of the sun in the sky. "},
+           "Default is the temperature of our sun - 5772 Kelvin "},
   };
 
   wsm_data["sunFromGrid"] = {
@@ -3838,37 +3882,22 @@ The point of *frequency_grid* that are outside the data frequency grid
 are initialized according to planck's law of the temperature variable.
 Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
 )",
-      .author    = {"Jon Petersen", "Richard Larsson"},
-      .out       = {"sun"},
-      .in        = {"frequency_grid"},
-      .gin       = {"sun_spectrum_raw",
-                    "radius",
-                    "distance",
-                    "temperature",
-                    "latitude",
-                    "longitude",
-                    "description"},
-      .gin_type  = {"GriddedField2",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "String"},
-      .gin_value = {std::nullopt,
-                    6.963242e8,
-                    1.495978707e11,
-                    5772.0,
-                    0.0,
-                    0.0,
-                    String{"A sun"}},
+      .author   = {"Jon Petersen", "Richard Larsson"},
+      .out      = {"sun"},
+      .in       = {"frequency_grid", "latitude", "longitude"},
+      .gin      = {"sun_spectrum_raw",
+                   "radius",
+                   "distance",
+                   "temperature",
+                   "description"},
+      .gin_type = {"GriddedField2", "Numeric", "Numeric", "Numeric", "String"},
+      .gin_value =
+          {std::nullopt, 6.963242e8, 1.495978707e11, 5772.0, String{"A sun"}},
       .gin_desc =
           {"A raw spectrum",
            "The radius of the sun in meter. Default is the radius of our sun. ",
            "The average distance between the sun and the planet in meter. Default value is set to 1 a.u. ",
            "The effective temperature of the suns photosphere in Kelvin. Default is the temperature of our sun - 5772 Kelvin ",
-           "The latitude or the zenith position of the sun in the sky. ",
-           "The longitude or azimuthal position of the sun in the sky. ",
            "A description of the sun."},
   };
 
@@ -4667,20 +4696,17 @@ Below is an example using this method to create a *ray_path_field*.
             x, draw_za_aa=True, draw_map=False, fig=f, axes=a
         )
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_observers"},
-      .in  = {"atmospheric_field", "surface_field", "ray_path_observer_agenda"},
-      .gin = {"lat", "lon", "azimuth", "nup", "nlimb", "ndown"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index", "Index", "Index"},
-      .gin_value = {Numeric{0.0},
-                    Numeric{0.0},
-                    Numeric{0.0},
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
-      .gin_desc  = {"Latitude",
-                    "Longitude",
-                    "Azimuth angle for the observer",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_observers"},
+      .in        = {"atmospheric_field",
+                    "surface_field",
+                    "ray_path_observer_agenda",
+                    "latitude",
+                    "longitude"},
+      .gin       = {"azimuth", "nup", "nlimb", "ndown"},
+      .gin_type  = {"Numeric", "Index", "Index", "Index"},
+      .gin_value = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc  = {"Azimuth angle for the observer",
                     "Number of upward looking observers (min 2)",
                     "Number of limb looking observers (min 2)",
                     "Number of downward looking observers (min 2)"},

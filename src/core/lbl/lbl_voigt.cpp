@@ -23,7 +23,7 @@ void compute_voigt(VectorView y,
            const AscendingGrid& f_grid,
            const AtmPoint& atm,
            const Numeric mass) {
-  assert(y.size() == f.size());
+  assert(y.size() == f_grid.size());
 
   constexpr Numeric dop = Constant::doppler_broadening_const_squared;
 

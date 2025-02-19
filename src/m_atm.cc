@@ -605,8 +605,8 @@ struct atmospheric_fieldHydrostaticPressureData {
 void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
+    const AscendingGrid &alts,
     const GriddedField2 &p0,
-    const Vector &alts,
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
@@ -716,8 +716,8 @@ void atmospheric_fieldHydrostaticPressure(
 void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
+    const AscendingGrid &alts,
     const Numeric &p0,
-    const Vector &alts,
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
@@ -740,8 +740,8 @@ void atmospheric_fieldHydrostaticPressure(
 
   atmospheric_fieldHydrostaticPressure(atmospheric_field,
                                        gravity_operator,
-                                       p0_field,
                                        alts,
+                                       p0_field,
                                        fixed_specific_gas_constant,
                                        fixed_atm_temperature,
                                        hydrostatic_option);
@@ -797,65 +797,70 @@ lon: {:Bs,} [{} elements]
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
                              const ScatteringSpeciesProperty &key,
-                             const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No scattering species key "{}" in atmospheric_field)", key)
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No scattering species key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
                              const SpeciesEnum &key,
-                             const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No VMR key "{}" in atmospheric_field)", key)
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No VMR key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
                              const SpeciesIsotope &key,
-                             const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No isotopologue ratio key "{}" in atmospheric_field)", key)
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No isotopologue ratio key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
+                             const AscendingGrid &alt,
+                             const AscendingGrid &lat,
+                             const AscendingGrid &lon,
                              const QuantumIdentifier &key,
-                             const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No NLTE key "{}" in atmospheric_field)", key)
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No NLTE key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
-                             const AtmKey &key,
                              const AscendingGrid &alt,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
+                             const AtmKey &key,
                              const String &extrapolation) {
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.contains(key), R"(No atmospheric key "{}" in atmospheric_field)", key)
+  ARTS_USER_ERROR_IF(not atmospheric_field.contains(key),
+                     R"(No atmospheric key "{}" in atmospheric_field)",
+                     key)
 
   atmospheric_fieldRegridTemplate(
       atmospheric_field[key], key, alt, lat, lon, extrapolation);
@@ -885,4 +890,20 @@ void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
   for (auto &[key, data] : atmospheric_field.map<AtmKey>()) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
+}
+
+void atmospheric_fieldFromProfile(
+    AtmField &atmospheric_field,
+    const ArrayOfAtmPoint &atmospheric_profile,
+    const AscendingGrid &altitude_grid,
+    const InterpolationExtrapolation &altitude_extrapolation) {
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(atmospheric_profile, altitude_grid),
+      "Mismatch in size between atmospheric_profile and altitude_grid");
+  ARTS_USER_ERROR_IF(altitude_grid.empty(), "Empty altitude grid")
+
+  atmospheric_field = Atm::atm_from_profile(atmospheric_profile,
+                                            altitude_grid,
+                                            altitude_extrapolation,
+                                            altitude_grid.back());
 }

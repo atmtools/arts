@@ -36,44 +36,6 @@
 #include "oem.h"
 #endif
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldClip(Tensor4& vmr_field,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const String& species,
-                   const Numeric& limit_low,
-                   const Numeric& limit_high) {
-  Index iq = -1;
-  if (species == "ALL") {
-  }
-
-  else {
-    for (Size i = 0; i < abs_species.size(); i++) {
-      if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-        iq = i;
-        break;
-      }
-    }
-    ARTS_USER_ERROR_IF(iq < 0, "Could not find {} in abs_species.\n", species)
-  }
-
-  Tensor4Clip(vmr_field, iq, limit_low, limit_high);
-}
-
-void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
-                                     const JacobianTargets& jacobian_targets,
-                                     const Vector& retrieval_values) {
-  ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
-                     sz not_eq static_cast<Size>(retrieval_values.size()),
-                     "Mismatch between size expected of jacobian_targets ("
-                     "{}) and retrieval_values ({})",
-                     sz,
-                     retrieval_values.size())
-
-  for (auto& target : jacobian_targets.atm()) {
-    target.update(atm_field, retrieval_values);
-  }
-}
-
 void model_state_vector_aprioriFromState(Vector& xa, const Vector& x) {
   xa = x;
 }
