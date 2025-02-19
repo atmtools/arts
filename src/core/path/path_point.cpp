@@ -703,7 +703,7 @@ struct Intersections {
   bool second_is_valid;
 };
 
-constexpr Intersections pair_line_ellipsoid_intersect(
+Intersections pair_line_ellipsoid_intersect(
     const PropagationPathPoint& path,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
