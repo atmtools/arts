@@ -578,6 +578,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
+
       const Numeric x =
           1.0 -
           std::midpoint((inv(ray_path_propagation_matrix_scattering[i][iv]) *

@@ -1,5 +1,7 @@
 #include "psd.h"
 
+namespace scattering {
+
 Vector MGDSingleMoment::evaluate(const AtmPoint& point,
                                  const Vector& particle_sizes,
                                  const Numeric& scat_species_a,
@@ -56,4 +58,6 @@ Vector MGDSingleMoment::evaluate(const AtmPoint& point,
                        false,   // lambda jacobian
                        false);  // gamma jacobian
   return psd;
+}
+
 }

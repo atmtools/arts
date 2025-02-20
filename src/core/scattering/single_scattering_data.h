@@ -1,11 +1,15 @@
 #pragma once
 
 #include <optional>
+#include <ranges>
 
+#include "mie.h"
 #include "optproperties.h"
 #include "scattering/absorption_vector.h"
 #include "scattering/extinction_matrix.h"
 #include "scattering/phase_matrix.h"
+#include "scattering/psd.h"
+
 
 namespace scattering {
 
@@ -36,6 +40,55 @@ template <std::floating_point Scalar,
           Representation repr>
 struct SingleScatteringData {
  public:
+
+  static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>
+  liquid_sphere(const StridedVectorView &t_grid,
+                const StridedVectorView &f_grid,
+                Numeric diameter,
+                const ZenithAngleGrid &za_grid) {
+
+    auto t_grid_ptr = std::make_shared<Vector>(t_grid);
+    auto f_grid_ptr = std::make_shared<Vector>(f_grid);
+    auto za_grid_ptr = std::make_shared<ZenithAngleGrid>(za_grid);
+
+    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase_matrix(t_grid_ptr,
+                                                                                f_grid_ptr,
+                                                                                za_grid_ptr);
+    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction_matrix(t_grid_ptr, f_grid_ptr);
+    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption_vector(t_grid_ptr, f_grid_ptr);
+    BackscatterMatrixData<Numeric, Format::TRO> backscatter_matrix(t_grid_ptr, f_grid_ptr);
+    ForwardscatterMatrixData<Numeric, Format::TRO> forwardscatter_matrix(t_grid_ptr, f_grid_ptr);
+
+    for (size_t temp_ind = 0; temp_ind < t_grid_ptr->size(); ++temp_ind) {
+      Numeric temp = t_grid_ptr->operator[](temp_ind);
+      for (size_t freq_ind = 0; freq_ind < f_grid_ptr->size(); ++freq_ind) {
+        Numeric freq = f_grid_ptr->operator[](freq_ind);
+        auto sphere = MieSphere<Scalar>::Liquid(freq, temp, diameter / 2.0, grid_vector(*za_grid_ptr));
+        phase_matrix[temp_ind, freq_ind] = sphere.get_scattering_matrix_compact();
+        extinction_matrix[temp_ind, freq_ind] = sphere.get_extinction_coeff();
+        absorption_vector[temp_ind, freq_ind] = sphere.get_absorption_coeff();
+      }
+    }
+
+    auto pprops = ParticleProperties{
+      "Mie Sphere",
+      "ARTS Mie solver",
+      "Ellison (2007)",
+      1e3 * 4.0 * Constant::pi * std::pow(diameter / 2.0, 3),
+      diameter,
+      diameter
+    };
+
+    return SingleScatteringData(pprops,
+                                phase_matrix,
+                                extinction_matrix,
+                                absorption_vector,
+                                backscatter_matrix,
+                                forwardscatter_matrix);
+
+  }
+
+
   static SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>
   from_legacy_tro(::SingleScatteringData ssd, ::ScatteringMetaData smd) {
     ARTS_USER_ERROR_IF(
@@ -74,19 +127,20 @@ struct SingleScatteringData {
       }
     }
 
+    //auto backscatter_matrix = BackscatterMatrixData<Numeric, Format::TRO>{t_grid, f_grid,};// = phase_matrix.extract_backscatter_matrix();
     auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
-    auto forwardscatter_matrix = phase_matrix.extract_forwardscatter_matrix();
+    auto forwardscatter_matrix = ForwardscatterMatrixData<Numeric, Format::TRO>{t_grid, f_grid};// = phase_matrix.extract_forwardscatter_matrix();
 
     auto properties = ParticleProperties{
       smd.description, smd.source, smd.refr_index, smd.mass, smd.diameter_volume_equ, smd.diameter_max
     };
 
     return SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>(properties,
-                                                                                  phase_matrix,
-                                                                                  extinction_matrix,
-                                                                                  absorption_vector,
-                                                                                  backscatter_matrix,
-                                                                                  forwardscatter_matrix);
+                                                                               phase_matrix,
+                                                                               extinction_matrix,
+                                                                               absorption_vector,
+                                                                               backscatter_matrix,
+                                                                               forwardscatter_matrix);
   }
 
   /** Create SingleScatteringData container without particle propreties.
@@ -133,6 +187,101 @@ struct SingleScatteringData {
         absorption_vector(absorption_vector_),
         backscatter_matrix(backscatter_matrix_),
         forwardscatter_matrix(forwardscatter_matrix_) {}
+
+  /** Create SingleScatteringDat container with particle propreties.
+   *
+   * @param properties_ The properties of the particle.
+   * @param phase_matrix_ The phase matrix data.
+   * @param extinction_matrix_ The extinction matrix data.
+   * @param absorption_vector_ The absorption vector data.
+   * @param backscatter_matrix_ The backscatter matrix.
+   * @param forwardscatter_matrix_ The forwardscatter matrix.
+   */
+  SingleScatteringData(
+      std::optional<ParticleProperties> properties_,
+      std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix_,
+      ExtinctionMatrixData<Scalar, format, repr> extinction_matrix_,
+      AbsorptionVectorData<Scalar, format, repr> absorption_vector_,
+      BackscatterMatrixData<Scalar, format> backscatter_matrix_,
+      ForwardscatterMatrixData<Scalar, format> forwardscatter_matrix_
+                       )
+      : properties(properties_),
+        phase_matrix(phase_matrix_),
+        extinction_matrix(extinction_matrix_),
+        absorption_vector(absorption_vector_),
+        backscatter_matrix(backscatter_matrix_),
+        forwardscatter_matrix(forwardscatter_matrix_) {}
+
+  SingleScatteringData(const SingleScatteringData &) = default;
+
+  constexpr Format get_format() const noexcept {
+    return format;
+  }
+
+   constexpr Representation get_representation() const noexcept {
+    return repr;
+  }
+
+  std::optional<Numeric> get_mass() const {
+    auto extract_size = [](const ParticleProperties &part_props) {return part_props.mass;};
+    return properties.transform(extract_size);
+  }
+
+  std::optional<Numeric> get_size(SizeParameter param) const {auto extract_size = [&param](const ParticleProperties &part_props) {
+      if (param ==  SizeParameter::Mass) {
+        return part_props.mass;
+      } else if (param == SizeParameter::DMax) {
+        return part_props.d_max;
+      } else if (param == SizeParameter::DVeq) {
+        return part_props.d_veq;
+      }
+      ARTS_USER_ERROR("Encountered unsupported size parameter.");
+    };
+    return properties.transform(extract_size);
+  }
+
+  SingleScatteringData regrid(const ScatteringDataGrids grids,
+                              const RegridWeights weights) const {
+    return SingleScatteringData(properties,
+                                phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
+                                extinction_matrix.regrid(grids, weights),
+                                absorption_vector.regrid(grids, weights),
+                                backscatter_matrix.regrid(grids, weights),
+                                forwardscatter_matrix.regrid(grids, weights));
+  }
+
+  SingleScatteringData regrid(const ScatteringDataGrids grids) const {
+    return SingleScatteringData(properties,
+                                phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
+                                extinction_matrix.regrid(grids),
+                                absorption_vector.regrid(grids),
+                                backscatter_matrix.regrid(grids),
+                                forwardscatter_matrix.regrid(grids));
+  }
+
+  SingleScatteringData<Numeric, format, Representation::Spectral> to_spectral(Index l, Index m=0) const {
+    ARTS_USER_ERROR_IF((format == Format::TRO) && (m > 0),
+                       "Order of SHT representation must be 0 for scattering data in TRO format");
+    auto new_phase_matrix = phase_matrix.transform([&l, &m](const auto &pm) {return pm.to_spectral(l, m);});
+    return SingleScatteringData<Numeric, format, Representation::Spectral>(properties,
+                                                                           new_phase_matrix,
+                                                                           extinction_matrix.to_spectral(),
+                                                                           absorption_vector.to_spectral(),
+                                                                           backscatter_matrix,
+                                                                           forwardscatter_matrix);
+  }
+
+  SingleScatteringData<Numeric, format, Representation::Gridded> to_gridded() const {
+    auto new_phase_matrix = phase_matrix.transform([](const auto &pm) {return pm.to_gridded();});
+    return SingleScatteringData<Numeric, format, Representation::Gridded>(properties,
+                                                                          new_phase_matrix,
+                                                                          extinction_matrix.to_gridded(),
+                                                                          absorption_vector.to_gridded(),
+                                                                          backscatter_matrix.to_gridded(),
+                                                                          forwardscatter_matrix.to_gridded());
+  }
+
+
 
   std::optional<ParticleProperties> properties;
   std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix;

@@ -4556,8 +4556,8 @@ Note that you must have set the optical thickness before calling this.
       .in     = {"frequency_grid",
                  "ray_path",
                  "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
+                 "disort_legendre_polynomial_dimension",
+                 "disort_fourier_mode_dimension"},
   };
 
   wsm_data["disort_spectral_radiance_fieldCalc"] = {
