@@ -6,6 +6,8 @@ void ray_path_spectral_radianceStepByStepEmissionForwardOnly(
     const ArrayOfMuelmatVector& ray_path_transmission_matrix,
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const StokvecVector& spectral_radiance_background) try {
+  ARTS_TIME_REPORT
+
   ray_path_spectral_radiance.resize(ray_path_transmission_matrix.size());
   arr::elemwise_resize(spectral_radiance_background.size(),
                        ray_path_spectral_radiance);
@@ -29,6 +31,8 @@ void ray_path_spectral_radianceClearskyEmission(
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surface_field) try {
+  ARTS_TIME_REPORT
+
   PropagationPathPoint ray_path_point;
   ray_path_pointBackground(ray_path_point, ray_path);
   StokvecVector spectral_radiance_background;
@@ -112,6 +116,8 @@ void spectral_flux_profileFromPathField(
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
     const AscendingGrid& altitude_grid) try {
+  ARTS_TIME_REPORT
+
   const Size N = ray_path_field.size();
   const Size M = altitude_grid.size();
   const Size K = frequency_grid.size();
@@ -197,6 +203,8 @@ ARTS_METHOD_ERROR_CATCH
 void flux_profileIntegrate(Vector& flux_profile,
                            const Matrix& spectral_flux_profile,
                            const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
                          spectral_flux_profile.extent(1),
                      "Frequency grid and spectral flux profile size mismatch")
@@ -223,6 +231,8 @@ void nlte_line_flux_profileIntegrate(
     const AbsorptionBands& absorption_bands,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
   const Size K = spectral_flux_profile.extent(0);
   const Size M = spectral_flux_profile.extent(1);
 
@@ -262,6 +272,8 @@ void spectral_flux_profileFromSpectralRadianceField(
     Matrix& spectral_flux_profile,
     const StokvecGriddedField6& spectral_radiance_field,
     const Stokvec& pol) {
+  ARTS_TIME_REPORT
+
   using Constant::pi;
   using Conversion::cosd;
   using Conversion::deg2rad;
