@@ -42,13 +42,13 @@ std::string get_report(bool clear) {
     const auto min = *stdr::min_element(deltas);
 
     total_time.push_back(sum);
-    vec.push_back(std::format("| {0} | {1}ms | {2} | {3}ms | {4}ms | {5}ms |\n",
+    vec.push_back(std::format("| {0} | {1}μs | {3}μs | {4}μs | {5}μs | {2} |\n",
                               name,
-                              std::chrono::duration_cast<std::chrono::milliseconds>(avg).count(),
+                              std::chrono::duration_cast<std::chrono::microseconds>(avg).count(),
                               N,
-                              std::chrono::duration_cast<std::chrono::milliseconds>(min).count(),
-                              std::chrono::duration_cast<std::chrono::milliseconds>(max).count(),
-                              std::chrono::duration_cast<std::chrono::milliseconds>(sum).count()));
+                              std::chrono::duration_cast<std::chrono::microseconds>(min).count(),
+                              std::chrono::duration_cast<std::chrono::microseconds>(max).count(),
+                              std::chrono::duration_cast<std::chrono::microseconds>(sum).count()));
   }
 
   if (clear) profile_report.clear();
@@ -59,8 +59,8 @@ std::string get_report(bool clear) {
       vec);
 
   return std::format(
-      "| Function | Average time | Times called | Min time | Max time | Total time |\n"
-      "| -------- | ------------ | ------------ | -------- | -------- | ---------- |\n"
+      "| Function | Average time | Min time | Max time | Total time | Times called |\n"
+      "| -------- | ------------ | -------- | -------- | ---------- | ------------ |\n"
       "{}",
       vec);
 }
