@@ -11,6 +11,7 @@ from pyarts.arts.rtepack import two_level_exp
 
 
 a, b, c, d, u, v, w = np.random.random((7))
+print(f"a, b, c, d, u, v, w = {a, b, c, d, u, v, w}")
 a += 1
 
 
