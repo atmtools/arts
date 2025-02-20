@@ -21,6 +21,8 @@ void spectral_radiance_jacobianEmpty(
     StokvecMatrix &spectral_radiance_jacobian,
     const AscendingGrid &frequency_grid,
     const JacobianTargets &jacobian_targets) try {
+  ARTS_TIME_REPORT
+
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
                                     frequency_grid.size());
   spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
@@ -31,6 +33,8 @@ void spectral_radiance_jacobianFromBackground(
     StokvecMatrix &spectral_radiance_jacobian,
     const StokvecMatrix &spectral_radiance_background_jacobian,
     const MuelmatVector &background_transmittance) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
           background_transmittance.size(),
@@ -58,6 +62,8 @@ void spectral_radiance_jacobianAddPathPropagation(
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
     const ArrayOfPropagationPathPoint &ray_path) try {
+  ARTS_TIME_REPORT
+
   const auto np = ray_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
   const auto nf = spectral_radiance_jacobian.ncols();
@@ -125,6 +131,8 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radianceFromPathPropagation(
     StokvecVector &spectral_radiance,
     const ArrayOfStokvecVector &ray_path_spectral_radiance) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(ray_path_spectral_radiance.empty(),
                      "Empty ray_path_spectral_radiance")
   spectral_radiance = ray_path_spectral_radiance.front();
@@ -137,11 +145,14 @@ void spectral_radiance_jacobianApplyUnit(
     const AscendingGrid &frequency_grid,
     const PropagationPathPoint &ray_path_point,
     const SpectralRadianceUnitType &spectral_radiance_unit) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
                      "spectral_radiance must have same size as frequency_grid")
   ARTS_USER_ERROR_IF(
       spectral_radiance_jacobian.size() != 0 and
-          static_cast<Size>(spectral_radiance_jacobian.ncols()) != frequency_grid.size(),
+          static_cast<Size>(spectral_radiance_jacobian.ncols()) !=
+              frequency_grid.size(),
       "spectral_radiance must have same size as frequency_grid")
 
   const auto dF =
@@ -163,6 +174,8 @@ void spectral_radianceApplyUnit(
     const AscendingGrid &frequency_grid,
     const PropagationPathPoint &ray_path_point,
     const SpectralRadianceUnitType &spectral_radiance_unit) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
                      "spectral_radiance must have same size as frequency_grid")
   const auto F =
@@ -188,6 +201,8 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
     const Agenda &spectral_radiance_observer_agenda) try {
+  ARTS_TIME_REPORT
+
   /*
   
   This method likely calls itself "recursively" for sensor parameters
@@ -359,6 +374,8 @@ void measurement_vectorFromSensor(
     const SurfaceField &surface_field,
     const SpectralRadianceUnitType &spectral_radiance_unit,
     const Agenda &spectral_radiance_observer_agenda) try {
+  ARTS_TIME_REPORT
+
   measurement_vector.resize(measurement_sensor.size());
   measurement_vector = 0.0;
 

@@ -16,10 +16,14 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <WorkspaceGroup T>
-void Ignore(const T&) {}
+void Ignore(const T&) {
+  ARTS_TIME_REPORT
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <WorkspaceGroup T>
-void Touch(T&) {}
+void Touch(T&) {
+  ARTS_TIME_REPORT
+}
 
 #endif  // m_ignore_h

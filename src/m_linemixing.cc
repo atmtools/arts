@@ -1,24 +1,10 @@
-/**
- * @file m_linemixing.cc
- * @author Richard Larsson
- * @date 2020-06-23
- * 
- * @brief User interface for dealing with pure line mixing calculations
- * 
- * Note: If defined using parameterized form, the normal line-functions
- * approach is faster and more appropriate.  These functions should first
- * compute the relaxation, not simply use the relaxation
- */
-
-#include <matpack.h>
-
-#include <stdexcept>
-
-#include <lbl.h>
+#include <workspace.h>
 
 void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
                         const Vector& vmrs,
                         const ArrayOfSpeciesEnum& specs) {
+                          ARTS_TIME_REPORT
+                        
   ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(),
                      "Mismatch dimension of vmrs and specs")
   ARTS_USER_ERROR_IF(
@@ -75,9 +61,13 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
   }
 }
 
-void ecs_dataInit(LinemixingEcsData& ecs_data) { ecs_data.clear(); }
+void ecs_dataInit(LinemixingEcsData& ecs_data) {
+  ARTS_TIME_REPORT
+ ecs_data.clear(); }
 
 void ecs_dataAddMakarov2020(LinemixingEcsData& ecs_data) {
+  ARTS_TIME_REPORT
+
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
@@ -98,6 +88,8 @@ void ecs_dataAddMakarov2020(LinemixingEcsData& ecs_data) {
 }
 
 void ecs_dataAddRodrigues1997(LinemixingEcsData& ecs_data) {
+  ARTS_TIME_REPORT
+
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
@@ -121,6 +113,8 @@ void ecs_dataAddRodrigues1997(LinemixingEcsData& ecs_data) {
 }
 
 void ecs_dataAddTran2011(LinemixingEcsData& ecs_data) {
+  ARTS_TIME_REPORT
+
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 

@@ -1,10 +1,10 @@
-#include <operators.h>
-
-#include "arts_constants.h"
+#include <workspace.h>
 
 void water_equivalent_pressure_operatorMK05(
     NumericUnaryOperator& water_equivalent_pressure_operator,
     const Index& only_liquid) {
+  ARTS_TIME_REPORT
+
   if (only_liquid) {
     water_equivalent_pressure_operator = NumericUnaryOperator{[](Numeric t) {
       return std::exp(

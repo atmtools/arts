@@ -60,6 +60,7 @@ option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
+option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
@@ -94,6 +95,16 @@ endif()
 
 if(ENABLE_ARTS_LGPL)
   message(STATUS "Compiling ARTS under LGPL")
+endif()
+
+########### ARTS Profiling flag ##########
+
+if (ENABLE_ARTS_PROFILING)
+  add_definitions(-DARTS_PROFILING=1)
+  message(STATUS "Compiling ARTS with time profiling information")
+else()
+  add_definitions(-DARTS_PROFILING=0)
+  message(STATUS "Compiling ARTS without time profiling information")
 endif()
 
 ########### C++20/23 Support ##########

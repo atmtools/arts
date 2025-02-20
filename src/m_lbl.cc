@@ -49,6 +49,8 @@ std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
 void absorption_bandsSelectFrequencyByLine(AbsorptionBands& absorption_bands,
                                            const Numeric& fmin,
                                            const Numeric& fmax) try {
+  ARTS_TIME_REPORT
+
   std::vector<QuantumIdentifier> to_remove;
 
   for (auto& [key, band] : absorption_bands) {
@@ -73,6 +75,8 @@ ARTS_METHOD_ERROR_CATCH
 void absorption_bandsSelectFrequencyByBand(AbsorptionBands& absorption_bands,
                                            const Numeric& fmin,
                                            const Numeric& fmax) try {
+  ARTS_TIME_REPORT
+
   std::vector<QuantumIdentifier> to_remove;
 
   for (auto& [key, band] : absorption_bands) {
@@ -90,6 +94,8 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsRemoveID(AbsorptionBands& absorption_bands,
                               const QuantumIdentifier& id) try {
+  ARTS_TIME_REPORT
+
   absorption_bands.erase(id);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -99,6 +105,8 @@ void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
                         const String& criteria,
                         const Index& reverse,
                         const Numeric& temperature) try {
+  ARTS_TIME_REPORT
+
   struct order {
     QuantumIdentifier qid;
     Numeric value;
@@ -164,6 +172,8 @@ ARTS_METHOD_ERROR_CATCH
 void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
                             const QuantumIdentifier& id,
                             const Index& line) try {
+  ARTS_TIME_REPORT
+
   if (auto ptr = absorption_bands.find(id); ptr != absorption_bands.end()) {
     const auto& [key, band] = *ptr;
 
@@ -190,6 +200,8 @@ void absorption_bandsReadSpeciesSplitCatalog(
     const ArrayOfArrayOfSpeciesTag& absorbtion_species,
     const String& basename,
     const Index& ignore_missing_) try {
+  ARTS_TIME_REPORT
+
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
   absorption_bands.clear();
 
@@ -246,6 +258,8 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
                                const String& dir) try {
+  ARTS_TIME_REPORT
+
   absorption_bands = {};
 
   std::vector<std::filesystem::path> paths;
@@ -291,6 +305,8 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
                                const String& dir) try {
+  ARTS_TIME_REPORT
+
   auto create_if_not = [](const std::filesystem::path& path) {
     if (not std::filesystem::exists(path)) {
       std::filesystem::create_directories(path);
@@ -317,6 +333,8 @@ void absorption_bandsSetZeeman(AbsorptionBands& absorption_bands,
                                const Numeric& fmin,
                                const Numeric& fmax,
                                const Index& _on) try {
+  ARTS_TIME_REPORT
+
   const bool on = static_cast<bool>(_on);
 
   for (auto& [key, band] : absorption_bands) {
@@ -343,6 +361,8 @@ void propagation_matrixAddLines(PropmatVector& pm,
                                 const AtmPoint& atm_point,
                                 const PropagationPathPoint& path_point,
                                 const Index& no_negative_absorption) try {
+  ARTS_TIME_REPORT
+
   const Size n = arts_omp_get_max_threads();
   if (n == 1 or static_cast<Size>(arts_omp_in_parallel()) or
       n > f_grid.size()) {
@@ -397,6 +417,8 @@ void absorption_bandsReadHITRAN(AbsorptionBands& absorption_bands,
                                 const Vector2& frequency_range,
                                 const String& line_strength_option,
                                 const Index& compute_zeeman_parameters) try {
+  ARTS_TIME_REPORT
+
   using namespace Quantum::Number;
 
   const AbsorptionBand default_band{.lines        = {},
@@ -444,6 +466,8 @@ void absorption_bandsLineMixingAdaptation(
     const QuantumIdentifier& band_key,
     const Index& rosenkranz_fit_order,
     const Index& polynomial_fit_degree) try {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(temperatures.empty() or temperatures.front() <= 0.0,
                      "Need a positive temperature grid")
 

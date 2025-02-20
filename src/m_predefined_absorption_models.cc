@@ -26,6 +26,8 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     const String& basename,
     const Index& name_missing_,
     const Index& ignore_missing_) try {
+  ARTS_TIME_REPORT
+
   const bool name_missing   = static_cast<bool>(name_missing_);
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
@@ -62,6 +64,8 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_predefined_model_dataInit(
     PredefinedModelData& absorption_predefined_model_data) {
+  ARTS_TIME_REPORT
+
   absorption_predefined_model_data = PredefinedModelData{};
 }
 
@@ -74,6 +78,8 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
     const Vector& for_absco_ref,
     const Vector& wavenumbers,
     const Vector& self_texp) {
+  ARTS_TIME_REPORT
+
   const auto sz = self_absco_ref.size();
 
   ARTS_USER_ERROR_IF(
@@ -114,6 +120,8 @@ void propagation_matrixAddPredefined(
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       propagation_matrix.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");

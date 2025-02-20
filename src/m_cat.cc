@@ -9,6 +9,8 @@ void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
                      const ArrayOfArrayOfSpeciesTag& absorption_species,
                      const String& basename,
                      const Index& ignore_missing) try {
+  ARTS_TIME_REPORT
+
   absorption_bandsReadSpeciesSplitCatalog(absorption_bands,
                                           absorption_species,
                                           basename + "lines/",

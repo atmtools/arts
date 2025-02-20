@@ -1,5 +1,4 @@
-#include <jacobian.h>
-#include <lookup_map.h>
+#include <workspace.h>
 
 #include <algorithm>
 #include <ranges>
@@ -7,6 +6,8 @@
 
 void absorption_lookup_tableInit(
     AbsorptionLookupTables& absorption_lookup_table) {
+  ARTS_TIME_REPORT
+
   absorption_lookup_table.clear();
 }
 
@@ -25,6 +26,8 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     const Index& water_interp_order,
     const Index& f_interp_order,
     const Numeric& extpolfac) {
+  ARTS_TIME_REPORT
+
   if constexpr (calc) {
     Vector absorption(frequency_grid.size(), 0.0);
 
@@ -151,6 +154,8 @@ void propagation_matrixAddLookup(
     const Index& water_interp_order,
     const Index& f_interp_order,
     const Numeric& extpolfac) try {
+  ARTS_TIME_REPORT
+
   _propagation_matrixAddLookup<false>(propagation_matrix,
                                       propagation_matrix_jacobian,
                                       frequency_grid,
@@ -172,6 +177,8 @@ void ray_path_atmospheric_pointExtendInPressure(
     const Numeric& extended_max_pressure,
     const Numeric& extended_min_pressure,
     const String& extrapolation_option) try {
+  ARTS_TIME_REPORT
+
   lookup::extend_atmosphere(
       ray_path_atmospheric_point,
       to<InterpolationExtrapolation>(extrapolation_option),
@@ -189,6 +196,8 @@ void absorption_lookup_tablePrecompute(
     const SpeciesEnum& select_species,
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation) {
+  ARTS_TIME_REPORT
+
   absorption_lookup_table[select_species] = {
       select_species,
       ray_path_atmospheric_point,
@@ -212,6 +221,8 @@ void absorption_lookup_tablePrecomputeAll(
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation,
     const ArrayOfSpeciesEnum& water_affected_species) {
+  ARTS_TIME_REPORT
+
   const AscendingGrid empty{};
 
   ArrayOfSpeciesEnum lut_species;
@@ -276,13 +287,16 @@ void absorption_lookup_tableFromProfiles(
     const AscendingGrid& water_perturbation,
     const ArrayOfSpeciesEnum& water_affected_species,
     const String& isoratio_option) {
+  ARTS_TIME_REPORT
+
   absorption_lookup_tableInit(absorption_lookup_table);
 
   ArrayOfAtmPoint ray_path_atmospheric_point(
       pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
-  ARTS_USER_ERROR_IF(not same_shape<1>(pressure_profile.vec(), temperature_profile),
-                     "Pressure and temperature profiles must agree in size.");
+  ARTS_USER_ERROR_IF(
+      not same_shape<1>(pressure_profile.vec(), temperature_profile),
+      "Pressure and temperature profiles must agree in size.");
 
   for (Size i = 0; i < pressure_profile.size(); i++) {
     ray_path_atmospheric_point[i].pressure    = pressure_profile[i];
@@ -324,6 +338,8 @@ void absorption_lookup_tableSimpleWide(
     const Index& atmospheric_steps,
     const Index& temperature_perturbation_steps,
     const Index& water_vmr_perturbation_steps) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(pressure_range[1] <= pressure_range[0],
                      "Pressure range must be increasing, got {:B,}",
                      pressure_range);

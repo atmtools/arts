@@ -1,7 +1,7 @@
 #include <arts_omp.h>
-#include <matpack.h>
 #include <obsel.h>
 #include <rtepack.h>
+#include <workspace.h>
 
 #include <boost/math/distributions/normal.hpp>
 #include <numeric>
@@ -10,6 +10,8 @@
 #include "debug.h"
 
 void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
+  ARTS_TIME_REPORT
+
   measurement_sensor = {};
 }
 
@@ -18,6 +20,8 @@ void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
                                  const Vector3& pos,
                                  const Vector2& los,
                                  const Stokvec& pol) try {
+  ARTS_TIME_REPORT
+
   const Index n = frequency_grid.size();
   const Size sz = measurement_sensor.size();
 
@@ -41,10 +45,12 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
                                          const Vector3& pos,
                                          const Vector2& los,
                                          const Stokvec& pol) try {
+  ARTS_TIME_REPORT
+
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  const Size n      = frequency_grid.size();
+  const Size n       = frequency_grid.size();
   const Size sz      = measurement_sensor.size();
   const Size nonzero = pol.nonzero_components();
 
@@ -88,7 +94,9 @@ void measurement_sensorAddSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
                                          const Vector3& pos,
                                          const Vector2& los,
                                          const Stokvec& pol) {
+  ARTS_TIME_REPORT
+
   const Vector stds(frequency_grid.size(), std);
-      measurement_sensorAddVectorGaussian(
-          measurement_sensor, frequency_grid, stds, pos, los, pol);
+  measurement_sensorAddVectorGaussian(
+      measurement_sensor, frequency_grid, stds, pos, los, pol);
 }

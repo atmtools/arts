@@ -56,6 +56,8 @@ Target: {}
 
 void model_state_covariance_matrixInit(
     CovarianceMatrix& model_state_covariance_matrix) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrix = CovarianceMatrix{};
 }
 
@@ -65,6 +67,8 @@ void model_state_covariance_matrixAdd(
     const AtmKeyVal& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
                      "Jacobian targets not finalized.");
 
@@ -88,6 +92,8 @@ void model_state_covariance_matrixAdd(
     const SurfaceKeyVal& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
                      "Jacobian targets not finalized.");
 
@@ -111,6 +117,8 @@ void model_state_covariance_matrixAdd(
     const LblLineKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
                      "Jacobian targets not finalized.");
 
@@ -134,6 +142,8 @@ void model_state_covariance_matrixAdd(
     const SensorKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
                      "Jacobian targets not finalized.");
 
@@ -157,6 +167,8 @@ void model_state_covariance_matrixAdd(
     const ErrorKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
                      "Jacobian targets not finalized.");
 
@@ -180,6 +192,8 @@ void model_state_covariance_matrixAddAtmosphere(
     const AtmKey& key,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{key},
@@ -193,6 +207,8 @@ void model_state_covariance_matrixAddAtmosphere(
     const SpeciesEnum& key,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{key},
@@ -206,6 +222,8 @@ void model_state_covariance_matrixAddAtmosphere(
     const SpeciesIsotope& key,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{key},
@@ -219,6 +237,8 @@ void model_state_covariance_matrixAddAtmosphere(
     const QuantumIdentifier& key,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{key},
@@ -232,6 +252,8 @@ void model_state_covariance_matrixAddSpeciesVMR(
     const SpeciesEnum& species,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{species},
@@ -245,6 +267,8 @@ void model_state_covariance_matrixAddIsotopologueRatio(
     const SpeciesIsotope& species,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{species},
@@ -258,6 +282,8 @@ void model_state_covariance_matrixAddMagneticField(
     const String& component,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    to_mag(component),
@@ -271,6 +297,8 @@ void model_state_covariance_matrixAddWindField(
     const String& component,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    to_wind(component),
@@ -283,6 +311,8 @@ void model_state_covariance_matrixAddTemperature(
     const JacobianTargets& jacobian_targets,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKey::t,
@@ -295,6 +325,8 @@ void model_state_covariance_matrixAddPressure(
     const JacobianTargets& jacobian_targets,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKey::p,
@@ -310,6 +342,8 @@ void measurement_vector_error_covariance_matrixConstant(
     CovarianceMatrix& measurement_vector_error_covariance_matrix,
     const ArrayOfSensorObsel& measurement_sensor,
     const Numeric& x) {
+  ARTS_TIME_REPORT
+
   measurement_vector_error_covariance_matrix = CovarianceMatrix{};
 
   const Size N = measurement_sensor.size();
@@ -333,6 +367,8 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                const SurfaceField& surface_field,
                                const AbsorptionBands& absorption_bands,
                                const ArrayOfSensorObsel& measurement_sensor) {
+  ARTS_TIME_REPORT
+
   jacobian_targetsFinalize(jacobian_targets,
                            atmospheric_field,
                            surface_field,

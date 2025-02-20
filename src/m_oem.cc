@@ -36,32 +36,11 @@
 #include "oem.h"
 #endif
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldClip(Tensor4& vmr_field,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const String& species,
-                   const Numeric& limit_low,
-                   const Numeric& limit_high) {
-  Index iq = -1;
-  if (species == "ALL") {
-  }
-
-  else {
-    for (Size i = 0; i < abs_species.size(); i++) {
-      if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-        iq = i;
-        break;
-      }
-    }
-    ARTS_USER_ERROR_IF(iq < 0, "Could not find {} in abs_species.\n", species)
-  }
-
-  Tensor4Clip(vmr_field, iq, limit_low, limit_high);
-}
-
 void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
                                      const JacobianTargets& jacobian_targets,
                                      const Vector& retrieval_values) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
                      sz not_eq static_cast<Size>(retrieval_values.size()),
                      "Mismatch between size expected of jacobian_targets ("
@@ -75,10 +54,14 @@ void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
 }
 
 void model_state_vector_aprioriFromState(Vector& xa, const Vector& x) {
+  ARTS_TIME_REPORT
+
   xa = x;
 }
 
 void measurement_vector_fittedFromMeasurement(Vector& yf, const Vector& y) {
+  ARTS_TIME_REPORT
+
   yf = y;
 }
 
@@ -104,6 +87,8 @@ void OEM(const Workspace& ws,
          const Vector& lm_ga_settings,
          const Index& clear_matrices,
          const Index& display_progress) {
+  ARTS_TIME_REPORT
+
   // Main sizes
   const Index n = model_state_covariance_matrix.nrows();
   const Index m = measurement_vector.size();
@@ -208,7 +193,8 @@ void OEM(const Workspace& ws,
   else {
     bool apply_norm = false;
     oem::Matrix T{};
-    if (model_state_covariance_matrix_normalization.size() == static_cast<Size>(n)) {
+    if (model_state_covariance_matrix_normalization.size() ==
+        static_cast<Size>(n)) {
       T.resize(n, n);
       T           *= 0.0;
       diagonal(T)  = model_state_covariance_matrix_normalization;
@@ -387,6 +373,8 @@ void measurement_vector_error_covariance_matrix_observation_systemCalc(
     Matrix& measurement_vector_error_covariance_matrix_observation_system,
     const Matrix& measurement_gain_matrix,
     const CovarianceMatrix& measurement_vector_error_covariance_matrix) {
+  ARTS_TIME_REPORT
+
   Index n(measurement_gain_matrix.nrows()), m(measurement_gain_matrix.ncols());
   Matrix tmp1(m, n);
 
@@ -411,6 +399,8 @@ void model_state_covariance_matrix_smoothing_errorCalc(
     Matrix& model_state_covariance_matrix_smoothing_error,
     const Matrix& measurement_averaging_kernel,
     const CovarianceMatrix& model_state_covariance_matrix) {
+  ARTS_TIME_REPORT
+
   Index n(measurement_averaging_kernel.ncols());
   Matrix tmp1(n, n), tmp2(n, n);
 
@@ -435,6 +425,8 @@ void model_state_covariance_matrix_smoothing_errorCalc(
 void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
                                       const Matrix& measurement_gain_matrix,
                                       const Matrix& measurement_jacobian) {
+  ARTS_TIME_REPORT
+
   Index m(measurement_jacobian.nrows()), n(measurement_jacobian.ncols());
 
   ARTS_USER_ERROR_IF(measurement_jacobian.empty(),
