@@ -2,6 +2,7 @@
 
 #include <sorting.h>
 
+#include <chrono>
 #include <mutex>
 
 namespace {
@@ -41,13 +42,13 @@ std::string get_report(bool clear) {
     const auto min = *stdr::min_element(deltas);
 
     total_time.push_back(sum);
-    vec.push_back(std::format("| {0} | {1} | {2} | {3} | {4} | {5} |\n",
+    vec.push_back(std::format("| {0} | {1}ms | {2} | {3}ms | {4}ms | {5}ms |\n",
                               name,
-                              avg,
+                              std::chrono::duration_cast<std::chrono::milliseconds>(avg).count(),
                               N,
-                              min,
-                              max,
-                              sum));
+                              std::chrono::duration_cast<std::chrono::milliseconds>(min).count(),
+                              std::chrono::duration_cast<std::chrono::milliseconds>(max).count(),
+                              std::chrono::duration_cast<std::chrono::milliseconds>(sum).count()));
   }
 
   if (clear) profile_report.clear();
