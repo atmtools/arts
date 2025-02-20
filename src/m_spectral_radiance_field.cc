@@ -92,6 +92,8 @@ void zenith_gridProfilePseudo2D(AscendingGrid& zenith_grid,
                                 const Numeric& dza,
                                 const Numeric& azimuth,
                                 const Index& consider_limb) {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(dza <= 0.0 or dza >= 180.0,
                      "Delta zenith angle must be (0, 180). Given dza: {}",
                      dza);
@@ -146,6 +148,8 @@ void spectral_radiance_fieldProfilePseudo2D(
     const Numeric& latitude,
     const Numeric& longitude,
     const Numeric& azimuth) try {
+  ARTS_TIME_REPORT
+
   constexpr Numeric minimal_r = 0.001;
 
   ARTS_USER_ERROR_IF(
