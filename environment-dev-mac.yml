@@ -29,7 +29,7 @@ dependencies:
         - requests
         - scipy
         - setuptools
-        - sphinx=8
+        - sphinx >=8,<8.2.0
         - sphinx-copybutton
         - sphinx-favicon
         - sphinx-rtd-theme=3
