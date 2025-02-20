@@ -19,6 +19,34 @@ constexpr stokvec linear_step(const muelmat &T,
                               const stokvec &J) {
   return T * (I - J) + J;
 }
+/** A single linear step of the point-to-point radiative transfer equation
+ * 
+ * Sets I := T * (I - J) + J
+ * where
+ * T = exp(- (K0 + K1) * r / 2)
+ * J = (S0 + S1) / 2
+ * S0 = planck(T0, f) + inv(K0) * J0
+ * S1 = planck(T1, f) + inv(K1) * J1
+ *
+ * @param[inout] I incoming and then outgoing radiation
+ * @param[in] f frequency grid
+ * @param[in] K0 absorption matrix at point 0
+ * @param[in] K1 absorption matrix at point 1
+ * @param[in] J0 source function at point 0
+ * @param[in] J1 source function at point 1
+ * @param[in] T0 temperature at point 0
+ * @param[in] T1 temperature at point 1
+ * @param[in] r distance between the two points
+ */
+void nlte_step(stokvec_vector_view I,
+               const Vector& f,
+               const propmat_vector_const_view &K0,
+               const propmat_vector_const_view &K1,
+               const stokvec_vector_const_view &J0,
+               const stokvec_vector_const_view &J1,
+               const Numeric &T0,
+               const Numeric &T1,
+               const Numeric& r);
 
 /** A single linear step of the point-to-point radiative transfer equation
  * 

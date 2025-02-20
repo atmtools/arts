@@ -36,23 +36,6 @@
 #include "oem.h"
 #endif
 
-void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
-                                     const JacobianTargets& jacobian_targets,
-                                     const Vector& retrieval_values) {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
-                     sz not_eq static_cast<Size>(retrieval_values.size()),
-                     "Mismatch between size expected of jacobian_targets ("
-                     "{}) and retrieval_values ({})",
-                     sz,
-                     retrieval_values.size())
-
-  for (auto& target : jacobian_targets.atm()) {
-    target.update(atm_field, retrieval_values);
-  }
-}
-
 void model_state_vector_aprioriFromState(Vector& xa, const Vector& x) {
   ARTS_TIME_REPORT
 

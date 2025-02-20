@@ -134,6 +134,12 @@ void linspace(Vector& x,
   for (Index i = 0; i < n; i++) x[i] = start + (double)i * step;
 }
 
+Vector linspace(const Numeric start, const Numeric stop, const Numeric step) {
+  Vector x;
+  linspace(x, start, stop, step);
+  return x;
+}
+
 //! nlinspace
 /*! 
     Linearly spaced vector with specified length. 
@@ -157,7 +163,7 @@ void nlinspace(Vector& x,
                const Index n) {
   x.resize(n);
   if (x.empty()) return;
-  
+
   Numeric step = (stop - start) / ((double)n - 1);
   for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
   x[n - 1] = stop;
@@ -216,6 +222,23 @@ Vector nlogspace(const Numeric start, const Numeric stop, const Index step) {
   Vector x;
   nlogspace(x, start, stop, step);
   return x;
+}
+
+
+Vector binary_grid(const Numeric x0, const Numeric xn, const Numeric dx) {
+  assert(dx > 0);
+
+  Numeric dX = xn - x0;
+  Size N = 2;
+  Size dN = 1;
+
+  while (dX > dx) {
+    dX *= 0.5;
+    N += dN;
+    dN += dN;
+  }
+
+  return nlinspace(x0, xn, N);
 }
 
 //! trapz
@@ -743,7 +766,8 @@ void flat(VectorView x, ConstMatrixView X) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstTensor3View X) {
-  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(static_cast<Index>(x.size()) ==
+              X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -771,7 +795,8 @@ void flat(VectorView x, ConstTensor3View X) {
     \date   2015-09-10
 */
 void reshape(Tensor3View X, ConstVectorView x) {
-  ARTS_ASSERT(static_cast<Index>(x.size()) == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(static_cast<Index>(x.size()) ==
+              X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 

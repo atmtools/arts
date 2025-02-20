@@ -132,6 +132,9 @@ template <typename T, typename U, Size N>
 concept ranked_convertible_md =
     ranked_md<T, N> and std::convertible_to<value_type<T>, U>;
 
+template <typename T, Size N>
+concept dyn_ranked_md = ranked_md<T, N> and not any_cdata<T>;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Any matpack core type of holding unqualified U - ////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,31 @@
 #include "rtepack_propagation_matrix.h"
 
 namespace rtepack {
+  struct tran {
+  Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{};   // To not repeat input
+  Numeric exp_a{};                             // To not repeat exp(a)
+  Numeric b2{}, c2{}, d2{}, u2{}, v2{}, w2{};  // To shorten expressions
+  Numeric B, C, S;  // From L^4 + BL^2 + C = 0; S = sqrt(B^2 - 4C)
+  Numeric x2{}, y2{}, x{}, y{}, cy{}, sy{}, cx{},
+      sx{};  // Eigenvalues and their used trigonometric functions
+  Numeric ix{}, iy{}, inv_x2y2{};  // Computational helpers
+  Numeric C0{}, C1{}, C2{}, C3{};  // The Cayley-Hamilton coefficients
+  bool unpolarized{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
+
+  constexpr tran() = default;
+
+  tran(const propmat &k1, const propmat &k2, const Numeric r);
+
+  muelmat operator()() const noexcept;
+
+  [[nodiscard]] muelmat deriv(const muelmat &t,
+                              const propmat &k1,
+                              const propmat &k2,
+                              const propmat &dk,
+                              const Numeric r,
+                              const Numeric dr) const;
+};
+
 void two_level_exp(muelmat &t,
                    muelmat_vector_view dt1,
                    muelmat_vector_view dt2,

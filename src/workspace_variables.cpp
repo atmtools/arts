@@ -79,6 +79,21 @@ more detailed information how tag groups work and some examples.
       .type = "ArrayOfArrayOfSpeciesTag",
   };
 
+  wsv_data["altitude"] = {
+      .desc =
+          R"--(A single altitude in the atmosphere.
+)--",
+      .type          = "Numeric",
+      .default_value = "0.0",
+  };
+
+  wsv_data["altitude_grid"] = {
+      .desc =
+          R"--(An ascending list of *altitude*.  Often related to a field or a profile.
+)--",
+      .type = "AscendingGrid",
+  };
+
   wsv_data["atmospheric_field"] = {
       .desc =
           R"--(An atmospheric field in ARTS.
@@ -120,8 +135,24 @@ See *atmospheric_field* for the data that may be available in the atmospheric po
       .type = "AtmPoint",
   };
 
+  wsv_data["atmospheric_profile"] = {
+      .desc =
+          R"--(An atmospheric point in ARTS.
+
+The atmospheric profile consists of all the relevant atmospheric field data
+at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
+at a single latitude-longitude coordinate but may of course be generated manually.
+
+See *atmospheric_field* for the data that may be available in the atmospheric point.
+
+The size of the profile is the same as *altitude_grid*.
+)--",
+      .type = "ArrayOfAtmPoint",
+  };
+
   wsv_data["propagation_matrix_jacobian"] = {
-      .desc = R"--(Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
+      .desc =
+          R"--(Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
 
 The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
 )--",
@@ -527,6 +558,16 @@ undesired results.
       .default_value = "SpectralRadianceUnitType::unit",
   };
 
+  wsv_data["spectral_radiance_field"] = {
+      .desc = R"(The spectral radiance field.
+
+*spectral_radiance* but for a field.
+
+Dimensions are altitude times latitude times longitude times zenith times azimuth times *frequency_grid*.
+)",
+      .type = "StokvecGriddedField6",
+  };
+
   wsv_data["spectral_radiance"] = {
       .desc = R"--(A spectral radiance vector.
 
@@ -569,7 +610,13 @@ size of the local *spectral_radiance* as columns.
   };
 
   wsv_data["frequency_grid"] = {
-      .desc = R"--(A single path point's frequency grid.
+      .desc = R"--(A single frequency grid.
+)--",
+      .type = "AscendingGrid",
+  };
+
+  wsv_data["zenith_grid"] = {
+      .desc = R"--(A single zenith angle grid.
 )--",
       .type = "AscendingGrid",
   };
@@ -581,13 +628,15 @@ size of the local *spectral_radiance* as columns.
   };
 
   wsv_data["ray_path_field"] = {
-      .desc = R"--(A list of *ray_path* intended to build up a field of observations.
+      .desc =
+          R"--(A list of *ray_path* intended to build up a field of observations.
 )--",
       .type = "ArrayOfArrayOfPropagationPathPoint",
   };
 
   wsv_data["ray_path_observers"] = {
-      .desc = R"--(A list path points making up the observers of a propagation path.
+      .desc =
+          R"--(A list path points making up the observers of a propagation path.
 
 These can be used directly for *spectral_radiance_observer_position* and *spectral_radiance_observer_line_of_sight*
 )--",
@@ -595,9 +644,15 @@ These can be used directly for *spectral_radiance_observer_position* and *spectr
   };
 
   wsv_data["spectral_flux_profile"] = {
-      .desc = R"--(An altitude profile of spectral flux
+      .desc = R"--(An altitude profile of spectral flux.
 )--",
       .type = "Matrix",
+  };
+
+  wsv_data["nlte_line_flux_profile"] = {
+      .desc = R"--(A per-line flux profile.
+)--",
+      .type = "QuantumIdentifierVectorMap",
   };
 
   wsv_data["spectral_radiance_observer_position"] = {
@@ -826,6 +881,36 @@ Size is *disort_quadrature_dimension* / 2
       .desc = R"(The number of input Legendre polynimials for Disort.
 )",
       .type = "Index",
+  };
+
+  wsv_data["latitude"] = {
+      .desc =
+          R"--(A single latitude.
+)--",
+      .type          = "Numeric",
+      .default_value = "0.0",
+  };
+
+  wsv_data["latitude_grid"] = {
+      .desc =
+          R"--(An ascending list of *latitude*.  Often related to a field or a profile.
+)--",
+      .type = "AscendingGrid",
+  };
+
+  wsv_data["longitude"] = {
+      .desc =
+          R"--(A single longitude.
+)--",
+      .type          = "Numeric",
+      .default_value = "0.0",
+  };
+
+  wsv_data["longitude_grid"] = {
+      .desc =
+          R"--(An ascending list of *longitude*.  Often related to a field or a profile.
+)--",
+      .type = "AscendingGrid",
   };
 
   wsv_data["legendre_degree"] = {

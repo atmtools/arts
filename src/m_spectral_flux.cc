@@ -6,6 +6,8 @@ void ray_path_spectral_radianceStepByStepEmissionForwardOnly(
     const ArrayOfMuelmatVector& ray_path_transmission_matrix,
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const StokvecVector& spectral_radiance_background) try {
+  ARTS_TIME_REPORT
+
   ray_path_spectral_radiance.resize(ray_path_transmission_matrix.size());
   arr::elemwise_resize(spectral_radiance_background.size(),
                        ray_path_spectral_radiance);
@@ -29,6 +31,8 @@ void ray_path_spectral_radianceClearskyEmission(
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surface_field) try {
+  ARTS_TIME_REPORT
+
   PropagationPathPoint ray_path_point;
   ray_path_pointBackground(ray_path_point, ray_path);
   StokvecVector spectral_radiance_background;
@@ -112,6 +116,8 @@ void spectral_flux_profileFromPathField(
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
     const AscendingGrid& altitude_grid) try {
+  ARTS_TIME_REPORT
+
   const Size N = ray_path_field.size();
   const Size M = altitude_grid.size();
   const Size K = frequency_grid.size();
@@ -143,11 +149,9 @@ void spectral_flux_profileFromPathField(
 
   ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
 
-  for (Size n = 0; n < N; n++) {
-    ARTS_USER_ERROR_IF(
-        ray_path_spectral_radiance_field[n].size() != ray_path_field[n].size(),
-        "Not all ray paths have the same altitude count")
-  }
+  ARTS_USER_ERROR_IF(
+      not arr::each_same_size(ray_path_spectral_radiance_field, ray_path_field),
+      "Not all ray paths have the same altitude count")
 
   ARTS_USER_ERROR_IF(
       stdr::any_of(ray_path_spectral_radiance_field | stdv::join,
@@ -195,3 +199,165 @@ void spectral_flux_profileFromPathField(
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+void flux_profileIntegrate(Vector& flux_profile,
+                           const Matrix& spectral_flux_profile,
+                           const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
+                         spectral_flux_profile.extent(1),
+                     "Frequency grid and spectral flux profile size mismatch")
+
+  const Size K = spectral_flux_profile.extent(0);
+
+  flux_profile.resize(K);
+  flux_profile = 0.0;
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size k = 0; k < K; k++) {
+    auto s  = spectral_flux_profile[k];
+    auto& y = flux_profile[k];
+    for (Size i = 0; i < frequency_grid.size() - 1; i++) {
+      const auto w  = 0.5 * (frequency_grid[i + 1] - frequency_grid[i]);
+      y            += w * (s[i] + s[i + 1]);
+    }
+  }
+}
+
+void nlte_line_flux_profileIntegrate(
+    QuantumIdentifierVectorMap& nlte_line_flux_profile,
+    const Matrix& spectral_flux_profile,
+    const AbsorptionBands& absorption_bands,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const AscendingGrid& frequency_grid) {
+  ARTS_TIME_REPORT
+
+  const Size K = spectral_flux_profile.extent(0);
+  const Size M = spectral_flux_profile.extent(1);
+
+  ARTS_USER_ERROR_IF(frequency_grid.size() != M,
+                     "Frequency grid and spectral flux profile size mismatch")
+
+  ARTS_USER_ERROR_IF(
+      ray_path_atmospheric_point.size() != K,
+      "Atmospheric point and spectral flux profile size mismatch");
+
+  nlte_line_flux_profile.clear();
+  for (const auto& [key, band] : absorption_bands) {
+    ARTS_USER_ERROR_IF(band.size() != 1, "Only one line per band is supported");
+
+    ARTS_USER_ERROR_IF(not is_voigt(band.lineshape),
+                       "Only one line per band is supported");
+
+    Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape(), 0.0);
+
+    for (Size k = 0; k < K; k++) {
+      lbl::compute_voigt(weighted_spectral_flux_profile[k],
+                         band.lines.front(),
+                         frequency_grid,
+                         ray_path_atmospheric_point[k],
+                         key.Isotopologue().mass);
+    }
+
+    weighted_spectral_flux_profile *= spectral_flux_profile;
+
+    flux_profileIntegrate(nlte_line_flux_profile[key],
+                          weighted_spectral_flux_profile,
+                          frequency_grid);
+  }
+}
+
+void spectral_flux_profileFromSpectralRadianceField(
+    Matrix& spectral_flux_profile,
+    const StokvecGriddedField6& spectral_radiance_field,
+    const Stokvec& pol) {
+  ARTS_TIME_REPORT
+
+  using Constant::pi;
+  using Conversion::cosd;
+  using Conversion::deg2rad;
+
+  const Size NALT = spectral_radiance_field.grid<0>().size();
+  const Size NLAT = spectral_radiance_field.grid<1>().size();
+  const Size NLON = spectral_radiance_field.grid<2>().size();
+  const Size NZA  = spectral_radiance_field.grid<3>().size();
+  const Size NAA  = spectral_radiance_field.grid<4>().size();
+  const Size NFRE = spectral_radiance_field.grid<5>().size();
+
+  const auto& za = spectral_radiance_field.grid<3>();
+  const auto& aa = spectral_radiance_field.grid<4>();
+
+  ARTS_USER_ERROR_IF(not spectral_radiance_field.ok(),
+                     R"(Spectral radiance field is not OK (shape is wrong):
+
+spectral_radiance_field.data.shape(): {:B,}
+Should be:                            [NALT, NLAT, NLON, NZA, NAA, NFRE]
+
+NALT: {}
+NLAT: {}
+NLON: {}
+NZA:  {}
+NAA:  {}
+NFRE: {}
+)",
+                     spectral_radiance_field.data.shape(),
+                     NALT,
+                     NLAT,
+                     NLON,
+                     NZA,
+                     NAA,
+                     NFRE);
+  ARTS_USER_ERROR_IF(NLAT != 1, "Only for one latitude point");
+  ARTS_USER_ERROR_IF(NLON != 1, "Only for one longitude point");
+  ARTS_USER_ERROR_IF(
+      NZA < 2 or za.front() != 0.0 or za.back() != 180.0,
+      "Must have more than one zenith angle and cover [0, 180] degrees.  Zenith angle grid: {:B,}",
+      za);
+  ARTS_USER_ERROR_IF(
+      NAA != 1 and (aa.front() != 0.0 or aa.back() != 360.0),
+      "Azimuth grid must be 1-long or [0, 360] degrees.  Azimuth angle grid: {:B,}",
+      aa)
+
+  spectral_flux_profile.resize(NALT, NFRE);
+  spectral_flux_profile = 0.0;
+
+  if (NAA == 1) {
+    const auto&& s = spectral_radiance_field.data.view_as(NALT, NZA, NFRE);
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+    for (Size i = 0; i < NALT; i++) {
+      for (Size j = 0; j < NFRE; j++) {
+        for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
+          const Size iza1   = iza0 + 1;
+          const Numeric wza = 0.5 * pi * (cosd(za[iza0]) - cosd(za[iza1]));
+
+          spectral_flux_profile[i, j] +=
+              wza * (dot(s[i, iza0, j], pol) + dot(s[i, iza1, j], pol));
+        }
+      }
+    }
+  } else {
+    const auto&& s = spectral_radiance_field.data.view_as(NALT, NZA, NAA, NFRE);
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
+    for (Size i = 0; i < NALT; i++) {
+      for (Size j = 0; j < NFRE; j++) {
+        for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
+          const Size iza1   = iza0 + 1;
+          const Numeric wza = 0.25 * (cosd(za[iza0]) - cosd(za[iza1]));
+
+          for (Size iaa0 = 0; iaa0 < NAA - 1; iaa0++) {
+            const Size iaa1 = iaa0 + 1;
+            const Numeric w = wza * deg2rad(aa[iaa0] - aa[iaa1]);
+
+            spectral_flux_profile[i, j] +=
+                w *
+                (dot(s[i, iza0, iaa0, j], pol) + dot(s[i, iza1, iaa0, j], pol) +
+                 dot(s[i, iza0, iaa1, j], pol) + dot(s[i, iza1, iaa1, j], pol));
+          }
+        }
+      }
+    }
+  }
+}

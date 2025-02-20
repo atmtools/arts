@@ -1,6 +1,9 @@
 #include "rtepack_rtestep.h"
 
 #include <arts_omp.h>
+#include <physics_funcs.h>
+
+#include "rtepack_transmission.h"
 
 namespace rtepack {
 void two_level_linear_emission_step(stokvec_vector_view I,
@@ -281,6 +284,27 @@ void two_level_linear_transmission_step(stokvec_vector &I,
       dI[0][iq, iv]     += Pi[0][iv] * dTs[0][0, iq, iv] * P * src;
       dI[N - 1][iq, iv] += Pi[N - 2][iv] * dTs[N - 1][1, iq, iv] * src;
     }
+  }
+}
+void nlte_step(stokvec_vector_view I,
+               const Vector &f,
+               const propmat_vector_const_view &K0,
+               const propmat_vector_const_view &K1,
+               const stokvec_vector_const_view &J0,
+               const stokvec_vector_const_view &J1,
+               const Numeric &T0,
+               const Numeric &T1,
+               const Numeric &r) {
+  const Size NV = I.size();
+  assert(arr::same_size(I, f, K0, K1, J0, J1));
+
+  for (Size iv = 0; iv < NV; iv++) {
+    const Numeric B0 = planck(f[iv], T0);
+    const Numeric B1 = planck(f[iv], T1);
+    const stokvec J =
+        std::midpoint(B0, B1) + avg(inv(K0[iv]) * J0[iv], inv(K1[iv]) * J1[iv]);
+
+    I[iv] = tran(K0[iv], K1[iv], r)() * (I[iv] - J) + J;
   }
 }
 }  // namespace rtepack

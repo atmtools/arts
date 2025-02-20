@@ -67,7 +67,7 @@ void test_limb_finder(Size n) {
     const Numeric az               = get_az();
     const Numeric tangent_altitude = get_tangent_alt();
     const Numeric za               = path::geometric_tangent_zenith(
-        pos, surface_field, tangent_altitude, az);
+        pos, surface_field.ellipsoid, tangent_altitude, az);
     const Vector2 los = path::mirror({za, az});
     ArrayOfPropagationPathPoint x{
         path::init(pos, los, atm_field, surface_field)};

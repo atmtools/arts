@@ -19,7 +19,7 @@
 #include "matpack_mdspan.h"
 
 namespace matpack::eigen {
-template <ranked_md<2> T>
+template <dyn_ranked_md<2> T>
 constexpr auto mat(T &&x) {
   using U = value_type<T>;
   if constexpr (any_strided_view<T>) {
@@ -39,7 +39,7 @@ constexpr auto mat(T &&x) {
   }
 }
 
-template <ranked_md<1> T>
+template <dyn_ranked_md<1> T>
 constexpr auto col_vec(T &&x) {
   using U = value_type<T>;
   if constexpr (any_strided_view<T>) {
@@ -56,7 +56,7 @@ constexpr auto col_vec(T &&x) {
   }
 }
 
-template <ranked_md<1> T>
+template <dyn_ranked_md<1> T>
 constexpr auto row_vec(T &&x) {
   using U = value_type<T>;
   if constexpr (any_strided_view<T>) {
@@ -73,173 +73,173 @@ constexpr auto row_vec(T &&x) {
   }
 }
 
-template <ranked_md<2> T>
+template <dyn_ranked_md<2> T>
 constexpr auto as_eigen(T &&x) {
   return mat(std::forward<T>(x));
 }
 
-template <ranked_md<1> T>
+template <dyn_ranked_md<1> T>
 constexpr auto as_eigen(T &&x) {
   return row_vec(std::forward<T>(x));
 }
 
 template <typename T>
-concept eigenable = ranked_md<T, 2> or ranked_md<T, 1>;
+concept eigenable = dyn_ranked_md<T, 2> or dyn_ranked_md<T, 1>;
 }  // namespace matpack::eigen
 
 namespace matpack {
 //! Perform the math and return a lazy object; A * x
-template <ranked_md<2> MAT, ranked_md<1> VEC>
+template <dyn_ranked_md<2> MAT, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const MAT &A, const VEC &x) {
   return eigen::as_eigen(A) * eigen::as_eigen(x);
 }
 
 //! Perform the math and return a lazy object; A * B
-template <ranked_md<2> MATONE, ranked_md<2> MATTWO>
+template <dyn_ranked_md<2> MATONE, dyn_ranked_md<2> MATTWO>
 constexpr auto operator*(const MATONE &A, const MATTWO &B) {
   return eigen::as_eigen(A) * eigen::as_eigen(B);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, ranked_md<2> MAT>
+template <arithmetic CONST, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const std::complex<CONST> &a, const MAT &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, ranked_md<1> VEC>
+template <arithmetic CONST, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const std::complex<CONST> &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, ranked_md<2> MAT>
+template <arithmetic CONST, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const MAT &b, const std::complex<CONST> &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, ranked_md<1> VEC>
+template <arithmetic CONST, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const VEC &b, const std::complex<CONST> &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, ranked_md<2> MAT>
+template <arithmetic CONST, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const CONST &a, const MAT &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, ranked_md<1> VEC>
+template <arithmetic CONST, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const CONST &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, ranked_md<2> MAT>
+template <arithmetic CONST, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const MAT &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, ranked_md<1> VEC>
+template <arithmetic CONST, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const VEC &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; x + y
-template <ranked_md<2> ONE, ranked_md<2> TWO>
+template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO>
 constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <ranked_md<1> ONE, ranked_md<1> TWO>
+template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO>
 constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x = y
-template <ranked_md<2> ONE, ranked_md<2> TWO>
+template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO>
 constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <ranked_md<1> ONE, ranked_md<1> TWO>
+template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO>
 constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x * y
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x * eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x * y
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x * eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator+(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator+(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator-(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator-(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; y * x
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator*(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) * x;
 }
 
 //! Perform the math and return a lazy object; y * x
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator*(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) * x;
 }
 
 //! Perform the math and return a lazy object; y + x
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator+(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) + x;
 }
 
 //! Perform the math and return a lazy object; y + x
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator+(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) + x;
 }
 
 //! Perform the math and return a lazy object; y - x
-template <typename Derived, ranked_md<1> VEC>
+template <typename Derived, dyn_ranked_md<1> VEC>
 constexpr auto operator-(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) - x;
 }
 
 //! Perform the math and return a lazy object; y - x
-template <typename Derived, ranked_md<2> MAT>
+template <typename Derived, dyn_ranked_md<2> MAT>
 constexpr auto operator-(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) - x;
 }

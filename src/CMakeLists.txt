@@ -115,6 +115,7 @@ add_library(artsworkspace STATIC
   workspace_class.cpp
   m_abs.cc
   m_atm.cc
+  m_atm_profile.cc
   m_background.cc
   m_cat.cc
   m_cia.cc
@@ -147,6 +148,7 @@ add_library(artsworkspace STATIC
   m_scattering_species.cc
   m_spectral_flux.cc
   m_spectral_radiance.cc
+  m_spectral_radiance_field.cc
   m_sun.cc
   m_surf.cc
   m_wigner.cc

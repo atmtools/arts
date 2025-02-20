@@ -158,6 +158,16 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "spectral_flux_profilePseudo2D",
+      .desc    = "Computes the spectral flux profile using pseudo-2D geometry",
+      .author  = {"Richard Larsson"},
+      .methods = {"zenith_gridProfilePseudo2D",
+                  "spectral_radiance_fieldProfilePseudo2D",
+                  "spectral_flux_profileFromSpectralRadianceField"},
+      .out     = {"spectral_flux_profile"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyBackgroundTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
@@ -184,6 +194,16 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .out              = {"atmospheric_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "atmospheric_fieldFitNonLTE",
+      .desc    = "Fits ",
+      .author  = {"Richard Larsson"},
+      .methods = {"atmospheric_profileFromGrid",
+                  "atmospheric_profileFitNonLTE",
+                  "atmospheric_fieldFromProfile"},
+      .out     = {"atmospheric_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
