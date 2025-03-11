@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "scattering/single_scattering_data.h"
+#include "scattering/sht.h"
 #include "scattering/psd.h"
 
 namespace scattering {
@@ -45,6 +46,44 @@ auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids,
     }
   }
 };
+
+template <Format format, Representation repr>
+auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids,
+                        const SingleScatteringData<Numeric, format, repr>& ssd)
+  -> SingleScatteringData<Numeric, Format::ARO, Representation::Gridded> {
+  if constexpr (format == Format::ARO) {
+    if constexpr (repr == Representation::Gridded) {
+      return ssd.regrid(new_grids);
+    } else {
+      return ssd.to_gridded().regrid(new_grids);
+    }
+  } else {
+    if constexpr (repr == Representation::Gridded) {
+      return ssd.to_lab_frame(new_grids);
+    } else {
+      return ssd.to_gridded().to_lab_frame(new_grids);
+    }
+  }
+};
+
+
+template <Format format, Representation repr>
+auto ssd_to_aro_spectral(const ScatteringDataGrids& new_grids,
+                         Index l,
+                         Index m,
+                         const SingleScatteringData<Numeric, format, repr>& ssd)
+  -> SingleScatteringData<Numeric, Format::ARO, Representation::Spectral> {
+  if constexpr (format == Format::ARO) {
+    return ssd.to_spectral(l, m).regrid(new_grids);
+  } else {
+    if constexpr (repr == Representation::Gridded) {
+      return ssd.to_lab_frame(new_grids).to_spectral(l, m);
+    } else {
+      return ssd.to_gridded().to_lab_frame(new_grids).to_spectral(l, m);
+      }
+  }
+};
+
 
 /*! Derives a and b for relationship mass = a * x^b
 
@@ -117,7 +156,7 @@ class ParticleHabit {
     Index n_particles = scattering_data.size();
     Vector sizes(n_particles);
     for (Index ind = 0; ind < n_particles; ++ind) {
-      auto size = std::visit([&param, &ind](const auto& ssd) {return ssd.get_size(param);}, scattering_data[ind]);
+      auto size = std::visit([&param](const auto& ssd) {return ssd.get_size(param);}, scattering_data[ind]);
       if (size.has_value()) {
         sizes[ind] = size.value();
       } else {
@@ -139,7 +178,7 @@ class ParticleHabit {
 
     for (Index ind = 0; ind < n_particles; ++ind) {
       auto mass = std::visit([](const auto& ssd) {return ssd.get_mass();}, scattering_data[ind]);
-      auto size = std::visit([&size_parameter, &ind](const auto& ssd) {return ssd.get_size(size_parameter);}, scattering_data[ind]);
+      auto size = std::visit([&size_parameter](const auto& ssd) {return ssd.get_size(size_parameter);}, scattering_data[ind]);
       if (mass.has_value()) {
         masses[ind] = mass.value();
         sizes[ind] = size.value();
@@ -228,13 +267,46 @@ class ParticleHabit {
     return ParticleHabit(new_scattering_data, new_grids);
   }
 
-  ParticleHabit to_aro_spectral(const Vector& t_grid, const Vector& f_grid, Index l, Index m) {
-
-    return {};
+  ParticleHabit to_aro_spectral(const Vector& t_grid,
+                                const Vector& f_grid,
+                                const Vector& za_inc_grid,
+                                Index l,
+                                Index m)
+  {
+    auto sht_ptr = sht::provider.get_instance_lm(l, m);
+    auto aa_scat_grid = sht_ptr->get_azimuth_angle_grid();
+    auto za_scat_grid = sht_ptr->get_zenith_angle_grid();
+    auto new_grids = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
+                                         std::make_shared<const Vector>(f_grid),
+                                         std::make_shared<const Vector>(za_inc_grid),
+                                         std::make_shared<const Vector>(aa_scat_grid),
+                                         std::make_shared<const ZenithAngleGrid>(za_scat_grid));
+    auto transform = [&new_grids, &l, &m](const auto& ssd) {return ssd_to_aro_spectral(new_grids, l, m, ssd);};
+    std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>> new_scattering_data;
+    new_scattering_data.reserve(scattering_data.size());
+    for (const ParticleData& pd : scattering_data) {
+      new_scattering_data.push_back(std::visit(transform, pd));
+    }
+    return ParticleHabit(new_scattering_data, new_grids);
   }
 
-  ParticleHabit to_aro_gridded(const Vector& t_grid, const Vector& f_grid, const Vector &za_scat_grid) {
-    return {};
+  ParticleHabit to_aro_gridded(const Vector& t_grid,
+                               const Vector& f_grid,
+                               const Vector& za_inc_grid,
+                               const Vector& aa_scat_grid,
+                               const Vector& za_scat_grid) {
+    auto new_grids = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
+                                         std::make_shared<const Vector>(f_grid),
+                                         std::make_shared<const Vector>(aa_scat_grid),
+                                         std::make_shared<const Vector>(za_scat_grid),
+                                         std::make_shared<const ZenithAngleGrid>(za_scat_grid));
+    auto transform = [&new_grids](const auto& ssd) {return ssd_to_aro_gridded(new_grids, ssd);};
+    std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>> new_scattering_data;
+    new_scattering_data.reserve(scattering_data.size());
+    for (const ParticleData& pd : scattering_data) {
+      new_scattering_data.push_back(std::visit(transform, pd));
+    }
+    return ParticleHabit(new_scattering_data, new_grids);
   }
 
   Index size() const {

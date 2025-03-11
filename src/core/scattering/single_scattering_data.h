@@ -25,7 +25,7 @@ struct ParticleProperties {
 /** Single scattering data.
  *
  * The SingleScatteringData class is a container that holds single scattering
- * data of scattering particles. Optionally, it also holds additional
+ * data of a single scattering particle. Optionally, it also holds additional
  * properties of the corresponding particle.
  *
  * The single scattering data comprises data for the phase and extinction
@@ -240,8 +240,8 @@ struct SingleScatteringData {
     return properties.transform(extract_size);
   }
 
-  SingleScatteringData regrid(const ScatteringDataGrids grids,
-                              const RegridWeights weights) const {
+  SingleScatteringData regrid(const ScatteringDataGrids& grids,
+                              const RegridWeights& weights) const {
     return SingleScatteringData(properties,
                                 phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
                                 extinction_matrix.regrid(grids, weights),
@@ -250,7 +250,7 @@ struct SingleScatteringData {
                                 forwardscatter_matrix.regrid(grids, weights));
   }
 
-  SingleScatteringData regrid(const ScatteringDataGrids grids) const {
+  SingleScatteringData regrid(const ScatteringDataGrids& grids) const {
     return SingleScatteringData(properties,
                                 phase_matrix.transform([&grids](const auto& pm) {return pm.regrid(grids);}),
                                 extinction_matrix.regrid(grids),
@@ -277,11 +277,28 @@ struct SingleScatteringData {
                                                                           new_phase_matrix,
                                                                           extinction_matrix.to_gridded(),
                                                                           absorption_vector.to_gridded(),
-                                                                          backscatter_matrix.to_gridded(),
-                                                                          forwardscatter_matrix.to_gridded());
+                                                                          backscatter_matrix,
+                                                                          forwardscatter_matrix);
   }
 
-
+  SingleScatteringData<Numeric, Format::ARO, Representation::Gridded> to_lab_frame(const ScatteringDataGrids& grids) const {
+    if constexpr (format == Format::ARO) {
+      return regrid(grids);
+    }
+    auto new_pm = phase_matrix.transform([&grids](const auto &pm) {
+      return pm.to_lab_frame(grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid).regrid(grids);}
+      );
+    auto new_em = extinction_matrix.to_lab_frame(grids.za_inc_grid);
+    auto new_av = absorption_vector.to_lab_frame(grids.za_inc_grid);
+    auto new_bsm = BackscatterMatrixData<Numeric, Format::ARO>(backscatter_matrix, grids.za_inc_grid);
+    auto new_fsm = ForwardscatterMatrixData<Numeric, Format::ARO>(forwardscatter_matrix, grids.za_inc_grid);
+    return SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>(properties,
+                                                                               new_pm,
+                                                                               new_em.regrid(grids),
+                                                                               new_av.regrid(grids),
+                                                                               new_bsm,
+                                                                               new_fsm);
+  }
 
   std::optional<ParticleProperties> properties;
   std::optional<PhaseMatrixData<Scalar, format, repr>> phase_matrix;
@@ -289,6 +306,7 @@ struct SingleScatteringData {
   AbsorptionVectorData<Scalar, format, repr> absorption_vector;
   BackscatterMatrixData<Scalar, format> backscatter_matrix;
   ForwardscatterMatrixData<Scalar, format> forwardscatter_matrix;
+
 };
 
 template <std::floating_point Scalar,

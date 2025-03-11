@@ -105,7 +105,7 @@ class AbsorptionVectorData<Scalar, Format::TRO, repr>
   }
 
   AbsorptionVectorData<Scalar, Format::ARO, repr> to_lab_frame(
-      std::shared_ptr<const Vector> za_inc_grid) {
+      std::shared_ptr<const Vector> za_inc_grid) const {
     AbsorptionVectorData<Scalar, Format::ARO, repr> av_new{
         t_grid_, f_grid_, za_inc_grid};
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
@@ -310,6 +310,12 @@ class AbsorptionVectorData<Scalar, Format::ARO, repr>
   AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, za_inc_grid_, nullptr, nullptr, nullptr, grids);
     return regrid(grids, weights);
+  }
+
+  AbsorptionVectorData<Numeric, Format::ARO, Representation::Gridded> to_gridded() const {
+    auto abs_new = AbsorptionVectorData<Numeric, Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
+    abs_new = *this;
+    return abs_new;
   }
 
  protected:

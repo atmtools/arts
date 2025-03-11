@@ -125,8 +125,8 @@ namespace scattering {
 
   struct BulkScatteringPropertiesTROSpectral {
 
-      using PhaseMatrixVector = ComplexMatrix;
-      using ExtinctionMatrixVector = Matrix;
+      using PhaseMatrixVector = ComplexTensor4;
+      using ExtinctionMatrixVector = Tensor3;
       using AbsorptionVectorVector = Matrix;
 
       std::optional<PhaseMatrixVector> phase_matrix;
