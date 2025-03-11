@@ -136,8 +136,8 @@ struct BinnedPSD {
 
   Vector evaluate(const AtmPoint& point,
                   const Vector& particle_sizes,
-                  const Numeric& scat_species_a,
-                  const Numeric& scat_species_b) const {
+                  const Numeric& /*scat_species_a*/,
+                  const Numeric& /*scat_species_b*/) const {
 
     Index n_parts = particle_sizes.size();
     Vector pnd = Vector(n_parts);
@@ -146,9 +146,10 @@ struct BinnedPSD {
         pnd[ind] = 0.0;
       } else {
         Index bin_ind = digitize(bins, particle_sizes[ind]);
+        Index n_bins = bins.size();
         if (bin_ind < 0) {
           pnd[ind] = 0.0;
-        } else if (bin_ind >= bins.size()) {
+        } else if (bin_ind >= n_bins) {
           pnd[ind] = 0.0;
         } else {
           pnd[ind] = counts[bin_ind];

@@ -14,7 +14,7 @@ namespace scattering {
             return GridPos(0, {{0.0, 1.0}}); // Entire weight to the first point
         }
         if (x_new >= grid.back()) {
-            return GridPos(grid.size() - 1, {{1.0, 0.0}}); // Entire weight to the last point
+            return GridPos(grid.size() - 2, {{1.0, 0.0}}); // Entire weight to the last point
         }
 
         // Find the interval using std::lower_bound
@@ -29,7 +29,7 @@ namespace scattering {
         Numeric x1 = grid[index];
 
         Numeric t = (x_new - x0) / (x1 - x0);
-        return GridPos(index - 1, {{1.0 - t, t}});
+        return GridPos(index - 1, {{t, 1.0 - t}});
 
     }
 

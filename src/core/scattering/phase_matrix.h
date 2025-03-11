@@ -409,6 +409,14 @@ class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
     return *this;
   }
 
+  std::shared_ptr<const Vector> get_t_grid_ptr() const {
+    return t_grid_;
+  }
+
+  std::shared_ptr<const Vector> get_f_grid_ptr() const {
+    return f_grid_;
+  }
+
   constexpr matpack::view_t<CoeffVector, 2> get_coeff_vector_view() {
     return matpack::view_t<CoeffVector, 2>{matpack::mdview_t<CoeffVector, 2>(
         reinterpret_cast<CoeffVector *>(this->data_handle()),
@@ -499,6 +507,23 @@ class BackscatterMatrixData<Scalar, Format::ARO>
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid) {
     matpack::data_t<Scalar, 4>::operator=(0.0);
+  }
+
+  BackscatterMatrixData(const BackscatterMatrixData<Scalar, Format::TRO> &bsmat,
+                        std::shared_ptr<const Vector> za_inc_grid)
+      : matpack::data_t<Scalar, 4>(bsmat.get_t_grid_ptr()->size(),
+                                   bsmat.get_f_grid_ptr()->size(),
+                                   za_inc_grid->size(),
+                                   n_stokes_coeffs),
+        n_temps_(bsmat.get_t_grid_ptr()->size()),
+        t_grid_(bsmat.get_t_grid_ptr()),
+        n_freqs_(bsmat.get_f_grid_ptr()->size()),
+        f_grid_(bsmat.get_f_grid_ptr()),
+        n_za_inc_(za_inc_grid->size()),
+        za_inc_grid_(za_inc_grid) {
+      for (Index ind = 0; ind < n_za_inc_; ++ind) {
+        matpack::data_t<Scalar, 4>::operator[](ind) = bsmat;
+      }
   }
 
   constexpr matpack::view_t<CoeffVector, 3> get_coeff_vector_view() {
@@ -593,6 +618,11 @@ class BackscatterMatrixData<Scalar, Format::ARO>
       }
     }
     return result;
+  }
+
+  BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, za_inc_grid_, nullptr, nullptr, grids);
+    return regrid(grids, weights);
   }
 
  protected:
@@ -1242,8 +1272,10 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
   PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
     auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
     PhaseMatrixData pm_new(t_grid_, f_grid_, sht_new);
-    for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
-      for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+    Index f_grid_size = f_grid_->size();
+    Index t_grid_size = t_grid_->size();
+    for (Index f_ind = 0; f_ind < f_grid_size; ++f_ind) {
+      for (Index t_ind = 0; t_ind < t_grid_size; ++t_ind) {
         for (Index coeff_ind = 0;
              coeff_ind < std::min(this->extent(3), pm_new.extent(3)); ++coeff_ind) {
           pm_new[t_ind, f_ind, coeff_ind] =
@@ -1970,7 +2002,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataGridded to_gridded() {
+  PhaseMatrixDataGridded to_gridded() const {
     PhaseMatrixDataGridded result(t_grid_,
                                   f_grid_,
                                   za_inc_grid_,
@@ -1990,22 +2022,25 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
     return result;
   }
 
-  /** Transform
+  /** Transform phase matixr to spectral format.
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixData to_spectral(Index l_new, Index m_new) {
+  PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
     auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
-    PhaseMatrixData pm_new(t_grid_, f_grid_, sht_new);
+    PhaseMatrixData pm_new(t_grid_, f_grid_, za_inc_grid_, sht_new);
     for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
       for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
         for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid_->size();
              ++za_inc_ind) {
-          for (Index coeff_ind = 0;
-               coeff_ind < std::min(this->extent(4), pm_new.extent(4));
-               ++coeff_ind) {
-            pm_new[t_ind, f_ind, za_inc_ind, coeff_ind] =
-                (*this)(t_ind, f_ind, za_inc_ind, coeff_ind);
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+
+          for (Index coeff_ind = 0; coeff_ind < std::min(this->extent(4), pm_new.extent(4)); ++coeff_ind) {
+            pm_new[t_ind, f_ind, za_inc_ind, joker, i_s] = sht::add_coeffs(*sht_new,
+                                                                           pm_new[t_ind, f_ind, za_inc_ind, joker, i_s],
+                                                                           *sht_,
+                                                                           (*this)[t_ind, f_ind, za_inc_ind, joker, i_s]);
+            }
           }
         }
       }
@@ -2013,7 +2048,7 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
     return pm_new;
   }
 
-  BackscatterMatrixData<Scalar, Format::ARO> extract_backscatter_matrix() {
+  BackscatterMatrixData<Scalar, Format::ARO> extract_backscatter_matrix() const {
     BackscatterMatrixData<Scalar, Format::ARO> result(
         t_grid_, f_grid_, za_inc_grid_);
 

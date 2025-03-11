@@ -127,7 +127,7 @@ class ExtinctionMatrixData<Scalar, Format::TRO, repr>
   }
 
   ExtinctionMatrixData<Scalar, Format::ARO, repr> to_lab_frame(
-      std::shared_ptr<const Vector> za_inc_grid) {
+      std::shared_ptr<const Vector> za_inc_grid) const {
     ExtinctionMatrixData<Scalar, Format::ARO, repr> em_new{
         t_grid_, f_grid_, za_inc_grid};
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
@@ -287,7 +287,7 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
   to_spectral() const;
 
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids,
-                              const RegridWeights& weights) {
+                              const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     auto coeffs_this = get_const_coeff_vector_view();
     auto coeffs_res  = result.get_coeff_vector_view();
@@ -330,6 +330,19 @@ class ExtinctionMatrixData<Scalar, Format::ARO, repr>
       }
     }
     return result;
+  }
+
+  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, za_inc_grid_, nullptr, nullptr, grids);
+    return regrid(grids, weights);
+  }
+
+  ExtinctionMatrixData<Numeric, Format::ARO, Representation::Gridded> to_gridded() const {
+    auto new_ext = ExtinctionMatrixData<Numeric, Format::ARO, Representation::Gridded>(t_grid_,
+                                                                                       f_grid_,
+                                                                                       za_inc_grid_);
+    new_ext = *this;
+    return new_ext;
   }
 
  protected:
