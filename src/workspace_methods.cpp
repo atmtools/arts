@@ -4563,6 +4563,7 @@ This method allows setting up *disort_settings_agenda* by named options.  A desc
       .in =
           {
               "disort_settings",
+              "ray_path_propagation_matrix",
               "ray_path_propagation_matrix_scattering",
               "ray_path_absorption_vector_scattering",
           },

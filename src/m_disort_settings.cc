@@ -535,12 +535,23 @@ ARTS_METHOD_ERROR_CATCH
 
 void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
+    const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
   ARTS_TIME_REPORT
 
   const Size N  = disort_settings.nlay;
   const Index F = disort_settings.nfreq;
+
+  ARTS_USER_ERROR_IF(
+      (N + 1) != ray_path_propagation_matrix.size(),
+      R"(The number of levels in ray_path_propagation_matrix must be one more than the number of layers in disort_settings.
+
+  disort_settings.nlay:                          {}
+  ray_path_propagation_matrix.size(): {}
+)",
+      N,
+      ray_path_propagation_matrix_scattering.size());
 
   ARTS_USER_ERROR_IF(
       (N + 1) != ray_path_propagation_matrix_scattering.size(),
@@ -579,14 +590,21 @@ void disort_settingsSingleScatteringAlbedoFromPath(
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
 
-      const Numeric x =
-          1.0 -
-          std::midpoint((inv(ray_path_propagation_matrix_scattering[i][iv]) *
-                         ray_path_absorption_vector_scattering[i][iv])
-                            .I(),
-                        (inv(ray_path_propagation_matrix_scattering[i][iv]) *
-                         ray_path_absorption_vector_scattering[i][iv])
-                            .I());
+      const Numeric ext_upper = ray_path_propagation_matrix[i][iv][0];
+      const Numeric abs_scat_upper = ray_path_absorption_vector_scattering[i][iv][0];
+      const Numeric ext_scat_upper = ray_path_propagation_matrix_scattering[i][iv][0];
+
+      const Numeric ext_lower = ray_path_propagation_matrix[i + 1][iv][0];
+      const Numeric abs_scat_lower = ray_path_absorption_vector_scattering[i + 1][iv][0];
+      const Numeric ext_scat_lower = ray_path_propagation_matrix_scattering[i + 1][iv][0];
+
+      const Numeric ext = std::midpoint(ext_upper, ext_lower);
+      const Numeric abs_scat = std::midpoint(abs_scat_upper, abs_scat_lower);
+      const Numeric ext_scat = std::midpoint(ext_scat_upper, ext_scat_lower);
+
+      const Numeric abs = ext + abs_scat;
+
+      const Numeric x = (ext_scat - abs_scat) / ext;
       disort_settings.single_scattering_albedo[iv, i] =
           std::isnormal(x) ? x : 0.0;
     }
