@@ -1,4 +1,4 @@
-User Guide
+User guide
 ==========
 
 .. toctree::
@@ -6,3 +6,4 @@ User Guide
 
    guide.user.atmospheric_field
    guide.user.surface_field
+   guide.user.sensors

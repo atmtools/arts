@@ -951,7 +951,7 @@ line-of-sight to get the corresponding spectral radiance.
 Expected use of this type is to generate the measurement vector
 of a sensor, where this observation element represent the readout
 from that sensor in a convenient unit (commonly Kelvin or 
-W sr :math:`^{-1}m :math:`^{-2}Hz :math:`^{-1}`, but not exclusively)
+W sr :math:`^{-1}` m :math:`^{-2}` Hz :math:`^{-1}`, but not exclusively)
 
 It deals with averaging the frequency grid sampled by a sensor element
 and the transmission of the sensor system onto the sampling device, as

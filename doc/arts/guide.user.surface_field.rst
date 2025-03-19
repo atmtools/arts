@@ -1,4 +1,4 @@
-.. _Sec Surface Field:
+.. _Sec Surface field:
 
 The surface and planet
 ######################
@@ -296,5 +296,3 @@ Extrapolation rules are not relevant for this data type as it is a function.
   Any kind of python function-like object can be used as
   a :class:`~pyarts.arts.NumericBinaryOperator`.  It must simply take two floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, lat, lon)`` for it.
-
-.. _HITRAN: https://hitran.org/
