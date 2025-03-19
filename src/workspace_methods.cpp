@@ -5017,9 +5017,13 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "ray_path_propagation_matrix_scattering",
-                 "ray_path_absorption_vector_scattering"},
+      .in =
+          {
+              "disort_settings",
+              "ray_path_propagation_matrix",
+              "ray_path_propagation_matrix_scattering",
+              "ray_path_absorption_vector_scattering",
+          },
   };
 
   wsm_data["disort_settingsNoSun"] = {
