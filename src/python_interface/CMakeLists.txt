@@ -118,6 +118,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_sparse.cpp
     py_scattering.cpp
     py_scattering_species.cpp
+    py_psd.cpp
     py_quantum.cpp
     py_physics.cpp
     py_jac.cpp
