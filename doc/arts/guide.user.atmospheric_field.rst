@@ -1,6 +1,6 @@
-.. _Sec Atmospheric Field:
+.. _Sec Atmospheric field:
 
-The Atmosphere
+The atmosphere
 ##############
 
 The atmosphere of ARTS is always fully 3D with coordinates of altitude, geodetic latitude, and longitude.
@@ -404,5 +404,3 @@ An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric 
   These functions are generally faster than manually created :class:`~pyarts.arts.NumericTernaryOperator` in python.
   They have 3 advantages: 1) C++ is faster than python, 2) there is no python wrapper overhead for the function call,
   and 3) we can know if these methods are safe for parallel execution, so we do not need to engage the python GIL.
-
-.. _HITRAN: https://hitran.org/
