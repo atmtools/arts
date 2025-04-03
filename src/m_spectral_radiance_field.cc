@@ -231,11 +231,12 @@ Atmospheric point grid size: {}
     // Fix for limb, where we don't want to hit self
     const Numeric r = (r0 < minimal_r) ? r1 : r0;
 
-    const auto [pos_beg, los_beg] =
-        path::ecef2geodetic_poslos(ecef + r * decef, decef, ell);
-
     // Again, fix for limb because it might be missed for std::nextafter(90., 0);
-    const Numeric za = std::isnan(r) ? 90.0 : path::mirror(los_beg)[0];
+    const Numeric za = std::isnan(r)
+                           ? 90.0
+                           : path::mirror(path::ecef2geodetic_poslos(
+                                              ecef + r * decef, decef, ell)
+                                              .second)[0];
 
     StokvecVector I = interp(srad[beg], zenith_grid, za);
 

@@ -195,6 +195,8 @@ Numeric intersection_altitude(const Vector3 ecef,
 
 namespace {
 Vector3 ecef2geocentric(const Vector3 ecef) {
+  assert(dot(ecef, ecef) > 0);
+
   Vector3 pos;
   pos[0] = std::hypot(ecef[0], ecef[1], ecef[2]);
   pos[1] = Conversion::asind(ecef[2] / pos[0]);
@@ -205,6 +207,9 @@ Vector3 ecef2geocentric(const Vector3 ecef) {
 constexpr Vector3 ecef2geodetic(const Vector3 ecef,
                                 const Vector2 refellipsoid) {
   using Math::pow2, Math::pow3;
+
+  assert(not nonstd::isnan(dot(ecef, ecef)));
+  assert(stdr::all_of(refellipsoid, Cmp::gt(0)));
 
   Vector3 pos;
   // Use geocentric function if geoid is spherical
@@ -480,6 +485,10 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(
     const Vector3 ecef,
     const Vector3 decef,
     const Vector2 refellipsoid) noexcept {
+  // Catch nans and zero
+  assert(nonstd::abs(dot(decef, decef)) > 0);
+  assert(not nonstd::isnan(dot(ecef, ecef)));
+
   const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = Conversion::deg2rad(pos[1]);
@@ -513,6 +522,7 @@ std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
                                                const Vector3 decef,
                                                const Vector2 ell,
                                                const Numeric distance) {
+  assert(not nonstd::isnan(distance));
   const Vector3 new_ecef{ecef[0] + distance * decef[0],
                          ecef[1] + distance * decef[1],
                          ecef[2] + distance * decef[2]};
