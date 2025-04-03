@@ -248,9 +248,11 @@ void gridded_data_interface(
         if (not d.contains("coords"))
           throw std::invalid_argument(
               "cannot convert dict without the key 'coords''");
+              
         if (not d.contains("dims"))
           throw std::invalid_argument(
               "cannot convert dict without the key 'dims''");
+
         if (not d.contains("data"))
           throw std::invalid_argument(
               "cannot convert dict without the key 'data''");
@@ -259,9 +261,7 @@ void gridded_data_interface(
 
         gd.data = py::cast<dtype>(d["data"]);
 
-        if (d.contains("name")) {
-          gd.data_name = py::cast<std::string_view>(d["name"]);
-        }
+        if (d.contains("name")) py::try_cast(d["name"], gd.data_name);
 
         gd.grid_names =
             py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
@@ -270,6 +270,7 @@ void gridded_data_interface(
         for (auto& n : gd.grid_names) {
           coords.append(d["coords"][py::str(n.c_str())]["data"]);
         }
+
         gd.grids = py::cast<typename mtype::grids_t>(coords);
 
         return gd;

@@ -3,6 +3,7 @@ import os
 from tempfile import mkstemp
 from copy import deepcopy as copy
 
+import xarray as xa
 import numpy as np
 import pytest
 
@@ -206,6 +207,13 @@ class TestGriddedFieldLoad:
         da = a.to_xarray()
         b = cxx.GriddedField3.from_xarray(da)
         assert a == b
+
+        v = xa.DataArray(
+            data=np.zeros(shape=(3, 1, 1)),
+            dims=["alt", "lat", "lon"],
+            coords={"alt": [0., 1, 2], "lat": [0.], "lon": [0.]},
+        )
+        c = cxx.GriddedField3.from_xarray(v)
 
 
 class TestGriddedFieldWrite:
