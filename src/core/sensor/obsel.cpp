@@ -31,6 +31,53 @@ void Obsel::check() const {
       f->size());
 }
 
+Obsel::Obsel(std::shared_ptr<const AscendingGrid> fs,
+             std::shared_ptr<const PosLosVector> pl,
+             StokvecMatrix ws)
+    : f{std::move(fs)}, poslos{std::move(pl)}, w{std::move(ws)} {
+  check();
+}
+
+Obsel::Obsel(const AscendingGrid& fs, const PosLosVector& pl, StokvecMatrix ws)
+    : f{std::make_shared<const AscendingGrid>(fs)},
+      poslos{std::make_shared<const PosLosVector>(pl)},
+      w{std::move(ws)} {
+  check();
+}
+
+bool Obsel::same_freqs(const Obsel& other) const { return f == other.f; }
+
+bool Obsel::same_freqs(
+    const std::shared_ptr<const AscendingGrid>& other) const {
+  return f == other;
+}
+
+bool Obsel::same_poslos(const Obsel& other) const {
+  return poslos == other.poslos;
+}
+
+bool Obsel::same_poslos(
+    const std::shared_ptr<const PosLosVector>& other) const {
+  return poslos == other;
+}
+
+void Obsel::set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
+  ARTS_USER_ERROR_IF(not n, "Must exist");
+  ARTS_USER_ERROR_IF(n->size() != f->size(), "Mismatching size");
+  f = std::move(n);
+}
+
+void Obsel::set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
+  ARTS_USER_ERROR_IF(not n, "Must exist");
+  ARTS_USER_ERROR_IF(n->size() != poslos->size(), "Mismatching size");
+  poslos = std::move(n);
+}
+
+void Obsel::set_weight_matrix(StokvecMatrix n) {
+  ARTS_USER_ERROR_IF(n.shape() != w.shape(), "Mismatching shape");
+  w = std::move(n);
+}
+
 void Obsel::normalize(Stokvec pol) {
   const Stokvec x = sum(w);
 
@@ -162,8 +209,8 @@ Vector Obsel::flat(const SensorKeyType& key) const {
 }
 
 Index Obsel::find(const Vector3& pos, const Vector2& los) const {
-  const auto&& first       = poslos->begin();
-  const auto&& last        = poslos->end();
+  const auto&& first     = poslos->begin();
+  const auto&& last      = poslos->end();
   const auto same_poslos = [&](const auto& p) {
     return &pos == &p.pos and & los == &p.los;
   };

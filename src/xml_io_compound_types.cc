@@ -2525,7 +2525,6 @@ struct meta_data {
   }
 
   meta_data(String n) : name(std::move(n)) {}
-  meta_data(String n, String v) : name(std::move(n)), value(std::move(v)) {}
   meta_data(String n, auto v)
       : name(std::move(n)), value(std::format("{}", v)) {}
 };
@@ -2814,6 +2813,104 @@ void xml_write_to_stream(std::ostream& os_xml,
   stag.close();
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("Error in SensorObsel:\n{}", e.what()));
+}
+
+//! ArrayOfSensorObsel
+
+void xml_read_from_stream(std::istream& is_xml,
+                          ArrayOfSensorObsel& g,
+                          bifstream* pbifs) try {
+  g.resize(0);
+
+  tag stag{is_xml, "ArrayOfSensorObsel", "nelem", "nfreq", "nposlos"};
+
+  const Index nelem   = stag.get<Index>("nelem");
+  const Index nfreq   = stag.get<Index>("nfreq");
+  const Index nposlos = stag.get<Index>("nposlos");
+
+  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
+  freqs.reserve(nfreq);
+  for (Index i = 0; i < nfreq; i++) {
+    AscendingGrid f;
+    xml_read_from_stream(is_xml, f, pbifs);
+    freqs.push_back(std::make_shared<AscendingGrid>(std::move(f)));
+  }
+
+  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
+  plos.reserve(nposlos);
+  for (Index i = 0; i < nposlos; i++) {
+    SensorPosLosVector p;
+    xml_read_from_stream(is_xml, p, pbifs);
+    plos.push_back(std::make_shared<SensorPosLosVector>(std::move(p)));
+  }
+
+  g.reserve(nelem);
+  StokvecMatrix weight_matrix;
+  for (Index i = 0; i < nelem; i++) {
+    Index ifreq;
+    Index iplos;
+
+    xml_read_from_stream(is_xml, ifreq, pbifs);
+    xml_read_from_stream(is_xml, iplos, pbifs);
+    xml_read_from_stream(is_xml, weight_matrix, pbifs);
+
+    ARTS_USER_ERROR_IF(ifreq >= nfreq, "Frequency index out of range")
+    ARTS_USER_ERROR_IF(iplos >= nposlos, "Position index out of range")
+
+    g.emplace_back(freqs[ifreq], plos[iplos], weight_matrix);
+  }
+
+  stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in ArrayOfSensorObsel:\n{}", e.what()));
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const ArrayOfSensorObsel& g,
+                         bofstream* pbofs,
+                         const String& name) try {
+  const auto sen = collect_simulations(g);
+
+  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
+  plos.reserve(sen.size());
+  for (const auto& i : sen | stdv::values | stdv::join) {
+    if (not stdr::contains(plos, i)) {
+      plos.push_back(i);
+    }
+  }
+
+  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
+  freqs.reserve(sen.size());
+  for (const auto& i : sen | stdv::keys) freqs.push_back(i);
+
+  tag stag{os_xml,
+           "ArrayOfSensorObsel",
+           meta_data{"name", name},
+           meta_data{"nelem", static_cast<Index>(g.size())},
+           meta_data{"nfreq", static_cast<Index>(freqs.size())},
+           meta_data{"nposlos", static_cast<Index>(plos.size())}};
+
+  if (not sen.empty()) {
+    for (auto& f : freqs) xml_write_to_stream(os_xml, *f, pbofs, "f_grid");
+    for (auto& p : plos) xml_write_to_stream(os_xml, *p, pbofs, "poslos");
+
+    for (auto& elem : g) {
+      const Index ifreq =
+          std::distance(freqs.begin(), stdr::find(freqs, elem.f_grid_ptr()));
+      const Index iplos =
+          std::distance(plos.begin(), stdr::find(plos, elem.poslos_grid_ptr()));
+
+      xml_write_to_stream(os_xml, ifreq, pbofs, "f_grid index");
+      xml_write_to_stream(os_xml, iplos, pbofs, "poslos_grid index");
+      xml_write_to_stream(os_xml, elem.weight_matrix(), pbofs, "weight_matrix");
+    }
+  }
+
+  stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in ArrayOfSensorObsel:\n{}", e.what()));
 }
 
 //! SensorPosLos
