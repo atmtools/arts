@@ -189,8 +189,8 @@ there's a ``workspace_method_extra_doc.cpp`` file that you can add to.  This fil
 has access to the full workspace as part of the ``artsworkspace`` target and the 
 python documentation adds a separate subsection for the information in this file (documentation level ``-------``).
 
-Examples
-========
+Examples of defined workspace methods
+=====================================
 
 The following examples are taken from the ARTS source code.  Please check the
 source code for the full context of the examples.
@@ -397,6 +397,9 @@ The arguments :attr:`~pyarts.workspace.Workspace.measurement_sensor`,
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
+The other fields are there to provide context and to generate the documentation.
+See :meth:`~pyarts.workspace.Workspace.measurement_vectorFromSensor` for the full documentation.
+
 Meta-method output with workspace variables
 -------------------------------------------
 
@@ -426,3 +429,7 @@ the listed methods one after the other and then deleting all method output
 that is not in ``out``.
 In other words, even if a sub-method has an output that is not in ``out``,
 it will not be passed to the user.
+
+The call order and documentation of
+See :meth:`~pyarts.workspace.Workspace.atmospheric_fieldRead` 
+makes it possible to follow the call order.
