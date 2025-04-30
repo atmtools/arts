@@ -65,15 +65,22 @@ the :attr:`~pyarts.workspace.Workspace.ray_path` internally, and leave that to t
 Generated files
 ===============
 
-The workspace gragenda interface generates 5 files for the C++ interface.
+There are several files generated for both the pure C++ and for the python interface.
+
 Check these if anything is unclear after reading this documentation to
 ensure there are no bugs in the generated code.
+
+These are the pure C++ files:
 
 - ``auto_wsa.h``: Contains recursive agenda call handling logic. Also defines the workspace methods ``agendaxExecute`` and ``agendaxSet`` interfaces.
 - ``auto_wsa.cpp``: Creates a workspace variable with the name of the agenda.  Implements what is in the namesake header file.  Also implements the logic for documenting these methods.
 - ``auto_wsa_options.h``:  Implements the options used in set-methods.  These are stripped down versions of the standard ARTS options.
 - ``auto_agenda_operators.h``:  Defines a callable workspace group to represent the agenda.  The type is called ``agendaxOperator``.
 - ``auto_agenda_operators.cpp``:  Implements workspace methods ``agendaxExecuteOperator`` and ``agendaxSetOperator``.  The former executes the workspace group from the header file, the latter allows setting the agenda to call a custom operator, e.g., a python function.
+
+This is the only python interface files:
+
+- ``py_auto_agenda_operators.cpp``:  Implements the GIL-safe ``agendaxOperator`` callback types.  It should be possible to create these using any python callable, such as a ``def`` method or a class that implements ``__call__``.  The error should be propagated as if it were in python.
 
 Workspace agenda naming convention
 ==================================
