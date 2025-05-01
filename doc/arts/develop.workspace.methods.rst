@@ -13,6 +13,19 @@ Workspace methods are exposed to other C++ files via the ``<workspace.h>`` heade
 Only the CMake target ``artsworkspace`` and targets that depend on it may include
 ``<workspace.h>``.
 
+How to add a workspace method?
+==============================
+
+The easiest way to add a workspace method is to copy an existing method.
+Go to the ``workspace_methods.cpp`` or ``workspace_meta_methods.cpp`` file, depending on
+if it is a basic or meta-method you wish to add.
+Copy an existing method and modify it to suit your needs.
+
+Meta-methods are automatically generated and do not require any additional code.
+Basic methods require new code to be compiled as part of the ``artsworkspace`` target.
+Please add this code to an existing ``m_``-file or create a new one.
+Please ensure that the new file is listed in the CMake target ``artsworkspace``.
+
 Defining a workspace method
 ===========================
 
@@ -71,29 +84,29 @@ that the documentation is generated as intended by building the ``pyarts_docs`` 
   All fields but ``desc`` and ``author`` are optional.  If a field is not needed, it
   is convenient to leave it out.
 
-Meta methods
+Meta-methods
 ------------
 
-Meta methods do not define all their input and output, but instead define a call
+Meta-methods do not define all their input and output, but instead define a call
 order into other methods.  From this call order, the inputs of the user-facing
 workspace method is inferred.  This method should not be implemented manually.
 
 These methods are defined in ``workspace_meta_methods.cpp``.  They are defined
 as part of a list called ``wsm_meta``.
-A single meta method data contains:
+A single meta-method data contains:
 
 - ``name`` - the name of the method as a string.
 - ``desc`` - a description of the method as a string.
 - ``author`` - the author(s) of the method as a list of strings.
-- ``methods`` - the methods that the meta method depends on as a list of strings.
+- ``methods`` - the methods that the meta-method depends on as a list of strings.
 - ``out`` - the output of the method as a list of strings.  These must be workspace variables.
 - ``preset_gin`` - The preset ``gin`` values for the method as a list of workspace values.
 - ``preset_gin_value`` - The preset ``gin_value`` values for the method as a list of workspace values.
 
 .. tip::
 
-  A meta method may depend on another meta method.  If it does, it is important that the
-  meta method it depends on is defined before it in the list.
+  A meta-method may depend on another meta-method.  If it does, it is important that the
+  meta-method it depends on is defined before it in the list.
 
 Automatic methods
 -----------------
@@ -175,3 +188,248 @@ If a method require extra information beyond what you can fit in the ``desc`` fi
 there's a ``workspace_method_extra_doc.cpp`` file that you can add to.  This file
 has access to the full workspace as part of the ``artsworkspace`` target and the 
 python documentation adds a separate subsection for the information in this file (documentation level ``-------``).
+
+Examples of defined workspace methods
+=====================================
+
+The following examples are taken from the ARTS source code.  Please check the
+source code for the full context of the examples.
+
+Method creating a workspace variable
+------------------------------------
+
+The following is a basic
+method that creates or set a workspace variable.
+
+This is the extration of the text in the ``workspace_methods.cpp`` file:
+
+.. code-block:: c++
+
+    wsm_data["ray_pathGeometricUplooking"] = {
+        .desc =
+            R"--(Wraps *ray_pathGeometric* for straight uplooking paths from the surface altitude at the position
+    )--",
+        .author = {"Richard Larsson"},
+        .out    = {"ray_path"},
+        .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
+        .gin    = {"max_step"},
+        .gin_type  = {"Numeric"},
+        .gin_value = {Numeric{1e3}},
+        .gin_desc  = {"The maximum step length"},
+    };
+
+The signature of the method is:
+
+.. code-block:: c++
+
+  void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
+                                  const AtmField& atmospheric_field,
+                                  const SurfaceField& surface_field,
+                                  const Numeric& latitude,
+                                  const Numeric& longitude,
+                                  const Numeric& max_step);
+
+The signature of the method returns ``void``.  This is the same for all ARTS methods.
+
+The first argument of the method is a reference to :attr:`~pyarts.workspace.Workspace.ray_path`.
+Since :attr:`~pyarts.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
+it is expected that the method overwrite any existing value of :attr:`~pyarts.workspace.Workspace.ray_path`.
+
+The arguments :attr:`~pyarts.workspace.Workspace.atmospheric_field`, :attr:`~pyarts.workspace.Workspace.surface_field`,
+:attr:`~pyarts.workspace.Workspace.latitude`, and :attr:`~pyarts.workspace.Workspace.longitude`
+are defined in ``in`` and are passed to the method as immutable references to the respective
+workspace variables.
+
+Lastly, the argument ``max_step`` is defined in ``gin`` and is passed
+as an immutable reference as well.  The type of the argument is ``Numeric``
+and the default value is ``1e3``.  The default value is passed to the method
+if the user does not provide a value for ``max_step``.
+
+All other fields are there to provide context and to generate the documentation.
+See :meth:`~pyarts.workspace.Workspace.ray_pathGeometricUplooking` for the full documentation.
+
+Method modifying a workspace variable
+-------------------------------------
+
+The following is a basic workspace method that modifies existing workspace variables.
+
+This is the extraction of the text in the ``workspace_methods.cpp`` file:
+
+.. code-block:: c++
+
+  wsm_data["propagation_matrixAddLines"] = {
+      .desc      = R"--(Line-by-line calculations.
+  )--",
+      .author    = {"Richard Larsson"},
+      .out       = {"propagation_matrix",
+                    "propagation_matrix_source_vector_nonlte",
+                    "propagation_matrix_jacobian",
+                    "propagation_matrix_source_vector_nonlte_jacobian"},
+      .in        = {"propagation_matrix",
+                    "propagation_matrix_source_vector_nonlte",
+                    "propagation_matrix_jacobian",
+                    "propagation_matrix_source_vector_nonlte_jacobian",
+                    "frequency_grid",
+                    "jacobian_targets",
+                    "select_species",
+                    "absorption_bands",
+                    "ecs_data",
+                    "atmospheric_point",
+                    "ray_path_point"},
+      .gin       = {"no_negative_absorption"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Turn off to allow individual absorbers to have negative absorption"},
+  };
+
+The signature of the method is:
+
+.. code-block:: c++
+
+  void propagation_matrixAddLines(PropmatVector& propagation_matrix,
+                                  StokvecVector& propagation_matrix_source_vector_nonlte,
+                                  PropmatMatrix& propagation_matrix_jacobian,
+                                  StokvecMatrix& propagation_matrix_source_vector_nonlte_jacobian,
+                                  const AscendingGrid& frequency_grid,
+                                  const JacobianTargets& jacobian_targets,
+                                  const SpeciesEnum& select_species,
+                                  const AbsorptionBands& absorption_bands,
+                                  const LinemixingEcsData& ecs_data,
+                                  const AtmPoint& atmospheric_point,
+                                  const PropagationPathPoint& ray_path_point,
+                                  const Index& no_negative_absorption);
+
+The signature of the method returns ``void``.  This is the same for all ARTS methods.
+
+The first four arguments of the method are references to
+:attr:`~pyarts.workspace.Workspace.propagation_matrix`.
+:attr:`~pyarts.workspace.Workspace.propagation_matrix_source_vector_nonlte`,
+:attr:`~pyarts.workspace.Workspace.propagation_matrix_jacobian`, and
+:attr:`~pyarts.workspace.Workspace.propagation_matrix_source_vector_nonlte_jacobian`
+are both output (``out``) and input (``in``).  The method is expected to modify the existing values
+of these workspace variables instead of creating new ones.
+
+The arguments
+:attr:`~pyarts.workspace.Workspace.frequency_grid`,
+:attr:`~pyarts.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts.workspace.Workspace.select_species`,
+:attr:`~pyarts.workspace.Workspace.absorption_bands`,
+:attr:`~pyarts.workspace.Workspace.ecs_data`,
+:attr:`~pyarts.workspace.Workspace.atmospheric_point`, and
+:attr:`~pyarts.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
+as immutable references to the respective workspace variables.
+
+Lastly, the argument ``no_negative_absorption`` is defined in ``gin`` and is passed
+as an immutable reference as well.  The type of the argument is ``Index``
+and the default value is ``1``.  The default value is passed to the method
+if the user does not provide a value for ``no_negative_absorption``.
+The ``no_negative_absorption`` argument is used to turn off the check for negative absorption,
+which is useful for debugging purposes.
+
+The other fields are there to provide context and to generate the documentation.
+See :meth:`~pyarts.workspace.Workspace.propagation_matrixAddLines` for the full documentation.
+
+Method that uses a workspace agenda
+-----------------------------------
+
+The following is a basic workspace method that creates workspace variables.
+
+This is the extraction of the text in the ``workspace_methods.cpp`` file:
+
+.. code-block:: c++
+
+  wsm_data["measurement_vectorFromSensor"] = {
+        .desc =
+            R"--(Sets measurement vector by looping over all sensor elements
+
+  The core calculations happens inside the *spectral_radiance_observer_agenda*.
+
+  User choices of *spectral_radiance_unit* does not adversely affect this method
+  unless the *measurement_vector* or *measurement_jacobian* are further modified
+  before consumption by, e.g., *OEM*
+  )--",
+        .author         = {"Richard Larsson"},
+        .out            = {"measurement_vector", "measurement_jacobian"},
+        .in             = {"measurement_sensor",
+                          "jacobian_targets",
+                          "atmospheric_field",
+                          "surface_field",
+                          "spectral_radiance_unit",
+                          "spectral_radiance_observer_agenda"},
+        .pass_workspace = true,
+    };
+
+The signature of the method is:
+
+.. code-block:: c++
+
+  void measurement_vectorFromSensor(const Workspace& ws,
+                                    Vector& measurement_vector,
+                                    Matrix& measurement_jacobian,
+                                    const ArrayOfSensorObsel& measurement_sensor,
+                                    const JacobianTargets& jacobian_targets,
+                                    const AtmField& atmospheric_field,
+                                    const SurfaceField& surface_field,
+                                    const SpectralRadianceUnitType& spectral_radiance_unit,
+                                    const Agenda& spectral_radiance_observer_agenda);
+
+The signature of the method returns ``void``.  This is the same for all ARTS methods.
+
+The first argument of the method is a reference to the workspace object itself.
+This is passed as a ``const Workspace&`` reference to the method.  It is passed
+to the method because ``pass_workspace`` is set to ``true`` in the method definition.
+Note that the workspace object is passed as a ``const`` reference, so it cannot be modified.
+
+The coming two arguments of the method are references to
+:attr:`~pyarts.workspace.Workspace.measurement_vector` and
+:attr:`~pyarts.workspace.Workspace.measurement_jacobian`.
+Since :attr:`~pyarts.workspace.Workspace.measurement_vector` and
+:attr:`~pyarts.workspace.Workspace.measurement_jacobian` are in ``out`` but not in ``in``,
+it is expected that the method overwrite any existing values they might hold.
+
+The arguments :attr:`~pyarts.workspace.Workspace.measurement_sensor`,
+:attr:`~pyarts.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts.workspace.Workspace.atmospheric_field`,
+:attr:`~pyarts.workspace.Workspace.surface_field`, 
+:attr:`~pyarts.workspace.Workspace.spectral_radiance_unit`, and
+:attr:`~pyarts.workspace.Workspace.spectral_radiance_observer_agenda`
+are defined in ``in`` and are passed to the method
+as immutable references to the respective workspace variables.
+
+The other fields are there to provide context and to generate the documentation.
+See :meth:`~pyarts.workspace.Workspace.measurement_vectorFromSensor` for the full documentation.
+
+Meta-method output with workspace variables
+-------------------------------------------
+
+The following is a meta-method that creates workspace variables.
+
+This is the extraction of the text in the ``workspace_meta_methods.cpp`` file:
+
+.. code-block:: c++
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name             = "atmospheric_fieldRead",
+      .desc             = "Reads absorption file from a directory",
+      .author           = {"Richard Larsson"},
+      .methods          = {"atmospheric_fieldInit",
+                           "atmospheric_fieldAppendBaseData",
+                           "atmospheric_fieldAppendAbsorptionData"},
+      .out              = {"atmospheric_field"},
+      .preset_gin       = {"replace_existing"},
+      .preset_gin_value = {Index{0}},
+  });
+
+The signature of the generated meta-method is
+not important because it is generated automatically.
+
+Calling the above method is effectively the same as calling
+the listed methods one after the other and then deleting all method output
+that is not in ``out``.
+In other words, even if a sub-method has an output that is not in ``out``,
+it will not be passed to the user.
+
+The call order and documentation of
+See :meth:`~pyarts.workspace.Workspace.atmospheric_fieldRead` 
+makes it possible to follow the call order.

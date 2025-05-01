@@ -8,6 +8,26 @@ Workspace groups are all available in the :py:mod:`~pyarts.arts` module.
 Most workspace groups are defined in the ``workspace_groups.cpp`` file.
 Additionally, :doc:`develop.workspace.options` are automatically turned into workspace groups using their definitions in the ``arts_options.cpp`` file.
 
+How to add a workspace group?
+=============================
+
+First create and name the C++ struct, class, or type define in a header file.
+After that, the easiest way to create a new workspace group is to simply copy
+an existing workspace group in ``workspace_groups.cpp`` and modify it as
+necessary.  Ensure that the compilation of the ``artsworkspace`` target can
+see the header file that contains the definition of the workspace group.
+
+You will also need to create the python bindings for the new workspace group.
+Again, the easiest way to do this is to simply copy an existing python interface.
+It is then possible to overload as many methods and operators as required to make
+your new workspace group interface smooth from python.
+
+Note that there are several templated methods available that will help your
+class have a better python interface.  Please write more if you find some
+defaults are missing.  The most important one for all workspace groups is
+``workspace_group_interface``, which handles bindings for all the standard
+interfaces required for workspace groups (such as IO).
+
 Defining a workspace group
 ==========================
 
@@ -24,18 +44,12 @@ of the map and the object is a struct with the following fields:
 - ``value_type`` - a boolean that defines whether a workspace group instance of this type is copyable in python.  You cannot copy python types such as ``int`` and ``str``.
 - ``map_type`` - a boolean that defines whether the workspace group is a map.  Maps can be accessed via the ``[]`` operator using the key type.  Remember that both the ``mapped_type`` and the ``key_type`` of the map should also be workspace groups.
 
-In ``arts_options.cpp``
------------------------
-
-See the page on :doc:`develop.workspace.options` for more information.
-The workspace group defined from a workspace option will
-simply be the name of the ``enum class`` that defines the option.
-
 What qualifies as a workspace group?
 ====================================
 
 You need to ensure that the following code is possible for each workspace group ``T``.
-Read this assuming that ``a`` is an instance of ``T``, ``x`` is an instance of ``std::formatter<T>``, ``i`` is an instance of an integer, and ``k`` is an instance of a "key".
+Read this assuming that ``a`` is an instance of ``T``, ``x`` is an instance of
+``std::formatter<T>``, ``i`` is an instance of an integer, and ``k`` is an instance of a "key".
 The following must compile:
 
 - ``xml_read_from_stream(std::istream &, T&, bifstream *)`` - allow reading the workspace group from an XML file.  Failure to comply leads to a linker error.

@@ -31,23 +31,18 @@ class Obsel {
   std::shared_ptr<const PosLosVector> poslos{
       std::make_shared<const PosLosVector>()};
 
+  //! FIXME: This should be made a variant of sparse/non-sparse!  Do this if/when we see an actual slowdown cf ARTS2.
+  // (The type should be "std::variant<StokvecMatrix, std::array<Sparse, 4>>", where the "4" is for the 4 Stokes components.)
   // A matrix size of poslos_grid.size() x f_grid.size() with the polarized weight of the sensor
   StokvecMatrix w{};
 
  public:
   Obsel() = default;
+
   Obsel(std::shared_ptr<const AscendingGrid> fs,
         std::shared_ptr<const PosLosVector> pl,
-        StokvecMatrix ws)
-      : f{std::move(fs)}, poslos{std::move(pl)}, w{std::move(ws)} {
-    check();
-  }
-  Obsel(const AscendingGrid& fs, const PosLosVector& pl, StokvecMatrix ws)
-      : f{std::make_shared<const AscendingGrid>(fs)},
-        poslos{std::make_shared<const PosLosVector>(pl)},
-        w{std::move(ws)} {
-    check();
-  }
+        StokvecMatrix ws);
+  Obsel(const AscendingGrid& fs, const PosLosVector& pl, StokvecMatrix ws);
 
   Obsel(const Obsel&)            = default;
   Obsel(Obsel&&)                 = default;
@@ -56,23 +51,15 @@ class Obsel {
 
   void check() const;
 
-  [[nodiscard]] bool same_freqs(const Obsel& other) const {
-    return f == other.f;
-  }
+  [[nodiscard]] bool same_freqs(const Obsel& other) const;
 
   [[nodiscard]] bool same_freqs(
-      const std::shared_ptr<const AscendingGrid>& other) const {
-    return f == other;
-  }
+      const std::shared_ptr<const AscendingGrid>& other) const;
 
-  [[nodiscard]] bool same_poslos(const Obsel& other) const {
-    return poslos == other.poslos;
-  }
+  [[nodiscard]] bool same_poslos(const Obsel& other) const ;
 
   [[nodiscard]] bool same_poslos(
-      const std::shared_ptr<const PosLosVector>& other) const {
-    return poslos == other;
-  }
+      const std::shared_ptr<const PosLosVector>& other) const ;
 
   [[nodiscard]] const auto& f_grid_ptr() const { return f; }
   [[nodiscard]] const auto& poslos_grid_ptr() const { return poslos; }
@@ -81,22 +68,11 @@ class Obsel {
   [[nodiscard]] const PosLosVector& poslos_grid() const { return *poslos; }
   [[nodiscard]] const StokvecMatrix& weight_matrix() const { return w; }
 
-  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
-    ARTS_USER_ERROR_IF(not n, "Must exist");
-    ARTS_USER_ERROR_IF(n->size() != f->size(), "Mismatching size");
-    f = std::move(n);
-  }
+  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) ;
 
-  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
-    ARTS_USER_ERROR_IF(not n, "Must exist");
-    ARTS_USER_ERROR_IF(n->size() != poslos->size(), "Mismatching size");
-    poslos = std::move(n);
-  }
+  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) ;
 
-  void set_weight_matrix(StokvecMatrix n) {
-    ARTS_USER_ERROR_IF(n.shape() != w.shape(), "Mismatching shape");
-    w = std::move(n);
-  }
+  void set_weight_matrix(StokvecMatrix n) ;
 
   //! Constant indicating that the frequency or poslos is not found in the grid
   constexpr static Index dont_have = -1;
