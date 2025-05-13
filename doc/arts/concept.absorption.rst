@@ -143,15 +143,18 @@ where :math:`i` is the pseudo-index of the physical process.  A physical process
 refers to line-by-line absorption, collision-induced absorption, Faraday rotation, scattering, etc.
 Think of this sum as if each contribtion the the propagation matrix is completely independent of the others.
 
-The way to compute different :math:`\mathbf{K}_i` are described in these sections:
+Sources of Absorption
+*********************
+
+The different ways to compute different :math:`\mathbf{K}_i` are described in these sections:
 
 .. toctree::
    :maxdepth: 2
    
-   guide.theory.absorption.cia
-   guide.theory.absorption.faraday
-   guide.theory.absorption.lbl
-   guide.theory.absorption.lookup
-   guide.theory.absorption.predef
-   guide.theory.absorption.xsec
+   concept.absorption.cia
+   concept.absorption.faraday
+   concept.absorption.lbl
+   concept.absorption.lookup
+   concept.absorption.predef
+   concept.absorption.xsec
   

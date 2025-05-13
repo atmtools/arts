@@ -28,7 +28,7 @@ you will automatically have access to the following interface for each option ty
 - ``to<T>(s)`` - returns the option from a string.  It will look through all provided names for the option type.
 - ``operator<<(std::ostream &os, const T x)`` - allows streamed output of the option.
 - ``operator>>(std::istream &is, T &x)`` - allows streamed input of the option.
-- In addition to this, all the requirements for being a :doc:`develop.workspace.groups` are also automatically fulfilled.
+- In addition to this, all the requirements for being a :doc:`dev.workspace.groups` are also automatically fulfilled.
 
 Generated files
 ===============

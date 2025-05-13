@@ -24,7 +24,7 @@ of the map and the object are a struct with the following fields:
 In ``workspace_agendas.cpp``
 ----------------------------
 
-See the page on :doc:`develop.workspace.agendas` for more information.  The workspace variable defined from the workspace agenda will
+See the page on :doc:`dev.workspace.agendas` for more information.  The workspace variable defined from the workspace agenda will
 have no default value.  It will be of the type :class:`~pyarts.arts.Agenda`.
 
 What qualifies as a workspace variable?

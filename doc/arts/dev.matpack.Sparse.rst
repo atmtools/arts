@@ -15,7 +15,7 @@ as well as the linear algebra operations of matrix-matrix and matrix-vector mult
 
 This class is accessible through the python interface via :class:`~pyarts.arts.Sparse`.
 
-Like :doc:`develop.matpack.band_matrix`, this is a very simple class that
+Like :doc:`dev.matpack.band_matrix`, this is a very simple class that
 has very specialized use cases.  It is not recommended using this class
 for general purpose linear algebra, but it can be very useful for specific
 problems.
