@@ -135,11 +135,15 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     if (select_abs_species.nelem() and abs_species[i] not_eq select_abs_species)
       continue;
 
+    bool skip_species = false;
     for (Index s = 0; s < abs_species[i].nelem(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != Species::TagType::XsecFit) continue;
+      if (this_species.Type() != Species::TagType::XsecFit) {
+        skip_species = true;
+        continue;
+      }
 
       Index this_xdata_index =
           hitran_xsec_get_index(xsec_fit_data, this_species.Spec());
@@ -165,6 +169,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
             dxsec_temp_dT, f_grid, current_p, current_t + dt, verbosity);
       }
     }
+    if (skip_species) continue;
 
     // Add to result variable:
     Numeric nd = number_density(rtp_pressure, rtp_temperature);
