@@ -317,7 +317,7 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
   for (Index i = 0; i < abs_species.nelem(); ++i) {
     bool has_free_electrons = false;
     bool has_particles = false;
-    bool has_hitran_xsec = false;
+    bool has_xfit = false;
     for (Index s = 0; s < abs_species[i].nelem(); ++s) {
       if (abs_species[i][s].Type() == Species::TagType::FreeElectrons) {
         num_free_electrons++;
@@ -329,7 +329,7 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
       }
 
       if (abs_species[i][s].Type() == Species::TagType::XsecFit) {
-        has_hitran_xsec = true;
+        has_xfit = true;
       }
     }
 
@@ -344,8 +344,8 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
                        "'particles' must not be combined "
                        "with other tags in the same group.");
 
-    ARTS_USER_ERROR_IF(abs_species[i].nelem() > 1 && has_hitran_xsec,
-                       "'hitran_xsec' must not be combined "
+    ARTS_USER_ERROR_IF(abs_species[i].nelem() > 1 && has_xfit,
+                       "'*-XFIT' must not be combined "
                        "with other tags in the same group.");
   }
 }
