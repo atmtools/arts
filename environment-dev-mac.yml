@@ -9,7 +9,7 @@ dependencies:
         - glfw
         - lark-parser
         - libclang
-        - libcxx
+        - libcxx!=20.1.5
         - libmicrohttpd
         - llvm-openmp
         - matplotlib
