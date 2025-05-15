@@ -5,8 +5,8 @@ dependencies:
         - clangxx
         - cmake
         - docutils
-        - gcc
-        - gfortran
+        - gcc<15
+        - gfortran<15
         - glew
         - glfw
         - gmp
