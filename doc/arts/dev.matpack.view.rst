@@ -5,7 +5,7 @@ There are two view classes in Matpack: ``view_t`` and ``strided_view_t``.
 The former is for contiguous data, while the latter is for strided data as the name implies.
 From a performance perspective, contiguous data is generally faster to access than strided data - often by a significant margin.
 
-A view is either created as part of on of the :doc:`develop.matpack.data` classes or by accessing a subarray of an existing view.
+A view is either created as part of one of the :doc:`dev.matpack.data` classes or by accessing a subarray of an existing view.
 Accessing a subarray in a contiguous manner will create a ``view_t``, while accessing a subarray in a strided manner will create a ``strided_view_t``.
 
 Both classes are implemented in the ``matpack`` namespace.  They are template classes that

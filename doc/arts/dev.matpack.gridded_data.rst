@@ -11,7 +11,7 @@ For instance, a 3D gridded field of numeric data with unsorted grids is defined 
 This is in fact the type :class:`pyarts.arts.GriddedField3`.  It holds the name of of the data as a string, the data itself
 as a :class:`pyarts.arts.Tensor3`, the name of the grids as strings, and the grids themselves as :class:`pyarts.arts.Vector`.
 
-The internal workings of the gridded data class is that it holds a :doc:`develop.matpack.data` object whose rank is
+The internal workings of the gridded data class is that it holds a :doc:`dev.matpack.data` object whose rank is
 the same as the number of grids passed in.
 
 The effective layout of the class is:
@@ -48,7 +48,7 @@ Interpolation
 =============
 
 To understand how to use the interpolation methods of the gridded data class, you should first read and understand how
-non-linear interpolation works in ARTS.  This is available at :doc:`develop.matpack.interpolation`.  The section of interest
+non-linear interpolation works in ARTS.  This is available at :doc:`dev.matpack.interpolation`.  The section of interest
 is the one on higher order interpolation.
 
 Rather than go through the exact details, here are a couple of code examples to show how to use the interpolation methods.

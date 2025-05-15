@@ -24,10 +24,10 @@ are available on the `ARTS website <https://www.radiativetransfer.org>`_.
    about
    installation
    examples
-   guide
+   users
    workspace
    pyarts
-   develop
+   devs
    indices
    bibliography
    contact

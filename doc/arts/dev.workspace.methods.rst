@@ -46,14 +46,14 @@ method is the key and the value is a struct with the following fields:
 
 - ``desc`` - a description of the method as a string.
 - ``author`` - the author(s) of the method as a list of strings.
-- ``out`` - the :doc:`develop.workspace.variables` output of the method as a list of strings.
-- ``gout`` - the generic output of the method as a list of strings.  These must not be :doc:`develop.workspace.variables`.
-- ``gout_type`` - the type of the generic output as a list of strings.  These must be :doc:`develop.workspace.groups`.
+- ``out`` - the :doc:`dev.workspace.variables` output of the method as a list of strings.
+- ``gout`` - the generic output of the method as a list of strings.  These must not be :doc:`dev.workspace.variables`.
+- ``gout_type`` - the type of the generic output as a list of strings.  These must be :doc:`dev.workspace.groups`.
 - ``gout_desc`` - the description of the generic output as a list of strings.
-- ``in`` - the :doc:`develop.workspace.variables` input of the method as a list of strings.
-- ``gin`` - the generic input of the method as a list of strings.  These must not be :doc:`develop.workspace.variables`.
-- ``gin_type`` - the type of the generic input as a list of strings.  These must be :doc:`develop.workspace.groups`.
-- ``gin_value`` - the default value of the generic input as an optional initialized :doc:`develop.workspace.groups`.
+- ``in`` - the :doc:`dev.workspace.variables` input of the method as a list of strings.
+- ``gin`` - the generic input of the method as a list of strings.  These must not be :doc:`dev.workspace.variables`.
+- ``gin_type`` - the type of the generic input as a list of strings.  These must be :doc:`dev.workspace.groups`.
+- ``gin_value`` - the default value of the generic input as an optional initialized :doc:`dev.workspace.groups`.
 - ``gin_desc`` - the description of the generic input as a list of strings.
 - ``pass_workspace`` - a boolean indicating if a :class:`~pyarts.workspace.Workspace` instance should be passed to the method.  If true, the first argument to the method is a ``const Workspace&``.
 
@@ -61,13 +61,13 @@ The expected signature of the method will depend on these fields.
 A linker error will likely occur if the actual signature does not match
 the expected signature.
 
-The ``in`` and ``out`` may contain the same :doc:`develop.workspace.variables`.  If they do, the variable must be
+The ``in`` and ``out`` may contain the same :doc:`dev.workspace.variables`.  If they do, the variable must be
 initialized before the method is called because it is treated as if the method is intended to
 simply modify the existing value.  Please indicate strongly in the documentation if you sometimes overwrite the input variable.
 
-On the other hand, if the :doc:`develop.workspace.variables` is only in ``out`` and not in ``in``,
+On the other hand, if the :doc:`dev.workspace.variables` is only in ``out`` and not in ``in``,
 it is treated as if the workspace variable is created by the method.  Note that since the type system
-does not account for this, it is important that you clear the current state of the :doc:`develop.workspace.variables`
+does not account for this, it is important that you clear the current state of the :doc:`dev.workspace.variables`
 in a method that is intended to create a new workspace variable.
 
 The fields ``gin``, ``gin_type``, ``gin_value``, and ``gin_desc`` must be the same size.

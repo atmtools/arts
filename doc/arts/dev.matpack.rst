@@ -12,13 +12,13 @@ also helper classes for sorted grids, gridded data, and band matrices.
 .. toctree::
    :maxdepth: 2
    
-   develop.matpack.Sparse
-   develop.matpack.data
-   develop.matpack.view
-   develop.matpack.interpolation
-   develop.matpack.sorted_grid
-   develop.matpack.gridded_data
-   develop.matpack.band_matrix
+   dev.matpack.Sparse
+   dev.matpack.data
+   dev.matpack.view
+   dev.matpack.interpolation
+   dev.matpack.sorted_grid
+   dev.matpack.gridded_data
+   dev.matpack.band_matrix
    
 .. tip::
 

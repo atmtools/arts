@@ -18,7 +18,7 @@ Please see its documentation for more details on the layout of the band matrix.
 The band matrix is not available via the python interface but used solely for internal
 solvers.
 
-Like :doc:`develop.matpack.Sparse`, this is a very simple class that
+Like :doc:`dev.matpack.Sparse`, this is a very simple class that
 has very specialized use cases.  It is not recommended using this class
 for general purpose linear algebra, but it can be very useful for specific
 problems.
