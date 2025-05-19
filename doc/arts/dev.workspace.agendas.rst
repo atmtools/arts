@@ -15,14 +15,23 @@ The agenda object itself is a struct with the following fields:
 - ``desc`` - a description of the agenda as a string.
 - ``outputs`` - the workspace variables that are produced/output by the agenda as a list of strings.
 - ``inputs`` - the workspace variables that are consumed by the agenda as a list of strings.
-- ``enum_options`` - a list of strings that are the options for the agenda.  Defaults to empty.
-- ``enum_defaults`` - the default enum option for the agenda.  Defaults to no-default by being empty.
+- ``enum_options`` - (optional) a list of strings that are the options for the agenda.  Defaults to empty.
+- ``enum_defaults`` - (optional) the default enum option for the agenda.  Defaults to no-default by being empty.
+- ``output_constraints`` - (optional) a vector of structs tht define constraints on the output after the agenda has been executed.  Defaults to unconstrainged.
 
 The two enum-variables, if set, will generate workspace methods that allow setting the agenda to a specific named option.
 This is useful for agendas that have known "modes".  However, it puts some constraints on the implementation of the agenda.
 The implementor must implement a method ``get_agendax(const std::string&)`` in the
 ``workspace_agenda_creator.h`` and ``workspace_agenda_creator.cpp`` files.
 Please see existing options in those files for examples.
+
+If you want to ensure that the outputs have the right size or correct values (e.g., positive values),
+after executing the agenda, you can use the ``output_constraints`` field.  This is a complicated field
+that is a vector of constraints.  Each constraint has a test and a message.  The test should be 
+a compilable expression that returns a boolean true when the constraint is satisfied.  The message
+is the string that is printed in the exception when 1) the test fails, and 2) on the documentation page.
+Additionally, any number of expressions can be added to the message.  These expressions added to the message
+and evaluated at runtime when a failure occurs (e.g., ``{x.size()}``).
 
 How to add a workspace agenda?
 ==============================

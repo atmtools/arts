@@ -194,6 +194,10 @@ using SurfacePoint        = Surf::Point;
 using SurfaceField        = Surf::Field;
 using ArrayOfSurfacePoint = Array<SurfacePoint>;
 
+bool operator==(const SurfaceKeyVal &, SurfaceKey);
+bool operator==(SurfaceKey, const SurfaceKeyVal &);
+bool operator==(const SurfaceKeyVal &, const SurfacePropertyTag &);
+bool operator==(const SurfacePropertyTag &, const SurfaceKeyVal &);
 template <>
 struct std::formatter<SurfacePropertyTag> {
   format_tags tags;

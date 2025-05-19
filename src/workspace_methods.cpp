@@ -2055,6 +2055,24 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "ray_path_point"},
   };
 
+  wsm_data["spectral_radianceFlatScalarReflectance"] = {
+      .desc =
+          R"--(Set surface spectral radiance from Planck function of the surface temperature and the reflectance of incoming radiation
+
+Gets incoming radiation by placing an observer at the surface looking at the
+specular reflection of the outgoing radiation (as described by *ray_path_point*)
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in             = {"frequency_grid",
+                         "atmospheric_field",
+                         "surface_field",
+                         "jacobian_targets",
+                         "ray_path_point",
+                         "spectral_radiance_observer_agenda"},
+      .pass_workspace = true,
+  };
+
   wsm_data["spectral_radiance_jacobianAddSensorJacobianPerturbations"] = {
       .desc = R"--(Adds sensor properties to the *spectral_radiance_jacobian*.
 

@@ -4,6 +4,8 @@
 #include <debug.h>
 
 #include <algorithm>
+#include <limits>
+#include <type_traits>
 #include <vector>
 
 /** An array. */
@@ -24,10 +26,26 @@ constexpr base max(const Array<base>& x) {
   return *std::ranges::max_element(x);
 }
 
+template <class base, class ConvFunc>
+constexpr auto max(const Array<base>& x, ConvFunc&& f) {
+  using RetType = std::remove_cvref_t<decltype(f(base{}))>;
+  RetType maxv  = std::numeric_limits<RetType>::lowest();
+  for (auto& elem : x) maxv = std::max<RetType>(f(elem), maxv);
+  return maxv;
+}
+
 /** Min function. */
 template <class base>
 constexpr base min(const Array<base>& x) {
   return *std::ranges::min_element(x);
+}
+
+template <class base, class ConvFunc>
+constexpr auto min(const Array<base>& x, ConvFunc&& f) {
+  using RetType = std::remove_cvref_t<decltype(f(base{}))>;
+  RetType maxv  = std::numeric_limits<RetType>::max();
+  for (auto& elem : x) maxv = std::min<RetType>(f(elem), maxv);
+  return maxv;
 }
 
 //! Find first occurance.

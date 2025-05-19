@@ -6,6 +6,7 @@ add_library(rtepack STATIC
   rtepack_scattering.cc
   rtepack_source.cc
   rtepack_stokes_vector.cc
+  rtepack_surface.cc
   rtepack_transmission.cc
 )
 target_include_directories(rtepack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -128,6 +128,18 @@ void py_surf(py::module_ &m) try {
              surf[x] = data;
            })
       .def(
+          "__getitem__",
+          [](SurfacePoint &surf, const SurfacePropertyTag& x) {
+            if (not surf.has(x))
+              throw py::key_error(std::format("{}", x).c_str());
+            return surf[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SurfacePoint &surf, const SurfacePropertyTag& x, Numeric data) {
+             surf[x] = data;
+           })
+      .def(
           "__getstate__",
           [](const SurfacePoint &t) {
             auto k = t.keys();
@@ -166,6 +178,17 @@ void py_surf(py::module_ &m) try {
          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SurfaceField &surf, SurfaceKey x, const Surf::Data &data) {
+             surf[x] = data;
+           }).def(
+         "__getitem__",
+         [](SurfaceField &surf, const SurfacePropertyTag& x) -> Surf::Data & {
+           if (not surf.has(x))
+             throw py::key_error(std::format("{}", x).c_str());
+           return surf[x];
+         },
+         py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SurfaceField &surf, const SurfacePropertyTag& x, const Surf::Data &data) {
              surf[x] = data;
            })
       .def(
