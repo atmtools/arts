@@ -2063,6 +2063,9 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 
 Gets incoming radiation by placing an observer at the surface looking at the
 specular reflection of the outgoing radiation (as described by *ray_path_point*)
+
+The surface field must contain the surface temperature and the reflectance.
+The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectance".
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
