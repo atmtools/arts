@@ -17,7 +17,7 @@ The agenda object itself is a struct with the following fields:
 - ``inputs`` - the workspace variables that are consumed by the agenda as a list of strings.
 - ``enum_options`` - (optional) a list of strings that are the options for the agenda.  Defaults to empty.
 - ``enum_defaults`` - (optional) the default enum option for the agenda.  Defaults to no-default by being empty.
-- ``output_constraints`` - (optional) a vector of structs tht define constraints on the output after the agenda has been executed.  Defaults to unconstrainged.
+- ``output_constraints`` - (optional) a vector of structs that define constraints on the output after the agenda has been executed.  Defaults to unconstrained.
 
 The two enum-variables, if set, will generate workspace methods that allow setting the agenda to a specific named option.
 This is useful for agendas that have known "modes".  However, it puts some constraints on the implementation of the agenda.
