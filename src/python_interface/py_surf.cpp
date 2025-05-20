@@ -131,7 +131,8 @@ void py_surf(py::module_ &m) try {
           "__getitem__",
           [](SurfacePoint &surf, const SurfacePropertyTag& x) {
             if (not surf.has(x))
-              throw py::key_error(std::format("{}", x).c_str());
+              const auto error_message = std::format("{}", x);
+              throw py::key_error(error_message.c_str());
             return surf[x];
           },
           py::rv_policy::reference_internal)
