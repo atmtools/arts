@@ -293,13 +293,49 @@ Returns
     workspace_group_interface({0}_operator);
     py::implicitly_convertible<{0}Operator::func_t,
                                {0}Operator>();
+    {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda: :attr:`~pyarts.workspace.Workspace.{0}`.
+
+The python meta-code to make use of this operator class instead of the standard agenda in a workspace reads like this:
+
+.. code-block:: python
+
+    import pyarts
+
+    ws = pyarts.Workspace()
+
+    def my_{0}_operator({2:,}):
+        ...
+        # custom code that creates or modifies {6:,}
+        ...
+        return {6:,}
+    
+    ws.{0}SetOperator(f=my_{0}_operator)
+
+You are free to put whatever custom code you want in the operator.
+The types returned must be convertible to the types of the workspace variables being returned.
+The input to the operator from the workspace will be the types of the workspace variables
+that are passed to the agenda.
+Failure to follow these rules will result in a runtime error.
+
+.. note::
+
+      There might be constraints on the input and output passed to the operator.
+      Check the documentation of the agenda for more details.
+
+.. warning::
+
+      Accessing global variables in the operator is not thread safe.
+      It is very likely ARTS will access your operator in parallel.
+      You need to make sure that the operator is thread safe.
+)-x-";
 )",
                name,
                input,
                ag.input,
                vars,
                params,
-               retval);
+               retval,
+               ag.output);
   }
 
   cpp << "}}\n";

@@ -33,7 +33,7 @@ For cases where you know this will not work well, you can use the ``extend_grid_
 It takes a reference to the grid and exposes the :class:`~pyarts.arts.Vector` interface
 directly.  Upon destroying the ``extend_grid_t`` object, the grid is checked to ensure the sorting is correct.
 
-.. warn::
+.. warning::
 
   Do not have a living instance of a ``extend_grid_t``-object in the same context you intend to consume ``grid_t``.
   The sorting is never guaranteed to be correct until the ``extend_grid_t`` object is destroyed.

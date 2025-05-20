@@ -11,7 +11,7 @@ void agenda_operators(
   for (auto& [name, ag] : internal_workspace_agendas()) {
     wsg_data[name + "Operator"] = {
         .file = "auto_agenda_operators.h",
-        .desc = ag.desc,
+        .desc = ag.desc + "\n\nThis is the free-form customization point of the agenda *" + name + "*\n\n.. note::\n    Output constraints must be followed\n\n",
     };
   }
 }
