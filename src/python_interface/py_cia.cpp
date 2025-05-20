@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "isotopologues.h"
+#include "matpack_mdspan_helpers_grid_t.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
 #include "species_tags.h"
@@ -27,6 +28,52 @@ void py_cia(py::module_& m) try {
           "data",
           [](const CIARecord& c) { return c.Data(); },
           ":class:`~pyarts.arts.ArrayOfGriddedField2` Data by bands")
+      .def(
+          "propagation_matrix",
+          [](const CIARecord& self,
+             const AscendingGrid& f,
+             const AtmPoint& atm,
+             const Numeric T_extrapolfac,
+             const Index robust) {
+            PropmatVector out(f.size());
+
+            const Numeric scl = atm.number_density(self.Species(0)) *
+                                atm.number_density(self.Species(1));
+            for (auto& cia_data : self.Data()) {
+              Vector result(f.size(), 0);
+              cia_interpolation(
+                  result, f, atm.temperature, cia_data, T_extrapolfac, robust);
+
+              for (Size i = 0; i < f.size(); i++) {
+                out[i].A() += scl * result[i];
+              }
+            }
+
+            return out;
+          },
+          "f"_a,
+          "atm"_a,
+          "T_extrapolfac"_a = 0.0,
+          "robust"_a        = 1,
+          R"--(Computes the collision-induced absorption in 1/m
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+T_extrapolfac : Numeric, optional
+    Extrapolation in temperature.  The default is 0
+robust : Index, optional
+    Returns NaN instead of throwing if it evaluates true.  The default is 1
+
+Returns
+-------
+  abs : PropmatVector
+    Absorption profile [1/m]
+
+)--")
       .def(
           "compute_abs",
           [](CIARecord& cia_,
@@ -99,6 +146,59 @@ Returns
           m, "ArrayOfCIARecord");
   workspace_group_interface(acr);
   vector_interface(acr);
+
+  acr.def(
+      "propagation_matrix",
+      [](const ArrayOfCIARecord& self,
+         const AscendingGrid& f,
+         const AtmPoint& atm,
+         const SpeciesEnum& spec,
+         const Numeric T_extrapolfac,
+         const Index ignore_errors,
+         const py::kwargs&) {
+        PropmatVector propagation_matrix(f.size());
+        PropmatMatrix propagation_matrix_jacobian{};
+        JacobianTargets jacobian_targets{};
+
+        propagation_matrixAddCIA(propagation_matrix,
+                                 propagation_matrix_jacobian,
+                                 spec,
+                                 jacobian_targets,
+                                 f,
+                                 atm,
+                                 self,
+                                 T_extrapolfac,
+                                 ignore_errors);
+
+        return propagation_matrix;
+      },
+      "f"_a,
+      "atm"_a,
+      "spec"_a          = SpeciesEnum::Bath,
+      "T_extrapolfac"_a = Numeric{0.0},
+      "ignore_errors"_a = Index{1},
+      "kwargs"_a        = py::kwargs{},
+      R"--(Computes the collision-induced absorption in 1/m
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+spec : SpeciesEnum, optional
+    Species to use.  Defaults to all.
+T_extrapolfac : Numeric, optional
+    Extrapolation in temperature.  The default is 0
+ignore_errors : Index, optional
+    Returns NaN instead of throwing if it evaluates true.  The default is 1
+
+Returns
+-------
+propagation_matrix : PropmatVector
+    Propagation matrix by frequency [1/m]
+
+)--");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
