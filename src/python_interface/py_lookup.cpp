@@ -49,7 +49,7 @@ void py_lookup(py::module_& m) try {
          const Numeric& extpolfac,
          const py::kwargs&) {
         PropmatVector propagation_matrix(f.size());
-        PropmatMatrix propagation_matrix_jacobian{};
+        PropmatMatrix propagation_matrix_jacobian(0, f.size());
         JacobianTargets jacobian_targets{};
 
         propagation_matrixAddLookup(propagation_matrix,

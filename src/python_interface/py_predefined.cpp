@@ -973,7 +973,7 @@ void py_predefined(py::module_& m) try {
              const SpeciesEnum& spec,
              const py::kwargs&) {
             PropmatVector propagation_matrix(f.size());
-            PropmatMatrix propagation_matrix_jacobian{};
+            PropmatMatrix propagation_matrix_jacobian(0, f.size());
             JacobianTargets jacobian_targets{};
 
             propagation_matrixAddPredefined(propagation_matrix,

@@ -534,8 +534,8 @@ T0 : float
          const py::kwargs&) {
         PropmatVector propagation_matrix(f.size());
         StokvecVector nlte_vector(f.size());
-        PropmatMatrix propagation_matrix_jacobian{};
-        StokvecMatrix nlte_matrix{};
+        PropmatMatrix propagation_matrix_jacobian(0, f.size());
+        StokvecMatrix nlte_matrix(0, f.size());
         JacobianTargets jacobian_targets{};
 
         propagation_matrixAddLines(propagation_matrix,
