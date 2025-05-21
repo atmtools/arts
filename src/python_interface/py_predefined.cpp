@@ -998,8 +998,8 @@ f : AscendingGrid
     Frequency grid [Hz]
 atm : AtmPoint
     Atmospheric point
-spec : SpeciesIsotope, optional
-    Isotopologue to use
+    spec : SpeciesEnum, optional
+    Species to use
 
 Returns
 -------
