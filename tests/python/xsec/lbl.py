@@ -15,7 +15,7 @@ f = np.linspace(50e9, 70e9, 10)
 x = ws.absorption_bands.propagation_matrix(f=f, atm=atm) / nd
 
 assert np.allclose(
-    x[::300, 0],
+    x[:, 0],
     [
         1.09249629e-29,
         2.79155620e-29,
