@@ -11,7 +11,6 @@ atm["N2"] = 0.79
 nd = atm.number_density("O2-66")
 
 ws.absorption_speciesSet(species=["O2-CIA-O2"])
-ws.absorption_cia_data = []
 ws.ReadCatalogData()
 f = ws.absorption_cia_data[0].data[0].grids[0]
 x = ws.absorption_cia_data.propagation_matrix(f=f, atm=atm) / nd
@@ -38,7 +37,6 @@ assert np.allclose(
 )
 
 ws.absorption_speciesSet(species=["O2-CIA-N2"])
-ws.absorption_cia_data = []
 ws.ReadCatalogData()
 f = ws.absorption_cia_data[0].data[1].grids[0]
 x = ws.absorption_cia_data.propagation_matrix(f=f, atm=atm) / nd

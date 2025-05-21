@@ -202,8 +202,9 @@ void absorption_bandsReadSpeciesSplitCatalog(
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
-  const bool ignore_missing = static_cast<bool>(ignore_missing_);
   absorption_bands.clear();
+  
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   const String my_base = complete_basename(basename);
 
