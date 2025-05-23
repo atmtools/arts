@@ -54,6 +54,12 @@ else()
         scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml
         scattering/H2O_ice/MieSphere_R5.00000e-01um.meta.xml
         scattering/H2O_ice/MieSphere_R5.00000e-01um.xml
+        spectroscopy/Perring/H2O.xml
+        planets/Mars/surface_elevation.xml
+        planets/Mars/isotopologue_ratios/H2O-161.xml
+        planets/Mars/Ls0.day.dust-medium/surface_temperature.xml
+        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/H2O.xml
+        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/CO2.xml
     )
 endif()
 

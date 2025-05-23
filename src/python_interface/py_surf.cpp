@@ -23,6 +23,16 @@ void py_surf(py::module_ &m) try {
       .def_rw("lon_upp", &Surf::Data::lon_upp, "Upper longitude limit")
       .def_rw("lon_low", &Surf::Data::lon_low, "Lower longitude limit")
       .def(
+          "set_extrapolation",
+          [](Surf::Data &self, InterpolationExtrapolation x) {
+            self.lat_upp = x;
+            self.lat_low = x;
+            self.lon_upp = x;
+            self.lon_low = x;
+          },
+          "extrapolation"_a,
+          "Set the extrapolation for all dimensions")
+      .def(
           "__call__",
           [](const Surf::Data &d, Numeric lat, Numeric lon) {
             return d.at(lat, lon);
