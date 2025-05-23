@@ -128,6 +128,9 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
     case Transmission:
       agenda.add("spectral_radianceDefaultTransmission");
       break;
+    case FlatScalarReflectance:
+      agenda.add("spectral_radianceFlatScalarReflectance");
+      break;
   }
 
   return std::move(agenda).finalize(true);

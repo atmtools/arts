@@ -17,6 +17,7 @@ struct auto_ag {
   std::string desc;
   std::vector<std::pair<std::string, std::string>> o;
   std::vector<std::pair<std::string, std::string>> i;
+  std::vector<StringVectorAgendaHelper> output_constraints;
 };
 
 void helper_auto_ag(std::ostream& os,
@@ -51,6 +52,8 @@ std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
     for (const auto& in : record.input) {
       helper_auto_ag(os, ag.i, name, in);
     }
+
+    ag.output_constraints = record.output_constraints;
   }
 
   return map;
@@ -179,6 +182,27 @@ void agenda_checker(std::ostream& os, const std::string& name) {
         "    throw std::runtime_error(std::format(\"Mismatch with name: {}\", n));\n  }\n";
 }
 
+std::string double_curly(std::string s) {
+  Size n = 0;
+
+  for (Size i = 0; i < s.size() - 1; i++) {
+    n += (s[i] == '{' and s[i + 1] == '{');
+  }
+
+  for (Size i = 0; i < n; i++) {
+    s.push_back('{');
+    s.push_back('}');
+  }
+
+  for (Size i = 1; i < s.size(); i++) {
+    if (s[i - 1] == '{' and s[i] == '}') {
+      stdr::rotate(s.begin() + i, s.end() - 2, s.end());
+    }
+  }
+
+  return s;
+}
+
 void workspace_setup_and_exec(std::ostream& os,
                               const std::string& name,
                               const auto_ag& ag) {
@@ -205,6 +229,33 @@ void workspace_setup_and_exec(std::ostream& os,
 
   os << "\n  // Run all the methods\n  " << name;
   os << ".execute(_lws);\n";
+
+  for (auto& constraint : ag.output_constraints) {
+    std::print(os,
+               R"--(
+  if(not ({}))
+    throw std::runtime_error(std::format(R"ERR({}
+)--",
+               constraint.test,
+               double_curly(constraint.constraint));
+
+    const Size N = max(constraint.printables,
+                       [](const std::string& x) -> Size { return x.size(); });
+    for (auto& p : constraint.printables) {
+      std::print(os,
+                 R"--(
+{}:{} {{}})--",
+                 double_curly(p),
+                 std::string(N - p.size(), ' '));
+    }
+    if (not constraint.printables.empty()) {
+      std::print(os,
+                 R"--(
+)ERR", {:,}));
+)--",
+                 constraint.printables);
+    }
+  }
 }
 
 void implementation(std::ostream& os) {

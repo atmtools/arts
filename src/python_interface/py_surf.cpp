@@ -118,13 +118,29 @@ void py_surf(py::module_ &m) try {
       .def(
           "__getitem__",
           [](SurfacePoint &surf, SurfaceKey x) {
-            if (not surf.has(x))
-              throw py::key_error(std::format("{}", x).c_str());
+            if (not surf.has(x)) {
+              const auto error_message = std::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
             return surf[x];
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SurfacePoint &surf, SurfaceKey x, Numeric data) {
+             surf[x] = data;
+           })
+      .def(
+          "__getitem__",
+          [](SurfacePoint &surf, const SurfacePropertyTag &x) {
+            if (not surf.has(x)) {
+              const auto error_message = std::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return surf[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SurfacePoint &surf, const SurfacePropertyTag &x, Numeric data) {
              surf[x] = data;
            })
       .def(
@@ -159,8 +175,10 @@ void py_surf(py::module_ &m) try {
   fld.def(
          "__getitem__",
          [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
-           if (not surf.has(x))
-             throw py::key_error(std::format("{}", x).c_str());
+           if (not surf.has(x)) {
+             const auto error_message = std::format("{}", x);
+             throw py::key_error(error_message.c_str());
+           }
            return surf[x];
          },
          py::rv_policy::reference_internal)
@@ -168,6 +186,20 @@ void py_surf(py::module_ &m) try {
            [](SurfaceField &surf, SurfaceKey x, const Surf::Data &data) {
              surf[x] = data;
            })
+      .def(
+          "__getitem__",
+          [](SurfaceField &surf, const SurfacePropertyTag &x) -> Surf::Data & {
+            if (not surf.has(x)) {
+              const auto error_message = std::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return surf[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SurfaceField &surf,
+              const SurfacePropertyTag &x,
+              const Surf::Data &data) { surf[x] = data; })
       .def(
           "__call__",
           [](const SurfaceField &surf, Numeric lat, Numeric lon) {

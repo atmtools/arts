@@ -412,30 +412,6 @@ void measurement_vectorFromSensor(
             surface_field,
             spectral_radiance_observer_agenda);
 
-        ARTS_USER_ERROR_IF(
-            spectral_radiance.size() != f_grid_ptr->size(),
-            R"(spectral_radiance must have same size as element frequency grid
-
-spectral_radiance.size() = {},
-f_grid_ptr->size()       = {}
-)",
-            spectral_radiance.size(),
-            f_grid_ptr->size())
-
-        ARTS_USER_ERROR_IF(
-            not same_shape<2>({measurement_jacobian.ncols(),
-                               static_cast<Index>(f_grid_ptr->size())},
-                              spectral_radiance_jacobian),
-            R"(spectral_radiance_jacobian must be targets x frequency grid size
-
-spectral_radiance_jacobian.shape()  = {:B,},
-f_grid_ptr->size()                  = {},
-measurement_jacobian.ncols()        = {}
-)",
-            spectral_radiance_jacobian.shape(),
-            f_grid_ptr->size(),
-            measurement_jacobian.ncols())
-
         spectral_radianceApplyUnitFromSpectralRadiance(
             spectral_radiance,
             spectral_radiance_jacobian,

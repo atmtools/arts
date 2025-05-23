@@ -3,9 +3,10 @@
 #include <mystring.h>
 
 #include <exception>
-#include <iomanip>
+#include <format>
 #include <limits>
 #include <optional>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -37,37 +38,35 @@ bool WorkspaceMethodInternalRecord::has_overloads() const {
 }
 
 std::string WorkspaceMethodInternalRecord::docstring() const try {
-  std::stringstream os;
-
-  os << "/** " << desc << "\n";
-  if (pass_workspace) os << "  @param[in] ws Workspace reference\n";
+  std::string doc = std::format("/** {}\n", desc);
+  if (pass_workspace) doc += "  @param[in] ws Workspace reference\n";
 
   for (auto& str : out) {
     if (std::any_of(
             in.begin(), in.end(), [&str](auto& var) { return str == var; }))
-      os << "  @param[inout] " << str << " As WSV" << '\n';
+      doc += std::format("  @param[inout] {} As WSV\n", str);
     else
-      os << "  @param[out] " << str << " As WSV" << '\n';
+      doc += std::format("  @param[out] {} As WSV\n", str);
   }
 
   for (std::size_t i = 0; i < gout.size(); i++) {
-    os << "  @param[out] " << gout[i] << " " << gout_desc[i] << '\n';
+    doc += std::format("  @param[out] {} {}\n", gout[i], gout_desc[i]);
   }
 
   for (auto& str : in) {
     if (std::any_of(
             out.begin(), out.end(), [&str](auto& var) { return str == var; }))
       continue;
-    os << "  @param[in] " << str << " As WSV" << '\n';
+    doc += std::format("  @param[in] {} As WSV\n", str);
   }
 
   for (std::size_t i = 0; i < gin.size(); i++) {
-    os << "  @param[in] " << gin[i] << " " << gin_desc[i] << '\n';
+    doc += std::format("  @param[in] {} {}\n", gin[i], gin_desc[i]);
   }
 
-  os << " */";
+  doc += " */";
 
-  return os.str();
+  return doc;
 } catch (std::exception& e) {
   throw std::runtime_error("Error in meta-function docstring():\n\n" +
                            std::string(e.what()));
@@ -112,31 +111,31 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   const auto overloads = generic_overloads();
   int GVAR             = 0;
 
-  std::stringstream os;
+  std::string doc{};
 
   if (has_any()) {
-    os << "template <WorkspaceGroup T>\n";
+    doc += "template <WorkspaceGroup T>\n";
   }
 
-  os << "void " << name << '(';
+  doc += std::format("void {}(", name);
 
   bool first = true;
   if (pass_workspace) {
-    os << "const Workspace& ws";
-    first = false;
+    doc   += "const Workspace& ws";
+    first  = false;
   }
 
   for (auto& str : out) {
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      os << comma(first, spaces) << wsv_ptr->second.type << "& " << str;
+      doc += std::format(
+          "{}{}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
     auto wsa_ptr = wsa.find(str);
     if (wsa_ptr != wsa.end()) {
-      os << comma(first, spaces) << "Agenda"
-         << "& " << str;
+      doc += std::format("{}Agenda& {}", comma(first, spaces), str);
       continue;
     }
 
@@ -144,10 +143,12 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   }
 
   for (const auto& i : gout) {
-    os << comma(first, spaces)
-       << any(overloads[GVAR][std::min<int>(
-              overload, static_cast<int>(overloads[GVAR].size() - 1))])
-       << "& " << i;
+    doc += std::format(
+        "{}{}& {}",
+        comma(first, spaces),
+        any(overloads[GVAR][std::min<int>(
+            overload, static_cast<int>(overloads[GVAR].size() - 1))]),
+        i);
     GVAR++;
   }
 
@@ -158,15 +159,14 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      os << comma(first, spaces) << "const " << wsv_ptr->second.type << "& "
-         << str;
+      doc += std::format(
+          "{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
     auto wsa_ptr = wsa.find(str);
     if (wsa_ptr != wsa.end()) {
-      os << comma(first, spaces) << "const Agenda"
-         << "& " << str;
+      doc += std::format("{}const Agenda& {}", comma(first, spaces), str);
       continue;
     }
 
@@ -174,16 +174,18 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   }
 
   for (const auto& i : gin) {
-    os << comma(first, spaces) << "const "
-       << any(overloads[GVAR][std::min<int>(
-              overload, static_cast<int>(overloads[GVAR].size() - 1))])
-       << "& " << i;
+    doc += std::format(
+        "{}const {}& {}",
+        comma(first, spaces),
+        any(overloads[GVAR][std::min<int>(
+            overload, static_cast<int>(overloads[GVAR].size() - 1))]),
+        i);
     GVAR++;
   }
 
-  os << ")";
+  doc += ")";
 
-  return os.str();
+  return doc;
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format(R"(Error in meta-function header("{}", {}):
@@ -215,22 +217,20 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
     try {
   const std::string spaces(6, ' ');
 
-  std::stringstream os;
-
-  os << name << "(\n      ";
+  std::string doc = std::format("  {}(\n      ", name);
 
   bool first = true;
   if (pass_workspace) {
-    os << "ws";
-    first = false;
+    doc   += "ws";
+    first  = false;
   }
 
   for (auto& str : out) {
-    os << comma(first, spaces) << str;
+    doc += std::format("{}{}", comma(first, spaces), str);
   }
 
   for (const auto& i : gout) {
-    os << comma(first, spaces) << i;
+    doc += std::format("{}{}", comma(first, spaces), i);
   }
 
   for (auto& str : in) {
@@ -238,16 +238,16 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
             out.begin(), out.end(), [&str](auto& var) { return str == var; }))
       continue;
 
-    os << comma(first, spaces) << str;
+    doc += std::format("{}{}", comma(first, spaces), str);
   }
 
   for (const auto& i : gin) {
-    os << comma(first, spaces) << i;
+    doc += std::format("{}{}", comma(first, spaces), i);
   }
 
-  os << ");";
+  doc += ");";
 
-  return os.str();
+  return doc;
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Cannot create call of method \"{}\":\n\n{}",
@@ -290,7 +290,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
     wsm_data[agname + "ExecuteOperator"] = {
         .desc = "Executes an operator emulating *" + agname +
-                "*, see it for more details\n",
+                "*, see it, and also *" + agname +
+                "Operator*, for more details\n",
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
@@ -302,7 +303,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
     wsm_data[agname + "SetOperator"] = {
         .desc = "Set *" + agname +
-                "* to exclusively use provided external operator\n",
+                "* to exclusively use provided external operator.  See *" +
+                agname + "Operator* for more details.\n",
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
@@ -2053,6 +2055,27 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "surface_field",
                  "jacobian_targets",
                  "ray_path_point"},
+  };
+
+  wsm_data["spectral_radianceFlatScalarReflectance"] = {
+      .desc =
+          R"--(Set surface spectral radiance from Planck function of the surface temperature and the reflectance of incoming radiation
+
+Gets incoming radiation by placing an observer at the surface looking at the
+specular reflection of the outgoing radiation (as described by *ray_path_point*)
+
+The surface field must contain the surface temperature and the reflectance.
+The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectance".
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in             = {"frequency_grid",
+                         "atmospheric_field",
+                         "surface_field",
+                         "jacobian_targets",
+                         "ray_path_point",
+                         "spectral_radiance_observer_agenda"},
+      .pass_workspace = true,
   };
 
   wsm_data["spectral_radiance_jacobianAddSensorJacobianPerturbations"] = {

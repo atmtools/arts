@@ -52,26 +52,6 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_surface_agenda);
       break;
   }
-
-  ARTS_USER_ERROR_IF(
-      spectral_radiance_background.size() not_eq frequency_grid.size(),
-      "Bad size spectral_radiance_background ({}"
-      ").  It should have the same size as frequency_grid ({})",
-      spectral_radiance_background.size(),
-      frequency_grid.size());
-
-  ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_radiance_background_jacobian.nrows()) not_eq
-              jacobian_targets.x_size() or
-          static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
-              frequency_grid.size(),
-      "Bad size of spectral_radiance_background_jacobian ({}x{}"
-      ").  It should have the same size as jacobian_targets ({}"
-      ") and frequency_grid ({})",
-      spectral_radiance_background_jacobian.nrows(),
-      spectral_radiance_background_jacobian.ncols(),
-      jacobian_targets.x_size(),
-      frequency_grid.size());
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -154,24 +134,19 @@ void spectral_radianceSurfaceBlackbody(
   spectral_radiance_jacobianEmpty(
       spectral_radiance_jacobian, frequency_grid, jacobian_targets);
 
-  if (auto pair =
-          jacobian_targets.find<Jacobian::SurfaceTarget>(SurfaceKeyVal{key});
-      pair.first) {
-    const auto x_start    = pair.second->x_start;
-    const auto& surf_data = surface_field[key];
-    const auto weights =
-        surf_data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
-    for (auto& w : weights) {
-      if (w.second != 0.0) {
-        const auto i = w.first + x_start;
-        ARTS_ASSERT(i < static_cast<Size>(spectral_radiance_jacobian.nrows()))
+  for (auto& target : jacobian_targets.surf()) {
+    if (target.type == SurfaceKey::t) {
+      const auto& data = surface_field[target.type];
 
-        std::transform(frequency_grid.begin(),
-                       frequency_grid.end(),
-                       spectral_radiance_jacobian[i].begin(),
-                       [t, x = w.second](auto f) -> Stokvec {
-                         return {x * dplanck_dt(f, t), 0, 0, 0};
-                       });
+      const auto ws =
+          data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
+
+      for (Size i = 0; i < frequency_grid.size(); i++) {
+        const Numeric dBdt = dplanck_dt(frequency_grid[i], t);
+        for (const auto& w : ws) {
+          spectral_radiance_jacobian[w.first + target.x_start, i] +=
+              w.second * dBdt;
+        }
       }
     }
   }

@@ -300,8 +300,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
 
   constexpr Numeric offset = 1e-3;
   const Numeric lat1 = (lat + offset > 90) ? (lat - offset) : (lat + offset),
-                lon1 = lon,
-                alt1 = interpolation_function(lat1, lon1)(z);
+                lon1 = lon, alt1 = interpolation_function(lat1, lon1)(z);
   const Numeric lat2 = lat, lon2 = lon + offset,
                 alt2 = interpolation_function(lat2, lon2)(z);
 
@@ -549,4 +548,22 @@ std::string std::formatter<SurfaceKeyVal>::to_string(
         return std::vformat(fmt.c_str(), std::make_format_args(val));
       },
       v);
+}
+
+bool operator==(const SurfaceKeyVal &lhs, SurfaceKey rhs) {
+  auto *val = std::get_if<SurfaceKey>(&lhs);
+
+  return val ? (*val == rhs) : false;
+}
+
+bool operator==(SurfaceKey lhs, const SurfaceKeyVal &rhs) { return rhs == lhs; }
+
+bool operator==(const SurfaceKeyVal &lhs, const SurfacePropertyTag &rhs) {
+  auto *val = std::get_if<SurfacePropertyTag>(&lhs);
+
+  return val ? (*val == rhs) : false;
+}
+
+bool operator==(const SurfacePropertyTag &lhs, const SurfaceKeyVal &rhs) {
+  return rhs == lhs;
 }

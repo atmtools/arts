@@ -1,5 +1,7 @@
 #include "workspace_agendas.h"
 
+#include <format>
+
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
@@ -19,6 +21,27 @@ internal_workspace_agendas_creator() {
                        "ray_path_point",
                        "atmospheric_point"},
       .enum_options = {"Empty"},
+      .output_constraints =
+          {
+              {"propagation_matrix.size() == frequency_grid.size()",
+               "On output, *propagation_matrix* has the size of *frequency_grid*.",
+               "propagation_matrix.size()",
+               "frequency_grid.size()"},
+              {"propagation_matrix_source_vector_nonlte.size() == frequency_grid.size()",
+               "On output, *propagation_matrix_source_vector_nonlte* has the size of *frequency_grid*.",
+               "propagation_matrix_source_vector_nonlte.size()",
+               "frequency_grid.size()"},
+              {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, propagation_matrix_jacobian)",
+               "On output, *propagation_matrix_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *frequency_grid*.",
+               "propagation_matrix_jacobian.shape()",
+               "frequency_grid.size()",
+               "jacobian_targets.target_count()"},
+              {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, propagation_matrix_source_vector_nonlte_jacobian)",
+               "On output, *propagation_matrix_source_vector_nonlte_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *frequency_grid*.",
+               "propagation_matrix_source_vector_nonlte_jacobian.shape()",
+               "frequency_grid.size()",
+               "jacobian_targets.target_count()"},
+          },
   };
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
@@ -31,27 +54,50 @@ internal_workspace_agendas_creator() {
       .input  = {"frequency_grid", "atmospheric_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
+      .output_constraints =
+          {
+              {"propagation_matrix_scattering.size() == frequency_grid.size()",
+               "On output, *propagation_matrix_scattering* has the size of *frequency_grid*.",
+               "propagation_matrix_scattering.size()",
+               "frequency_grid.size()"},
+              {"absorption_vector_scattering.size() == frequency_grid.size()",
+               "On output, *absorption_vector_scattering* has the size of *frequency_grid*.",
+               "absorption_vector_scattering.size()",
+               "frequency_grid.size()"},
+              {"matpack::same_shape<2>({frequency_grid.size(), legendre_degree + 1}, phase_matrix_scattering_spectral)",
+               "On output, *phase_matrix_scattering_spectral* has the shape of <*legendre_degree* + 1> times the size of *frequency_grid*.",
+               "phase_matrix_scattering_spectral.shape()",
+               "frequency_grid.size()",
+               "legendre_degree"},
+          },
   };
 
   wsa_data["propagation_matrix_scattering_agenda"] = {
       .desc =
-          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
+          R"--(Compute the part of the propagation matrix that relates to scattering.
 )--",
       .output       = {"propagation_matrix_scattering"},
       .input        = {"frequency_grid", "atmospheric_point"},
       .enum_options = {"AirSimple"},
       .enum_default = "AirSimple",
+      .output_constraints =
+          {
+              {"propagation_matrix_scattering.size() == frequency_grid.size()",
+               "On output, *propagation_matrix_scattering* has the size of *frequency_grid*.",
+               "propagation_matrix_scattering.size()",
+               "frequency_grid.size()"},
+          },
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc         = R"--(Get the propagation path as it is obeserved.
+      .desc   = R"--(Get the propagation path as it is obeserved.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
 )--",
-      .output       = {"ray_path"},
-      .input        = {"spectral_radiance_observer_position",
-                       "spectral_radiance_observer_line_of_sight"},
+      .output = {"ray_path"},
+      .input  = {"spectral_radiance_observer_position",
+                 "spectral_radiance_observer_line_of_sight"},
   };
 
   wsa_data["spectral_radiance_observer_agenda"] = {
@@ -64,12 +110,6 @@ position and line of sight.
 It also outputs the *ray_path* as seen from the observer position and line of sight.
 This is useful in-case a call to the destructive *spectral_radianceApplyUnitFromSpectralRadiance*
 is warranted
-
-The output must be sized as:
-
-- *spectral_radiance* : (*frequency_grid*)
-- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
-- *ray_path* : (Unknown)
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
       .input  = {"frequency_grid",
@@ -80,6 +120,18 @@ The output must be sized as:
                  "surface_field"},
       .enum_options = {"Emission"},
       .enum_default = "Emission",
+      .output_constraints =
+          {
+              {"spectral_radiance.size() == frequency_grid.size()",
+               "On output, *spectral_radiance* has the size of *frequency_grid*.",
+               "spectral_radiance.size()",
+               "frequency_grid.size()"},
+              {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
+               "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
+               "spectral_radiance_jacobian.shape()",
+               "frequency_grid.size()",
+               "jacobian_targets.x_size()"},
+          },
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {
@@ -89,11 +141,6 @@ This agenda calculates the spectral radiance as seen of space.
 One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
-
-The output must be sized as:
-
-- *spectral_radiance* : (*frequency_grid*)
-- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
       .input        = {"frequency_grid", "jacobian_targets", "ray_path_point"},
@@ -101,7 +148,17 @@ The output must be sized as:
                        "SunOrCosmicBackground",
                        "Transmission"},
       .enum_default = "UniformCosmicBackground",
-  };
+      .output_constraints = {
+          {"spectral_radiance.size() == frequency_grid.size()",
+           "On output, *spectral_radiance* has the size of *frequency_grid*.",
+           "spectral_radiance.size()",
+           "frequency_grid.size()"},
+          {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
+           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
+           "spectral_radiance_jacobian.shape()",
+           "frequency_grid.size()",
+           "jacobian_targets.x_size()"},
+      }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
       .desc         = R"--(Spectral radiance as seen of the surface.
@@ -110,20 +167,25 @@ This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at the surface.
-
-The output must be sized as:
-
-- *spectral_radiance* : (*frequency_grid*)
-- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
       .input        = {"frequency_grid",
                        "jacobian_targets",
                        "ray_path_point",
                        "surface_field"},
-      .enum_options = {"Blackbody", "Transmission"},
+      .enum_options = {"Blackbody", "Transmission", "FlatScalarReflectance"},
       .enum_default = "Blackbody",
-  };
+      .output_constraints = {
+          {"spectral_radiance.size() == frequency_grid.size()",
+           "On output, *spectral_radiance* has the size of *frequency_grid*.",
+           "spectral_radiance.size()",
+           "frequency_grid.size()"},
+          {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
+           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
+           "spectral_radiance_jacobian.shape()",
+           "frequency_grid.size()",
+           "jacobian_targets.x_size()"},
+      }};
 
   wsa_data["inversion_iterate_agenda"] = {
       .desc   = R"--(Work in progress ...
@@ -140,18 +202,43 @@ is not yet any calculated Jacobian.
   };
 
   wsa_data["disort_settings_agenda"] = {
-      .desc         = R"--(An agenda for setting up Disort.
+      .desc   = R"--(An agenda for setting up Disort.
 
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
-      .output       = {"disort_settings"},
-      .input        = {"frequency_grid",
-                       "ray_path",
-                       "disort_quadrature_dimension",
-                       "disort_fourier_mode_dimension",
-                       "disort_legendre_polynomial_dimension"},
+      .output = {"disort_settings"},
+      .input  = {"frequency_grid",
+                 "ray_path",
+                 "disort_quadrature_dimension",
+                 "disort_fourier_mode_dimension",
+                 "disort_legendre_polynomial_dimension"},
   };
+
+  // Add information about all automatically generated code
+  for (auto& [name, record] : wsa_data) {
+    record.desc += std::format(R"(
+It is possible to execute *{0}* directly from the workspace by calling *{0}Execute*.
+
+As all agendas in ARTS, *{0}* is also customizable via its operator helper class: *{0}Operator*.
+See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
+)",
+                               name);
+    if (not record.output_constraints.empty()) {
+      record.desc += std::format(R"(
+The following constraints are put on the output generated by executing *{0}*:
+
+.. hlist::
+    :columns: 1
+
+)",
+                                 name);
+      for (auto& c : record.output_constraints) {
+        record.desc += std::format("    * {}\n", c.constraint);
+      }
+    }
+    record.desc += "\n";
+  }
 
   return wsa_data;
 }
