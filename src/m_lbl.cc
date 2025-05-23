@@ -28,6 +28,7 @@
 #include "sorting.h"
 #include "species_tags.h"
 #include "xml_io.h"
+#include "xml_io_old.h"
 
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
                                                       const Index n) {
@@ -608,5 +609,87 @@ void absorption_bandsLineMixingAdaptation(
   }
 
   for (auto& line : band.lines) line.ls.one_by_one = orig_one_by_one;
+}
+ARTS_METHOD_ERROR_CATCH
+
+void absorption_bandsReadSpeciesSplitARTSCAT(
+    AbsorptionBands& absorption_bands,
+    const ArrayOfArrayOfSpeciesTag& absorbtion_species,
+    const String& basename,
+    const Index& ignore_missing_,
+    const Index& pure_species_) try {
+  ARTS_TIME_REPORT
+
+  Array<ArrayOfArtscatMeta> meta;
+
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+  const bool pure_species   = static_cast<bool>(pure_species_);
+
+  absorption_bands.clear();
+
+  const String my_base = complete_basename(basename);
+
+  std::vector<std::string> file_errors;
+
+  if (pure_species) {
+    std::set<SpeciesEnum> specieses;
+    for (auto& specs : absorbtion_species) {
+      for (auto& spec : specs) {
+        if (spec.type == SpeciesTagType::Plain) {
+          specieses.insert(spec.Spec());
+        }
+      }
+    }
+
+    std::vector<SpeciesEnum> vspecieses(specieses.begin(), specieses.end());
+    for (std::size_t ispec = 0; ispec < specieses.size(); ispec++) {
+      const auto& spec{vspecieses[ispec]};
+      String filename{my_base + String{toString(spec)} + ".xml"};
+      if (find_xml_file_existence(filename)) {
+        xml_read_from_file(filename, meta.emplace_back());
+      } else if (not ignore_missing) {
+        file_errors.push_back(filename);
+      }
+    }
+  } else {
+    std::set<SpeciesIsotope> isotopologues;
+    for (auto& specs : absorbtion_species) {
+      for (auto& spec : specs) {
+        if (spec.type == SpeciesTagType::Plain) {
+          if (spec.is_joker()) {
+            for (auto&& isot : Species::isotopologues(spec.Spec())) {
+              if (is_predefined_model(isot)) continue;
+              if (isot.joker()) continue;
+              isotopologues.insert(isot);
+            }
+          } else {
+            isotopologues.insert(spec.Isotopologue());
+          }
+        }
+      }
+    }
+
+    std::vector<SpeciesIsotope> visot(isotopologues.begin(),
+                                      isotopologues.end());
+    for (std::size_t iisot = 0; iisot < isotopologues.size(); iisot++) {
+      const auto& isot{visot[iisot]};
+      String filename{my_base + isot.FullName() + ".xml"};
+      if (find_xml_file_existence(filename)) {
+        xml_read_from_file(filename, meta.emplace_back());
+      } else if (not ignore_missing) {
+        file_errors.push_back(filename);
+      }
+    }
+  }
+
+  ARTS_USER_ERROR_IF(
+      not file_errors.empty(), "Files not found:\n{:B,}", file_errors)
+
+  for (auto& am : meta) {
+    for (auto& m : am) {
+      absorption_bands[std::move(m.quantumidentity)].emplace_back(
+          std::move(m.data));
+    }
+  }
 }
 ARTS_METHOD_ERROR_CATCH
