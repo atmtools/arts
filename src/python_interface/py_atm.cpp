@@ -39,6 +39,18 @@ void py_atm(py::module_ &m) try {
       .def_rw("lon_upp", &Atm::Data::lon_upp, "Upper longitude limit")
       .def_rw("lon_low", &Atm::Data::lon_low, "Lower longitude limit")
       .def(
+          "set_extrapolation",
+          [](Atm::Data &self, InterpolationExtrapolation x) {
+            self.alt_upp = x;
+            self.alt_low = x;
+            self.lat_upp = x;
+            self.lat_low = x;
+            self.lon_upp = x;
+            self.lon_low = x;
+          },
+          "extrapolation"_a,
+          "Set the extrapolation for all dimensions")
+      .def(
           "__call__",
           [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
             return d.at(alt, lat, lon);

@@ -2816,27 +2816,55 @@ See *AbsorptionBandSortingOption* for valid ``criteria``.
   };
 
   wsm_data["absorption_bandsReadSpeciesSplitCatalog"] = {
-      .desc      = R"--(Saves all bands fin *absorption_bands* to a directory
+      .desc   = R"--(Reads all species in *absorption_species* from a basename
 
-This will create the directory if it does not exist.  It will also create
-subdirectories that are the short-form of the isotopologue names.  The bands
-will be stored as 0.xml, 1.xml, 2.xml, and so on
+basename follows the standard ARTS rules.
+For example if *absorption_species* contains only ``H2O-161``, then a
+basename of ``"lbl"`` will read the file ``"lbl.H2O-161.xml"``, and a
+basename of ``"lbl/"`` will read the file ``"lbl/H2O-161.xml"``.
 
-The ``dir`` path has to be absolute or relative to the working path, the environment
-variables are not considered
+ignore_missing is a boolean that indicates if the method should
+ignore missing files or not.  If set to true, the method will
+ignore missing files and continue.  If set to false, the method
+will throw an error if any file is missing.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_species"},
-      .gin       = {"basename", "ignore_missing"},
+      .author = {"Richard Larsson"},
+      .out    = {"absorption_bands"},
+      .in     = {"absorption_species"},
+      .gin    = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
       .gin_desc  = {"Absolute or relative path to the directory",
                     "Ignore missing files instead of throwing an error"},
   };
 
+  wsm_data["absorption_bandsReadSpeciesSplitARTSCAT"] = {
+      .desc =
+          R"--(Same as *absorption_bandsReadSpeciesSplitCatalog* but for reading the old ARTSCAT format.
+
+One key difference is that ARTSCAT were often stored in a single file per *SpeciesEnum*
+rather than per *SpeciesIsotope*, so the optional argument ``pure_species`` is available
+and evaluates to true by default to use *SpeciesEnum*.  Switch this off to use the
+*SpeciesIsotope* instead.
+
+Note that ARTSCAT does not support many of the features of the modern line catalog format.
+This reading routine is intended for use-as-is of the produced *absorption_bands*.  Or after
+minor changes, like removing absorption lines outside of some frequency span.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"absorption_bands"},
+      .in        = {"absorption_species"},
+      .gin       = {"basename", "ignore_missing", "pure_species"},
+      .gin_type  = {"String", "Index", "Index"},
+      .gin_value = {std::nullopt, Index{0}, Index{1}},
+      .gin_desc =
+          {"Absolute or relative path to the directory",
+           "Flag to ignore missing files instead of throwing an error.",
+           "Flag that when true uses *SpeciesEnum* instead of *SpeciesIsotope* for file names."},
+  };
+
   wsm_data["absorption_bandsReadSplit"] = {
-      .desc      = R"--(Saves all bands fin *absorption_bands* to a directory
+      .desc      = R"--(Saves all bands in *absorption_bands* to a directory
 
 This will create the directory if it does not exist.  It will also create
 subdirectories that are the short-form of the isotopologue names.  The bands

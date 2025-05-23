@@ -116,16 +116,27 @@ struct line {
   */
   [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dt) const;
 
-  /** Compute the HITRAN linestrength for this line
+  /** Compute the HITRAN Einstein Coefficient for this line
    * 
    * @param hitran_s The HITRAN line strength
    * @param isot The isotope to use - required to get the correct partition function
    * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
-   * @return Numeric Hitran equivalent linestrength
+   * @return Numeric Hitran equivalent Einstein Coefficient
    */
   [[nodiscard]] Numeric hitran_a(const Numeric hitran_s,
                                  const SpeciesIsotope& isot,
                                  const Numeric T0 = 296.0) const;
+
+  /** Compute the Einstein Coefficient for this line
+   * 
+   * @param s The line strength
+   * @param isot The isotope to use - required to get the correct partition function
+   * @param T0 The reference temperature.
+   * @return Numeric equivalent Einstein Coefficient
+   */
+  [[nodiscard]] Numeric compute_a(const Numeric s,
+                                  const SpeciesIsotope& isot,
+                                  const Numeric T0) const;
 
   /** The HITRAN equivalent line strength
    * 
