@@ -370,6 +370,8 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
+  absorption_cia_data.clear();
+  
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   ArrayOfString names{};

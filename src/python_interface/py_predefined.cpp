@@ -630,8 +630,7 @@ abs_coef : ~pyarts.arts.Vector
       "get_n2_fun_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.size());
-        Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(
-            pm, f, atm);
+        Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(pm, f, atm);
         Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -659,8 +658,7 @@ abs_coef : ~pyarts.arts.Vector
       "get_n2_rot_ckdmt252",
       [](const Vector& f, const AtmPoint& atm) -> Vector {
         PropmatVector pm(f.size());
-        Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(
-            pm, f, atm);
+        Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(pm, f, atm);
         Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -967,6 +965,48 @@ void py_predefined(py::module_& m) try {
           "basename"_a,
           "specs"_a,
           "Reads predefined models from catalog")
+      .def(
+          "propagation_matrix",
+          [](const PredefinedModelData& self,
+             const AscendingGrid& f,
+             const AtmPoint& atm,
+             const SpeciesEnum& spec,
+             const py::kwargs&) {
+            PropmatVector propagation_matrix(f.size());
+            PropmatMatrix propagation_matrix_jacobian(0, f.size());
+            JacobianTargets jacobian_targets{};
+
+            propagation_matrixAddPredefined(propagation_matrix,
+                                            propagation_matrix_jacobian,
+                                            self,
+                                            spec,
+                                            jacobian_targets,
+                                            f,
+                                            atm);
+
+            return propagation_matrix;
+          },
+          "f"_a,
+          "atm"_a,
+          "spec"_a   = SpeciesEnum::Bath,
+          "kwargs"_a = py::kwargs{},
+          R"--(Computes the predefined model absorption in 1/m
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+    spec : SpeciesEnum, optional
+    Species to use
+
+Returns
+-------
+propagation_matrix : PropmatVector
+    Propagation matrix by frequency [1/m]
+
+)--")
       .def("__getstate__",
            [](const PredefinedModelData& t) {
              const std::unordered_map<SpeciesIsotope,

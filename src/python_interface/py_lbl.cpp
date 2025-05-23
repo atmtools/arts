@@ -521,6 +521,71 @@ T0 : float
       "ecs_data"_a,
       "atm"_a,
       "T"_a);
+
+  aoab.def(
+      "propagation_matrix",
+      [](const AbsorptionBands& self,
+         const AscendingGrid& f,
+         const AtmPoint& atm,
+         const SpeciesEnum& spec,
+         const PropagationPathPoint& path_point,
+         const LinemixingEcsData& ecs_data,
+         const Index& no_negative_absorption,
+         const py::kwargs&) {
+        PropmatVector propagation_matrix(f.size());
+        StokvecVector nlte_vector(f.size());
+        PropmatMatrix propagation_matrix_jacobian(0, f.size());
+        StokvecMatrix nlte_matrix(0, f.size());
+        JacobianTargets jacobian_targets{};
+
+        propagation_matrixAddLines(propagation_matrix,
+                                   nlte_vector,
+                                   propagation_matrix_jacobian,
+                                   nlte_matrix,
+                                   f,
+                                   jacobian_targets,
+                                   spec,
+                                   self,
+                                   ecs_data,
+                                   atm,
+                                   path_point,
+                                   no_negative_absorption);
+
+        return propagation_matrix;
+      },
+      "f"_a,
+      "atm"_a,
+      "spec"_a                   = SpeciesEnum::Bath,
+      "path_point"_a             = PropagationPathPoint{},
+      "ecs_data"_a               = LinemixingEcsData{},
+      "no_negative_absorption"_a = Index{1},
+      "kwargs"_a                 = py::kwargs{},
+      R"--(Computes the line-by-line model absorption in 1/m
+
+The method accepts any number of kwargs to be compatible
+with similar methods for computing the propagation matrix.
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+spec : SpeciesEnum, optional
+    Species to use.  Defaults to all species.
+path_point : PropagationPathPoint, optional
+    The path point.  Default is POS [0, 0, 0], LOS [0, 0].
+ecs_data : LinemixingEcsData, optional
+    The ECS data.  Default is empty.
+no_negative_absorption : Index, optional
+    If 1, the absorption is set to zero if it is negative. The default is 1.
+
+Returns
+-------
+propagation_matrix : PropmatVector
+    Propagation matrix by frequency [1/m]
+
+)--");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));

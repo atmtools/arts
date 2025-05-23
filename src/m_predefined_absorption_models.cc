@@ -28,6 +28,8 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
+  absorption_predefined_model_data.data.clear();
+
   const bool name_missing   = static_cast<bool>(name_missing_);
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 

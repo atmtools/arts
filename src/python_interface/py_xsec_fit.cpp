@@ -33,6 +33,42 @@ void py_xsec(py::module_& m) try {
               &XsecRecord::mfitmaxtemperatures,
               ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(
+          "propagation_matrix",
+          [](const XsecRecord& self,
+             const AscendingGrid& f,
+             const AtmPoint& atm) {
+            PropmatVector out(f.size());
+
+            const Numeric nd = atm.number_density(self.Species());
+
+            Vector result(f.size(), 0);
+            self.Extract(result, f, atm.pressure, atm.temperature);
+
+            std::transform(
+                result.begin(), result.end(), out.begin(), [nd](auto& x) {
+                  return Propmat{x * nd};
+                });
+
+            return out;
+          },
+          "f"_a,
+          "atm"_a,
+          R"--(Computes the Hitran cross-section absorption in 1/m
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+
+Returns
+-------
+abs : PropmatVector
+    Absorption profile [1/m]
+
+)--")
+      .def(
           "compute_abs",
           [](XsecRecord& self,
              Numeric T,
@@ -299,6 +335,50 @@ abs : Vector
           m, "ArrayOfXsecRecord");
   workspace_group_interface(a1);
   vector_interface(a1);
+  a1.def(
+      "propagation_matrix",
+      [](const ArrayOfXsecRecord& self,
+         const AscendingGrid& f,
+         const AtmPoint& atm,
+         const SpeciesEnum& spec,
+         const py::kwargs&) {
+        PropmatVector propagation_matrix(f.size());
+        PropmatMatrix propagation_matrix_jacobian(0, f.size());
+        JacobianTargets jacobian_targets{};
+
+        propagation_matrixAddXsecFit(propagation_matrix,
+                                     propagation_matrix_jacobian,
+                                     spec,
+                                     jacobian_targets,
+                                     f,
+                                     atm,
+                                     self,
+                                     -1.0,
+                                     -1.0);
+
+        return propagation_matrix;
+      },
+      "f"_a,
+      "atm"_a,
+      "spec"_a          = SpeciesEnum::Bath,
+      "kwargs"_a        = py::kwargs{},
+      R"--(Computes the Hitran cross-section absorption in 1/m
+
+Parameters
+----------
+f : AscendingGrid
+    Frequency grid [Hz]
+atm : AtmPoint
+    Atmospheric point
+spec : SpeciesEnum, optional
+    Species to use.  Defaults to all.
+
+Returns
+-------
+propagation_matrix : PropmatVector
+    Propagation matrix by frequency [1/m]
+
+)--");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize xsec fit\n{}", e.what()));

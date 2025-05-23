@@ -3,6 +3,7 @@ if(NOT ARTS_CAT_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
 else()
     list(APPEND DOWNLOAD_CATDATA
         cia/O2-CIA-O2.xml
+        cia/O2-CIA-N2.xml
         lines/O2-66.xml
         lines/N2-44.xml
         lines/CO2-626.xml
