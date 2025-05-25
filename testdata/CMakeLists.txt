@@ -58,6 +58,8 @@ else()
         planets/Mars/surface_elevation.xml.gz
         planets/Mars/isotopologue_ratios/H2O-161.xml
         planets/Mars/Ls0.day.dust-medium/surface_temperature.xml
+        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/t.xml
+        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/p.xml
         planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/H2O.xml
         planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/CO2.xml
     )
