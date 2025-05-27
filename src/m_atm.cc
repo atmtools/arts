@@ -186,7 +186,7 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
   }
 }
 
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
@@ -195,7 +195,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
 
     for (auto &line : value.lines) {
       for (auto &ls : line.ls.single_models) {
-        keys[ls.species];
+        ++keys[ls.species];
       }
     }
   }
@@ -431,17 +431,21 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
                                            const Index &load_nlte) {
   ARTS_TIME_REPORT
 
-  std::unordered_map<SpeciesEnum, Index> keys;
-
   if (const String lines_str = "absorption_bands";
       ws.wsv_and_contains(lines_str)) {
-    using lines_t    = AbsorptionBands;
-    const auto &data = ws.get<lines_t>(lines_str);
+    using lines_t                = AbsorptionBands;
+    const auto &absorption_bands = ws.get<lines_t>(lines_str);
 
-    keysSpecies(keys, data);
+    atmospheric_fieldAppendLineSpeciesData(atmospheric_field,
+                                           absorption_bands,
+                                           basename,
+                                           extrapolation,
+                                           missing_is_zero,
+                                           replace_existing);
+
     if (static_cast<bool>(load_isot)) {
       atmospheric_fieldAppendLineIsotopologueData(atmospheric_field,
-                                                  data,
+                                                  absorption_bands,
                                                   basename,
                                                   extrapolation,
                                                   missing_is_zero,
@@ -450,7 +454,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 
     if (static_cast<bool>(load_nlte)) {
       atmospheric_fieldAppendLineLevelData(atmospheric_field,
-                                           data,
+                                           absorption_bands,
                                            basename,
                                            extrapolation,
                                            missing_is_zero,
@@ -460,36 +464,51 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 
   if (const String cia_str = "absorption_cia_data";
       ws.wsv_and_contains(cia_str)) {
-    using cia_t = ArrayOfCIARecord;
-    keysSpecies(keys, ws.get<cia_t>(cia_str));
+    using cia_t                     = ArrayOfCIARecord;
+    const auto &absorption_cia_data = ws.get<cia_t>(cia_str);
+    atmospheric_fieldAppendCIASpeciesData(atmospheric_field,
+                                          absorption_cia_data,
+                                          basename,
+                                          extrapolation,
+                                          missing_is_zero,
+                                          replace_existing);
   }
 
   if (const String xsec_str = "absorption_xsec_fit_data";
       ws.wsv_and_contains(xsec_str)) {
-    using xsec_t = ArrayOfXsecRecord;
-    keysSpecies(keys, ws.get<xsec_t>(xsec_str));
+    using xsec_t                         = ArrayOfXsecRecord;
+    const auto &absorption_xsec_fit_data = ws.get<xsec_t>(xsec_str);
+    atmospheric_fieldAppendXsecSpeciesData(atmospheric_field,
+                                           absorption_xsec_fit_data,
+                                           basename,
+                                           extrapolation,
+                                           missing_is_zero,
+                                           replace_existing);
   }
 
   if (const String predef_str = "absorption_predefined_model_data";
       ws.wsv_and_contains(predef_str)) {
-    using predef_t = PredefinedModelData;
-    keysSpecies(keys, ws.get<predef_t>(predef_str));
+    using predef_t                               = PredefinedModelData;
+    const auto &absorption_predefined_model_data = ws.get<predef_t>(predef_str);
+    atmospheric_fieldAppendPredefSpeciesData(atmospheric_field,
+                                             absorption_predefined_model_data,
+                                             basename,
+                                             extrapolation,
+                                             missing_is_zero,
+                                             replace_existing);
   }
 
   if (const String species_str = "absorption_species";
       ws.wsv_and_contains(species_str)) {
-    using aospec_t = ArrayOfArrayOfSpeciesTag;
-    keysSpecies(keys, ws.get<aospec_t>(species_str));
+    using aospec_t                 = ArrayOfArrayOfSpeciesTag;
+    const auto &absorption_species = ws.get<aospec_t>(species_str);
+    atmospheric_fieldAppendTagsSpeciesData(atmospheric_field,
+                                           absorption_species,
+                                           basename,
+                                           extrapolation,
+                                           missing_is_zero,
+                                           replace_existing);
   }
-
-  append_data(atmospheric_field,
-              basename,
-              extrapolation,
-              missing_is_zero,
-              replace_existing,
-              0,
-              keys,
-              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {

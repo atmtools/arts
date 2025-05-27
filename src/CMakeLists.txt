@@ -161,6 +161,7 @@ add_library(artsworkspace STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_map_types.cc
+  xml_io_old.cc
   xml_io_rtepack.cc
   xml_io_variant_types.cc
   xml_operators.cc
