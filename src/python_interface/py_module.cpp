@@ -51,6 +51,8 @@ void py_lookup(py::module_& m);
 void py_file(py::module_& m);
 void py_auto_agenda_operators(py::module_& m);
 
+void py_fast_inaccurate_loopup(py::module_& m);
+
 /** Construct a new nanobind module object to hold all the Arts types and functions
  * 
  * Note: the order of execution mostly does not matter bar for some important things:
@@ -63,7 +65,8 @@ void py_auto_agenda_operators(py::module_& m);
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
 NB_MODULE(arts, m) try {
-  m.doc() = "Interface directly to the C++ types, functions and modules via python";
+  m.doc() =
+      "Interface directly to the C++ types, functions and modules via python";
   py::class_<Workspace> ws(m, "CxxWorkspace");
 
   static bool init = true;
@@ -134,6 +137,9 @@ NB_MODULE(arts, m) try {
   py_lookup(m);
   py_nlte(m);
   py_auto_agenda_operators(m);
+
+  // Add new module for testing
+  py_fast_inaccurate_loopup(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(ws);
