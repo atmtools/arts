@@ -60,7 +60,7 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
 
       .def(
           "to_spectral",
-          [](const PMD& obj) { obj.to_spectral(); },
+          [](const PMD& obj) {return obj.to_spectral(); },
           "Convert to spectral")
 
       // Bind other member functions
@@ -71,10 +71,10 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
       // Bind the extraction of stokes coefficients
       .def("extract_stokes_coeffs",
            &PMD::extract_stokes_coeffs,
-           "Extract stokes coefficients from phase matrix")
+           "Extract stokes coefficients from phase matrix");
 
       // Bind regrid method
-      .def("regrid", &PMD::regrid, "Regrid phase matrix");
+      //.def("regrid", &PMD::regrid, "Regrid phase matrix");
   return s;
 }
 
@@ -114,8 +114,8 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m,
            "Integrate phase matrix")
       .def("extract_stokes_coeffs",
            &PMD::extract_stokes_coeffs,
-           "Extract stokes coefficients from phase matrix")
-      .def("regrid", &PMD::regrid, "Regrid phase matrix");
+           "Extract stokes coefficients from phase matrix");
+      //.def("regrid", &PMD::regrid, "Regrid phase matrix");
   return s;
 }
 
@@ -151,12 +151,12 @@ auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
            "za_inc_grid"_a)
       .def("get_coeff_vector_view",
            &AVD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &AVD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid absorption vector");
+           "Get coefficient vector view");
+      //.def("regrid",
+      //     &AVD::regrid,
+      //     "grids"_a,
+      //     "weights"_a,
+      //     "Regrid absorption vector");
   return s;
 }
 
@@ -173,12 +173,12 @@ auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
            "f_grid"_a)
       .def("get_coeff_vector_view",
            &EMD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &EMD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid extinction matrix");
+           "Get coefficient vector view");
+      //.def("regrid",
+      //     &EMD::regrid,
+      //     "grids"_a,
+      //     "weights"_a,
+      //     "Regrid extinction matrix");
   return s;
 }
 
@@ -197,12 +197,12 @@ auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
            "za_inc_grid"_a)
       .def("get_coeff_vector_view",
            &EMD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &EMD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid extinction matrix");
+           "Get coefficient vector view");
+      //.def("regrid",
+      //     &EMD::regrid,
+      //     "grids"_a,
+      //     "weights"_a,
+      //     "Regrid extinction matrix");
   return s;
 }
 
@@ -337,9 +337,6 @@ void py_scattering_species(py::module_& m) try {
               &ScatteringSpeciesProperty::pproperty,
               "Particulate property");
 
-  //
-  // Modified gamma PSD
-  //
 
 //   using BulkScatteringPropertiesTROSpectral =
 //       std::variant<scattering::BulkScatteringProperties<
@@ -358,9 +355,10 @@ void py_scattering_species(py::module_& m) try {
           scattering::Format::ARO,
           scattering::Representation::Gridded>>;
 
-  py::class_<MGDSingleMoment>(m, "MGDSingleMoment").doc() =
-      "Modified gamma PSD single moment";
-  py::class_<ScatteringHabit>(m, "ScatteringHabit").doc() = "Scattering habit";
+  //
+  // Modified gamma PSD
+  //
+
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
       .def(py::init<ExtSSACallback, Numeric>(), "func"_a, "g"_a)
       .def(py::init<>())
@@ -543,6 +541,7 @@ void py_scattering_species(py::module_& m) try {
       .def_rw("d_max", &scattering::ParticleProperties::d_max, "Max diameter")
       .doc() = "Particle properties";
 
+
   bind_single_scattering_data<double,
                               scattering::Format::TRO,
                               scattering::Representation::Gridded>(
@@ -574,13 +573,41 @@ void py_scattering_species(py::module_& m) try {
       m, "BulkScatteringPropertiesTROSpectral4")
       .doc() = "Bulk scattering properties";
 
+
+
   py::class_<ParticleHabit>(m, "ParticleHabit")
       .def_static("from_legacy_tro",
                   &ParticleHabit::from_legacy_tro,
                   "ssd"_a,
                   "smd"_a,
                   "Create from legacy TRO")
+      .def("to_tro_spectral",
+           &ParticleHabit::to_tro_spectral,
+           "t_grid"_a,
+           "f_grid"_a,
+           "l"_a,
+           "Convert scattering data to TRO spectral format")
+      .def("__getitem__",
+           [](ParticleHabit &habit, Index ind) {return habit[ind % habit.size()];},
+           py::rv_policy::reference_internal)
+      .def("__len__", [](ParticleHabit &habit) {return habit.size();})
+      .def("size", [](ParticleHabit &habit) {return habit.size();})
+      .def("get_sizes", [](ParticleHabit &habit, const SizeParameter &param) {return habit.get_sizes(param);})
+      .def("get_size_mass_info", [](ParticleHabit &habit, const SizeParameter &param) {return habit.get_size_mass_info(param);})
       .doc() = "Particle habit";
+
+  py::class_<ScatteringHabit>(m, "ScatteringHabit")
+    .def(py::init<const ParticleHabit &, const PSD &, Numeric, Numeric>(),
+         py::arg("particle_habit"),
+         py::arg("psd"),
+         py::arg("mass_size_rel_a") = -1.0,
+         py::arg("mass_size_rel_b") = -1.0)
+    .def("get_bulk_scattering_properties_tro_spectral",
+         &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
+         "point"_a,
+         "f_grid"_a,
+         "f_tol"_a)
+    .doc() = "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(

@@ -883,6 +883,16 @@ radiation).
                  "InterceptParameter",
                  "PSD intercept parameter in arbitary units."}},
   });
+  opts.emplace_back(EnumeratedOption{
+      .name = "SizeParameter",
+      .desc =
+          R"(Parameters used to represent the size of particles.
+)",
+      .values_and_desc =
+          {Value{"Mass", "m", "Mass in kg"},
+           Value{"DMax", "d_max", "Maximum diameter in m"},
+           Value{"DVeq", "d_veq", "Volume-equivalent diameter in m"}},
+  });
 
   return opts;
 }
