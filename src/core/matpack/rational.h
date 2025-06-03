@@ -18,6 +18,8 @@
 
 #include <iosfwd>
 #include <numeric>
+#include <cmath>
+#include <format>
 
 using std::gcd;
 

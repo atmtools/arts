@@ -1,5 +1,6 @@
 #include <interp.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
 

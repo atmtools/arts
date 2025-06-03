@@ -4,13 +4,12 @@ set(CORETYPE_EXTRA)
 add_library(coretypes STATIC
   ${CORETYPE_EXTRA}
   file.cc
-  mystring.cpp
   parameters.cc
 )
 target_include_directories(coretypes PUBLIC "${ARTS_SOURCE_DIR}/3rdparty")
 target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
-target_link_libraries(coretypes PUBLIC util)
+target_link_libraries(coretypes PUBLIC util strings)
 
 # #####
 add_subdirectory(absorption)
@@ -36,6 +35,7 @@ add_subdirectory(options)
 add_subdirectory(sensor)
 add_subdirectory(disort-cpp)
 add_subdirectory(legendre)
+add_subdirectory(strings)
 
 # #####
 add_library(artscore STATIC

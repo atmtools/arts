@@ -659,7 +659,18 @@ GF_IO(NamedGriddedField2)
 GF_IO(NamedGriddedField3)
 GF_IO(GriddedField1Named)
 GF_IO(ComplexGriddedField2)
-GF_IO(StokvecGriddedField6)
+GF_IO(SortedGriddedField1)
+GF_IO(SortedGriddedField2)
+GF_IO(SortedGriddedField3)
+GF_IO(SortedGriddedField4)
+GF_IO(SortedGriddedField5)
+GF_IO(SortedGriddedField6)
+GF_IO(StokvecSortedGriddedField1)
+GF_IO(StokvecSortedGriddedField2)
+GF_IO(StokvecSortedGriddedField3)
+GF_IO(StokvecSortedGriddedField4)
+GF_IO(StokvecSortedGriddedField5)
+GF_IO(StokvecSortedGriddedField6)
 
 #undef GF_IO
 #undef GF_READ
@@ -2669,7 +2680,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 }
 
 //! SpeciesIsotope
-#include <iostream>
 void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
   tag stag{is_xml, "SpeciesIsotope", "isot"};
   s = stag.get<SpeciesIsotope>("isot");

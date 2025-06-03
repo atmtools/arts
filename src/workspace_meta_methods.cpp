@@ -454,7 +454,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   std::stringstream code;
 
-  code << wsm.header(name, 0) << " try {\n";
+  code << wsm.header(name, 0) << " try {\n  ARTS_TIME_REPORT\n\n";
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();

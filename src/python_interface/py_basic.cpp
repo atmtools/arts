@@ -1,5 +1,6 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/complex.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <python_interface.h>

@@ -2,6 +2,7 @@
 
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include <nanobind/stl/complex.h>
 #include <nanobind/stl/string.h>
 #include <py_auto_wsgdocs.h>
 #include <xml_io.h>

@@ -2,13 +2,23 @@
 
 #include <algorithm>
 #include <array>
+#include <format>
+#include <iterator>
 #include <limits>
+#include <print>
 #include <ranges>
 #include <sstream>
 #include <utility>
 #include <vector>
 
+#include <mystring.h>
+
+using namespace std::literals;
+
 using Value = std::vector<std::string>;
+
+namespace stdr = std::ranges;
+namespace stdv = std::ranges::views;
 
 namespace {
 std::vector<EnumeratedOption> internal_options_create() {
@@ -19,11 +29,12 @@ std::vector<EnumeratedOption> internal_options_create() {
       .desc =
           R"(For use with *ray_path_observer_agendaSetGeometric*.  Determines how to densify the geometric path.
 )",
-      .values_and_desc = {
-          Value{"half", "1/2", "Use *ray_pathFillGeometricHalfStep*"},
-          Value{"step", "linear", "Use *ray_pathFillGeometricStepwise*"},
-          Value{"None", "0", "Do not use any step filling method"},
-      }});
+      .values_and_desc =
+          {Value{"half", "1/2", "Use *ray_pathFillGeometricHalfStep*"},
+           Value{"step", "linear", "Use *ray_pathFillGeometricStepwise*"},
+           Value{"None", "0", "Do not use any step filling method"}},
+      .preferred_print = 1,
+  });
 
   opts.emplace_back(EnumeratedOption{
       .name = "disort_settings_agenda_setup_layer_emission_type",
@@ -33,7 +44,9 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc = {
           Value{"None", "No atmospheric emission"},
           Value{"LinearInTau", "Layer emission is linear in optical depth"},
-          Value{"LinearInTauNonLTE", "Layer emission is linear in optical depth taking non-LTE into account"},
+          Value{
+              "LinearInTauNonLTE",
+              "Layer emission is linear in optical depth taking non-LTE into account"},
       }});
 
   opts.emplace_back(EnumeratedOption{
@@ -87,12 +100,12 @@ std::vector<EnumeratedOption> internal_options_create() {
           R"(A key for identifying a sensor property
 )",
       .values_and_desc = {
-          Value{"f", "Frequency", "Frequency of the sensor"},
-          Value{"za", "PointingZenith", "Pointing Zenith of the sensor"},
-          Value{"aa", "PointingAzimuth", "Pointing Azimuth of the sensor"},
-          Value{"alt", "PointingAltitude", "Pointing Altitude of the sensor"},
-          Value{"lat", "PointingLatitude", "Pointing Latitude of the sensor"},
-          Value{"lon", "PointingLongitude", "Pointing Longitude of the sensor"},
+          Value{"f", "Frequency", "freq", "Frequency of the sensor"},
+          Value{"za", "Zenith", "zenith", "Zenith angle of the sensor"},
+          Value{"aa", "Azimuth", "azimuth", "Azimuth angle of the sensor"},
+          Value{"alt", "Altitude", "altitude", "Altitude of the sensor"},
+          Value{"lat", "Latitude", "latitude", "Latitude of the sensor"},
+          Value{"lon", "Longitude", "longitude", "Longitude of the sensor"},
       }});
 
   opts.emplace_back(EnumeratedOption{
@@ -210,136 +223,150 @@ if good cases, so we have provide this selection mechanism to make them match.
       .desc =
           R"(The valid species for the ARTS system.
 )",
-      .values_and_desc = {
-          Value{"Bath", "AIR", "Any non-descript species"},
-          Value{"Water", "H2O", "Water moluecule"},
-          Value{"CarbonDioxide", "CO2", "Carbon Dioxide moluecule"},
-          Value{"Ozone", "O3", "Ozone moluecule"},
-          Value{"NitrogenOxide", "N2O", "Nitrogen Oxide moluecule"},
-          Value{"CarbonMonoxide", "CO", "Carbon Monoxide moluecule"},
-          Value{"Methane", "CH4", "Methane moluecule"},
-          Value{"Oxygen", "O2", "Oxygen moluecule"},
-          Value{"NitricOxide", "NO", "Nitric Oxide moluecule"},
-          Value{"SulfurDioxide", "SO2", "Sulfur Dioxide moluecule"},
-          Value{"NitrogenDioxide", "NO2", "Nitrogen Dioxide moluecule"},
-          Value{"Ammonia", "NH3", "Ammonia moluecule"},
-          Value{"NitricAcid", "HNO3", "Nitric Acid moluecule"},
-          Value{"Hydroxyl", "OH", "Hydroxyl moluecule"},
-          Value{"HydrogenFluoride", "HF", "Hydrogen Fluoride moluecule"},
-          Value{"HydrogenChloride", "HCl", "Hydrogen Chloride moluecule"},
-          Value{"HydrogenBromide", "HBr", "Hydrogen Bromide moluecule"},
-          Value{"HydrogenIodide", "HI", "Hydrogen Iodide moluecule"},
-          Value{"ChlorineMonoxide", "ClO", "Chlorine Monoxide moluecule"},
-          Value{"CarbonylSulfide", "OCS", "Carbonyl Sulfide moluecule"},
-          Value{"Formaldehyde", "H2CO", "Formaldehyde moluecule"},
-          Value{"HeavyFormaldehyde", "HDCO", "Heavy Formaldehyde moluecule"},
-          Value{"VeryHeavyFormaldehyde",
-                "D2CO",
-                "Very Heavy Formaldehyde moluecule"},
-          Value{"HypochlorousAcid", "HOCl", "Hypochlorous Acid moluecule"},
-          Value{"Nitrogen", "N2", "Nitrogen moluecule"},
-          Value{"HydrogenCyanide", "HCN", "Hydrogen Cyanide moluecule"},
-          Value{"Chloromethane", "CH3Cl", "Chloromethane moluecule"},
-          Value{"HydrogenPeroxide", "H2O2", "Hydrogen Peroxide moluecule"},
-          Value{"Acetylene", "C2H2", "Acetylene moluecule"},
-          Value{"Ethane", "C2H6", "Ethane moluecule"},
-          Value{"Phosphine", "PH3", "Phosphine moluecule"},
-          Value{"CarbonylFluoride", "COF2", "Carbonyl Fluoride moluecule"},
-          Value{"SulfurHexafluoride", "SF6", "Sulfur Hexafluoride moluecule"},
-          Value{"HydrogenSulfide", "H2S", "Hydrogen Sulfide moluecule"},
-          Value{"FormicAcid", "HCOOH", "Formic Acid moluecule"},
-          Value{"LeftHeavyFormicAcid",
-                "DCOOH",
-                "Left Heavy Formic Acid moluecule"},
-          Value{"RightHeavyFormicAcid",
-                "HCOOD",
-                "Right Heavy Formic Acid moluecule"},
-          Value{"Hydroperoxyl", "HO2", "Hydroperoxyl moluecule"},
-          Value{"OxygenAtom", "O", "Oxygen atom"},
-          Value{"ChlorineNitrate", "ClONO2", "Chlorine Nitrate moluecule"},
-          Value{"NitricOxideCation", "NO+", "Nitric Oxide Cation moluecule"},
-          Value{"HypobromousAcid", "HOBr", "Hypobromous Acid moluecule"},
-          Value{"Ethylene", "C2H4", "Ethylene moluecule"},
-          Value{"Methanol", "CH3OH", "Methanol moluecule"},
-          Value{"Bromomethane", "CH3Br", "Bromomethane moluecule"},
-          Value{"Acetonitrile", "CH3CN", "Acetonitrile moluecule"},
-          Value{"HeavyAcetonitrile", "CH2DCN", "Heavy Acetonitrile moluecule"},
-          Value{"CarbonTetrafluoride", "CF4", "Carbon Tetrafluoride moluecule"},
-          Value{"Diacetylene", "C4H2", "Diacetylene moluecule"},
-          Value{"Cyanoacetylene", "HC3N", "Cyanoacetylene moluecule"},
-          Value{"Hydrogen", "H2", "Hydrogen moluecule"},
-          Value{"CarbonMonosulfide", "CS", "Carbon Monosulfide moluecule"},
-          Value{"SulfurTrioxide", "SO3", "Sulfur Trioxide moluecule"},
-          Value{"Cyanogen", "C2N2", "Cyanogen moluecule"},
-          Value{"Phosgene", "COCl2", "Phosgene moluecule"},
-          Value{"SulfurMonoxide", "SO", "Sulfur Monoxide moluecule"},
-          Value{"CarbonDisulfide", "CS2", "Carbon Disulfide moluecule"},
-          Value{"Methyl", "CH3", "Methyl moluecule"},
-          Value{"Cyclopropene", "C3H4", "Cyclopropene moluecule"},
-          Value{"SulfuricAcid", "H2SO4", "Sulfuric Acid moluecule"},
-          Value{"HydrogenIsocyanide", "HNC", "Hydrogen Isocyanide moluecule"},
-          Value{"BromineMonoxide", "BrO", "Bromine Monoxide moluecule"},
-          Value{"ChlorineDioxide", "OClO", "Chlorine Dioxide moluecule"},
-          Value{"Propane", "C3H8", "Propane moluecule"},
-          Value{"Helium", "He", "Helium atom"},
-          Value{"ChlorineMonoxideDimer",
-                "Cl2O2",
-                "Chlorine Monoxide Dimer moluecule"},
-          Value{"HydrogenAtom", "H", "Hydrogen atom"},
-          Value{"Argon", "Ar", "Argon atom"},
-          Value{"Hexafluoroethane", "C2F6", "Hexafluoroethane moluecule"},
-          Value{"Perfluoropropane", "C3F8", "Perfluoropropane moluecule"},
-          Value{"Perfluorobutane", "C4F10", "Perfluorobutane moluecule"},
-          Value{"Perfluoropentane", "C5F12", "Perfluoropentane moluecule"},
-          Value{"Perfluorohexane", "C6F14", "Perfluorohexane moluecule"},
-          Value{"Perfluorooctane", "C8F18", "Perfluorooctane moluecule"},
-          Value{"Perfluorocyclobutane",
-                "cC4F8",
-                "Perfluorocyclobutane moluecule"},
-          Value{
-              "CarbonTetrachloride", "CCl4", "Carbon Tetrachloride moluecule"},
-          Value{"CFC11", "CFC11", "CFC11 moluecule"},
-          Value{"CFC113", "CFC113", "CFC113 moluecule"},
-          Value{"CFC114", "CFC114", "CFC114 moluecule"},
-          Value{"CFC115", "CFC115", "CFC115 moluecule"},
-          Value{"CFC12", "CFC12", "CFC12 moluecule"},
-          Value{"Dichloromethane", "CH2Cl2", "Dichloromethane moluecule"},
-          Value{"Trichloroethane", "CH3CCl3", "Trichloroethane moluecule"},
-          Value{"Trichloromethane", "CHCl3", "Trichloromethane moluecule"},
-          Value{"Bromochlorodifluoromethane",
-                "Halon1211",
-                "Bromochlorodifluoromethane moluecule"},
-          Value{"Bromotrifluoromethane",
-                "Halon1301",
-                "Bromotrifluoromethane moluecule"},
-          Value{"Dibromotetrafluoroethane",
-                "Halon2402",
-                "Dibromotetrafluoroethane moluecule"},
-          Value{"HCFC141b", "HCFC141b", "HCFC141b moluecule"},
-          Value{"HCFC142b", "HCFC142b", "HCFC142b moluecule"},
-          Value{"HCFC22", "HCFC22", "HCFC22 moluecule"},
-          Value{"HFC125", "HFC125", "HFC125 moluecule"},
-          Value{"HFC134a", "HFC134a", "HFC134a moluecule"},
-          Value{"HFC143a", "HFC143a", "HFC143a moluecule"},
-          Value{"HFC152a", "HFC152a", "HFC152a moluecule"},
-          Value{"HFC227ea", "HFC227ea", "HFC227ea moluecule"},
-          Value{"HFC23", "HFC23", "HFC23 moluecule"},
-          Value{"HFC236fa", "HFC236fa", "HFC236fa moluecule"},
-          Value{"HFC245fa", "HFC245fa", "HFC245fa moluecule"},
-          Value{"HFC32", "HFC32", "HFC32 moluecule"},
-          Value{"HFC365mfc", "HFC365mfc", "HFC365mfc moluecule"},
-          Value{"NitrogenTrifluoride", "NF3", "Nitrogen Trifluoride moluecule"},
-          Value{"SulfurylFluoride", "SO2F2", "Sulfuryl Fluoride moluecule"},
-          Value{"HFC4310mee", "HFC4310mee", "HFC4310mee moluecule"},
-          Value{"Germane", "GeH4", "Germane moluecule"},
-          Value{"Iodomethane", "CH3I", "Iodomethane moluecule"},
-          Value{"Fluoromethane", "CH3F", "Fluoromethane moluecule"},
-          Value{"liquidcloud", "liquidcloud", "liquidcloud tag"},
-          Value{"icecloud", "icecloud", "icecloud tag"},
-          Value{"rain", "rain", "rain tag"},
-          Value{"free_electrons", "free_electrons", "free electrons tag"},
-          Value{"particles", "particles", "particles tag"},
-      }});
+      .values_and_desc =
+          {
+              Value{"Bath", "AIR", "Any non-descript species"},
+              Value{"Water", "H2O", "Water moluecule"},
+              Value{"CarbonDioxide", "CO2", "Carbon Dioxide moluecule"},
+              Value{"Ozone", "O3", "Ozone moluecule"},
+              Value{"NitrogenOxide", "N2O", "Nitrogen Oxide moluecule"},
+              Value{"CarbonMonoxide", "CO", "Carbon Monoxide moluecule"},
+              Value{"Methane", "CH4", "Methane moluecule"},
+              Value{"Oxygen", "O2", "Oxygen moluecule"},
+              Value{"NitricOxide", "NO", "Nitric Oxide moluecule"},
+              Value{"SulfurDioxide", "SO2", "Sulfur Dioxide moluecule"},
+              Value{"NitrogenDioxide", "NO2", "Nitrogen Dioxide moluecule"},
+              Value{"Ammonia", "NH3", "Ammonia moluecule"},
+              Value{"NitricAcid", "HNO3", "Nitric Acid moluecule"},
+              Value{"Hydroxyl", "OH", "Hydroxyl moluecule"},
+              Value{"HydrogenFluoride", "HF", "Hydrogen Fluoride moluecule"},
+              Value{"HydrogenChloride", "HCl", "Hydrogen Chloride moluecule"},
+              Value{"HydrogenBromide", "HBr", "Hydrogen Bromide moluecule"},
+              Value{"HydrogenIodide", "HI", "Hydrogen Iodide moluecule"},
+              Value{"ChlorineMonoxide", "ClO", "Chlorine Monoxide moluecule"},
+              Value{"CarbonylSulfide", "OCS", "Carbonyl Sulfide moluecule"},
+              Value{"Formaldehyde", "H2CO", "Formaldehyde moluecule"},
+              Value{
+                  "HeavyFormaldehyde", "HDCO", "Heavy Formaldehyde moluecule"},
+              Value{"VeryHeavyFormaldehyde",
+                    "D2CO",
+                    "Very Heavy Formaldehyde moluecule"},
+              Value{"HypochlorousAcid", "HOCl", "Hypochlorous Acid moluecule"},
+              Value{"Nitrogen", "N2", "Nitrogen moluecule"},
+              Value{"HydrogenCyanide", "HCN", "Hydrogen Cyanide moluecule"},
+              Value{"Chloromethane", "CH3Cl", "Chloromethane moluecule"},
+              Value{"HydrogenPeroxide", "H2O2", "Hydrogen Peroxide moluecule"},
+              Value{"Acetylene", "C2H2", "Acetylene moluecule"},
+              Value{"Ethane", "C2H6", "Ethane moluecule"},
+              Value{"Phosphine", "PH3", "Phosphine moluecule"},
+              Value{"CarbonylFluoride", "COF2", "Carbonyl Fluoride moluecule"},
+              Value{
+                  "SulfurHexafluoride", "SF6", "Sulfur Hexafluoride moluecule"},
+              Value{"HydrogenSulfide", "H2S", "Hydrogen Sulfide moluecule"},
+              Value{"FormicAcid", "HCOOH", "Formic Acid moluecule"},
+              Value{"LeftHeavyFormicAcid",
+                    "DCOOH",
+                    "Left Heavy Formic Acid moluecule"},
+              Value{"RightHeavyFormicAcid",
+                    "HCOOD",
+                    "Right Heavy Formic Acid moluecule"},
+              Value{"Hydroperoxyl", "HO2", "Hydroperoxyl moluecule"},
+              Value{"OxygenAtom", "O", "Oxygen atom"},
+              Value{"ChlorineNitrate", "ClONO2", "Chlorine Nitrate moluecule"},
+              Value{
+                  "NitricOxideCation", "NO+", "Nitric Oxide Cation moluecule"},
+              Value{"HypobromousAcid", "HOBr", "Hypobromous Acid moluecule"},
+              Value{"Ethylene", "C2H4", "Ethylene moluecule"},
+              Value{"Methanol", "CH3OH", "Methanol moluecule"},
+              Value{"Bromomethane", "CH3Br", "Bromomethane moluecule"},
+              Value{"Acetonitrile", "CH3CN", "Acetonitrile moluecule"},
+              Value{"HeavyAcetonitrile",
+                    "CH2DCN",
+                    "Heavy Acetonitrile moluecule"},
+              Value{"CarbonTetrafluoride",
+                    "CF4",
+                    "Carbon Tetrafluoride moluecule"},
+              Value{"Diacetylene", "C4H2", "Diacetylene moluecule"},
+              Value{"Cyanoacetylene", "HC3N", "Cyanoacetylene moluecule"},
+              Value{"Hydrogen", "H2", "Hydrogen moluecule"},
+              Value{"CarbonMonosulfide", "CS", "Carbon Monosulfide moluecule"},
+              Value{"SulfurTrioxide", "SO3", "Sulfur Trioxide moluecule"},
+              Value{"Cyanogen", "C2N2", "Cyanogen moluecule"},
+              Value{"Phosgene", "COCl2", "Phosgene moluecule"},
+              Value{"SulfurMonoxide", "SO", "Sulfur Monoxide moluecule"},
+              Value{"CarbonDisulfide", "CS2", "Carbon Disulfide moluecule"},
+              Value{"Methyl", "CH3", "Methyl moluecule"},
+              Value{"Cyclopropene", "C3H4", "Cyclopropene moluecule"},
+              Value{"SulfuricAcid", "H2SO4", "Sulfuric Acid moluecule"},
+              Value{
+                  "HydrogenIsocyanide", "HNC", "Hydrogen Isocyanide moluecule"},
+              Value{"BromineMonoxide", "BrO", "Bromine Monoxide moluecule"},
+              Value{"ChlorineDioxide", "OClO", "Chlorine Dioxide moluecule"},
+              Value{"Propane", "C3H8", "Propane moluecule"},
+              Value{"Helium", "He", "Helium atom"},
+              Value{"ChlorineMonoxideDimer",
+                    "Cl2O2",
+                    "Chlorine Monoxide Dimer moluecule"},
+              Value{"HydrogenAtom", "H", "Hydrogen atom"},
+              Value{"Argon", "Ar", "Argon atom"},
+              Value{"Hexafluoroethane", "C2F6", "Hexafluoroethane moluecule"},
+              Value{"Perfluoropropane", "C3F8", "Perfluoropropane moluecule"},
+              Value{"Perfluorobutane", "C4F10", "Perfluorobutane moluecule"},
+              Value{"Perfluoropentane", "C5F12", "Perfluoropentane moluecule"},
+              Value{"Perfluorohexane", "C6F14", "Perfluorohexane moluecule"},
+              Value{"Perfluorooctane", "C8F18", "Perfluorooctane moluecule"},
+              Value{"Perfluorocyclobutane",
+                    "cC4F8",
+                    "Perfluorocyclobutane moluecule"},
+              Value{"CarbonTetrachloride",
+                    "CCl4",
+                    "Carbon Tetrachloride moluecule"},
+              Value{"CFC11", "CFC11", "CFC11 moluecule"},
+              Value{"CFC113", "CFC113", "CFC113 moluecule"},
+              Value{"CFC114", "CFC114", "CFC114 moluecule"},
+              Value{"CFC115", "CFC115", "CFC115 moluecule"},
+              Value{"CFC12", "CFC12", "CFC12 moluecule"},
+              Value{"Dichloromethane", "CH2Cl2", "Dichloromethane moluecule"},
+              Value{"Trichloroethane", "CH3CCl3", "Trichloroethane moluecule"},
+              Value{"Trichloromethane", "CHCl3", "Trichloromethane moluecule"},
+              Value{"Bromochlorodifluoromethane",
+                    "Halon1211",
+                    "Bromochlorodifluoromethane moluecule"},
+              Value{"Bromotrifluoromethane",
+                    "Halon1301",
+                    "Bromotrifluoromethane moluecule"},
+              Value{"Dibromotetrafluoroethane",
+                    "Halon2402",
+                    "Dibromotetrafluoroethane moluecule"},
+              Value{"HCFC141b", "HCFC141b", "HCFC141b moluecule"},
+              Value{"HCFC142b", "HCFC142b", "HCFC142b moluecule"},
+              Value{"HCFC22", "HCFC22", "HCFC22 moluecule"},
+              Value{"HFC125", "HFC125", "HFC125 moluecule"},
+              Value{"HFC134a", "HFC134a", "HFC134a moluecule"},
+              Value{"HFC143a", "HFC143a", "HFC143a moluecule"},
+              Value{"HFC152a", "HFC152a", "HFC152a moluecule"},
+              Value{"HFC227ea", "HFC227ea", "HFC227ea moluecule"},
+              Value{"HFC23", "HFC23", "HFC23 moluecule"},
+              Value{"HFC236fa", "HFC236fa", "HFC236fa moluecule"},
+              Value{"HFC245fa", "HFC245fa", "HFC245fa moluecule"},
+              Value{"HFC32", "HFC32", "HFC32 moluecule"},
+              Value{"HFC365mfc", "HFC365mfc", "HFC365mfc moluecule"},
+              Value{"NitrogenTrifluoride",
+                    "NF3",
+                    "Nitrogen Trifluoride moluecule"},
+              Value{"SulfurylFluoride", "SO2F2", "Sulfuryl Fluoride moluecule"},
+              Value{"HFC4310mee", "HFC4310mee", "HFC4310mee moluecule"},
+              Value{"Germane", "GeH4", "Germane moluecule"},
+              Value{"Iodomethane", "CH3I", "Iodomethane moluecule"},
+              Value{"Fluoromethane", "CH3F", "Fluoromethane moluecule"},
+              Value{"liquidcloud", "liquidcloud", "liquidcloud tag"},
+              Value{"icecloud", "icecloud", "icecloud tag"},
+              Value{"rain", "rain", "rain tag"},
+              Value{"free_electrons", "free_electrons", "free electrons tag"},
+              Value{"particles", "particles", "particles tag"},
+          },
+      .preferred_print = 1,
+  });
 
   opts.emplace_back(EnumeratedOption{
       .name            = "QuantumNumberType",
@@ -687,6 +714,14 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
               Value{"RJBT",
                     "Tr",
                     R"(Rayleigh-Jeans brightness temperature [K]
+
+.. math::
+
+    [I,\; Q,\; U,\; V] \rightarrow [F(I),\; F(Q),\; F(U),\; F(V)]
+
+.. math::
+
+    F(x) = \frac{c^2 x}{2 k f^2}.
 )"},
               Value{"PlanckBT",
                     "Tb",
@@ -896,7 +931,6 @@ const std::vector<EnumeratedOption>& internal_options() {
 std::string_view EnumeratedOption::sz() const {
   const auto n = values_and_desc.size();
 
-  if (n < std::numeric_limits<bool>::max()) return "bool";
   if (n < std::numeric_limits<char>::max()) return "char";
   if (n < std::numeric_limits<short>::max()) return "short";
   if (n < std::numeric_limits<int>::max()) return "int";
@@ -906,127 +940,152 @@ std::string_view EnumeratedOption::sz() const {
   throw std::runtime_error("Too many values for enum class");
 }
 
+std::string add_spaces(const std::string& s, int numspaces) {
+  std::string out{s};
+  const std::string newline{"\n"};
+  const std::string spaces = std::string(numspaces, ' ') + '\n';
+  replace(out, newline, spaces);
+  return out;
+}
+
 std::string EnumeratedOption::docs() const {
-  std::ostringstream os;
+  std::string out;
 
   const auto n = values_and_desc.front().size();
 
-  os << desc << "\n\nValid options:\n\n";
+  std::format_to(std::back_inserter(out), "{}\n\nValid options:\n\n", desc);
   for (auto& v : values_and_desc) {
-    std::string_view x = "- ";
-    for (auto& s : v | std::views::take(n - 1)) {
-      os << std::exchange(x, " or ") << "``" << '"' << s << '"' << "``";
+    std::string_view x = "- "sv;
+    for (auto& s : v | stdv::take(n - 1)) {
+      std::format_to(std::back_inserter(out),
+                     R"({}``"{}"``)",
+                     std::exchange(x, " or "sv),
+                     s);
     }
-    os << ": " << v.back() << '\n';
+    std::format_to(
+        std::back_inserter(out), ":\n  {}\n", add_spaces(v.back(), 2));
   }
 
-  return os.str();
+  return out;
 }
-
-namespace {
-int format_ind(const std::string& name) {
-  if (name == "SpeciesEnum") return 1;
-  return 0;
-}
-}  // namespace
 
 std::string EnumeratedOption::tail() const {
-  std::ostringstream os;
+  std::string out;
 
   const auto m = values_and_desc.size();
   const auto n = values_and_desc.front().size();
 
   // Create good enum function
-  os << "template<> constexpr bool good_enum<" << name << ">(" << name
-     << " x) noexcept {\n  const auto v = static_cast<std::size_t>(x);\n  return v < "
-     << m << ";\n}\n\n";
+  std::format_to(std::back_inserter(out),
+                 R"(
+template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
+    const auto v = static_cast<std::size_t>(x);
+    return v < {1};
+}}
 
-  // Create enumtyps array
-  os << "namespace enumtyps {\n  inline constexpr std::array " << name
-     << "Types = {";
-  for (const auto& v : values_and_desc) {
-    os << name << "::" << v[0] << ", ";
-  }
-  os << "};\n}  // namespace enumtyps\n\n";
+namespace enumtyps {{
+    inline constexpr std::array {0}Types = {{)",
+                 name,
+                 m);
+
+  for (const auto& v : values_and_desc)
+    std::format_to(std::back_inserter(out), "{}::{}, ", name, v[0]);
+
+  std::format_to(std::back_inserter(out), R"(}};
+}}  // namespace enumtyps
+
+namespace enumstrs {{
+)");
 
   // Create enumstrs arrays
-  os << "namespace enumstrs {\n";
   for (std::size_t i = 0; i < n - 1; i++) {
-    os << "  template <> struct enum_str_data<" << name << ", " << i << "> {\n";
-    os << "    static constexpr std::array strs={";
-    for (const auto& v : values_and_desc) {
-      os << '"' << v[i] << "\"sv, ";
-    }
-    os << "};\n  };\n";
+    std::format_to(std::back_inserter(out),
+                   R"(
+  template <> struct enum_str_data<{}, {}> {{
+    static constexpr std::array strs={{)",
+                   name,
+                   i);
+
+    for (const auto& v : values_and_desc)
+      std::format_to(std::back_inserter(out), R"("{}"sv, )", v[i]);
+
+    std::format_to(std::back_inserter(out), "}};\n  }};\n");
   }
-  os << "  template <int i=" << format_ind(name)
-     << ">\n  inline constexpr auto " << name << "Names = enum_str_data<"
-     << name << ", i>::strs;\n";
-  os << "}  // namespace enumstrs\n\n";
 
-  // Create toString functions
-  os << "template <int i=" << format_ind(name)
-     << "> constexpr const std::string_view toString(" << name
-     << " x) requires(i >= 0 and i < " << n - 1
-     << ") {\n"
-        "  if (good_enum(x))\n    return enumstrs::"
-     << name << "Names<i>[static_cast<std::size_t>(x)];\n  return \"BAD "
-     << name << "\";\n}\n\n";
+  std::format_to(std::back_inserter(out),
+                 R"(
+  template <int i={0}>
+  inline constexpr auto {1}Names = enum_str_data<{1}, i>::strs;
+}}  // namespace enumstrs
 
-  // Create toEnumType functions
-  os << "template<> constexpr " << name << " to<" << name
-     << ">(const std::string_view x) {\n  using namespace enumstrs;\n";
+template <int i={0}> constexpr const std::string_view toString({1} x)  requires(i >= 0 and i < {2}) {{
+  if (good_enum(x))
+    return enumstrs::{1}Names<i>[static_cast<std::size_t>(x)];
+  return "BAD {1}"sv;
+}}
+
+template<> constexpr {1} to<{1}>(const std::string_view x) {{
+  using namespace enumstrs;
+  using namespace enumtyps;)",
+                 preferred_print,
+                 name,
+                 n - 1);
+
   for (std::size_t i = 0; i < n - 1; i++) {
-    os << "  if (const auto i = std::distance(" << name << "Names<" << i
-       << ">.begin(), std::ranges::find(" << name << "Names<" << i
-       << ">, x)); i < " << m
-       << ")\n"
-          "    return enumtyps::"
-       << name << "Types[i];\n";
+    std::format_to(std::back_inserter(out),
+                   R"(
+  if (const auto i = std::ranges::distance(std::ranges::begin({0}Names<{1}>),
+                                           std::ranges::find({0}Names<{1}>, x));
+                     i < {2})
+    return {0}Types[i];)",
+                   name,
+                   i,
+                   m);
   }
-  os << "  throw std::runtime_error(std::string{\"Bad value: \\\"\"} + std::string{x} + R\"-x-(\"\n\n"
-     << docs() << ")-x-\");\n}\n\n";
+  std::format_to(std::back_inserter(out),
+                 R"(
+  constexpr std::string_view doc = R"-x-({1})-x-";
+  throw std::runtime_error(std::format(R"-x-(Bad value "{{}}" for enum-type {0}
 
-  os << "namespace enumsize { inline constexpr std::size_t " << name
-     << "Size = " << m << "; }\n\n";
+{{}}
+)-x-", x, doc));
+}}
 
-  // Create ostream operator
-  os << "std::ostream &operator<<(std::ostream &os, const " << name
-     << " x);\n\n";
-  os << "std::istream &operator>>(std::istream &is, " << name << "& x);\n\n";
+namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
 
-  // Create xml-io operator
-  os << "void xml_read_from_stream(std::istream& is_xml, " << name
-     << "& s, bifstream*);\n\n";
-  os << "void xml_write_to_stream(std::ostream& os_xml, const " << name
-     << "& s, bofstream*, const std::string&);\n\n";
+std::ostream& operator<<(std::ostream &os, const {0} x);
 
-  os << "template<> struct std::formatter<" << name << "> {\n  using T=" << name
-     << ";\n";
-  os << R"--(
+std::istream& operator>>(std::istream &is, {0}& x);
+
+void xml_read_from_stream(std::istream& is_xml, {0}& s, bifstream*);
+
+void xml_write_to_stream(std::ostream& os_xml, const {0}& s, bofstream*, const std::string&);
+
+template<> struct std::formatter<{0}> {{
+  using T={0};
+    
   format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() {{ return *this; }}
+  [[nodiscard]] constexpr auto& inner_fmt() const {{ return *this; }}
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {{
     return parse_format_tags(tags, ctx);
-  }
+  }}
 
   template <class FmtContext>
-  FmtContext::iterator format(const T& v, FmtContext& ctx) const {
-  constexpr Index IND = )--"
-     << format_ind(name) << ";\n";
-
-  os << R"--(
+  FmtContext::iterator format(const T& v, FmtContext& ctx) const {{
     const auto q = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", q, toString<IND>(v), q);
-  }
-)--";
-  os << "};\n";
 
-  return os.str();
+    return std::format_to(ctx.out(), "{{}}{{}}{{}}", q, toString<{3}>(v), q);
+  }}
+}};)",
+                 name,
+                 docs(),
+                 m,
+                 preferred_print);
+
+  return out;
 }
 
 std::string EnumeratedOption::head() const {
@@ -1035,7 +1094,7 @@ std::string EnumeratedOption::head() const {
 
   for (auto& v : values_and_desc) {
     for (auto& s : v) {
-      if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
+      if (stdr::any_of(reserved, [&s](auto& r) { return r == s; })) {
         throw std::runtime_error("Reserved word used for enum class " + name);
       }
     }
@@ -1045,11 +1104,11 @@ std::string EnumeratedOption::head() const {
     std::vector<std::string> all;
     all.reserve(values_and_desc.size() * (values_and_desc.front().size()));
     for (auto v : values_and_desc) {
-      std::ranges::sort(v);
+      stdr::sort(v);
       auto last = std::unique(v.begin(), v.end());
       all.insert(all.end(), v.begin(), last);
     }
-    std::ranges::sort(all);
+    stdr::sort(all);
     auto last = std::unique(all.begin(), all.end());
     if (last != all.end()) {
       throw std::runtime_error("Duplicate value for enum class \"" + name +
@@ -1069,9 +1128,11 @@ std::string EnumeratedOption::head() const {
             ".\nThe Value should be {main_key, alt_keys..., description}, where alt_keys... can be omitted"});
   }
 
-  std::ostringstream os;
+  std::string out;
 
-  os << "enum class " << name << " : " << sz() << " {\n";
+  std::format_to(
+      std::back_inserter(out), "enum class {} : {} {{\n", name, sz());
+
   for (const auto& v : values_and_desc) {
     if (v.empty()) {
       throw std::runtime_error("Empty value for enum class " + name);
@@ -1082,44 +1143,49 @@ std::string EnumeratedOption::head() const {
                                " " + v.front());
     }
 
-    os << v[0] << ", ";
+    std::format_to(std::back_inserter(out), "{}, ", v[0]);
   }
-  os << "};\n\n";
 
-  return os.str();
+  std::format_to(std::back_inserter(out), "}};\n\n");
+
+  return out;
 }
 
 std::string EnumeratedOption::impl() const {
-  std::ostringstream os;
-  // Create ostream operator
-  os << "std::ostream &operator<<(std::ostream &os, const " << name
-     << " x) {\n  return os << toString<" << format_ind(name) << ">(x);\n}\n\n";
-  os << "std::istream &operator>>(std::istream &is, " << name
-     << "& x) {\n  std::string s;\n  is >> s;\n  x = to<" << name
-     << ">(s);\n  return is;\n}\n\n";
+  std::string out;
 
-  os << "void xml_read_from_stream(std::istream& is, " << name
-     << "& s, bifstream*) {\n"
-        "  std::string x;\n"
-        "  is >> x;\n"
-        "  if (x != \"<"
-     << name << R"(>") throw std::runtime_error("Expected \"<)" << name
-     << ">\\\" got: \\\"\" + x + \"\\\"\");\n"
-        "  is >> x;\n"
-        "  s = to<"
-     << name
-     << ">(x);\n"
-        "  is >> x;\n"
-        "  if (x != \"</"
-     << name << R"(>") throw std::runtime_error("Expected \"</)" << name
-     << ">\\\" got: \\\"\" + x + \"\\\"\");\n"
-        "}\n\n";
-  os << "void xml_write_to_stream(std::ostream& os, const " << name
-     << "& s, bofstream*, const std::string&) {\n"
-        "  os << \"<"
-     << name << "> \" << toString<" << format_ind(name) << ">(s) << \" </"
-     << name << ">\\n\";\n}\n\n";
-  os << "static_assert(arts_formattable<" << name << ">, \"Not good: " << name
-     << "\");\n\n";
-  return os.str();
+  std::format_to(std::back_inserter(out),
+                 R"(
+std::ostream &operator<<(std::ostream &os, const {0} x) {{
+  std::print(os, "{{}}", toString<{1}>(x));
+  return os;
+}}
+
+std::istream &operator>>(std::istream &is, {0}& x) {{
+  std::string s;
+  is >> s;
+  x = to<{0}>(s);
+  return is;
+}}
+
+void xml_read_from_stream(std::istream& is, {0}& s, bifstream*) {{
+  std::string x;
+  is >> x;
+  if (x != "<{0}>")  throw std::runtime_error("Expected \"<{0}>\" got: \""+x+"\"");
+  is >> x;
+  s = to<{0}>(x);
+  is >> x;
+  if (x != "</{0}>")  throw std::runtime_error("Expected \"</{0}>\" got: \""+x+"\"");
+}}
+
+void xml_write_to_stream(std::ostream& os, const {0}& s, bofstream*, const std::string&) {{
+  std::print(os, "<{0}> {{}} </{0}>\\n", toString<{1}>(s));
+}}
+
+static_assert(arts_formattable<{0}>, "Not good: {0}");
+)",
+                 name,
+                 preferred_print);
+
+  return out;
 }

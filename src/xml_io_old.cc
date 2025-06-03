@@ -1,9 +1,11 @@
 #include "xml_io_old.h"
 
 #include <double_imanip.h>
+#include <string_extract.h>
 
 #include <algorithm>
-#include <iostream>
+#include <istream>
+#include <ostream>
 
 #include "xml_io.h"
 

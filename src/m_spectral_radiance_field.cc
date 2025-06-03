@@ -138,7 +138,7 @@ void zenith_gridProfilePseudo2D(AscendingGrid& zenith_grid,
 
 void spectral_radiance_fieldProfilePseudo2D(
     const Workspace& ws,
-    StokvecGriddedField6& spectral_radiance_field,
+    StokvecSortedGriddedField6& spectral_radiance_field,
     const Agenda& propagation_matrix_agenda,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const SurfaceField& surface_field,

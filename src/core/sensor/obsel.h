@@ -18,9 +18,64 @@ struct PosLos {
   constexpr bool operator!=(const PosLos& other) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const PosLos& poslos);
+
+  [[nodiscard]] constexpr Numeric alt() const { return pos[0]; }
+  [[nodiscard]] constexpr Numeric lat() const { return pos[1]; }
+  [[nodiscard]] constexpr Numeric lon() const { return pos[2]; }
+  [[nodiscard]] constexpr Numeric za() const { return los[0]; }
+  [[nodiscard]] constexpr Numeric aa() const { return los[1]; }
 };
 
 using PosLosVector = matpack::data_t<PosLos, 1>;
+
+struct SparseStokvec {
+  Size irow;
+  Size icol;
+  Stokvec data{0, 0, 0, 0};
+
+  bool operator==(const SparseStokvec& other) const;
+  bool operator!=(const SparseStokvec& other) const;
+  bool operator<(const SparseStokvec& other) const;
+  bool operator<=(const SparseStokvec& other) const;
+  bool operator>(const SparseStokvec& other) const;
+  bool operator>=(const SparseStokvec& other) const;
+};
+
+class SparseStokvecMatrix {
+  Size rows;
+  Size cols;
+
+  std::vector<SparseStokvec> sparse_data{};
+
+ public:
+  SparseStokvecMatrix(Size r = 0, Size c = 0) : rows(r), cols(c) {}
+  SparseStokvecMatrix(const SparseStokvecMatrix&)            = default;
+  SparseStokvecMatrix(SparseStokvecMatrix&&)                 = default;
+  SparseStokvecMatrix& operator=(const SparseStokvecMatrix&) = default;
+  SparseStokvecMatrix& operator=(SparseStokvecMatrix&&)      = default;
+
+  SparseStokvecMatrix(const StokvecMatrix& m);
+  SparseStokvecMatrix& operator=(const StokvecMatrix& m);
+
+  [[nodiscard]] bool operator==(const SparseStokvecMatrix& other) const;
+  [[nodiscard]] bool operator!=(const SparseStokvecMatrix& other) const;
+
+  [[nodiscard]] Index nrows() const;
+  [[nodiscard]] Index ncols() const;
+  [[nodiscard]] Size size() const;
+  [[nodiscard]] bool empty() const;
+  [[nodiscard]] std::array<Index, 2> shape() const;
+
+  Stokvec& operator[](Size i, Size j);
+  Stokvec operator[](Size i, Size j) const;
+
+  [[nodiscard]] std::vector<SparseStokvec>::iterator begin();
+  [[nodiscard]] std::vector<SparseStokvec>::iterator end();
+  [[nodiscard]] std::vector<SparseStokvec>::const_iterator begin() const;
+  [[nodiscard]] std::vector<SparseStokvec>::const_iterator end() const;
+
+  explicit operator StokvecMatrix() const;
+};
 
 class Obsel {
   //! Frequency grid, must be ascending
@@ -34,15 +89,17 @@ class Obsel {
   //! FIXME: This should be made a variant of sparse/non-sparse!  Do this if/when we see an actual slowdown cf ARTS2.
   // (The type should be "std::variant<StokvecMatrix, std::array<Sparse, 4>>", where the "4" is for the 4 Stokes components.)
   // A matrix size of poslos_grid.size() x f_grid.size() with the polarized weight of the sensor
-  StokvecMatrix w{};
+  SparseStokvecMatrix w{};
 
  public:
   Obsel() = default;
 
   Obsel(std::shared_ptr<const AscendingGrid> fs,
         std::shared_ptr<const PosLosVector> pl,
-        StokvecMatrix ws);
-  Obsel(const AscendingGrid& fs, const PosLosVector& pl, StokvecMatrix ws);
+        SparseStokvecMatrix ws);
+  Obsel(const AscendingGrid& fs,
+        const PosLosVector& pl,
+        SparseStokvecMatrix ws);
 
   Obsel(const Obsel&)            = default;
   Obsel(Obsel&&)                 = default;
@@ -56,23 +113,23 @@ class Obsel {
   [[nodiscard]] bool same_freqs(
       const std::shared_ptr<const AscendingGrid>& other) const;
 
-  [[nodiscard]] bool same_poslos(const Obsel& other) const ;
+  [[nodiscard]] bool same_poslos(const Obsel& other) const;
 
   [[nodiscard]] bool same_poslos(
-      const std::shared_ptr<const PosLosVector>& other) const ;
+      const std::shared_ptr<const PosLosVector>& other) const;
 
   [[nodiscard]] const auto& f_grid_ptr() const { return f; }
   [[nodiscard]] const auto& poslos_grid_ptr() const { return poslos; }
 
   [[nodiscard]] const AscendingGrid& f_grid() const { return *f; }
   [[nodiscard]] const PosLosVector& poslos_grid() const { return *poslos; }
-  [[nodiscard]] const StokvecMatrix& weight_matrix() const { return w; }
+  [[nodiscard]] const SparseStokvecMatrix& weight_matrix() const { return w; }
 
-  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) ;
+  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n);
 
-  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) ;
+  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n);
 
-  void set_weight_matrix(StokvecMatrix n) ;
+  void set_weight_matrix(SparseStokvecMatrix n);
 
   //! Constant indicating that the frequency or poslos is not found in the grid
   constexpr static Index dont_have = -1;
@@ -167,9 +224,30 @@ void unflatten(ArrayOfSensorObsel& sensor,
                const SensorObsel& v,
                const SensorKeyType& key);
 
-void make_exhaustive(ArrayOfSensorObsel& obsels);
+/** Make the sensor obsels exhaustive.
+ * 
+ * Exhaustive means that all poslos and frequency points are present
+ * in every obsel.  This generally makes sensors that have a small
+ * continous grid of frequencies and mostly overlapping observation
+ * geometries.
+ * 
+ * @param obsels An existing list of observation elements to make exhaustive
+ */
+void make_exhaustive(std::span<SensorObsel> obsels);
 
-SensorSimulations collect_simulations(const ArrayOfSensorObsel& obsels);
+/** Make the sensor obsels exclusive.
+ * 
+ * Exclusive means that all observation elements are completely 
+ * independent of each other.  This can improve simulation speed
+ * when there are sparse number of grids or when the elements have
+ * very different observation geometries.
+ *  
+ * @param obsels An existing list of observation elements to make exclusive
+ */
+void make_exclusive(std::span<SensorObsel> obsels);
+
+SensorSimulations collect_simulations(
+    const std::span<const SensorObsel>& obsels);
 
 template <>
 struct std::formatter<SensorPosLos> {
@@ -186,6 +264,28 @@ struct std::formatter<SensorPosLos> {
   template <class FmtContext>
   FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
     return tags.format(ctx, v.pos, tags.sep(), v.los);
+  }
+};
+
+template <>
+struct std::formatter<sensor::SparseStokvecMatrix> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const sensor::SparseStokvecMatrix& v,
+                              FmtContext& ctx) const {
+    for (auto& w : v) {
+      tags.format(ctx, w.irow, ' ', w.icol, ' ', w.data);
+    }
+    return ctx.out();
   }
 };
 

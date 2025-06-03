@@ -3813,6 +3813,91 @@ the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
       wsm_data["measurement_sensorAddSimpleGaussian"];
   wsm_data["measurement_sensorAddVectorGaussian"].gin_type[0] = "Vector";
 
+  wsm_data["measurement_sensorAddRawSensor"] = {
+      .desc =
+          R"--(Adds sensor elements from a raw perturbation of the sensor
+
+The perturbation is a gridded field of up to 6-dimensions.  The input
+frequency grid determines how many elements are added to the sensor.
+The cartesian perturbation is added to the sensor's position, line of sight,
+and frequency grid.
+
+The order of the dimensions are:
+
+1. Frequency (``"df"``)
+2. Zenith angle (``"dza"``)
+3. Azimuth angle (``"daa"``)
+4. Altitude (``"dalt"``)
+5. Latitude (``"dlat"``)
+6. Longitude (``"dlon"``)
+
+The quoted strings must be used as the grid names of the gridded field.
+
+.. note::
+    It is OK to have fewer than 6 dimensions, the missing dimensions
+    will be assumed to have a size of 1.  Since the data is exhaustive,
+    the missing dimensions will not affect the output.  What does matter
+    is that the order of the dimensions do not change from the one above.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_sensor"},
+      .in     = {"measurement_sensor", "frequency_grid"},
+      .gin    = {"pos",
+                 "los",
+                 "raw_sensor_perturbation",
+                 "normalize"},
+      .gin_type =
+          {"Vector3",
+           "Vector2",
+           "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
+           "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6,"
+           "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
+           "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6",
+           "Index"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The sensor perturbation grid",
+           "Whether or not to normalize the perturbation to 1.0 for each element"},
+  };
+
+  wsm_data["measurement_sensorMakeExclusive"] = {
+      .desc =
+          R"--(Make the *measurement_sensor* excluive.
+
+This means that there will no overlapping frequency grids
+for any observation geometries.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor"},
+      .gin       = {"start", "end"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {Index{-1}, Index{-1}},
+      .gin_desc =
+          {"The start index for *measurement_sensor* elements to exclude, negative means first element",
+           "The end index for *measurement_sensor* elements to exclude, negative means all element"},
+  };
+
+  wsm_data["measurement_sensorMakeExhaustive"] = {
+      .desc =
+          R"--(Make the *measurement_sensor* exhaustive.
+
+This means that there will be only a single frequency grid
+for all observation geometries.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor"},
+      .gin       = {"start", "end"},
+      .gin_type  = {"Index", "Index"},
+      .gin_value = {Index{-1}, Index{-1}},
+      .gin_desc =
+          {"The start index for *measurement_sensor* elements to exhaust, negative means first element",
+           "The end index for *measurement_sensor* elements to exhaust, negative means all element"},
+  };
+
   wsm_data["sun_pathFromObserverAgenda"] = {
       .desc =
           R"--(Find a path that hits the sun if possible

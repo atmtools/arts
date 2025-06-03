@@ -2,6 +2,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/complex.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
@@ -272,6 +273,12 @@ void py_rtepack(py::module_ &m) try {
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(cmm);
   workspace_group_interface(cmm);
+
+  auto asp =
+      py::bind_vector<std::vector<Specmat>, py::rv_policy::reference_internal>(
+          m, "ArrayOfSpecmat");
+  asp.doc() = "A list of :class:`~pyarts.arts.Specmat`";
+  vector_interface(asp);
 
   py::class_<SpecmatVector> vcmm(m, "SpecmatVector");
   vcmm.def(py::init_implicit<std::vector<Complex>>())
