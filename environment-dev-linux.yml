@@ -15,6 +15,7 @@ dependencies:
         - libclang
         - libcxx
         - libmicrohttpd
+        - libopenblas=*=*openmp*
         - llvm-openmp
         - matplotlib
         - netcdf4

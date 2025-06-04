@@ -403,6 +403,8 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARTS_CXX_FLAGS} ${ARTS_FLAGS}")
 if (APPLE)
   set (OS_NAME "Mac OS")
   set (OSX 1)
+  # Set as recommended in https://conda-forge.org/docs/maintainer/knowledge_base/#newer-c-features-with-old-sdk
+  add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)
 elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
   set (OS_NAME "Cygwin")
   set (CYGWIN 1)
