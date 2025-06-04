@@ -107,8 +107,7 @@ Your current lowest_vmr value is: )--",
   // Absorption vmrs and temperature:
   Matrix this_vmr(1, n_p_grid);
   Vector abs_h2o(n_p_grid);
-  Vector this_t;  // Has same dimension, but is
-                  // initialized by assignment later.
+
   const EnergyLevelMap this_nlte_dummy;
 
   // Species list, lines, and line shapes, all with only 1 element:
@@ -329,52 +328,19 @@ Your current lowest_vmr value is: )--",
         abs_h2o = these_all_vmrs(h2o_index, joker);
       }
 
-      // Loop temperature perturbations
-      // ------------------------------
-
-      // We use a parallel for loop for this.
-
-      // There is something strange here: abs_lookup seems to be
-      // "shared" by default, although I have set default(none). I
-      // suspect that the reason for this behavior is that
-      // abs_lookup is a return by reference parameter of this
-      // function. Anyway, shared is the correct setting for
-      // abs_lookup, so there is no problem.
-
       WorkspaceOmpParallelCopyGuard wss{ws};
 
-#pragma omp                                                                  \
-    parallel for if (!arts_omp_in_parallel() &&                              \
-                         these_t_pert_nelem >=                               \
-                                 arts_omp_get_max_threads()) private(this_t) \
-    firstprivate(wss)
+      #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel()) firstprivate(wss)
+      // Loop over temperature perturbations and altitudes together
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
-        // Skip remaining iterations if an error occurred
-        if (failed) continue;
+        for (Index p = 0; p < n_p_grid; ++p) {
+          if (failed) continue;
+          // The try block here is necessary to correctly handle
+          // exceptions inside the parallel region.
+          try {
+            // Calculate the temperature at this pressure level
+            const Numeric this_t = abs_lookup.t_ref[p] + these_t_pert[j];
 
-        // The try block here is necessary to correctly handle
-        // exceptions inside the parallel region.
-        try {
-          if (0 != n_t_pert) {
-            // We first prepare the output in a string here,
-            // so that we can write it to out3 with a single
-            // operation. This avoids messy output from
-            // multiple threads.
-            ostringstream os;
-
-            os << "  Doing temperature variant " << j + 1 << " of " << n_t_pert
-               << ": " << these_t_pert[j] << ".\n";
-
-            out3 << os.str();
-          }
-
-          // Create perturbed temperature profile:
-          this_t = abs_lookup.t_ref;
-          this_t += these_t_pert[j];
-
-          // Store in the right place:
-          // Loop through all altitudes
-          for (Index p = 0; p < n_p_grid; ++p) {
             PropagationMatrix K;
             StokesVector S;
             ArrayOfPropagationMatrix dK;
@@ -394,38 +360,19 @@ Your current lowest_vmr value is: )--",
                                            {},
                                            {},
                                            abs_p[p],
-                                           this_t[p],
+                                           this_t,
                                            {},
                                            rtp_vmr,
                                            propmat_clearsky_agenda);
-            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t[p]);
+            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t);
             abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
-
-            // There used to be a division by the number density
-            // n here. This is no longer necessary, since
-            // abs_xsec_per_species now contains true absorption
-            // cross sections.
-
-            // IMPORTANT: There was a bug in my old Matlab
-            // function "create_lookup.m" to generate the lookup
-            // table. (The number density was always the
-            // reference one, and did not change for different
-            // temperatures.) Patricks Atmlab function
-            // "arts_abstable_from_arts1.m" did *not* have this bug.
-
-            // Calculate the number density for the given pressure and
-            // temperature:
-            // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-            //                  const Numeric n = number_density( abs_lookup.p_grid[p],
-            //                                                    this_t[p]   );
-            //                  abs_lookup.xsec( j, spec, Range(joker), p ) /= n;
-          }
-        }  // end of try block
-        catch (const std::runtime_error& e) {
+          }  // end of try block
+          catch (const std::runtime_error& e) {
 #pragma omp critical(abs_lookupCalc_fail)
-          {
-            fail_msg = e.what();
-            failed = true;
+            {
+              fail_msg = e.what();
+              failed = true;
+            }
           }
         }
       }  // end of parallel for loop
