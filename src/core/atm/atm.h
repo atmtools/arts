@@ -87,6 +87,7 @@ struct Point {
   Vector3 mag{0, 0, 0};
 
   Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
+  Point(Numeric pressure_, Numeric temperature_) : pressure(pressure_), temperature(temperature_) {}
   Point(const Point &)            = default;
   Point(Point &&)                 = default;
   Point &operator=(const Point &) = default;

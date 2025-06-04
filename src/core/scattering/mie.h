@@ -191,7 +191,7 @@ using MatrixGen = matpack::data_t<Scalar, 2>;
  *
  * @param rho: The product of relative refractive index n and size parameter x.
  * @param n_steps: The number of steps in the downward recursion.
- * @return An Eigen vector containing the 'n_steps' calculated complex values
+ * @return A vector containing the 'n_steps' calculated complex values
  * of the logarithmic derivative
  */
 template <std::floating_point Scalar>
@@ -227,7 +227,7 @@ class MieSphere {
   MieSphere(Scalar lambda,
             Scalar radius,
             std::complex<Scalar> n,
-            VectorGen<Scalar> theta)
+            StridedConstVectorView theta)
       : lambda_(lambda),
         r_(radius),
         x_(2.0 * std::numbers::pi_v<Scalar> * radius / lambda_),
@@ -253,7 +253,7 @@ class MieSphere {
   static MieSphere Liquid(Scalar frequency,
                           Scalar temperature,
                           Scalar radius,
-                          VectorGen<Scalar> theta) {
+                          StridedConstVectorView theta) {
     Scalar c = 2.99792458e8;
     Scalar lambda = c / frequency;
     std::complex n = refr_index_water_ellison07(frequency, temperature);
@@ -333,7 +333,7 @@ class MieSphere {
      *
      * This method implements Eq. 4.77 from [1].
      *
-     * @return An Eigen::Matrix holding the four scattering matrix elements along its columns
+     * @return A matrix holding the four scattering matrix elements along its columns
      * for all requested scattering angles.
      */
   MatrixGen<Scalar> get_scattering_matrix_compact() {

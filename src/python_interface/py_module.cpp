@@ -23,6 +23,7 @@ void py_sparse(py::module_& m);
 void py_nlte(py::module_& m);
 void py_scattering(py::module_& m);
 void py_scattering_species(py::module_& m);
+void py_psd(py::module_& m);
 void py_jac(py::module_& m);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
@@ -117,6 +118,7 @@ NB_MODULE(arts, m) try {
   py_sparse(m);
   py_scattering(m);
   py_scattering_species(m);
+  py_psd(m);
   py_jac(m);
   py_xsec(m);
   py_predefined(m);
