@@ -19,6 +19,7 @@ dependencies:
         - libclang
         - libcxx
         - libcxx-devel
+        - libopenblas=*=*openmp*
         - llvm-openmp
         - nanobind < 2.5.0
         - nbsphinx
