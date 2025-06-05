@@ -65,7 +65,7 @@ class SparseStokvecMatrix {
   [[nodiscard]] Size size() const;
   [[nodiscard]] bool empty() const;
   [[nodiscard]] std::array<Index, 2> shape() const;
-  
+
   void resize(Size rows, Size cols, Size reserve);
 
   Stokvec& operator[](Size i, Size j);
@@ -284,9 +284,16 @@ struct std::formatter<sensor::SparseStokvecMatrix> {
   template <class FmtContext>
   FmtContext::iterator format(const sensor::SparseStokvecMatrix& v,
                               FmtContext& ctx) const {
+    const auto sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
     for (auto& w : v) {
-      tags.format(ctx, w.irow, ' ', w.icol, ' ', w.data);
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx, w.irow, sep, w.icol, sep, w.data);
+      tags.add_if_bracket(ctx, ']');
+      tags.format(ctx, sep, '\n');
     }
+    tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
