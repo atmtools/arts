@@ -42,6 +42,7 @@ struct format_tags {
   bool bracket   = false;
   bool quoted    = false;
   bool short_str = false;
+  Size depth     = 0;
 
   [[nodiscard]] constexpr std::string get_format_args() const {
     std::string out{'{'};
@@ -108,6 +109,11 @@ struct format_tags {
     compat(fmt);
     fmt.format(x, ctx);
     return format(ctx, r...);
+  }
+
+  format_tags& set_depth(Size d) {
+    depth = d;
+    return *this;
   }
 };
 

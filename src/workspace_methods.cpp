@@ -1005,12 +1005,12 @@ If the wind is 0 or nan
       .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
   };
 
-  wsm_data["ray_path_atmospheric_pointExtendInPressure"] = {
+  wsm_data["atmospheric_profileExtendInPressure"] = {
       .desc      = R"--(Gets the atmospheric points along the path.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"ray_path_atmospheric_point"},
-      .in        = {"ray_path_atmospheric_point"},
+      .out       = {"atmospheric_profile"},
+      .in        = {"atmospheric_profile"},
       .gin       = {"extended_max_pressure",
                     "extended_min_pressure",
                     "extrapolation_option"},
@@ -2661,7 +2661,7 @@ If ``line`` is positive, also keep only the line of this index
       .author    = {"Richard Larsson"},
       .out       = {"absorption_lookup_table"},
       .in        = {"absorption_lookup_table",
-                    "ray_path_atmospheric_point",
+                    "atmospheric_profile",
                     "frequency_grid",
                     "absorption_bands",
                     "ecs_data",
@@ -2684,7 +2684,7 @@ for those species that are ``water_affected_species``.
       .author    = {"Richard Larsson"},
       .out       = {"absorption_lookup_table"},
       .in        = {"absorption_lookup_table",
-                    "ray_path_atmospheric_point",
+                    "atmospheric_profile",
                     "frequency_grid",
                     "absorption_bands",
                     "ecs_data"},

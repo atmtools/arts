@@ -1,5 +1,3 @@
-#pragma once
-
 #include "string_extract.h"
 
 #include <fast_float/fast_float.h>

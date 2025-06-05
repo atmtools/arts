@@ -106,8 +106,8 @@ void py_sensor(py::module_& m) try {
       .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid")
       .def_prop_ro(
           "weight_matrix",
-          [](const SensorObsel& self) -> StokvecMatrix {
-            return self.weight_matrix();
+          [](const SensorObsel& self) {
+            return StokvecMatrix{self.weight_matrix()};
           },
           "Weights matrix")
       .def_prop_ro("poslos",

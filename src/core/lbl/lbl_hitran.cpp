@@ -4,6 +4,8 @@
 #include <hitran_species.h>
 #include <partfun.h>
 
+#include <charconv>
+
 namespace lbl {
 namespace {
 struct reader {

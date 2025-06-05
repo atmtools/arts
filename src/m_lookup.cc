@@ -172,15 +172,15 @@ void propagation_matrixAddLookup(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_atmospheric_pointExtendInPressure(
-    ArrayOfAtmPoint& ray_path_atmospheric_point,
+void atmospheric_profileExtendInPressure(
+    ArrayOfAtmPoint& atmospheric_profile,
     const Numeric& extended_max_pressure,
     const Numeric& extended_min_pressure,
     const String& extrapolation_option) try {
   ARTS_TIME_REPORT
 
   lookup::extend_atmosphere(
-      ray_path_atmospheric_point,
+      atmospheric_profile,
       to<InterpolationExtrapolation>(extrapolation_option),
       extended_max_pressure,
       extended_min_pressure);
@@ -189,7 +189,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_lookup_tablePrecompute(
     AbsorptionLookupTables& absorption_lookup_table,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& atmospheric_profile,
     const AscendingGrid& frequency_grid,
     const AbsorptionBands& absorption_bands,
     const LinemixingEcsData& ecs_data,
@@ -200,7 +200,7 @@ void absorption_lookup_tablePrecompute(
 
   absorption_lookup_table[select_species] = {
       select_species,
-      ray_path_atmospheric_point,
+      atmospheric_profile,
       std::make_shared<const AscendingGrid>(frequency_grid),
       absorption_bands,
       ecs_data,
@@ -214,7 +214,7 @@ void absorption_lookup_tablePrecompute(
 
 void absorption_lookup_tablePrecomputeAll(
     AbsorptionLookupTables& absorption_lookup_table,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& atmospheric_profile,
     const AscendingGrid& frequency_grid,
     const AbsorptionBands& absorption_bands,
     const LinemixingEcsData& ecs_data,
@@ -267,10 +267,10 @@ void absorption_lookup_tablePrecomputeAll(
 
     if (do_water_perturb) {
       absorption_lookup_table[s] = {
-          s, ray_path_atmospheric_point, f, absorption_bands, ecs_data, t, w};
+          s, atmospheric_profile, f, absorption_bands, ecs_data, t, w};
     } else {
       absorption_lookup_table[s] = {
-          s, ray_path_atmospheric_point, f, absorption_bands, ecs_data, t};
+          s, atmospheric_profile, f, absorption_bands, ecs_data, t};
     }
   }
 }
@@ -291,7 +291,7 @@ void absorption_lookup_tableFromProfiles(
 
   absorption_lookup_tableInit(absorption_lookup_table);
 
-  ArrayOfAtmPoint ray_path_atmospheric_point(
+  ArrayOfAtmPoint atmospheric_profile(
       pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
   ARTS_USER_ERROR_IF(
@@ -299,8 +299,8 @@ void absorption_lookup_tableFromProfiles(
       "Pressure and temperature profiles must agree in size.");
 
   for (Size i = 0; i < pressure_profile.size(); i++) {
-    ray_path_atmospheric_point[i].pressure    = pressure_profile[i];
-    ray_path_atmospheric_point[i].temperature = temperature_profile[i];
+    atmospheric_profile[i].pressure    = pressure_profile[i];
+    atmospheric_profile[i].temperature = temperature_profile[i];
   }
 
   for (auto& [spec, prof] : vmr_profiles) {
@@ -310,12 +310,12 @@ void absorption_lookup_tableFromProfiles(
         spec);
 
     for (Size i = 0; i < prof.size(); i++) {
-      ray_path_atmospheric_point[i][spec] = prof[i];
+      atmospheric_profile[i][spec] = prof[i];
     }
   }
 
   absorption_lookup_tablePrecomputeAll(absorption_lookup_table,
-                                       ray_path_atmospheric_point,
+                                       atmospheric_profile,
                                        frequency_grid,
                                        absorption_bands,
                                        ecs_data,

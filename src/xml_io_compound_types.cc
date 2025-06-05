@@ -2603,8 +2603,16 @@ struct tag {
     } else if constexpr (requires { to<T>(x); }) {
       auto s = to<T>(x);
       return s;
-    } else {
+    } else if constexpr (requires { T{x}; }) {
       return T{x};
+    } else {
+      T ret;
+      std::istringstream ss{x};
+      ss >> ret;
+      if (ss.fail()) {
+        ARTS_USER_ERROR("Failed to convert \"{}\" to type {}", x, typeid(T).name());
+      }
+      return ret;
     }
   }
 };
@@ -2788,6 +2796,55 @@ void xml_write_to_stream(std::ostream& os_xml,
       std::format("Error in AscendingGrid:\n{}", e.what()));
 }
 
+//! SparseStokvecMatrix
+
+void xml_read_from_stream(std::istream& is_xml,
+                          sensor::SparseStokvecMatrix& weight_matrix,
+                          bifstream*) try {
+  tag stag{is_xml, "SparseStokvecMatrix", "nrows", "ncols", "nonzero"};
+
+  const Index nrows = stag.get<Index>("nrows");
+  const Index ncols = stag.get<Index>("ncols");
+  const Index nelem = stag.get<Index>("nonzero");
+
+  weight_matrix.resize(nrows, ncols, nelem);
+
+  for (Index i = 0; i < nelem; i++) {
+    Index irow, icol;
+    Stokvec data;
+    is_xml >> irow >> icol >> data.I() >> data.Q() >> data.U() >> data.V();
+
+    ARTS_USER_ERROR_IF(irow >= nrows, "Row index out of range")
+    ARTS_USER_ERROR_IF(icol >= ncols, "Column index out of range")
+
+    weight_matrix[irow, icol] = data;
+  }
+
+  stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in SparseStokvecMatrix:\n{}", e.what()));
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const sensor::SparseStokvecMatrix& g,
+                         bofstream*,
+                         const String& name) try {
+  tag stag{os_xml,
+           "SparseStokvecMatrix",
+           meta_data{"nrows", g.nrows()},
+           meta_data{"ncols", g.ncols()},
+           meta_data{"nonzero", g.size()},
+           meta_data{"name", name}};
+
+  for (auto&& x : g) std::println(os_xml, "{} {} {}", x.irow, x.icol, x.data);
+
+  stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in SparseStokvecMatrix:\n{}", e.what()));
+}
+
 //! SensorObsel
 
 void xml_read_from_stream(std::istream& is_xml,
@@ -2797,7 +2854,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   AscendingGrid f_grid;
   SensorPosLosVector poslos_grid;
-  StokvecMatrix weight_matrix;
+  sensor::SparseStokvecMatrix weight_matrix;
 
   xml_read_from_stream(is_xml, f_grid, pbifs);
   xml_read_from_stream(is_xml, poslos_grid, pbifs);
@@ -2855,7 +2912,7 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   g.reserve(nelem);
-  StokvecMatrix weight_matrix;
+  sensor::SparseStokvecMatrix weight_matrix;
   for (Index i = 0; i < nelem; i++) {
     Index ifreq;
     Index iplos;

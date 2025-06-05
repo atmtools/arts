@@ -74,6 +74,13 @@ Size SparseStokvecMatrix::size() const { return sparse_data.size(); }
 
 bool SparseStokvecMatrix::empty() const { return sparse_data.empty(); }
 
+void SparseStokvecMatrix::resize(Size rows, Size cols, Size reserve) {
+  this->rows = rows;
+  this->cols = cols;
+  sparse_data.clear();
+  sparse_data.reserve(reserve);
+}
+
 std::array<Index, 2> SparseStokvecMatrix::shape() const {
   return {static_cast<Index>(rows), static_cast<Index>(cols)};
 }

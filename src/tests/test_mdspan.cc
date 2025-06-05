@@ -18,6 +18,39 @@
 #include "matpack_mdspan_helpers_eigen.h"
 #include "matpack_mdspan_helpers_vector.h"
 
+namespace matpack {
+static_assert(
+    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 1>>>);
+static_assert(
+    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 2>>>);
+static_assert(
+    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 9>>>);
+static_assert(
+    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 1>>>);
+static_assert(
+    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 2>>>);
+static_assert(
+    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 9>>>);
+
+static_assert(strided_view_t<Numeric, 10>::is_strided);
+static_assert(not strided_view_t<Numeric, 10>::is_const);
+static_assert(strided_view_t<const Numeric, 10>::is_const);
+static_assert(not strided_view_t<Numeric, 10>::is_exhaustive);
+static_assert(strided_view_t<Numeric, 10>::is_unique);
+
+static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 1>>>);
+static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 2>>>);
+static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 9>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 1>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 2>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 9>>>);
+
+static_assert(view_t<Numeric, 10>::is_strided);
+static_assert(not view_t<Numeric, 10>::is_const);
+static_assert(view_t<const Numeric, 10>::is_const);
+static_assert(view_t<Numeric, 10>::is_exhaustive);
+static_assert(view_t<Numeric, 10>::is_unique);
+}  // namespace matpack
 namespace {
 void test_type_access() {
   using matpack::left_mdsel_t;
@@ -1691,6 +1724,27 @@ void test_einsum() {
     ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
   }
 }
+
+void test_print() {
+  auto test = [](auto... sz) {
+    Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    auto v = std::move(x).reshape(sz...);
+    std::print("x = np.array(\n{:B,}\n)\n", v);
+    std::print("assert np.all(np.equal(x.shape, (");
+    (std::print("{}, ", sz), ...);
+    std::print(")))\n\n");
+  };
+
+  std::print("import numpy as np\n\n");
+  test(16);
+  test(4, 4);
+  test(2, 2, 4);
+  test(2, 4, 2);
+  test(2, 2, 2, 2);
+  test(2, 2, 4, 1);
+  test(1, 2, 2, 4);
+  test(2, 2, 1, 2, 2);
+}
 }  // namespace
 
 #define EXECUTE_TEST(X)                                                       \
@@ -1714,6 +1768,7 @@ int main() try {
   EXECUTE_TEST(test_lapack_vector_mult)
   EXECUTE_TEST(test_grid)
   EXECUTE_TEST(test_einsum)
+  EXECUTE_TEST(test_print)
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
