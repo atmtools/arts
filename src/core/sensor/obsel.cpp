@@ -74,9 +74,9 @@ Size SparseStokvecMatrix::size() const { return sparse_data.size(); }
 
 bool SparseStokvecMatrix::empty() const { return sparse_data.empty(); }
 
-void SparseStokvecMatrix::resize(Size rows, Size cols, Size reserve) {
-  this->rows = rows;
-  this->cols = cols;
+void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size reserve) {
+  rows = nrows;
+  cols = ncols;
   sparse_data.clear();
   sparse_data.reserve(reserve);
 }

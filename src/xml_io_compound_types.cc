@@ -2908,10 +2908,10 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   g.reserve(nelem);
-  sensor::SparseStokvecMatrix weight_matrix;
   for (Index i = 0; i < nelem; i++) {
     Index ifreq;
     Index iplos;
+    sensor::SparseStokvecMatrix weight_matrix;
 
     xml_read_from_stream(is_xml, ifreq, pbifs);
     xml_read_from_stream(is_xml, iplos, pbifs);
