@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include <variant>
+#include <iostream>
 
 #include "atm.h"
 #include "configtypes.h"
@@ -105,13 +106,13 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("molecule1", cr.MoleculeName(0));
   open_tag.add_attribute("molecule2", cr.MoleculeName(1));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(os_xml, cr.Data(), pbofs, "");
 
   close_tag.set_name("/CIARecord");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== BlockMatrix =========================================================
@@ -174,17 +175,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     const String t = bm.is_dense() ? String{"Matrix"} : String{"Sparse"};
     covmat_tag.add_attribute("type", t);
     covmat_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+  std::println(os_xml);
 
     if (bm.is_dense()) {
       xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
     } else {
       xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
     }
-    os_xml << '\n';
+  std::println(os_xml);
   } else {
     covmat_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+  std::println(os_xml);
   }
 
   close_tag.set_name("/BlockMatrix");
@@ -285,7 +286,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   covmat_tag.add_attribute(
       "n_blocks", Index(covmat.correlations_.size() + covmat.inverses_.size()));
   covmat_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
+
   for (const Block& c : covmat.correlations_) {
     ArtsXMLTag block_tag;
     block_tag.set_name("Block");
@@ -305,17 +307,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
-      os_xml << '\n';
+  std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_dense(), pbofs, name);
     } else {
       block_tag.add_attribute("type", "Sparse");
       block_tag.write_to_stream(os_xml);
-      os_xml << '\n';
+  std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name);
     }
     close_tag.set_name("/Block");
     close_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+  std::println(os_xml);
   }
   for (const Block& c : covmat.inverses_) {
     ArtsXMLTag block_tag;
@@ -336,19 +338,19 @@ void xml_write_to_stream(std::ostream& os_xml,
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
-      os_xml << '\n';
+  std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_dense(), pbofs, name);
     } else {
       block_tag.add_attribute("type", "Sparse");
       block_tag.write_to_stream(os_xml);
-      os_xml << '\n';
+  std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name);
     }
     close_tag.set_name("/Block");
     close_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+  std::println(os_xml);
   }
-  os_xml << '\n';
+  std::println(os_xml);
   close_tag.set_name("/CovarianceMatrix");
   close_tag.write_to_stream(os_xml);
 }
@@ -415,7 +417,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", matrix.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -2556,7 +2558,7 @@ struct tag {
       ArtsXMLTag open_tag;
       open_tag.set_name(name);
       open_tag.write_to_stream(stream);
-      stream << '\n';
+      std::print(stream, "\n");
     } else if (read) {
       ArtsXMLTag open_tag;
       open_tag.read_from_stream(stream);
@@ -2571,7 +2573,7 @@ struct tag {
       open_tag.set_name(name);
       (open_tag.add_attribute(args.name, args.value), ...);
       open_tag.write_to_stream(stream);
-      stream << '\n';
+      std::print(stream, "\n");
     } else if (read) {
       ArtsXMLTag open_tag;
       open_tag.read_from_stream(stream);
@@ -2585,7 +2587,7 @@ struct tag {
       ArtsXMLTag close_tag;
       close_tag.set_name("/" + name);
       close_tag.write_to_stream(stream);
-      stream << '\n';
+      std::print(stream, "\n");
     } else if constexpr (std::same_as<T, std::istream>) {
       ArtsXMLTag close_tag;
       close_tag.read_from_stream(stream);
@@ -3522,7 +3524,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.set_name("JacobianTargetType");
   open_tag.add_attribute("type", jtt.type());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   std::visit(
       [&](const auto& data_type) {
@@ -3572,7 +3574,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("PairOfBlockMatrix");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(os_xml, x.first, pbofs, "first");
   xml_write_to_stream(os_xml, x.second, pbofs, "second");
@@ -3630,7 +3632,7 @@ void xml_write_to_stream(
   open_tag.set_name("JacobianTargetsDiagonalCovarianceMatrixMap");
   open_tag.add_attribute("size", static_cast<Index>(jtmap.size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (const auto& [key, value] : jtmap) {
     xml_write_to_stream(os_xml, key, pbofs, "key");
@@ -3694,7 +3696,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("DisortSettings");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(
       os_xml, v.quadrature_dimension, pbofs, "quadrature_dimension");
@@ -3794,29 +3796,29 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("t", Index{lt.do_t() ? 1 : 0});
   open_tag.add_attribute("w", Index{lt.do_w() ? 1 : 0});
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (lt.do_f()) {
     xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
-    os_xml << '\n';
+  std::println(os_xml);
   }
   if (lt.do_p()) {
     xml_write_to_stream(os_xml, *lt.log_p_grid, pbofs, "log_p_grid");
-    os_xml << '\n';
+  std::println(os_xml);
   }
   if (lt.do_t()) {
     xml_write_to_stream(os_xml, *lt.t_pert, pbofs, "t_pert");
-    os_xml << '\n';
+  std::println(os_xml);
   }
   if (lt.do_w()) {
     xml_write_to_stream(os_xml, *lt.w_pert, pbofs, "w_pert");
-    os_xml << '\n';
+  std::println(os_xml);
   }
 
   xml_write_to_stream(os_xml, lt.water_atmref, pbofs, "water_atmref");
-  os_xml << '\n';
+  std::println(os_xml);
   xml_write_to_stream(os_xml, lt.t_atmref, pbofs, "t_atmref");
-  os_xml << '\n';
+  std::println(os_xml);
   xml_write_to_stream(os_xml, lt.xsec, pbofs, "xsec");
 
   close_tag.set_name("/AbsorptionLookupTable");
