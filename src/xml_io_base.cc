@@ -315,7 +315,7 @@ void XMLTag::read_from_stream(std::istream& is) {
 void XMLTag::write_to_stream(std::ostream& os) {
   std::print(os, "<{}", name);
 
-  for (auto& [an, av] : attribs) std::print(os, R"( {}={}")", an, av);
+  for (auto& [an, av] : attribs) std::print(os, R"( {}="{}")", an, av);
 
   std::print(os, ">");
 }

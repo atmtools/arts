@@ -13,12 +13,12 @@
 
 #include <algorithm>
 #include <concepts>
+#include <iostream>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <variant>
-#include <iostream>
 
 #include "atm.h"
 #include "configtypes.h"
@@ -175,17 +175,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     const String t = bm.is_dense() ? String{"Matrix"} : String{"Sparse"};
     covmat_tag.add_attribute("type", t);
     covmat_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+    std::println(os_xml);
 
     if (bm.is_dense()) {
       xml_write_to_stream(os_xml, bm.dense(), pbofs, "");
     } else {
       xml_write_to_stream(os_xml, bm.sparse(), pbofs, "");
     }
-  std::println(os_xml);
+    std::println(os_xml);
   } else {
     covmat_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+    std::println(os_xml);
   }
 
   close_tag.set_name("/BlockMatrix");
@@ -307,17 +307,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+      std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_dense(), pbofs, name);
     } else {
       block_tag.add_attribute("type", "Sparse");
       block_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+      std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name);
     }
     close_tag.set_name("/Block");
     close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+    std::println(os_xml);
   }
   for (const Block& c : covmat.inverses_) {
     ArtsXMLTag block_tag;
@@ -338,17 +338,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     if (c.is_dense()) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+      std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_dense(), pbofs, name);
     } else {
       block_tag.add_attribute("type", "Sparse");
       block_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+      std::println(os_xml);
       xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name);
     }
     close_tag.set_name("/Block");
     close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+    std::println(os_xml);
   }
   std::println(os_xml);
   close_tag.set_name("/CovarianceMatrix");
@@ -422,26 +422,22 @@ void xml_write_to_stream(std::ostream& os_xml,
   xml_set_stream_precision(os_xml);
 
   // Write the elements:
-  for (Index r = 0; r < matrix.nrows(); ++r) {
-    if (pbofs)
-      *pbofs << matrix[r, 0];
-    else
-      os_xml << matrix[r, 0].real() << ' ' << matrix[r, 0].imag();
-
-    for (Index c = 1; c < matrix.ncols(); ++c) {
-      if (pbofs)
+  if (pbofs) {
+    for (Index r = 0; r < matrix.nrows(); ++r) {
+      for (Index c = 0; c < matrix.ncols(); ++c) {
         *pbofs << matrix[r, c];
-      else
-        os_xml << " " << matrix[r, c].real() << ' ' << matrix[r, c].imag();
+      }
     }
-
-    if (!pbofs) os_xml << '\n';
+  } else {
+    std::println("{:IO}", matrix);
   }
+
+  if (!pbofs) std::println(os_xml);
 
   close_tag.set_name("/ComplexMatrix");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== GriddedField ===========================================================
@@ -638,13 +634,13 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
     open_tag.add_attribute("version", Index{1});           \
                                                            \
     open_tag.write_to_stream(os_xml);                      \
-    os_xml << '\n';                                        \
+    std::println(os_xml);                                  \
                                                            \
     xml_write_to_stream_gf(os_xml, gfield, pbofs, "Data"); \
                                                            \
     close_tag.set_name("/" #GF);                           \
     close_tag.write_to_stream(os_xml);                     \
-    os_xml << '\n';                                        \
+    std::println(os_xml);                                  \
   }
 
 #define GF_IO(GF) \
@@ -729,7 +725,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/GridPos");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== QuantumIdentifier =========================================
@@ -799,11 +795,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
-  os_xml << qi;
+  std::print(os_xml, "{:IO}", qi);
 
   close_tag.set_name("/QuantumIdentifier");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 void chk_scat_data(const SingleScatteringData& scat_data_single) {
@@ -1288,7 +1284,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
   xml_write_to_stream(os_xml, String{PTypeToString(ssdata.ptype)}, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "");
@@ -1301,7 +1297,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/SingleScatteringData");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== ScatteringMetaData ======================================
@@ -1371,7 +1367,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/ScatteringMetaData");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== SpeciesIsotopologueRatios ===========================================
@@ -1449,15 +1445,15 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("nelem", iso_rat.maxsize);
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
-  os_xml << iso_rat << '\n';
+  std::prinln(os_xml, "{:IO}", iso_rat);
 
   close_tag.set_name("/SpeciesIsotopologueRatios");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== SpeciesTag ================================================
@@ -1531,11 +1527,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
-  os_xml << '"' << stag.Name() << '"' << '\n';
+  std::println(os_xml, R"("{}")", stag.Name());
 
   close_tag.set_name("/SpeciesTag");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Sun =====================================================
@@ -1590,7 +1586,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/Sun");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== XsecRecord ======================================================
@@ -1659,7 +1655,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("version", xd.Version());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
   xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species");
 
   xml_write_to_stream(
@@ -1675,7 +1671,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.set_name("/XsecRecord");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== PredefinedModelData =========================================
@@ -1760,7 +1756,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("nelem", Index(pmd.data.size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (auto& [key, data] : pmd.data) {
     ArtsXMLTag internal_open_tag;
@@ -1781,22 +1777,22 @@ void xml_write_to_stream(std::ostream& os_xml,
     internal_open_tag.add_attribute("sizes", sizes_str);
 
     internal_open_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+    std::println(os_xml);
 
     // Set values
-    std::visit([&](auto& v) { os_xml << v; }, data);
-    os_xml << '\n';
+    std::visit([&](auto& v) { std::print(os_xml, "{}", v); }, data);
+    std::println(os_xml);
 
     ArtsXMLTag internal_close_tag;
     internal_close_tag.set_name("/Data");
     internal_close_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+    std::println(os_xml);
   }
 
   close_tag.set_name("/PredefinedModelData");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== AtmData =========================================
@@ -1842,7 +1838,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/AtmData");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== AtmField =========================================
@@ -1892,7 +1888,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
   open_tag.add_attribute("toa", atm.top_of_atmosphere);
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (auto& key : keys) {
     xml_write(os_xml, key, pbofs, "Data Key");
@@ -1901,7 +1897,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/AtmField");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== AtmPoint =========================================
@@ -1954,7 +1950,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -1966,7 +1962,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.set_name("/AtmPoint");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== SurfaceField =========================================
@@ -2079,7 +2075,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
         open_data_tag.add_attribute("lon_low", String{toString(data.lon_low)});
         open_data_tag.add_attribute("lon_upp", String{toString(data.lon_upp)});
         open_data_tag.write_to_stream(os_xml);
-        os_xml << '\n';
+        std::println(os_xml);
 
         std::visit(
             [&](auto&& data_type [[maybe_unused]]) {
@@ -2103,7 +2099,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
   ArtsXMLTag close_data_tag;
   close_data_tag.set_name("/SurfaceData");
   close_data_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 /*!
@@ -2129,7 +2125,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (auto& key : keys) {
     xml_write_to_stream_helper(os_xml, key, surf[key], pbofs);
@@ -2137,7 +2133,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/SurfaceField");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== SurfacePoint =========================================
@@ -2206,7 +2202,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.add_attribute("nother", nother);
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -2223,7 +2219,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.set_name("/SurfacePoint");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Wsv ================================================
@@ -2255,14 +2251,14 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.set_name("Wsv");
   open_tag.add_attribute("type", String{wsv.type_name()});
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   std::visit([&](auto& x) { xml_write_to_stream(os_xml, *x, pbofs, ""); },
              wsv.value());
 
   close_tag.set_name("/Wsv");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Method ================================================
@@ -2317,13 +2313,13 @@ void xml_write_to_stream(std::ostream& os_xml,
     open_tag.add_attribute("type", "value");
     open_tag.add_attribute("overwrite", static_cast<Index>(m.overwrite()));
     open_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+    std::println(os_xml);
 
     xml_write_to_stream(os_xml, m.get_setval().value(), pbofs, "");
   } else {
     open_tag.add_attribute("type", "call");
     open_tag.write_to_stream(os_xml);
-    os_xml << '\n';
+    std::println(os_xml);
 
     ArrayOfString args;
     for (const auto& a : m.get_outs()) {
@@ -2339,7 +2335,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/Method");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Agenda ================================================
@@ -2385,7 +2381,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("name", a.get_name());
   open_tag.add_attribute("size", static_cast<Index>(a.get_methods().size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (const auto& m : a.get_methods()) {
     xml_write_to_stream(os_xml, m, pbofs, "");
@@ -2393,7 +2389,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/Agenda");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Any ================================================
@@ -2512,7 +2508,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("cutoff_value", data.cutoff_value);
   open_tag.add_attribute("nelem", static_cast<Index>(data.lines.size()));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (auto& line : data) {
     std::print(os_xml, "{}\n", line);
@@ -2521,7 +2517,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
   close_tag.set_name("/AbsorptionBandData");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== LinemixingEcsData =========================================
@@ -2735,9 +2731,7 @@ void xml_write_to_stream(std::ostream& os_xml,
            meta_data{"los_t", String{toString(ppp.los_type)}}};
 
   if (pbofs == nullptr) {
-    os_xml << ppp.pos[0] << ' ' << ppp.pos[1] << ' ' << ppp.pos[2] << ' '
-           << ppp.los[0] << ' ' << ppp.los[1] << ' ' << ppp.nreal << ' '
-           << ppp.ngroup;
+    std::print(os_xml, "{:IO}", ppp);
   } else {
     *pbofs << ppp.pos[0] << ppp.pos[1] << ppp.pos[2] << ppp.los[0] << ppp.los[1]
            << ppp.nreal << ppp.ngroup;
@@ -3021,11 +3015,10 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (pbofs) {
     *pbofs << g.pos[0] << g.pos[1] << g.pos[2] << g.los[0] << g.los[1];
   } else {
-    os_xml << g.pos[0] << ' ' << g.pos[1] << ' ' << g.pos[2] << ' ' << g.los[0]
-           << ' ' << g.los[1];
+    std::print(os_xml, "{:IO}", g);
   }
 
-  os_xml << '\n';
+  std::println(os_xml);
   stag.close();
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("Error in SensorPosLos:\n{}", e.what()));
@@ -3040,9 +3033,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   const auto n = stag.get<Index>("nelem");
   g.resize(n);
-  for (auto& i : g) {
-    xml_read_from_stream(is_xml, i, pbifs);
-  }
+  for (auto& i : g) xml_read_from_stream(is_xml, i, pbifs);
 
   stag.close();
 } catch (const std::exception& e) {
@@ -3107,7 +3098,8 @@ void xml_write_to_stream(std::ostream& os_xml,
                          bofstream*,
                          const String& name) {
   if (x.size() == 0) {
-    os_xml << std::format(
+    std::print(
+        os_xml,
         R"(<MatrixOfDisortBDRF ncols="{}" nrows="{}" name="{}"> </MatrixOfDisortBDRF>)",
         x.ncols(),
         x.nrows(),
@@ -3189,7 +3181,7 @@ void xml_write_to_stream(std::ostream& os_xml,
           },
           atmt));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   std::visit(
       [&](const auto& data_type) {
@@ -3263,7 +3255,7 @@ void xml_write_to_stream(std::ostream& os_xml,
           },
           surft));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   std::visit(
       [&](const auto& data_type) {
@@ -3347,7 +3339,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ls_coeff", goodenum(lblt.ls_coeff));
   open_tag.add_attribute("var", goodenum(lblt.var));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   const auto sz = [](Size x) -> Index {
     return (x < std::numeric_limits<Index>::max()) ? static_cast<Index>(x)
@@ -3404,7 +3396,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("SensorKey");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(os_xml, key.type, pbofs, "type");
   xml_write_to_stream(os_xml, key.sensor_elem, pbofs, "sensor_elem");
@@ -3458,7 +3450,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("ErrorKey");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(
       os_xml, static_cast<Index>(key.y_start), pbofs, "y_start");
@@ -3800,19 +3792,19 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   if (lt.do_f()) {
     xml_write_to_stream(os_xml, *lt.f_grid, pbofs, "f_grid");
-  std::println(os_xml);
+    std::println(os_xml);
   }
   if (lt.do_p()) {
     xml_write_to_stream(os_xml, *lt.log_p_grid, pbofs, "log_p_grid");
-  std::println(os_xml);
+    std::println(os_xml);
   }
   if (lt.do_t()) {
     xml_write_to_stream(os_xml, *lt.t_pert, pbofs, "t_pert");
-  std::println(os_xml);
+    std::println(os_xml);
   }
   if (lt.do_w()) {
     xml_write_to_stream(os_xml, *lt.w_pert, pbofs, "w_pert");
-  std::println(os_xml);
+    std::println(os_xml);
   }
 
   xml_write_to_stream(os_xml, lt.water_atmref, pbofs, "water_atmref");
