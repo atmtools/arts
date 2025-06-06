@@ -55,7 +55,9 @@ ws.measurement_sensor.collect_frequency_grids()
 assert len(ws.measurement_sensor.unique_frequency_grids()) == 2
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 3
 
-ws.measurement_sensor.savexml("sensor_count.xml")
+fn = ws.measurement_sensor.savexml("sensor_count.xml")
+import os
+os.system(f"cat {fn}")
 ws.measurement_sensor.readxml("sensor_count.xml")
 
 assert len(ws.measurement_sensor.unique_frequency_grids()) == 2

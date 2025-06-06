@@ -137,7 +137,7 @@ the objects.
 What do you need to think about when implementing a formatter?
 --------------------------------------------------------------
 
-1. Calling the `format_tags` object's `format` method is an efficient way
+1. Calling the ``format_tags`` object's ``format`` method is an efficient way
    to chain formatting calls together
 
   .. code-block:: cpp
@@ -150,10 +150,11 @@ What do you need to think about when implementing a formatter?
       return tags.format(ctx, v.m1, sep, v.m2);
     }
 
-2. Whenever you format in a `const char *`, that is anything in C++ that is directly
-   written `"I am a const char *"`, there will be a resulting `'\0'` character included
-   in the formatted string.  This will cause problems if you intend to copy-paste the 
-   screen output, as the `'\0'` character will not be visible but there anyway.
-   To avoid this, use `std::string_view` instead of `const char *` whenever possible.
-   The easiest way to this is simply to write `"I am a string_view"sv`, as the `sv`
-   makes it a `std::string_view` and avoids copying the last `'\0'` character.
+2. Whenever you format in a ``const char *``, that is anything in C++ that is directly
+   written ``"I am a const char *"``, there will be a resulting ``'\0'`` character included
+   in the formatted string.  This will cause problems if you intend to copy-paste the
+   screen output, as the ``'\0'`` character will not be visible but there anyway.
+   Sometimes the output will even be truncated at the first ``'\0'`` character.
+   To avoid this, use ``std::string_view`` instead of ``const char *`` whenever possible.
+   The easiest way to this is simply to write ``"I am a string_view"sv``, as the ``sv``
+   makes it a ``std::string_view`` and avoids copying the last ``'\0'`` character.

@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <concepts>
-#include <iostream>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -2511,7 +2510,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   std::println(os_xml);
 
   for (auto& line : data) {
-    std::print(os_xml, "{}\n", line);
+    std::print(os_xml, "{:IO}\n", line);
   }
 
   ArtsXMLTag close_tag;
@@ -2834,16 +2833,7 @@ void xml_write_to_stream(std::ostream& os_xml,
            meta_data{"nonzero", g.size()},
            meta_data{"name", name}};
 
-  for (auto&& x : g) std::println(os_xml, "{}", x);
-
-  tag stagtest{std::cout,
-               "SparseStokvecMatrix",
-               meta_data{"nrows", g.nrows()},
-               meta_data{"ncols", g.ncols()},
-               meta_data{"nonzero", g.size()},
-               meta_data{"name", name}};
-  for (auto&& x : g) std::println("{}", x);
-  stagtest.close();
+  for (auto&& x : g) std::println(os_xml, "{:IO}", x);
 
   stag.close();
 } catch (const std::exception& e) {

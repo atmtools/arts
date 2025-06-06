@@ -1,5 +1,7 @@
 #include "arts_options.h"
 
+#include <mystring.h>
+
 #include <algorithm>
 #include <array>
 #include <format>
@@ -11,8 +13,6 @@
 #include <utility>
 #include <vector>
 
-#include <mystring.h>
-
 using namespace std::literals;
 
 using Value = std::vector<std::string>;
@@ -21,6 +21,24 @@ namespace stdr = std::ranges;
 namespace stdv = std::ranges::views;
 
 namespace {
+void fix_static(std::vector<EnumeratedOption>& opts) {
+  for (auto& opt : opts) {
+    if (opt.desc.empty()) throw std::runtime_error("No empty docstrings");
+
+    if (opt.desc.back() != '\n') opt.desc.push_back('\n');
+
+    for (auto& v : opt.values_and_desc) {
+      if (v.size() < 2) throw std::runtime_error("No empty value descriptions");
+
+      auto& l = v.back();
+
+      if (l.empty()) throw std::runtime_error("No empty value descriptions");
+
+      if (l.back() != '\n') v.back().push_back('\n');
+    }
+  }
+}
+
 std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
@@ -246,8 +264,7 @@ if good cases, so we have provide this selection mechanism to make them match.
               Value{"ChlorineMonoxide", "ClO", "Chlorine Monoxide molecule"},
               Value{"CarbonylSulfide", "OCS", "Carbonyl Sulfide molecule"},
               Value{"Formaldehyde", "H2CO", "Formaldehyde molecule"},
-              Value{
-                  "HeavyFormaldehyde", "HDCO", "Heavy Formaldehyde molecule"},
+              Value{"HeavyFormaldehyde", "HDCO", "Heavy Formaldehyde molecule"},
               Value{"VeryHeavyFormaldehyde",
                     "D2CO",
                     "Very Heavy Formaldehyde molecule"},
@@ -273,16 +290,14 @@ if good cases, so we have provide this selection mechanism to make them match.
               Value{"Hydroperoxyl", "HO2", "Hydroperoxyl molecule"},
               Value{"OxygenAtom", "O", "Oxygen atom"},
               Value{"ChlorineNitrate", "ClONO2", "Chlorine Nitrate molecule"},
-              Value{
-                  "NitricOxideCation", "NO+", "Nitric Oxide Cation molecule"},
+              Value{"NitricOxideCation", "NO+", "Nitric Oxide Cation molecule"},
               Value{"HypobromousAcid", "HOBr", "Hypobromous Acid molecule"},
               Value{"Ethylene", "C2H4", "Ethylene molecule"},
               Value{"Methanol", "CH3OH", "Methanol molecule"},
               Value{"Bromomethane", "CH3Br", "Bromomethane molecule"},
               Value{"Acetonitrile", "CH3CN", "Acetonitrile molecule"},
-              Value{"HeavyAcetonitrile",
-                    "CH2DCN",
-                    "Heavy Acetonitrile molecule"},
+              Value{
+                  "HeavyAcetonitrile", "CH2DCN", "Heavy Acetonitrile molecule"},
               Value{"CarbonTetrafluoride",
                     "CF4",
                     "Carbon Tetrafluoride molecule"},
@@ -919,6 +934,7 @@ radiation).
                  "PSD intercept parameter in arbitary units."}},
   });
 
+  fix_static(opts);
   return opts;
 }
 }  // namespace
