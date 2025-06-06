@@ -1389,11 +1389,11 @@ struct std::formatter<SpeciesIsotopologueRatios> {
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesIsotopologueRatios& v,
                               FmtContext& ctx) const {
-    for (Index i = 0; i < iso_rat.maxsize; i++) {
+    for (Index i = 0; i < v.maxsize; i++) {
       tags.format(ctx,
-                  Isotopologues[i].FullName(),
+                  Species::Isotopologues[i].FullName(),
                   tags.sep(),
-                  iso_rat.data[i],
+                  v.data[i],
                   tags.sep(true));
     }
 
