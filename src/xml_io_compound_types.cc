@@ -2958,7 +2958,7 @@ void xml_read_from_stream(std::istream& is_xml,
       g.emplace_back(freqs[ifreq], plos[iplos], weight_matrix);
     } catch (const std::exception& e) {
       throw std::runtime_error(std::format(
-          "Error reading ArrayOfSensorObsel element {}:\n{}", i, e.what()));
+          "Error reading ArrayOfSensorObsel element {}/{}:\n{}", i, nelem, e.what()));
     }
   }
 
