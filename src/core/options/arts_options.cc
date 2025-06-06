@@ -729,14 +729,6 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
               Value{"RJBT",
                     "Tr",
                     R"(Rayleigh-Jeans brightness temperature [K]
-
-.. math::
-
-    [I,\; Q,\; U,\; V] \rightarrow [F(I),\; F(Q),\; F(U),\; F(V)]
-
-.. math::
-
-    F(x) = \frac{c^2 x}{2 k f^2}.
 )"},
               Value{"PlanckBT",
                     "Tb",
@@ -769,14 +761,10 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   opts.emplace_back(EnumeratedOption{
       .name            = "EarthEllipsoid",
       .desc            = "Choice of ellipsoid.\n",
-      .values_and_desc = {Value{"Sphere", R"(A spherical Earth.
-
-  The radius is set following the value set for the Earth radius.)"},
+      .values_and_desc = {Value{"Sphere", R"(A spherical Earth.)"},
                           Value{
                               "WGS84",
-                              R"(The reference ellipsoid used by the GPS system.
-
-  Should be the standard choice for a non-spherical Earth.)"}},
+                              R"(The reference ellipsoid used by the GPS system.)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
