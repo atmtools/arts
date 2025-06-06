@@ -48,7 +48,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   open_tag.set_name("Propmat");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -56,12 +56,11 @@ void xml_write_to_stream(std::ostream &os_xml,
     *pbofs << pm.A() << pm.B() << pm.C() << pm.D() << pm.U() << pm.V()
            << pm.W();
   else
-    os_xml << ' ' << pm.A() << ' ' << pm.B() << ' ' << pm.C() << ' ' << pm.D()
-           << ' ' << pm.U() << ' ' << pm.V() << ' ' << pm.W() << ' ';
+    std::print(os_xml, "{:IO}", pm);
 
   close_tag.set_name("/Propmat");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(std::format("Error in Propmat:\n{}", e.what()));
 }
@@ -109,19 +108,18 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   open_tag.set_name("Stokvec");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
   if (pbofs)
     *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
   else
-    os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' ' << pm.V()
-           << ' ';
+    std::print(os_xml, "{:IO}", pm);
 
   close_tag.set_name("/Stokvec");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(std::format("Error in Stokvec:\n{}", e.what()));
 }
@@ -172,7 +170,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   open_tag.set_name("Muelmat");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -182,18 +180,11 @@ void xml_write_to_stream(std::ostream &os_xml,
            << pm.data[10] << pm.data[11] << pm.data[12] << pm.data[13]
            << pm.data[14] << pm.data[15];
   else
-    os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2] << ' '
-           << pm.data[3] << '\n'
-           << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6] << ' '
-           << pm.data[7] << '\n'
-           << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-           << ' ' << pm.data[11] << '\n'
-           << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
-           << ' ' << pm.data[15] << ' ';
+    std::print(os_xml, "{:IO}", pm);
 
   close_tag.set_name("/Muelmat");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
 }
@@ -225,8 +216,7 @@ void xml_read_from_stream(std::istream &is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/Specmat");
 } catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in Specmat:\n{}", e.what()));
+  throw std::runtime_error(std::format("Error in Specmat:\n{}", e.what()));
 }
 
 //! Writes Specmat to XML output stream
@@ -245,7 +235,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   open_tag.set_name("Specmat");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -255,21 +245,13 @@ void xml_write_to_stream(std::ostream &os_xml,
            << pm.data[10] << pm.data[11] << pm.data[12] << pm.data[13]
            << pm.data[14] << pm.data[15];
   else
-    os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2] << ' '
-           << pm.data[3] << '\n'
-           << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6] << ' '
-           << pm.data[7] << '\n'
-           << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-           << ' ' << pm.data[11] << '\n'
-           << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
-           << ' ' << pm.data[15] << ' ';
+    std::print(os_xml, "{:IO}", pm);
 
   close_tag.set_name("/Specmat");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in Specmat:\n{}", e.what()));
+  throw std::runtime_error(std::format("Error in Specmat:\n{}", e.what()));
 }
 
 //=== PropmatVector ================================================================
@@ -323,7 +305,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.set_name("PropmatVector");
   open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -332,13 +314,12 @@ void xml_write_to_stream(std::ostream &os_xml,
       *pbofs << pm.A() << pm.B() << pm.C() << pm.D() << pm.U() << pm.V()
              << pm.W();
     else
-      os_xml << pm.A() << ' ' << pm.B() << ' ' << pm.C() << ' ' << pm.D() << ' '
-             << pm.U() << ' ' << pm.V() << ' ' << pm.W() << '\n';
+      std::println(os_xml, "{:IO}", pm);
   }
 
   close_tag.set_name("/PropmatVector");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in PropmatVector:\n{}", e.what()));
@@ -394,7 +375,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.set_name("StokvecVector");
   open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -402,13 +383,12 @@ void xml_write_to_stream(std::ostream &os_xml,
     if (pbofs)
       *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
     else
-      os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' ' << pm.V()
-             << '\n';
+      std::println(os_xml, "{:IO}", pm);
   }
 
   close_tag.set_name("/StokvecVector");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecVector:\n{}", e.what()));
@@ -467,7 +447,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.set_name("MuelmatVector");
   open_tag.add_attribute("nelem", pmv.size());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -478,19 +458,12 @@ void xml_write_to_stream(std::ostream &os_xml,
              << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
              << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
     else
-      os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
-             << ' ' << pm.data[3] << '\n'
-             << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
-             << ' ' << pm.data[7] << '\n'
-             << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-             << ' ' << pm.data[11] << '\n'
-             << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
-             << ' ' << pm.data[15] << '\n';
+      std::println(os_xml, "{:IO}", pm);
   }
 
   close_tag.set_name("/MuelmatVector");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in MuelmatVector:\n{}", e.what()));
@@ -550,7 +523,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmm.nrows());
   open_tag.add_attribute("ncols", pmm.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -560,14 +533,13 @@ void xml_write_to_stream(std::ostream &os_xml,
         *pbofs << pm.A() << pm.B() << pm.C() << pm.D() << pm.U() << pm.V()
                << pm.W();
       else
-        os_xml << pm.A() << ' ' << pm.B() << ' ' << pm.C() << ' ' << pm.D()
-               << ' ' << pm.U() << ' ' << pm.V() << ' ' << pm.W() << '\n';
+        std::println(os_xml, "{:IO}", pm);
     }
   }
 
   close_tag.set_name("/PropmatMatrix");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in PropmatMatrix:\n{}", e.what()));
@@ -627,7 +599,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmm.nrows());
   open_tag.add_attribute("ncols", pmm.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -638,12 +610,12 @@ void xml_write_to_stream(std::ostream &os_xml,
       }
     }
   } else {
-    os_xml << std::format("{}\n", pmm);
+    std::println(os_xml, "{:IO}", pmm);
   }
 
   close_tag.set_name("/StokvecMatrix");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecMatrix:\n{}", e.what()));
@@ -708,7 +680,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmt3.nrows());
   open_tag.add_attribute("ncols", pmt3.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
   for (const auto &pmm : pmt3) {
@@ -717,15 +689,14 @@ void xml_write_to_stream(std::ostream &os_xml,
         if (pbofs)
           *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
         else
-          os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
-                 << pm.V() << '\n';
+          std::println(os_xml, "{:IO}", pm);
       }
     }
   }
 
   close_tag.set_name("/StokvecTensor3");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecTensor3:\n{}", e.what()));
@@ -793,7 +764,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmt4.nrows());
   open_tag.add_attribute("ncols", pmt4.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
   for (const auto &pmt3 : pmt4) {
@@ -803,8 +774,7 @@ void xml_write_to_stream(std::ostream &os_xml,
           if (pbofs)
             *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
           else
-            os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
-                   << pm.V() << '\n';
+            std::println(os_xml, "{:IO}", pm);
         }
       }
     }
@@ -812,7 +782,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   close_tag.set_name("/StokvecTensor4");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecTensor4:\n{}", e.what()));
@@ -885,7 +855,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmt5.nrows());
   open_tag.add_attribute("ncols", pmt5.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
   for (const auto &pmt4 : pmt5) {
@@ -896,8 +866,7 @@ void xml_write_to_stream(std::ostream &os_xml,
             if (pbofs)
               *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
             else
-              os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
-                     << pm.V() << '\n';
+              std::println(os_xml, "{:IO}", pm);
           }
         }
       }
@@ -906,7 +875,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   close_tag.set_name("/StokvecTensor5");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecTensor5:\n{}", e.what()));
@@ -984,7 +953,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmt6.nrows());
   open_tag.add_attribute("ncols", pmt6.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
   for (const auto &pmt5 : pmt6) {
@@ -996,8 +965,7 @@ void xml_write_to_stream(std::ostream &os_xml,
               if (pbofs)
                 *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
               else
-                os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
-                       << pm.V() << '\n';
+                std::println(os_xml, "{:IO}", pm);
             }
           }
         }
@@ -1007,7 +975,7 @@ void xml_write_to_stream(std::ostream &os_xml,
 
   close_tag.set_name("/StokvecTensor6");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in StokvecTensor6:\n{}", e.what()));
@@ -1071,7 +1039,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmm.nrows());
   open_tag.add_attribute("ncols", pmm.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -1083,20 +1051,13 @@ void xml_write_to_stream(std::ostream &os_xml,
                << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
                << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
       else
-        os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
-               << ' ' << pm.data[3] << '\n'
-               << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
-               << ' ' << pm.data[7] << '\n'
-               << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-               << ' ' << pm.data[11] << '\n'
-               << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
-               << ' ' << pm.data[15] << '\n';
+        std::println(os_xml, "{:IO}", pm);
     }
   }
 
   close_tag.set_name("/SpecmatMatrix");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in SpecmatMatrix:\n{}", e.what()));
@@ -1160,7 +1121,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmm.nrows());
   open_tag.add_attribute("ncols", pmm.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -1172,20 +1133,13 @@ void xml_write_to_stream(std::ostream &os_xml,
                << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
                << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
       else
-        os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
-               << ' ' << pm.data[3] << '\n'
-               << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
-               << ' ' << pm.data[7] << '\n'
-               << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-               << ' ' << pm.data[11] << '\n'
-               << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
-               << ' ' << pm.data[15] << '\n';
+        std::println(os_xml, "{:IO}", pm);
     }
   }
 
   close_tag.set_name("/MuelmatMatrix");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in MuelmatMatrix:\n{}", e.what()));
@@ -1253,7 +1207,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   open_tag.add_attribute("nrows", pmt3.nrows());
   open_tag.add_attribute("ncols", pmt3.ncols());
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
 
@@ -1266,21 +1220,14 @@ void xml_write_to_stream(std::ostream &os_xml,
                  << pm.data[8] << pm.data[9] << pm.data[10] << pm.data[11]
                  << pm.data[12] << pm.data[13] << pm.data[14] << pm.data[15];
         else
-          os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2]
-                 << ' ' << pm.data[3] << '\n'
-                 << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6]
-                 << ' ' << pm.data[7] << '\n'
-                 << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
-                 << ' ' << pm.data[11] << '\n'
-                 << ' ' << pm.data[12] << ' ' << pm.data[13] << ' '
-                 << pm.data[14] << ' ' << pm.data[15] << '\n';
+          std::println(os_xml, "{:IO}", pm);
       }
     }
   }
 
   close_tag.set_name("/MuelmatTensor3");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 } catch (const std::exception &e) {
   throw std::runtime_error(
       std::format("Error in MuelmatTensor3:\n{}", e.what()));

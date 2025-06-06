@@ -382,18 +382,22 @@ struct std::formatter<PropagationPathPoint> {
     const std::string_view sep = tags.sep();
 
     tags.add_if_bracket(ctx, '[');
-    tags.format(ctx,
-                v.pos_type,
-                sep,
-                v.los_type,
-                sep,
-                v.pos,
-                sep,
-                v.los,
-                sep,
-                v.nreal,
-                sep,
-                v.ngroup);
+    if (tags.io) {
+      tags.format(ctx, v.pos, sep, v.los, sep, v.nreal, sep, v.ngroup);
+    } else {
+      tags.format(ctx,
+                  v.pos_type,
+                  sep,
+                  v.los_type,
+                  sep,
+                  v.pos,
+                  sep,
+                  v.los,
+                  sep,
+                  v.nreal,
+                  sep,
+                  v.ngroup);
+    }
     tags.add_if_bracket(ctx, ']');
 
     return ctx.out();

@@ -26,7 +26,8 @@
 #include <matpack.h>
 
 #include <cmath>
-#include <iostream>
+#include <istream>
+#include <ostream>
 
 // File-global constants:
 

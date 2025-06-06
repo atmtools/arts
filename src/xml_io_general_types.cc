@@ -75,11 +75,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (pbofs)
     *pbofs << index;
   else
-    os_xml << index;
+    std::print(os_xml, " {} ", index);
 
   close_tag.set_name("/Index");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Matrix ==========================================================
@@ -143,19 +143,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", matrix.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(matrix.data_handle()),
                   matrix.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", matrix) << '\n';
+    std::println(os_xml, "{}", matrix);
   }
 
   close_tag.set_name("/Matrix");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Numeric =========================================================
@@ -214,11 +214,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (pbofs)
     *pbofs << numeric;
   else
-    os_xml << numeric;
+    std::print(os_xml, " {} ", numeric);
 
   close_tag.set_name("/Numeric");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Sparse ====================================================
@@ -351,10 +351,10 @@ void xml_write_to_stream(std::ostream& os_xml,
   data_tag.add_attribute("nelem", sparse.nnz());
 
   sparse_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   row_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   ArrayOfIndex rowind(sparse.nnz()), colind(sparse.nnz());
   Vector data(sparse.nnz());
@@ -367,15 +367,15 @@ void xml_write_to_stream(std::ostream& os_xml,
       //FIXME: It should be the longer lines
       *pbofs << rowind[i];
     else
-      os_xml << rowind[i] << '\n';
+      std::println(os_xml, "{}", rowind[i]);
   }
 
   close_tag.set_name("/RowIndex");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   col_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   // Write column indices.
 
@@ -384,15 +384,15 @@ void xml_write_to_stream(std::ostream& os_xml,
       //FIXME: It should be the longer lines
       *pbofs << colind[i];
     else
-      os_xml << colind[i] << '\n';
+      std::println(os_xml, "{}", colind[i]);
   }
 
   close_tag.set_name("/ColIndex");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   data_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
   xml_set_stream_precision(os_xml);
 
   // Write data.
@@ -401,17 +401,17 @@ void xml_write_to_stream(std::ostream& os_xml,
     if (pbofs)
       *pbofs << data[i];
     else
-      os_xml << data[i] << ' ';
+      std::print(os_xml, "{} ", data[i]);
   }
-  os_xml << '\n';
+  std::println(os_xml);
   close_tag.set_name("/SparseData");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   close_tag.set_name("/Sparse");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== String ===========================================================
@@ -441,10 +441,8 @@ void xml_read_from_stream(std::istream& is_xml,
       case '\"':
       case '\n':
       case '\r':
-      case '\t':
-        break;
-      default:
-        string_starts_with_quotes = false;
+      case '\t': break;
+      default:   string_starts_with_quotes = false;
     }
   } while (is_xml.good() && dummy != '"' && string_starts_with_quotes);
 
@@ -494,11 +492,11 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.write_to_stream(os_xml);
 
-  os_xml << '\"' << str << '\"';
+  std::print(os_xml, R"("{}")", str);
 
   close_tag.set_name("/String");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Tensor3 ================================================================
@@ -567,19 +565,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", tensor.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
                   tensor.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", tensor) << '\n';
+    std::println(os_xml, "{}", tensor);
   }
 
   close_tag.set_name("/Tensor3");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Tensor4 =========================================================
@@ -653,19 +651,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", tensor.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
                   tensor.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", tensor) << '\n';
+    std::print(os_xml, "{}", tensor);
   }
 
   close_tag.set_name("/Tensor4");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Tensor5 =========================================================
@@ -744,19 +742,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", tensor.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
                   tensor.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", tensor) << '\n';
+    std::print(os_xml, "{}", tensor);
   }
 
   close_tag.set_name("/Tensor5");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Tensor6 =========================================================
@@ -840,19 +838,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", tensor.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
                   tensor.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", tensor) << '\n';
+    std::print(os_xml, "{}", tensor);
   }
 
   close_tag.set_name("/Tensor6");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Tensor7 =========================================================
@@ -941,19 +939,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("ncols", tensor.ncols());
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(tensor.data_handle()),
                   tensor.size() * sizeof(Numeric));
   } else {
-    os_xml << std::format("{}", tensor) << '\n';
+    std::print(os_xml, "{}", tensor);
   }
 
   close_tag.set_name("/Tensor7");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Vector ==========================================================
@@ -1020,10 +1018,11 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const Vector& vector,
                          bofstream* pbofs,
                          const String& name) {
-  os_xml << std::format(R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
-                        vector.size(),
-                        name,
-                        pbofs ? Vector{} : vector);
+  std::print(os_xml,
+             R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
+             vector.size(),
+             name,
+             pbofs ? Vector{} : vector);
 
   if (pbofs) {
     pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
@@ -1070,11 +1069,10 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
 }
 
 template <class T, Size... DIM>
-void xml_write_to_stream_tmpl(
-    std::ostream& os_xml,
-    const matpack::cdata_t<T, DIM...>& group,
-    bofstream* pbofs,
-    const String& name) {
+void xml_write_to_stream_tmpl(std::ostream& os_xml,
+                              const matpack::cdata_t<T, DIM...>& group,
+                              bofstream* pbofs,
+                              const String& name) {
   static_assert(
       type<T>::name() != "any",
       "Type not supported, add a struct type<T> with a static constexpr std::string_view name() function returning other than \"any\"");
@@ -1084,10 +1082,11 @@ void xml_write_to_stream_tmpl(
   if (name.size()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("nelem", (DIM * ...));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   if (pbofs == nullptr) {
-    for (Size i = 0; i < (DIM * ...); i++) os_xml << group.data[i] << '\n';
+    for (Size i = 0; i < (DIM * ...); i++)
+      std::println(os_xml, "{}", group.data[i]);
   } else {
     for (Size i = 0; i < (DIM * ...); i++) *pbofs << group.data[i];
   }
@@ -1095,7 +1094,7 @@ void xml_write_to_stream_tmpl(
   XMLTag close_tag;
   close_tag.set_name(std::format("/MatpackData{}", type<T>::name()));
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 // End of templates

@@ -270,7 +270,7 @@ void nlte_line_flux_profileIntegrate(
 
 void spectral_flux_profileFromSpectralRadianceField(
     Matrix& spectral_flux_profile,
-    const StokvecGriddedField6& spectral_radiance_field,
+    const StokvecSortedGriddedField6& spectral_radiance_field,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
 

@@ -64,7 +64,7 @@ void spectral_radiance_operatorClearsky1D(
 }
 
 void spectral_radiance_fieldFromOperatorPlanarGeometric(
-    StokvecGriddedField6& spectral_radiance_field,
+    StokvecSortedGriddedField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
@@ -82,7 +82,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
-  spectral_radiance_field = StokvecGriddedField6{
+  spectral_radiance_field = StokvecSortedGriddedField6{
       .data_name = "Spectral Radiance Field",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
@@ -178,7 +178,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
 
 void spectral_radiance_fieldFromOperatorPath(
     const Workspace& ws,
-    StokvecGriddedField6& spectral_radiance_field,
+    StokvecSortedGriddedField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const Agenda& ray_path_observer_agenda,
     const AscendingGrid& frequency_grid,
@@ -197,7 +197,7 @@ void spectral_radiance_fieldFromOperatorPath(
   const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
-  spectral_radiance_field = StokvecGriddedField6{
+  spectral_radiance_field = StokvecSortedGriddedField6{
       .data_name = "spectral_radiance_fieldFromOperatorPath",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),

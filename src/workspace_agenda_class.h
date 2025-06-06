@@ -2,7 +2,6 @@
 
 #include <array.h>
 
-#include <ostream>
 #include <vector>
 
 class Method;

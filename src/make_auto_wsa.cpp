@@ -267,6 +267,7 @@ void implementation(std::ostream& os) {
 #include <workspace_method_class.h>
 #include <workspace_agenda_creator.h>
 #include <workspace_class.h>
+#include <time_report.h>
 
 std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
   std::unordered_map<std::string, WorkspaceAgendaRecord> ags;
@@ -327,7 +328,7 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
 )--";
   for (const auto& [name, ag] : agmap) {
     call_operator(os, ag, name);
-    os << " try {\n";
+    os << " try {\n  ARTS_TIME_REPORT\n\n";
     agenda_checker(os, name);
     workspace_setup_and_exec(os, name, ag);
     os << "} catch(std::exception& e) {\n  throw std::runtime_error(std::format(R\"--(Error executing agenda "
@@ -339,10 +340,12 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
 
     std::print(os,
                R"(
-void {0}Set(Agenda& ag, const String& option) {{
+void {0}Set(Agenda& ag, const String& option) try {{
+  ARTS_TIME_REPORT
+
   static_assert(requires {{get_{0}("Something");}}, "Missing get_{0} function definition in workspace_agenda_creator.h, please add it.");
   ag = get_{0}(option);  
-}}
+}}  ARTS_METHOD_ERROR_CATCH
 )",
                name);
   }

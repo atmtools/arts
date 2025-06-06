@@ -17,3 +17,9 @@ ws.absorption_speciesSet(species=ws.specs[0])
 x = pyarts.arts.ArrayOfArrayOfSpeciesTag()
 
 ws.absorption_speciesSet(x, species=ws.specs[0])
+
+assert x == ws.absorption_species
+
+x[0] = ["H2O"]
+
+assert x != ws.absorption_species

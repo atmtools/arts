@@ -21,7 +21,7 @@ void xml_write(std::ostream& os_xml,
   open_tag.add_attribute("nelem", static_cast<Index>(map.size()));
 
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   for (const auto& [key, value] : map) {
     xml_write_to_stream(os_xml, key, pbofs, "");
@@ -31,7 +31,7 @@ void xml_write(std::ostream& os_xml,
   close_tag.set_name("/Map");
   close_tag.write_to_stream(os_xml);
 
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 template <WorkspaceGroup Key, WorkspaceGroup Type>

@@ -40,6 +40,28 @@ void py_sensor(py::module_& m) try {
   py::class_<SensorPosLosVector> vsplos(m, "SensorPosLosVector");
   workspace_group_interface(vsplos);
   common_ndarray(vsplos);
+  vsplos.def(
+      "sort",
+      [](SensorPosLosVector& v, const SensorKeyType x, bool reverse) {
+        using enum SensorKeyType;
+
+        switch (x) {
+          case alt: stdr::sort(v, {}, &SensorPosLos::alt); break;
+          case lat: stdr::sort(v, {}, &SensorPosLos::lat); break;
+          case lon: stdr::sort(v, {}, &SensorPosLos::lon); break;
+          case za:  stdr::sort(v, {}, &SensorPosLos::za); break;
+          case aa:  stdr::sort(v, {}, &SensorPosLos::aa); break;
+          case f:   break;
+        }
+
+        if (reverse) {
+          if (f == x) throw std::runtime_error("Cannot reverse frequency");
+          stdr::reverse(v);
+        }
+      },
+      "key"_a,
+      "reverse"_a = false,
+      "Sorts the vector by the given key.");
   vsplos
       .def(
           "__array__",
@@ -83,14 +105,18 @@ void py_sensor(py::module_& m) try {
                   StokvecMatrix>())
       .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid")
       .def_prop_ro(
-          "weight_matrix", &SensorObsel::weight_matrix, "Weights matrix")
+          "weight_matrix",
+          [](const SensorObsel& self) {
+            return StokvecMatrix{self.weight_matrix()};
+          },
+          "Weights matrix")
       .def_prop_ro("poslos",
                    &SensorObsel::poslos_grid,
                    "Position and line of sight grid");
 
-  auto a0 =
-      py::bind_vector<Array<SensorPosLosVector>, py::rv_policy::reference_internal>(
-          m, "ArrayOfSensorPosLosVector");
+  auto a0 = py::bind_vector<Array<SensorPosLosVector>,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfSensorPosLosVector");
   a0.doc() = "Array of SensorPosLosVector";
 
   auto a1 =
@@ -153,7 +179,8 @@ Will leave non-unique grids alone.
 
           for (Size j = i + 1; j < x.size(); j++) {
             if (x[j].poslos_grid_ptr() == pp) continue;
-            if (std::ranges::equal(x[j].poslos_grid(), p)) x[j].set_poslos_grid_ptr(pp);
+            if (std::ranges::equal(x[j].poslos_grid(), p))
+              x[j].set_poslos_grid_ptr(pp);
           }
         }
       },

@@ -7,6 +7,7 @@
 
 #include "interp.h"
 #include "matpack_mdspan.h"
+#include "matpack_mdspan_helpers_grid_t.h"
 
 namespace matpack {
 template <typename T, typename... Grids>
@@ -230,6 +231,30 @@ using GriddedField5 =
     matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector>;
 using GriddedField6 = matpack::
     gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
+
+using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
+using SortedGriddedField2 =
+    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
+using SortedGriddedField3 = matpack::
+    gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
+using SortedGriddedField4 = matpack::gridded_data_t<Numeric,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid>;
+using SortedGriddedField5 = matpack::gridded_data_t<Numeric,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid>;
+using SortedGriddedField6 = matpack::gridded_data_t<Numeric,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid,
+                                                    AscendingGrid>;
 
 using ComplexGriddedField2 = matpack::gridded_data_t<Complex, Vector, Vector>;
 

@@ -25,7 +25,7 @@ void py_jac(py::module_& m) try {
   errkey.def_rw(
       "y_size", &ErrorKey::y_size, "Size of target in measurement vector");
 
-  py::class_<Jacobian::AtmTarget> atm(m, "AtmTarget");
+  py::class_<Jacobian::AtmTarget> atm(m, "JacobianAtmTarget");
   atm.doc() = "Atmospheric target";
   atm.def_ro("type", &Jacobian::AtmTarget::type, "Type of target");
   atm.def_ro("d", &Jacobian::AtmTarget::d, "Perturbation magnitude");
@@ -63,7 +63,7 @@ x : Vector
     The local state vector
 )--");
 
-  py::class_<Jacobian::SurfaceTarget> surf(m, "SurfaceTarget");
+  py::class_<Jacobian::SurfaceTarget> surf(m, "JacobianSurfaceTarget");
   surf.doc() = "Surface target";
   surf.def_ro("type", &Jacobian::SurfaceTarget::type, "Type of target");
   surf.def_ro("d", &Jacobian::SurfaceTarget::d, "Perturbation magnitude");
@@ -103,7 +103,7 @@ x : Vector
     The local state vector
 )--");
 
-  py::class_<Jacobian::LineTarget> line(m, "LineTarget");
+  py::class_<Jacobian::LineTarget> line(m, "JacobianLineTarget");
   line.doc() = "Line target";
   line.def_ro("type", &Jacobian::LineTarget::type, "Type of target");
   line.def_ro("d", &Jacobian::LineTarget::d, "Perturbation magnitude");
@@ -143,7 +143,7 @@ x : Vector
     The local state vector
 )--");
 
-  py::class_<Jacobian::SensorTarget> sensor(m, "SensorTarget");
+  py::class_<Jacobian::SensorTarget> sensor(m, "JacobianSensorTarget");
   sensor.doc() = "Sensor target";
   sensor.def_ro("type", &Jacobian::SensorTarget::type, "Type of target");
   sensor.def_ro("d", &Jacobian::SensorTarget::d, "Perturbation magnitude");
@@ -158,9 +158,9 @@ x : Vector
   str_interface(sensor);
   sensor.def(
       "model_state",
-      [](const Jacobian::LineTarget& t, const AbsorptionBands& f) {
+      [](const Jacobian::SensorTarget& t, const ArrayOfSensorObsel& v) {
         Vector x(t.x_size);
-        t.set_state(x, f, t.type);
+        t.set_state(x, v, t.type);
         return x;
       },
       R"--(Invokes the internal model-state-setter
@@ -183,7 +183,7 @@ x : Vector
     The local state vector
 )--");
 
-  py::class_<Jacobian::ErrorTarget> error(m, "SensorTarget");
+  py::class_<Jacobian::ErrorTarget> error(m, "JacobianErrorTarget");
   error.doc() = "Error target";
   error.def_ro("type", &Jacobian::ErrorTarget::type, "Type of target");
   error.def_ro(
@@ -204,7 +204,7 @@ x : Vector
   py::bind_vector<std::vector<Jacobian::LineTarget>>(m, "ArrayOfLineTarget")
       .doc() = "List of line targets";
   py::bind_vector<std::vector<Jacobian::SensorTarget>>(m, "ArrayOfSensorTarget")
-      .doc() = "List of line targets";
+      .doc() = "List of sensor targets";
   py::bind_vector<std::vector<Jacobian::ErrorTarget>>(m, "ArrayOfErrorTarget")
       .doc() = "List of error targets";
 

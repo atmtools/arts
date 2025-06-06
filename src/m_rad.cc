@@ -390,46 +390,102 @@ void measurement_vectorFromSensor(
 
   const SensorSimulations simulations = collect_simulations(measurement_sensor);
 
-  for (auto &[f_grid_ptr, poslos_set] : simulations) {
-    for (auto &poslos_gs : poslos_set) {
-      for (Size ip = 0; ip < poslos_gs->size(); ++ip) {
-        StokvecVector spectral_radiance;
-        StokvecMatrix spectral_radiance_jacobian;
-        ArrayOfPropagationPathPoint ray_path;
+  const auto flat_size = [](const SensorSimulations &simulations) {
+    Size size = 0;
+    for (const auto &[f_grid_ptr, poslos_set] : simulations) {
+      for (const auto &poslos_gs : poslos_set) {
+        size += poslos_gs->size();
+      }
+    }
 
-        const SensorPosLos &poslos = (*poslos_gs)[ip];
+    return size;
+  };
 
-        spectral_radiance_observer_agendaExecute(
-            ws,
-            spectral_radiance,
-            spectral_radiance_jacobian,
-            ray_path,
-            *f_grid_ptr,
-            jacobian_targets,
-            poslos.pos,
-            poslos.los,
-            atmospheric_field,
-            surface_field,
-            spectral_radiance_observer_agenda);
+  const Size N = flat_size(simulations);
 
-        spectral_radianceApplyUnitFromSpectralRadiance(
-            spectral_radiance,
-            spectral_radiance_jacobian,
-            *f_grid_ptr,
-            ray_path,
-            spectral_radiance_unit);
+  struct unflatten_data {
+    const std::shared_ptr<const AscendingGrid> *f_grid_ptr{nullptr};
+    const std::shared_ptr<const SensorPosLosVector> *poslos_ptr{nullptr};
+    Size ip{std::numeric_limits<Size>::max()};
 
-        for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
-          const SensorObsel &obsel = measurement_sensor[iv];
-          if (obsel.same_freqs(f_grid_ptr)) {
-            measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);
-
-            obsel.sumup(
-                measurement_jacobian[iv], spectral_radiance_jacobian, ip);
+    unflatten_data(const SensorSimulations &simulations, Size n) {
+      for (auto &[f_grid_ptr, poslos_set] : simulations) {
+        for (auto &poslos_gs : poslos_set) {
+          const Size np = poslos_gs->size();
+          if (n < np) {
+            this->f_grid_ptr = &f_grid_ptr;
+            this->poslos_ptr = &poslos_gs;
+            this->ip         = n;
+            goto end;
           }
+          n -= np;
         }
+      }
+
+    end:
+      ARTS_USER_ERROR_IF(
+          f_grid_ptr == nullptr or poslos_ptr == nullptr,
+          "Failed to find f_grid_ptr and poslos_ptr for index {} in simulations",
+          n)
+      ARTS_USER_ERROR_IF(ip >= (**poslos_ptr).size(),
+                         "Index {} out of bounds for poslos_ptr with size {}",
+                         ip,
+                         (**poslos_ptr).size());
+    }
+  };
+
+  std::vector<std::string> error{};
+
+  #pragma omp parallel for if (not arts_omp_in_parallel() and N > 1)
+  for (Size i = 0; i < N; i++) {
+    try {
+      const unflatten_data unflat(simulations, i);
+
+      const Size ip    = unflat.ip;
+      auto &f_grid_ptr = *unflat.f_grid_ptr;
+      auto &poslos     = (**unflat.poslos_ptr)[ip];
+
+      StokvecVector spectral_radiance;
+      StokvecMatrix spectral_radiance_jacobian;
+      ArrayOfPropagationPathPoint ray_path;
+
+      spectral_radiance_observer_agendaExecute(
+          ws,
+          spectral_radiance,
+          spectral_radiance_jacobian,
+          ray_path,
+          *f_grid_ptr,
+          jacobian_targets,
+          poslos.pos,
+          poslos.los,
+          atmospheric_field,
+          surface_field,
+          spectral_radiance_observer_agenda);
+
+      spectral_radianceApplyUnitFromSpectralRadiance(spectral_radiance,
+                                                     spectral_radiance_jacobian,
+                                                     *f_grid_ptr,
+                                                     ray_path,
+                                                     spectral_radiance_unit);
+
+#pragma omp critical
+      for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
+        const SensorObsel &obsel = measurement_sensor[iv];
+        if (obsel.same_freqs(f_grid_ptr)) {
+          measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);
+
+          obsel.sumup(measurement_jacobian[iv], spectral_radiance_jacobian, ip);
+        }
+      }
+    } catch (const std::exception &e) {
+#pragma omp critical
+      {
+        error.emplace_back(std::format(
+            "Error in unflattening data for index {}: {}\n", i, e.what()));
       }
     }
   }
+
+  ARTS_USER_ERROR_IF(not error.empty(), "Errors occurred:\n{:}", error);
 }
 ARTS_METHOD_ERROR_CATCH

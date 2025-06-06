@@ -203,7 +203,7 @@ qn : ~pyarts.arts.QuantumNumberValue
       .def_prop_rw(
           "isotopologue",
           [](QuantumIdentifier& qid) {
-            return Species::Isotopologues.at(qid.isotopologue_index);
+            return qid.Isotopologue();
           },
           [](QuantumIdentifier& qid, SpeciesIsotope& iso) {
             Index res = Species::find_species_index(iso);

@@ -45,9 +45,53 @@ void py_griddedfield(py::module_& m) try {
   gridded_data_interface(gf2c);
   workspace_group_interface(gf2c);
 
-  py::class_<StokvecGriddedField6> gf6sv(m, "StokvecGriddedField6");
+  py::class_<StokvecSortedGriddedField1> gf1sv(m, "StokvecSortedGriddedField1");
+  gridded_data_interface(gf1sv);
+  workspace_group_interface(gf1sv);
+
+  py::class_<StokvecSortedGriddedField2> gf2sv(m, "StokvecSortedGriddedField2");
+  gridded_data_interface(gf2sv);
+  workspace_group_interface(gf2sv);
+
+  py::class_<StokvecSortedGriddedField3> gf3sv(m, "StokvecSortedGriddedField3");
+  gridded_data_interface(gf3sv);
+  workspace_group_interface(gf3sv);
+
+  py::class_<StokvecSortedGriddedField4> gf4sv(m, "StokvecSortedGriddedField4");
+  gridded_data_interface(gf4sv);
+  workspace_group_interface(gf4sv);
+
+  py::class_<StokvecSortedGriddedField5> gf5sv(m, "StokvecSortedGriddedField5");
+  gridded_data_interface(gf5sv);
+  workspace_group_interface(gf5sv);
+
+  py::class_<StokvecSortedGriddedField6> gf6sv(m, "StokvecSortedGriddedField6");
   gridded_data_interface(gf6sv);
   workspace_group_interface(gf6sv);
+
+  py::class_<SortedGriddedField1> sgf1num(m, "SortedGriddedField1");
+  gridded_data_interface(sgf1num);
+  workspace_group_interface(sgf1num);
+
+  py::class_<SortedGriddedField2> sgf2num(m, "SortedGriddedField2");
+  gridded_data_interface(sgf2num);
+  workspace_group_interface(sgf2num);
+
+  py::class_<SortedGriddedField3> sgf3num(m, "SortedGriddedField3");
+  gridded_data_interface(sgf3num);
+  workspace_group_interface(sgf3num);
+
+  py::class_<SortedGriddedField4> sgf4num(m, "SortedGriddedField4");
+  gridded_data_interface(sgf4num);
+  workspace_group_interface(sgf4num);
+
+  py::class_<SortedGriddedField5> sgf5num(m, "SortedGriddedField5");
+  gridded_data_interface(sgf5num);
+  workspace_group_interface(sgf5num);
+
+  py::class_<SortedGriddedField6> sgf6num(m, "SortedGriddedField6");
+  gridded_data_interface(sgf6num);
+  workspace_group_interface(sgf6num);
 
   auto a1 =
       py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(

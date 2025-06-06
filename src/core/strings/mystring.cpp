@@ -2,6 +2,11 @@
 
 #include <nonstd.h>
 
+#include <algorithm>
+#include <format>
+#include <ranges>
+#include <string>
+
 void tolower(String& x) {
   std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c) {
     return ::tolower(c);
@@ -62,4 +67,27 @@ String comma(bool& first, const String& spaces) {
     return "";
   }
   return std::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
+}
+
+void join(String& res, const ArrayOfString& list, const String& with) {
+  res.clear();
+
+  if (list.empty()) return;
+
+  for (auto& v : list | std::views::drop(1)) {
+    std::format_to(std::back_inserter(res), "{}{}", v, with);
+  }
+
+  std::format_to(std::back_inserter(res), "{}", list.back());
+}
+
+String join(const ArrayOfString& list, const String& with) {
+  String res;
+  join(res, list, with);
+  return res;
+}
+
+void replace(String& x, const String& from, const String& to) {
+  const auto arr = split(x, from);
+  join(x, arr, to);
 }

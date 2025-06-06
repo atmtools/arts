@@ -348,6 +348,7 @@ void agenda_operators() {
   std::print(cpp, R"(#include "auto_wsg.h"
 
 #include <workspace_agenda_creator.h>
+#include <time_report.h>
 )");
 
   std::string errors{};
@@ -389,7 +390,7 @@ using {0}Operator
 
     cpp << ",\n"
         << spaces << "const " << name << "Operator& " << name
-        << "_operator) {\n";
+        << "_operator) try {\n  ARTS_TIME_REPORT\n\n";
 
     cpp << "  auto _tup = " << name << "_operator(";
     sep = "";
@@ -403,12 +404,14 @@ using {0}Operator
     for (std::size_t i = 0; i < ag.output.size(); ++i) {
       cpp << "  " << ag.output[i] << " = std::get<" << i << ">(_tup);\n";
     }
-    cpp << "}\n";
+    cpp << "}  ARTS_METHOD_ERROR_CATCH\n";
 
     std::print(
         cpp,
         R"(
 void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
+  ARTS_TIME_REPORT
+
   AgendaCreator agenda("{0}");
   agenda.add("{0}ExecuteOperator",
              SetWsv{{"{0}_operator", {0}_operator}});

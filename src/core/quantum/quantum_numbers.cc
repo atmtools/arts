@@ -4,6 +4,7 @@
 #include <isotopologues.h>
 
 #include <algorithm>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <utility>

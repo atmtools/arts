@@ -25,7 +25,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>  // For debugging.
+#include <istream>
+#include <ostream>
 #include <vector>
 
 

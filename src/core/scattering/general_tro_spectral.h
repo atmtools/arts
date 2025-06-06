@@ -73,7 +73,7 @@ using ScatteringGeneralSpectralTROFunc =
                    Index>;
 
 struct ScatteringGeneralSpectralTRO {
-  ScatteringGeneralSpectralTROFunc f;
+  ScatteringGeneralSpectralTROFunc f{};
 
   [[nodiscard]]
   ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(

@@ -101,10 +101,10 @@ endif()
 
 if (ENABLE_ARTS_PROFILING)
   add_definitions(-DARTS_PROFILING=1)
-  message(STATUS "Compiling ARTS with time profiling information")
+  message(STATUS "Compiling ARTS with time profiling information (-DENABLE_ARTS_PROFILING=OFF to disable)")
 else()
   add_definitions(-DARTS_PROFILING=0)
-  message(STATUS "Compiling ARTS without time profiling information")
+  message(STATUS "Compiling ARTS without time profiling information (-DENABLE_ARTS_PROFILING=ON to enable)")
 endif()
 
 ########### C++20/23 Support ##########
@@ -356,6 +356,10 @@ if (ARTS_SANITIZE AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   ARTS_ADD_COMPILER_FLAG (fsanitize=undefined)
   message(STATUS "Building with undefined behavior sanitizers")
 endif()
+
+if (ENABLE_ARTS_PROFILING AND CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  ARTS_ADD_COMPILER_FLAG (ftime-trace)
+endif ()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)

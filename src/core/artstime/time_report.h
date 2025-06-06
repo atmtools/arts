@@ -9,13 +9,18 @@ struct profiler {
   std::string name;
   Time start;
 
-  profiler(std::source_location loc = std::source_location::current())
-      : name(loc.function_name()), start(Time{}) {}
+  profiler(std::string&& key);
+  profiler(std::source_location loc = std::source_location::current());
+  
+  profiler(const profiler&) = delete;
+  profiler(profiler&&) = delete;
+  profiler& operator=(const profiler&) = delete;
+  profiler& operator=(profiler&&) = delete;
 
   ~profiler();
 };
 
-std::string get_report(bool clear=true);
+std::string get_report(Size min_time = 0, bool clear = true);
 }  // namespace arts
 
 #if ARTS_PROFILING

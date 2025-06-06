@@ -1,5 +1,7 @@
 #include "isotopologues.h"
 
+#include <sstream>
+
 namespace Species {
 ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 #define deal_with_spec(SPEC)                                      \

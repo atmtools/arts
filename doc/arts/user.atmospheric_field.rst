@@ -142,7 +142,7 @@ The following types of keys are available:
 - :class:`~pyarts.arts.SpeciesIsotope`: Isotopologue ratios.
   These are ratios of different isotopologues of the same species.
   As for VMRs they need not sum up to 1 per species for practical reasons.
-  These are defaulted to values extracted from `HITRAN`_,
+  These are defaulted to values extracted from `HITRAN <https://hitran.org/>`_,
   complemented by other sources as necessary.
 - :class:`~pyarts.arts.QuantumIdentifier`: Non-LTE data.
   These are the state distributions of energy levels of molecules required for non-LTE calculations.

@@ -13,10 +13,11 @@
 #ifndef xml_io_h
 #define xml_io_h
 
-#include "file.h"
-#include "xml_io_base.h"
-#include "xml_io_arts_types.h"
 #include <type_traits>
+
+#include "file.h"
+#include "xml_io_arts_types.h"
+#include "xml_io_base.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
@@ -31,13 +32,14 @@ class ArtsXMLTag : public XMLTag {
   ArtsXMLTag() {};
 
   using XMLTag::add_attribute;
-  
+
   /** Adds value of attribute as type std::vector<QuantumNumberType> to tag
    * 
    * @param[in] aname Attribute name
    * @param[in] value Set value
    */
-  void add_attribute(const String& aname, const std::vector<QuantumNumberType>& value);
+  void add_attribute(const String& aname,
+                     const std::vector<QuantumNumberType>& value);
 
   using XMLTag::get_attribute_value;
 
@@ -50,7 +52,7 @@ class ArtsXMLTag : public XMLTag {
    * @param[out] value Return value
    */
   void get_attribute_value(const String& aname, SpeciesTag& value);
-  
+
   /** Returns value of attribute as type ArrayOfSpeciesTag
    * 
    * Searches for the matching attribute and returns it value
@@ -58,18 +60,20 @@ class ArtsXMLTag : public XMLTag {
    * @param[in] aname Attribute name
    * @param[out] value Return value
    */
-  void get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value);
+  void get_attribute_value(const String& aname,
+                           std::vector<QuantumNumberType>& value);
 };
 
 ////////////////////////////////////////////////////////////////////////////
 //   General XML handling routines
 ////////////////////////////////////////////////////////////////////////////
 
-void xml_parse_from_stream(
-    std::istream &, Vector &, bifstream *, ArtsXMLTag &);
+void xml_parse_from_stream(std::istream&, Vector&, bifstream*, ArtsXMLTag&);
 
-void xml_parse_from_stream(
-    std::istream &, ArrayOfString &, bifstream *, ArtsXMLTag &);
+void xml_parse_from_stream(std::istream&,
+                           ArrayOfString&,
+                           bifstream*,
+                           ArtsXMLTag&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -108,11 +112,13 @@ void filename_xml_with_index(String& filename,
   \param type Generic return value
 */
 template <typename T>
-void xml_read_from_file(const String& filename,
-                        T& type) requires (std::same_as<T, std::remove_const_t<T>>) {
+String xml_read_from_file(const String& filename, T& type)
+  requires(std::same_as<T, std::remove_const_t<T>>)
+{
   String xml_file = filename;
   find_xml_file(xml_file);
   xml_read_from_file_base(xml_file, type);
+  return xml_file;
 }
 
 //! Write data to XML file
@@ -126,10 +132,10 @@ void xml_read_from_file(const String& filename,
   \param ftype      File type
 */
 template <typename T>
-void xml_write_to_file(const String& filename,
-                       const T& type,
-                       const FileType ftype,
-                       const Index no_clobber) {
+String xml_write_to_file(const String& filename,
+                         const T& type,
+                         const FileType ftype,
+                         const Index no_clobber) {
   String efilename{add_basedir(filename)};
 
   std::unique_ptr<std::ostream> ofs;
@@ -137,6 +143,8 @@ void xml_write_to_file(const String& filename,
   if (no_clobber) efilename = make_filename_unique(efilename, ".xml");
 
   xml_write_to_file_base(efilename, type, ftype);
+
+  return efilename;
 }
 
 String complete_basename(const String& basename);

@@ -565,7 +565,7 @@ undesired results.
 
 Dimensions are altitude times latitude times longitude times zenith times azimuth times *frequency_grid*.
 )",
-      .type = "StokvecGriddedField6",
+      .type = "StokvecSortedGriddedField6",
   };
 
   wsv_data["spectral_radiance"] = {
