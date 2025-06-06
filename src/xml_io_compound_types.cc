@@ -1448,7 +1448,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   std::println(os_xml);
 
   xml_set_stream_precision(os_xml);
-  std::prinln(os_xml, "{:IO}", iso_rat);
+  std::println(os_xml, "{:IO}", iso_rat);
 
   close_tag.set_name("/SpeciesIsotopologueRatios");
   close_tag.write_to_stream(os_xml);

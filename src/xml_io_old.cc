@@ -110,7 +110,6 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
       for (Index j = 0; j < naux; j++) {
         icecream >> double_imanip() >> maux[j];
-        //cout << "maux" << j << " = " << maux[j] << "\n";
       }
 
       // Extract accuracies:

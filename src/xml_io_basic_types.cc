@@ -80,11 +80,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (pbofs)
     *pbofs << rational;
   else
-    os_xml << ' ' << rational << ' ';
+    std::print(os_xml, " {:IO} ", rational);
 
   close_tag.set_name("/Rational");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== Time ================================================================
@@ -137,11 +137,11 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   xml_set_stream_precision(os_xml);
 
-  os_xml << ' ' << t << ' ';
+  std::print(os_xml, " {:IO} ", t);
 
   close_tag.set_name("/Time");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
 
 //=== SurfacePropertyTag ================================================================
@@ -180,15 +180,14 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("SurfacePropertyTag");
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 
   xml_write_to_stream(os_xml, s.name, pbofs, "");
 
   close_tag.set_name("/SurfacePropertyTag");
   close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  std::println(os_xml);
 }
-
 
 //=== ScatteringSpeciesProperty ================================================================
 
@@ -200,8 +199,7 @@ void xml_write_to_stream(std::ostream& os_xml,
  */
 void xml_read_from_stream(std::istream& /*is_xml*/,
                           ScatteringSpeciesProperty& /*s*/,
-                          bifstream* pbifs [[maybe_unused]]) {
-}
+                          bifstream* pbifs [[maybe_unused]]) {}
 
 //! Writes ScatteringSpeciesProperty to XML output stream
 /*!
@@ -213,8 +211,7 @@ void xml_read_from_stream(std::istream& /*is_xml*/,
 void xml_write_to_stream(std::ostream& /*os_xml*/,
                          const ScatteringSpeciesProperty& /*s*/,
                          bofstream* pbofs [[maybe_unused]],
-                         const String&) {
-}
+                         const String&) {}
 
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
