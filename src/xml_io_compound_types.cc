@@ -2832,6 +2832,7 @@ void xml_read_from_stream(std::istream& is_xml,
   weight_matrix.resize(nrows, ncols, nelem);
 
   for (Index i = 0; i < nelem; i++) {
+    try {
     Index irow, icol;
     Stokvec data;
     is_xml >> irow >> icol >> data.I() >> data.Q() >> data.U() >> data.V();
@@ -2840,6 +2841,12 @@ void xml_read_from_stream(std::istream& is_xml,
     ARTS_USER_ERROR_IF(icol >= ncols, "Column index out of range")
 
     weight_matrix[irow, icol] = data;
+  } catch (const std::exception& e) {
+      throw std::runtime_error(
+          std::format("Error reading SparseStokvecMatrix element {}: {}",
+                      i,
+                      e.what()));
+    }
   }
 
   stag.close();

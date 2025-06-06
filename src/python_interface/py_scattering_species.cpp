@@ -41,12 +41,12 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
        py::arg("f_grid"),
        py::arg("za_scat_grid"))
       // Bind methods, such as `extract_backscatter_matrix` and `extract_forwardscatter_matrix`
-      .def("extract_backscatter_matrix",
-           &PMD::extract_backscatter_matrix,
-           "Extract backscatter matrix")
-      .def("extract_forwardscatter_matrix",
-           &PMD::extract_forwardscatter_matrix,
-           "Extract forward scatter matrix")
+    //   .def("extract_backscatter_matrix",
+    //        &PMD::extract_backscatter_matrix,
+    //        "Extract backscatter matrix")
+    //   .def("extract_forwardscatter_matrix",
+    //        &PMD::extract_forwardscatter_matrix,
+    //        "Extract forward scatter matrix")
 
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
@@ -71,10 +71,10 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m,
       // Bind the extraction of stokes coefficients
       .def("extract_stokes_coeffs",
            &PMD::extract_stokes_coeffs,
-           "Extract stokes coefficients from phase matrix")
+           "Extract stokes coefficients from phase matrix");
 
       // Bind regrid method
-      .def("regrid", &PMD::regrid, "Regrid phase matrix");
+    //   .def("regrid", &PMD::regrid, "Regrid phase matrix");
   return s;
 }
 
@@ -88,19 +88,19 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m,
   py::class_<PMD, matpack::data_t<std::complex<Scalar>, 4>> s(
       m, class_name.c_str());
   s.def(py::init<>())
-      .def(py::init<std::shared_ptr<const Vector>,
-                    std::shared_ptr<const Vector>,
-                    std::shared_ptr<scattering::SHT>>(),
-           py::arg("t_grid"),
-           py::arg("f_grid"),
-           py::arg("sht"))
+    //   .def(py::init<std::shared_ptr<const Vector>,
+    //                 std::shared_ptr<const Vector>,
+    //                 std::shared_ptr<scattering::SHT>>(),
+    //        py::arg("t_grid"),
+    //        py::arg("f_grid"),
+    //        py::arg("sht"))
 
-      .def("extract_backscatter_matrix",
-           &PMD::extract_backscatter_matrix,
-           "Extract backscatter matrix")
-      .def("extract_forwardscatter_matrix",
-           &PMD::extract_forwardscatter_matrix,
-           "Extract forward scatter matrix")
+    //   .def("extract_backscatter_matrix",
+    //        &PMD::extract_backscatter_matrix,
+    //        "Extract backscatter matrix")
+    //   .def("extract_forwardscatter_matrix",
+    //        &PMD::extract_forwardscatter_matrix,
+    //        "Extract forward scatter matrix")
 
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
@@ -114,8 +114,8 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m,
            "Integrate phase matrix")
       .def("extract_stokes_coeffs",
            &PMD::extract_stokes_coeffs,
-           "Extract stokes coefficients from phase matrix")
-      .def("regrid", &PMD::regrid, "Regrid phase matrix");
+           "Extract stokes coefficients from phase matrix");
+    //   .def("regrid", &PMD::regrid, "Regrid phase matrix");
   return s;
 }
 
@@ -129,10 +129,10 @@ auto bind_absorption_vector_data_tro(py::module_& m, const std::string& name) {
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
-           "f_grid"_a)
-      .def("get_coeff_vector_view",
-           &AVD::get_coeff_vector_view,
-           "Get coefficient vector view");
+           "f_grid"_a);
+    //   .def("get_coeff_vector_view",
+    //        &AVD::get_coeff_vector_view,
+    //        "Get coefficient vector view");
   return s;
 }
 
@@ -148,15 +148,15 @@ auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
-           "za_inc_grid"_a)
-      .def("get_coeff_vector_view",
-           &AVD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &AVD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid absorption vector");
+           "za_inc_grid"_a);
+    //   .def("get_coeff_vector_view",
+    //        &AVD::get_coeff_vector_view,
+    //        "Get coefficient vector view")
+    //   .def("regrid",
+    //        &AVD::regrid,
+    //        "grids"_a,
+    //        "weights"_a,
+    //        "Regrid absorption vector");
   return s;
 }
 
@@ -170,15 +170,15 @@ auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
       .def(py::init<std::shared_ptr<const Vector>,
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
-           "f_grid"_a)
-      .def("get_coeff_vector_view",
-           &EMD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &EMD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid extinction matrix");
+           "f_grid"_a);
+    //   .def("get_coeff_vector_view",
+    //        &EMD::get_coeff_vector_view,
+    //        "Get coefficient vector view")
+    //   .def("regrid",
+    //        &EMD::regrid,
+    //        "grids"_a,
+    //        "weights"_a,
+    //        "Regrid extinction matrix");
   return s;
 }
 
@@ -194,15 +194,15 @@ auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
                     std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
-           "za_inc_grid"_a)
-      .def("get_coeff_vector_view",
-           &EMD::get_coeff_vector_view,
-           "Get coefficient vector view")
-      .def("regrid",
-           &EMD::regrid,
-           "grids"_a,
-           "weights"_a,
-           "Regrid extinction matrix");
+           "za_inc_grid"_a);
+    //   .def("get_coeff_vector_view",
+    //        &EMD::get_coeff_vector_view,
+    //        "Get coefficient vector view")
+    //   .def("regrid",
+    //        &EMD::regrid,
+    //        "grids"_a,
+    //        "weights"_a,
+    //        "Regrid extinction matrix");
   return s;
 }
 
@@ -214,29 +214,29 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
   using SSDClass = scattering::SingleScatteringData<Scalar, format, repr>;
 
   py::class_<SSDClass> s(m, name.c_str());
-  s.def(py::init<scattering::PhaseMatrixData<Scalar, format, repr>,
-                 scattering::ExtinctionMatrixData<Scalar, format, repr>,
-                 scattering::AbsorptionVectorData<Scalar, format, repr>,
-                 scattering::BackscatterMatrixData<Scalar, format>,
-                 scattering::ForwardscatterMatrixData<Scalar, format>>(),
-        "phase_matrix"_a,
-        "extinction_matrix"_a,
-        "absorption_vector"_a,
-        "backscatter_matrix"_a,
-        "forwardscatter_matrix"_a)
-      .def(py::init<scattering::ParticleProperties,
-                    scattering::PhaseMatrixData<Scalar, format, repr>,
-                    scattering::ExtinctionMatrixData<Scalar, format, repr>,
-                    scattering::AbsorptionVectorData<Scalar, format, repr>,
-                    scattering::BackscatterMatrixData<Scalar, format>,
-                    scattering::ForwardscatterMatrixData<Scalar, format>>(),
-           "properties"_a,
-           "phase_matrix"_a,
-           "extinction_matrix"_a,
-           "absorption_vector"_a,
-           "backscatter_matrix"_a,
-           "forwardscatter_matrix"_a)
-      .def_rw("properties", &SSDClass::properties, "Particle properties")
+//   s.def(py::init<scattering::PhaseMatrixData<Scalar, format, repr>,
+//                  scattering::ExtinctionMatrixData<Scalar, format, repr>,
+//                  scattering::AbsorptionVectorData<Scalar, format, repr>,
+//                  scattering::BackscatterMatrixData<Scalar, format>,
+//                  scattering::ForwardscatterMatrixData<Scalar, format>>(),
+//         "phase_matrix"_a,
+//         "extinction_matrix"_a,
+//         "absorption_vector"_a,
+//         "backscatter_matrix"_a,
+//         "forwardscatter_matrix"_a)
+    //   s.def(py::init<scattering::ParticleProperties,
+    //                 scattering::PhaseMatrixData<Scalar, format, repr>,
+    //                 scattering::ExtinctionMatrixData<Scalar, format, repr>,
+    //                 scattering::AbsorptionVectorData<Scalar, format, repr>,
+    //                 scattering::BackscatterMatrixData<Scalar, format>,
+    //                 scattering::ForwardscatterMatrixData<Scalar, format>>(),
+    //        "properties"_a,
+    //        "phase_matrix"_a,
+    //        "extinction_matrix"_a,
+    //        "absorption_vector"_a,
+    //        "backscatter_matrix"_a,
+    //        "forwardscatter_matrix"_a)
+      s.def_rw("properties", &SSDClass::properties, "Particle properties")
       .def_rw("phase_matrix", &SSDClass::phase_matrix, "Phase matrix")
       .def_rw("extinction_matrix",
               &SSDClass::extinction_matrix,
@@ -457,46 +457,46 @@ void py_scattering_species(py::module_& m) try {
           "atm_point"_a,
           "f_grid"_a,
           "za_grid"_a,
-          "Get bulk scattering properties")
-      .def(
-          "get_bulk_scattering_properties_aro_gridded",
-          [](const ArrayOfScatteringSpecies& aoss,
-             const AtmPoint& atm_point,
-             const Vector& f_grid,
-             const Vector& za_inc_grid,
-             const Vector& delta_aa_grid,
-             scattering::ZenithAngleGrid za_scat_grid) {
-            return BulkScatteringPropertiesAROGridded{
-                aoss.get_bulk_scattering_properties_aro_gridded(atm_point,
-                                                                f_grid,
-                                                                za_inc_grid,
-                                                                delta_aa_grid,
-                                                                std::make_shared<scattering::ZenithAngleGrid>(std::move(za_scat_grid)))};
-          },
-          "atm_point"_a,
-          "f_grid"_a,
-          "za_inc_grid"_a,
-          "delta_aa_grid"_a,
-          "za_scat_grid"_a,
-          "Get bulk scattering properties")
-      .def(
-          "get_bulk_scattering_properties_aro_spectral",
-          [](const ArrayOfScatteringSpecies& aoss,
-             const AtmPoint& atm_point,
-             const Vector& f_grid,
-             const Vector& za_inc_grid,
-             Index l,
-             Index m) {
-            return BulkScatteringPropertiesAROSpectral{
-                aoss.get_bulk_scattering_properties_aro_spectral(
-                    atm_point, f_grid, za_inc_grid, l, m)};
-          },
-          "atm_point"_a,
-          "f_grid"_a,
-          "za_inc_grid"_a,
-          "l"_a,
-          "m"_a,
           "Get bulk scattering properties");
+    //   .def(
+    //       "get_bulk_scattering_properties_aro_gridded",
+    //       [](const ArrayOfScatteringSpecies& aoss,
+    //          const AtmPoint& atm_point,
+    //          const Vector& f_grid,
+    //          const Vector& za_inc_grid,
+    //          const Vector& delta_aa_grid,
+    //          scattering::ZenithAngleGrid za_scat_grid) {
+    //         return BulkScatteringPropertiesAROGridded{
+    //             aoss.get_bulk_scattering_properties_aro_gridded(atm_point,
+    //                                                             f_grid,
+    //                                                             za_inc_grid,
+    //                                                             delta_aa_grid,
+    //                                                             std::make_shared<scattering::ZenithAngleGrid>(std::move(za_scat_grid)))};
+    //       },
+    //       "atm_point"_a,
+    //       "f_grid"_a,
+    //       "za_inc_grid"_a,
+    //       "delta_aa_grid"_a,
+    //       "za_scat_grid"_a,
+    //       "Get bulk scattering properties")
+    //   .def(
+    //       "get_bulk_scattering_properties_aro_spectral",
+    //       [](const ArrayOfScatteringSpecies& aoss,
+    //          const AtmPoint& atm_point,
+    //          const Vector& f_grid,
+    //          const Vector& za_inc_grid,
+    //          Index l,
+    //          Index m) {
+    //         return BulkScatteringPropertiesAROSpectral{
+    //             aoss.get_bulk_scattering_properties_aro_spectral(
+    //                 atm_point, f_grid, za_inc_grid, l, m)};
+    //       },
+    //       "atm_point"_a,
+    //       "f_grid"_a,
+    //       "za_inc_grid"_a,
+    //       "l"_a,
+    //       "m"_a,
+    //       "Get bulk scattering properties");
 
   workspace_group_interface(aoss);
 

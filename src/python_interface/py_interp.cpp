@@ -16,6 +16,11 @@ using PythonLags = std::variant<LagrangeInterpolation,
 void py_interp(py::module_& m) {
   auto interp = m.def_submodule("interp", "Interpolation methods");
 
+  py::class_<my_interp::Empty>(interp, "Empty")
+      .def(py::init<>())
+      .def("__repr__", [](const my_interp::Empty&) { return "Empty()"; })
+      .doc() = "An empty interpolation object, it is just a filler and has no use but naming itself";
+
   py::class_<LagrangeInterpolation>(interp, "PolyGrid")
       .def(
           "__init__",
