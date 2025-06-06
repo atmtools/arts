@@ -270,6 +270,31 @@ struct std::formatter<SensorPosLos> {
 };
 
 template <>
+struct std::formatter<sensor::SparseStokvec> {
+  format_tags tags{};
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const sensor::SparseStokvec& w,
+                              FmtContext& ctx) const {
+    const auto sep = tags.sep();
+
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, w.irow, sep, w.icol, sep, w.data);
+    tags.add_if_bracket(ctx, ']');
+
+    return ctx.out();
+  }
+};
+
+template <>
 struct std::formatter<sensor::SparseStokvecMatrix> {
   format_tags tags{};
 
@@ -284,15 +309,10 @@ struct std::formatter<sensor::SparseStokvecMatrix> {
   template <class FmtContext>
   FmtContext::iterator format(const sensor::SparseStokvecMatrix& v,
                               FmtContext& ctx) const {
-    const auto sep = tags.sep();
+    const auto sep = tags.sep(true);
 
     tags.add_if_bracket(ctx, '[');
-    for (auto& w : v) {
-      tags.add_if_bracket(ctx, '[');
-      tags.format(ctx, w.irow, sep, w.icol, sep, w.data);
-      tags.add_if_bracket(ctx, ']');
-      tags.format(ctx, sep, '\n');
-    }
+    for (auto& w : v) tags.format(ctx, w, sep);
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }

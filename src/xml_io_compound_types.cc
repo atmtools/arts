@@ -2610,7 +2610,8 @@ struct tag {
       std::istringstream ss{x};
       ss >> ret;
       if (ss.fail()) {
-        ARTS_USER_ERROR("Failed to convert \"{}\" to type {}", x, typeid(T).name());
+        ARTS_USER_ERROR(
+            "Failed to convert \"{}\" to type {}", x, typeid(T).name());
       }
       return ret;
     }
@@ -2837,7 +2838,16 @@ void xml_write_to_stream(std::ostream& os_xml,
            meta_data{"nonzero", g.size()},
            meta_data{"name", name}};
 
-  for (auto&& x : g) std::println(os_xml, "{} {} {}", x.irow, x.icol, x.data);
+  for (auto&& x : g) std::println(os_xml, "{}", x);
+
+  tag stagtest{std::cout,
+               "SparseStokvecMatrix",
+               meta_data{"nrows", g.nrows()},
+               meta_data{"ncols", g.ncols()},
+               meta_data{"nonzero", g.size()},
+               meta_data{"name", name}};
+  for (auto&& x : g) std::println("{}", x);
+  stagtest.close();
 
   stag.close();
 } catch (const std::exception& e) {
