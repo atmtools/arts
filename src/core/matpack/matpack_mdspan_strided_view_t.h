@@ -379,25 +379,6 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   [[nodiscard]] constexpr auto nvitrines() const { return extent(N - 6); }
   [[nodiscard]] constexpr auto nlibraries() const { return extent(N - 7); }
 };
-
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 1>>>);
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 2>>>);
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 9>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 1>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 2>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 9>>>);
-
-static_assert(strided_view_t<Numeric, 10>::is_strided);
-static_assert(not strided_view_t<Numeric, 10>::is_const);
-static_assert(strided_view_t<const Numeric, 10>::is_const);
-static_assert(not strided_view_t<Numeric, 10>::is_exhaustive);
-static_assert(strided_view_t<Numeric, 10>::is_unique);
 }  // namespace matpack
 
 template <typename T, Size N>
@@ -409,34 +390,59 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
+    tags.depth = N;
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const matpack::strided_view_t<T, N>& v,
+  FmtContext::iterator format(const matpack::strided_view_t<T, N>& md,
                               FmtContext& ctx) const {
     using std::ranges::views::take, std::ranges::views::drop;
 
-    const Index n              = v.shape()[0];
-    const std::string_view sep = inner_fmt().tags.sep(N != 1);
+    const Size d               = tags.bracket ? tags.depth : 0;
+    const std::string_view sep = inner_fmt().tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
-    if constexpr (N > 1) tags.add_if_bracket(ctx, '\n');
+    auto nl = md.shape();
+    for (Size i = N - 2; i < N; i--) nl[i] *= nl[i + 1];
 
-    if (n > 0) {
-      tags.format(ctx, v[0]);
+    const auto row_sep = [nl](Size i) -> Size {
+      for (Size j = 0; j < N; j++) {
+        if ((i % nl[j]) == 0) return j;
+      }
 
-      if (tags.short_str and n > 8) {
-        for (auto&& a : v | take(3) | drop(1)) tags.format(ctx, sep, a);
-        tags.format(ctx, sep, "..."sv);
-        for (auto&& a : v | drop(n - 3)) tags.format(ctx, sep, a);
-      } else {
-        for (auto&& a : v | drop(1)) tags.format(ctx, sep, a);
+      return N;
+    };
+
+    Size i          = 0;
+    const auto view = elemwise_range(md);
+    const Size sz   = md.size();
+
+    for (Size j = 0; j < d; j++) tags.add_if_bracket(ctx, '[');
+
+    if (sz > 0) tags.format(ctx, *view.begin());
+
+    if (tags.short_str and sz > 8) {
+      for (auto&& e : view | take(3) | drop(1)) tags.format(ctx, sep, e);
+      tags.format(ctx, sep, "..."sv);
+      for (auto&& e : view | drop(sz - 3)) tags.format(ctx, sep, e);
+    } else {
+      for (auto&& e : view | drop(1)) {
+        ++i;
+
+        if (const Size spaces = row_sep(i); spaces < N) {
+          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, ']');
+          tags.format(ctx, sep, '\n');
+          for (Size j = 0; j < spaces; j++) tags.add_if_bracket(ctx, ' ');
+          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, '[');
+        } else {
+          tags.format(ctx, sep);
+        }
+
+        tags.format(ctx, e);
       }
     }
 
-    if constexpr (N > 1) tags.add_if_bracket(ctx, '\n');
-    tags.add_if_bracket(ctx, ']');
+    for (Size i = 0; i < d; i++) tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

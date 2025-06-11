@@ -18,6 +18,7 @@ dependencies:
         - lark-parser
         - libclang
         - libcxx
+        - libcxx-devel
         - libopenblas=*=*openmp*
         - llvm-openmp
         - nanobind < 2.5.0

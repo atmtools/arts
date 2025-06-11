@@ -69,7 +69,6 @@ struct Isotope {
 
 }  // namespace Species
 
-
 template <>
 struct std::formatter<Species::Isotope> {
   format_tags tags;
@@ -83,7 +82,8 @@ struct std::formatter<Species::Isotope> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const Species::Isotope& v, FmtContext& ctx) const {
+  FmtContext::iterator format(const Species::Isotope& v,
+                              FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
     return std::format_to(ctx.out(), "{}{}{}", quote, v.FullName(), quote);
   }
@@ -735,7 +735,11 @@ constexpr Index find_species_index(const SpeciesEnum spec,
     }
   }
 
-  throw std::runtime_error(std::format("Cannot find isotopologue: {}-{}\n\nValid isotopologues: {:BN,}", spec, isot, isotopologues(spec)));
+  throw std::runtime_error(std::format(
+      "Cannot find isotopologue: {}-{}\n\nValid isotopologues: {:BN,}",
+      spec,
+      isot,
+      isotopologues(spec)));
 }
 
 constexpr Index find_species_index(const Isotope ir) {
@@ -801,7 +805,7 @@ struct IsotopologueRatios {
     for (auto& x : data) x = std::numeric_limits<Numeric>::quiet_NaN();
   }
 
-  constexpr Numeric operator[](const Index spec_ind) const  {
+  constexpr Numeric operator[](const Index spec_ind) const {
     ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
     return data[spec_ind];
   }
@@ -1366,5 +1370,33 @@ template <>
 struct std::hash<SpeciesIsotope> {
   std::size_t operator()(const SpeciesIsotope& g) const {
     return static_cast<std::size_t>(find_species_index(g));
+  }
+};
+
+template <>
+struct std::formatter<SpeciesIsotopologueRatios> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SpeciesIsotopologueRatios& v,
+                              FmtContext& ctx) const {
+    for (Index i = 0; i < v.maxsize; i++) {
+      tags.format(ctx,
+                  Species::Isotopologues[i].FullName(),
+                  tags.sep(),
+                  v.data[i],
+                  tags.sep(true));
+    }
+
+    return ctx.out();
   }
 };

@@ -1,9 +1,11 @@
 #include "xml_io_old.h"
 
 #include <double_imanip.h>
+#include <string_extract.h>
 
 #include <algorithm>
-#include <iostream>
+#include <istream>
+#include <ostream>
 
 #include "xml_io.h"
 
@@ -108,7 +110,6 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
       for (Index j = 0; j < naux; j++) {
         icecream >> double_imanip() >> maux[j];
-        //cout << "maux" << j << " = " << maux[j] << "\n";
       }
 
       // Extract accuracies:

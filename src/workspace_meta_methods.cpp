@@ -247,14 +247,12 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name    = "absorption_lookup_tableCalc",
       .desc    = R"(Get *absorption_lookup_table* from available data.
 
-Computes a pure uplooking *ray_path* from a given ``latitude`` and ``longitude``.
-This path is used to extract ``ray_path_atmospheric_point``, which is used to
-define the default atmospheric state for the absorption lookup table.
+This method will use the *atmospheric_field* and *absorption_bands* to
+calculate the *absorption_lookup_table*.  The atmospheric field is first
+gridded using *atmospheric_profileExtract*.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricUplooking",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_atmospheric_pointExtendInPressure",
+      .methods = {"atmospheric_profileExtract",
                   "absorption_lookup_tableInit",
                   "absorption_lookup_tablePrecomputeAll"},
       .out     = {"absorption_lookup_table"},
@@ -454,7 +452,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   std::stringstream code;
 
-  code << wsm.header(name, 0) << " try {\n";
+  code << wsm.header(name, 0) << " try {\n  ARTS_TIME_REPORT\n\n";
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();

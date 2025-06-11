@@ -4,7 +4,8 @@
 #include <double_imanip.h>
 
 #include <iomanip>
-#include <iostream>
+#include <istream>
+#include <ostream>
 #include <string_view>
 #include <utility>
 #include <variant>

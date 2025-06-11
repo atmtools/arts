@@ -1,7 +1,9 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <partfun.h>
 #include <python_interface.h>
@@ -38,20 +40,20 @@ std::string docs_isotopes() {
 )");
 
   for (auto& x : Species::Isotopologues) {
-    std::print(
-        os,
-        R"(  * - {}
+    std::print(os,
+               R"(  * - {}
     - {}
     - {}
     - {}
     - {}
 )",
-        x.FullName(),
-        x.mass,
-        x.gi,
-        isotrat[x],
-        x.joker() ? "Joker"
-                  : (Species::is_predefined_model(x) ? "Predefined" : "Normal"));
+               x.FullName(),
+               x.mass,
+               x.gi,
+               isotrat[x],
+               x.joker() ? "Joker"
+                         : (Species::is_predefined_model(x) ? "Predefined"
+                                                            : "Normal"));
   }
 
   os << '\n';
@@ -115,15 +117,27 @@ void py_species(py::module_& m) try {
   siso.def(
           "__init__",
           [](SpeciesIsotope* self, Index i) {
-            new (self) SpeciesIsotope(Species::Isotopologues.at(i));
+            try {
+              auto x = Species::Isotopologues.at(i);
+              new (self) SpeciesIsotope(x);
+            } catch (std::exception& e) {
+              throw std::runtime_error(
+                  std::format("No species index {}. Error:\n{}", i, e.what()));
+            }
           },
           "isot"_a = 0,
           "From position")
       .def(
           "__init__",
           [](SpeciesIsotope* self, const std::string& c) {
-            new (self) SpeciesIsotope(
-                Species::Isotopologues.at(Species::find_species_index(c)));
+            try {
+              auto i = Species::find_species_index(c);
+              auto x = Species::Isotopologues.at(i);
+              new (self) SpeciesIsotope(x);
+            } catch (std::exception& e) {
+              throw std::runtime_error(
+                  std::format("No species {}. Error:\n{}", c, e.what()));
+            }
           },
           "From :class:`str`")
       .def(

@@ -213,8 +213,31 @@ has_sht: {}
 
   global.def("time_report",
              &arts::get_report,
+             "min_time"_a = 0,
              "clear"_a = true,
-             "Get the time report");
+             R"(Get the time report.
+
+.. note::
+    This function is only available if ARTS is compiled with profiling enabled.
+
+    Also be aware that the minimum time is in *native* time units, which
+    depends on the platform.
+
+Parameters
+----------
+    min_time : int
+        Minimum time in *native* time units to report.  Default: 0.
+    clear : bool
+        Clear the report after getting it.  Default: True.
+
+Return
+------
+:class:`str`
+    Nominally, the time report as a string in markdown table format.
+    If no profiling data is available, a message indicating that ARTS
+    is compiled without profiling or that no profiling data is available
+    is returned.
+)");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));

@@ -13,6 +13,129 @@ bool SensorKey::operator==(const SensorKey& other) const {
 }
 
 namespace sensor {
+bool SparseStokvec::operator==(const SparseStokvec& other) const {
+  return (irow == other.irow) and (icol == other.icol);
+}
+
+bool SparseStokvec::operator!=(const SparseStokvec& other) const {
+  return not(*this == other);
+}
+
+bool SparseStokvec::operator<(const SparseStokvec& other) const {
+  if (irow < other.irow) return true;
+  if (irow > other.irow) return false;
+  return icol < other.icol;
+}
+
+bool SparseStokvec::operator<=(const SparseStokvec& other) const {
+  return (*this < other) or (*this == other);
+}
+
+bool SparseStokvec::operator>(const SparseStokvec& other) const {
+  if (irow > other.irow) return true;
+  if (irow < other.irow) return false;
+  return icol > other.icol;
+}
+
+bool SparseStokvec::operator>=(const SparseStokvec& other) const {
+  return (*this > other) or (*this == other);
+}
+
+bool SparseStokvecMatrix::operator==(const SparseStokvecMatrix& other) const {
+  return rows == other.rows and cols == other.cols and
+         sparse_data == other.sparse_data;
+}
+
+bool SparseStokvecMatrix::operator!=(const SparseStokvecMatrix& other) const {
+  return not(*this == other);
+}
+
+SparseStokvecMatrix::SparseStokvecMatrix(const StokvecMatrix& m)
+    : rows(m.nrows()), cols(m.ncols()) {
+  //! NOTE: Retains sorting
+  for (Size i = 0; i < rows; ++i) {
+    for (Size j = 0; j < cols; ++j) {
+      if (m[i, j].is_zero()) continue;
+      sparse_data.push_back({i, j, m[i, j]});
+    }
+  }
+  assert(stdr::is_sorted(sparse_data));
+}
+
+SparseStokvecMatrix& SparseStokvecMatrix::operator=(const StokvecMatrix& m) {
+  return *this = SparseStokvecMatrix(m);
+}
+
+Index SparseStokvecMatrix::nrows() const { return rows; }
+
+Index SparseStokvecMatrix::ncols() const { return cols; }
+
+Size SparseStokvecMatrix::size() const { return sparse_data.size(); }
+
+bool SparseStokvecMatrix::empty() const { return sparse_data.empty(); }
+
+void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size reserve) {
+  rows = nrows;
+  cols = ncols;
+  sparse_data.clear();
+  sparse_data.reserve(reserve);
+}
+
+std::array<Index, 2> SparseStokvecMatrix::shape() const {
+  return {static_cast<Index>(rows), static_cast<Index>(cols)};
+}
+
+Stokvec& SparseStokvecMatrix::operator[](Size i, Size j) {
+  const SparseStokvec newdata{.irow = i, .icol = j};
+  auto it = stdr::lower_bound(sparse_data, newdata);
+
+  if (it != sparse_data.end() and newdata == *it) {
+    return it->data;
+  }
+
+  auto newit = sparse_data.insert(it, newdata);
+
+  //! NOTE: Must retain sorting?
+  assert(stdr::is_sorted(sparse_data));
+
+  return newit->data;
+}
+
+Stokvec SparseStokvecMatrix::operator[](Size i, Size j) const {
+  const SparseStokvec newdata{.irow = i, .icol = j};
+  auto it = stdr::lower_bound(sparse_data, newdata);
+
+  if (it != sparse_data.end() and newdata == *it) {
+    return it->data;
+  }
+
+  return {};
+}
+
+std::vector<SparseStokvec>::iterator SparseStokvecMatrix::begin() {
+  return sparse_data.begin();
+}
+
+std::vector<SparseStokvec>::iterator SparseStokvecMatrix::end() {
+  return sparse_data.end();
+}
+
+std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::begin() const {
+  return sparse_data.begin();
+}
+
+std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::end() const {
+  return sparse_data.end();
+}
+
+SparseStokvecMatrix::operator StokvecMatrix() const {
+  StokvecMatrix m(rows, cols, Stokvec{0.0, 0.0, 0.0, 0.0});
+  for (const auto& elem : sparse_data) {
+    m[elem.irow, elem.icol] = elem.data;
+  }
+  return m;
+}
+
 void Obsel::check() const {
   ARTS_ASSERT(f, "Must exist");
 
@@ -33,17 +156,17 @@ void Obsel::check() const {
 
 Obsel::Obsel(std::shared_ptr<const AscendingGrid> fs,
              std::shared_ptr<const PosLosVector> pl,
-             StokvecMatrix ws)
+             SparseStokvecMatrix ws)
     : f{std::move(fs)}, poslos{std::move(pl)}, w{std::move(ws)} {
   check();
 }
 
-Obsel::Obsel(const AscendingGrid& fs, const PosLosVector& pl, StokvecMatrix ws)
-    : f{std::make_shared<const AscendingGrid>(fs)},
-      poslos{std::make_shared<const PosLosVector>(pl)},
-      w{std::move(ws)} {
-  check();
-}
+Obsel::Obsel(const AscendingGrid& fs,
+             const PosLosVector& pl,
+             SparseStokvecMatrix ws)
+    : Obsel::Obsel(std::make_shared<const AscendingGrid>(fs),
+                   std::make_shared<const PosLosVector>(pl),
+                   std::move(ws)) {}
 
 bool Obsel::same_freqs(const Obsel& other) const { return f == other.f; }
 
@@ -73,15 +196,19 @@ void Obsel::set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
   poslos = std::move(n);
 }
 
-void Obsel::set_weight_matrix(StokvecMatrix n) {
+void Obsel::set_weight_matrix(SparseStokvecMatrix n) {
   ARTS_USER_ERROR_IF(n.shape() != w.shape(), "Mismatching shape");
   w = std::move(n);
 }
 
 void Obsel::normalize(Stokvec pol) {
-  const Stokvec x = sum(w);
+  const Stokvec x = std::transform_reduce(
+      w.begin(), w.end(), Stokvec{}, std::plus<>(), [](const SparseStokvec& e) {
+        return e.data;
+      });
 
   if (x.I() != 0.0) pol.I() = std::abs(pol.I() / x.I());
+
   if (x.is_polarized()) {
     const Numeric hyp = std::hypot(x.Q(), x.U(), x.V());
     pol.Q()           = std::abs(pol.Q() / hyp);
@@ -89,39 +216,49 @@ void Obsel::normalize(Stokvec pol) {
     pol.V()           = std::abs(pol.V() / hyp);
   }
 
-  std::transform(
-      w.elem_begin(), w.elem_end(), w.elem_begin(), [pol](auto& e) -> Stokvec {
-        return {
-            e.I() * pol.I(), e.Q() * pol.Q(), e.U() * pol.U(), e.V() * pol.V()};
-      });
+  for (auto& e : w) {
+    e.data.I() *= pol.I();
+    e.data.Q() *= pol.Q();
+    e.data.U() *= pol.U();
+    e.data.V() *= pol.V();
+  }
 }
 
 Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
   ARTS_ASSERT(i.size() == f->size(), "Bad size");
   ARTS_ASSERT(ip < static_cast<Index>(poslos->size()) and ip >= 0, "Bad index");
 
-  const auto ws = w[ip];
+  // w is a sparse sorted matrix of shape poslos->size() x f->size()
+  const SparseStokvec v0{.irow = static_cast<Size>(ip),
+                         .icol = static_cast<Size>(0)};
+  const SparseStokvec vn{.irow = static_cast<Size>(ip),
+                         .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
+                                      stdr::upper_bound(w, vn)};
 
-  return std::transform_reduce(
-      i.begin(), i.end(), ws.begin(), 0.0, std::plus<>(), [](auto& a, auto& b) {
-        return dot(a, b);
-      });
+  Numeric sum = 0.0;
+  for (const auto& ws : span) {
+    ARTS_ASSERT(ws.icol < i.size(), "Bad index in sparse matrix");
+    sum += dot(i[ws.icol], ws.data);
+  }
+  return sum;
 }
 
 void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
-  const auto ws = w[ip];
-
   // j is a matrix of shape JACS x f->size()
+  // w is a sparse sorted matrix of shape poslos->size() x f->size()
+  const SparseStokvec v0{.irow = static_cast<Size>(ip),
+                         .icol = static_cast<Size>(0)};
+  const SparseStokvec vn{.irow = static_cast<Size>(ip),
+                         .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
+                                      stdr::upper_bound(w, vn)};
 
   for (Index ij = 0; ij < j.nrows(); ij++) {
     auto jac = j[ij];
-    out[ij] +=
-        std::transform_reduce(jac.begin(),
-                              jac.end(),
-                              ws.begin(),
-                              0.0,
-                              std::plus<>{},
-                              [](auto& a, auto& b) { return dot(a, b); });
+    for (auto& ws : span) {
+      out[ij] += dot(jac[ws.icol], ws.data);
+    }
   }
 }
 
@@ -212,7 +349,7 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
   const auto&& first     = poslos->begin();
   const auto&& last      = poslos->end();
   const auto same_poslos = [&](const auto& p) {
-    return &pos == &p.pos and & los == &p.los;
+    return &pos == &p.pos and &los == &p.los;
   };
 
   const auto&& it = std::find_if(first, last, same_poslos);
@@ -225,7 +362,8 @@ Index Obsel::find(const AscendingGrid& frequency_grid) const {
 }
 }  // namespace sensor
 
-SensorSimulations collect_simulations(const ArrayOfSensorObsel& obsels) {
+SensorSimulations collect_simulations(
+    const std::span<const SensorObsel>& obsels) {
   SensorSimulations out;
 
   for (const auto& obsel : obsels) {
@@ -235,69 +373,103 @@ SensorSimulations collect_simulations(const ArrayOfSensorObsel& obsels) {
   return out;
 }
 
-void make_exhaustive(ArrayOfSensorObsel& obsels) {
+void make_exhaustive(std::span<SensorObsel> obsels) {
   const SensorSimulations simuls = collect_simulations(obsels);
 
   // Early return on trivial cases
   if (simuls.size() == 0) return;
   if (simuls.size() == 1 and simuls.begin()->second.size() <= 1) return;
 
-  /*
-    NOTE:
+  std::vector<Numeric> all_freq;  // Collect all frequencies in the simulations
+  std::vector<SensorPosLos> all_geom;  // Collect all poslos in the simulations
 
-    The following code is written for a case where the f-grid and poslos-grid are
-    entirerly unknown.  It is more likely that either pos-los or f-grid is known
-    and the other is not.  In that case, the code can be optimized to only
-    consider the unknown grid.  This is not done here for simplicity.
-   */
+  for (auto& [freqs, geoms] : simuls) {
+    all_freq.insert(all_freq.end(), freqs->begin(), freqs->end());
 
-  AscendingGrid f_grid;
-  SensorPosLosVector poslos_grid;
-
-  for (const auto& [f_g, poslos_gs] : simuls) {
-    Vector newfs;
-    for (auto& f : *f_g) {
-      if (not std::ranges::binary_search(f_grid, f)) newfs.push_back(f);
-    }
-    if (newfs.size() > 0) {
-      newfs.reserve(newfs.size() + f_grid.size());
-      for (auto f : f_grid) newfs.push_back(f);
-      std::ranges::sort(newfs);
-      f_grid = newfs;
-    }
-
-    for (auto& pl_gs : poslos_gs) {
-      for (auto& pl : *pl_gs) {
-        if (not std::ranges::contains(poslos_grid, pl))
-          poslos_grid.push_back(pl);
+    for (auto& geom : geoms) {
+      for (auto& poslos : *geom) {
+        if (stdr::find(all_geom, poslos) == all_geom.end()) {
+          all_geom.push_back(poslos);
+        }
       }
     }
   }
 
-  auto f_grid_ptr = std::make_shared<const AscendingGrid>(f_grid);
-  auto poslos_grid_ptr =
-      std::make_shared<const SensorPosLosVector>(poslos_grid);
+  stdr::sort(all_freq);
+  auto [first, last] = stdr::unique(all_freq);
+  all_freq.erase(first, last);
 
-  for (auto& obsel : obsels) {
-    StokvecMatrix weights(
-        f_grid.size(), poslos_grid.size(), Stokvec{0.0, 0.0, 0.0, 0.0});
+  auto fptr            = std::make_shared<const AscendingGrid>(all_freq);
+  auto poslos_grid_ptr = std::make_shared<const SensorPosLosVector>(all_geom);
 
-    for (Size iv = 0; iv < obsel.f_grid().size(); iv++) {
-      const Index ivn = std::distance(
-          std::ranges::find(f_grid, obsel.f_grid()[iv]), f_grid.end());
-      if (ivn == static_cast<Index>(f_grid.size())) continue;
+  for (auto& elem : obsels) {
+    sensor::SparseStokvecMatrix weights(all_geom.size(), all_freq.size());
 
-      for (Size ip = 0; ip < obsel.poslos_grid().size(); ip++) {
-        const Index ipn = std::distance(
-            std::ranges::find(poslos_grid, obsel.poslos_grid()[ip]),
-            poslos_grid.end());
-        if (ipn == static_cast<Index>(poslos_grid.size())) continue;
-
-        weights[ivn, ipn] = obsel.weight_matrix()[iv, ip];
-      }
+    for (auto& w : elem.weight_matrix()) {
+      const Size ig  = w.irow;  // Index in poslos_grid
+      const Size iv  = w.icol;  // Index in f_grid
+      const Size ign = stdr::distance(
+          all_geom.begin(), stdr::find(all_geom, elem.poslos_grid()[ig]));
+      const Size ivn = stdr::distance(
+          all_freq.begin(), stdr::lower_bound(all_freq, elem.f_grid()[iv]));
+      weights[ign, ivn] = w.data;
     }
 
-    obsel = SensorObsel(f_grid_ptr, poslos_grid_ptr, std::move(weights));
+    elem = SensorObsel(fptr, poslos_grid_ptr, std::move(weights));
+  }
+}
+
+void make_exclusive(std::span<SensorObsel> obsels) {
+  Vector fs{};
+  SensorPosLosVector gs{};
+  std::vector<Size> freq_indices{};
+  std::vector<Size> poslos_indices{};
+
+  for (auto& elem : obsels) {
+    freq_indices.resize(0);
+    poslos_indices.resize(0);
+
+    for (auto& w : elem.weight_matrix()) {
+      poslos_indices.push_back(w.irow);
+      freq_indices.push_back(w.icol);
+    }
+
+    stdr::sort(poslos_indices);
+    stdr::sort(freq_indices);
+
+    {
+      auto [first, last] = stdr::unique(poslos_indices);
+      poslos_indices.erase(first, last);
+    }
+    {
+      auto [first, last] = stdr::unique(freq_indices);
+      freq_indices.erase(first, last);
+    }
+
+    const auto nposlos = static_cast<Index>(poslos_indices.size());
+    gs.resize(nposlos);
+    auto& old_gs = elem.poslos_grid();
+    for (Index i = 0; i < nposlos; i++) {
+      gs[i] = old_gs[poslos_indices[i]];
+    }
+
+    const auto nfreqs = static_cast<Index>(freq_indices.size());
+    fs.resize(nfreqs);
+    auto& old_fs = elem.f_grid();
+    for (Index j = 0; j < nfreqs; j++) {
+      fs[j] = fs[freq_indices[j]];
+    }
+
+    sensor::SparseStokvecMatrix ws(nposlos, nfreqs);
+    for (const auto& w : elem.weight_matrix()) {
+      const Index iposlos =
+          stdr::distance(stdr::begin(gs), stdr::find(gs, old_gs[w.irow]));
+      const Index ifreq  = stdr::distance(stdr::begin(fs),
+                                         stdr::lower_bound(fs, old_fs[w.icol]));
+      ws[iposlos, ifreq] = w.data;
+    }
+
+    elem = SensorObsel(AscendingGrid{fs}, gs, std::move(ws));
   }
 }
 

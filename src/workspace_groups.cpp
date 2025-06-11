@@ -702,9 +702,51 @@ of this term multiplied by a negative distance.
       .desc = "A *Tensor6* but of *Stokvec*.\n",
   };
 
-  wsg_data["StokvecGriddedField6"] = {
+  wsg_data["StokvecSortedGriddedField1"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 1-dimensional gridof *Stokvec*.
+
+The grid is sorted in ascending order.
+)--",
+  };
+
+  wsg_data["StokvecSortedGriddedField2"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 2-dimensional gridof *Stokvec*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["StokvecSortedGriddedField3"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 3-dimensional gridof *Stokvec*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["StokvecSortedGriddedField4"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 4-dimensional gridof *Stokvec*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["StokvecSortedGriddedField5"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 5-dimensional gridof *Stokvec*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["StokvecSortedGriddedField6"] = {
       .file = "rtepack.h",
       .desc = R"--(A 6-dimensional gridof *Stokvec*.
+
+The grids are sorted in ascending order.
 )--",
   };
 
@@ -978,6 +1020,55 @@ well as the sampling device's polarization response.
       .file     = "lookup_map.h",
       .desc     = "A map of tables of of lookup calculations.\n",
       .map_type = true,
+  };
+
+
+  wsg_data["SortedGriddedField1"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 1-dimensional gridof *Numeric*.
+
+The grid is sorted in ascending order.
+)--",
+  };
+
+  wsg_data["SortedGriddedField2"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 2-dimensional gridof *Numeric*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["SortedGriddedField3"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 3-dimensional gridof *Numeric*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["SortedGriddedField4"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 4-dimensional gridof *Numeric*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["SortedGriddedField5"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 5-dimensional gridof *Numeric*.
+
+The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["SortedGriddedField6"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 6-dimensional gridof *Numeric*.
+
+The grids are sorted in ascending order.
+)--",
   };
 
   for (auto& g : internal_options()) {

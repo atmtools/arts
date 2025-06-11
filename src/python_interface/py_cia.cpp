@@ -1,3 +1,4 @@
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
 #include <python_interface.h>
 

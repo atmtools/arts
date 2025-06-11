@@ -1,5 +1,7 @@
 #include <predefined/predef.h>
 #include <python_interface.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
 
 #include <filesystem>
 #include <memory>

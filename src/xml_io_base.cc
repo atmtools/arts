@@ -72,24 +72,15 @@ void XMLTag::add_attribute(const String& aname, String value) {
   \param value Attribute value
 */
 void XMLTag::add_attribute(const String& aname, const Index& value) {
-  std::ostringstream v;
-
-  v << value;
-  add_attribute(aname, v.str());
+  add_attribute(aname, std::format("{}", value));
 }
 
 void XMLTag::add_attribute(const String& aname, const Size& value) {
-  std::ostringstream v;
-
-  v << value;
-  add_attribute(aname, v.str());
+  add_attribute(aname, std::format("{}", value));
 }
 
 void XMLTag::add_attribute(const String& aname, const Numeric& value) {
-  std::ostringstream v;
-  xml_set_stream_precision(v);
-  v << value;
-  add_attribute(aname, v.str());
+  add_attribute(aname, std::format("{}", value));
 }
 
 //! Checks whether attribute has the expected value
@@ -322,16 +313,11 @@ void XMLTag::read_from_stream(std::istream& is) {
   \param os Output stream
 */
 void XMLTag::write_to_stream(std::ostream& os) {
-  os << "<" << name;
+  std::print(os, "<{}", name);
 
-  auto it = attribs.begin();
+  for (auto& [an, av] : attribs) std::print(os, R"( {}="{}")", an, av);
 
-  while (it != attribs.end()) {
-    os << ' ' << it->name << "=\"" << it->value << '\"';
-    it++;
-  }
-
-  os << ">";
+  std::print(os, ">");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -639,7 +625,7 @@ void xml_read_footer_from_stream(std::istream& is) {
 void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
   XMLTag tag;
 
-  os << "<?xml version=\"1.0\"?>" << '\n';
+  std::println(os, "<?xml version=\"1.0\"?>");
 
   tag.set_name("arts");
   switch (ftype) {
@@ -652,7 +638,7 @@ void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
 
   tag.write_to_stream(os);
 
-  os << '\n';
+  std::println(os);
 }
 
 //! Write closing root tag
@@ -665,7 +651,7 @@ void xml_write_footer_to_stream(std::ostream& os) {
   tag.set_name("/arts");
   tag.write_to_stream(os);
 
-  os << '\n';
+  std::println(os);
 }
 
 void xml_set_stream_precision(std::ostream& os) {

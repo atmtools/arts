@@ -9,6 +9,7 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
+#include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
@@ -98,6 +99,12 @@ void py_atm(py::module_ &m) try {
              a->lon_upp = std::get<6>(state);
            });
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
+
+  auto aad =
+      py::bind_vector<std::vector<Atm::Data>,
+                      py::rv_policy::reference_internal>(m, "ArrayOfAtmData");
+  aad.doc() = "A list of :class:`~pyarts.arts.AtmData`";
+  vector_interface(aad);
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
   workspace_group_interface(pnt);
@@ -290,35 +297,7 @@ Parameters
           "Get the data as a list")
       .def_rw("top_of_atmosphere",
               &AtmField::top_of_atmosphere,
-              "Top of the atmosphere [m]")
-      .def("__getstate__",
-           [](const AtmField &t) {
-             auto k = t.keys();
-             std::vector<Atm::Data> v;
-             v.reserve(k.size());
-             for (auto &kn : k)
-               v.emplace_back(
-                   std::visit([&](auto &&key) { return t[key]; }, kn));
-             return std::make_tuple(k, v, t.top_of_atmosphere);
-           })
-      .def(
-          "__setstate__",
-          [](AtmField *a,
-             const std::tuple<std::vector<AtmKeyVal>,
-                              std::vector<Atm::Data>,
-                              Numeric> &state) {
-            auto k = std::get<0>(state);
-            auto v = std::get<1>(state);
-            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
-
-            new (a) AtmField();
-            a->top_of_atmosphere = std::get<2>(state);
-
-            for (std::size_t i = 0; i < k.size(); i++)
-              std::visit(
-                  [&](auto &&key) -> Atm::Data & { return a->operator[](key); },
-                  k[i]) = v[i];
-          });
+              "Top of the atmosphere [m]");
 
   m.def(
       "frequency_shift",

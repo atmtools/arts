@@ -1,7 +1,9 @@
 
 #include <debug.h>
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
@@ -113,12 +115,15 @@ void py_surf(py::module_ &m) try {
 
   auto fld = py::class_<SurfaceField>(m, "SurfaceField");
   fld.def(
-      "__init__",
-      [](SurfaceField *sf, const String &planet) {
-        new (sf) SurfaceField();
-        surface_fieldPlanet(*sf, planet, 0.0);
-      },
-      "planet"_a);
+         "__init__",
+         [](SurfaceField *sf, const String &planet) {
+           new (sf) SurfaceField();
+           surface_fieldPlanet(*sf, planet, 0.0);
+         },
+         "planet"_a)
+      .def_rw("ellipsoid",
+              &SurfaceField::ellipsoid,
+              "Ellipsoid parameters (semi-major axis, semi-minor axis)");
   workspace_group_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 

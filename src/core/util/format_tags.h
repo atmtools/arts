@@ -28,7 +28,7 @@ template <typename T>
 concept arts_formattable =
     std::formattable<T, char> and arts_inner_fmt<T> and requires(T x) {
       std::format("{}", x);
-      std::format("{:sqNB,}", x);
+      std::format("{:sqNBIO,}", x);
     };
 
 template <typename T>
@@ -42,6 +42,8 @@ struct format_tags {
   bool bracket   = false;
   bool quoted    = false;
   bool short_str = false;
+  bool io        = false;
+  Size depth     = 0;
 
   [[nodiscard]] constexpr std::string get_format_args() const {
     std::string out{'{'};
@@ -53,6 +55,7 @@ struct format_tags {
     if (quoted) out += 'q';
     if (short_str) out += 's';
     if (bracket) out += 'B';
+    if (io) out += "IO";
     out += '}';
 
     out.shrink_to_fit();
@@ -109,6 +112,11 @@ struct format_tags {
     fmt.format(x, ctx);
     return format(ctx, r...);
   }
+
+  format_tags& set_depth(Size d) {
+    depth = d;
+    return *this;
+  }
 };
 
 constexpr std::format_parse_context::iterator parse_format_tags(
@@ -144,6 +152,15 @@ constexpr std::format_parse_context::iterator parse_format_tags(
       fmt.quoted = true;
       ++it;
       continue;
+    }
+
+    if (*it == 'I') {
+      fmt.io = true;
+      ++it;
+      if (it != ctx.end() and *it == 'O') {
+        ++it;
+        continue;
+      }
     }
 
     throw std::format_error("Invalid format args for arts-type");

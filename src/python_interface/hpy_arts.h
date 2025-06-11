@@ -2,6 +2,7 @@
 
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include <nanobind/stl/complex.h>
 #include <nanobind/stl/string.h>
 #include <py_auto_wsgdocs.h>
 #include <xml_io.h>
@@ -24,10 +25,10 @@ void xml_interface(py::class_<T>& c) {
          const char* const file,
          const char* const type,
          bool clobber) {
-        xml_write_to_file(file,
-                          static_cast<const U&>(x),
-                          to<FileType>(type),
-                          clobber ? 0 : 1);
+        return xml_write_to_file(file,
+                                 static_cast<const U&>(x),
+                                 to<FileType>(type),
+                                 clobber ? 0 : 1);
       },
       "file"_a.none(false),
       "type"_a.none(false) = "ascii",
@@ -45,7 +46,7 @@ On Error:
   c.def(
       "readxml",
       [](T& x, const char* const file) {
-        xml_read_from_file(file, static_cast<U&>(x));
+        return xml_read_from_file(file, static_cast<U&>(x));
       },
       "file"_a.none(false),
       R"(Read variable from file

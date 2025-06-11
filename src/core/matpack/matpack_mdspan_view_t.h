@@ -385,24 +385,11 @@ struct view_t final : public mdview_t<T, N> {
     std::swap(static_cast<base&>(*this), static_cast<base&>(other));
   }
 };
-
-static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 1>>>);
-static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 2>>>);
-static_assert(std::random_access_iterator<left_mditer<view_t<Numeric, 9>>>);
-static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 1>>>);
-static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 2>>>);
-static_assert(std::random_access_iterator<elemwise_mditer<view_t<Numeric, 9>>>);
-
-static_assert(view_t<Numeric, 10>::is_strided);
-static_assert(not view_t<Numeric, 10>::is_const);
-static_assert(view_t<const Numeric, 10>::is_const);
-static_assert(view_t<Numeric, 10>::is_exhaustive);
-static_assert(view_t<Numeric, 10>::is_unique);
 }  // namespace matpack
 
 template <typename T, Size N>
 struct std::formatter<matpack::view_t<T, N>> {
-  std::formatter<matpack::strided_view_t<const T, N>> fmt;
+  std::formatter<matpack::strided_view_t<const T, N>> fmt{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }

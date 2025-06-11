@@ -103,6 +103,9 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_auto_interface.cpp
     py_auto_options.cpp
 
+    py_auto_agenda_operators.cpp
+    gen_auto_py_helpers.cpp
+
     py_workspace.cpp
     py_matpack.cpp
     py_griddedfield.cpp
@@ -143,10 +146,6 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_module.cpp
     py_file.cpp
     py_nlte.cpp
-
-    py_auto_agenda_operators.cpp
-
-    gen_auto_py_helpers.cpp
 )
 
 if(ENABLE_PCH)

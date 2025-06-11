@@ -20,32 +20,26 @@ using ArrayOfPropmatMatrix        = Array<PropmatMatrix>;
 using ArrayOfArrayOfPropmatVector = Array<ArrayOfPropmatVector>;
 using ArrayOfArrayOfPropmatMatrix = Array<ArrayOfPropmatMatrix>;
 
-using Stokvec                     = rtepack::stokvec;
-using StokvecVector               = rtepack::stokvec_vector;
-using StokvecVectorView           = rtepack::stokvec_vector_view;
-using StokvecConstVectorView      = rtepack::stokvec_vector_const_view;
-using StokvecMatrix               = rtepack::stokvec_matrix;
-using StokvecMatrixView           = rtepack::stokvec_matrix_view;
-using StokvecConstMatrixView      = rtepack::stokvec_matrix_const_view;
-using StokvecTensor3              = rtepack::stokvec_tensor3;
-using StokvecTensor3View          = rtepack::stokvec_tensor3_view;
-using StokvecConstTensor3View     = rtepack::stokvec_tensor3_const_view;
-using StokvecTensor4              = rtepack::stokvec_tensor4;
-using StokvecTensor4View          = rtepack::stokvec_tensor4_view;
-using StokvecConstTensor4View     = rtepack::stokvec_tensor4_const_view;
-using StokvecTensor5              = rtepack::stokvec_tensor5;
-using StokvecTensor5View          = rtepack::stokvec_tensor5_view;
-using StokvecConstTensor5View     = rtepack::stokvec_tensor5_const_view;
-using StokvecTensor6              = rtepack::stokvec_tensor6;
-using StokvecTensor6View          = rtepack::stokvec_tensor6_view;
-using StokvecConstTensor6View     = rtepack::stokvec_tensor6_const_view;
-using StokvecGriddedField6        = matpack::gridded_data_t<Stokvec,
-                                                            AscendingGrid,
-                                                            AscendingGrid,
-                                                            AscendingGrid,
-                                                            AscendingGrid,
-                                                            AscendingGrid,
-                                                            AscendingGrid>;
+using Stokvec                 = rtepack::stokvec;
+using StokvecVector           = rtepack::stokvec_vector;
+using StokvecVectorView       = rtepack::stokvec_vector_view;
+using StokvecConstVectorView  = rtepack::stokvec_vector_const_view;
+using StokvecMatrix           = rtepack::stokvec_matrix;
+using StokvecMatrixView       = rtepack::stokvec_matrix_view;
+using StokvecConstMatrixView  = rtepack::stokvec_matrix_const_view;
+using StokvecTensor3          = rtepack::stokvec_tensor3;
+using StokvecTensor3View      = rtepack::stokvec_tensor3_view;
+using StokvecConstTensor3View = rtepack::stokvec_tensor3_const_view;
+using StokvecTensor4          = rtepack::stokvec_tensor4;
+using StokvecTensor4View      = rtepack::stokvec_tensor4_view;
+using StokvecConstTensor4View = rtepack::stokvec_tensor4_const_view;
+using StokvecTensor5          = rtepack::stokvec_tensor5;
+using StokvecTensor5View      = rtepack::stokvec_tensor5_view;
+using StokvecConstTensor5View = rtepack::stokvec_tensor5_const_view;
+using StokvecTensor6          = rtepack::stokvec_tensor6;
+using StokvecTensor6View      = rtepack::stokvec_tensor6_view;
+using StokvecConstTensor6View = rtepack::stokvec_tensor6_const_view;
+
 using ArrayOfStokvecVector        = Array<StokvecVector>;
 using ArrayOfStokvecMatrix        = Array<StokvecMatrix>;
 using ArrayOfStokvecTensor3       = Array<StokvecTensor3>;
@@ -79,3 +73,28 @@ using ArrayOfSpecmatMatrix        = Array<SpecmatMatrix>;
 using ArrayOfSpecmatTensor3       = Array<SpecmatTensor3>;
 using ArrayOfArrayOfSpecmatVector = Array<ArrayOfSpecmatVector>;
 using ArrayOfArrayOfSpecmatMatrix = Array<ArrayOfSpecmatMatrix>;
+
+using StokvecSortedGriddedField1 =
+    matpack::gridded_data_t<Stokvec, AscendingGrid>;
+using StokvecSortedGriddedField2 =
+    matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField3 = matpack::
+    gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField4 = matpack::gridded_data_t<Stokvec,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid>;
+using StokvecSortedGriddedField5 = matpack::gridded_data_t<Stokvec,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid>;
+using StokvecSortedGriddedField6 = matpack::gridded_data_t<Stokvec,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid,
+                                                           AscendingGrid>;
