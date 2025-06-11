@@ -2835,7 +2835,7 @@ void xml_read_from_stream(std::istream& is_xml,
     try {
       Index irow, icol;
       Stokvec data;
-      is_xml >> irow >> icol >> data.I() >> data.Q() >> data.U() >> data.V();
+      is_xml >> irow >> icol >> double_imanip() >> data.I() >> data.Q() >> data.U() >> data.V();
 
       ARTS_USER_ERROR_IF(irow >= nrows, "Row index out of range")
       ARTS_USER_ERROR_IF(icol >= ncols, "Column index out of range")
