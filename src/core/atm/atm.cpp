@@ -372,9 +372,7 @@ String Data::data_type() const {
   if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
-  ARTS_ASSERT(
-      false,
-      "Cannot be reached, you have added a new type but not doen the plumbing...")
+
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 

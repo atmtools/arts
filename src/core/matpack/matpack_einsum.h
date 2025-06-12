@@ -108,25 +108,11 @@ constexpr Size mddimsize(const auto& xf, const auto&... xs) {
   }
 }
 
-template <any_md T>
-constexpr std::string shape(T&& x) {
- return std::format("{:B,}", x.shape());
-}
-
-constexpr std::string shape(const auto&) { return "()"; }
-
-template <std::array... cs>
-std::string error_msg(const auto&... xs) {
-  std::string out{"operands could not be broadcast together with shapes "};
-  return out + (std::format("{} ", shape(xs)) + ...);
-}
-
 template <std::array... cs>
 constexpr bool good_sizes(const auto&... xs) {
   constexpr char first_char = find_first_char<cs...>();
   const Size n              = mddimsize<first_char, cs...>(xs...);
-  return ((mddimsize<first_char, cs>(xs) ==
-               std::numeric_limits<Size>::max() or
+  return ((mddimsize<first_char, cs>(xs) == std::numeric_limits<Size>::max() or
            n == mddimsize<first_char, cs>(xs)) and
           ...);
 }
@@ -134,9 +120,7 @@ constexpr bool good_sizes(const auto&... xs) {
 
 template <typename T, std::array... cs>
 constexpr T einsum_reduce(const auto&... xs) {
-  ARTS_ASSERT((good_sizes<cs...>(xs...)),
-              "einsum_reduce: {}",
-              error_msg<cs...>(xs...))
+  assert((good_sizes<cs...>(xs...)));
 
   if constexpr ((empty<cs>() and ...)) {
     return (static_cast<T>(xs) * ...);
@@ -206,9 +190,7 @@ constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 template <std::array cr, std::array... cs>
 constexpr void einsum_arr(auto&& xr, const auto&... xs) {
   assert((good_sizes<cr, cs...>(xr, xs...)));
-  ARTS_ASSERT((good_sizes<cr, cs...>(xr, xs...)),
-              "einsum: {}",
-              error_msg<cr, cs...>(xr, xs...))
+  assert((good_sizes<cr, cs...>(xr, xs...)));
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
   }
@@ -273,8 +255,8 @@ template <string_literal sr,
 constexpr void einsum(auto&& xr, const auto&... xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
-  einsum_arr<sr.to_array(), si.to_array()...>(
-      std::forward<decltype(xr)>(xr), xi...);
+  einsum_arr<sr.to_array(), si.to_array()...>(std::forward<decltype(xr)>(xr),
+                                              xi...);
 }
 
 template <typename T,

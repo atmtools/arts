@@ -65,7 +65,7 @@ std::istream& operator>>(std::istream& is, line& x) {
   is >> x.z >> x.ls >> s;
   x.qn.val.reserve(s);
   for (Size i = 0; i < s; i++) is >> x.qn.val.emplace_back();
-  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}", x.qn)
+  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}"sv, x.qn)
 
   return is;
 }

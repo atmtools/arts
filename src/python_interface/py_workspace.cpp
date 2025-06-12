@@ -123,7 +123,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
 
             Wsv wsv = from_py(x);
 
-            if (wsv.index() != w.share(n).index())
+            if (not wsv.holds_same(w.share(n)))
               throw std::domain_error(std::format(
                   R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
                   n,

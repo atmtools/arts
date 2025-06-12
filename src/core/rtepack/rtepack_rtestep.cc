@@ -20,17 +20,17 @@ void two_level_linear_emission_step(stokvec_vector_view I,
   const Size N = I.size();
   const Size M = dI1.nrows();
 
-  ARTS_ASSERT(N == static_cast<Size>(dI1.ncols()) and
-              N == static_cast<Size>(dI2.ncols()) and N == J1.size() and
-              N == J2.size() and N == static_cast<Size>(dJ1.ncols()) and
-              N == static_cast<Size>(dJ2.ncols()) and N == T.size() and
-              N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
-              N == static_cast<Size>(dT2.ncols()))
-  ARTS_ASSERT(M == static_cast<Size>(dI2.nrows()) and
-              M == static_cast<Size>(dJ1.nrows()) and
-              M == static_cast<Size>(dJ2.nrows()) and
-              M == static_cast<Size>(dT1.nrows()) and
-              M == static_cast<Size>(dT2.nrows()))
+  assert(N == static_cast<Size>(dI1.ncols()) and
+         N == static_cast<Size>(dI2.ncols()) and N == J1.size() and
+         N == J2.size() and N == static_cast<Size>(dJ1.ncols()) and
+         N == static_cast<Size>(dJ2.ncols()) and N == T.size() and
+         N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
+         N == static_cast<Size>(dT2.ncols()));
+  assert(M == static_cast<Size>(dI2.nrows()) and
+         M == static_cast<Size>(dJ1.nrows()) and
+         M == static_cast<Size>(dJ2.nrows()) and
+         M == static_cast<Size>(dT1.nrows()) and
+         M == static_cast<Size>(dT2.nrows()));
 
   for (Size i = 0; i < N; i++) {
     const auto J = avg(J1[i], J2[i]);
@@ -50,7 +50,7 @@ void two_level_linear_emission_step(stokvec_vector_view I,
                                     const stokvec_vector_const_view &J2,
                                     const muelmat_vector_const_view &T) {
   const Size N = I.size();
-  ARTS_ASSERT(N == J1.size() and N == J2.size() and N == T.size())
+  assert(N == J1.size() and N == J2.size() and N == T.size());
 
   for (Size i = 0; i < N; i++) {
     const auto J = avg(J1[i], J2[i]);
@@ -67,13 +67,13 @@ void two_level_linear_transmission_step(stokvec_vector_view I,
                                         const muelmat_matrix_const_view &dT2) {
   const Size N = I.size();
   const Size M = dI1.nrows();
-  ARTS_ASSERT(N == static_cast<Size>(dI1.ncols()) and
-              N == static_cast<Size>(dI2.ncols()) and N == T.size() and
-              N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
-              N == static_cast<Size>(dT2.ncols()))
-  ARTS_ASSERT(M == static_cast<Size>(dI2.nrows()) and
-              M == static_cast<Size>(dT1.nrows()) and
-              M == static_cast<Size>(dT2.nrows()))
+  assert(N == static_cast<Size>(dI1.ncols()) and
+         N == static_cast<Size>(dI2.ncols()) and N == T.size() and
+         N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
+         N == static_cast<Size>(dT2.ncols()));
+  assert(M == static_cast<Size>(dI2.nrows()) and
+         M == static_cast<Size>(dT1.nrows()) and
+         M == static_cast<Size>(dT2.nrows()));
 
   for (Size j = 0; j < M; j++) {
     for (Size i = 0; i < N; i++) {

@@ -29,41 +29,35 @@ const Wsv& Workspace::share(const std::string& name) const try {
 }
 
 Wsv Workspace::copy(const std::string& name) const {
-  return share(name).copy();
+  return share(name).copied();
 }
 
-void Workspace::set(const std::string& name, const Wsv& data) try {
+void Workspace::set(const std::string& name, const Wsv& data) {
   auto ptr = wsv.find(name);
 
   if (ptr == wsv.end()) {
     if (auto wsv_ptr = workspace_variables().find(name);
         wsv_ptr != workspace_variables().end() and
-        wsv_ptr->second.type != data.type_name())
-      throw wsv_ptr->second.type;
+        wsv_ptr->second.type != data.type_name()) {
+      throw std::runtime_error(std::format(
+          R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
+          name,
+          wsv_ptr->second.type,
+          data.type_name()));
+    }
 
     wsv[name] = data;
   } else {
-    std::visit(
-        [&data](auto& v) {
-          // std::get may throw std::bad_variant_access
-          *v = *std::get<std::remove_cvref_t<decltype(v)>>(data.value());
-        },
-        ptr->second.value());
+    if (not ptr->second.holds_same(data)) {
+      throw std::runtime_error(std::format(
+          R"(Workspace variable "{}" is of type "{}". It cannot be set to be a "{}")",
+          name,
+          ptr->second.type_name(),
+          data.type_name()));
+    }
+
+    ptr->second = data;
   }
-} catch (const std::bad_variant_access&) {
-  throw std::runtime_error(
-      std::format(R"(Workspace variable "{}" is of type "{}".
-It cannot be set to be a "{}"
-)",
-                  name,
-                  wsv.at(name).type_name(),
-                  data.type_name()));
-} catch (const std::string& type) {
-  throw std::runtime_error(std::format(
-      R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
-      name,
-      type,
-      data.type_name()));
 }
 
 void Workspace::overwrite(const std::string& name, const Wsv& data) try {
@@ -101,7 +95,7 @@ void Workspace::init(const std::string& name) try {
   set(name, Wsv::from_named_type(workspace_variables().at(name).type));
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      artsformat("Undefined workspace variable \"{}\"", name));
+      std::format("Undefined workspace variable \"{}\"", name));
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Error setting '{}'\n{}", name, e.what()));
@@ -110,7 +104,7 @@ void Workspace::init(const std::string& name) try {
 Workspace Workspace::deepcopy() const {
   Workspace ws = *this;
   for (auto& [_, value] : ws.wsv) {
-    value = value.copy();
+    value = value.copied();
   }
   return ws;
 }

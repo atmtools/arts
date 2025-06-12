@@ -29,7 +29,6 @@
 #include <ostream>
 #include <vector>
 
-
 // Simple member Functions
 // ----------------
 
@@ -66,10 +65,10 @@ Index Sparse::nnz() const { return matrix.nonZeros(); }
 */
 Numeric& Sparse::rw(Index r, Index c) {
   // Check if indices are valid:
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(0 <= c);
-  ARTS_ASSERT(r < nrows());
-  ARTS_ASSERT(c < ncols());
+  assert(0 <= r);
+  assert(0 <= c);
+  assert(r < nrows());
+  assert(c < ncols());
 
   return matrix.coeffRef((int)r, (int)c);
 }
@@ -105,10 +104,10 @@ Numeric Sparse::operator[](Index r, Index c) const {
   \date   Tue Jul 15 15:05:40 2003 */
 Numeric Sparse::ro(Index r, Index c) const {
   // Check if indices are valid:
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(0 <= c);
-  ARTS_ASSERT(r < nrows());
-  ARTS_ASSERT(c < ncols());
+  assert(0 <= r);
+  assert(0 <= c);
+  assert(r < nrows());
+  assert(c < ncols());
 
   return matrix.coeff((int)r, (int)c);
 }
@@ -260,8 +259,8 @@ void Sparse::list_elements(Vector& values,
   for (int i = 0; i < m; i++) {
     Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(matrix, i);
     for (; it; ++it) {
-      values[j] = it.value();
-      row_indices[j] = it.row();
+      values[j]         = it.value();
+      row_indices[j]    = it.row();
       column_indices[j] = it.col();
       j++;
     }
@@ -293,9 +292,9 @@ void Sparse::split(Index offset, Index nrows_block) {
 */
 void Sparse::insert_row(Index r, Vector v) {
   // Check if the row index and the Vector length are valid
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(r < nrows());
-  ARTS_ASSERT(v.size() == static_cast<Size>(ncols()));
+  assert(0 <= r);
+  assert(r < nrows());
+  assert(v.size() == static_cast<Size>(ncols()));
 
   for (int i = 0; i < ncols(); i++) {
     if (v[i] != 0) matrix.coeffRef((int)r, i) = v[i];
@@ -339,8 +338,8 @@ void Sparse::insert_elements(Index nelems,
   \param c New column dimension.
 */
 void Sparse::resize(Index r, Index c) {
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(0 <= c);
+  assert(0 <= r);
+  assert(0 <= c);
 
   matrix.resize((int)r, (int)c);
 }
@@ -373,8 +372,8 @@ std::ostream& operator<<(std::ostream& os, const Sparse& M) {
 */
 void abs(Sparse& A, const Sparse& B) {
   // Check dimensions
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == B.ncols());
+  assert(A.nrows() == B.nrows());
+  assert(A.ncols() == B.ncols());
 
   A.matrix = B.matrix.cwiseAbs();
 }
@@ -396,10 +395,10 @@ void abs(Sparse& A, const Sparse& B) {
 */
 void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.size() == static_cast<Size>(M.nrows()));
-  ARTS_ASSERT(static_cast<Size>(M.ncols()) == x.size());
+  assert(y.size() == static_cast<Size>(M.nrows()));
+  assert(static_cast<Size>(M.ncols()) == x.size());
 
-    // Typedefs for Eigen interface
+  // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
       EigenColumnVector;
   typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
@@ -429,12 +428,14 @@ void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   \param M Matrix for multiplication (sparse).
   \param x Vector for multiplication.
 */
-void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
+void transpose_mult(StridedVectorView y,
+                    const Sparse& M,
+                    StridedConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.size() == static_cast<Size>(M.ncols()));
-  ARTS_ASSERT(static_cast<Size>(M.nrows()) == x.size());
+  assert(y.size() == static_cast<Size>(M.ncols()));
+  assert(static_cast<Size>(M.nrows()) == x.size());
 
-    // Typedefs for Eigen interface
+  // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
       EigenColumnVector;
   typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
@@ -467,13 +468,14 @@ void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C) {
+void mult(StridedMatrixView A,
+          const Sparse& B,
+          const StridedConstMatrixView& C) {
   // Check dimensions:
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == C.ncols());
-  ARTS_ASSERT(B.ncols() == C.nrows());
+  assert(A.nrows() == B.nrows());
+  assert(A.ncols() == C.ncols());
+  assert(B.ncols() == C.nrows());
 
-  
   // Typedefs for Eigen interface
   typedef Eigen::
       Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
@@ -482,7 +484,7 @@ void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C)
   typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
 
   Index row_stride, column_stride;
-  row_stride = C.stride(0);
+  row_stride    = C.stride(0);
   column_stride = C.stride(1);
 
   Numeric* data;
@@ -490,9 +492,9 @@ void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C)
   Stride c_stride(row_stride, column_stride);
   MatrixMap C_map(data, C.nrows(), C.ncols(), c_stride);
 
-  row_stride = A.stride(0);
+  row_stride    = A.stride(0);
   column_stride = A.stride(1);
-  data = A.data_handle();
+  data          = A.data_handle();
   Stride a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
@@ -517,13 +519,15 @@ void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C)
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C) {
+void mult(StridedMatrixView A,
+          const StridedConstMatrixView& B,
+          const Sparse& C) {
   // Check dimensions:
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == C.ncols());
-  ARTS_ASSERT(B.ncols() == C.nrows());
+  assert(A.nrows() == B.nrows());
+  assert(A.ncols() == C.ncols());
+  assert(B.ncols() == C.nrows());
 
-    // Typedefs for Eigen interface.
+  // Typedefs for Eigen interface.
   typedef Eigen::
       Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
           EigenMatrix;
@@ -531,7 +535,7 @@ void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C)
   typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
 
   Index row_stride, column_stride;
-  row_stride = B.stride(0);
+  row_stride    = B.stride(0);
   column_stride = B.stride(1);
 
   Numeric* data;
@@ -539,9 +543,9 @@ void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C)
   Stride b_stride(row_stride, column_stride);
   MatrixMap B_map(data, B.nrows(), B.ncols(), b_stride);
 
-  row_stride = A.stride(0);
+  row_stride    = A.stride(0);
   column_stride = A.stride(1);
-  data = A.data_handle();
+  data          = A.data_handle();
   Stride a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
@@ -562,8 +566,8 @@ void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C)
 */
 void transpose(Sparse& A, const Sparse& B) {
   // Check dimensions
-  ARTS_ASSERT(A.nrows() == B.ncols());
-  ARTS_ASSERT(A.ncols() == B.nrows());
+  assert(A.nrows() == B.ncols());
+  assert(A.ncols() == B.nrows());
 
   A.matrix = B.matrix.transpose();
 }
@@ -586,9 +590,9 @@ void transpose(Sparse& A, const Sparse& B) {
 */
 void mult(Sparse& A, const Sparse& B, const Sparse& C) {
   // Check dimensions and make sure that A is empty
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == C.ncols());
-  ARTS_ASSERT(B.ncols() == C.nrows());
+  assert(A.nrows() == B.nrows());
+  assert(A.ncols() == C.ncols());
+  assert(B.ncols() == C.nrows());
 
   A.matrix = B.matrix * C.matrix;
 }
@@ -610,8 +614,8 @@ void mult(Sparse& A, const Sparse& B, const Sparse& C) {
 */
 void add(Sparse& A, const Sparse& B, const Sparse& C) {
   // Check dimensions
-  ARTS_ASSERT(B.ncols() == C.ncols());
-  ARTS_ASSERT(B.nrows() == C.nrows());
+  assert(B.ncols() == C.ncols());
+  assert(B.nrows() == C.nrows());
 
   A.resize(B.nrows(), B.ncols());
   A.matrix = B.matrix + C.matrix;
@@ -626,7 +630,7 @@ void add(Sparse& A, const Sparse& B, const Sparse& C) {
   \param A The matrix to be set to the identity matrix.
 */
 void id_mat(Sparse& A) {
-  ARTS_ASSERT(A.ncols() == A.nrows());
+  assert(A.ncols() == A.nrows());
   A.matrix.setIdentity();
 }
 
@@ -649,8 +653,8 @@ void sub(Sparse& A, const Sparse& B, const Sparse& C) {
   A.resize(B.nrows(), B.ncols());
 
   // Check dimensions
-  ARTS_ASSERT(B.ncols() == C.ncols());
-  ARTS_ASSERT(B.nrows() == C.nrows());
+  assert(B.ncols() == C.ncols());
+  assert(B.nrows() == C.nrows());
 
   A.matrix = B.matrix - C.matrix;
 }

@@ -11,7 +11,9 @@
 namespace Python {
 void py_path(py::module_& m) try {
   py::class_<PropagationPathPoint> pppp(m, "PropagationPathPoint");
+
   workspace_group_interface(pppp);
+
   pppp.def_rw("pos_type",
               &PropagationPathPoint::pos_type,
               ":class:`~pyarts.arts.PathPositionType` Path position type")
@@ -36,6 +38,7 @@ void py_path(py::module_& m) try {
       m, "ArrayOfPropagationPathPoint");
   workspace_group_interface(a1);
   vector_interface(a1);
+
   auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropagationPathPoint");
@@ -109,6 +112,6 @@ za : Numeric
       "Calculate the distance between two positions");
 } catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize ppath\n{}", e.what()));
+      std::format("DEV ERROR:\nCannot initialize path\n{}", e.what()));
 }
 }  // namespace Python

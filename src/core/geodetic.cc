@@ -171,7 +171,7 @@ void enu2los(VectorView los, ConstVectorView enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = norm2(enu);
-  ARTS_ASSERT(fabs(twonorm - 1.0) < 1e-6);
+  assert(fabs(twonorm - 1.0) < 1e-6);
   los[0] = RAD2DEG * acos(enu[2] / twonorm);
   los[1] = RAD2DEG * atan2(enu[0], enu[1]);
 }

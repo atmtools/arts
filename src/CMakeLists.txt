@@ -28,11 +28,18 @@ target_link_libraries(workspace_core PRIVATE arts_options)
 add_executable(make_auto_wsg make_auto_wsg.cpp)
 add_custom_command(OUTPUT
   auto_wsg.h
-  auto_wsg_init.cpp
-  auto_wsg_share.cpp
+  auto_wsg_docs.cpp
+  auto_wsg_valid_wsg.cpp
   auto_workspace.cpp
   auto_agenda_operators.h
   auto_agenda_operators.cpp
+  auto_wsv_value_wrapper_read_from_stream.cpp
+  auto_wsv_value_wrapper_write_to_stream.cpp
+  auto_wsv_value_wrapper_copied.cpp
+  auto_wsv_value_wrapper_from_named_type.cpp
+  auto_wsv_value_wrapper_type_name.cpp
+  auto_wsv_value_wrapper_vformat.cpp
+  auto_wsv_value_wrapper.h
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -42,13 +49,18 @@ target_link_libraries(make_auto_wsg PRIVATE workspace_core)
 
 # ####
 add_library(workspace_internals STATIC
+  auto_wsv_value_wrapper_copied.cpp
+  auto_wsv_value_wrapper_vformat.cpp
+  auto_wsv_value_wrapper_read_from_stream.cpp
+  auto_wsv_value_wrapper_write_to_stream.cpp
+  workspace_methods.cpp
+  auto_wsv_value_wrapper_from_named_type.cpp
+  auto_wsv_value_wrapper_type_name.cpp
   workspace_agenda_class_default_constructor.cpp
   workspace_meta_methods.cpp
-  workspace_methods.cpp
   workspace_variables_keywords.cpp
-  workspace_wsv.cpp
-  auto_wsg_init.cpp
-  auto_wsg_share.cpp
+  auto_wsg_docs.cpp
+  auto_wsg_valid_wsg.cpp
 )
 target_link_libraries(workspace_internals PUBLIC workspace_core artscore scattering)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

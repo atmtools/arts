@@ -672,8 +672,8 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
    * @param Pointer to the SHT to use for the transformation.
    */
   PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
-    ARTS_ASSERT(sht->get_n_azimuth_angles() == 1);
-    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
+    assert(sht->get_n_azimuth_angles() == 1);
+    assert(sht->get_n_zenith_angles() == n_za_scat_);
 
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, sht);
 
@@ -1039,7 +1039,7 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
    * @param Pointer to the SHT to use for the transformation.
    */
   PhaseMatrixDataGridded to_gridded() const {
-    ARTS_ASSERT(sht_->get_n_spectral_coeffs() == n_spectral_coeffs_);
+    assert(sht_->get_n_spectral_coeffs() == n_spectral_coeffs_);
 
     auto za_grid =
         std::make_shared<ZenithAngleGrid>(sht_->get_zenith_angle_grid());
@@ -1319,8 +1319,8 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
    * @param Pointer to the SHT to use for the transformation.
    */
   PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
-    ARTS_ASSERT(sht->get_n_azimuth_angles() == n_delta_aa_);
-    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
+    assert(sht->get_n_azimuth_angles() == n_delta_aa_);
+    assert(sht->get_n_zenith_angles() == n_za_scat_);
 
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, za_inc_grid_, sht);
 

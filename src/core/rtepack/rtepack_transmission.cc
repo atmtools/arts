@@ -344,8 +344,8 @@ void two_level_exp(muelmat &t,
                    const Numeric r,
                    const ConstVectorView &dr1,
                    const ConstVectorView &dr2) {
-  ARTS_ASSERT(dk1.size() == dk2.size() and dk1.size() == dr1.size() and
-              dk1.size() == dr2.size())
+  assert(dk1.size() == dk2.size() and dk1.size() == dr1.size() and
+         dk1.size() == dr2.size());
 
   const tran tran_state{k1, k2, r};
   t = tran_state();
@@ -371,17 +371,17 @@ void two_level_exp(muelmat_vector_view tv,
   const Size nf = tv.size();
   const Size nq = dr1v.size();
 
-  ARTS_ASSERT(nf == k1v.size());
-  ARTS_ASSERT(nf == k2v.size());
-  ARTS_ASSERT(nf == static_cast<Size>(dk1v.ncols()));
-  ARTS_ASSERT(nf == static_cast<Size>(dk2v.ncols()));
-  ARTS_ASSERT(nq == static_cast<Size>(dk1v.nrows()));
-  ARTS_ASSERT(nq == static_cast<Size>(dk2v.nrows()));
-  ARTS_ASSERT(nf == static_cast<Size>(dt1v.ncols()));
-  ARTS_ASSERT(nf == static_cast<Size>(dt2v.ncols()));
-  ARTS_ASSERT(nq == static_cast<Size>(dt1v.nrows()));
-  ARTS_ASSERT(nq == static_cast<Size>(dt2v.nrows()));
-  ARTS_ASSERT(nq == dr2v.size());
+  assert(nf == k1v.size());
+  assert(nf == k2v.size());
+  assert(nf == static_cast<Size>(dk1v.ncols()));
+  assert(nf == static_cast<Size>(dk2v.ncols()));
+  assert(nq == static_cast<Size>(dk1v.nrows()));
+  assert(nq == static_cast<Size>(dk2v.nrows()));
+  assert(nf == static_cast<Size>(dt1v.ncols()));
+  assert(nf == static_cast<Size>(dt2v.ncols()));
+  assert(nq == static_cast<Size>(dt1v.nrows()));
+  assert(nq == static_cast<Size>(dt2v.nrows()));
+  assert(nq == dr2v.size());
 
   for (Size i = 0; i < nf; ++i) {
     const tran tran_state{k1v[i], k2v[i], rv};
@@ -402,8 +402,8 @@ void two_level_exp(muelmat_vector_view tv,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const Numeric rv) {
-  ARTS_ASSERT(k2v.size() == k1v.size());
-  ARTS_ASSERT(tv.size() == k1v.size());
+  assert(k2v.size() == k1v.size());
+  assert(tv.size() == k1v.size());
 
   std::transform(
       k1v.begin(),

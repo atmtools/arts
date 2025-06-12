@@ -13,7 +13,9 @@
 namespace Python {
 void py_time(py::module_& m) try {
   py::class_<Time> time(m, "Time");
+
   workspace_group_interface(time);
+
   time.def(
           "__init__",
           [](Time* t, std::chrono::system_clock::time_point nt) {
@@ -77,10 +79,13 @@ void py_time(py::module_& m) try {
           "n"_a,
           "Allows `n - self`")
       .def("__getstate__",
-           [](const Time& t) { return std::tuple<std::string>{std::format("{}", t)}; })
+           [](const Time& t) {
+             return std::tuple<std::string>{std::format("{}", t)};
+           })
       .def("__setstate__", [](Time* t, const std::tuple<std::string>& state) {
         new (t) Time{std::get<0>(state)};
       });
+
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
@@ -97,7 +102,9 @@ void py_time(py::module_& m) try {
                       return out;
                     },
                     "A :class:`list` of :class:`datetime.datetime`");
+
   workspace_group_interface(a1);
+
   vector_interface(a1);
 
   auto a2 =

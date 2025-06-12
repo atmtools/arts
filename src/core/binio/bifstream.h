@@ -17,7 +17,6 @@
 #include <fstream>
 
 #include "binio.h"
-#include "debug.h"
 
 //! Binary output file stream class
 /*!
@@ -29,15 +28,9 @@ class bifstream final : public binistream, public std::ifstream {
   bifstream() : std::ifstream() {}
 
   explicit bifstream(const char* name,
-                     std::ios::openmode mode = std::ios::in | std::ios::binary)
-      : std::ifstream(name, mode) {
-    // Open a second file descriptor for fast array reading
-    if (!(this->mfilep = fopen(name, "rb"))) {
-      ARTS_USER_ERROR("Failed to open {}", name);
-    }
-  }
+                     std::ios::openmode mode = std::ios::in | std::ios::binary);
 
-   ~bifstream() final {
+  ~bifstream() final {
     if (mfilep) {
       fclose(mfilep);
     }
@@ -47,19 +40,10 @@ class bifstream final : public binistream, public std::ifstream {
   std::streampos pos() final;
 
   bifstream::Byte getByte() final;
-  void getRaw(char* c, std::streamsize n) final {
-    if (n <= 8) {
-      this->read(c, n);
-    } else {
-      fseek(mfilep, this->tellg(), SEEK_SET);
-      size_t nread = fread(c, sizeof(char), n, mfilep);
-      ARTS_USER_ERROR_IF((std::streamsize)nread != n,
-                         "Unexpectedly reached end of binary input file.");
-      seek(nread, Add);
-    }
-  }
+  void getRaw(char* c, std::streamsize n) final;
 
-private : FILE* mfilep{nullptr};
+ private:
+  FILE* mfilep{nullptr};
 };
 
 /* Overloaded input operators */

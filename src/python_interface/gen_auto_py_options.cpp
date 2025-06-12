@@ -10,11 +10,11 @@
 #include "pydocs.h"
 
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
-os << std::format(R"-x-(
+std::print(os, R"-x-(
 void enum_{0}(py::module_& m) {{
    py::class_<{0}> _g{0}(m, "{0}");
 
-   _g{0}.doc() = PythonWorkspaceGroupInfo<{0}>::desc;
+   _g{0}.doc() = PythonWorkspaceGroupInfo<{0}>::desc();
 
    xml_interface(_g{0});
    

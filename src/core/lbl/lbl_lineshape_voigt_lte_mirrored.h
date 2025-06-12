@@ -171,7 +171,7 @@ constexpr auto frequency_spans(const Numeric cutoff,
                                const Numeric f,
                                const std::span<const single_shape>& lines,
                                const Ts&... lists) {
-  ARTS_ASSERT(lines.size() == (static_cast<Size>(lists.size()) and ...))
+  assert(lines.size() == (static_cast<Size>(lists.size()) and ...));
 
   const auto [start, count] =
       find_offset_and_count_of_frequency_range(lines, f, cutoff);

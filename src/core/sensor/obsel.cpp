@@ -137,9 +137,9 @@ SparseStokvecMatrix::operator StokvecMatrix() const {
 }
 
 void Obsel::check() const {
-  ARTS_ASSERT(f, "Must exist");
+  assert(f\);
 
-  ARTS_ASSERT(poslos, "Must exist");
+  assert(poslos\);
 
   ARTS_USER_ERROR_IF(
       (w.shape() != std::array{static_cast<Index>(poslos->size()),
@@ -225,8 +225,8 @@ void Obsel::normalize(Stokvec pol) {
 }
 
 Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
-  ARTS_ASSERT(i.size() == f->size(), "Bad size");
-  ARTS_ASSERT(ip < static_cast<Index>(poslos->size()) and ip >= 0, "Bad index");
+  assert(i.size() == f->size());
+  assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);
 
   // w is a sparse sorted matrix of shape poslos->size() x f->size()
   const SparseStokvec v0{.irow = static_cast<Size>(ip),
@@ -238,7 +238,7 @@ Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
 
   Numeric sum = 0.0;
   for (const auto& ws : span) {
-    ARTS_ASSERT(ws.icol < i.size(), "Bad index in sparse matrix");
+    assert(ws.icol < i.size());
     sum += dot(i[ws.icol], ws.data);
   }
   return sum;

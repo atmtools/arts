@@ -112,7 +112,7 @@ void py_species(py::module_& m) try {
   py::class_<SpeciesIsotope> siso(m, "SpeciesIsotope");
   workspace_group_interface(siso);
   siso.doc() = std::format("{}\n\n{}\n\n",
-                           PythonWorkspaceGroupInfo<SpeciesIsotope>::desc,
+                           PythonWorkspaceGroupInfo<SpeciesIsotope>::desc(),
                            docs_isotopes());
   siso.def(
           "__init__",

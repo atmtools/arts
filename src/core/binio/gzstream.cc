@@ -78,7 +78,7 @@ int gzstreambuf::underflow() {  // used for input buffer only
 
   if (!(mode & std::ios::in) || !opened) return EOF;
   // Josuttis' implementation of inbuf
-  ARTS_ASSERT(gptr() != NULL);
+  assert(gptr() != NULL);
   int n_putback = (int)(gptr() - eback());
   if (n_putback > 4) n_putback = 4;
   memcpy(buffer + (4 - n_putback), gptr() - n_putback, n_putback);

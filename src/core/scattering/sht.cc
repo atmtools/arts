@@ -98,7 +98,7 @@ Index SHT::get_coeff_index(Index l, Index m) {
 void SHT::set_spectral_coeffs(
     const matpack::strided_view_t<const Complex, 1> &view) const {
   // Input size must match number of spectral coefficients of SHT.
-  ARTS_ASSERT(view.size() == static_cast<Size>(n_spectral_coeffs_));
+  assert(view.size() == static_cast<Size>(n_spectral_coeffs_));
   Index index = 0;
   for (auto &x : view) {
     spectral_coeffs_[index] = x;
@@ -109,7 +109,7 @@ void SHT::set_spectral_coeffs(
 void SHT::set_spectral_coeffs_cmplx(
     const matpack::strided_view_t<const Complex, 1> &view) const {
   // Input size must match number of spectral coefficients of SHT.
-  ARTS_ASSERT(view.size() == static_cast<Size>(n_spectral_coeffs_cmplx_));
+  assert(view.size() == static_cast<Size>(n_spectral_coeffs_cmplx_));
   Index index = 0;
   for (auto &x : view) {
     spectral_coeffs_cmplx_[index] = x;
@@ -293,7 +293,7 @@ Vector SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
     }
     return results;
   }
-  ARTS_ASSERT(m_max_ == 0);
+  assert(m_max_ == 0);
   set_spectral_coeffs(view);
   Size n_points = thetas.size();
   Vector result(n_points);

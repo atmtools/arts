@@ -37,9 +37,9 @@ struct Tag {
     return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
   }
 
-  constexpr void Isotopologue(const SpeciesIsotope& ir)  {
+  constexpr void Isotopologue(const SpeciesIsotope& ir) {
     Index ind = find_species_index(ir);
-    ARTS_ASSERT(ind < 0, "Bad species extracted from: {}", ir)
+    assert(ind >= 0);
     spec_ind = ind;
   }
 
@@ -60,8 +60,9 @@ struct Tag {
   [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept =
       default;
 
-  [[nodiscard]] constexpr bool is_joker() const  {
-    ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;
+  [[nodiscard]] constexpr bool is_joker() const {
+    assert(spec_ind >= 0);
+    return Joker == Isotopologue().isotname;
   }
 };
 }  // namespace Species
@@ -87,7 +88,7 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 
   ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A);
 
-  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept ;
+  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept;
 
   [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const;
 
@@ -97,20 +98,20 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
                                   const ArrayOfSpeciesTag& ot);
 
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesEnum Species() const  ;
+  [[nodiscard]] SpeciesEnum Species() const;
 
   //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesTagType Type() const ;
+  [[nodiscard]] SpeciesTagType Type() const;
 
   [[nodiscard]] String Name() const;
 
-  [[nodiscard]] bool Plain() const noexcept ;
+  [[nodiscard]] bool Plain() const noexcept;
 
-  [[nodiscard]] bool RequireLines() const noexcept ;
+  [[nodiscard]] bool RequireLines() const noexcept;
 
-  [[nodiscard]] bool FreeElectrons() const noexcept ;
+  [[nodiscard]] bool FreeElectrons() const noexcept;
 
-  [[nodiscard]] bool Particles() const noexcept ;
+  [[nodiscard]] bool Particles() const noexcept;
 };
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
@@ -180,7 +181,7 @@ namespace Species {
  */
 Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Vector& rtp_vmr,
-                  const SpeciesEnum spec) ;
+                  const SpeciesEnum spec);
 
 /** Parse a list of species tags into an Array<Tag>
  *
@@ -242,17 +243,16 @@ struct std::formatter<SpeciesTag> {
 
     switch (v.type) {
       case SpeciesTagType::Plain:
-        if (not v.is_joker()) std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
+        if (not v.is_joker())
+          std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Predefined:
-        std::format_to(ctx.out(), "-{}",v.Isotopologue().isotname);
+        std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Cia:
         std::format_to(ctx.out(), "-CIA-{}", v.cia_2nd_species);
         break;
-      case SpeciesTagType::XsecFit:
-        std::format_to(ctx.out(), "-XFIT");
-        break;
+      case SpeciesTagType::XsecFit: std::format_to(ctx.out(), "-XFIT"); break;
     }
 
     std::format_to(ctx.out(), "{}", quote);

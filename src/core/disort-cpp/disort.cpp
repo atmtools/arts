@@ -15,8 +15,8 @@ namespace disort {
 void BDRF::operator()(MatrixView x,
                       const ConstVectorView& a,
                       const ConstVectorView& b) const {
-  ARTS_ASSERT(static_cast<Size>(x.nrows()) == a.size());
-  ARTS_ASSERT(static_cast<Size>(x.ncols()) == b.size());
+  assert(static_cast<Size>(x.nrows()) == a.size());
+  assert(static_cast<Size>(x.ncols()) == b.size());
   f(x, a, b);
 }
 

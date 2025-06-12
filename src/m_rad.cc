@@ -112,7 +112,7 @@ void spectral_radiance_jacobianAddPathPropagation(
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
-          ARTS_ASSERT(i < static_cast<Size>(nj))
+          assert(i < static_cast<Size>(nj));
           std::transform(
               ray_path_spectral_radiance_jacobian[ip][atm_block.target_pos]
                   .begin(),

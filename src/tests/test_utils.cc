@@ -110,8 +110,8 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
   Index m = A.nrows();
   Index n = A.ncols();
 
-  ARTS_ASSERT(B.nrows() == m);
-  ARTS_ASSERT(B.ncols() == n);
+  assert(B.nrows() == m);
+  assert(B.ncols() == n);
 
   Rand<Numeric> random_number(positive ? 0 : -range, range);
 
@@ -165,7 +165,7 @@ void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positiv
   Index n = A.ncols();
 
   // Ensure that A is square.
-  ARTS_ASSERT(A.ncols() == A.nrows());
+  assert(A.ncols() == A.nrows());
 
   // Generate random, pos. semi-def. Matrix
   random_fill_matrix(A, range, positive);
@@ -233,8 +233,8 @@ void random_fill_vector(VectorView v, Numeric range, bool positive) {
 */
 StridedMatrixView random_submatrix(StridedMatrixView A, int m, int n) {
   Index m0(A.nrows()), n0(A.ncols());
-  ARTS_ASSERT((0 <= m) && (m <= m0));
-  ARTS_ASSERT((0 <= n) && (m <= n0));
+  assert((0 <= m) && (m <= m0));
+  assert((0 <= n) && (m <= n0));
 
   Rand<Index> rand_m(0, (m0 - m - 1)), rand_n(0, (n0 - n - 1));
   Index m1, n1;

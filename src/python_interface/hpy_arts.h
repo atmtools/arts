@@ -214,15 +214,20 @@ void str_interface(py::class_<T>& c) {
 template <WorkspaceGroup T>
 void workspace_group_interface(py::class_<T>& c) {
   c.def(py::init<>());
+    
   c.def(py::init<T>());
 
+    
   c.def("__copy__", [](const T& t) -> T { return t; });
+    
   c.def("__deepcopy__", [](const T& t, py::dict&) -> T { return t; });
 
   str_interface(c);
+    
   xml_interface<T>(c);
+    
 
-  c.doc() = PythonWorkspaceGroupInfo<T>::desc;
+  c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
 }
 
 template <WorkspaceGroup T>
@@ -239,6 +244,6 @@ void workspace_group_interface(py::class_<ValueHolder<T>>& c) {
   str_interface(c);
   xml_interface<U, T>(c);
 
-  c.doc() = PythonWorkspaceGroupInfo<T>::desc;
+  c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
 }
 }  // namespace Python

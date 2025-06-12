@@ -396,13 +396,13 @@ Value::Value(QuantumNumberType t, Rational upp_, Rational low_) : Value(t) {
   Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
   if (common_value_type(type) == QuantumNumberValueType::H) {
-    ARTS_ASSERT(upp.denom <= 2 and low.denom <= 2)
+    assert(upp.denom <= 2 and low.denom <= 2);
     if (upp.denom not_eq 2) upp *= 2;
     if (low.denom not_eq 2) low *= 2;
     qn.upp.h.x = upp.numer;
     qn.low.h.x = low.numer;
   } else if (common_value_type(type) == QuantumNumberValueType::I) {
-    ARTS_ASSERT(upp.denom == 1 and low.denom == 1)
+    assert(upp.denom == 1 and low.denom == 1);
     qn.upp.i.x = upp.numer;
     qn.low.i.x = low.numer;
   } else {
@@ -792,8 +792,8 @@ void ValueList::finalize() {
 }
 
 bool ValueList::perpendicular(const ValueList& that) const {
-  ARTS_ASSERT(has_unique_increasing_types())
-  ARTS_ASSERT(that.has_unique_increasing_types())
+  assert(has_unique_increasing_types());
+  assert(that.has_unique_increasing_types());
 
   auto this_val = cbegin();
   auto that_val = that.cbegin();
@@ -830,7 +830,7 @@ CheckMatch ValueList::check_match(const ValueList& other) const {
 const Value& ValueList::operator[](QuantumNumberType t) const {
   auto val =
       std::find_if(cbegin(), cend(), [t](auto& x) { return x.type == t; });
-  ARTS_ASSERT(val not_eq cend())
+  assert(val not_eq cend());
   return *val;
 }
 

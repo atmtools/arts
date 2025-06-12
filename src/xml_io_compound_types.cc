@@ -802,9 +802,9 @@ void xml_write_to_stream(std::ostream& os_xml,
 }
 
 void chk_scat_data(const SingleScatteringData& scat_data_single) {
-  ARTS_ASSERT(scat_data_single.ptype == PTYPE_GENERAL ||
-              scat_data_single.ptype == PTYPE_TOTAL_RND ||
-              scat_data_single.ptype == PTYPE_AZIMUTH_RND);
+  assert(scat_data_single.ptype == PTYPE_GENERAL ||
+         scat_data_single.ptype == PTYPE_TOTAL_RND ||
+         scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
   ARTS_USER_ERROR_IF(scat_data_single.za_grid[0] != 0.,
                      "The first value of the zenith angle grid in the single"
@@ -2063,9 +2063,9 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
       [&](auto& key_val) {
         if constexpr (Surf::isSurfaceKey<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "AtmKey");
-        else
-          ARTS_ASSERT(false,
-                      "New key type is not yet handled by writing routine!")
+        else {
+          assert(false);
+        }
 
         open_data_tag.add_attribute("key", std::format("{}", key_val));
         open_data_tag.add_attribute("type", data.data_type());
@@ -2166,10 +2166,10 @@ void xml_read_from_stream(std::istream& is_xml,
       surf[to<SurfaceKey>(k)] = v;
       nother--;
     } else {
-      ARTS_ASSERT(false)
+      assert(false);
     }
   }
-  ARTS_ASSERT((nother) == 0)
+  assert((nother) == 0);
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -2232,8 +2232,7 @@ void xml_read_from_stream(std::istream& is_xml, Wsv& wsv, bifstream* pbifs) {
   open_tag.get_attribute_value("type", type);
 
   wsv = Wsv::from_named_type(type);
-  std::visit([&](auto& x) { xml_read_from_stream(is_xml, *x, pbifs); },
-             wsv.value());
+  wsv.read_from_stream(is_xml, pbifs);
 
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
@@ -2252,8 +2251,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
-  std::visit([&](auto& x) { xml_write_to_stream(os_xml, *x, pbofs, ""); },
-             wsv.value());
+  wsv.write_to_stream(os_xml, pbofs, "wsv");
 
   close_tag.set_name("/Wsv");
   close_tag.write_to_stream(os_xml);
@@ -2957,8 +2955,11 @@ void xml_read_from_stream(std::istream& is_xml,
 
       g.emplace_back(freqs.at(ifreq), plos.at(iplos), weight_matrix);
     } catch (const std::exception& e) {
-      throw std::runtime_error(std::format(
-          "Error reading ArrayOfSensorObsel element {}/{}:\n{}", i, nelem, e.what()));
+      throw std::runtime_error(
+          std::format("Error reading ArrayOfSensorObsel element {}/{}:\n{}",
+                      i,
+                      nelem,
+                      e.what()));
     }
   }
 

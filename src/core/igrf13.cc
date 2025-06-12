@@ -400,7 +400,7 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) /
                           (y2020.Seconds() - y2015.Seconds());
-    ARTS_ASSERT(scale >= 0 and scale < 1)
+    assert(scale >= 0 and scale < 1);
 
     Vector3 out  = igrf_impl(mg2020, mh2020, pos, ell);
     out         *= (1.0 - scale);
@@ -417,7 +417,7 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) /
                           (y2015.Seconds() - y2010.Seconds());
-    ARTS_ASSERT(scale >= 0 and scale < 1)
+    assert(scale >= 0 and scale < 1);
 
     Vector3 out  = igrf_impl(mg2015, mh2015, pos, ell);
     out         *= (1.0 - scale);
@@ -434,7 +434,7 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) /
                           (y2010.Seconds() - y2005.Seconds());
-    ARTS_ASSERT(scale >= 0 and scale < 1)
+    assert(scale >= 0 and scale < 1);
 
     Vector3 out  = igrf_impl(mg2010, mh2010, pos, ell);
     out         *= (1.0 - scale);
@@ -452,7 +452,7 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) /
                           (y2005.Seconds() - y2000.Seconds());
-    ARTS_ASSERT(scale >= 0 and scale < 1)
+    assert(scale >= 0 and scale < 1);
 
     Vector3 out  = igrf_impl(mg2005, mh2005, pos, ell);
     out         *= (1.0 - scale);

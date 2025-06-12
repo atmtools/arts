@@ -1,12 +1,25 @@
 #include "lbl_temperature_model.h"
 
-#include <limits>
-#include <utility>
-
 #include <debug.h>
 #include <double_imanip.h>
 
+#include <limits>
+#include <utility>
+
 namespace lbl::temperature {
+data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
+  ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
+  ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
+                     n != std::numeric_limits<Size>::max() and
+                         n != static_cast<Size>(x.size()),
+                     "Invalid number of parameters for model {}"
+                     "\nExpected {}"
+                     " parameters but got {} parameters.",
+                     t,
+                     n,
+                     x.size())
+}
+
 namespace model {
 using std::log;
 using std::pow;
@@ -179,9 +192,8 @@ Numeric data::operator()(Numeric T0, Numeric T) const {
 #undef SWITCHCASE
 }
 
-#define SWITCHCASE(name, mod)   \
-  case LineShapeModelType::mod: \
-    return d##name<LineShapeModelType::mod>(T0, T)
+#define SWITCHCASE(name, mod) \
+  case LineShapeModelType::mod: return d##name<LineShapeModelType::mod>(T0, T)
 
 #define DERIVATIVES(name)                              \
   Numeric data::d##name(Numeric T0, Numeric T) const { \
@@ -254,26 +266,18 @@ const Numeric& data::X(LineShapeModelCoefficient coeff) const {
 bool data::is_zero() const {
   switch (t) {
     using enum LineShapeModelType;
-    case T0:
-      [[fallthrough]];
-    case T1:
-      [[fallthrough]];
-    case T2:
-      [[fallthrough]];
-    case T5:
-      return x[0] == 0;
-    case T3:
-      [[fallthrough]];
-    case T4:
-      return x[0] == 0 and x[1] == 0;
-    case AER:
-      [[fallthrough]];
+    case T0:  [[fallthrough]];
+    case T1:  [[fallthrough]];
+    case T2:  [[fallthrough]];
+    case T5:  return x[0] == 0;
+    case T3:  [[fallthrough]];
+    case T4:  return x[0] == 0 and x[1] == 0;
+    case AER: [[fallthrough]];
     case POLY:
       for (auto y : x)
         if (y != 0) return false;
       return true;
-    case DPL:
-      return x[0] == 0 and x[2] == 0;
+    case DPL: return x[0] == 0 and x[2] == 0;
   }
   return true;
 }

@@ -735,11 +735,7 @@ constexpr Index find_species_index(const SpeciesEnum spec,
     }
   }
 
-  throw std::runtime_error(std::format(
-      "Cannot find isotopologue: {}-{}\n\nValid isotopologues: {:BN,}",
-      spec,
-      isot,
-      isotopologues(spec)));
+  throw std::runtime_error("Cannot find species index");
 }
 
 constexpr Index find_species_index(const Isotope ir) {
@@ -806,7 +802,7 @@ struct IsotopologueRatios {
   }
 
   constexpr Numeric operator[](const Index spec_ind) const {
-    ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
+    assert(spec_ind < maxsize and spec_ind >= 0);
     return data[spec_ind];
   }
 

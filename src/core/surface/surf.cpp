@@ -143,9 +143,7 @@ String Data::data_type() const {
   if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
-  ARTS_ASSERT(false,
-              "Cannot be reached, you have added a new type but not "
-              "doen the plumbing...")
+
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
@@ -393,9 +391,7 @@ bool Field::constant_value(const KeyVal &key) const {
           return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ConstVectorView{};
-        ARTS_ASSERT(
-            false,
-            "Cannot be reached, you have added a new type but not done the plumbing...");
+        assert(false);
       },
       data);
 }
@@ -410,9 +406,7 @@ bool Field::constant_value(const KeyVal &key) const {
           return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return VectorView{};
-        ARTS_ASSERT(
-            false,
-            "Cannot be reached, you have added a new type but not done the plumbing...");
+        assert(false);
       },
       data);
 }

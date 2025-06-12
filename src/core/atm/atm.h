@@ -177,7 +177,7 @@ using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
   Numeric operator()(Numeric, Numeric, Numeric) const {
-    ARTS_USER_ERROR("{}", error)
+    throw std::runtime_error(error);
   }
 };
 
@@ -230,20 +230,14 @@ struct Data {
   template <RawDataType T>
   [[nodiscard]] const T &get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr,
-                       "Contains {}, not {}",
-                       data_type(),
-                       Data{T{}}.data_type())
+    if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 
   template <RawDataType T>
   [[nodiscard]] T &get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr,
-                       "Contains {}, not {}",
-                       data_type(),
-                       Data{T{}}.data_type())
+    if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 

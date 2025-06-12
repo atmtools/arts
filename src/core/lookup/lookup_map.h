@@ -11,8 +11,7 @@
 namespace lookup {
 struct table {
   //! The frequency grid in Hz
-  std::shared_ptr<const AscendingGrid> f_grid{
-      std::make_shared<const AscendingGrid>()};
+  std::shared_ptr<const AscendingGrid> f_grid;
 
   //! The pressure grid in log(P) [any number of elements]
   std::shared_ptr<const DescendingGrid> log_p_grid;

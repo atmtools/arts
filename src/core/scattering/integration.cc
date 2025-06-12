@@ -54,7 +54,7 @@ void GaussLegendreQuadrature::calculate_nodes_and_weights() {
 
 DoubleGaussQuadrature::DoubleGaussQuadrature(Index degree)
     : degree_(degree), nodes_(degree), weights_(degree) {
-  ARTS_ASSERT(degree % 2 == 0);
+  assert(degree % 2 == 0);
   auto gq      = GaussLegendreQuadrature(degree / 2);
   auto nodes   = gq.get_nodes();
   auto weights = gq.get_weights();

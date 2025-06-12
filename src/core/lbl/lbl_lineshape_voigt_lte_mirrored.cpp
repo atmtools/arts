@@ -679,7 +679,7 @@ Complex band_shape::df(const Numeric f) const {
 
 Complex band_shape::dH(const ConstComplexVectorView& dz_dH,
                        const Numeric f) const {
-  ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
+  assert(static_cast<Size>(dz_dH.size()) == lines.size());
 
   return std::transform_reduce(lines.begin(),
                                lines.end(),
@@ -693,8 +693,8 @@ Complex band_shape::dT(const ConstComplexVectorView& ds_dT,
                        const ConstComplexVectorView& dz_dT,
                        const ConstVectorView& dz_dT_fac,
                        const Numeric f) const {
-  ARTS_ASSERT(ds_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dT.size()) == lines.size())
+  assert(ds_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(ds_dT.size()) == lines.size());
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
@@ -709,8 +709,8 @@ Complex band_shape::dVMR(const ConstComplexVectorView& ds_dVMR,
                          const ConstComplexVectorView& dz_dVMR,
                          const ConstVectorView& dz_dVMR_fac,
                          const Numeric f) const {
-  ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
+  assert(ds_dVMR.size() == dz_dVMR.size());
+  assert(static_cast<Size>(ds_dVMR.size()) == lines.size());
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
@@ -864,7 +864,7 @@ void band_shape::df(ComplexVectorView cut) const {
 Complex band_shape::dH(const ConstComplexVectorView& cut,
                        const ConstComplexVectorView& dz_dH,
                        const Numeric f) const {
-  ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
+  assert(static_cast<Size>(dz_dH.size()) == lines.size());
 
   const auto [s, cs, dH] = frequency_spans(cutoff, f, lines, cut, dz_dH);
 
@@ -878,7 +878,7 @@ Complex band_shape::dH(const ConstComplexVectorView& cut,
 
 void band_shape::dH(ComplexVectorView cut,
                     const ConstComplexVectorView& df0_dH) const {
-  ARTS_ASSERT(static_cast<Size>(df0_dH.size()) == lines.size())
+  assert(static_cast<Size>(df0_dH.size()) == lines.size());
 
   std::transform(lines.begin(),
                  lines.end(),
@@ -894,8 +894,8 @@ Complex band_shape::dT(const ConstComplexVectorView& cut,
                        const ConstComplexVectorView& dz_dT,
                        const ConstVectorView& dz_dT_fac,
                        const Numeric f) const {
-  ARTS_ASSERT(ds_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dT.size()) == lines.size())
+  assert(ds_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(ds_dT.size()) == lines.size());
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
@@ -913,8 +913,8 @@ void band_shape::dT(ComplexVectorView cut,
                     const ConstComplexVectorView& ds_dT,
                     const ConstComplexVectorView& dz_dT,
                     const ConstVectorView& dz_dT_fac) const {
-  ARTS_ASSERT(ds_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dT.size()) == lines.size())
+  assert(ds_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(ds_dT.size()) == lines.size());
 
   for (Size i = 0; i < lines.size(); ++i) {
     cut[i] =
@@ -927,8 +927,8 @@ Complex band_shape::dVMR(const ConstComplexVectorView& cut,
                          const ConstComplexVectorView& dz_dVMR,
                          const ConstVectorView& dz_dVMR_fac,
                          const Numeric f) const {
-  ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
+  assert(ds_dVMR.size() == dz_dVMR.size());
+  assert(static_cast<Size>(ds_dVMR.size()) == lines.size());
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
@@ -946,8 +946,8 @@ void band_shape::dVMR(ComplexVectorView cut,
                       const ConstComplexVectorView& ds_dVMR,
                       const ConstComplexVectorView& dz_dVMR,
                       const ConstVectorView& dz_dVMR_fac) const {
-  ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
-  ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
+  assert(ds_dVMR.size() == dz_dVMR.size());
+  assert(static_cast<Size>(ds_dVMR.size()) == lines.size());
 
   for (Size i = 0; i < lines.size(); ++i) {
     cut[i] = lines[i].dVMR(

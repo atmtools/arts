@@ -5,8 +5,155 @@
 
 #include "pydocs.h"
 
+void implement_from_const_py_object() {
+  const auto& wsgs = internal_workspace_groups();
+
+  std::ofstream os("py_auto_wsg_from_const_py_object.cpp");
+  os << R"--(#include <py_auto_wsg.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/nanobind.h>
+
+#include "py_auto_options.h"
+
+namespace Python {
+)--";
+  os << R"--(
+
+Wsv from(const py::object * const x) {
+  if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+  py::gil_scoped_acquire gil{};
+  
+)--";
+
+  for (auto& [group, wsg] : wsgs) {
+    if (wsg.value_type) {
+      os << "  if (py::isinstance<ValueHolder<" << group
+         << ">>(*x)) return py::cast<ValueHolder<" << group
+         << ">>(py::object(x->attr(\"value\")), false).val;\n";
+    } else {
+      os << "  if (py::isinstance<" << group
+         << ">(*x)) return py::cast<std::shared_ptr<" << group
+         << ">>(*x, false);\n";
+    }
+  }
+
+  os << R"--(
+  return from_py(py::cast<PyWSV>(*x));
+}
+}  // namespace Python
+)--";
+}
+
+void implement_from_py_object() {
+  const auto& wsgs = internal_workspace_groups();
+
+  std::ofstream os("py_auto_wsg_from_py_object.cpp");
+  os << R"--(#include <py_auto_wsg.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/nanobind.h>
+
+#include "py_auto_options.h"
+
+namespace Python {
+)--";
+  os << R"--(
+
+Wsv from(py::object * const x) {
+  if (not x or x -> is_none()) throw std::runtime_error("Cannot have None as workspace variable.");
+  py::gil_scoped_acquire gil{};
+)--";
+
+  for (auto& [group, wsg] : wsgs) {
+    if (wsg.value_type) {
+      os << "  if (py::isinstance<ValueHolder<" << group
+         << ">>(*x)) return py::cast<ValueHolder<" << group
+         << ">>(py::object(x->attr(\"value\")), false).val;\n";
+    } else {
+      os << "  if (py::isinstance<" << group
+         << ">(*x)) return py::cast<std::shared_ptr<" << group
+         << ">>(*x, false);\n";
+    }
+  }
+
+  os << R"--(
+  
+  throw std::runtime_error("Cannot convert pure python object to workspace variable.");
+}
+}  // namespace Python
+)--";
+}
+
+void implement_string_type() {
+  std::ofstream os("py_auto_wsg_string_type.cpp");
+  os << R"--(#include <py_auto_wsg.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/nanobind.h>
+
+#include "py_auto_options.h"
+
+namespace Python {
+std::string type(const py::object * const x) {
+  if (not x or x -> is_none()) return "NoneType";
+  py::gil_scoped_acquire gil{};
+
+  return py::cast<std::string>(py::str(py::type_name(*x)));
+}
+}  // namespace Python
+)--";
+}
+
+void implement_from_wsv() {
+  const auto& wsgs = internal_workspace_groups();
+
+  std::ofstream os("py_auto_wsg_from_wsv.cpp");
+  os << R"--(#include <py_auto_wsg.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/nanobind.h>
+
+#include "py_auto_options.h"
+
+namespace Python {
+PyWSV from(const Wsv& wsv) {
+  switch (wsv.value_index()) {
+)--";
+  for (auto& group : wsgs | stdv::keys) {
+    std::println(
+        os,
+        "    case WorkspaceGroupInfo<{0}>::index:  return from(wsv.share_unsafe<{0}>());",
+        group);
+  }
+  os << R"--(  }
+  throw std::runtime_error("Cannot convert Wsv to PyWSV: unknown type.");
+}
+}  // namespace Python
+)--";
+}
+
+void implement_from_py_wsv() {
+  std::ofstream os("py_auto_wsg_from_py_wsv.cpp");
+
+  os << R"--(#include <py_auto_wsg.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/nanobind.h>
+
+#include "py_auto_options.h"
+
+namespace Python {
+Wsv from_py(const PyWSV& wsv) {
+  return std::visit([](auto v) { return from_py(std::move(v)); }, wsv);
+}
+}  // namespace Python
+)--";
+}
+
 void groups(const std::string& fname) {
   const auto& wsgs = internal_workspace_groups();
+
+  implement_from_const_py_object();
+  implement_from_py_object();
+  implement_string_type();
+  implement_from_wsv();
+  implement_from_py_wsv();
 
   std::ofstream hos(fname + ".h");
 
@@ -109,94 +256,24 @@ std::string type(const std::variant<std::shared_ptr<T>...> * const x)  {
 }  // namespace Python
 
 )--";
-
-  std::ofstream cos(fname + ".cpp");
-
-  cos << R"--(#include <py_auto_wsg.h>
-#include <nanobind/stl/shared_ptr.h>
-#include <nanobind/nanobind.h>
-
-#include "py_auto_options.h"
-
-namespace Python {
-)--";
-
-  cos << R"--(
-
-Wsv from(const py::object * const x) {
-  if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
-  py::gil_scoped_acquire gil{};
-  
-)--";
-
-  for (auto& [group, wsg] : wsgs) {
-    if (wsg.value_type) {
-      cos << "  if (py::isinstance<ValueHolder<" << group
-          << ">>(*x)) return py::cast<ValueHolder<" << group
-          << ">>(py::object(x->attr(\"value\")), false).val;\n";
-    } else {
-      cos << "  if (py::isinstance<" << group
-          << ">(*x)) return py::cast<std::shared_ptr<" << group
-          << ">>(*x, false);\n";
-    }
-  }
-
-  cos << R"--(
-  return from_py(py::cast<PyWSV>(*x));
-}
-
-Wsv from(py::object * const x) {
-  if (not x or x -> is_none()) throw std::runtime_error("Cannot have None as workspace variable.");
-  py::gil_scoped_acquire gil{};
-)--";
-
-  for (auto& [group, wsg] : wsgs) {
-    if (wsg.value_type) {
-      cos << "  if (py::isinstance<ValueHolder<" << group
-          << ">>(*x)) return py::cast<ValueHolder<" << group
-          << ">>(py::object(x->attr(\"value\")), false).val;\n";
-    } else {
-      cos << "  if (py::isinstance<" << group
-          << ">(*x)) return py::cast<std::shared_ptr<" << group
-          << ">>(*x, false);\n";
-    }
-  }
-
-  cos << R"--(
-  
-  throw std::runtime_error("Cannot convert pure python object to workspace variable.");
-}
-
-std::string type(const py::object * const x) {
-  if (not x or x -> is_none()) return "NoneType";
-  py::gil_scoped_acquire gil{};
-
-  return py::cast<std::string>(py::str(py::type_name(*x)));
-}
-
-PyWSV from(const Wsv& wsv) {
-  return std::visit([](auto v) { return from(std::move(v)); }, wsv.value());
-}
-
-Wsv from_py(const PyWSV& wsv) {
-  return std::visit([](auto v) { return from_py(std::move(v)); }, wsv);
-}
-}  // namespace Python
-)--";
 }
 
 void groupdocs(const std::string& fname) {
   const auto& wsgs = internal_workspace_groups();
 
-  std::ofstream os(fname);
+  std::ofstream osh(fname + ".h");
+  std::ofstream osc(fname + ".cpp");
 
-  os << R"(#pragma once
+  std::print(osh, R"(#pragma once
 
 #include <workspace.h>
 
 template <typename T>
-struct PythonWorkspaceGroupInfo {constexpr static const char* desc = "Unknown";};
-)";
+struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
+)");
+
+  std::println(osc, R"(#include "py_auto_wsgdocs.h"
+)");
 
   for (auto& [group, wsg] : wsgs) {
     const auto info =
@@ -205,14 +282,23 @@ struct PythonWorkspaceGroupInfo {constexpr static const char* desc = "Unknown";}
                                  Python::group_generics_inout(group),
                                  Python::group_workspace_types(group)));
 
-    os << R"(
-template <>
-struct PythonWorkspaceGroupInfo<)"
-       << group << R"(> {
-  constexpr static const char* desc = R"-X-()"
-       << info << R"()-X-";
-};
-)";
+    std::println(osh,
+
+                 R"(template <>
+struct PythonWorkspaceGroupInfo<{0}> {{
+  static std::string_view desc();
+}};
+)",
+                 group);
+
+    std::println(osc,
+                 R"(std::string_view PythonWorkspaceGroupInfo<{0}>::desc() {{
+  return
+  R"-PYARTSDOCSAUTO-({1})-PYARTSDOCSAUTO-"sv;
+}}
+)",
+                 group,
+                 info);
   }
 }
 
@@ -343,6 +429,6 @@ Failure to follow these rules will result in a runtime error.
 
 int main() {
   groups("py_auto_wsg");
-  groupdocs("py_auto_wsgdocs.h");
+  groupdocs("py_auto_wsgdocs");
   agenda_operators();
 }

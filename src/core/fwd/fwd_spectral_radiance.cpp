@@ -175,8 +175,8 @@ Stokvec spectral_radiance::operator()(const Numeric f,
                                       const Numeric cutoff_transmission) const {
   using std::views::drop;
 
-  ARTS_ASSERT(path_points.size() > 0, "No path points")
-  ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
+  assert(path_points.size() > 0);
+  assert(path_points.front().distance == 0.0);
 
   auto pos = pos_weights(path_points.front());
 
@@ -221,8 +221,8 @@ StokvecVector spectral_radiance::operator()(
   using std::ranges::reverse_view;
   using std::views::drop;
 
-  ARTS_ASSERT(path_points.size() > 0, "No path points")
-  ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
+  assert(path_points.size() > 0);
+  assert(path_points.front().distance == 0.0);
 
   std::vector<Stokvec> out;
   out.reserve(path_points.size());
