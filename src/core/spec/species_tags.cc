@@ -11,6 +11,33 @@
 #include <string_view>
 
 namespace Species {
+Tag::Tag(const SpeciesIsotope& isot) noexcept
+    : spec_ind(find_species_index(isot)),
+      type(isot.is_predefined()
+               ? SpeciesTagType::Predefined
+               : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
+
+SpeciesIsotope Tag::Isotopologue() const noexcept {
+  return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
+}
+
+void Tag::Isotopologue(const SpeciesIsotope& ir) {
+  Index ind = find_species_index(ir);
+  assert(ind >= 0);
+  spec_ind = ind;
+}
+
+Numeric Tag::Mass() const noexcept { return Isotopologue().mass; }
+
+SpeciesEnum Tag::Spec() const noexcept { return Isotopologue().spec; }
+
+SpeciesTagType Tag::Type() const noexcept { return type; }
+
+bool Tag::is_joker() const {
+  assert(spec_ind >= 0);
+  return Joker == Isotopologue().isotname;
+}
+
 namespace {
 constexpr void trim(std::string_view& text) {
   while (text.size() and nonstd::isspace(text.front())) text.remove_prefix(1);
@@ -96,7 +123,7 @@ SpeciesTag parse_tag(std::string_view text) {
       check(text, orig);
     } else {
       tag.spec_ind = isot(species, tag_key, orig);
-      tag.type     = is_predefined_model(Isotopologues[tag.spec_ind])
+      tag.type     = Isotopologues[tag.spec_ind].is_predefined()
                          ? SpeciesTagType::Predefined
                          : SpeciesTagType::Plain;
     }

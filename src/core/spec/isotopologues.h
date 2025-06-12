@@ -36,7 +36,15 @@ struct Isotope {
 
   Isotope(const std::string_view);
 
-  [[nodiscard]] constexpr bool joker() const { return isotname == Joker; }
+  [[nodiscard]] constexpr bool is_joker() const { return isotname == Joker; }
+
+  [[nodiscard]] constexpr bool is_predefined() const {
+    return not(nonstd::isdigit(isotname[0]) or is_joker());
+  }
+  [[nodiscard]] constexpr bool is_normal() const {
+    return nonstd::isdigit(isotname[0]);
+  }
+
   [[nodiscard]] constexpr bool OK() const { return good_enum(spec); }
   [[nodiscard]] String FullName() const;
 
@@ -738,7 +746,7 @@ constexpr Index find_species_index(const SpeciesEnum spec,
   throw std::runtime_error("Cannot find species index");
 }
 
-constexpr Index find_species_index(const Isotope ir) {
+constexpr Index find_species_index(const Isotope& ir) {
   return find_species_index(ir.spec, ir.isotname);
 }
 
@@ -767,31 +775,7 @@ constexpr const Isotope& select(const std::string_view name) {
   return Isotopologues[find_species_index(name)];
 }
 
-constexpr const Isotope& select_joker(SpeciesEnum spec) {
-  return select(spec, Joker);
-}
-
-constexpr const Isotope& select_joker(std::string_view spec) {
-  return select(to<SpeciesEnum>(spec), Joker);
-}
-
 String isotopologues_names(SpeciesEnum spec);
-
-constexpr bool is_predefined_model(const Isotope& ir) {
-  return not(nonstd::isdigit(ir.isotname[0]) or ir.isotname == Joker);
-}
-
-constexpr bool is_normal_isotopologue(const Isotope& ir) {
-  return nonstd::isdigit(ir.isotname[0]) and ir.isotname not_eq Joker;
-}
-
-String predefined_model_names();
-
-constexpr bool same_or_joker(const Isotope& ir1, const Isotope& ir2) {
-  if (ir1.spec not_eq ir2.spec) return false;
-  if (ir1.joker() or ir2.joker()) return true;
-  return ir1.isotname == ir2.isotname;
-}
 
 struct IsotopologueRatios {
   static constexpr Index maxsize = Index(Isotopologues.size());
@@ -809,7 +793,7 @@ struct IsotopologueRatios {
   [[nodiscard]] bool all_isotopes_have_a_value() const;
 };
 
-IsotopologueRatios isotopologue_ratiosInitFromBuiltin() ;
+IsotopologueRatios isotopologue_ratiosInitFromBuiltin();
 
 /*! Computes the mean mass for all defined isotopes of the species with mass and isotopologue ratio
  * 
@@ -852,8 +836,8 @@ constexpr bool all_have_ratio(const SpeciesEnum spec,
   for (std::size_t i = IsotopologuesStart[std::size_t(spec)];
        i < IsotopologuesStart[std::size_t(spec) + 1];
        i++) {
-    if (not Isotopologues[i].joker() and
-        not is_predefined_model(Isotopologues[i]) and nonstd::isnan(ir[i])) {
+    if (not Isotopologues[i].is_joker() and
+        not Isotopologues[i].is_predefined() and nonstd::isnan(ir[i])) {
       return false;
     }
   }

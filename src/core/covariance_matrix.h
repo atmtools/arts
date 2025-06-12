@@ -45,10 +45,10 @@ class BlockMatrix {
   BlockMatrix &operator=(const BlockMatrix &) = default;
   BlockMatrix &operator=(BlockMatrix &&)      = default;
 
-  BlockMatrix(std::shared_ptr<Matrix> dense) : data(std::move(dense)) {}
-  BlockMatrix(std::shared_ptr<Sparse> sparse) : data(std::move(sparse)) {}
-  BlockMatrix(const Matrix &dense) : data(std::make_shared<Matrix>(dense)) {}
-  BlockMatrix(const Sparse &sparse) : data(std::make_shared<Sparse>(sparse)) {}
+  BlockMatrix(std::shared_ptr<Matrix> dense);
+  BlockMatrix(std::shared_ptr<Sparse> sparse);
+  BlockMatrix(const Matrix &dense);
+  BlockMatrix(const Sparse &sparse);
 
   BlockMatrix &operator=(std::shared_ptr<Matrix> dense);
 

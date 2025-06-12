@@ -2001,7 +2001,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
     data.data = Numeric{};
   else if (type == "FunctionalData")
     data.data = Surf::FunctionalData{
-        Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"}};
+        Surf::FunctionalDataAlwaysThrow{}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
@@ -2011,7 +2011,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
                                    Surf::FunctionalData>) {
           String x;
           xml_read_from_stream(is_xml, x, pbifs);
-          v = Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{x}};
+          v = Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{}};
         } else {
           xml_read_from_stream(is_xml, v, pbifs);
         }

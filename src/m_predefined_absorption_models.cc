@@ -42,7 +42,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
 
   for (auto& specs : absorption_species) {
     for (auto& spec : specs) {
-      if (not is_predefined_model(spec.Isotopologue())) continue;
+      if (not spec.Isotopologue().is_predefined()) continue;
 
       String filename = tmpbasename + spec.Isotopologue().FullName() + ".xml";
 

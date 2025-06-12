@@ -52,8 +52,8 @@ class grid_t {
     return stdr::is_sorted(x, Compare{});
   }
 
-  static constexpr void assert_sorted(const Vector& x) {
-    ARTS_USER_ERROR_IF(not is_sorted(x), "Wrong sorting:\n{:B,}", x);
+  static constexpr void assert_sorted(const exact_md<Numeric, 1> auto& x) {
+    ARTS_USER_ERROR_IF(not is_sorted(x), "Wrong sorting");
   }
 
   grid_t(Index N) : x(N) {

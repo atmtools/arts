@@ -226,35 +226,12 @@ struct std::formatter<SingleScatteringData> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const SingleScatteringData& v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const SingleScatteringData& v,
                               FmtContext& ctx) const {
-    const std::string_view sep   = tags.sep(true);
-    const std::string_view quote = tags.quote();
-
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx,
-                v.ptype,
-                sep,
-                quote,
-                v.description,
-                quote,
-                sep,
-                v.f_grid,
-                sep,
-                v.T_grid,
-                sep,
-                v.za_grid,
-                sep,
-                v.aa_grid,
-                sep,
-                v.pha_mat_data,
-                sep,
-                v.ext_mat_data,
-                sep,
-                v.abs_vec_data);
-    tags.add_if_bracket(ctx, ']');
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 

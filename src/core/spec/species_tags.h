@@ -24,46 +24,29 @@ struct Tag {
   // Documentation is with implementation.
   explicit Tag(std::string_view text);
 
-  constexpr Tag(const SpeciesIsotope& isot) noexcept
-      : spec_ind(find_species_index(isot)),
-        type(is_predefined_model(isot)
-                 ? SpeciesTagType::Predefined
-                 : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
+  Tag(const SpeciesIsotope& isot) noexcept;
 
   // Documentation is with implementation.
   [[nodiscard]] String Name() const;
 
-  [[nodiscard]] constexpr SpeciesIsotope Isotopologue() const noexcept {
-    return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
-  }
+  [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
 
-  constexpr void Isotopologue(const SpeciesIsotope& ir) {
-    Index ind = find_species_index(ir);
-    assert(ind >= 0);
-    spec_ind = ind;
-  }
+  void Isotopologue(const SpeciesIsotope& ir) ;
 
-  [[nodiscard]] constexpr Numeric Mass() const noexcept {
-    return Isotopologue().mass;
-  }
+  [[nodiscard]] Numeric Mass() const noexcept;
 
   [[nodiscard]] String FullName() const noexcept;
 
-  [[nodiscard]] constexpr SpeciesEnum Spec() const noexcept {
-    return Isotopologue().spec;
-  }
+  [[nodiscard]] SpeciesEnum Spec() const noexcept ;
 
-  [[nodiscard]] constexpr SpeciesTagType Type() const noexcept { return type; }
+  [[nodiscard]] SpeciesTagType Type() const noexcept ;
 
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
 
   [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept =
       default;
 
-  [[nodiscard]] constexpr bool is_joker() const {
-    assert(spec_ind >= 0);
-    return Joker == Isotopologue().isotname;
-  }
+  [[nodiscard]] bool is_joker() const;
 };
 }  // namespace Species
 

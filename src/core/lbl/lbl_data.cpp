@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iomanip>
 #include <limits>
 #include <type_traits>
@@ -286,3 +287,24 @@ Size count_lines(
       });
 }
 }  // namespace lbl
+
+std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
+  const std::string_view sep = tags.sep();
+
+  std::string out =
+      tags.vformat(v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
+  if (not tags.short_str) out += tags.vformat(sep, v.z, sep, v.ls, sep, v.qn);
+
+  return tags.bracket ? ("[" + out + "]") : out;
+}
+
+std::string std::formatter<lbl::band_data>::to_string(
+    const lbl::band_data& v) const {
+  const auto sep = tags.sep();
+
+  std::string out =
+      tags.vformat(v.lineshape, sep, v.cutoff, sep, v.cutoff_value);
+  if (not tags.short_str) out += tags.vformat(sep, v.lines);
+
+  return out;
+}

@@ -320,16 +320,11 @@ struct std::formatter<lbl::line> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const lbl::line& v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
-    const std::string_view sep = tags.sep();
-
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
-    if (not tags.short_str) tags.format(ctx, sep, v.z, sep, v.ls, sep, v.qn);
-    tags.add_if_bracket(ctx, ']');
-
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 
@@ -345,14 +340,11 @@ struct std::formatter<lbl::band_data> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const lbl::band_data& v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
-    const auto sep = tags.sep();
-
-    tags.format(ctx, v.lineshape, sep, v.cutoff, sep, v.cutoff_value);
-    if (not tags.short_str) tags.format(ctx, sep, v.lines);
-
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 

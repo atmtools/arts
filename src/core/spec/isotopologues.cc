@@ -1,5 +1,6 @@
 #include "isotopologues.h"
 
+#include <algorithm>
 #include <sstream>
 
 namespace Species {
@@ -127,7 +128,6 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 
 #undef deal_with_spec
 
-  ;
   ARTS_USER_ERROR("Cannot understand: {}", spec)
 }
 
@@ -141,7 +141,7 @@ String isotopologues_names(SpeciesEnum spec) {
 String predefined_model_names() {
   std::ostringstream os;
   for (auto& x : Isotopologues) {
-    if (is_predefined_model(x)) {
+    if (x.is_predefined()) {
       os << x.FullName() << '\n';
     }
   }
@@ -167,28 +167,10 @@ String update_isot_name(const String& old_name) {
   return old_name;
 }
 
-std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(
-    const SpeciesEnum spec, const IsotopologueRatios& ir) {
-  ArrayOfString h, hnot;
-  for (std::size_t i = IsotopologuesStart[std::size_t(spec)];
-       i < IsotopologuesStart[std::size_t(spec) + 1];
-       i++) {
-    if (not Isotopologues[i].joker() and
-        not is_predefined_model(Isotopologues[i])) {
-      if (nonstd::isnan(ir[i])) {
-        hnot.emplace_back(Isotopologues[i].FullName());
-      } else {
-        h.emplace_back(Isotopologues[i].FullName());
-      }
-    }
-  }
-  return {h, hnot};
-}
-
 Isotope::Isotope(const std::string_view name) { *this = select(name); }
 
 String Isotope::FullName() const {
-  return joker() ? String{toString<1>(spec)}
+  return is_joker() ? String{toString<1>(spec)}
                  : std::format("{}-{}", toString<1>(spec), isotname);
 }
 
@@ -219,8 +201,8 @@ Numeric IsotopologueRatios::operator[](const Isotope& ir) const {
 
 bool IsotopologueRatios::all_isotopes_have_a_value() const {
   for (Index i = 0; i < maxsize; i++) {
-    if (not is_predefined_model(Isotopologues[i]) and
-        not Isotopologues[i].joker() and nonstd::isnan(data[i])) {
+    if (not Isotopologues[i].is_predefined() and
+        not Isotopologues[i].is_joker() and nonstd::isnan(data[i])) {
       return false;
     }
   }
@@ -696,3 +678,6 @@ std::ostream& operator<<(std::ostream& os,
   }
   return os;
 }
+
+static_assert(std::ranges::is_sorted(Species::Isotopologues),
+              "Species::Isotopologues must be sorted by name");

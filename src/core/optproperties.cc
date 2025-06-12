@@ -1,5 +1,8 @@
 #include "optproperties.h"
 
+#include <format>
+#include <iterator>
+
 std::string_view PTypeToString(const PType ptype) {
   switch (ptype) {
     case PTYPE_GENERAL:     return "general"sv; break;
@@ -51,4 +54,32 @@ PType PTypeFromString(const std::string_view ptype_string) {
   }
 
   return ptype;
+}
+
+std::string std::formatter<SingleScatteringData>::to_string(
+    const SingleScatteringData& v) const {
+  const std::string_view sep   = tags.sep(true);
+  const std::string_view quote = tags.quote();
+
+  std::string out = tags.vformat(v.ptype,
+                                 sep,
+                                 quote,
+                                 v.description,
+                                 quote,
+                                 sep,
+                                 v.f_grid,
+                                 sep,
+                                 v.T_grid,
+                                 sep,
+                                 v.za_grid,
+                                 sep,
+                                 v.aa_grid,
+                                 sep,
+                                 v.pha_mat_data,
+                                 sep,
+                                 v.ext_mat_data,
+                                 sep,
+                                 v.abs_vec_data);
+
+  return tags.bracket ? ("[" + out + "]") : out;
 }

@@ -428,57 +428,11 @@ struct std::formatter<AtmPoint> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const AtmPoint &v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
-
-    const std::string_view sep = tags.sep(true);
-
-    tags.format(ctx,
-                R"("pressure": )"sv,
-                v.pressure,
-                sep,
-                R"("temperature": )"sv,
-                v.temperature,
-                sep,
-                R"("mag" :)"sv,
-                v.mag,
-                sep,
-                R"("wind": )"sv,
-                v.wind,
-                sep);
-
-    if (tags.short_str) {
-      tags.format(ctx,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs.size(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots.size(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte.size(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops.size());
-
-    } else {
-      tags.format(ctx,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs,
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots,
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte,
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops);
-    }
-
-    tags.add_if_bracket(ctx, '}');
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 
@@ -550,56 +504,11 @@ struct std::formatter<AtmField> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const AtmField &v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
-
-    if (tags.short_str) {
-      const std::string_view sep = tags.sep();
-
-      tags.format(ctx,
-                  R"("top_of_atmosphere": )"sv,
-                  v.top_of_atmosphere,
-                  sep,
-                  R"("Base": )"sv,
-                  v.other().size(),
-                  sep,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs().size(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots().size(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte().size(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops().size());
-    } else {
-      const std::string_view sep = tags.sep(true);
-
-      tags.format(ctx,
-                  R"("top_of_atmosphere": )"sv,
-                  v.top_of_atmosphere,
-                  sep,
-                  R"("Base": )"sv,
-                  v.other(),
-                  sep,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops());
-    }
-
-    tags.add_if_bracket(ctx, '}');
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 

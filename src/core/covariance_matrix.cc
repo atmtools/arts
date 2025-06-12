@@ -16,6 +16,18 @@
 #include <utility>
 #include <vector>
 
+BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense)
+    : data(std::move(dense)) {}
+
+BlockMatrix::BlockMatrix(std::shared_ptr<Sparse> sparse)
+    : data(std::move(sparse)) {}
+
+BlockMatrix::BlockMatrix(const Matrix &dense)
+    : data(std::make_shared<Matrix>(dense)) {}
+
+BlockMatrix::BlockMatrix(const Sparse &sparse)
+    : data(std::make_shared<Sparse>(sparse)) {}
+
 BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
   data = std::move(dense);
   return *this;

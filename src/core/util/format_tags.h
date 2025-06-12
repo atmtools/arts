@@ -113,6 +113,17 @@ struct format_tags {
     return format(ctx, r...);
   }
 
+  [[nodiscard]] std::string vformat() const { return ""s; }
+
+  template <std::formattable<char> T, typename... Rest>
+  [[nodiscard]] std::string vformat(const T& x, const Rest&... r) const {
+    if constexpr (arts_formattable<T>)
+      return std::vformat(get_format_args(), std::make_format_args(x)) +
+             vformat(r...);
+    else
+      return std::format("{}", x) + vformat(r...);
+  }
+
   format_tags& set_depth(Size d) {
     depth = d;
     return *this;

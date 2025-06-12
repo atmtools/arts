@@ -1,19 +1,20 @@
-#include "isotopologues.h"
-
 #include <cstddef>
 #include <iostream>
 
+#include "isotopologues.h"
+
 int main() {
   std::cout << "Test correctness of Species fails here:\n";
-  for (std::size_t i=0; i<Species::Isotopologues.size(); i++) {
+  for (std::size_t i = 0; i < Species::Isotopologues.size(); i++) {
     auto& x = Species::Isotopologues[i];
     if (not good_enum(x.spec)) {
       std::cout << "Position: " << i << " has bad values\n";
     }
   }
-  
-  std::cout << "\n\nTest correctness of Species short-name conversion fails here:\n";
-  for (size_t i=0; i<enumsize::SpeciesEnumSize; i++) {
+
+  std::cout
+      << "\n\nTest correctness of Species short-name conversion fails here:\n";
+  for (size_t i = 0; i < enumsize::SpeciesEnumSize; i++) {
     auto a = SpeciesEnum(i);
     auto b = toString<1>(a);
     auto c = to<SpeciesEnum>(b);
@@ -21,32 +22,37 @@ int main() {
       std::cout << i << ' ' << a << ' ' << b << ' ' << c << '\n';
     }
   }
-  
+
   std::cout << "\n\nTest of order of Species fails for these pairs:\n";
-  for (std::size_t i=0; i<Species::Isotopologues.size()-1; i++) {
+  for (std::size_t i = 0; i < Species::Isotopologues.size() - 1; i++) {
     auto& a = Species::Isotopologues[i];
-    auto& b = Species::Isotopologues[i+1];
+    auto& b = Species::Isotopologues[i + 1];
     if (std::size_t(a.spec) > std::size_t(b.spec)) {
       std::cout << a.FullName() << ' ' << b.FullName() << '\n';
     }
   }
-  
+
   std::cout << "\n\nTest of order of Isotopologues fails for these pairs:\n";
-  for (std::size_t i=0; i<Species::Isotopologues.size()-1; i++) {
+  for (std::size_t i = 0; i < Species::Isotopologues.size() - 1; i++) {
     auto& a = Species::Isotopologues[i];
-    auto& b = Species::Isotopologues[i+1];
+    auto& b = Species::Isotopologues[i + 1];
     if (a.spec == b.spec) {
       if (a.isotname.compare(b.isotname) >= 0) {
         std::cout << a.FullName() << ' ' << b.FullName() << '\n';
       }
     }
   }
-  
-  std::cout << "\n\nTest that all Isotopologues (that are explicit isotopes) has a ratio in the builtin IsotopologueRatios fails here:\n";
+
+  std::cout
+      << "\n\nTest that all Isotopologues (that are explicit isotopes) has a ratio in the builtin IsotopologueRatios fails here:\n";
   auto iso_rat = Species::isotopologue_ratiosInitFromBuiltin();
-  for (Index i=0; i<iso_rat.maxsize; i++) {
-    if (not is_predefined_model(Species::Isotopologues[i]) and not Species::Isotopologues[i].joker() and nonstd::isnan(iso_rat.data[i])) {
-      std::cout << Species::Isotopologues[i].FullName() << " has no isotopologue ratio by default: " << iso_rat.data[i] << '\n';
+  for (Index i = 0; i < iso_rat.maxsize; i++) {
+    if (not Species::Isotopologues[i].is_predefined() and
+        not Species::Isotopologues[i].is_joker() and
+        nonstd::isnan(iso_rat.data[i])) {
+      std::cout << Species::Isotopologues[i].FullName()
+                << " has no isotopologue ratio by default: " << iso_rat.data[i]
+                << '\n';
     }
   }
 }

@@ -1,7 +1,7 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
-#include <nanobind/stl/array.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
@@ -40,20 +40,19 @@ std::string docs_isotopes() {
 )");
 
   for (auto& x : Species::Isotopologues) {
-    std::print(os,
-               R"(  * - {}
+    std::print(
+        os,
+        R"(  * - {}
     - {}
     - {}
     - {}
     - {}
 )",
-               x.FullName(),
-               x.mass,
-               x.gi,
-               isotrat[x],
-               x.joker() ? "Joker"
-                         : (Species::is_predefined_model(x) ? "Predefined"
-                                                            : "Normal"));
+        x.FullName(),
+        x.mass,
+        x.gi,
+        isotrat[x],
+        x.is_joker() ? "Joker" : (x.is_predefined() ? "Predefined" : "Normal"));
   }
 
   os << '\n';
@@ -165,7 +164,7 @@ void py_species(py::module_& m) try {
                    &SpeciesIsotope::FullName,
                    ":class:`~pyarts.arts.String` The full name")
       .def_prop_ro("predef",
-                   &Species::is_predefined_model,
+                   &SpeciesIsotope::is_predefined,
                    ":class:`bool` Check if this represents a predefined model")
       .def("__getstate__",
            [](const SpeciesIsotope& self) {
@@ -332,7 +331,7 @@ Returns
       []() {
         ArrayOfArrayOfSpeciesTag out;
         for (auto& x : Species::Isotopologues) {
-          if (not is_normal_isotopologue(x)) continue;
+          if (not x.is_normal()) continue;
           out.emplace_back(Array<SpeciesTag>{SpeciesTag(x)});
         }
         return out;

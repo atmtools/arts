@@ -6,7 +6,7 @@
 
 int main() try {
   for (auto spec : Species::Isotopologues) {
-    if (Species::is_predefined_model(spec)) {
+    if (spec.is_predefined()) {
       if (not Absorption::PredefinedModel::can_compute(spec)) throw spec;
       else std::cout << "Can compute: " << spec.FullName() << '\n';
     } else if (Absorption::PredefinedModel::can_compute(spec)) throw spec.FullName();

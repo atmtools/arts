@@ -200,16 +200,16 @@ Point::Point(const IsoRatioOption isots_key) {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
-        if (Species::Isotopologues[i].joker()) continue;
-        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
+        if (Species::Isotopologues[i].is_joker()) continue;
+        if (Species::Isotopologues[i].is_predefined()) continue;
         isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
-        if (Species::Isotopologues[i].joker()) continue;
-        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
+        if (Species::Isotopologues[i].is_joker()) continue;
+        if (Species::Isotopologues[i].is_predefined()) continue;
         isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
@@ -224,16 +224,16 @@ Field::Field(const IsoRatioOption isots_key) {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
-        if (Species::Isotopologues[i].joker()) continue;
-        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
+        if (Species::Isotopologues[i].is_joker()) continue;
+        if (Species::Isotopologues[i].is_predefined()) continue;
         isots()[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
-        if (Species::Isotopologues[i].joker()) continue;
-        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
+        if (Species::Isotopologues[i].is_joker()) continue;
+        if (Species::Isotopologues[i].is_predefined()) continue;
         isots()[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
@@ -287,7 +287,7 @@ Numeric Point::mean_mass(SpeciesEnum s) const {
   Numeric ratio = 0.0;
   Numeric mass  = 0.0;
   for (auto &[isot, this_ratio] : isots) {
-    if (isot.spec == s and not(is_predefined_model(isot) or isot.joker())) {
+    if (isot.spec == s and not(isot.is_predefined() or isot.is_joker())) {
       ratio += this_ratio;
       mass  += this_ratio * isot.mass;
     }
@@ -866,7 +866,7 @@ namespace {
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
-  return ptr and * ptr == key;
+  return ptr and *ptr == key;
 }
 }  // namespace
 
@@ -1312,4 +1312,98 @@ Grids for {1}:
 
     data[i] = gf3.data;
   }
+}
+
+std::string std::formatter<AtmPoint>::to_string(const AtmPoint &v) const {
+  const std::string_view sep = tags.sep(true);
+
+  std::string out = tags.vformat(R"("pressure": )"sv,
+                                 v.pressure,
+                                 sep,
+                                 R"("temperature": )"sv,
+                                 v.temperature,
+                                 sep,
+                                 R"("mag" :)"sv,
+                                 v.mag,
+                                 sep,
+                                 R"("wind": )"sv,
+                                 v.wind,
+                                 sep);
+
+  if (tags.short_str) {
+    out += tags.vformat(R"("SpeciesEnum": )"sv,
+                        v.specs.size(),
+                        sep,
+                        R"("SpeciesIsotope": )"sv,
+                        v.isots.size(),
+                        sep,
+                        R"("QuantumIdentifier": )"sv,
+                        v.nlte.size(),
+                        sep,
+                        R"("ScatteringSpeciesProperty": )"sv,
+                        v.ssprops.size());
+
+  } else {
+    out += tags.vformat(R"("SpeciesEnum": )"sv,
+                        v.specs,
+                        sep,
+                        R"("SpeciesIsotope": )"sv,
+                        v.isots,
+                        sep,
+                        R"("QuantumIdentifier": )"sv,
+                        v.nlte,
+                        sep,
+                        R"("ScatteringSpeciesProperty": )"sv,
+                        v.ssprops);
+  }
+
+  return tags.bracket ? ("{" + out + "}") : out;
+}
+
+std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
+  std::string out;
+
+  if (tags.short_str) {
+    const std::string_view sep = tags.sep();
+
+    out = tags.vformat(R"("top_of_atmosphere": )"sv,
+                       v.top_of_atmosphere,
+                       sep,
+                       R"("Base": )"sv,
+                       v.other().size(),
+                       sep,
+                       R"("SpeciesEnum": )"sv,
+                       v.specs().size(),
+                       sep,
+                       R"("SpeciesIsotope": )"sv,
+                       v.isots().size(),
+                       sep,
+                       R"("QuantumIdentifier": )"sv,
+                       v.nlte().size(),
+                       sep,
+                       R"("ScatteringSpeciesProperty": )"sv,
+                       v.ssprops().size());
+  } else {
+    const std::string_view sep = tags.sep(true);
+
+    out = tags.vformat(R"("top_of_atmosphere": )"sv,
+                       v.top_of_atmosphere,
+                       sep,
+                       R"("Base": )"sv,
+                       v.other(),
+                       sep,
+                       R"("SpeciesEnum": )"sv,
+                       v.specs(),
+                       sep,
+                       R"("SpeciesIsotope": )"sv,
+                       v.isots(),
+                       sep,
+                       R"("QuantumIdentifier": )"sv,
+                       v.nlte(),
+                       sep,
+                       R"("ScatteringSpeciesProperty": )"sv,
+                       v.ssprops());
+  }
+
+  return tags.bracket ? ("{" + out + "}") : out;
 }

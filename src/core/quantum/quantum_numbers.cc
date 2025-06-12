@@ -1569,9 +1569,9 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   if (isotopologue_index < 0)
     throw std::runtime_error("Invalid isotopologue: " + std::string(specname) +
                              " from " + std::string(s));
-  if (Species::Isotopologues[isotopologue_index].joker() or
-      Species::is_predefined_model(
-          Species::Isotopologues[isotopologue_index])) {
+  if (Species::Isotopologues[isotopologue_index].is_joker() or
+      
+          Species::Isotopologues[isotopologue_index].is_predefined()) {
     throw std::runtime_error("Expects valid standard isotopologue, got: " +
                              std::string(specname) + " from " + std::string(s));
   }
@@ -1669,7 +1669,7 @@ bool Quantum::Number::ValueList::good() const {
 bool Quantum::Number::LocalState::good() const { return val.good(); }
 
 bool Quantum::Number::GlobalState::good() const {
-  return Species::is_normal_isotopologue(Isotopologue()) and val.good();
+  return Isotopologue().is_normal() and val.good();
 }
 
 std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a) {

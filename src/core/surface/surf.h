@@ -82,14 +82,14 @@ using FunctionalData = NumericBinaryOperator;
 using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
-  std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric) const { ARTS_USER_ERROR("{}", error) }
+  Numeric operator()(Numeric, Numeric) const {
+    ARTS_USER_ERROR("You touched the field but did not set any data")
+  }
 };
 
 //! Hold all atmospheric data
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
-      "You touched the field but did not set any data"}}};
+  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{}}};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
@@ -113,7 +113,6 @@ struct Data {
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
-
 
   [[nodiscard]] String data_type() const;
 
