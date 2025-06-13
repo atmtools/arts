@@ -47,7 +47,7 @@ struct format_tags {
 
   [[nodiscard]] constexpr std::string get_format_args() const {
     std::string out{'{'};
-    if (names or comma or bracket or quoted or short_str) {
+    if (names or comma or bracket or quoted or short_str or io) {
       out += ':';
     }
     if (names) out += 'N';
