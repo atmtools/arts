@@ -5,7 +5,7 @@
 
 #include "hpy_arts.h"
 
-namespace Python {x
+namespace Python {
 void py_nlte(py::module_& m) try {
   auto vec =
       py::bind_map<QuantumIdentifierVectorMap>(m, "QuantumIdentifierVectorMap");
