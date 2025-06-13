@@ -16,6 +16,12 @@
 #include <utility>
 #include <vector>
 
+BlockMatrix::BlockMatrix()                                   = default;
+BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
+BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
+BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
+BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
+
 BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense)
     : data(std::move(dense)) {}
 
@@ -93,6 +99,13 @@ Index BlockMatrix::ncols() const {
 Index BlockMatrix::nrows() const {
   if (is_dense()) return dense().nrows();
   return sparse().nrows();
+}
+
+void Block::set_matrix(std::shared_ptr<Sparse> sparse) {
+  matrix_ = std::move(sparse);
+}
+void Block::set_matrix(std::shared_ptr<Matrix> dense) {
+  matrix_ = std::move(dense);
 }
 
 std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {

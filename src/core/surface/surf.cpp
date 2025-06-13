@@ -12,6 +12,22 @@
 #include <utility>
 #include <variant>
 
+Surf::Point::Point()                                   = default;
+Surf::Point::Point(const Point &)                      = default;
+Surf::Point::Point(Point &&) noexcept                  = default;
+Surf::Point &Surf::Point::operator=(const Point &)     = default;
+Surf::Point &Surf::Point::operator=(Point &&) noexcept = default;
+Surf::Data::Data()                                     = default;
+Surf::Data::Data(const Data &)                         = default;
+Surf::Data::Data(Data &&) noexcept                     = default;
+Surf::Data &Surf::Data::operator=(const Data &)        = default;
+Surf::Data &Surf::Data::operator=(Data &&) noexcept    = default;
+Surf::Field::Field()                                   = default;
+Surf::Field::Field(const Field &)                      = default;
+Surf::Field::Field(Field &&) noexcept                  = default;
+Surf::Field &Surf::Field::operator=(const Field &)     = default;
+Surf::Field &Surf::Field::operator=(Field &&) noexcept = default;
+
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
     case SurfaceKey::h: return elevation;

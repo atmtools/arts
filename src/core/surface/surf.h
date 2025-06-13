@@ -47,6 +47,12 @@ struct Point {
                  std::numeric_limits<Numeric>::quiet_NaN()};
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
+  Point();
+  Point(const Point &);
+  Point(Point &&) noexcept;
+  Point &operator=(const Point &);
+  Point &operator=(Point &&) noexcept;
+
   Numeric &operator[](SurfaceKey x);
   Numeric &operator[](const SurfacePropertyTag &x);
   Numeric &operator[](const SurfaceKeyVal &x);
@@ -96,11 +102,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data()                        = default;
-  Data(const Data &)            = default;
-  Data(Data &&)                 = default;
-  Data &operator=(const Data &) = default;
-  Data &operator=(Data &&)      = default;
+  Data();
+  Data(const Data &);
+  Data(Data &&) noexcept;
+  Data &operator=(const Data &);
+  Data &operator=(Data &&) noexcept;
 
   void adjust_interpolation_extrapolation();
 
@@ -146,6 +152,12 @@ struct Data {
 struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
   //! The ellipsoid used for the surface, in [a, b] in meters
   Vector2 ellipsoid;
+
+  Field();
+  Field(const Field &);
+  Field(Field &&) noexcept;
+  Field &operator=(const Field &);
+  Field &operator=(Field &&) noexcept;
 
   /** Compute the values at a single point
    *

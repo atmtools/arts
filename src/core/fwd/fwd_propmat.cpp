@@ -7,6 +7,12 @@
 #include <numeric>
 
 namespace fwd {
+propmat::propmat()                              = default;
+propmat::propmat(const propmat&)                = default;
+propmat::propmat(propmat&&) noexcept            = default;
+propmat& propmat::operator=(const propmat&)     = default;
+propmat& propmat::operator=(propmat&&) noexcept = default;
+
 propmat::propmat(std::shared_ptr<AtmPoint> atm_,
                  std::shared_ptr<AbsorptionBands> lines_,
                  std::shared_ptr<ArrayOfCIARecord> cia_,

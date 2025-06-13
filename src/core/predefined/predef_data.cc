@@ -12,6 +12,12 @@
 #include <vector>
 
 namespace Absorption::PredefinedModel {
+Model::Model()                             = default;
+Model::Model(const Model &)                = default;
+Model::Model(Model &&) noexcept            = default;
+Model &Model::operator=(const Model &)     = default;
+Model &Model::operator=(Model &&) noexcept = default;
+
 namespace MT_CKD400 {
 std::ostream &operator<<(std::ostream &os, const WaterData &data) {
   os << data.ref_temp << ' ' << data.ref_press << ' ' << data.ref_h2o_vmr

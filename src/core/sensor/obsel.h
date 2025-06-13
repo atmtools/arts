@@ -94,7 +94,11 @@ class Obsel {
   SparseStokvecMatrix w{};
 
  public:
-  Obsel() = default;
+  Obsel();
+  Obsel(const Obsel&);
+  Obsel(Obsel&&) noexcept;
+  Obsel& operator=(const Obsel&);
+  Obsel& operator=(Obsel&&) noexcept;
 
   Obsel(std::shared_ptr<const AscendingGrid> fs,
         std::shared_ptr<const PosLosVector> pl,
@@ -102,11 +106,6 @@ class Obsel {
   Obsel(const AscendingGrid& fs,
         const PosLosVector& pl,
         SparseStokvecMatrix ws);
-
-  Obsel(const Obsel&)            = default;
-  Obsel(Obsel&&)                 = default;
-  Obsel& operator=(const Obsel&) = default;
-  Obsel& operator=(Obsel&&)      = default;
 
   void check() const;
 

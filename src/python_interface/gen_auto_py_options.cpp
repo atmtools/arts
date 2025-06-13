@@ -10,7 +10,8 @@
 #include "pydocs.h"
 
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
-std::print(os, R"-x-(
+  std::print(os,
+             R"-x-(
 void enum_{0}(py::module_& m) {{
    py::class_<{0}> _g{0}(m, "{0}");
 
@@ -55,7 +56,8 @@ void enum_{0}(py::module_& m) {{
 
    _g{0}.def_static("get_options_as_strings", [](){{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");
 
-)-x-", wso.name);
+)-x-",
+             wso.name);
 
   static std::array pykeywords{"None", "any", "all", "print"};
   constexpr std::string_view ignore_str =
@@ -80,8 +82,13 @@ void enum_{0}(py::module_& m) {{
         os << '_';
       }
 
-      os << std::format(R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
-)-x-", wso.name, value.front(), unwrap_stars(value.back()));
+      std::print(
+          os,
+          R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
+)-x-",
+          wso.name,
+          value.front(),
+          unwrap_stars(value.back()));
     }
   }
 

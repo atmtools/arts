@@ -264,7 +264,7 @@ std::string wsv_format(const std::string& x) {
   std::string_view sep =
       workspace_variables().contains(std::string{n}) ? "*" : "";
 
-  return std::format("{}{}{}", sep, n, sep);
+  return std::format("{0}{1}", sep, n);
 }
 
 struct SetvalHelper {

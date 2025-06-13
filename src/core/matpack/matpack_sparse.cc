@@ -124,6 +124,11 @@ Sparse::Sparse() : matrix(0, 0) {
   // Nothing to do here
 }
 
+Sparse::Sparse(const Sparse& other)                = default;
+Sparse::Sparse(Sparse&& other) noexcept            = default;
+Sparse& Sparse::operator=(const Sparse& other)     = default;
+Sparse& Sparse::operator=(Sparse&& other) noexcept = default;
+
 //! Constructor setting size.
 /*!
   \param r Row dimension of new sparse matrix.

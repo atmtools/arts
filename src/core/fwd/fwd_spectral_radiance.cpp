@@ -14,6 +14,14 @@
 #include "fwd_path.h"
 
 namespace fwd {
+spectral_radiance::spectral_radiance()                             = default;
+spectral_radiance::spectral_radiance(const spectral_radiance&)     = default;
+spectral_radiance::spectral_radiance(spectral_radiance&&) noexcept = default;
+spectral_radiance& spectral_radiance::operator=(const spectral_radiance&) =
+    default;
+spectral_radiance& spectral_radiance::operator=(spectral_radiance&&) noexcept =
+    default;
+
 Stokvec spectral_radiance::B(
     const Numeric f,
     const std::array<spectral_radiance::weighted_position, 8>& pos) const {

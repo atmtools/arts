@@ -4,6 +4,12 @@
 #include <jacobian.h>
 
 namespace lookup {
+table::table()                        = default;
+  table::table(const table&)            = default;
+  table::table(table&&)      noexcept           = default;
+  table& table::operator=(const table&) = default;
+  table& table::operator=(table&&)noexcept      = default;
+
 bool table::do_t() const { return t_pert and not t_pert->empty(); }
 
 bool table::do_w() const { return w_pert and not w_pert->empty(); }

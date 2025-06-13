@@ -1771,7 +1771,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     String sizes_str = "";
     for (std::size_t i = 0; i < sizes.size(); i++) {
       if (i > 0) sizes_str += " ";
-      sizes_str += std::format("{}", sizes[i]);
+      std::format_to(std::back_inserter(sizes_str), "{}", sizes[i]);
     }
     internal_open_tag.add_attribute("sizes", sizes_str);
 
@@ -2000,8 +2000,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else if (type == "Numeric")
     data.data = Numeric{};
   else if (type == "FunctionalData")
-    data.data = Surf::FunctionalData{
-        Surf::FunctionalDataAlwaysThrow{}};
+    data.data = Surf::FunctionalData{Surf::FunctionalDataAlwaysThrow{}};
   else
     ARTS_USER_ERROR("Cannot understand the data type: \"{}\"", type)
 
@@ -2083,9 +2082,9 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
                                 Surf::FunctionalData>)
                 xml_write_to_stream(
                     os_xml,
-                    String{std::format(
+                    std::format(
                         "Data for {} read from file as functional must be set explicitly",
-                        key_val)},
+                        key_val),
                     pbofs,
                     "Functional Data Error");
               else
@@ -2209,7 +2208,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     std::visit(
         [&](auto&& key_val) {
           xml_write_to_stream(
-              os_xml, String{std::format("{}", key_val)}, pbofs, "Data Key");
+              os_xml, std::format("{}", key_val), pbofs, "Data Key");
           xml_write_to_stream(os_xml, surf[key_val], pbofs, "Data");
         },
         key);
@@ -2833,7 +2832,8 @@ void xml_read_from_stream(std::istream& is_xml,
     try {
       Index irow, icol;
       Stokvec data;
-      is_xml >> irow >> icol >> double_imanip() >> data.I() >> data.Q() >> data.U() >> data.V();
+      is_xml >> irow >> icol >> double_imanip() >> data.I() >> data.Q() >>
+          data.U() >> data.V();
 
       ARTS_USER_ERROR_IF(irow >= nrows, "Row index out of range")
       ARTS_USER_ERROR_IF(icol >= ncols, "Column index out of range")

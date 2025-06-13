@@ -27,29 +27,29 @@ std::string get_disort_settings_agendaSetup_doc() {
 
   std::string doc = std::format(
       R"(
-There are {} possible combinations for calling the ``{}`` method.
+There are {0} possible combinations for calling the ``{1}`` method.
 
 Below, these are all listed with the generated agenda-call order for each combination in full.
 
 Before that, a concise overview of what each option do is available by the types in this table:
 
 .. list-table::
-  :name: Setup options for ``{}``
+  :name: Setup options for ``{1}``
   :widths: auto
   :align: left
   :header-rows: 1
 
   * - Input variable
     - pyarts class
-  * - ``{}``
+  * - ``{2}``
     - :class:`~pyarts.arts.disort_settings_agenda_setup_layer_emission_type`
-  * - ``{}``
+  * - ``{3}``
     -  :class:`~pyarts.arts.disort_settings_agenda_setup_scattering_type`
-  * - ``{}``
+  * - ``{4}``
     -  :class:`~pyarts.arts.disort_settings_agenda_setup_space_type` 
-  * - ``{}``
+  * - ``{5}``
     -  :class:`~pyarts.arts.disort_settings_agenda_setup_sun_type`
-  * - ``{}``
+  * - ``{6}``
     -  :class:`~pyarts.arts.disort_settings_agenda_setup_surface_type`
 )",
       enumstrs::disort_settings_agenda_setup_layer_emission_typeNames<>.size() *
@@ -58,7 +58,7 @@ Before that, a concise overview of what each option do is available by the types
           enumstrs::disort_settings_agenda_setup_sun_typeNames<>.size() *
           enumstrs::disort_settings_agenda_setup_surface_typeNames<>.size(),
       method_name,
-      method_name,
+      
       method.in[0].substr(1),
       method.in[1].substr(1),
       method.in[2].substr(1),

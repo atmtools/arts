@@ -13,11 +13,11 @@ class full {
   void adapt();
 
  public:
-  full() = default;
-  full(const full&) = default;
-  full(full&&) = default;
-  full& operator=(const full&) = default;
-  full& operator=(full&&) = default;
+  full();
+  full(const full&);
+  full(full&&) noexcept;
+  full& operator=(const full&);
+  full& operator=(full&&) noexcept;
 
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<PredefinedModelData> data);

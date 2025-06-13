@@ -14,6 +14,12 @@ extern "C" void dgbsv_(int* N,
                        int* INFO);
 
 namespace matpack {
+band_matrix::band_matrix()                                  = default;
+band_matrix::band_matrix(const band_matrix&)                = default;
+band_matrix::band_matrix(band_matrix&&) noexcept            = default;
+band_matrix& band_matrix::operator=(const band_matrix&)     = default;
+band_matrix& band_matrix::operator=(band_matrix&&) noexcept = default;
+
 Matrix band_matrix::mat(Index KL, Index KU, Index N) {
   return Matrix(N, 2 * KL + KU + 1);
 }

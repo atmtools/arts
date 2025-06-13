@@ -13,6 +13,12 @@ bool SensorKey::operator==(const SensorKey& other) const {
 }
 
 namespace sensor {
+Obsel::Obsel()                            = default;
+Obsel::Obsel(const Obsel&)                = default;
+Obsel::Obsel(Obsel&&) noexcept            = default;
+Obsel& Obsel::operator=(const Obsel&)     = default;
+Obsel& Obsel::operator=(Obsel&&) noexcept = default;
+
 bool SparseStokvec::operator==(const SparseStokvec& other) const {
   return (irow == other.irow) and (icol == other.icol);
 }
@@ -137,9 +143,9 @@ SparseStokvecMatrix::operator StokvecMatrix() const {
 }
 
 void Obsel::check() const {
-  assert(f\);
+  assert(f);
 
-  assert(poslos\);
+  assert(poslos);
 
   ARTS_USER_ERROR_IF(
       (w.shape() != std::array{static_cast<Index>(poslos->size()),

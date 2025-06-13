@@ -13,6 +13,30 @@
 
 namespace lbl::fwd {
 namespace models {
+lte::lte()                                               = default;
+lte::lte(const lte&)                                     = default;
+lte::lte(lte&&) noexcept                                 = default;
+lte& lte::operator=(const lte&)                          = default;
+lte& lte::operator=(lte&&) noexcept                      = default;
+lte_mirror::lte_mirror()                                 = default;
+lte_mirror::lte_mirror(const lte_mirror&)                = default;
+lte_mirror::lte_mirror(lte_mirror&&) noexcept            = default;
+lte_mirror& lte_mirror::operator=(const lte_mirror&)     = default;
+lte_mirror& lte_mirror::operator=(lte_mirror&&) noexcept = default;
+nlte::nlte()                                             = default;
+nlte::nlte(const nlte&)                                  = default;
+nlte::nlte(nlte&&) noexcept                              = default;
+nlte& nlte::operator=(const nlte&)                       = default;
+nlte& nlte::operator=(nlte&&) noexcept                   = default;
+}  // namespace models
+
+line_storage::line_storage()                                   = default;
+line_storage::line_storage(const line_storage&)                = default;
+line_storage::line_storage(line_storage&&) noexcept            = default;
+line_storage& line_storage::operator=(const line_storage&)     = default;
+line_storage& line_storage::operator=(line_storage&&) noexcept = default;
+
+namespace models {
 void lte::adapt() try {
   lines.lines.resize(0);
   cutoff_lines.lines.resize(0);

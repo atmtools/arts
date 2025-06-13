@@ -86,11 +86,12 @@ struct Point {
   Vector3 wind{0, 0, 0};
   Vector3 mag{0, 0, 0};
 
-  Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Point(const Point &)            = default;
-  Point(Point &&)                 = default;
-  Point &operator=(const Point &) = default;
-  Point &operator=(Point &&)      = default;
+  Point(const IsoRatioOption);
+  Point();
+  Point(const Point &);
+  Point(Point &&) noexcept;
+  Point &operator=(const Point &);
+  Point &operator=(Point &&) noexcept;
 
   Numeric operator[](SpeciesEnum x) const;
   Numeric operator[](const SpeciesIsotope &x) const;
@@ -207,11 +208,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data()                        = default;
-  Data(const Data &)            = default;
-  Data(Data &&)                 = default;
-  Data &operator=(const Data &) = default;
-  Data &operator=(Data &&)      = default;
+  Data();
+  Data(const Data &);
+  Data(Data &&) noexcept;
+  Data &operator=(const Data &);
+  Data &operator=(Data &&) noexcept;
 
   void adjust_interpolation_extrapolation();
 
@@ -277,11 +278,12 @@ struct Field final : FieldMap::Map<Data,
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
-  Field(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Field(const Field &)                = default;
-  Field(Field &&) noexcept            = default;
-  Field &operator=(const Field &)     = default;
-  Field &operator=(Field &&) noexcept = default;
+  Field(const IsoRatioOption);
+  Field();
+  Field(const Field &);
+  Field(Field &&) noexcept;
+  Field &operator=(const Field &);
+  Field &operator=(Field &&) noexcept;
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;

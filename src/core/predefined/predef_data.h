@@ -57,6 +57,12 @@ struct Model {
 
   ModelData data{};
 
+  Model();
+  Model(const Model &);
+  Model(Model &&) noexcept;
+  Model &operator=(const Model &);
+  Model &operator=(Model &&) noexcept;
+
   friend std::ostream &operator<<(std::ostream &, const Model &);
 };
 

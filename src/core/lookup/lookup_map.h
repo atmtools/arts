@@ -32,11 +32,11 @@ struct table {
   */
   Tensor4 xsec;
 
-  table()                        = default;
-  table(const table&)            = default;
-  table(table&&)                 = default;
-  table& operator=(const table&) = default;
-  table& operator=(table&&)      = default;
+  table();
+  table(const table&);
+  table(table&&) noexcept;
+  table& operator=(const table&);
+  table& operator=(table&&) noexcept;
 
   table(const SpeciesEnum& species,
         const ArrayOfAtmPoint& atmref,

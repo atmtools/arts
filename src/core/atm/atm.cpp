@@ -241,6 +241,23 @@ Field::Field(const IsoRatioOption isots_key) {
   }
 }
 
+Field::Field() : Field(IsoRatioOption::Builtin) {}
+Point::Point() : Point(IsoRatioOption::Builtin) {}
+
+Field::Field(const Field &)                = default;
+Field::Field(Field &&) noexcept            = default;
+Field &Field::operator=(const Field &)     = default;
+Field &Field::operator=(Field &&) noexcept = default;
+Point::Point(const Point &)                = default;
+Point::Point(Point &&) noexcept            = default;
+Point &Point::operator=(const Point &)     = default;
+Point &Point::operator=(Point &&) noexcept = default;
+Data::Data()                               = default;
+Data::Data(const Data &)                   = default;
+Data::Data(Data &&) noexcept               = default;
+Data &Data::operator=(const Data &)        = default;
+Data &Data::operator=(Data &&) noexcept    = default;
+
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
 }
