@@ -116,12 +116,15 @@ struct format_tags {
   [[nodiscard]] std::string vformat() const { return ""s; }
 
   template <std::formattable<char> T, typename... Rest>
-  [[nodiscard]] std::string vformat(const T& x, const Rest&... r) const {
+  [[nodiscard]] std::string vformat(const T& x, const Rest&... r) const try {
     if constexpr (arts_formattable<T>)
       return std::vformat(get_format_args(), std::make_format_args(x)) +
              vformat(r...);
     else
       return std::format("{}", x) + vformat(r...);
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in vformat with fmt-string: " + get_format_args() + "\n" +
+                             e.what());
   }
 
   format_tags& set_depth(Size d) {

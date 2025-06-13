@@ -257,4 +257,12 @@ target_link_libraries(test_band_matrix_solver PUBLIC matpack)
 add_test(NAME "cpp.fast.test_band_matrix_solver" COMMAND test_band_matrix_solver)
 add_dependencies(check-deps test_band_matrix_solver)
 
+
+# ####
+add_executable(test_vformat test_vformat.cc)
+target_link_libraries(test_vformat PUBLIC artsworkspace)
+add_test(NAME "cpp.fast.test_vformat" COMMAND test_vformat)
+add_dependencies(check-deps test_vformat)
+
+# ####
 add_subdirectory(scattering)

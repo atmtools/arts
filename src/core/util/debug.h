@@ -13,40 +13,16 @@
 
 #include <cassert>
 #include <format>
+#include <source_location>
+#include <string>
 #include <version>
 
-#if __cpp_lib_source_location >= 201907L
-#include <source_location>
-#endif
-
 struct src_location {
-#if __cpp_lib_source_location >= 201907L
   std::source_location loc;
-  src_location(std::source_location);
-#else
-  std::string_view f;
-  int l;
-  src_location(std::string_view, const int);
-#endif
+  src_location(std::source_location = std::source_location::current());
   std::string get();
   std::string getfunc();
 };
-
-#if __cpp_lib_source_location >= 201907L
-
-#define CURRENT_SOURCE_LOCATION \
-  src_location{std::source_location::current()}.get()
-
-#define CURRENT_SOURCE_FUNCTION \
-  src_location{std::source_location::current()}.getfunc()
-
-#else
-
-#define CURRENT_SOURCE_LOCATION src_location{__FILE__, __LINE__}.get()
-
-#define CURRENT_SOURCE_FUNCTION src_location{__FILE__, __LINE__}.getfunc()
-
-#endif
 
 namespace arts {
 std::runtime_error catch_errors(std::logic_error& e,
@@ -61,12 +37,12 @@ std::runtime_error user_error(const std::string_view msg,
                               const std::string_view context);
 }  // namespace arts
 
-#define ARTS_METHOD_ERROR_CATCH                           \
-  catch (std::logic_error & e) {                          \
-    throw arts::catch_errors(e, CURRENT_SOURCE_FUNCTION); \
-  }                                                       \
-  catch (std::exception & e) {                            \
-    throw arts::catch_errors(e, CURRENT_SOURCE_FUNCTION); \
+#define ARTS_METHOD_ERROR_CATCH                            \
+  catch (std::logic_error & e) {                           \
+    throw arts::catch_errors(e, src_location{}.getfunc()); \
+  }                                                        \
+  catch (std::exception & e) {                             \
+    throw arts::catch_errors(e, src_location{}.getfunc()); \
   }
 
 #ifndef NDEBUG
@@ -81,7 +57,7 @@ std::runtime_error user_error(const std::string_view msg,
   {                                                              \
     throw arts::user_error(                                      \
         __VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__), \
-        CURRENT_SOURCE_LOCATION);                                \
+        src_location{}.get());                                   \
   }
 
 /*! Condition should be false to pass external check */
@@ -91,7 +67,7 @@ std::runtime_error user_error(const std::string_view msg,
       throw arts::user_error(                                      \
           __VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__), \
           #condition,                                              \
-          CURRENT_SOURCE_LOCATION);                                \
+          src_location{}.get());                                   \
   }
 
 #endif /* debug_h */

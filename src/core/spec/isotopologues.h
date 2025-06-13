@@ -42,7 +42,7 @@ struct Isotope {
     return not(nonstd::isdigit(isotname[0]) or is_joker());
   }
   [[nodiscard]] constexpr bool is_normal() const {
-    return nonstd::isdigit(isotname[0]);
+    return nonstd::isdigit(isotname[0]) and not is_joker();
   }
 
   [[nodiscard]] constexpr bool OK() const { return good_enum(spec); }

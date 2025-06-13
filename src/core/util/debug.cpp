@@ -5,36 +5,22 @@
 #include <string>
 #include <string_view>
 
-#if __cpp_lib_source_location >= 201907L
 src_location::src_location(std::source_location loc_) : loc(loc_) {}
-#else
-src_location::src_location(std::string_view f_, const int l_) : f(f_), l(l_) {}
-#endif
 
 std::string src_location::get() {
-  return
-#if __cpp_lib_source_location >= 201907L
-      std::format(
-          "Filename:      {}\n"
-          "Function Name: {}\n"
-          "Line Number:   {}\n"
-          "Column Number: {}\n",
-          std::string_view(loc.file_name()),
-          std::string_view(loc.function_name()),
-          loc.line(),
-          loc.column());
-#else
-      std::format("File:Line:     {}:{}", f, l);
-#endif
+  return std::format(
+      "Filename:      {}\n"
+      "Function Name: {}\n"
+      "Line Number:   {}\n"
+      "Column Number: {}\n",
+      std::string_view(loc.file_name()),
+      std::string_view(loc.function_name()),
+      loc.line(),
+      loc.column());
 }
 
 std::string src_location::getfunc() {
-  return
-#if __cpp_lib_source_location >= 201907L
-      std::source_location::current().function_name();
-#else
-      get();
-#endif
+  return loc.function_name();
 }
 
 namespace arts {

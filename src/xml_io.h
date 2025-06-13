@@ -114,12 +114,13 @@ void filename_xml_with_index(String& filename,
 template <typename T>
 String xml_read_from_file(const String& filename, T& type)
   requires(std::same_as<T, std::remove_const_t<T>>)
-{
+try {
   String xml_file = filename;
   find_xml_file(xml_file);
   xml_read_from_file_base(xml_file, type);
   return xml_file;
 }
+ARTS_METHOD_ERROR_CATCH
 
 //! Write data to XML file
 /*!
@@ -135,7 +136,7 @@ template <typename T>
 String xml_write_to_file(const String& filename,
                          const T& type,
                          const FileType ftype,
-                         const Index no_clobber) {
+                         const Index no_clobber) try {
   String efilename{add_basedir(filename)};
 
   std::unique_ptr<std::ostream> ofs;
@@ -146,6 +147,7 @@ String xml_write_to_file(const String& filename,
 
   return efilename;
 }
+ARTS_METHOD_ERROR_CATCH
 
 String complete_basename(const String& basename);
 
