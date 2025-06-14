@@ -26,20 +26,20 @@ add_library(workspace_core STATIC
 target_link_libraries(workspace_core PRIVATE arts_options)
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
+set (ARTS_WORKSPACE_GROUPS
+  auto_workspace.cpp
+  auto_agenda_operators.cpp
+)
 add_custom_command(OUTPUT
-  auto_wsg.h
   auto_wsg_docs.cpp
   auto_wsg_valid_wsg.cpp
-  auto_workspace.cpp
-  auto_agenda_operators.h
-  auto_agenda_operators.cpp
   auto_wsv_value_wrapper_read_from_stream.cpp
   auto_wsv_value_wrapper_write_to_stream.cpp
   auto_wsv_value_wrapper_copied.cpp
   auto_wsv_value_wrapper_from_named_type.cpp
   auto_wsv_value_wrapper_type_name.cpp
   auto_wsv_value_wrapper_vformat.cpp
-  auto_wsv_value_wrapper.h
+  ${ARTS_WORKSPACE_GROUPS}
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -68,7 +68,8 @@ target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 
 # ####
 add_executable(make_auto_wsv make_auto_wsv.cpp)
-add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
+set (ARTS_WORKSPACE_VARIABLES auto_wsv.cpp)
+add_custom_command(OUTPUT ${ARTS_WORKSPACE_VARIABLES}
   COMMAND make_auto_wsv
   DEPENDS make_auto_wsv
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -91,8 +92,10 @@ while(N LESS NUM_ARTS_WSM)
   list(LENGTH ARTS_WORKSPACE_METHODS N)
 endwhile()
 
+list(APPEND ARTS_WORKSPACE_METHODS auto_wsm.cpp auto_wsmmeta.cpp)
+
 add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
-add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp auto_wsmmeta.cpp ${ARTS_WORKSPACE_METHODS}
+add_custom_command(OUTPUT ${ARTS_WORKSPACE_METHODS}
   COMMAND make_auto_wsm ${NUM_ARTS_WSM}
   DEPENDS make_auto_wsm
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -101,8 +104,11 @@ add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp auto_wsmmeta.cpp ${ARTS_WORKSP
 target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
 # ####
+
+set (ARTS_WORKSPACE_AGENDAS auto_wsa.cpp)
+
 add_executable(make_auto_wsa make_auto_wsa.cpp )
-add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
+add_custom_command(OUTPUT ${ARTS_WORKSPACE_AGENDAS}
   COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -110,15 +116,29 @@ add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
 )
 target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
 
+# #######################################################################################
+
+# copy auto generated files if they are different
+
+set(ARTS_WORKSPACE_FILES "")
+foreach(file ${ARTS_WORKSPACE_METHODS}
+             ${ARTS_WORKSPACE_VARIABLES}
+             ${ARTS_WORKSPACE_GROUPS}
+             ${ARTS_WORKSPACE_AGENDAS})
+add_custom_command(
+    COMMENT "Copying file (if required): ${file}"
+    OUTPUT x${file}
+    DEPENDS ${file}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${file}
+        x${file}
+    )
+  list(APPEND ARTS_WORKSPACE_FILES x${file})
+endforeach()
+
 # ########## next target ###############
 add_library(artsworkspace STATIC
-  auto_wsv.cpp
-  auto_wsm.cpp
-  auto_wsmmeta.cpp
-  auto_wsa.cpp
-  auto_workspace.cpp
-  auto_agenda_operators.cpp
-  ${ARTS_WORKSPACE_METHODS}
+  ${ARTS_WORKSPACE_FILES}
   callback.cpp
   workspace_agenda_class.cpp
   workspace_agenda_creator.cpp
