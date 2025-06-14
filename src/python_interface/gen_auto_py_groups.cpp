@@ -159,7 +159,7 @@ py::object to_py(const Wsv& wsv) {{
     if (wsg.value_type) {
       std::println(
           os,
-          "    case WorkspaceGroupInfo<{0}::index:\n      return py::cast<ValueHolder<{0}>>(wsv.share<{0}>());",
+          "    case WorkspaceGroupInfo<{0}>::index:\n      return py::cast<ValueHolder<{0}>>(wsv.share<{0}>());",
           group);
     } else {
       std::println(

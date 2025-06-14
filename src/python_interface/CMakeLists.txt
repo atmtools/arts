@@ -103,7 +103,12 @@ if (IPO_SUPPORTED)
   set(NANOBIND_LTO "LTO")
 endif()
 
+# NOTE: Sort these by how long they take to compile, to help multicore compilation
 nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
+    py_matpack.cpp
+    py_griddedfield.cpp
+    py_rtepack.cpp
+
     ${PYARTS_WORKSPACE_METHODS}
     ${PYARTS_WORKSPACE_VARS}
     py_auto_wsg.h
@@ -121,9 +126,6 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     gen_auto_py_helpers.cpp
 
     py_workspace.cpp
-    py_matpack.cpp
-    py_griddedfield.cpp
-    py_rtepack.cpp
     py_agenda.cpp
 
     py_basic.cpp
