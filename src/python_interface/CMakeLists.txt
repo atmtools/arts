@@ -74,6 +74,7 @@ add_custom_command(
         py_auto_wsg_from_const_py_object.cpp
         py_auto_wsg_string_type.cpp
         py_auto_wsg_convert.cpp
+        py_auto_wsg_to_py_wsv.cpp
         py_auto_wsg.h
         py_auto_wsgdocs.h
         py_auto_wsgdocs.cpp
@@ -114,6 +115,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_auto_wsg_from_const_py_object.cpp
     py_auto_wsg_string_type.cpp
     py_auto_wsg_convert.cpp
+    py_auto_wsg_to_py_wsv.cpp
 
     py_auto_agenda_operators.cpp
     gen_auto_py_helpers.cpp
