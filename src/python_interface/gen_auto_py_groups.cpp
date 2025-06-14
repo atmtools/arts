@@ -19,74 +19,73 @@ namespace Python {{
 bool convert_ref(Wsv& wsv, const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
-
-  )--");
+)--");
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
       if (group == "Numeric"sv) {
-      std::print(os,
-                 R"(if (py::isinstance<ValueHolder<Numeric>>(*x)) {{
+        std::println(os,
+                     R"(  if (py::isinstance<ValueHolder<Numeric>>(*x)) {{
     wsv = Numeric{{py::float_(*x)}};
-  }} else )");
+    return true;
+  }})");
       } else if (group == "String"sv) {
-      std::print(os,
-                 R"(if (py::isinstance<ValueHolder<String>>(*x)) {{
+        std::println(os,
+                     R"( if (py::isinstance<ValueHolder<String>>(*x)) {{
     wsv = String{{py::str(*x).c_str()}};
-  }} else )");
+    return true;
+  }})");
       } else if (group == "Index") {
-      std::print(os,
-                 R"(if (py::isinstance<ValueHolder<Index>>(*x)) {{
+        std::println(os,
+                     R"(  if (py::isinstance<ValueHolder<Index>>(*x)) {{
     wsv = Index{{py::int_(*x)}};
-  }} else )");
+    return true;
+  }})");
       } else {
-        std::print(os, "static_assert(false, \"Missing custom code for {0}\");",group);
+        std::print(os,
+                   "static_assert(false, \"Missing custom code for {0}\");",
+                   group);
       }
     } else {
-      std::print(os,
-                 R"(if (py::isinstance<{0}>(*x)) {{
+      std::println(os,
+                   R"(  if (py::isinstance<{0}>(*x)) {{
     wsv = py::cast<std::shared_ptr<{0}>>(*x, false);
-  }} else )",
-                 group);
+    return true;
+  }})",
+                   group);
     }
   }
 
-  os << "return false;\n  return true;\n}\n\n";
+  os << "  return false;}\n\n";
   std::println(os,
                R"--(bool convert_cast(Wsv& wsv, const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
-
-  bool found = false;
 )--");
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
       std::print(os,
                  R"(
-  if (not found) {{
-    ValueHolder<{0}> _val{{}};
-    if (py::try_cast(*x, _val, true)) {{
-      wsv = std::move(_val.val);
-      found = true;
-    }}
+  ValueHolder<{0}> _val{0}{{}};
+  if (py::try_cast(*x, _val{0}, true)) {{
+    wsv = std::move(_val{0}.val);
+    return true;
   }})",
                  group);
     } else {
       std::print(os,
                  R"(
-  if (not found) {{
-    {0} _val{{}};
-    if (py::try_cast(*x, _val, true)) {{
-      wsv = _val;
-      found = true;
-    }}
+  {0} _val{0}{{}};
+  if (py::try_cast(*x, _val{0}, true)) {{
+    wsv = _val{0};
+    return true;
   }})",
                  group);
     }
   }
 
-  os << "\n  return found;\n}\n}\n";
+  os << "\n  return false;\n}\n}\n";
 }
 
 void implement_from_const_py_object() {
@@ -125,8 +124,8 @@ namespace Python {
   os << R"--(
 
 Wsv from(py::object * const x) {
-  if (not x or x -> is_none()) throw std::runtime_error("Cannot have None as workspace variable.");
   py::gil_scoped_acquire gil{};
+  if (not x or x -> is_none()) throw std::runtime_error("Cannot have None as workspace variable.");
 )--";
 
   for (auto& [group, wsg] : wsgs) {
@@ -159,8 +158,8 @@ void implement_string_type() {
 
 namespace Python {
 std::string type(const py::object * const x) {
-  if (not x or x -> is_none()) return "NoneType";
   py::gil_scoped_acquire gil{};
+  if (not x or x -> is_none()) return "NoneType";
 
   return py::cast<std::string>(py::str(py::type_name(*x)));
 }
