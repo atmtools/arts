@@ -24,11 +24,24 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
+      if (group == "Numeric"sv) {
       std::print(os,
-                 R"(if (py::isinstance<ValueHolder<{0}>>(*x)) {{
-    wsv = py::cast<ValueHolder<{0}>>(py::object(x->attr("value")), false).val;
-  }} else )",
-                 group);
+                 R"(if (py::isinstance<ValueHolder<Numeric>>(*x)) {{
+    wsv = Numeric{{py::float_(*x)}};
+  }} else )");
+      } else if (group == "String"sv) {
+      std::print(os,
+                 R"(if (py::isinstance<ValueHolder<String>>(*x)) {{
+    wsv = String{{py::str(*x).c_str()}};
+  }} else )");
+      } else if (group == "Index") {
+      std::print(os,
+                 R"(if (py::isinstance<ValueHolder<Index>>(*x)) {{
+    wsv = Index{{py::int_(*x)}};
+  }} else )");
+      } else {
+        std::print(os, "static_assert(false, \"Missing custom code for {0}\");",group);
+      }
     } else {
       std::print(os,
                  R"(if (py::isinstance<{0}>(*x)) {{
@@ -46,8 +59,20 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
 )--");
 
   for (auto& [group, wsg] : wsgs) {
-    std::print(os,
-               R"(
+    if (wsg.value_type) {
+      std::print(os,
+                 R"(
+  {{
+    ValueHolder<{0}> _val{{}};
+    if (py::try_cast(*x, _val, true)) {{
+      wsv = std::move(_val.val);
+      goto end;
+    }}
+  }})",
+                 group);
+    } else {
+      std::print(os,
+                 R"(
   {{
     {0} _val{{}};
     if (py::try_cast(*x, _val, true)) {{
@@ -55,7 +80,8 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
       goto end;
     }}
   }})",
-               group);
+                 group);
+    }
   }
 
   os << "\n  return false;\nend:\n  return true;\n}\n}\n";
