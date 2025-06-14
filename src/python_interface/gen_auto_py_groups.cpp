@@ -164,12 +164,12 @@ py::object to_py(const Wsv& wsv) {{
     } else {
       std::println(
           os,
-          "  case WorkspaceGroupInfo<{0}::index:\n      return py::cast<std::shared_ptr<{0}>>(wsv.share<{0}>());",
+          "    case WorkspaceGroupInfo<{0}::index:\n      return py::cast<std::shared_ptr<{0}>>(wsv.share<{0}>());",
           group);
     }
   }
 
-  os << R"--(  }}
+  os << R"--(  }
   return py::none();
 }
 }  // namespace Python
