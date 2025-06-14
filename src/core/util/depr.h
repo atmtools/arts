@@ -2,9 +2,9 @@
 #define depr_h
 
 #include <ios>
-#include <streambuf>
 #include <istream>
 #include <ostream>
+#include <streambuf>
 
 #include "debug.h"
 
@@ -27,7 +27,7 @@
                 << FUNCTION_NAME << " is deprecated since "                    \
                 << DATE_STRING_OR_SILLY_REASON << '\n'                         \
                 << '\n'                                                        \
-                << std::format(__VA_ARGS__) << '\n'                             \
+                << std::format(__VA_ARGS__) << '\n'                            \
                 << '\n'                                                        \
                 << "#########################################################" \
                    "#######################\n"                                 \
@@ -40,4 +40,4 @@
   }
 #endif
 
-#endif // depr_h
+#endif  // depr_h

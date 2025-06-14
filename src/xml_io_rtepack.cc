@@ -28,9 +28,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Propmat");
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Propmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes Propmat to XML output stream
 /*!
@@ -61,9 +59,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Propmat");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Propmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== Stokvec ================================================================
 
@@ -88,9 +84,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Stokvec");
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Stokvec:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes Stokvec to XML output stream
 /*!
@@ -120,9 +114,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Stokvec");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Stokvec:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== Muelmat ================================================================
 
@@ -150,9 +142,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Muelmat");
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes Muelmat to XML output stream
 /*!
@@ -185,9 +175,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Muelmat");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Muelmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== Specmat ================================================================
 
@@ -215,9 +203,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Specmat");
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Specmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes Specmat to XML output stream
 /*!
@@ -250,9 +236,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/Specmat");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(std::format("Error in Specmat:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== PropmatVector ================================================================
 
@@ -283,10 +267,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/PropmatVector");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in PropmatVector:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes PropmatVector to XML output stream
 /*!
@@ -320,11 +301,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/PropmatVector");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in PropmatVector:\n{}", e.what()));
-}
-
+} ARTS_METHOD_ERROR_CATCH
 //=== StokvecVector ================================================================
 
 //! Reads StokvecVector from XML input stream
@@ -353,10 +330,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecVector");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecVector:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecVector to XML output stream
 /*!
@@ -389,10 +363,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecVector");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecVector:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== MuelmatVector ================================================================
 
@@ -425,10 +396,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatVector");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatVector:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes MuelmatVector to XML output stream
 /*!
@@ -464,10 +432,8 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatVector");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatVector:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
+
 //=== PropmatMatrix ================================================================
 
 //! Reads PropmatMatrix from XML input stream
@@ -500,10 +466,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/PropmatMatrix");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in PropmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes PropmatMatrix to XML output stream
 /*!
@@ -540,10 +503,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/PropmatMatrix");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in PropmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== StokvecMatrix ================================================================
 
@@ -576,10 +536,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecMatrix");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecMatrix to XML output stream
 /*!
@@ -616,10 +573,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecMatrix");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== StokvecTensor3 ================================================================
 
@@ -656,10 +610,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor3");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor3:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecTensor3 to XML output stream
 /*!
@@ -697,10 +648,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor3");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor3:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== StokvecTensor4 ================================================================
 
@@ -739,10 +687,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor4");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor4:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecTensor4 to XML output stream
 /*!
@@ -783,10 +728,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor4");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor4:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== StokvecTensor5 ================================================================
 
@@ -829,10 +771,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor5");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor5:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecTensor5 to XML output stream
 /*!
@@ -876,10 +815,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor5");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor5:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== StokvecTensor6 ================================================================
 
@@ -926,10 +862,7 @@ void xml_read_from_stream(std::istream &is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/StokvecTensor6");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor6:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes StokvecTensor6 to XML output stream
 /*!
@@ -976,10 +909,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/StokvecTensor6");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in StokvecTensor6:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== SpecmatMatrix ================================================================
 
@@ -1016,10 +946,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/SpecmatMatrix");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in SpecmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes SpecmatMatrix to XML output stream
 /*!
@@ -1058,10 +985,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/SpecmatMatrix");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in SpecmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== MuelmatMatrix ================================================================
 
@@ -1098,10 +1022,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatMatrix");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes MuelmatMatrix to XML output stream
 /*!
@@ -1140,10 +1061,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatMatrix");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatMatrix:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //=== MuelmatTensor3 ================================================================
 
@@ -1183,10 +1101,7 @@ void xml_read_from_stream(std::istream &is_xml,
   }
   tag.read_from_stream(is_xml);
   tag.check_name("/MuelmatTensor3");
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatTensor3:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Writes MuelmatTensor3 to XML output stream
 /*!
@@ -1228,10 +1143,7 @@ void xml_write_to_stream(std::ostream &os_xml,
   close_tag.set_name("/MuelmatTensor3");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
-} catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error in MuelmatTensor3:\n{}", e.what()));
-}
+} ARTS_METHOD_ERROR_CATCH
 
 // arrays
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropmatVector)

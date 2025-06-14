@@ -320,7 +320,8 @@ struct targets_t {
   }
 
   [[nodiscard]] constexpr Size x_size() const {
-    ARTS_USER_ERROR_IF(target_count() != 0 and not finalized, "Not finalized.")
+    if (target_count() != 0 and not finalized)
+      throw std::runtime_error("Not finalized.");
 
     const auto sz = [](const auto& x) { return x.x_size; };
     return (std::transform_reduce(target<Targets>().begin(),
@@ -340,24 +341,17 @@ struct targets_t {
   void throwing_check(Size xsize) const {
     const auto t_size = target_count();
 
-    ARTS_USER_ERROR_IF(
-        xsize not_eq x_size(),
-        "The size of the x-vector does not match the size of the targets.")
+    if (xsize != x_size())
+      throw std::runtime_error(
+          "The size of the x-vector does not match the size of the targets.");
 
     ((std::ranges::for_each(
          target<Targets>(),
          [xsize, t_size](auto& a) {
-           ARTS_USER_ERROR_IF((a.x_start + a.x_size) > xsize,
-                              "The target {}"
-                              " is out of bounds of the x-vector.  (xsize: {})",
-                              a,
-                              xsize)
-           ARTS_USER_ERROR_IF(
-               t_size <= a.target_pos,
-               "The target {}"
-               " is out of bounds of the target vector.  (t_size: {})",
-               a,
-               t_size)
+           if ((a.x_start + a.x_size) > xsize)
+             throw std::runtime_error("x-vector out-of-bounds");
+           if (t_size <= a.target_pos)
+             throw std::runtime_error("target-vector out-of-bounds.");
          })),
      ...);
   }

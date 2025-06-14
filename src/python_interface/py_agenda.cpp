@@ -1,4 +1,5 @@
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
@@ -34,8 +35,7 @@ std::filesystem::path correct_include_path(
   }
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                     "Cannot find file: {}\n"
-                     "Search path: {}",
+                     "Cannot find file: {}\nSearch path(s): {:B,}",
                      path_copy.string(),
                      parameters.includepath)
 
@@ -74,6 +74,27 @@ void py_agenda(py::module_& m) try {
          "Initialize as structured call")
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
+  py::class_<Wsv>(m, "Wsv")
+      .def_prop_ro(
+          "value",
+          [](Wsv& v) { return to_py(v); },
+          "A workspace variable")
+      .def(
+          "__str__",
+          [](py::object& x) { return x.attr("value").attr("__str__")(); },
+          py::is_operator())
+      .def(
+          "__repr__",
+          [](py::object& x) { return x.attr("value").attr("__repr__")(); },
+          py::is_operator())
+      .def(
+          "__format__",
+          [](py::object& x, py::object& fmt) {
+            return x.attr("value").attr("__format__")(fmt);
+          },
+          py::is_operator())
+      .doc() = "A workspace variable wrapper - no manual use required";
+
   py::class_<Method> methods(m, "Method");
   str_interface(methods);
   methods
@@ -91,10 +112,8 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* me, const std::string& n, const PyWSV& v) {
-            new (me) Method{n,
-                            std::visit([](auto a) { return Wsv(std::move(a)); },
-                                       from_py(v).value())};
+          [](Method* me, const std::string& n, const py::object * const v) {
+            new (me) Method{n, from(v).copied()};
           },
           "name"_a,
           "wsv"_a,
@@ -103,7 +122,7 @@ void py_agenda(py::module_& m) try {
           "val",
           [](const Method& method) -> py::object {
             const auto& x = method.get_setval();
-            if (x) return py::cast(x.value());
+            if (x) return to_py(x.value());
             return py::none();
           },
           "The value (if any) of a set method")
@@ -112,31 +131,6 @@ void py_agenda(py::module_& m) try {
           [](const Method& method) { return method.get_name(); },
           "The name of the method")
       .doc() = "The method class of ARTS";
-
-  py::class_<Wsv>(m, "Wsv")
-      .def_prop_ro(
-          "value",
-          [](Wsv& v) {
-            return std::visit([]<WorkspaceGroup T>(
-                                  std::shared_ptr<T>& x) { return from<T>(x); },
-                              v.value());
-          },
-          "A workspace variable")
-      .def(
-          "__str__",
-          [](py::object& x) { return x.attr("value").attr("__str__")(); },
-          py::is_operator())
-      .def(
-          "__repr__",
-          [](py::object& x) { return x.attr("value").attr("__repr__")(); },
-          py::is_operator())
-      .def(
-          "__format__",
-          [](py::object& x, py::object& fmt) {
-            return x.attr("value").attr("__format__")(fmt);
-          },
-          py::is_operator())
-      .doc() = "A workspace variable wrapper - no manual use required";
 
   py::class_<Agenda> ag(m, "Agenda");
   workspace_group_interface(ag);

@@ -13,6 +13,30 @@
 
 namespace lbl::fwd {
 namespace models {
+lte::lte()                                               = default;
+lte::lte(const lte&)                                     = default;
+lte::lte(lte&&) noexcept                                 = default;
+lte& lte::operator=(const lte&)                          = default;
+lte& lte::operator=(lte&&) noexcept                      = default;
+lte_mirror::lte_mirror()                                 = default;
+lte_mirror::lte_mirror(const lte_mirror&)                = default;
+lte_mirror::lte_mirror(lte_mirror&&) noexcept            = default;
+lte_mirror& lte_mirror::operator=(const lte_mirror&)     = default;
+lte_mirror& lte_mirror::operator=(lte_mirror&&) noexcept = default;
+nlte::nlte()                                             = default;
+nlte::nlte(const nlte&)                                  = default;
+nlte::nlte(nlte&&) noexcept                              = default;
+nlte& nlte::operator=(const nlte&)                       = default;
+nlte& nlte::operator=(nlte&&) noexcept                   = default;
+}  // namespace models
+
+line_storage::line_storage()                                   = default;
+line_storage::line_storage(const line_storage&)                = default;
+line_storage::line_storage(line_storage&&) noexcept            = default;
+line_storage& line_storage::operator=(const line_storage&)     = default;
+line_storage& line_storage::operator=(line_storage&&) noexcept = default;
+
+namespace models {
 void lte::adapt() try {
   lines.lines.resize(0);
   cutoff_lines.lines.resize(0);
@@ -201,8 +225,8 @@ std::pair<Complex, Complex> lte_mirror::operator()(
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
-  ARTS_ASSERT(lines(frequency) == cutoff_lines(cutoff, frequency) and
-              (cutoff_lines(cutoff, frequency) == Complex{0.0, 0.0}))
+  assert(lines(frequency) == cutoff_lines(cutoff, frequency) and
+         (cutoff_lines(cutoff, frequency) == Complex{0.0, 0.0}));
 
   return {scl * (lines(frequency) + cutoff_lines(cutoff, frequency)),
           Complex{0.0, 0.0}};
@@ -218,7 +242,7 @@ std::pair<Complex, Complex> nlte::operator()(const Numeric frequency) const {
   auto [a, s]   = lines(frequency);
   auto [ac, sc] = cutoff_lines(cutoff, frequency);
 
-  ARTS_ASSERT(a == s and ac == sc and (a == Complex{0.0, 0.0}))
+  assert(a == s and ac == sc and (a == Complex{0.0, 0.0}));
   return {scl * (a + ac), scl * (s + sc)};
 }
 

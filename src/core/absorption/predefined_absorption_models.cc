@@ -236,7 +236,7 @@ void compute(
     if (do_temp_jac) {
       const Numeric d = temp_jac.second->d;
       const auto iq   = temp_jac.second->target_pos;
-      ARTS_ASSERT(d not_eq 0)
+      assert(d not_eq 0);
 
       dpm                     = 0;
       auto atm_point2         = atm_point;
@@ -252,7 +252,7 @@ void compute(
       if (j.first) {
         const Numeric d = j.second->d;
         const auto iq   = j.second->target_pos;
-        ARTS_ASSERT(d not_eq 0)
+        assert(d not_eq 0);
 
         Vector f_grid_d{f_grid};
         f_grid_d += d;

@@ -39,14 +39,14 @@ constexpr stokvec linear_step(const muelmat &T,
  * @param[in] r distance between the two points
  */
 void nlte_step(stokvec_vector_view I,
-               const Vector& f,
+               const Vector &f,
                const propmat_vector_const_view &K0,
                const propmat_vector_const_view &K1,
                const stokvec_vector_const_view &J0,
                const stokvec_vector_const_view &J1,
                const Numeric &T0,
                const Numeric &T1,
-               const Numeric& r);
+               const Numeric &r);
 
 /** A single linear step of the point-to-point radiative transfer equation
  * 
@@ -82,8 +82,8 @@ constexpr stokvec two_level_linear_step(stokvec_vector_view &dI1,
                                         const muelmat_vector_const_view &dT2,
                                         const stokvec_vector_const_view &dJ1,
                                         const stokvec_vector_const_view &dJ2) {
-  ARTS_ASSERT(dI1.size() == dI2.size() and dT1.size() == dT2.size() and
-              dJ1.size() == dJ2.size() and dI1.size() == dT1.size())
+  assert(dI1.size() == dI2.size() and dT1.size() == dT2.size() and
+         dJ1.size() == dJ2.size() and dI1.size() == dT1.size());
 
   const auto J = avg(J1, J2);
 

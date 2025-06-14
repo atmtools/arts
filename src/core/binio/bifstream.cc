@@ -11,7 +11,30 @@
 */
 
 #include "bifstream.h"
+
+#include <debug.h>
+
 #include <stdexcept>
+
+bifstream::bifstream(const char* name, std::ios::openmode mode)
+    : std::ifstream(name, mode) {
+  // Open a second file descriptor for fast array reading
+  if (!(this->mfilep = fopen(name, "rb"))) {
+    ARTS_USER_ERROR("Failed to open {}", name);
+  }
+}
+
+void bifstream::getRaw(char* c, std::streamsize n) {
+  if (n <= 8) {
+    this->read(c, n);
+  } else {
+    fseek(mfilep, this->tellg(), SEEK_SET);
+    size_t nread = fread(c, sizeof(char), n, mfilep);
+    ARTS_USER_ERROR_IF((std::streamsize)nread != n,
+                       "Unexpectedly reached end of binary input file.");
+    seek(nread, Add);
+  }
+}
 
 void bifstream::seek(long spos, Offset offs) {
   if (!in) {
@@ -20,15 +43,9 @@ void bifstream::seek(long spos, Offset offs) {
   }
 
   switch (offs) {
-    case Set:
-      this->seekg(spos, std::ios::beg);
-      break;
-    case Add:
-      this->seekg(spos, std::ios::cur);
-      break;
-    case End:
-      this->seekg(spos, std::ios::end);
-      break;
+    case Set: this->seekg(spos, std::ios::beg); break;
+    case Add: this->seekg(spos, std::ios::cur); break;
+    case End: this->seekg(spos, std::ios::end); break;
   }
 }
 
@@ -47,7 +64,7 @@ bifstream::Byte bifstream::getByte() {
     if (iread == EOF) err |= Eof;
     return (Byte)iread;
   }
-  
+
   err |= NotOpen;
   throw std::runtime_error("Reading from binary file failed");
   return 0;

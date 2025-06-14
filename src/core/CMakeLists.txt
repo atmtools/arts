@@ -45,7 +45,7 @@ add_library(artscore STATIC
   igrf13.cc
   interpolation.cc
   minimize.cc
-  special_interp.cc
+  optproperties.cc
   sun.cc
 )
 

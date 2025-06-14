@@ -30,13 +30,12 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
       os << ')';
     } else {
       os << m.name;
-      std::string var = std::visit(
-          [](auto& v) { return std::format("{}", *v); }, wsv.value());
+      auto var                      = wsv.vformat("{}");
       constexpr std::size_t maxsize = 50;
       if (var.size() > maxsize) {
         var = std::string(var.begin(), var.begin() + maxsize) + "...";
       }
-      std::replace(var.begin(), var.end(), '\n', ' ');
+      replace(var, "\n", " ");
 
       os << " = " << var;
     }
@@ -70,7 +69,9 @@ Method::Method() : name("this-is-not-a-method") {}
 Method::Method(const std::string& n,
                const std::vector<std::string>& a,
                const std::unordered_map<std::string, std::string>& kw) try
-    : name(n), outargs(workspace_methods().at(name).out), inargs(workspace_methods().at(name).in) {
+    : name(n),
+      outargs(workspace_methods().at(name).out),
+      inargs(workspace_methods().at(name).in) {
   const std::size_t nargout = outargs.size();
   const std::size_t nargin  = inargs.size();
 
@@ -212,9 +213,9 @@ void Method::operator()(Workspace& ws) const try {
       wsv.get_unsafe<CallbackOperator>()(ws);
     } else {
       if (overwrite_setval) {
-        ws.overwrite(name, wsv.copy());
+        ws.overwrite(name, wsv.copied());
       } else {
-        ws.set(name, wsv.copy());
+        ws.set(name, wsv.copied());
       }
     }
   } else {
@@ -250,11 +251,7 @@ Method::Method(const std::string& n,
       overwrite_setval(overwrite) {}
 
 std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
-  return std::visit(
-      []<typename T>(const std::shared_ptr<T>& val) {
-        return std::format("{}", *val);
-      },
-      wsv.value());
+  return wsv.vformat("{}"sv);
 }
 
 std::string wsv_format(const std::string& x) {
@@ -267,7 +264,7 @@ std::string wsv_format(const std::string& x) {
   std::string_view sep =
       workspace_variables().contains(std::string{n}) ? "*" : "";
 
-  return std::format("{}{}{}", sep, n, sep);
+  return std::format("{0}{1}", sep, n);
 }
 
 struct SetvalHelper {
@@ -303,22 +300,15 @@ struct std::formatter<std::vector<SetvalHelper>> {
 
 std::string Method::sphinx_list_item() const {
   if (setval.has_value()) {
-    return std::format(
-        "{} = {}",
-        wsv_format(std::string{name}),
-        std::visit(
-            []<typename T>(const std::shared_ptr<T>& x) -> std::string {
-              if constexpr (std::same_as<T, std::string>) {
-                return std::format("\"{}\"", *x);
-              } else if constexpr (std::same_as<Numeric, T> or
-                                   std::same_as<Size, T> or
-                                   std::same_as<Index, T>) {
-                return std::format("{}", *x);
-              } else {
-                return std::format("{:sqNB,}", *x);
-              }
-            },
-            setval->value()));
+    const bool has_str  = setval->holds<String>();
+    const bool is_basic = setval->holds<Numeric>() or setval->holds<Index>();
+
+    const std::string fmtated =
+        has_str    ? std::format("\"{}\"", setval->get<String>())
+        : is_basic ? setval->vformat("{}")
+                   : setval->vformat("{:sqNB,}");
+
+    return std::format("{} = {}", wsv_format(std::string{name}), fmtated);
   }
 
   std::vector<SetvalHelper> setvals;

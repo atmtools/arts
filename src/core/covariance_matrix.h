@@ -39,16 +39,16 @@ class BlockMatrix {
   variant_t data;
 
  public:
-  BlockMatrix()                               = default;
-  BlockMatrix(const BlockMatrix &)            = default;
-  BlockMatrix(BlockMatrix &&)                 = default;
-  BlockMatrix &operator=(const BlockMatrix &) = default;
-  BlockMatrix &operator=(BlockMatrix &&)      = default;
+  BlockMatrix();
+  BlockMatrix(const BlockMatrix &);
+  BlockMatrix(BlockMatrix &&) noexcept;
+  BlockMatrix &operator=(const BlockMatrix &);
+  BlockMatrix &operator=(BlockMatrix &&) noexcept;
 
-  BlockMatrix(std::shared_ptr<Matrix> dense) : data(std::move(dense)) {}
-  BlockMatrix(std::shared_ptr<Sparse> sparse) : data(std::move(sparse)) {}
-  BlockMatrix(const Matrix &dense) : data(std::make_shared<Matrix>(dense)) {}
-  BlockMatrix(const Sparse &sparse) : data(std::make_shared<Sparse>(sparse)) {}
+  BlockMatrix(std::shared_ptr<Matrix> dense);
+  BlockMatrix(std::shared_ptr<Sparse> sparse);
+  BlockMatrix(const Matrix &dense);
+  BlockMatrix(const Sparse &sparse);
 
   BlockMatrix &operator=(std::shared_ptr<Matrix> dense);
 
@@ -118,10 +118,10 @@ class Block {
     // Nothing to do here.
   }
 
-  Block(const Block &)            = default;
-  Block(Block &&)                 = default;
-  Block &operator=(const Block &) = default;
-  Block &operator=(Block &&)      = default;
+  Block(const Block &)                = default;
+  Block(Block &&) noexcept            = default;
+  Block &operator=(const Block &)     = default;
+  Block &operator=(Block &&) noexcept = default;
 
   ~Block() = default;
 
@@ -140,10 +140,8 @@ class Block {
   /*! The column range of this block*/
   Range &get_column_range() { return column_range_; }
 
-  void set_matrix(std::shared_ptr<Sparse> sparse) {
-    matrix_ = std::move(sparse);
-  }
-  void set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
+  void set_matrix(std::shared_ptr<Sparse> sparse);
+  void set_matrix(std::shared_ptr<Matrix> dense);
 
   /*! Return the diagonal as a vector.*/
   [[nodiscard]] Vector diagonal() const { return matrix_.diagonal(); }
@@ -356,15 +354,28 @@ class CovarianceMatrix {
   Vector inverse_diagonal() const;
 
   // Friend declarations.
-  friend void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
-  friend void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
-  friend void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
+  friend void mult(StridedMatrixView,
+                   StridedConstMatrixView,
+                   const CovarianceMatrix &);
+  friend void mult(StridedMatrixView,
+                   const CovarianceMatrix &,
+                   StridedConstMatrixView);
+  friend void mult(StridedVectorView,
+                   const CovarianceMatrix &,
+                   StridedConstVectorView);
 
-  friend void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
-  friend void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
-  friend void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
+  friend void mult_inv(StridedMatrixView,
+                       StridedConstMatrixView,
+                       const CovarianceMatrix &);
+  friend void mult_inv(StridedMatrixView,
+                       const CovarianceMatrix &,
+                       StridedConstMatrixView);
+  friend void solve(StridedVectorView,
+                    const CovarianceMatrix &,
+                    StridedConstVectorView);
 
-  friend StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
+  friend StridedMatrixView operator+=(StridedMatrixView,
+                                      const CovarianceMatrix &);
   friend void add_inv(StridedMatrixView, const CovarianceMatrix &);
 
   friend void xml_read_from_stream(std::istream &,
@@ -390,8 +401,12 @@ void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
 void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
 void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
-void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+void mult_inv(StridedMatrixView,
+              StridedConstMatrixView,
+              const CovarianceMatrix &);
+void mult_inv(StridedMatrixView,
+              const CovarianceMatrix &,
+              StridedConstMatrixView);
 void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
 StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);

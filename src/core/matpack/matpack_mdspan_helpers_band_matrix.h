@@ -17,11 +17,11 @@ class band_matrix {
   // Empty matrix of known size
   band_matrix(Index ku, Index kl, Index m, Index n);
 
-  band_matrix() = default;
-  band_matrix(const band_matrix&) = default;
-  band_matrix(band_matrix&&) noexcept = default;
-  band_matrix& operator=(const band_matrix&) = default;
-  band_matrix& operator=(band_matrix&&) noexcept = default;
+  band_matrix();
+  band_matrix(const band_matrix&);
+  band_matrix(band_matrix&&) noexcept;
+  band_matrix& operator=(const band_matrix&);
+  band_matrix& operator=(band_matrix&&) noexcept;
 
   [[nodiscard]] Index end_row(Index j) const;
 

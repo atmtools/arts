@@ -759,12 +759,12 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name            = "EarthEllipsoid",
-      .desc            = "Choice of ellipsoid.\n",
-      .values_and_desc = {Value{"Sphere", R"(A spherical Earth.)"},
-                          Value{
-                              "WGS84",
-                              R"(The reference ellipsoid used by the GPS system.)"}},
+      .name = "EarthEllipsoid",
+      .desc = "Choice of ellipsoid.\n",
+      .values_and_desc =
+          {Value{"Sphere", R"(A spherical Earth.)"},
+           Value{"WGS84",
+                 R"(The reference ellipsoid used by the GPS system.)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -987,6 +987,10 @@ template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
     return v < {1};
 }}
 
+template<> struct enumdocs<{0}> {{
+  static std::string_view str() noexcept;
+}};
+
 namespace enumtyps {{
     inline constexpr std::array {0}Types = {{)",
                  name,
@@ -1048,11 +1052,10 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
   }
   std::format_to(std::back_inserter(out),
                  R"(
-  constexpr std::string_view doc = R"-x-({1})-x-";
-  throw std::runtime_error(std::format(R"-x-(Bad value "{{}}" for enum-type {0}
+  throw std::runtime_error(R"-x-(Bad value. Valid options for "{0}":
 
-{{}}
-)-x-", x, doc));
+{1}
+)-x-");
 }}
 
 namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
@@ -1186,10 +1189,15 @@ void xml_write_to_stream(std::ostream& os, const {0}& s, bofstream*, const std::
   std::print(os, "<{0}> {{}} </{0}>\\n", toString<{1}>(s));
 }}
 
+std::string_view enumdocs<{0}>::str() noexcept {{
+  return R"-ENUMDOC-({2})-ENUMDOC-"sv;
+}}
+
 static_assert(arts_formattable<{0}>, "Not good: {0}");
 )",
                  name,
-                 preferred_print);
+                 preferred_print,
+                 docs());
 
   return out;
 }

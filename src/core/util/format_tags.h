@@ -45,25 +45,9 @@ struct format_tags {
   bool io        = false;
   Size depth     = 0;
 
-  [[nodiscard]] constexpr std::string get_format_args() const {
-    std::string out{'{'};
-    if (names or comma or bracket or quoted or short_str) {
-      out += ':';
-    }
-    if (names) out += 'N';
-    if (comma) out += ',';
-    if (quoted) out += 'q';
-    if (short_str) out += 's';
-    if (bracket) out += 'B';
-    if (io) out += "IO";
-    out += '}';
+  [[nodiscard]] std::string get_format_args() const;
 
-    out.shrink_to_fit();
-
-    return out;
-  }
-
-  template <typename T>
+  template <std::formattable<char> T>
   constexpr void compat(std::formatter<T>& x) const {
     if constexpr (requires { x.inner_fmt().tags = *this; }) {
       x.inner_fmt().tags = *this;
@@ -74,26 +58,16 @@ struct format_tags {
     }
   }
 
-  template <typename... Ts>
+  template <std::formattable<char>... Ts>
   constexpr void compat(std::formatter<Ts>&... x) const
     requires(sizeof...(Ts) > 1)
   {
     (compat(x), ...);
   }
 
-  [[nodiscard]] constexpr std::string_view sep(bool newline = false) const {
-    if (newline) {
-      if (comma) return ",\n"sv;
-      return "\n"sv;
-    }
-    if (comma) return ", "sv;
-    return " "sv;
-  }
+  [[nodiscard]] std::string_view sep(bool newline = false) const;
 
-  [[nodiscard]] constexpr std::string_view quote() const {
-    if (quoted) return R"(")"sv;
-    return ""sv;
-  }
+  [[nodiscard]] std::string_view quote() const;
 
   template <class FmtContext>
   void add_if_bracket(FmtContext& ctx, char x) const {
@@ -113,9 +87,23 @@ struct format_tags {
     return format(ctx, r...);
   }
 
-  format_tags& set_depth(Size d) {
-    depth = d;
-    return *this;
+  template <std::formattable<char> T>
+  [[nodiscard]] std::string vformat(const T& x) const try {
+    if constexpr (arts_formattable<T>)
+      return std::vformat(get_format_args(), std::make_format_args(x));
+    else
+      return std::format("{}", x);
+
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in vformat with fmt-string: " +
+                             get_format_args() + "\n" + e.what());
+  }
+
+  template <std::formattable<char>... Ts>
+  [[nodiscard]] std::string vformat(const Ts&... xs) const
+    requires(sizeof...(Ts) > 1)
+  {
+    return (vformat(xs) + ...);
   }
 };
 
@@ -439,8 +427,6 @@ struct std::formatter<std::pair<A, B>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::pair<A, B>& v, FmtContext& ctx) const {
-    using std::ranges::views::take, std::ranges::views::drop;
-
     tags.add_if_bracket(ctx, '(');
     tags.format(ctx, v.first, tags.sep(), v.second);
     tags.add_if_bracket(ctx, ')');
@@ -470,8 +456,6 @@ struct std::formatter<std::tuple<WT...>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::tuple<WT...>& v,
                               FmtContext& ctx) const {
-    using std::ranges::views::take, std::ranges::views::drop;
-
     tags.add_if_bracket(ctx, '(');
     format(ctx, std::index_sequence_for<WT...>{}, v);
     tags.add_if_bracket(ctx, ')');

@@ -4,6 +4,12 @@
 #include <jacobian.h>
 
 namespace lookup {
+table::table()                        = default;
+  table::table(const table&)            = default;
+  table::table(table&&)      noexcept           = default;
+  table& table::operator=(const table&) = default;
+  table& table::operator=(table&&)noexcept      = default;
+
 bool table::do_t() const { return t_pert and not t_pert->empty(); }
 
 bool table::do_w() const { return w_pert and not w_pert->empty(); }
@@ -125,7 +131,7 @@ LagrangeInterpolation table::pressure_lagrange(
     const Numeric& pressure,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
-  ARTS_ASSERT(do_p())
+  ARTS_USER_ERROR_IF(not do_p(), "No pressure grid set.");
   const auto plog_local = std::log(pressure);
   const Vector& plog_v(*log_p_grid);
   LagrangeInterpolation::check(plog_v,
@@ -141,7 +147,7 @@ ArrayOfLagrangeInterpolation table::frequency_lagrange(
     const Vector& frequency_grid,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
-  ARTS_ASSERT(do_f())
+  ARTS_USER_ERROR_IF(not do_f(), "No frequency grid set.");
   const Vector& f_grid_v(*f_grid);
   return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
       frequency_grid,
@@ -157,7 +163,7 @@ LagrangeInterpolation table::water_lagrange(
     const LagrangeInterpolation& pressure_lagrange,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
-  ARTS_ASSERT(do_w())
+  ARTS_USER_ERROR_IF(not do_w(), "No water grid set.");
   const Numeric x = water_vmr / interp(water_atmref, pressure_lagrange);
   const Vector& xi(*w_pert);
   LagrangeInterpolation::check(
@@ -171,7 +177,7 @@ LagrangeInterpolation table::temperature_lagrange(
     const LagrangeInterpolation& pressure_lagrange,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
-  ARTS_ASSERT(do_t())
+  ARTS_USER_ERROR_IF(not do_t(), "No temperature grid set.");
   const auto x = temperature - interp(t_atmref, pressure_lagrange);
   const Vector& xi(*t_pert);
   LagrangeInterpolation::check(

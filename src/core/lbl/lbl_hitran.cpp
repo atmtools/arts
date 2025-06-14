@@ -21,7 +21,7 @@ struct reader {
     skip(n);
 
     if constexpr (std::same_as<T, char>) {
-      ARTS_ASSERT(n == 1)
+      assert(n == 1);
       return orig[0];
     } else {
       while (sv.size() and sv.front() == ' ') sv.remove_prefix(1);

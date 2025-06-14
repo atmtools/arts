@@ -47,6 +47,12 @@ struct Point {
                  std::numeric_limits<Numeric>::quiet_NaN()};
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
+  Point();
+  Point(const Point &);
+  Point(Point &&) noexcept;
+  Point &operator=(const Point &);
+  Point &operator=(Point &&) noexcept;
+
   Numeric &operator[](SurfaceKey x);
   Numeric &operator[](const SurfacePropertyTag &x);
   Numeric &operator[](const SurfaceKeyVal &x);
@@ -82,25 +88,25 @@ using FunctionalData = NumericBinaryOperator;
 using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
-  std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric) const { ARTS_USER_ERROR("{}", error) }
+  Numeric operator()(Numeric, Numeric) const {
+    ARTS_USER_ERROR("You touched the field but did not set any data")
+  }
 };
 
 //! Hold all atmospheric data
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
-      "You touched the field but did not set any data"}}};
+  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{}}};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data()                        = default;
-  Data(const Data &)            = default;
-  Data(Data &&)                 = default;
-  Data &operator=(const Data &) = default;
-  Data &operator=(Data &&)      = default;
+  Data();
+  Data(const Data &);
+  Data(Data &&) noexcept;
+  Data &operator=(const Data &);
+  Data &operator=(Data &&) noexcept;
 
   void adjust_interpolation_extrapolation();
 
@@ -113,7 +119,6 @@ struct Data {
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
-
 
   [[nodiscard]] String data_type() const;
 
@@ -147,6 +152,12 @@ struct Data {
 struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
   //! The ellipsoid used for the surface, in [a, b] in meters
   Vector2 ellipsoid;
+
+  Field();
+  Field(const Field &);
+  Field(Field &&) noexcept;
+  Field &operator=(const Field &);
+  Field &operator=(Field &&) noexcept;
 
   /** Compute the values at a single point
    *

@@ -263,8 +263,8 @@ class SHT {
   template <typename T>
   void set_spatial_coeffs(
       const matpack::strided_view_t<const T, 2> &view) const {
-    ARTS_ASSERT(view.nrows() == n_aa_);
-    ARTS_ASSERT(view.ncols() == n_za_);
+    assert(view.nrows() == n_aa_);
+    assert(view.ncols() == n_za_);
     Index index = 0;
     for (int i = 0; i < view.nrows(); ++i) {
       for (int j = 0; j < view.ncols(); ++j) {

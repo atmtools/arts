@@ -20,22 +20,22 @@ void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
                                        const ConstVectorView &B,
                                        const ConstMatrixView &dB) {
   const Size N = J.size();
-  ARTS_ASSERT(N == static_cast<Size>(dJ.ncols()))
-  ARTS_ASSERT(N == J_add.size())
-  ARTS_ASSERT(N == K.size())
-  ARTS_ASSERT(N == a.size())
-  ARTS_ASSERT(N == S.size())
-  ARTS_ASSERT(N == static_cast<Size>(dK.ncols()))
-  ARTS_ASSERT(N == static_cast<Size>(da.ncols()))
-  ARTS_ASSERT(N == static_cast<Size>(dS.ncols()))
-  ARTS_ASSERT(N == B.size())
-  ARTS_ASSERT(N == static_cast<Size>(dB.ncols()))
+  assert(N == static_cast<Size>(dJ.ncols()));
+  assert(N == J_add.size());
+  assert(N == K.size());
+  assert(N == a.size());
+  assert(N == S.size());
+  assert(N == static_cast<Size>(dK.ncols()));
+  assert(N == static_cast<Size>(da.ncols()));
+  assert(N == static_cast<Size>(dS.ncols()));
+  assert(N == B.size());
+  assert(N == static_cast<Size>(dB.ncols()));
 
   const Index M = dJ.nrows();
-  ARTS_ASSERT(M == dK.nrows())
-  ARTS_ASSERT(M == da.nrows())
-  ARTS_ASSERT(M == dS.nrows())
-  ARTS_ASSERT(M == dB.nrows())
+  assert(M == dK.nrows());
+  assert(M == da.nrows());
+  assert(M == dS.nrows());
+  assert(M == dB.nrows());
 
   for (Size i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
@@ -66,21 +66,21 @@ void level_nlte_and_scattering(stokvec_vector_view J,
                                const ConstVectorView &B,
                                const ConstMatrixView &dB) {
   const Size N = J.size();
-  ARTS_ASSERT(N == static_cast<Size>(dJ.ncols()))
-  ARTS_ASSERT(N == K.size())
-  ARTS_ASSERT(N == a.size())
-  ARTS_ASSERT(N == S.size())
-  ARTS_ASSERT(N == static_cast<Size>(dK.ncols()))
-  ARTS_ASSERT(N == static_cast<Size>(da.ncols()))
-  ARTS_ASSERT(N == static_cast<Size>(dS.ncols()))
-  ARTS_ASSERT(N == B.size())
-  ARTS_ASSERT(N == static_cast<Size>(dB.ncols()))
+  assert(N == static_cast<Size>(dJ.ncols()));
+  assert(N == K.size());
+  assert(N == a.size());
+  assert(N == S.size());
+  assert(N == static_cast<Size>(dK.ncols()));
+  assert(N == static_cast<Size>(da.ncols()));
+  assert(N == static_cast<Size>(dS.ncols()));
+  assert(N == B.size());
+  assert(N == static_cast<Size>(dB.ncols()));
 
   const Index M = dJ.nrows();
-  ARTS_ASSERT(M == dK.nrows())
-  ARTS_ASSERT(M == da.nrows())
-  ARTS_ASSERT(M == dS.nrows())
-  ARTS_ASSERT(M == dB.nrows())
+  assert(M == dK.nrows());
+  assert(M == da.nrows());
+  assert(M == dS.nrows());
+  assert(M == dB.nrows());
 
   for (Size i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
@@ -105,10 +105,10 @@ void level_nlte_and_scattering(stokvec_vector_view J,
                                const stokvec_vector_const_view &S,
                                const ConstVectorView &B) {
   const Size N = J.size();
-  ARTS_ASSERT(N == K.size())
-  ARTS_ASSERT(N == a.size())
-  ARTS_ASSERT(N == S.size())
-  ARTS_ASSERT(N == B.size())
+  assert(N == K.size());
+  assert(N == a.size());
+  assert(N == S.size());
+  assert(N == B.size());
 
   for (Size i = 0; i < N; i++) {
     J[i] = K[i].is_rotational() ? stokvec{0, 0, 0, 0}
@@ -126,17 +126,17 @@ void level_nlte(stokvec_vector_view J,
                 const Numeric &t,
                 const Index &it) {
   const Size N = J.size();
-  ARTS_ASSERT(N == static_cast<Size>(dJ.ncols()))
-  ARTS_ASSERT(N == K.size())
-  ARTS_ASSERT(N == S.size())
-  ARTS_ASSERT(N == static_cast<Size>(dK.ncols()))
-  ARTS_ASSERT(N == static_cast<Size>(dS.ncols()))
-  ARTS_ASSERT(N == f.size())
+  assert(N == static_cast<Size>(dJ.ncols()));
+  assert(N == K.size());
+  assert(N == S.size());
+  assert(N == static_cast<Size>(dK.ncols()));
+  assert(N == static_cast<Size>(dS.ncols()));
+  assert(N == f.size());
 
   const Index M = dJ.nrows();
-  ARTS_ASSERT(M == dK.nrows())
-  ARTS_ASSERT(M == dS.nrows())
-  ARTS_ASSERT(M > it)
+  assert(M == dK.nrows());
+  assert(M == dS.nrows());
+  assert(M > it);
 
   for (Size i = 0; i < N; i++) {
     if (K[i].is_rotational()) {

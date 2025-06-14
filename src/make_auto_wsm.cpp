@@ -4,12 +4,16 @@
 
 #include <algorithm>
 #include <exception>
+#include <format>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
 #include "debug.h"
+#include "mystring.h"
+#include "workspace_groups.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
 #include "workspace_variables.h"
@@ -214,102 +218,145 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
   throw std::runtime_error("Error in header():\n\n" + std::string(e.what()));
 }
 
+bool is_generic(std::string_view type) {
+  return type == "Any"sv or type.contains(',');
+}
+
+std::string first_generic(const std::vector<std::string>& gout_type,
+                          const std::vector<std::string>& gin_type) {
+  for (std::size_t i = 0; i < gout_type.size(); i++) {
+    if (is_generic(gout_type[i])) return std::format("out[{}]", i);
+  }
+
+  for (std::size_t i = 0; i < gin_type.size(); i++) {
+    if (is_generic(gin_type[i])) return std::format("in[{}]", i);
+  }
+
+  return "INVALID";
+}
+
+std::vector<std::string> all_generics(std::string_view type) {
+  std::vector<std::string> out{};
+
+  if (type == "Any"sv) {
+    for (const auto& group : internal_workspace_groups()) {
+      out.push_back(group.first);
+    }
+  } else {
+    out = split(std::string{type}, ",");
+    for (auto& s : out) {
+      trim(s);
+    }
+  }
+
+  // trailing commas
+  while (not out.empty() and out.back().empty()) out.pop_back();
+
+  return out;
+}
+
+template <typename T>
+std::size_t max_elem(const std::vector<T>& vecs) {
+  return std::ranges::max_element(vecs, {}, &T::size)->size();
+}
+
+std::vector<std::vector<std::string>> all_gets(
+    const WorkspaceMethodInternalRecord& wsmr) {
+  std::vector<std::vector<std::string>> out;
+
+  out.reserve(wsmr.gout_type.size() + wsmr.gin_type.size() + wsmr.out.size() +
+              wsmr.in.size());
+
+  if (wsmr.pass_workspace) out.emplace_back().emplace_back("ws");
+
+  std::size_t COUNT = 0;
+  for (const auto& wsm : wsmr.out) {
+    out.emplace_back().emplace_back(std::format(
+        "ws.get{1}<{2}>(out[{0}])",
+        COUNT++,
+        workspace_variables().at(wsm).type,
+        std::ranges::any_of(wsmr.in, Cmp::eq(wsm)) ? ""sv : "_or"sv));
+  }
+
+  for (const auto& type : wsmr.gout_type) {
+    const auto name = std::format("out[{}]", COUNT++);
+    auto vec        = all_generics(type);
+    if (vec.empty()) {
+      out.emplace_back().emplace_back(
+          std::format("ws.get_or<{0}>({1})", type, name));
+    } else {
+      auto& v = out.emplace_back();
+      for (const auto& s : vec)
+        v.emplace_back(std::format("ws.get_or<{0}>({1})", s, name));
+    }
+  }
+
+  COUNT = 0;
+  for (const auto& wsm : wsmr.in) {
+    const auto name = std::format("in[{}]", COUNT++);
+    if (std::ranges::any_of(wsmr.out, Cmp::eq(wsm))) continue;
+    out.emplace_back().emplace_back(std::format(
+        "ws.get<{0}>({1})", workspace_variables().at(wsm).type, name));
+  }
+
+  for (std::size_t i = 0; i < wsmr.gin_type.size(); i++) {
+    const auto& type = wsmr.gin_type[i];
+    const auto name  = std::format("in[{}]", COUNT++);
+    if (std::ranges::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
+
+    auto vec = all_generics(type);
+    if (vec.empty()) {
+      out.emplace_back().emplace_back(
+          std::format("ws.get<{0}>({1})", type, name));
+    } else {
+      auto& v = out.emplace_back();
+      for (const auto& s : vec)
+        v.emplace_back(std::format("ws.get<{0}>({1})", s, name));
+    }
+  }
+
+  const std::size_t max_size = max_elem(out);
+
+  for (auto& vec : out) {
+    while (vec.size() < max_size) {
+      vec.push_back(vec.front());
+    }
+  }
+
+  return out;
+}
+
 void call_function(std::ostream& os,
                    const std::string& name,
                    const WorkspaceMethodInternalRecord& wsmr) try {
   const auto& wsv = workspace_variables();
 
   if (wsmr.has_any()) {
-    const bool any_out = std::any_of(
-        wsmr.gout_type.begin(), wsmr.gout_type.end(), Cmp::eq("Any"));
-
-    const std::size_t first_any =
-        any_out
-            ? (wsmr.out.size() + std::distance(wsmr.gout_type.begin(),
-                                               std::find(wsmr.gout_type.begin(),
-                                                         wsmr.gout_type.end(),
-                                                         "Any")))
-            : (wsmr.in.size() + std::distance(wsmr.gin_type.begin(),
-                                              std::find(wsmr.gin_type.begin(),
-                                                        wsmr.gin_type.end(),
-                                                        "Any")));
-
-    // MOSTLY COPY-PASTA
+    const std::string first = first_generic(wsmr.gout_type, wsmr.gin_type);
 
     os << "[](Workspace& ws [[maybe_unused]], const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
 
-    bool first = true;
+    std::println(os, "      auto& _first = ws.share({0});", first);
 
-    os << "      std::visit([&](auto& first_any){\n        " << name << "(";
-    if (wsmr.pass_workspace) {
-      os << "ws";
-      first = false;
-    }
+    const auto gets = all_gets(wsmr);
+    std::size_t i   = 0;
 
-    const String spaces(name.size() + 9, ' ');
-
-    int any_count = 0;
-    int out_count = 0;
-    for (auto& str : wsmr.out) {
-      os << comma(first, spaces) << "ws.get";
-      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0) os << "_or";
-      os << "<" << wsv.at(str).type << ">(out[" << out_count++
-         << "]) /* out */";
-    }
-
-    for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-      if (wsmr.gout_type[i] == "Any") {
-        if (any_count == 0) {
-          os << comma(first, spaces) << "*first_any /* gout */";
-          out_count++;
-        } else {
-          os << comma(first, spaces)
-             << "ws.get_or<std::remove_cvref_t<decltype(*first_any)>>(out["
-             << out_count++ << "]) /* gout */";
-        }
-        any_count++;
-      } else {
-        os << comma(first, spaces) << "ws.get_or<" << any(wsmr.gout_type[i])
-           << ">(out[" << out_count++ << "]) /* gout */";
+    // one method per group
+    std::println(os, "      switch (_first.value_index()) {{");
+    for (auto& group : internal_workspace_groups() | std::views::keys) {
+      std::print(os,
+                 R"(        case WorkspaceGroupInfo<{0}>::index: return {1}({2})",
+                 group,
+                 name,
+                 gets.front()[i]);
+      for (auto& v : gets | std::views::drop(1)) {
+        std::print(os, ", {}", v[i]);
       }
+      ++i;
+      std::println(os, ");");
     }
-
-    int in_count = 0;
-    for (auto& str : wsmr.in) {
-      if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
-            return str == var;
-          })) {
-        in_count++;
-        continue;
-      }
-      os << comma(first, spaces) << "ws.get<" << wsv.at(str).type << ">(in["
-         << in_count++ << "]) /* in */";
-    }
-
-    for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
-      if (wsmr.gin_type[i] == "Any") {
-        if (any_count == 0) {
-          os << comma(first, spaces) << "*first_any /* gin */";
-          in_count++;
-        } else {
-          os << comma(first, spaces)
-             << "ws.get<std::remove_cvref_t<decltype(*first_any)>>(in["
-             << in_count++ << "]) /* gin */";
-        }
-        any_count++;
-      } else {
-        os << comma(first, spaces) << "ws.get<" << wsmr.gin_type[i] << ">(in["
-           << in_count++ << "]) /* gin */";
-      }
-    }
-
-    os << "\n        );\n      }, ";
-    if (any_out) {
-      os << "ws.share(out[" << first_any << "]).value());\n    }";
-    } else {
-      os << "ws.share(in[" << first_any << "]).value());\n    }";
-    }
-
+    std::println(os, R"(      }}
+    }})");
   } else if (wsmr.has_overloads()) {
     os << "[map = std::unordered_map<std::string, std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)>>{\n";
 

@@ -86,11 +86,12 @@ struct Point {
   Vector3 wind{0, 0, 0};
   Vector3 mag{0, 0, 0};
 
-  Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Point(const Point &)            = default;
-  Point(Point &&)                 = default;
-  Point &operator=(const Point &) = default;
-  Point &operator=(Point &&)      = default;
+  Point(const IsoRatioOption);
+  Point();
+  Point(const Point &);
+  Point(Point &&) noexcept;
+  Point &operator=(const Point &);
+  Point &operator=(Point &&) noexcept;
 
   Numeric operator[](SpeciesEnum x) const;
   Numeric operator[](const SpeciesIsotope &x) const;
@@ -177,7 +178,7 @@ using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
   Numeric operator()(Numeric, Numeric, Numeric) const {
-    ARTS_USER_ERROR("{}", error)
+    throw std::runtime_error(error);
   }
 };
 
@@ -207,11 +208,11 @@ struct Data {
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
-  Data()                        = default;
-  Data(const Data &)            = default;
-  Data(Data &&)                 = default;
-  Data &operator=(const Data &) = default;
-  Data &operator=(Data &&)      = default;
+  Data();
+  Data(const Data &);
+  Data(Data &&) noexcept;
+  Data &operator=(const Data &);
+  Data &operator=(Data &&) noexcept;
 
   void adjust_interpolation_extrapolation();
 
@@ -230,20 +231,14 @@ struct Data {
   template <RawDataType T>
   [[nodiscard]] const T &get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr,
-                       "Contains {}, not {}",
-                       data_type(),
-                       Data{T{}}.data_type())
+    if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 
   template <RawDataType T>
   [[nodiscard]] T &get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr,
-                       "Contains {}, not {}",
-                       data_type(),
-                       Data{T{}}.data_type())
+    if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 
@@ -283,11 +278,12 @@ struct Field final : FieldMap::Map<Data,
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
-  Field(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
-  Field(const Field &)                = default;
-  Field(Field &&) noexcept            = default;
-  Field &operator=(const Field &)     = default;
-  Field &operator=(Field &&) noexcept = default;
+  Field(const IsoRatioOption);
+  Field();
+  Field(const Field &);
+  Field(Field &&) noexcept;
+  Field &operator=(const Field &);
+  Field &operator=(Field &&) noexcept;
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
@@ -434,57 +430,11 @@ struct std::formatter<AtmPoint> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const AtmPoint &v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
-
-    const std::string_view sep = tags.sep(true);
-
-    tags.format(ctx,
-                R"("pressure": )"sv,
-                v.pressure,
-                sep,
-                R"("temperature": )"sv,
-                v.temperature,
-                sep,
-                R"("mag" :)"sv,
-                v.mag,
-                sep,
-                R"("wind": )"sv,
-                v.wind,
-                sep);
-
-    if (tags.short_str) {
-      tags.format(ctx,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs.size(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots.size(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte.size(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops.size());
-
-    } else {
-      tags.format(ctx,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs,
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots,
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte,
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops);
-    }
-
-    tags.add_if_bracket(ctx, '}');
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 
@@ -556,56 +506,11 @@ struct std::formatter<AtmField> {
     return parse_format_tags(tags, ctx);
   }
 
+  [[nodiscard]] std::string to_string(const AtmField &v) const;
+
   template <class FmtContext>
   FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
-
-    if (tags.short_str) {
-      const std::string_view sep = tags.sep();
-
-      tags.format(ctx,
-                  R"("top_of_atmosphere": )"sv,
-                  v.top_of_atmosphere,
-                  sep,
-                  R"("Base": )"sv,
-                  v.other().size(),
-                  sep,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs().size(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots().size(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte().size(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops().size());
-    } else {
-      const std::string_view sep = tags.sep(true);
-
-      tags.format(ctx,
-                  R"("top_of_atmosphere": )"sv,
-                  v.top_of_atmosphere,
-                  sep,
-                  R"("Base": )"sv,
-                  v.other(),
-                  sep,
-                  R"("SpeciesEnum": )"sv,
-                  v.specs(),
-                  sep,
-                  R"("SpeciesIsotope": )"sv,
-                  v.isots(),
-                  sep,
-                  R"("QuantumIdentifier": )"sv,
-                  v.nlte(),
-                  sep,
-                  R"("ScatteringSpeciesProperty": )"sv,
-                  v.ssprops());
-    }
-
-    tags.add_if_bracket(ctx, '}');
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 

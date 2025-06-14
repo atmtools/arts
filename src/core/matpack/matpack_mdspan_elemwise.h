@@ -18,9 +18,8 @@ std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr,
 }
 
 template <class... Formats,
-          size_t N,
-          class = std::enable_if_t<(N == sizeof...(Formats))>>
-std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr) {
+          size_t N>
+std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr) requires (N == sizeof...(Formats)) {
   return as_tuple<Formats...>(arr, std::make_index_sequence<N>{});
 }
 

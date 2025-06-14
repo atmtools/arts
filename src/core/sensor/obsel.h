@@ -82,11 +82,11 @@ class SparseStokvecMatrix {
 class Obsel {
   //! Frequency grid, must be ascending
   std::shared_ptr<const AscendingGrid> f{
-      std::make_shared<const AscendingGrid>()};
+      std::shared_ptr<const AscendingGrid>(new AscendingGrid{})};
 
   //! Position and line of sight grid of the sensor
   std::shared_ptr<const PosLosVector> poslos{
-      std::make_shared<const PosLosVector>()};
+      std::shared_ptr<const PosLosVector>(new PosLosVector{})};
 
   //! FIXME: This should be made a variant of sparse/non-sparse!  Do this if/when we see an actual slowdown cf ARTS2.
   // (The type should be "std::variant<StokvecMatrix, std::array<Sparse, 4>>", where the "4" is for the 4 Stokes components.)
@@ -94,7 +94,11 @@ class Obsel {
   SparseStokvecMatrix w{};
 
  public:
-  Obsel() = default;
+  Obsel();
+  Obsel(const Obsel&);
+  Obsel(Obsel&&) noexcept;
+  Obsel& operator=(const Obsel&);
+  Obsel& operator=(Obsel&&) noexcept;
 
   Obsel(std::shared_ptr<const AscendingGrid> fs,
         std::shared_ptr<const PosLosVector> pl,
@@ -102,11 +106,6 @@ class Obsel {
   Obsel(const AscendingGrid& fs,
         const PosLosVector& pl,
         SparseStokvecMatrix ws);
-
-  Obsel(const Obsel&)            = default;
-  Obsel(Obsel&&)                 = default;
-  Obsel& operator=(const Obsel&) = default;
-  Obsel& operator=(Obsel&&)      = default;
 
   void check() const;
 

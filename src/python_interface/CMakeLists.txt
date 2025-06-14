@@ -31,9 +31,13 @@ endwhile()
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp)
 
+set(PYARTS_AUTO_INTERFACE
+    py_auto_interface.cpp
+)
+
 # Generate the actual files with this command
 add_custom_command(
-    OUTPUT  py_auto_interface.cpp
+    OUTPUT  ${PYARTS_AUTO_INTERFACE}
     COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -56,8 +60,12 @@ add_executable(gen_auto_py_options gen_auto_py_options.cpp gen_auto_py_helpers.c
 target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
 
+set(PYARTS_WORKSPACE_OPTIONS
+    py_auto_options.cpp
+)
+
 add_custom_command(
-    OUTPUT  py_auto_options.cpp py_auto_options.h
+    OUTPUT  ${PYARTS_WORKSPACE_OPTIONS}
     COMMAND gen_auto_py_options
     DEPENDS gen_auto_py_options
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -68,8 +76,20 @@ add_executable(gen_auto_py_groups gen_auto_py_groups.cpp gen_auto_py_helpers.cpp
 target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py_groups PUBLIC ${ARTS_SOURCE_DIR}/src)
 
+set(PYARTS_WORKSPACE_GROUPS
+    py_auto_wsg_from_py_object.cpp
+    py_auto_wsg_from_const_py_object.cpp
+    py_auto_wsg_string_type.cpp
+    py_auto_wsg_convert.cpp
+    py_auto_wsg_to_py_wsv.cpp
+    py_auto_wsg.h
+    py_auto_wsgdocs.h
+    py_auto_wsgdocs.cpp
+    py_auto_agenda_operators.cpp
+)
+
 add_custom_command(
-    OUTPUT py_auto_wsg.cpp py_auto_wsg.h py_auto_wsgdocs.h py_auto_agenda_operators.cpp
+    OUTPUT ${PYARTS_WORKSPACE_GROUPS}
     COMMAND gen_auto_py_groups
     DEPENDS gen_auto_py_groups
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -90,26 +110,42 @@ add_custom_command(
 
 # #######################################################################################
 
+# copy auto generated files if they are different
+
+set(PYARTS_AUTO_FILES "")
+foreach(file ${PYARTS_AUTO_INTERFACE}
+             ${PYARTS_WORKSPACE_METHODS}
+             ${PYARTS_WORKSPACE_VARS}
+             ${PYARTS_WORKSPACE_GROUPS}
+             ${PYARTS_WORKSPACE_OPTIONS})
+add_custom_command(
+    COMMENT "Copying file (if required): ${file}"
+    OUTPUT x${file}
+    DEPENDS ${file}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${file}
+        x${file}
+    )
+  list(APPEND PYARTS_AUTO_FILES x${file})
+endforeach()
+
+# #######################################################################################
+
 if (IPO_SUPPORTED)
   set(NANOBIND_LTO "LTO")
 endif()
 
+# NOTE: Sort these by how long they take to compile, to help multicore compilation
 nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
-    ${PYARTS_WORKSPACE_METHODS}
-    ${PYARTS_WORKSPACE_VARS}
-    py_auto_wsg.h
-    py_auto_wsgdocs.h
-    py_auto_wsg.cpp
-    py_auto_interface.cpp
-    py_auto_options.cpp
-
-    py_auto_agenda_operators.cpp
-    gen_auto_py_helpers.cpp
-
-    py_workspace.cpp
     py_matpack.cpp
     py_griddedfield.cpp
     py_rtepack.cpp
+
+    ${PYARTS_AUTO_FILES}
+
+    gen_auto_py_helpers.cpp
+
+    py_workspace.cpp
     py_agenda.cpp
 
     py_basic.cpp

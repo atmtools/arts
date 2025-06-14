@@ -5,6 +5,12 @@
 #include <rtepack.h>
 
 namespace fwd::predef {
+full::full()                           = default;
+full::full(const full&)                = default;
+full::full(full&&) noexcept            = default;
+full& full::operator=(const full&)     = default;
+full& full::operator=(full&&) noexcept = default;
+
 void full::adapt() try {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 

@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <span>
 
 #include "arts_options.h"
 
@@ -24,6 +25,11 @@ class bofstream;
 
 template <typename T> constexpr bool good_enum(T x) noexcept = delete;
 template <typename T> constexpr T to(const std::string_view x) = delete;
+
+template <typename T>
+struct enumdocs {
+  static std::string_view str() noexcept = delete;
+};
 
 namespace enumstrs {
     template <typename T, int N> struct enum_str_data;
@@ -60,14 +66,27 @@ void create_header() try {
   throw;
 }
 
+template <typename T>
+std::span<const T> partial_span(const std::vector<T>& vec,
+                                std::size_t N,
+                                std::size_t i) {
+  if (i >= N) {
+    throw std::out_of_range("Partial span exceeds vector size");
+  }
+
+  const std::size_t size = vec.size() / N;
+  if (i == N - 1) {
+    return std::span<const T>(vec.begin() + i * size, vec.end());
+  }
+  return std::span<const T>(vec.begin() + i * size, size);
+}
+
 void create_cc() {
   std::ofstream os("enums.cpp");
 
-  const auto& opts = internal_options();
-
   os << "#include \"enums.h\"\n\n";
 
-  for (const auto& opt : opts) {
+  for (const auto& opt : internal_options()) {
     os << opt.impl() << '\n';
   }
 }

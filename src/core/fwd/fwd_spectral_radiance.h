@@ -26,17 +26,16 @@ struct spectral_radiance {
   Vector2 ellipsoid;
 
   struct as_vector {};
-
   struct weighted_position {
     Numeric w{0.};
     Index i{0}, j{0}, k{0};
   };
 
-  spectral_radiance()                                    = default;
-  spectral_radiance(const spectral_radiance&)            = default;
-  spectral_radiance(spectral_radiance&&)                 = default;
-  spectral_radiance& operator=(const spectral_radiance&) = default;
-  spectral_radiance& operator=(spectral_radiance&&)      = default;
+  spectral_radiance();
+  spectral_radiance(const spectral_radiance&);
+  spectral_radiance(spectral_radiance&&) noexcept;
+  spectral_radiance& operator=(const spectral_radiance&);
+  spectral_radiance& operator=(spectral_radiance&&) noexcept;
 
   spectral_radiance(AscendingGrid alt,
                     AscendingGrid lat,

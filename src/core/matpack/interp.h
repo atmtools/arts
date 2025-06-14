@@ -148,7 +148,7 @@ constexpr bool full_cycle(const Numeric xo, const Numeric xn) noexcept
  * @param[in] xvec The grid
  * @return Estimated position of x [0, xvec.size())
 */
-template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+template <matpack::exact_md<Numeric, 1> Vec>
 constexpr Index start_pos_finder(const Numeric x, const Vec &xvec) {
   if (const Index n = xvec.size(); n > 1) {
     const Numeric x0     = xvec[0];
@@ -228,7 +228,7 @@ constexpr bool is_cyclic() {
  */
 template <bool ascending,
           template <cycle_limit lim> class Limit = no_cycle,
-          matpack::exact_md<Numeric, 1> Vec      = VectorView>
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Index pos_finder(Index p0,
                            const Numeric x,
                            const Vec &xi,
@@ -286,7 +286,7 @@ constexpr Index pos_finder(Index p0,
 template <bool ascending,
           Index polyorder,
           template <cycle_limit lim> class Limit = no_cycle,
-          matpack::exact_md<Numeric, 1> Vec      = VectorView>
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
   requires(test_cyclic_limit<Limit>())
 {
@@ -389,7 +389,7 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec &xi)
 
 template <GridType type,
           template <cycle_limit lim> class Limit,
-          matpack::exact_md<Numeric, 1> Vec = VectorView>
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Numeric l_factor(const Numeric x,
                            const Vec &xi,
                            const Index j,
@@ -692,7 +692,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   static constexpr auto lx_finder(const Numeric x,
                                   const Vec &xi,
                                   const Index pos,
@@ -717,7 +717,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   static constexpr auto lx_finder(const Numeric x,
                                   const Vec &xi,
                                   const Index pos)
@@ -748,7 +748,7 @@ struct Lagrange {
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   static constexpr auto dlx_finder(const Numeric x [[maybe_unused]],
                                    const Vec &xi [[maybe_unused]],
                                    const lx_type &lx [[maybe_unused]],
@@ -819,7 +819,7 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] polyorder Polynominal degree
    */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -857,7 +857,7 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    * @param[in] flag For the order of xi
    */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -889,7 +889,7 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] flag For the order of xi
    */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -906,7 +906,7 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] flag For the order of xi
    */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0,
                      const Numeric x,
                      const Vec &xi,
@@ -959,7 +959,7 @@ struct Lagrange {
     * @param[in] x {Min new x, Max new x} if non-cyclic
     * @param[in] extrapol Level of extrapolation allowed if non-cyclic
     */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   static void check(const Vec &xi,
                     const Index polyorder,
                     [[maybe_unused]] const std::pair<Numeric, Numeric> x =
@@ -1017,7 +1017,7 @@ Requesting greater interpolation order than possible with given input grid
     * @param[in] x New grid position if non-cyclic
     * @param[in] extrapol Level of extrapolation allowed if non-cyclic
     */
-  template <matpack::exact_md<Numeric, 1> Vec = VectorView>
+  template <matpack::exact_md<Numeric, 1> Vec>
   static constexpr void check(const Vec &xi,
                               const Index polyorder,
                               const Numeric x        = 0,
@@ -1094,8 +1094,8 @@ concept lagrange_type =
  * @return An array of Lagrange types
  */
 template <lagrange_type T,
-          matpack::exact_md<Numeric, 1> NewVec = VectorView,
-          matpack::exact_md<Numeric, 1> Vec    = VectorView>
+          matpack::exact_md<Numeric, 1> NewVec,
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Array<T> lagrange_interpolation_list(
     NewVec &&xs,
     Vec &&xi,
@@ -1143,8 +1143,8 @@ constexpr Array<T> lagrange_interpolation_list(
  * @return An array of Lagrange types
  */
 template <lagrange_type T,
-          matpack::exact_md<Numeric, 1> NewVec = VectorView,
-          matpack::exact_md<Numeric, 1> Vec    = VectorView>
+          matpack::exact_md<Numeric, 1> NewVec,
+          matpack::exact_md<Numeric, 1> Vec>
 constexpr Array<T> lagrange_interpolation_list(
     NewVec &&xs,
     Vec &&xi,

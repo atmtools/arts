@@ -8,6 +8,7 @@ add_library(matpack STATIC
   matpack_mdspan_helpers.cc
   math_funcs.cc
   matpack_mdspan_helpers_band_matrix.cc
+  matpack_mdspan_helpers_eigen.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)

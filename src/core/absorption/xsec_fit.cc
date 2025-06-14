@@ -88,7 +88,7 @@ void XsecRecord::Extract(VectorView result,
                          const Numeric temperature) const {
   const Size nf = f_grid.size();
 
-  ARTS_ASSERT(result.size() == nf)
+  assert(result.size() == nf);
 
   result = 0.;
 
@@ -143,11 +143,11 @@ void XsecRecord::Extract(VectorView result,
         std::upper_bound(
             data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
 
-    ARTS_ASSERT(i_data_fstart >= 0)
-    ARTS_ASSERT(f_grid[i_fstart] > data_f_grid[i_data_fstart])
-    ARTS_ASSERT(f_grid[i_fstart] < data_f_grid[i_data_fstart + 1])
-    ARTS_ASSERT(f_grid[i_fstop] < data_f_grid[i_data_fstop])
-    ARTS_ASSERT(f_grid[i_fstop] > data_f_grid[i_data_fstop - 1])
+    assert(i_data_fstart >= 0);
+    assert(f_grid[i_fstart] > data_f_grid[i_data_fstart]);
+    assert(f_grid[i_fstart] < data_f_grid[i_data_fstart + 1]);
+    assert(f_grid[i_fstop] < data_f_grid[i_data_fstop]);
+    assert(f_grid[i_fstop] > data_f_grid[i_data_fstop - 1]);
 
     // Extent for active data frequency vector:
     const Index data_f_extent = i_data_fstop - i_data_fstart + 1;

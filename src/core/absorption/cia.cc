@@ -63,26 +63,26 @@ void CIARecord::SetSpecies(const SpeciesEnum first, const SpeciesEnum second) {
 
 SpeciesEnum CIARecord::Species(const Index i) const {
   // Assert that i is 0 or 1:
-  ARTS_ASSERT(i >= 0);
-  ARTS_ASSERT(i <= 1);
+  assert(i >= 0);
+  assert(i <= 1);
 
   return mspecies[i];
 }
 
 ConstVectorView CIARecord::FrequencyGrid(Size dataset) const {
-  ARTS_ASSERT(dataset < mdata.size());
+  assert(dataset < mdata.size());
 
   return mdata[dataset].grid<0>();
 }
 
 ConstVectorView CIARecord::TemperatureGrid(Size dataset) const {
-  ARTS_ASSERT(dataset < mdata.size());
+  assert(dataset < mdata.size());
 
   return mdata[dataset].grid<1>();
 }
 
 const GriddedField2& CIARecord::Dataset(Size dataset) const {
-  ARTS_ASSERT(dataset < mdata.size());
+  assert(dataset < mdata.size());
 
   return mdata[dataset];
 }
@@ -113,7 +113,7 @@ void cia_interpolation(VectorView result,
   const Index nf = f_grid.size();
 
   // Assert that result vector has right size:
-  ARTS_ASSERT(result.size() == static_cast<Size>(nf));
+  assert(result.size() == static_cast<Size>(nf));
 
   // Get data grids:
   ConstVectorView data_f_grid = cia_data.grid<0>();
@@ -287,7 +287,7 @@ void CIARecord::Extract(VectorView res,
 // Documentation in header file.
 String CIARecord::MoleculeName(const Index i) const {
   // Assert that i is 0 or 1:
-  ARTS_ASSERT(i == 0 or i == 1);
+  assert(i == 0 or i == 1);
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
@@ -297,8 +297,8 @@ String CIARecord::MoleculeName(const Index i) const {
 // Documentation in header file.
 void CIARecord::SetMoleculeName(const Index i, const String& name) {
   // Assert that i is 0 or 1:
-  ARTS_ASSERT(i >= 0);
-  ARTS_ASSERT(i <= 1);
+  assert(i >= 0);
+  assert(i <= 1);
 
   // Find out the species index for name:
   SpeciesEnum spec_ind = to<SpeciesEnum>(name);

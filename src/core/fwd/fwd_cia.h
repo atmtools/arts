@@ -15,11 +15,11 @@ class full {
     Index ignore_errors;
     CIARecord* ciarecords;
 
-    single() = default;
-    single(const single&) = default;
-    single(single&&) = default;
+    single()                         = default;
+    single(const single&)            = default;
+    single(single&&)                 = default;
     single& operator=(const single&) = default;
-    single& operator=(single&&) = default;
+    single& operator=(single&&)      = default;
 
     single(Numeric p,
            Numeric t,
@@ -42,16 +42,16 @@ class full {
   void adapt();
 
  public:
-  full() = default;
-  full(const full&) = default;
-  full(full&&) = default;
-  full& operator=(const full&) = default;
-  full& operator=(full&&) = default;
+  full();
+  full(const full&);
+  full(full&&) noexcept;
+  full& operator=(const full&);
+  full& operator=(full&&) noexcept;
 
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<ArrayOfCIARecord> cia,
        Numeric extrap = {},
-       Index robust = {});
+       Index robust   = {});
 
   [[nodiscard]] Complex operator()(const Numeric frequency) const;
 

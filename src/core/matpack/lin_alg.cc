@@ -78,11 +78,11 @@ void lubacksub(VectorView x,
   /* Check if the dimensions of the input matrix and vectors agree and if LU
      is a quadratic matrix.*/
 
-  ARTS_ASSERT((LU.shape() == std::array{n, n}));
-  ARTS_ASSERT(b.size() == static_cast<Size>(n));
-  ARTS_ASSERT(indx.size() == static_cast<Size>(n));
-  ARTS_ASSERT(LU.stride(1) == 1);
-  ARTS_ASSERT(b.stride(0) == 1);
+  assert((LU.shape() == std::array{n, n}));
+  assert(b.size() == static_cast<Size>(n));
+  assert(indx.size() == static_cast<Size>(n));
+  assert(LU.stride(1) == 1);
+  assert(b.stride(0) == 1);
 
   char trans = 'N';
   int n_int  = (int)n;
@@ -125,9 +125,9 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   Index n = A.ncols();
 
   // Check dimensions of the system.
-  ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == static_cast<Index>(x.size()));
-  ARTS_ASSERT(n == static_cast<Index>(b.size()));
+  assert(n == A.nrows());
+  assert(n == static_cast<Index>(x.size()));
+  assert(n == static_cast<Index>(b.size()));
 
   // Allocate matrix and index vector for the LU decomposition.
   Matrix LU = Matrix(n, n);
@@ -144,8 +144,8 @@ void inv_inplace(MatrixView A, inv_workdata& wo) {
   Index n = A.ncols();
 
   // A must be a square matrix.
-  ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == static_cast<Index>(wo.N));
+  assert(n == A.nrows());
+  assert(n == static_cast<Index>(wo.N));
 
   int info;
   int n_int = (int)n;
@@ -203,7 +203,7 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
 
 void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   // A must be a square matrix.
-  ARTS_ASSERT(A.ncols() == A.nrows());
+  assert(A.ncols() == A.nrows());
 
   Index n = A.ncols();
 
@@ -241,12 +241,12 @@ void diagonalize_inplace(MatrixView P,
   Index n = A.ncols();
 
   // A must be a square matrix.
-  ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == static_cast<Index>(WR.size()));
-  ARTS_ASSERT(n == static_cast<Index>(WI.size()));
-  ARTS_ASSERT(n == P.nrows());
-  ARTS_ASSERT(n == P.ncols());
-  ARTS_ASSERT(n == static_cast<Index>(wo.N));
+  assert(n == A.nrows());
+  assert(n == static_cast<Index>(WR.size()));
+  assert(n == static_cast<Index>(WI.size()));
+  assert(n == P.nrows());
+  assert(n == P.ncols());
+  assert(n == static_cast<Index>(wo.N));
 
   inplace_transpose(A);
 
@@ -366,10 +366,10 @@ void diagonalize(ComplexMatrixView P,
   Index n = A.ncols();
 
   // A must be a square matrix.
-  ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == static_cast<Index>(W.size()));
-  ARTS_ASSERT(n == P.nrows());
-  ARTS_ASSERT(n == P.ncols());
+  assert(n == A.nrows());
+  assert(n == static_cast<Index>(W.size()));
+  assert(n == P.nrows());
+  assert(n == P.ncols());
 
   ComplexMatrix A_tmp{transpose(A)};
 
@@ -425,8 +425,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  ARTS_ASSERT((A.shape() == std::array{n, n}));
-  ARTS_ASSERT((F.shape() == std::array{n, n}));
+  assert((A.shape() == std::array{n, n}));
+  assert((F.shape() == std::array{n, n}));
 
   Numeric A_norm_inf, c;
   Numeric j;
@@ -495,7 +495,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   \return Norm
 */
 Numeric norm2(ConstVectorView v) {
-  ARTS_ASSERT(v.size());
+  assert(v.size());
   return sqrt(dot(v, v));
 }
 
@@ -527,7 +527,7 @@ Numeric norm_inf(ConstMatrixView A) {
 */
 void id_mat(MatrixView I) {
   const Index n = I.ncols();
-  ARTS_ASSERT(n == I.nrows());
+  assert(n == I.nrows());
 
   I = 0;
   for (Index i = 0; i < n; i++) I[i, i] = 1.;
@@ -543,7 +543,7 @@ void id_mat(MatrixView I) {
 */
 Numeric det(ConstMatrixView A) {
   const Index dim = A.nrows();
-  ARTS_ASSERT(dim == A.ncols());
+  assert(dim == A.ncols());
 
   if (dim == 3)
     return A[0, 0] * A[1, 1] * A[2, 2] + A[0, 1] * A[1, 2] * A[2, 0] +
@@ -588,7 +588,7 @@ Numeric det(ConstMatrixView A) {
 void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   const Size n = x.size();
 
-  ARTS_ASSERT(y.size() == n);
+  assert(y.size() == n);
 
   p.resize(2);
 
@@ -662,7 +662,7 @@ Numeric lsf(VectorView x,
 void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
   // Assert that A is quadratic.
   const Index n = A.nrows();
-  ARTS_ASSERT((A.shape() == std::array{n, n}));
+  assert((A.shape() == std::array{n, n}));
 
   char trans = 'N';
   int n_int  = static_cast<int>(n);

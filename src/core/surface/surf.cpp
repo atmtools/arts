@@ -12,6 +12,22 @@
 #include <utility>
 #include <variant>
 
+Surf::Point::Point()                                   = default;
+Surf::Point::Point(const Point &)                      = default;
+Surf::Point::Point(Point &&) noexcept                  = default;
+Surf::Point &Surf::Point::operator=(const Point &)     = default;
+Surf::Point &Surf::Point::operator=(Point &&) noexcept = default;
+Surf::Data::Data()                                     = default;
+Surf::Data::Data(const Data &)                         = default;
+Surf::Data::Data(Data &&) noexcept                     = default;
+Surf::Data &Surf::Data::operator=(const Data &)        = default;
+Surf::Data &Surf::Data::operator=(Data &&) noexcept    = default;
+Surf::Field::Field()                                   = default;
+Surf::Field::Field(const Field &)                      = default;
+Surf::Field::Field(Field &&) noexcept                  = default;
+Surf::Field &Surf::Field::operator=(const Field &)     = default;
+Surf::Field &Surf::Field::operator=(Field &&) noexcept = default;
+
 Numeric &Surf::Point::operator[](SurfaceKey x) {
   switch (x) {
     case SurfaceKey::h: return elevation;
@@ -143,9 +159,7 @@ String Data::data_type() const {
   if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
-  ARTS_ASSERT(false,
-              "Cannot be reached, you have added a new type but not "
-              "doen the plumbing...")
+
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
@@ -393,9 +407,7 @@ bool Field::constant_value(const KeyVal &key) const {
           return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ConstVectorView{};
-        ARTS_ASSERT(
-            false,
-            "Cannot be reached, you have added a new type but not done the plumbing...");
+        assert(false);
       },
       data);
 }
@@ -410,9 +422,7 @@ bool Field::constant_value(const KeyVal &key) const {
           return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return VectorView{};
-        ARTS_ASSERT(
-            false,
-            "Cannot be reached, you have added a new type but not done the plumbing...");
+        assert(false);
       },
       data);
 }

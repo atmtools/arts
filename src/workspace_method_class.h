@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "format_tags.h"
-#include "workspace_wsv.h"
+#include <auto_wsv_value_wrapper.h>
 
 inline constexpr char named_input_prefix = '@';
 inline constexpr char internal_prefix    = '_';

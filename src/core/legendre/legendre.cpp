@@ -175,7 +175,7 @@ Numeric assoc_legendre(Index l, Index m, Numeric x) {
 
 void PositiveDoubleGaussLegendre(VectorView x, VectorView w) {
   const Size n = x.size();
-  ARTS_ASSERT(n == w.size());  // same size
+  assert(n == w.size());  // same size
 
   for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(n, n - k);
@@ -186,7 +186,7 @@ void PositiveDoubleGaussLegendre(VectorView x, VectorView w) {
 
 void PositiveGaussLegendre(VectorView x, VectorView w) {
   const Size n = x.size();
-  ARTS_ASSERT(n == w.size());
+  assert(n == w.size());
 
   for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(2 * n, 2 * n - k - n);
@@ -197,7 +197,7 @@ void PositiveGaussLegendre(VectorView x, VectorView w) {
 
 void GaussLegendre(VectorView x, VectorView w) {
   const Size n = x.size();
-  ARTS_ASSERT(n == w.size());
+  assert(n == w.size());
 
   for (Size k = 0; k < n; k++) {
     auto p = fastgl::GLPair(n, n - k);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <debug.h>
 #include <enumsLineShapeModelCoefficient.h>
 #include <enumsLineShapeModelType.h>
 #include <matpack.h>
@@ -40,7 +39,7 @@ EMPTY(T0, X2)
 EMPTY(T0, X3)
 EMPTY(T0, T0)
 EMPTY(T0, T)
-} // namespace
+}  // namespace
 
 Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 Numeric dT1_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
@@ -50,7 +49,7 @@ Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 namespace {
 EMPTY(T1, X2)
 EMPTY(T1, X3)
-} // namespace
+}  // namespace
 
 Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dX0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
@@ -60,7 +59,7 @@ Numeric dT2_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT2_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 namespace {
 EMPTY(T2, X3)
-} // namespace
+}  // namespace
 
 constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 + X1 * (T - T0);
@@ -74,7 +73,7 @@ constexpr Numeric dT3_dT(Numeric, Numeric X1, Numeric, Numeric) { return X1; }
 namespace {
 EMPTY(T3, X2)
 EMPTY(T3, X3)
-} // namespace
+}  // namespace
 
 Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 Numeric dT4_dX0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
@@ -85,7 +84,7 @@ Numeric dT4_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T);
 namespace {
 EMPTY(T4, X2)
 EMPTY(T4, X3)
-} // namespace
+}  // namespace
 
 Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 Numeric dT5_dX0(Numeric X0, Numeric X1, Numeric T0, Numeric T);
@@ -95,7 +94,7 @@ Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T);
 namespace {
 EMPTY(T5, X2)
 EMPTY(T5, X3)
-} // namespace
+}  // namespace
 
 constexpr Numeric AER(
     Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
@@ -129,7 +128,7 @@ constexpr Numeric dAER_dT(
 }
 namespace {
 EMPTY(AER, T0)
-} // namespace
+}  // namespace
 
 Numeric DPL(
     Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
@@ -147,15 +146,9 @@ Numeric dDPL_dT(
     Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T);
 
 Numeric POLY(const ConstVectorView& x, Numeric T);
-constexpr Numeric dPOLY_dX0(const ConstVectorView&, Numeric) {
-  return 1.0;
-}
-constexpr Numeric dPOLY_dX1(const ConstVectorView&, Numeric T) {
-  return T;
-}
-constexpr Numeric dPOLY_dX2(const ConstVectorView&, Numeric T) {
-  return T * T;
-}
+constexpr Numeric dPOLY_dX0(const ConstVectorView&, Numeric) { return 1.0; }
+constexpr Numeric dPOLY_dX1(const ConstVectorView&, Numeric T) { return T; }
+constexpr Numeric dPOLY_dX2(const ConstVectorView&, Numeric T) { return T * T; }
 constexpr Numeric dPOLY_dX3(const ConstVectorView&, Numeric T) {
   return T * T * T;
 }
@@ -179,20 +172,7 @@ class data {
 
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
-  constexpr data(LineShapeModelType type = LineShapeModelType::T0,
-                 Vector X                = {0.0})
-      : t(type), x(std::move(X)) {
-    ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
-    ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
-                       n != std::numeric_limits<Size>::max() and
-                           n != static_cast<Size>(x.size()),
-                       "Invalid number of parameters for model {}"
-                       "\nExpected {}"
-                       " parameters but got {} parameters.",
-                       t,
-                       n,
-                       x.size())
-  }
+  data(LineShapeModelType type = LineShapeModelType::T0, Vector X = {0.0});
 
   template <LineShapeModelType mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],

@@ -16,6 +16,24 @@
 #include <utility>
 #include <vector>
 
+BlockMatrix::BlockMatrix()                                   = default;
+BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
+BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
+BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
+BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
+
+BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense)
+    : data(std::move(dense)) {}
+
+BlockMatrix::BlockMatrix(std::shared_ptr<Sparse> sparse)
+    : data(std::move(sparse)) {}
+
+BlockMatrix::BlockMatrix(const Matrix &dense)
+    : data(std::make_shared<Matrix>(dense)) {}
+
+BlockMatrix::BlockMatrix(const Sparse &sparse)
+    : data(std::make_shared<Sparse>(sparse)) {}
+
 BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
   data = std::move(dense);
   return *this;
@@ -48,22 +66,22 @@ bool BlockMatrix::is_dense() const {
 bool BlockMatrix::is_sparse() const { return not is_dense(); }
 
 Matrix &BlockMatrix::dense() {
-  ARTS_ASSERT(is_dense());
+  assert(is_dense());
   return *std::get<std::shared_ptr<Matrix>>(data);
 }
 
 const Matrix &BlockMatrix::dense() const {
-  ARTS_ASSERT(is_dense());
+  assert(is_dense());
   return *std::get<std::shared_ptr<Matrix>>(data);
 }
 
 Sparse &BlockMatrix::sparse() {
-  ARTS_ASSERT(is_sparse());
+  assert(is_sparse());
   return *std::get<std::shared_ptr<Sparse>>(data);
 }
 
 const Sparse &BlockMatrix::sparse() const {
-  ARTS_ASSERT(is_sparse());
+  assert(is_sparse());
   return *std::get<std::shared_ptr<Sparse>>(data);
 }
 
@@ -81,6 +99,13 @@ Index BlockMatrix::ncols() const {
 Index BlockMatrix::nrows() const {
   if (is_dense()) return dense().nrows();
   return sparse().nrows();
+}
+
+void Block::set_matrix(std::shared_ptr<Sparse> sparse) {
+  matrix_ = std::move(sparse);
+}
+void Block::set_matrix(std::shared_ptr<Matrix> dense) {
+  matrix_ = std::move(dense);
 }
 
 std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
@@ -103,7 +128,7 @@ std::array<Index, 2> BlockMatrix::shape() const {
 // Correlations
 //------------------------------------------------------------------------------
 void mult(StridedMatrixView C, StridedConstMatrixView A, const Block &B) {
-  ARTS_ASSERT(B.not_null());
+  assert(B.not_null());
 
   StridedMatrixView CView(C[joker, B.get_column_range()]);
   StridedMatrixView CTView(C[joker, B.get_row_range()]);
@@ -133,7 +158,7 @@ void mult(StridedMatrixView C, StridedConstMatrixView A, const Block &B) {
 }
 
 void mult(StridedMatrixView C, const Block &A, StridedConstMatrixView B) {
-  ARTS_ASSERT(A.not_null());
+  assert(A.not_null());
 
   StridedMatrixView CView(C[A.get_row_range(), joker]);
   StridedMatrixView CTView(C[A.get_column_range(), joker]);
@@ -480,7 +505,7 @@ void CovarianceMatrix::compute_inverse() const {
 void CovarianceMatrix::invert_correlation_block(
     std::vector<Block> &inverses, std::vector<const Block *> &blocks) const {
   // Can't compute inverse of empty block.
-  ARTS_ASSERT(blocks.size() > 0);
+  assert(blocks.size() > 0);
 
   // Sort blocks w.r.t. indices.
   auto comp = [](const Block *a, const Block *b) {

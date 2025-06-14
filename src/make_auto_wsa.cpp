@@ -411,10 +411,10 @@ constexpr {0}Predefined to<{0}Predefined>(const std::string_view x) {{
 
     std::print(
         os,
-        R"-XX-(  throw std::runtime_error(std::format(R"-X-(Bad value: "{{}}",
+        R"-XX-(  throw std::runtime_error(R"-X-(Bad value. Valid options for "{0}":
 
-Valid options for "{0}": {1:BNq,}
-)-X-", x));
+{1:BNq,}
+)-X-");
 }}
 
 )-XX-",

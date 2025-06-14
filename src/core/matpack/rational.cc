@@ -39,7 +39,7 @@ Rational::Rational(const String& s) {
   auto len = s.length();
 
   if (len) {
-    auto dot_pos = s.find('.');
+    auto dot_pos   = s.find('.');
     auto slash_pos = s.find('/');
     if (len > dot_pos) {
       *this = numeric2rational(std::stod(s), len - dot_pos - 1);
@@ -49,9 +49,10 @@ Rational::Rational(const String& s) {
       try {
         *this = Rational(std::stoi(a), std::stoi(b));
       } catch (...) {
-        ARTS_USER_ERROR("Cannot interpret either '{}' or '{}' as an integer (or neither)",
-                        a,
-                        b);
+        ARTS_USER_ERROR(
+            "Cannot interpret either '{}' or '{}' as an integer (or neither)",
+            a,
+            b);
       }
     } else {
       try {
@@ -67,7 +68,7 @@ Rational::Rational(const String& s) {
 
 void Rational::simplify_in_place() noexcept {
   Rational a = reduce_by_gcd(*this);
-  numer = a.numer;
-  denom = a.denom;
+  numer      = a.numer;
+  denom      = a.denom;
   fixSign();
 }

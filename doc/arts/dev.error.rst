@@ -18,35 +18,18 @@ How is it implemented?
 
 The macros are defined in `debug.h` and are used throughout the ARTS code.
 
-There are the macros that are important in there.
+These are the macros that are important in there.
 
-1. ARTS_ASSERT
-2. ARTS_USER_ERROR
-3. ARTS_USER_ERROR_IF
-4. ARTS_METHOD_ERROR_CATCH
+1. ARTS_USER_ERROR
+2. ARTS_USER_ERROR_IF
+3. ARTS_METHOD_ERROR_CATCH
 
 All of these use the `std::format` library to format the error message.
+Do not use these macros inside header files as they will cause
+compilation times to increase significantly.
 
 All of these adds relevant line numbers and file names to the error message.
 If the compiler was modern enough, even the function signature is added.
-
-ARTS_ASSERT
------------
-
-This is used for errors caused by the programmer.
-
-It is only available when debug flags are set.
-The error message will be thrown as an exception of the `std::logic_error` type.
-
-Upon setting `-DARTS_ASSERT_USE_C`, the macro will use the C `assert` function.
-This will cause the program to abort if the condition is not met.
-The error message will not be printed in this mode.
-
-Example usage:
-
-.. code-block:: c++
-
-    ARTS_ASSERT(1 == 2, "This is a test message, {} is not {}", 2, 1);
 
 ARTS_USER_ERROR
 ---------------

@@ -63,6 +63,10 @@ struct Sparse {
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);
+  Sparse(const Sparse& other);
+  Sparse(Sparse&& other) noexcept;
+  Sparse& operator=(const Sparse& other);
+  Sparse& operator=(Sparse&& other) noexcept;
 
   void split(Index offset, Index nrows);
 
@@ -136,11 +140,17 @@ void abs(Sparse& A, const Sparse& B);
 
 void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
 
-void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
+void transpose_mult(StridedVectorView y,
+                    const Sparse& M,
+                    StridedConstVectorView x);
 
-void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C);
+void mult(StridedMatrixView A,
+          const Sparse& B,
+          const StridedConstMatrixView& C);
 
-void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C);
+void mult(StridedMatrixView A,
+          const StridedConstMatrixView& B,
+          const Sparse& C);
 
 void mult(Sparse& A, const Sparse& B, const Sparse& C);
 
@@ -187,7 +197,7 @@ struct std::formatter<Sparse> {
     using Iter = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
 
     std::string_view first = tags.sep();
-    std::string_view sep = ""sv;
+    std::string_view sep   = ""sv;
 
     tags.add_if_bracket(ctx, '[');
 

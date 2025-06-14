@@ -215,8 +215,8 @@ void absorption_bandsReadSpeciesSplitCatalog(
       if (spec.type == SpeciesTagType::Plain) {
         if (spec.is_joker()) {
           for (auto&& isot : Species::isotopologues(spec.Spec())) {
-            if (is_predefined_model(isot)) continue;
-            if (isot.joker()) continue;
+            if (isot.is_predefined()) continue;
+            if (isot.is_joker()) continue;
             isotopologues.insert(isot);
           }
         } else {
@@ -659,8 +659,8 @@ void absorption_bandsReadSpeciesSplitARTSCAT(
         if (spec.type == SpeciesTagType::Plain) {
           if (spec.is_joker()) {
             for (auto&& isot : Species::isotopologues(spec.Spec())) {
-              if (is_predefined_model(isot)) continue;
-              if (isot.joker()) continue;
+              if (isot.is_predefined()) continue;
+              if (isot.is_joker()) continue;
               isotopologues.insert(isot);
             }
           } else {

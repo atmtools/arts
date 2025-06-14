@@ -15,11 +15,11 @@ class full {
     Numeric T{};
     XsecRecord* xsecrec{};
 
-    single() = default;
-    single(const single&) = default;
-    single(single&&) = default;
+    single()                         = default;
+    single(const single&)            = default;
+    single(single&&)                 = default;
     single& operator=(const single&) = default;
-    single& operator=(single&&) = default;
+    single& operator=(single&&)      = default;
 
     single(Numeric p, Numeric t, Numeric VMR, XsecRecord* xsec);
 
@@ -32,12 +32,12 @@ class full {
 
   void adapt();
 
-public:
-  full() = default;
-  full(const full&) = default;
-  full(full&&) = default;
-  full& operator=(const full&) = default;
-  full& operator=(full&&) = default;
+ public:
+  full();
+  full(const full&);
+  full(full&&) noexcept;
+  full& operator=(const full&);
+  full& operator=(full&&) noexcept;
 
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<ArrayOfXsecRecord> xsecrec);

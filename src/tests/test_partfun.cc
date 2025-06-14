@@ -6,7 +6,7 @@
 constexpr std::size_t nonexistentPartfun() noexcept {
   for (std::size_t i=0; i<Species::Isotopologues.size(); i++) {
     auto& ir = Species::Isotopologues[i];
-    if (not Species::is_predefined_model(ir) and not ir.joker()) {
+    if (not ir.is_predefined() and not ir.is_joker()) {
       if (not PartitionFunctions::has_partfun(ir)) {
         return i;
       }

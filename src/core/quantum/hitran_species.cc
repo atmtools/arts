@@ -398,11 +398,9 @@ using OurHitranMap = std::map<Index, std::map<char, SpeciesIsotope>>;
 OurHitranMap to_species_map(const HitranMap& string_map) {
   OurHitranMap species_map;
   for (auto& specs : string_map) {
-    ARTS_ASSERT(specs.second.find('1') not_eq specs.second.cend(),
-                "Must have species '1' in map")
+    assert(specs.second.find('1') not_eq specs.second.cend());
     for (auto& isot : specs.second) {
-      ARTS_ASSERT(isot.second.first >= 0,
-                  "Undefined species in ARTS found in HITRAN data")
+      assert(isot.second.first >= 0);
       species_map[specs.first][isot.first] =
           Species::Isotopologues[isot.second.first];
     }

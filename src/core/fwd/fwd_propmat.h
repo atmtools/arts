@@ -22,11 +22,11 @@ class propmat {
   hxsec::full xsec{};
 
  public:
-  propmat()                          = default;
-  propmat(const propmat&)            = default;
-  propmat(propmat&&)                 = default;
-  propmat& operator=(const propmat&) = default;
-  propmat& operator=(propmat&&)      = default;
+  propmat();
+  propmat(const propmat&);
+  propmat(propmat&&) noexcept;
+  propmat& operator=(const propmat&);
+  propmat& operator=(propmat&&) noexcept;
 
   propmat(std::shared_ptr<AtmPoint> atm,
           std::shared_ptr<AbsorptionBands> lines,

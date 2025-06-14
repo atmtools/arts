@@ -348,7 +348,7 @@ constexpr auto frequency_spans(const Numeric cutoff,
                                const Numeric f,
                                const std::span<const single_shape>& lines,
                                const Ts&... lists) {
-  ARTS_ASSERT(lines.size() == (static_cast<Size>(lists.size()) and ...))
+  assert(lines.size() == (static_cast<Size>(lists.size()) and ...));
 
   const auto [start, count] =
       find_offset_and_count_of_frequency_range(lines, f, cutoff);
@@ -495,7 +495,7 @@ std::pair<Complex, Complex> band_shape::df(const Numeric f) const {
 
 std::pair<Complex, Complex> band_shape::dH(const ConstComplexVectorView& dz_dH,
                                            const Numeric f) const {
-  ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
+  assert(static_cast<Size>(dz_dH.size()) == lines.size());
 
   return std::transform_reduce(lines.begin(),
                                lines.end(),
@@ -510,8 +510,8 @@ std::pair<Complex, Complex> band_shape::dT(const ConstVectorView& dk_dT,
                                            const ConstComplexVectorView& dz_dT,
                                            const ConstVectorView& dz_dT_fac,
                                            const Numeric f) const {
-  ARTS_ASSERT(dk_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
+  assert(dk_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(dk_dT.size()) == lines.size());
 
   std::pair<Complex, Complex> out{};  //! Fixme, use zip in C++ 23...
 
@@ -566,7 +566,7 @@ void band_shape::df(CutView cut) const {
 std::pair<Complex, Complex> band_shape::dH(const CutViewConst& cut,
                                            const ConstComplexVectorView& dz_dH,
                                            const Numeric f) const {
-  ARTS_ASSERT(static_cast<Size>(dz_dH.size()) == lines.size())
+  assert(static_cast<Size>(dz_dH.size()) == lines.size());
 
   const auto [s, cs, dH] = frequency_spans(cutoff, f, lines, cut, dz_dH);
 
@@ -579,7 +579,7 @@ std::pair<Complex, Complex> band_shape::dH(const CutViewConst& cut,
 }
 
 void band_shape::dH(CutView cut, const ConstComplexVectorView& df0_dH) const {
-  ARTS_ASSERT(static_cast<Size>(df0_dH.size()) == lines.size())
+  assert(static_cast<Size>(df0_dH.size()) == lines.size());
 
   std::transform(lines.begin(),
                  lines.end(),
@@ -596,8 +596,8 @@ std::pair<Complex, Complex> band_shape::dT(const CutViewConst& cut,
                                            const ConstComplexVectorView& dz_dT,
                                            const ConstVectorView& dz_dT_fac,
                                            const Numeric f) const {
-  ARTS_ASSERT(dk_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
+  assert(dk_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(dk_dT.size()) == lines.size());
 
   std::pair<Complex, Complex> out{};  //! Fixme, use zip in C++ 23...
 
@@ -617,8 +617,8 @@ void band_shape::dT(CutView cut,
                     const ConstVectorView& de_ratio_dT,
                     const ConstComplexVectorView& dz_dT,
                     const ConstVectorView& dz_dT_fac) const {
-  ARTS_ASSERT(dk_dT.size() == dz_dT.size())
-  ARTS_ASSERT(static_cast<Size>(dk_dT.size()) == lines.size())
+  assert(dk_dT.size() == dz_dT.size());
+  assert(static_cast<Size>(dk_dT.size()) == lines.size());
 
   for (Size i = 0; i < lines.size(); ++i) {
     cut[i] = lines[i].dT(

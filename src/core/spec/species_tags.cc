@@ -11,6 +11,33 @@
 #include <string_view>
 
 namespace Species {
+Tag::Tag(const SpeciesIsotope& isot) noexcept
+    : spec_ind(find_species_index(isot)),
+      type(isot.is_predefined()
+               ? SpeciesTagType::Predefined
+               : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
+
+SpeciesIsotope Tag::Isotopologue() const noexcept {
+  return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
+}
+
+void Tag::Isotopologue(const SpeciesIsotope& ir) {
+  Index ind = find_species_index(ir);
+  assert(ind >= 0);
+  spec_ind = ind;
+}
+
+Numeric Tag::Mass() const noexcept { return Isotopologue().mass; }
+
+SpeciesEnum Tag::Spec() const noexcept { return Isotopologue().spec; }
+
+SpeciesTagType Tag::Type() const noexcept { return type; }
+
+bool Tag::is_joker() const {
+  assert(spec_ind >= 0);
+  return Joker == Isotopologue().isotname;
+}
+
 namespace {
 constexpr void trim(std::string_view& text) {
   while (text.size() and nonstd::isspace(text.front())) text.remove_prefix(1);
@@ -96,7 +123,7 @@ SpeciesTag parse_tag(std::string_view text) {
       check(text, orig);
     } else {
       tag.spec_ind = isot(species, tag_key, orig);
-      tag.type     = is_predefined_model(Isotopologues[tag.spec_ind])
+      tag.type     = Isotopologues[tag.spec_ind].is_predefined()
                          ? SpeciesTagType::Predefined
                          : SpeciesTagType::Plain;
     }
@@ -167,12 +194,12 @@ bool ArrayOfSpeciesTag::operator==(const ArrayOfSpeciesTag& x) const {
 }
 
 SpeciesEnum ArrayOfSpeciesTag::Species() const {
-  ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+  assert(size() not_eq 0);
   return operator[](0).Spec();
 }
 
 SpeciesTagType ArrayOfSpeciesTag::Type() const {
-  ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+  assert(size() not_eq 0);
   return operator[](0).Type();
 }
 
@@ -197,22 +224,24 @@ bool ArrayOfSpeciesTag::Particles() const noexcept {
 }
 
 ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
-    : ArrayOfSpeciesTag(Species::parse_tags(text)){ARTS_USER_ERROR_IF(
-          size() and std::any_of(begin(),
-                                 end(),
-                                 [front_species =
-                                      front().Spec()](const SpeciesTag& tag) {
-                                   return tag.Spec() not_eq front_species;
-                                 }),
-          "All species in a group of tags must be the same\n"
-          "Your list of tags have been parsed as: {}",
-          "\nThe original tags-list read \"{}\"",
-          *this,
-          text)}
+    : ArrayOfSpeciesTag(Species::parse_tags(text)) {
+  ARTS_USER_ERROR_IF(
+      size() and
+          std::any_of(begin(),
+                      end(),
+                      [front_species = front().Spec()](const SpeciesTag& tag) {
+                        return tag.Spec() not_eq front_species;
+                      }),
+      "All species in a group of tags must be the same\n"
+      "Your list of tags have been parsed as: {}",
+      "\nThe original tags-list read \"{}\"",
+      *this,
+      text);
+}
 
-      Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
-                              SpeciesEnum spec,
-                              Index i) noexcept {
+Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
+                        SpeciesEnum spec,
+                        Index i) noexcept {
   const Index n = static_cast<Index>(specs.size());
   for (; i < n; i++)
     if (specs[i].Species() == spec) return i;
@@ -271,7 +300,7 @@ std::set<SpeciesEnum> lbl_species(
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
                            const SpeciesEnum spec) {
-  ARTS_ASSERT(abs_species.size() == static_cast<Size>(rtp_vmr.size()))
+  assert(abs_species.size() == static_cast<Size>(rtp_vmr.size()));
 
   auto pos =
       std::find_if(abs_species.begin(),

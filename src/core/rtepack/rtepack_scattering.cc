@@ -8,7 +8,7 @@
 namespace rtepack {
 Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
                                        const ConstMatrixView &pnd) {
-  ARTS_ASSERT(Pe.ncols() == 4 and Pe.nrows() == 4)
+  assert(Pe.ncols() == 4 and Pe.nrows() == 4);
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
   const Index ne = Pe.nshelves();
@@ -66,7 +66,7 @@ Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
 
 Array<muelmat_matrix> bulk_backscatter_derivative(
     const ConstTensor5View &Pe, const ArrayOfMatrix &dpnd_dx) {
-  ARTS_ASSERT(Pe.ncols() == 4 and Pe.nrows() == 4)
+  assert(Pe.ncols() == 4 and Pe.nrows() == 4);
 
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
@@ -213,7 +213,7 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
   const Numeric aa_inc_rad = Conversion::deg2rad(aa_inc);
 
   constexpr Numeric ANGTOL_RAD = 1e-6;  //CPD: this constant is used to adjust
-      //zenith angles close to 0 and PI.  This is
+  //zenith angles close to 0 and PI.  This is
   //also used to avoid float == float statements.
 
   //
