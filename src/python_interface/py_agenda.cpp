@@ -1,4 +1,5 @@
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
@@ -76,7 +77,7 @@ void py_agenda(py::module_& m) try {
   py::class_<Wsv>(m, "Wsv")
       .def_prop_ro(
           "value",
-          [](Wsv& v) -> PyWSV { return from(v); },
+          [](Wsv& v) { return to_py(v); },
           "A workspace variable")
       .def(
           "__str__",
@@ -111,8 +112,8 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* me, const std::string& n, const PyWSV& v) {
-            new (me) Method{n, from_py(v).copied()};
+          [](Method* me, const std::string& n, const py::object * const v) {
+            new (me) Method{n, from(v).copied()};
           },
           "name"_a,
           "wsv"_a,
@@ -121,7 +122,7 @@ void py_agenda(py::module_& m) try {
           "val",
           [](const Method& method) -> py::object {
             const auto& x = method.get_setval();
-            if (x) return py::cast(x.value());
+            if (x) return to_py(x.value());
             return py::none();
           },
           "The value (if any) of a set method")

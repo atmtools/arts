@@ -90,8 +90,8 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w.deepcopy(); })
       .def(
           "get",
-          [](Workspace& w, const std::string& n) -> PyWSV {
-            return from(w.share(n));
+          [](Workspace& w, const std::string& n) {
+            return to_py(w.share(n));
           },
           "name"_a,
           "Gets the value of the variable with the given name.",
@@ -116,12 +116,12 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "Initiate the variable to the named type.")
       .def(
           "set",
-          [](Workspace& w, const std::string& n, const PyWSV& x) {
+          [](Workspace& w, const std::string& n, const py::object * const x) {
             if (not w.contains(n))
               throw std::domain_error(
                   std::format("Workspace variable \"{}\" does not exist", n));
 
-            Wsv wsv = from_py(x);
+            Wsv wsv = from(x);
 
             if (not wsv.holds_same(w.share(n)))
               throw std::domain_error(std::format(
