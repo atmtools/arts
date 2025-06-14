@@ -187,7 +187,6 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
 
     ${PYARTS_AUTO_FILES}
 
-    py_auto_agenda_operators.cpp
     gen_auto_py_helpers.cpp
 
     py_workspace.cpp
