@@ -56,35 +56,37 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
                R"--(bool convert_cast(Wsv& wsv, const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+
+  bool found = false;
 )--");
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
       std::print(os,
                  R"(
-  {{
+  if (not found) {{
     ValueHolder<{0}> _val{{}};
     if (py::try_cast(*x, _val, true)) {{
       wsv = std::move(_val.val);
-      goto end;
+      found = true;
     }}
   }})",
                  group);
     } else {
       std::print(os,
                  R"(
-  {{
+  if (not found) {{
     {0} _val{{}};
     if (py::try_cast(*x, _val, true)) {{
       wsv = _val;
-      goto end;
+      found = true;
     }}
   }})",
                  group);
     }
   }
 
-  os << "\n  return false;\nend:\n  return true;\n}\n}\n";
+  os << "\n  return found;\n}\n}\n";
 }
 
 void implement_from_const_py_object() {
