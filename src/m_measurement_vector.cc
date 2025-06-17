@@ -2,36 +2,36 @@
 
 #include <limits>
 
-void measurement_vector_errorInitStandard(Vector& measurement_vector_error,
-                                          Matrix& measuremen_jacobian_error,
-                                          const Vector& measurement_vector,
-                                          const Matrix& measuremen_jacobian) {
-  ARTS_TIME_REPORT
+#include "matpack_mdspan_helpers_grid_t.h"
 
-  measurement_vector_error.resize(measurement_vector.shape());
-  measuremen_jacobian_error.resize(measuremen_jacobian.shape());
-  measurement_vector_error  = 0.0;
-  measuremen_jacobian_error = 0.0;
-}
-
-void measurement_vector_errorAddErrorState(
+void measurement_vector_errorFromModelState(
     Vector& measurement_vector_error,
-    Matrix& measuremen_jacobian_error,
+    Matrix& measurement_jacobian_error,
+    const ArrayOfSensorObsel& measurement_sensor,
     const JacobianTargets& jacobian_targets,
     const Vector& model_state_vector) {
   ARTS_TIME_REPORT
 
+  measurement_vector_error.resize(measurement_sensor.size());
+  measurement_vector_error = 0.0;
+
+  measurement_jacobian_error.resize(measurement_sensor.size(),
+                                    jacobian_targets.x_size());
+  measurement_jacobian_error = 0.0;
+
   for (auto& elem : jacobian_targets.error()) {
     elem.update_y(measurement_vector_error,
-                  measuremen_jacobian_error,
+                  measurement_jacobian_error,
                   model_state_vector);
   }
 }
 
-void measurement_vectorAddError(Vector& measurement_vector,
-                                Matrix& measuremen_jacobian,
-                                const Vector& measurement_vector_error,
-                                const Matrix& measuremen_jacobian_error) {
+void measurement_vectorConditionalAddError(
+    Vector& measurement_vector,
+    Matrix& measurement_jacobian,
+    const Vector& measurement_vector_error,
+    const Matrix& measurement_jacobian_error,
+    const Index& do_jacobian) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -43,18 +43,22 @@ measurement_vector_error.shape() : {:B,}
 )",
       measurement_vector.shape(),
       measurement_vector_error.shape())
-  ARTS_USER_ERROR_IF(
-      measuremen_jacobian.shape() != measuremen_jacobian_error.shape(),
-      R"(Mismatched shapes:
 
-measuremen_jacobian.shape()       : {:B,}
-measuremen_jacobian_error.shape() : {:B,}
+  measurement_vector += measurement_vector_error;
+
+  if (do_jacobian != 0) {
+    ARTS_USER_ERROR_IF(
+        measurement_jacobian.shape() != measurement_jacobian_error.shape(),
+        R"(Mismatched shapes:
+
+measurement_jacobian.shape()       : {:B,}
+measurement_jacobian_error.shape() : {:B,}
 )",
-      measuremen_jacobian.shape(),
-      measuremen_jacobian_error.shape())
+        measurement_jacobian.shape(),
+        measurement_jacobian_error.shape())
 
-  measurement_vector  += measurement_vector_error;
-  measuremen_jacobian += measuremen_jacobian_error;
+    measurement_jacobian += measurement_jacobian_error;
+  }
 }
 
 void model_state_vectorUpdateError(Vector& model_state_vector,

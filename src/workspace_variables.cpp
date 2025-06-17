@@ -5,10 +5,18 @@
 void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
                  wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
-    wsv_data[name] = {
-        .desc = ag.desc,
-        .type = "Agenda",
-    };
+    if (ag.enum_default.empty()) {
+      wsv_data[name] = {
+          .desc = ag.desc,
+          .type = "Agenda",
+      };
+    } else {
+      wsv_data[name] = {
+          .desc          = ag.desc,
+          .type          = "Agenda",
+          .default_value = "get_" + name + "(\"" + ag.enum_default + "\"sv)",
+      };
+    }
   }
 }
 
@@ -758,7 +766,7 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
       .default_value = "0",
   };
 
-  wsv_data["inversion_iterate_agenda_do_jacobian"] = {
+  wsv_data["do_jacobian"] = {
       .desc = R"(A boolean for if Jacobian calculations should be done.
 )",
       .type = "Index",

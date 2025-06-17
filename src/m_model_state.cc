@@ -1,15 +1,10 @@
 #include <workspace.h>
 
-void model_state_vectorSize(Vector& model_state_vector,
+void model_state_vectorInit(Vector& model_state_vector,
                             const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   model_state_vector.resize(jacobian_targets.x_size());
-}
-
-void model_state_vectorZero(Vector& model_state_vector) {
-  ARTS_TIME_REPORT
-
   model_state_vector = 0.0;
 }
 

@@ -109,6 +109,17 @@ void implementation(std::ostream& os) {
 #include <workspace_agendas.h>
 #include <workspace_variables.h>
 
+)--");
+
+for (auto& [name, wsa] : internal_workspace_agendas()) {
+  if (not wsa.enum_default.empty()){
+    std::println(os, "Agenda get_{}(const std::string_view);", name);
+  }
+}
+
+std::print(os,
+             R"--(
+
 std::unordered_map<std::string, WorkspaceVariableRecord> workspace_variables_create() {{
   std::unordered_map<std::string, WorkspaceVariableRecord> vars;
   vars.reserve({});

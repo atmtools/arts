@@ -72,18 +72,6 @@ ws.measurement_sensorAddSimpleGaussian(
 ws.measurement_vectorFromSensor()
 mod = ws.measurement_vector * 1.0
 
-# %% Retrieval agenda
-
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_errorInitStandard()
-    ws.measurement_vector_errorAddErrorState()
-    ws.measurement_vectorAddError()
-    ws.measurement_vector_fittedFromMeasurement()
-
 
 # %% Set up the retrieval
 

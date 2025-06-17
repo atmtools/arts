@@ -2260,6 +2260,14 @@ matrix to be calculated will work.
            "Extrapolation factor"},
   };
 
+  wsm_data["jacobian_targetsConditionalClear"] = {
+      .desc = R"--(Clears *jacobian_targets* if *do_jacobian* evaluates false.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "do_jacobian"},
+  };
+
   wsm_data["jacobian_targetsInit"] = {
       .desc   = R"--(Initialize or reset the *jacobian_targets*
 )--",
@@ -2278,7 +2286,7 @@ matrix to be calculated will work.
       .desc   = R"--(Finalize *jacobian_targets*.
 
 The finalization computes the size of the required *model_state_vector*.
-It is thus necessary if any OEM or other functionality that requires the
+It is thus necessary if any *OEM* or other functionality that requires the
 building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
@@ -3842,10 +3850,7 @@ The quoted strings must be used as the grid names of the gridded field.
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor"},
       .in     = {"measurement_sensor", "frequency_grid"},
-      .gin    = {"pos",
-                 "los",
-                 "raw_sensor_perturbation",
-                 "normalize"},
+      .gin    = {"pos", "los", "raw_sensor_perturbation", "normalize"},
       .gin_type =
           {"Vector3",
            "Vector2",
@@ -4090,25 +4095,13 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
       .in     = {"absorption_bands", "model_state_vector", "jacobian_targets"},
   };
 
-  wsm_data["model_state_vectorSize"] = {
+  wsm_data["model_state_vectorInit"] = {
       .desc =
           R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
-
-Warning:
-
-    Does not zero out existing data. Use *model_state_vectorZero* if that is desired.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
       .in     = {"jacobian_targets"},
-  };
-
-  wsm_data["model_state_vectorZero"] = {
-      .desc   = R"--(Sets *model_state_vector* to 0.0
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector"},
   };
 
   wsm_data["model_state_vectorFromSensor"] = {
@@ -4291,6 +4284,10 @@ Description of the special input arguments:
       .out    = {"model_state_vector",
                  "measurement_vector_fitted",
                  "measurement_jacobian",
+                 "atmospheric_field",
+                 "absorption_bands",
+                 "measurement_sensor",
+                 "surface_field",
                  "measurement_gain_matrix"},
       .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
       .gout_type = {"Vector", "Vector", "ArrayOfString"},
@@ -4301,6 +4298,11 @@ Description of the special input arguments:
       .in        = {"model_state_vector",
                     "measurement_vector_fitted",
                     "measurement_jacobian",
+                    "atmospheric_field",
+                    "absorption_bands",
+                    "measurement_sensor",
+                    "surface_field",
+                    "jacobian_targets",
                     "model_state_vector_apriori",
                     "model_state_covariance_matrix",
                     "measurement_vector",
@@ -4426,37 +4428,26 @@ Description of the special input arguments:
                     "The inverse covariance diagoinal block matrix"},
   };
 
-  wsm_data["measurement_vector_errorInitStandard"] = {
+  wsm_data["measurement_vector_errorFromModelState"] = {
       .desc =
-          R"(Initialize measurement error variables to 0 from the measurements.
+          R"(Set the error and its Jacobian from the state of the model.
 )",
       .author = {"Richard Larsson"},
       .out    = {"measurement_vector_error", "measurement_jacobian_error"},
-      .in     = {"measurement_vector", "measurement_jacobian"},
+      .in = {"measurement_sensor", "jacobian_targets", "model_state_vector"},
   };
 
-  wsm_data["measurement_vector_errorAddErrorState"] = {
+  wsm_data["measurement_vectorConditionalAddError"] = {
       .desc =
-          R"(Add measurement error from the model state.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_error", "measurement_jacobian_error"},
-      .in     = {"measurement_vector_error",
-                 "measurement_jacobian_error",
-                 "jacobian_targets",
-                 "model_state_vector"},
-  };
-
-  wsm_data["measurement_vectorAddError"] = {
-      .desc =
-          R"(Add the measurement error to the measurement.
+          R"(Add the measurement error to the measurement.  Conditionally, also to the Jacobian.
 )",
       .author = {"Richard Larsson"},
       .out    = {"measurement_vector", "measurement_jacobian"},
       .in     = {"measurement_vector",
                  "measurement_jacobian",
                  "measurement_vector_error",
-                 "measurement_jacobian_error"},
+                 "measurement_jacobian_error",
+                 "do_jacobian"},
   };
 
   wsm_data["measurement_vector_error_covariance_matrixConstant"] = {

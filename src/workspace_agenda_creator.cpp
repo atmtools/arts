@@ -44,7 +44,7 @@ Agenda AgendaCreator::finalize(bool fix) && {
   return ag;
 };
 
-Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
+Agenda get_propagation_matrix_scattering_agenda(const std::string_view option) {
   AgendaCreator agenda("propagation_matrix_scattering_agenda");
 
   using enum propagation_matrix_scattering_agendaPredefined;
@@ -58,7 +58,7 @@ Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
 }
 
 Agenda get_propagation_matrix_scattering_spectral_agenda(
-    const std::string& option) {
+    const std::string_view option) {
   AgendaCreator agenda("propagation_matrix_scattering_spectral_agenda");
 
   using enum propagation_matrix_scattering_spectral_agendaPredefined;
@@ -72,7 +72,7 @@ Agenda get_propagation_matrix_scattering_spectral_agenda(
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_propagation_matrix_agenda(const std::string& option) {
+Agenda get_propagation_matrix_agenda(const std::string_view option) {
   AgendaCreator agenda("propagation_matrix_agenda");
 
   using enum propagation_matrix_agendaPredefined;
@@ -83,7 +83,7 @@ Agenda get_propagation_matrix_agenda(const std::string& option) {
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
+Agenda get_spectral_radiance_observer_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_radiance_observer_agenda");
 
   using enum spectral_radiance_observer_agendaPredefined;
@@ -98,7 +98,7 @@ Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_spectral_radiance_space_agenda(const std::string& option) {
+Agenda get_spectral_radiance_space_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_radiance_space_agenda");
 
   using enum spectral_radiance_space_agendaPredefined;
@@ -119,7 +119,7 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
+Agenda get_spectral_radiance_surface_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_radiance_surface_agenda");
 
   using enum spectral_radiance_surface_agendaPredefined;
@@ -130,6 +130,37 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
       break;
     case FlatScalarReflectance:
       agenda.add("spectral_radianceFlatScalarReflectance");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
+Agenda get_inversion_iterate_agenda(const std::string_view option) {
+  AgendaCreator agenda("inversion_iterate_agenda");
+
+  using enum inversion_iterate_agendaPredefined;
+  switch (to<inversion_iterate_agendaPredefined>(option)) {
+    case Full:
+      agenda.add("UpdateModelStates");
+      agenda.add("measurement_inversion_agendaExecute");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
+Agenda get_measurement_inversion_agenda(const std::string_view option) {
+  AgendaCreator agenda("measurement_inversion_agenda");
+
+  using enum measurement_inversion_agendaPredefined;
+  switch (to<measurement_inversion_agendaPredefined>(option)) {
+    case Standard:
+      agenda.add("measurement_vector_errorFromModelState");
+      agenda.add("jacobian_targetsConditionalClear");
+      agenda.add("measurement_vectorFromSensor");
+      agenda.add("measurement_vectorConditionalAddError");
+      agenda.add("measurement_vector_fittedFromMeasurement");
       break;
   }
 

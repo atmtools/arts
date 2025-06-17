@@ -1,3 +1,5 @@
+#include <auto_wsg.h>
+
 #include <algorithm>
 #include <exception>
 #include <iomanip>
@@ -5,7 +7,6 @@
 #include <map>
 #include <utility>
 
-#include "auto_wsg.h"
 #include "workspace_agendas.h"
 #include "workspace_variables.h"
 
@@ -124,7 +125,7 @@ void header(std::ostream& os) {
 #include <unordered_map>
 #include <vector>
 
-#include <auto_wsg.h>
+#include "auto_wsg.h"
 
 class Workspace;
 
@@ -164,10 +165,12 @@ struct WorkspaceAgendaBoolHandler {
   for (auto& [name, ag] : wsa) {
     if (ag.enum_options.empty()) continue;
 
-    std::print(os,
-               R"(void {0}Set(Agenda& ag, const String& option);
+    std::println(os,
+                 R"(
+void {0}Set(Agenda& {0}, const String&);
+Agenda get_{0}(const std::string_view);
 )",
-               name);
+                 name);
   }
 }
 
@@ -261,7 +264,7 @@ void workspace_setup_and_exec(std::ostream& os,
 void implementation(std::ostream& os) {
   const auto agmap = auto_ags(os);
 
-  os << R"--(#include <auto_wsa.h>
+  os << R"--(#include "auto_wsa.h"
 
 #include <workspace_agenda_class.h>
 #include <workspace_method_class.h>
@@ -343,7 +346,6 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
 void {0}Set(Agenda& ag, const String& option) try {{
   ARTS_TIME_REPORT
 
-  static_assert(requires {{get_{0}("Something");}}, "Missing get_{0} function definition in workspace_agenda_creator.h, please add it.");
   ag = get_{0}(option);  
 }}  ARTS_METHOD_ERROR_CATCH
 )",

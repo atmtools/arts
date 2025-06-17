@@ -1,3 +1,5 @@
+#include <format_tags.h>
+
 #include <algorithm>
 #include <format>
 #include <fstream>
@@ -8,6 +10,8 @@
 #include "workspace_agendas.h"
 #include "workspace_groups.h"
 #include "workspace_variables.h"
+
+using namespace std::literals;
 
 const auto& data = internal_workspace_groups();
 
@@ -231,6 +235,30 @@ void agenda_operators() {
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
 
+  const auto to_strings = std::ranges::to<std::vector<std::string>>();
+
+  const auto agenda_types = std::views::transform([&wsv](const std::string& v) {
+                              return wsv.at(v).type;
+                            }) |
+                            to_strings;
+
+  const auto cref_agenda_types =
+      std::views::transform([&wsv](const std::string& v) {
+        return "const " + wsv.at(v).type + "&";
+      }) |
+      to_strings;
+
+  const auto named_ref_agenda_types =
+      std::views::transform(
+          [&wsv](const std::string& v) { return wsv.at(v).type + "& " + v; }) |
+      to_strings;
+
+  const auto named_cref_agenda_types =
+      std::views::transform([&wsv](const std::string& v) {
+        return "const " + wsv.at(v).type + "& " + v;
+      }) |
+      to_strings;
+
   std::ofstream h("auto_agenda_operators.h");
   std::ofstream cpp("auto_agenda_operators.cpp");
 
@@ -242,65 +270,45 @@ void agenda_operators() {
 
 #include <workspace_agenda_creator.h>
 #include <time_report.h>
+
 )");
 
   std::string errors{};
 
   for (auto& [name, ag] : wsa) {
-    std::print(h,
-               R"(
+    const auto remove_output =
+        std::views::filter([&o = ag.output](const std::string& v) {
+          return not std::ranges::contains(o, v);
+        });
+    const auto output_string =
+        std::views::transform([&o = ag.output](const std::string& v) {
+          return std::format(
+              "{0} = std::get<{1}>(_tup);\n ",
+              v,
+              std::ranges::distance(o.begin(), std::ranges::find(o, v)));
+        });
+
+    std::println(h,
+                 R"(
 using {0}Operator
-   = CustomOperator<std::tuple<)",
-               name);
-
-    std::string_view sep = "";
-    for (auto& var : ag.output) {
-      std::print(h, "{}{}", std::exchange(sep, ", "), wsv.at(var).type);
-    }
-
-    h << '>';
-
-    for (auto& var : ag.input) {
-      std::print(h, ", const {}&", wsv.at(var).type);
-    }
-
-    h << ">;\n";
+   = CustomOperator<std::tuple<{1:,}>,
+                    {2:,}>;
+)",
+                 name,
+                 ag.output | agenda_types,
+                 ag.input | cref_agenda_types);
 
     const std::string spaces(5 + name.size() + 8 + 8, ' ');
 
-    cpp << "\nvoid " << name << "ExecuteOperator(";
+    std::print(
+        cpp,
+        R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {0}Operator& {0}_operator) try {{
+  ARTS_TIME_REPORT
+  
+  auto _tup = {0}_operator({4:,});
+  {5} // end
+}}  ARTS_METHOD_ERROR_CATCH
 
-    sep = "";
-    for (auto& v : ag.output) {
-      cpp << std::exchange(sep, ",\n" + spaces) << wsv.at(v).type << "& " << v;
-    }
-
-    for (auto& v : ag.input) {
-      if (not std::ranges::contains(ag.output, v)) {
-        cpp << ",\n" << spaces << "const " << wsv.at(v).type << "& " << v;
-      }
-    }
-
-    cpp << ",\n"
-        << spaces << "const " << name << "Operator& " << name
-        << "_operator) try {\n  ARTS_TIME_REPORT\n\n";
-
-    cpp << "  auto _tup = " << name << "_operator(";
-    sep = "";
-    for (auto& v : ag.input) {
-      if (not std::ranges::contains(ag.output, v)) {
-        cpp << std::exchange(sep, ", ") << v;
-      }
-    }
-    cpp << ");\n";
-
-    for (std::size_t i = 0; i < ag.output.size(); ++i) {
-      cpp << "  " << ag.output[i] << " = std::get<" << i << ">(_tup);\n";
-    }
-    cpp << "}  ARTS_METHOD_ERROR_CATCH\n";
-
-    std::print(cpp,
-               R"(
 void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
   ARTS_TIME_REPORT
 
@@ -309,15 +317,17 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
              SetWsv{{"{0}_operator", {0}_operator}});
   {0} = std::move(agenda).finalize(false);
 }}
-)",
-               name);
 
-    std::print(cpp,
-               R"(
 void xml_read_from_stream(std::istream&, {0}Operator&, bifstream*) {{throw std::runtime_error("Cannot read {0}Operator");}}
 void xml_write_to_stream(std::ostream&, const {0}Operator&, bofstream*, const String&) {{throw std::runtime_error("Cannot save {0}Operator");}}
+
 )",
-               name);
+        name,
+        ag.output | named_ref_agenda_types,
+        ag.input | remove_output | named_cref_agenda_types,
+        ag.output.empty() ? ""sv : ", "sv,
+        ag.input,
+        ag.output | output_string | to_strings);
   }
 
   if (not errors.empty()) {
