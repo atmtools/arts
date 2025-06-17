@@ -188,17 +188,75 @@ The input path point should be as if it is looking at the surface.
       }};
 
   wsa_data["inversion_iterate_agenda"] = {
-      .desc   = R"--(Work in progress ...
+      .desc               = R"--(Work in progress ...
 
 The WSV *measurement_jacobian* is both in- and output. As input variable, *measurement_jacobian*
 is assumed to be valid for the previous iteration. For the first iteration
 the input *measurement_jacobian* shall be set to have size zero, to flag that there
 is not yet any calculated Jacobian.
+
+.. note::
+    The default settings for this Agenda might be suboptimal for speedier calculations,
+    e.g., when you are interested in less than the full model state vector (which is often the case),
+    or when you do not mind having a non-empty *measurement_jacobian* on output
+    even if *do_jacobian* evaluates false.
 )--",
-      .output = {"measurement_vector_fitted", "measurement_jacobian"},
-      .input  = {"model_state_vector",
-                 "inversion_iterate_agenda_do_jacobian",
-                 "inversion_iterate_agenda_counter"},
+      .output             = {"atmospheric_field",
+                             "absorption_bands",
+                             "measurement_sensor",
+                             "surface_field",
+                             "measurement_vector_fitted",
+                             "measurement_jacobian"},
+      .input              = {"atmospheric_field",
+                             "absorption_bands",
+                             "measurement_sensor",
+                             "surface_field",
+                             "jacobian_targets",
+                             "model_state_vector",
+                             "do_jacobian",
+                             "inversion_iterate_agenda_counter"},
+      .enum_options = {"Full"},
+      .enum_default = "Full",
+      .output_constraints = {
+          {"measurement_jacobian.size() == 0 or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
+           "On output, the measurement vector and Jacobian must match expected size.",
+           "measurement_vector_fitted.size()",
+           "measurement_jacobian.nrows()"},
+          {"measurement_jacobian.size() == 0 or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jacobian_targets.x_size() == model_state_vector.size())",
+           "On output, the model state vector and Jacobian must match expected size.",
+           "model_state_vector.size()",
+           "measurement_jacobian.ncols()",
+           "jacobian_targets.x_size()"},
+      }};
+
+  wsa_data["measurement_inversion_agenda"] = {
+      .desc =
+          R"--(This is a helper *Agenda* intended for use within *inversion_iterate_agenda*.
+
+It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
+current iteration of the inversion. The *measurement_vector_fitted* is the
+fitted measurement vector, i.e., the measurement vector that is expected to be
+observed given the current *atmospheric_field*, *absorption_bands*, *measurement_sensor*,
+and *surface_field*.  It does not take these as explicit input but via the Workspace
+mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
+
+What is special about this Agenda is that it enforces that the *measurement_jacobian*
+is empty on output if *do_jacobian* evaluates false.  Do not use this Agenda if you
+do not mind having a non-empty *measurement_jacobian* on output even if *do_jacobian*
+evaluates false.  Also do not use this Agenda if you wish to squeeze out performance,
+it does a lot of unnecessary checks and operations that are not always needed.
+)--",
+      .output       = {"measurement_vector_fitted", "measurement_jacobian"},
+      .input        = {"jacobian_targets", "do_jacobian"},
+      .enum_options = {"Standard"},
+      .enum_default = "Standard",
+      .output_constraints =
+          {
+              {"do_jacobian != static_cast<Index>(measurement_jacobian.size() == 0)",
+               "When *do_jacobian* evaluates as true, the *measurement_jacobian* must be non-empty.",
+               "do_jacobian != 0",
+               "measurement_jacobian.shape()"},
+          },
   };
 
   wsa_data["disort_settings_agenda"] = {

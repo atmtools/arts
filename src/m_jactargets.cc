@@ -2,6 +2,15 @@
 
 #include <ranges>
 
+void jacobian_targetsConditionalClear(JacobianTargets& jacobian_targets,
+                                      const Index& do_jacobian) {
+  ARTS_TIME_REPORT
+
+  if (do_jacobian == 0) {
+    jacobian_targetsOff(jacobian_targets);
+  }
+}
+
 void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 

@@ -1,5 +1,4 @@
 #include <auto_wsg.h>
-#include <auto_wsv.h>
 #include <mystring.h>
 
 #include <algorithm>
@@ -21,7 +20,7 @@
 void scan_wsmr_for_errors(ArrayOfString& errors,
                           const std::string& name,
                           const WorkspaceMethodInternalRecord& wsmr) {
-  const auto& wsv = workspace_variables();
+  const auto& wsv = internal_workspace_variables();
 
   if (wsmr.desc.size() == 0) {
     errors.push_back(std::format("No description for \"{}\"", name));
@@ -195,7 +194,7 @@ void header(std::ostream& os) try {
 #include <string>
 #include <vector>
 
-#include <auto_wsg.h>
+#include "auto_wsg.h"
 
 class Workspace;
 
@@ -274,7 +273,7 @@ std::vector<std::vector<std::string>> all_gets(
     out.emplace_back().emplace_back(std::format(
         "ws.get{1}<{2}>(out[{0}])",
         COUNT++,
-        workspace_variables().at(wsm).type,
+        internal_workspace_variables().at(wsm).type,
         std::ranges::any_of(wsmr.in, Cmp::eq(wsm)) ? ""sv : "_or"sv));
   }
 
@@ -296,7 +295,7 @@ std::vector<std::vector<std::string>> all_gets(
     const auto name = std::format("in[{}]", COUNT++);
     if (std::ranges::any_of(wsmr.out, Cmp::eq(wsm))) continue;
     out.emplace_back().emplace_back(std::format(
-        "ws.get<{0}>({1})", workspace_variables().at(wsm).type, name));
+        "ws.get<{0}>({1})", internal_workspace_variables().at(wsm).type, name));
   }
 
   for (std::size_t i = 0; i < wsmr.gin_type.size(); i++) {
@@ -329,7 +328,7 @@ std::vector<std::vector<std::string>> all_gets(
 void call_function(std::ostream& os,
                    const std::string& name,
                    const WorkspaceMethodInternalRecord& wsmr) try {
-  const auto& wsv = workspace_variables();
+  const auto& wsv = internal_workspace_variables();
 
   if (wsmr.has_any()) {
     const std::string first = first_generic(wsmr.gout_type, wsmr.gin_type);
@@ -549,7 +548,7 @@ void implementation(std::ostream& os, const int n) try {
 
 #include <iomanip>
 
-#include <auto_wsm.h>
+#include "auto_wsm.h"
 
 #include "workspace_methods.h"
 
@@ -592,7 +591,7 @@ void implementation(std::ostream& os, const int n) try {
 }
 )--";
 
-  os << "#include <auto_wsv.h>\n\n";
+  os << "#include \"auto_wsv.h\"\n\n";
   os << "#include <workspace.h>\n\n";
   for (i = 0; i < n; i++) {
     os << "std::unordered_map<std::string, WorkspaceMethodRecord> get_workspace_methods"

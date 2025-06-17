@@ -479,10 +479,20 @@ class AgendaWrapper {
                 unsigned int state_space_dimension,
                 ::Matrix &arts_jacobian,
                 ::Vector &arts_y,
+                AtmField *atmospheric_field,
+                AbsorptionBands *absorption_bands,
+                ArrayOfSensorObsel *measurement_sensor,
+                SurfaceField *surface_field,
+                const JacobianTargets *jacobian_targets,
                 const Agenda *inversion_iterate_agenda)
       : m(measurement_space_dimension),
         n(state_space_dimension),
         inversion_iterate_agenda_(inversion_iterate_agenda),
+        jacs(jacobian_targets),
+        atm(atmospheric_field),
+        absdata(absorption_bands),
+        sensor(measurement_sensor),
+        surf(surface_field),
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
@@ -515,8 +525,13 @@ class AgendaWrapper {
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
     if (!reuse_jacobian_) {
       inversion_iterate_agendaExecute(*ws_,
+                                      *atm,
+                                      *absdata,
+                                      *sensor,
+                                      *surf,
                                       yi_,
                                       jacobian_,
+                                      *jacs,
                                       xi,
                                       1,
                                       iteration_counter_,
@@ -543,8 +558,13 @@ class AgendaWrapper {
     if (!reuse_jacobian_) {
       Matrix dummy;
       inversion_iterate_agendaExecute(*ws_,
+                                      *atm,
+                                      *absdata,
+                                      *sensor,
+                                      *surf,
                                       yi_,
                                       dummy,
+                                      *jacs,
                                       xi,
                                       0,
                                       iteration_counter_,
@@ -558,6 +578,11 @@ class AgendaWrapper {
  private:
   /** Pointer to the inversion_iterate_agenda of the workspace. */
   const Agenda *inversion_iterate_agenda_;
+  const JacobianTargets *jacs;
+  AtmField *atm;
+  AbsorptionBands *absdata;
+  ArrayOfSensorObsel *sensor;
+  SurfaceField *surf;
   unsigned int iteration_counter_;
   /** Reference to the jacobian WSV.*/
   MatrixReference jacobian_;
@@ -666,6 +691,11 @@ void OEM_checks(const Workspace &ws,
                 Vector &x,
                 Vector &yf,
                 Matrix &jacobian,
+                AtmField &atmospheric_field,
+                AbsorptionBands &absorption_bands,
+                ArrayOfSensorObsel &measurement_sensor,
+                SurfaceField &surface_field,
+                const JacobianTargets &jacobian_targets,
                 const Agenda &inversion_iterate_agenda,
                 const Vector &xa,
                 const CovarianceMatrix &covmat_sx,
@@ -738,12 +768,32 @@ void OEM_checks(const Workspace &ws,
   // If necessary compute yf and jacobian.
   if (x.size() == 0) {
     x = xa;
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
+    inversion_iterate_agendaExecute(ws,
+                                    atmospheric_field,
+                                    absorption_bands,
+                                    measurement_sensor,
+                                    surface_field,
+                                    yf,
+                                    jacobian,
+                                    jacobian_targets,
+                                    xa,
+                                    1,
+                                    0,
+                                    inversion_iterate_agenda);
   }
   if ((yf.size() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
+    inversion_iterate_agendaExecute(ws,
+                                    atmospheric_field,
+                                    absorption_bands,
+                                    measurement_sensor,
+                                    surface_field,
+                                    yf,
+                                    jacobian,
+                                    jacobian_targets,
+                                    x,
+                                    1,
+                                    0,
+                                    inversion_iterate_agenda);
   }
 }
 

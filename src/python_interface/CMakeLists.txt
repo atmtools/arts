@@ -119,7 +119,7 @@ foreach(file ${PYARTS_AUTO_INTERFACE}
              ${PYARTS_WORKSPACE_GROUPS}
              ${PYARTS_WORKSPACE_OPTIONS})
 add_custom_command(
-    COMMENT "Copying file (if required): ${file}"
+    COMMENT "Copying python-interface file (if required): ${file}"
     OUTPUT x${file}
     DEPENDS ${file}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

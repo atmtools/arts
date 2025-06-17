@@ -30,37 +30,54 @@ set (ARTS_WORKSPACE_GROUPS
   auto_workspace.cpp
   auto_agenda_operators.cpp
 )
-add_custom_command(OUTPUT
-  auto_wsg_docs.cpp
-  auto_wsg_valid_wsg.cpp
+set (ARTS_WORKSPACE_INTERNALS_GROUPS
+  auto_wsv_value_wrapper_copied.cpp
+  auto_wsv_value_wrapper_vformat.cpp
   auto_wsv_value_wrapper_read_from_stream.cpp
   auto_wsv_value_wrapper_write_to_stream.cpp
-  auto_wsv_value_wrapper_copied.cpp
   auto_wsv_value_wrapper_from_named_type.cpp
   auto_wsv_value_wrapper_type_name.cpp
-  auto_wsv_value_wrapper_vformat.cpp
-  ${ARTS_WORKSPACE_GROUPS}
+  auto_wsg_docs.cpp
+  auto_wsg_valid_wsg.cpp
+)
+add_custom_command(OUTPUT
+    ${ARTS_WORKSPACE_GROUPS}
+    ${ARTS_WORKSPACE_INTERNALS_GROUPS}
+    auto_wsg.h
+    auto_wsv_value_wrapper.h
+    auto_agenda_operators.h
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace groups"
 )
-target_link_libraries(make_auto_wsg PRIVATE workspace_core)
+target_link_libraries(make_auto_wsg PRIVATE util workspace_core)
+
+
+# #######################################################################################
+
+# copy auto generated files if they are different
+
+set(ARTS_WORKSPACE_INTERNALS_FILES "")
+foreach(file ${ARTS_WORKSPACE_INTERNALS_GROUPS})
+add_custom_command(
+    COMMENT "Copying internal workspace file (if required): ${file}"
+    OUTPUT x${file}
+    DEPENDS ${file}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${file}
+        x${file}
+    )
+  list(APPEND ARTS_WORKSPACE_INTERNALS_FILES x${file})
+endforeach()
 
 # ####
 add_library(workspace_internals STATIC
-  auto_wsv_value_wrapper_copied.cpp
-  auto_wsv_value_wrapper_vformat.cpp
-  auto_wsv_value_wrapper_read_from_stream.cpp
-  auto_wsv_value_wrapper_write_to_stream.cpp
   workspace_methods.cpp
-  auto_wsv_value_wrapper_from_named_type.cpp
-  auto_wsv_value_wrapper_type_name.cpp
   workspace_agenda_class_default_constructor.cpp
   workspace_meta_methods.cpp
   workspace_variables_keywords.cpp
-  auto_wsg_docs.cpp
-  auto_wsg_valid_wsg.cpp
+  ${ARTS_WORKSPACE_INTERNALS_FILES}
 )
 target_link_libraries(workspace_internals PUBLIC workspace_core artscore scattering)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -69,7 +86,9 @@ target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 # ####
 add_executable(make_auto_wsv make_auto_wsv.cpp)
 set (ARTS_WORKSPACE_VARIABLES auto_wsv.cpp)
-add_custom_command(OUTPUT ${ARTS_WORKSPACE_VARIABLES}
+add_custom_command(OUTPUT
+    ${ARTS_WORKSPACE_VARIABLES}
+    auto_wsv.h
   COMMAND make_auto_wsv
   DEPENDS make_auto_wsv
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -94,8 +113,10 @@ endwhile()
 
 list(APPEND ARTS_WORKSPACE_METHODS auto_wsm.cpp auto_wsmmeta.cpp)
 
-add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
-add_custom_command(OUTPUT ${ARTS_WORKSPACE_METHODS}
+add_executable(make_auto_wsm make_auto_wsm.cpp)
+add_custom_command(OUTPUT
+    ${ARTS_WORKSPACE_METHODS}
+    auto_wsm.h
   COMMAND make_auto_wsm ${NUM_ARTS_WSM}
   DEPENDS make_auto_wsm
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -107,8 +128,11 @@ target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
 set (ARTS_WORKSPACE_AGENDAS auto_wsa.cpp)
 
-add_executable(make_auto_wsa make_auto_wsa.cpp )
-add_custom_command(OUTPUT ${ARTS_WORKSPACE_AGENDAS}
+add_executable(make_auto_wsa make_auto_wsa.cpp)
+add_custom_command(OUTPUT
+    ${ARTS_WORKSPACE_AGENDAS}
+    auto_wsa.h
+    auto_wsa_options.h
   COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -126,7 +150,7 @@ foreach(file ${ARTS_WORKSPACE_METHODS}
              ${ARTS_WORKSPACE_GROUPS}
              ${ARTS_WORKSPACE_AGENDAS})
 add_custom_command(
-    COMMENT "Copying file (if required): ${file}"
+    COMMENT "Copying workspace file (if required): ${file}"
     OUTPUT x${file}
     DEPENDS ${file}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

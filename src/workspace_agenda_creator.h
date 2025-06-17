@@ -43,11 +43,3 @@ class AgendaCreator {
   //! Finalize from rvalue.  fix = true will add missing variables to the agenda.
   Agenda finalize(bool fix) &&;
 };
-
-Agenda get_propagation_matrix_agenda(const std::string& option);
-Agenda get_propagation_matrix_scattering_agenda(const std::string& option);
-Agenda get_propagation_matrix_scattering_spectral_agenda(const std::string& option);
-Agenda get_spectral_radiance_observer_agenda(const std::string& option);
-Agenda get_spectral_radiance_space_agenda(const std::string& option);
-Agenda get_spectral_radiance_surface_agenda(const std::string& option);
-Agenda get_disort_settings_agenda(const std::string& option);
