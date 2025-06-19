@@ -20,8 +20,8 @@
 #include <vector>
 
 void Atm::Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<GriddedField3>(data)) {
-    auto &field = std::get<GriddedField3>(data);
+  if (std::holds_alternative<SortedGriddedField3>(data)) {
+    auto &field = std::get<SortedGriddedField3>(data);
 
     if (field.grid<0>().size() == 1) {
       alt_upp = InterpolationExtrapolation::Nearest;
@@ -112,7 +112,7 @@ Numeric AtmPoint::operator[](AtmKey x) const {
     case AtmKey::mag_v:  return mag[1];
     case AtmKey::mag_w:  return mag[2];
   }
-  ARTS_USER_ERROR("Cannot reach")
+  std::unreachable();
 }
 
 Numeric &AtmPoint::operator[](SpeciesEnum x) { return specs[x]; }
@@ -386,7 +386,8 @@ Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
 Index Field::nother() const { return static_cast<Index>(other().size()); }
 
 String Data::data_type() const {
-  if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
+  if (std::holds_alternative<SortedGriddedField3>(data))
+    return "SortedGriddedField3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -412,13 +413,13 @@ Limits find_limits(const Numeric &) { return {}; }
 
 Limits find_limits(const FunctionalData &) { return {}; }
 
-Limits find_limits(const GriddedField3 &gf3) {
-  return {gf3.grid<0>().front(),
-          gf3.grid<0>().back(),
-          gf3.grid<1>().front(),
-          gf3.grid<1>().back(),
-          gf3.grid<2>().front(),
-          gf3.grid<2>().back()};
+Limits find_limits(const SortedGriddedField3 &gf3) {
+  return {.alt_low = gf3.grid<0>().front(),
+          .alt_upp = gf3.grid<0>().back(),
+          .lat_low = gf3.grid<1>().front(),
+          .lat_upp = gf3.grid<1>().back(),
+          .lon_low = gf3.grid<2>().front(),
+          .lon_upp = gf3.grid<2>().back()};
 }
 
 template <Index poly_alt,
@@ -572,7 +573,7 @@ constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
     case Linear: return b;
   }
 
-  return a;
+  std::unreachable();
 }
 
 constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
@@ -633,24 +634,6 @@ std::vector<AtmKey> get_keys(
 
 ArrayOfQuantumIdentifier Field::nlte_keys() const {
   return keys<QuantumIdentifier>();
-}
-
-void Data::rescale(Numeric x) {
-  std::visit(
-      [x](auto &v) {
-        using T = decltype(v);
-        if constexpr (isFunctionalDataType<T>) {
-          v = FunctionalData{
-              [x, f = v](Numeric alt, Numeric lat, Numeric lon) -> Numeric {
-                return x * f(alt, lat, lon);
-              }};
-        } else if constexpr (isGriddedField3<T>) {
-          v.data *= x;
-        } else {
-          v *= x;
-        }
-      },
-      data);
 }
 
 void Point::check_and_fix() try {
@@ -724,7 +707,7 @@ ConstVectorView Data::flat_view() const {
   return std::visit(
       [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GriddedField3>)
+        if constexpr (std::same_as<T, SortedGriddedField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return ConstVectorView{X};
@@ -742,7 +725,7 @@ VectorView Data::flat_view() {
   return std::visit(
       [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GriddedField3>)
+        if constexpr (std::same_as<T, SortedGriddedField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return VectorView{X};
@@ -773,10 +756,11 @@ using altlags = std::variant<altlag0, altlag1>;
 using latlags = std::variant<latlag0, latlag1>;
 using lonlags = std::variant<lonlag0, lonlag1>;
 
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &gf3,
-                                                      const Numeric alt,
-                                                      const Numeric lat,
-                                                      const Numeric lon) {
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(
+    const SortedGriddedField3 &gf3,
+    const Numeric alt,
+    const Numeric lat,
+    const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
 
   const Index nalt = gf3.grid<0>().size();
@@ -813,10 +797,8 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &gf3,
 }  // namespace interp
 
 namespace {
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GriddedField3 &data,
-                                                      Numeric alt,
-                                                      Numeric lat,
-                                                      Numeric lon) {
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(
+    const SortedGriddedField3 &data, Numeric alt, Numeric lat, Numeric lon) {
   return interp::flat_weight_(data, alt, lat, lon);
 }
 
@@ -852,7 +834,7 @@ std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
 
-Data::Data(GriddedField3 x) : data(std::move(x)) {
+Data::Data(SortedGriddedField3 x) : data(std::move(x)) {
   adjust_interpolation_extrapolation();
 }
 
@@ -866,7 +848,7 @@ Data &Data::operator=(Numeric x) {
   return *this;
 }
 
-Data &Data::operator=(GriddedField3 x) {
+Data &Data::operator=(SortedGriddedField3 x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;
@@ -918,7 +900,7 @@ bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
 namespace Atm {
 namespace interp {
 namespace {
-Numeric get(const GriddedField3 &gf3,
+Numeric get(const SortedGriddedField3 &gf3,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {
@@ -1067,10 +1049,10 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
                      N,
                      atm.size())
 
-  GriddedField3 gf3{};
+  SortedGriddedField3 gf3{};
   gf3.grid<0>()     = altitudes;
-  gf3.grid<1>()     = {0.0};
-  gf3.grid<2>()     = {0.0};
+  gf3.grid<1>()     = Vector{0.0};
+  gf3.grid<2>()     = Vector{0.0};
   gf3.gridname<0>() = "Altitude";
   gf3.gridname<1>() = "Latitude";
   gf3.gridname<2>() = "Longitude";
@@ -1229,7 +1211,7 @@ Longitude must be within -180 to 180 degrees.
                      lat,
                      lon)
 
-  GriddedField3 gf3{
+  SortedGriddedField3 gf3{
       .data_name  = "",
       .data       = Tensor3(nalt, nlat, nlon),
       .grid_names = {"Altitude", "Latitude", "Longitude"},
@@ -1282,10 +1264,11 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   {
     const auto &key      = keys.front();
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(atm_data),
-                       "Data for key {} is not a GriddedField3",
-                       key)
-    const auto &gf3 = std::get<GriddedField3>(atm_data);
+    ARTS_USER_ERROR_IF(
+        not std::holds_alternative<SortedGriddedField3>(atm_data),
+        "Data for key {} is not a SortedGriddedField3",
+        key)
+    const auto &gf3 = std::get<SortedGriddedField3>(atm_data);
 
     altitudes  = gf3.grid<0>();
     latitudes  = gf3.grid<1>();
@@ -1299,10 +1282,11 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   for (Size i = 1; i < keys.size(); i++) {
     const auto &key      = keys[i];
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(not std::holds_alternative<GriddedField3>(atm_data),
-                       "Data for key {} is not a GriddedField3",
-                       key)
-    const auto &gf3 = std::get<GriddedField3>(atm_data);
+    ARTS_USER_ERROR_IF(
+        not std::holds_alternative<SortedGriddedField3>(atm_data),
+        "Data for key {} is not a SortedGriddedField3",
+        key)
+    const auto &gf3 = std::get<SortedGriddedField3>(atm_data);
     ARTS_USER_ERROR_IF(
         gf3.grid<0>() != altitudes.vec() or gf3.grid<1>() != latitudes.vec() or
             gf3.grid<2>() != longitudes.vec(),

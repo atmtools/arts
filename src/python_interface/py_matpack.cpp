@@ -214,14 +214,14 @@ void py_matpack(py::module_& m) try {
   py::class_<AscendingGrid> g1(m, "AscendingGrid");
   matpack_grid_interface(g1);
   workspace_group_interface(g1);
-  py::implicitly_convertible<Vector, AscendingGrid>();
-  py::implicitly_convertible<AscendingGrid, Vector>();
-
+  g1.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<AscendingGrid>());
+  
   py::class_<DescendingGrid> g2(m, "DescendingGrid");
   matpack_grid_interface(g2);
   workspace_group_interface(g2);
-  py::implicitly_convertible<Vector, DescendingGrid>();
-  py::implicitly_convertible<DescendingGrid, Vector>();
+  g2.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<DescendingGrid>());
 
   auto b1 =
       py::bind_vector<ArrayOfAscendingGrid, py::rv_policy::reference_internal>(

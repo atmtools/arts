@@ -9,7 +9,21 @@
 #include "hpy_vector.h"
 #include "python_interface.h"
 
+static_assert(std::is_nothrow_move_constructible_v<GriddedField3>,
+              "Did someone change the gridded field implementation?");
+
 namespace Python {
+namespace {
+template <typename FromType, typename ToType>
+void implicit_convert_gf(py::class_<ToType>& cls) {
+  cls.def("__init__", [](ToType* x, const FromType& v) {
+    ToType t1(v);
+    new (x) ToType(std::move(t1));
+  });
+  py::implicitly_convertible<FromType, ToType>();
+}
+}  // namespace
+
 void py_griddedfield(py::module_& m) try {
   py::class_<GriddedField1> gf1(m, "GriddedField1");
   py::class_<GriddedField2> gf2(m, "GriddedField2");
@@ -29,6 +43,12 @@ void py_griddedfield(py::module_& m) try {
   workspace_group_interface(gf5);
   gridded_data_interface(gf6);
   workspace_group_interface(gf6);
+  implicit_convert_gf<SortedGriddedField1>(gf1);
+  implicit_convert_gf<SortedGriddedField2>(gf2);
+  implicit_convert_gf<SortedGriddedField3>(gf3);
+  implicit_convert_gf<SortedGriddedField4>(gf4);
+  implicit_convert_gf<SortedGriddedField5>(gf5);
+  implicit_convert_gf<SortedGriddedField6>(gf6);
 
   py::class_<NamedGriddedField2> ngf2(m, "NamedGriddedField2");
   py::class_<NamedGriddedField3> ngf3(m, "NamedGriddedField3");
@@ -72,26 +92,37 @@ void py_griddedfield(py::module_& m) try {
   py::class_<SortedGriddedField1> sgf1num(m, "SortedGriddedField1");
   gridded_data_interface(sgf1num);
   workspace_group_interface(sgf1num);
+  implicit_convert_gf<GriddedField1>(sgf1num);
 
   py::class_<SortedGriddedField2> sgf2num(m, "SortedGriddedField2");
   gridded_data_interface(sgf2num);
   workspace_group_interface(sgf2num);
+  implicit_convert_gf<GriddedField2>(sgf2num);
 
   py::class_<SortedGriddedField3> sgf3num(m, "SortedGriddedField3");
   gridded_data_interface(sgf3num);
   workspace_group_interface(sgf3num);
+  implicit_convert_gf<GriddedField3>(sgf3num);
+
+  py::class_<CartesianSubsurfaceGriddedField3> csgf3num(m, "CartesianSubsurfaceGriddedField3");
+  gridded_data_interface(csgf3num);
+  workspace_group_interface(csgf3num);
+  implicit_convert_gf<GriddedField3>(csgf3num);
 
   py::class_<SortedGriddedField4> sgf4num(m, "SortedGriddedField4");
   gridded_data_interface(sgf4num);
   workspace_group_interface(sgf4num);
+  implicit_convert_gf<GriddedField4>(sgf4num);
 
   py::class_<SortedGriddedField5> sgf5num(m, "SortedGriddedField5");
   gridded_data_interface(sgf5num);
   workspace_group_interface(sgf5num);
+  implicit_convert_gf<GriddedField5>(sgf5num);
 
   py::class_<SortedGriddedField6> sgf6num(m, "SortedGriddedField6");
   gridded_data_interface(sgf6num);
   workspace_group_interface(sgf6num);
+  implicit_convert_gf<GriddedField6>(sgf6num);
 
   auto a1 =
       py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(

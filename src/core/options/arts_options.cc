@@ -210,6 +210,15 @@ if good cases, so we have provide this selection mechanism to make them match.
           Value{"mag_w", "MagW", "Magnetic field W-component [T]"},
       }});
 
+  opts.emplace_back(
+      EnumeratedOption{.name = "SubsurfaceKey",
+                       .desc = R"(A key to identify a subsurface property.
+)",
+                       .values_and_desc = {
+                           Value{"t", "temperature", "Temperature [K]"},
+                           Value{"rho", "density", "Density [kg/m^3]"},
+                       }});
+
   opts.emplace_back(EnumeratedOption{
       .name = "InterpolationExtrapolation",
       .desc =
@@ -539,7 +548,6 @@ if good cases, so we have provide this selection mechanism to make them match.
           {
               Value{"atm", "Atmospheric position"},
               Value{"space", "Space position"},
-              Value{"subsurface", "Sub-surface position"},
               Value{"surface", "Surface position"},
               Value{"unknown", "Unknown position"},
           },

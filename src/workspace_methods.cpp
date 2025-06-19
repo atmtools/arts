@@ -1931,7 +1931,10 @@ See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
                     "hydrostatic_option"},
-      .gin_type  = {"GriddedField2,Numeric", "Numeric", "Numeric", "String"},
+      .gin_type  = {"SortedGriddedField2,Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "String"},
       .gin_value = {std::nullopt,
                     Numeric{-1},
                     Numeric{-1},
@@ -1970,6 +1973,7 @@ Gets the ellispoid from *surface_field*
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda",
                          "surface_field",
+                         "subsurface_field",
                          "frequency_grid",
                          "altitude_grid"},
       .pass_workspace = true,
@@ -2020,6 +2024,7 @@ Gets the ellispoid from *surface_field*
                          "jacobian_targets",
                          "ray_path_point",
                          "surface_field",
+                         "subsurface_field",
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda"},
       .pass_workspace = true,
@@ -2072,6 +2077,7 @@ The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectanc
       .in             = {"frequency_grid",
                          "atmospheric_field",
                          "surface_field",
+                         "subsurface_field",
                          "jacobian_targets",
                          "ray_path_point",
                          "spectral_radiance_observer_agenda"},
@@ -2099,6 +2105,7 @@ a modified *jacobian_targets*, making it safe to use this method inside
               "spectral_radiance_observer_line_of_sight",
               "atmospheric_field",
               "surface_field",
+              "subsurface_field",
               "spectral_radiance_observer_agenda",
           },
       .pass_workspace = true,
@@ -2294,6 +2301,7 @@ building of an actual Jacobian matrix.
       .in     = {"jacobian_targets",
                  "atmospheric_field",
                  "surface_field",
+                 "subsurface_field",
                  "absorption_bands",
                  "measurement_sensor"},
   };
@@ -2507,6 +2515,21 @@ See *SpeciesEnum* for valid ``species``
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddSurface"] = jac2ret("jacobian_targetsAddSurface");
+
+  wsm_data["jacobian_targetsAddSubsurface"] = {
+      .desc      = R"--(Sets a subsurface target
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SubsurfaceKey", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc =
+          {"The target of interest",
+           "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["RetrievalAddSubsurface"] = jac2ret("jacobian_targetsAddSubsurface");
 
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -3748,6 +3771,7 @@ before consumption by, e.g., *OEM*
                          "jacobian_targets",
                          "atmospheric_field",
                          "surface_field",
+                         "subsurface_field",
                          "spectral_radiance_unit",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
@@ -4087,6 +4111,14 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
       .in     = {"surface_field", "model_state_vector", "jacobian_targets"},
   };
 
+  wsm_data["subsurface_fieldFromModelState"] = {
+      .desc   = R"--(Sets *subsurface_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"subsurface_field"},
+      .in     = {"subsurface_field", "model_state_vector", "jacobian_targets"},
+  };
+
   wsm_data["absorption_bandsFromModelState"] = {
       .desc   = R"--(Sets *absorption_bands* to the state of the model.
 )--",
@@ -4126,6 +4158,14 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
       .in     = {"model_state_vector", "surface_field", "jacobian_targets"},
+  };
+
+  wsm_data["model_state_vectorFromSubsurface"] = {
+      .desc   = R"--(Sets *model_state_vector*'s subsurface part.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"model_state_vector", "subsurface_field", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorFromBands"] = {
@@ -4288,6 +4328,7 @@ Description of the special input arguments:
                  "absorption_bands",
                  "measurement_sensor",
                  "surface_field",
+                 "subsurface_field",
                  "measurement_gain_matrix"},
       .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
       .gout_type = {"Vector", "Vector", "ArrayOfString"},
@@ -4302,6 +4343,7 @@ Description of the special input arguments:
                     "absorption_bands",
                     "measurement_sensor",
                     "surface_field",
+                    "subsurface_field",
                     "jacobian_targets",
                     "model_state_vector_apriori",
                     "model_state_covariance_matrix",
@@ -4750,6 +4792,7 @@ See *jacobian_targetsFinalize* for more information.
                  "covariance_matrix_diagonal_blocks",
                  "atmospheric_field",
                  "surface_field",
+                 "subsurface_field",
                  "absorption_bands",
                  "measurement_sensor"},
   };

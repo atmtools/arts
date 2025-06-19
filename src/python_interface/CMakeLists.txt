@@ -137,8 +137,8 @@ endif()
 
 # NOTE: Sort these by how long they take to compile, to help multicore compilation
 nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
-    py_matpack.cpp
     py_griddedfield.cpp
+    py_matpack.cpp
     py_rtepack.cpp
 
     ${PYARTS_AUTO_FILES}

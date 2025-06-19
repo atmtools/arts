@@ -32,7 +32,7 @@ void atmospheric_profileFromGrid(ArrayOfAtmPoint &atmospheric_profile,
                                  Numeric &longitude,
                                  const AtmField &atmospheric_field,
                                  const AtmKey &key) {
-  const auto &gf3 = atmospheric_field[key].get<GriddedField3>();
+  const auto &gf3 = atmospheric_field[key].get<SortedGriddedField3>();
   altitude_grid   = gf3.grid<0>();
 
   const Size N = gf3.data.size();

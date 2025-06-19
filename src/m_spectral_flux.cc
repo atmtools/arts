@@ -30,7 +30,8 @@ void ray_path_spectral_radianceClearskyEmission(
     const ArrayOfPropagationPathPoint& ray_path,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
-    const SurfaceField& surface_field) try {
+    const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field) try {
   ARTS_TIME_REPORT
 
   PropagationPathPoint ray_path_point;
@@ -45,6 +46,7 @@ void ray_path_spectral_radianceClearskyEmission(
       {},
       ray_path_point,
       surface_field,
+      subsurface_field,
       spectral_radiance_space_agenda,
       spectral_radiance_surface_agenda);
   ArrayOfAtmPoint ray_path_atmospheric_point;
@@ -114,6 +116,7 @@ void spectral_flux_profileFromPathField(
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field,
     const AscendingGrid& frequency_grid,
     const AscendingGrid& altitude_grid) try {
   ARTS_TIME_REPORT
@@ -140,7 +143,8 @@ void spectral_flux_profileFromPathField(
           ray_path_field[n],
           spectral_radiance_space_agenda,
           spectral_radiance_surface_agenda,
-          surface_field);
+          surface_field,
+          subsurface_field);
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

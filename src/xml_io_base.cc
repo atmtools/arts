@@ -251,7 +251,7 @@ void XMLTag::read_from_stream(std::istream& is) {
   while (token != ">") {
     String::size_type pos;
 
-    pos = token.find("=", 0);
+    pos = token.find('=', 0);
     if (pos == String::npos) {
       xml_parse_error("Syntax error in tag: " + tag.str());
     }
@@ -263,7 +263,7 @@ void XMLTag::read_from_stream(std::istream& is) {
       xml_parse_error("Missing \" in tag: " + tag.str());
     }
 
-    while ((pos = token.find("\"", 1)) == (String::size_type)String::npos &&
+    while ((pos = token.find('\"', 1)) == (String::size_type)String::npos &&
            token != ">") {
       String ntoken;
       sstr >> ntoken;

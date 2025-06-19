@@ -5,6 +5,7 @@
 #include <matpack.h>
 #include <obsel.h>
 #include <operators.h>
+#include <subsurface.h>
 #include <surf.h>
 
 #include <concepts>
@@ -35,6 +36,15 @@ using AtmTargetSetState =
     CustomOperator<void, VectorView, const AtmField&, const AtmKeyVal&>;
 using AtmTargetSetModel =
     CustomOperator<void, AtmField&, const AtmKeyVal&, const ConstVectorView>;
+
+using SubsurfaceTargetSetState = CustomOperator<void,
+                                                VectorView,
+                                                const SubsurfaceField&,
+                                                const SubsurfaceKeyVal&>;
+using SubsurfaceTargetSetModel = CustomOperator<void,
+                                                SubsurfaceField&,
+                                                const SubsurfaceKeyVal&,
+                                                const ConstVectorView>;
 using SurfaceTargetSetState =
     CustomOperator<void, VectorView, const SurfaceField&, const SurfaceKeyVal&>;
 using SurfaceTargetSetModel = CustomOperator<void,
@@ -139,6 +149,48 @@ struct SurfaceTarget {
   void update(SurfaceField& surf, const Vector& x) const;
 
   void update(Vector& x, const SurfaceField& surf) const;
+};
+
+void default_subsurf_x_set(VectorView,
+                           const SubsurfaceField&,
+                           const SubsurfaceKeyVal&);
+void default_x_subsurf_set(SubsurfaceField&,
+                           const SubsurfaceKeyVal&,
+                           const ConstVectorView);
+
+/** The class that deals with Jacobian targets that are part of a SubsurfaceField object
+ * 
+ * The intent here is that the type should be able to match into any Key that can
+ * be held by an SubsurfaceField object.  This includes things like subsurface temperature,
+ * density, etc.
+ * 
+ * As for all targets, we need to know where in a local list the target is
+ * (target_pos), where in the global list the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ * 
+ * The set_state and set_model functions are used to update the target in
+ * iteration and model space, respectively.  The default functions are provided
+ * but can be overridden with advantage as they perform a lot of computations
+ * that are not required when the type is known.
+ */
+struct SubsurfaceTarget {
+  SubsurfaceKeyVal type;
+
+  Numeric d{};
+
+  Size target_pos{std::numeric_limits<Size>::max()};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  SubsurfaceTargetSetState set_state{default_subsurf_x_set};
+
+  SubsurfaceTargetSetModel set_model{default_x_subsurf_set};
+
+  void update(SubsurfaceField& atm, const Vector& x) const;
+
+  void update(Vector& x, const SubsurfaceField& atm) const;
 };
 
 void default_line_x_set(VectorView, const AbsorptionBands&, const LblLineKey&);
@@ -361,17 +413,20 @@ struct targets_t {
 
 struct Targets final : targets_t<AtmTarget,
                                  SurfaceTarget,
+                                 SubsurfaceTarget,
                                  LineTarget,
                                  SensorTarget,
                                  ErrorTarget> {
   [[nodiscard]] const std::vector<AtmTarget>& atm() const;
   [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
+  [[nodiscard]] const std::vector<SubsurfaceTarget>& subsurf() const;
   [[nodiscard]] const std::vector<LineTarget>& line() const;
   [[nodiscard]] const std::vector<SensorTarget>& sensor() const;
   [[nodiscard]] const std::vector<ErrorTarget>& error() const;
 
   [[nodiscard]] std::vector<AtmTarget>& atm();
   [[nodiscard]] std::vector<SurfaceTarget>& surf();
+  [[nodiscard]] std::vector<SubsurfaceTarget>& subsurf();
   [[nodiscard]] std::vector<LineTarget>& line();
   [[nodiscard]] std::vector<SensorTarget>& sensor();
   [[nodiscard]] std::vector<ErrorTarget>& error();
@@ -379,6 +434,7 @@ struct Targets final : targets_t<AtmTarget,
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atmospheric_field,
                 const SurfaceField& surface_field,
+                const SubsurfaceField& subsurface_field,
                 const AbsorptionBands& absorption_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
@@ -390,6 +446,9 @@ struct Targets final : targets_t<AtmTarget,
   SensorTarget& emplace_back(const SensorKey& t, Numeric d);
   SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
   SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
+  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d);
+  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d);
+
   ErrorTarget& emplace_back(const ErrorKey& target,
                             Size x_size,
                             ErrorTargetSetState&& set_y,
@@ -404,17 +463,23 @@ struct Targets final : targets_t<AtmTarget,
 };
 
 struct TargetType {
-  using variant_t =
-      std::variant<AtmKeyVal, SurfaceKeyVal, LblLineKey, SensorKey, ErrorKey>;
+  using variant_t = std::variant<AtmKeyVal,
+                                 SurfaceKeyVal,
+                                 SubsurfaceKeyVal,
+                                 LblLineKey,
+                                 SensorKey,
+                                 ErrorKey>;
   variant_t target;
 
   template <class AtmKeyValFunc,
             class SurfaceKeyValFunc,
+            class SubsurfaceKeyValFunc,
             class LblLineKeyFunc,
             class SensorKeyFunc,
             class ErrorKeyFunc>
   [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
                                      const SurfaceKeyValFunc& ifsurf,
+                                     const SubsurfaceKeyValFunc& ifsubsurf,
                                      const LblLineKeyFunc& ifline,
                                      const SensorKeyFunc& ifsensor,
                                      const ErrorKeyFunc& iferror) const {
@@ -425,6 +490,8 @@ struct TargetType {
             return ifatm(t);
           } else if constexpr (std::same_as<T, SurfaceKeyVal>) {
             return ifsurf(t);
+          } else if constexpr (std::same_as<T, SubsurfaceKeyVal>) {
+            return ifsubsurf(t);
           } else if constexpr (std::same_as<T, LblLineKey>) {
             return ifline(t);
           } else if constexpr (std::same_as<T, SensorKey>) {
@@ -441,6 +508,7 @@ struct TargetType {
   [[nodiscard]] std::string type() const {
     return apply([](auto&) { return "AtmKeyVal"s; },
                  [](auto&) { return "SurfaceKeyVal"s; },
+                 [](auto&) { return "SubsurfaceKeyVal"s; },
                  [](auto&) { return "LblLineKey"s; },
                  [](auto&) { return "SensorKey"s; },
                  [](auto&) { return "ErrorKey"s; });
@@ -510,6 +578,9 @@ struct std::formatter<JacobianTargetType> {
         },
         [this, &ctx](const SurfaceKeyVal& key) {
           tags.format(ctx, "SurfaceKeyVal::"sv, key);
+        },
+        [this, &ctx](const SubsurfaceKeyVal& key) {
+          tags.format(ctx, "SubsurfaceKeyVal::"sv, key);
         },
         [this, &ctx](const LblLineKey& key) {
           tags.format(ctx, "LblLineKey::"sv, key);

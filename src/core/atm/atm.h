@@ -173,7 +173,7 @@ struct Point {
 //! All the field data; if these types grow too much we might want to
 //! reconsider...
 using FunctionalData = NumericTernaryOperator;
-using FieldData      = std::variant<GriddedField3, Numeric, FunctionalData>;
+using FieldData = std::variant<SortedGriddedField3, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -183,7 +183,8 @@ struct FunctionalDataAlwaysThrow {
 };
 
 template <typename T>
-concept isGriddedField3 = std::is_same_v<std::remove_cvref_t<T>, GriddedField3>;
+concept isSortedGriddedField3 =
+    std::is_same_v<std::remove_cvref_t<T>, SortedGriddedField3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
@@ -194,7 +195,7 @@ concept isFunctionalDataType =
 
 template <typename T>
 concept RawDataType =
-    isGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
+    isSortedGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -220,8 +221,8 @@ struct Data {
   explicit Data(Numeric x);
   Data &operator=(Numeric x);
 
-  explicit Data(GriddedField3 x);
-  Data &operator=(GriddedField3 x);
+  explicit Data(SortedGriddedField3 x);
+  Data &operator=(SortedGriddedField3 x);
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
@@ -241,9 +242,6 @@ struct Data {
     if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
-
-  void rescale(Numeric x);
-
   [[nodiscard]] Numeric at(const Numeric alt,
                            const Numeric lat,
                            const Numeric lon) const;
@@ -435,26 +433,6 @@ struct std::formatter<AtmPoint> {
   template <class FmtContext>
   FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
-  }
-};
-
-template <>
-struct std::formatter<Atm::FunctionalData> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const Atm::FunctionalData &,
-                              FmtContext &ctx) const {
-    const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
   }
 };
 

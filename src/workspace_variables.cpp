@@ -521,12 +521,20 @@ The order of the elements is such that index zero is closest to the obeserver.
   };
 
   wsv_data["surface_field"] = {
-      .desc = R"--(The surface field describes the surface properties.
+      .desc          = R"--(The surface field describes the surface properties.
 
 This describes the global surface values, such as elevation and 
 temperature but also entirerly abstract properties and types.
 )--",
-      .type = "SurfaceField",
+      .type          = "SurfaceField",
+      .default_value = "SurfaceField()",
+  };
+
+  wsv_data["subsurface_field"] = {
+      .desc = R"--(The sub0surface field describes the sub-surface properties.
+)--",
+      .type = "SubsurfaceField",
+      .default_value = "SubsurfaceField()",
   };
 
   wsv_data["gravity_operator"] = {

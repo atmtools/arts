@@ -156,7 +156,8 @@ std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
 
 namespace Surf {
 String Data::data_type() const {
-  if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
+  if (std::holds_alternative<SortedGriddedField2>(data))
+    return "SortedGriddedField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -187,7 +188,7 @@ Numeric Point::operator[](const SurfaceKeyVal &x) const {
 
 namespace {
 Numeric numeric_interpolation(
-    const GriddedField2 &data,
+    const SortedGriddedField2 &data,
     Numeric lat,
     Numeric lon,
     std::pair<InterpolationExtrapolation, InterpolationExtrapolation>
@@ -373,7 +374,7 @@ std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
           std::numeric_limits<Numeric>::max()};
 }
 
-std::pair<Numeric, Numeric> minmax(const GriddedField2 &x) {
+std::pair<Numeric, Numeric> minmax(const SortedGriddedField2 &x) {
   return matpack::minmax(x.data);
 }
 }  // namespace
@@ -401,7 +402,7 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::visit(
       [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GriddedField2>)
+        if constexpr (std::same_as<T, SortedGriddedField2>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return ConstVectorView{X};
@@ -416,7 +417,7 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::visit(
       [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GriddedField2>)
+        if constexpr (std::same_as<T, SortedGriddedField2>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return VectorView{X};
@@ -443,9 +444,8 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
   return {v0, v0, v0, v0};
 }
 
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
-                                                       const Numeric &lat,
-                                                       const Numeric &lon) {
+std::array<std::pair<Index, Numeric>, 4> flat_weights_(
+    const SortedGriddedField2 &v, const Numeric &lat, const Numeric &lon) {
   using LonLag = my_interp::
       Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
   using LatLag = my_interp::Lagrange<1>;
@@ -501,8 +501,8 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
 }
 
 void Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<GriddedField2>(data)) {
-    auto &field = std::get<GriddedField2>(data);
+  if (std::holds_alternative<SortedGriddedField2>(data)) {
+    auto &field = std::get<SortedGriddedField2>(data);
 
     if (field.grid<0>().size() == 1) {
       lat_upp = InterpolationExtrapolation::Nearest;
@@ -523,7 +523,7 @@ void Data::adjust_interpolation_extrapolation() {
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
 
-Data::Data(GriddedField2 x) : data(std::move(x)) {
+Data::Data(SortedGriddedField2 x) : data(std::move(x)) {
   adjust_interpolation_extrapolation();
 }
 
@@ -537,7 +537,7 @@ Data &Data::operator=(Numeric x) {
   return *this;
 }
 
-Data &Data::operator=(GriddedField2 x) {
+Data &Data::operator=(SortedGriddedField2 x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;
