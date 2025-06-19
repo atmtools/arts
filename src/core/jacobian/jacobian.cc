@@ -76,6 +76,40 @@ void default_x_surf_set(SurfaceField& surf,
   xn = x;
 }
 
+void default_subsurf_x_set(VectorView x,
+                           const SubsurfaceField& surf,
+                           const SubsurfaceKeyVal& key) {
+  ARTS_USER_ERROR_IF(
+      not surf.contains(key), "Subsurface does not contain key value {}", key)
+
+  auto xn = surf[key].flat_view();
+
+  ARTS_USER_ERROR_IF(
+      xn.size() not_eq x.size(),
+      "Problem with sizes.\n"
+      "Did you change your subsurface since you set the jacobian targets?\n"
+      "Did you forget to finalize the JacobianTargets?")
+
+  x = xn;
+}
+
+void default_x_subsurf_set(SubsurfaceField& surf,
+                           const SubsurfaceKeyVal& key,
+                           const ConstVectorView x) {
+  ARTS_USER_ERROR_IF(
+      not surf.contains(key), "Subsurface does not contain key value {}", key)
+
+  auto xn = surf[key].flat_view();
+
+  ARTS_USER_ERROR_IF(
+      xn.size() not_eq x.size(),
+      "Problem with sizes.\n"
+      "Did you change your subsurface since you set the jacobian targets?\n"
+      "Did you forget to finalize the JacobianTargets?")
+
+  xn = x;
+}
+
 void default_line_x_set(VectorView x,
                         const AbsorptionBands& bands,
                         const LblLineKey& key) {
@@ -248,6 +282,20 @@ bool AtmTarget::is_wind() const {
          type == AtmKey::wind_w;
 }
 
+void SubsurfaceTarget::update(SubsurfaceField& subsurface,
+                              const Vector& x) const {
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_model(subsurface, type, x[Range(x_start, x_size)]);
+}
+
+void SubsurfaceTarget::update(Vector& x,
+                              const SubsurfaceField& subsurface) const {
+  const auto sz = static_cast<Size>(x.size());
+  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
+  set_state(x[Range(x_start, x_size)], subsurface, type);
+}
+
 void SensorTarget::update(ArrayOfSensorObsel& sens, const Vector& x) const {
   const auto sz = static_cast<Size>(x.size());
   ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
@@ -329,6 +377,10 @@ const std::vector<SurfaceTarget>& Targets::surf() const {
   return target<SurfaceTarget>();
 }
 
+const std::vector<SubsurfaceTarget>& Targets::subsurf() const {
+  return target<SubsurfaceTarget>();
+}
+
 const std::vector<LineTarget>& Targets::line() const {
   return target<LineTarget>();
 }
@@ -345,6 +397,10 @@ std::vector<AtmTarget>& Targets::atm() { return target<AtmTarget>(); }
 
 std::vector<SurfaceTarget>& Targets::surf() { return target<SurfaceTarget>(); }
 
+std::vector<SubsurfaceTarget>& Targets::subsurf() {
+  return target<SubsurfaceTarget>();
+}
+
 std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
 
 std::vector<SensorTarget>& Targets::sensor() { return target<SensorTarget>(); }
@@ -353,12 +409,14 @@ std::vector<ErrorTarget>& Targets::error() { return target<ErrorTarget>(); }
 
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
+                       const SubsurfaceField& subsurface_field,
                        const AbsorptionBands&,
                        const ArrayOfSensorObsel& measurement_sensor) {
-  const Size natm    = atm().size();
-  const Size nsurf   = surf().size();
-  const Size nline   = line().size();
-  const Size nsensor = sensor().size();
+  const Size natm     = atm().size();
+  const Size nsurf    = surf().size();
+  const Size nsubsurf = subsurf().size();
+  const Size nline    = line().size();
+  const Size nsensor  = sensor().size();
 
   Size last_size = 0;
 
@@ -383,6 +441,18 @@ void Targets::finalize(const AtmField& atmospheric_field,
                        t.type)
     t.x_start  = last_size;
     t.x_size   = surface_field[t.type].flat_view().size();
+    last_size += t.x_size;
+  }
+
+  for (Size i = 0; i < nsubsurf; i++) {
+    SubsurfaceTarget& t = subsurf()[i];
+    ARTS_USER_ERROR_IF(std::ranges::any_of(subsurf() | std::views::drop(i + 1),
+                                           Cmp::eq(t.type),
+                                           &SubsurfaceTarget::type),
+                       "Multiple targets of the same type: {}",
+                       t.type)
+    t.x_start  = last_size;
+    t.x_size   = subsurface_field[t.type].flat_view().size();
     last_size += t.x_size;
   }
 
@@ -482,6 +552,10 @@ SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
   return surf().emplace_back(std::move(t), d, target_count());
 }
 
+SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
+  return subsurf().emplace_back(std::move(t), d, target_count());
+}
+
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
   return line().emplace_back(std::move(t), d, target_count());
 }
@@ -496,6 +570,10 @@ AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) {
 
 SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) {
   return surf().emplace_back(t, d, target_count());
+}
+
+SubsurfaceTarget& Targets::emplace_back(const SubsurfaceKeyVal& t, Numeric d) {
+  return subsurf().emplace_back(t, d, target_count());
 }
 
 LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) {

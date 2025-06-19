@@ -38,6 +38,16 @@ void surface_fieldFromModelState(SurfaceField& surface_field,
   }
 }
 
+void subsurface_fieldFromModelState(SubsurfaceField& subsurface_field,
+                                    const Vector& model_state_vector,
+                                    const JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jacobian_targets.subsurf()) {
+    target.update(subsurface_field, model_state_vector);
+  }
+}
+
 void model_state_vectorFromSurface(Vector& model_state_vector,
                                    const SurfaceField& surface_field,
                                    const JacobianTargets& jacobian_targets) {
@@ -45,6 +55,16 @@ void model_state_vectorFromSurface(Vector& model_state_vector,
 
   for (auto& target : jacobian_targets.surf()) {
     target.update(model_state_vector, surface_field);
+  }
+}
+
+void model_state_vectorFromSubsurface(Vector& model_state_vector,
+                                      const SubsurfaceField& subsurface_field,
+                                      const JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jacobian_targets.subsurf()) {
+    target.update(model_state_vector, subsurface_field);
   }
 }
 

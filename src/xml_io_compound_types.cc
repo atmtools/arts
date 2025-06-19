@@ -354,325 +354,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
-//=== ComplexMatrix ==========================================================
-
-//! Reads ComplexMatrix from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param matrix  ComplexMatrix return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(std::istream& is_xml,
-                          ComplexMatrix& matrix,
-                          bifstream* pbifs) {
-  XMLTag tag;
-  Index nrows, ncols;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("ComplexMatrix");
-
-  tag.get_attribute_value("nrows", nrows);
-  tag.get_attribute_value("ncols", ncols);
-  matrix.resize(nrows, ncols);
-
-  if (pbifs) {
-    pbifs->readDoubleArray(reinterpret_cast<Numeric*>(matrix.data_handle()),
-                           nrows * ncols);
-  } else {
-    for (Index r = 0; r < nrows; r++) {
-      for (Index c = 0; c < ncols; c++) {
-        is_xml >> double_imanip() >> matrix.real()[r, c] >> matrix.imag()[r, c];
-        if (is_xml.fail()) {
-          std::ostringstream os;
-          os << " near "
-             << "\n  Row   : " << r << "\n  Column: " << c;
-          xml_data_parse_error(tag, os.str());
-        }
-      }
-    }
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/ComplexMatrix");
-}
-
-//! Writes ComplexMatrix to XML output stream
-/*!
-  \param os_xml  XML Output stream
-  \param matrix  ComplexMatrix
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
-*/
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ComplexMatrix& matrix,
-                         bofstream* pbofs,
-                         const String& name) {
-  XMLTag open_tag;
-  XMLTag close_tag;
-
-  open_tag.set_name("ComplexMatrix");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nrows", matrix.nrows());
-  open_tag.add_attribute("ncols", matrix.ncols());
-
-  open_tag.write_to_stream(os_xml);
-  std::println(os_xml);
-
-  xml_set_stream_precision(os_xml);
-
-  // Write the elements:
-  if (pbofs) {
-    for (Index r = 0; r < matrix.nrows(); ++r) {
-      for (Index c = 0; c < matrix.ncols(); ++c) {
-        *pbofs << matrix[r, c];
-      }
-    }
-  } else {
-    std::println("{:IO}", matrix);
-  }
-
-  if (!pbofs) std::println(os_xml);
-
-  close_tag.set_name("/ComplexMatrix");
-  close_tag.write_to_stream(os_xml);
-
-  std::println(os_xml);
-}
-
-//=== GriddedField ===========================================================
-
-template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
-void xml_read_from_stream_recursive(
-    std::istream& is_xml,
-    matpack::gridded_data_t<T, Grids...>& gfield,
-    bifstream* pbifs,
-    XMLTag& tag) {
-  if constexpr (M > N) {
-    xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
-    xml_read_from_stream_recursive<N + 1>(is_xml, gfield, pbifs, tag);
-  }
-}
-
-//! Reads the grids for gridded fields from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param gfield  GriddedField return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-template <typename T, typename... Grids>
-void xml_read_from_stream_gf(std::istream& is_xml,
-                             matpack::gridded_data_t<T, Grids...>& gfield,
-                             bifstream* pbifs,
-                             Index version) {
-  using GF = matpack::gridded_data_t<T, Grids...>;
-
-  XMLTag tag;
-
-  if (version == 0) {
-    const auto reader = [&](auto& grid, String& name) {
-      using U = std::decay_t<decltype(grid)>;
-
-      tag.get_attribute_value("name", name);
-
-      if constexpr (std::same_as<U, Vector>) {
-        ARTS_USER_ERROR_IF(tag.get_name() != "Vector",
-                           "Must be Vector, is {}",
-                           tag.get_name());
-        xml_parse_from_stream(is_xml, grid, pbifs, tag);
-        tag.read_from_stream(is_xml);
-        tag.check_name("/Vector");
-      } else if constexpr (std::same_as<U, ArrayOfString>) {
-        ARTS_USER_ERROR_IF(
-            tag.get_name() != "Array", "Must be Array, is {}", tag.get_name());
-        String s;
-        tag.get_attribute_value("type", s);
-        ARTS_USER_ERROR_IF(
-            s != "String", "Must be Array<String>, is Array<{}>", s);
-        xml_parse_from_stream(is_xml, grid, pbifs, tag);
-        tag.read_from_stream(is_xml);
-        tag.check_name("/Array");
-      } else {
-        ARTS_USER_ERROR("Unknown grid type: {}", tag.get_name());
-      }
-    };
-
-    if constexpr (constexpr Size N = 0; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 1; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 2; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 3; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 4; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 5; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 6; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 7; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 8; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    if constexpr (constexpr Size N = 9; GF::dim > N) {
-      tag.read_from_stream(is_xml);
-      reader(gfield.template grid<N>(), gfield.template gridname<N>());
-    }
-
-    xml_read_from_stream(is_xml, gfield.data, pbifs);
-  } else if (version == 1) {
-    ArrayOfString gridnames;
-    xml_read_from_stream(is_xml, gridnames, pbifs);
-    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
-                       "Bad number of grid names:\n{}",
-                       gridnames);
-    std::ranges::move(gridnames, gfield.grid_names.begin());
-
-    xml_read_from_stream_recursive<0>(is_xml, gfield, pbifs, tag);
-
-    xml_read_from_stream(is_xml, gfield.data, pbifs);
-  } else {
-    ARTS_USER_ERROR("Unknown version: {}", version)
-  }
-}
-
-#define GF_READ(GF)                                                        \
-  void xml_read_from_stream(                                               \
-      std::istream& is_xml, GF& gfield, bifstream* pbifs) {                \
-    ArtsXMLTag tag;                                                        \
-                                                                           \
-    tag.read_from_stream(is_xml);                                          \
-    tag.check_name(#GF);                                                   \
-                                                                           \
-    Index version = 0;                                                     \
-    if (tag.has_attribute("version"))                                      \
-      tag.get_attribute_value("version", version);                         \
-    tag.get_attribute_value("name", gfield.data_name);                     \
-                                                                           \
-    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);               \
-                                                                           \
-    tag.read_from_stream(is_xml);                                          \
-    tag.check_name("/" #GF);                                               \
-                                                                           \
-    ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n{}", gfield); \
-  }
-
-template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
-void xml_write_to_stream_recursive(
-    std::ostream& os_xml,
-    const matpack::gridded_data_t<T, Grids...>& gfield,
-    bofstream* pbofs) {
-  if constexpr (M > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-    xml_write_to_stream_recursive<N + 1>(os_xml, gfield, pbofs);
-  }
-}
-
-//! Writes the grids for gridded fields to an XML input stream
-/*!
-  \param os_xml  XML output stream
-  \param gfield  GriddedField with the grids
-  \param pbofs   Pointer to binary output stream. NULL in case of ASCII file.
-*/
-template <typename T, typename... Grids>
-void xml_write_to_stream_gf(std::ostream& os_xml,
-                            const matpack::gridded_data_t<T, Grids...>& gfield,
-                            bofstream* pbofs,
-                            const String& /* name */) {
-  xml_write_to_stream(
-      os_xml,
-      ArrayOfString{gfield.grid_names.begin(), gfield.grid_names.end()},
-      pbofs,
-      "GridNames");
-
-  xml_write_to_stream_recursive<0>(os_xml, gfield, pbofs);
-
-  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data");
-}
-
-#define GF_WRITE(GF)                                       \
-  void xml_write_to_stream(std::ostream& os_xml,           \
-                           const GF& gfield,               \
-                           bofstream* pbofs,               \
-                           const String&) {                \
-    ArtsXMLTag open_tag;                                   \
-    ArtsXMLTag close_tag;                                  \
-                                                           \
-    open_tag.set_name(#GF);                                \
-    open_tag.add_attribute("name", gfield.data_name);      \
-    open_tag.add_attribute("version", Index{1});           \
-                                                           \
-    open_tag.write_to_stream(os_xml);                      \
-    std::println(os_xml);                                  \
-                                                           \
-    xml_write_to_stream_gf(os_xml, gfield, pbofs, "Data"); \
-                                                           \
-    close_tag.set_name("/" #GF);                           \
-    close_tag.write_to_stream(os_xml);                     \
-    std::println(os_xml);                                  \
-  }
-
-#define GF_IO(GF) \
-  GF_READ(GF)     \
-  GF_WRITE(GF)
-
-GF_IO(GriddedField1)
-GF_IO(GriddedField2)
-GF_IO(GriddedField3)
-GF_IO(GriddedField4)
-GF_IO(GriddedField5)
-GF_IO(GriddedField6)
-GF_IO(NamedGriddedField2)
-GF_IO(NamedGriddedField3)
-GF_IO(GriddedField1Named)
-GF_IO(ComplexGriddedField2)
-GF_IO(SortedGriddedField1)
-GF_IO(SortedGriddedField2)
-GF_IO(SortedGriddedField3)
-GF_IO(SortedGriddedField4)
-GF_IO(SortedGriddedField5)
-GF_IO(SortedGriddedField6)
-GF_IO(StokvecSortedGriddedField1)
-GF_IO(StokvecSortedGriddedField2)
-GF_IO(StokvecSortedGriddedField3)
-GF_IO(StokvecSortedGriddedField4)
-GF_IO(StokvecSortedGriddedField5)
-GF_IO(StokvecSortedGriddedField6)
-
-#undef GF_IO
-#undef GF_READ
-#undef GF_WRITE
-
 //=== GridPos =====================================================
 
 //! Reads GridPos from XML input stream
@@ -1779,7 +1460,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     std::println(os_xml);
 
     // Set values
-    std::visit([&](auto& v) { std::print(os_xml, "{}", v); }, data);
+    std::visit([&](auto& v) { std::print(os_xml, "{:IO}", v); }, data);
     std::println(os_xml);
 
     ArtsXMLTag internal_close_tag;
@@ -1964,6 +1645,174 @@ void xml_write_to_stream(std::ostream& os_xml,
   std::println(os_xml);
 }
 
+//=== SubsurfaceData =========================================
+void xml_read_from_stream(std::istream& is_xml,
+                          SubsurfaceData& data,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  String version;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("SubsurfaceData");
+
+  xml_read(is_xml, data.data, pbifs);
+  xml_read_from_stream(is_xml, data.alt_upp, pbifs);
+  xml_read_from_stream(is_xml, data.alt_low, pbifs);
+  xml_read_from_stream(is_xml, data.lat_upp, pbifs);
+  xml_read_from_stream(is_xml, data.lat_low, pbifs);
+  xml_read_from_stream(is_xml, data.lon_upp, pbifs);
+  xml_read_from_stream(is_xml, data.lon_low, pbifs);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SubsurfaceData");
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SubsurfaceData& data,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SubsurfaceData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
+
+  xml_write(os_xml, data.data, pbofs, "data");
+  xml_write_to_stream(os_xml, data.alt_upp, pbofs, "alt_upp");
+  xml_write_to_stream(os_xml, data.alt_low, pbofs, "alt_low");
+  xml_write_to_stream(os_xml, data.lat_upp, pbofs, "lat_upp");
+  xml_write_to_stream(os_xml, data.lat_low, pbofs, "lat_low");
+  xml_write_to_stream(os_xml, data.lon_upp, pbofs, "lon_upp");
+  xml_write_to_stream(os_xml, data.lon_low, pbofs, "lon_low");
+
+  close_tag.set_name("/SubsurfaceData");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+}
+
+//=== SubsurfaceField =========================================
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SubsurfaceField& subsurf,
+                          bifstream* pbifs) {
+  subsurf = SubsurfaceField{};  // overwrite
+
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("SubsurfaceField");
+
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
+
+  open_tag.get_attribute_value("bd", subsurf.bottom_depth);
+
+  for (Index i = 0; i < n; i++) {
+    SubsurfaceKeyVal key;
+    Subsurface::Data data;
+    xml_read(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, data, pbifs);
+    subsurf[key] = std::move(data);
+  }
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/SubsurfaceField");
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SubsurfaceField& subsurf,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SubsurfaceField");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  //! List of all KEY values
+  const auto keys = subsurf.keys();
+
+  xml_set_stream_precision(os_xml);
+
+  open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
+  open_tag.add_attribute("bd", subsurf.bottom_depth);
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  for (auto& key : keys) {
+    xml_write(os_xml, key, pbofs, "Data Key");
+    xml_write_to_stream(os_xml, subsurf[key], pbofs, "Data");
+  }
+
+  close_tag.set_name("/SubsurfaceField");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+}
+
+//=== SubsurfacePoint =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param atm        SubsurfacePoint return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream& is_xml,
+                          SubsurfacePoint& atm,
+                          bifstream* pbifs) {
+  atm = SubsurfacePoint{};  // overwrite
+
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("SubsurfacePoint");
+
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
+
+  for (Index i = 0; i < n; i++) {
+    SubsurfaceKeyVal key;
+    xml_read(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, atm[key], pbifs);
+  }
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/SubsurfacePoint");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param subsurf    SubsurfacePoint
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SubsurfacePoint& subsurf,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SubsurfacePoint");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  const auto keys = subsurf.keys();
+  open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  xml_set_stream_precision(os_xml);
+
+  for (auto& key : keys) {
+    xml_write(os_xml, key, pbofs, "Key");
+    xml_write_to_stream(os_xml, subsurf[key], pbofs, "Data");
+  }
+
+  close_tag.set_name("/SubsurfacePoint");
+  close_tag.write_to_stream(os_xml);
+
+  std::println(os_xml);
+}
+
 //=== SurfaceField =========================================
 void xml_read_from_stream_helper(std::istream& is_xml,
                                  SurfaceKeyVal& key_val,
@@ -1995,8 +1844,8 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   else
     ARTS_USER_ERROR("Cannot understand the keytype: \"{}\"", keytype)
 
-  if (type == "GriddedField2")
-    data.data = GriddedField2{};
+  if (type == "SortedGriddedField2")
+    data.data = SortedGriddedField2{};
   else if (type == "Numeric")
     data.data = Numeric{};
   else if (type == "FunctionalData")
@@ -2762,25 +2611,19 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           DescendingGrid& g,
                           bifstream* pbifs) try {
-  tag stag{is_xml, "DescendingGrid"};
-  stag.open();
-
   Vector x;
   xml_read_from_stream(is_xml, x, pbifs);
   g = std::move(x);
-
-  stag.close();
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error in DescendingGrid:\n{}", e.what()));
 }
-ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const DescendingGrid& g,
                          bofstream* pbofs,
                          const String&) {
-  tag stag{os_xml, "DescendingGrid"};
-  stag.open();
-  xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
-  stag.close();
+  xml_write_to_stream(os_xml, g.vec(), pbofs, "DescendingGrid");
 }
 
 //! AscendingGrid
@@ -2788,14 +2631,9 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           AscendingGrid& g,
                           bifstream* pbifs) try {
-  tag stag{is_xml, "AscendingGrid"};
-  stag.open();
-
   Vector x;
   xml_read_from_stream(is_xml, x, pbifs);
   g = std::move(x);
-
-  stag.close();
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error in AscendingGrid:\n{}", e.what()));
@@ -2805,10 +2643,7 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const AscendingGrid& g,
                          bofstream* pbofs,
                          const String&) try {
-  tag stag{os_xml, "AscendingGrid"};
-  stag.open();
-  xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
-  stag.close();
+  xml_write_to_stream(os_xml, g.vec(), pbofs, "AscendingGrid");
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error in AscendingGrid:\n{}", e.what()));
@@ -3302,6 +3137,74 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== SubsurfaceKeyVal =========================================================
+
+//! Reads SubsurfaceKeyVal from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    SubsurfaceKeyVal
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          SubsurfaceKeyVal& surft,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("SubsurfaceKeyVal");
+
+  String type;
+  tag.get_attribute_value("type", type);
+
+  if (type == "SubsurfaceKey"s) {
+    surft = SubsurfaceKey{};
+  } else {
+    ARTS_USER_ERROR(R"(Cannot understand type: "{}")", type);
+  }
+
+  std::visit(
+      [&](auto& data_type) { xml_read_from_stream(is_xml, data_type, pbifs); },
+      surft);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SubsurfaceKeyVal");
+}
+
+//! Write SubsurfaceKeyVal to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    SubsurfaceKeyVal
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SubsurfaceKeyVal& surft,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("SubsurfaceKeyVal");
+  open_tag.add_attribute(
+      "type",
+      std::visit(
+          []<typename T>(const T&) {
+            if constexpr (std::same_as<T, SubsurfaceKey>)
+              return "SubsurfaceKey"s;
+          },
+          surft));
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  std::visit(
+      [&](const auto& data_type) {
+        xml_write_to_stream(os_xml, data_type, pbofs, name);
+      },
+      surft);
+
+  close_tag.set_name("/SubsurfaceKeyVal");
+  close_tag.write_to_stream(os_xml);
+}
+
 //=== LblLineKey =========================================================
 
 //! Reads LblLineKey from XML input stream
@@ -3516,6 +3419,8 @@ void xml_read_from_stream(std::istream& is_xml,
     jtt.target = AtmKeyVal{};
   } else if (type == "SurfaceKeyVal"s) {
     jtt.target = SurfaceKeyVal{};
+  } else if (type == "SubsurfaceKeyVal"s) {
+    jtt.target = SubsurfaceKeyVal{};
   } else if (type == "LblLineKey"s) {
     jtt.target = LblLineKey{};
   } else if (type == "SensorKey"s) {

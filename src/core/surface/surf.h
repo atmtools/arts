@@ -85,17 +85,19 @@ struct Point {
 };
 
 using FunctionalData = NumericBinaryOperator;
-using FieldData      = std::variant<GriddedField2, Numeric, FunctionalData>;
+using FieldData = std::variant<SortedGriddedField2, Numeric, FunctionalData>;
 
 struct FunctionalDataAlwaysThrow {
+  std::string error{"Undefined data"};
   Numeric operator()(Numeric, Numeric) const {
-    ARTS_USER_ERROR("You touched the field but did not set any data")
+    throw std::runtime_error(error);
   }
 };
 
 //! Hold all atmospheric data
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{}}};
+  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
+      "You touched the field but did not set any data"}}};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
@@ -114,8 +116,8 @@ struct Data {
   explicit Data(Numeric x);
   Data &operator=(Numeric x);
 
-  explicit Data(GriddedField2 x);
-  Data &operator=(GriddedField2 x);
+  explicit Data(SortedGriddedField2 x);
+  Data &operator=(SortedGriddedField2 x);
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
@@ -135,8 +137,6 @@ struct Data {
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
     return *out;
   }
-
-  void rescale(Numeric);
 
   [[nodiscard]] ConstVectorView flat_view() const;
 

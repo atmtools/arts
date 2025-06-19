@@ -596,7 +596,7 @@ struct atmospheric_fieldHydrostaticPressureData {
   }
 
   atmospheric_fieldHydrostaticPressureData(Tensor3 in_grad_p,
-                                           const GriddedField2 &pre0,
+                                           const SortedGriddedField2 &pre0,
                                            Vector in_alt)
       : grad_p(std::move(in_grad_p)),
         pre(grad_p),  // Init sizes
@@ -649,7 +649,7 @@ void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
     const AscendingGrid &alts,
-    const GriddedField2 &p0,
+    const SortedGriddedField2 &p0,
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
@@ -775,11 +775,11 @@ void atmospheric_fieldHydrostaticPressure(
   const auto &t = atmospheric_field[AtmKey::t];
 
   ARTS_USER_ERROR_IF(
-      not std::holds_alternative<GriddedField3>(t.data),
-      "Temperature field must be a GriddedField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
+      not std::holds_alternative<SortedGriddedField3>(t.data),
+      "Temperature field must be a SortedGriddedField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
 
-  const auto &t0 = std::get<GriddedField3>(t.data);
-  const GriddedField2 p0_field{
+  const auto &t0 = std::get<SortedGriddedField3>(t.data);
+  const SortedGriddedField2 p0_field{
       .data_name  = "Pressure",
       .data       = Matrix(t0.grid<1>().size(), t0.grid<2>().size(), p0),
       .grid_names = {t0.gridname<1>(), t0.gridname<2>()},
@@ -817,7 +817,7 @@ lon: {:Bs,} [{} elements]
   const InterpolationExtrapolation extrap =
       to<InterpolationExtrapolation>(extrapolation);
 
-  GriddedField3 new_field{
+  SortedGriddedField3 new_field{
       .data_name  = String{std::format("{}", key)},
       .data       = Tensor3(alt.size(), lat.size(), lon.size()),
       .grid_names = {String{"Altitude"},

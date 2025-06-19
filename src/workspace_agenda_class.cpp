@@ -108,17 +108,22 @@ void Agenda::finalize(bool fix) try {
     if (std::ranges::binary_search(ins_first, o) and
         not std::ranges::binary_search(in_then_out, o)) {
       throw std::runtime_error(std::format(
-          R"(Agenda "{}" uses "{}" only as an input but it is Agenda output
+          R"(Agenda "{}" uses "{}" only as an input but it is Agenda inoutput
 
-Agenda input:    {:B,}
-Agenda output:   {:B,}
-Agenda inoutput: {:B,}
+Agenda user input:      {:B,}
+Agenda user output:     {:B,}
+Agenda user inoutput:   {:B,}
+
+Agenda required input:  {:B,}
+Agenda required output: {:B,}
 )",
           name,
           o,
           ins_first,
           outs_first,
-          in_then_out));
+          in_then_out,
+          must_in,
+          must_out));
     }
 
     if (not std::ranges::binary_search(outs_first, o)) {

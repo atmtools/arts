@@ -2,6 +2,12 @@
 
 #include <ranges>
 
+void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  jacobian_targets.clear();
+}
+
 void jacobian_targetsConditionalClear(JacobianTargets& jacobian_targets,
                                       const Index& do_jacobian) {
   ARTS_TIME_REPORT
@@ -9,12 +15,6 @@ void jacobian_targetsConditionalClear(JacobianTargets& jacobian_targets,
   if (do_jacobian == 0) {
     jacobian_targetsOff(jacobian_targets);
   }
-}
-
-void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
-  ARTS_TIME_REPORT
-
-  jacobian_targets.clear();
 }
 
 void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
@@ -26,12 +26,24 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const AtmField& atmospheric_field,
                               const SurfaceField& surface_field,
+                              const SubsurfaceField& subsurface_field,
                               const AbsorptionBands& absorption_bands,
                               const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.finalize(
-      atmospheric_field, surface_field, absorption_bands, measurement_sensor);
+  jacobian_targets.finalize(atmospheric_field,
+                            surface_field,
+                            subsurface_field,
+                            absorption_bands,
+                            measurement_sensor);
+}
+
+void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,
+                                   const SubsurfaceKey& key,
+                                   const Numeric& d) {
+  ARTS_TIME_REPORT
+
+  jacobian_targets.emplace_back(SubsurfaceKeyVal{key}, d);
 }
 
 void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,

@@ -17,6 +17,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda) try {
   ARTS_TIME_REPORT
@@ -25,9 +26,6 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
   switch (ray_path_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
-      break;
-    case subsurface:
-      ARTS_USER_ERROR("Undefined what to do with a subsurface background")
       break;
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
@@ -49,6 +47,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           jacobian_targets,
           ray_path_point,
           surface_field,
+          subsurface_field,
           spectral_radiance_surface_agenda);
       break;
   }

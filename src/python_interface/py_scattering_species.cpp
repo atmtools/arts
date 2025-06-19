@@ -349,14 +349,14 @@ void py_scattering_species(py::module_& m) try {
       std::variant<scattering::BulkScatteringProperties<
           scattering::Format::TRO,
           scattering::Representation::Gridded>>;
-  using BulkScatteringPropertiesAROSpectral =
-      std::variant<scattering::BulkScatteringProperties<
-          scattering::Format::ARO,
-          scattering::Representation::Spectral>>;
-  using BulkScatteringPropertiesAROGridded =
-      std::variant<scattering::BulkScatteringProperties<
-          scattering::Format::ARO,
-          scattering::Representation::Gridded>>;
+//   using BulkScatteringPropertiesAROSpectral =
+//       std::variant<scattering::BulkScatteringProperties<
+//           scattering::Format::ARO,
+//           scattering::Representation::Spectral>>;
+//   using BulkScatteringPropertiesAROGridded =
+//       std::variant<scattering::BulkScatteringProperties<
+//           scattering::Format::ARO,
+//           scattering::Representation::Gridded>>;
 
   py::class_<MGDSingleMoment>(m, "MGDSingleMoment").doc() =
       "Modified gamma PSD single moment";

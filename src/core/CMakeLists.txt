@@ -29,6 +29,7 @@ add_subdirectory(scattering)
 add_subdirectory(spec)
 add_subdirectory(artstime)
 add_subdirectory(surface)
+add_subdirectory(subsurface)
 add_subdirectory(path)
 add_subdirectory(util)
 add_subdirectory(options)
@@ -70,6 +71,7 @@ target_link_libraries(artscore PUBLIC
   species
   species_tags
   surface
+  subsurface
   util
   disort-cpp
   legendre

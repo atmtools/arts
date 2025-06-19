@@ -49,6 +49,9 @@ TMPL_XML_READ_WRITE_STREAM(Vector)
 TMPL_XML_READ_WRITE_STREAM(Vector2)
 TMPL_XML_READ_WRITE_STREAM(Vector3)
 
+TMPL_XML_READ_WRITE_STREAM(ComplexVector)
+TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
+
 //==========================================================================
 
 // Undefine the macro to avoid it being used anywhere else

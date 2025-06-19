@@ -9,7 +9,7 @@ ws.surface_fieldMars()
 ws.surface_field["t"] = pyarts.arts.GriddedField2.fromxml(
     "planets/Mars/Ls0.day.dust-medium/surface_temperature.xml"
 )
-ws.surface_field["h"] = pyarts.arts.GriddedField2.fromxml(
+ws.surface_field["h"] = pyarts.arts.SortedGriddedField2.fromxml(
     "planets/Mars//surface_elevation.xml"
 )
 ws.surface_field["t"].set_extrapolation("Nearest")

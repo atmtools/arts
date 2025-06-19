@@ -11,7 +11,11 @@ void agenda_operators(
   for (auto& [name, ag] : internal_workspace_agendas()) {
     wsg_data[name + "Operator"] = {
         .file = "auto_agenda_operators.h",
-        .desc = ag.desc + "\n\nThis is the free-form customization point of the agenda *" + name + "*\n\n.. note::\n    Output constraints must be followed\n\n",
+        .desc =
+            ag.desc +
+            "\n\nThis is the free-form customization point of the agenda *" +
+            name +
+            "*\n\n.. note::\n    Output constraints must be followed\n\n",
     };
   }
 }
@@ -383,24 +387,21 @@ Both the data and the grid may be named
       .desc =
           R"--(A map from *QuantumIdentifier* to *Vector*.
 )--",
-.map_type=true
-  };
+      .map_type = true};
 
   wsg_data["QuantumIdentifierNumericMap"] = {
       .file = "lbl.h",
       .desc =
           R"--(A map from *QuantumIdentifier* to *Numeric*.
 )--",
-.map_type=true
-  };
+      .map_type = true};
 
   wsg_data["QuantumIdentifierGriddedField1Map"] = {
       .file = "lbl.h",
       .desc =
           R"--(A map from *QuantumIdentifier* to *GriddedField1*.
 )--",
-.map_type=true
-  };
+      .map_type = true};
 
   wsg_data["NamedGriddedField2"] = {
       .file = "matpack.h",
@@ -565,6 +566,27 @@ and can thus be used to identify one of the following:
           R"--(A surface point.
 
 Keeps point values for the surface, including the local normal vector.
+)--",
+  };
+
+  wsg_data["SubsurfaceField"] = {
+      .file = "subsurface.h",
+      .desc =
+          R"--(A sub-surface field that keeps relevant sub-surface parameters
+)--",
+  };
+
+  wsg_data["SubsurfacePoint"] = {
+      .file = "subsurface.h",
+      .desc =
+          R"--(A sub-surface point.
+)--",
+  };
+
+  wsg_data["ArrayOfSubsurfacePoint"] = {
+      .file = "subsurface.h",
+      .desc =
+          R"--(A list of *SubsurfacePoint*
 )--",
   };
 
@@ -1022,7 +1044,6 @@ well as the sampling device's polarization response.
       .map_type = true,
   };
 
-
   wsg_data["SortedGriddedField1"] = {
       .file = "rtepack.h",
       .desc = R"--(A 1-dimensional gridof *Numeric*.
@@ -1068,6 +1089,14 @@ The grids are sorted in ascending order.
       .desc = R"--(A 6-dimensional gridof *Numeric*.
 
 The grids are sorted in ascending order.
+)--",
+  };
+
+  wsg_data["CartesianSubsurfaceGriddedField3"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 3-dimensional gridof *Numeric*.
+
+The first grid is descending and the other grids are sorted in ascending order.
 )--",
   };
 

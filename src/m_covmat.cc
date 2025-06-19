@@ -114,6 +114,31 @@ void model_state_covariance_matrixAdd(
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
     const JacobianTargets& jacobian_targets,
+    const SubsurfaceKeyVal& new_target,
+    const BlockMatrix& matrix,
+    const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+                     "Jacobian targets not finalized.");
+
+  bool found = false;
+
+  for (const auto& target : jacobian_targets.subsurf()) {
+    if (target.type == new_target) {
+      found = true;
+      add_diagonal_covmat(
+          model_state_covariance_matrix, target, matrix, inverse);
+    }
+  }
+
+  ARTS_USER_ERROR_IF(
+      not found, "No target found for surface target : {}", new_target);
+}
+
+void model_state_covariance_matrixAdd(
+    CovarianceMatrix& model_state_covariance_matrix,
+    const JacobianTargets& jacobian_targets,
     const LblLineKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
@@ -365,6 +390,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                    covariance_matrix_diagonal_blocks,
                                const AtmField& atmospheric_field,
                                const SurfaceField& surface_field,
+                               const SubsurfaceField& subsurface_field,
                                const AbsorptionBands& absorption_bands,
                                const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
@@ -372,6 +398,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
   jacobian_targetsFinalize(jacobian_targets,
                            atmospheric_field,
                            surface_field,
+                           subsurface_field,
                            absorption_bands,
                            measurement_sensor);
 

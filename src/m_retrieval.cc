@@ -18,6 +18,20 @@ void RetrievalInit(JacobianTargets& jacobian_targets,
   covariance_matrix_diagonal_blocks.clear();
 }
 
+void RetrievalAddSubsurface(JacobianTargets& jacobian_targets,
+                            JacobianTargetsDiagonalCovarianceMatrixMap&
+                                covariance_matrix_diagonal_blocks,
+                            const SubsurfaceKey& key,
+                            const Numeric& d,
+                            const BlockMatrix& matrix,
+                            const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
+  jacobian_targetsAddSubsurface(jacobian_targets, key, d);
+  covariance_matrix_diagonal_blocks[JacobianTargetType{
+      jacobian_targets.surf().back().type}] = {matrix, inverse};
+}
+
 void RetrievalAddSurface(JacobianTargets& jacobian_targets,
                          JacobianTargetsDiagonalCovarianceMatrixMap&
                              covariance_matrix_diagonal_blocks,

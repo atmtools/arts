@@ -29,6 +29,22 @@ struct gridded_data_t {
   std::array<String, dim> grid_names{};
   grids_t grids;
 
+  // Allow copy conversion from another gridded_data_t with the same
+  // number of grids, but possibly different types.  E.g., sorted to unsorted or vice versa.
+  template <typename OtherT, typename... OtherGrids>
+  operator gridded_data_t<OtherT, OtherGrids...>() const
+    requires(std::is_convertible_v<T, OtherT> and
+             (std::is_convertible_v<Grids, OtherGrids> and ...) and
+             sizeof...(OtherGrids) == dim)
+  {
+    gridded_data_t<OtherT, OtherGrids...> out;
+    out.data_name  = data_name;
+    out.data       = data;
+    out.grid_names = grid_names;
+    out.grids      = grids;
+    return out;
+  }
+
   template <Size Grid>
   [[nodiscard]] constexpr grid_t<Grid>& grid()
     requires(Grid < dim)

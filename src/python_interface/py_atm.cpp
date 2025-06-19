@@ -29,9 +29,16 @@ namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
   workspace_group_interface(atmdata);
-  atmdata.def(py::init_implicit<GriddedField3>())
+  atmdata.def(py::init_implicit<SortedGriddedField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
+      .def(
+          "__init__",
+          [](Atm::Data *a, const GriddedField3 &v) {
+            new (a) Atm::Data(SortedGriddedField3(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
       .def_rw("data", &Atm::Data::data, "The data")
       .def_rw("alt_upp", &Atm::Data::alt_upp, "Upper altitude limit")
       .def_rw("alt_low", &Atm::Data::alt_low, "Lower altitude limit")
@@ -99,6 +106,7 @@ void py_atm(py::module_ &m) try {
              a->lon_upp = std::get<6>(state);
            });
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
+  py::implicitly_convertible<GriddedField3, Atm::Data>();
 
   auto aad =
       py::bind_vector<std::vector<Atm::Data>,

@@ -483,6 +483,7 @@ class AgendaWrapper {
                 AbsorptionBands *absorption_bands,
                 ArrayOfSensorObsel *measurement_sensor,
                 SurfaceField *surface_field,
+                SubsurfaceField *subsurface_field,
                 const JacobianTargets *jacobian_targets,
                 const Agenda *inversion_iterate_agenda)
       : m(measurement_space_dimension),
@@ -493,6 +494,7 @@ class AgendaWrapper {
         absdata(absorption_bands),
         sensor(measurement_sensor),
         surf(surface_field),
+        subsurf(subsurface_field),
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
@@ -529,6 +531,7 @@ class AgendaWrapper {
                                       *absdata,
                                       *sensor,
                                       *surf,
+                                      *subsurf,
                                       yi_,
                                       jacobian_,
                                       *jacs,
@@ -562,6 +565,7 @@ class AgendaWrapper {
                                       *absdata,
                                       *sensor,
                                       *surf,
+                                      *subsurf,
                                       yi_,
                                       dummy,
                                       *jacs,
@@ -583,6 +587,7 @@ class AgendaWrapper {
   AbsorptionBands *absdata;
   ArrayOfSensorObsel *sensor;
   SurfaceField *surf;
+  SubsurfaceField *subsurf;
   unsigned int iteration_counter_;
   /** Reference to the jacobian WSV.*/
   MatrixReference jacobian_;
@@ -695,6 +700,7 @@ void OEM_checks(const Workspace &ws,
                 AbsorptionBands &absorption_bands,
                 ArrayOfSensorObsel &measurement_sensor,
                 SurfaceField &surface_field,
+                SubsurfaceField &subsurface_field,
                 const JacobianTargets &jacobian_targets,
                 const Agenda &inversion_iterate_agenda,
                 const Vector &xa,
@@ -773,6 +779,7 @@ void OEM_checks(const Workspace &ws,
                                     absorption_bands,
                                     measurement_sensor,
                                     surface_field,
+                                    subsurface_field,
                                     yf,
                                     jacobian,
                                     jacobian_targets,
@@ -787,6 +794,7 @@ void OEM_checks(const Workspace &ws,
                                     absorption_bands,
                                     measurement_sensor,
                                     surface_field,
+                                    subsurface_field,
                                     yf,
                                     jacobian,
                                     jacobian_targets,

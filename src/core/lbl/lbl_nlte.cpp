@@ -23,11 +23,11 @@ AtmFunctionalData level_density(const AtmFunctionalData& T,
       }};
 }
 
-GriddedField3 level_density(const GriddedField3& T,
-                            Numeric g,
-                            Numeric E,
-                            const SpeciesIsotope& spec) {
-  GriddedField3 out(T);
+SortedGriddedField3 level_density(const SortedGriddedField3& T,
+                                  Numeric g,
+                                  Numeric E,
+                                  const SpeciesIsotope& spec) {
+  SortedGriddedField3 out(T);
   out.data_name = "NLTE";
 
   stdr::transform(matpack::elemwise_range(T.data),
@@ -89,61 +89,68 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
       if (not normalization.contains(key.Isotopologue())) {
         normalization[key.Isotopologue()] = out[key];
       } else {
-        std::visit(
-            []<typename T, typename U>(T& a, const U& b) {
-              if constexpr (std::same_as<T, U>) {
-                if constexpr (std::is_same_v<T, GriddedField3>) {
-                  a.data += b.data;
-                } else if constexpr (std::is_same_v<T, Numeric>) {
-                  a += b;
-                } else {
-                  throw std::runtime_error(
-                      "Unsupported type, please use GriddedField3 or Numeric for NonLTE");
-                }
-              } else {
-                throw std::logic_error(
-                    "Mismatched types - this should never happen");
-              }
-            },
-            normalization[key.Isotopologue()].data,
-            data.data);
+        auto& x = normalization[key.Isotopologue()];
+
+        auto srhs = std::get_if<SortedGriddedField3>(&data.data);
+        if (auto lhs = std::get_if<SortedGriddedField3>(&x.data);
+            lhs and srhs) {
+          lhs->data += srhs->data;
+          continue;
+        }
+
+        auto nrhs = std::get_if<Numeric>(&data.data);
+        if (auto lhs = std::get_if<Numeric>(&x.data); lhs and nrhs) {
+          *lhs += *nrhs;
+          continue;
+        }
+
+        throw std::runtime_error(
+            std::format("Unsupported types or type mismatch {} and {}, "
+                        "please use SortedGriddedField3 or Numeric for NonLTE",
+                        data.data_type(),
+                        x.data_type()));
       }
     }
 
     for (auto& [_, data] : normalization) {
-      std::visit(
-          [normalizing_factor]<typename T>(T& a) {
-            if constexpr (std::is_same_v<T, GriddedField3>) {
-              a.data /= normalizing_factor;
-            } else if constexpr (std::is_same_v<T, Numeric>) {
-              a /= normalizing_factor;
-            } else {
-              throw std::runtime_error(
-                  "Unsupported type, please use GriddedField3 or Numeric for NonLTE");
-            }
-          },
-          data.data);
+      if (auto ptr = std::get_if<SortedGriddedField3>(&data.data); ptr) {
+        ptr->data /= normalizing_factor;
+        continue;
+      }
+
+      if (auto ptr = std::get_if<Numeric>(&data.data); ptr) {
+        *ptr /= normalizing_factor;
+        continue;
+      }
+
+      throw std::runtime_error(
+          std::format("Unsupported type: {}\n"
+                      "Please use SortedGriddedField3 or Numeric for NonLTE",
+                      data.data_type()));
     }
 
     for (auto& [key, data] : out) {
-      std::visit(
-          []<typename T, typename U>(T& a, const U& b) {
-            if constexpr (std::same_as<T, U>) {
-              if constexpr (std::is_same_v<T, GriddedField3>) {
-                a.data /= b.data;
-              } else if constexpr (std::is_same_v<T, Numeric>) {
-                a /= b;
-              } else {
-                throw std::runtime_error(
-                    "Unsupported type, please use GriddedField3 or Numeric for NonLTE");
-              }
-            } else {
-              throw std::logic_error(
-                  "Mismatched types - this should never happen");
-            }
-          },
-          data.data,
-          normalization[key.Isotopologue()].data);
+      auto& x = normalization[key.Isotopologue()];
+
+      if (auto lhs = std::get_if<SortedGriddedField3>(&data.data),
+          rhs      = std::get_if<SortedGriddedField3>(&x.data);
+          lhs and rhs) {
+        lhs->data /= rhs->data;
+        continue;
+      }
+
+      if (auto lhs = std::get_if<Numeric>(&data.data),
+          rhs      = std::get_if<Numeric>(&x.data);
+          lhs and rhs) {
+        *lhs /= *rhs;
+        continue;
+      }
+
+      throw std::runtime_error(
+          std::format("Unsupported types or type mismatch {} and {}, "
+                      "please use SortedGriddedField3 or Numeric for NonLTE",
+                      data.data_type(),
+                      x.data_type()));
     }
   }
 

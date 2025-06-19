@@ -548,7 +548,7 @@ PropagationPathPoint init(const Vector3& pos,
   const Numeric surface_alt = surface_altitude(surface_field, pos[1], pos[2]);
 
   if (pos[0] < surface_alt) {
-    return PropagationPathPoint{.pos_type = subsurface,
+    return PropagationPathPoint{.pos_type = unknown,
                                 .los_type = unknown,
                                 .pos      = pos,
                                 .los      = as_sensor ? mirror(los) : los};
@@ -832,7 +832,6 @@ Intersections pair_line_ellipsoid_intersect(
               .second          = get_point(std::max(r0, r1), atm, space),
               .second_is_valid = true};
     }
-    case subsurface: ARTS_USER_ERROR("Unsupported subsurface start position")
   }
   ARTS_USER_ERROR("Invalid start position type");
 }

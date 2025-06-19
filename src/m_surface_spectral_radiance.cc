@@ -25,6 +25,7 @@ void spectral_radianceFlatScalarReflectance(
     const AscendingGrid& frequency_grid,
     const AtmField& atmospheric_field,
     const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
     const Agenda& spectral_radiance_observer_agenda) try {
@@ -66,6 +67,7 @@ surface_field:
                                            los,
                                            atmospheric_field,
                                            surface_field,
+                                           subsurface_field,
                                            spectral_radiance_observer_agenda);
 
   const Numeric R = surface_point[reflectance_target];

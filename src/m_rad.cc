@@ -200,6 +200,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const Vector2 &los,
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
+    const SubsurfaceField &subsurface_field,
     const Agenda &spectral_radiance_observer_agenda) try {
   ARTS_TIME_REPORT
 
@@ -257,6 +258,7 @@ frequency_grid.size()              = {}
                                              los2,
                                              atmospheric_field,
                                              surface_field,
+                                             subsurface_field,
                                              spectral_radiance_observer_agenda);
 
     ARTS_USER_ERROR_IF(dsrad.size() != spectral_radiance.size(),
@@ -372,6 +374,7 @@ void measurement_vectorFromSensor(
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
+    const SubsurfaceField &subsurface_field,
     const SpectralRadianceUnitType &spectral_radiance_unit,
     const Agenda &spectral_radiance_observer_agenda) try {
   ARTS_TIME_REPORT
@@ -436,7 +439,7 @@ void measurement_vectorFromSensor(
 
   std::vector<std::string> error{};
 
-  #pragma omp parallel for if (not arts_omp_in_parallel() and N > 1)
+#pragma omp parallel for if (not arts_omp_in_parallel() and N > 1)
   for (Size i = 0; i < N; i++) {
     try {
       const unflatten_data unflat(simulations, i);
@@ -460,6 +463,7 @@ void measurement_vectorFromSensor(
           poslos.los,
           atmospheric_field,
           surface_field,
+          subsurface_field,
           spectral_radiance_observer_agenda);
 
       spectral_radianceApplyUnitFromSpectralRadiance(spectral_radiance,

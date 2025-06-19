@@ -1,20 +1,23 @@
 #include <workspace.h>
 
-void surface_fieldSet(SurfaceField &surface_field, const Numeric &value,
+void surface_fieldSet(SurfaceField &surface_field,
+                      const Numeric &value,
                       const String &key) {
   ARTS_TIME_REPORT
 
   surface_field[to<SurfaceKey>(key)] = value;
 }
 
-void surface_fieldSet(SurfaceField &surface_field, const GriddedField2 &value,
+void surface_fieldSet(SurfaceField &surface_field,
+                      const SortedGriddedField2 &value,
                       const String &key) {
   ARTS_TIME_REPORT
 
   surface_field[to<SurfaceKey>(key)] = value;
 }
 
-void surface_fieldSetProp(SurfaceField &surface_field, const Numeric &value,
+void surface_fieldSetProp(SurfaceField &surface_field,
+                          const Numeric &value,
                           const String &key) {
   ARTS_TIME_REPORT
 
@@ -22,7 +25,8 @@ void surface_fieldSetProp(SurfaceField &surface_field, const Numeric &value,
 }
 
 void surface_fieldSetProp(SurfaceField &surface_field,
-                          const GriddedField2 &value, const String &key) {
+                          const SortedGriddedField2 &value,
+                          const String &key) {
   ARTS_TIME_REPORT
 
   surface_field[SurfacePropertyTag{key}] = value;

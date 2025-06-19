@@ -44,7 +44,6 @@ TMPL_XML_READ_WRITE_STREAM(ScatteringSpecies)
 
 //=== Extras ===============================================================
 
-TMPL_XML_READ_WRITE_STREAM(AtmFunctionalData)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
 
 // Undefine the macro to avoid it being used anywhere else

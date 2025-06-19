@@ -1019,7 +1019,8 @@ void xml_write_to_stream(std::ostream& os_xml,
                          bofstream* pbofs,
                          const String& name) {
   std::print(os_xml,
-             R"(<Vector nelem="{}" name="{}"> {} </Vector>)",
+             R"(<Vector nelem="{}" name="{}"> {} </Vector>
+)",
              vector.size(),
              name,
              pbofs ? Vector{} : vector);
@@ -1028,6 +1029,162 @@ void xml_write_to_stream(std::ostream& os_xml,
     pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
                   vector.size() * sizeof(Numeric));
   }
+}
+
+//=== ComplexVector ==========================================================
+
+//! Parses Vector from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param vector  Vector return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param tag     XML tag object
+*/
+void xml_parse_from_stream(std::istream& is_xml,
+                           ComplexVector& vector,
+                           bifstream* pbifs,
+                           XMLTag& tag) {
+  Index nelem;
+
+  tag.get_attribute_value("nelem", nelem);
+  vector.resize(nelem);
+
+  if (pbifs) {
+    pbifs->readDoubleArray(reinterpret_cast<double*>(vector.data_handle()),
+                           2 * vector.size());
+  } else {
+    for (Index n = 0; n < nelem; n++) {
+      is_xml >> double_imanip() >> real_val(vector[n]) >> imag_val(vector[n]);
+      if (is_xml.fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Element: " << n;
+        xml_data_parse_error(tag, os.str());
+      }
+    }
+  }
+}
+
+//! Reads Vector from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param vector  Vector return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          ComplexVector& vector,
+                          bifstream* pbifs) {
+  XMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("ComplexVector");
+
+  xml_parse_from_stream(is_xml, vector, pbifs, tag);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ComplexVector");
+}
+
+//! Writes Vector to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param vector  Vector
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const ComplexVector& vector,
+                         bofstream* pbofs,
+                         const String& name) {
+  std::print(os_xml,
+             R"(<ComplexVector nelem="{}" name="{}"> {:IO} </ComplexVector>
+)",
+             vector.size(),
+             name,
+             pbofs ? ComplexVector{} : vector);
+
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(vector.data_handle()),
+                  vector.size() * sizeof(Complex));
+  }
+}
+
+//=== ComplexMatrix ==========================================================
+
+//! Reads ComplexMatrix from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param matrix  ComplexMatrix return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          ComplexMatrix& matrix,
+                          bifstream* pbifs) {
+  XMLTag tag;
+  Index nrows, ncols;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Matrix");
+
+  tag.get_attribute_value("nrows", nrows);
+  tag.get_attribute_value("ncols", ncols);
+  matrix.resize(nrows, ncols);
+
+  if (pbifs) {
+    pbifs->readDoubleArray(reinterpret_cast<double*>(matrix.data_handle()),
+                           2 * nrows * ncols);
+  } else {
+    for (Index r = 0; r < nrows; r++) {
+      for (Index c = 0; c < ncols; c++) {
+        is_xml >> double_imanip() >> real_val(matrix[r, c]) >>
+            imag_val(matrix[r, c]);
+        if (is_xml.fail()) {
+          std::ostringstream os;
+          os << " near "
+             << "\n  Row   : " << r << "\n  Column: " << c;
+          xml_data_parse_error(tag, os.str());
+        }
+      }
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ComplexMatrix");
+}
+
+//! Writes ComplexMatrix to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param matrix  ComplexMatrix
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const ComplexMatrix& matrix,
+                         bofstream* pbofs,
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
+
+  open_tag.set_name("ComplexMatrix");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nrows", matrix.nrows());
+  open_tag.add_attribute("ncols", matrix.ncols());
+
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  if (pbofs) {
+    pbofs->putRaw(reinterpret_cast<const char*>(matrix.data_handle()),
+                  matrix.size() * sizeof(Complex));
+  } else {
+    std::println(os_xml, "{:IO}", matrix);
+  }
+
+  close_tag.set_name("/ComplexMatrix");
+  close_tag.write_to_stream(os_xml);
+
+  std::println(os_xml);
 }
 
 // Begin templates for matpack::cdata_t
@@ -1040,6 +1197,11 @@ struct type {
 template <>
 struct type<Numeric> {
   static constexpr std::string_view name() { return "Numeric"; }
+};
+
+template <>
+struct type<Complex> {
+  static constexpr std::string_view name() { return "Complex"; }
 };
 
 template <class T, Size... DIM>

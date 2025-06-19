@@ -16,9 +16,16 @@
 namespace Python {
 void py_surf(py::module_ &m) try {
   py::class_<Surf::Data> surfdata(m, "SurfaceData");
-  surfdata.def(py::init_implicit<GriddedField2>())
+  surfdata.def(py::init_implicit<SortedGriddedField2>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Surf::FunctionalData>())
+      .def(
+          "__init__",
+          [](Surf::Data *a, const GriddedField2 &v) {
+            new (a) Surf::Data(SortedGriddedField2(v));
+          },
+          "v"_a,
+          "Initialize with a sorted field")
       .def_rw("data", &Surf::Data::data, "The data")
       .def_rw("lat_upp", &Surf::Data::lat_upp, "Upper latitude limit")
       .def_rw("lat_low", &Surf::Data::lat_low, "Lower latitude limit")
@@ -96,8 +103,6 @@ void py_surf(py::module_ &m) try {
   surfdata.doc() = "Surface data";
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
-  py::implicitly_convertible<Numeric, Surf::Data>();
-  py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
 
   py::class_<SurfacePropertyTag> spt =
       py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
@@ -276,6 +281,16 @@ void py_surf(py::module_ &m) try {
                    k[i]) = v[i];
              }
            });
+
+  py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
+  workspace_group_interface(ssf);
+  py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
+  workspace_group_interface(ssp);
+  auto assp = py::bind_vector<Array<SubsurfacePoint>,
+                              py::rv_policy::reference_internal>(
+      m, "ArrayOfSubsurfacePoint");
+  workspace_group_interface(assp);
+  vector_interface(assp);
 } catch (std::exception &e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize surf\n{}", e.what()));
