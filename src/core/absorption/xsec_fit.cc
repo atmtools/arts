@@ -144,9 +144,9 @@ void XsecRecord::Extract(VectorView result,
             data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
 
     assert(i_data_fstart >= 0);
-    assert(f_grid[i_fstart] > data_f_grid[i_data_fstart]);
+    assert(f_grid[i_fstart] >= data_f_grid[i_data_fstart]);
     assert(f_grid[i_fstart] < data_f_grid[i_data_fstart + 1]);
-    assert(f_grid[i_fstop] < data_f_grid[i_data_fstop]);
+    assert(f_grid[i_fstop] <= data_f_grid[i_data_fstop]);
     assert(f_grid[i_fstop] > data_f_grid[i_data_fstop - 1]);
 
     // Extent for active data frequency vector:
