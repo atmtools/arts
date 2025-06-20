@@ -174,7 +174,7 @@ constexpr auto f44(const VectorType &v) {
 }
 
 
-template <typename Scalar, bool strided>
+template <typename Scalar>
 void expand_and_transform(StridedVectorView output,
                           const StridedConstVectorView &input,
                           const std::array<Scalar, 5> rotation_coefficients,
@@ -241,38 +241,16 @@ constexpr Index get_n_mat_elems(Format format) {
 }  // namespace detail
 
 /** Expand phase matrix from compressed coefficient form. */
-inline Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
-  Matrix mat{4, 4};
-  mat[0, 0] = detail::f11(compact);
-  mat[0, 1] = detail::f12(compact);
-  mat[1, 0] = detail::f12(compact);
-  mat[1, 1] = detail::f22(compact);
-  mat[2, 2] = detail::f33(compact);
-  mat[2, 3] = detail::f34(compact);
-  mat[3, 2] = detail::f34(compact);
-  mat[3, 3] = detail::f33(compact);
-  return mat;
-}
+Matrix expand_phase_matrix(const StridedConstVectorView &compact);
 
-inline ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact) {
-  ComplexMatrix mat{4, 4};
-  mat[0, 0] = detail::f11(compact);
-  mat[0, 1] = detail::f12(compact);
-  mat[1, 0] = detail::f12(compact);
-  mat[1, 1] = detail::f22(compact);
-  mat[2, 2] = detail::f33(compact);
-  mat[2, 3] = detail::f34(compact);
-  mat[3, 2] = detail::f34(compact);
-  mat[3, 3] = detail::f33(compact);
-  return mat;
-}
+ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact);
 
 /// The grid over which the scattering data is defined.
 struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_)
-      : t_grid(t_grid_),
-        f_grid(f_grid_),
+      : t_grid(std::move(t_grid_)),
+        f_grid(std::move(f_grid_)),
         aa_inc_grid(nullptr),
         za_inc_grid(nullptr),
         aa_scat_grid(nullptr),
@@ -281,24 +259,24 @@ struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
-      : t_grid(t_grid_),
-        f_grid(f_grid_),
+      : t_grid(std::move(t_grid_)),
+        f_grid(std::move(f_grid_)),
         aa_inc_grid(nullptr),
         za_inc_grid(nullptr),
         aa_scat_grid(nullptr),
-        za_scat_grid(za_scat_grid_) {}
+        za_scat_grid(std::move(za_scat_grid_)) {}
 
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
                       std::shared_ptr<const Vector> za_inc_grid_,
                       std::shared_ptr<const Vector> delta_aa_grid_,
                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
-      : t_grid(t_grid_),
-        f_grid(f_grid_),
+      : t_grid(std::move(t_grid_)),
+        f_grid(std::move(f_grid_)),
         aa_inc_grid(nullptr),
-        za_inc_grid(za_inc_grid_),
-        aa_scat_grid(delta_aa_grid_),
-        za_scat_grid(za_scat_grid_) {}
+        za_inc_grid(std::move(za_inc_grid_)),
+        aa_scat_grid(std::move(delta_aa_grid_)),
+        za_scat_grid(std::move(za_scat_grid_)) {}
 
   std::shared_ptr<const Vector> t_grid;
   std::shared_ptr<const Vector> f_grid;
@@ -317,65 +295,14 @@ struct RegridWeights {
   ArrayOfGridPos za_scat_grid_weights;
 };
 
-inline RegridWeights calc_regrid_weights(
+RegridWeights calc_regrid_weights(
     std::shared_ptr<const Vector> t_grid,
     std::shared_ptr<const Vector> f_grid,
     std::shared_ptr<const Vector> aa_inc_grid,
     std::shared_ptr<const Vector> za_inc_grid,
     std::shared_ptr<const Vector> aa_scat_grid,
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
-    ScatteringDataGrids new_grids) {
-  RegridWeights res{};
-
-  if (!t_grid) {
-    ARTS_USER_ERROR(
-        "The old t_grid must be provided for calculating regridding weights.");
-  }
-  if (!new_grids.t_grid) {
-    ARTS_USER_ERROR(
-        "The new t_grid must be provided for calculating regridding weights.");
-  }
-  if (!f_grid) {
-    ARTS_USER_ERROR(
-        "The old f_grid must be provided for calculating regridding weights.");
-  }
-  if (!new_grids.f_grid) {
-    ARTS_USER_ERROR(
-        "The new f_grid must be provided for calculating regridding weights.");
-  }
-
-  res.t_grid_weights = ArrayOfGridPos(new_grids.t_grid->size());
-  gridpos(res.t_grid_weights, *t_grid, *new_grids.t_grid, 1e99);
-  res.f_grid_weights = ArrayOfGridPos(new_grids.f_grid->size());
-  gridpos(res.f_grid_weights, *f_grid, *new_grids.f_grid, 1e99);
-
-  if ((aa_inc_grid) && (new_grids.aa_inc_grid)) {
-    res.aa_inc_grid_weights = ArrayOfGridPos(new_grids.aa_inc_grid->size());
-    gridpos(
-        res.aa_inc_grid_weights, *aa_inc_grid, *new_grids.aa_inc_grid, 1e99);
-  }
-  if ((za_inc_grid) && (new_grids.za_inc_grid)) {
-    res.za_inc_grid_weights = ArrayOfGridPos(new_grids.za_inc_grid->size());
-    gridpos(
-        res.za_inc_grid_weights, *za_inc_grid, *new_grids.za_inc_grid, 1e99);
-  }
-  if ((aa_scat_grid) && (new_grids.aa_scat_grid)) {
-    res.aa_scat_grid_weights = ArrayOfGridPos(new_grids.aa_scat_grid->size());
-    gridpos(
-        res.aa_scat_grid_weights, *aa_scat_grid, *new_grids.aa_scat_grid, 1e99);
-  }
-  if ((za_scat_grid) && (new_grids.za_scat_grid)) {
-    res.za_scat_grid_weights = ArrayOfGridPos(std::visit(
-        [](const auto &grd) { return grd.angles.size(); }, *new_grids.za_scat_grid));
-    gridpos(res.za_scat_grid_weights,
-            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); },
-                       *za_scat_grid),
-            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); },
-                       *new_grids.za_scat_grid),
-            1e99);
-  }
-  return res;
-}
+    ScatteringDataGrids new_grids);
 
 template <std::floating_point Scalar, Format format>
 class BackscatterMatrixData : public matpack::data_t<Scalar, 3> {
@@ -777,7 +704,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
       return regrid(new_grids).to_spectral(sht);
     }
 
-    ARTS_ASSERT(sht->get_n_zenith_angles() == n_za_scat_);
+    assert(sht->get_n_zenith_angles() == n_za_scat_);
     PhaseMatrixDataSpectral result(t_grid_, f_grid_, sht);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
@@ -834,7 +761,7 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
                      angle_interp.fd[0] *
                          this->operator[](i_t, i_f, angle_interp.idx + 1, i_s));
               }
-              detail::expand_and_transform<Scalar, false>(
+              detail::expand_and_transform<Scalar>(
                   result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker],
                   pm_comps,
                   coeffs,
@@ -2029,9 +1956,9 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
   PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
     auto sht_new = sht::provider.get_instance_lm(l_new, m_new);
     PhaseMatrixData pm_new(t_grid_, f_grid_, za_inc_grid_, sht_new);
-    for (Index f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
-      for (Index t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
-        for (Index za_inc_ind = 0; za_inc_ind < za_inc_grid_->size();
+    for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+      for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+        for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid_->size();
              ++za_inc_ind) {
           for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
 

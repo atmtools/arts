@@ -4,6 +4,24 @@
 
 namespace scattering {
 
+ScatteringHabit::ScatteringHabit(const ParticleHabit& particle_habit_,
+                                 const PSD& psd_,
+                                 Numeric mass_size_rel_a_,
+                                 Numeric mass_size_rel_b_)
+    : particle_habit(particle_habit_),
+      mass_size_rel_a(mass_size_rel_a_),
+      mass_size_rel_b(mass_size_rel_b_),
+      psd(psd_) {
+  if ((mass_size_rel_a < 0.0) || (mass_size_rel_b < 0.0)) {
+    auto size_param = std::visit(
+        [](const auto& psd) { return psd.get_size_parameter(); }, psd);
+    auto [sizes, mass_size_rel_a_, mass_size_rel_b_] =
+        particle_habit.get_size_mass_info(size_param);
+    mass_size_rel_a = mass_size_rel_a_;
+    mass_size_rel_b = mass_size_rel_b_;
+  }
+}
+
   namespace detail {
 
     Numeric max_relative_difference(const Vector& v1, const Vector& v2) {
@@ -43,7 +61,7 @@ BulkScatteringPropertiesTROGridded
   ScatteringHabit::get_bulk_scattering_properties_tro_gridded(
       const AtmPoint& point,
       const Vector& f_grid,
-      const Numeric f_tol) const {
+      const Numeric) const {
 
   auto sizes = particle_habit.get_sizes(SizeParameter::DVeq);
   Index n_particles = sizes.size();
@@ -115,7 +133,7 @@ BulkScatteringPropertiesTROGridded
   Tensor3 extinction_matrix_new(n_freqs_new, 4, 4);
   Matrix absorption_vector_new(n_freqs_new, 4);
 
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     auto weights = interp_weights[f_ind];
     for (Index za_scat_ind = 0; za_scat_ind < n_angs; ++za_scat_ind) {
         phase_matrix_new[f_ind, za_scat_ind, 0, 0] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 0, 0];
@@ -153,7 +171,7 @@ ScatteringTroSpectralVector
   ScatteringHabit::get_bulk_scattering_properties_tro_spectral(
       const AtmPoint& point,
       const Vector& f_grid,
-      const Numeric f_tol) const {
+      const Numeric) const {
 
   auto sizes = particle_habit.get_sizes(std::visit([](const auto& psd){return psd.get_size_parameter();}, psd));
   Index n_particles = sizes.size();
@@ -242,7 +260,7 @@ ScatteringTroSpectralVector
   PropmatVector extinction_matrix_new(n_freqs_new);
   StokvecVector absorption_vector_new(n_freqs_new);
 
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     auto weights = interp_weights[f_ind];
     for (Index coeff_ind = 0; coeff_ind < n_coeffs; ++coeff_ind) {
         phase_matrix_new[f_ind, coeff_ind] += weights.fd[1] * phase_matrix[weights.idx, coeff_ind];

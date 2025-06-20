@@ -423,7 +423,7 @@ class MieSphere {
       Numeric n2p1_nnp1 = n2p1 / (step_f * (step_f + 1.0));
       q_sca_ += n2p1 * (pow(abs(a_n), 2) + pow(abs(b_n), 2));
       q_ext_ += n2p1 * (a_n.real() + b_n.real());
-      q_back_acc += n2p1 * pow(-1, step + 1) * (a_n - b_n);
+      q_back_acc += n2p1 * std::pow(-1, step + 1) * (a_n - b_n);
       g_sca_ +=
           (n2p1_nnp1 * (a_n.real() * b_n.real() + a_n.imag() * b_n.imag()));
       if (step > 0) {

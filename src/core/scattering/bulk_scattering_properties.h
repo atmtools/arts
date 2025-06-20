@@ -82,41 +82,11 @@ namespace scattering {
     ExtinctionMatrixVector extinction_matrix;
     AbsorptionVectorVector absorption_vector;
 
-    inline BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded &other) const {
-      std::optional<PhaseMatrixVector> new_phase_matrix = phase_matrix;
-      if (phase_matrix.has_value()) {
-        if (other.phase_matrix.has_value()) {
-          *new_phase_matrix += other.phase_matrix.value();
-        }
-      }
-      auto new_extinction_matrix = extinction_matrix;
-      new_extinction_matrix += other.extinction_matrix;
-      auto new_absorption_vector = absorption_vector;
-      new_absorption_vector += other.absorption_vector;
-      return BulkScatteringPropertiesTROGridded(new_phase_matrix,
-                                                new_extinction_matrix,
-                                                new_absorption_vector);
-    }
+     BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded &other) const ;
 
-    inline BulkScatteringPropertiesTROGridded& operator+=(const BulkScatteringPropertiesTROGridded &other)  {
-      if (phase_matrix.has_value()) {
-        if (other.phase_matrix.has_value()) {
-          *phase_matrix += other.phase_matrix.value();
-        }
-      }
-      extinction_matrix += other.extinction_matrix;
-      absorption_vector += other.absorption_vector;
-      return *this;
-    }
+     BulkScatteringPropertiesTROGridded& operator+=(const BulkScatteringPropertiesTROGridded &other)  ;
 
-    inline BulkScatteringPropertiesTROGridded& operator*=(Numeric fac)  {
-      if (phase_matrix.has_value()) {
-        *phase_matrix *= fac;
-      }
-      extinction_matrix *= fac;
-      absorption_vector *= fac;
-      return *this;
-    }
+     BulkScatteringPropertiesTROGridded& operator*=(Numeric fac)  ;
   };
 
   //////////////////////////////////////////////////////////////////////////////
@@ -133,41 +103,11 @@ namespace scattering {
       ExtinctionMatrixVector extinction_matrix;
       AbsorptionVectorVector absorption_vector;
 
-      inline BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral &other) const {
-        std::optional<PhaseMatrixVector> new_phase_matrix = phase_matrix;
-        if (phase_matrix.has_value()) {
-          if (other.phase_matrix.has_value()) {
-            *new_phase_matrix += other.phase_matrix.value();
-          }
-        }
-        auto new_extinction_matrix = extinction_matrix;
-        new_extinction_matrix += other.extinction_matrix;
-        auto new_absorption_vector = absorption_vector;
-        new_absorption_vector += other.absorption_vector;
-        return BulkScatteringPropertiesTROSpectral(new_phase_matrix,
-                                                  new_extinction_matrix,
-                                                  new_absorption_vector);
-      }
+       BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral &other) const ;
 
-      inline BulkScatteringPropertiesTROSpectral& operator+=(const BulkScatteringPropertiesTROSpectral &other)  {
-        if (phase_matrix.has_value()) {
-          if (other.phase_matrix.has_value()) {
-            *phase_matrix += other.phase_matrix.value();
-          }
-        }
-        extinction_matrix += other.extinction_matrix;
-        absorption_vector += other.absorption_vector;
-        return *this;
-      }
+       BulkScatteringPropertiesTROSpectral& operator+=(const BulkScatteringPropertiesTROSpectral &other) ;
 
-      inline BulkScatteringPropertiesTROSpectral& operator*=(Numeric fac)  {
-        if (phase_matrix.has_value()) {
-          *phase_matrix *= fac;
-        }
-        extinction_matrix *= fac;
-        absorption_vector *= fac;
-        return *this;
-      }
+       BulkScatteringPropertiesTROSpectral& operator*=(Numeric fac);
   };
 
 }
