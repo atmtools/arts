@@ -257,6 +257,8 @@ class IrregularZenithAngleGrid {
   */
   IrregularZenithAngleGrid(const Vector& zenith_angles);
 
+  size_t size() const { return angles.size(); }
+
   /// The cosines of the zenith-angle grid points in radians.
   const Vector& get_angle_cosines() const { return cos_theta_; }
 

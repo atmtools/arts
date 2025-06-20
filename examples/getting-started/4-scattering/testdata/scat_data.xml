@@ -1,0 +1,339 @@
+<?xml version="1.0"?>
+<arts format="binary" version="1">
+<Array type="ArrayOfSingleScatteringData" nelem="2">
+<Array type="SingleScatteringData" nelem="6">
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Liquid sphere"
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="451">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="451" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+</Array>
+<Array type="SingleScatteringData" nelem="9">
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="181">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="181" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="181">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="181" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="181">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="181" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="361">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="361" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="721">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="721" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="721">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="721" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="721">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="721" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="721">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="721" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+<SingleScatteringData version="3">
+<String>
+"totally_random"
+</String>
+<String>
+"Hexagonal column aggregate, using Hong parametrization (Hong 2007)."
+</String>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="3">
+</Vector>
+<Vector nelem="721">
+</Vector>
+<Vector nelem="0">
+</Vector>
+<Tensor7 nlibraries="3" nvitrines="3" nshelves="721" nbooks="1" npages="1" nrows="1" ncols="6">
+</Tensor7>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+<Tensor5 nshelves="3" nbooks="3" npages="1" nrows="1" ncols="1">
+</Tensor5>
+</SingleScatteringData>
+</Array>
+</Array>
+</arts>
