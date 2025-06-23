@@ -2154,42 +2154,39 @@ Size : (*jacobian_targets*, *frequency_grid*)
                  "ray_path"},
   };
 
-  wsm_data["spectral_radiance_jacobianApplyUnit"] = {
-      .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
-
-Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
-
-.. warning::
-  This is a destructive method.  Any use of it means that it is undefined behavior
-  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_jacobian",
-                 "spectral_radiance",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "spectral_radiance_unit"},
+  wsm_data["spectral_radiance_transform_operatorSet"] = {
+      .desc =
+          "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_radiance_transform_operator"},
+      .gin       = {"spectral_radiance_unit_type"},
+      .gin_type  = {"SpectralRadianceUnitType"},
+      .gin_value = {std::nullopt},
+      .gin_desc =
+          {"The type of the spectral radiance transform operator to create. See *SpectralRadianceUnitType* for valid values and what they do."},
   };
 
   wsm_data["spectral_radianceApplyUnit"] = {
       .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
 
-See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
-and limitations.
+See *SpectralRadianceUnitType* for valid use cases and limitations.
 
-Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+This effectively wraps the local creation of a *SpectralRadianceTransformOperator* call.
 
 .. warning::
   This is a destructive method.  Any use of it means that it is undefined behavior
   to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"spectral_radiance",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "spectral_radiance_unit"},
+      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in =
+          {
+              "spectral_radiance",
+              "spectral_radiance_jacobian",
+              "frequency_grid",
+              "ray_path_point",
+              "spectral_radiance_transform_operator",
+          },
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {
@@ -3761,9 +3758,12 @@ The core calculations happens inside the *spectral_radiance_operator*.
 
 The core calculations happens inside the *spectral_radiance_observer_agenda*.
 
-User choices of *spectral_radiance_unit* does not adversely affect this method
-unless the *measurement_vector* or *measurement_jacobian* are further modified
-before consumption by, e.g., *OEM*
+.. note::
+    If you want to convert from radiance units to other units as part of
+    your sensor setup, please set the GIN.  It can be constructed from
+    strings or from *SpectralRadianceUnitType*.  The latter's documentation
+    shows the type of transformations that are applied.  By default, no
+    transformations are applied.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
@@ -3772,7 +3772,7 @@ before consumption by, e.g., *OEM*
                          "atmospheric_field",
                          "surface_field",
                          "subsurface_field",
-                         "spectral_radiance_unit",
+                         "spectral_radiance_transform_operator",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
   };

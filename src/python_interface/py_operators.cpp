@@ -1,14 +1,15 @@
+#include <enumsSpectralRadianceUnitType.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/pair.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <operators.h>
 
 #include "henyey_greenstein.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
-
 namespace Python {
 void py_operators(py::module_& m) {
   py::class_<NumericUnaryOperator> nuop(m, "NumericUnaryOperator");
@@ -117,5 +118,43 @@ void py_operators(py::module_& m) {
       "A callback to get the bulk scattering properties of a species.";
   py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t,
                              ScatteringGeneralSpectralTROFunc>();
+
+  py::class_<SpectralRadianceTransformOperator> srtop(
+      m, "SpectralRadianceTransformOperator");
+  srtop
+      .def("__init__",
+           [](SpectralRadianceTransformOperator* op,
+              SpectralRadianceTransformOperator::Op::func_t f) {
+             new (op) SpectralRadianceTransformOperator(
+                 SpectralRadianceTransformOperator::Op(
+                     [f = std::move(f)](StokvecVector& x,
+                                        StokvecMatrix& y,
+                                        const AscendingGrid& z,
+                                        const PropagationPathPoint& c) {
+                       py::gil_scoped_acquire gil{};
+                       f(x, y, z, c);
+                     }));
+           })
+      .def(py::init_implicit<SpectralRadianceUnitType>())
+      .def(py::init_implicit<const std::string_view&>())
+      .def(
+          "__call__",
+          [](const SpectralRadianceTransformOperator& f,
+             StokvecVector& x,
+             StokvecMatrix& y,
+             const AscendingGrid& z,
+             const PropagationPathPoint& c) { return f(x, y, z, c); },
+          "spectral_radiance"_a,
+          "spectral_radiance_jacobian"_a,
+          "frequency_grid"_a,
+          "ray_path_point"_a);
+  for (auto s : enumtyps::SpectralRadianceUnitTypeTypes) {
+    const auto name = String{toString(s)};
+    srtop.def_static(name.c_str(),
+                     [s]() { return SpectralRadianceTransformOperator(s); });
+  }
+  workspace_group_interface(srtop);
+  py::implicitly_convertible<SpectralRadianceTransformOperator::Op::func_t,
+                             SpectralRadianceTransformOperator>();
 }
 }  // namespace Python

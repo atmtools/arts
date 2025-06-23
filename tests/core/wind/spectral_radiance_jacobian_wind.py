@@ -39,10 +39,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_unit = "Tb"
-ws.spectral_radiance_observer_agendaSet(option="Emission")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectra_radiance_transform_operatorSet("Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Wind Field
@@ -57,15 +54,6 @@ ws.atmospheric_field["wind_u"] = wind_u
 ws.atmospheric_field["wind_v"] = wind_v
 ws.atmospheric_field["wind_w"] = wind_w
 wind = {uf: wind_u, vf: wind_v, wf: wind_w}
-
-# %% Retrieval agenda
-
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
 
 
 pos = [110e3, 0, 0]

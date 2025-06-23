@@ -84,15 +84,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
-      .desc    = R"(Apply unit changes to spectral radiance and its Jacobian
+      .desc    = R"(Helper method for calling *spectral_radianceApplyUnit*.
 
-.. warning::
-  This is a destructive method.  Any use of it means that it is undefined behavior
-  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
+It is common that *ray_path* is defined but not *ray_path_point*.
+This method simply is a convenience wrapper for that case.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointForeground",
-                  "spectral_radiance_jacobianApplyUnit",
                   "spectral_radianceApplyUnit"},
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });

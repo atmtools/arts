@@ -14,6 +14,7 @@
 #include "nonstd.h"
 #include "python_interface/pydocs.h"
 #include "workspace_agendas.h"
+#include "workspace_meta_methods.h"
 #include "workspace_method_extra_doc.h"
 #include "workspace_variables.h"
 
@@ -38,7 +39,7 @@ String as_pyarts(const String& x) try {
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
   const auto found_in_options = [&](auto& key) {
-    return std::ranges::any_of(
+    return stdr::any_of(
         internal_options(), Cmp::eq(key), &EnumeratedOption::name);
   };
 
@@ -147,11 +148,11 @@ Parameters
   auto& in_ind  = ag.input;
 
   const auto output = [&](const std::string& ind) {
-    return std::ranges::any_of(out_ind, Cmp::eq(ind));
+    return stdr::any_of(out_ind, Cmp::eq(ind));
   };
 
   const auto input = [&](const std::string& ind) {
-    return std::ranges::any_of(in_ind, Cmp::eq(ind));
+    return stdr::any_of(in_ind, Cmp::eq(ind));
   };
 
   std::vector<AgendaIO> writer;
@@ -260,22 +261,23 @@ String method_docs(const String& name) try {
   const auto& wsvs       = workspace_variables();
   const auto wsadoc      = get_agenda_enum_documentation();
   const auto& wsms_extra = workspace_method_extra_doc();
+  const auto& wsms_meta  = internal_meta_methods();
 
   //! WARNING: Raw method
   const auto& method = wsms.at(name);
   String out;
 
   const auto is_output = [&](auto ind) {
-    return std::ranges::any_of(method.out, Cmp::eq(ind));
+    return stdr::any_of(method.out, Cmp::eq(ind));
   };
   const auto is_input = [&](auto ind) {
-    return std::ranges::any_of(method.in, Cmp::eq(ind));
+    return stdr::any_of(method.in, Cmp::eq(ind));
   };
   const auto is_ginput = [&](auto& ind) {
-    return std::ranges::any_of(method.gin, Cmp::eq(ind));
+    return stdr::any_of(method.gin, Cmp::eq(ind));
   };
   const auto is_goutput = [&](auto& ind) {
-    return std::ranges::any_of(method.gout, Cmp::eq(ind));
+    return stdr::any_of(method.gout, Cmp::eq(ind));
   };
   const auto fix = [&] {
     remove_trailing(out, '\n');
@@ -285,10 +287,34 @@ String method_docs(const String& name) try {
   out += unwrap_stars(method.desc);
   fix();
 
-  out += "\nAuthor(s):";
-  for (auto& author : method.author) out += " " + author + ", ";
-  out.pop_back();  // Remove ' '
-  out.pop_back();  // Remove ','
+  out += std::format("\nAuthor{}: {:,}",
+                     method.author.size() > 1 ? "s"sv : ""sv,
+                     method.author);
+  fix();
+
+  std::vector<String> metamethods =
+      wsms_meta | stdv::filter([&name](const auto& mm) {
+        return stdr::any_of(mm.methods, Cmp::eq(name));
+      }) |
+      stdv::transform([](auto&& m) -> String { return m.name; }) |
+      stdr::to<std::vector<String>>();
+  stdr::sort(metamethods);
+  out += metamethods.empty()
+             ? ""s
+             : std::format(
+                   R"(
+.. rubric:: Used by wrapper method{0}
+
+.. hlist::
+    :columns: {1}
+{2}
+)",
+                   metamethods.size() > 1 ? "s"sv : ""sv,
+                   hlist_num_cols(metamethods),
+                   metamethods | stdv::transform([](const auto& m) {
+                     return std::format(
+                         "\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+                   }) | stdr::to<std::vector<String>>());
   fix();
 
   out += "\nParameters\n----------";
@@ -413,168 +439,125 @@ String variable_used_by(const String& name) {
     std::vector<String> ag_out;
     std::vector<String> ag_in;
     std::vector<String> wsvs;
+
+    wsv_io(std::vector<String>&& wsm_out_,
+           std::vector<String>&& wsm_in_,
+           std::vector<String>&& ag_out_,
+           std::vector<String>&& ag_in_,
+           std::vector<String>&& wsvs_)
+        : wsm_out(std::move(wsm_out_)),
+          wsm_in(std::move(wsm_in_)),
+          ag_out(std::move(ag_out_)),
+          ag_in(std::move(ag_in_)),
+          wsvs(std::move(wsvs_)) {
+      stdr::sort(wsm_out);
+      stdr::sort(wsm_in);
+      stdr::sort(ag_out);
+      stdr::sort(ag_in);
+      stdr::sort(wsvs);
+    }
   };
 
-  wsv_io usedocs;
-  for (auto& [mname, method] : wsms) {
-    if (std::ranges::any_of(method.out, Cmp::eq(name)))
-      usedocs.wsm_out.emplace_back(mname);
+  const auto to_vstring = stdr::to<std::vector<String>>();
 
-    if (std::ranges::any_of(method.in, Cmp::eq(name)))
-      usedocs.wsm_in.emplace_back(mname);
-  }
+  const auto filter_wsmout = stdv::filter([&name](auto& m) {
+                               return stdr::any_of(m.second.out, Cmp::eq(name));
+                             }) |
+                             stdv::keys;
 
-  for (auto& [aname, agenda] : wsas) {
-    if (std::ranges::any_of(agenda.output, Cmp::eq(name)))
-      usedocs.ag_out.emplace_back(aname);
+  const auto filter_wsmin = stdv::filter([&name](auto& m) {
+                              return stdr::any_of(m.second.in, Cmp::eq(name));
+                            }) |
+                            stdv::keys;
 
-    if (std::ranges::any_of(agenda.input, Cmp::eq(name)))
-      usedocs.ag_in.emplace_back(aname);
-  }
+  const auto filter_wsaout =
+      stdv::filter([&name](auto& a) {
+        return stdr::any_of(a.second.output, Cmp::eq(name));
+      }) |
+      stdv::keys;
 
-  std::ranges::copy_if(wsvs | std::views::keys,
-                       std::back_inserter(usedocs.wsvs),
-                       [&name](auto& vname) {
-                         return workspace_variables_keywords_match(vname, name);
-                       });
+  const auto filter_wsain =
+      stdv::filter([&name](auto& a) {
+        return stdr::any_of(a.second.input, Cmp::eq(name));
+      }) |
+      stdv::keys;
 
-  std::ranges::sort(usedocs.wsm_out);
-  std::ranges::sort(usedocs.wsm_in);
-  std::ranges::sort(usedocs.ag_out);
-  std::ranges::sort(usedocs.ag_in);
-  std::ranges::sort(usedocs.wsvs);
+  const auto filter_wsvs = stdv::keys | stdv::filter([&name](auto& v) {
+                             return workspace_variables_keywords_match(v, name);
+                           });
 
-  String val;
-  if (usedocs.wsm_out.size() or usedocs.wsm_out.size()) {
-    std::array<std::vector<std::string>, 3> io;
-    for (auto& m : usedocs.wsm_out) {
-      if (std::ranges::any_of(usedocs.wsm_in, Cmp::eq(m))) {
-        io[1].emplace_back(m);
-      } else {
-        io[2].emplace_back(m);
-      }
-    }
-    for (auto& m : usedocs.wsm_in) {
-      if (std::ranges::none_of(usedocs.wsm_out, Cmp::eq(m))) {
-        io[0].emplace_back(m);
-      }
-    }
+  const wsv_io usedocs{wsms | filter_wsmout | to_vstring,
+                       wsms | filter_wsmin | to_vstring,
+                       wsas | filter_wsaout | to_vstring,
+                       wsas | filter_wsain | to_vstring,
+                       wsvs | filter_wsvs | to_vstring};
 
-    if (io[0].size()) {
-      val += std::format(R"(
+  const auto to_wsmout = stdv::filter([&usedocs](const String& x) {
+    return stdr::none_of(usedocs.wsm_in, Cmp::eq(x));
+  });
 
-.. rubric:: Input to workspace methods
+  const auto to_wsminout = stdv::filter([&usedocs](const String& x) {
+    return stdr::any_of(usedocs.wsm_in, Cmp::eq(x));
+  });
 
-.. hlist::
-    :columns: {0}
-)",
-                         hlist_num_cols(io[0]));
-      for (auto& m : io[0]) {
-        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
+  const auto to_wsmin = stdv::filter([&usedocs](const String& x) {
+    return stdr::none_of(usedocs.wsm_out, Cmp::eq(x));
+  });
 
-    if (io[1].size()) {
-      val += std::format(R"(
+  const auto to_wsaout = stdv::filter([&usedocs](const String& x) {
+    return stdr::none_of(usedocs.ag_in, Cmp::eq(x));
+  });
 
-.. rubric:: Modified by workspace methods
+  const auto to_wsainout = stdv::filter([&usedocs](const String& x) {
+    return stdr::any_of(usedocs.ag_in, Cmp::eq(x));
+  });
 
-.. hlist::
-    :columns: {0}
-)",
-                         hlist_num_cols(io[1]));
-      for (auto& m : io[1]) {
-        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
+  const auto to_wsain = stdv::filter([&usedocs](const String& x) {
+    return stdr::none_of(usedocs.ag_out, Cmp::eq(x));
+  });
 
-    if (io[2].size()) {
-      val += std::format(R"(
+  const auto to_attr = stdv::transform([](const String& x) -> String {
+    return std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", x);
+  });
 
-.. rubric:: Output from workspace methods
+  const auto to_func = stdv::transform([](const String& x) -> String {
+    return std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", x);
+  });
 
-.. hlist::
-    :columns: {0}
-)",
-                         hlist_num_cols(io[2]));
-      for (auto& m : io[2]) {
-        val += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
-    val += "\n";
-  }
+  const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;
+  const auto wsminout = usedocs.wsm_out | to_wsminout | to_vstring;
+  const auto wsmin    = usedocs.wsm_in | to_wsmin | to_vstring;
+  const auto wsaout   = usedocs.ag_out | to_wsaout | to_vstring;
+  const auto wsainout = usedocs.ag_out | to_wsainout | to_vstring;
+  const auto wsain    = usedocs.ag_in | to_wsain | to_vstring;
 
-  if (usedocs.ag_out.size()) {
-    std::array<std::vector<std::string>, 3> io;
-    for (auto& m : usedocs.ag_out) {
-      if (std::ranges::any_of(usedocs.ag_in, Cmp::eq(m))) {
-        io[1].emplace_back(m);
-      } else {
-        io[2].emplace_back(m);
-      }
-    }
-    for (auto& m : usedocs.ag_in) {
-      if (std::ranges::none_of(usedocs.ag_out, Cmp::eq(m))) {
-        io[0].emplace_back(m);
-      }
-    }
+  const auto to_str = [to_vstring](auto& arr,
+                                   auto& f,
+                                   const std::string_view& m) -> std::string {
+    if (arr.empty()) return ""s;
+    return std::format(R"(
 
-    if (io[0].size()) {
-      val += std::format(R"(
-.. rubric:: Input to workspace agendas
+.. rubric:: {3}{2}
 
 .. hlist::
     :columns: {0}
+{1}
 )",
-                         hlist_num_cols(io[0]));
-      for (auto& m : io[0]) {
-        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
+                       hlist_num_cols(arr),
+                       arr | f | to_vstring,
+                       arr.size() > 1 ? "s"sv : ""sv,
+                       m);
+  };
 
-    if (io[1].size()) {
-      val += std::format(R"(
+  return std::format(
+      R"({}{}{}{}{}{}{}
 
-.. rubric:: Modified by workspace agendas
-
-.. hlist::
-    :columns: {0}
 )",
-                         hlist_num_cols(io[1]));
-      for (auto& m : io[1]) {
-        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
-
-    if (io[2].size()) {
-      val += std::format(R"(
-.. rubric:: Output from workspace agendas
-
-.. hlist::
-    :columns: {0}
-)",
-                         hlist_num_cols(io[2]));
-      for (auto& m : io[2]) {
-        val += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
-      }
-    }
-    val += "\n";
-  }
-
-  if (usedocs.wsvs.size()) {
-    val += std::format(R"(
-
-.. rubric:: Related workspace variables
-
-.. hlist::
-    :columns: {0}
-)",
-                       hlist_num_cols(usedocs.wsvs));
-    for (auto& m : usedocs.wsvs) {
-      val += std::format("\n    *  :attr:`~pyarts.workspace.Workspace.{}`", m);
-    }
-    val += "\n";
-  }
-
-  return val;
+      to_str(wsmin, to_func, "Input to workspace method"),
+      to_str(wsminout, to_func, "Modified by workspace method"),
+      to_str(wsmout, to_func, "Output from workspace method"),
+      to_str(wsain, to_attr, "Input to workspace agenda"),
+      to_str(wsainout, to_attr, "Modified by workspace agenda"),
+      to_str(wsaout, to_attr, "Output from workspace agenda"),
+      to_str(usedocs.wsvs, to_attr, "Related workspace variable"));
 }

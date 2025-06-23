@@ -32,7 +32,6 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_unit = "1"
 ws.spectral_radiance_space_agendaSet(option="Transmission")
 ws.spectral_radiance_surface_agendaSet(option="Transmission")
 

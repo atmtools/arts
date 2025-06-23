@@ -62,3 +62,37 @@ void xml_write_to_stream(std::ostream&,
                          const String& /* name */) {
   ARTS_USER_ERROR("Writing operators to XML is not supported.");
 }
+
+//=== SpectralRadianceTransformOperator =========================================
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SpectralRadianceTransformOperator& op,
+                          bifstream* /*pbifs*/) {
+  ArtsXMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name("SpectralRadianceTransformOperator");
+
+  String type;
+  tag.get_attribute_value("type", type);
+
+  ARTS_USER_ERROR_IF(
+      type == "CustomOperator",
+      "Reading CustomOperator from XML is not supported.\n"
+      "Please manually recreate the operator or use one of the builtin options.");
+
+  op = SpectralRadianceTransformOperator(type);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SpectralRadianceTransformOperator");
+}
+
+void xml_write_to_stream(std::ostream& os,
+                         const SpectralRadianceTransformOperator& op,
+                         bofstream* /*pbofs*/,
+                         const String& name) {
+  std::println(
+      os,
+      R"(<SpectralRadianceTransformOperator name="{}" type="{}"> </SpectralRadianceTransformOperator>)",
+      name,
+      op.type);
+}
