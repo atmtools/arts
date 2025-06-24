@@ -8,9 +8,9 @@
 namespace {
 struct spectral_unit_op {
   void operator()(StokvecVector& iy,
-                         StokvecMatrix& diy,
-                         const AscendingGrid&,
-                         const PropagationPathPoint& point) {
+                  StokvecMatrix& diy,
+                  const AscendingGrid&,
+                  const PropagationPathPoint& point) const {
     if (point.nreal != 1.0) {
       diy *= Math::pow2(point.nreal);
       iy  *= Math::pow2(point.nreal);
@@ -20,9 +20,9 @@ struct spectral_unit_op {
 
 struct spectral_rjbt_op {
   void operator()(StokvecVector& iy,
-                         StokvecMatrix& diy,
-                         const AscendingGrid& freqs,
-                         const PropagationPathPoint&) {
+                  StokvecMatrix& diy,
+                  const AscendingGrid& freqs,
+                  const PropagationPathPoint&) const {
     ARTS_USER_ERROR_IF(
         iy.size() != freqs.size() or
             static_cast<Size>(diy.ncols()) != freqs.size(),
@@ -46,9 +46,9 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 
 struct spectral_planck_op {
   void operator()(StokvecVector& iy,
-                         StokvecMatrix& diy,
-                         const AscendingGrid& freqs,
-                         const PropagationPathPoint&) {
+                  StokvecMatrix& diy,
+                  const AscendingGrid& freqs,
+                  const PropagationPathPoint&) const {
     ARTS_USER_ERROR_IF(
         iy.size() != freqs.size() or
             static_cast<Size>(diy.ncols()) != freqs.size(),
@@ -88,9 +88,9 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 
 struct spectral_W_m2_m_sr_op {
   void operator()(StokvecVector& iy,
-                         StokvecMatrix& diy,
-                         const AscendingGrid& freqs,
-                         const PropagationPathPoint& point) {
+                  StokvecMatrix& diy,
+                  const AscendingGrid& freqs,
+                  const PropagationPathPoint& point) const {
     ARTS_USER_ERROR_IF(
         iy.size() != freqs.size() or
             static_cast<Size>(diy.ncols()) != freqs.size(),
@@ -114,9 +114,9 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 
 struct spectral_W_m2_m1_sr_op {
   void operator()(StokvecVector& iy,
-                         StokvecMatrix& diy,
-                         const AscendingGrid&,
-                         const PropagationPathPoint& point) {
+                  StokvecMatrix& diy,
+                  const AscendingGrid&,
+                  const PropagationPathPoint& point) const {
     diy *= Math::pow2(point.nreal) * Constant::c;
     iy  *= Math::pow2(point.nreal) * Constant::c;
   }
