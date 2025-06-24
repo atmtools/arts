@@ -111,7 +111,6 @@ String unwrap_stars(const String& x) try {
     }
 
     const auto first = ptr;
-    ptr++;
 
     if (isnotletter(*first)) {
       out.push_back('*');
