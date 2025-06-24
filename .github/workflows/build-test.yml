@@ -72,7 +72,7 @@ jobs:
             jcheck: 2
 
           - name: macm1-default-clang
-            os: macos-14
+            os: macos-15
             preset: default-clang-conda
             pyarts: "yes"
             check: "yes"
@@ -82,7 +82,7 @@ jobs:
             jcheck: 2
 
           - name: macm1-reldeb-clang
-            os: macos-14
+            os: macos-15
             preset: reldeb-clang-conda
             pyarts: "yes"
             check: "yes"
