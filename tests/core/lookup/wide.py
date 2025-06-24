@@ -36,7 +36,7 @@ ws.absorption_lookup_tableSimpleWide(water_affected_species=["H2O"],
                                      pressure_range=[1e-2, 1100e2])
 print(round(1000 * (time() - t)), "ms to train the LUT")
 
-ws.spectral_radiance_unit = "Tb"
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 

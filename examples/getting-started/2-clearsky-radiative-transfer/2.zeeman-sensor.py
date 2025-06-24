@@ -31,7 +31,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectra_radiance_transform_operator = "Tb"
+ws.spectral_radiance_transform_operator = "Tb"
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Set up a sensor with Gaussian standard deviation channel widths on individual frequency ranges

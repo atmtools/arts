@@ -38,7 +38,8 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectra_radiance_transform_operator = pyarts.arts.SpectralRadianceUnitType.Tb
+ws.spectral_radiance_transform_operator = \
+    pyarts.arts.SpectralRadianceTransformOperator.PlanckBT
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial VMR
@@ -84,12 +85,6 @@ for i in range(LIMIT):
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
     ws.measurement_vector += np.random.normal(0, noise, NFREQ)
-
-    @pyarts.workspace.arts_agenda(ws=ws, fix=True)
-    def inversion_iterate_agenda(ws):
-        ws.UpdateModelStates()
-        ws.measurement_vectorFromSensor()
-        ws.measurement_vector_fittedFromMeasurement()
 
     ws.OEM(method="gn")
 

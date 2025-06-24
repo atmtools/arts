@@ -4,6 +4,7 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string_view.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <operators.h>
 
@@ -122,6 +123,8 @@ void py_operators(py::module_& m) {
   py::class_<SpectralRadianceTransformOperator> srtop(
       m, "SpectralRadianceTransformOperator");
   srtop
+      .def(py::init_implicit<SpectralRadianceUnitType>())
+      .def(py::init_implicit<const std::string_view&>())
       .def("__init__",
            [](SpectralRadianceTransformOperator* op,
               SpectralRadianceTransformOperator::Op::func_t f) {
@@ -135,8 +138,6 @@ void py_operators(py::module_& m) {
                        f(x, y, z, c);
                      }));
            })
-      .def(py::init_implicit<SpectralRadianceUnitType>())
-      .def(py::init_implicit<const std::string_view&>())
       .def(
           "__call__",
           [](const SpectralRadianceTransformOperator& f,

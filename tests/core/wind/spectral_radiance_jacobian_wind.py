@@ -39,7 +39,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectra_radiance_transform_operatorSet("Tb")
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Wind Field

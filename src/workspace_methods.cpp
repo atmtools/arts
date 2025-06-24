@@ -2159,7 +2159,7 @@ Size : (*jacobian_targets*, *frequency_grid*)
           "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_radiance_transform_operator"},
-      .gin       = {"spectral_radiance_unit_type"},
+      .gin       = {"option"},
       .gin_type  = {"SpectralRadianceUnitType"},
       .gin_value = {std::nullopt},
       .gin_desc =

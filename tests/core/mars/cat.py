@@ -20,7 +20,7 @@ los = [180, 0]
 f0 = 556.935985e9
 ws.frequency_grid = f0 + np.linspace(-5e9, 5e9, 101)
 
-ws.spectral_radiance_unit = "Tb"
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 

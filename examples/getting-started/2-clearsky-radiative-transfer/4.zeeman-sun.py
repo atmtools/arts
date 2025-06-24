@@ -36,7 +36,7 @@ ws.sunsAddSun(suns=ws.suns)
 
 # %% Checks and settings
 
-ws.spectral_radiance_unit = "Tb"
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="SunOrCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
