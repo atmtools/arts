@@ -4563,6 +4563,7 @@ This method allows setting up *disort_settings_agenda* by named options.  A desc
       .in =
           {
               "disort_settings",
+              "ray_path_propagation_matrix",
               "ray_path_propagation_matrix_scattering",
               "ray_path_absorption_vector_scattering",
           },
@@ -4725,8 +4726,8 @@ Note that you must have set the optical thickness before calling this.
       .in     = {"frequency_grid",
                  "ray_path",
                  "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
+                 "disort_legendre_polynomial_dimension",
+                 "disort_fourier_mode_dimension"},
   };
 
   wsm_data["disort_spectral_radiance_fieldCalc"] = {
