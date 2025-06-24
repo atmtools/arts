@@ -123,7 +123,6 @@ void py_operators(py::module_& m) {
   py::class_<SpectralRadianceTransformOperator> srtop(
       m, "SpectralRadianceTransformOperator");
   srtop
-      .def(py::init_implicit<SpectralRadianceUnitType>())
       .def(py::init_implicit<const std::string_view&>())
       .def("__init__",
            [](SpectralRadianceTransformOperator* op,
@@ -149,11 +148,6 @@ void py_operators(py::module_& m) {
           "spectral_radiance_jacobian"_a,
           "frequency_grid"_a,
           "ray_path_point"_a);
-  for (auto s : enumtyps::SpectralRadianceUnitTypeTypes) {
-    const auto name = String{toString(s)};
-    srtop.def_static(name.c_str(),
-                     [s]() { return SpectralRadianceTransformOperator(s); });
-  }
   workspace_group_interface(srtop);
   py::implicitly_convertible<SpectralRadianceTransformOperator::Op::func_t,
                              SpectralRadianceTransformOperator>();
