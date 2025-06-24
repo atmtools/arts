@@ -13,8 +13,9 @@ and how to use existing features.
 
 .. toctree::
    :maxdepth: 2
-   
+
    dev.classes
    dev.error
    dev.matpack
    dev.workspace
+   dev.doc
