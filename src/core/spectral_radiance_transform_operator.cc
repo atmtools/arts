@@ -7,7 +7,7 @@
 
 namespace {
 struct spectral_unit_op {
-  static void operator()(StokvecVector& iy,
+  void operator()(StokvecVector& iy,
                          StokvecMatrix& diy,
                          const AscendingGrid&,
                          const PropagationPathPoint& point) {
@@ -19,7 +19,7 @@ struct spectral_unit_op {
 };
 
 struct spectral_rjbt_op {
-  static void operator()(StokvecVector& iy,
+  void operator()(StokvecVector& iy,
                          StokvecMatrix& diy,
                          const AscendingGrid& freqs,
                          const PropagationPathPoint&) {
@@ -45,7 +45,7 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 };
 
 struct spectral_planck_op {
-  static void operator()(StokvecVector& iy,
+  void operator()(StokvecVector& iy,
                          StokvecMatrix& diy,
                          const AscendingGrid& freqs,
                          const PropagationPathPoint&) {
@@ -87,7 +87,7 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 };
 
 struct spectral_W_m2_m_sr_op {
-  static void operator()(StokvecVector& iy,
+  void operator()(StokvecVector& iy,
                          StokvecMatrix& diy,
                          const AscendingGrid& freqs,
                          const PropagationPathPoint& point) {
@@ -113,7 +113,7 @@ diy.shape()           = {:B} [column size must match frequency grid size]
 };
 
 struct spectral_W_m2_m1_sr_op {
-  static void operator()(StokvecVector& iy,
+  void operator()(StokvecVector& iy,
                          StokvecMatrix& diy,
                          const AscendingGrid&,
                          const PropagationPathPoint& point) {
