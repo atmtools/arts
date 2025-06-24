@@ -9,7 +9,7 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs);
 
 std::string fix_newlines(std::string x);
 
-String unwrap_stars(String);
+String unwrap_stars(const String&);
 
 String get_agenda_io(const String&);
 

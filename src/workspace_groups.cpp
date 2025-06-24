@@ -1114,18 +1114,13 @@ values.  They can likely not be reused for further calculations.
 Parameters
 ----------
 spectral_radiance : StokvecVector
-    As WSV *spectral_radiance*
+    As WSV *spectral_radiance* **[INOUT]**
 spectral_radiance_jacobian : StokvecMatrix
-    As WSV *spectral_radiance_jacobian*
+    As WSV *spectral_radiance_jacobian* **[INOUT]**
 frequency_grid : AscendingGrid
-    As WSV *frequency_grid*
+    As WSV *frequency_grid* **[IN]**
 ray_path_point : PropagationPathPoint
-    As WSV *ray_path_point*
-
-Return
-------
-Nothing.  However, the *spectral_radiance* and *spectral_radiance_jacobian*
-may be modified in-place.
+    As WSV *ray_path_point* **[IN]**
 )--",
   };
 

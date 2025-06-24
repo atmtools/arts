@@ -755,7 +755,7 @@ spherical harmonics and is only valid for a limited time period.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
       .gin_desc =
-          {R"--(Frequency grid spacing around the line-center.  The range will be f0 * (1-df) to f0 * (1 +df) of each absorption line.)--",
+          {R"--(Frequency grid spacing around the line-center.  The range will be :math:`f_0(1-\delta f)` to :\math:`f_0(1 +\delta f)` of each absorption line.)--",
            R"--(Number of frequency points per line.)--"},
   };
 
@@ -1264,7 +1264,7 @@ interaction with a magnetic field. Hence, this method requires
 Faraday rotation affects Stokes parameters 2 and 3 (but not
 intensity!). Therefore, this method requires stokes_dim>2.
 
-Like all 'propagation_matrixAdd*' methods, the method is additive,
+Like all *propagation_matrix*-modifying methods, the method is additive,
 i.e., does not overwrite the propagation matrix *propagation_matrix*,
 but adds further contributions.
 )--",
@@ -1919,7 +1919,7 @@ The ``alts`` vector contains the altitude grid values that limits the
 extrapolation distance in altitude.  The first altitude in this
 list should corresond to the altitude of the ``p0`` grid.  The extrapolation
 outside of this range simply uses the hydrostatic equation
-$P_1 = P_0 - g * h * \rho$ by means of the specific gas constant omputed
+:math:`P_1 = P_0 - g h \rho` by means of the specific gas constant omputed
 as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
@@ -2339,8 +2339,8 @@ This is a generic error that is simply added to *measurement_vector* as if
 
 where y represents *measurement_vector* and y0 is the measurement
 
-Order 0 means constant: y := y0 + a
-Order 1 means linear:   y := y0 + a + b * t
+Order 0 means constant: :math:`y = y_0 + a`
+Order 1 means linear:   :math:`y = y_0 + a + b t`
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -2370,8 +2370,8 @@ those with regards to a, b, etc..
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
-Order 0 means constant: f := f0 + a
-Order 1 means linear:   f := f0 + a + b * f0
+Order 0 means constant: :math:`f := f_0 + a`
+Order 1 means linear:   :math:`f := f_0 + a + b f_0`
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -4238,12 +4238,14 @@ Work in progress ...
 The cost function to minimise, including a normalisation with length
 of *measurement_vector*, is:
 
+.. math::
     cost = cost_y + cost_x
 
 where:
 
-    cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
-    cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+.. math::
+    cost_y = 1/m [y-yf]' covmat_se_inv [y-yf]
+    cost_x = 1/m [x-xa]' covmat_sx_inv [x-xa]
 
 The current implementation provides 3 methods for the minimization of
 the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
@@ -4517,7 +4519,8 @@ Description of the special input arguments:
       .desc =
           R"--(Setup for Disort standard calculations.
 
-This method allows setting up *disort_settings_agenda* by named options.  A description of the options is given below.
+This method allows setting up *disort_settings_agenda* by named options.
+A description of the options is given below.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings_agenda"},

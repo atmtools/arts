@@ -88,40 +88,44 @@ std::string fix_newlines(std::string x) {
   return x;
 }
 
-String unwrap_stars(String x) try {
-  const auto find = [&](auto p) {
-    p = std::min(p, x.end());
-    return std::find(p, x.end(), '*');
-  };
-  const auto idx = [&](auto p) { return std::distance(x.begin(), p); };
-  const auto mv  = [&](auto p) {
-    do p++;
-    while (p < x.end() and not nonstd::isspace(*p) and (*p) not_eq '*');
-    return std::min(p, x.end());
-  };
+bool isnotletter(char c) {
+  return not nonstd::isabc(c);
+}
 
-  std::vector<Index> start_pos;
+String unwrap_stars(const String& x) try {
+  auto ptr       = x.begin();
+  const auto end = x.end();
 
-  auto ptr = find(x.begin());
-  while (ptr < x.end()) {
-    const Index pos = idx(ptr);
-    ptr             = mv(ptr);
-    if (ptr < x.end() and *(ptr) == '*') start_pos.push_back(pos);
-    ptr = find(ptr + 1);
+  String out{};
+  out.reserve(x.size() + 1000);
+
+  bool maybe_first = true;
+  while (ptr < end) {
+    const auto c = *ptr;
+    ++ptr;
+
+    if (not maybe_first or c != '*' or ptr == end) {
+      out.push_back(c);
+      maybe_first = nonstd::isspace(c);
+      continue;
+    }
+
+    const auto first = ptr;
+    ptr++;
+
+    if (isnotletter(*first)) {
+      out.push_back('*');
+      out.push_back(*first);
+      ptr++;
+      continue;
+    }
+
+    while (ptr < end and *ptr != '*') ++ptr;
+    out += as_pyarts({first, ptr});
+    ptr++;  // May be beyond end
   }
 
-  while (not start_pos.empty()) {
-    const Index pos = start_pos.back();
-    start_pos.pop_back();
-    const auto start_ptr    = x.begin() + pos;
-    const auto end_ptr      = 1 + mv(start_ptr);
-    const auto replace_name = x.substr(pos, std::distance(start_ptr, end_ptr));
-    x.replace(start_ptr,
-              end_ptr,
-              as_pyarts(replace_name.substr(1, replace_name.size() - 2)));
-  }
-
-  return x;
+  return out;
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Could not unwrap stars: {}", std::string_view(e.what())));
@@ -227,25 +231,29 @@ String compose_generic_groups(const String& grps) {
 String to_defval_str(const Wsv& wsv) try {
   const auto& group = wsv.type_name();
 
-  std::string out = wsv.vformat("{}");
+  std::string out = wsv.vformat("``{}``");
 
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();
 
   if (group == "String" and
       (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
-    return std::format("\"{}\"", out);
+    return std::format("``\"{}\"``", out);
+  }
+
+  if (group == "Agenda") {
+    return unwrap_stars(wsv.get<Agenda>().sphinx_list("#. "sv));
   }
 
   if (out.size() == 0) {
     if (group.starts_with("Array") or group == "Vector" or group == "Matrix" or
         group == "Tensor3" or group == "Tensor4" or group == "Tensor5" or
         group == "Tensor6" or group == "Tensor7")
-      return "[]";
+      return "``[]``";
 
-    if (group == "Numeric" or group == "Index") return "0";
+    if (group == "Numeric" or group == "Index") return "``0``";
 
-    return std::format("pyarts.arts.{}()", group);
+    return std::format("``pyarts.arts.{}()``", group);
   }
 
   return out;
@@ -382,8 +390,7 @@ String method_docs(const String& name) try {
   if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {
     out += std::format(R"(
 
-Valid options
--------------
+.. rubric:: Valid options
 
 These are the valid options for the ``{}`` method.
 The listed method calls describe the order of the agenda calls for each ``option``.
@@ -411,8 +418,7 @@ The listed method calls describe the order of the agenda calls for each ``option
   if (wsms_extra.find(name) != wsms_extra.end()) {
     out += std::format(R"(
 
-Extra
------
+.. rubric:: Extra
 
 {}
 
