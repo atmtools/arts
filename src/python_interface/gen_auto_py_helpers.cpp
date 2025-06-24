@@ -228,17 +228,17 @@ String compose_generic_groups(const String& grps) {
   return std::format("~pyarts.arts.{}", grps);
 }
 
-String to_defval_str(const Wsv& wsv) try {
+String to_defval_str(const Wsv& wsv, const std::string_view x) try {
   const auto& group = wsv.type_name();
 
-  std::string out = wsv.vformat("``{}``");
+  std::string out = wsv.vformat("{}");
 
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();
 
   if (group == "String" and
       (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
-    return std::format("``\"{}\"``", out);
+    return std::format("{1}\"{0}\"{1}", out, x);
   }
 
   if (group == "Agenda") {
@@ -249,14 +249,14 @@ String to_defval_str(const Wsv& wsv) try {
     if (group.starts_with("Array") or group == "Vector" or group == "Matrix" or
         group == "Tensor3" or group == "Tensor4" or group == "Tensor5" or
         group == "Tensor6" or group == "Tensor7")
-      return "``[]``";
+      return std::format("{0}[]{0}", x);
 
-    if (group == "Numeric" or group == "Index") return "``0``";
+    if (group == "Numeric" or group == "Index") return std::format("{0}0{0}", x);
 
-    return std::format("``pyarts.arts.{}()``", group);
+    return std::format("{1}pyarts.arts.{0}(){1}", group, x);
   }
 
-  return out;
+  return std::format("{1}{0}{1}", out, x);
 } catch (std::bad_variant_access&) {
   throw std::runtime_error("Cannot convert to defval string");
 } catch (std::exception& e) {
@@ -373,7 +373,7 @@ String method_docs(const String& name) try {
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? std::format(" Defaults to ``{}``", to_defval_str(*defval))
+        has_defval ? std::format(" Defaults to {}", to_defval_str(*defval, "``"sv))
                    : ""};
     out += std::format(R"(
 {0} : {1}{2}
