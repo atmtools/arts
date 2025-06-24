@@ -184,7 +184,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
 
   However, the flag for bailing and stopping this recursion
   is that there are no more jacobian targets.  So it calls
-  itself always with an empty jascobian_targets.  This is how
+  itself always with an empty jacobian_targets.  This is how
   it bails out of the recursion.
 
   As this method is useless unless there are sensor elements,
