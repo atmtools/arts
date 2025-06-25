@@ -139,53 +139,27 @@ void spectral_radianceFromPathPropagation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_jacobianApplyUnit(
-    StokvecMatrix &spectral_radiance_jacobian,
-    const StokvecVector &spectral_radiance,
-    const AscendingGrid &frequency_grid,
-    const PropagationPathPoint &ray_path_point,
-    const SpectralRadianceUnitType &spectral_radiance_unit) try {
+void spectral_radiance_transform_operatorSet(
+    SpectralRadianceTransformOperator &spectral_radiance_transform_operator,
+    const SpectralRadianceUnitType &x) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
-                     "spectral_radiance must have same size as frequency_grid")
-  ARTS_USER_ERROR_IF(
-      spectral_radiance_jacobian.size() != 0 and
-          static_cast<Size>(spectral_radiance_jacobian.ncols()) !=
-              frequency_grid.size(),
-      "spectral_radiance must have same size as frequency_grid")
-
-  const auto dF =
-      rtepack::dunit_converter(spectral_radiance_unit, ray_path_point.nreal);
-
-  //! Must apply the unit to the spectral radiance jacobian first
-  for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
-    for (Index j = 0; j < spectral_radiance_jacobian.ncols(); j++) {
-      spectral_radiance_jacobian[i, j] = dF(spectral_radiance_jacobian[i, j],
-                                            spectral_radiance[j],
-                                            frequency_grid[j]);
-    }
-  }
+  spectral_radiance_transform_operator = SpectralRadianceTransformOperator(x);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceApplyUnit(
-    StokvecVector &spectral_radiance,
-    const AscendingGrid &frequency_grid,
-    const PropagationPathPoint &ray_path_point,
-    const SpectralRadianceUnitType &spectral_radiance_unit) try {
+void spectral_radianceApplyUnit(StokvecVector &spectral_radiance,
+                                StokvecMatrix &spectral_radiance_jacobian,
+                                const AscendingGrid &frequency_grid,
+                                const PropagationPathPoint &ray_path_point,
+                                const SpectralRadianceTransformOperator
+                                    &spectral_radiance_transform_operator) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
-                     "spectral_radiance must have same size as frequency_grid")
-  const auto F =
-      rtepack::unit_converter(spectral_radiance_unit, ray_path_point.nreal);
-
-  std::transform(spectral_radiance.begin(),
-                 spectral_radiance.end(),
-                 frequency_grid.begin(),
-                 spectral_radiance.begin(),
-                 [&F](const Stokvec &v, const Numeric f) { return F(v, f); });
+  spectral_radiance_transform_operator(spectral_radiance,
+                                       spectral_radiance_jacobian,
+                                       frequency_grid,
+                                       ray_path_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -212,7 +186,11 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
   is that there are no more jacobian targets.  So it calls
   itself always with an empty jacobian_targets.  This is how
   it bails out of the recursion.
-  
+
+  As this method is useless unless there are sensor elements,
+  we use empty Sensor targets rather than empty jacobian_targets
+  as a mini-optimization.
+
   */
   if (jacobian_targets.sensor().empty()) return;
 
@@ -375,7 +353,8 @@ void measurement_vectorFromSensor(
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
     const SubsurfaceField &subsurface_field,
-    const SpectralRadianceUnitType &spectral_radiance_unit,
+    const SpectralRadianceTransformOperator
+        &spectral_radiance_transform_operator,
     const Agenda &spectral_radiance_observer_agenda) try {
   ARTS_TIME_REPORT
 
@@ -466,11 +445,11 @@ void measurement_vectorFromSensor(
           subsurface_field,
           spectral_radiance_observer_agenda);
 
-      spectral_radianceApplyUnitFromSpectralRadiance(spectral_radiance,
-                                                     spectral_radiance_jacobian,
-                                                     *f_grid_ptr,
-                                                     ray_path,
-                                                     spectral_radiance_unit);
+      ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
+      spectral_radiance_transform_operator(spectral_radiance,
+                                           spectral_radiance_jacobian,
+                                           *f_grid_ptr,
+                                           ray_path.front());
 
 #pragma omp critical
       for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {

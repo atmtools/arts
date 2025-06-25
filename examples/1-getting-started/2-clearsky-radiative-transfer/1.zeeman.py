@@ -7,8 +7,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-nf = 1001
-ws.frequency_grid = np.linspace(-50e6, 50e6, nf) + line_f0
+ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + line_f0
 
 # %% Species and line absorption
 
@@ -32,20 +31,19 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_unit = "1"
-ws.spectral_radiance_space_agendaSet(option="Transmission")
-ws.spectral_radiance_surface_agendaSet(option="Transmission")
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 
 # %% Core calculations
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
-ws.spectral_radianceClearskyTransmission()
+ws.spectral_radianceClearskyEmission()
+ws.spectral_radianceApplyUnitFromSpectralRadiance()
 
 # %% Show results
 
-plt.semilogy((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
+plt.plot((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance + 0)
 plt.xlabel("Frequency offset [MHz]")
 plt.ylabel("Spectral radiance [K]")
 plt.title(f"Zeeman effect of {round(line_f0/1e6)} MHz O$_2$ line")
@@ -56,17 +54,17 @@ assert np.allclose(
     ws.spectral_radiance[::100],
     np.array(
         [
-            [3.48823498e-06, -1.46551713e-10, 3.81072431e-11, -4.59221798e-08],
-            [1.71706875e-06, -1.10970204e-10, 2.94013625e-11, -2.78281718e-08],
-            [6.98940567e-07, -7.87051453e-11, 2.15072772e-11, -1.48128572e-08],
-            [2.02345215e-07, -4.99009177e-11, 1.44875960e-11, -6.26439080e-09],
-            [2.59661967e-08, -2.45683770e-11, 8.49367757e-12, -1.54349235e-09],
-            [3.26929916e-13, 2.91596383e-13, 1.29579122e-13, 8.52093039e-18],
-            [2.59895225e-08, -2.46091531e-11, 8.50852019e-12, 1.54840970e-09],
-            [2.02661063e-07, -5.00559190e-11, 1.45335398e-11, 6.29845922e-09],
-            [7.00439370e-07, -7.90569785e-11, 2.16047322e-11, 1.49217232e-08],
-            [1.72166340e-06, -1.11611698e-10, 2.95731412e-11, 2.80799246e-08],
-            [3.49928820e-06, -1.47585397e-10, 3.83784757e-11, 4.64084437e-08],
+            [2.27784834e02, 4.24956142e-04, -1.07495419e-04, 5.69266632e-02],
+            [2.30863853e02, 6.57653186e-04, -1.68431453e-04, 7.04138002e-02],
+            [2.34806521e02, 1.16288793e-03, -3.04094356e-04, 9.33836080e-02],
+            [2.40360801e02, 2.59757645e-03, -7.08915090e-04, 1.40029968e-01],
+            [2.49782407e02, 9.58496203e-03, -3.00953814e-03, 2.69735122e-01],
+            [2.07248447e02, 2.17886934e01, 1.95305632e00, 1.25057382e-05],
+            [2.49781840e02, 9.58837415e-03, -3.01090734e-03, -2.69812575e-01],
+            [2.40359708e02, 2.59935325e-03, -7.09472967e-04, -1.40106546e-01],
+            [2.34804943e02, 1.16407621e-03, -3.04437307e-04, -9.34596090e-02],
+            [2.30861802e02, 6.58551211e-04, -1.68679754e-04, -7.04898114e-02],
+            [2.27782317e02, 4.25683062e-04, -1.07691261e-04, -5.70026253e-02],
         ]
     ),
 ), "Values have drifted from expected results in spectral radiance"

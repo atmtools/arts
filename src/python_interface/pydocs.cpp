@@ -34,7 +34,7 @@ String group_generics_inout(const String& group) try {
                        group,
                        hlist_num_cols(outdocs.first));
     for (auto& m : outdocs.first)
-      out += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+      out += std::format("\n    *  :func:`~pyarts.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
@@ -48,7 +48,7 @@ String group_generics_inout(const String& group) try {
                        group,
                        hlist_num_cols(outdocs.second));
     for (auto& m : outdocs.second)
-      out += std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+      out += std::format("\n    *  :func:`~pyarts.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
@@ -79,7 +79,7 @@ String group_workspace_types(const String& group) try {
                        group,
                        hlist_num_cols(vars));
     for (auto& m : vars)
-      out += std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", m);
+      out += std::format("\n    *  :attr:`~pyarts.workspace.Workspace.{}`", m);
   }
 
   return out + "\n";

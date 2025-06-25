@@ -559,21 +559,6 @@ gravity : Numeric
       .type = "NumericTernaryOperator",
   };
 
-  wsv_data["spectral_radiance_unit"] = {
-      .desc          = R"--(The spectral radiance unit after conversion.
-
-Internally, it is always assumed that this is set to "1" and that no
-unit conversion are taking place. 
-
-Please be aware of limitations of follow-up method calls when using this variable manually.
-Unless a method or variable explicitly mention that a unit conversion is supported before
-it is called, the use of *spectral_radiance_unit* with a different unit than "1" may lead to
-undesired results.
-)--",
-      .type          = "SpectralRadianceUnitType",
-      .default_value = "SpectralRadianceUnitType::unit",
-  };
-
   wsv_data["spectral_radiance_field"] = {
       .desc = R"(The spectral radiance field.
 
@@ -583,6 +568,16 @@ Dimensions are altitude times latitude times longitude times zenith times azimut
 )",
       .type = "StokvecSortedGriddedField6",
   };
+
+  wsv_data["spectral_radiance_transform_operator"] = {
+      .desc = R"(The spectral radiance transform operator
+
+This is responsible for things like converting the spectral radiance
+into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
+)",
+      .type = "SpectralRadianceTransformOperator",
+      .default_value =
+          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)"};
 
   wsv_data["spectral_radiance"] = {
       .desc = R"--(A spectral radiance vector.

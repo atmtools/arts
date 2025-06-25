@@ -157,10 +157,12 @@ void spectral_flux_profileFromPathField(
       not arr::each_same_size(ray_path_spectral_radiance_field, ray_path_field),
       "Not all ray paths have the same altitude count")
 
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(ray_path_spectral_radiance_field | stdv::join,
-                   [K](const StokvecVector& v) { return v.size() != K; }),
-      "Not all ray path spectral radiances in the field have the same frequency count")
+  for (auto& sradf : ray_path_spectral_radiance_field) {
+    ARTS_USER_ERROR_IF(
+        stdr::any_of(sradf,
+                     [K](const StokvecVector& v) { return v.size() != K; }),
+        "Not all ray path spectral radiances in the field have the same frequency count")
+  }
 
   struct Zenith {
     Size outer;

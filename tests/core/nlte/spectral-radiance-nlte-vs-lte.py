@@ -25,7 +25,7 @@ ws.surface_field["t"] = ws.atmospheric_field["t"].data[0, 0, 0]
 line_f0 = 556936000000.0
 ws.frequency_grid = np.linspace(-5e6, 5e6, 11) + line_f0
 
-ws.spectral_radiance_unit = "Tb"
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.propagation_matrix_agendaAuto()

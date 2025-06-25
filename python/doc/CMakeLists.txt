@@ -59,10 +59,9 @@ if(SPHINX_FOUND)
   add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_examples_rst
-    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/examples examples source
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/source/
     COMMENT "Generating examples RST files"
   )
-  add_dependencies(gen_examples_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   #
   # Clean

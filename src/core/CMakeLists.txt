@@ -48,6 +48,7 @@ add_library(artscore STATIC
   minimize.cc
   optproperties.cc
   sun.cc
+  spectral_radiance_transform_operator.cc
 )
 
 target_link_libraries(artscore PUBLIC

@@ -10,7 +10,10 @@ namespace nonstd {
  * @param[in] x Any real value type
  * @return |x|
  */
-template <class T> constexpr T abs(T x) noexcept {return x < 0 ? - x : x;}
+template <class T>
+constexpr T abs(T x) noexcept {
+  return x < 0 ? -x : x;
+}
 
 /*! Checks if the given character in 0123456789.
  * 
@@ -22,9 +25,8 @@ template <class T> constexpr T abs(T x) noexcept {return x < 0 ? - x : x;}
  * @return int from a simple boolean.
  */
 constexpr int isdigit(int ch) noexcept {
-  return ch == '0' or ch == '1' or ch == '2' or ch == '3' or
-         ch == '4' or ch == '5' or ch == '6' or ch == '7' or
-         ch == '8' or ch == '9';
+  return ch == '0' or ch == '1' or ch == '2' or ch == '3' or ch == '4' or
+         ch == '5' or ch == '6' or ch == '7' or ch == '8' or ch == '9';
 }
 
 /** Returns true if x is a standard space-character
@@ -39,6 +41,27 @@ constexpr bool isspace(unsigned char ch) noexcept {
          ch == '\v';
 }
 
+/** Returns true if x is a standard abc/ABC-character
+ * 
+ * Reason to re-implement: std::isspace(ch) is not officially constexpr
+ * 
+ * @param[in] x a character
+ * @return true if x is a space
+ */
+constexpr bool isabc(unsigned char ch) noexcept {
+  return ch == 'a' or ch == 'b' or ch == 'c' or ch == 'd' or ch == 'e' or
+         ch == 'f' or ch == 'g' or ch == 'h' or ch == 'i' or ch == 'j' or
+         ch == 'k' or ch == 'l' or ch == 'm' or ch == 'n' or ch == 'o' or
+         ch == 'p' or ch == 'q' or ch == 'r' or ch == 's' or ch == 't' or
+         ch == 'u' or ch == 'v' or ch == 'w' or ch == 'x' or ch == 'y' or
+         ch == 'z' or ch == 'A' or ch == 'B' or ch == 'C' or ch == 'D' or
+         ch == 'E' or ch == 'F' or ch == 'G' or ch == 'H' or ch == 'I' or
+         ch == 'J' or ch == 'K' or ch == 'L' or ch == 'M' or ch == 'N' or
+         ch == 'O' or ch == 'P' or ch == 'Q' or ch == 'R' or ch == 'S' or
+         ch == 'T' or ch == 'U' or ch == 'V' or ch == 'W' or ch == 'X' or
+         ch == 'Y' or ch == 'Z';
+}
+
 /*! Checks if the given value is nan
  * 
  * Reason to re-implement: std::isnan(d) is not officially constexpr
@@ -48,9 +71,9 @@ constexpr bool isspace(unsigned char ch) noexcept {
  * @param[in] d A value
  * @return int from a simple boolean.
  */
-constexpr bool isnan(double d) noexcept {return d not_eq d;}
-constexpr bool isnan(long double d) noexcept {return d not_eq d;}
-constexpr bool isnan(float d) noexcept {return d not_eq d;}
-} // namespace nonstd
+constexpr bool isnan(double d) noexcept { return d not_eq d; }
+constexpr bool isnan(long double d) noexcept { return d not_eq d; }
+constexpr bool isnan(float d) noexcept { return d not_eq d; }
+}  // namespace nonstd
 
 #endif

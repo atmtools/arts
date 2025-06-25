@@ -40,9 +40,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_unit = "Tb"
-ws.spectral_radiance_observer_agendaSet(option="Emission")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_surface_agendaSet(option="FlatScalarReflectance")
 ws.ray_path_observer_agendaSetGeometric()
 
@@ -52,14 +50,6 @@ ts = 295.0
 rs = 0.5
 ws.surface_field["t"] = ts
 ws.surface_field["flat scalar reflectance"] = rs
-
-# %% Retrieval agenda
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
 
 pos = [110e3, 0, 0]
 los = [160.0, 30.0]

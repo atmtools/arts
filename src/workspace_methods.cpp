@@ -755,7 +755,7 @@ spherical harmonics and is only valid for a limited time period.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
       .gin_desc =
-          {R"--(Frequency grid spacing around the line-center.  The range will be f0 * (1-df) to f0 * (1 +df) of each absorption line.)--",
+          {R"--(Frequency grid spacing around the line-center.  The range will be :math:`f_0(1-\delta f)` to :\math:`f_0(1 +\delta f)` of each absorption line.)--",
            R"--(Number of frequency points per line.)--"},
   };
 
@@ -1264,7 +1264,7 @@ interaction with a magnetic field. Hence, this method requires
 Faraday rotation affects Stokes parameters 2 and 3 (but not
 intensity!). Therefore, this method requires stokes_dim>2.
 
-Like all 'propagation_matrixAdd*' methods, the method is additive,
+Like all *propagation_matrix*-modifying methods, the method is additive,
 i.e., does not overwrite the propagation matrix *propagation_matrix*,
 but adds further contributions.
 )--",
@@ -1919,7 +1919,7 @@ The ``alts`` vector contains the altitude grid values that limits the
 extrapolation distance in altitude.  The first altitude in this
 list should corresond to the altitude of the ``p0`` grid.  The extrapolation
 outside of this range simply uses the hydrostatic equation
-$P_1 = P_0 - g * h * \rho$ by means of the specific gas constant omputed
+:math:`P_1 = P_0 - g h \rho` by means of the specific gas constant omputed
 as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
@@ -2154,42 +2154,39 @@ Size : (*jacobian_targets*, *frequency_grid*)
                  "ray_path"},
   };
 
-  wsm_data["spectral_radiance_jacobianApplyUnit"] = {
-      .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
-
-Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
-
-.. warning::
-  This is a destructive method.  Any use of it means that it is undefined behavior
-  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_jacobian",
-                 "spectral_radiance",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "spectral_radiance_unit"},
+  wsm_data["spectral_radiance_transform_operatorSet"] = {
+      .desc =
+          "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_radiance_transform_operator"},
+      .gin       = {"option"},
+      .gin_type  = {"SpectralRadianceUnitType"},
+      .gin_value = {std::nullopt},
+      .gin_desc =
+          {"The type of the spectral radiance transform operator to create. See *SpectralRadianceUnitType* for valid values and what they do."},
   };
 
   wsm_data["spectral_radianceApplyUnit"] = {
       .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
 
-See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
-and limitations.
+See *SpectralRadianceUnitType* for valid use cases and limitations.
 
-Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+This effectively wraps the local creation of a *SpectralRadianceTransformOperator* call.
 
 .. warning::
   This is a destructive method.  Any use of it means that it is undefined behavior
   to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"spectral_radiance",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "spectral_radiance_unit"},
+      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in =
+          {
+              "spectral_radiance",
+              "spectral_radiance_jacobian",
+              "frequency_grid",
+              "ray_path_point",
+              "spectral_radiance_transform_operator",
+          },
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {
@@ -2342,8 +2339,8 @@ This is a generic error that is simply added to *measurement_vector* as if
 
 where y represents *measurement_vector* and y0 is the measurement
 
-Order 0 means constant: y := y0 + a
-Order 1 means linear:   y := y0 + a + b * t
+Order 0 means constant: :math:`y = y_0 + a`
+Order 1 means linear:   :math:`y = y_0 + a + b t`
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -2373,8 +2370,8 @@ those with regards to a, b, etc..
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
-Order 0 means constant: f := f0 + a
-Order 1 means linear:   f := f0 + a + b * f0
+Order 0 means constant: :math:`f := f_0 + a`
+Order 1 means linear:   :math:`f := f_0 + a + b f_0`
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -3761,9 +3758,12 @@ The core calculations happens inside the *spectral_radiance_operator*.
 
 The core calculations happens inside the *spectral_radiance_observer_agenda*.
 
-User choices of *spectral_radiance_unit* does not adversely affect this method
-unless the *measurement_vector* or *measurement_jacobian* are further modified
-before consumption by, e.g., *OEM*
+.. note::
+    If you want to convert from radiance units to other units as part of
+    your sensor setup, please set the GIN.  It can be constructed from
+    strings or from *SpectralRadianceUnitType*.  The latter's documentation
+    shows the type of transformations that are applied.  By default, no
+    transformations are applied.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
@@ -3772,7 +3772,7 @@ before consumption by, e.g., *OEM*
                          "atmospheric_field",
                          "surface_field",
                          "subsurface_field",
-                         "spectral_radiance_unit",
+                         "spectral_radiance_transform_operator",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
   };
@@ -4238,12 +4238,14 @@ Work in progress ...
 The cost function to minimise, including a normalisation with length
 of *measurement_vector*, is:
 
+.. math::
     cost = cost_y + cost_x
 
 where:
 
-    cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
-    cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+.. math::
+    cost_y = 1/m [y-yf]' covmat_se_inv [y-yf]
+    cost_x = 1/m [x-xa]' covmat_sx_inv [x-xa]
 
 The current implementation provides 3 methods for the minimization of
 the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
@@ -4517,7 +4519,8 @@ Description of the special input arguments:
       .desc =
           R"--(Setup for Disort standard calculations.
 
-This method allows setting up *disort_settings_agenda* by named options.  A description of the options is given below.
+This method allows setting up *disort_settings_agenda* by named options.
+A description of the options is given below.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings_agenda"},

@@ -1100,6 +1100,30 @@ The first grid is descending and the other grids are sorted in ascending order.
 )--",
   };
 
+  wsg_data["SpectralRadianceTransformOperator"] = {
+      .file = "spectral_radiance_transform_operator.h",
+      .desc = R"--(Transformation of *spectral_radiance* and *spectral_radiance_jacobian*
+
+This type of transformation should be used limitedly.  It is useful
+as the last step before creating a *measurement_vector*, as it is
+used for in *measurement_vectorFromSensor* or just before displaying
+data in a plotting routine.  It will destroy the *spectral_radiance*
+and *spectral_radiance_jacobian* and replace them with the transformed
+values.  They can likely not be reused for further calculations.
+
+Parameters
+----------
+spectral_radiance : StokvecVector
+    As WSV *spectral_radiance* **[INOUT]**
+spectral_radiance_jacobian : StokvecMatrix
+    As WSV *spectral_radiance_jacobian* **[INOUT]**
+frequency_grid : AscendingGrid
+    As WSV *frequency_grid* **[IN]**
+ray_path_point : PropagationPathPoint
+    As WSV *ray_path_point* **[IN]**
+)--",
+  };
+
   for (auto& g : internal_options()) {
     if (wsg_data.find(g.name) != wsg_data.end())
       throw std::runtime_error(

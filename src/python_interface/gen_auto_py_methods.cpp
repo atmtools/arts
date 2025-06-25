@@ -604,7 +604,7 @@ std::string method_error(const std::string& name,
     arg.push_back(std::format(
         R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
         t,
-        v ? std::format("{}", to_defval_str(*v)) : "None"));
+        v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
   }
 
   os << ")\n\nMethod reports the following error(s):\n{})-WSM-\", ";
