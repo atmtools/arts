@@ -15,7 +15,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimple",
-      .desc    = "Wrapper for a single simple dirac-opening sensor",
+      .desc    = R"(Creates a single simple dirac-opening sensor)",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
       .out     = {"measurement_sensor"},
@@ -23,7 +23,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimpleGaussian",
-      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .desc    = "Creates a single simple Gaussian-opening sensor",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit",
                   "measurement_sensorAddSimpleGaussian"},
@@ -32,7 +32,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorVectorGaussian",
-      .desc    = "Wrapper for a single simple Gaussian-opening sensor",
+      .desc    = "Creates a single simple Gaussian-opening sensor",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit",
                   "measurement_sensorAddVectorGaussian"},
@@ -87,7 +87,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .desc    = R"(Helper method for calling *spectral_radianceApplyUnit*.
 
 It is common that *ray_path* is defined but not *ray_path_point*.
-This method simply is a convenience wrapper for that case.
+This method simply is a convenience wrapper for that use case.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointForeground",
@@ -116,7 +116,7 @@ This method simply is a convenience wrapper for that case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceClearskyRayleighScattering",
-      .desc    = "Computes clearsky emission of spectral radiances",
+      .desc    = "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
@@ -184,7 +184,7 @@ This method simply is a convenience wrapper for that case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name             = "atmospheric_fieldRead",
-      .desc             = "Reads absorption file from a directory",
+      .desc             = "Read atmospheric data files from a directory",
       .author           = {"Richard Larsson"},
       .methods          = {"atmospheric_fieldInit",
                            "atmospheric_fieldAppendBaseData",
@@ -196,7 +196,7 @@ This method simply is a convenience wrapper for that case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "atmospheric_fieldFitNonLTE",
-      .desc    = "Fits ",
+      .desc    = "Fits non-LTE atmospheric field values",
       .author  = {"Richard Larsson"},
       .methods = {"atmospheric_profileFromGrid",
                   "atmospheric_profileFitNonLTE",

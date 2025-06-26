@@ -43,8 +43,6 @@ constexpr bool isspace(unsigned char ch) noexcept {
 
 /** Returns true if x is a standard abc/ABC-character
  * 
- * Reason to re-implement: std::isspace(ch) is not officially constexpr
- * 
  * @param[in] x a character
  * @return true if x is a space
  */
@@ -60,6 +58,18 @@ constexpr bool isabc(unsigned char ch) noexcept {
          ch == 'O' or ch == 'P' or ch == 'Q' or ch == 'R' or ch == 'S' or
          ch == 'T' or ch == 'U' or ch == 'V' or ch == 'W' or ch == 'X' or
          ch == 'Y' or ch == 'Z';
+}
+
+/** Returns true if x is a standard bracket-character
+ * 
+ * @param[in] x a character
+ * @return true if x is a space
+ */
+constexpr bool isbracket(unsigned char c) noexcept {
+  return c == '(' or c == ')' or
+         c == '[' or c == ']' or
+         c == '{' or c == '}' or
+         c == '<' or c == '>';
 }
 
 /*! Checks if the given value is nan

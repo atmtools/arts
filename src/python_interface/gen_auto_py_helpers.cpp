@@ -88,9 +88,7 @@ std::string fix_newlines(std::string x) {
   return x;
 }
 
-bool isnotletter(char c) {
-  return not nonstd::isabc(c);
-}
+bool isnotletter(char c) { return not nonstd::isabc(c); }
 
 String unwrap_stars(const String& x) try {
   auto ptr       = x.begin();
@@ -106,7 +104,7 @@ String unwrap_stars(const String& x) try {
 
     if (not maybe_first or c != '*' or ptr == end) {
       out.push_back(c);
-      maybe_first = nonstd::isspace(c);
+      maybe_first = nonstd::isspace(c) or nonstd::isbracket(c);
       continue;
     }
 
@@ -250,7 +248,8 @@ String to_defval_str(const Wsv& wsv, const std::string_view x) try {
         group == "Tensor6" or group == "Tensor7")
       return std::format("{0}[]{0}", x);
 
-    if (group == "Numeric" or group == "Index") return std::format("{0}0{0}", x);
+    if (group == "Numeric" or group == "Index")
+      return std::format("{0}0{0}", x);
 
     return std::format("{1}pyarts.arts.{0}(){1}", group, x);
   }
@@ -371,9 +370,9 @@ String method_docs(const String& name) try {
     const auto& defval    = method.gin_value[i];
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
-    const String optval{
-        has_defval ? std::format(" Defaults to {}", to_defval_str(*defval, "``"sv))
-                   : ""};
+    const String optval{has_defval ? std::format(" Defaults to {}",
+                                                 to_defval_str(*defval, "``"sv))
+                                   : ""};
     out += std::format(R"(
 {0} : {1}{2}
     {3}{4} **[IN]**)",

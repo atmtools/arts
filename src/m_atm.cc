@@ -360,6 +360,37 @@ void atmospheric_fieldAppendCIASpeciesData(
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const AbsorptionLookupTables &absorption_lookup_table) {
+  if (absorption_lookup_table.empty()) return;
+
+  for (auto &&spec : absorption_lookup_table | stdv::keys) {
+    ++keys[spec];
+  }
+}
+
+void atmospheric_fieldAppendLookupTableSpeciesData(
+    AtmField &atmospheric_field,
+    const AbsorptionLookupTables &absorption_lookup_table,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  ARTS_TIME_REPORT
+
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_lookup_table);
+
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const ArrayOfXsecRecord &absorption_xsec_fit_data) {
   if (absorption_xsec_fit_data.empty()) return;
 
@@ -472,6 +503,18 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
                                           extrapolation,
                                           missing_is_zero,
                                           replace_existing);
+  }
+
+  if (const String lookup_str = "absorption_lookup_table";
+      ws.wsv_and_contains(lookup_str)) {
+    using lookup_t                      = AbsorptionLookupTables;
+    const auto &absorption_lookup_table = ws.get<lookup_t>(lookup_str);
+    atmospheric_fieldAppendLookupTableSpeciesData(atmospheric_field,
+                                                  absorption_lookup_table,
+                                                  basename,
+                                                  extrapolation,
+                                                  missing_is_zero,
+                                                  replace_existing);
   }
 
   if (const String xsec_str = "absorption_xsec_fit_data";

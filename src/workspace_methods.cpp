@@ -361,8 +361,6 @@ This method can ignore any workspace variable you want.
 
 This method can read variables of any group.
 
-If the filename is omitted, the variable is read
-from <basename>.<variable_name>.xml.
 If the given filename does not exist, this method will
 also look for files with an added .xml, .xml.gz and .gz extension
 )--",
@@ -372,7 +370,7 @@ also look for files with an added .xml, .xml.gz and .gz extension
       .gout_desc = {R"--(Variable to be read.)--"},
       .gin       = {"filename"},
       .gin_type  = {"String"},
-      .gin_value = {String("")},
+      .gin_value = {std::nullopt},
       .gin_desc  = {R"--(Name of the XML file.)--"},
   };
 
@@ -386,7 +384,7 @@ The variable is read from a file with name::
 where <file_index> is the value of ``file_index``.
 
 This means that ``filename`` shall here not include the .xml
-extension. Omitting filename works as for *ReadXML*.
+extension.
 )--",
       .author    = {"Oliver Lemke"},
       .gout      = {"output"},
@@ -394,7 +392,7 @@ extension. Omitting filename works as for *ReadXML*.
       .gout_desc = {R"--(Workspace variable to be read.)--"},
       .gin       = {"file_index", "filename", "digits"},
       .gin_type  = {"Index", "String", "Index"},
-      .gin_value = {std::nullopt, String(""), Index{0}},
+      .gin_value = {std::nullopt, std::nullopt, Index{0}},
       .gin_desc =
           {R"--(Index of the file to read.)--",
            R"--(File name. See above.)--",
@@ -425,7 +423,7 @@ warnings about not-produced output workspace variables.
 
 What it does, in case the variable is initialized already, is:
 Nothing!
-In case the variable is not yet initialized, it is set to NaN.
+In case the variable is not yet initialized, it is default initialized.
 )--",
       .author    = {"Oliver Lemke"},
       .gout      = {"input"},
@@ -492,8 +490,6 @@ See *FileType* for valid ``output_file_format``.
 
 This method can write variables of any group.
 
-If the filename is omitted, the variable is written
-to <basename>.<variable_name>.xml.
 If no_clobber is set to 1, an increasing number will be
 appended to the filename if the file already exists.
 
@@ -502,7 +498,7 @@ See *FileType* for valid ``output_file_format``.
       .author    = {"Oliver Lemke"},
       .gin       = {"output_file_format", "input", "filename", "no_clobber"},
       .gin_type  = {"String", "Any", "String", "Index"},
-      .gin_value = {String("ascii"), std::nullopt, String(""), Index{0}},
+      .gin_value = {String("ascii"), std::nullopt, std::nullopt, Index{0}},
       .gin_desc =
           {"The format of the output",
            R"--(Variable to be saved.)--",
@@ -520,7 +516,7 @@ The variable is written to a file with name::
 where <file_index> is the value of ``file_index``.
 
 This means that ``filename`` shall here not include the .xml
-extension. Omitting filename works as for *WriteXML*.
+extension.
 
 See *FileType* for valid ``output_file_format``.
 )--",
@@ -529,7 +525,7 @@ See *FileType* for valid ``output_file_format``.
           {"output_file_format", "file_index", "input", "filename", "digits"},
       .gin_type = {"String", "Index", "Any", "String", "Index"},
       .gin_value =
-          {String("ascii"), std::nullopt, std::nullopt, String(""), Index{0}},
+          {String("ascii"), std::nullopt, std::nullopt, std::nullopt, Index{0}},
       .gin_desc =
           {"The format of the output",
            R"--(Index number for files.)--",
@@ -563,8 +559,9 @@ species in cia_record are not in *absorption_cia_data*, the CIARecord is pushed 
 in *absorption_species*.
 
 The units in the HITRAN file are:
- - Frequency: cm^(-1)
- - Binary absorption cross-section: cm^5 molec^(-2)
+
+- Frequency: cm^(-1)
+- Binary absorption cross-section: cm^5 molec^(-2)
 
 Upon reading we convert this to the ARTS internal SI units 
 of Hz and m^5 molec^(-2).
@@ -678,56 +675,27 @@ after the regridding at all positions.
   };
 
   wsm_data["absorption_speciesSet"] = {
-      .desc      = R"--(Set up a list of absorption species tag groups.
+      .desc      = R"--(Set *absorption_species* to the named species.
 
-Workspace variables like *absorption_species* contain several tag
-groups. Each tag group contains one or more tags. This method converts
-descriptions of tag groups given in the keyword to the ARTS internal
-representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects
-spectral features which belong to the same species.
+The species that are defined by this method are used in various
+file reading routines to populate both atmosphere- and abosorption-related
+data variables.
 
-A tag is defined in terms of the name of the species, isotopologue, and a
-range of frequencies. Species are named after the standard chemical
-names, e.g., ``"O3"``. Isotopologues are given by the last digit of the atomic
-weight, i.g., ``"O3-668"`` for the asymmetric ozone molecule including an
-oxygen 18 atom. Groups of transitions are specified by giving a lower
-and upper limit of a frequency range, e.g., ``"O3-666-500e9-501e9"``.
+A tag begins with a valid *SpeciesEnum*.  The rest of the tag
+is optional.  Here are the options:
 
-The symbol ``"*"`` acts as a wild card. Furthermore, frequency range or
-frequency range and isotopologue may be omitted.
+#. Leave it as is.  Example: "H2O".  This selection means all pure isotopologues of water have been selected.
 
-Example:
+#. Make it a valid *SpeciesIsotope*.  Example: "H2O-161" emphasis:`or` "H2O-PWR98".
+   The former selection is an actual isotopologue, whereas the latter selects a predefined model.
 
->>> species = [ "O3-666-500e9-501e9, O3-686", "O3", "H2O-PWR98" ]
+#. Make it a valid cross-section species.  Example: "H2O-XFIT".
+   This selects a cross-section species, which is defined in the
+   *absorption_xsec_fit_data* variable.  The tagtype "XFIT" is used to indicate that this is a cross-section species.
 
-   The first tag group selects all O3-666 lines between 500 and
-   501 GHz plus all O3-686 lines. 
-
-   The second tag group selects all remaining O3 transitions.
-
-   The third tag group selects H2O, with one of the complete
-   absorption models (Rosenkranz 98). No spectrocopic line catalogue
-   data will be used for that third tag group.  For more available full
-   absorption models see *propagation_matrixAddPredefined*
-
-   Note that order of tag groups in the species list matters. In our
-   example, changing the order of the first two tag group will give
-   different results: as ``"O3"`` already selects all O3 transitions,
-   no lines will remain to be selected by the
-   ``"O3-666-500e9-501e9, O3-686"`` tag.
-
-For CIA species the tag consists of the two involved species and
-a dataset index. CIA species can be defined for multiple regions
-The dataset index determines which region to use from the corresponding
-CIARecord in *absorption_cia_data*.
-
-Example
-
->>> species = [ "N2-CIA-N2-0, N2-CIA-N2-1" ]
-
-For Hitran cross section species the tag consists of the species and
-the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be
-available in the *absorption_xsec_fit_data* variable.
+#. Make it a valid collision-induced absorption (CIA) species.
+   Example: "N2-CIA-N2".  This selection is used to select a CIA species, which is defined in the
+   *absorption_cia_data* variable.  The tagtype "CIA" is used to indicate that this is a CIA species.
 )--",
       .author    = {"Stefan Buehler"},
       .out       = {"absorption_species"},
@@ -782,7 +750,7 @@ absorption line in the *absorption_bands* variable.
 
   wsm_data["atmospheric_fieldFromProfile"] = {
       .desc =
-          R"--(Sets the atmospheric field to the atmospheric profile.
+          R"--(Sets the atmospheric field to be the 1D atmospheric profile.
 
 The top of the atmosphere is the last value of the altitude grid.
 )--",
@@ -797,7 +765,7 @@ The top of the atmosphere is the last value of the altitude grid.
 
   wsm_data["atmospheric_profileExtract"] = {
       .desc =
-          R"--(Extract an atmospheric profile.
+          R"--(Extract an atmospheric profile from the atmospheric field.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atmospheric_profile"},
@@ -934,7 +902,10 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
 
   wsm_data["transmission_matrix_backgroundFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *transmission_matrix_background* to back of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to back of *ray_path_transmission_matrix_cumulative*.
+
+This is purely compositional and it is better to use pure python code if need this functionality
+in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"transmission_matrix_background"},
@@ -943,7 +914,10 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
 
   wsm_data["transmission_matrix_backgroundFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *transmission_matrix_background* to front of *ray_path_transmission_matrix_cumulative*
+          R"--(Sets *transmission_matrix_background* to front of *ray_path_transmission_matrix_cumulative*.
+
+This is purely compositional and it is better to use pure python code if need this functionality
+in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"transmission_matrix_background"},
@@ -951,7 +925,7 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
   };
 
   wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
-      .desc      = R"--(Sets A path of Zeeman effec magnetic field properties.
+      .desc      = R"--(Sets a path of Zeeman effect magnetic field properties.
 
 This will return a list of magnetic field properties along the path.
 The magnetic properties in Zeeman coordinates are the absolute strength [H],
@@ -968,6 +942,18 @@ sight [eta].
 
   wsm_data["ecs_dataAddMakarov2020"] = {
       .desc   = R"--(Sets the O2-66 microwave band data for ECS.
+
+This is based on the work of:
+
+Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz,
+Revision of the 60-GHz atmospheric oxygen absorption band models for practical use,
+Journal of Quantitative Spectroscopy and Radiative Transfer,
+Volume 243,
+2020,
+106798,
+ISSN 0022-4073,
+https://doi.org/10.1016/j.jqsrt.2019.106798.
+(https://www.sciencedirect.com/science/article/pii/S002240731930576X)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ecs_data"},
@@ -977,7 +963,19 @@ sight [eta].
   wsm_data["ecs_dataAddTran2011"] = {
       .desc   = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
 
-Sets CO2 species
+Sets CO2 species.
+
+This is based on the work of:
+
+H. Tran, C. Boulet, S. Stefani, M. Snels, G. Piccioni,
+Measurements and modelling of high pressure pure CO2 spectra from 750 to 8500cm−1. I—central and wing regions of the allowed vibrational bands,
+Journal of Quantitative Spectroscopy and Radiative Transfer,
+Volume 112, Issue 6,
+2011,
+Pages 925-936,
+ISSN 0022-4073,
+https://doi.org/10.1016/j.jqsrt.2010.11.021.
+(https://www.sciencedirect.com/science/article/pii/S0022407310004449)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ecs_data"},
@@ -987,7 +985,19 @@ Sets CO2 species
   wsm_data["ecs_dataAddRodrigues1997"] = {
       .desc   = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
 
-Sets N2 and O2 speces
+Sets N2 and O2 species.
+
+This is based on the work of:
+
+R. Rodrigues, Gh. Blanquet, J. Walrand, B. Khalil, R.Le Doucen, F. Thibault, J.-M. Hartmann,
+Line-Mixing Effects inQBranches of CO2,
+Journal of Molecular Spectroscopy,
+Volume 186, Issue 2,
+1997,
+Pages 256-268,
+ISSN 0022-2852,
+https://doi.org/10.1006/jmsp.1997.7453.
+(https://www.sciencedirect.com/science/article/pii/S0022285297974531)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ecs_data"},
@@ -1019,7 +1029,7 @@ Sets N2 and O2 speces
 
 Also sets *frequency_grid_wind_shift_jacobian*.
 
-If the wind is 0 or nan
+If the wind is 0 or nan, the *frequency_grid* remains unchanged.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
@@ -1027,7 +1037,7 @@ If the wind is 0 or nan
   };
 
   wsm_data["atmospheric_profileExtendInPressure"] = {
-      .desc      = R"--(Gets the atmospheric points along the path.
+      .desc      = R"--(Extends the atmospheric profile in pressure.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_profile"},
@@ -1044,7 +1054,10 @@ If the wind is 0 or nan
 
   wsm_data["ray_path_atmospheric_pointFromProfile"] = {
       .desc =
-          R"--(Set ``ray_path_atmospheric_point = atmospheric_profile``.  Purely compositional.
+          R"--(Set ``ray_path_atmospheric_point = atmospheric_profile``.
+
+This is purely compositional and it is better to use pure python code if need this functionality
+in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_atmospheric_point"},
@@ -1069,7 +1082,9 @@ If the wind is 0 or nan
   };
 
   wsm_data["ray_path_frequency_gridFromPath"] = {
-      .desc   = R"--(Gets the frequency grid along the path.
+      .desc   = R"--(Gets the frequency grids along the path.
+
+The derivative transformation is also returned.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_frequency_grid",
@@ -1113,7 +1128,8 @@ Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
 
   wsm_data["ray_path_propagation_matrix_species_splitFromPath"] = {
       .desc =
-          R"--(As *ray_path_propagation_matrixFromPath* but the output is only for the selected species.
+          R"--(As *ray_path_propagation_matrixFromPath* but the output is split between the species in the
+*select_species_list*.
 
 The outer dimension of the output arrays are the size of the species selection list.  The inner dimensions
 are as per *ray_path_propagation_matrixFromPath*.
@@ -1184,6 +1200,72 @@ The calculations are in parallel if the program is not in parallel already.
 
   wsm_data["ray_path_spectral_radiance_sourceFromPropmat"] = {
       .desc   = R"--(Gets the source term along the path.
+
+Per *Stokvec* element (single frequency, single temperature, single derivative target),
+the source term is computed as:
+
+.. math::
+  \vec{J} = B(T, f) + \mathbf{K}^{-1} \vec{S}
+
+and the Jacobian is computed as:
+
+.. math::
+  \frac{\partial \vec{J}}{\partial x} =
+    \frac{\partial B(T, f)}{\partial x} -
+    \mathbf{K}^{-1} \left(
+    \frac{\partial \mathbf{K}}{\partial x} \mathbf{K}^{-1} -
+    \frac{\partial \vec{S}}{\partial x}  \right)
+
+where:
+
+.. list-table::
+  :name: Meaning of variables
+  :widths: auto
+  :align: left
+  :header-rows: 1
+
+  * - Variable
+    - Extracted from ARTS parameter
+    - Meaning
+  * - :math:`\vec{J}`
+    - *ray_path_spectral_radiance_source*
+    - The spectral radiance source term along the path.
+  * - :math:`B(T, f)`
+    - ``None`` - this is computed locally
+    - The Planck function at the temperature and frequency.
+  * - :math:`\mathbf{K}`
+    - *ray_path_propagation_matrix*
+    - The propagation matrix along the path.
+  * - :math:`\vec{S}`
+    - *ray_path_propagation_matrix_source_vector_nonlte*
+    - The non-LTE source vector along the path.
+  * - :math:`\frac{\partial \vec{J}}{\partial x}`
+    - *ray_path_spectral_radiance_source_jacobian*
+    - The Jacobian of the spectral radiance source term with respect to the
+      *jacobian_targets*.
+  * - :math:`\frac{\partial B(T, f)}{\partial x}`
+    - ``None`` - this is computed locally
+    - The Jacobian of the Planck function with respect to the *jacobian_targets*.  Only tempertature is supported.
+  * - :math:`\frac{\partial \mathbf{K}}{\partial x}`
+    - *ray_path_propagation_matrix_jacobian*
+    - The Jacobian of the propagation matrix with respect to the *jacobian_targets*.
+  * - :math:`\frac{\partial \vec{S}}{\partial x}`
+    - *ray_path_propagation_matrix_source_vector_nonlte_jacobian*
+    - The Jacobian of the non-LTE source vector with respect to the *jacobian_targets*.
+  * - :math:`x`
+    - *jacobian_targets*
+    - The targets for the Jacobian computation.
+  * - :math:`T`
+    - *ray_path_atmospheric_point*
+    - The temperature at the atmospheric point along the path.
+  * - :math:`f`
+    - *ray_path_frequency_grid*
+    - The frequency grid at the atmospheric point along the path.
+
+The output dimensions are:
+
+- *ray_path_spectral_radiance_source*: *ray_path* x *frequency_grid*
+- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *frequency_grid* x *jacobian_targets* (target count)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_spectral_radiance_source",
@@ -1205,6 +1287,13 @@ at a constant rate.  The minimum length is 4.
 
 Note also that as this is predefined model data, the units of the values of the vectors
 must be as described by each vector.
+
+This is based on the works cited here: https://hitran.org/mtckd/
+
+.. note::
+    The method itself is implemented from scratch.  Using any version of
+    data after version 4.0 is supported by this method - all that changes
+    are the values of the vectors. 
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"absorption_predefined_model_data"},
@@ -1320,13 +1409,12 @@ thus not fail.
 
 Faraday rotation is a change of polarization state of an
 electromagnetic wave propagating through charged matter by
-interaction with a magnetic field. Hence, this method requires
-*absorption_species* to contain 'free_electrons' and electron content field
-(as part of ``vmr_field``) as well as magnetic field (``mag_u_field``,
-``mag_v_field``, ``mag_w_field``) to be specified.
+interaction with a magnetic field. Hence, this method requires that
+the magnetic field is non-zero and that the electron density is
+held by *atmospheric_point* (*SpeciesEnum* : ``free_electrons``).
 
 Faraday rotation affects Stokes parameters 2 and 3 (but not
-intensity!). Therefore, this method requires stokes_dim>2.
+intensity!).
 
 Like all *propagation_matrix*-modifying methods, the method is additive,
 i.e., does not overwrite the propagation matrix *propagation_matrix*,
@@ -1337,7 +1425,6 @@ but adds further contributions.
       .in     = {"propagation_matrix",
                  "propagation_matrix_jacobian",
                  "frequency_grid",
-                 "absorption_species",
                  "select_species",
                  "jacobian_targets",
                  "atmospheric_point",
@@ -1690,13 +1777,10 @@ this method.
 This method must be used inside *propagation_matrix_scattering_spectral_agenda* and then be called first.
 )--",
       .author = {"Richard Larsson"},
-      .out =
-          {
-              "propagation_matrix_scattering",
-              "absorption_vector_scattering",
-              "phase_matrix_scattering_spectral",
-          },
-      .in = {"frequency_grid", "legendre_degree"},
+      .out    = {"propagation_matrix_scattering",
+                 "absorption_vector_scattering",
+                 "phase_matrix_scattering_spectral"},
+      .in     = {"frequency_grid", "legendre_degree"},
   };
 
   wsm_data["legendre_degreeFromDisortSettings"] = {
@@ -1716,21 +1800,15 @@ Method is purely for convenience and composition.
 *propagation_matrix_scattering* and co.
 )--",
       .author = {"Richard Larsson"},
-      .out =
-          {
-              "propagation_matrix_scattering",
-              "absorption_vector_scattering",
-              "phase_matrix_scattering_spectral",
-          },
-      .in =
-          {
-              "propagation_matrix_scattering",
-              "absorption_vector_scattering",
-              "phase_matrix_scattering_spectral",
-              "frequency_grid",
-              "atmospheric_point",
-              "scattering_species",
-          },
+      .out    = {"propagation_matrix_scattering",
+                 "absorption_vector_scattering",
+                 "phase_matrix_scattering_spectral"},
+      .in     = {"propagation_matrix_scattering",
+                 "absorption_vector_scattering",
+                 "phase_matrix_scattering_spectral",
+                 "frequency_grid",
+                 "atmospheric_point",
+                 "scattering_species"},
   };
 
   wsm_data["ray_path_propagation_matrix_scatteringFromSpectralAgenda"] = {
@@ -1974,19 +2052,23 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
 The field must already be able to compute temperature as a function of
 altitude, latitude, and longitude.
 
-If it also contains species data, the species are used to compute the
-average mass of the atmospheric molecules to get the specific gas
-constant.  Note that this can also be overwritte with a positive
-value for the equivalent GIN.
+If a positive ``fixed_specific_gas_constant`` is not provided,
+the field must also consist of correct volume mixing ratios so
+that the mass of an average molecule can be computed.
 
-The ``alts`` vector contains the altitude grid values that limits the
-extrapolation distance in altitude.  The first altitude in this
-list should corresond to the altitude of the ``p0`` grid.  The extrapolation
-outside of this range simply uses the hydrostatic equation
-:math:`P_1 = P_0 - g h \rho` by means of the specific gas constant computed
-as desribed above and the pressure of the lower or first altitude level.
+The first altitude in *altitude_grid*
+is used as the altitude of the ``p0`` grid.  The extrapolation
+outside of this range simply uses the formalism of  the select ``hydrostatic_option``.
 
-See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
+.. note::
+  The gradient changes only at the grid points of the *altitude_grid*.
+  Please make it dense enough to avoid missing features.  A recommendation
+  is to extract the *altitude_grid* directly from the temperature field.
+
+  Also be aware that missing VMRs for important species, e.g.,
+  N :math:`_2` or O :math:`_2`, will lead to incorrect results.
+  The mean molecular mass need these VMRs, so if the VMRs are missing,
+  the pressure will not be correct either.
 )-x-",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
@@ -2007,7 +2089,7 @@ See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
           {"Lowest altitude pressure field.  :math:`P_0` above.",
            "Specific gas constant if larger than 0",
            "Constant atmospheric temprature if larger than 0",
-           "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"},
+           "Computational option for levels.  See *HydrostaticPressureOption* for valid options."},
   };
 
   wsm_data["gravity_operatorCentralMass"] = {
@@ -2027,7 +2109,7 @@ Gets the ellispoid from *surface_field*
   };
 
   wsm_data["spectral_flux_profileFromPathField"] = {
-      .desc           = R"--(Computes the spectral flux
+      .desc           = R"--(Computes the spectral flux from a field of paths.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_flux_profile"},
@@ -2259,7 +2341,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
 The *propagation_matrix_agenda* will set the wind derivatives to 
 those of the frequency derivative if this method is not used.  This
 will cause the wind field to be treated as a frequency derivative,
-meaning no OEM or other functionality that requires the Jacobian
+meaning no *OEM* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
@@ -2299,7 +2381,7 @@ matrix to be calculated will work.
   };
 
   wsm_data["propagation_matrixAddLookup"] = {
-      .desc     = R"--(Lookup calculations
+      .desc     = R"--(Lookup calculations.
 )--",
       .author   = {"Richard Larsson"},
       .out      = {"propagation_matrix", "propagation_matrix_jacobian"},
@@ -2337,7 +2419,7 @@ matrix to be calculated will work.
   };
 
   wsm_data["jacobian_targetsInit"] = {
-      .desc   = R"--(Initialize or reset the *jacobian_targets*
+      .desc   = R"--(Initialize or reset the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jacobian_targets"},
@@ -2468,7 +2550,7 @@ those with regards to a, b, etc..
       jac2ret("jacobian_targetsAddSensorFrequencyPolyFit");
 
   wsm_data["jacobian_targetsAddTemperature"] = {
-      .desc      = R"--(Set temperature derivative
+      .desc      = R"--(Set temperature derivative.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
@@ -2483,7 +2565,7 @@ those with regards to a, b, etc..
       jac2ret("jacobian_targetsAddTemperature");
 
   wsm_data["jacobian_targetsAddPressure"] = {
-      .desc      = R"--(Set pressure derivative
+      .desc      = R"--(Set pressure derivative.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
@@ -2497,9 +2579,9 @@ those with regards to a, b, etc..
   wsm_data["RetrievalAddPressure"] = jac2ret("jacobian_targetsAddPressure");
 
   wsm_data["jacobian_targetsAddMagneticField"] = {
-      .desc      = R"--(Set magnetic field derivative
+      .desc      = R"--(Set magnetic field derivative.
 
-See *FieldComponent* for valid ``component``
+See *FieldComponent* for valid ``component``.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
@@ -2515,7 +2597,7 @@ See *FieldComponent* for valid ``component``
       jac2ret("jacobian_targetsAddMagneticField");
 
   wsm_data["jacobian_targetsAddWindField"] = {
-      .desc      = R"--(Set wind field derivative
+      .desc      = R"--(Set wind field derivative.
 
 Note that the derivatives from methods that takes the freqeuncy will return
 their derivatives as if these were frequency derivatives.
@@ -2535,7 +2617,7 @@ See *FieldComponent* for valid ``component``
   wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
-      .desc      = R"--(Set volume mixing ratio derivative
+      .desc      = R"--(Set volume mixing ratio derivative.
 
 See *SpeciesEnum* for valid ``species``
 )--",
@@ -2552,7 +2634,7 @@ See *SpeciesEnum* for valid ``species``
   wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
 
   wsm_data["jacobian_targetsAddAtmosphere"] = {
-      .desc      = R"--(Sets an atmospheric target
+      .desc      = R"--(Sets an atmospheric target.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
@@ -2998,9 +3080,9 @@ variables are not considered
 
   wsm_data["ray_pathAddGeometricGridCrossings"] = {
       .desc =
-          R"--(Fill the path with geometric step points.
+          R"--(Fill the path with with points that crosses the grid of the atmspheric field.
 
-This process is repeated until there are no more neighboring points for which the premise is true.
+The atmospheric field parameter must be gridded.  Only grids with size() > 1 are considered.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -3125,9 +3207,7 @@ grids are kept.
 
   wsm_data["ray_pathSetGeometricExtremes"] = {
       .desc =
-          R"--(Adds all crossings of the ray path with the grid of the atmospheric field parameter.
-
-The atmospheric field parameter must be gridded.  Only grids with size() > 1 are considered.
+          R"--(Add the geometric extremes to the ray path.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
@@ -3432,14 +3512,14 @@ the first 5 dimensions are computed in parallel.
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form
 
-- "...t.xml"
-- "...p.xml"
-- "...wind_u.xml"
-- "...wind_v.xml"
-- "...wind_w.xml"
-- "...mag_u.xml"
-- "...mag_v.xml"
-- "...mag_w.xml"
+- "<...>t.xml"
+- "<...>p.xml"
+- "<...>wind_u.xml"
+- "<...>wind_v.xml"
+- "<...>wind_w.xml"
+- "<...>mag_u.xml"
+- "<...>mag_v.xml"
+- "<...>mag_w.xml"
 
 If any of these files are found, they are appended to the atmospheric field.
 
@@ -3603,7 +3683,7 @@ exists in the atmospheric field.
           R"--(Append species data to the atmospheric field based on collision-induced data data
 
 This will look at the valid ``basename`` for files matching base
-data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
@@ -3658,12 +3738,42 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
+  wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on lookup data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+See *InterpolationExtrapolation* for valid ``extrapolation``.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field", "absorption_lookup_table"},
+      .gin       = {"basename",
+                    "extrapolation",
+                    "missing_is_zero",
+                    "replace_existing"},
+      .gin_type  = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc  = {"The base name of the files",
+                    "The extrapolation to use.",
+                    "Whether or not to zero-out missing data",
+                    "Whether or not to replace existing data"},
+  };
+
   wsm_data["atmospheric_fieldAppendPredefSpeciesData"] = {
       .desc =
           R"--(Append species data to the atmospheric field based on predefined model data
 
 This will look at the valid ``basename`` for files matching base
-data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
@@ -3700,7 +3810,7 @@ Wraps:
 - *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
 - *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
 - *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
-- ``atmospheric_fieldAppendLookupTableSpeciesData`` if the workspace contains *absorption_species*
+- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *absorption_lookup_table*
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
@@ -3976,24 +4086,6 @@ for any observation geometries.
       .gin_desc =
           {"The start index for *measurement_sensor* elements to exclude, negative means first element",
            "The end index for *measurement_sensor* elements to exclude, negative means all element"},
-  };
-
-  wsm_data["measurement_sensorMakeExhaustive"] = {
-      .desc =
-          R"--(Make the *measurement_sensor* exhaustive.
-
-This means that there will be only a single frequency grid
-for all observation geometries.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor"},
-      .in        = {"measurement_sensor"},
-      .gin       = {"start", "end"},
-      .gin_type  = {"Index", "Index"},
-      .gin_value = {Index{-1}, Index{-1}},
-      .gin_desc =
-          {"The start index for *measurement_sensor* elements to exhaust, negative means first element",
-           "The end index for *measurement_sensor* elements to exhaust, negative means all element"},
   };
 
   wsm_data["sun_pathFromObserverAgenda"] = {
@@ -4491,13 +4583,17 @@ Description of the special input arguments:
 
   wsm_data["measurement_vector_error_covariance_matrix_observation_systemCalc"] = {
       .desc =
-          "Calculates the covariance matrix describing the error due to uncertainties\n"
-          "in the observation system.\n\nThe uncertainties of the observation system are\n"
-          "described by *measurement_vector_error_covariance_matrix*, which must be set by the user to include the\n"
-          "relevant contributions from the measurement and the forward model.\n"
-          "\n"
-          "Prerequisite for the calculation of ``measurement_vector_error_covariance_matrix_observation_system`` is a successful OEM\n"
-          "computation where also the gain matrix has been computed.\n",
+          R"(Calculates the covariance matrix describing the error due to uncertainties in the observation system.
+
+The uncertainties of the observation system are
+described by *measurement_vector_error_covariance_matrix*,
+which must be set by the user to include the
+relevant contributions from the measurement and the forward model.
+
+Prerequisite for the calculation of
+``measurement_vector_error_covariance_matrix_observation_system`` is a successful *OEM*
+computation where also the gain matrix has been computed.
+)",
       .author = {"Simon Pfreundschuh"},
       .gout = {"measurement_vector_error_covariance_matrix_observation_system"},
       .gout_type = {"Matrix"},
@@ -4509,10 +4605,12 @@ Description of the special input arguments:
 
   wsm_data["model_state_covariance_matrix_smoothing_errorCalc"] = {
       .desc =
-          "Calculates the covariance matrix describing the error due to smoothing.\n"
-          "\n"
-          "The calculation of ``model_state_covariance_matrix_smoothing_error`` also requires the averaging kernel matrix *measurement_averaging_kernel*\n"
-          "to be computed after a successful OEM calculation.\n",
+          R"(Calculates the covariance matrix describing the error due to smoothing.
+          
+The calculation of ``model_state_covariance_matrix_smoothing_error``
+also requires the averaging kernel matrix *measurement_averaging_kernel*
+to be computed after a successful OEM calculation.
+)",
       .author    = {"Simon Pfreundschuh"},
       .gout      = {"model_state_covariance_matrix_smoothing_error"},
       .gout_type = {"Matrix"},
@@ -4523,10 +4621,13 @@ Description of the special input arguments:
 
   wsm_data["measurement_averaging_kernelCalc"] = {
       .desc =
-          "Calculate the averaging kernel matrix.\n\nThis is done by describing the sensitivity of the\n"
-          "OEM retrieval with respect to the true state of the system. A prerequisite\n"
-          "for the calculation of the averaging kernel matrix is a successful OEM\n"
-          "calculation in which the *measurement_jacobian* and the gain matrix *measurement_gain_matrix* have been calculated.\n",
+          R"(Calculate the averaging kernel matrix.
+
+This is done by describing the sensitivity of the
+*OEM* retrieval with respect to the true state of the system. A prerequisite
+for the calculation of the averaging kernel matrix is a successful *OEM*
+calculation in which the *measurement_jacobian* and the gain matrix *measurement_gain_matrix* have been calculated.
+)",
       .author = {"Simon Pfreundschuh"},
       .out    = {"measurement_averaging_kernel"},
       .in     = {"measurement_gain_matrix", "measurement_jacobian"},
@@ -4613,7 +4714,6 @@ Description of the special input arguments:
 )",
       .author = {"Richard Larsson"},
       .out    = {"scattering_species"},
-      .in     = {},
   };
 
   wsm_data["disort_settings_agendaSetup"] = {
@@ -4652,11 +4752,7 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in =
-          {
-              "disort_settings",
-              "ray_path_phase_matrix_scattering_spectral",
-          },
+      .in = {"disort_settings", "ray_path_phase_matrix_scattering_spectral"},
   };
 
   wsm_data["disort_settingsSingleScatteringAlbedoFromPath"] = {
@@ -4664,12 +4760,9 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in =
-          {
-              "disort_settings",
-              "ray_path_propagation_matrix_scattering",
-              "ray_path_absorption_vector_scattering",
-          },
+      .in     = {"disort_settings",
+                 "ray_path_propagation_matrix_scattering",
+                 "ray_path_absorption_vector_scattering"},
   };
 
   wsm_data["disort_settingsNoSun"] = {
@@ -4715,6 +4808,8 @@ Note that you must have set the optical thickness before calling this.
   wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
       .desc =
           R"(Same as *disort_settingsLayerThermalEmissionLinearInTau* but considers non-LTE
+
+This is WIP and should not be used.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},

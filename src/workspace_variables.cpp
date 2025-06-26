@@ -66,9 +66,8 @@ Some methods that split the data might not work as intended otherwise.
   wsv_data["absorption_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
-This defines the
-available tag groups for the calculation of gas absorption
-coefficients.
+This allows the user to set up groups of species tags that are used
+to load the correct data.
 
 It is only used to let data-reading methods know which
 species they should read from the available input files.
@@ -142,7 +141,7 @@ See *atmospheric_field* for the data that may be available in the atmospheric po
 
   wsv_data["atmospheric_profile"] = {
       .desc =
-          R"--(An atmospheric point in ARTS.
+          R"--(An atmospheric profile in ARTS.
 
 The atmospheric profile consists of all the relevant atmospheric field data
 at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
@@ -182,19 +181,6 @@ Used in line-by-line calculations requiring ECS data.
 )--",
       .type          = "LinemixingEcsData",
       .default_value = " ",
-  };
-
-  wsv_data["frequency_grid"] = {
-      .desc =
-          R"--(The discrete frequency grid.
-
-Unit:  Hz
-
-.. note::
-    There is no global grid system in ARTS, so beware of the local
-    nature of all grids.
-)--",
-      .type = "AscendingGrid",
   };
 
   wsv_data["frequency_grid_wind_shift_jacobian"] = {
@@ -567,7 +553,7 @@ gravity : Numeric
 
 *spectral_radiance* but for a field.
 
-Dimensions are altitude times latitude times longitude times zenith times azimuth times *frequency_grid*.
+Dimensions are *altitude_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
 )",
       .type = "StokvecSortedGriddedField6",
   };
@@ -625,12 +611,24 @@ size of the local *spectral_radiance* as columns.
 
   wsv_data["frequency_grid"] = {
       .desc = R"--(A single frequency grid.
+
+Units: Hz
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
 
   wsv_data["zenith_grid"] = {
       .desc = R"--(A single zenith angle grid.
+
+Units: degrees
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
@@ -678,7 +676,7 @@ Most likely only makes sense in combination with *spectral_radiance_observer_lin
   };
 
   wsv_data["spectral_radiance_observer_line_of_sight"] = {
-      .desc = R"--(The position of the observer of spectral radiance.
+      .desc = R"--(The line-of-sight of the observer of spectral radiance.
 
 Most likely only makes sense in combination with *spectral_radiance_observer_position*.
 )--",
@@ -783,24 +781,23 @@ has been produced and if the measurement can be understood properly.
   };
 
   wsv_data["measurement_gain_matrix"] = {
-      .desc =
-          "Contribution function (or gain) matrix.\n"
-          "\n"
-          "This matrix is the partial derivative of the retrieved state vector\n"
-          "with respect to the *measurement_vector*).\n"
-          "\n"
-          "Usage: Used and set by inversion methods. \n",
+      .desc =R"(Contribution function (or gain) matrix.
+
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
+
+Usage: Used and set by inversion methods.
+)",
       .type = "Matrix",
   };
 
   wsv_data["measurement_averaging_kernel"] = {
       .desc =
-          "Averaging kernel matrix.\n"
-          "\n"
-          "This matrix is the partial derivative of the retrieved state vector\n"
-          "with respect to the *measurement_vector*.\n"
-          "\n"
-          "Usage: Used and set by inversion methods. \n",
+          R"(Averaging kernel matrix.
+
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
+
+Usage: Used and set by inversion methods.
+)",
       .type = "Matrix",
   };
 
@@ -949,6 +946,8 @@ Size is *disort_quadrature_dimension* / 2
   wsv_data["latitude"] = {
       .desc =
           R"--(A single latitude.
+
+Units: degrees
 )--",
       .type          = "Numeric",
       .default_value = "0.0",
@@ -957,6 +956,12 @@ Size is *disort_quadrature_dimension* / 2
   wsv_data["latitude_grid"] = {
       .desc =
           R"--(An ascending list of *latitude*.  Often related to a field or a profile.
+
+Units: degrees
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
@@ -964,6 +969,8 @@ Size is *disort_quadrature_dimension* / 2
   wsv_data["longitude"] = {
       .desc =
           R"--(A single longitude.
+
+Units: degrees
 )--",
       .type          = "Numeric",
       .default_value = "0.0",
@@ -972,6 +979,12 @@ Size is *disort_quadrature_dimension* / 2
   wsv_data["longitude_grid"] = {
       .desc =
           R"--(An ascending list of *longitude*.  Often related to a field or a profile.
+
+Units: degrees
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
