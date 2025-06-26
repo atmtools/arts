@@ -1354,6 +1354,90 @@ void xml_write_to_stream(std::ostream& os_xml,
   std::println(os_xml);
 }
 
+//=== PredefinedModelDataVariant ==================================
+
+/*!
+ * \param is_xml     XML Input stream
+ * \param pmd        PredefinedModelDataVariant return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream& is_xml,
+                          PredefinedModelDataVariant& data,
+                          bifstream* pbifs) {
+  ARTS_USER_ERROR_IF(pbifs, "No binary data")
+
+  ArtsXMLTag internal_open_tag;
+  internal_open_tag.read_from_stream(is_xml);
+  internal_open_tag.check_name("PredefinedModelDataVariant");
+
+  String sizes_str;
+  internal_open_tag.get_attribute_value("sizes", sizes_str);
+
+  Index sizes_len;
+  internal_open_tag.get_attribute_value("sizes_nelem", sizes_len);
+
+  String data_type;
+  internal_open_tag.get_attribute_value("type", data_type);
+  data = Absorption::PredefinedModel::model_data(data_type);
+
+  std::vector<std::size_t> sizes(sizes_len);
+  std::istringstream values(sizes_str);
+  for (auto& sz : sizes) values >> sz;
+
+  std::visit(
+      [&](auto& v) {
+        v.resize(sizes);
+        is_xml >> v;
+      },
+      data.data);
+
+  ArtsXMLTag internal_close_tag;
+  internal_close_tag.read_from_stream(is_xml);
+  internal_close_tag.check_name("/PredefinedModelDataVariant");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param rvb        PredefinedModelDataVariant
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(std::ostream& os_xml,
+                         const PredefinedModelDataVariant& data,
+                         bofstream* pbofs,
+                         const String& name) {
+  ARTS_USER_ERROR_IF(pbofs, "No binary data")
+
+  ArtsXMLTag internal_open_tag;
+  internal_open_tag.set_name("PredefinedModelDataVariant");
+  internal_open_tag.add_attribute(
+      "type", String{Absorption::PredefinedModel::model_name(data)});
+  internal_open_tag.add_attribute("name", name);
+
+  const std::vector<Size> sizes =
+      std::visit([&](auto& v) { return v.sizes(); }, data.data);
+  internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
+
+  String sizes_str = "";
+  for (std::size_t i = 0; i < sizes.size(); i++) {
+    if (i > 0) sizes_str += " ";
+    std::format_to(std::back_inserter(sizes_str), "{}", sizes[i]);
+  }
+  internal_open_tag.add_attribute("sizes", sizes_str);
+
+  internal_open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  // Set values
+  std::visit([&](auto& v) { std::print(os_xml, "{:IO}", v); }, data.data);
+  std::println(os_xml);
+
+  ArtsXMLTag internal_close_tag;
+  internal_close_tag.set_name("/PredefinedModelDataVariant");
+  internal_close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+}
+
 //=== PredefinedModelData =========================================
 /*!
  * \param is_xml     XML Input stream
@@ -1375,41 +1459,9 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.get_attribute_value("nelem", nelem);
 
   for (Index i = 0; i < nelem; i++) {
-    ArtsXMLTag internal_open_tag;
-    internal_open_tag.read_from_stream(is_xml);
-    internal_open_tag.check_name("Data");
-
-    // Get key
-    String key_str;
-    internal_open_tag.get_attribute_value("key", key_str);
-    SpeciesIsotope isot{key_str};
-    ARTS_USER_ERROR_IF(not isot.OK(), "Cannot understand key: \"{}\"", key_str)
-
-    String sizes_str;
-    internal_open_tag.get_attribute_value("sizes", sizes_str);
-
-    Index sizes_len;
-    internal_open_tag.get_attribute_value("sizes_nelem", sizes_len);
-
-    String data_type;
-    internal_open_tag.get_attribute_value("type", data_type);
-    auto data = Absorption::PredefinedModel::model_data(data_type);
-
-    std::vector<std::size_t> sizes(sizes_len);
-    std::istringstream values(sizes_str);
-    for (auto& sz : sizes) values >> sz;
-
-    std::visit(
-        [&](auto& v) {
-          v.resize(sizes);
-          is_xml >> v;
-          pmd.data[isot] = v;
-        },
-        data);
-
-    ArtsXMLTag internal_close_tag;
-    internal_close_tag.read_from_stream(is_xml);
-    internal_close_tag.check_name("/Data");
+    SpeciesIsotope key;
+    xml_read_from_stream(is_xml, key, pbifs);
+    xml_read_from_stream(is_xml, pmd[key], pbifs);
   }
 
   ArtsXMLTag close_tag;
@@ -1434,39 +1486,13 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("PredefinedModelData");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", Index(pmd.data.size()));
+  open_tag.add_attribute("nelem", Index(pmd.size()));
   open_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
-  for (auto& [key, data] : pmd.data) {
-    ArtsXMLTag internal_open_tag;
-    internal_open_tag.set_name("Data");
-    internal_open_tag.add_attribute("key", key.FullName());
-    internal_open_tag.add_attribute(
-        "type", String{Absorption::PredefinedModel::model_name(data)});
-
-    const std::vector<Size> sizes =
-        std::visit([&](auto& v) { return v.sizes(); }, data);
-    internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
-
-    String sizes_str = "";
-    for (std::size_t i = 0; i < sizes.size(); i++) {
-      if (i > 0) sizes_str += " ";
-      std::format_to(std::back_inserter(sizes_str), "{}", sizes[i]);
-    }
-    internal_open_tag.add_attribute("sizes", sizes_str);
-
-    internal_open_tag.write_to_stream(os_xml);
-    std::println(os_xml);
-
-    // Set values
-    std::visit([&](auto& v) { std::print(os_xml, "{:IO}", v); }, data);
-    std::println(os_xml);
-
-    ArtsXMLTag internal_close_tag;
-    internal_close_tag.set_name("/Data");
-    internal_close_tag.write_to_stream(os_xml);
-    std::println(os_xml);
+  for (auto& [key, data] : pmd) {
+    xml_write_to_stream(os_xml, key, pbofs, "Data Key");
+    xml_write_to_stream(os_xml, data, pbofs, "Data");
   }
 
   close_tag.set_name("/PredefinedModelData");
@@ -2478,73 +2504,38 @@ tag(std::ostream& s, String n, Ts&&...) -> tag<false>;
 template <typename... Ts>
 tag(std::istream& s, String n, Ts&&...) -> tag<true>;
 
+//! LinemixingSingleEcsData
+
 void xml_read_from_stream(std::istream& is_xml,
-                          LinemixingEcsData& ecsd,
+                          LinemixingSingleEcsData& spec_data,
                           bifstream* pbifs) {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
 
-  tag rtag{is_xml, "LinemixingEcsData", "nelem"};
+  tag rtag{is_xml, "LinemixingSingleEcsData"};
   rtag.open();
-  const auto nisot = rtag.get<Index>("nelem");
 
-  // Get values
-  ecsd.clear();
-  ecsd.reserve(nisot);
-  for (Index j = 0; j < nisot; j++) {
-    tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
-    isot_tag.open();
-    const auto nspec   = isot_tag.get<Index>("nelem");
-    const auto isotkey = isot_tag.get<SpeciesIsotope>("isot");
+  is_xml >> spec_data.beta >> spec_data.collisional_distance >>
+      spec_data.lambda >> spec_data.scaling;
 
-    auto& spec_data_map = ecsd[isotkey];
-    for (Index i = 0; i < nspec; i++) {
-      tag spec_tag{is_xml, "specdata", "spec"};
-      spec_tag.open();
-      const auto speckey = spec_tag.get<SpeciesEnum>("spec");
-
-      auto& spec_data = spec_data_map[speckey];
-      is_xml >> spec_data.beta >> spec_data.collisional_distance >>
-          spec_data.lambda >> spec_data.scaling;
-      spec_tag.close();
-    }
-    isot_tag.close();
-  }
   rtag.close();
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
-                         const LinemixingEcsData& r,
+                         const LinemixingSingleEcsData& ivalue,
                          bofstream* pbofs,
                          const String&) {
   ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
 
-  tag rtag{os_xml,
-           "LinemixingEcsData",
-           meta_data{"nelem", static_cast<Index>(r.size())}};
+  tag rtag{os_xml, "LinemixingSingleEcsData"};
   rtag.open();
 
-  // Set values
-  for (auto& [key, value] : r) {
-    tag isot_tag{os_xml,
-                 "isotdata",
-                 meta_data{"nelem", static_cast<Index>(value.size())},
-                 meta_data{"isot", key.FullName()}};
-    isot_tag.open();
+  std::print(os_xml,
+             "{} {} {} {}",
+             ivalue.beta,
+             ivalue.collisional_distance,
+             ivalue.lambda,
+             ivalue.scaling);
 
-    for (auto& [ikey, ivalue] : value) {
-      tag spec_tag{os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
-      spec_tag.open();
-
-      std::print(os_xml,
-                 "{} {} {} {}",
-                 ivalue.beta,
-                 ivalue.collisional_distance,
-                 ivalue.lambda,
-                 ivalue.scaling);
-      spec_tag.close();
-    }
-    isot_tag.close();
-  }
   rtag.close();
 }
 
@@ -3184,14 +3175,13 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("SubsurfaceKeyVal");
-  open_tag.add_attribute(
-      "type",
-      std::visit(
-          []<typename T>(const T&) {
-            if constexpr (std::same_as<T, SubsurfaceKey>)
-              return "SubsurfaceKey"s;
-          },
-          surft));
+  open_tag.add_attribute("type",
+                         std::visit(
+                             []<typename T>(const T&) {
+                               if constexpr (std::same_as<T, SubsurfaceKey>)
+                                 return "SubsurfaceKey"s;
+                             },
+                             surft));
   open_tag.write_to_stream(os_xml);
   std::println(os_xml);
 

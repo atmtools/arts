@@ -177,7 +177,7 @@ void py_lbl(py::module_& m) try {
   lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
 
-  py::class_<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
+  py::class_<lbl::line_shape::model>(m, "LineShapeModel")
       .def_rw("one_by_one",
               &lbl::line_shape::model::one_by_one,
               "If true, the lines are treated one by one")
@@ -254,7 +254,7 @@ void py_lbl(py::module_& m) try {
   py::class_<lbl::line>(m, "AbsorptionLine")
       .def_rw("a",
               &lbl::line::a,
-              ":class:`~pyarts.arts.Numeric` The Einstein coefficient")
+              ":class:`~pyarts.arts.Numeric` The Einstein coefficient [1 / s]")
       .def_rw("f0",
               &lbl::line::f0,
               ":class:`~pyarts.arts.Numeric` The line center frequency [Hz]")
@@ -264,14 +264,21 @@ void py_lbl(py::module_& m) try {
       .def_rw(
           "gu",
           &lbl::line::gu,
-          ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
+          ":class:`~pyarts.arts.Numeric` The upper level statistical weight [-]")
       .def_rw(
           "gl",
           &lbl::line::gl,
-          ":class:`~pyarts.arts.Numeric` The lower level statistical weight")
-      .def_rw("z", &lbl::line::z, "The Zeeman model")
-      .def_rw("ls", &lbl::line::ls, "The line shape model")
-      .def_rw("qn", &lbl::line::qn, "The quantum numbers of this line")
+          ":class:`~pyarts.arts.Numeric` The lower level statistical weight [-]")
+      .def_rw("z",
+              &lbl::line::z,
+              ":class:`~pyarts.arts.ZeemanLineModel` The Zeeman model")
+      .def_rw("ls",
+              &lbl::line::ls,
+              ":class:`~pyarts.arts.LineShapeModel` The line shape model")
+      .def_rw(
+          "qn",
+          &lbl::line::qn,
+          ":class:`~pyarts.arts.QuantumNumberLocalState` The local quantum numbers of this line")
       .def(
           "s",
           [](const lbl::line& self, py::object& T, py::object& Q) {
@@ -290,7 +297,7 @@ void py_lbl(py::module_& m) try {
           "T0"_a = 296.0,
           "The HITRAN-like line strength")
       .PythonInterfaceBasicRepresentation(lbl::line)
-      .doc() = "Data for an absorption line";
+      .doc() = "A single absorption line";
 
   auto ll = py::bind_vector<std::vector<lbl::line>,
                             py::rv_policy::reference_internal>(m, "LineList")
@@ -483,7 +490,42 @@ T0 : float
       "approximate_percentile"_a,
       "T0"_a = 296.0);
 
-  py::class_<LinemixingEcsData> led(m, "LinemixingEcsData");
+  py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
+  ed.def_rw("scaling",
+            &LinemixingSingleEcsData::scaling,
+            ":class:`~pyarts.arts.TemperatureModel`");
+  ed.def_rw("beta",
+            &LinemixingSingleEcsData::beta,
+            ":class:`~pyarts.arts.TemperatureModel`");
+  ed.def_rw("lambda",
+            &LinemixingSingleEcsData::lambda,
+            ":class:`~pyarts.arts.TemperatureModel`");
+  ed.def_rw("collisional_distance",
+            &LinemixingSingleEcsData::collisional_distance,
+            ":class:`~pyarts.arts.TemperatureModel`");
+  ed.def("Q",
+         &LinemixingSingleEcsData::Q,
+         "J"_a,
+         "T"_a,
+         "T0"_a,
+         "energy"_a,
+         R"(The Q coefficient for the ECS model)");
+  ed.def("Omega",
+         &LinemixingSingleEcsData::Omega,
+         "T"_a,
+         "T0"_a,
+         "mass"_a,
+         "other_mass"_a,
+         "energy_x"_a,
+         "energy_xm2"_a,
+         R"(The Omega coefficient for the ECS model)");
+  workspace_group_interface(ed);
+
+  auto lsed =
+      py::bind_map<LinemixingSpeciesEcsData>(m, "LinemixingSpeciesEcsData");
+  workspace_group_interface(lsed);
+
+  auto led = py::bind_map<LinemixingEcsData>(m, "LinemixingEcsData");
   workspace_group_interface(led);
 
   lbl.def(
@@ -509,7 +551,7 @@ T0 : float
                           com_data,
                           qid,
                           band,
-                          ecs_data.data.at(qid.Isotopologue()),
+                          ecs_data.at(qid.Isotopologue()),
                           atm,
                           T);
 

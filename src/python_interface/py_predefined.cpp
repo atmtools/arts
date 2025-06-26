@@ -1,11 +1,13 @@
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/variant.h>
 #include <predefined/predef.h>
 #include <python_interface.h>
-#include <nanobind/stl/unordered_map.h>
-#include <nanobind/stl/variant.h>
 
 #include <filesystem>
 #include <memory>
 #include <unordered_map>
+
 
 #include "debug.h"
 #include "hpy_arts.h"
@@ -71,7 +73,7 @@ void internalCKDMT400(py::module_& m) {
             f,
             atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
-                data.data.at("H2O-ForeignContCKDMT400"_isot)));
+                data.at("H2O-ForeignContCKDMT400"_isot).data));
         Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -109,7 +111,7 @@ abs_coef : ~pyarts.arts.Vector
             f,
             atm,
             std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
-                data.data.at("H2O-SelfContCKDMT400"_isot)));
+                data.at("H2O-SelfContCKDMT400"_isot).data));
         Vector out(pm.size());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -933,8 +935,12 @@ void py_predefined(py::module_& m) try {
   auto predef  = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
 
+  py::class_<PredefinedModelDataVariant> var(m, "PredefinedModelDataVariant");
+  var.def_rw("data", &PredefinedModelDataVariant::data, "The data");
+  workspace_group_interface(var);
+
   //! ARTS Workspace class, must live on the main (m) namespace
-  py::class_<PredefinedModelData> pdmd(m, "PredefinedModelData");
+  auto pdmd = py::bind_map<PredefinedModelData>(m, "PredefinedModelData");
   workspace_group_interface(pdmd);
   pdmd.def_static(
           "fromcatalog",
@@ -952,11 +958,11 @@ void py_predefined(py::module_& m) try {
                     xml_read_from_file(filename, data);
                     std::visit(
                         [&](auto& model) {
-                          out.data[mod.Isotopologue()] = model;
+                          out[mod.Isotopologue()].data = model;
                         },
-                        data.data.at(mod.Isotopologue()));
+                        data.at(mod.Isotopologue()).data);
                   } else {
-                    out.data[mod.Isotopologue()] =
+                    out[mod.Isotopologue()].data =
                         Absorption::PredefinedModel::ModelName{};
                   }
                 }
@@ -1010,24 +1016,13 @@ propagation_matrix : PropmatVector
 
 )--")
       .def("__getstate__",
-           [](const PredefinedModelData& t) {
-             const std::unordered_map<SpeciesIsotope,
-                                      Absorption::PredefinedModel::ModelVariant>
-                 x{t.data.begin(), t.data.end()};
-             return std::make_tuple(x);
-           })
+           [](const PredefinedModelData& t) { return std::make_tuple(t); })
       .def("__setstate__",
            [](PredefinedModelData* pm,
               const std::tuple<std::unordered_map<
                   SpeciesIsotope,
                   Absorption::PredefinedModel::ModelVariant>>& state) {
-             new (pm) PredefinedModelData{};
-             const std::unordered_map<SpeciesIsotope,
-                                      Absorption::PredefinedModel::ModelVariant>
-                 x = std::get<0>(state);
-             for (auto& [k, v] : x) {
-               pm->data[k] = v;
-             }
+             new (pm) PredefinedModelData{std::get<0>(state)};
            });
 
   //! All internal functionality, included methods of named classes go on the predef namespace

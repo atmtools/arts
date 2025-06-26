@@ -516,7 +516,7 @@ void absorption_bandsLineMixingAdaptation(
                                      com_data,
                                      band_key,
                                      band,
-                                     ecs_data.data.at(band_key.Isotopologue()),
+                                     ecs_data.at(band_key.Isotopologue()),
                                      atmospheric_point,
                                      temperatures);
 

@@ -79,7 +79,7 @@ void select_species_listCollectAbsorption(
   for (auto &[qid, _] : absorption_bands) s.insert(qid.Species());
   for (auto &spec : absorption_cia_data) s.insert(spec.Species(0));
   for (auto &spec : absorption_xsec_fit_data) s.insert(spec.Species());
-  for (auto &[isot, _] : absorption_predef_model_data.data) s.insert(isot.spec);
+  for (auto &[isot, _] : absorption_predef_model_data) s.insert(isot.spec);
 
   select_species_list.resize(s.size());
   std::ranges::copy(s, select_species_list.begin());

@@ -25,7 +25,9 @@ internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   wsv_data["absorption_bands"] = {
-      .desc = R"--(Bands of absorption lines for LBL calculations.
+      .desc = R"--(Bands of absorption lines for line-by-line (LBL) calculations.
+
+See methods that consume this variable for more details on its content.
 )--",
       .type = "AbsorptionBands",
   };
@@ -41,7 +43,7 @@ absorption.
   };
 
   wsv_data["absorption_cia_data"] = {
-      .desc = R"--(HITRAN Collision Induced Absorption (CIA) Data.
+      .desc = R"--(HITRAN Collision-Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
 cross-sections). The data itself is described in: Richard, C. et al.
@@ -50,28 +52,13 @@ absorption (CIA), J. Quant. Spectrosc. Radiat. Transfer, 113,
 1276-1285, doi:10.1016/j.jqsrt.2011.11.004.
 
 The binary absorption cross-sections have to be multiplied with the
-densities of both molecules to get absorption coefficients.
+densities of both molecules to get a scalar absorption coefficients.
 
 Dimensions:
 
-The outer array dimension in the ArrayOfArrayOfCIARecord is the same
-as that of *absorption_species*. There will be CIA data only for those
-species that contain a CIA tag, for all other species it will be
-empty. The inner array dimension corresponds to the number of CIA tags
-for this species (there could be for example both N2-N2 and N2-H2) in
-the same species.
-
-The CIA *absorption_species* tags are described in *absorption_speciesSet*.
-
-Each individual CIARecord holds the complete information from one
-HITRAN CIA file. For the given pair of molecules A HITRAN CIA data
-file can hold several datasets (data for different temperatures but
-fixed frequency range).
-
-Units:
-
- - Frequencies: Hz
- - Binary absorption cross-sections: m^5*molecule^-2
+The length of this array should be equal to the number of pairs
+of molecules that have CIA data available.
+Some methods that split the data might not work as intended otherwise.
 )--",
       .type = "ArrayOfCIARecord",
   };
@@ -79,10 +66,12 @@ Units:
   wsv_data["absorption_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
-This is an array of arrays of SpeciesTag tag definitions. It defines the
-available tag groups for the calculation of scalar gas absorption
-coefficients.  See online documentation of method *absorption_speciesSet* for
-more detailed information how tag groups work and some examples.
+This defines the
+available tag groups for the calculation of gas absorption
+coefficients.
+
+It is only used to let data-reading methods know which
+species they should read from the available input files.
 )--",
       .type = "ArrayOfArrayOfSpeciesTag",
   };
@@ -90,6 +79,8 @@ more detailed information how tag groups work and some examples.
   wsv_data["altitude"] = {
       .desc =
           R"--(A single altitude in the atmosphere.
+
+Unit: m
 )--",
       .type          = "Numeric",
       .default_value = "0.0",
@@ -98,6 +89,12 @@ more detailed information how tag groups work and some examples.
   wsv_data["altitude_grid"] = {
       .desc =
           R"--(An ascending list of *altitude*.  Often related to a field or a profile.
+
+Unit: m
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
@@ -192,6 +189,10 @@ Used in line-by-line calculations requiring ECS data.
           R"--(The discrete frequency grid.
 
 Unit:  Hz
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
       .type = "AscendingGrid",
   };
@@ -353,6 +354,8 @@ Dimension: *frequency_grid*.
 
   wsv_data["select_species"] = {
       .desc          = R"--(Species selection.
+      
+When Bath is selected, all species are used.  Otherwise, this variable should control so that only the selected species is used.
 )--",
       .type          = "SpeciesEnum",
       .default_value = "SpeciesEnum::Bath",
@@ -697,7 +700,12 @@ radiance.
   wsv_data["model_state_vector"] = {
       .desc          = R"(A state vector of the model.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`x`.
+This represents the :emphasis:`choosen` state of the model.
+In the notation of *measurement_vector* and *OEM*,
+:math:`\vec{x}` is the *model_state_vector*.
+
+To choose the state of the model, you must setup *jacobian_targets* to
+include the state parameters you want to be able to change.
 )",
       .type          = "Vector",
       .default_value = " ",
@@ -706,7 +714,10 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`x`.
   wsv_data["model_state_vector_apriori"] = {
       .desc = R"(An apriori state vector of the model.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is the apriori :math:`x`.
+See *model_state_vector* for more details.
+This is the state vector that is assumed to be the a priori state of the model.
+In normal circumstances, this is the state vector that is used to
+start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
 )",
       .type = "Vector",
   };
@@ -714,19 +725,36 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is the apriori :math:`x`
   wsv_data["measurement_vector"] = {
       .desc = R"(The measurment vector for, e.g., a sensor.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y`.
+This must often be the same size as *measurement_sensor*.
 
-This should often be the same size as *measurement_sensor*.
+The notation in ARTS, for the purpose of *OEM*, is that
+
+.. math::
+    \vec{y} = \mathbf{F}\left(\vec{x}\right) + \vec{y}_\epsilon\left(\vec{x}\right) + \epsilon
+
+where
+:math:`\mathbf{F}` is the forward model function of the physics of the simulation space,
+:math:`\vec{x}` is the *model_state_vector*,
+:math:`\vec{y}_\epsilon` is the *measurement_vector_error*, and
+:math:`\epsilon` are any additional errors, such as random noise.
+
+Throughout ARTS, *measurement_vector* have different contextual meanings.
+These are:
+
+1. :math:`\vec{y}` - i.e., measured data.
+2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vector_fitted*. 
+3. :math:`\mathbf{F}\left(\vec{x}\right)` - i.e., the physical model of the measurement.
 )",
       .type = "Vector",
   };
 
   wsv_data["measurement_vector_error"] = {
-      .desc = R"(The measurment vector error for, e.g., a sensor.
+      .desc = R"(The model measurment vector error for, e.g., a sensor.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is the :math:`\epsilon`.
+This must often be the same size as *measurement_sensor*.
 
-This should often be the same size as *measurement_sensor*.
+See *measurement_vector* for more details.
+In that notation, this is :math:`\vec{y}_\epsilon`.
 )",
       .type = "Vector",
   };
@@ -734,7 +762,21 @@ This should often be the same size as *measurement_sensor*.
   wsv_data["measurement_vector_fitted"] = {
       .desc          = R"(As *measurement_vector*, but fitted to the model.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
+This must often be the same size as *measurement_sensor*.
+
+See *measurement_vector* for more details.
+In that notation, and in the notation of *OEM*,
+:math:`\vec{y}_f \approx \vec{y} - \epsilon`.
+Or at least this should be the case depending on how good of a fit of :math:`\vec{x}`
+has been produced and if the measurement can be understood properly.
+
+.. tip::
+    It is often useful to present :math:`\vec{y} -  \vec{y}_\epsilon`
+    and :math:`\vec{y}_f - \vec{y}_\epsilon` instead of
+    :math:`\vec{y}_f` and :math:`\vec{y}` directly.  This removes the
+    known measurement error from both the data and the fit,
+    showing the physical signal from the target rather than
+    known sensor noise.
 )",
       .type          = "Vector",
       .default_value = " ",
@@ -770,7 +812,14 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
   };
 
   wsv_data["do_jacobian"] = {
-      .desc = R"(A boolean for if Jacobian calculations should be done.
+      .desc = R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
+
+This variable is limited to very few methods related to the inversion process for *OEM*.
+Note that deep code of ARTS will ignore this variable, so it is not a global switch.
+Instead, it is used as a switch to clear the *jacobian_targets* variable, which is used
+to determine the size of the *measurement_jacobian*.  It is important to be careful
+with this, as it will mess with the size of the *measurement_jacobian* and could
+thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
 )",
       .type = "Index",
       .default_value = "1",
@@ -789,11 +838,16 @@ In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`y + \epsilon`.
   };
 
   wsv_data["measurement_jacobian"] = {
-      .desc = R"(The partial derivatives of the *measurement_vector*.
+      .desc = R"(The first order partial derivatives of the *measurement_vector*.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is used as both :math:`\frac{\partial y}{\partial x}` or :math:`\frac{\partial y}{\partial x} + \frac{\partial \epsilon}{\partial x}`.
+This variable represents the matrix
 
-The size of this variable should be the size *measurement_vector* times the size of *model_state_vector*.
+.. math::
+    \mathbf{J} = \frac{\partial \vec{y}} {\partial \vec{x}},
+
+where :math:`\vec{y}` is the *measurement_vector* and :math:`\vec{x}` is the *model_state_vector*.
+The size of this variable should thus be the size of *measurement_vector* times the size of *model_state_vector*.
+Please refer to those variables for more information.
 )",
       .type = "Matrix",
   };
@@ -801,9 +855,7 @@ The size of this variable should be the size *measurement_vector* times the size
   wsv_data["measurement_jacobian_error"] = {
       .desc = R"(The partial derivatives of the *measurement_vector_error*.
 
-In classical :math:`F(x) = y + \epsilon`-notation, this is :math:`\frac{\partial \epsilon}{\partial x}`.
-
-The size of this variable should be the size *measurement_vector_error* times the size of *model_state_vector*.
+This is otherwise the same as *measurement_jacobian*.  See it for more details.
 )",
       .type = "Matrix",
   };

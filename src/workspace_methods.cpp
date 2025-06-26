@@ -329,6 +329,13 @@ Remove the manual definition of these methods from workspace_methods.cpp.
   }
 }
 
+void fix(
+    std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
+  for (auto& wsmr : wsm_data | std::views::values) {
+    if (wsmr.desc.back() != '\n') wsmr.desc += '\n';
+  }
+}
+
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods_create() try {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
@@ -747,7 +754,21 @@ spherical harmonics and is only valid for a limited time period.
   };
 
   wsm_data["frequency_gridFitNonLTE"] = {
-      .desc      = "Frequency grid useful for *atmospheric_profileFitNonLTE*\n",
+      .desc      = R"(Frequency grid useful for *atmospheric_profileFitNonLTE*.
+
+This method creates a frequency grid around the line-center of each
+absorption line in the *absorption_bands* variable.
+
+.. note::
+  For all sorted absorption line centers :math:`f_i`, the following should be 
+  true:
+
+  .. math::
+
+    f_{i -1} + \delta f < f_i < f_{i + 1} - \delta f
+
+  That is, the frequency ranges are not allowed to overlap.
+)",
       .author    = {"Richard Larsson"},
       .out       = {"frequency_grid"},
       .in        = {"absorption_bands"},
@@ -755,8 +776,8 @@ spherical harmonics and is only valid for a limited time period.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
       .gin_desc =
-          {R"--(Frequency grid spacing around the line-center.  The range will be :math:`f_0(1-\delta f)` to :\math:`f_0(1 +\delta f)` of each absorption line.)--",
-           R"--(Number of frequency points per line.)--"},
+          {R"--(Frequency grid around the line-center.  The range will cover :math:`f_i` \pm \left(1-\delta f\right)\forall i` of each absorption line :math:`i`, where this variable is :math:`\delta f`.)--",
+           R"--(Number of frequency points per line.  The step between frequency grid points will be :math:`2\frac{\delta f}{N - 1}`, where this is :math:`N`.)--"},
   };
 
   wsm_data["atmospheric_fieldFromProfile"] = {
@@ -1227,12 +1248,55 @@ must be as described by each vector.
 
   wsm_data["propagation_matrixAddCIA"] = {
       .desc =
-          R"--(Calculate absorption coefficients per tag group for HITRAN CIA continua.
+          R"--(Add absorption coefficients for HITRAN collision induced absorption (CIA).
 
-This interpolates the cross sections from *absorption_cia_data*.
+This interpolates the cross sections from *absorption_cia_data*.  If too few
+temperature grid-points are available, its polynomial order of interpolation
+decreases to the maximum allowed.  Otherwise, both frequency and temperature
+are interpolated using third order polynomials.
 
-The robust option is intended only for testing. Do not use for normal
-runs, since subsequent functions will not be able to deal with NAN values.
+Given that the interpolation is :math:`\vec{x}_{ij} = f\left(T, \vec{f}\right)`,
+where the *atmospheric_point* temperature is :math:`T` and :math:`f` is the
+*frequency_grid*, :math:`i` is an index into the *absorption_cia_data* and :math:`j`
+is an index into the underlying :class:`~pyarts.arts.CIARecord` data structure,
+the absorption coefficient from CIA is given by
+
+.. math::
+
+    vec{\alpha}_\mathbf{CIA} = \sum_i n_{i,0} n_{i,1} \sum_j vec{x}_{ij}
+
+where :math:`n_{i,0}` and :math:`n_{i,1}` are number densities
+of the two species involved in the CIA.
+
+The input ``T_extrapolfac`` sets a limit on the interpolation along
+the temperature grid of the data.  If the temperature grid is
+:math:`[T_0, T_1, \cdots, T_{n-1}, T_n]`, then this method throws
+an error if
+
+.. math::
+
+    T < T_0 - \Delta T_e \left(T_1 - T_0\right)
+
+or
+
+.. math::
+
+    T > T_n + \Delta T_e \left(T_n - T_{n-1}\right)
+
+where :math:`\Delta T_e` is the extrapolation factor given by
+``T_extrapolfac``.  If this happens to you and you believe you can
+use the computations anyways, set ``T_extrapolfac`` to a very large
+or infinite value.
+
+The frequnecy grid interpolation is limited to within the range
+of the available data. Any point in *frequency_grid* outside this
+range will simply be ignored.  The frequency interpolation can
+thus not fail.
+
+.. note::
+    ``ignore_errors`` can be set to 1 to suppress runtime errors, but any
+    error will result in NaN values in the output.  This is useful if you
+    want to debug your results, but not if you want to use them.
 )--",
       .author    = {"Stefan Buehler, Oliver Lemke"},
       .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
@@ -1247,7 +1311,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.5}, Index{0}},
       .gin_desc =
-          {R"--(Temperature extrapolation factor (relative to grid spacing).)--",
+          {R"--(Temperature extrapolation factor (relative to grid spacing). :math:`\Delta T_e` in text above.)--",
            R"--(Set to 1 to suppress runtime errors (and return NAN values instead).)--"},
   };
 
@@ -1919,7 +1983,7 @@ The ``alts`` vector contains the altitude grid values that limits the
 extrapolation distance in altitude.  The first altitude in this
 list should corresond to the altitude of the ``p0`` grid.  The extrapolation
 outside of this range simply uses the hydrostatic equation
-:math:`P_1 = P_0 - g h \rho` by means of the specific gas constant omputed
+:math:`P_1 = P_0 - g h \rho` by means of the specific gas constant computed
 as desribed above and the pressure of the lower or first altitude level.
 
 See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
@@ -1940,7 +2004,7 @@ See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
                     Numeric{-1},
                     String{"HydrostaticEquation"}},
       .gin_desc =
-          {"Lowest altitude pressure field",
+          {"Lowest altitude pressure field.  :math:`P_0` above.",
            "Specific gas constant if larger than 0",
            "Constant atmospheric temprature if larger than 0",
            "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"},
@@ -2335,12 +2399,14 @@ This is a generic error that is simply added to *measurement_vector* as if
 
 .. math::
 
-    y = y_0 + \epsilon(p_0, p_1, ..., p_n),
+    y = y_0 + \epsilon(p_0,\; p_1,\; \cdots,\; p_n),
 
-where y represents *measurement_vector* and y0 is the measurement
+where :math:`y` represents *measurement_vector* and :math:`y_0` is the measurement vector without any errors)
 
 Order 0 means constant: :math:`y = y_0 + a`
+
 Order 1 means linear:   :math:`y = y_0 + a + b t`
+
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -2359,9 +2425,10 @@ those with regards to a, b, etc..
       .gin       = {"t", "sensor_elem", "polyorder"},
       .gin_type  = {"Vector", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc  = {"The grid of the perturbation",
-                    "The sensor element whose frequency grid to use",
-                    "The order of the polynomial fit"},
+      .gin_desc =
+          {"The grid of :math:`y`.  As :math:`t` above.",
+           "The sensor element whose frequency grid to use",
+           "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
   wsm_data["RetrievalAddErrorPolyFit"] =
       jac2ret("jacobian_targetsAddErrorPolyFit");
@@ -2371,7 +2438,9 @@ those with regards to a, b, etc..
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
 Order 0 means constant: :math:`f := f_0 + a`
+
 Order 1 means linear:   :math:`f := f_0 + a + b f_0`
+
 and so on.  The derivatives that are added to the *model_state_vector* are
 those with regards to a, b, etc..
 
@@ -4239,13 +4308,45 @@ The cost function to minimise, including a normalisation with length
 of *measurement_vector*, is:
 
 .. math::
-    cost = cost_y + cost_x
+    \chi^2 = \chi^2_y + \chi^2_x
 
 where:
 
 .. math::
-    cost_y = 1/m [y-yf]' covmat_se_inv [y-yf]
-    cost_x = 1/m [x-xa]' covmat_sx_inv [x-xa]
+    \chi^2_y = \frac{1}{m} \left(\vec{y}-\vec{y}_f\right)^\top \mathbf{S}_\epsilon^{-1} \left(\vec{y}-\vec{y}_f\right)
+
+.. math::
+    \chi^2_x = \frac{1}{m} \left(\vec{x}-\vec{x}_a\right)^\top \mathbf{S}_a^{-1} \left(\vec{x}-\vec{x}_a\right)
+
+where:
+
+.. list-table::
+  :name: Meaning of variables
+  :widths: auto
+  :align: left
+  :header-rows: 1
+
+  * - Variable
+    - ARTS parameter
+    - Meaning
+  * - :math:`\vec{x}`
+    - *model_state_vector*
+    - The model state vector.  All model states that are :emphasis:`allowed` to vary.
+  * - :math:`\vec{x}_a`
+    - *model_state_vector_apriori*
+    - The a priori model state vector.
+  * - :math:`\vec{y}`
+    - *measurement_vector*
+    - The measurement vector. This is the measurement that the OEM is trying to fit.
+  * - :math:`\vec{y}_f`
+    - *measurement_vector_fitted*
+    - The fitted measurement vector.  The simulated measurement vector for the model state vector.
+  * - :math:`\mathbf{S}_\epsilon`
+    - *measurement_vector_error_covariance_matrix*
+    - The error covariance matrix of the measurement vector.
+  * - :math:`\mathbf{S}_a`
+    - *model_state_covariance_matrix*
+    - The a priori covariance matrix of the model state vector.
 
 The current implementation provides 3 methods for the minimization of
 the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
@@ -4900,9 +5001,10 @@ The number :math:`n` must be uneven and larger than 2.
       .gin       = {"azimuth", "n", "atm_key"},
       .gin_type  = {"Numeric", "Index", "AtmKey"},
       .gin_value = {Numeric{0.0}, std::nullopt, AtmKey::t},
-      .gin_desc  = {"Azimuth angle for the observer",
-                    "Number of limb looking observers (min 2)",
-                    "The altitude profile key in the atmosphere"},
+      .gin_desc =
+          {"Azimuth angle for the observer",
+           "Number of limb looking observers (min 2).  :math:`n` above.",
+           "The altitude profile key in the atmosphere"},
   };
 
   wsm_data["ray_path_fieldFluxProfile"] = {
@@ -5052,6 +5154,7 @@ for more information.
     wsm_data[m.name] = m.create(wsm_data);
   }
 
+  fix(wsm_data);
   return wsm_data;
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}",

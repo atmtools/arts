@@ -392,9 +392,9 @@ void atmospheric_fieldAppendXsecSpeciesData(
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const PredefinedModelData &absorption_predefined_model_data) {
-  if (absorption_predefined_model_data.data.empty()) return;
+  if (absorption_predefined_model_data.empty()) return;
 
-  for (auto &predef_record : absorption_predefined_model_data.data) {
+  for (auto &predef_record : absorption_predefined_model_data) {
     ++keys[predef_record.first.spec];
   }
 }

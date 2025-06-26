@@ -27,7 +27,16 @@ internal_workspace_groups_creator() {
   wsg_data["AbsorptionBand"] = {
       .file = "lbl.h",
       .desc =
-          "Contains all information about bands of related absorption lines\n",
+          R"(Contains all information about bands of related absorption lines.
+
+This information includes
+
+#. A list of :class:`~pyarts.arts.AbsorptionLine`.
+
+#. The line shape profile model.  See *LineByLineLineshape* for available line shape profiles.
+
+#. The frequency cutoff value in [Hz] and type.  See *LineByLineCutoffType* for available cutoff types.
+)",
   };
 
   wsg_data["AbsorptionBands"] = {
@@ -44,13 +53,21 @@ internal_workspace_groups_creator() {
 
   wsg_data["Agenda"] = {
       .file = "workspace_agenda_class.h",
-      .desc = "Describes a set of function calls and variable definitions\n",
+      .desc = R"(Describes a set of function calls and variable definitions
+
+Agendas are effectively constrained callback methods.
+They define a set of inputs and outputs.  These variables
+are always local to a method that uses the agenda.
+In addition to these local variables, the agenda has full access to copy or share any workspace variables.
+However, by tracking how named workspace variables are used in an agenda, ARTS ensures that the agenda
+does not change the global workspace while minimizing the number of variables that need to be copied or shared.
+)",
   };
 
   wsg_data["Any"] = {
       .file = "supergeneric.h",
       .desc =
-          "Meta type for when methods can take any argument (avoid manual use)\n",
+          "Meta type for when methods can take any argument (avoid manual use - there is non)\n",
   };
 
   wsg_data["ArrayOfArrayOfGriddedField1"] = {
@@ -125,7 +142,8 @@ internal_workspace_groups_creator() {
 
   wsg_data["ArrayOfCIARecord"] = {
       .file = "cia.h",
-      .desc = "A list of *CIARecord*\n",
+      .desc = R"(A list of *CIARecord*
+)",
   };
 
   wsg_data["ArrayOfGriddedField1"] = {
@@ -197,8 +215,8 @@ internal_workspace_groups_creator() {
       .file = "species_tags.h",
       .desc = R"(A tagged absorption species
 
-These tags include the species and a lot of optional information
-about the isotopologue, the absorption scheme, and the frequency limits
+These tags are used to help ARTS identify the species
+so that reading routines can find the correct data files.
 )",
   };
 
@@ -210,7 +228,12 @@ about the isotopologue, the absorption scheme, and the frequency limits
 
   wsg_data["SurfacePropertyTag"] = {
       .file = "surf.h",
-      .desc = R"--(A surface property
+      .desc = R"--(A surface property.
+
+These tags are part of the keys that can be used to access a *SurfaceField*.
+They are completely free-form and currently not used by ARTS internally.
+Instead, they offer a customization point for users to define their own
+surface properties and ensures we can access them in a consistent way.
 )--",
   };
 
@@ -282,61 +305,123 @@ longitude in the sky of the planet and the type)-x-",
 
   wsg_data["XsecRecord"] = {
       .file = "xsec_fit.h",
-      .desc = "A single cross-section record",
+      .desc = R"(A single cross-section record
+
+These cross-section records contains information about the valid temperature and
+pressure ranges as well as well as the fitting coefficients used to compute
+and interpolate the cross-section to other temperatures and pressures
+)",
   };
 
   wsg_data["ArrayOfXsecRecord"] = {
       .file = "xsec_fit.h",
       .desc =
-          R"--(A list of cross-section records
-
-These cross-section records contains information about the valid temperature and
-pressure ranges as well as well as the fitting coefficients used to compute
-and interpolate the cross-section to other temperatures and pressures
+          R"--(A list of *XsecRecord*
 )--",
   };
 
   wsg_data["AtmField"] = {
       .file = "atm.h",
-      .desc = R"--(An atmospheric field
+      .desc = R"--(An atmospheric field.
+
+An atmospheric field holds two things:
+
+#. The top of the atmosphere altitude, which is the altitude at which the atmosphere ends.  Unit: m
+
+#. A map of *AtmData*.  The available types of keys are:
+
+   #. *AtmKey*
+
+   #. *SpeciesEnum*
+
+   #. *SpeciesIsotope*
+
+   #. *QuantumIdentifier*
+
+   #. *ScatteringSpeciesProperty*
+
+   See each key for more information on what type of data it allows holding.
 )--",
   };
 
   wsg_data["AtmData"] = {
       .file = "atm.h",
-      .desc = R"--(An atmospheric point
+      .desc = R"--(An atmospheric data field.
+
+Each atmospheric data field can be mapped to a single altitude-latitude-longitude coordinate,
+producing a *Numeric* value at that point in the atmosphere.
+
+It holds essentially two things:
+
+#. Rules for how to extrapolate the data in the six directions of the atmosphere (up, down, north, south, east, west).
+
+#. A data field.  This data field is one of the following types:
+
+    #. *Numeric* - The data field is constant in the atmosphere.
+       Cannot consider the extrapolation rules as there is no grid.
+
+    #. *SortedGriddedField3* - The grids are altitude, latitude, longitude.
+       Will consider the extrapolation rules but otherwise performs linear interpolation between all points.
+       With the additional rule that longitude is considerd cyclic around [-180, 180).
+
+    #. *NumericTernaryOperator* - The data field has functional form.
+       Cannot consider the extrapolation rules as there is no grid.
 )--",
   };
 
   wsg_data["AtmPoint"] = {
       .file = "atm.h",
-      .desc = R"--(An atmospheric point
+      .desc = R"--(An atmospheric point.
+
+This can be thought of as the sampling all the *AtmData* of and *AtmField*
+at a single altitude-latitude-longitude coordinate.
+It, like *AtmField* also acts like a map.  They keys are the same as for *AtmField*. However,
+the values are simply the *Numeric* data at that point in the atmosphere.
 )--",
   };
 
   wsg_data["CIARecord"] = {
       .file = "cia.h",
       .desc =
-          R"--(Contains information to compute collision induced absorption for a pair of species
+          R"--(Contains information to compute collision induced absorption (CIA) for a pair of species.
 
-Holds an the record data in a gridded field with grids of temperature and frequency in
-units of m^5 molec^(-2)
+A record holds a list of *GriddedField2* objects,
+each which describe a separate band of absorption with dimensions of
+frequency times temperature.  The *Matrix* objects in the *GriddedField2*
+simply holds data to be interpolated in the frequency and temperature
+with physical units of [m :math:`^5` per molecule :math:`^2`].
 )--",
   };
 
   wsg_data["CallbackOperator"] = {
       .file = "callback.h",
-      .desc = "Used to inject custom code into *Agenda*\n",
+      .desc = R"(Used to inject custom code into *Agenda*
+
+This completely breaks the type system of ARTS and should only be used.
+You are on your own when things go wrong with this.
+)",
   };
 
   wsg_data["BlockMatrix"] = {
       .file = "covariance_matrix.h",
-      .desc = "A block matrix for the covariance matrix\n",
+      .desc =
+          R"(The data for a single :class:`~pyarts.arts.Block`, likely part of a *CovarianceMatrix*.
+
+This holds either a *Matrix* or a *Sparse* matrix.
+)",
   };
 
   wsg_data["CovarianceMatrix"] = {
       .file = "covariance_matrix.h",
-      .desc = "A covariance matrix\n",
+      .desc =
+          R"(A covariance matrix is a square matrix that describes the covariance of some property.  
+
+Please see the different workspace variables of this type for more information.
+
+In ARTS, this square matrix is represented by two lists of :class:`~pyarts.arts.Block`.
+These are used to give both the covariance matrix and the inverse covariance matrix.
+The block-structure allows for efficient storage and computation of the covariance matrix.
+)",
   };
 
   wsg_data["GriddedField1"] = {
@@ -475,11 +560,27 @@ Both the data and the grid may be named
       .value_type = true,
   };
 
+  wsg_data["LinemixingSingleEcsData"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(Data for single species ECS.
+)--",
+  };
+
+  wsg_data["LinemixingSpeciesEcsData"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map from *SpeciesEnum* to *LinemixingSingleEcsData*
+)--",
+      .map_type = true,
+  };
+
   wsg_data["LinemixingEcsData"] = {
       .file = "lbl.h",
       .desc =
-          R"--(A map of line mixing data
+          R"--(A map from *SpeciesIsotope* to *LinemixingSpeciesEcsData*
 )--",
+      .map_type = true,
   };
 
   wsg_data["Matrix"] = {
@@ -503,11 +604,22 @@ Both the data and the grid may be named
       .value_type = true,
   };
 
+  wsg_data["PredefinedModelDataVariant"] = {
+      .file = "predef.h",
+      .desc =
+          R"--(One of the following:
+
+#. :class:`~pyarts.arts.predef.PredefinedModelDataName`
+#. :class:`~pyarts.arts.predef.PredefinedModelDataWaterDataMTCKD4`
+)--",
+  };
+
   wsg_data["PredefinedModelData"] = {
       .file = "predef.h",
       .desc =
-          R"--(Contains any data required for a predefined model
+          R"--(A map of *SpeciesIsotope* to *PredefinedModelDataVariant*
 )--",
+      .map_type = true,
   };
 
   wsg_data["QuantumIdentifier"] = {
@@ -556,7 +668,19 @@ and can thus be used to identify one of the following:
   wsg_data["SurfaceField"] = {
       .file = "surf.h",
       .desc =
-          R"--(A surface field that keeps relevant surface parameters
+          R"--(A surface field.
+
+A surface field effectively holds two things:
+
+#. A *Vector2* of the ellipsoid.  a and b parameters.  Unit: m
+
+#. A map of :class:`~pyarts.arts.SurfaceData`.  The available types of keys are:
+
+   #. *SurfaceKey*
+
+   #. *SurfacePropertyTag*
+
+   See each key for more information on what type of data it allows holding.
 )--",
   };
 
@@ -565,21 +689,40 @@ and can thus be used to identify one of the following:
       .desc =
           R"--(A surface point.
 
-Keeps point values for the surface, including the local normal vector.
+This keeps two things:
+
+#. The local normal vector.
+
+#. A map of the same keys as *SurfaceField* but towards *Numeric* data.
+   It is similar to how *AtmPoint* is towards *AtmField*.
 )--",
   };
 
   wsg_data["SubsurfaceField"] = {
       .file = "subsurface.h",
       .desc =
-          R"--(A sub-surface field that keeps relevant sub-surface parameters
+          R"--(A sub-surface field.
+
+A sub-surface field effectively holds two things:
+
+#. A *Numeric* of the deepest depth of the subsurface.  Unit: m
+
+#. A map of :class:`~pyarts.arts.SubsurfaceData`.  The available types of keys are:
+
+   #. *SubsurfaceKey*
+
+   See each key for more information on what type of data it allows holding.
 )--",
   };
 
   wsg_data["SubsurfacePoint"] = {
       .file = "subsurface.h",
       .desc =
-          R"--(A sub-surface point.
+ 
+          R"--(A surface point.
+
+This keeps a map of the same keys as *SubsurfaceField* but towards *Numeric* data.
+It is similar to how *AtmPoint* is towards *AtmField*.
 )--",
   };
 
@@ -634,12 +777,12 @@ Due to the properties of a propagation matrix, only 7 independents need be store
 The propagation matrix is thus represented as:
 
 .. math::
-    \begin {array} {rrrr}
+    \mathbf{K} = \left[ \begin {array} {rrrr}
     A & B & C & D \\
     B & A & U & V \\
     C &-U & A & W \\
     D &-V &-W & A
-    \end {array}
+    \end {array} \right]
 
 This type is related to *Stokvec* in that its first 4 elements are the same as
 the first 4 elements of *Stokvec* for pure clearsky radiative transfers.
@@ -661,7 +804,25 @@ of this term multiplied by a negative distance.
 
   wsg_data["Stokvec"] = {
       .file = "rtepack.h",
-      .desc = "A single Stokes vector (of length 4).\n",
+      .desc = R"(A single Stokes vector (of length 4).
+
+.. math::
+    \vec{I} = \left[ \begin {array} {r}
+      I \\ Q \\ U \\ V
+    \end {array} \right]
+
+The Stokes vector is used to represent the state of polarization of light.
+
+The components of the Stokes vector are:
+
+#. :math:`I` - the total intensity of the light
+
+#. :math:`Q` - the difference in intensity between horizontally and vertically polarized light
+
+#. :math:`U` - the difference in intensity between light polarized at +45 degrees and -45 degrees
+
+#. :math:`V` - the difference in intensity between right and left circularly polarized light
+)",
   };
 
   wsg_data["PropmatVector"] = {
@@ -726,41 +887,41 @@ of this term multiplied by a negative distance.
 
   wsg_data["StokvecSortedGriddedField1"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 1-dimensional gridof *Stokvec*.
+      .desc = R"--(A 1-dimensional grid of *Stokvec*.
 
-The grid is sorted in ascending order.
+The grids are 1 *AscendingGrid*.
 )--",
   };
 
   wsg_data["StokvecSortedGriddedField2"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 2-dimensional gridof *Stokvec*.
+      .desc = R"--(A 2-dimensional grid of *Stokvec*.
 
-The grids are sorted in ascending order.
+The grids are 2 *AscendingGrid*.
 )--",
   };
 
   wsg_data["StokvecSortedGriddedField3"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 3-dimensional gridof *Stokvec*.
+      .desc = R"--(A 3-dimensional grid of *Stokvec*.
 
-The grids are sorted in ascending order.
+The grids are 3 *AscendingGrid*.
 )--",
   };
 
   wsg_data["StokvecSortedGriddedField4"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 4-dimensional gridof *Stokvec*.
+      .desc = R"--(A 4-dimensional grid of *Stokvec*.
 
-The grids are sorted in ascending order.
+The grids are 4 *AscendingGrid*.
 )--",
   };
 
   wsg_data["StokvecSortedGriddedField5"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 5-dimensional gridof *Stokvec*.
+      .desc = R"--(A 5-dimensional grid of *Stokvec*.
 
-The grids are sorted in ascending order.
+The grids are 5 *AscendingGrid*.
 )--",
   };
 
@@ -768,7 +929,7 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 6-dimensional gridof *Stokvec*.
 
-The grids are sorted in ascending order.
+The grids are 6 *AscendingGrid*.
 )--",
   };
 
@@ -868,6 +1029,11 @@ The grids are sorted in ascending order.
 
 This type will work as a function pointer that takes a single *Numeric*
 to produce another *Numeric*.
+
+.. math::
+
+    m = f(x)
+
 )--",
   };
 
@@ -877,6 +1043,11 @@ to produce another *Numeric*.
 
 This type will work as a function pointer that takes two *Numeric*
 to produce another *Numeric*.
+
+.. math::
+
+    m = f(x, y)
+
 )--",
   };
 
@@ -886,6 +1057,11 @@ to produce another *Numeric*.
 
 This type will work as a function pointer that takes three *Numeric*
 to produce a single *Numeric*.
+
+.. math::
+
+    m = f(x, y, z)
+
 )--",
   };
 
@@ -966,12 +1142,12 @@ radiation.
 
   wsg_data["DescendingGrid"] = {
       .file = "matpack.h",
-      .desc = "A sorted grid of always Descending values.\n",
+      .desc = "A sorted *Vector* of always descending values.\n",
   };
 
   wsg_data["AscendingGrid"] = {
       .file = "matpack.h",
-      .desc = "A sorted grid of always ascending values.\n",
+      .desc = "A sorted *Vector* of always ascending values.\n",
   };
 
   wsg_data["ArrayOfAscendingGrid"] = {
@@ -990,7 +1166,7 @@ line-of-sight to get the corresponding spectral radiance.
 
   wsg_data["SpeciesIsotope"] = {
       .file = "isotopologues.h",
-      .desc = "Contains descriptions about an isotope.\n",
+      .desc = "Contains name and data about an isotope.\n",
   };
 
   wsg_data["ArrayOfSpeciesIsotope"] = {
@@ -1012,6 +1188,8 @@ line-of-sight to get the corresponding spectral radiance.
       .file = "obsel.h",
       .desc = R"(A single observation element.
 
+This should result in a single element in a *measurement_vector*.
+
 Expected use of this type is to generate the measurement vector
 of a sensor, where this observation element represent the readout
 from that sensor in a convenient unit (commonly Kelvin or 
@@ -1020,6 +1198,13 @@ W sr :math:`^{-1}` m :math:`^{-2}` Hz :math:`^{-1}`, but not exclusively)
 It deals with averaging the frequency grid sampled by a sensor element
 and the transmission of the sensor system onto the sampling device, as
 well as the sampling device's polarization response.
+
+.. note::
+   Multiple *SensorObsel* can be used to represent a single sensor
+   with multiple channels, such as a sensor with multiple detectors
+   or a sensor with multiple frequency channels.  They then can conveniently
+   share much of their grids, but have different weighting functions
+   and/or different sampling devices.
 )",
   };
 
@@ -1030,17 +1215,39 @@ well as the sampling device's polarization response.
 
   wsg_data["DisortSettings"] = {
       .file = "disort.h",
-      .desc = "The settings required to run Disort.\n",
+      .desc = R"(The settings required to run Disort.
+
+#. *Index* Quadrature dimension
+#. *Index* Legendre order
+#. *Index* Fourier order
+#. *Index* Number of frequency points
+#. *Index* Number of layers
+#. *Vector* Solar azimuth angles
+#. *Vector* Solar zenith angles
+#. *Vector* Solar source
+#. *MatrixOfDisortBDRF* Bi-directional reflectance distribution functions
+#. *Matrix* Optical thicknesses
+#. *Matrix* Single scattering albedos
+#. *Matrix* Fractional scattering
+#. *Tensor3* Source function polynomial
+#. *Tensor3* Legendre polynomial coefficients
+#. *Tensor3* Positive boundary condition
+#. *Tensor3* Negative boundary condition
+)",
   };
 
   wsg_data["AbsorptionLookupTable"] = {
       .file = "lookup_map.h",
-      .desc = "A table of lookup calculations.\n",
+      .desc = R"(A table of lookup calculations.
+
+Effectively holds a *Tensor4* of pre-computed cross-section data.
+This table is used to interpole to a pressure, temperature, water vmr, and frequency grid.
+)",
   };
 
   wsg_data["AbsorptionLookupTables"] = {
       .file     = "lookup_map.h",
-      .desc     = "A map of tables of of lookup calculations.\n",
+      .desc     = "A map of *SpeciesEnum* to *AbsorptionLookupTable*.\n",
       .map_type = true,
   };
 
@@ -1048,7 +1255,7 @@ well as the sampling device's polarization response.
       .file = "rtepack.h",
       .desc = R"--(A 1-dimensional gridof *Numeric*.
 
-The grid is sorted in ascending order.
+The grids are 1 *AscendingGrid*.
 )--",
   };
 
@@ -1056,7 +1263,7 @@ The grid is sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 2-dimensional gridof *Numeric*.
 
-The grids are sorted in ascending order.
+The grids are 2 *AscendingGrid*.
 )--",
   };
 
@@ -1064,7 +1271,7 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The grids are sorted in ascending order.
+The grids are 3 *AscendingGrid*.
 )--",
   };
 
@@ -1072,7 +1279,7 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 4-dimensional gridof *Numeric*.
 
-The grids are sorted in ascending order.
+The grids are 4 *AscendingGrid*.
 )--",
   };
 
@@ -1080,7 +1287,7 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 5-dimensional gridof *Numeric*.
 
-The grids are sorted in ascending order.
+The grids are 5 *AscendingGrid*.
 )--",
   };
 
@@ -1088,7 +1295,7 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 6-dimensional gridof *Numeric*.
 
-The grids are sorted in ascending order.
+The grids are 6 *AscendingGrid*.
 )--",
   };
 
@@ -1096,13 +1303,14 @@ The grids are sorted in ascending order.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The first grid is descending and the other grids are sorted in ascending order.
+The grids are 1 *DescendingGrid* followed by 2 *AscendingGrid*.
 )--",
   };
 
   wsg_data["SpectralRadianceTransformOperator"] = {
       .file = "spectral_radiance_transform_operator.h",
-      .desc = R"--(Transformation of *spectral_radiance* and *spectral_radiance_jacobian*
+      .desc =
+          R"--(Transformation of *spectral_radiance* and *spectral_radiance_jacobian*
 
 This type of transformation should be used limitedly.  It is useful
 as the last step before creating a *measurement_vector*, as it is
