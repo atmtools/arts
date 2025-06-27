@@ -103,7 +103,16 @@ SpeciesTag parse_tag(std::string_view text) {
   SpeciesTag tag;
 
   // The first part is a species --- we do not know what to do with it yet
-  const SpeciesEnum species = spec(next(text), orig);
+  SpeciesEnum species = SpeciesEnum::Bath;  // Default value
+  try {
+    species = spec(next(text), orig);
+  } catch (std::exception& e) {
+    throw std::runtime_error(std::format(
+        "Error parsing species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
+        orig,
+        enumtyps::SpeciesEnumTypes,
+        e.what()));
+  }
 
   // If there is no text remaining after the previous next(), then we are a
   // wild-tag species. Otherwise we have to process the tag a bit more
@@ -113,19 +122,36 @@ SpeciesTag parse_tag(std::string_view text) {
     check(text, orig);
   } else {
     if (const std::string_view tag_key = next(text); tag_key == "CIA") {
-      tag.spec_ind        = isot(species, Joker, orig);
-      tag.cia_2nd_species = spec(next(text), orig);
-      tag.type            = SpeciesTagType::Cia;
+      tag.spec_ind = isot(species, Joker, orig);
+      try {
+        tag.cia_2nd_species = spec(next(text), orig);
+      } catch (std::exception& e) {
+        throw std::runtime_error(std::format(
+            "Error parsing second species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
+            orig,
+            enumtyps::SpeciesEnumTypes,
+            e.what()));
+      }
+      tag.type = SpeciesTagType::Cia;
       check(text, orig);
     } else if (tag_key == "XFIT") {
       tag.spec_ind = isot(species, Joker, orig);
       tag.type     = SpeciesTagType::XsecFit;
       check(text, orig);
     } else {
-      tag.spec_ind = isot(species, tag_key, orig);
-      tag.type     = Isotopologues[tag.spec_ind].is_predefined()
-                         ? SpeciesTagType::Predefined
-                         : SpeciesTagType::Plain;
+      try {
+        tag.spec_ind = isot(species, tag_key, orig);
+      } catch (std::exception& e) {
+        throw std::runtime_error(std::format(
+            "Error parsing isotopologue in tag \"{}\".\n\nValid isotopologues of species {} are:\n{:Bq,}\n\nInternal error: {}",
+            orig,
+            species,
+            isotopologues(species),
+            e.what()));
+      }
+      tag.type = Isotopologues[tag.spec_ind].is_predefined()
+                     ? SpeciesTagType::Predefined
+                     : SpeciesTagType::Plain;
     }
   }
 

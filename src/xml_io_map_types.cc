@@ -23,7 +23,9 @@ TMPL_XML_READ_WRITE_STREAM_UMAP(QuantumIdentifier, Vector)
 TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesEnum, AbsorptionLookupTable)
 TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesEnum, Numeric)
 TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesEnum, Vector)
+TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesEnum, LinemixingSingleEcsData)
 
 TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesIsotope, Numeric)
+TMPL_XML_READ_WRITE_STREAM_UMAP(SpeciesIsotope, LinemixingSpeciesEcsData)
 
 TMPL_XML_READ_WRITE_STREAM_UMAP(ScatteringSpeciesProperty, Numeric)

@@ -16,7 +16,7 @@ void calculate(PropmatVectorView pm,
                const Jacobian::Targets& jacobian_targets,
                const SpeciesEnum species,
                const AbsorptionBands& bnds,
-               const linemixing::isot_map& ecs_data,
+               const LinemixingEcsData& ecs_data,
                const AtmPoint& atm,
                const Vector2 los,
                const bool no_negative_absorption);

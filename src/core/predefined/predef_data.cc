@@ -12,12 +12,6 @@
 #include <vector>
 
 namespace Absorption::PredefinedModel {
-Model::Model()                             = default;
-Model::Model(const Model &)                = default;
-Model::Model(Model &&) noexcept            = default;
-Model &Model::operator=(const Model &)     = default;
-Model &Model::operator=(Model &&) noexcept = default;
-
 namespace MT_CKD400 {
 std::ostream &operator<<(std::ostream &os, const WaterData &data) {
   os << data.ref_temp << ' ' << data.ref_press << ' ' << data.ref_h2o_vmr
@@ -58,23 +52,23 @@ std::ostream &operator<<(std::ostream &os, const ModelName &) { return os; }
 
 std::istream &operator>>(std::istream &is, ModelName &) { return is; }
 
-std::ostream &operator<<(std::ostream &os, const Model &m) {
+std::ostream &operator<<(std::ostream &os, const PredefinedModelData &m) {
   std::string_view nline = "";
 
-  for (auto &[tag, data] : m.data) {
+  for (auto &[tag, data] : m) {
     os << std::exchange(nline, "\n") << tag << ':' << '\n';
-    std::visit([&os](auto &&arg) { os << arg; }, data);
+    std::visit([&os](auto &&arg) { os << arg; }, data.data);
   }
 
   return os;
 }
 
 std::string_view model_name(const ModelVariant &data) {
-  if (std::holds_alternative<ModelName>(data)) {
+  if (std::holds_alternative<ModelName>(data.data)) {
     return "ModelName";
   }
 
-  if (std::holds_alternative<MT_CKD400::WaterData>(data)) {
+  if (std::holds_alternative<MT_CKD400::WaterData>(data.data)) {
     return "MT_CKD400::WaterData";
   }
 
@@ -83,11 +77,11 @@ std::string_view model_name(const ModelVariant &data) {
 
 ModelVariant model_data(const std::string_view name) {
   if (name == "ModelName") {
-    return ModelName{};
+    return ModelVariant{.data=ModelName{}};
   }
 
   if (name == "MT_CKD400::WaterData") {
-    return MT_CKD400::WaterData{};
+    return ModelVariant{.data=MT_CKD400::WaterData{}};
   }
 
   throw std::runtime_error(std::format(

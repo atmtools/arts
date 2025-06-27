@@ -632,7 +632,33 @@ if good cases, so we have provide this selection mechanism to make them match.
 
   opts.emplace_back(EnumeratedOption{
       .name = "HydrostaticPressureOption",
-      .desc = R"(What kind of error is it to miss a field component?
+      .desc = R"(These options control how the hydrostatic pressure is computed in ARTS.
+
+There are two main options for how the hydrostatic pressure is computed:
+
+- ``HydrostaticEquation``:
+  
+  .. math::
+    p(z + h) = p(z) \left(1 - \frac{Mg}{RT} h\right) 
+
+- ``HypsometricEquation``:
+  
+  .. math::
+    p(z + h) = p(z) e^{- \frac{Mg}{RT} h } 
+
+where:
+
+- :math:`p(z)` is the pressure at altitude :math:`z`,
+- :math:`h` is the altitude difference,
+- :math:`g` is the gravitational acceleration at altitude :math:`z`,
+- :math:`M` is the mean mass of an atmospheric molecule at altitude :math:`z`,
+- :math:`R` is the specific gas constant, and
+- :math:`T` is the temperature at altitude :math:`z`.
+
+.. note::
+  We do not consider The Eötvös effect.
+  We also do not directly support "virtual temperature", as water is baked into :math:`M`.
+  Either addition would be welcome as additional options.
 )",
       .values_and_desc =
           {

@@ -56,12 +56,12 @@ struct ComputeData {
   void core_calc(const ConstVectorView& f_grid);
   void adapt_single(const QuantumIdentifier& bnd_qid,
                     const band_data& bnd,
-                    const linemixing::species_data_map& rovib_data,
+                    const LinemixingSpeciesEcsData& rovib_data,
                     const AtmPoint& atm,
                     const bool presorted = false);
   void adapt_multi(const QuantumIdentifier& bnd_qid,
                    const band_data& bnd,
-                   const linemixing::species_data_map& rovib_data,
+                   const LinemixingSpeciesEcsData& rovib_data,
                    const AtmPoint& atm,
                    const bool presorted = false);
 };
@@ -74,7 +74,7 @@ void calculate(PropmatVectorView pm,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
-               const linemixing::species_data_map& rovib_data,
+               const LinemixingSpeciesEcsData& rovib_data,
                const AtmPoint& atm,
                const zeeman::pol pol,
                const bool no_negative_absorption);
@@ -84,7 +84,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
                        ComputeData& com_data,
                        const QuantumIdentifier& bnd_qid,
                        const band_data& bnd,
-                       const linemixing::species_data_map& rovib_data,
+                       const LinemixingSpeciesEcsData& rovib_data,
                        const AtmPoint& atm,
                        const Vector& T);
 }  // namespace lbl::voigt::ecs

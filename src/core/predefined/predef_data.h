@@ -40,7 +40,9 @@ struct ModelName {
   friend std::istream &operator>>(std::istream &, ModelName &);
 };
 
-using ModelVariant = std::variant<ModelName, MT_CKD400::WaterData>;
+struct ModelVariant {
+  std::variant<ModelName, MT_CKD400::WaterData> data;
+};
 
 template <typename T>
 concept ModelVariantType = requires(T t) {
@@ -52,25 +54,15 @@ concept ModelVariantConvertible = ModelVariantType<T> or requires(T t) {
   { static_cast<ModelVariant>(t) };
 };
 
-struct Model {
-  using ModelData = std::unordered_map<SpeciesIsotope, ModelVariant>;
-
-  ModelData data{};
-
-  Model();
-  Model(const Model &);
-  Model(Model &&) noexcept;
-  Model &operator=(const Model &);
-  Model &operator=(Model &&) noexcept;
-
-  friend std::ostream &operator<<(std::ostream &, const Model &);
-};
-
 std::string_view model_name(const ModelVariant &);
 ModelVariant model_data(const std::string_view);
 }  // namespace Absorption::PredefinedModel
 
-using PredefinedModelData = Absorption::PredefinedModel::Model;
+using PredefinedModelDataVariant = Absorption::PredefinedModel::ModelVariant;
+
+using PredefinedModelData =
+    std::unordered_map<SpeciesIsotope,
+                       Absorption::PredefinedModel::ModelVariant>;
 
 template <>
 struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
@@ -146,7 +138,7 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
 };
 
 template <>
-struct std::formatter<PredefinedModelData> {
+struct std::formatter<PredefinedModelDataVariant> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
@@ -158,9 +150,9 @@ struct std::formatter<PredefinedModelData> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const PredefinedModelData &v,
+  FmtContext::iterator format(const PredefinedModelDataVariant &x,
                               FmtContext &ctx) const {
-    return tags.format(ctx, v.data);
+    return tags.format(ctx, x.data);
   }
 };
 

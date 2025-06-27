@@ -198,53 +198,44 @@ void propagation_matrixInit(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddFaraday(
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
-    const AscendingGrid& frequency_grid,
-    const ArrayOfArrayOfSpeciesTag& absorption_species,
-    const SpeciesEnum& select_absorption_species,
-    const JacobianTargets& jacobian_targets,
-    const AtmPoint& atm_point,
-    const PropagationPathPoint& path_point) {
+void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
+                                  PropmatMatrix& propagation_matrix_jacobian,
+                                  const AscendingGrid& frequency_grid,
+                                  const SpeciesEnum& select_absorption_species,
+                                  const JacobianTargets& jacobian_targets,
+                                  const AtmPoint& atm_point,
+                                  const PropagationPathPoint& path_point) {
   ARTS_TIME_REPORT
 
-  Index ife = -1;
-  for (Size sp = 0; sp < absorption_species.size() && ife < 0; sp++) {
-    if (absorption_species[sp].FreeElectrons()) {
-      ife = sp;
-    }
+  constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
+
+  if (select_absorption_species != electrons_key or select_absorption_species ==
+      SpeciesEnum::Bath) {
+    // If the selected species is not free electrons, we do not add Faraday rotation.
+    return;
   }
+  
 
   const Vector rtp_los{path::mirror(path_point.los)};
 
-  ARTS_USER_ERROR_IF(ife < 0,
-                     "Free electrons not found in *absorption_species* and "
-                     "Faraday rotation can not be calculated.");
-
-  // Allow early exit for lookup table calculations
-  if (select_absorption_species != SpeciesEnum::Bath and
-      select_absorption_species != absorption_species[ife].Species())
-    return;
-
   // All the physical constants joined into one static constant:
   // (abs as e defined as negative)
-  static const Numeric FRconst =
-      abs(ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE /
-          (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
-           ELECTRON_MASS));
+  constexpr Numeric FRconst =
+      nonstd::abs(ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE /
+                  (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY *
+                   ELECTRON_MASS * ELECTRON_MASS));
 
-  const auto jacs = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      AtmKey::mag_u,
-      AtmKey::mag_v,
-      AtmKey::mag_w,
-      AtmKey::wind_u,
-      AtmKey::wind_v,
-      AtmKey::wind_w,
-      absorption_species[ife].Species());
+  const auto jacs =
+      jacobian_targets.find_all<Jacobian::AtmTarget>(AtmKey::mag_u,
+                                                     AtmKey::mag_v,
+                                                     AtmKey::mag_w,
+                                                     AtmKey::wind_u,
+                                                     AtmKey::wind_v,
+                                                     AtmKey::wind_w,
+                                                     electrons_key);
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
-  const Numeric ne = atm_point[absorption_species[ife].Species()];
+  const Numeric ne = atm_point[electrons_key];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2

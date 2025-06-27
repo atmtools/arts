@@ -8,7 +8,14 @@ internal_workspace_agendas_creator() {
 
   wsa_data["propagation_matrix_agenda"] = {
       .desc =
-          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
+          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives.
+
+The intent of this agenda is to be the workhorse for the propagation matrix
+calculations that are happening deep in your ARTS method calls.
+
+.. tip::
+    Use *propagation_matrix_agendaAuto* after having defined
+    your absorption data to create this agenda.  It covers most use-cases.
 )--",
       .output       = {"propagation_matrix",
                        "propagation_matrix_source_vector_nonlte",
@@ -46,7 +53,7 @@ internal_workspace_agendas_creator() {
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
       .desc =
-          R"--(Get the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix
+          R"--(Get the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
       .output = {"propagation_matrix_scattering",
                  "absorption_vector_scattering",
@@ -94,6 +101,9 @@ internal_workspace_agendas_creator() {
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
+
+.. tip::
+    The perhaps easiest way to set this agenda up is to use the *ray_path_observer_agendaSetGeometric* method.
 )--",
       .output = {"ray_path"},
       .input  = {"spectral_radiance_observer_position",
@@ -104,7 +114,7 @@ position and line of sight.
       .desc =
           R"--(Spectral radiance as seen from the input position and environment
 
-The intent of this agenda is to provide a spectral radiance as seen from the observer
+The intent of this agenda is to provide the spectral radiance as seen from the observer
 position and line of sight.
 
 It also outputs the *ray_path* as seen from the observer position and line of sight.
@@ -139,7 +149,7 @@ is warranted
       .desc         = R"--(Spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
-One common use-case us to provide a background spectral radiance.
+One common use-case is to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
 )--",
@@ -168,6 +178,8 @@ This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at the surface.
+
+Subsurface calculations are also supported through this agenda.
 )--",
       .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
       .input        = {"frequency_grid",
@@ -192,16 +204,10 @@ The input path point should be as if it is looking at the surface.
   wsa_data["inversion_iterate_agenda"] = {
       .desc               = R"--(Work in progress ...
 
-The WSV *measurement_jacobian* is both in- and output. As input variable, *measurement_jacobian*
-is assumed to be valid for the previous iteration. For the first iteration
-the input *measurement_jacobian* shall be set to have size zero, to flag that there
-is not yet any calculated Jacobian.
+See *OEM*.
 
 .. note::
-    The default settings for this Agenda might be suboptimal for speedier calculations,
-    e.g., when you are interested in less than the full model state vector (which is often the case),
-    or when you do not mind having a non-empty *measurement_jacobian* on output
-    even if *do_jacobian* evaluates false.
+    The output *measurement_jacobian* size may depend on the *do_jacobian* input.
 )--",
       .output             = {"atmospheric_field",
                              "absorption_bands",
@@ -222,15 +228,17 @@ is not yet any calculated Jacobian.
       .enum_options       = {"Full"},
       .enum_default       = "Full",
       .output_constraints = {
-          {"measurement_jacobian.size() == 0 or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
+          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
            "On output, the measurement vector and Jacobian must match expected size.",
            "measurement_vector_fitted.size()",
-           "measurement_jacobian.nrows()"},
-          {"measurement_jacobian.size() == 0 or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jacobian_targets.x_size() == model_state_vector.size())",
+           "measurement_jacobian.nrows()",
+           "do_jacobian == 0"},
+          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jacobian_targets.x_size() == model_state_vector.size())",
            "On output, the model state vector and Jacobian must match expected size.",
            "model_state_vector.size()",
            "measurement_jacobian.ncols()",
-           "jacobian_targets.x_size()"},
+           "jacobian_targets.x_size()",
+           "do_jacobian == 0"},
       }};
 
   wsa_data["measurement_inversion_agenda"] = {

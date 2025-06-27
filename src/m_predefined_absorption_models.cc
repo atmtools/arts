@@ -28,12 +28,12 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
-  absorption_predefined_model_data.data.clear();
+  absorption_predefined_model_data.clear();
 
   const bool name_missing   = static_cast<bool>(name_missing_);
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
-  absorption_predefined_model_data.data.clear();
+  absorption_predefined_model_data.clear();
 
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -49,11 +49,10 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
       if (find_xml_file_existence(filename)) {
         PredefinedModelData other;
         xml_read_from_file(filename, other);
-        absorption_predefined_model_data.data.insert(other.data.begin(),
-                                                     other.data.end());
+        absorption_predefined_model_data.insert(other.begin(), other.end());
       } else {
         if (name_missing) {
-          absorption_predefined_model_data.data[spec.Isotopologue()] =
+          absorption_predefined_model_data[spec.Isotopologue()].data =
               Absorption::PredefinedModel::ModelName{};
         } else {
           ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
@@ -109,8 +108,8 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
-  absorption_predefined_model_data.data["H2O-ForeignContCKDMT400"_isot] = x;
-  absorption_predefined_model_data.data["H2O-SelfContCKDMT400"_isot]    = x;
+  absorption_predefined_model_data["H2O-ForeignContCKDMT400"_isot].data = x;
+  absorption_predefined_model_data["H2O-SelfContCKDMT400"_isot].data    = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -140,7 +139,7 @@ void propagation_matrixAddPredefined(
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
-  for (auto& [isot, data] : absorption_predefined_model_data.data) {
+  for (auto& [isot, data] : absorption_predefined_model_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
     Absorption::PredefinedModel::compute(propagation_matrix,
