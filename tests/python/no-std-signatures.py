@@ -8,14 +8,17 @@ def recursion(orig, name="pyarts.arts"):
     lst = []
 
     for m in dir(orig):
-        obj = eval("orig." + m)
+        try:
+            obj = eval("orig." + m)
 
-        if isinstance(obj, recr_):
-            lst.extend(recursion(obj, name + f".{m}"))
-        elif isinstance(obj, func):
-            for signature in obj.__nb_signature__:
-                if "std::" in signature[0]:
-                    lst.append(name + f".{m}: {signature[0]}")
+            if isinstance(obj, recr_):
+                lst.extend(recursion(obj, name + f".{m}"))
+            elif isinstance(obj, func):
+                for signature in obj.__nb_signature__:
+                    if "std::" in signature[0]:
+                        lst.append(name + f".{m}: {signature[0]}")
+        except Exception:
+            lst.append(name + f".{m}")
     return lst
 
 

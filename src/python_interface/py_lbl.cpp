@@ -497,7 +497,7 @@ T0 : float
   ed.def_rw("beta",
             &LinemixingSingleEcsData::beta,
             ":class:`~pyarts.arts.TemperatureModel`");
-  ed.def_rw("lambda",
+  ed.def_rw("lambda_",  // Fix name, not python
             &LinemixingSingleEcsData::lambda,
             ":class:`~pyarts.arts.TemperatureModel`");
   ed.def_rw("collisional_distance",
