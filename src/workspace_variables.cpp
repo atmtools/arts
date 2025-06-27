@@ -52,7 +52,7 @@ absorption (CIA), J. Quant. Spectrosc. Radiat. Transfer, 113,
 1276-1285, doi:10.1016/j.jqsrt.2011.11.004.
 
 The binary absorption cross-sections have to be multiplied with the
-densities of both molecules to get a scalar absorption coefficients.
+densities of both molecules to get a scalar absorption coefficient.
 
 Dimensions:
 
