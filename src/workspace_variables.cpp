@@ -698,7 +698,7 @@ radiance.
   wsv_data["model_state_vector"] = {
       .desc          = R"(A state vector of the model.
 
-This represents the :emphasis:`choosen` state of the model.
+This represents the :emphasis:`chosen` state of the model.
 In the notation of *measurement_vector* and *OEM*,
 :math:`\vec{x}` is the *model_state_vector*.
 
