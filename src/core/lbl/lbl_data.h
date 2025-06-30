@@ -366,3 +366,17 @@ struct std::formatter<lbl::line_key> {
     return tags.format(ctx, v.band, sep, v.line, sep, v.spec);
   }
 };
+
+template <>
+struct xml_io_stream<AbsorptionBand> {
+  static constexpr std::string_view type_name = "AbsorptionBand"sv;
+
+  static void write(std::ostream& os,
+                    const AbsorptionBand& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   AbsorptionBand& x,
+                   bifstream* pbifs = nullptr);
+};

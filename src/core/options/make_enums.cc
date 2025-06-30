@@ -17,11 +17,9 @@ void create_headers() {
 #include <string_view>
 
 #include <format_tags.h>
+#include <xml_io_stream.h>
 
 using namespace std::literals;
-
-class bifstream;
-class bofstream;
 
 template <typename T> constexpr bool good_enum(T x) noexcept = delete;
 template <typename T> constexpr T to(const std::string_view x) = delete;

@@ -4,11 +4,11 @@
 #include <jacobian.h>
 
 namespace lookup {
-table::table()                        = default;
-  table::table(const table&)            = default;
-  table::table(table&&)      noexcept           = default;
-  table& table::operator=(const table&) = default;
-  table& table::operator=(table&&)noexcept      = default;
+table::table()                            = default;
+table::table(const table&)                = default;
+table::table(table&&) noexcept            = default;
+table& table::operator=(const table&)     = default;
+table& table::operator=(table&&) noexcept = default;
 
 bool table::do_t() const { return t_pert and not t_pert->empty(); }
 
@@ -307,3 +307,61 @@ void extend_atmosphere(ArrayOfAtmPoint& atm,
   }
 }
 }  // namespace lookup
+
+void xml_io_stream<AbsorptionLookupTable>::write(std::ostream& os,
+                                                 const AbsorptionLookupTable& x,
+                                                 bofstream* pbofs,
+                                                 std::string_view name) {
+  std::println(os, R"(<{0}> name="{1}">)", type_name, name);
+
+  xml_write_to_stream(
+      os, x.do_f() ? *x.f_grid : AscendingGrid{}, pbofs, "frequency"sv);
+  xml_write_to_stream(
+      os, x.do_p() ? *x.log_p_grid : DescendingGrid{}, pbofs, "log-p"sv);
+  xml_write_to_stream(
+      os, x.do_t() ? *x.t_pert : AscendingGrid{}, pbofs, "t-pert"sv);
+  xml_write_to_stream(
+      os, x.do_w() ? *x.w_pert : AscendingGrid{}, pbofs, "water-pert"sv);
+  xml_write_to_stream(os, x.water_atmref, pbofs, "water-ref"sv);
+  xml_write_to_stream(os, x.t_atmref, pbofs, "t-ref"sv);
+  xml_write_to_stream(os, x.xsec, pbofs, "xsec");
+
+  std::println(os, R"(</{0}>>)", type_name);
+}
+
+void xml_io_stream<AbsorptionLookupTable>::read(std::istream& is,
+                                                AbsorptionLookupTable& x,
+                                                bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  AscendingGrid f_grid, t_pert, w_pert;
+  DescendingGrid log_p_grid;
+
+  xml_read_from_stream(is, f_grid, pbifs);
+  xml_read_from_stream(is, log_p_grid, pbifs);
+  xml_read_from_stream(is, t_pert, pbifs);
+  xml_read_from_stream(is, w_pert, pbifs);
+
+  if (not f_grid.empty())
+    x.f_grid = std::make_shared<AscendingGrid>(std::move(f_grid));
+
+  if (not log_p_grid.empty())
+    x.log_p_grid = std::make_shared<DescendingGrid>(std::move(log_p_grid));
+
+  if (not t_pert.empty())
+    x.t_pert = std::make_shared<AscendingGrid>(std::move(t_pert));
+
+  if (not w_pert.empty())
+    x.w_pert = std::make_shared<AscendingGrid>(std::move(w_pert));
+
+  xml_read_from_stream(is, x.water_atmref, pbifs);
+  xml_read_from_stream(is, x.t_atmref, pbifs);
+  xml_read_from_stream(is, x.xsec, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+
+  x.check();
+}

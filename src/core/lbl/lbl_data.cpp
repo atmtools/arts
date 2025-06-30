@@ -308,3 +308,62 @@ std::string std::formatter<lbl::band_data>::to_string(
 
   return out;
 }
+
+void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
+                                          const AbsorptionBand& data,
+                                          bofstream* pbofs,
+                                          std::string_view name) {
+  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+
+  XMLTag open_tag;
+  open_tag.set_name("AbsorptionBandData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("lineshape", String{toString(data.lineshape)});
+  open_tag.add_attribute("cutoff_type", String{toString(data.cutoff)});
+  open_tag.add_attribute("cutoff_value", data.cutoff_value);
+  open_tag.add_attribute("nelem", static_cast<Index>(data.lines.size()));
+  open_tag.write_to_stream(os);
+  std::println(os);
+
+  for (auto& line : data) {
+    std::println(os, "{:IO}", line);
+  }
+
+  XMLTag close_tag;
+  close_tag.set_name("/AbsorptionBandData");
+  close_tag.write_to_stream(os);
+  std::println(os);
+}
+
+void xml_io_stream<AbsorptionBand>::read(std::istream& is,
+                                         AbsorptionBand& data,
+                                         bifstream* pbifs) {
+  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+
+  String tag;
+  Index nelem;
+
+  XMLTag open_tag;
+  open_tag.read_from_stream(is);
+  open_tag.check_name("AbsorptionBandData");
+
+  open_tag.get_attribute_value("lineshape", tag);
+  data.lineshape = to<LineByLineLineshape>(tag);
+
+  open_tag.get_attribute_value("cutoff_type", tag);
+  data.cutoff = to<LineByLineCutoffType>(tag);
+
+  open_tag.get_attribute_value("cutoff_value", data.cutoff_value);
+
+  open_tag.get_attribute_value("nelem", nelem);
+  data.lines.resize(0);
+  data.lines.reserve(nelem);
+
+  for (Index j = 0; j < nelem; j++) {
+    is >> data.lines.emplace_back();
+  }
+
+  XMLTag close_tag;
+  close_tag.read_from_stream(is);
+  close_tag.check_name("/AbsorptionBandData");
+}

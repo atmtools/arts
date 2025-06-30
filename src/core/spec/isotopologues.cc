@@ -1,5 +1,7 @@
 #include "isotopologues.h"
 
+#include <xml_io_base.h>
+
 #include <algorithm>
 #include <sstream>
 
@@ -171,7 +173,7 @@ Isotope::Isotope(const std::string_view name) { *this = select(name); }
 
 String Isotope::FullName() const {
   return is_joker() ? String{toString<1>(spec)}
-                 : std::format("{}-{}", toString<1>(spec), isotname);
+                    : std::format("{}-{}", toString<1>(spec), isotname);
 }
 
 std::ostream& operator<<(std::ostream& os, const Isotope& ir) {
@@ -681,3 +683,25 @@ std::ostream& operator<<(std::ostream& os,
 
 static_assert(std::ranges::is_sorted(Species::Isotopologues),
               "Species::Isotopologues must be sorted by name");
+
+void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
+                                          const SpeciesIsotope& x,
+                                          bofstream*,
+                                          std::string_view) {
+  std::println(os, R"(<{0} isot="{1}"> </{0}>)", type_name, x.FullName());
+}
+
+void xml_io_stream<SpeciesIsotope>::read(std::istream& is,
+                                         SpeciesIsotope& x,
+                                         bifstream*) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  String v;
+  tag.get_attribute_value("isot", v);
+  x = SpeciesIsotope(v);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

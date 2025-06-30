@@ -242,3 +242,18 @@ struct std::formatter<rtepack::muelmat> {
     return fmt.format(v, ctx);
   }
 };
+
+template <>
+struct xml_io_stream<rtepack::muelmat> {
+  static constexpr std::string_view type_name = "Muelmat"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::muelmat &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::muelmat &x,
+                   bifstream *pbifs = nullptr);
+  static void put(const rtepack::muelmat *const x, bofstream *, Size n = 1);
+  static void get(rtepack::muelmat *x, bifstream *pbifs, Size n = 1);
+};

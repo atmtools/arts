@@ -16,7 +16,7 @@
 
 #include <workspace.h>
 
-#include "xml_io.h"
+#include <xml.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <WorkspaceGroup T>

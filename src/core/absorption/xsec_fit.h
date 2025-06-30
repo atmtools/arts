@@ -56,19 +56,19 @@ class XsecRecord {
 
   /************ VERSION 2 *************/
   /** Get mininum pressures from fit */
-  [[nodiscard]] const Vector& FitMinPressures() const ;
+  [[nodiscard]] const Vector& FitMinPressures() const;
 
   /** Get maximum pressures from fit */
   [[nodiscard]] const Vector& FitMaxPressures() const;
 
   /** Get mininum temperatures from fit */
-  [[nodiscard]] const Vector& FitMinTemperatures() const ;
+  [[nodiscard]] const Vector& FitMinTemperatures() const;
 
   /** Get maximum temperatures */
-  [[nodiscard]] const Vector& FitMaxTemperatures() const ;
+  [[nodiscard]] const Vector& FitMaxTemperatures() const;
 
   /** Get coefficients */
-  [[nodiscard]] const ArrayOfGriddedField1Named& FitCoeffs() const ;
+  [[nodiscard]] const ArrayOfGriddedField1Named& FitCoeffs() const;
 
   /** Get mininum pressures from fit */
   [[nodiscard]] Vector& FitMinPressures();
@@ -167,6 +167,18 @@ struct std::formatter<XsecRecord> {
 
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<XsecRecord> {
+  static constexpr std::string_view type_name = "XsecRecord"sv;
+
+  static void write(std::ostream& os,
+                    const XsecRecord& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, XsecRecord& x, bifstream* pbifs = nullptr);
 };
 
 #endif  // HITRAN_XSEC_H

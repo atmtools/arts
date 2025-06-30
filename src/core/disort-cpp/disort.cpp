@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <legendre.h>
 #include <matpack.h>
+#include <xml.h>
 
 #include <algorithm>
 #include <cmath>
@@ -1500,3 +1501,91 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
   return dis;
 }
 ARTS_METHOD_ERROR_CATCH
+
+void xml_io_stream<DisortBDRF>::read(std::istream&, DisortBDRF&, bifstream*) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_io_stream<DisortBDRF>::write(std::ostream&,
+                                      const DisortBDRF&,
+                                      bofstream*,
+                                      std::string_view) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_io_stream<DisortSettings>::read(std::istream& is_xml,
+                                         DisortSettings& v,
+                                         bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is_xml);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is_xml, v.quadrature_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.legendre_polynomial_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.fourier_mode_dimension, pbifs);
+  xml_read_from_stream(is_xml, v.nfreq, pbifs);
+  xml_read_from_stream(is_xml, v.nlay, pbifs);
+  xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
+  xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
+  xml_read_from_stream(is_xml, v.solar_source, pbifs);
+  xml_read_from_stream(
+      is_xml, v.bidirectional_reflectance_distribution_functions, pbifs);
+  xml_read_from_stream(is_xml, v.optical_thicknesses, pbifs);
+  xml_read_from_stream(is_xml, v.single_scattering_albedo, pbifs);
+  xml_read_from_stream(is_xml, v.fractional_scattering, pbifs);
+  xml_read_from_stream(is_xml, v.source_polynomial, pbifs);
+  xml_read_from_stream(is_xml, v.legendre_coefficients, pbifs);
+  xml_read_from_stream(is_xml, v.positive_boundary_condition, pbifs);
+  xml_read_from_stream(is_xml, v.negative_boundary_condition, pbifs);
+
+  tag.read_from_stream(is_xml);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
+                                          const DisortSettings& v,
+                                          bofstream* pbofs,
+                                          std::string_view) {
+  XMLTag open_tag;
+  XMLTag close_tag;
+
+  open_tag.set_name(type_name);
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  xml_write_to_stream(
+      os_xml, v.quadrature_dimension, pbofs, "quadrature_dimension");
+  xml_write_to_stream(os_xml,
+                      v.legendre_polynomial_dimension,
+                      pbofs,
+                      "legendre_polynomial_dimension");
+  xml_write_to_stream(
+      os_xml, v.fourier_mode_dimension, pbofs, "fourier_mode_dimension");
+  xml_write_to_stream(os_xml, v.nfreq, pbofs, "nfreq");
+  xml_write_to_stream(os_xml, v.nlay, pbofs, "nlay");
+  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solaz");
+  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solza");
+  xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");
+  xml_write_to_stream(os_xml,
+                      v.bidirectional_reflectance_distribution_functions,
+                      pbofs,
+                      "BRDF");
+  xml_write_to_stream(os_xml, v.optical_thicknesses, pbofs, "Tau");
+  xml_write_to_stream(os_xml, v.single_scattering_albedo, pbofs, "albedo");
+  xml_write_to_stream(
+      os_xml, v.fractional_scattering, pbofs, "fractional_scattering");
+  xml_write_to_stream(os_xml, v.source_polynomial, pbofs, "source_polynomial");
+  xml_write_to_stream(
+      os_xml, v.legendre_coefficients, pbofs, "legendre_coefficients");
+  xml_write_to_stream(os_xml,
+                      v.positive_boundary_condition,
+                      pbofs,
+                      "positive_boundary_condition");
+  xml_write_to_stream(os_xml,
+                      v.negative_boundary_condition,
+                      pbofs,
+                      "negative_boundary_condition");
+
+  close_tag.set_end_name(type_name);
+  close_tag.write_to_stream(os_xml);
+}

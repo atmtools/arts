@@ -782,17 +782,6 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "FileType",
-      .desc = "A choice of file format types.\n",
-      .values_and_desc =
-          {
-              Value{"ascii", "ASCII", "Ascii", "text", "Save as ASCII"},
-              Value{"zascii", "ZASCII", "Zip", "zip", "Save as zipped ASCII"},
-              Value{"binary", "BINARY", "Binary", "bin", "Save as binary data"},
-          },
-  });
-
-  opts.emplace_back(EnumeratedOption{
       .name = "EarthEllipsoid",
       .desc = "Choice of ellipsoid.\n",
       .values_and_desc =
@@ -1098,9 +1087,19 @@ std::ostream& operator<<(std::ostream &os, const {0} x);
 
 std::istream& operator>>(std::istream &is, {0}& x);
 
-void xml_read_from_stream(std::istream& is_xml, {0}& s, bifstream*);
+template <>
+struct xml_io_stream<{0}> {{
+  static constexpr std::string_view type_name = "{0}"sv;
 
-void xml_write_to_stream(std::ostream& os_xml, const {0}& s, bofstream*, const std::string&);
+  static void write(std::ostream& os,
+                    const {0}& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   {0}& x,
+                   bifstream* pbifs = nullptr);
+}};
 
 template<> struct std::formatter<{0}> {{
   using T={0};
@@ -1116,9 +1115,7 @@ template<> struct std::formatter<{0}> {{
 
   template <class FmtContext>
   FmtContext::iterator format(const T& v, FmtContext& ctx) const {{
-    const auto q = tags.quote();
-
-    return std::format_to(ctx.out(), "{{}}{{}}{{}}", q, toString<{3}>(v), q);
+    return std::format_to(ctx.out(), "{{0}}{{1}}{{0}}", tags.quote(), toString<{3}>(v));
   }}
 }};)",
                  name,
@@ -1209,7 +1206,7 @@ std::istream &operator>>(std::istream &is, {0}& x) {{
   return is;
 }}
 
-void xml_read_from_stream(std::istream& is, {0}& s, bifstream*) {{
+void xml_io_stream<{0}>::read(std::istream& is, {0}& s, bifstream*) {{
   std::string x;
   is >> x;
   if (x != "<{0}>")  throw std::runtime_error("Expected \"<{0}>\" got: \""+x+"\"");
@@ -1219,8 +1216,8 @@ void xml_read_from_stream(std::istream& is, {0}& s, bifstream*) {{
   if (x != "</{0}>")  throw std::runtime_error("Expected \"</{0}>\" got: \""+x+"\"");
 }}
 
-void xml_write_to_stream(std::ostream& os, const {0}& s, bofstream*, const std::string&) {{
-  std::print(os, "<{0}> {{}} </{0}>\\n", toString<{1}>(s));
+void xml_io_stream<{0}>::write(std::ostream& os, const {0}& s, bofstream*, std::string_view) {{
+  std::print(os, "<{0}>\n{{}}\n</{0}>\\n", toString<{1}>(s));
 }}
 
 std::string_view enumdocs<{0}>::str() noexcept {{

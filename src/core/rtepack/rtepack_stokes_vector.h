@@ -162,3 +162,18 @@ struct std::formatter<rtepack::stokvec> {
     return fmt.format(v, ctx);
   }
 };
+
+template <>
+struct xml_io_stream<rtepack::stokvec> {
+  static constexpr std::string_view type_name = "Stokvec"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::stokvec &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::stokvec &x,
+                   bifstream *pbifs = nullptr);
+  static void put(const rtepack::stokvec *const x, bofstream *, Size n = 1);
+  static void get(rtepack::stokvec *x, bifstream *pbifs, Size n = 1);
+};

@@ -236,8 +236,14 @@ struct std::formatter<std::variant<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::variant<WTs...>& v,
                               FmtContext& ctx) const {
-    std::visit([*this, &ctx]<typename T>(const T& x) { tags.format(ctx, x); },
-               v);
+    const auto call = []<typename T>(const format_tags& tags,
+                                     FmtContext& ctx,
+                                     const T* const e) -> bool {
+      if (e) tags.format(ctx, *e);
+      return e;
+    };
+    if (not(call(tags, ctx, std::get_if<WTs>(&v)) or ...))
+      throw std::runtime_error("formatting variant");
     return ctx.out();
   }
 };

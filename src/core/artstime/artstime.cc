@@ -308,3 +308,26 @@ DebugTime::~DebugTime() {
 #pragma omp critical
   std::print(stderr, "{}: {}\n", msg, Time{} - start);
 }
+
+void xml_io_stream<Time>::write(std::ostream& os,
+                                const Time& x,
+                                bofstream*,
+                                std::string_view name) {
+  std::println(os,
+               R"(<{0} name="{1}" version="{2}"> {3:IO} </{0}>)",
+               type_name,
+               name,
+               x.Version(),
+               x);
+}
+
+void xml_io_stream<Time>::read(std::istream& is, Time& x, bifstream*) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  is >> x;
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

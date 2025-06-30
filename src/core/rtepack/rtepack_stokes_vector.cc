@@ -76,3 +76,28 @@ dunit_converter(const SpectralRadianceUnitType type, const Numeric n) {
   std::unreachable();
 }
 }  // namespace rtepack
+
+void xml_io_stream<rtepack::stokvec>::write(std::ostream &os,
+                                            const rtepack::stokvec &x,
+                                            bofstream *pbofs,
+                                            std::string_view name) {
+  xml_io_stream<rtepack::vec4>::write(os, x, pbofs, name);
+}
+
+void xml_io_stream<rtepack::stokvec>::read(std::istream &is,
+                                           rtepack::stokvec &x,
+                                           bifstream *pbifs) {
+  xml_io_stream<rtepack::vec4>::read(is, x, pbifs);
+}
+
+void xml_io_stream<rtepack::stokvec>::put(const rtepack::stokvec *const x,
+                                          bofstream *pbofs,
+                                          Size n) {
+  xml_io_stream<rtepack::vec4>::put(x, pbofs, n);
+}
+
+void xml_io_stream<rtepack::stokvec>::get(rtepack::stokvec *x,
+                                          bifstream *pbifs,
+                                          Size n) {
+  xml_io_stream<rtepack::vec4>::get(x, pbifs, n);
+}

@@ -9,3 +9,4 @@
 #include "matpack_sparse.h"
 #include "rational.h"
 #include "math_funcs.h"
+#include "xml_io_stream_matpack.h"

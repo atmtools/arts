@@ -210,8 +210,20 @@ struct std::formatter<CIARecord> {
 
   template <class FmtContext>
   FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.TwoSpecies(), tags.sep(),v.Data());
+    return tags.format(ctx, v.TwoSpecies(), tags.sep(), v.Data());
   }
+};
+
+template <>
+struct xml_io_stream<CIARecord> {
+  static constexpr std::string_view type_name = "CIARecord"sv;
+
+  static void write(std::ostream& os,
+                    const CIARecord& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, CIARecord& x, bifstream* pbifs = nullptr);
 };
 
 #endif  // cia_h

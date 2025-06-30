@@ -31,15 +31,15 @@ struct Tag {
 
   [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
 
-  void Isotopologue(const SpeciesIsotope& ir) ;
+  void Isotopologue(const SpeciesIsotope& ir);
 
   [[nodiscard]] Numeric Mass() const noexcept;
 
   [[nodiscard]] String FullName() const noexcept;
 
-  [[nodiscard]] SpeciesEnum Spec() const noexcept ;
+  [[nodiscard]] SpeciesEnum Spec() const noexcept;
 
-  [[nodiscard]] SpeciesTagType Type() const noexcept ;
+  [[nodiscard]] SpeciesTagType Type() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
 
@@ -246,3 +246,27 @@ struct std::formatter<SpeciesTag> {
 template <>
 struct std::formatter<ArrayOfSpeciesTag>
     : std::formatter<std::vector<SpeciesTag>> {};
+
+template <>
+struct xml_io_stream<SpeciesTag> {
+  static constexpr std::string_view type_name = "SpeciesTag"sv;
+
+  static void write(std::ostream& os,
+                    const SpeciesTag& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, SpeciesTag& x, bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<ArrayOfSpeciesTag> {
+  static constexpr std::string_view type_name = "ArrayOfSpeciesTag"sv;
+
+  static void write(std::ostream& os,
+                    const ArrayOfSpeciesTag& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, ArrayOfSpeciesTag& x, bifstream* pbifs = nullptr);
+};

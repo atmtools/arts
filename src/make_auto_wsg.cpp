@@ -102,13 +102,6 @@ concept WorkspaceGroupIsCopyable = requires(T a) {
 )";
 
   os << '\n';
-  for (auto& group : groups()) {
-    os << std::format(R"(
-void xml_read_from_stream(std::istream &, {0}&, bifstream *);
-void xml_write_to_stream(std::ostream &, const {0}&, bofstream *, const String &);
-)",
-                      group);
-  }
 
   os << R"(
 template <typename T> struct WorkspaceGroupInfo {
@@ -317,9 +310,6 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
              SetWsv{{"{0}_operator", {0}_operator}});
   {0} = std::move(agenda).finalize(false);
 }}
-
-void xml_read_from_stream(std::istream&, {0}Operator&, bifstream*) {{throw std::runtime_error("Cannot read {0}Operator");}}
-void xml_write_to_stream(std::ostream&, const {0}Operator&, bofstream*, const String&) {{throw std::runtime_error("Cannot save {0}Operator");}}
 
 )",
         name,

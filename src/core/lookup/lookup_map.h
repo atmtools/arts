@@ -145,3 +145,17 @@ struct std::formatter<AbsorptionLookupTable> {
                        v.xsec);
   }
 };
+
+template <>
+struct xml_io_stream<AbsorptionLookupTable> {
+  static constexpr std::string_view type_name = "AbsorptionLookupTable"sv;
+
+  static void write(std::ostream& os,
+                    const AbsorptionLookupTable& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   AbsorptionLookupTable& x,
+                   bifstream* pbifs = nullptr);
+};

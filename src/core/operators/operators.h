@@ -63,3 +63,21 @@ struct std::formatter<CustomOperator<WTs...>> {
     return std::format_to(ctx.out(), "{0}functional-data{0}"sv, tags.quote());
   }
 };
+
+template <typename R, typename... Args>
+struct xml_io_stream<CustomOperator<R, Args...>> {
+  static constexpr std::string_view type_name = "CustomOperator"sv;
+
+  static void write(std::ostream &,
+                    const CustomOperator<R, Args...>,
+                    bofstream *      = nullptr,
+                    std::string_view = ""sv) {
+    throw std::runtime_error("No XML IO for operators");
+  }
+
+  static void read(std::istream &,
+                   CustomOperator<R, Args...> &,
+                   bifstream * = nullptr) {
+    throw std::runtime_error("No XML IO for operators");
+  }
+};

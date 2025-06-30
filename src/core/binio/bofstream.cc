@@ -11,7 +11,7 @@
 */
 
 #include "bofstream.h"
-#include "debug.h"
+#include <debug.h>
 
 void bofstream::seek(long spos, Offset offs) {
   if (!in) {

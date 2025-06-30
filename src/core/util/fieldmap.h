@@ -48,7 +48,8 @@ struct Map {
 
   static constexpr std::size_t N = sizeof...(Keys);
   using KeyVal                   = std::variant<Keys...>;
-  template <typename Key> using map_type = std::unordered_map<Key, T>;
+  template <typename Key>
+  using map_type = std::unordered_map<Key, T>;
   std::tuple<map_type<Keys>...> map_data;
 
  private:
@@ -100,52 +101,46 @@ struct Map {
     return map<Key>().contains(std::forward<Key>(key));
   }
 
-  /*
-  WARNING: If you are reading this, you are probably looking for a way to
-  stop a linker error.  The error is caused by the fact that the compiler
-  cannot see the definition of the function.  The reason for this is that
-  we do not want "std::visit" in header files as we have seen that this
-  destroys compile-time.  The solution is to move the definition of the
-  compiled file (cpp/cc).  You should be able to copy-paste the below to
-  make this work, removing the extra comment block and adjusting the
-  template parameters as needed  (as seen in the cpp/cc file).  Do not
-  put this in a header file without checking compile times.  Note also
-  that it must not be placed inside any namespace as written.
-  */
-  [[nodiscard]] const T &operator[](const KeyVal &k) const;
-  [[nodiscard]] T &operator[](const KeyVal &k);
-  bool contains(const KeyVal &key) const;
-  // template<>
-  // const T &FieldMap::Map<T, Keys...>::operator[](const KeyVal &k) const try {
-  //   return std::visit(
-  //       [this](auto &key) -> const T & {
-  //         return this->map<decltype(key)>().at(key);
-  //       },
-  //       k);
-  // } catch (std::out_of_range &) {
-  //   throw std::out_of_range(var_string("Key not found in map: \"", k, '\"'));
-  // } catch (...) {
-  //   throw;
-  // }
-  //
-  // template<>
-  // T &FieldMap::Map<T, Keys...>::operator[](const KeyVal &k) try {
-  //   return std::visit(
-  //       [this](auto &key) -> T & {
-  //         return const_cast<Map *>(this)->map<decltype(key)>()[key];
-  //       },
-  //       k);
-  // }
-  // ARTS_METHOD_ERROR_CATCH
-  //
-  // template<>
-  // bool FieldMap::Map<T, Keys...>::contains(const KeyVal &key) const {
-  //   return std::visit(
-  //       [this](auto &k) -> bool {
-  //         return this->map<decltype(k)>().contains(k);
-  //       },
-  //       key);
-  // }
+  const T &operator[](const KeyVal &key) const try {
+    const auto call = [this]<typename Key>(const Key *const e) -> const T * {
+      if (e) return &this->map<Key>().at(*e);
+      return nullptr;
+    };
+
+    const std::array arr{call(std::get_if<Keys>(&key))...};
+    for (const T *const x : arr)
+      if (x) return *x;
+    throw std::runtime_error("bad type");
+  } catch (std::out_of_range &) {
+    throw std::out_of_range(std::format("Key not found in map: \"{}\"", key));
+  } catch (...) {
+    throw;
+  }
+
+  T &operator[](const KeyVal &key) try {
+    const auto call = [this]<typename Key>(const Key *const e) -> T * {
+      if (e) return &this->map<Key>()[*e];
+      return nullptr;
+    };
+
+    const std::array arr{call(std::get_if<Keys>(&key))...};
+    for (T *x : arr)
+      if (x) return *x;
+    throw std::runtime_error("bad type");
+  } catch (std::out_of_range &) {
+    throw std::out_of_range(std::format("Key not found in map: \"{}\"", key));
+  } catch (...) {
+    throw;
+  }
+
+  bool contains(const KeyVal &key) const {
+    const auto call = [this]<typename Key>(const Key *const e) -> bool {
+      if (e) return this->map<Key>().contains(*e);
+      return false;
+    };
+
+    return (call(std::get_if<Keys>(&key)) or ...);
+  }
 
   template <field_key... MultipleKeys>
   constexpr bool has(MultipleKeys &&...key) const {

@@ -1,15 +1,3 @@
-# #### Give Index, Numeric, String, and Array<> types
-set(CORETYPE_EXTRA)
-
-add_library(coretypes STATIC
-  ${CORETYPE_EXTRA}
-  file.cc
-  parameters.cc
-)
-target_include_directories(coretypes PUBLIC "${ARTS_SOURCE_DIR}/3rdparty")
-target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
-target_link_libraries(coretypes PUBLIC util strings)
 
 # #####
 add_subdirectory(absorption)
@@ -37,6 +25,10 @@ add_subdirectory(sensor)
 add_subdirectory(disort-cpp)
 add_subdirectory(legendre)
 add_subdirectory(strings)
+add_subdirectory(xml)
+add_subdirectory(coretypes)
+add_subdirectory(tests)
+add_subdirectory(sun)
 
 # #####
 add_library(artscore STATIC
@@ -47,7 +39,6 @@ add_library(artscore STATIC
   interpolation.cc
   minimize.cc
   optproperties.cc
-  sun.cc
   spectral_radiance_transform_operator.cc
 )
 
@@ -77,6 +68,8 @@ target_link_libraries(artscore PUBLIC
   disort-cpp
   legendre
   jacobian
+  xml_io
+  sun
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

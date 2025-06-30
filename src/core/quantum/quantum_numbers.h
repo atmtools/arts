@@ -869,3 +869,31 @@ struct std::formatter<Quantum::Number::QuantumNumberValueType> {
     return format_to(ctx.out(), "{}bad-value{}", quote, quote);
   }
 };
+
+template <>
+struct xml_io_stream<QuantumIdentifier> {
+  static constexpr std::string_view type_name = "QuantumIdentifier"sv;
+
+  static void write(std::ostream& os,
+                    const QuantumIdentifier& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   QuantumIdentifier& x,
+                   bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<QuantumNumberLocalState> {
+  static constexpr std::string_view type_name = "QuantumNumberLocalState"sv;
+
+  static void write(std::ostream& os,
+                    const QuantumNumberLocalState& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   QuantumNumberLocalState& x,
+                   bifstream* pbifs = nullptr);
+};

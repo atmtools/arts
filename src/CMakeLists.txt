@@ -212,16 +212,6 @@ add_library(artsworkspace STATIC
   m_xml.cc
   sun_methods.cc
   version.cc
-  xml_io.cc
-  xml_io_array_types.cc
-  xml_io_basic_types.cc
-  xml_io_compound_types.cc
-  xml_io_map_types.cc
-  xml_io_old.cc
-  xml_io_rtepack.cc
-  xml_io_variant_types.cc
-  xml_io_gridded_field.cc
-  xml_operators.cc
   ${NETCDF_CC_FILES}
 )
 
@@ -234,7 +224,7 @@ if(ENABLE_PCH)
   target_precompile_headers(artsworkspace PRIVATE workspace.h)
 endif()
 
-target_link_libraries(artsworkspace PUBLIC auto_partfun xmliobase artscore workspace_internals)
+target_link_libraries(artsworkspace PUBLIC auto_partfun artscore workspace_internals)
 
 if(NETCDF_FOUND)
   target_link_libraries(artsworkspace PUBLIC ${NETCDF_LIBRARIES})
@@ -257,12 +247,7 @@ if(ENABLE_TMATRIX)
 endif(ENABLE_TMATRIX)
 
 # ########## next target ###############
-add_library(xmliobase STATIC
-  xml_io_base.cc
-  xml_io_general_types.cc
-)
 
-target_link_libraries(xmliobase PUBLIC binio matpack)
 
 # #######################################################################################
 
@@ -271,7 +256,6 @@ if(IPO_SUPPORTED)
   set_property(TARGET artsworkspace PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
 add_subdirectory(tests)

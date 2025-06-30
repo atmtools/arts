@@ -857,3 +857,29 @@ negative_boundary_condition:
     return ctx.out();
   }
 };
+
+template <>
+struct xml_io_stream<DisortBDRF> {
+  static constexpr std::string_view type_name = "DisortBDRF"sv;
+
+  static void write(std::ostream& os,
+                    const DisortBDRF& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, DisortBDRF& x, bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<DisortSettings> {
+  static constexpr std::string_view type_name = "DisortSettings"sv;
+
+  static void write(std::ostream& os,
+                    const DisortSettings& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   DisortSettings& x,
+                   bifstream* pbifs = nullptr);
+};
