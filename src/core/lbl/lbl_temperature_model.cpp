@@ -282,3 +282,35 @@ bool data::is_zero() const {
   return true;
 }
 }  // namespace lbl::temperature
+
+void xml_io_stream<lbl::temperature::data>::write(
+    std::ostream& os,
+    const lbl::temperature::data& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.Type(), pbofs);
+  xml_write_to_stream(os, x.X(), pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
+                                                 lbl::temperature::data& x,
+                                                 bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  LineShapeModelType t;
+  Vector v;
+
+  xml_read_from_stream(is, t, pbifs);
+  xml_read_from_stream(is, v, pbifs);
+
+  x = lbl::temperature::data{t, v};
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

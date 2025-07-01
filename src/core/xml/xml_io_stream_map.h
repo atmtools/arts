@@ -5,9 +5,17 @@
 
 #include <unordered_map>
 
+template <typename Key, typename T>
+struct xml_io_stream_name<std::unordered_map<Key, T>> {
+  static constexpr std::string_view name = "Map"sv;
+};
+
 template <arts_xml_ioable Key, arts_xml_ioable T>
+  requires(std::is_default_constructible_v<Key> and
+           std::is_default_constructible_v<T>)
 struct xml_io_stream<std::unordered_map<Key, T>> {
-  constexpr static std::string_view type_name = "Map"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<std::unordered_map<Key, T>>;
 
   static void write(std::ostream& os,
                     const std::unordered_map<Key, T>& n,

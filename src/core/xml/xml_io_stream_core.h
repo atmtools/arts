@@ -75,6 +75,8 @@ struct xml_io_stream<String> {
   static void read(std::istream& is, String& n, bifstream* pbifs = nullptr);
 };
 
+
+
 template <>
 struct xml_io_stream<Any> {
   static constexpr std::string_view type_name = "Any"sv;

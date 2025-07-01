@@ -25,8 +25,7 @@ struct ScatteringTroSpectralVector {
   static scattering::PhaseMatrixData<Numeric,
                                      scattering::Format::TRO,
                                      scattering::Representation::Spectral>
-  to_general(const SpecmatMatrix&,
-             const std::shared_ptr<Vector>& f);
+  to_general(const SpecmatMatrix&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
   static scattering::ExtinctionMatrixData<Numeric,
@@ -122,4 +121,18 @@ struct std::formatter<ScatteringGeneralSpectralTRO> {
                               FmtContext& ctx) const {
     return tags.format(ctx, "GeneralSpectralTRO"sv);
   }
+};
+
+template <>
+struct xml_io_stream<ScatteringGeneralSpectralTRO> {
+  static constexpr std::string_view type_name = "ScatteringGeneralSpectralTRO";
+
+  static void write(std::ostream&,
+                    const ScatteringGeneralSpectralTRO&,
+                    bofstream*       = nullptr,
+                    std::string_view = ""sv);
+
+  static void read(std::istream&,
+                   ScatteringGeneralSpectralTRO&,
+                   bifstream* = nullptr);
 };

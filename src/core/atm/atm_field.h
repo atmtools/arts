@@ -9,8 +9,8 @@
 #include <isotopologues.h>
 #include <matpack.h>
 #include <operators.h>
-#include <quantum_numbers.h>
 #include <properties.h>
+#include <quantum_numbers.h>
 #include <species.h>
 
 #include <algorithm>
@@ -385,6 +385,11 @@ using AtmPoint          = Atm::Point;
 using ArrayOfAtmPoint   = Array<AtmPoint>;
 using AtmFunctionalData = Atm::FunctionalData;
 using AtmData           = Atm::Data;
+
+template <>
+struct xml_io_stream_name<AtmKeyVal> {
+  static constexpr std::string_view name = "AtmKeyVal"sv;
+};
 
 bool operator==(const AtmKeyVal &, AtmKey);
 bool operator==(AtmKey, const AtmKeyVal &);

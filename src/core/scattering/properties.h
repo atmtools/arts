@@ -2,12 +2,13 @@
 #define ARTS_CORE_SCATTERING_PROPERTIES_H_
 
 #include <array.h>
+#include <enums.h>
+#include <xml.h>
 
 #include <algorithm>
 #include <functional>
 #include <string_view>
 
-#include "enums.h"
 #include "mystring.h"
 
 /*** ScatteringSpeciesProperty

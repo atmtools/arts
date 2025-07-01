@@ -30,8 +30,9 @@ ScatteringTroSpectralVector::to_general(
     const std::shared_ptr<Vector>& f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
-  ARTS_USER_ERROR_IF(static_cast<Size>(phase_matrix.nrows()) != f_grid_ptr->size(),
-                     "Phase matrix and f grid must have the same size")
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(phase_matrix.nrows()) != f_grid_ptr->size(),
+      "Phase matrix and f grid must have the same size")
 
   const auto t_grid = std::make_shared<Vector>(Vector{0.0});
 
@@ -137,4 +138,28 @@ ScatteringTroSpectralVector::to_lab_frame(
 
   throw std::runtime_error("Not implemented.");
   std::unreachable();
+}
+
+void xml_io_stream<ScatteringGeneralSpectralTRO>::write(
+    std::ostream& os,
+    const ScatteringGeneralSpectralTRO& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0}> name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.f, pbofs);
+
+  std::println(os, R"(</{0}>>)", type_name);
+}
+
+void xml_io_stream<ScatteringGeneralSpectralTRO>::read(
+    std::istream& is, ScatteringGeneralSpectralTRO& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.f, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
 }

@@ -80,6 +80,10 @@ Size SparseStokvecMatrix::size() const { return sparse_data.size(); }
 
 bool SparseStokvecMatrix::empty() const { return sparse_data.empty(); }
 
+const std::vector<SparseStokvec>& SparseStokvecMatrix::vector() const {
+  return sparse_data;
+}
+
 void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size reserve) {
   rows = nrows;
   cols = ncols;
@@ -581,4 +585,308 @@ void unflatten(ArrayOfSensorObsel& sensor,
     case lat: set_lat(v, sensor, x); break;
     case lon: set_lon(v, sensor, x); break;
   }
+}
+
+void xml_io_stream<SensorPosLos>::write(std::ostream& os,
+                                        const SensorPosLos& x,
+                                        bofstream* pbofs,
+                                        std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  if (pbofs) {
+    put(&x, pbofs);
+  } else {
+    xml_write_to_stream(os, x.pos, pbofs, "POS");
+    xml_write_to_stream(os, x.los, pbofs, "LOS");
+  }
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<SensorPosLos>::read(std::istream& is,
+                                       SensorPosLos& x,
+                                       bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  if (pbifs) {
+    get(&x, pbifs);
+  } else {
+    xml_read_from_stream(is, x.pos);
+    xml_read_from_stream(is, x.los);
+  }
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<SensorPosLos>::put(const SensorPosLos* const x,
+                                      bofstream* pbofs,
+                                      Size n) {
+  assert(pbofs);
+  xml_io_stream<Numeric>::put(
+      reinterpret_cast<const Numeric*>(x), pbofs, 5 * n);
+}
+
+void xml_io_stream<SensorPosLos>::get(SensorPosLos* x,
+                                      bifstream* pbifs,
+                                      Size n) {
+  assert(pbifs);
+  xml_io_stream<Numeric>::get(reinterpret_cast<Numeric*>(x), pbifs, 5 * n);
+}
+
+void xml_io_stream<SensorKey>::write(std::ostream& os,
+                                     const SensorKey& x,
+                                     bofstream* pbofs,
+                                     std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.sensor_elem, pbofs);
+  xml_write_to_stream(os, x.measurement_elem, pbofs);
+  xml_write_to_stream(os, x.model, pbofs);
+  xml_write_to_stream(os, x.polyorder, pbofs);
+  xml_write_to_stream(os, x.original_grid, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<SensorKey>::read(std::istream& is,
+                                    SensorKey& x,
+                                    bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.sensor_elem, pbifs);
+  xml_read_from_stream(is, x.measurement_elem, pbifs);
+  xml_read_from_stream(is, x.model, pbifs);
+  xml_read_from_stream(is, x.polyorder, pbifs);
+  xml_read_from_stream(is, x.original_grid, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<sensor::SparseStokvec>::put(
+    const sensor::SparseStokvec* const x, bofstream* pbofs, Size n) {
+  pbofs->putRaw(reinterpret_cast<const char*>(x),
+                n * 2 * sizeof(Size) + sizeof(Stokvec));
+}
+
+void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
+                                                 const sensor::SparseStokvec& x,
+                                                 bofstream* pbofs,
+                                                 std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  if (pbofs) {
+    put(&x, pbofs);
+  } else {
+    xml_write_to_stream(os, x.irow);
+    xml_write_to_stream(os, x.icol);
+    xml_write_to_stream(os, x.data);
+  }
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<sensor::SparseStokvec>::get(sensor::SparseStokvec* x,
+                                               bifstream* pbifs,
+                                               Size n) {
+  pbifs->getRaw(reinterpret_cast<char*>(x),
+                n * 2 * sizeof(Size) + sizeof(Stokvec));
+}
+
+void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is,
+                                                sensor::SparseStokvec& x,
+                                                bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  if (pbifs) {
+    get(&x, pbifs);
+  } else {
+    xml_read_from_stream(is, x.irow);
+    xml_read_from_stream(is, x.icol);
+    xml_read_from_stream(is, x.data);
+  }
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<sensor::SparseStokvecMatrix>::write(
+    std::ostream& os,
+    const sensor::SparseStokvecMatrix& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.nrows(), pbofs);
+  xml_write_to_stream(os, x.ncols(), pbofs);
+  xml_write_to_stream(os, x.vector(), pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<sensor::SparseStokvecMatrix>::read(
+    std::istream& is, sensor::SparseStokvecMatrix& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  Size nr, nc;
+  std::vector<sensor::SparseStokvec> vector;
+
+  xml_read_from_stream(is, nr, pbifs);
+  xml_read_from_stream(is, nc, pbifs);
+  xml_read_from_stream(is, vector, pbifs);
+
+  x.resize(nr, nc, vector.size());
+
+  stdr::move(stdv::as_rvalue(vector), x.begin());
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<SensorObsel>::write(std::ostream& os,
+                                       const SensorObsel& g,
+                                       bofstream* pbofs,
+                                       std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, g.f_grid(), pbofs, "f_grid");
+  xml_write_to_stream(os, g.poslos_grid(), pbofs, "poslos");
+  xml_write_to_stream(os, g.weight_matrix(), pbofs, "weight_matrix");
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<SensorObsel>::read(std::istream& is,
+                                      SensorObsel& x,
+                                      bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  AscendingGrid f_grid;
+  SensorPosLosVector poslos_grid;
+  sensor::SparseStokvecMatrix weight_matrix;
+
+  xml_read_from_stream(is, f_grid, pbifs);
+  xml_read_from_stream(is, poslos_grid, pbifs);
+  xml_read_from_stream(is, weight_matrix, pbifs);
+
+  x = SensorObsel{f_grid, poslos_grid, weight_matrix};
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
+                                              const ArrayOfSensorObsel& g,
+                                              bofstream* pbofs,
+                                              std::string_view name) {
+  const auto sen = collect_simulations(g);
+
+  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
+  plos.reserve(sen.size());
+  for (const auto& i : sen | stdv::values | stdv::join) {
+    if (not stdr::contains(plos, i)) {
+      plos.push_back(i);
+    }
+  }
+
+  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
+  freqs.reserve(sen.size());
+  for (const auto& i : sen | stdv::keys) freqs.push_back(i);
+
+  std::println(os,
+               R"(<{0} name="{1}" nelem="{2}" nfreq="{3}" nposlos="{4}">)",
+               type_name,
+               name,
+               static_cast<Index>(g.size()),
+               static_cast<Index>(freqs.size()),
+               static_cast<Index>(plos.size()));
+
+  if (not sen.empty()) {
+    for (auto& f : freqs) xml_write_to_stream(os, *f, pbofs, "f_grid");
+    for (auto& p : plos) xml_write_to_stream(os, *p, pbofs, "poslos");
+
+    for (auto& elem : g) {
+      const Index ifreq =
+          std::distance(freqs.begin(), stdr::find(freqs, elem.f_grid_ptr()));
+      const Index iplos =
+          std::distance(plos.begin(), stdr::find(plos, elem.poslos_grid_ptr()));
+
+      xml_write_to_stream(os, ifreq, pbofs, "f_grid index");
+      xml_write_to_stream(os, iplos, pbofs, "poslos_grid index");
+      xml_write_to_stream(os, elem.weight_matrix(), pbofs, "weight_matrix");
+    }
+  }
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
+                                             ArrayOfSensorObsel& g,
+                                             bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  g.resize(0);
+
+  Index nelem, nfreq, nposlos;
+
+  tag.get_attribute_value("nelem", nelem);
+  tag.get_attribute_value("nfreq", nfreq);
+  tag.get_attribute_value("nposlos", nposlos);
+
+  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
+  freqs.reserve(nfreq);
+  for (Index i = 0; i < nfreq; i++) {
+    AscendingGrid f;
+    xml_read_from_stream(is, f, pbifs);
+    freqs.push_back(std::make_shared<AscendingGrid>(std::move(f)));
+  }
+
+  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
+  plos.reserve(nposlos);
+  for (Index i = 0; i < nposlos; i++) {
+    SensorPosLosVector p;
+    xml_read_from_stream(is, p, pbifs);
+    plos.push_back(std::make_shared<SensorPosLosVector>(std::move(p)));
+  }
+
+  g.reserve(nelem);
+  for (Index i = 0; i < nelem; i++) {
+    Index ifreq;
+    Index iplos;
+    sensor::SparseStokvecMatrix weight_matrix;
+    try {
+      xml_read_from_stream(is, ifreq, pbifs);
+      xml_read_from_stream(is, iplos, pbifs);
+      xml_read_from_stream(is, weight_matrix, pbifs);
+
+      ARTS_USER_ERROR_IF(ifreq >= nfreq, "Frequency index out of range")
+      ARTS_USER_ERROR_IF(iplos >= nposlos, "Position index out of range")
+
+      g.emplace_back(freqs.at(ifreq), plos.at(iplos), weight_matrix);
+    } catch (const std::exception& e) {
+      throw std::runtime_error(
+          std::format("Error reading ArrayOfSensorObsel element {}/{}:\n{}",
+                      i,
+                      nelem,
+                      e.what()));
+    }
+  }
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
 }

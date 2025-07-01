@@ -63,10 +63,18 @@ template <typename... Ts>
 concept uniquely_variant = unique_names(type_names<Ts...>);
 }  // namespace
 
+//! overloadable name
+template <typename... Ts>
+struct xml_io_stream_name<std::variant<Ts...>> {
+  static constexpr std::string_view name = "Variant"sv;
+};
+
 template <arts_xml_ioable... Ts>
-  requires(uniquely_variant<Ts...>)
+  requires(uniquely_variant<Ts...> and
+           (std::is_default_constructible_v<Ts> and ...))
 struct xml_io_stream<std::variant<Ts...>> {
-  constexpr static std::string_view type_name = "Variant"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<std::variant<Ts...>>;
 
   static void write(std::ostream& os,
                     const std::variant<Ts...>& n,

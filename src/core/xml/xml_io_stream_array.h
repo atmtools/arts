@@ -6,9 +6,20 @@
 #include <xml_io_stream.h>
 #include <xml_io_stream_core.h>
 
+template <typename T>
+struct xml_io_stream_name<Array<T>> {
+  static constexpr std::string_view name = "Array"sv;
+};
+
+template <>
+struct xml_io_stream_name<ArrayOfString> {
+  static constexpr std::string_view name = "ArrayOfString"sv;
+};
+
 template <arts_xml_ioable T>
-struct xml_io_stream_array {
-  constexpr static std::string_view type_name = "Array"sv;
+  requires(std::is_default_constructible_v<T>)
+struct xml_io_stream<Array<T>> {
+  constexpr static std::string_view type_name = xml_io_stream_name_v<Array<T>>;
 
   static void write(std::ostream& os,
                     const Array<T>& n,
@@ -23,7 +34,7 @@ struct xml_io_stream_array {
 
     if constexpr (xml_io_binary<T>) {
       if (pbofs) xml_io_stream<T>::put(n.data(), pbofs, n.size());
-    } else  {
+    } else {
       pbofs = nullptr;
     }
 
@@ -70,30 +81,15 @@ struct xml_io_stream_array {
   ARTS_METHOD_ERROR_CATCH
 };
 
-template <>
-struct xml_io_stream<ArrayOfString> {
-  constexpr static std::string_view type_name = "ArrayOfString"sv;
-
-  static void write(std::ostream&,
-                    const ArrayOfString&,
-                    bofstream*       = nullptr,
-                    std::string_view = ""sv);
-
-  static void read(std::istream&, ArrayOfString&, bifstream* = nullptr);
-};
-
-template <arts_xml_ioable T>
-struct xml_io_stream<Array<T>> final : xml_io_stream_array<T> {
-  using xml_io_stream_array<T>::type_name;
-
-  using xml_io_stream_array<T>::write;
-
-  using xml_io_stream_array<T>::read;
+template <typename T, Size N>
+struct xml_io_stream_name<std::array<T, N>> {
+  static constexpr std::string_view name = xml_io_stream_name_v<Array<T>>;
 };
 
 template <arts_xml_ioable T, Size N>
 struct xml_io_stream<std::array<T, N>> {
-  constexpr static std::string_view type_name = "Array"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<std::array<T, N>>;
 
   static void write(std::ostream& os,
                     const std::array<T, N>& n,

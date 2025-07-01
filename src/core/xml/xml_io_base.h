@@ -13,6 +13,7 @@
 #pragma once
 
 #include <config.h>
+#include <enumsFileType.h>
 #include <mystring.h>
 
 #include <memory>
@@ -23,8 +24,6 @@
 #ifdef ENABLE_ZLIB
 #include <gzstream.h>
 #endif
-
-enum class FileType { ascii, zascii, binary };
 
 enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
 enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };

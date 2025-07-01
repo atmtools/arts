@@ -393,13 +393,13 @@ void xml_io_stream<SpeciesTag>::write(std::ostream& os,
                                       const SpeciesTag& x,
                                       bofstream* pbofs,
                                       std::string_view name) {
-  std::println(R"(<{0} name="{1}">)", type_name, name);
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, x.Isotopologue(), pbofs);
   xml_write_to_stream(os, x.type, pbofs);
   xml_write_to_stream(os, x.cia_2nd_species, pbofs);
 
-  std::println(R"(</{0}>)", type_name);
+  std::println(os, R"(</{0}>)", type_name);
 }
 
 void xml_io_stream<SpeciesTag>::read(std::istream& is,
@@ -426,6 +426,8 @@ void xml_io_stream<ArrayOfSpeciesTag>::write(std::ostream& os,
   xml_io_stream<Array<SpeciesTag>>::write(os, x, pbofs, name);
 }
 
-static void read(std::istream& is, ArrayOfSpeciesTag& x, bifstream* pbifs) {
+void xml_io_stream<ArrayOfSpeciesTag>::read(std::istream& is,
+                                            ArrayOfSpeciesTag& x,
+                                            bifstream* pbifs) {
   xml_io_stream<Array<SpeciesTag>>::read(is, x, pbifs);
 }

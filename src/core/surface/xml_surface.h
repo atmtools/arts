@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xml.h>
+
 #include "surface_field.h"
 
 template <>

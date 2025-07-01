@@ -9,6 +9,7 @@
 #include "covariance_matrix.h"
 
 #include <lin_alg.h>
+#include <xml.h>
 
 #include <ostream>
 #include <queue>
@@ -21,6 +22,30 @@ BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
 BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
 BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
 BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
+Block::Block()                                               = default;
+Block::Block(const Block &)                                  = default;
+Block::Block(Block &&) noexcept                              = default;
+Block &Block::operator=(const Block &)                       = default;
+Block &Block::operator=(Block &&) noexcept                   = default;
+Block::~Block()                                              = default;
+CovarianceMatrix::CovarianceMatrix()                         = default;
+CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &) = default;
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&)      = default;
+CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &) =
+    default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) = default;
+CovarianceMatrix::~CovarianceMatrix()                              = default;
+
+Block::Block(Range row_range,
+             Range column_range,
+             IndexPair indices,
+             BlockMatrix matrix)
+    : row_range_(row_range),
+      column_range_(column_range),
+      indices_(std::move(indices)),
+      matrix_(std::move(matrix)) {
+  // Nothing to do here.
+}
 
 BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense)
     : data(std::move(dense)) {}
@@ -745,4 +770,82 @@ std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
     os << '\n';
   }
   return os;
+}
+
+void xml_io_stream<Block>::write(std::ostream &os,
+                                 const Block &x,
+                                 bofstream *pbofs,
+                                 std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.row_range_, pbofs);
+  xml_write_to_stream(os, x.column_range_, pbofs);
+  xml_write_to_stream(os, x.indices_, pbofs);
+  xml_write_to_stream(os, x.matrix_, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Block>::read(std::istream &is, Block &x, bifstream *pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.row_range_, pbifs);
+  xml_read_from_stream(is, x.column_range_, pbifs);
+  xml_read_from_stream(is, x.indices_, pbifs);
+  xml_read_from_stream(is, x.matrix_, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<BlockMatrix>::write(std::ostream &os,
+                                       const BlockMatrix &x,
+                                       bofstream *pbofs,
+                                       std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  if (x.not_null()) xml_write_to_stream(os, x.data, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<BlockMatrix>::read(std::istream &is,
+                                      BlockMatrix &x,
+                                      bifstream *pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.data, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<CovarianceMatrix>::write(std::ostream &os,
+                                            const CovarianceMatrix &x,
+                                            bofstream *pbofs,
+                                            std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.get_blocks(), pbofs);
+  xml_write_to_stream(os, x.get_inverse_blocks(), pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<CovarianceMatrix>::read(std::istream &is,
+                                           CovarianceMatrix &x,
+                                           bifstream *pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.get_blocks(), pbifs);
+  xml_read_from_stream(is, x.get_inverse_blocks(), pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
 }

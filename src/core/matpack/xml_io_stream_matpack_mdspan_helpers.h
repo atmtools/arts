@@ -7,7 +7,8 @@
 
 template <class Compare>
 struct xml_io_stream<matpack::grid_t<Compare>> {
-  constexpr static std::string_view type_name = "Matpack"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<matpack::data_t<Numeric, 1>>;
 
   static void write(std::ostream& os,
                     const matpack::grid_t<Compare>& x,
@@ -25,10 +26,16 @@ struct xml_io_stream<matpack::grid_t<Compare>> {
   }
 };
 
+template <typename T, typename... Grids>
+struct xml_io_stream_name<matpack::gridded_data_t<T, Grids...>> {
+  static constexpr std::string_view name = "GriddedField"sv;
+};
+
 template <arts_xml_ioable T, arts_xml_ioable... Grids>
 struct xml_io_stream_gridded_field {
-  constexpr static std::string_view type_name = "GriddedField"sv;
-  constexpr static Size codeversion           = 2;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<matpack::gridded_data_t<T, Grids...>>;
+  constexpr static Size codeversion = 2;
 
   static void write(std::ostream& os,
                     const matpack::gridded_data_t<T, Grids...>& gf,
@@ -89,8 +96,9 @@ struct xml_io_stream_gridded_field {
 
 template <arts_xml_ioable T, arts_xml_ioable... Grids>
 struct xml_io_stream<matpack::gridded_data_t<T, Grids...>> {
-  static constexpr std::string_view type_name = "GriddedField"sv;
   using GF = xml_io_stream_gridded_field<T, Grids...>;
+
+  static constexpr std::string_view type_name = GF::type_name;
 
   static void write(std::ostream& os,
                     const matpack::gridded_data_t<T, Grids...>& gf,
@@ -106,9 +114,13 @@ struct xml_io_stream<matpack::gridded_data_t<T, Grids...>> {
   }
 };
 
-#define GF_IO(GF)               \
-  template <>                   \
-  void xml_io_stream<GF>::read( \
+#define GF_IO(GF)                                 \
+  template <>                                     \
+  struct xml_io_stream_name<GF> {                 \
+    static constexpr std::string_view name = #GF; \
+  };                                              \
+  template <>                                     \
+  void xml_io_stream<GF>::read(                   \
       std::istream& is_xml, GF& gf, bifstream* pbifs);
 
 GF_IO(GriddedField1)

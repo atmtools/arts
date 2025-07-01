@@ -1,15 +1,17 @@
 #include "callback.h"
-#include "workspace_class.h"
-
-#include <exception>
-#include <stdexcept>
-#include <ostream>
 
 #include <workspace.h>
 
+#include <exception>
+#include <ostream>
+#include <stdexcept>
+
+#include "workspace_class.h"
+
 void CallbackOperator::operator()(Workspace& ws_in) const try {
-  ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n{}", *this);
-  
+  ARTS_USER_ERROR_IF(
+      not callback, "No callback function set for operator:\n{}", *this);
+
   Workspace ws(WorkspaceInitialization::Empty);
 
   for (auto& n : inputs) ws.set(n, ws_in.share(n));
@@ -25,4 +27,32 @@ void CallbackOperator::operator()(Workspace& ws_in) const try {
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Error in callback operator:\n{}\n{}", *this, e.what()));
+}
+
+void xml_io_stream<CallbackOperator>::write(std::ostream& os,
+                                            const CallbackOperator& x,
+                                            bofstream* pbofs,
+                                            std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.callback, pbofs);
+  xml_write_to_stream(os, x.inputs, pbofs);
+  xml_write_to_stream(os, x.outputs, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<CallbackOperator>::read(std::istream& is,
+                                           CallbackOperator& x,
+                                           bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.callback, pbifs);
+  xml_read_from_stream(is, x.inputs, pbifs);
+  xml_read_from_stream(is, x.outputs, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
 }

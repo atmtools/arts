@@ -90,3 +90,16 @@ void propmat::set_model(std::shared_ptr<ArrayOfXsecRecord> xsec_) {
   xsec.set_model(std::move(xsec_));
 }
 }  // namespace fwd
+
+void xml_io_stream<fwd::propmat>::write(std::ostream&,
+                                        const fwd::propmat&,
+                                        bofstream*,
+                                        std::string_view) {
+  throw std::runtime_error("Not implemented");
+}
+
+void xml_io_stream<fwd::propmat>::read(std::istream&,
+                                       fwd::propmat&,
+                                       bifstream*) {
+  throw std::runtime_error("Not implemented");
+}

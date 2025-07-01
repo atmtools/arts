@@ -332,7 +332,7 @@ void xml_io_stream<Agenda>::write(std::ostream& os,
                                   const Agenda& x,
                                   bofstream* pbofs,
                                   std::string_view name) {
-  std::println(R"(<{0} name="{1}">)", type_name, name);
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, x.get_name(), pbofs);
   xml_write_to_stream(os, x.get_methods(), pbofs);
@@ -340,7 +340,7 @@ void xml_io_stream<Agenda>::write(std::ostream& os,
   xml_write_to_stream(os, x.get_copy(), pbofs);
   xml_write_to_stream(os, x.is_checked(), pbofs);
 
-  std::println(R"(</{0}>)", type_name);
+  std::println(os, R"(</{0}>)", type_name);
 }
 
 void xml_io_stream<Agenda>::read(std::istream& is,

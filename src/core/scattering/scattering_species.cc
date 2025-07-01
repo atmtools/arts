@@ -147,3 +147,17 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
   }
   return bsp;
 }
+
+void xml_io_stream<ArrayOfScatteringSpecies>::write(
+    std::ostream& os,
+    const ArrayOfScatteringSpecies& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  xml_io_stream<Array<ScatteringSpecies>>::write(os, x, pbofs, name);
+}
+
+void xml_io_stream<ArrayOfScatteringSpecies>::read(std::istream& is,
+                                                   ArrayOfScatteringSpecies& x,
+                                                   bifstream* pbifs) {
+  xml_io_stream<Array<ScatteringSpecies>>::read(is, x, pbifs);
+}

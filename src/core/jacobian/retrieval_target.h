@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #include "covariance_matrix.h"
-#include <jacobian.h>
+#include "jacobian.h"
 
 struct PairOfBlockMatrix {
   BlockMatrix first, second;
@@ -32,20 +32,15 @@ struct std::formatter<PairOfBlockMatrix> {
 };
 
 template <>
-struct std::formatter<JacobianTargetsDiagonalCovarianceMatrixMap> {
-  format_tags tags;
+struct xml_io_stream<PairOfBlockMatrix> {
+  static constexpr std::string_view type_name = "PairOfBlockMatrix"sv;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  static void write(std::ostream &os,
+                    const PairOfBlockMatrix &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const JacobianTargetsDiagonalCovarianceMatrixMap&,
-                              FmtContext& ctx) const {
-    return tags.format(ctx, "NotImplementedYet"sv);
-  }
+  static void read(std::istream &is,
+                   PairOfBlockMatrix &x,
+                   bifstream *pbifs = nullptr);
 };

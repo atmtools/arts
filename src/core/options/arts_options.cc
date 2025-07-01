@@ -632,7 +632,8 @@ if good cases, so we have provide this selection mechanism to make them match.
 
   opts.emplace_back(EnumeratedOption{
       .name = "HydrostaticPressureOption",
-      .desc = R"(These options control how the hydrostatic pressure is computed in ARTS.
+      .desc =
+          R"(These options control how the hydrostatic pressure is computed in ARTS.
 
 There are two main options for how the hydrostatic pressure is computed:
 
@@ -778,6 +779,17 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
               Value{"unit",
                     "1",
                     "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "FileType",
+      .desc = "A choice of file format types.\n",
+      .values_and_desc =
+          {
+              Value{"ascii", "ASCII", "Ascii", "text", "Save as ASCII"},
+              Value{"zascii", "ZASCII", "Zip", "zip", "Save as zipped ASCII"},
+              Value{"binary", "BINARY", "Binary", "bin", "Save as binary data"},
           },
   });
 
@@ -1012,6 +1024,7 @@ template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
 
 template<> struct enumdocs<{0}> {{
   static std::string_view str() noexcept;
+  static constexpr std::string_view name = "{0}"sv;
 }};
 
 namespace enumtyps {{
@@ -1049,7 +1062,7 @@ namespace enumstrs {{
   inline constexpr auto {1}Names = enum_str_data<{1}, i>::strs;
 }}  // namespace enumstrs
 
-template <int i={0}> constexpr const std::string_view toString({1} x)  requires(i >= 0 and i < {2}) {{
+template <int i={0}> constexpr std::string_view toString({1} x)  requires(i >= 0 and i < {2}) {{
   if (good_enum(x))
     return enumstrs::{1}Names<i>[static_cast<std::size_t>(x)];
   return "BAD {1}"sv;
@@ -1086,20 +1099,6 @@ namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
 std::ostream& operator<<(std::ostream &os, const {0} x);
 
 std::istream& operator>>(std::istream &is, {0}& x);
-
-template <>
-struct xml_io_stream<{0}> {{
-  static constexpr std::string_view type_name = "{0}"sv;
-
-  static void write(std::ostream& os,
-                    const {0}& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   {0}& x,
-                   bifstream* pbifs = nullptr);
-}};
 
 template<> struct std::formatter<{0}> {{
   using T={0};
@@ -1204,20 +1203,6 @@ std::istream &operator>>(std::istream &is, {0}& x) {{
   is >> s;
   x = to<{0}>(s);
   return is;
-}}
-
-void xml_io_stream<{0}>::read(std::istream& is, {0}& s, bifstream*) {{
-  std::string x;
-  is >> x;
-  if (x != "<{0}>")  throw std::runtime_error("Expected \"<{0}>\" got: \""+x+"\"");
-  is >> x;
-  s = to<{0}>(x);
-  is >> x;
-  if (x != "</{0}>")  throw std::runtime_error("Expected \"</{0}>\" got: \""+x+"\"");
-}}
-
-void xml_io_stream<{0}>::write(std::ostream& os, const {0}& s, bofstream*, std::string_view) {{
-  std::print(os, "<{0}>\n{{}}\n</{0}>\\n", toString<{1}>(s));
 }}
 
 std::string_view enumdocs<{0}>::str() noexcept {{

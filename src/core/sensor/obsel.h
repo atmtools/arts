@@ -65,6 +65,7 @@ class SparseStokvecMatrix {
   [[nodiscard]] Size size() const;
   [[nodiscard]] bool empty() const;
   [[nodiscard]] std::array<Index, 2> shape() const;
+  const std::vector<SparseStokvec>& vector() const;
 
   void resize(Size rows, Size cols, Size reserve);
 
@@ -339,4 +340,96 @@ struct std::formatter<SensorObsel> {
                        "\n  weights:                        "sv,
                        v.weight_matrix());
   }
+};
+
+template <>
+struct xml_io_stream<SensorPosLos> {
+  static constexpr std::string_view type_name = "SensorPosLos"sv;
+
+  static void write(std::ostream& os,
+                    const SensorPosLos& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SensorPosLos& x,
+                   bifstream* pbifs = nullptr);
+
+  static void put(const SensorPosLos* const, bofstream*, Size n = 1);
+
+  static void get(SensorPosLos*, bifstream*, Size n = 1);
+};
+
+template <>
+struct xml_io_stream<SensorKey> {
+  static constexpr std::string_view type_name = "SensorKey"sv;
+
+  static void write(std::ostream& os,
+                    const SensorKey& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, SensorKey& x, bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<sensor::SparseStokvec> {
+  static constexpr std::string_view type_name = "SparseStokvec"sv;
+
+  static void write(std::ostream& os,
+                    const sensor::SparseStokvec& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   sensor::SparseStokvec& x,
+                   bifstream* pbifs = nullptr);
+
+  static void put(const sensor::SparseStokvec* const x,
+                  bofstream* pbofs,
+                  Size n = 1);
+
+  static void get(sensor::SparseStokvec* x, bifstream* pbifs, Size n = 1);
+};
+
+template <>
+struct xml_io_stream<sensor::SparseStokvecMatrix> {
+  static constexpr std::string_view type_name = "SparseStokvecMatrix"sv;
+
+  static void write(std::ostream& os,
+                    const sensor::SparseStokvecMatrix& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   sensor::SparseStokvecMatrix& x,
+                   bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<SensorObsel> {
+  static constexpr std::string_view type_name = "SensorObsel"sv;
+
+  static void write(std::ostream& os,
+                    const SensorObsel& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SensorObsel& x,
+                   bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<ArrayOfSensorObsel> {
+  static constexpr std::string_view type_name = "ArrayOfSensorObsel"sv;
+
+  static void write(std::ostream& os,
+                    const ArrayOfSensorObsel& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   ArrayOfSensorObsel& x,
+                   bifstream* pbifs = nullptr);
 };

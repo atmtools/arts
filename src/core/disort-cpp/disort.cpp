@@ -1502,15 +1502,28 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
 }
 ARTS_METHOD_ERROR_CATCH
 
-void xml_io_stream<DisortBDRF>::read(std::istream&, DisortBDRF&, bifstream*) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_io_stream<DisortBDRF>::read(std::istream& is,
+                                     DisortBDRF& x,
+                                     bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.f, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
 }
 
-void xml_io_stream<DisortBDRF>::write(std::ostream&,
-                                      const DisortBDRF&,
-                                      bofstream*,
-                                      std::string_view) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_io_stream<DisortBDRF>::write(std::ostream& os,
+                                      const DisortBDRF& x,
+                                      bofstream* pbofs,
+                                      std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.f, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
 }
 
 void xml_io_stream<DisortSettings>::read(std::istream& is_xml,

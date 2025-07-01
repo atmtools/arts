@@ -172,6 +172,11 @@ using SubsurfaceKeyVal       = Subsurface::KeyVal;
 using ArrayOfSubsurfacePoint = Array<SubsurfacePoint>;
 
 template <>
+struct xml_io_stream_name<SubsurfaceKeyVal> {
+  static constexpr std::string_view name = "SubsurfaceKeyVal"sv;
+};
+
+template <>
 struct std::formatter<SubsurfaceKeyVal> {
   format_tags tags;
 

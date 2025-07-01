@@ -6,9 +6,15 @@
 #include <concepts>
 #include <tuple>
 
+template <typename... Ts>
+struct xml_io_stream_name<std::tuple<Ts...>> {
+  static constexpr std::string_view name = "Tuple"sv;
+};
+
 template <arts_xml_ioable... Ts>
 struct xml_io_stream<std::tuple<Ts...>> {
-  constexpr static std::string_view type_name = "Tuple"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<std::tuple<Ts...>>;
 
   static void write(std::ostream& os,
                     const std::tuple<Ts...>& n,
@@ -46,9 +52,15 @@ struct xml_io_stream<std::tuple<Ts...>> {
   }
 };
 
+template <typename A, typename B>
+struct xml_io_stream_name<std::pair<A, B>> {
+  static constexpr std::string_view name = "Pair"sv;
+};
+
 template <arts_xml_ioable A, arts_xml_ioable B>
 struct xml_io_stream<std::pair<A, B>> {
-  constexpr static std::string_view type_name = "Tuple"sv;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<std::pair<A, B>>;
 
   static void write(std::ostream& os,
                     const std::pair<A, B>& n,

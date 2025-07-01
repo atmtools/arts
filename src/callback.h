@@ -55,4 +55,18 @@ struct std::formatter<CallbackOperator> {
   }
 };
 
+template <>
+struct xml_io_stream<CallbackOperator> {
+  static constexpr std::string_view type_name = "CallbackOperator"sv;
+
+  static void write(std::ostream& os,
+                    const CallbackOperator& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   CallbackOperator& x,
+                   bifstream* pbifs = nullptr);
+};
+
 #endif

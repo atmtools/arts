@@ -12,7 +12,7 @@
 #include "fwd_predef.h"
 
 namespace fwd {
-class propmat {
+struct propmat {
   std::shared_ptr<AtmPoint> atm{};
 
   lbl::fwd::line_storage lines{};
@@ -21,7 +21,6 @@ class propmat {
   predef::full predef{};
   hxsec::full xsec{};
 
- public:
   propmat();
   propmat(const propmat&);
   propmat(propmat&&) noexcept;
@@ -48,3 +47,19 @@ class propmat {
   void set_model(std::shared_ptr<ArrayOfXsecRecord> xsec);
 };  // struct propmat
 }  // namespace fwd
+
+
+template <>
+struct xml_io_stream<fwd::propmat> {
+  static constexpr std::string_view type_name = "ForwardPropmat"sv;
+
+  static void write(std::ostream& os,
+                    const fwd::propmat& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   fwd::propmat& x,
+                   bifstream* pbifs = nullptr);
+};
+

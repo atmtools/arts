@@ -32,7 +32,6 @@ add_subdirectory(sun)
 
 # #####
 add_library(artscore STATIC
-  covariance_matrix.cc
   gas_scattering.cc
   geodetic.cc
   igrf13.cc

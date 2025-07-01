@@ -367,3 +367,37 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is,
   close_tag.read_from_stream(is);
   close_tag.check_name("/AbsorptionBandData");
 }
+
+void xml_io_stream<LblLineKey>::write(std::ostream& os,
+                                      const LblLineKey& x,
+                                      bofstream* pbofs,
+                                      std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.band, pbofs);
+  xml_write_to_stream(os, x.line, pbofs);
+  xml_write_to_stream(os, x.spec, pbofs);
+  xml_write_to_stream(os, x.ls_var, pbofs);
+  xml_write_to_stream(os, x.ls_coeff, pbofs);
+  xml_write_to_stream(os, x.var, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<LblLineKey>::read(std::istream& is,
+                                     LblLineKey& x,
+                                     bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.band, pbifs);
+  xml_read_from_stream(is, x.line, pbifs);
+  xml_read_from_stream(is, x.spec, pbifs);
+  xml_read_from_stream(is, x.ls_var, pbifs);
+  xml_read_from_stream(is, x.ls_coeff, pbifs);
+  xml_read_from_stream(is, x.var, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

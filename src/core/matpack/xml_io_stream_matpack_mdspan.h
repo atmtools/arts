@@ -15,33 +15,56 @@ void old_xml_io_read(XMLTag&, std::istream&, Tensor5&, bifstream*);
 void old_xml_io_read(XMLTag&, std::istream&, Tensor6&, bifstream*);
 void old_xml_io_read(XMLTag&, std::istream&, Tensor7&, bifstream*);
 
-namespace {
-template <arts_xml_ioable T, Size N>
-consteval std::string_view matpack_names() {
-  if constexpr (std::same_as<matpack::data_t<T, N>, Vector>) {
-    return "Vector"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Matrix>) {
-    return "Matrix"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Tensor3>) {
-    return "Tensor3"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Tensor4>) {
-    return "Tensor4"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Tensor5>) {
-    return "Tensor5"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Tensor6>) {
-    return "Tensor6"sv;
-  } else if constexpr (std::same_as<matpack::data_t<T, N>, Tensor7>) {
-    return "Tensor7"sv;
-  } else {
-    return "Matpack"sv;
-  }
-}
-}  // namespace
+template <typename T, Size N>
+struct xml_io_stream_name<matpack::data_t<T, N>> {
+  static constexpr std::string_view name = "Matpack"sv;
+};
+
+template <>
+struct xml_io_stream_name<Vector> {
+  static constexpr std::string_view name = "Vector"sv;
+};
+
+template <>
+struct xml_io_stream_name<Matrix> {
+  static constexpr std::string_view name = "Matrix"sv;
+};
+
+template <>
+struct xml_io_stream_name<std::shared_ptr<Matrix>> {
+  static constexpr std::string_view name = "SharedMatrix"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor3> {
+  static constexpr std::string_view name = "Tensor3"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor4> {
+  static constexpr std::string_view name = "Tensor4"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor5> {
+  static constexpr std::string_view name = "Tensor5"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor6> {
+  static constexpr std::string_view name = "Tensor6"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor7> {
+  static constexpr std::string_view name = "Tensor7"sv;
+};
 
 template <arts_xml_ioable T, Size N>
 struct xml_io_stream<matpack::data_t<T, N>> {
-  constexpr static std::string_view type_name = matpack_names<T, N>();
-  static constexpr Size codeversion           = 2;
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<matpack::data_t<T, N>>;
+  static constexpr Size codeversion = 2;
 
   static void write(std::ostream& os,
                     const matpack::data_t<T, N>& x,
@@ -144,27 +167,16 @@ struct xml_io_stream<matpack::data_t<T, N>> {
   ARTS_METHOD_ERROR_CATCH
 };
 
-namespace {
-// Make IO-compatible with data_t for many types
-template <arts_xml_ioable T, Size... N>
-consteval std::string_view matpack_cnames() {
-  if constexpr (std::same_as<T, Numeric> and sizeof...(N) == 1) {
-    return "Vector"sv;
-  } else if constexpr (std::same_as<T, Numeric> and sizeof...(N) == 2) {
-    return "Matrix"sv;
-  } else if constexpr (std::same_as<T, Complex> and sizeof...(N) == 1) {
-    return "ComplexVector"sv;
-  } else if constexpr (std::same_as<T, Complex> and sizeof...(N) == 2) {
-    return "ComplexMatrix"sv;
-  } else {
-    return "Matpack"sv;
-  }
-}
-}  // namespace
+template <typename T, Size... N>
+struct xml_io_stream_name<matpack::cdata_t<T, N...>> {
+  static constexpr std::string_view name =
+      xml_io_stream_name_v<matpack::data_t<T, sizeof...(N)>>;
+};
 
 template <arts_xml_ioable T, Size... N>
 struct xml_io_stream<matpack::cdata_t<T, N...>> {
-  constexpr static std::string_view type_name = matpack_cnames<T, N...>();
+  constexpr static std::string_view type_name =
+      xml_io_stream_name_v<matpack::cdata_t<T, N...>>;
 
   static void get(matpack::cdata_t<T, N...>* v, bifstream* pbifs, Size n = 1)
     requires(xml_io_binary<T>)

@@ -10,11 +10,11 @@
 #include <variant>
 
 #include "bulk_scattering_properties.h"
+#include "general_tro_spectral.h"
 #include "henyey_greenstein.h"
 #include "particle_habit.h"
 #include "properties.h"
 #include "psd.h"
-#include "general_tro_spectral.h"
 
 namespace scattering {
 
@@ -37,7 +37,8 @@ class ScatteringHabit {
 
 struct ScatteringDataSpec {};
 
-using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO>;
+using Species =
+    std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO>;
 
 }  // namespace scattering
 
@@ -121,3 +122,24 @@ std::ostream& operator<<(
     std::ostream& os,
     const std::variant<HenyeyGreensteinScatterer,
                        scattering::ScatteringHabit>& /*species*/);
+
+//! Nming the variant
+template <>
+struct xml_io_stream_name<ScatteringSpecies> {
+  static constexpr std::string_view name = "ScatteringSpecies"sv;
+};
+
+//! Required overload since it inherits
+template <>
+struct xml_io_stream<ArrayOfScatteringSpecies> {
+  static constexpr std::string_view type_name = "ArrayOfScatteringSpecies"sv;
+
+  static void write(std::ostream& os,
+                    const ArrayOfScatteringSpecies& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv) ;
+
+  static void read(std::istream& is,
+                   ArrayOfScatteringSpecies& x,
+                   bifstream* pbifs = nullptr) ;
+};

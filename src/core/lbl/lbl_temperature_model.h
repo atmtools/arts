@@ -264,3 +264,17 @@ struct std::formatter<lbl::temperature::data> {
     return ctx.out();
   }
 };
+
+template <>
+struct xml_io_stream<lbl::temperature::data> {
+  static constexpr std::string_view type_name = "TemperatureData"sv;
+
+  static void write(std::ostream& os,
+                    const lbl::temperature::data& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   lbl::temperature::data& x,
+                   bifstream* pbifs = nullptr);
+};

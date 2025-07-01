@@ -29,6 +29,11 @@ struct hash<SurfacePropertyTag> {
 
 using SurfaceKeyVal = std::variant<SurfaceKey, SurfacePropertyTag>;
 
+template <>
+struct xml_io_stream_name<SurfaceKeyVal> {
+  static constexpr std::string_view name = "SurfaceKeyVal"sv;
+};
+
 namespace Surf {
 template <typename T>
 concept isSurfaceKey = std::same_as<std::remove_cvref_t<T>, SurfaceKey>;
