@@ -2084,7 +2084,16 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "  min(p)   / max(p)   [Pa]:  1 / 104960\n"
           "  min(T)   / max(T)   [K]:   158.21 / 320.39\n"
-          "  min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"),
+          "  min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"
+          "\n"
+          "``n2_vmr`` and ``o2_vmr`` are the VMR values for N2 and O2, respectively.\n"
+          "The default values are from Wallace&Hobbs, 2nd edition.\n"
+          "For H2O, we assume a default VMR profile that is a linear function in log(pressure).\n"
+          "``h2o_vmr_profile_parameters`` are two points (PRESSURE1, VMR1) and (PRESSURE2, VMR2)\n"
+          "that define the linear function.\n"
+          "For pressures below PRESSURE1 the VMR profile is set to VMR1.\n"
+          "For other absorption species, the ``other_vmr`` parameter is used as the default VMR.\n"
+    ),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -2099,22 +2108,51 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
          "abs_p_interp_order",
          "abs_t_interp_order",
          "abs_nls_interp_order"),
-      GIN("p_min", "p_max", "p_step", "t_min", "t_max", "h2o_min", "h2o_max"),
+      GIN("p_min",
+          "p_max",
+          "p_step",
+          "t_min",
+          "t_max",
+          "h2o_min",
+          "h2o_max",
+          "n2_vmr",
+          "o2_vmr",
+          "h2o_vmr_profile_parameters",
+          "other_vmr"),
       GIN_TYPE("Numeric",
                "Numeric",
                "Numeric",
                "Numeric",
                "Numeric",
                "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Vector",
                "Numeric"),
-      GIN_DEFAULT("0.5", "110000", "0.05", "100", "400", "0", "0.05"),
-      GIN_DESC("Pressure grid minimum [Pa].",
-               "Pressure grid maximum [Pa].",
-               "Pressure grid step in log10(p[Pa]) (base 10 logarithm).",
-               "Temperature grid minimum [K].",
-               "Temperature grid maximum [K].",
-               "Humidity grid minimum [fractional].",
-               "Humidity grid maximum [fractional].")));
+      GIN_DEFAULT("0.5",
+                  "110000",
+                  "0.05",
+                  "100",
+                  "400",
+                  "0",
+                  "0.05",
+                  "0.7808",
+                  "0.2095",
+                  "[1e3, 1e-8, 1e5, 1e-2]",
+                  "1e-9"),
+      GIN_DESC(
+          "Pressure grid minimum [Pa].",
+          "Pressure grid maximum [Pa].",
+          "Pressure grid step in log10(p[Pa]) (base 10 logarithm).",
+          "Temperature grid minimum [K].",
+          "Temperature grid maximum [K].",
+          "Humidity grid minimum [fractional].",
+          "Humidity grid maximum [fractional].",
+          "VMR value for N2.",
+          "VMR value for O2.",
+          "VMR profile parameters for H2O. [PRESSURE1 [Pa], VMR1, PRESSURE2 [Pa], VMR2].",
+          "Default VMR for other species.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
