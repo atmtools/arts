@@ -1666,6 +1666,10 @@ void abs_lookupSetupWide(  // WS Output:
     const Numeric& t_max,
     const Numeric& h2o_min,
     const Numeric& h2o_max,
+    const Numeric& n2_vmr,
+    const Numeric& o2_vmr,
+    const Vector& h2o_vmr_profile_parameters,
+    const Numeric& other_vmr,
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
@@ -1725,40 +1729,45 @@ void abs_lookupSetupWide(  // WS Output:
                     abs_t_interp_order,
                     verbosity);
 
-  // 3. Fix reference H2O profile and abs_nls_pert
-  // ---------------------------------------------
-
-  // We take a constant reference profile of 1000ppm (=1e-3) for H2O
-  const Numeric h2o_ref = 1e-3;
-
-  // And 1 ppt (1e-9) as default for all VMRs
-  const Numeric other_ref = 1e-9;
-
-  // We have to assign this value to all pressures of the H2O profile,
-  // and 0 to all other profiles.
-
   // abs_vmrs has dimension [n_species, np].
   abs_vmrs.resize(abs_species.nelem(), np);
-  abs_vmrs = other_ref;
+  abs_vmrs = other_vmr;
 
-  // We look for O2 and N2, and assign constant values to them.
-  // The values are from Wallace&Hobbs, 2nd edition.
+  // We look for O2, N2, and H2O, and assign default values and profile, respectively.
+  Index spec_index = -1;
+  Index h2o_index = -1;
+  for (const auto& species : abs_species) {
+    spec_index++;
+    if (species.Species() == Species::fromShortName("O2"))
+      abs_vmrs(spec_index, joker) = o2_vmr;
+    else if (species.Species() == Species::fromShortName("N2"))
+      abs_vmrs(spec_index, joker) = n2_vmr;
+    else if (species.Species() == Species::fromShortName("H2O")) {
+      ARTS_USER_ERROR_IF(
+          h2o_vmr_profile_parameters[0] >= h2o_vmr_profile_parameters[2],
+          "First pressure ",
+          h2o_vmr_profile_parameters[0],
+          " Pa in h2o_vmr_profile_parameters must be lower than the \nsecond pressure ",
+          h2o_vmr_profile_parameters[2],
+          " Pa.");
+      VectorView vmr_h2o_default_profile = abs_vmrs(spec_index, joker);
+      const Numeric b = (std::log10(h2o_vmr_profile_parameters[3]) -
+                         std::log10(h2o_vmr_profile_parameters[1])) /
+                        (std::log10(h2o_vmr_profile_parameters[2]) -
+                         std::log10(h2o_vmr_profile_parameters[0]));
+      const Numeric a = std::log10(h2o_vmr_profile_parameters[1]) -
+                        b * std::log10(h2o_vmr_profile_parameters[0]);
+      const Numeric a10 = std::pow(10, a);
 
-  const Index o2_index =
-      find_first_species(abs_species, Species::fromShortName("O2"));
-  if (o2_index >= 0) {
-    abs_vmrs(o2_index, joker) = 0.2095;
+      for (Index i = 0; i < vmr_h2o_default_profile.nelem(); i++)
+        if (abs_p[i] < h2o_vmr_profile_parameters[0])
+          vmr_h2o_default_profile[i] = h2o_vmr_profile_parameters[1];
+        else
+          vmr_h2o_default_profile[i] = a10 * std::pow(abs_p[i], b);
+
+      h2o_index = spec_index;
+    }
   }
-
-  const Index n2_index =
-      find_first_species(abs_species, Species::fromShortName("N2"));
-  if (n2_index >= 0) {
-    abs_vmrs(n2_index, joker) = 0.7808;
-  }
-
-  // Which species is H2O?
-  const Index h2o_index =
-      find_first_species(abs_species, Species::fromShortName("H2O"));
 
   // The function returns "-1" if there is no H2O
   // species.
@@ -1769,9 +1778,6 @@ void abs_lookupSetupWide(  // WS Output:
          << "but you have no H2O species.";
       throw runtime_error(os.str());
     }
-
-    // Assign constant reference value to all H2O levels:
-    abs_vmrs(h2o_index, joker) = h2o_ref;
 
     // We have to make vectors out of h2o_min and h2o_max, so we can use
     // them in the choose_abs_nls_pert function call.
