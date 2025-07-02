@@ -7,6 +7,7 @@
 #include <operators.h>
 #include <subsurface.h>
 #include <surf.h>
+#include <xml.h>
 
 #include <concepts>
 #include <functional>

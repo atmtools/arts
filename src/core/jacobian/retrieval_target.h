@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xml.h>
+
 #include <unordered_map>
 
 #include "covariance_matrix.h"
@@ -16,17 +18,17 @@ template <>
 struct std::formatter<PairOfBlockMatrix> {
   format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
   constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+      std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const PairOfBlockMatrix& x,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const PairOfBlockMatrix &x,
+                              FmtContext &ctx) const {
     return tags.format(ctx, x.first, tags.sep(), x.second);
   }
 };

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "atm_field.h"
+#include <xml.h>
 
+#include "atm_field.h"
 
 template <>
 struct xml_io_stream<AtmPoint> {
@@ -12,9 +13,7 @@ struct xml_io_stream<AtmPoint> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   AtmPoint& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, AtmPoint& x, bifstream* pbifs = nullptr);
 };
 
 template <>
@@ -26,9 +25,7 @@ struct xml_io_stream<AtmField> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   AtmField& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, AtmField& x, bifstream* pbifs = nullptr);
 };
 
 template <>
@@ -40,7 +37,5 @@ struct xml_io_stream<AtmData> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   AtmData& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, AtmData& x, bifstream* pbifs = nullptr);
 };

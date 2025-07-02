@@ -6,6 +6,7 @@
 #include <isotopologues.h>
 #include <nonstd.h>
 #include <rational.h>
+#include <xml.h>
 
 #include <algorithm>
 #include <compare>

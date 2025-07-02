@@ -2,6 +2,7 @@
 
 #include <isotopologues.h>
 #include <species.h>
+#include <xml.h>
 
 #include <unordered_map>
 

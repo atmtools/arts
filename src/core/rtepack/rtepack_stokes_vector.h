@@ -2,6 +2,7 @@
 
 #include <enumsPolarizationChoice.h>
 #include <enumsSpectralRadianceUnitType.h>
+#include <xml.h>
 
 #include <utility>
 

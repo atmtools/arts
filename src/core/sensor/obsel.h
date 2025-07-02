@@ -4,6 +4,7 @@
 #include <enumsSensorKeyType.h>
 #include <matpack.h>
 #include <rtepack.h>
+#include <xml.h>
 
 #include <memory>
 #include <unordered_map>

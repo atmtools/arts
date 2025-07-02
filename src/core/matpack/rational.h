@@ -17,6 +17,7 @@
 #include <configtypes.h>
 #include <format_tags.h>
 #include <mystring.h>
+#include <xml.h>
 
 #include <cmath>
 #include <format>

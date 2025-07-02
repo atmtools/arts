@@ -4,6 +4,7 @@
 #include <enumsPathPositionType.h>
 #include <matpack.h>
 #include <surf.h>
+#include <xml.h>
 
 #include <format>
 

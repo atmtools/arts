@@ -17,9 +17,6 @@
 #include <workspace.h>
 #include <xml.h>
 
-template <>
-FileType to<FileType>(const std::string_view x);
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <WorkspaceGroup T>
 void ReadXML(  // WS Generic Output:

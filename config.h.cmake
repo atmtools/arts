@@ -48,9 +48,6 @@
 /* Define to compile with documentation server support */
 #cmakedefine ENABLE_DOCSERVER
 
-/* Define to compile with NetCDF support */
-#cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
-
 /* Define to compile with FFTW support */
 #cmakedefine ENABLE_FFTW ${FFTW_FOUND}
 

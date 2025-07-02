@@ -17,6 +17,7 @@
 
 #include <matpack.h>
 #include <mystring.h>
+#include <xml.h>
 
 #include <iosfwd>
 #include <memory>

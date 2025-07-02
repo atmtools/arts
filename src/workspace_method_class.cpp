@@ -329,11 +329,37 @@ std::string Method::sphinx_list_item() const {
   return std::format("*{}*{}", name, setvals);
 }
 
+void xml_io_stream<Wsv>::write(std::ostream& os,
+                               const Wsv& x,
+                               bofstream* pbofs,
+                               std::string_view name) {
+  std::println(
+      os, R"(<{0} name="{1}" type="{2}">)", type_name, name, x.type_name());
+
+  x.write_to_stream(os, pbofs, "WSV");
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Wsv>::read(std::istream& is, Wsv& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  std::string type;
+  tag.get_attribute_value("type", type);
+  x = Wsv::from_named_type(type);
+  x.read_from_stream(is, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
 void xml_io_stream<Method>::write(std::ostream& os,
                                   const Method& x,
                                   bofstream* pbofs,
                                   std::string_view name) {
-  std::prinln(R"(<{0} name="{1}">)", type_name, name);
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, x.get_name(), pbofs);
   xml_write_to_stream(os, x.get_outs(), pbofs);
@@ -341,7 +367,7 @@ void xml_io_stream<Method>::write(std::ostream& os,
   xml_write_to_stream(os, x.get_setval(), pbofs);
   xml_write_to_stream(os, x.overwrite(), pbofs);
 
-  std::prinln(R"(</{0}>)", type_name);
+  std::println(os, R"(</{0}>)", type_name);
 }
 
 void xml_io_stream<Method>::read(std::istream& is,

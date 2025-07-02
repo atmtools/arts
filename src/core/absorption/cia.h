@@ -15,6 +15,7 @@
 #define cia_h
 
 #include <matpack.h>
+#include <xml.h>
 
 #include <memory>
 

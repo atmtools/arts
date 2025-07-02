@@ -27,12 +27,6 @@
 #include "path_point.h"
 #include "species_tags.h"
 
-#ifdef ENABLE_NETCDF
-#include <netcdf.h>
-
-#include "nc_io.h"
-#endif
-
 void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
   ARTS_TIME_REPORT
   los_mirrored.resize(2);

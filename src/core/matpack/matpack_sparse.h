@@ -45,6 +45,7 @@
 #endif
 
 #include <xml_io_stream.h>
+#include <xml.h>
 
 #include "array.h"
 #include "matpack_mdspan_data_t.h"

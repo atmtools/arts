@@ -39,20 +39,22 @@ struct xml_io_stream {
   static void read(std::istream&, T&, bifstream* = nullptr) = delete;
 
   // Binary/streaming IO (optional)
-  static void get(const T* const, bofstream*, Size) = delete;
-  static void put(T*, bifstream*, Size)             = delete;
+  static void get(const T* const, bofstream*, Size = 1) = delete;
+  static void put(T*, bifstream*, Size = 1)             = delete;
 };
 
 //! Test that the type can be written via XML-IO
 template <typename T>
 concept xml_io_writable = requires(T a) {
   xml_io_stream<T>::write(std::declval<std::ostream&>(), a, nullptr, "");
+  xml_io_stream<T>::write(std::declval<std::ostream&>(), a);
 };
 
 //! Test that the type can be read via XML-IO
 template <typename T>
 concept xml_io_readable = requires(T a) {
   xml_io_stream<T>::read(std::declval<std::istream&>(), a, nullptr);
+  xml_io_stream<T>::read(std::declval<std::istream&>(), a);
 };
 
 //! Test that the type can be read via XML-IO
@@ -70,7 +72,11 @@ concept arts_xml_ioable =
 template <typename T>
 concept xml_io_binary = arts_xml_ioable<T> and requires(const T* const a) {
   xml_io_stream<T>::put(a, nullptr, 1);
-} and requires(T* a) { xml_io_stream<T>::get(a, nullptr, 1); };
+  xml_io_stream<T>::put(a, nullptr);
+} and requires(T* a) {
+  xml_io_stream<T>::get(a, nullptr, 1);
+  xml_io_stream<T>::get(a, nullptr);
+};
 
 template <typename T>
 concept bitshift_readable = requires(T a, std::istream& is, std::ostream& os) {

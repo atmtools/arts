@@ -64,6 +64,25 @@ void xml_io_stream<Index>::write(std::ostream& os,
   std::println(os, R"(</{0}>)", type_name);
 }
 
+void xml_io_stream<bool>::put(const bool* const v, bofstream* pbofs, Size n) {
+  assert(pbofs);
+  pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(bool));
+}
+
+void xml_io_stream<bool>::write(std::ostream& os,
+                                const bool& n,
+                                bofstream* pbofs,
+                                std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  if (pbofs)
+    put(&n, pbofs);
+  else
+    std::println(os, "{}", Index{n});
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
 void xml_io_stream<Size>::put(const Size* const v, bofstream* pbofs, Size n) {
   assert(pbofs);
   pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(Size));
@@ -159,6 +178,26 @@ void xml_io_stream<Index>::get(Index* v, bifstream* pbifs, Size n) {
 }
 
 void xml_io_stream<Index>::read(std::istream& is, Index& n, bifstream* pbifs) {
+  XMLTag tag{};
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  if (pbifs) {
+    get(&n, pbifs);
+  } else {
+    is >> n;
+  }
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<bool>::get(bool* v, bifstream* pbifs, Size n) {
+  assert(pbifs);
+  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(bool));
+}
+
+void xml_io_stream<bool>::read(std::istream& is, bool& n, bifstream* pbifs) {
   XMLTag tag{};
   tag.read_from_stream(is);
   tag.check_name(type_name);

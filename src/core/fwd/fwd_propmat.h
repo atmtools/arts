@@ -4,6 +4,7 @@
 #include <lbl.h>
 #include <lbl_data.h>
 #include <rtepack.h>
+#include <xml.h>
 
 #include <memory>
 

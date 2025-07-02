@@ -3,6 +3,7 @@
 #include <enumsLineShapeModelCoefficient.h>
 #include <enumsLineShapeModelType.h>
 #include <matpack.h>
+#include <xml.h>
 
 #include <limits>
 

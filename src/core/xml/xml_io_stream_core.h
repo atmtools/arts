@@ -22,6 +22,19 @@ struct xml_io_stream<Numeric> {
 };
 
 template <>
+struct xml_io_stream<bool> {
+  constexpr static std::string_view type_name = "Bool"sv;
+
+  static void write(std::ostream& os,
+                    const bool& n,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream& is, bool& n, bifstream* pbifs = nullptr);
+  static void get(bool*, bifstream*, Size = 1);
+  static void put(const bool* const, bofstream*, Size = 1);
+};
+
+template <>
 struct xml_io_stream<Index> {
   constexpr static std::string_view type_name = "Index"sv;
 
@@ -75,8 +88,6 @@ struct xml_io_stream<String> {
   static void read(std::istream& is, String& n, bifstream* pbifs = nullptr);
 };
 
-
-
 template <>
 struct xml_io_stream<Any> {
   static constexpr std::string_view type_name = "Any"sv;
@@ -93,4 +104,4 @@ struct xml_io_stream<Any> {
 template <typename T>
 concept xml_coretype =
     std::same_as<T, Numeric> or std::same_as<T, std::complex<Numeric>> or
-    std::same_as<T, Index> or std::same_as<T, Size>;
+    std::same_as<T, Index> or std::same_as<T, Size> or std::same_as<T, bool>;

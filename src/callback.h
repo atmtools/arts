@@ -4,6 +4,7 @@
 class Workspace;
 
 #include <format_tags.h>
+#include <xml.h>
 
 #include <functional>
 #include <string>

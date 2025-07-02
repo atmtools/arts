@@ -10,6 +10,7 @@
 #include <enumsQuantumNumberType.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
+#include <xml.h>
 
 #include <format>
 #include <limits>

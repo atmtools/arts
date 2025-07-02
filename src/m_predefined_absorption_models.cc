@@ -18,6 +18,7 @@
 #include "predefined_absorption_models.h"
 #include "species.h"
 #include "species_tags.h"
+#include "time_report.h"
 #include "xml_io.h"
 
 void absorption_predefined_model_dataReadSpeciesSplitCatalog(

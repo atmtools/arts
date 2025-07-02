@@ -27,6 +27,7 @@
 #include "rtepack.h"
 #include "sorting.h"
 #include "species_tags.h"
+#include "time_report.h"
 #include "xml_io.h"
 #include "xml_io_old.h"
 
@@ -204,7 +205,7 @@ void absorption_bandsReadSpeciesSplitCatalog(
   ARTS_TIME_REPORT
 
   absorption_bands.clear();
-  
+
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   const String my_base = complete_basename(basename);

@@ -10,6 +10,7 @@
 #define HITRAN_XSEC_H
 
 #include <matpack.h>
+#include <xml.h>
 
 #include <memory>
 

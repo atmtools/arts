@@ -61,7 +61,6 @@ option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
-option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
@@ -273,14 +272,6 @@ set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS/LAPACK support #########
 find_package (LAPACK REQUIRED)
-
-########## NetCDF support #########
-if (ENABLE_NETCDF)
-  include (FindNetCDF)
-  if (NOT NETCDF_FOUND)
-      message(FATAL_ERROR "NetCDF library not found")
-  endif()
-endif (ENABLE_NETCDF)
 
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")

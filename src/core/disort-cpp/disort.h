@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <xml.h>
 
 #include <format>
 #include <functional>

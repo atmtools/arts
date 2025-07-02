@@ -5,6 +5,7 @@
 #include <isotopologues.h>
 #include <lbl.h>
 #include <matpack.h>
+#include <xml.h>
 
 #include <unordered_map>
 

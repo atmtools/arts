@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <isotopologues.h>
 #include <matpack.h>
+#include <xml.h>
 
 #include <exception>
 #include <iosfwd>

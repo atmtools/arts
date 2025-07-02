@@ -2,14 +2,6 @@ add_subdirectory(partfun)
 add_subdirectory(python_interface)
 add_subdirectory(core)
 
-if(NETCDF_FOUND)
-  set(NETCDF_CC_FILES
-    nc_io.cc
-    nc_io_array_types.cc
-    nc_io_basic_types.cc
-  )
-endif(NETCDF_FOUND)
-
 if(ENABLE_MPI)
   include_directories(${MPI_CXX_INCLUDE_PATH})
 endif(ENABLE_MPI)
@@ -188,7 +180,6 @@ add_library(artsworkspace STATIC
   m_lookup.cc
   m_measurement_vector.cc
   m_model_state.cc
-  m_nc.cc
   m_nlte.cc
   m_obsel.cc
   m_oem.cc
@@ -212,12 +203,11 @@ add_library(artsworkspace STATIC
   m_xml.cc
   sun_methods.cc
   version.cc
-  ${NETCDF_CC_FILES}
+  xml_io_old.cc
 )
 
 target_include_directories(artsworkspace PUBLIC
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
-  ${NETCDF_INCLUDE_DIR}
 )
 
 if(ENABLE_PCH)
@@ -225,10 +215,6 @@ if(ENABLE_PCH)
 endif()
 
 target_link_libraries(artsworkspace PUBLIC auto_partfun artscore workspace_internals)
-
-if(NETCDF_FOUND)
-  target_link_libraries(artsworkspace PUBLIC ${NETCDF_LIBRARIES})
-endif(NETCDF_FOUND)
 
 if(ENABLE_MPI)
   target_link_libraries(artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})

@@ -7,6 +7,7 @@
 #include <physics_funcs.h>
 #include <rtepack.h>
 #include <surf.h>
+#include <xml.h>
 
 #include <memory>
 

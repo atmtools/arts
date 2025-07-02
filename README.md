@@ -219,13 +219,6 @@ complex computations are IEEE incompatible running this mode of build.
 Optional features
 -----------------
 
-Enable NetCDF: The basic matpack types can be read from NetCDF files, if NetCDF
-support is enabled:
-
-```
-cmake --preset=default-gcc-conda -DENABLE_NETCDF=1
-```
-
 Precompiled headers: PCH can speed up builds significantly. However, it hampers
 the ability for ccache to properly skip unnecessary compilations, potentially
 increasing rebuild times. Tests have shown that it only speeds up the build
