@@ -29,7 +29,6 @@
 #include <workspace.h>
 
 #include <cmath>
-#include <functional>
 #include <stdexcept>
 
 #include "arts_constants.h"

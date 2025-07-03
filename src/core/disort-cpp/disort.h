@@ -1,17 +1,19 @@
 #pragma once
 
 #include <matpack.h>
+#include <operators.h>
 #include <xml.h>
 
 #include <format>
-#include <functional>
 #include <iosfwd>
 
 namespace disort {
 struct BDRF {
-  using func = std::function<void(
-      MatrixView, const ConstVectorView&, const ConstVectorView&)>;
-  func f{[](auto, auto&, auto&) {
+  using func_t = CustomOperator<void,
+                                MatrixView,
+                                const ConstVectorView&,
+                                const ConstVectorView&>;
+  func_t f{[](auto, auto&, auto&) {
     throw std::runtime_error("BDRF function not set");
   }};
 

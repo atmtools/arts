@@ -6,8 +6,6 @@
 
 #include <variant>
 
-#include "py_macros.h"
-
 namespace Python {
 using PythonLags = std::variant<LagrangeInterpolation,
                                 LagrangeCyclic0to360Interpolation,

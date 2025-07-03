@@ -356,9 +356,9 @@ struct xml_io_stream<SensorPosLos> {
                    SensorPosLos& x,
                    bifstream* pbifs = nullptr);
 
-  static void put(const SensorPosLos* const, bofstream*, Size n = 1);
-
-  static void get(SensorPosLos*, bifstream*, Size n = 1);
+  static void put(std::span<const SensorPosLos> x, bofstream*);
+  static void get(std::span<SensorPosLos> x, bifstream*);
+  static void parse(std::span<SensorPosLos> x, std::istream&);
 };
 
 template <>
@@ -386,11 +386,9 @@ struct xml_io_stream<sensor::SparseStokvec> {
                    sensor::SparseStokvec& x,
                    bifstream* pbifs = nullptr);
 
-  static void put(const sensor::SparseStokvec* const x,
-                  bofstream* pbofs,
-                  Size n = 1);
-
-  static void get(sensor::SparseStokvec* x, bifstream* pbifs, Size n = 1);
+  static void put(std::span<const sensor::SparseStokvec> x, bofstream*);
+  static void get(std::span<sensor::SparseStokvec> x, bifstream*);
+  static void parse(std::span<sensor::SparseStokvec> x, std::istream&);
 };
 
 template <>

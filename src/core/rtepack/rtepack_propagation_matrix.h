@@ -125,6 +125,7 @@ struct xml_io_stream<rtepack::propmat> {
   static void read(std::istream &is,
                    rtepack::propmat &x,
                    bifstream *pbifs = nullptr);
-  static void put(const rtepack::propmat *const x, bofstream *, Size n = 1);
-  static void get(rtepack::propmat *x, bifstream *pbifs, Size n = 1);
+  static void put(std::span<const rtepack::propmat> x, bofstream *);
+  static void get(std::span<rtepack::propmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::propmat> x, std::istream &);
 };

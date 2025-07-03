@@ -414,7 +414,7 @@ Returns
 {5}
 )-x-"
             );
-    workspace_group_interface({0}_operator);
+    generic_interface({0}_operator);
     py::implicitly_convertible<{0}Operator::func_t,
                                {0}Operator>();
     {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda: :attr:`~pyarts.workspace.Workspace.{0}`.

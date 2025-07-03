@@ -1,6 +1,6 @@
 #pragma once
 
-#include <auto_wsv_value_wrapper.h>
+#include <wsv_value_wrapper.h>
 #include <format_tags.h>
 
 #include <memory>
@@ -8,10 +8,9 @@
 
 enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
 
-class Workspace {
+struct Workspace {
   std::unordered_map<std::string, Wsv> wsv;
 
- public:
   Workspace(WorkspaceInitialization how_to_initialize =
                 WorkspaceInitialization::FromGlobalDefaults);
 
@@ -125,4 +124,16 @@ struct std::formatter<Workspace> {
 
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<Workspace> {
+  static constexpr std::string_view type_name = "Workspace"sv;
+
+  static void write(std::ostream& os,
+                    const Workspace& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Workspace& x, bifstream* pbifs = nullptr);
 };

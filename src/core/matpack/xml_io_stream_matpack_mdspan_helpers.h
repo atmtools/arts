@@ -62,12 +62,9 @@ struct xml_io_stream_gridded_field {
                     matpack::gridded_data_t<T, Grids...>& gf,
                     bifstream* pbifs,
                     XMLTag& tag) {
-    tag.check_name(type_name);
-    Size N{};
-    tag.get_attribute_value("N", N);
-
     constexpr Size M = sizeof...(Grids);
-    ARTS_USER_ERROR_IF(N != M, "Bad dimension N := {}, expected {}", N, M);
+    tag.check_name(type_name);
+    tag.check_attribute("N", M);
 
     xml_read_from_stream(is, gf.data_name, pbifs);
     xml_read_from_stream(is, gf.grid_names, pbifs);

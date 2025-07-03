@@ -60,9 +60,9 @@ void py_matpack(py::module_& m) try {
   py::class_<Vector2> cv2(m, "Vector2");
   py::class_<Vector3> cv3(m, "Vector3");
   matpack_constant_interface(cv2);
-  workspace_group_interface(cv2);
+  generic_interface(cv2);
   matpack_constant_interface(cv3);
-  workspace_group_interface(cv3);
+  generic_interface(cv3);
 
   py::class_<StridedRange>(m, "StridedRange")
       .def(py::init<Index, Index, Index>(),
@@ -114,69 +114,69 @@ void py_matpack(py::module_& m) try {
   matpack_interface(v5);
   matpack_interface(v6);
   matpack_interface(v7);
-  workspace_group_interface(v1);
-  workspace_group_interface(v2);
-  workspace_group_interface(v3);
-  workspace_group_interface(v4);
-  workspace_group_interface(v5);
-  workspace_group_interface(v6);
-  workspace_group_interface(v7);
+  generic_interface(v1);
+  generic_interface(v2);
+  generic_interface(v3);
+  generic_interface(v4);
+  generic_interface(v5);
+  generic_interface(v6);
+  generic_interface(v7);
 
   auto a1 = py::bind_vector<ArrayOfVector, py::rv_policy::reference_internal>(
       m, "ArrayOfVector");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
   auto a2 =
       py::bind_vector<ArrayOfArrayOfVector, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfVector");
-  workspace_group_interface(a2);
+  generic_interface(a2);
   vector_interface(a2);
   auto a3 = py::bind_vector<ArrayOfMatrix, py::rv_policy::reference_internal>(
       m, "ArrayOfMatrix");
-  workspace_group_interface(a3);
+  generic_interface(a3);
   vector_interface(a3);
   auto a4 =
       py::bind_vector<ArrayOfArrayOfMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfMatrix");
-  workspace_group_interface(a4);
+  generic_interface(a4);
   vector_interface(a4);
   auto a5 = py::bind_vector<ArrayOfTensor3, py::rv_policy::reference_internal>(
       m, "ArrayOfTensor3");
-  workspace_group_interface(a5);
+  generic_interface(a5);
   vector_interface(a5);
   auto a6 =
       py::bind_vector<ArrayOfArrayOfTensor3, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfTensor3");
-  workspace_group_interface(a6);
+  generic_interface(a6);
   vector_interface(a6);
   auto a7 = py::bind_vector<ArrayOfTensor4, py::rv_policy::reference_internal>(
       m, "ArrayOfTensor4");
-  workspace_group_interface(a7);
+  generic_interface(a7);
   vector_interface(a7);
   auto a8 = py::bind_vector<ArrayOfTensor5, py::rv_policy::reference_internal>(
       m, "ArrayOfTensor5");
-  workspace_group_interface(a8);
+  generic_interface(a8);
   vector_interface(a8);
   auto a9 = py::bind_vector<ArrayOfTensor6, py::rv_policy::reference_internal>(
       m, "ArrayOfTensor6");
-  workspace_group_interface(a9);
+  generic_interface(a9);
   vector_interface(a9);
   auto a10 =
       py::bind_vector<ArrayOfArrayOfTensor6, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfTensor6");
-  workspace_group_interface(a10);
+  generic_interface(a10);
   vector_interface(a10);
   auto a11 = py::bind_vector<ArrayOfTensor7, py::rv_policy::reference_internal>(
       m, "ArrayOfTensor7");
-  workspace_group_interface(a11);
+  generic_interface(a11);
   vector_interface(a11);
   auto a12 = py::bind_vector<ArrayOfVector2, py::rv_policy::reference_internal>(
       m, "ArrayOfVector2");
-  workspace_group_interface(a12);
+  generic_interface(a12);
   vector_interface(a12);
   auto a13 = py::bind_vector<ArrayOfVector3, py::rv_policy::reference_internal>(
       m, "ArrayOfVector3");
-  workspace_group_interface(a13);
+  generic_interface(a13);
   vector_interface(a13);
 
   py::class_<Rational> rat(m, "Rational");
@@ -195,7 +195,7 @@ void py_matpack(py::module_& m) try {
       .def("__setstate__", [](Rational* r, const std::tuple<Index, Index>& t) {
         new (r) Range{std::get<0>(t), std::get<1>(t)};
       });
-  workspace_group_interface(rat);
+  generic_interface(rat);
   py::implicitly_convertible<Index, Rational>();
 
   py::class_<ComplexVector> comv1(m, "ComplexVector");
@@ -213,20 +213,20 @@ void py_matpack(py::module_& m) try {
 
   py::class_<AscendingGrid> g1(m, "AscendingGrid");
   matpack_grid_interface(g1);
-  workspace_group_interface(g1);
+  generic_interface(g1);
   g1.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<AscendingGrid>());
   
   py::class_<DescendingGrid> g2(m, "DescendingGrid");
   matpack_grid_interface(g2);
-  workspace_group_interface(g2);
+  generic_interface(g2);
   g2.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<DescendingGrid>());
 
   auto b1 =
       py::bind_vector<ArrayOfAscendingGrid, py::rv_policy::reference_internal>(
           m, "ArrayOfAscendingGrid");
-  workspace_group_interface(b1);
+  generic_interface(b1);
   vector_interface(b1);
 } catch (std::exception& e) {
   throw std::runtime_error(

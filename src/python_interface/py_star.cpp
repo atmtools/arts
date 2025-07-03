@@ -9,7 +9,7 @@
 namespace Python {
 void py_star(py::module_& m) try {
   py::class_<Sun> suns(m, "Sun");
-  workspace_group_interface(suns);
+  generic_interface(suns);
   suns.def_rw("description",
               &Sun::description,
               ":class:`~pyarts.arts.String` Sun description")
@@ -47,7 +47,7 @@ void py_star(py::module_& m) try {
 
   auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(
       m, "ArrayOfSun");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(

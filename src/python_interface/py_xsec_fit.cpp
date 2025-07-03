@@ -11,7 +11,7 @@
 namespace Python {
 void py_xsec(py::module_& m) try {
   py::class_<XsecRecord> xsec(m, "XsecRecord");
-  workspace_group_interface(xsec);
+  generic_interface(xsec);
   xsec.def_ro_static(
           "version", &XsecRecord::mversion, ":class:`int` The version")
       .def_rw("species",
@@ -333,7 +333,7 @@ abs : Vector
   auto a1 =
       py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(
           m, "ArrayOfXsecRecord");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
   a1.def(
       "propagation_matrix",

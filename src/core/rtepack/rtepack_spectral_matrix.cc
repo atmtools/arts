@@ -13,14 +13,22 @@ void xml_io_stream<rtepack::specmat>::read(std::istream &is,
   xml_io_stream<rtepack::cmat44>::read(is, x, pbifs);
 }
 
-void xml_io_stream<rtepack::specmat>::put(const rtepack::specmat *const x,
-                                          bofstream *pbofs,
-                                          Size n) {
-  xml_io_stream<rtepack::cmat44>::put(x, pbofs, n);
+void xml_io_stream<rtepack::specmat>::put(std::span<const rtepack::specmat> x,
+                                          bofstream *pbofs) {
+  xml_io_stream<rtepack::cmat44>::put(
+      std::span{reinterpret_cast<const rtepack::cmat44 *>(x.data()), x.size()},
+      pbofs);
 }
 
-void xml_io_stream<rtepack::specmat>::get(rtepack::specmat *x,
-                                          bifstream *pbifs,
-                                          Size n) {
-  xml_io_stream<rtepack::cmat44>::get(x, pbifs, n);
+void xml_io_stream<rtepack::specmat>::get(std::span<rtepack::specmat> x,
+                                          bifstream *pbifs) {
+  xml_io_stream<rtepack::cmat44>::get(
+      std::span{reinterpret_cast<rtepack::cmat44 *>(x.data()), x.size()},
+      pbifs);
+}
+
+void xml_io_stream<rtepack::specmat>::parse(std::span<rtepack::specmat> x,
+                                            std::istream &is) {
+  xml_io_stream<rtepack::cmat44>::parse(
+      std::span{reinterpret_cast<rtepack::cmat44 *>(x.data()), x.size()}, is);
 }

@@ -6,18 +6,18 @@
 #include "xml_io_stream.h"
 
 template <typename T>
-concept enum_option = requires(T a) {
+concept xml_enum_option = requires(T a) {
   to<T>(std::string{});
   toString(a);
   enumdocs<T>::name;
 };
 
-template <enum_option T>
+template <xml_enum_option T>
 struct xml_io_stream_name<T> {
   static constexpr std::string_view name = enumdocs<T>::name;
 };
 
-template <enum_option T>
+template <xml_enum_option T>
 struct xml_io_stream<T> {
   static constexpr std::string_view type_name = xml_io_stream_name_v<T>;
 

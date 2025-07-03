@@ -364,13 +364,6 @@ class CovarianceMatrix {
                                       const CovarianceMatrix &);
   friend void add_inv(StridedMatrixView, const CovarianceMatrix &);
 
-  friend void xml_read_from_stream(std::istream &,
-                                   CovarianceMatrix &,
-                                   bifstream *);
-  friend void xml_write_to_stream(std::ostream &,
-                                  const CovarianceMatrix &,
-                                  bofstream *,
-                                  const String &);
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:

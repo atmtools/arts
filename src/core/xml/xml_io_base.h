@@ -73,6 +73,8 @@ struct XMLTag {
 
   void check_attribute(const std::string_view& aname,
                        const std::string_view& value);
+  void check_attribute(const std::string_view& aname, const Index& value);
+  void check_attribute(const std::string_view& aname, const Size& value);
 
   void get_attribute_value(const std::string_view& aname, String& value);
   void get_attribute_value(const std::string_view& aname, Index& value);

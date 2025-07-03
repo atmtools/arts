@@ -14,7 +14,7 @@ namespace Python {
 void py_time(py::module_& m) try {
   py::class_<Time> time(m, "Time");
 
-  workspace_group_interface(time);
+  generic_interface(time);
 
   time.def(
           "__init__",
@@ -103,14 +103,14 @@ void py_time(py::module_& m) try {
                     },
                     "A :class:`list` of :class:`datetime.datetime`");
 
-  workspace_group_interface(a1);
+  generic_interface(a1);
 
   vector_interface(a1);
 
   auto a2 =
       py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfTime");
-  workspace_group_interface(a2);
+  generic_interface(a2);
   vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(

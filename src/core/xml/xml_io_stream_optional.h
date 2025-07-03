@@ -26,7 +26,9 @@ struct xml_io_stream<std::optional<T>> {
                  name,
                  xml_io_stream<T>::type_name,
                  Index{bool{x}});
+
     if (x) xml_io_stream<T>::write(os, *x, pbofs, name);
+
     std::println(os, R"(</{0}>)", type_name);
   }
 
@@ -36,11 +38,7 @@ struct xml_io_stream<std::optional<T>> {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
-
-    std::string name;
-    tag.get_attribute_value("type", name);
-    if (name != xml_io_stream<T>::type_name)
-      throw std::runtime_error("Unexpected type name");
+    tag.check_attribute("type", xml_io_stream<T>::type_name);
 
     Index null;
     tag.get_attribute_value("null", null);

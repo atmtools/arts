@@ -2,10 +2,10 @@
 
 #include <bifstream.h>
 #include <bofstream.h>
-#include <configtypes.h>
 
 #include <istream>
 #include <ostream>
+#include <span>
 #include <string_view>
 
 using namespace std::literals;
@@ -38,9 +38,12 @@ struct xml_io_stream {
                     std::string_view = ""sv)                = delete;
   static void read(std::istream&, T&, bifstream* = nullptr) = delete;
 
-  // Binary/streaming IO (optional)
-  static void get(const T* const, bofstream*, Size = 1) = delete;
-  static void put(T*, bifstream*, Size = 1)             = delete;
+  // Binary streaming IO (optional)
+  static void get(std::span<const T>, bofstream*) = delete;
+  static void put(std::span<T>, bifstream*)       = delete;
+
+  // Text streaming (optional)
+  static void parse(std::span<T>, std::istream&) = delete;
 };
 
 //! Test that the type can be written via XML-IO
@@ -70,16 +73,16 @@ concept arts_xml_ioable =
 
 //! Test that the type is ready for binary data also
 template <typename T>
-concept xml_io_binary = arts_xml_ioable<T> and requires(const T* const a) {
-  xml_io_stream<T>::put(a, nullptr, 1);
-  xml_io_stream<T>::put(a, nullptr);
-} and requires(T* a) {
-  xml_io_stream<T>::get(a, nullptr, 1);
-  xml_io_stream<T>::get(a, nullptr);
-};
+concept xml_io_binary =
+    arts_xml_ioable<T> and requires(std::span<const T, 1> a) {
+      xml_io_stream<T>::put(a, nullptr);
+    } and requires(std::span<T> a) { xml_io_stream<T>::get(a, nullptr); };
 
+//! Test if parsing contiguous is possible
+// For most types this means doing the reverse of std::println(os, "{:IO}", x).
+// This is not an explicit demand since, e.g., Numeric cannot, being builtin
 template <typename T>
-concept bitshift_readable = requires(T a, std::istream& is, std::ostream& os) {
-  is >> a;
-  std::println(os, "{:IO}", a);
-};
+concept xml_io_parseable =
+    requires(std::span<T> b, std::istream& is) {
+      xml_io_stream<T>::parse(b, is);
+    };

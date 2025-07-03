@@ -344,7 +344,7 @@ void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml,
                                              bifstream*) {
   meta.clear();
 
-  ArtsXMLTag tag;
+  XMLTag tag;
 
   String version;
   Index nelem;

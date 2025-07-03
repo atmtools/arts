@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <array>
 #include <concepts>
-#include <functional>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_elemwise_mditer.h"

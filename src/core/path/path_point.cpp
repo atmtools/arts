@@ -1306,10 +1306,10 @@ void xml_io_stream<PropagationPathPoint>::write(std::ostream& os,
                x.los_type);
 
   if (pbofs) {
-    xml_io_stream<Vector3>::put(&x.pos, pbofs);
-    xml_io_stream<Vector2>::put(&x.los, pbofs);
-    xml_io_stream<Numeric>::put(&x.nreal, pbofs);
-    xml_io_stream<Numeric>::put(&x.ngroup, pbofs);
+    xml_io_stream<Vector3>::put({&x.pos, 1}, pbofs);
+    xml_io_stream<Vector2>::put({&x.los, 1}, pbofs);
+    xml_io_stream<Numeric>::put({&x.nreal, 1}, pbofs);
+    xml_io_stream<Numeric>::put({&x.ngroup, 1}, pbofs);
   } else {
     xml_io_stream<Vector3>::write(os, x.pos, pbofs, "Pos"sv);
     xml_io_stream<Vector2>::write(os, x.los, pbofs, "Los"sv);
@@ -1334,10 +1334,10 @@ void xml_io_stream<PropagationPathPoint>::read(std::istream& is,
   x.los_type = to<PathPositionType>(str);
 
   if (pbifs) {
-    xml_io_stream<Vector3>::get(&x.pos, pbifs);
-    xml_io_stream<Vector2>::get(&x.los, pbifs);
-    xml_io_stream<Numeric>::get(&x.nreal, pbifs);
-    xml_io_stream<Numeric>::get(&x.ngroup, pbifs);
+    xml_io_stream<Vector3>::get({&x.pos, 1}, pbifs);
+    xml_io_stream<Vector2>::get({&x.los, 1}, pbifs);
+    xml_io_stream<Numeric>::get({&x.nreal, 1}, pbifs);
+    xml_io_stream<Numeric>::get({&x.ngroup, 1}, pbifs);
   } else {
     xml_io_stream<Vector3>::read(is, x.pos);
     xml_io_stream<Vector2>::read(is, x.los);

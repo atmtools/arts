@@ -5,8 +5,10 @@ void xml_io_stream<Range>::write(std::ostream &os,
                                  bofstream *pbofs,
                                  std::string_view name) {
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
   xml_write_to_stream(os, x.nelem, pbofs);
   xml_write_to_stream(os, x.offset, pbofs);
+
   std::println(os, R"(/<{0}>)", type_name);
 }
 

@@ -21,7 +21,6 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "partfun.h"
-#include "py_macros.h"
 #include "quantum_numbers.h"
 
 namespace Python {
@@ -336,11 +335,11 @@ void py_lbl(py::module_& m) try {
           "isot"_a,
           "T0"_a = 296.0,
           "Keep only the lines with a stronger HITRAN-like line strength");
-  workspace_group_interface(ab);
+  generic_interface(ab);
 
   auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
       m, "AbsorptionBands");
-  workspace_group_interface(aoab);
+  generic_interface(aoab);
   aoab.def("__getitem__",
            [](const AbsorptionBands& x, const lbl::line_key& key) -> Numeric {
              return key.get_value(x);
@@ -519,14 +518,14 @@ T0 : float
          "energy_x"_a,
          "energy_xm2"_a,
          R"(The Omega coefficient for the ECS model)");
-  workspace_group_interface(ed);
+  generic_interface(ed);
 
   auto lsed =
       py::bind_map<LinemixingSpeciesEcsData>(m, "LinemixingSpeciesEcsData");
-  workspace_group_interface(lsed);
+  generic_interface(lsed);
 
   auto led = py::bind_map<LinemixingEcsData>(m, "LinemixingEcsData");
-  workspace_group_interface(led);
+  generic_interface(led);
 
   lbl.def(
       "equivalent_lines",

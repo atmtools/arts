@@ -209,7 +209,7 @@ x : Vector
       .doc() = "List of error targets";
 
   py::class_<JacobianTargets> jacs(m, "JacobianTargets");
-  workspace_group_interface(jacs);
+  generic_interface(jacs);
   jacs.def_prop_rw(
       "atm",
       [](JacobianTargets& j) { return j.atm(); },

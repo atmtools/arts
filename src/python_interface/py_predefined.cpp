@@ -13,7 +13,6 @@
 #include "hpy_arts.h"
 #include "isotopologues.h"
 #include "predefined/predef_data.h"
-#include "py_macros.h"
 #include "species_tags.h"
 
 namespace Python {
@@ -937,11 +936,11 @@ void py_predefined(py::module_& m) try {
 
   py::class_<PredefinedModelDataVariant> var(m, "PredefinedModelDataVariant");
   var.def_rw("data", &PredefinedModelDataVariant::data, "The data");
-  workspace_group_interface(var);
+  generic_interface(var);
 
   //! ARTS Workspace class, must live on the main (m) namespace
   auto pdmd = py::bind_map<PredefinedModelData>(m, "PredefinedModelData");
-  workspace_group_interface(pdmd);
+  generic_interface(pdmd);
   pdmd.def_static(
           "fromcatalog",
           [](const char* const basename,

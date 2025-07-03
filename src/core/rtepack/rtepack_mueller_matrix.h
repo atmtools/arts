@@ -255,6 +255,7 @@ struct xml_io_stream<rtepack::muelmat> {
   static void read(std::istream &is,
                    rtepack::muelmat &x,
                    bifstream *pbifs = nullptr);
-  static void put(const rtepack::muelmat *const x, bofstream *, Size n = 1);
-  static void get(rtepack::muelmat *x, bifstream *pbifs, Size n = 1);
+  static void put(std::span<const rtepack::muelmat> x, bofstream *);
+  static void get(std::span<rtepack::muelmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::muelmat> x, std::istream &);
 };

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <xml_io_base.h>
-#include <xml_io_stream.h>
-
 #include <concepts>
 #include <variant>
+
+#include "xml_io_base.h"
+#include "xml_io_stream.h"
 
 //! Try overloading these if it ever gets too slow.
 namespace {

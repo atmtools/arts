@@ -1,13 +1,14 @@
 #include "xml_io_stream_core.h"
 
-#include "double_imanip.h"
+#include <double_imanip.h>
+
 #include "xml_io_base.h"
 
 void xml_io_stream<std::complex<Numeric>>::put(
-    const std::complex<Numeric>* const v, bofstream* pbofs, Size n) {
+    std::span<const std::complex<Numeric>> v, bofstream* pbofs) {
   assert(pbofs);
-  pbofs->putRaw(reinterpret_cast<const char*>(v),
-                n * sizeof(std::complex<Numeric>));
+  pbofs->putRaw(reinterpret_cast<const char*>(v.data()),
+                v.size() * sizeof(std::complex<Numeric>));
 }
 
 void xml_io_stream<std::complex<Numeric>>::write(std::ostream& os,
@@ -17,18 +18,17 @@ void xml_io_stream<std::complex<Numeric>>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs)
-    put(&n, pbofs);
+    put(std::span{&n, 1}, pbofs);
   else
     std::println(os, "{} {}", n.real(), n.imag());
 
   std::println(os, R"(</{0}>)", type_name);
 }
 
-void xml_io_stream<Numeric>::put(const Numeric* const v,
-                                 bofstream* pbofs,
-                                 Size n) {
+void xml_io_stream<Numeric>::put(std::span<const Numeric> v, bofstream* pbofs) {
   assert(pbofs);
-  pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(Numeric));
+  pbofs->putRaw(reinterpret_cast<const char*>(v.data()),
+                v.size() * sizeof(Numeric));
 }
 
 void xml_io_stream<Numeric>::write(std::ostream& os,
@@ -38,16 +38,17 @@ void xml_io_stream<Numeric>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs)
-    put(&n, pbofs);
+    put(std::span{&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
   std::println(os, R"(</{0}>)", type_name);
 }
 
-void xml_io_stream<Index>::put(const Index* const v, bofstream* pbofs, Size n) {
+void xml_io_stream<Index>::put(std::span<const Index> v, bofstream* pbofs) {
   assert(pbofs);
-  pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(Index));
+  pbofs->putRaw(reinterpret_cast<const char*>(v.data()),
+                v.size() * sizeof(Index));
 }
 
 void xml_io_stream<Index>::write(std::ostream& os,
@@ -57,35 +58,23 @@ void xml_io_stream<Index>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs)
-    put(&n, pbofs);
+    put(std::span{&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
   std::println(os, R"(</{0}>)", type_name);
 }
-
-void xml_io_stream<bool>::put(const bool* const v, bofstream* pbofs, Size n) {
-  assert(pbofs);
-  pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(bool));
-}
-
 void xml_io_stream<bool>::write(std::ostream& os,
                                 const bool& n,
-                                bofstream* pbofs,
+                                bofstream*,
                                 std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  if (pbofs)
-    put(&n, pbofs);
-  else
-    std::println(os, "{}", Index{n});
-
-  std::println(os, R"(</{0}>)", type_name);
+  std::println(os, R"(<{0} name="{1}"> {2} </{0}>)", type_name, name, Index{n});
 }
 
-void xml_io_stream<Size>::put(const Size* const v, bofstream* pbofs, Size n) {
+void xml_io_stream<Size>::put(std::span<const Size> v, bofstream* pbofs) {
   assert(pbofs);
-  pbofs->putRaw(reinterpret_cast<const char*>(v), n * sizeof(Size));
+  pbofs->putRaw(reinterpret_cast<const char*>(v.data()),
+                v.size() * sizeof(Size));
 }
 
 void xml_io_stream<Size>::write(std::ostream& os,
@@ -95,7 +84,7 @@ void xml_io_stream<Size>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs)
-    put(&n, pbofs);
+    put(std::span{&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
@@ -124,11 +113,18 @@ void xml_io_stream<String>::write(std::ostream& os,
   }
 }
 
-void xml_io_stream<std::complex<Numeric>>::get(std::complex<Numeric>* v,
-                                               bifstream* pbifs,
-                                               Size n) {
+void xml_io_stream<std::complex<Numeric>>::get(
+    std::span<std::complex<Numeric>> v, bifstream* pbifs) {
   assert(pbifs);
-  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(std::complex<Numeric>));
+  pbifs->getRaw(reinterpret_cast<char*>(v.data()),
+                v.size() * sizeof(std::complex<Numeric>));
+}
+
+void xml_io_stream<std::complex<Numeric>>::parse(
+    std::span<std::complex<Numeric>> v, std::istream& is) {
+  assert(pbifs);
+  xml_io_stream<Numeric>::parse(
+      std::span{reinterpret_cast<Numeric*>(v.data()), 2 * v.size()}, is);
 }
 
 void xml_io_stream<std::complex<Numeric>>::read(std::istream& is,
@@ -139,20 +135,23 @@ void xml_io_stream<std::complex<Numeric>>::read(std::istream& is,
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&n, pbifs);
+    get(std::span{&n, 1}, pbifs);
   } else {
-    Numeric r{}, i{};
-    is >> double_imanip() >> r >> i;
-    n = std::complex<Numeric>{r, i};
+    parse(std::span{&n, 1}, is);
   }
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<Numeric>::get(Numeric* v, bifstream* pbifs, Size n) {
+void xml_io_stream<Numeric>::get(std::span<Numeric> v, bifstream* pbifs) {
   assert(pbifs);
-  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(Numeric));
+  pbifs->getRaw(reinterpret_cast<char*>(v.data()), v.size() * sizeof(Numeric));
+}
+
+void xml_io_stream<Numeric>::parse(std::span<Numeric> v, std::istream& is) {
+  assert(pbifs);
+  for (auto& x : v) is >> double_imanip() >> x;
 }
 
 void xml_io_stream<Numeric>::read(std::istream& is,
@@ -163,18 +162,23 @@ void xml_io_stream<Numeric>::read(std::istream& is,
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&n, pbifs);
+    get(std::span{&n, 1}, pbifs);
   } else {
-    is >> double_imanip() >> n;
+    parse(std::span{&n, 1}, is);
   }
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<Index>::get(Index* v, bifstream* pbifs, Size n) {
+void xml_io_stream<Index>::get(std::span<Index> v, bifstream* pbifs) {
   assert(pbifs);
-  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(Index));
+  pbifs->getRaw(reinterpret_cast<char*>(v.data()), v.size() * sizeof(Index));
+}
+
+void xml_io_stream<Index>::parse(std::span<Index> v, std::istream& is) {
+  assert(pbifs);
+  for (auto& x : v) is >> x;
 }
 
 void xml_io_stream<Index>::read(std::istream& is, Index& n, bifstream* pbifs) {
@@ -183,38 +187,34 @@ void xml_io_stream<Index>::read(std::istream& is, Index& n, bifstream* pbifs) {
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&n, pbifs);
+    get(std::span{&n, 1}, pbifs);
   } else {
-    is >> n;
+    parse(std::span{&n, 1}, is);
   }
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<bool>::get(bool* v, bifstream* pbifs, Size n) {
-  assert(pbifs);
-  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(bool));
-}
-
-void xml_io_stream<bool>::read(std::istream& is, bool& n, bifstream* pbifs) {
+void xml_io_stream<bool>::read(std::istream& is, bool& n, bifstream*) {
   XMLTag tag{};
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  if (pbifs) {
-    get(&n, pbifs);
-  } else {
-    is >> n;
-  }
+  is >> n;
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<Size>::get(Size* v, bifstream* pbifs, Size n) {
+void xml_io_stream<Size>::get(std::span<Size> v, bifstream* pbifs) {
   assert(pbifs);
-  pbifs->getRaw(reinterpret_cast<char*>(v), n * sizeof(Size));
+  pbifs->getRaw(reinterpret_cast<char*>(v.data()), v.size() * sizeof(Size));
+}
+
+void xml_io_stream<Size>::parse(std::span<Size> v, std::istream& is) {
+  assert(pbifs);
+  for (auto& x : v) is >> x;
 }
 
 void xml_io_stream<Size>::read(std::istream& is, Size& n, bifstream* pbifs) {
@@ -223,9 +223,9 @@ void xml_io_stream<Size>::read(std::istream& is, Size& n, bifstream* pbifs) {
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&n, pbifs);
+    get(std::span{&n, 1}, pbifs);
   } else {
-    is >> n;
+    parse(std::span{&n, 1}, is);
   }
 
   tag.read_from_stream(is);

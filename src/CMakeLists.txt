@@ -21,12 +21,12 @@ add_executable(make_auto_wsg make_auto_wsg.cpp)
 set (ARTS_WORKSPACE_GROUPS
   auto_workspace.cpp
   auto_agenda_operators.cpp
+  auto_wsv_value_wrapper_read_from_stream.cpp
+  auto_wsv_value_wrapper_write_to_stream.cpp
 )
 set (ARTS_WORKSPACE_INTERNALS_GROUPS
   auto_wsv_value_wrapper_copied.cpp
   auto_wsv_value_wrapper_vformat.cpp
-  auto_wsv_value_wrapper_read_from_stream.cpp
-  auto_wsv_value_wrapper_write_to_stream.cpp
   auto_wsv_value_wrapper_from_named_type.cpp
   auto_wsv_value_wrapper_type_name.cpp
   auto_wsg_docs.cpp
@@ -36,7 +36,6 @@ add_custom_command(OUTPUT
     ${ARTS_WORKSPACE_GROUPS}
     ${ARTS_WORKSPACE_INTERNALS_GROUPS}
     auto_wsg.h
-    auto_wsv_value_wrapper.h
     auto_agenda_operators.h
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg

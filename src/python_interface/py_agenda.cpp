@@ -53,20 +53,20 @@ std::filesystem::path correct_include_path(
 
 void py_agenda(py::module_& m) try {
   py::class_<CallbackOperator> cbd(m, "CallbackOperator");
-  workspace_group_interface(cbd);
+  generic_interface(cbd);
   cbd.def(
          "__init__",
          [](CallbackOperator* cb,
             const std::function<void(Workspace&)>& f,
             const std::vector<std::string>& i,
             const std::vector<std::string>& o) {
-           new (cb) CallbackOperator(
-               [f](Workspace& ws) {
-                 py::gil_scoped_acquire gil{};
-                 f(ws);
-               },
-               i,
-               o);
+           new (cb)
+               CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) {
+                                  py::gil_scoped_acquire gil{};
+                                  f(ws);
+                                }),
+                                i,
+                                o);
          },
          "f"_a,
          "inputs"_a  = std::vector<std::string>{},
@@ -74,29 +74,14 @@ void py_agenda(py::module_& m) try {
          "Initialize as structured call")
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
-  py::class_<Wsv>(m, "Wsv")
-      .def_prop_ro(
-          "value",
-          [](Wsv& v) { return to_py(v); },
-          "A workspace variable")
-      .def(
-          "__str__",
-          [](py::object& x) { return x.attr("value").attr("__str__")(); },
-          py::is_operator())
-      .def(
-          "__repr__",
-          [](py::object& x) { return x.attr("value").attr("__repr__")(); },
-          py::is_operator())
-      .def(
-          "__format__",
-          [](py::object& x, py::object& fmt) {
-            return x.attr("value").attr("__format__")(fmt);
-          },
-          py::is_operator())
+  py::class_<Wsv> wsv(m, "Wsv");
+  generic_interface(wsv);
+  wsv.def_prop_ro(
+         "value", [](Wsv& v) { return to_py(v); }, "A workspace variable")
       .doc() = "A workspace variable wrapper - no manual use required";
 
   py::class_<Method> methods(m, "Method");
-  str_interface(methods);
+  generic_interface(methods);
   methods
       .def(
           "__init__",
@@ -112,7 +97,7 @@ void py_agenda(py::module_& m) try {
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* me, const std::string& n, const py::object * const v) {
+          [](Method* me, const std::string& n, const py::object* const v) {
             new (me) Method{n, from(v).copied()};
           },
           "name"_a,
@@ -133,7 +118,7 @@ void py_agenda(py::module_& m) try {
       .doc() = "The method class of ARTS";
 
   py::class_<Agenda> ag(m, "Agenda");
-  workspace_group_interface(ag);
+  generic_interface(ag);
   ag.def(py::init<std::string>(), "name"_a, "Create with name")
       .def("document",
            &Agenda::sphinx_list,

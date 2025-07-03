@@ -3,10 +3,8 @@
 #include <double_imanip.h>
 
 #include <concepts>
-#include <functional>
 #include <type_traits>
 
-#include "experimental/__p0009_bits/extents.hpp"
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_elemwise_mditer.h"

@@ -8,7 +8,7 @@
 namespace Python {
 void py_fwd(py::module_& m) try {
   py::class_<SpectralRadianceOperator> sro(m, "SpectralRadianceOperator");
-  workspace_group_interface(sro);
+  generic_interface(sro);
   sro.def(
          "geometric_planar",
          [](const SpectralRadianceOperator& srad_op,

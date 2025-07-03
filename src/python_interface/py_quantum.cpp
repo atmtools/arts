@@ -11,7 +11,6 @@
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "nanobind/nanobind.h"
-#include "py_macros.h"
 
 namespace Python {
 void py_quantum(py::module_& m) try {
@@ -191,7 +190,7 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
   py::class_<QuantumIdentifier> qids(m, "QuantumIdentifier");
-  workspace_group_interface(qids);
+  generic_interface(qids);
   qids.def(py::init<std::string>())
       .def_ro("isotopologue_index",
               &QuantumIdentifier::isotopologue_index,
@@ -239,7 +238,7 @@ symbol : str
   auto a1 = py::bind_vector<ArrayOfQuantumIdentifier,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfQuantumIdentifier");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(

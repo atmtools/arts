@@ -1,9 +1,9 @@
 #pragma once
 
-#include <xml_io_base.h>
-#include <xml_io_stream.h>
-
 #include <unordered_map>
+
+#include "xml_io_base.h"
+#include "xml_io_stream.h"
 
 template <typename Key, typename T>
 struct xml_io_stream_name<std::unordered_map<Key, T>> {
@@ -43,6 +43,8 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
+    tag.check_attribute("key", xml_io_stream<Key>::type_name);
+    tag.check_attribute("type", xml_io_stream<T>::type_name);
 
     Size nelem = 0;
     tag.get_attribute_value("nelem", nelem);

@@ -12,14 +12,14 @@
 
 #include "xml_io_base.h"
 
+#include <bifstream.h>
+#include <bofstream.h>
+#include <double_imanip.h>
+#include <file.h>
+
 #include <iomanip>
 #include <iterator>
 #include <string_view>
-
-#include "bifstream.h"
-#include "bofstream.h"
-#include "double_imanip.h"
-#include "file.h"
 
 namespace {
 static inline std::string quotation_mark_replacement{"”"};
@@ -117,6 +117,35 @@ void XMLTag::check_attribute(const std::string_view& aname,
   if (actual_value == "*not found*") {
     xml_parse_error(std::format("Required attribute {} does not exist", aname));
   } else if (actual_value != value) {
+    xml_parse_error(
+        std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
+                    aname,
+                    actual_value,
+                    value));
+  }
+}
+
+void XMLTag::check_attribute(const std::string_view& aname, const Size& value) {
+  Size actual_value;
+
+  get_attribute_value(aname, actual_value);
+
+  if (actual_value != value) {
+    xml_parse_error(
+        std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
+                    aname,
+                    actual_value,
+                    value));
+  }
+}
+
+void XMLTag::check_attribute(const std::string_view& aname,
+                             const Index& value) {
+  Index actual_value;
+
+  get_attribute_value(aname, actual_value);
+
+  if (actual_value != value) {
     xml_parse_error(
         std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
                     aname,

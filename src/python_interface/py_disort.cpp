@@ -18,7 +18,7 @@ using DisortBDRFOperator = CustomOperator<Matrix, const Vector&, const Vector&>;
 using bdrf_func          = DisortBDRFOperator::func_t;
 
 void py_disort(py::module_& m) try {
-  auto disort_nm = m.def_submodule("disort");
+  auto disort_nm  = m.def_submodule("disort");
   disort_nm.doc() = "DISORT solver internal types";
 
   py::class_<DisortBDRFOperator> bdrfop(m, "DisortBDRFOperator");
@@ -38,25 +38,26 @@ void py_disort(py::module_& m) try {
           },
           "x"_a,
           "y"_a);
-  // workspace_group_interface(bdrfop);  // FIXME OLE
+  generic_interface(bdrfop);  // FIXME OLE
   py::implicitly_convertible<DisortBDRFOperator::func_t, DisortBDRFOperator>();
   py::class_<DisortBDRF> disbdrf(m, "DisortBDRF");
   disbdrf
       .def(
           "__init__",
           [](DisortBDRF* b, const DisortBDRFOperator& f) {
-            new (b) DisortBDRF([f](MatrixView mat,
-                                   const ConstVectorView& a,
-                                   const ConstVectorView& b) {
-              const Matrix out = f(Vector{a}, Vector{b});
-              if (out.shape() != mat.shape()) {
-                throw std::runtime_error(
-                    std::format("BDRF function returned wrong shape\n{:B,} vs {:B,}",
-                               out.shape(),
-                               mat.shape()));
-              }
-              mat = out;
-            });
+            new (b)
+                DisortBDRF(DisortBDRF::func_t{[f](MatrixView mat,
+                                                  const ConstVectorView& a,
+                                                  const ConstVectorView& b) {
+                  const Matrix out = f(Vector{a}, Vector{b});
+                  if (out.shape() != mat.shape()) {
+                    throw std::runtime_error(std::format(
+                        "BDRF function returned wrong shape\n{:B,} vs {:B,}",
+                        out.shape(),
+                        mat.shape()));
+                  }
+                  mat = out;
+                }});
           },
           py::keep_alive<0, 1>())
       .def("__call__",
@@ -65,15 +66,17 @@ void py_disort(py::module_& m) try {
              bdrf(out, a, b);
              return out;
            });
-  workspace_group_interface(disbdrf);
+  generic_interface(disbdrf);
   py::implicitly_convertible<bdrf_func, DisortBDRF>();
 
   py::class_<MatrixOfDisortBDRF> mat_disbdrf(m, "MatrixOfDisortBDRF");
-  workspace_group_interface(mat_disbdrf);
+  generic_interface(mat_disbdrf);
 
-  py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(
-      disort_nm, "ArrayOfBDRF")
-      .doc() = "An array of BDRF functions";
+  auto vecs  = py::bind_vector<std::vector<DisortBDRF>,
+                               py::rv_policy::reference_internal>(disort_nm,
+                                                                 "ArrayOfBDRF");
+  vecs.doc() = "An array of BDRF functions";
+  generic_interface(vecs);
 
   py::class_<disort::main_data> x(m, "cppdisort");
   x.doc() = "A DISORT object";
@@ -218,7 +221,7 @@ void py_disort(py::module_& m) try {
           "Compute the downward flux");
 
   py::class_<DisortSettings> disort_settings(m, "DisortSettings");
-  workspace_group_interface(disort_settings);
+  generic_interface(disort_settings);
   disort_settings.def_rw("quadrature_dimension",
                          &DisortSettings::quadrature_dimension,
                          ":class:`Index`");

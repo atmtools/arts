@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <concepts>
-#include <functional>
 
 #include "matpack_mdspan.h"
 
@@ -165,13 +164,25 @@ template <class Compare, exact_md<Numeric, 1> md>
 }
 }  // namespace matpack
 
-using AscendingGrid        = matpack::grid_t<std::less_equal<>>;
-using DescendingGrid       = matpack::grid_t<std::greater_equal<>>;
+struct Ascending {
+  constexpr bool operator()(Numeric a, Numeric b) const {
+    return a <= b;
+  }
+};
+
+struct Descending {
+  constexpr bool operator()(Numeric a, Numeric b) const {
+    return a >= b;
+  }
+};
+
+using AscendingGrid        = matpack::grid_t<Ascending>;
+using DescendingGrid       = matpack::grid_t<Descending>;
 
 using ArrayOfAscendingGrid = std::vector<AscendingGrid>;
 
-using ExtendAscendingGrid  = matpack::extend_grid_t<std::less_equal<>>;
-using ExtendDescendingGrid = matpack::extend_grid_t<std::greater_equal<>>;
+using ExtendAscendingGrid  = matpack::extend_grid_t<Ascending>;
+using ExtendDescendingGrid = matpack::extend_grid_t<Descending>;
 
 template <class Compare>
 struct std::formatter<matpack::grid_t<Compare>> {

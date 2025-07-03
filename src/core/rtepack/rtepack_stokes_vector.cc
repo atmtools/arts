@@ -90,14 +90,21 @@ void xml_io_stream<rtepack::stokvec>::read(std::istream &is,
   xml_io_stream<rtepack::vec4>::read(is, x, pbifs);
 }
 
-void xml_io_stream<rtepack::stokvec>::put(const rtepack::stokvec *const x,
-                                          bofstream *pbofs,
-                                          Size n) {
-  xml_io_stream<rtepack::vec4>::put(x, pbofs, n);
+void xml_io_stream<rtepack::stokvec>::put(std::span<const rtepack::stokvec> x,
+                                          bofstream *pbofs) {
+  xml_io_stream<rtepack::vec4>::put(
+      std::span{reinterpret_cast<const rtepack::vec4 *>(x.data()), x.size()},
+      pbofs);
 }
 
-void xml_io_stream<rtepack::stokvec>::get(rtepack::stokvec *x,
-                                          bifstream *pbifs,
-                                          Size n) {
-  xml_io_stream<rtepack::vec4>::get(x, pbifs, n);
+void xml_io_stream<rtepack::stokvec>::get(std::span<rtepack::stokvec> x,
+                                          bifstream *pbifs) {
+  xml_io_stream<rtepack::vec4>::get(
+      std::span{reinterpret_cast<rtepack::vec4 *>(x.data()), x.size()}, pbifs);
+}
+
+void xml_io_stream<rtepack::stokvec>::parse(std::span<rtepack::stokvec> x,
+                                            std::istream &is) {
+  xml_io_stream<rtepack::vec4>::parse(
+      std::span{reinterpret_cast<rtepack::vec4 *>(x.data()), x.size()}, is);
 }

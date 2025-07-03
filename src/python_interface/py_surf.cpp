@@ -106,12 +106,12 @@ void py_surf(py::module_ &m) try {
 
   py::class_<SurfacePropertyTag> spt =
       py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
-  workspace_group_interface(spt);
+  generic_interface(spt);
   spt.def_rw("name", &SurfacePropertyTag::name, "Name of property");
   spt.def(py::init_implicit<String>());
 
   auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint");
-  workspace_group_interface(pnt);
+  generic_interface(pnt);
 
   auto asp =
       py::bind_vector<ArrayOfSurfacePoint, py::rv_policy::reference_internal>(
@@ -129,7 +129,7 @@ void py_surf(py::module_ &m) try {
       .def_rw("ellipsoid",
               &SurfaceField::ellipsoid,
               "Ellipsoid parameters (semi-major axis, semi-minor axis)");
-  workspace_group_interface(fld);
+  generic_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 
   pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]")
@@ -283,13 +283,13 @@ void py_surf(py::module_ &m) try {
            });
 
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
-  workspace_group_interface(ssf);
+  generic_interface(ssf);
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
-  workspace_group_interface(ssp);
+  generic_interface(ssp);
   auto assp = py::bind_vector<Array<SubsurfacePoint>,
                               py::rv_policy::reference_internal>(
       m, "ArrayOfSubsurfacePoint");
-  workspace_group_interface(assp);
+  generic_interface(assp);
   vector_interface(assp);
 } catch (std::exception &e) {
   throw std::runtime_error(

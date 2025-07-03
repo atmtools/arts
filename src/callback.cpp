@@ -10,7 +10,7 @@
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {
   ARTS_USER_ERROR_IF(
-      not callback, "No callback function set for operator:\n{}", *this);
+      not callback.f, "No callback function set for operator:\n{}", *this);
 
   Workspace ws(WorkspaceInitialization::Empty);
 

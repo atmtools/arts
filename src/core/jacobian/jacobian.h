@@ -10,7 +10,6 @@
 #include <xml.h>
 
 #include <concepts>
-#include <functional>
 #include <limits>
 #include <numeric>
 #include <variant>

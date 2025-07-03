@@ -7,7 +7,7 @@
 namespace Python {
 void py_lookup(py::module_& m) try {
   py::class_<AbsorptionLookupTable> alt(m, "AbsorptionLookupTable");
-  workspace_group_interface(alt);
+  generic_interface(alt);
   alt.def_rw(
       "f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz");
   alt.def_rw("log_p_grid",
@@ -33,7 +33,7 @@ void py_lookup(py::module_& m) try {
              "The absorption cross section table");
 
   auto alts = py::bind_map<AbsorptionLookupTables>(m, "AbsorptionLookupTables");
-  workspace_group_interface(alts);
+  generic_interface(alts);
 
   alts.def(
       "propagation_matrix",

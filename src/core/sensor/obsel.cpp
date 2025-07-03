@@ -594,10 +594,9 @@ void xml_io_stream<SensorPosLos>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs) {
-    put(&x, pbofs);
+    put({&x, 1}, pbofs);
   } else {
-    xml_write_to_stream(os, x.pos, pbofs, "POS");
-    xml_write_to_stream(os, x.los, pbofs, "LOS");
+    std::println(os, "{:IO}", x);
   }
 
   std::println(os, R"(</{0}>)", type_name);
@@ -611,29 +610,34 @@ void xml_io_stream<SensorPosLos>::read(std::istream& is,
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&x, pbifs);
+    get({&x, 1}, pbifs);
   } else {
-    xml_read_from_stream(is, x.pos);
-    xml_read_from_stream(is, x.los);
+    parse({&x, 1}, is);
   }
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SensorPosLos>::put(const SensorPosLos* const x,
-                                      bofstream* pbofs,
-                                      Size n) {
+void xml_io_stream<SensorPosLos>::put(std::span<const SensorPosLos> x,
+                                      bofstream* pbofs) {
   assert(pbofs);
   xml_io_stream<Numeric>::put(
-      reinterpret_cast<const Numeric*>(x), pbofs, 5 * n);
+      std::span{reinterpret_cast<const Numeric*>(x.data()), x.size() * 5},
+      pbofs);
 }
 
-void xml_io_stream<SensorPosLos>::get(SensorPosLos* x,
-                                      bifstream* pbifs,
-                                      Size n) {
+void xml_io_stream<SensorPosLos>::get(std::span<SensorPosLos> x,
+                                      bifstream* pbifs) {
   assert(pbifs);
-  xml_io_stream<Numeric>::get(reinterpret_cast<Numeric*>(x), pbifs, 5 * n);
+  xml_io_stream<Numeric>::get(
+      std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, pbifs);
+}
+
+void xml_io_stream<SensorPosLos>::parse(std::span<SensorPosLos> x,
+                                        std::istream& is) {
+  xml_io_stream<Numeric>::parse(
+      std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, is);
 }
 
 void xml_io_stream<SensorKey>::write(std::ostream& os,
@@ -671,9 +675,9 @@ void xml_io_stream<SensorKey>::read(std::istream& is,
 }
 
 void xml_io_stream<sensor::SparseStokvec>::put(
-    const sensor::SparseStokvec* const x, bofstream* pbofs, Size n) {
-  pbofs->putRaw(reinterpret_cast<const char*>(x),
-                n * 2 * sizeof(Size) + sizeof(Stokvec));
+    std::span<const sensor::SparseStokvec> x, bofstream* pbofs) {
+  pbofs->putRaw(reinterpret_cast<const char*>(x.data()),
+                x.size() * (2 * sizeof(Size) + sizeof(Stokvec)));
 }
 
 void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
@@ -683,21 +687,25 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs) {
-    put(&x, pbofs);
+    put({&x, 1}, pbofs);
   } else {
-    xml_write_to_stream(os, x.irow);
-    xml_write_to_stream(os, x.icol);
-    xml_write_to_stream(os, x.data);
+    std::println(os, "{:IO}", x);
   }
 
   std::println(os, R"(</{0}>)", type_name);
 }
 
-void xml_io_stream<sensor::SparseStokvec>::get(sensor::SparseStokvec* x,
-                                               bifstream* pbifs,
-                                               Size n) {
-  pbifs->getRaw(reinterpret_cast<char*>(x),
-                n * 2 * sizeof(Size) + sizeof(Stokvec));
+void xml_io_stream<sensor::SparseStokvec>::get(
+    std::span<sensor::SparseStokvec> x, bifstream* pbifs) {
+  pbifs->getRaw(reinterpret_cast<char*>(x.data()),
+                x.size() * (2 * sizeof(Size) + sizeof(Stokvec)));
+}
+
+void xml_io_stream<sensor::SparseStokvec>::parse(
+    std::span<sensor::SparseStokvec> x, std::istream& is) {
+  for (auto& v : x) {
+    is >> v.irow >> v.icol >> v.data;
+  }
 }
 
 void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is,
@@ -708,11 +716,9 @@ void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is,
   tag.check_name(type_name);
 
   if (pbifs) {
-    get(&x, pbifs);
+    get({&x, 1}, pbifs);
   } else {
-    xml_read_from_stream(is, x.irow);
-    xml_read_from_stream(is, x.icol);
-    xml_read_from_stream(is, x.data);
+    parse({&x, 1}, is);
   }
 
   tag.read_from_stream(is);

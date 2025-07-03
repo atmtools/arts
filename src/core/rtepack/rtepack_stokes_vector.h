@@ -175,6 +175,7 @@ struct xml_io_stream<rtepack::stokvec> {
   static void read(std::istream &is,
                    rtepack::stokvec &x,
                    bifstream *pbifs = nullptr);
-  static void put(const rtepack::stokvec *const x, bofstream *, Size n = 1);
-  static void get(rtepack::stokvec *x, bifstream *pbifs, Size n = 1);
+  static void put(std::span<const rtepack::stokvec> x, bofstream *);
+  static void get(std::span<rtepack::stokvec> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::stokvec> x, std::istream &);
 };

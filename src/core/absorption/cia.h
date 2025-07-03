@@ -151,10 +151,6 @@ class CIARecord {
   /** Read CIA catalog file. */
   void ReadFromCIA(const String& filename);
 
-  friend void xml_read_from_stream(std::istream& is_xml,
-                                   CIARecord& cr,
-                                   bifstream* pbifs);
-
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 

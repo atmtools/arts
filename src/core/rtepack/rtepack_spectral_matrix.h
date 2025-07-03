@@ -249,6 +249,7 @@ struct xml_io_stream<rtepack::specmat> {
   static void read(std::istream &is,
                    rtepack::specmat &x,
                    bifstream *pbifs = nullptr);
-  static void put(const rtepack::specmat *const x, bofstream *, Size n = 1);
-  static void get(rtepack::specmat *x, bifstream *pbifs, Size n = 1);
+  static void put(std::span<const rtepack::specmat> x, bofstream *);
+  static void get(std::span<rtepack::specmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::specmat> x, std::istream &);
 };

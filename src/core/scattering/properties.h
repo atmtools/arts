@@ -6,7 +6,6 @@
 #include <xml.h>
 
 #include <algorithm>
-#include <functional>
 #include <string_view>
 
 #include "mystring.h"

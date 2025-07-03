@@ -84,7 +84,7 @@ void xml_io_stream<Rational>::write(std::ostream& os_xml,
   if (pbofs)
     *pbofs << rational;
   else
-    std::println(os_xml, "{:IO}", rational);
+    os_xml << rational;
 
   std::println(os_xml, R"(</{0}>)", type_name);
 }

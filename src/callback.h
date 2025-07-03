@@ -4,15 +4,16 @@
 class Workspace;
 
 #include <format_tags.h>
+#include <operators.h>
 #include <xml.h>
 
-#include <functional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 struct CallbackOperator {
-  std::function<void(Workspace&)> callback{};
+  using func_t = CustomOperator<void, Workspace&>;
+  func_t callback{};
   std::vector<std::string> inputs{};
   std::vector<std::string> outputs{};
 

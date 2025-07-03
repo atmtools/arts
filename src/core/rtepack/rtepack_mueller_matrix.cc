@@ -45,14 +45,21 @@ void xml_io_stream<rtepack::muelmat>::read(std::istream &is,
   xml_io_stream<rtepack::mat44>::read(is, x, pbifs);
 }
 
-void xml_io_stream<rtepack::muelmat>::put(const rtepack::muelmat *const x,
-                                          bofstream *pbofs,
-                                          Size n) {
-  xml_io_stream<rtepack::mat44>::put(x, pbofs, n);
+void xml_io_stream<rtepack::muelmat>::put(std::span<const rtepack::muelmat> x,
+                                          bofstream *pbofs) {
+  xml_io_stream<rtepack::mat44>::put(
+      std::span{reinterpret_cast<const rtepack::mat44 *>(x.data()), x.size()},
+      pbofs);
 }
 
-void xml_io_stream<rtepack::muelmat>::get(rtepack::muelmat *x,
-                                          bifstream *pbifs,
-                                          Size n) {
-  xml_io_stream<rtepack::mat44>::get(x, pbifs, n);
+void xml_io_stream<rtepack::muelmat>::get(std::span<rtepack::muelmat> x,
+                                          bifstream *pbifs) {
+  xml_io_stream<rtepack::mat44>::get(
+      std::span{reinterpret_cast<rtepack::mat44 *>(x.data()), x.size()}, pbifs);
+}
+
+void xml_io_stream<rtepack::muelmat>::parse(std::span<rtepack::muelmat> x,
+                                            std::istream &is) {
+  xml_io_stream<rtepack::mat44>::parse(
+      std::span{reinterpret_cast<rtepack::mat44 *>(x.data()), x.size()}, is);
 }

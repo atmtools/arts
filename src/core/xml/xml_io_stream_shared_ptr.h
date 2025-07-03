@@ -41,11 +41,7 @@ struct xml_io_stream<std::shared_ptr<T>> {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
-
-    std::string type;
-    tag.get_attribute_value("type", type);
-    if (type != xml_io_stream<mutT>::type_name)
-      throw std::runtime_error("Wrong shared type");
+    tag.check_attribute("type", xml_io_stream<mutT>::type_name);
 
     Index null;
     tag.get_attribute_value("null", null);

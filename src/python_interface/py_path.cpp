@@ -6,13 +6,12 @@
 
 #include "hpy_arts.h"
 #include "hpy_vector.h"
-#include "py_macros.h"
 
 namespace Python {
 void py_path(py::module_& m) try {
   py::class_<PropagationPathPoint> pppp(m, "PropagationPathPoint");
 
-  workspace_group_interface(pppp);
+  generic_interface(pppp);
 
   pppp.def_rw("pos_type",
               &PropagationPathPoint::pos_type,
@@ -36,18 +35,18 @@ void py_path(py::module_& m) try {
   auto a1 = py::bind_vector<ArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfPropagationPathPoint");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 
   auto a2 = py::bind_vector<ArrayOfArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropagationPathPoint");
-  workspace_group_interface(a2);
+  generic_interface(a2);
   vector_interface(a2);
   auto a3 = py::bind_vector<ArrayOfArrayOfArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfArrayOfPropagationPathPoint");
-  workspace_group_interface(a3);
+  generic_interface(a3);
   vector_interface(a3);
 
   auto path  = m.def_submodule("path");

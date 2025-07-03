@@ -2,9 +2,10 @@
 
 #include <array.h>
 #include <double_imanip.h>
-#include <xml_io_base.h>
-#include <xml_io_stream.h>
-#include <xml_io_stream_core.h>
+
+#include "xml_io_base.h"
+#include "xml_io_stream.h"
+#include "xml_io_stream_core.h"
 
 template <typename T>
 struct xml_io_stream_name<Array<T>> {
@@ -21,6 +22,8 @@ template <arts_xml_ioable T>
 struct xml_io_stream<Array<T>> {
   constexpr static std::string_view type_name = xml_io_stream_name_v<Array<T>>;
 
+  using inner = xml_io_stream<T>;
+
   static void write(std::ostream& os,
                     const Array<T>& n,
                     bofstream* pbofs      = nullptr,
@@ -28,22 +31,20 @@ struct xml_io_stream<Array<T>> {
     std::println(os,
                  R"(<{0} type="{1}" name="{2}" nelem="{3}">)",
                  type_name,
-                 xml_io_stream<T>::type_name,
+                 inner::type_name,
                  name,
                  n.size());
 
-    if constexpr (xml_io_binary<T>) {
-      if (pbofs) xml_io_stream<T>::put(n.data(), pbofs, n.size());
+    if (pbofs) {
+      if constexpr (xml_io_binary<T>)
+        inner::put(std::span{n.data(), n.size()}, pbofs);
+      else
+        for (auto& v : n) inner::write(os, v, pbofs);
     } else {
-      pbofs = nullptr;
-    }
-
-    if (not pbofs) {
-      if constexpr (bitshift_readable<T> or xml_coretype<T>) {
+      if constexpr (xml_io_parseable<T>)
         std::println(os, "{:IO}", n);
-      } else {
-        for (auto& v : n) xml_io_stream<T>::write(os, v);
-      }
+      else
+        for (auto& v : n) inner::write(os, v, pbofs);
     }
 
     std::println(os, R"(</{0}>)", type_name);
@@ -56,23 +57,22 @@ struct xml_io_stream<Array<T>> {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
+    tag.check_attribute("type", inner::type_name);
 
     Size nelem = 0;
     tag.get_attribute_value("nelem", nelem);
     n.resize(nelem);
 
-    if constexpr (xml_io_binary<T>) {
-      if (pbifs) xml_io_stream<T>::get(n.data(), pbifs, n.size());
+    if (pbifs) {
+      if constexpr (xml_io_binary<T>)
+        inner::get(std::span{n.data(), n.size()}, pbifs);
+      else
+        for (auto& v : n) inner::read(is, v, pbifs);
     } else {
-      pbifs = nullptr;
-    }
-
-    if (not pbifs) {
-      if constexpr (bitshift_readable<T> or xml_coretype<T>) {
-        for (auto& v : n) is >> v;
-      } else {
-        for (auto& v : n) xml_io_stream<T>::read(is, v);
-      }
+      if constexpr (xml_io_parseable<T>)
+        inner::parse(std::span{n.data(), n.size()}, is);
+      else
+        for (auto& v : n) inner::read(is, v, pbifs);
     }
 
     tag.read_from_stream(is);
@@ -91,6 +91,8 @@ struct xml_io_stream<std::array<T, N>> {
   constexpr static std::string_view type_name =
       xml_io_stream_name_v<std::array<T, N>>;
 
+  using inner = xml_io_stream<T>;
+
   static void write(std::ostream& os,
                     const std::array<T, N>& n,
                     bofstream* pbofs      = nullptr,
@@ -98,22 +100,20 @@ struct xml_io_stream<std::array<T, N>> {
     std::println(os,
                  R"(<{0} type="{1}" name="{2}" nelem="{3}">)",
                  type_name,
-                 xml_io_stream<T>::type_name,
+                 inner::type_name,
                  name,
                  N);
 
-    if constexpr (xml_io_binary<T>) {
-      if (pbofs) xml_io_stream<T>::put(n.data(), pbofs, n.size());
+    if (pbofs) {
+      if constexpr (xml_io_binary<T>)
+        put(std::span{&n, 1}, pbofs);
+      else
+        for (auto& v : n) inner::write(os, v, pbofs);
     } else {
-      pbofs = nullptr;
-    }
-
-    if (not pbofs) {
-      if constexpr (bitshift_readable<T> or xml_coretype<T>) {
+      if constexpr (xml_io_parseable<T>)
         std::println(os, "{:IO}", n);
-      } else {
-        for (auto& v : n) xml_io_stream<T>::write(os, v);
-      }
+      else
+        for (auto& v : n) inner::write(os, v, pbofs);
     }
 
     std::println(os, R"(</{0}>)", type_name);
@@ -126,27 +126,44 @@ struct xml_io_stream<std::array<T, N>> {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
+    tag.check_attribute("type", inner::type_name);
 
     Size nelem = 0;
     tag.get_attribute_value("nelem", nelem);
     if (N != nelem) throw std::runtime_error("Size-mismatch for constant type");
 
-    if constexpr (xml_io_binary<T>) {
-      if (pbifs) xml_io_stream<T>::get(n.data(), pbifs, n.size());
+    if (pbifs) {
+      if constexpr (xml_io_binary<T>)
+        get(std::span{&n, 1}, pbifs);
+      else
+        for (auto& v : n) inner::read(is, v, pbifs);
     } else {
-      pbifs = nullptr;
-    }
-
-    if (not pbifs) {
-      if constexpr (bitshift_readable<T> or xml_coretype<T>) {
-        for (auto& v : n) is >> v;
-      } else {
-        for (auto& v : n) xml_io_stream<T>::read(is, v);
-      }
+      if constexpr (xml_io_parseable<T>)
+        parse(std::span{&n, 1}, is);
+      else
+        for (auto& v : n) inner::read(is, v, pbifs);
     }
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   }
   ARTS_METHOD_ERROR_CATCH
+
+  static void put(std::span<const std::array<T, N>> v, bifstream* pbifs)
+    requires(xml_io_binary<T>)
+  {
+    inner::put(std::span(reinterpret_cast<const T*>(v.data()), N), pbifs);
+  }
+
+  static void get(std::span<std::array<T, N>> v, bofstream* pbofs)
+    requires(xml_io_binary<T>)
+  {
+    inner::get(std::span(reinterpret_cast<T*>(v.data()), N), pbofs);
+  }
+
+  static void parse(std::span<std::array<T, N>> v, std::istream& is)
+    requires(xml_io_parseable<T>)
+  {
+    inner::parse(std::span(reinterpret_cast<T*>(v.data()), v.size()), is);
+  }
 };

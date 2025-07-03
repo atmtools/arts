@@ -4,7 +4,6 @@
 #include <configtypes.h>
 #include <operators.h>
 
-#include <functional>
 #include <tuple>
 
 #include "atm.h"

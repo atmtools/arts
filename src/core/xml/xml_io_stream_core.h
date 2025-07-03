@@ -17,8 +17,9 @@ struct xml_io_stream<Numeric> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
   static void read(std::istream& is, Numeric& n, bifstream* pbifs = nullptr);
-  static void get(Numeric*, bifstream*, Size = 1);
-  static void put(const Numeric* const, bofstream*, Size = 1);
+  static void get(std::span<Numeric>, bifstream*);
+  static void put(std::span<const Numeric>, bofstream*);
+  static void parse(std::span<Numeric>, std::istream&);
 };
 
 template <>
@@ -30,8 +31,6 @@ struct xml_io_stream<bool> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
   static void read(std::istream& is, bool& n, bifstream* pbifs = nullptr);
-  static void get(bool*, bifstream*, Size = 1);
-  static void put(const bool* const, bofstream*, Size = 1);
 };
 
 template <>
@@ -43,8 +42,9 @@ struct xml_io_stream<Index> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
   static void read(std::istream& is, Index& n, bifstream* pbifs = nullptr);
-  static void get(Index*, bifstream*, Size = 1);
-  static void put(const Index* const, bofstream*, Size = 1);
+  static void get(std::span<Index>, bifstream*);
+  static void put(std::span<const Index>, bofstream*);
+  static void parse(std::span<Index>, std::istream&);
 };
 
 template <>
@@ -56,8 +56,9 @@ struct xml_io_stream<Size> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
   static void read(std::istream& is, Size& n, bifstream* pbifs = nullptr);
-  static void get(Size*, bifstream*, Size = 1);
-  static void put(const Size* const, bofstream*, Size = 1);
+  static void get(std::span<Size>, bifstream*);
+  static void put(std::span<const Size>, bofstream*);
+  static void parse(std::span<Size>, std::istream&);
 };
 
 template <>
@@ -72,8 +73,9 @@ struct xml_io_stream<std::complex<Numeric>> {
   static void read(std::istream& is,
                    std::complex<Numeric>& n,
                    bifstream* pbifs = nullptr);
-  static void get(std::complex<Numeric>*, bifstream*, Size = 1);
-  static void put(const std::complex<Numeric>* const, bofstream*, Size = 1);
+  static void get(std::span<std::complex<Numeric>>, bifstream*);
+  static void put(std::span<const std::complex<Numeric>>, bofstream*);
+  static void parse(std::span<std::complex<Numeric>>, std::istream&);
 };
 
 template <>
@@ -99,9 +101,3 @@ struct xml_io_stream<Any> {
 
   static void read(std::istream& is, Any& x, bifstream* pbifs = nullptr);
 };
-
-// No string or Any because they are not putable/getable
-template <typename T>
-concept xml_coretype =
-    std::same_as<T, Numeric> or std::same_as<T, std::complex<Numeric>> or
-    std::same_as<T, Index> or std::same_as<T, Size> or std::same_as<T, bool>;

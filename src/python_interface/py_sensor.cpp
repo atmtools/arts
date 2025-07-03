@@ -12,7 +12,7 @@
 namespace Python {
 void py_sensor(py::module_& m) try {
   py::class_<SensorPosLos> splos(m, "SensorPosLos");
-  workspace_group_interface(splos);
+  generic_interface(splos);
   common_ndarray(splos);
   splos
       .def(
@@ -38,7 +38,7 @@ void py_sensor(py::module_& m) try {
       .def_rw("los", &SensorPosLos::los, "Line of sight");
 
   py::class_<SensorPosLosVector> vsplos(m, "SensorPosLosVector");
-  workspace_group_interface(vsplos);
+  generic_interface(vsplos);
   common_ndarray(vsplos);
   vsplos.def(
       "sort",
@@ -99,7 +99,7 @@ void py_sensor(py::module_& m) try {
       });
 
   py::class_<SensorObsel> so(m, "SensorObsel");
-  workspace_group_interface(so);
+  generic_interface(so);
   so.def(py::init<const AscendingGrid&,
                   const SensorPosLosVector&,
                   StokvecMatrix>())
@@ -122,7 +122,7 @@ void py_sensor(py::module_& m) try {
   auto a1 =
       py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(
           m, "ArrayOfSensorObsel");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 
   a1.def(

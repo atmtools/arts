@@ -17,7 +17,6 @@
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
-#include "py_macros.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -94,7 +93,7 @@ void py_species(py::module_& m) try {
   auto aose =
       py::bind_vector<ArrayOfSpeciesEnum, py::rv_policy::reference_internal>(
           m, "ArrayOfSpeciesEnum");
-  workspace_group_interface(aose);
+  generic_interface(aose);
   vector_interface(aose);
   aose.def("__init__",
            [](ArrayOfSpeciesEnum* self, const std::vector<std::string>& x) {
@@ -109,7 +108,7 @@ void py_species(py::module_& m) try {
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesEnum>();
 
   py::class_<SpeciesIsotope> siso(m, "SpeciesIsotope");
-  workspace_group_interface(siso);
+  generic_interface(siso);
   siso.doc() = std::format("{}\n\n{}\n\n",
                            PythonWorkspaceGroupInfo<SpeciesIsotope>::desc(),
                            docs_isotopes());
@@ -185,11 +184,11 @@ void py_species(py::module_& m) try {
   auto a1 =
       py::bind_vector<ArrayOfSpeciesIsotope, py::rv_policy::reference_internal>(
           m, "ArrayOfSpeciesIsotope");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 
   py::class_<SpeciesTag> stag(m, "SpeciesTag");
-  workspace_group_interface(stag);
+  generic_interface(stag);
   stag.def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_rw("type",
               &SpeciesTag::type,
@@ -244,7 +243,7 @@ Returns
   //////////////////////////////////////////////////////////////////////
 
   py::class_<ArrayOfSpeciesTag> astag(m, "ArrayOfSpeciesTag");
-  workspace_group_interface(astag);
+  generic_interface(astag);
   astag.def(py::init_implicit<std::string>())
       .def(py::init_implicit<Array<SpeciesTag>>())
       .def(
@@ -314,7 +313,7 @@ Returns
   auto b1 = py::bind_vector<ArrayOfArrayOfSpeciesTag,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfSpeciesTag");
-  workspace_group_interface(b1);
+  generic_interface(b1);
   vector_interface(b1);
   b1.def("__init__",
          [](ArrayOfArrayOfSpeciesTag* s, const Array<Array<SpeciesTag>>& x) {
@@ -352,7 +351,7 @@ Returns
   py::implicitly_convertible<py::list, ArrayOfArrayOfSpeciesTag>();
 
   auto sev = py::bind_map<SpeciesEnumVectors>(m, "SpeciesEnumVectors");
-  workspace_group_interface(sev);
+  generic_interface(sev);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize species\n{}", e.what()));

@@ -27,7 +27,7 @@ void py_operators(py::module_& m) {
             return vectorize(f.f, x);
           },
           "x"_a);
-  workspace_group_interface(nuop);
+  generic_interface(nuop);
   py::implicitly_convertible<NumericUnaryOperator::func_t,
                              NumericUnaryOperator>();
 
@@ -67,7 +67,7 @@ void py_operators(py::module_& m) {
           },
           "x"_a,
           "y"_a);
-  workspace_group_interface(nbop);
+  generic_interface(nbop);
   py::implicitly_convertible<NumericBinaryOperator::func_t,
                              NumericBinaryOperator>();
 
@@ -89,7 +89,7 @@ void py_operators(py::module_& m) {
           "x"_a,
           "y"_a,
           "z"_a);
-  workspace_group_interface(ntop);
+  generic_interface(ntop);
   py::implicitly_convertible<NumericTernaryOperator::func_t,
                              NumericTernaryOperator>();
 
@@ -148,7 +148,7 @@ void py_operators(py::module_& m) {
           "spectral_radiance_jacobian"_a,
           "frequency_grid"_a,
           "ray_path_point"_a);
-  workspace_group_interface(srtop);
+  generic_interface(srtop);
   py::implicitly_convertible<SpectralRadianceTransformOperator::Op::func_t,
                              SpectralRadianceTransformOperator>();
 }

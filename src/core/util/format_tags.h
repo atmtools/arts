@@ -456,7 +456,10 @@ struct std::formatter<std::tuple<WT...>> {
   void format(FmtContext& ctx,
               std::index_sequence<Ints...>,
               const tuple<WT...>& v) const {
-    (tags.format(ctx, std::get<Ints>(v), tags.sep()), ...);
+    if (tags.io)
+      (tags.format(ctx, std::get<Ints>(v), '\n'), ...);
+    else
+      (tags.format(ctx, std::get<Ints>(v), tags.sep()), ...);
   }
 
   template <class FmtContext>
