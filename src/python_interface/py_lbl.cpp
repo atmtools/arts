@@ -56,7 +56,6 @@ void py_lbl(py::module_& m) try {
             self = lbl::temperature::data{self.Type(), x};
           },
           ":class:`~pyarts.arts.Vector` The coefficients")
-      .PythonInterfaceBasicRepresentation(lbl::temperature::data)
       .def("__getstate__",
            [](const lbl::temperature::data& v) {
              return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
@@ -94,8 +93,7 @@ void py_lbl(py::module_& m) try {
                    }
                  }
                  self.emplace_back(x, y);
-               })
-          .PythonInterfaceBasicRepresentation(pair_vector_type);
+               });
   lsvtml.doc() = "A list of line shape models with temperature coefficients";
   vector_interface(lsvtml);
 
@@ -165,14 +163,12 @@ void py_lbl(py::module_& m) try {
           "T0"_a,
           "T"_a,
           "P"_a)
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model)
       .doc() = "Line shape model for a species";
 
   using line_shape_model_list = std::vector<lbl::line_shape::species_model>;
   auto lsml =
       py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(
-          m, "LineShapeModelList")
-          .PythonInterfaceBasicRepresentation(line_shape_model_list);
+          m, "LineShapeModelList");
   lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
 
@@ -203,7 +199,6 @@ void py_lbl(py::module_& m) try {
           "remove_zeros",
           [](lbl::line_shape::model& self) { self.clear_zeroes(); },
           "Remove zero coefficients")
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::model)
       .doc() = "Line shape model";
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
@@ -247,7 +242,6 @@ void py_lbl(py::module_& m) try {
             return out;
           },
           "The number of Zeeman lines")
-      .PythonInterfaceBasicRepresentation(lbl::zeeman::model)
       .doc() = "Zeeman model";
 
   py::class_<lbl::line>(m, "AbsorptionLine")
@@ -295,12 +289,10 @@ void py_lbl(py::module_& m) try {
           "isot"_a,
           "T0"_a = 296.0,
           "The HITRAN-like line strength")
-      .PythonInterfaceBasicRepresentation(lbl::line)
       .doc() = "A single absorption line";
 
   auto ll = py::bind_vector<std::vector<lbl::line>,
-                            py::rv_policy::reference_internal>(m, "LineList")
-                .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
+                            py::rv_policy::reference_internal>(m, "LineList");
   ll.doc() = "A list of absorption lines";
   vector_interface(ll);
 

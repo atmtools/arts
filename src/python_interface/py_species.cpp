@@ -69,8 +69,6 @@ void py_species(py::module_& m) try {
                 Species::isotopologue_ratiosInitFromBuiltin());
           },
           "Builtin values")
-      .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
-      // .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
                      ":class:`int` The max size of the data")

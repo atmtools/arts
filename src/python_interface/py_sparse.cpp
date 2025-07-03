@@ -562,7 +562,6 @@ arr : :class:`scipy.sparse.csr_matrix`
            "By value, dense")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(),
            "By value, sparse")
-      .PythonInterfaceCopyValue(Block)
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {

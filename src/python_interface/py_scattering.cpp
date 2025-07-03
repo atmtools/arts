@@ -12,7 +12,6 @@ void py_scattering(py::module_& m) try {
       .value(
           "PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND, "Azimuthally random")
       .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND, "Totally random")
-      .PythonInterfaceCopyValue(PType)
       .def("__getstate__",
            [](const PType& self) {
              return py::make_tuple(static_cast<Index>(self));

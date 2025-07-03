@@ -17,8 +17,6 @@ void py_quantum(py::module_& m) try {
   py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
       .def(py::init<>())
       .def(py::init<std::string>())
-      .PythonInterfaceCopyValue(QuantumNumberValue)
-      .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_rw("type",
               &QuantumNumberValue::type,
               ":class:`~pyarts.arts.QuantumNumberType` Type of number")
@@ -92,7 +90,6 @@ void py_quantum(py::module_& m) try {
                throw std::out_of_range(std::format("{}", y));
              return x.values[y] = z;
            })
-      .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def(
           "get",
           [](QuantumNumberValueList& x, QuantumNumberType y) {
@@ -122,7 +119,6 @@ Parameters
 qn : ~pyarts.arts.QuantumNumberValue
     The value to set
 )")
-      .PythonInterfaceBasicRepresentation(QuantumNumberValueList)
       .def("__getstate__",
            [](const QuantumNumberValueList& qnv) {
              return std::tuple<std::string>{std::format("{}", qnv)};
@@ -138,8 +134,6 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
       .def(py::init<>())
       .def(py::init<std::string>())
-      .PythonInterfaceCopyValue(QuantumNumberLocalState)
-      .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
       .def(
           "__len__",
           [](QuantumNumberLocalState& x) { return x.val.values.size(); },
