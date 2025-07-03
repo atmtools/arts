@@ -1,7 +1,7 @@
 #ifndef callback_h
 #define callback_h
 
-class Workspace;
+struct Workspace;
 
 #include <format_tags.h>
 #include <operators.h>

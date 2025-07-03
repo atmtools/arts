@@ -196,7 +196,7 @@ void header(std::ostream& os) try {
 
 #include "auto_wsg.h"
 
-class Workspace;
+struct Workspace;
 
 struct WorkspaceMethodRecord {
   std::vector<std::string> out;

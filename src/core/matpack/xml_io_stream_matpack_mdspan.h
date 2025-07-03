@@ -166,7 +166,6 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
   static void parse(std::span<matpack::cdata_t<T, N...>> v, std::istream& is)
     requires(xml_io_parseable<T>)
   {
-    assert(pbifs);
     inner::parse(
         std::span{reinterpret_cast<T*>(v.data()), v.size() * (N * ...)}, is);
   }
@@ -174,7 +173,6 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
   static void get(std::span<matpack::cdata_t<T, N...>> v, bifstream* pbifs)
     requires(xml_io_binary<T>)
   {
-    assert(pbifs);
     inner::get(std::span{reinterpret_cast<T*>(v.data()), v.size() * (N * ...)},
                pbifs);
   }
@@ -183,7 +181,6 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
                   bofstream* pbofs)
     requires(xml_io_binary<T>)
   {
-    assert(pbofs);
     inner::put(
         std::span{reinterpret_cast<const T*>(v.data()), v.size() * (N * ...)},
         pbofs);

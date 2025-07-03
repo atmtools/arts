@@ -6,7 +6,7 @@
 #include <vector>
 
 class Method;
-class Workspace;
+struct Workspace;
 class Wsv;
 
 class Agenda {

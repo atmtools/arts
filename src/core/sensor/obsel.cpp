@@ -621,7 +621,6 @@ void xml_io_stream<SensorPosLos>::read(std::istream& is,
 
 void xml_io_stream<SensorPosLos>::put(std::span<const SensorPosLos> x,
                                       bofstream* pbofs) {
-  assert(pbofs);
   xml_io_stream<Numeric>::put(
       std::span{reinterpret_cast<const Numeric*>(x.data()), x.size() * 5},
       pbofs);
@@ -629,7 +628,6 @@ void xml_io_stream<SensorPosLos>::put(std::span<const SensorPosLos> x,
 
 void xml_io_stream<SensorPosLos>::get(std::span<SensorPosLos> x,
                                       bifstream* pbifs) {
-  assert(pbifs);
   xml_io_stream<Numeric>::get(
       std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, pbifs);
 }
