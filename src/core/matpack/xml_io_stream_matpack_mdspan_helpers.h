@@ -113,10 +113,6 @@ struct xml_io_stream<matpack::gridded_data_t<T, Grids...>> {
 
 #define GF_IO(GF)                                 \
   template <>                                     \
-  struct xml_io_stream_name<GF> {                 \
-    static constexpr std::string_view name = #GF; \
-  };                                              \
-  template <>                                     \
   void xml_io_stream<GF>::read(                   \
       std::istream& is_xml, GF& gf, bifstream* pbifs);
 

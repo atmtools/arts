@@ -87,26 +87,23 @@ void xml_io_stream<Size>::write(std::ostream& os,
   std::println(os, R"(</{0}>)", type_name);
 }
 
-void xml_io_stream<String>::write(std::ostream& os,
-                                  const String& n,
+void xml_io_stream<String>::write(std::ostream& os_xml,
+                                  const String& str,
                                   bofstream* pbofs,
                                   std::string_view name) {
-  if (pbofs) {
-    std::println(os,
-                 R"(<{0} name="{2}" nelem="{3}"></{0}>)",
-                 type_name,
-                 n,
-                 name,
-                 n.size());
-    pbofs->putRaw(n.data(), n.size());
-  } else {
-    std::println(os,
-                 R"(<{0} name="{2}" nelem="{3}">{1}</{0}>)",
-                 type_name,
-                 n,
-                 name,
-                 n.size());
-  }
+  XMLTag open_tag;
+  XMLTag close_tag;
+
+  open_tag.set_name("String");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.write_to_stream(os_xml);
+
+  std::print(os_xml, R"("{}")", str);
+
+  close_tag.set_name("/String");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
 }
 
 void xml_io_stream<std::complex<Numeric>>::get(
@@ -220,24 +217,53 @@ void xml_io_stream<Size>::read(std::istream& is, Size& n, bifstream* pbifs) {
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<String>::read(std::istream& is,
-                                 String& n,
+void xml_io_stream<String>::read(std::istream& is_xml,
+                                 String& str,
                                  bifstream* pbifs) {
-  XMLTag tag{};
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-  Size nelem = 0;
-  tag.get_attribute_value("nelem", nelem);
-  n.resize(nelem);
+  XMLTag tag;
+  char dummy;
 
-  if (pbifs) {
-    pbifs->getRaw(n.data(), nelem);
-  } else {
-    is.read(n.data(), nelem);
+  tag.read_from_stream(is_xml);
+  tag.check_name("String");
+
+  // Skip whitespaces
+  bool string_starts_with_quotes = true;
+  do {
+    is_xml >> dummy;
+    switch (dummy) {
+      case ' ':
+      case '\"':
+      case '\n':
+      case '\r':
+      case '\t': break;
+      default:   string_starts_with_quotes = false;
+    }
+  } while (is_xml.good() && dummy != '"' && string_starts_with_quotes);
+
+  // Throw exception if first char after whitespaces is not a quote
+  if (!string_starts_with_quotes) {
+    xml_parse_error("String must begin with \"");
   }
 
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
+  //catch case where string is empty. CPD 29/8/05
+  dummy = (char)is_xml.peek();
+  if (dummy == '"') {
+    str = "";
+  } else {
+    std::stringbuf strbuf;
+
+    is_xml.get(strbuf, '"');
+    if (is_xml.fail()) {
+      xml_parse_error("String must end with \"");
+    }
+    str = strbuf.str();
+  }
+
+  // Ignore quote
+  is_xml >> dummy;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/String");
 }
 
 void xml_io_stream<Any>::write(std::ostream& os,

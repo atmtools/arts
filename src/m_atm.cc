@@ -46,22 +46,34 @@ void atmospheric_pointInit(AtmPoint &atmospheric_point,
 }
 
 template <Size I = 0, typename... T, Size N = sizeof...(T)>
-std::variant<T...> read_variant(const std::variant<T...> &_,
-                                const String &filename)
+std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_,
+                                              const String &filename)
   requires(N != 0)
 {
+  using myT = typename std::tuple_element<I, std::tuple<T...>>::type;
+
+  std::string error{};
   try {
-    typename std::tuple_element<I, std::tuple<T...>>::type x{};
-    xml_read_from_file(filename, x);
-    return x;
-  } catch (...) {
-  }
+    try {
+      myT x{};
+      xml_read_from_file(filename, x);
+      return x;
+    } catch (std::exception &e) {
+      error = std::format(
+          "Group {} reports:\n{}", xml_io_stream<myT>::type_name, e.what());
+    }
 
-  if constexpr (I + 1 < N) {
-    return read_variant<I + 1, T...>(_, filename);
-  }
+    if constexpr (I + 1 < N) {
+      return xml_read_from_file_variant<I + 1, T...>(_, filename);
+    }
 
-  ARTS_USER_ERROR("Could not read valid data from file: {}", filename)
+    throw std::runtime_error(std::format(
+        "Could not read valid data from file: {}\nTried all groups in {}",
+        filename,
+        xml_io_stream<std::variant<T...>>::type_name));
+  } catch (std::exception &e) {
+    ARTS_USER_ERROR("{}\n\n{}", e.what(), error);
+  }
 }
 
 template <typename T>
@@ -89,7 +101,7 @@ void append_data(
     if (static_cast<bool>(replace_existing) or
         not atmospheric_field.contains(key)) {
       if (find_xml_file_existence(filename)) {
-        x.data                 = read_variant(Atm::FieldData{1.0}, filename);
+        x.data = xml_read_from_file_variant(Atm::FieldData{1.0}, filename);
         atmospheric_field[key] = x;
       } else if (static_cast<bool>(missing_is_zero)) {
         x.data                 = 0.0;
