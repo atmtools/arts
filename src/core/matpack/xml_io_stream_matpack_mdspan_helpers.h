@@ -111,9 +111,9 @@ struct xml_io_stream<matpack::gridded_data_t<T, Grids...>> {
   }
 };
 
-#define GF_IO(GF)                                 \
-  template <>                                     \
-  void xml_io_stream<GF>::read(                   \
+#define GF_IO(GF)               \
+  template <>                   \
+  void xml_io_stream<GF>::read( \
       std::istream& is_xml, GF& gf, bifstream* pbifs);
 
 GF_IO(GriddedField1)

@@ -21,8 +21,23 @@ struct xml_io_stream_name<matpack::data_t<T, N>> {
 };
 
 template <>
+struct xml_io_stream_name<Vector> {
+  static constexpr std::string_view name = "Vector"sv;
+};
+
+template <>
 struct xml_io_stream_name<std::shared_ptr<Matrix>> {
   static constexpr std::string_view name = "SharedMatrix"sv;
+};
+
+template <>
+struct xml_io_stream_name<Matrix> {
+  static constexpr std::string_view name = "Matrix"sv;
+};
+
+template <>
+struct xml_io_stream_name<Tensor3> {
+  static constexpr std::string_view name = "Tensor3"sv;
 };
 
 template <arts_xml_ioable T, Size N>

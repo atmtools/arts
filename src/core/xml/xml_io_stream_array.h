@@ -95,15 +95,8 @@ struct xml_io_stream<std::array<T, N>> {
 
   static void write(std::ostream& os,
                     const std::array<T, N>& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) try {
-    std::println(os,
-                 R"(<{0} type="{1}" name="{2}" nelem="{3}">)",
-                 type_name,
-                 inner::type_name,
-                 name,
-                 N);
-
+                    bofstream* pbofs = nullptr,
+                    std::string_view = ""sv) try {
     if (pbofs) {
       if constexpr (xml_io_binary<T>)
         put(std::span{&n, 1}, pbofs);
@@ -115,23 +108,12 @@ struct xml_io_stream<std::array<T, N>> {
       else
         for (auto& v : n) inner::write(os, v, pbofs);
     }
-
-    std::println(os, R"(</{0}>)", type_name);
   }
   ARTS_METHOD_ERROR_CATCH
 
   static void read(std::istream& is,
                    std::array<T, N>& n,
                    bifstream* pbifs = nullptr) try {
-    XMLTag tag;
-    tag.read_from_stream(is);
-    tag.check_name(type_name);
-    tag.check_attribute("type", inner::type_name);
-
-    Size nelem = 0;
-    tag.get_attribute_value("nelem", nelem);
-    if (N != nelem) throw std::runtime_error("Size-mismatch for constant type");
-
     if (pbifs) {
       if constexpr (xml_io_binary<T>)
         get(std::span{&n, 1}, pbifs);
@@ -143,9 +125,6 @@ struct xml_io_stream<std::array<T, N>> {
       else
         for (auto& v : n) inner::read(is, v, pbifs);
     }
-
-    tag.read_from_stream(is);
-    tag.check_end_name(type_name);
   }
   ARTS_METHOD_ERROR_CATCH
 

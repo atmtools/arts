@@ -166,6 +166,11 @@ If the ``T`` is parseable or binary-compatible, these methods are used.
 In turn, the ``std::array<T, N>`` will be parseable and/or binary-compatible
 to the same degree as ``T``.
 
+.. warning::
+  You must overload the ``xml_io_stream<std::array<T, N>>`` if ``std::array<T, N>`` is
+  directly facing the user and holds either parseable or binary compatible ``T``.
+  This is because it does not respect XML tagging - it assumes that it is OK to just put its data where it is at.
+
 All ``arts_options``
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -220,7 +225,11 @@ These are overloaded to the name ``"Tuple"`` in ``xml_io_stream_tuple.h``.
 All types ``T...`` must  be ``arts_xml_ioable``.
 Binary-compatibility and parseability is taken into account and forwarded
 to nested types, with specialization if all ``T...`` are the same type,
-if, and only if, all types ``T...`` share this property.
+
+.. warning::
+  You must overload the ``xml_io_stream<std::tuple<T...>>`` if ``std::tuple<T...>`` is
+  directly facing the user and if the tuple holds all parseable and binary compatible types.
+  This is because it does not respect XML tagging - it assumes that it is OK to just put its data where it is at.
 
 ``std::pair<A, B>``
 ^^^^^^^^^^^^^^^^^^^

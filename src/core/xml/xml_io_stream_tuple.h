@@ -43,10 +43,8 @@ struct xml_io_stream<std::tuple<T, Ts...>> {
 
   static void write(std::ostream& os,
                     const std::tuple<T, Ts...>& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) {
-    std::println(os, R"(<{0} name="{1}" ntypes="{2}">)", type_name, name, N);
-
+                    bofstream* pbofs = nullptr,
+                    std::string_view = ""sv) {
     if (pbofs) {
       if constexpr (all_binary)
         put({&n, 1}, pbofs);
@@ -68,8 +66,6 @@ struct xml_io_stream<std::tuple<T, Ts...>> {
             },
             n);
     }
-
-    std::println(os, R"(</{0}>)", type_name);
   }
 
   static void get(std::span<std::tuple<T, Ts...>> x, bifstream* pbifs)
@@ -111,11 +107,6 @@ struct xml_io_stream<std::tuple<T, Ts...>> {
   static void read(std::istream& is,
                    std::tuple<T, Ts...>& n,
                    bifstream* pbifs = nullptr) {
-    XMLTag tag;
-    tag.read_from_stream(is);
-    tag.check_name(type_name);
-    tag.check_attribute("ntypes", N);
-
     if (pbifs) {
       if constexpr (all_binary)
         get({&n, 1}, pbifs);
@@ -137,9 +128,6 @@ struct xml_io_stream<std::tuple<T, Ts...>> {
             },
             n);
     }
-
-    tag.read_from_stream(is);
-    tag.check_end_name(type_name);
   }
 };
 
@@ -175,10 +163,8 @@ struct xml_io_stream<std::pair<A, B>> {
 
   static void write(std::ostream& os,
                     const std::pair<A, B>& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) {
-    std::println(os, R"(<{0} name="{1}" ntypes="{2}">)", type_name, name, N);
-
+                    bofstream* pbofs = nullptr,
+                    std::string_view = ""sv) {
     if (pbofs) {
       if constexpr (all_binary)
         put({&n, 1}, pbofs);
@@ -194,8 +180,6 @@ struct xml_io_stream<std::pair<A, B>> {
         xml_io_stream<B>::write(os, n.second, pbofs);
       }
     }
-
-    std::println(os, R"(</{0}>)", type_name);
   }
 
   static void get(std::span<std::pair<A, B>> x, bifstream* pbifs)
@@ -229,11 +213,6 @@ struct xml_io_stream<std::pair<A, B>> {
   static void read(std::istream& is,
                    std::pair<A, B>& n,
                    bifstream* pbifs = nullptr) {
-    XMLTag tag;
-    tag.read_from_stream(is);
-    tag.check_name(type_name);
-    tag.check_attribute("ntypes", N);
-
     if (pbifs) {
       if constexpr (all_binary)
         get({&n, 1}, pbifs);
@@ -249,8 +228,5 @@ struct xml_io_stream<std::pair<A, B>> {
         xml_io_stream<B>::read(is, n.second, pbifs);
       }
     }
-
-    tag.read_from_stream(is);
-    tag.check_end_name(type_name);
   }
 };
