@@ -367,35 +367,3 @@ bool set_spectral_radiance_if_sun_intersection(
 
   return false;
 }
-
-void xml_io_stream<Sun>::write(std::ostream& os,
-                               const Sun& sun,
-                               bofstream* pbofs,
-                               std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, sun.description, pbofs, "desc"sv);
-  xml_write_to_stream(os, sun.spectrum, pbofs, "Spectrum"sv);
-  xml_write_to_stream(os, sun.radius, pbofs, "radius"sv);
-  xml_write_to_stream(os, sun.distance, pbofs, "distance"sv);
-  xml_write_to_stream(os, sun.latitude, pbofs, "lat"sv);
-  xml_write_to_stream(os, sun.longitude, pbofs, "lon"sv);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Sun>::read(std::istream& is, Sun& sun, bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, sun.description, pbifs);
-  xml_read_from_stream(is, sun.spectrum, pbifs);
-  xml_read_from_stream(is, sun.radius, pbifs);
-  xml_read_from_stream(is, sun.distance, pbifs);
-  xml_read_from_stream(is, sun.latitude, pbifs);
-  xml_read_from_stream(is, sun.longitude, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}

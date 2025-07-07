@@ -89,7 +89,7 @@ void xml_io_stream<Size>::write(std::ostream& os,
 
 void xml_io_stream<String>::write(std::ostream& os_xml,
                                   const String& str,
-                                  bofstream* pbofs,
+                                  bofstream*,
                                   std::string_view name) {
   XMLTag open_tag;
   XMLTag close_tag;
@@ -219,7 +219,7 @@ void xml_io_stream<Size>::read(std::istream& is, Size& n, bifstream* pbifs) {
 
 void xml_io_stream<String>::read(std::istream& is_xml,
                                  String& str,
-                                 bifstream* pbifs) {
+                                 bifstream*) {
   XMLTag tag;
   char dummy;
 

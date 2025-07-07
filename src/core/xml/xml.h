@@ -3,6 +3,7 @@
 #include <xml_io.h>
 #include <xml_io_base.h>
 #include <xml_io_stream.h>
+#include <xml_io_stream_aggregate.h>
 #include <xml_io_stream_array.h>
 #include <xml_io_stream_core.h>
 #include <xml_io_stream_enum_options.h>

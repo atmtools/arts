@@ -309,3 +309,36 @@ Example types:
 
 - :class:`~pyarts.arts.GriddedField1`
 - :class:`~pyarts.arts.GriddedField2`
+
+Aggregates
+^^^^^^^^^^
+
+Are overloadable in ``xml_io_stream_aggregate.h``.  These will map directly
+to the ``std::tuple<T...>`` overload when activated, except that it gives
+type a named XML tag.
+
+The overload is quite complicated, requiring somewhat hacky code since there
+is currently no standard way to easily turn an aggregate into a tuple.
+You activate it by modyfying the following piece of code for your type
+
+.. code-block:: cpp
+  :caption: The aggregate overload
+  :linenos:
+
+  // Example aggregate (do not copy)
+  struct MyStruct {
+    Index a, b;
+  };
+
+  // Overladable struct that activates the aggregate overlaods
+  template<>
+  struct xml_io_stream_aggregate<MyStruct> {
+    static constexpr bool value = true;
+  };
+
+.. note::
+  You will get the default naming scheme.  Please also overload the name.
+
+.. warning::
+  If any subtype of the aggregate is not possible to store, you will end
+  up with very complicated errors.  Ensure all subtypes are XML IO compatible.

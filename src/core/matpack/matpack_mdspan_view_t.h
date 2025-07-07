@@ -5,6 +5,7 @@
 #include <concepts>
 #include <iterator>
 #include <ranges>
+#include <span>
 #include <type_traits>
 
 #include "matpack_mdspan_common_types.h"
@@ -386,22 +387,43 @@ struct view_t final : public mdview_t<T, N> {
 };
 }  // namespace matpack
 
+std::string to_string(const matpack::view_t<const Numeric, 2>,
+                      format_tags& tags,
+                      const std::span<const Size>);
+std::string to_string(const matpack::view_t<const Complex, 2>,
+                      format_tags& tags,
+                      const std::span<const Size>);
+
 template <typename T, Size N>
 struct std::formatter<matpack::view_t<T, N>> {
-  std::formatter<matpack::strided_view_t<const T, N>> fmt{};
+  format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
+    tags.depth = N;
+    return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const matpack::view_t<T, N>& v,
+  FmtContext::iterator format(const matpack::view_t<T, N>& md,
                               FmtContext& ctx) const {
-    return fmt.format(v, ctx);
+    auto mat_view =
+        md.view_as(md.size() / md.shape().back(), md.shape().back());
+
+    if constexpr (requires { to_string(mat_view, tags); }) {
+      auto nl = md.shape();
+      for (Size i = N - 2; i < N; i--) nl[i] *= nl[i + 1];
+      std::format_to(ctx.out(), to_string(mat_view, tags, nl));
+    } else {
+      std::formatter<matpack::strided_view_t<T, N>> fmt;
+      fmt.tags = tags;
+      fmt.format(md, ctx);
+    }
+
+    return ctx.out();
   }
 };
 

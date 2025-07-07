@@ -143,16 +143,16 @@ struct std::formatter<Sun> {
   }
 };
 
+static_assert(simple_aggregate<Sun>);
+
 template <>
-struct xml_io_stream<Sun> {
-  static constexpr std::string_view type_name = "Sun"sv;
+struct xml_io_stream_name<Sun> {
+  static constexpr std::string_view name = "Sun";
+};
 
-  static void write(std::ostream& os,
-                    const Sun& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, Sun& x, bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<Sun> {
+  static constexpr bool value = true;
 };
 
 #endif /* star_h */

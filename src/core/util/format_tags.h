@@ -440,7 +440,8 @@ struct std::formatter<std::pair<A, B>> {
   }
 };
 
-template <arts_formattable_or_value_type... WT>
+template <typename... WT>
+  requires((arts_formattable_or_value_type<std::remove_cvref_t<WT>> and ...))
 struct std::formatter<std::tuple<WT...>> {
   format_tags tags;
 
