@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "xml_io_base.h"
+#include <matpack.h>
+#include <xml.h>
 
 int main(int /*argc*/, char* /*argv*/[]) {
   Vector v1{1, 2, 3, 4, 5};

@@ -6,6 +6,7 @@ add_subdirectory(physics)
 add_subdirectory(binio)
 add_subdirectory(matpack)
 add_subdirectory(rtepack)
+add_subdirectory(rng)
 add_subdirectory(predefined)
 add_subdirectory(operators)
 add_subdirectory(jacobian)
@@ -68,6 +69,7 @@ target_link_libraries(artscore PUBLIC
   legendre
   jacobian
   xml_io
+  rng
   sun
 )
 

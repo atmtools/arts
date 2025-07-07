@@ -23,4 +23,4 @@ add_library(scattering_io STATIC
    xml_io_scattering.cc
 )
 target_include_directories(scattering_io PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(scattering_io PUBLIC artsworkspace)
+target_link_libraries(scattering_io PUBLIC xml artsworkspace)

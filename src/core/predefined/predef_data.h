@@ -187,6 +187,11 @@ struct xml_io_stream<Absorption::PredefinedModel::ModelName> {
                    bifstream *pbifs = nullptr);
 };
 template <>
+struct xml_io_stream_name<PredefinedModelData> {
+  static constexpr std::string_view name = "PredefinedModelData"sv;
+};
+
+template <>
 struct xml_io_stream_name<PredefinedModelDataVariant::var_t> {
   static constexpr std::string_view name = "PredefinedModelDataVariant"sv;
 };
