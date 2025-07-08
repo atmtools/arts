@@ -622,6 +622,8 @@ propagation_matrix : PropmatVector
 
   py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
   generic_interface(partfun);
+  partfun.doc() =
+      "Data for partition functions, used in the line-by-line model";
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));
