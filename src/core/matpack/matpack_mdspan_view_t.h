@@ -7,6 +7,7 @@
 #include <ranges>
 #include <span>
 #include <type_traits>
+#include <vector>
 
 #include "matpack_mdspan_common_types.h"
 #include "matpack_mdspan_elemwise_mditer.h"
