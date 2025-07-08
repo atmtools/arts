@@ -37,7 +37,7 @@ struct xml_io_stream<std::shared_ptr<T>> {
 
   static void read(std::istream& is,
                    std::shared_ptr<T>& x,
-                   bifstream* pbifs = nullptr) {
+                   bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -56,5 +56,10 @@ struct xml_io_stream<std::shared_ptr<T>> {
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(std::format("Error reading {}<{}>:\n{}",
+                                         type_name,
+                                         xml_io_stream<T>::type_name,
+                                         e.what()));
   }
 };

@@ -9,7 +9,7 @@
 namespace lbl::temperature {
 data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
   ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
-  ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
+  ARTS_USER_ERROR_IF(auto n = model_size(t);
                      n != std::numeric_limits<Size>::max() and
                          n != static_cast<Size>(x.size()),
                      "Invalid number of parameters for model {}"
@@ -222,12 +222,12 @@ DERIVATIVES(T)
 #undef DERIVATIVES
 #undef SWITCHCASE
 
-std::istream& operator>>(std::istream& is, temperature::data& x) {
+std::istream& operator>>(std::istream& is, temperature::data& x) try {
   String name;
   is >> name;
   x.t = to<LineShapeModelType>(name);
 
-  Size n = model_size[static_cast<Size>(x.t)];
+  Size n = model_size(x.t);
   if (n == std::numeric_limits<Size>::max()) {
     is >> n;
   }
@@ -235,6 +235,9 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
 
   for (auto& v : x.x) is >> double_imanip() >> v;
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading LineShapeTemperatureModel:\n{}", e.what()));
 }
 
 LineShapeModelType data::Type() const { return t; }
@@ -298,7 +301,7 @@ void xml_io_stream<lbl::temperature::data>::write(
 
 void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
                                                  lbl::temperature::data& x,
-                                                 bifstream* pbifs) {
+                                                 bifstream* pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -313,4 +316,7 @@ void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading {}:\n{}", type_name, e.what()));
 }

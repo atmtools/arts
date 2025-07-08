@@ -195,19 +195,22 @@ void cia_interpolation(VectorView result,
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reshape(f_lag.size());
     } else if (T_order == 2) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reshape(f_lag.size());
     } else if (T_order == 3) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
               Tnew, data_T_grid, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reshape(f_lag.size());
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reshape(f_lag.size());
     } else {
       throw std::runtime_error(
           "Cannot have this T_order, you must update the code...");
@@ -515,11 +518,10 @@ std::ostream& operator<<(std::ostream& os, const CIARecord& /* cr */) {
   return os;
 }
 
-
 void xml_io_stream<CIARecord>::write(std::ostream& os,
-                                              const CIARecord& x,
-                                              bofstream* pbofs,
-                                              std::string_view name) {
+                                     const CIARecord& x,
+                                     bofstream* pbofs,
+                                     std::string_view name) {
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, x.TwoSpecies(), pbofs);
@@ -529,8 +531,8 @@ void xml_io_stream<CIARecord>::write(std::ostream& os,
 }
 
 void xml_io_stream<CIARecord>::read(std::istream& is,
-                                             CIARecord& x,
-                                             bifstream* pbifs) {
+                                    CIARecord& x,
+                                    bifstream* pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -540,4 +542,7 @@ void xml_io_stream<CIARecord>::read(std::istream& is,
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }

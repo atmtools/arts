@@ -1,5 +1,7 @@
 #pragma once
 
+#include <format_tags.h>
+
 #include <concepts>
 #include <variant>
 
@@ -95,7 +97,7 @@ struct xml_io_stream<std::variant<Ts...>> {
 
   static void read(std::istream& is,
                    std::variant<Ts...>& n,
-                   bifstream* pbifs = nullptr) {
+                   bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -109,5 +111,10 @@ struct xml_io_stream<std::variant<Ts...>> {
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        std::format("Error reading {}<{:,}>:\n{}",
+                    type_name, std::array{xml_io_stream<Ts>::type_name...},
+                    e.what()));
   }
 };

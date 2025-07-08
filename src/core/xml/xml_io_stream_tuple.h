@@ -1,5 +1,7 @@
 #pragma once
 
+#include <format_tags.h>
+
 #include <concepts>
 #include <tuple>
 
@@ -89,7 +91,7 @@ struct xml_io_stream<std::tuple<Ts...>> {
 
   static void read(std::istream& is,
                    std::tuple<Ts...>& n,
-                   bifstream* pbifs = nullptr) {
+                   bifstream* pbifs = nullptr) try {
     if (pbifs) {
       if constexpr (all_binary)
         get({&n, 1}, pbifs);
@@ -111,6 +113,12 @@ struct xml_io_stream<std::tuple<Ts...>> {
             },
             n);
     }
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        std::format("Error reading {}<{:,}>:\n{}",
+                    type_name,
+                    std::array{xml_io_stream<Ts>::type_name...},
+                    e.what()));
   }
 };
 

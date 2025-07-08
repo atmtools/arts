@@ -542,7 +542,7 @@ std::ostream& operator<<(std::ostream& os, Value x) {
   return os << x.type << ' ' << x.str_upp() << ' ' << x.str_low();
 }
 
-std::istream& operator>>(std::istream& is, Value& x) {
+std::istream& operator>>(std::istream& is, Value& x) try {
   std::string upp, low;
   is >> x.type >> upp >> low;
 
@@ -550,6 +550,9 @@ std::istream& operator>>(std::istream& is, Value& x) {
       value_holder(upp, x.type), value_holder(low, x.type), x.type);
 
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading Value: {}\n{}", e.what(), x));
 }
 
 void ValueList::sort_by_type() {
@@ -1728,7 +1731,7 @@ void xml_io_stream<QuantumIdentifier>::read(std::istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error reading QuantumIdentifier: {}", e.what())
+  ARTS_USER_ERROR("Error reading QuantumIdentifier:\n{}", e.what())
 }
 
 void xml_io_stream<QuantumNumberLocalState>::write(
@@ -1747,7 +1750,7 @@ void xml_io_stream<QuantumNumberLocalState>::write(
 
 void xml_io_stream<QuantumNumberLocalState>::read(std::istream& is_xml,
                                                   QuantumNumberLocalState& x,
-                                                  bifstream*) {
+                                                  bifstream*) try {
   static_assert(QuantumIdentifier::version == 1,
                 "QuantumIdentifier must be updated");
 
@@ -1763,4 +1766,6 @@ void xml_io_stream<QuantumNumberLocalState>::read(std::istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading QuantumNumberLocalState:\n{}", e.what())
 }

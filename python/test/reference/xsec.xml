@@ -14,8 +14,11 @@
 <Vector name="Maximum temperatures from fit" nelem="1">
 296
 </Vector>
-<Array name="Fit coefficients" type="GriddedField1Named" nelem="1">
-<GriddedField1Named>
+<Array name="Fit coefficients" type="GriddedField" nelem="1">
+<GriddedField N="2" version="2">
+<String name="">"Data"</String>
+<String name="">"frequency grid [Hz]"</String>
+<String name="">"fit coefficients [m]"</String>
 <Vector name="frequency grid [Hz]" nelem="5">
 10
 20
@@ -23,12 +26,12 @@
 40
 50
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="4">
+<ArrayOfString name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
 <String>"p10"</String>
 <String>"p01"</String>
 <String>"p20"</String>
-</Array>
+</ArrayOfString>
 <Matrix name="Data" nrows="5" ncols="4">
 1 2 3 0
 0 0 0 0
@@ -36,7 +39,7 @@
 0 0 0 0
 0 0 0 0
 </Matrix>
-</GriddedField1Named>
+</GriddedField>
 </Array>
 </XsecRecord>
 </arts>

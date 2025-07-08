@@ -52,7 +52,7 @@ void xml_io_stream<LinemixingSingleEcsData>::write(
 
 void xml_io_stream<LinemixingSingleEcsData>::read(std::istream &is,
                                                   LinemixingSingleEcsData &x,
-                                                  bifstream *pbifs) {
+                                                  bifstream *pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -64,4 +64,7 @@ void xml_io_stream<LinemixingSingleEcsData>::read(std::istream &is,
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
+} catch (const std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error reading {}:\n{}", type_name, e.what()));
 }

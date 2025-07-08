@@ -19,14 +19,10 @@ enum class pol : char { sm, pi, sp, no };
  */
 constexpr Index dM(pol type) noexcept {
   switch (type) {
-    case pol::sm:
-      return -1;
-    case pol::pi:
-      return 0;
-    case pol::sp:
-      return 1;
-    case pol::no:
-      return 0;
+    case pol::sm: return -1;
+    case pol::pi: return 0;
+    case pol::sp: return 1;
+    case pol::no: return 0;
   }
   return std::numeric_limits<Index>::max();
 }
@@ -54,12 +50,9 @@ constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
         return -Ju + 1;
       else
         return -Ju + 2;
-    case pol::pi:
-      return -min(Ju, Jl);
-    case pol::sp:
-      return -Ju;
-    case pol::no:
-      return 0;
+    case pol::pi: return -min(Ju, Jl);
+    case pol::sp: return -Ju;
+    case pol::no: return 0;
   }
   return std::numeric_limits<Index>::max();
 }
@@ -80,10 +73,8 @@ constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
  */
 constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
   switch (type) {
-    case pol::sm:
-      return Ju + 1;
-    case pol::pi:
-      return min(Ju, Jl);
+    case pol::sm: return Ju + 1;
+    case pol::pi: return min(Ju, Jl);
     case pol::sp:
       if (Ju < Jl)
         return Ju + 1;
@@ -91,8 +82,7 @@ constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
         return Ju;
       else
         return Jl;
-    case pol::no:
-      return 0;
+    case pol::no: return 0;
   }
   return std::numeric_limits<Index>::max();
 }
@@ -158,14 +148,10 @@ constexpr Rational Ml(Rational Ju, Rational Jl, pol type, Index n) noexcept {
  */
 constexpr Numeric polarization_factor(pol type) noexcept {
   switch (type) {
-    case pol::sm:
-      return .75;
-    case pol::pi:
-      return 1.5;
-    case pol::sp:
-      return .75;
-    case pol::no:
-      return 1.0;
+    case pol::sm: return .75;
+    case pol::pi: return 1.5;
+    case pol::sp: return .75;
+    case pol::no: return 1.0;
   }
   return std::numeric_limits<Numeric>::max();
 }
@@ -478,11 +464,14 @@ struct std::formatter<lbl::zeeman::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::zeeman::model &v,
                               FmtContext &ctx) const {
-    const auto sep = tags.sep();
-
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.on, sep, v.gu(), sep, v.gl());
-    tags.add_if_bracket(ctx, ']');
+    if (tags.io) {
+      tags.format(ctx, Index{v.on}, ' ', v.gu(), ' ', v.gl());
+    } else {
+      const auto sep = tags.sep();
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx, v.on, sep, v.gu(), sep, v.gl());
+      tags.add_if_bracket(ctx, ']');
+    }
 
     return ctx.out();
   }

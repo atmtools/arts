@@ -77,7 +77,7 @@ struct xml_io_stream_gridded_field {
 
   static void read(std::istream& is,
                    matpack::gridded_data_t<T, Grids...>& gf,
-                   bifstream* pbifs = nullptr) {
+                   bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
 
@@ -88,6 +88,9 @@ struct xml_io_stream_gridded_field {
     if (version <= 0) throw std::runtime_error("Old version, please update");
 
     parse(is, gf, pbifs, tag);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        std::format("Error reading {}:\n{}", type_name.data(), e.what()));
   }
 };
 

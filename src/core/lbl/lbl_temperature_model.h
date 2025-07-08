@@ -13,17 +13,20 @@ static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
               "Invalid number of models");
 
 //! The number of parameters per model type (max() means and arbitrary number)
-inline constexpr std::array<Size, LineShapeModelTypeSize> model_size{
-    1,                                // T0
-    2,                                // T1
-    3,                                // T2
-    2,                                // T3
-    3,                                // T4
-    2,                                // T5
-    4,                                // AER
-    4,                                // DPL
-    std::numeric_limits<Size>::max()  // POLY
-};
+constexpr Size model_size(LineShapeModelType type) {
+  switch (type) {
+    case LineShapeModelType::T0:   return 1;
+    case LineShapeModelType::T1:   return 2;
+    case LineShapeModelType::T2:   return 3;
+    case LineShapeModelType::T3:   return 2;
+    case LineShapeModelType::T4:   return 3;
+    case LineShapeModelType::T5:   return 2;
+    case LineShapeModelType::AER:  return 4;
+    case LineShapeModelType::DPL:  return 4;
+    case LineShapeModelType::POLY: return std::numeric_limits<Size>::max();
+  }
+  std::unreachable();
+}
 
 namespace model {
 #define EMPTY(name, deriv)                                          \
@@ -258,9 +261,17 @@ struct std::formatter<lbl::temperature::data> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::temperature::data& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.Type(), tags.sep(), v.X());
-    tags.add_if_bracket(ctx, ']');
+    if (tags.io) {
+      tags.format(ctx, v.Type(), ' ');
+      if (lbl::temperature::model_size(v.Type()) ==
+          std::numeric_limits<Size>::max())
+        tags.format(ctx, v.X().size(), ' ');
+      tags.format(ctx, v.X());
+    } else {
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx, v.Type(), tags.sep(), v.X());
+      tags.add_if_bracket(ctx, ']');
+    }
 
     return ctx.out();
   }

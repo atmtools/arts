@@ -18,7 +18,6 @@
 
 #include "xml_io_base.h"
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
@@ -63,8 +62,13 @@ try {
   find_xml_file(xml_file);
   xml_read_from_file_base(xml_file, type);
   return xml_file;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading file {} containing {}:\n{}",
+                  filename,
+                  xml_io_stream_name_v<T>,
+                  e.what()));
 }
-ARTS_METHOD_ERROR_CATCH
 
 //! Write data to XML file
 /*!

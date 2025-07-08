@@ -306,12 +306,15 @@ std::istream& operator>>(std::istream& is, std::vector<species_model>& x) {
   return is;
 }
 
-std::istream& operator>>(std::istream& is, model& x) {
+std::istream& operator>>(std::istream& is, model& x) try {
   Index i;
   is >> double_imanip() >> x.T0;
   is >> i;
   x.one_by_one = static_cast<bool>(i);
   return is >> x.single_models;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
 void model::clear_zeroes() {

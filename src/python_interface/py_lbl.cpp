@@ -291,8 +291,8 @@ void py_lbl(py::module_& m) try {
           "The HITRAN-like line strength")
       .doc() = "A single absorption line";
 
-  auto ll = py::bind_vector<std::vector<lbl::line>,
-                            py::rv_policy::reference_internal>(m, "LineList");
+  auto ll  = py::bind_vector<std::vector<lbl::line>,
+                             py::rv_policy::reference_internal>(m, "LineList");
   ll.doc() = "A list of absorption lines";
   vector_interface(ll);
 
@@ -619,6 +619,9 @@ propagation_matrix : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");
+
+  py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
+  generic_interface(partfun);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));

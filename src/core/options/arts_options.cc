@@ -1088,9 +1088,9 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
   }
   std::format_to(std::back_inserter(out),
                  R"(
-  throw std::runtime_error(R"-x-(Bad value. Valid options for "{0}":
+  throw std::runtime_error(R"-x-(Bad value.
 
-{1}
+See https://atmtools.github.io/arts-docs-master/pyarts.arts.{0}.html for valid options.
 )-x-");
 }}
 
@@ -1201,7 +1201,12 @@ std::ostream &operator<<(std::ostream &os, const {0} x) {{
 std::istream &operator>>(std::istream &is, {0}& x) {{
   std::string s;
   is >> s;
-  x = to<{0}>(s);
+  try {{
+    x = to<{0}>(s);
+  }} catch (const std::exception &e) {{
+    throw std::runtime_error(
+        std::format("Failed to read {0} from input stream value {{}}:\n{{}}", x, e.what()));
+  }}
   return is;
 }}
 

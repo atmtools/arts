@@ -276,7 +276,7 @@ struct xml_io_stream<T> {
     std::println(os, R"(</{0}>)", type_name);
   }
 
-  static void read(std::istream& is, T& t, bifstream* pbifs = nullptr) {
+  static void read(std::istream& is, T& t, bifstream* pbifs = nullptr) try {
     XMLTag tag{};
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -286,5 +286,8 @@ struct xml_io_stream<T> {
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        std::format("Error reading {}:\n{}", type_name, e.what()));
   }
 };

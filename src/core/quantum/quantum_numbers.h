@@ -794,6 +794,7 @@ struct std::formatter<QuantumNumberValueList> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumNumberValueList& v,
                               FmtContext& ctx) const {
+    if (tags.io) tags.format(ctx, v.size(), ' ');
     return tags.format(ctx, v.values);
   }
 };

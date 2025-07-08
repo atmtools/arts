@@ -66,7 +66,9 @@ struct XMLTag {
   void check_attribute(const std::string_view& aname, const Index& value);
   void check_attribute(const std::string_view& aname, const Size& value);
 
-  void get_attribute_value(const std::string_view& aname, String& value, std::string_view def = "");
+  void get_attribute_value(const std::string_view& aname,
+                           String& value,
+                           std::string_view def = "");
   void get_attribute_value(const std::string_view& aname, Index& value);
   void get_attribute_value(const std::string_view& aname, Size& value);
 
@@ -310,9 +312,13 @@ void xml_write_to_file_base(const String& filename,
 }
 
 template <arts_xml_ioable T>
-void xml_read_from_stream(std::istream& i, T& v, bifstream* b = nullptr) {
+void xml_read_from_stream(std::istream& i, T& v, bifstream* b = nullptr) try {
   xml_io_stream<T>::read(i, v, b);
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format(
+      "Error streaming {}:\n{}", xml_io_stream<T>::type_name, e.what()));
 }
+
 template <arts_xml_ioable T>
 void xml_write_to_stream(std::ostream& o,
                          const T& v,

@@ -34,7 +34,7 @@ concept arts_formattable =
 template <typename T>
 concept arts_formattable_or_value_type =
     arts_formattable<T> or std::integral<T> or std::floating_point<T> or
-    std::same_as<T, std::string>;
+    std::same_as<T, std::string> or std::same_as<T, std::string_view>;
 
 struct format_tags {
   bool names     = false;

@@ -674,8 +674,11 @@ void xml_io_stream<SensorKey>::read(std::istream& is,
 
 void xml_io_stream<sensor::SparseStokvec>::put(
     std::span<const sensor::SparseStokvec> x, bofstream* pbofs) {
-  pbofs->putRaw(reinterpret_cast<const char*>(x.data()),
-                x.size() * (2 * sizeof(Size) + sizeof(Stokvec)));
+  for (auto& elem : x) {
+    xml_io_stream<Size>::put({&elem.irow, 1}, pbofs);
+    xml_io_stream<Size>::put({&elem.icol, 1}, pbofs);
+    xml_io_stream<Stokvec>::put({&elem.data, 1}, pbofs);
+  }
 }
 
 void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
@@ -695,8 +698,11 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
 
 void xml_io_stream<sensor::SparseStokvec>::get(
     std::span<sensor::SparseStokvec> x, bifstream* pbifs) {
-  pbifs->getRaw(reinterpret_cast<char*>(x.data()),
-                x.size() * (2 * sizeof(Size) + sizeof(Stokvec)));
+  for (auto& elem : x) {
+    xml_io_stream<Size>::get({&elem.irow, 1}, pbifs);
+    xml_io_stream<Size>::get({&elem.icol, 1}, pbifs);
+    xml_io_stream<Stokvec>::get({&elem.data, 1}, pbifs);
+  }
 }
 
 void xml_io_stream<sensor::SparseStokvec>::parse(
