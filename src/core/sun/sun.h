@@ -143,8 +143,6 @@ struct std::formatter<Sun> {
   }
 };
 
-static_assert(simple_aggregate<Sun>);
-
 template <>
 struct xml_io_stream_name<Sun> {
   static constexpr std::string_view name = "Sun";

@@ -6,7 +6,7 @@ This is the main way that we perform file IO in ARTS.
 Each workspace group must support XML file IO.
 If a group is added that does not support XML file IO, ARTS cannot compile.
 Support is done by overloading a templated struct, ``xml_io_stream``,
-that defines the core concepts involved in the workflow.
+which defines the core concepts involved in the workflow.
 
 How the group handles XML file IO inside this is up to the group itself.
 Generally, all lower level overloads should already be defined, so it
@@ -162,6 +162,8 @@ Example types:
 These are also overloaded in the ``xml_io_stream_array.h`` file.
 They will be default have the exact same name as  the ``Array<T>`` (even if
 the ``Array<T>`` overload its name).
+However, this name is not used in the XML file by defaunlt, instead opting to use
+no name at all.
 If the ``T`` is parseable or binary-compatible, these methods are used.
 In turn, the ``std::array<T, N>`` will be parseable and/or binary-compatible
 to the same degree as ``T``.
@@ -222,6 +224,8 @@ No care for binary-compatibility or parseability are taken.
 ^^^^^^^^^^^^^^^^^^^^
 
 These are overloaded to the name ``"Tuple"`` in ``xml_io_stream_tuple.h``.
+However, this name is not displayed to the user by default,
+instead opting to use no name at all.
 All types ``T...`` must  be ``arts_xml_ioable``.
 Binary-compatibility and parseability is taken into account and forwarded
 to nested types, with specialization if all ``T...`` are the same type,

@@ -84,6 +84,12 @@ class Workspace(cxx.CxxWorkspace):
     def __setstate__(self, d):
         super().__setstate__(d["Workspace"])
 
+    @staticmethod
+    def fromxml(file):
+        x = Workspace()
+        x.readxml(file)
+        return x
+
 
 def _get_attrs(expr):
     """

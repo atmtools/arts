@@ -127,13 +127,11 @@ struct std::formatter<Workspace> {
 };
 
 template <>
-struct xml_io_stream<Workspace> {
-  static constexpr std::string_view type_name = "Workspace"sv;
+struct xml_io_stream_name<Workspace> {
+  static constexpr std::string_view name = "Workspace";
+};
 
-  static void write(std::ostream& os,
-                    const Workspace& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, Workspace& x, bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<Workspace> {
+  static constexpr bool value = true;
 };

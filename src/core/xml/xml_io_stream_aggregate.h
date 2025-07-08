@@ -3,11 +3,7 @@
 #include "xml_io_stream_tuple.h"
 
 template <typename T>
-concept simple_aggregate =
-    std::is_default_constructible_v<T> and std::is_aggregate_v<T>;
-
-template <typename T>
-concept aggregate_0 = simple_aggregate<T> and requires { T{}; };
+concept aggregate_0 = requires { T{}; };
 
 template <typename T>
 concept aggregate_1 = aggregate_0<T> and requires { T({}); };
