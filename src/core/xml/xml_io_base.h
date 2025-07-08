@@ -32,16 +32,6 @@ enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 //   XML parser classes
 ////////////////////////////////////////////////////////////////////////////
 
-//! XML attribute class
-/*!
-  Holds the name and value of an XML attribute.
-*/
-
-struct XMLAttribute {
-  String name;  /*!< Attribute name */
-  String value; /*!< Attribute value */
-};
-
 //! The ARTS XML tag class
 /*!
   Handles reading, writing and constructing of XML tags.
@@ -76,7 +66,7 @@ struct XMLTag {
   void check_attribute(const std::string_view& aname, const Index& value);
   void check_attribute(const std::string_view& aname, const Size& value);
 
-  void get_attribute_value(const std::string_view& aname, String& value);
+  void get_attribute_value(const std::string_view& aname, String& value, std::string_view def = "");
   void get_attribute_value(const std::string_view& aname, Index& value);
   void get_attribute_value(const std::string_view& aname, Size& value);
 
@@ -103,8 +93,8 @@ struct XMLTag {
   [[nodiscard]] bool has_attribute(const std::string_view& aname) const;
 
  protected:
-  String name;                 /*!< Tag name */
-  Array<XMLAttribute> attribs; /*!< List of attributes */
+  String name;                                /*!< Tag name */
+  std::unordered_map<String, String> attribs; /*!< List of attributes */
 };
 
 ////////////////////////////////////////////////////////////////////////////

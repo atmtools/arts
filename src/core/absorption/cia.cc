@@ -522,8 +522,8 @@ void xml_io_stream<CIARecord>::write(std::ostream& os,
                                               std::string_view name) {
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
-  xml_write_to_stream(os, x.Data(), pbofs);
   xml_write_to_stream(os, x.TwoSpecies(), pbofs);
+  xml_write_to_stream(os, x.Data(), pbofs);
 
   std::println(os, R"(</{0}>)", type_name);
 }
@@ -535,8 +535,8 @@ void xml_io_stream<CIARecord>::read(std::istream& is,
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  xml_read_from_stream(is, x.Data(), pbifs);
   xml_read_from_stream(is, x.TwoSpecies(), pbifs);
+  xml_read_from_stream(is, x.Data(), pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

@@ -65,9 +65,7 @@ void XMLTag::add_attribute(const std::string_view& aname,
                            const std::string_view& value_) {
   String value{value_};
 
-  XMLAttribute attr;
-
-  attr.name = aname;
+  String name{aname};
 
   auto pos = value.find(quotation_mark_original);
   while (pos not_eq std::string::npos) {
@@ -76,8 +74,7 @@ void XMLTag::add_attribute(const std::string_view& aname,
     pos = value.find(quotation_mark_original);
   }
 
-  attr.value = value;
-  attribs.push_back(attr);
+  attribs[name] = value;
 }
 
 //! Adds an Index attribute to tag
@@ -155,9 +152,7 @@ void XMLTag::check_attribute(const std::string_view& aname,
 }
 
 bool XMLTag::has_attribute(const std::string_view& aname) const {
-  return std::any_of(attribs.cbegin(), attribs.cend(), [&](auto& attr) {
-    return attr.name == aname;
-  });
+  return attribs.contains(String{aname});
 }
 
 /*! Returns value of attribute as String
@@ -171,18 +166,10 @@ bool XMLTag::has_attribute(const std::string_view& aname) const {
   \param aname Attribute name
   \param value Return value
 */
-void XMLTag::get_attribute_value(const std::string_view& aname, String& value) {
-  value = "";
-
-  auto it = attribs.begin();
-  while (it != attribs.end()) {
-    if (it->name == aname) {
-      value = it->value;
-      it    = attribs.end();
-    } else {
-      it++;
-    }
-  }
+void XMLTag::get_attribute_value(const std::string_view& aname,
+                                 String& value,
+                                 std::string_view def) try {
+  value = attribs.at(String{aname});
 
   auto pos = value.find(quotation_mark_replacement);
   while (pos not_eq std::string::npos) {
@@ -190,6 +177,13 @@ void XMLTag::get_attribute_value(const std::string_view& aname, String& value) {
         pos, quotation_mark_replacement.length(), quotation_mark_original);
     pos = value.find(quotation_mark_replacement);
   }
+} catch (const std::out_of_range&) {
+  // If the attribute does not exist, set value to *not found*
+  if (def.empty())
+    value = std::format("*{} not found*", aname);
+  else
+    value = String{def};
+  // and do not throw an exception
 }
 
 //! Returns value of attribute as type Index
@@ -248,10 +242,10 @@ void XMLTag::get_attribute_value(const std::string_view& aname,
   \param is Input stream
 */
 void XMLTag::read_from_stream(std::istream& is) {
-  String token;
+  String token, attr_name, attr_value;
   std::stringbuf tag;
   std::istringstream sstr("");
-  XMLAttribute attr;
+
   char ch = 0;
 
   attribs.clear();
@@ -306,7 +300,7 @@ void XMLTag::read_from_stream(std::istream& is) {
       xml_parse_error("Syntax error in tag: " + tag.str());
     }
 
-    attr.name = token.substr(0, pos);
+    attr_name = token.substr(0, pos);
     token.erase(0, pos + 1);
 
     if (token[0] != '\"') {
@@ -326,11 +320,11 @@ void XMLTag::read_from_stream(std::istream& is) {
     }
 
     if (pos == 1)
-      attr.value = "";
+      attr_value = "";
     else
-      attr.value = token.substr(1, pos - 1);
+      attr_value = token.substr(1, pos - 1);
 
-    attribs.push_back(attr);
+    attribs[attr_name] = attr_value;
 
     if (token[token.length() - 1] == '>') {
       token = ">";
@@ -622,24 +616,24 @@ void xml_read_header_from_stream(std::istream& is,
   }
 
   // Check endian type
-  tag.get_attribute_value("endian_type", strtype);
-  if (strtype == "little") {
-    etype = ENDIAN_TYPE_LITTLE;
-  }
-  if (strtype == "big") {
-    etype = ENDIAN_TYPE_BIG;
-  }
-  if (strtype == "") {
-    etype = ENDIAN_TYPE_LITTLE;
-  } else {
-    std::ostringstream os;
-    os << "  Error: Unknown endian type \"" << strtype
-       << "\" specified in XML file.\n";
-    throw std::runtime_error(os.str());
-  }
+  // tag.get_attribute_value("endian_type", strtype, "little");
+  // if (strtype == "little") {
+  //   etype = ENDIAN_TYPE_LITTLE;
+  // }
+  // if (strtype == "big") {
+  //   etype = ENDIAN_TYPE_BIG;
+  // }
+  // if (strtype == "") {
+  etype = ENDIAN_TYPE_LITTLE;
+  // } else {
+  //   std::ostringstream os;
+  //   os << "  Error: Unknown endian type \"" << strtype
+  //      << "\" specified in XML file.\n";
+  //   throw std::runtime_error(os.str());
+  // }
 
   // Check numeric type
-  tag.get_attribute_value("numeric_type", strtype);
+  tag.get_attribute_value("numeric_type", strtype, "double");
   if (strtype == "float") {
     ntype = NUMERIC_TYPE_FLOAT;
   } else if (strtype == "double") {

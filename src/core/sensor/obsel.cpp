@@ -359,7 +359,7 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
   const auto&& first     = poslos->begin();
   const auto&& last      = poslos->end();
   const auto same_poslos = [&](const auto& p) {
-    return &pos == &p.pos and &los == &p.los;
+    return (&pos == &p.pos) and (&los == &p.los);
   };
 
   const auto&& it = std::find_if(first, last, same_poslos);
@@ -743,7 +743,7 @@ void xml_io_stream<sensor::SparseStokvecMatrix>::read(
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  Size nr, nc;
+  Index nr, nc;
   std::vector<sensor::SparseStokvec> vector;
 
   xml_read_from_stream(is, nr, pbifs);
@@ -810,29 +810,32 @@ void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
   freqs.reserve(sen.size());
   for (const auto& i : sen | stdv::keys) freqs.push_back(i);
 
-  std::println(os,
-               R"(<{0} name="{1}" nelem="{2}" nfreq="{3}" nposlos="{4}">)",
-               type_name,
-               name,
-               static_cast<Index>(g.size()),
-               static_cast<Index>(freqs.size()),
-               static_cast<Index>(plos.size()));
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
-  if (not sen.empty()) {
-    for (auto& f : freqs) xml_write_to_stream(os, *f, pbofs, "f_grid");
-    for (auto& p : plos) xml_write_to_stream(os, *p, pbofs, "poslos");
-
-    for (auto& elem : g) {
-      const Index ifreq =
-          std::distance(freqs.begin(), stdr::find(freqs, elem.f_grid_ptr()));
-      const Index iplos =
-          std::distance(plos.begin(), stdr::find(plos, elem.poslos_grid_ptr()));
-
-      xml_write_to_stream(os, ifreq, pbofs, "f_grid index");
-      xml_write_to_stream(os, iplos, pbofs, "poslos_grid index");
-      xml_write_to_stream(os, elem.weight_matrix(), pbofs, "weight_matrix");
-    }
-  }
+  xml_write_to_stream(os, freqs, pbofs, "f_grid");
+  xml_write_to_stream(os, plos, pbofs, "poslos");
+  xml_write_to_stream(os,
+                      g | stdv::transform([&freqs](auto& elem) {
+                        return std::distance(
+                            freqs.begin(),
+                            stdr::find(freqs, elem.f_grid_ptr()));
+                      }) | stdr::to<std::vector<Index>>(),
+                      pbofs,
+                      "f_grid_pos");
+  xml_write_to_stream(os,
+                      g | stdv::transform([&plos](auto& elem) {
+                        return std::distance(
+                            plos.begin(),
+                            stdr::find(plos, elem.poslos_grid_ptr()));
+                      }) | stdr::to<std::vector<Index>>(),
+                      pbofs,
+                      "poslos_pos");
+  xml_write_to_stream(os,
+                      g | stdv::transform([](auto& elem) {
+                        return elem.weight_matrix();
+                      }) | stdr::to<std::vector<sensor::SparseStokvecMatrix>>(),
+                      pbofs,
+                      "Weights");
 
   std::println(os, R"(</{0}>)", type_name);
 }
@@ -846,48 +849,46 @@ void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
 
   g.resize(0);
 
-  Index nelem, nfreq, nposlos;
+  std::vector<std::shared_ptr<AscendingGrid>> f_grid;
+  std::vector<std::shared_ptr<SensorPosLosVector>> poslos;
+  std::vector<Index> f_grid_pos, poslos_pos;
+  std::vector<sensor::SparseStokvecMatrix> mat;
 
-  tag.get_attribute_value("nelem", nelem);
-  tag.get_attribute_value("nfreq", nfreq);
-  tag.get_attribute_value("nposlos", nposlos);
+  xml_read_from_stream(is, f_grid, pbifs);
+  xml_read_from_stream(is, poslos, pbifs);
+  xml_read_from_stream(is, f_grid_pos, pbifs);
+  xml_read_from_stream(is, poslos_pos, pbifs);
+  xml_read_from_stream(is, mat, pbifs);
 
-  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
-  freqs.reserve(nfreq);
-  for (Index i = 0; i < nfreq; i++) {
-    AscendingGrid f;
-    xml_read_from_stream(is, f, pbifs);
-    freqs.push_back(std::make_shared<AscendingGrid>(std::move(f)));
+  const Size N = f_grid_pos.size();
+
+  if (N != poslos_pos.size() or N != mat.size()) {
+    throw std::runtime_error(
+        "ArrayOfSensorObsel: Mismatching size of frequency, position and "
+        "weight matrices");
   }
 
-  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
-  plos.reserve(nposlos);
-  for (Index i = 0; i < nposlos; i++) {
-    SensorPosLosVector p;
-    xml_read_from_stream(is, p, pbifs);
-    plos.push_back(std::make_shared<SensorPosLosVector>(std::move(p)));
-  }
-
-  g.reserve(nelem);
-  for (Index i = 0; i < nelem; i++) {
-    Index ifreq;
-    Index iplos;
-    sensor::SparseStokvecMatrix weight_matrix;
+  g.reserve(N);
+  for (Size i = 0; i < N; i++) {
     try {
-      xml_read_from_stream(is, ifreq, pbifs);
-      xml_read_from_stream(is, iplos, pbifs);
-      xml_read_from_stream(is, weight_matrix, pbifs);
+      g.emplace_back(f_grid.at(f_grid_pos[i]),
+                     poslos.at(poslos_pos[i]),
+                     std::move(mat[i]));
+    } catch (const std::out_of_range&) {
+      throw std::runtime_error(std::format(
+          R"(Out of range:
 
-      ARTS_USER_ERROR_IF(ifreq >= nfreq, "Frequency index out of range")
-      ARTS_USER_ERROR_IF(iplos >= nposlos, "Position index out of range")
+    f_grid_pos[{0}] = {1}
+    poslos_pos[{0}] = {2}
 
-      g.emplace_back(freqs.at(ifreq), plos.at(iplos), weight_matrix);
-    } catch (const std::exception& e) {
-      throw std::runtime_error(
-          std::format("Error reading ArrayOfSensorObsel element {}/{}:\n{}",
-                      i,
-                      nelem,
-                      e.what()));
+    f_grid.size() = {3}
+    poslos.size() = {4}
+)",
+          i,
+          f_grid_pos[i],
+          poslos_pos[i],
+          f_grid.size(),
+          poslos.size()));
     }
   }
 

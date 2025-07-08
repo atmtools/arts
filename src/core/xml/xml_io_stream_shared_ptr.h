@@ -24,7 +24,7 @@ struct xml_io_stream<std::shared_ptr<T>> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
     std::println(os,
-                 R"(<{0} name="{1}" type="{2}" null="{3}">)",
+                 R"(<{0} name="{1}" type="{2}" notnull="{3}">)",
                  type_name,
                  name,
                  xml_io_stream<mutT>::type_name,
@@ -43,10 +43,10 @@ struct xml_io_stream<std::shared_ptr<T>> {
     tag.check_name(type_name);
     tag.check_attribute("type", xml_io_stream<mutT>::type_name);
 
-    Index null;
-    tag.get_attribute_value("null", null);
+    Index notnull;
+    tag.get_attribute_value("notnull", notnull);
 
-    if (null) {
+    if (notnull) {
       mutT v{};
       xml_io_stream<mutT>::read(is, v, pbifs);
       x = std::make_shared<T>(std::move(v));

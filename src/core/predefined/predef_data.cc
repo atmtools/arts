@@ -13,28 +13,6 @@
 
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {
-std::ostream &operator<<(std::ostream &os, const WaterData &data) {
-  os << data.ref_temp << ' ' << data.ref_press << ' ' << data.ref_h2o_vmr
-     << '\n';
-  for (auto &x : data.for_absco_ref) os << x << ' ';
-  os << '\n';
-  for (auto &x : data.self_absco_ref) os << x << ' ';
-  os << '\n';
-  for (auto &x : data.wavenumbers) os << x << ' ';
-  os << '\n';
-  for (auto &x : data.self_texp) os << x << ' ';
-  return os;
-}
-
-std::istream &operator>>(std::istream &is, WaterData &data) {
-  is >> double_imanip() >> data.ref_temp >> data.ref_press >> data.ref_h2o_vmr;
-  for (auto &x : data.for_absco_ref) is >> double_imanip() >> x;
-  for (auto &x : data.self_absco_ref) is >> double_imanip() >> x;
-  for (auto &x : data.wavenumbers) is >> double_imanip() >> x;
-  for (auto &x : data.self_texp) is >> double_imanip() >> x;
-  return is;
-}
-
 void WaterData::resize(const std::vector<std::size_t> &inds) {
   ARTS_USER_ERROR_IF(inds.size() not_eq 1, "Expects only one size")
   self_absco_ref.resize(inds.front());
@@ -47,21 +25,6 @@ std::vector<std::size_t> WaterData::sizes() const {
   return {static_cast<std::size_t>(self_absco_ref.size())};
 };
 }  // namespace MT_CKD400
-
-std::ostream &operator<<(std::ostream &os, const ModelName &) { return os; }
-
-std::istream &operator>>(std::istream &is, ModelName &) { return is; }
-
-std::ostream &operator<<(std::ostream &os, const PredefinedModelData &m) {
-  std::string_view nline = "";
-
-  for (auto &[tag, data] : m) {
-    os << std::exchange(nline, "\n") << tag << ':' << '\n';
-    std::visit([&os](auto &&arg) { os << arg; }, data.data);
-  }
-
-  return os;
-}
 
 std::string_view model_name(const ModelVariant &data) {
   if (std::holds_alternative<ModelName>(data.data)) {
@@ -87,7 +50,6 @@ ModelVariant model_data(const std::string_view name) {
   throw std::runtime_error(std::format(
       R"(Unknown model name: "{}". Are all models defined?)", name));
 }
-
 }  // namespace Absorption::PredefinedModel
 
 void xml_io_stream<Absorption::PredefinedModel::MT_CKD400::WaterData>::write(

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<PropmatVector nelem="1001">
+<Matpack version="2" rank="1" type="Propmat" shape="1001">
 3.94504308574723e-06 0 0 0 0 0 0
 3.94058941398299e-06 0 0 0 0 0 0
 3.73794144625128e-06 0 0 0 0 0 0
@@ -1002,5 +1002,5 @@
 3.9859923446004e-06 0 0 0 0 0 0
 4.04431172138667e-06 0 0 0 0 0 0
 4.30926616118211e-06 0 0 0 0 0 0
-</PropmatVector>
+</Matpack>
 </arts>

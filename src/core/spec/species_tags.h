@@ -50,8 +50,6 @@ struct Tag {
 };
 }  // namespace Species
 
-using SpeciesTagType = SpeciesTagType;
-
 using SpeciesTag = Species::Tag;
 
 class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
