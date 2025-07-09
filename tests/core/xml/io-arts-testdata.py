@@ -25,7 +25,7 @@ def recursexml(file, X=pyarts.arts):
 
 
 def recurse(path):
-    if os.path.isdir(path):
+    if os.path.isdir(path) and not os.path.basename(path).startswith("."):
         items = os.listdir(path)
         items.sort()
         for item in items:
