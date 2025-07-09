@@ -411,6 +411,8 @@ struct std::formatter<matpack::view_t<T, N>> {
   template <class FmtContext>
   FmtContext::iterator format(const matpack::view_t<T, N>& md,
                               FmtContext& ctx) const {
+    if (md.empty()) return ctx.out();
+
     auto mat_view =
         md.view_as(md.size() / md.shape().back(), md.shape().back());
 
