@@ -4,6 +4,7 @@ dependencies:
         - cmake
         - docutils
         - eigen
+        - fast_float
         - fftw
         - ipykernel
         - lark-parser

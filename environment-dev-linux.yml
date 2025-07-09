@@ -9,6 +9,7 @@ dependencies:
         - docutils
         - graphviz
         - eigen
+        - fast_float
         - fftw
         - gcc
         - gfortran

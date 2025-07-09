@@ -171,6 +171,14 @@
       }
     },
     {
+      "name": "mac-gcc15-hb-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-15",
+        "CMAKE_CXX_COMPILER": "g++-15"
+      }
+    },
+    {
       "name": "asan-clang-conda",
       "inherits": "debug-clang-conda",
       "cacheVariables": {
