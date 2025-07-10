@@ -17,5 +17,5 @@ add_library(lbl STATIC
   lbl_zeeman.cpp
 )
 
-target_link_libraries(lbl PUBLIC matpack atm jacobian Faddeeva partfun predef quantum surface wigner util arts_options)
+target_link_libraries(lbl PUBLIC matpack atm jacobian Faddeeva partfun predef quantum surface wigner util arts_options FastFloat::fast_float)
 target_include_directories(lbl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

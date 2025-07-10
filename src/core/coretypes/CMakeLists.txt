@@ -10,4 +10,4 @@ add_library(coretypes STATIC
 
 target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
-target_link_libraries(coretypes PUBLIC util strings)
+target_link_libraries(coretypes PUBLIC util strings FastFloat::fast_float)

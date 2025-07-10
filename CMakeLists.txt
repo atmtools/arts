@@ -126,6 +126,11 @@ list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 ########### Find Boost ###########
 find_package (Boost COMPONENTS REQUIRED headers)
 
+########### Find FastFloat ###########
+
+find_package(FastFloat REQUIRED)
+# Get the target FastFloat::fast_float
+
 ########### Find Python ##########
 find_package (Python REQUIRED COMPONENTS Interpreter Development.Module)
 
