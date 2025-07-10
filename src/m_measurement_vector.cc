@@ -1,7 +1,9 @@
 #include <workspace.h>
 
 #include <limits>
+#include <memory>
 
+#include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
 void measurement_vector_errorFromModelState(
@@ -20,9 +22,8 @@ void measurement_vector_errorFromModelState(
   measurement_jacobian_error = 0.0;
 
   for (auto& elem : jacobian_targets.error()) {
-    elem.update_y(measurement_vector_error,
-                  measurement_jacobian_error,
-                  model_state_vector);
+    elem.update_model(measurement_vector_error, model_state_vector);
+    elem.update_jac(measurement_jacobian_error, model_state_vector);
   }
 }
 
@@ -68,35 +69,68 @@ void model_state_vectorUpdateError(Vector& model_state_vector,
   ARTS_TIME_REPORT
 
   for (auto& elem : jacobian_targets.error()) {
-    elem.update_x(
-        model_state_vector, measurement_vector, measurement_vector_fitted);
+    const Range r(elem.type.y_size, elem.type.y_size);
+    Vector meas{measurement_vector[r]};
+    meas -= measurement_vector_fitted[r];
+    elem.update_state(model_state_vector, meas);
   }
 }
 
 struct polyfit {
-  Vector t;
+  std::shared_ptr<Vector> st;
 
-  void operator()(VectorView y,
-                  StridedMatrixView dy,
-                  const ConstVectorView p) const {
+  Vector operator()(Vector y, const ConstVectorView p) const {
+    ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyinv.")
+    const Vector& t = *st;
+
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
-    ARTS_USER_ERROR_IF(static_cast<Index>(y.size()) != dy.nrows(),
+
+    for (Size j = 0; j < t.size(); j++) {
+      const Numeric tj = t[j];
+      Numeric xn       = 1.0;
+      for (Size i = 0; i < p.size(); i++) {
+        y[j] += p[i] * xn;
+        xn   *= tj;
+      }
+    }
+
+    return y;
+  }
+
+  Matrix operator()(Matrix dy, const ConstVectorView p) const {
+    ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyinv.")
+    const Vector& t = *st;
+
+    ARTS_USER_ERROR_IF(static_cast<Index>(t.size()) != dy.nrows(),
                        "Mismatched y and dy sizes.")
     ARTS_USER_ERROR_IF(dy.ncols() != static_cast<Index>(p.size()),
                        "Mismatched dy and p sizes.")
 
     for (Size j = 0; j < t.size(); j++) {
+      const Numeric tj = t[j];
+      Numeric xn       = 1.0;
       for (Size i = 0; i < p.size(); i++) {
-        const Numeric xn  = std::pow(t[j], i);
-        y[j]             += p[i] * xn;
-        dy[j, i]          = xn;
+        dy[j, i]  = xn;
+        xn       *= tj;
       }
     }
-  }
 
-  void operator()(VectorView p, const ConstVectorView y) const {
+    return dy;
+  }
+};
+
+struct polyinv {
+  std::shared_ptr<Vector> st;
+
+  Vector operator()(Vector p, const ConstVectorView y) const {
+    ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyfit.")
+    const Vector& t = *st;
+
     ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
+
     Jacobian::polyfit(p, t, y);
+
+    return p;
   }
 };
 
@@ -157,9 +191,14 @@ Grid (size: {}): {:B,}
                      t.size(),
                      t)
 
-  const polyfit p{t};
+  auto st = std::make_shared<Vector>(t);
+  const polyfit pf{st};
+  const polyinv pi{st};
 
-  jacobian_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size},
-                                static_cast<Size>(polyorder + 1),
-                                p);
+  auto& x = jacobian_targets.emplace_back(
+      ErrorKey{.y_start = y_start, .y_size = y_size}, {});
+  x.x_size             = polyorder + 1;
+  x.inverse_state      = pi;
+  x.transform_state    = pf;
+  x.transform_jacobian = pf;
 }

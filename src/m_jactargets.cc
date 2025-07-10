@@ -182,11 +182,6 @@ void jacobian_targetsAddSensorFrequencyPolyFit(
   const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
 
   jacobian_targets.emplace_back(
-      SensorKey{.type             = SensorKeyType::f,
-                .measurement_elem = measurement_elem,
-                .model            = SensorJacobianModelType::PolynomialOffset,
-                .polyorder        = polyorder,
-                .original_grid    = measurement_sensor[measurement_elem].flat(
-                    SensorKeyType::f)},
+      SensorKey{.type = SensorKeyType::f, .measurement_elem = measurement_elem},
       d);
 }

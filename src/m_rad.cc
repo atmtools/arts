@@ -250,12 +250,12 @@ frequency_grid.size()              = {}
 
     // Convert to perturbed Jacobian
     dsrad -= spectral_radiance;
-    for (auto &v : dsrad) v /= d;
+    dsrad /= d;
   };
 
   const auto &x = frequency_grid;
-  const auto b  = x.begin();
-  const auto e  = x.end();
+  const auto *b = x.begin();
+  const auto *e = x.end();
 
   bool find_any = false;
   for (auto &target : jacobian_targets.sensor()) {
@@ -263,8 +263,8 @@ frequency_grid.size()              = {}
                            static_cast<Size>(target.type.measurement_elem),
                        "Sensor element out of bounds");
 
-    auto &elem = measurement_sensor[target.type.measurement_elem];
-    auto m = spectral_radiance_jacobian[Range(target.x_start, target.x_size)];
+    auto &elem      = measurement_sensor[target.type.measurement_elem];
+    auto m          = spectral_radiance_jacobian[target.target_pos];
     const Numeric d = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
@@ -284,46 +284,7 @@ frequency_grid.size()              = {}
       case lon: call(x, {pos[0], pos[1], pos[2] + d}, los, d); break;
     }
 
-    switch (target.type.model) {
-      using enum SensorJacobianModelType;
-      case PolynomialOffset: {
-        const auto &o = target.type.original_grid;
-
-        if (target.type.type == f) {
-          ARTS_USER_ERROR_IF(
-              x.size() != o.size(),
-              "Expects the frequency grid to be the same size as the original grid")
-
-          for (Size i = 0; i < target.x_size; i++) {
-            for (Size iv = 0; iv < x.size(); iv++) {
-              m[i, iv] += dsrad[iv] * std::pow(o[iv], i);
-            }
-          }
-        } else {
-          ARTS_USER_ERROR_IF(
-              target.x_size != o.size(),
-              "Expects original grid to be the same as the required x-parameters in the jacobian target")
-
-          for (Size i = 0; i < target.x_size; i++) {
-            const Numeric g = std::pow(o[i], i);
-            for (Size iv = 0; iv < x.size(); iv++) {
-              m[i, iv] += dsrad[iv] * g;
-            }
-          }
-        }
-      } break;
-      case None: {
-        if (target.type.type == f) {
-          ARTS_USER_ERROR_IF(m.ncols() != m.nrows(),
-                             "Expects square matrix for frequency derivative")
-          diagonal(m) += dsrad;
-        } else {
-          ARTS_USER_ERROR_IF(static_cast<Size>(iposlos) >= target.x_size,
-                             "Bad pos-los index");
-          m[iposlos] += dsrad;
-        }
-      } break;
-    }
+    m += dsrad;
   }
 
   ARTS_USER_ERROR_IF(not find_any,

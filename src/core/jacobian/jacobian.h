@@ -15,6 +15,9 @@
 #include <variant>
 #include <vector>
 
+#include "lbl_data.h"
+#include "matpack_mdspan_view_t.h"
+
 struct ErrorKey {
   Size y_start;
 
@@ -32,47 +35,19 @@ struct std::hash<ErrorKey> {
   }
 };
 
-using AtmTargetSetState =
-    CustomOperator<void, VectorView, const AtmField&, const AtmKeyVal&>;
-using AtmTargetSetModel =
-    CustomOperator<void, AtmField&, const AtmKeyVal&, const ConstVectorView>;
-
-using SubsurfaceTargetSetState = CustomOperator<void,
-                                                VectorView,
-                                                const SubsurfaceField&,
-                                                const SubsurfaceKeyVal&>;
-using SubsurfaceTargetSetModel = CustomOperator<void,
-                                                SubsurfaceField&,
-                                                const SubsurfaceKeyVal&,
-                                                const ConstVectorView>;
-using SurfaceTargetSetState =
-    CustomOperator<void, VectorView, const SurfaceField&, const SurfaceKeyVal&>;
-using SurfaceTargetSetModel = CustomOperator<void,
-                                             SurfaceField&,
-                                             const SurfaceKeyVal&,
-                                             const ConstVectorView>;
-using LineTargetSetState =
-    CustomOperator<void, VectorView, const AbsorptionBands&, const LblLineKey&>;
-using LineTargetSetModel   = CustomOperator<void,
-                                            AbsorptionBands&,
-                                            const LblLineKey&,
-                                            const ConstVectorView>;
-using SensorTargetSetState = CustomOperator<void,
-                                            VectorView,
-                                            const ArrayOfSensorObsel&,
-                                            const SensorKey&>;
-using SensorTargetSetModel = CustomOperator<void,
-                                            ArrayOfSensorObsel&,
-                                            const SensorKey&,
-                                            const ConstVectorView>;
-using ErrorTargetSetState =
-    CustomOperator<void, VectorView, StridedMatrixView, const ConstVectorView>;
-using ErrorTargetSetModel =
-    CustomOperator<void, VectorView, const ConstVectorView>;
-
 namespace Jacobian {
-void default_atm_x_set(VectorView, const AtmField&, const AtmKeyVal&);
-void default_x_atm_set(AtmField&, const AtmKeyVal&, const ConstVectorView);
+using atm_vec     = std::function<Vector(Vector, const AtmField&)>;
+using atm_mat     = std::function<Matrix(Matrix, const AtmField&)>;
+using surf_vec    = std::function<Vector(Vector, const SurfaceField&)>;
+using surf_mat    = std::function<Matrix(Matrix, const SurfaceField&)>;
+using subsurf_vec = std::function<Vector(Vector, const SubsurfaceField&)>;
+using subsurf_mat = std::function<Matrix(Matrix, const SubsurfaceField&)>;
+using line_vec    = std::function<Vector(Vector, const AbsorptionBands&)>;
+using line_mat    = std::function<Matrix(Matrix, const AbsorptionBands&)>;
+using sensor_vec  = std::function<Vector(Vector, const ArrayOfSensorObsel&)>;
+using sensor_mat  = std::function<Matrix(Matrix, const ArrayOfSensorObsel&)>;
+using error_vec   = std::function<Vector(Vector, const ConstVectorView)>;
+using error_mat   = std::function<Matrix(Matrix, const ConstVectorView)>;
 
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
@@ -95,26 +70,19 @@ struct AtmTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  AtmTargetSetState set_state{default_atm_x_set};
+  atm_vec transform_state{};
+  atm_mat transform_jacobian{};
+  atm_vec inverse_state{};
 
-  AtmTargetSetModel set_model{default_x_atm_set};
-
-  void update(AtmField& atm, const Vector& x) const;
-
-  void update(Vector& x, const AtmField& atm) const;
+  void update_model(AtmField& atm, const ConstVectorView x) const;
+  void update_state(VectorView x, const AtmField& atm) const;
+  void update_jac(MatrixView x, const AtmField& atm) const;
 
   [[nodiscard]] bool is_wind() const;
 };
-
-void default_surf_x_set(VectorView, const SurfaceField&, const SurfaceKeyVal&);
-void default_x_surf_set(SurfaceField&,
-                        const SurfaceKeyVal&,
-                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a SurfaceField object
  * 
@@ -137,26 +105,17 @@ struct SurfaceTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SurfaceTargetSetState set_state{default_surf_x_set};
+  surf_vec transform_state{};
+  surf_mat transform_jacobian{};
+  surf_vec inverse_state{};
 
-  SurfaceTargetSetModel set_model{default_x_surf_set};
-
-  void update(SurfaceField& surf, const Vector& x) const;
-
-  void update(Vector& x, const SurfaceField& surf) const;
+  void update_model(SurfaceField& surf, const ConstVectorView x) const;
+  void update_state(VectorView x, const SurfaceField& surf) const;
+  void update_jac(MatrixView x, const SurfaceField& surf) const;
 };
-
-void default_subsurf_x_set(VectorView,
-                           const SubsurfaceField&,
-                           const SubsurfaceKeyVal&);
-void default_x_subsurf_set(SubsurfaceField&,
-                           const SubsurfaceKeyVal&,
-                           const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a SubsurfaceField object
  * 
@@ -179,24 +138,17 @@ struct SubsurfaceTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SubsurfaceTargetSetState set_state{default_subsurf_x_set};
+  subsurf_vec transform_state{};
+  subsurf_mat transform_jacobian{};
+  subsurf_vec inverse_state{};
 
-  SubsurfaceTargetSetModel set_model{default_x_subsurf_set};
-
-  void update(SubsurfaceField& atm, const Vector& x) const;
-
-  void update(Vector& x, const SubsurfaceField& atm) const;
+  void update_model(SubsurfaceField& surf, const ConstVectorView x) const;
+  void update_state(VectorView x, const SubsurfaceField& surf) const;
+  void update_jac(MatrixView x, const SubsurfaceField& surf) const;
 };
-
-void default_line_x_set(VectorView, const AbsorptionBands&, const LblLineKey&);
-void default_x_line_set(AbsorptionBands&,
-                        const LblLineKey&,
-                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of an AbsorptionBands object
  * 
@@ -219,26 +171,17 @@ struct LineTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  LineTargetSetState set_state{default_line_x_set};
+  line_vec transform_state{};
+  line_mat transform_jacobian{};
+  line_vec inverse_state{};
 
-  LineTargetSetModel set_model{default_x_line_set};
-
-  void update(AbsorptionBands&, const Vector&) const;
-
-  void update(Vector&, const AbsorptionBands&) const;
+  void update_model(AbsorptionBands& surf, const ConstVectorView x) const;
+  void update_state(VectorView x, const AbsorptionBands& surf) const;
+  void update_jac(MatrixView x, const AbsorptionBands& surf) const;
 };
-
-void default_sensor_x_set(VectorView,
-                          const ArrayOfSensorObsel&,
-                          const SensorKey&);
-void default_x_sensor_set(ArrayOfSensorObsel&,
-                          const SensorKey&,
-                          const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
  * 
@@ -264,18 +207,16 @@ struct SensorTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SensorTargetSetState set_state{default_sensor_x_set};
+  sensor_vec transform_state{};
+  sensor_mat transform_jacobian{};
+  sensor_vec inverse_state{};
 
-  SensorTargetSetModel set_model{default_x_sensor_set};
-
-  void update(ArrayOfSensorObsel&, const Vector&) const;
-
-  void update(Vector&, const ArrayOfSensorObsel&) const;
+  void update_model(ArrayOfSensorObsel& surf, const ConstVectorView x) const;
+  void update_state(VectorView x, const ArrayOfSensorObsel& surf) const;
+  void update_jac(MatrixView x, const ArrayOfSensorObsel& surf) const;
 };
 
 /** The class that deals with Jacobian targets that are not part of any input object
@@ -295,19 +236,19 @@ struct SensorTarget {
 struct ErrorTarget {
   ErrorKey type;
 
+  Numeric d{};
+
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  ErrorTargetSetState set_y{};
+  error_vec transform_state{};
+  error_mat transform_jacobian{};
+  error_vec inverse_state{};
 
-  ErrorTargetSetModel set_x{};
-
-  void update_y(Vector& y, Matrix& dy, const Vector& x) const;
-
-  void update_x(Vector& x, const Vector& y, const Vector& y0) const;
+  void update_model(VectorView m, const ConstVectorView x) const;
+  void update_state(VectorView x, const ConstVectorView m) const;
+  void update_jac(MatrixView x, const ConstVectorView m) const;
 };
 
 template <typename T>
@@ -449,18 +390,8 @@ struct Targets final : targets_t<AtmTarget,
   SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
   SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d);
   SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d);
-
-  ErrorTarget& emplace_back(const ErrorKey& target,
-                            Size x_size,
-                            ErrorTargetSetState&& set_y,
-                            ErrorTargetSetModel&& set_x);
-  template <class Func>
-  ErrorTarget& emplace_back(const ErrorKey& target,
-                            Size x_size,
-                            const Func& set) {
-    return emplace_back(
-        target, x_size, ErrorTargetSetState{set}, ErrorTargetSetModel{set});
-  }
+  ErrorTarget& emplace_back(ErrorKey&& t, Numeric d);
+  ErrorTarget& emplace_back(const ErrorKey& t, Numeric d);
 };
 
 struct TargetType {

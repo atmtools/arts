@@ -214,7 +214,8 @@ void RetrievalAddSensorFrequencyPolyFit(
   jacobian_targetsAddSensorFrequencyPolyFit(
       jacobian_targets, measurement_sensor, d, sensor_elem, polyorder);
   auto keyk = JacobianTargetType{jacobian_targets.sensor().back().type};
-  covariance_matrix_diagonal_blocks[keyk] = {matrix, inverse};
+  covariance_matrix_diagonal_blocks[keyk] = {.first  = matrix,
+                                             .second = inverse};
 }
 
 void RetrievalAddErrorPolyFit(JacobianTargets& jacobian_targets,
@@ -231,5 +232,6 @@ void RetrievalAddErrorPolyFit(JacobianTargets& jacobian_targets,
   jacobian_targetsAddErrorPolyFit(
       jacobian_targets, measurement_sensor, t, sensor_elem, polyorder);
   auto keyk = JacobianTargetType{jacobian_targets.error().back().type};
-  covariance_matrix_diagonal_blocks[keyk] = {matrix, inverse};
+  covariance_matrix_diagonal_blocks[keyk] = {.first  = matrix,
+                                             .second = inverse};
 }

@@ -169,12 +169,6 @@ struct SensorKey {
 
   Index measurement_elem{};
 
-  SensorJacobianModelType model{};
-
-  Index polyorder{-1};
-
-  Vector original_grid{};
-
   bool operator==(const SensorKey& other) const;
 };
 
@@ -182,8 +176,6 @@ template <>
 struct std::hash<SensorKey> {
   std::size_t operator()(const SensorKey& g) const {
     return std::hash<SensorKeyType>{}(g.type) ^
-           (std::hash<SensorJacobianModelType>{}(g.model)
-            << (8 * sizeof(SensorKeyType))) ^
            (std::hash<Index>{}(g.measurement_elem)
             << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
   }
@@ -203,14 +195,8 @@ struct std::formatter<SensorKey> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx,
-                       v.type,
-                       tags.sep(),
-                       v.sensor_elem,
-                       tags.sep(),
-                       v.measurement_elem,
-                       tags.sep(),
-                       v.model);
+    return tags.format(
+        ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem);
   }
 };
 
