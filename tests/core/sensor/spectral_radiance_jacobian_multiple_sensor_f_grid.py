@@ -86,10 +86,10 @@ def inversion_iterate_agenda(ws):
 # %% Set up the retrieval
 
 ws.RetrievalInit()
-ws.RetrievalAddSensorFrequencyPolyFit(
+ws.RetrievalAddSensorFrequencyPolyOffset(
     sensor_elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
-ws.RetrievalAddSensorFrequencyPolyFit(
+ws.RetrievalAddSensorFrequencyPolyOffset(
     sensor_elem=1, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
 ws.RetrievalFinalizeDiagonal()
@@ -137,3 +137,5 @@ for i in range(LIMIT):
     print(f"AbsDiff not less than {ATOL} HZ, rerunning with new random noise")
 
 assert not fail, "Failed to retrieve frequency grid"
+
+print("done!")

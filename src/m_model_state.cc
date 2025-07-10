@@ -116,55 +116,60 @@ void model_state_vectorFromSensor(Vector& model_state_vector,
 
 void measurement_jacobianAtmosphereTransformation(
     Matrix& measurement_jacobian,
+    const Vector& model_state_vector,
     const AtmField& field,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.atm()) {
-    target.update_jac(measurement_jacobian, field);
+    target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
 
 void measurement_jacobianSurfaceTransformation(
     Matrix& measurement_jacobian,
+    const Vector& model_state_vector,
     const SurfaceField& field,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.surf()) {
-    target.update_jac(measurement_jacobian, field);
+    target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
 
 void measurement_jacobianSubsurfaceTransformation(
     Matrix& measurement_jacobian,
+    const Vector& model_state_vector,
     const SubsurfaceField& field,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.subsurf()) {
-    target.update_jac(measurement_jacobian, field);
+    target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
 
 void measurement_jacobianBandTransformation(
     Matrix& measurement_jacobian,
+    const Vector& model_state_vector,
     const AbsorptionBands& field,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.line()) {
-    target.update_jac(measurement_jacobian, field);
+    target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
 
 void measurement_jacobianSensorTransformation(
     Matrix& measurement_jacobian,
+    const Vector& model_state_vector,
     const ArrayOfSensorObsel& field,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.sensor()) {
-    target.update_jac(measurement_jacobian, field);
+    target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }

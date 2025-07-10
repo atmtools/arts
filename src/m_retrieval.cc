@@ -199,7 +199,7 @@ void RetrievalAddPressure(JacobianTargets& jacobian_targets,
       jacobian_targets.atm().back().type}] = {matrix, inverse};
 }
 
-void RetrievalAddSensorFrequencyPolyFit(
+void RetrievalAddSensorFrequencyPolyOffset(
     JacobianTargets& jacobian_targets,
     JacobianTargetsDiagonalCovarianceMatrixMap&
         covariance_matrix_diagonal_blocks,
@@ -211,7 +211,7 @@ void RetrievalAddSensorFrequencyPolyFit(
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  jacobian_targetsAddSensorFrequencyPolyFit(
+  jacobian_targetsAddSensorFrequencyPolyOffset(
       jacobian_targets, measurement_sensor, d, sensor_elem, polyorder);
   auto keyk = JacobianTargetType{jacobian_targets.sensor().back().type};
   covariance_matrix_diagonal_blocks[keyk] = {.first  = matrix,

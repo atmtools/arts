@@ -2515,7 +2515,7 @@ those with regards to a, b, etc..
   wsm_data["RetrievalAddErrorPolyFit"] =
       jac2ret("jacobian_targetsAddErrorPolyFit");
 
-  wsm_data["jacobian_targetsAddSensorFrequencyPolyFit"] = {
+  wsm_data["jacobian_targetsAddSensorFrequencyPolyOffset"] = {
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
@@ -2546,8 +2546,8 @@ those with regards to a, b, etc..
            "The sensor element whose frequency grid to use",
            "The order of the polynomial fit"},
   };
-  wsm_data["RetrievalAddSensorFrequencyPolyFit"] =
-      jac2ret("jacobian_targetsAddSensorFrequencyPolyFit");
+  wsm_data["RetrievalAddSensorFrequencyPolyOffset"] =
+      jac2ret("jacobian_targetsAddSensorFrequencyPolyOffset");
 
   wsm_data["jacobian_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative.

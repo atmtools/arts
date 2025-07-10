@@ -1,3 +1,4 @@
+#include <polyfit.h>
 #include <workspace.h>
 
 #include <ranges>
@@ -151,7 +152,7 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
   jacobian_targets.emplace_back(AtmKeyVal{species}, d);
 }
 
-void jacobian_targetsAddSensorFrequencyPolyFit(
+void jacobian_targetsAddSensorFrequencyPolyOffset(
     JacobianTargets& jacobian_targets,
     const ArrayOfSensorObsel& measurement_sensor,
     const Numeric& d,
@@ -181,7 +182,10 @@ void jacobian_targetsAddSensorFrequencyPolyFit(
 
   const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
 
-  jacobian_targets.emplace_back(
-      SensorKey{.type = SensorKeyType::f, .measurement_elem = measurement_elem},
-      d);
+  make_polyoffset(jacobian_targets.emplace_back(
+                      SensorKey{.type             = SensorKeyType::f,
+                                .measurement_elem = measurement_elem},
+                      d),
+                  static_cast<Size>(polyorder),
+                  measurement_sensor);
 }

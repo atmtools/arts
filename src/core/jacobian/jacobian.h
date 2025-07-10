@@ -36,18 +36,20 @@ struct std::hash<ErrorKey> {
 };
 
 namespace Jacobian {
-using atm_vec     = std::function<Vector(Vector, const AtmField&)>;
-using atm_mat     = std::function<Matrix(Matrix, const AtmField&)>;
-using surf_vec    = std::function<Vector(Vector, const SurfaceField&)>;
-using surf_mat    = std::function<Matrix(Matrix, const SurfaceField&)>;
-using subsurf_vec = std::function<Vector(Vector, const SubsurfaceField&)>;
-using subsurf_mat = std::function<Matrix(Matrix, const SubsurfaceField&)>;
-using line_vec    = std::function<Vector(Vector, const AbsorptionBands&)>;
-using line_mat    = std::function<Matrix(Matrix, const AbsorptionBands&)>;
-using sensor_vec  = std::function<Vector(Vector, const ArrayOfSensorObsel&)>;
-using sensor_mat  = std::function<Matrix(Matrix, const ArrayOfSensorObsel&)>;
-using error_vec   = std::function<Vector(Vector, const ConstVectorView)>;
-using error_mat   = std::function<Matrix(Matrix, const ConstVectorView)>;
+using cv          = ConstVectorView;
+using cm          = ConstMatrixView;
+using atm_vec     = std::function<Vector(cv, const AtmField&)>;
+using atm_mat     = std::function<Matrix(cm, cv, const AtmField&)>;
+using surf_vec    = std::function<Vector(cv, const SurfaceField&)>;
+using surf_mat    = std::function<Matrix(cm, cv, const SurfaceField&)>;
+using subsurf_vec = std::function<Vector(cv, const SubsurfaceField&)>;
+using subsurf_mat = std::function<Matrix(cm, cv, const SubsurfaceField&)>;
+using line_vec    = std::function<Vector(cv, const AbsorptionBands&)>;
+using line_mat    = std::function<Matrix(cm, cv, const AbsorptionBands&)>;
+using sensor_vec  = std::function<Vector(cv, const ArrayOfSensorObsel&)>;
+using sensor_mat  = std::function<Matrix(cm, cv, const ArrayOfSensorObsel&)>;
+using error_vec   = std::function<Vector(cv, cv)>;
+using error_mat   = std::function<Matrix(cm, cv, cv)>;
 
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
@@ -74,12 +76,12 @@ struct AtmTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   atm_vec transform_state{};
-  atm_mat transform_jacobian{};
+  atm_mat inverse_jacobian{};
   atm_vec inverse_state{};
 
-  void update_model(AtmField& atm, const ConstVectorView x) const;
-  void update_state(VectorView x, const AtmField& atm) const;
-  void update_jac(MatrixView x, const AtmField& atm) const;
+  void update_model(AtmField& y, cv x) const;
+  void update_state(VectorView x, const AtmField& y) const;
+  void update_jac(MatrixView dy, cv x, const AtmField& y) const;
 
   [[nodiscard]] bool is_wind() const;
 };
@@ -109,12 +111,12 @@ struct SurfaceTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   surf_vec transform_state{};
-  surf_mat transform_jacobian{};
+  surf_mat inverse_jacobian{};
   surf_vec inverse_state{};
 
-  void update_model(SurfaceField& surf, const ConstVectorView x) const;
-  void update_state(VectorView x, const SurfaceField& surf) const;
-  void update_jac(MatrixView x, const SurfaceField& surf) const;
+  void update_model(SurfaceField& y, cv x) const;
+  void update_state(VectorView x, const SurfaceField& y) const;
+  void update_jac(MatrixView dy, cv x, const SurfaceField& y) const;
 };
 
 /** The class that deals with Jacobian targets that are part of a SubsurfaceField object
@@ -142,12 +144,12 @@ struct SubsurfaceTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   subsurf_vec transform_state{};
-  subsurf_mat transform_jacobian{};
+  subsurf_mat inverse_jacobian{};
   subsurf_vec inverse_state{};
 
-  void update_model(SubsurfaceField& surf, const ConstVectorView x) const;
-  void update_state(VectorView x, const SubsurfaceField& surf) const;
-  void update_jac(MatrixView x, const SubsurfaceField& surf) const;
+  void update_model(SubsurfaceField& y, cv x) const;
+  void update_state(VectorView x, const SubsurfaceField& y) const;
+  void update_jac(MatrixView dy, cv x, const SubsurfaceField& y) const;
 };
 
 /** The class that deals with Jacobian targets that are part of an AbsorptionBands object
@@ -175,12 +177,12 @@ struct LineTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   line_vec transform_state{};
-  line_mat transform_jacobian{};
+  line_mat inverse_jacobian{};
   line_vec inverse_state{};
 
-  void update_model(AbsorptionBands& surf, const ConstVectorView x) const;
-  void update_state(VectorView x, const AbsorptionBands& surf) const;
-  void update_jac(MatrixView x, const AbsorptionBands& surf) const;
+  void update_model(AbsorptionBands& y, cv x) const;
+  void update_state(VectorView x, const AbsorptionBands& y) const;
+  void update_jac(MatrixView dy, cv x, const AbsorptionBands& y) const;
 };
 
 /** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
@@ -211,12 +213,12 @@ struct SensorTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   sensor_vec transform_state{};
-  sensor_mat transform_jacobian{};
+  sensor_mat inverse_jacobian{};
   sensor_vec inverse_state{};
 
-  void update_model(ArrayOfSensorObsel& surf, const ConstVectorView x) const;
-  void update_state(VectorView x, const ArrayOfSensorObsel& surf) const;
-  void update_jac(MatrixView x, const ArrayOfSensorObsel& surf) const;
+  void update_model(ArrayOfSensorObsel& y, cv x) const;
+  void update_state(VectorView x, const ArrayOfSensorObsel& y) const;
+  void update_jac(MatrixView dy, cv x, const ArrayOfSensorObsel& y) const;
 };
 
 /** The class that deals with Jacobian targets that are not part of any input object
@@ -243,12 +245,12 @@ struct ErrorTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   error_vec transform_state{};
-  error_mat transform_jacobian{};
+  error_mat inverse_jacobian{};
   error_vec inverse_state{};
 
-  void update_model(VectorView m, const ConstVectorView x) const;
-  void update_state(VectorView x, const ConstVectorView m) const;
-  void update_jac(MatrixView x, const ConstVectorView m) const;
+  void update_model(VectorView y, cv x) const;
+  void update_state(VectorView x, ConstVectorView y) const;
+  void update_jac(MatrixView dy, cv x, cv y) const;
 };
 
 template <typename T>
@@ -380,18 +382,18 @@ struct Targets final : targets_t<AtmTarget,
                 const AbsorptionBands& absorption_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
-  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d);
-  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d);
-  LineTarget& emplace_back(LblLineKey&& t, Numeric d);
-  LineTarget& emplace_back(const LblLineKey& t, Numeric d);
-  SensorTarget& emplace_back(SensorKey&& t, Numeric d);
-  SensorTarget& emplace_back(const SensorKey& t, Numeric d);
-  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
-  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
-  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d);
-  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d);
-  ErrorTarget& emplace_back(ErrorKey&& t, Numeric d);
-  ErrorTarget& emplace_back(const ErrorKey& t, Numeric d);
+  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
+  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
+  LineTarget& emplace_back(LblLineKey&& t, Numeric d = 0.0);
+  LineTarget& emplace_back(const LblLineKey& t, Numeric d = 0.0);
+  SensorTarget& emplace_back(SensorKey&& t, Numeric d = 0.0);
+  SensorTarget& emplace_back(const SensorKey& t, Numeric d = 0.0);
+  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
+  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
+  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
+  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
+  ErrorTarget& emplace_back(ErrorKey&& t, Numeric d = 0.0);
+  ErrorTarget& emplace_back(const ErrorKey& t, Numeric d = 0.0);
 };
 
 struct TargetType {
@@ -446,10 +448,6 @@ struct TargetType {
                  [](auto&) { return "ErrorKey"s; });
   }
 };
-
-void polyfit(VectorView param,
-             const ConstVectorView x,
-             const ConstVectorView y);
 }  // namespace Jacobian
 
 Numeric field_perturbation(const auto& f) {

@@ -8,124 +8,21 @@
 #include <utility>
 
 namespace Jacobian {
-namespace {
-Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
-                     "Bad size. x.size(): {}, f_grid().size(): {}",
-                     x.size(),
-                     v.f_grid().size())
-
-  const auto& fs = v.f_grid();
-
-  Vector out(fs);
-  out -= x;
-  return out;
-}
-
-template <bool pos, Index k>
-Vector rem_poslos(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                     x.size(),
-                     v.poslos_grid().size())
-
-  const SensorPosLosVector& xsv = v.poslos_grid();
-
-  Vector out(xsv.size());
-  std::transform(xsv.begin(),
-                 xsv.end(),
-                 x.begin(),
-                 out.begin(),
-                 [](auto poslos, Numeric val) {
-                   if constexpr (pos) {
-                     return poslos.pos[k] - val;
-                   } else {
-                     return poslos.los[k] - val;
-                   }
-                 });
-  return out;
-}
-
-Vector rem_alt(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 0>(v, x);
-}
-
-Vector rem_lat(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 1>(v, x);
-}
-
-Vector rem_lon(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 2>(v, x);
-}
-
-Vector rem_zag(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<false, 0>(v, x);
-}
-
-Vector rem_aag(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<false, 1>(v, x);
-}
-}  // namespace
-
-void polyfit(VectorView param,
-             const ConstVectorView x,
-             const ConstVectorView y) {
-  ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
-
-  using namespace Minimize;
-  auto [success, fit] = curve_fit<Polynom>(x, y, param.size() - 1);
-
-  ARTS_USER_ERROR_IF(not success,
-                     R"(Could not fit polynomial:
-  x:   {:B,},
-  y:   {:B,}
-  fit: {:B,}
-)",
-                     x,
-                     y,
-                     Vector{fit})
-  ARTS_USER_ERROR_IF(static_cast<Size>(fit.size()) != param.size(),
-                     "Bad size. fit.size(): {}, param.size(): {}",
-                     fit.size(),
-                     param.size())
-
-  param = fit;
-}
-
-namespace {
-// Returns p + x[0] + x[1]*p + x[2]*p^2 + ...
-Vector polynomial_offset_evaluate(const ConstVectorView x, const Vector& p) {
-  ARTS_USER_ERROR_IF(x.empty(), "Must have some polynomial coefficients.")
-
-  Vector out(p);
-
-  for (Size i = 0; i < p.size(); ++i) {
-    out[i]    += x[0];
-    Numeric v  = 1.0;
-    for (Size j = 1; j < x.size(); ++j) {
-      out[i] += x[j] * (v *= p[i]);
-    }
-  }
-
-  return out;
-}
-}  // namespace
-
 ////////////////////////////////////////////////////////////////////////
 /// Templates for doing the common work of updating fields, model state vectors, and Jacobians
 ////////////////////////////////////////////////////////////////////////
 
 namespace {
 template <typename Func, typename Key, typename Field>
-void update_x(VectorView x_state,
-              const ConstVectorView x_field,
+void update_x(VectorView x,
+              ConstVectorView y,
               Func&& transform_state,
               const Key& type,
               const Field& field) {
   if (transform_state) {
-    const Vector xn_transformed = transform_state(Vector{x_field}, field);
+    const Vector x_from_y = transform_state(y, field);
 
-    ARTS_USER_ERROR_IF(xn_transformed.size() not_eq x_state.size(),
+    ARTS_USER_ERROR_IF(x_from_y.size() not_eq x.size(),
                        R"(Size mismatch in transformation for target {}.
 
 Cannot set the model state vector from the transformation of the field.
@@ -135,13 +32,13 @@ The size of the transformed target is : {}.
 The expected size of the target is    : {}.
 )",
                        type,
-                       x_field.size(),
-                       xn_transformed.size(),
-                       x_state.size())
+                       y.size(),
+                       x_from_y.size(),
+                       x.size())
 
-    x_state = xn_transformed;
+    x = x_from_y;
   } else {
-    ARTS_USER_ERROR_IF(x_field.size() not_eq x_state.size(),
+    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
                        R"(Size mismatch in Jacobian target for {}.
 
 Cannot set the model state vector from the field.
@@ -150,18 +47,20 @@ The size of the target field is    : {}.
 The expected size of the target is : {}.
 )",
                        type,
-                       x_field.size(),
-                       x_state.size())
+                       y.size(),
+                       x.size())
 
-    x_state = x_field;
+    x = y;
   }
 }
+
 template <typename Func, typename Key, typename Field>
 void update_dy(StridedMatrixView dy,
-               Func&& transform_jacobian,
+               ConstVectorView x,
+               Func&& inverse_jacobian,
                const Key& type,
-               const Field& field) {
-  const Matrix dy_transformed = transform_jacobian(Matrix{dy}, field);
+               const Field& y) {
+  const Matrix dy_transformed = inverse_jacobian(Matrix{dy}, x, y);
 
   ARTS_USER_ERROR_IF(dy_transformed.shape() != dy.shape(),
                      R"(Size mismatch in Jacobian transformation for target {}.
@@ -179,15 +78,15 @@ The size of the transformed target is : {:B,}.
 }
 
 template <typename Func, typename Key, typename Field>
-void update_field(VectorView x_field,
-                  const ConstVectorView x_state,
+void update_field(VectorView y,
+                  ConstVectorView x,
                   Func&& inverse_state,
                   const Key& type,
                   const Field& field) {
   if (inverse_state) {
-    const Vector x_inverse = inverse_state(Vector{x_state}, field);
+    const Vector y_of_x = inverse_state(x, field);
 
-    ARTS_USER_ERROR_IF(x_inverse.size() not_eq x_field.size(),
+    ARTS_USER_ERROR_IF(y_of_x.size() != y.size(),
                        R"(Size mismatch in inverse transformation for target {}.
 
 Cannot set the field from the inverse transformation of the model state vector.
@@ -197,13 +96,13 @@ The size of the inverse transformed target is : {}.
 The expected size of the target is            : {}.
 )",
                        type,
-                       x_field.size(),
-                       x_inverse.size(),
-                       x_state.size())
+                       y.size(),
+                       y_of_x.size(),
+                       x.size())
 
-    x_field = x_inverse;
+    y += y_of_x;
   } else {
-    ARTS_USER_ERROR_IF(x_field.size() not_eq x_state.size(),
+    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
                        R"(Size mismatch for target {}.
 
 Cannot set the field from the model state vector.
@@ -212,10 +111,10 @@ The size of the target is          : {}.
 The expected size of the target is : {}.
 )",
                        type,
-                       x_field.size(),
-                       x_state.size())
+                       y.size(),
+                       x.size())
 
-    x_field = x_state;
+    y = x;
   }
 }
 }  // namespace
@@ -224,14 +123,27 @@ The expected size of the target is : {}.
 /// Update the fields
 ////////////////////////////////////////////////////////////////////////
 
-void ErrorTarget::update_model(VectorView meas, const ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
-                     "Model state vector is too small.")
+void ErrorTarget::update_model(VectorView y, ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(
+      x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
 
-  update_field(meas, x[Range(x_start, x_size)], inverse_state, type, meas);
+Expected minimum shape: [{}, {}]
+Got shape:              [{}, {}]
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      y.size(),
+      x.size())
+
+  update_field(y[Range(type.y_start, type.y_size)],
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               y[Range(type.y_start, type.y_size)]);
 }
 
-void AtmTarget::update_model(AtmField& atm, const ConstVectorView x) const {
+void AtmTarget::update_model(AtmField& atm, ConstVectorView x) const {
   ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
                      "Model state vector is too small.")
 
@@ -245,8 +157,7 @@ void AtmTarget::update_model(AtmField& atm, const ConstVectorView x) const {
                atm);
 }
 
-void SurfaceTarget::update_model(SurfaceField& surf,
-                                 const ConstVectorView x) const {
+void SurfaceTarget::update_model(SurfaceField& surf, ConstVectorView x) const {
   ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
                      "Model state vector is too small.")
 
@@ -261,7 +172,7 @@ void SurfaceTarget::update_model(SurfaceField& surf,
 }
 
 void SubsurfaceTarget::update_model(SubsurfaceField& subsurf,
-                                    const ConstVectorView x) const {
+                                    ConstVectorView x) const {
   ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
                      "Model state vector is too small.")
 
@@ -276,8 +187,7 @@ void SubsurfaceTarget::update_model(SubsurfaceField& subsurf,
                subsurf);
 }
 
-void LineTarget::update_model(AbsorptionBands& bands,
-                              const ConstVectorView x) const {
+void LineTarget::update_model(AbsorptionBands& bands, ConstVectorView x) const {
   ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
                      "Model state vector is too small.")
 
@@ -289,11 +199,11 @@ void LineTarget::update_model(AbsorptionBands& bands,
 }
 
 void SensorTarget::update_model(ArrayOfSensorObsel& sens,
-                                const ConstVectorView x) const {
+                                ConstVectorView x) const {
   ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
                      "Model state vector is too small.")
 
-  const ConstVectorView x_state = x[Range(x_start, x_size)];
+  ConstVectorView x_state = x[Range(x_start, x_size)];
 
   const SensorObsel& v = sens.at(type.measurement_elem);
   const Size N         = v.flat_size(type.type);
@@ -336,11 +246,24 @@ The expected size of the target is : {}.
 /// Update the model state vector
 ////////////////////////////////////////////////////////////////////////
 
-void ErrorTarget::update_state(VectorView x, const ConstVectorView meas) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
-                     "Model state vector is too small.")
+void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
+  ARTS_USER_ERROR_IF(
+      x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
 
-  update_x(x[Range(x_start, x_size)], meas, transform_state, type, meas);
+Expected minimum shape: [{}, {}]
+Got shape:              [{}, {}]
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      y.size(),
+      x.size())
+
+  update_x(x[Range(x_start, x_size)],
+           y[Range(type.y_start, type.y_size)],
+           transform_state,
+           type,
+           y[Range(type.y_start, type.y_size)]);
 }
 
 void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
@@ -425,70 +348,107 @@ void SensorTarget::update_state(VectorView x,
 /// Update the Jacobian
 ////////////////////////////////////////////////////////////////////////
 
-void ErrorTarget::update_jac(MatrixView dy, const ConstVectorView meas) const {
+void ErrorTarget::update_jac(MatrixView dy,
+                             ConstVectorView x,
+                             ConstVectorView y) const {
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(dy.ncols()) < (x_start + x_size),
-      "Model state vector dimension of the Jacobian is too small.")
+      static_cast<Size>(dy.ncols()) < (x_start + x_size) or
+          static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
 
-  if (transform_jacobian) {
-    update_dy(
-        dy[joker, Range(x_start, x_size)], transform_jacobian, type, meas);
+Expected minimum shape: [{}, {}]
+Got shape:              {:B,}
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      dy.shape())
+
+  if (inverse_jacobian) {
+    update_dy(dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              y[Range(type.y_start, type.y_size)]);
   }
 }
 
-void AtmTarget::update_jac(MatrixView dy, const AtmField& atm) const {
+void AtmTarget::update_jac(MatrixView dy,
+                           ConstVectorView x,
+                           const AtmField& atm) const {
   ARTS_USER_ERROR_IF(
       static_cast<Size>(dy.ncols()) < (x_start + x_size),
       "Model state vector dimension of the Jacobian is too small.")
 
-  if (transform_jacobian) {
-    update_dy(dy[joker, Range(x_start, x_size)], transform_jacobian, type, atm);
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              atm);
   }
 }
 
-void SurfaceTarget::update_jac(MatrixView dy, const SurfaceField& surf) const {
+void SurfaceTarget::update_jac(MatrixView dy,
+                               ConstVectorView x,
+                               const SurfaceField& surf) const {
   ARTS_USER_ERROR_IF(
       static_cast<Size>(dy.ncols()) < (x_start + x_size),
       "Model state vector dimension of the Jacobian is too small.")
 
-  if (transform_jacobian) {
-    update_dy(
-        dy[joker, Range(x_start, x_size)], transform_jacobian, type, surf);
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              surf);
   }
 }
 
 void SubsurfaceTarget::update_jac(MatrixView dy,
+                                  ConstVectorView x,
                                   const SubsurfaceField& subsurf) const {
   ARTS_USER_ERROR_IF(
       static_cast<Size>(dy.ncols()) < (x_start + x_size),
       "Model state vector dimension of the Jacobian is too small.")
 
-  if (transform_jacobian) {
-    update_dy(
-        dy[joker, Range(x_start, x_size)], transform_jacobian, type, subsurf);
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              subsurf);
   }
 }
 
-void LineTarget::update_jac(MatrixView dy, const AbsorptionBands& bands) const {
+void LineTarget::update_jac(MatrixView dy,
+                            ConstVectorView x,
+                            const AbsorptionBands& bands) const {
   ARTS_USER_ERROR_IF(
       static_cast<Size>(dy.ncols()) < (x_start + x_size),
       "Model state vector dimension of the Jacobian is too small.")
 
-  if (transform_jacobian) {
-    update_dy(
-        dy[joker, Range(x_start, x_size)], transform_jacobian, type, bands);
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              bands);
   }
 }
 
 void SensorTarget::update_jac(MatrixView dy,
+                              ConstVectorView x,
                               const ArrayOfSensorObsel& sens) const {
   ARTS_USER_ERROR_IF(
       static_cast<Size>(dy.ncols()) < (x_start + x_size),
       "Model state vector dimension of the Jacobian is too small.")
 
-  if (transform_jacobian) {
-    update_dy(
-        dy[joker, Range(x_start, x_size)], transform_jacobian, type, sens);
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              sens);
   }
 }
 
@@ -639,7 +599,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
         "- note that different sensor element targets may not share the same type, model, and relevant grids",
         t.type)
 
-    t.x_start  = last_size;
+    t.x_start = last_size;
     // t.x_size already known
     last_size += t.x_size;
   }
