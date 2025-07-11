@@ -381,12 +381,6 @@ void extend_in_pressure(std::vector<Point> &atm,
                         const bool logarithmic = true);
 }  // namespace Atm
 
-//! The standard atmospheric interpolation routine
-Numeric standard_atmospheric_interpolation(const SortedGriddedField3 &field,
-                                           Numeric alt,
-                                           Numeric lat,
-                                           Numeric lon);
-
 using AtmKeyVal         = Atm::KeyVal;
 using AtmField          = Atm::Field;
 using AtmPoint          = Atm::Point;

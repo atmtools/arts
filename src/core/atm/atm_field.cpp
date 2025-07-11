@@ -1330,10 +1330,3 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
-
-Numeric standard_atmospheric_interpolation(const SortedGriddedField3 &field,
-                                           Numeric alt,
-                                           Numeric lat,
-                                           Numeric lon) {
-  return Atm::interp::get(field, alt, lat, lon);
-}
