@@ -13,14 +13,17 @@
 #include <variant>
 
 #include "atm.h"
+#include "atm_mag_field.h"
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
+#include "enumsFieldComponent.h"
 #include "igrf13.h"
 #include "interp.h"
 #include "interpolation.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
+#include "operator_io.h"
 #include "operators.h"
 #include "predef_data.h"
 #include "predefined_absorption_models.h"
@@ -569,136 +572,13 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   ARTS_TIME_REPORT
 
-  using IGRF::igrf;
-
-  //! We need explicit planet-size as IGRF requires the radius
-  //! This is the WGS84 version of that, with radius of equator and pole
-  static constexpr Vector2 ell{6378137., 6356752.314245};
-
-  //! This struct deals with the computations, it's internally saving a mutable
-  //! state
-  struct res {
-    Time t;
-
-    [[nodiscard]] Vector3 comp(Numeric al, Numeric la, Numeric lo) const {
-      return igrf({al, la, lo}, ell, t);
-    }
-
-    [[nodiscard]] Numeric get_u(Numeric z, Numeric la, Numeric lo) const {
-      return igrf({z, la, lo}, ell, t)[0];
-    }
-
-    [[nodiscard]] Numeric get_v(Numeric z, Numeric la, Numeric lo) const {
-      return igrf({z, la, lo}, ell, t)[1];
-    }
-
-    [[nodiscard]] Numeric get_w(Numeric z, Numeric la, Numeric lo) const {
-      return igrf({z, la, lo}, ell, t)[2];
-    }
-  };
-
-  atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
-      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-        return cpy.get_u(h, lat, lon);
-      }};
-  atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
-      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-        return cpy.get_v(h, lat, lon);
-      }};
-  atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
-      [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
-        return cpy.get_w(h, lat, lon);
-      }};
+  atmospheric_field[AtmKey::mag_u] =
+      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::u)};
+  atmospheric_field[AtmKey::mag_v] =
+      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::v)};
+  atmospheric_field[AtmKey::mag_w] =
+      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::w)};
 }
-
-enum class atmospheric_fieldHydrostaticPressureDataOptions : char {
-  Lat,
-  Lon,
-  Hypsometric,
-  Hydrostatic,
-};
-
-template <atmospheric_fieldHydrostaticPressureDataOptions... input_opts>
-struct atmospheric_fieldHydrostaticPressureData {
-  using enum atmospheric_fieldHydrostaticPressureDataOptions;
-  static constexpr std::array<atmospheric_fieldHydrostaticPressureDataOptions,
-                              sizeof...(input_opts)>
-      opts{input_opts...};
-  static constexpr bool do_lat = std::ranges::any_of(opts, Cmp::eq(Lat));
-  static constexpr bool do_lon = std::ranges::any_of(opts, Cmp::eq(Lon));
-
-  using LatLag = my_interp::Lagrange<Index{do_lat}>;
-  using LonLag = my_interp::Lagrange<Index{do_lon},
-                                     false,
-                                     GridType::Cyclic,
-                                     my_interp::cycle_m180_p180>;
-
-  template <atmospheric_fieldHydrostaticPressureDataOptions X>
-  static constexpr bool is = std::ranges::any_of(opts, Cmp::eq(X));
-
-  Tensor3 grad_p;
-  Tensor3 pre;
-  Vector alt;
-  Vector lat;
-  Vector lon;
-
-  static Numeric step(Numeric p, Numeric h, Numeric d) {
-    if constexpr (is<Hypsometric>) {
-      return p * std::exp(-h * d);
-    } else if constexpr (is<Hydrostatic>) {
-      return std::max<Numeric>(0, p * (1.0 - h * d));
-    }
-  }
-
-  atmospheric_fieldHydrostaticPressureData(Tensor3 in_grad_p,
-                                           const SortedGriddedField2 &pre0,
-                                           Vector in_alt)
-      : grad_p(std::move(in_grad_p)),
-        pre(grad_p),  // Init sizes
-        alt(std::move(in_alt)),
-        lat(pre0.grid<0>()),
-        lon(pre0.grid<1>()) {
-    pre[0] = pre0.data;
-    for (Size i = 1; i < alt.size(); i++) {
-      for (Size j = 0; j < lat.size(); j++) {
-        for (Size k = 0; k < lon.size(); k++) {
-          const Numeric h  = alt[i] - alt[i - 1];
-          const Numeric p0 = pre[i - 1, j, k];
-          const Numeric d0 = grad_p[i - 1, j, k];
-
-          pre[i, j, k] = step(p0, h, d0);
-        }
-      }
-    }
-  }
-
-  [[nodiscard]] std::pair<Size, Numeric> find_alt(Numeric al) const {
-    Size i  = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
-    i      -= (i == alt.size());
-    while (i > 0 and alt[i] > al) {
-      i--;
-    }
-
-    return {i, al - alt[i]};
-  }
-
-  [[nodiscard]] std::pair<Numeric, Numeric> level(Index alt_ind,
-                                                  Numeric la,
-                                                  Numeric lo) const {
-    const LatLag latlag(0, la, lat);
-    const LonLag lonlag(0, lo, lon);
-    const auto iw   = interpweights(latlag, lonlag);
-    const Numeric p = interp(pre[alt_ind], iw, latlag, lonlag);
-    const Numeric d = interp(grad_p[alt_ind], iw, latlag, lonlag);
-    return {p, d};
-  }
-
-  Numeric operator()(Numeric al, Numeric la, Numeric lo) const {
-    const auto [i, h] = find_alt(al);
-    const auto [p, d] = level(i, la, lo);
-    return step(p, h, d);
-  }
-};
 
 void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
@@ -710,7 +590,6 @@ void atmospheric_fieldHydrostaticPressure(
     const String &hydrostatic_option) {
   ARTS_TIME_REPORT
 
-  using enum atmospheric_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
   const Vector &lats = p0.grid<0>();
@@ -770,47 +649,11 @@ void atmospheric_fieldHydrostaticPressure(
     return scl;
   }();
 
-  switch (to<HydrostaticPressureOption>(hydrostatic_option)) {
-    case HypsometricEquation:
-      if (nlon > 1 and nlat > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat, Lon>(
-                scale_factor, p0, alts)};
-      } else if (nlat > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat>(
-                scale_factor, p0, alts)};
-      } else if (nlon > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lon>(
-                scale_factor, p0, alts)};
-      } else {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hypsometric>(
-                scale_factor, p0, alts)};
-      }
-      break;
-
-    case HydrostaticEquation:
-      if (nlon > 1 and nlat > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
-                scale_factor, p0, alts)};
-      } else if (nlat > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat>(
-                scale_factor, p0, alts)};
-      } else if (nlon > 1) {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lon>(
-                scale_factor, p0, alts)};
-      } else {
-        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
-            atmospheric_fieldHydrostaticPressureData<Hydrostatic>(
-                scale_factor, p0, alts)};
-      }
-      break;
-  }
+  atmospheric_field[AtmKey::p] = Atm::FunctionalData{Atm::HydrostaticPressure(
+      scale_factor,
+      p0,
+      alts,
+      to<HydrostaticPressureOption>(hydrostatic_option))};
 }
 
 void atmospheric_fieldHydrostaticPressure(

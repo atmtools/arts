@@ -30,6 +30,7 @@ add_subdirectory(xml)
 add_subdirectory(coretypes)
 add_subdirectory(tests)
 add_subdirectory(sun)
+add_subdirectory(gravity)
 
 # #####
 add_library(artscore STATIC
@@ -71,6 +72,7 @@ target_link_libraries(artscore PUBLIC
   xml_io
   rng
   sun
+  gravity
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

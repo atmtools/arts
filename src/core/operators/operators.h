@@ -7,6 +7,7 @@
 #include <iosfwd>
 
 #include "debug.h"
+#include "xml_io_stream.h"
 
 #ifndef _MSC_VER
 #if defined(__clang__)
@@ -66,6 +67,7 @@ struct std::formatter<CustomOperator<WTs...>> {
 };
 
 template <typename R, typename... Args>
+  requires(arts_xml_ioable<std::function<R(Args...)>>)
 struct xml_io_stream<CustomOperator<R, Args...>> {
   static constexpr std::string_view type_name = "CustomOperator"sv;
 

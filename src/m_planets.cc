@@ -26,6 +26,7 @@
 #include <enumsMoonEllipsoid.h>
 #include <enumsPlanetOrMoonType.h>
 #include <enumsVenusEllipsoid.h>
+#include <planet_data.h>
 #include <workspace.h>
 
 #include <cmath>
@@ -118,8 +119,8 @@ void surface_fieldEarth(SurfaceField &surface_field,
   switch (to<EarthEllipsoid>(model)) {
     case EarthEllipsoid::WGS84:
       // https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version
-      surface_field.ellipsoid[0] = 6378137.0;
-      surface_field.ellipsoid[1] = 6356752.314245;
+      surface_field.ellipsoid[0] = Body::Earth::a;
+      surface_field.ellipsoid[1] = Body::Earth::b;
       break;
     case EarthEllipsoid::Sphere:
       surface_field.ellipsoid[0] = EARTH_RADIUS;
@@ -143,8 +144,8 @@ void surface_fieldJupiter(SurfaceField &surface_field,
       surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
       break;
     case JupiterEllipsoid::Ellipsoid:
-      surface_field.ellipsoid[0] = 71492e3;  // From Ref. 1
-      surface_field.ellipsoid[1] = 66854e3;
+      surface_field.ellipsoid[0] = Body::Jupiter::a;  // From Ref. 1
+      surface_field.ellipsoid[1] = Body::Jupiter::b;
       break;
   }
 }
@@ -164,8 +165,8 @@ void surface_fieldMars(SurfaceField &surface_field,
       surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
       break;
     case MarsEllipsoid::Ellipsoid:
-      surface_field.ellipsoid[0] = 3396.19e3;  // From Ref. 1
-      surface_field.ellipsoid[1] = 3376.20e3;
+      surface_field.ellipsoid[0] = Body::Mars::a;  // From Ref. 1
+      surface_field.ellipsoid[1] = Body::Mars::b;
       break;
   }
 }
@@ -186,8 +187,8 @@ void surface_fieldMoon(SurfaceField &surface_field,
       break;
     case MoonEllipsoid::Ellipsoid:
       // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-      surface_field.ellipsoid[0] = 1738.1e3;
-      surface_field.ellipsoid[1] = 1736.0e3;
+      surface_field.ellipsoid[0] = Body::Moon::a;
+      surface_field.ellipsoid[1] = Body::Moon::b;
       break;
   }
 }
@@ -336,26 +337,6 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
                                  const SurfaceField &surface_field,
                                  const Numeric &mass) {
   ARTS_TIME_REPORT
-
-  struct Gravity {
-    Numeric GM;
-    Numeric a;
-    Numeric e;
-
-    Numeric operator()(Numeric h, Numeric lat, Numeric lon) const {
-      using Conversion::cosd;
-      using Conversion::sind;
-      using Math::pow2;
-      using std::sqrt;
-
-      const Numeric N  = a / sqrt(1 - pow2(e * sind(lat)));
-      const Numeric r2 = pow2((N + h) * cosd(lon) * cosd(lat)) +
-                         pow2((N + h) * sind(lon) * cosd(lat)) +
-                         pow2((N * (1 - pow2(e)) + h) * sind(lat));
-
-      return GM / r2;
-    }
-  };
 
   ARTS_USER_ERROR_IF(surface_field.ellipsoid[0] <= 0,
                      "Ellipsoid has bad semi-major axis {:B,}",

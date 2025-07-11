@@ -4,6 +4,7 @@
 struct Workspace;
 
 #include <format_tags.h>
+#include <operator_io.h>
 #include <operators.h>
 #include <xml.h>
 

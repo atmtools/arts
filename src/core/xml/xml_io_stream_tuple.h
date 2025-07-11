@@ -22,8 +22,8 @@ struct xml_io_stream<std::tuple<Ts...>> {
   constexpr static std::string_view type_name =
       xml_io_stream_name_v<std::tuple<Ts...>>;
 
-  constexpr static bool all_binary = (xml_io_binary<Decayed<Ts>> and ...);
-  constexpr static bool all_parse  = (xml_io_parseable<Decayed<Ts>> and ...);
+  constexpr static bool all_binary = (xml_io_binary<Ts> and ...);
+  constexpr static bool all_parse  = (xml_io_parseable<Ts> and ...);
 
   static void put(std::span<const std::tuple<Ts...>> x, bofstream* pbofs)
     requires(all_binary)

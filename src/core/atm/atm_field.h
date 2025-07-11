@@ -24,6 +24,8 @@
 #include <utility>
 #include <variant>
 
+#include "matpack_mdspan_helpers_gridded_data_t.h"
+
 AtmKey to_wind(const String &);
 AtmKey to_mag(const String &);
 
@@ -378,6 +380,12 @@ void extend_in_pressure(std::vector<Point> &atm,
                             InterpolationExtrapolation::Nearest,
                         const bool logarithmic = true);
 }  // namespace Atm
+
+//! The standard atmospheric interpolation routine
+Numeric standard_atmospheric_interpolation(const SortedGriddedField3 &field,
+                                           Numeric alt,
+                                           Numeric lat,
+                                           Numeric lon);
 
 using AtmKeyVal         = Atm::KeyVal;
 using AtmField          = Atm::Field;

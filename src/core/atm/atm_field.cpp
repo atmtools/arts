@@ -1,3 +1,5 @@
+#include "atm_field.h"
+
 #include <compare.h>
 #include <configtypes.h>
 #include <debug.h>
@@ -17,7 +19,7 @@
 #include <variant>
 #include <vector>
 
-#include "atm.h"
+#include "atm_field_interp.h"
 
 void Atm::Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<SortedGriddedField3>(data)) {
@@ -816,7 +818,7 @@ namespace {
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
-  return ptr and *ptr == key;
+  return ptr and * ptr == key;
 }
 }  // namespace
 
@@ -851,38 +853,6 @@ bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
 namespace Atm {
 namespace interp {
 namespace {
-Numeric get(const SortedGriddedField3 &gf3,
-            const Numeric alt,
-            const Numeric lat,
-            const Numeric lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
-
-  return std::visit(
-      [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
-        return my_interp::interp(data, al, la, lo);
-      },
-      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
-                                : altlags{gf3.lag<0, altlag1>(alt)},
-      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
-                                : latlags{gf3.lag<1, latlag1>(lat)},
-      gf3.grid<2>().size() == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
-                                : lonlags{gf3.lag<2, lonlag1>(lon)});
-}
-
-constexpr Numeric get(const Numeric num,
-                      const Numeric,
-                      const Numeric,
-                      const Numeric) {
-  return num;
-}
-
-Numeric get(const FunctionalData &fd,
-            const Numeric alt,
-            const Numeric lat,
-            const Numeric lon) {
-  return fd(alt, lat, lon);
-}
-
 struct PositionalNumeric {
   const FieldData &data;
   const Numeric alt;
@@ -915,7 +885,8 @@ std::optional<Numeric> get_optional_limit(const Data &data,
   if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
 
   if (lim.type == InterpolationExtrapolation::Nearest)
-    return PositionalNumeric{data.data, lim.alt, lim.lat, lim.lon};
+    return PositionalNumeric{
+        .data = data.data, .alt = lim.alt, .lat = lim.lat, .lon = lim.lon};
 
   return std::nullopt;
 }
@@ -1358,4 +1329,11 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
   }
 
   return tags.bracket ? ("{" + out + "}") : out;
+}
+
+Numeric standard_atmospheric_interpolation(const SortedGriddedField3 &field,
+                                           Numeric alt,
+                                           Numeric lat,
+                                           Numeric lon) {
+  return Atm::interp::get(field, alt, lat, lon);
 }
