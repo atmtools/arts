@@ -1,18 +1,18 @@
 #pragma once
 
 #include <matpack.h>
+#include <obsel.h>
 
 #include <memory>
 
 #include "jacobian.h"
-#include "obsel.h"
 
 void polyfit(VectorView param,
              const ConstVectorView x,
              const ConstVectorView y);
 
 struct polyfit_t {
-  std::shared_ptr<Vector> st;
+  std::shared_ptr<const Vector> st;
   Size polyorder;
 
   Vector operator()(ConstVectorView y) const;
@@ -27,7 +27,7 @@ struct polyfit_sensor_offset_t {
 };
 
 struct polyinv_t {
-  std::shared_ptr<Vector> st;
+  std::shared_ptr<const Vector> st;
   Size polyorder;
 
   Vector operator()(ConstVectorView x, ConstVectorView y) const;
@@ -38,7 +38,8 @@ struct polyinv_t {
   Matrix operator()() const;
 };
 
-struct polyinv_sensor_offset_t {polyinv_t inv;
+struct polyinv_sensor_offset_t {
+  polyinv_t inv;
   SensorKey key;
 
   Vector operator()(ConstVectorView x, const ArrayOfSensorObsel& y) const;

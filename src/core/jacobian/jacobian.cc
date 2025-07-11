@@ -100,7 +100,7 @@ The expected size of the target is            : {}.
                        y_of_x.size(),
                        x.size())
 
-    y += y_of_x;
+    y = y_of_x;
   } else {
     ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
                        R"(Size mismatch for target {}.

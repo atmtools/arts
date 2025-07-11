@@ -1,4 +1,4 @@
-#include <polyfit.h>
+#include <jac_polyfit.h>
 #include <workspace.h>
 
 #include <limits>

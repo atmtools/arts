@@ -2410,6 +2410,58 @@ matrix to be calculated will work.
            "Extrapolation factor"},
   };
 
+  wsm_data["jacobian_targetsToggleRelativeAtmTarget"] = {
+      .desc   = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeSurfaceTarget"] = {
+      .desc      = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
   wsm_data["jacobian_targetsConditionalClear"] = {
       .desc = R"--(Clears *jacobian_targets* if *do_jacobian* evaluates false.
 )--",
@@ -3954,6 +4006,57 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
                          "spectral_radiance_transform_operator",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
+  };
+
+  wsm_data["measurement_jacobianAtmosphereTransformation"] = {
+      .desc   = "Applies transformations to the atmospheric state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "atmospheric_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSurfaceTransformation"] = {
+      .desc   = "Applies transformations to the surface state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "surface_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSubsurfaceTransformation"] = {
+      .desc   = "Applies transformations to the subsurface state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "subsurface_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianBandTransformation"] = {
+      .desc   = "Applies transformations to the line-by-line state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "absorption_bands",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSensorTransformation"] = {
+      .desc =
+          "Applies transformations to the measurement sensor state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "measurement_sensor",
+                 "jacobian_targets"},
   };
 
   wsm_data["measurement_sensorFromModelState"] = {

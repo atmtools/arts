@@ -1,7 +1,5 @@
-#include <polyfit.h>
+#include <jac_polyfit.h>
 #include <workspace.h>
-
-#include <ranges>
 
 void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT

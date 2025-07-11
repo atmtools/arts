@@ -2,7 +2,8 @@ add_library(jacobian STATIC
     jacobian.cc
     covariance_matrix.cc
     retrieval_target.cc
-    polyfit.cc
+    jac_polyfit.cc
+    jac_rel.cc
 )
 
 target_link_libraries(jacobian PUBLIC atm subsurface surface sensor scattering lbl)

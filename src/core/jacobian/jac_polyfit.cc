@@ -1,4 +1,4 @@
-#include "polyfit.h"
+#include "jac_polyfit.h"
 
 #include <minimize.h>
 
@@ -107,7 +107,7 @@ Matrix polyinv_t::operator()(ConstMatrixView,
 void make_polyfit(Jacobian::ErrorTarget& x,
                   const Size polyorder,
                   const Vector& t) {
-  auto st = std::make_shared<Vector>(t);
+  auto st = std::make_shared<const Vector>(t);
   const polyfit_t pfit{.st = st, .polyorder = polyorder};
   const polyinv_t pinv{.st = st, .polyorder = polyorder};
   x.x_size           = polyorder + 1;
@@ -205,13 +205,14 @@ Vector polyinv_sensor_offset_t::operator()(ConstVectorView x,
 void make_polyoffset(Jacobian::SensorTarget& x,
                      const Size polyorder,
                      const ArrayOfSensorObsel& sensor) {
-  auto st = std::make_shared<Vector>(
+  auto st = std::make_shared<const Vector>(
       sensor[x.type.measurement_elem].flat(x.type.type));
   const polyfit_sensor_offset_t pfit{
       .fit = polyfit_t{.st = st, .polyorder = polyorder}, .key = x.type};
   const polyinv_sensor_offset_t pinv{
       .inv = polyinv_t{.st = st, .polyorder = polyorder}, .key = x.type};
-  x.x_size          = polyorder + 1;
-  x.inverse_state   = pinv;
+  x.x_size        = polyorder + 1;
+  x.inverse_state = pinv;
+  // x.inverse_jacobian = pinv;  Not neccessary, actively bad
   x.transform_state = pfit;
 }
