@@ -112,7 +112,7 @@ Matrix relinv::operator()(ConstMatrixView dy,
 void make_relfit(Jacobian::AtmTarget& x, const AtmField& atm) {
   auto sorig = std::make_shared<Vector>(atm[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};  // , .atm = x.type};
+  const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
   x.inverse_jacobian = rinv;
   x.transform_state  = rfwd;
@@ -121,7 +121,7 @@ void make_relfit(Jacobian::AtmTarget& x, const AtmField& atm) {
 void make_relfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
   auto sorig = std::make_shared<Vector>(surf[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};  // , .surf = x.type};
+  const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
   x.inverse_jacobian = rinv;
   x.transform_state  = rfwd;
@@ -131,7 +131,7 @@ void make_relfit(Jacobian::SubsurfaceTarget& x,
                  const SubsurfaceField& subsurf) {
   auto sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};  // , .subsurf = x.type};
+  const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
   x.inverse_jacobian = rinv;
   x.transform_state  = rfwd;

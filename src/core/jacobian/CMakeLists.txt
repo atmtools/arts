@@ -4,6 +4,7 @@ add_library(jacobian STATIC
     retrieval_target.cc
     jac_polyfit.cc
     jac_rel.cc
+    jac_log.cc
 )
 
 target_link_libraries(jacobian PUBLIC atm subsurface surface sensor scattering lbl)
