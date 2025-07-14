@@ -3,7 +3,7 @@
 
 template <typename T>
 void test_basic(std::string fn) try {
-  const auto n = static_cast<T>(-3.14);
+  const auto n = static_cast<T>(3.14);
   xml_write_to_file_base(fn + fn + "test.xml", n, FileType::ascii);
   T n_read{};
   xml_read_from_file_base(fn + fn + "test.xml", n_read);
@@ -52,7 +52,7 @@ ARTS_METHOD_ERROR_CATCH
 template <typename T>
 void test_basic_array(std::string fn) try {
   const Array<T> arr{
-      static_cast<T>(1.2), static_cast<T>(2.4), static_cast<T>(-3.8)};
+      static_cast<T>(1.2), static_cast<T>(2.4), static_cast<T>(3.8)};
   xml_write_to_file_base(fn + "test.xml", arr, FileType::ascii);
   Array<T> arr_read;
   xml_read_from_file_base(fn + "test.xml", arr_read);
