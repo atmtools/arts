@@ -581,13 +581,6 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   atmospheric_field[AtmKey::mag_u] = magu;
   atmospheric_field[AtmKey::mag_v] = magv;
   atmospheric_field[AtmKey::mag_w] = magw;
-
-  if (magu.f.target<Atm::IGRF13>() == nullptr)
-    throw std::runtime_error("Bad ABI: magu");
-  if (magv.f.target<Atm::IGRF13>() == nullptr)
-    throw std::runtime_error("Bad ABI: magv");
-  if (magw.f.target<Atm::IGRF13>() == nullptr)
-    throw std::runtime_error("Bad ABI: magw");
 }
 
 void atmospheric_fieldHydrostaticPressure(
