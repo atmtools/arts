@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<arts format="binary" version="1">
-<Sparse nrows="10" ncols="10">
+<arts version="3" format="binary">
+<Sparse ncols="10" nrows="10">
 <RowIndex nelem="10">
 </RowIndex>
 <ColIndex nelem="10">
