@@ -13,7 +13,6 @@
 #include <variant>
 
 #include "atm.h"
-#include "atm_mag_field.h"
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
@@ -23,7 +22,6 @@
 #include "interpolation.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
-#include "operator_io.h"
 #include "operators.h"
 #include "predef_data.h"
 #include "predefined_absorption_models.h"

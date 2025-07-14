@@ -30,13 +30,12 @@ add_subdirectory(xml)
 add_subdirectory(coretypes)
 add_subdirectory(tests)
 add_subdirectory(sun)
-add_subdirectory(gravity)
+add_subdirectory(functional)
+add_subdirectory(igrf)
 
 # #####
 add_library(artscore STATIC
   gas_scattering.cc
-  geodetic.cc
-  igrf13.cc
   interpolation.cc
   minimize.cc
   optproperties.cc
@@ -72,7 +71,6 @@ target_link_libraries(artscore PUBLIC
   xml_io
   rng
   sun
-  gravity
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

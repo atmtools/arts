@@ -24,6 +24,7 @@
 #include <utility>
 #include <variant>
 
+#include <functional_numeric_ternary.h>
 #include "matpack_mdspan_helpers_gridded_data_t.h"
 
 AtmKey to_wind(const String &);

@@ -347,9 +347,9 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
       "Ellipsoid has bad semi-minor axis {:B,}",
       surface_field.ellipsoid)
 
-  gravity_operator = NumericTernaryOperator{
-      Gravity{.GM = Constant::G * mass,
-              .a  = surface_field.ellipsoid[0],
-              .e  = std::sqrt(1 - Math::pow2(surface_field.ellipsoid[1] /
-                                            surface_field.ellipsoid[0]))}};
+  gravity_operator = NumericTernaryOperator{EllipsoidGravity{
+      .GM = Constant::G * mass,
+      .a  = surface_field.ellipsoid[0],
+      .e  = std::sqrt(1 - Math::pow2(surface_field.ellipsoid[1] /
+                                    surface_field.ellipsoid[0]))}};
 }

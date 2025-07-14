@@ -19,7 +19,7 @@
 #include <variant>
 #include <vector>
 
-#include "atm_field_interp.h"
+#include "functional_atm_field_interp.h"
 
 void Atm::Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<SortedGriddedField3>(data)) {

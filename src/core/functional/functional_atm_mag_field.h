@@ -5,8 +5,6 @@
 #include <matpack.h>
 #include <xml.h>
 
-#include "xml_io_stream_aggregate.h"
-
 namespace Atm {
 struct IGRF13 {
   static constexpr Vector2 ell{6378137., 6356752.314245};

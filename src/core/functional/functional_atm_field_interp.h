@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atm_field.h>
 #include <matpack.h>
 
 #include <variant>
@@ -46,5 +45,8 @@ Numeric get(const SortedGriddedField3& f,
 Numeric get(const Numeric, const Numeric, const Numeric, const Numeric);
 
 // Functional interpolation
-Numeric get(const FunctionalData&, const Numeric, const Numeric, const Numeric);
+Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>&,
+            const Numeric,
+            const Numeric,
+            const Numeric);
 }  // namespace Atm::interp

@@ -1,4 +1,4 @@
-#include "atm_field_interp.h"
+#include "functional_atm_field_interp.h"
 
 namespace Atm::interp {
 altlags altlag(const AscendingGrid& xs, Numeric x) {
@@ -88,15 +88,11 @@ Numeric get(const SortedGriddedField3& f,
       lon);
 }
 
-
-Numeric get(const Numeric num,
-                      const Numeric,
-                      const Numeric,
-                      const Numeric) {
+Numeric get(const Numeric num, const Numeric, const Numeric, const Numeric) {
   return num;
 }
 
-Numeric get(const FunctionalData &fd,
+Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>& fd,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {

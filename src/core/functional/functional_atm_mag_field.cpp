@@ -1,4 +1,4 @@
-#include "atm_mag_field.h"
+#include "functional_atm_mag_field.h"
 
 #include <igrf13.h>
 

@@ -1,6 +1,6 @@
-#include "atm_pressure_field.h"
+#include "functional_atm_pressure_field.h"
 
-#include "atm_field_interp.h"
+#include "functional_atm_field_interp.h"
 
 namespace Atm {
 Numeric HydrostaticPressure::step(Numeric p, Numeric h, Numeric d) const {
