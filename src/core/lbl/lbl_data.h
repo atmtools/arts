@@ -10,6 +10,7 @@
 #include <enumsQuantumNumberType.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
+#include <xml.h>
 
 #include <format>
 #include <limits>
@@ -365,4 +366,30 @@ struct std::formatter<lbl::line_key> {
     const std::string_view sep = tags.sep();
     return tags.format(ctx, v.band, sep, v.line, sep, v.spec);
   }
+};
+
+template <>
+struct xml_io_stream<AbsorptionBand> {
+  static constexpr std::string_view type_name = "AbsorptionBand"sv;
+
+  static void write(std::ostream& os,
+                    const AbsorptionBand& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   AbsorptionBand& x,
+                   bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<LblLineKey> {
+  static constexpr std::string_view type_name = "LblLineKey"sv;
+
+  static void write(std::ostream& os,
+                    const LblLineKey& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, LblLineKey& x, bifstream* pbifs = nullptr);
 };

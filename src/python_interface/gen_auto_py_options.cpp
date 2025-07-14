@@ -59,26 +59,28 @@ void enum_{0}(py::module_& m) {{
 )-x-",
              wso.name);
 
-  static std::array pykeywords{"None", "any", "all", "print"};
+  constexpr std::array pykeywords{
+      "None"sv, "any"sv, "all"sv, "print"sv, "lambda"sv};
   constexpr std::string_view ignore_str =
       "-+={§±!@#$%^&*()-+=]}[{\\|'\";:?/.>,<`~}] ";
-  static std::set<char> ignore(ignore_str.begin(), ignore_str.end());
-  auto contains_invalid_chars = [](const std::string& str) {
-    for (auto ch : str)
-      if (std::ranges::binary_search(ignore, ch)) return true;
-    return false;
-  };
+  auto contains_invalid_chars =
+      [ignore = std::set<char>(ignore_str.begin(), ignore_str.end())](
+          const std::string& str) {
+        for (auto ch : str)
+          if (stdr::binary_search(ignore, ch)) return true;
+        return false;
+      };
   for (auto& value : wso.values_and_desc) {
     // Skip last element in value which contains the description
     for (Size i = 0; i < value.size() - 1; i++) {
       auto& x = value[i];
       if (nonstd::isdigit(x.front()) or contains_invalid_chars(x) or
-          std::ranges::any_of(value | std::views::take(i), Cmp::eq(x)))
+          stdr::any_of(value | stdv::take(i), Cmp::eq(x)))
         continue;
 
       os << "  _g" << wso.name << ".def_prop_ro_static(\"" << x;
 
-      if (std::ranges::any_of(pykeywords, Cmp::eq(x))) {
+      if (stdr::any_of(pykeywords, Cmp::eq(x))) {
         os << '_';
       }
 

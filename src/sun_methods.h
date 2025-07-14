@@ -3,7 +3,7 @@
 #include <sun.h>
 
 class Agenda;
-class Workspace;
+struct Workspace;
 
 /*===========================================================================
   === Functions in sun.h

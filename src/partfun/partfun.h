@@ -3,6 +3,9 @@
 
 #include <isotopologues.h>
 
+#include "partition_function_data.h"
+#include "xml_io_partfun.h"
+
 namespace PartitionFunctions {
 Numeric Q(Numeric T, const SpeciesIsotope& ir);
 

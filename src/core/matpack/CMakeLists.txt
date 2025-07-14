@@ -1,5 +1,7 @@
 add_library(matpack STATIC
-  double_imanip.cc
+  xml_io_stream_matpack_mdspan.cc
+  xml_io_stream_matpack_mdspan_helpers.cc
+  xml_io_stream_matpack_range.cc
   lin_alg.cc
   matpack_sparse.cc
   rational.cc
@@ -9,13 +11,14 @@ add_library(matpack STATIC
   math_funcs.cc
   matpack_mdspan_helpers_band_matrix.cc
   matpack_mdspan_helpers_eigen.cc
+  matpack_mdspan_view_t.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
 
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
-target_link_libraries(matpack PUBLIC coretypes util arts_enum_options Eigen3::Eigen)
+target_link_libraries(matpack PUBLIC coretypes util binio arts_enum_options Eigen3::Eigen xml_io)
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")
 

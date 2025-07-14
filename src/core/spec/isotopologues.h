@@ -4,6 +4,7 @@
 #include <enumsSpeciesEnum.h>
 #include <mystring.h>
 #include <nonstd.h>
+#include <xml_io_stream.h>
 
 #include <array>
 #include <limits>
@@ -74,7 +75,6 @@ struct Isotope {
     return std::tie(spec, isotname) > std::tie(that.spec, that.isotname);
   }
 };
-
 }  // namespace Species
 
 template <>
@@ -897,4 +897,18 @@ struct std::formatter<SpeciesIsotopologueRatios> {
 
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<SpeciesIsotope> {
+  static constexpr std::string_view type_name = "SpeciesIsotope"sv;
+
+  static void write(std::ostream& os,
+                    const SpeciesIsotope& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SpeciesIsotope& x,
+                   bifstream* pbifs = nullptr);
 };

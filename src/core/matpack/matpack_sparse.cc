@@ -23,6 +23,9 @@
 
 #include "matpack_sparse.h"
 
+#include <double_imanip.h>
+#include <xml_io_base.h>
+
 #include <algorithm>
 #include <cmath>
 #include <istream>
@@ -673,4 +676,182 @@ Range get_rowindex_for_mblock(const Sparse& sensor_response,
 std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a) {
   for (auto& x : a) os << x << '\n';
   return os;
+}
+
+void xml_io_stream<Sparse>::write(std::ostream& os_xml,
+                                  const Sparse& sparse,
+                                  bofstream* pbofs,
+                                  std::string_view name) {
+  XMLTag sparse_tag;
+  XMLTag row_tag;
+  XMLTag col_tag;
+  XMLTag data_tag;
+  XMLTag close_tag;
+
+  sparse_tag.set_name(type_name);
+  if (name.length()) sparse_tag.add_attribute("name", name);
+  sparse_tag.add_attribute("nrows", sparse.nrows());
+  sparse_tag.add_attribute("ncols", sparse.ncols());
+  //sparse_tag.add_attribute ("nnz", sparse.nnz());
+  row_tag.set_name("RowIndex");
+  row_tag.add_attribute("nelem", sparse.nnz());
+  col_tag.set_name("ColIndex");
+  col_tag.add_attribute("nelem", sparse.nnz());
+  data_tag.set_name("SparseData");
+  data_tag.add_attribute("nelem", sparse.nnz());
+
+  sparse_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  row_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  ArrayOfIndex rowind(sparse.nnz()), colind(sparse.nnz());
+  Vector data(sparse.nnz());
+  sparse.list_elements(data, rowind, colind);
+
+  // Write row indices.
+
+  for (Index i = 0; i < sparse.nnz(); i++) {
+    if (pbofs)
+      //FIXME: It should be the longer lines
+      *pbofs << rowind[i];
+    else
+      std::println(os_xml, "{}", rowind[i]);
+  }
+
+  close_tag.set_name("/RowIndex");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  col_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  // Write column indices.
+
+  for (Index i = 0; i < sparse.nnz(); i++) {
+    if (pbofs)
+      //FIXME: It should be the longer lines
+      *pbofs << colind[i];
+    else
+      std::println(os_xml, "{}", colind[i]);
+  }
+
+  close_tag.set_name("/ColIndex");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  data_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+  xml_set_stream_precision(os_xml);
+
+  // Write data.
+
+  for (Index i = 0; i < sparse.nnz(); i++) {
+    if (pbofs)
+      *pbofs << data[i];
+    else
+      std::print(os_xml, "{} ", data[i]);
+  }
+  std::println(os_xml);
+  close_tag.set_name("/SparseData");
+  close_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+
+  close_tag.set_end_name(type_name);
+  close_tag.write_to_stream(os_xml);
+
+  std::println(os_xml);
+}
+
+void xml_io_stream<Sparse>::read(std::istream& is_xml,
+                                 Sparse& sparse,
+                                 bifstream* pbifs) {
+  XMLTag tag;
+  Index nrows, ncols, nnz;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Sparse");
+
+  tag.get_attribute_value("nrows", nrows);
+  tag.get_attribute_value("ncols", ncols);
+  sparse.resize(nrows, ncols);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("RowIndex");
+  tag.get_attribute_value("nelem", nnz);
+
+  ArrayOfIndex rowind(nnz), colind(nnz);
+  Vector data(nnz);
+
+  for (Index i = 0; i < nnz; i++) {
+    if (pbifs) {
+      *pbifs >> rowind[i];
+      if (pbifs->fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Row index: " << i;
+        xml_data_parse_error(tag, os.str());
+      }
+    } else {
+      is_xml >> rowind[i];
+      if (is_xml.fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Row index: " << i;
+        xml_data_parse_error(tag, os.str());
+      }
+    }
+  }
+  tag.read_from_stream(is_xml);
+  tag.check_name("/RowIndex");
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("ColIndex");
+
+  for (Index i = 0; i < nnz; i++) {
+    if (pbifs) {
+      *pbifs >> colind[i];
+      if (pbifs->fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Column index: " << i;
+        xml_data_parse_error(tag, os.str());
+      }
+    } else {
+      is_xml >> colind[i];
+      if (is_xml.fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Column index: " << i;
+        xml_data_parse_error(tag, os.str());
+      }
+    }
+  }
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ColIndex");
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("SparseData");
+
+  if (pbifs) {
+    pbifs->readDoubleArray(data.data_handle(), nnz);
+  } else {
+    for (Index i = 0; i < nnz; i++) {
+      is_xml >> double_imanip() >> data[i];
+      if (is_xml.fail()) {
+        std::ostringstream os;
+        os << " near "
+           << "\n  Data element: " << i;
+        xml_data_parse_error(tag, os.str());
+      }
+    }
+  }
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SparseData");
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Sparse");
+
+  sparse.insert_elements(nnz, rowind, colind, data);
 }

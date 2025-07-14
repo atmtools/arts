@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array.h>
+#include <xml.h>
 
 #include "rtepack_concepts.h"
 
@@ -241,4 +242,20 @@ struct std::formatter<rtepack::muelmat> {
                               FmtContext &ctx) const {
     return fmt.format(v, ctx);
   }
+};
+
+template <>
+struct xml_io_stream<rtepack::muelmat> {
+  static constexpr std::string_view type_name = "Muelmat"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::muelmat &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::muelmat &x,
+                   bifstream *pbifs = nullptr);
+  static void put(std::span<const rtepack::muelmat> x, bofstream *);
+  static void get(std::span<rtepack::muelmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::muelmat> x, std::istream &);
 };

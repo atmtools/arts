@@ -1,16 +1,19 @@
 #pragma once
 
 #include <matpack.h>
+#include <operators.h>
+#include <xml.h>
 
 #include <format>
-#include <functional>
 #include <iosfwd>
 
 namespace disort {
 struct BDRF {
-  using func = std::function<void(
-      MatrixView, const ConstVectorView&, const ConstVectorView&)>;
-  func f{[](auto, auto&, auto&) {
+  using func_t = CustomOperator<void,
+                                MatrixView,
+                                const ConstVectorView&,
+                                const ConstVectorView&>;
+  func_t f{[](auto, auto&, auto&) {
     throw std::runtime_error("BDRF function not set");
   }};
 
@@ -856,4 +859,30 @@ negative_boundary_condition:
 
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<DisortBDRF> {
+  static constexpr std::string_view type_name = "DisortBDRF"sv;
+
+  static void write(std::ostream& os,
+                    const DisortBDRF& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, DisortBDRF& x, bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<DisortSettings> {
+  static constexpr std::string_view type_name = "DisortSettings"sv;
+
+  static void write(std::ostream& os,
+                    const DisortSettings& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   DisortSettings& x,
+                   bifstream* pbifs = nullptr);
 };

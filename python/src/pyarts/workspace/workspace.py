@@ -68,13 +68,13 @@ class Workspace(cxx.CxxWorkspace):
 
     def __copy__(self):
         x = super().__copy__()
-        out = Workspace()
+        out = Workspace(False)
         out.swap(x)
         return out
 
     def __deepcopy__(self, *args):
         x = super().__deepcopy__(*args)
-        out = Workspace()
+        out = Workspace(False)
         out.swap(x)
         return out
 
@@ -83,6 +83,12 @@ class Workspace(cxx.CxxWorkspace):
 
     def __setstate__(self, d):
         super().__setstate__(d["Workspace"])
+
+    @staticmethod
+    def fromxml(file):
+        x = Workspace(False)
+        x.readxml(file)
+        return x
 
 
 def _get_attrs(expr):

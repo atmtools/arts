@@ -8,6 +8,7 @@ add_library(rtepack STATIC
   rtepack_stokes_vector.cc
   rtepack_surface.cc
   rtepack_transmission.cc
+  rtepack_spectral_matrix.cc
 )
 target_include_directories(rtepack PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(rtepack PUBLIC matpack physics)

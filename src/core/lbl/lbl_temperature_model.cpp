@@ -9,7 +9,7 @@
 namespace lbl::temperature {
 data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
   ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
-  ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
+  ARTS_USER_ERROR_IF(auto n = model_size(t);
                      n != std::numeric_limits<Size>::max() and
                          n != static_cast<Size>(x.size()),
                      "Invalid number of parameters for model {}"
@@ -222,12 +222,12 @@ DERIVATIVES(T)
 #undef DERIVATIVES
 #undef SWITCHCASE
 
-std::istream& operator>>(std::istream& is, temperature::data& x) {
+std::istream& operator>>(std::istream& is, temperature::data& x) try {
   String name;
   is >> name;
   x.t = to<LineShapeModelType>(name);
 
-  Size n = model_size[static_cast<Size>(x.t)];
+  Size n = model_size(x.t);
   if (n == std::numeric_limits<Size>::max()) {
     is >> n;
   }
@@ -235,6 +235,9 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
 
   for (auto& v : x.x) is >> double_imanip() >> v;
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading LineShapeTemperatureModel:\n{}", e.what()));
 }
 
 LineShapeModelType data::Type() const { return t; }
@@ -282,3 +285,38 @@ bool data::is_zero() const {
   return true;
 }
 }  // namespace lbl::temperature
+
+void xml_io_stream<lbl::temperature::data>::write(
+    std::ostream& os,
+    const lbl::temperature::data& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.Type(), pbofs);
+  xml_write_to_stream(os, x.X(), pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
+                                                 lbl::temperature::data& x,
+                                                 bifstream* pbifs) try {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  LineShapeModelType t;
+  Vector v;
+
+  xml_read_from_stream(is, t, pbifs);
+  xml_read_from_stream(is, v, pbifs);
+
+  x = lbl::temperature::data{t, v};
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading {}:\n{}", type_name, e.what()));
+}

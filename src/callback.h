@@ -1,17 +1,20 @@
 #ifndef callback_h
 #define callback_h
 
-class Workspace;
+struct Workspace;
 
 #include <format_tags.h>
+#include <functional.h>
+#include <operators.h>
+#include <xml.h>
 
-#include <functional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 struct CallbackOperator {
-  std::function<void(Workspace&)> callback{};
+  using func_t = CustomOperator<void, Workspace&>;
+  func_t callback{};
   std::vector<std::string> inputs{};
   std::vector<std::string> outputs{};
 
@@ -53,6 +56,20 @@ struct std::formatter<CallbackOperator> {
     tags.add_if_bracket(ctx, '}');
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<CallbackOperator> {
+  static constexpr std::string_view type_name = "CallbackOperator"sv;
+
+  static void write(std::ostream& os,
+                    const CallbackOperator& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   CallbackOperator& x,
+                   bifstream* pbifs = nullptr);
 };
 
 #endif

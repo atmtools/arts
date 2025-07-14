@@ -278,3 +278,42 @@ std::vector<path> spectral_radiance::from_path(
       propagation_path, alt, lat, lon, ellipsoid);
 }
 }  // namespace fwd
+
+void xml_io_stream<SpectralRadianceOperator>::write(
+    std::ostream& os,
+    const SpectralRadianceOperator& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.alt, pbofs);
+  xml_write_to_stream(os, x.lat, pbofs);
+  xml_write_to_stream(os, x.lon, pbofs);
+  xml_write_to_stream(os, x.atm, pbofs);
+  xml_write_to_stream(os, x.pm, pbofs);
+  xml_write_to_stream(os, x.spectral_radiance_surface, pbofs);
+  xml_write_to_stream(os, x.spectral_radiance_space, pbofs);
+  xml_write_to_stream(os, x.ellipsoid, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<SpectralRadianceOperator>::read(std::istream& is,
+                                                   SpectralRadianceOperator& x,
+                                                   bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.alt, pbifs);
+  xml_read_from_stream(is, x.lat, pbifs);
+  xml_read_from_stream(is, x.lon, pbifs);
+  xml_read_from_stream(is, x.atm, pbifs);
+  xml_read_from_stream(is, x.pm, pbifs);
+  xml_read_from_stream(is, x.spectral_radiance_surface, pbifs);
+  xml_read_from_stream(is, x.spectral_radiance_space, pbifs);
+  xml_read_from_stream(is, x.ellipsoid, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

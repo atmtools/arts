@@ -1,7 +1,7 @@
 #pragma once
 
-#include <matpack.h>
 #include <enumsPartitionFunctionsType.h>
+#include <matpack.h>
 
 namespace PartitionFunctions {
 struct Data {

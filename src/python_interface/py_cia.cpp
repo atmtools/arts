@@ -13,13 +13,12 @@
 #include "isotopologues.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 #include "physics_funcs.h"
-#include "py_macros.h"
 #include "species_tags.h"
 
 namespace Python {
 void py_cia(py::module_& m) try {
   py::class_<CIARecord> cia(m, "CIARecord");
-  workspace_group_interface(cia);
+  generic_interface(cia);
   cia.def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
       .def_prop_ro(
           "specs",
@@ -145,7 +144,7 @@ Returns
   auto acr =
       py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(
           m, "ArrayOfCIARecord");
-  workspace_group_interface(acr);
+  generic_interface(acr);
   vector_interface(acr);
 
   acr.def(

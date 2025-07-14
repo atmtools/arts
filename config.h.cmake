@@ -13,7 +13,7 @@
 #cmakedefine FORTRAN_COMPILER "${FORTRAN_COMPILER}"
 
 /* Default directory for ARTS include files */
-#cmakedefine ARTS_DEFAULT_INCLUDE_DIR "${ARTS_DEFAULT_INCLUDE_DIR}"
+#cmakedefine ARTS_SOURCE_DIR "${ARTS_SOURCE_DIR}"
 
 /* Define system constant */
 #cmakedefine LINUX 1
@@ -47,9 +47,6 @@
 
 /* Define to compile with documentation server support */
 #cmakedefine ENABLE_DOCSERVER
-
-/* Define to compile with NetCDF support */
-#cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
 
 /* Define to compile with FFTW support */
 #cmakedefine ENABLE_FFTW ${FFTW_FOUND}

@@ -58,3 +58,18 @@ struct std::formatter<SpectralRadianceTransformOperator> {
         ctx.out(), "<SpectralRadianceTransformOperator::{0}>"sv, op.type);
   }
 };
+
+template <>
+struct xml_io_stream<SpectralRadianceTransformOperator> {
+  static constexpr std::string_view type_name =
+      "SpectralRadianceTransformOperator"sv;
+
+  static void write(std::ostream& os,
+                    const SpectralRadianceTransformOperator& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SpectralRadianceTransformOperator& x,
+                   bifstream* pbifs = nullptr);
+};

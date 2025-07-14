@@ -59,7 +59,7 @@ void band_data::sort(LineByLineVariable v) {
   }
 }
 
-std::istream& operator>>(std::istream& is, line& x) {
+std::istream& operator>>(std::istream& is, line& x) try {
   Size s{};
 
   is >> double_imanip() >> x.f0 >> x.a >> x.e0 >> x.gu >> x.gl;
@@ -69,6 +69,9 @@ std::istream& operator>>(std::istream& is, line& x) {
   ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}"sv, x.qn)
 
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading line data:\n{}\n{:IO}", e.what(), x));
 }
 
 //! Gets all the lines between (f0-cutoff, f1+cutoff) and the offset from the front
@@ -289,8 +292,25 @@ Size count_lines(
 }  // namespace lbl
 
 std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
-  const std::string_view sep = tags.sep();
+  if (tags.io) {
+    return tags.vformat(v.f0,
+                        ' ',
+                        v.a,
+                        ' ',
+                        v.e0,
+                        ' ',
+                        v.gu,
+                        ' ',
+                        v.gl,
+                        ' ',
+                        v.z,
+                        ' ',
+                        v.ls,
+                        ' ',
+                        v.qn);
+  }
 
+  const std::string_view sep = tags.sep();
   std::string out =
       tags.vformat(v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
   if (not tags.short_str) out += tags.vformat(sep, v.z, sep, v.ls, sep, v.qn);
@@ -300,6 +320,10 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
 
 std::string std::formatter<lbl::band_data>::to_string(
     const lbl::band_data& v) const {
+  if (tags.io) {
+    return tags.vformat(v.lineshape, ' ', v.cutoff, ' ', v.cutoff_value);
+  }
+
   const auto sep = tags.sep();
 
   std::string out =
@@ -307,4 +331,103 @@ std::string std::formatter<lbl::band_data>::to_string(
   if (not tags.short_str) out += tags.vformat(sep, v.lines);
 
   return out;
+}
+
+void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
+                                          const AbsorptionBand& data,
+                                          bofstream* pbofs,
+                                          std::string_view name) {
+  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+
+  XMLTag open_tag;
+  open_tag.set_name("AbsorptionBandData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("lineshape", String{toString(data.lineshape)});
+  open_tag.add_attribute("cutoff_type", String{toString(data.cutoff)});
+  open_tag.add_attribute("cutoff_value", data.cutoff_value);
+  open_tag.add_attribute("nelem", static_cast<Index>(data.lines.size()));
+  open_tag.write_to_stream(os);
+  std::println(os);
+
+  for (auto& line : data) {
+    std::println(os, "{:IO}", line);
+  }
+
+  XMLTag close_tag;
+  close_tag.set_name("/AbsorptionBandData");
+  close_tag.write_to_stream(os);
+  std::println(os);
+}
+
+void xml_io_stream<AbsorptionBand>::read(std::istream& is,
+                                         AbsorptionBand& data,
+                                         bifstream* pbifs) try {
+  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+
+  String tag;
+  Index nelem;
+
+  XMLTag open_tag;
+  open_tag.read_from_stream(is);
+  open_tag.check_name("AbsorptionBandData");
+
+  open_tag.get_attribute_value("lineshape", tag);
+  data.lineshape = to<LineByLineLineshape>(tag);
+
+  open_tag.get_attribute_value("cutoff_type", tag);
+  data.cutoff = to<LineByLineCutoffType>(tag);
+
+  open_tag.get_attribute_value("cutoff_value", data.cutoff_value);
+
+  open_tag.get_attribute_value("nelem", nelem);
+  data.lines.resize(0);
+  data.lines.reserve(nelem);
+
+  for (Index j = 0; j < nelem; j++) {
+    is >> data.lines.emplace_back();
+  }
+
+  XMLTag close_tag;
+  close_tag.read_from_stream(is);
+  close_tag.check_name("/AbsorptionBandData");
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading AbsorptionBandData:\n{}", e.what()));
+}
+
+void xml_io_stream<LblLineKey>::write(std::ostream& os,
+                                      const LblLineKey& x,
+                                      bofstream* pbofs,
+                                      std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.band, pbofs);
+  xml_write_to_stream(os, x.line, pbofs);
+  xml_write_to_stream(os, x.spec, pbofs);
+  xml_write_to_stream(os, x.ls_var, pbofs);
+  xml_write_to_stream(os, x.ls_coeff, pbofs);
+  xml_write_to_stream(os, x.var, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<LblLineKey>::read(std::istream& is,
+                                     LblLineKey& x,
+                                     bifstream* pbifs) try {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.band, pbifs);
+  xml_read_from_stream(is, x.line, pbifs);
+  xml_read_from_stream(is, x.spec, pbifs);
+  xml_read_from_stream(is, x.ls_var, pbifs);
+  xml_read_from_stream(is, x.ls_coeff, pbifs);
+  xml_read_from_stream(is, x.var, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading LblLineKey:\n{}", e.what()));
 }

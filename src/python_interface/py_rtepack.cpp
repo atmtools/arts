@@ -135,7 +135,7 @@ void py_rtepack(py::module_ &m) try {
           [](Stokvec &x, Stokvec &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(sv);
-  workspace_group_interface(sv);
+  generic_interface(sv);
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
   py::implicitly_convertible<String, Stokvec>();
 
@@ -146,27 +146,27 @@ void py_rtepack(py::module_ &m) try {
   vsv.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Stokvec>>());
   rtepack_array<Stokvec, 1, 4>(vsv);
-  workspace_group_interface(vsv);
+  generic_interface(vsv);
 
   py::class_<StokvecMatrix> msv(m, "StokvecMatrix");
   rtepack_array<Stokvec, 2, 4>(msv);
-  workspace_group_interface(msv);
+  generic_interface(msv);
 
   py::class_<StokvecTensor3> t3sv(m, "StokvecTensor3");
   rtepack_array<Stokvec, 3, 4>(t3sv);
-  workspace_group_interface(t3sv);
+  generic_interface(t3sv);
 
   py::class_<StokvecTensor4> t4sv(m, "StokvecTensor4");
   rtepack_array<Stokvec, 4, 4>(t4sv);
-  workspace_group_interface(t4sv);
+  generic_interface(t4sv);
 
   py::class_<StokvecTensor5> t5sv(m, "StokvecTensor5");
   rtepack_array<Stokvec, 5, 4>(t5sv);
-  workspace_group_interface(t5sv);
+  generic_interface(t5sv);
 
   py::class_<StokvecTensor6> t6sv(m, "StokvecTensor6");
   rtepack_array<Stokvec, 6, 4>(t6sv);
-  workspace_group_interface(t6sv);
+  generic_interface(t6sv);
 
   py::class_<Propmat> pm(m, "Propmat");
   pm.def(py::init_implicit<Numeric>())
@@ -194,7 +194,7 @@ void py_rtepack(py::module_ &m) try {
           [](Propmat &x, Propmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(pm);
-  workspace_group_interface(pm);
+  generic_interface(pm);
 
   py::bind_vector<std::vector<Propmat>>(m, "ArrayOfPropmat").doc() =
       "A list of :class:`~pyarts.arts.Propmat`";
@@ -203,11 +203,11 @@ void py_rtepack(py::module_ &m) try {
   vpm.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Propmat>>());
   rtepack_array<Propmat, 1, 7>(vpm);
-  workspace_group_interface(vpm);
+  generic_interface(vpm);
 
   py::class_<PropmatMatrix> mpm(m, "PropmatMatrix");
   rtepack_array<Propmat, 2, 7>(mpm);
-  workspace_group_interface(mpm);
+  generic_interface(mpm);
 
   py::class_<Muelmat> mm(m, "Muelmat");
   mm.def(py::init_implicit<Numeric>())
@@ -231,7 +231,7 @@ void py_rtepack(py::module_ &m) try {
           [](Muelmat &x, Muelmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(mm);
-  workspace_group_interface(mm);
+  generic_interface(mm);
 
   py::bind_vector<std::vector<Muelmat>>(m, "ArrayOfMuelmat").doc() =
       "A list of :class:`~pyarts.arts.Muelmat`";
@@ -240,15 +240,15 @@ void py_rtepack(py::module_ &m) try {
   vmm.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Muelmat>>());
   rtepack_array<Muelmat, 1, 4, 4>(vmm);
-  workspace_group_interface(vmm);
+  generic_interface(vmm);
 
   py::class_<MuelmatMatrix> mmm(m, "MuelmatMatrix");
   rtepack_array<Muelmat, 2, 4, 4>(mmm);
-  workspace_group_interface(mmm);
+  generic_interface(mmm);
 
   py::class_<MuelmatTensor3> mt3(m, "MuelmatTensor3");
   rtepack_array<Muelmat, 3, 4, 4>(mt3);
-  workspace_group_interface(mt3);
+  generic_interface(mt3);
 
   py::class_<Specmat> cmm(m, "Specmat");
   cmm.def(py::init_implicit<Complex>())
@@ -272,7 +272,7 @@ void py_rtepack(py::module_ &m) try {
           [](Specmat &x, Specmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(cmm);
-  workspace_group_interface(cmm);
+  generic_interface(cmm);
 
   auto asp =
       py::bind_vector<std::vector<Specmat>, py::rv_policy::reference_internal>(
@@ -285,11 +285,11 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init_implicit<std::vector<Specmat>>());
   rtepack_array<Specmat, 1, 4, 4>(vcmm);
   vcmm.doc() = "A vector of :class:`~pyarts.arts.Specmat`";
-  //workspace_group_interface(vcmm);
+  //generic_interface(vcmm);
 
   py::class_<SpecmatMatrix> mcmm(m, "SpecmatMatrix");
   rtepack_array<Specmat, 2, 4, 4>(mcmm);
-  workspace_group_interface(mcmm);
+  generic_interface(mcmm);
 
   py::class_<SpecmatTensor3> cmt3(m, "SpecmatTensor3");
   rtepack_array<Specmat, 3, 4, 4>(cmt3);
@@ -298,100 +298,100 @@ void py_rtepack(py::module_ &m) try {
   auto a1 =
       py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(
           m, "ArrayOfPropmatVector");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
   auto a2 = py::bind_vector<ArrayOfArrayOfPropmatVector,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropmatVector");
-  workspace_group_interface(a2);
+  generic_interface(a2);
   vector_interface(a2);
   auto a3 =
       py::bind_vector<ArrayOfPropmatMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfPropmatMatrix");
-  workspace_group_interface(a3);
+  generic_interface(a3);
   vector_interface(a3);
   auto a4 = py::bind_vector<ArrayOfArrayOfPropmatMatrix,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfPropmatMatrix");
-  workspace_group_interface(a4);
+  generic_interface(a4);
   vector_interface(a4);
 
   auto b1 =
       py::bind_vector<ArrayOfMuelmatVector, py::rv_policy::reference_internal>(
           m, "ArrayOfMuelmatVector");
-  workspace_group_interface(b1);
+  generic_interface(b1);
   vector_interface(b1);
   auto b2 = py::bind_vector<ArrayOfArrayOfMuelmatVector,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfMuelmatVector");
-  workspace_group_interface(b2);
+  generic_interface(b2);
   vector_interface(b2);
   auto b3 =
       py::bind_vector<ArrayOfMuelmatMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfMuelmatMatrix");
-  workspace_group_interface(b3);
+  generic_interface(b3);
   vector_interface(b3);
   auto b4 = py::bind_vector<ArrayOfArrayOfMuelmatMatrix,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfMuelmatMatrix");
-  workspace_group_interface(b4);
+  generic_interface(b4);
   vector_interface(b4);
   auto b5 =
       py::bind_vector<ArrayOfMuelmatTensor3, py::rv_policy::reference_internal>(
           m, "ArrayOfMuelmatTensor3");
-  workspace_group_interface(b5);
+  generic_interface(b5);
   vector_interface(b5);
 
   auto c1 =
       py::bind_vector<ArrayOfStokvecVector, py::rv_policy::reference_internal>(
           m, "ArrayOfStokvecVector");
-  workspace_group_interface(c1);
+  generic_interface(c1);
   vector_interface(c1);
   auto c2 = py::bind_vector<ArrayOfArrayOfStokvecVector,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfStokvecVector");
-  workspace_group_interface(c2);
+  generic_interface(c2);
   vector_interface(c2);
   auto c3 =
       py::bind_vector<ArrayOfStokvecMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfStokvecMatrix");
-  workspace_group_interface(c3);
+  generic_interface(c3);
   vector_interface(c3);
   auto c4 = py::bind_vector<ArrayOfArrayOfStokvecMatrix,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfArrayOfStokvecMatrix");
-  workspace_group_interface(c4);
+  generic_interface(c4);
   vector_interface(c4);
   auto c5 =
       py::bind_vector<ArrayOfStokvecTensor3, py::rv_policy::reference_internal>(
           m, "ArrayOfStokvecTensor3");
-  workspace_group_interface(c5);
+  generic_interface(c5);
   vector_interface(c5);
 
   //   auto d1 =
   //       py::bind_vector<ArrayOfSpecmatVector, py::rv_policy::reference_internal>(
   //           m, "ArrayOfSpecmatVector");
-  //   workspace_group_interface(d1);
+  //   generic_interface(d1);
   //   vector_interface(d1);
   //   auto d2 = py::bind_vector<ArrayOfArrayOfSpecmatVector,
   //                             py::rv_policy::reference_internal>(
   //       m, "ArrayOfArrayOfSpecmatVector");
-  //   workspace_group_interface(d2);
+  //   generic_interface(d2);
   //   vector_interface(d2);
   auto d3 =
       py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(
           m, "ArrayOfSpecmatMatrix");
-  workspace_group_interface(d3);
+  generic_interface(d3);
   vector_interface(d3);
   //   auto d4 = py::bind_vector<ArrayOfArrayOfSpecmatMatrix,
   //                             py::rv_policy::reference_internal>(
   //       m, "ArrayOfArrayOfSpecmatMatrix");
-  //   workspace_group_interface(d4);
+  //   generic_interface(d4);
   //   vector_interface(d4);
   //   auto d5 =
   //       py::bind_vector<ArrayOfSpecmatTensor3, py::rv_policy::reference_internal>(
   //           m, "ArrayOfSpecmatTensor3");
-  //   workspace_group_interface(d5);
+  //   generic_interface(d5);
   //   vector_interface(d5);
 
   auto rtepack  = m.def_submodule("rtepack");

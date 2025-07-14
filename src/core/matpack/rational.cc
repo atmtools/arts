@@ -8,6 +8,8 @@
 
 #include "rational.h"
 
+#include <xml_io_base.h>
+
 #include <ostream>
 
 #include "debug.h"
@@ -71,4 +73,42 @@ void Rational::simplify_in_place() noexcept {
   numer      = a.numer;
   denom      = a.denom;
   fixSign();
+}
+
+void xml_io_stream<Rational>::write(std::ostream& os_xml,
+                                    const Rational& rational,
+                                    bofstream* pbofs,
+                                    std::string_view name) {
+  std::println(os_xml, R"(<{0} name="{1}">)", type_name, name);
+
+  if (pbofs)
+    *pbofs << rational;
+  else
+    os_xml << rational;
+
+  std::println(os_xml, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Rational>::read(std::istream& is_xml,
+                                   Rational& rational,
+                                   bifstream* pbifs) {
+  XMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name(type_name);
+
+  if (pbifs) {
+    *pbifs >> rational;
+    if (pbifs->fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  } else {
+    is_xml >> rational;
+    if (is_xml.fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_end_name(type_name);
 }

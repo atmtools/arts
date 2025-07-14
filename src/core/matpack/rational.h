@@ -9,17 +9,20 @@
 #ifndef rational_h
 #define rational_h
 
+#include "xml_io_stream.h"
+
 #include <array.h>
-#include <binio/bifstream.h>
-#include <binio/bofstream.h>
+#include <bifstream.h>
+#include <bofstream.h>
 #include <configtypes.h>
 #include <format_tags.h>
 #include <mystring.h>
+#include <xml.h>
 
-#include <iosfwd>
-#include <numeric>
 #include <cmath>
 #include <format>
+#include <iosfwd>
+#include <numeric>
 
 using std::gcd;
 
@@ -946,6 +949,18 @@ struct std::formatter<Rational> {
     if (v.denom == 1) return tags.format(ctx, v.numer);
     return tags.format(ctx, v.numer, '/', v.denom);
   }
+};
+
+template <>
+struct xml_io_stream<Rational> {
+  static constexpr std::string_view type_name = "Rational"sv;
+
+  static void write(std::ostream& os,
+                    const Rational& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Rational& x, bifstream* pbifs = nullptr);
 };
 
 #endif  // rational_h

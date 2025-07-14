@@ -2,6 +2,7 @@
 
 #include <enumsPolarizationChoice.h>
 #include <enumsSpectralRadianceUnitType.h>
+#include <xml.h>
 
 #include <utility>
 
@@ -161,4 +162,20 @@ struct std::formatter<rtepack::stokvec> {
                               FmtContext &ctx) const {
     return fmt.format(v, ctx);
   }
+};
+
+template <>
+struct xml_io_stream<rtepack::stokvec> {
+  static constexpr std::string_view type_name = "Stokvec"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::stokvec &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::stokvec &x,
+                   bifstream *pbifs = nullptr);
+  static void put(std::span<const rtepack::stokvec> x, bofstream *);
+  static void get(std::span<rtepack::stokvec> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::stokvec> x, std::istream &);
 };

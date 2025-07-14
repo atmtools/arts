@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 #include <mystring.h>
+#include <xml.h>
 
 #include <chrono>
 #include <cmath>
@@ -194,4 +195,18 @@ struct std::formatter<Time> {
     const std::string_view quote = tags.quote();
     return std::format_to(ctx.out(), "{}{}{}", quote, v.time, quote);
   }
+};
+
+template <>
+struct xml_io_stream<Time> {
+  static constexpr std::string_view type_name = "Time"sv;
+
+  static void write(std::ostream& os,
+                    const Time& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   Time& x,
+                   bifstream* pbifs = nullptr);
 };

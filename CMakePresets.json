@@ -16,7 +16,6 @@
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/arts_install",
         "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
         "ENABLE_ARTS_LGPL": "0",
-        "ENABLE_NETCDF": "1",
         "ENABLE_PCH": "0",
         "FASTWIGNER": "0",
         "NO_OPENMP": "0",
@@ -169,6 +168,14 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc-14",
         "CMAKE_CXX_COMPILER": "g++-14"
+      }
+    },
+    {
+      "name": "mac-gcc15-hb-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-15",
+        "CMAKE_CXX_COMPILER": "g++-15"
       }
     },
     {

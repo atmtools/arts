@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array.h>
+#include <xml.h>
 
 #include "rtepack_concepts.h"
 
@@ -235,4 +236,20 @@ struct std::formatter<rtepack::specmat> {
                               FmtContext &ctx) const {
     return fmt.format(v, ctx);
   }
+};
+
+template <>
+struct xml_io_stream<rtepack::specmat> {
+  static constexpr std::string_view type_name = "Specmat"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::specmat &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::specmat &x,
+                   bifstream *pbifs = nullptr);
+  static void put(std::span<const rtepack::specmat> x, bofstream *);
+  static void get(std::span<rtepack::specmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::specmat> x, std::istream &);
 };

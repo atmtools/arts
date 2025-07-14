@@ -137,3 +137,31 @@ std::ostream& operator<<(std::ostream& os,
   return os << "HenyeyGreensteinScatterer(g = " << scatterer.g << ")";
 }
 }  // namespace scattering
+
+void xml_io_stream<scattering::HenyeyGreensteinScatterer>::write(
+    std::ostream& os,
+    const scattering::HenyeyGreensteinScatterer& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0}> name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.ext_ssa_callback, pbofs);
+  xml_write_to_stream(os, x.g, pbofs);
+
+  std::println(os, R"(</{0}>>)", type_name);
+}
+
+void xml_io_stream<scattering::HenyeyGreensteinScatterer>::read(
+    std::istream& is,
+    scattering::HenyeyGreensteinScatterer& x,
+    bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.ext_ssa_callback, pbifs);
+  xml_read_from_stream(is, x.g, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

@@ -10,16 +10,16 @@ void py_retrieval(py::module_& m) try {
   auto jtdcmm = py::bind_map<JacobianTargetsDiagonalCovarianceMatrixMap,
                              py::rv_policy::reference_internal>(
       m, "JacobianTargetsDiagonalCovarianceMatrixMap");
-  workspace_group_interface(jtdcmm);
+  generic_interface(jtdcmm);
   
   py::class_<PairOfBlockMatrix> pobm(m, "PairOfBlockMatrix");
-  workspace_group_interface(pobm);
+  generic_interface(pobm);
   pobm.def_rw("first", &PairOfBlockMatrix::first, "Matrix");
   pobm.def_rw("second", &PairOfBlockMatrix::second, "Inverse of Matrix");
 
   py::class_<JacobianTargetType> jtt(m, "JacobianTargetType");
   jtt.def_rw("value", &JacobianTargetType::target, "Target");
-  workspace_group_interface(jtt);
+  generic_interface(jtt);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize retrieval\n{}", e.what()));

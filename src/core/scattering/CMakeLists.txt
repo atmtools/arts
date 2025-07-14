@@ -18,9 +18,3 @@ else()
 target_include_directories(scattering PRIVATE "${FFTW_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}/3rdparty/shtns")
 target_link_libraries(scattering PRIVATE fftw3 shtns)
 endif()
-
-add_library(scattering_io STATIC
-   xml_io_scattering.cc
-)
-target_include_directories(scattering_io PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(scattering_io PUBLIC artsworkspace)

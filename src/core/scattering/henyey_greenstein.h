@@ -4,13 +4,12 @@
 #include <configtypes.h>
 #include <operators.h>
 
-#include <functional>
 #include <tuple>
 
 #include "atm.h"
 #include "bulk_scattering_properties.h"
-#include "properties.h"
 #include "general_tro_spectral.h"
+#include "properties.h"
 
 using ExtSSACallback =
     CustomOperator<std::pair<Numeric, Numeric>, Numeric, const AtmPoint&>;
@@ -29,12 +28,11 @@ struct ExtinctionSSALookup {
   }
 };
 
-class HenyeyGreensteinScatterer {
+struct HenyeyGreensteinScatterer {
   ExtSSACallback ext_ssa_callback{};
 
   Numeric g = 0.0;
 
- public:
   HenyeyGreensteinScatterer() = default;
   HenyeyGreensteinScatterer(ExtSSACallback ext_ssa_callback, const Numeric& g);
   HenyeyGreensteinScatterer(ScatteringSpeciesProperty extinction_field,
@@ -105,6 +103,20 @@ struct std::formatter<scattering::HenyeyGreensteinScatterer> {
 
     return tags.format(ctx, v.get_g());
   }
+};
+
+template <>
+struct xml_io_stream<scattering::HenyeyGreensteinScatterer> {
+  static constexpr std::string_view type_name = "HenyeyGreensteinScatterer";
+
+  static void write(std::ostream&,
+                    const scattering::HenyeyGreensteinScatterer&,
+                    bofstream*       = nullptr,
+                    std::string_view = ""sv);
+
+  static void read(std::istream&,
+                   scattering::HenyeyGreensteinScatterer&,
+                   bifstream* = nullptr);
 };
 
 #endif  // HENYEY_GREENSTEIN_H_

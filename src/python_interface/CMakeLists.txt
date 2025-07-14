@@ -44,8 +44,12 @@ add_custom_command(
     COMMENT "Generating automatic python interface"
 )
 
-add_executable(gen_auto_py_methods gen_auto_py_methods.cpp gen_auto_py_helpers.cpp pydocs.cpp)
-target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace arts_options)
+add_library(gen_helpers STATIC gen_auto_py_helpers.cpp pydocs.cpp)
+target_link_libraries(gen_helpers PUBLIC artsworkspace arts_options)
+target_include_directories(gen_helpers PUBLIC ${ARTS_SOURCE_DIR}/src)
+
+add_executable(gen_auto_py_methods gen_auto_py_methods.cpp)
+target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace arts_options gen_helpers)
 target_include_directories(gen_auto_py_methods PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
@@ -56,8 +60,8 @@ add_custom_command(
     COMMENT "Generating python workspace methods"
 )
 
-add_executable(gen_auto_py_options gen_auto_py_options.cpp gen_auto_py_helpers.cpp pydocs.cpp)
-target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options)
+add_executable(gen_auto_py_options gen_auto_py_options.cpp)
+target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options gen_helpers)
 target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 set(PYARTS_WORKSPACE_OPTIONS
@@ -72,8 +76,8 @@ add_custom_command(
     COMMENT "Generating python options"
 )
 
-add_executable(gen_auto_py_groups gen_auto_py_groups.cpp gen_auto_py_helpers.cpp pydocs.cpp)
-target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options)
+add_executable(gen_auto_py_groups gen_auto_py_groups.cpp)
+target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options gen_helpers)
 target_include_directories(gen_auto_py_groups PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 set(PYARTS_WORKSPACE_GROUPS
@@ -96,8 +100,8 @@ add_custom_command(
     COMMENT "Generating python workspace groups"
 )
 
-add_executable(gen_auto_py_variables gen_auto_py_variables.cpp gen_auto_py_helpers.cpp pydocs.cpp)
-target_link_libraries(gen_auto_py_variables PUBLIC artsworkspace arts_options)
+add_executable(gen_auto_py_variables gen_auto_py_variables.cpp)
+target_link_libraries(gen_auto_py_variables PUBLIC artsworkspace arts_options gen_helpers)
 target_include_directories(gen_auto_py_variables PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
@@ -137,13 +141,12 @@ endif()
 
 # NOTE: Sort these by how long they take to compile, to help multicore compilation
 nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
+    hpy_numpy_impl.cpp
     py_griddedfield.cpp
     py_matpack.cpp
     py_rtepack.cpp
 
     ${PYARTS_AUTO_FILES}
-
-    gen_auto_py_helpers.cpp
 
     py_workspace.cpp
     py_agenda.cpp
@@ -189,7 +192,7 @@ if(ENABLE_PCH)
 endif()
 
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC scattering artsworkspace arts_options)
+target_link_libraries(pyarts_cpp PUBLIC scattering artsworkspace arts_options gen_helpers)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(

@@ -1,8 +1,8 @@
 #include <debug.h>
 #include <enumsSpeciesEnum.h>
 #include <matpack.h>
-#include <spec/isotopologues.h>
-#include <spec/species.h>
+#include <isotopologues.h>
+#include <species.h>
 #include <xml_io_base.h>
 
 #include <cstdlib>

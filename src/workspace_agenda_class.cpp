@@ -327,3 +327,41 @@ std::string Agenda::sphinx_list(const std::string_view prep) const {
 
   return out;
 }
+
+void xml_io_stream<Agenda>::write(std::ostream& os,
+                                  const Agenda& x,
+                                  bofstream* pbofs,
+                                  std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.get_name(), pbofs);
+  xml_write_to_stream(os, x.get_methods(), pbofs);
+  xml_write_to_stream(os, x.get_share(), pbofs);
+  xml_write_to_stream(os, x.get_copy(), pbofs);
+  xml_write_to_stream(os, x.is_checked(), pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Agenda>::read(std::istream& is,
+                                 Agenda& x,
+                                 bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  std::string name{};
+  std::vector<Method> methods;
+  std::vector<std::string> share{};
+  std::vector<std::string> copy{};
+  bool checked{false};
+  xml_read_from_stream(is, name, pbifs);
+  xml_read_from_stream(is, methods, pbifs);
+  xml_read_from_stream(is, share, pbifs);
+  xml_read_from_stream(is, copy, pbifs);
+  xml_read_from_stream(is, checked, pbifs);
+  x = Agenda{name, methods, share, copy, checked};
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

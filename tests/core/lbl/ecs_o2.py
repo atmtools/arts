@@ -97,3 +97,9 @@ ws.ReadCatalogData()
 plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="PWR98")
 
 plt.legend()
+
+## Test here if we can save and load the workspace
+ws.savexml("test.xml")
+
+ws2 = pyarts.Workspace.fromxml("test.xml")
+assert np.all(ws.atmospheric_point.mag == ws2.atmospheric_point.mag)

@@ -11,15 +11,12 @@
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "nanobind/nanobind.h"
-#include "py_macros.h"
 
 namespace Python {
 void py_quantum(py::module_& m) try {
   py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
       .def(py::init<>())
       .def(py::init<std::string>())
-      .PythonInterfaceCopyValue(QuantumNumberValue)
-      .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_rw("type",
               &QuantumNumberValue::type,
               ":class:`~pyarts.arts.QuantumNumberType` Type of number")
@@ -93,7 +90,6 @@ void py_quantum(py::module_& m) try {
                throw std::out_of_range(std::format("{}", y));
              return x.values[y] = z;
            })
-      .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def(
           "get",
           [](QuantumNumberValueList& x, QuantumNumberType y) {
@@ -123,7 +119,6 @@ Parameters
 qn : ~pyarts.arts.QuantumNumberValue
     The value to set
 )")
-      .PythonInterfaceBasicRepresentation(QuantumNumberValueList)
       .def("__getstate__",
            [](const QuantumNumberValueList& qnv) {
              return std::tuple<std::string>{std::format("{}", qnv)};
@@ -139,8 +134,6 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
       .def(py::init<>())
       .def(py::init<std::string>())
-      .PythonInterfaceCopyValue(QuantumNumberLocalState)
-      .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
       .def(
           "__len__",
           [](QuantumNumberLocalState& x) { return x.val.values.size(); },
@@ -191,7 +184,7 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
   py::class_<QuantumIdentifier> qids(m, "QuantumIdentifier");
-  workspace_group_interface(qids);
+  generic_interface(qids);
   qids.def(py::init<std::string>())
       .def_ro("isotopologue_index",
               &QuantumIdentifier::isotopologue_index,
@@ -239,7 +232,7 @@ symbol : str
   auto a1 = py::bind_vector<ArrayOfQuantumIdentifier,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfQuantumIdentifier");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {
   throw std::runtime_error(

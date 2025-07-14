@@ -1,6 +1,7 @@
 #pragma once
 
 #include <compare.h>
+#include <xml.h>
 
 #include "rtepack_concepts.h"
 
@@ -111,4 +112,20 @@ struct std::formatter<rtepack::propmat> {
                               FmtContext &ctx) const {
     return fmt.format(v, ctx);
   }
+};
+
+template <>
+struct xml_io_stream<rtepack::propmat> {
+  static constexpr std::string_view type_name = "Propmat"sv;
+
+  static void write(std::ostream &os,
+                    const rtepack::propmat &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+  static void read(std::istream &is,
+                   rtepack::propmat &x,
+                   bifstream *pbifs = nullptr);
+  static void put(std::span<const rtepack::propmat> x, bofstream *);
+  static void get(std::span<rtepack::propmat> x, bifstream *pbifs);
+  static void parse(std::span<rtepack::propmat> x, std::istream &);
 };

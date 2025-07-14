@@ -313,11 +313,14 @@ Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
   return static_cast<Index>(type == pol::no);
 }
 
-std::istream& operator>>(std::istream& is, model& m) {
+std::istream& operator>>(std::istream& is, model& m) try {
   Index i;
   is >> i >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
   m.on = static_cast<bool>(i);
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading Zeeman model data: {}", e.what()));
 }
 
 magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)

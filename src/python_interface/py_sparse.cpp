@@ -13,13 +13,12 @@
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
 #include "nanobind/nanobind.h"
-#include "py_macros.h"
 #include "python_interface.h"
 
 namespace Python {
 void py_sparse(py::module_& m) try {
   py::class_<Sparse> sp(m, "Sparse");
-  workspace_group_interface(sp);
+  generic_interface(sp);
   sp.def(
         "__init__",
         [](Sparse* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
@@ -555,7 +554,7 @@ arr : :class:`scipy.sparse.csr_matrix`
 
   auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(
       m, "ArrayOfSparse");
-  workspace_group_interface(a1);
+  generic_interface(a1);
   vector_interface(a1);
 
   py::class_<Block>(m, "Block")
@@ -563,7 +562,6 @@ arr : :class:`scipy.sparse.csr_matrix`
            "By value, dense")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(),
            "By value, sparse")
-      .PythonInterfaceCopyValue(Block)
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {
@@ -673,10 +671,10 @@ arr : :class:`scipy.sparse.csr_matrix`
       },
       "A :class:`~numpy.ndarray` or :class:`scipy.sparse.csr_matrix` of the object.");
   common_ndarray(bm);
-  workspace_group_interface(bm);
+  generic_interface(bm);
 
   py::class_<CovarianceMatrix> covm(m, "CovarianceMatrix");
-  workspace_group_interface(covm);
+  generic_interface(covm);
   covm.def_prop_rw(
           "blocks",
           [](CovarianceMatrix& x) { return x.get_blocks(); },

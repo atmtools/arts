@@ -185,11 +185,7 @@ void str_interface(py::class_<T>& c) {
       fmt = std::format("{}{}{}", "{:"sv, fmt, "}"sv);
       return std::vformat(fmt.c_str(), std::make_format_args(x));
     } else {
-      if (not fmt.empty()) {
-        throw std::format_error(
-            std::format("Cannot support options: \"{}\"", fmt));
-      }
-
+      if (not fmt.empty()) throw std::format_error("Not formattable");
       return std::format("{}", x);
     }
   });
@@ -211,27 +207,8 @@ void str_interface(py::class_<T>& c) {
   });
 }
 
-template <WorkspaceGroup T>
-void workspace_group_interface(py::class_<T>& c) {
-  c.def(py::init<>());
-    
-  c.def(py::init<T>());
-
-    
-  c.def("__copy__", [](const T& t) -> T { return t; });
-    
-  c.def("__deepcopy__", [](const T& t, py::dict&) -> T { return t; });
-
-  str_interface(c);
-    
-  xml_interface<T>(c);
-    
-
-  c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
-}
-
-template <WorkspaceGroup T>
-void workspace_group_interface(py::class_<ValueHolder<T>>& c) {
+template <WorkspaceGroup T, class... E>
+void generic_interface(py::class_<ValueHolder<T>, E...>& c) {
   using U = ValueHolder<T>;
 
   c.def(py::init<>());
@@ -245,5 +222,23 @@ void workspace_group_interface(py::class_<ValueHolder<T>>& c) {
   xml_interface<U, T>(c);
 
   c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
+}
+
+template <typename T, class... E>
+void generic_interface(py::class_<T, E...>& c) {
+  if constexpr (std::is_default_constructible_v<T>) c.def(py::init<>());
+
+  if constexpr (std::is_copy_constructible_v<T>) {
+    c.def(py::init<T>());
+    c.def("__copy__", [](const T& t) -> T { return t; });
+    c.def("__deepcopy__", [](const T& t, py::dict&) -> T { return t; });
+  }
+
+  if constexpr (arts_formattable_or_value_type<T>) str_interface(c);
+
+  if constexpr (arts_xml_ioable<T>) xml_interface(c);
+
+  if constexpr (WorkspaceGroup<T>)
+    c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
 }
 }  // namespace Python

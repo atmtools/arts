@@ -272,6 +272,9 @@ using SortedGriddedField6 = matpack::gridded_data_t<Numeric,
                                                     AscendingGrid,
                                                     AscendingGrid>;
 
+using CartesianSubsurfaceGriddedField3 = matpack::
+    gridded_data_t<Numeric, DescendingGrid, AscendingGrid, AscendingGrid>;
+
 using ComplexGriddedField2 = matpack::gridded_data_t<Complex, Vector, Vector>;
 
 using NamedGriddedField2 =

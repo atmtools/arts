@@ -6,8 +6,6 @@
 
 #include <variant>
 
-#include "py_macros.h"
-
 namespace Python {
 using PythonLags = std::variant<LagrangeInterpolation,
                                 LagrangeCyclic0to360Interpolation,
@@ -40,7 +38,6 @@ void py_interp(py::module_& m) {
           "The order of interpolation")
       .def_rw("pos", &LagrangeInterpolation::pos, "The interpolation positions")
       .def_rw("weights", &LagrangeInterpolation::lx, "The interpolation weights")
-      .PythonInterfaceBasicRepresentation(LagrangeInterpolation)
       .def("__getstate__",
            [](const LagrangeInterpolation& self) {
              return std::make_tuple(self.pos, self.lx, self.dlx);
@@ -86,8 +83,6 @@ void py_interp(py::module_& m) {
       .def_rw("weights",
               &LagrangeCyclic0to360Interpolation::lx,
               "The interpolation weights")
-      .PythonInterfaceBasicRepresentation(LagrangeCyclic0to360Interpolation)
-      .PythonInterfaceBasicRepresentation(LagrangeCyclic0to360Interpolation)
       .def("__getstate__",
            [](const LagrangeCyclic0to360Interpolation& self) {
              return std::make_tuple(self.pos, self.lx, self.dlx);
@@ -128,8 +123,6 @@ void py_interp(py::module_& m) {
       .def_rw("weights",
               &LagrangeCyclicPM180Interpolation::lx,
               "The interpolation weights")
-      .PythonInterfaceBasicRepresentation(LagrangeCyclicPM180Interpolation)
-      .PythonInterfaceBasicRepresentation(LagrangeCyclicPM180Interpolation)
       .def("__getstate__",
            [](const LagrangeCyclicPM180Interpolation& self) {
              return std::make_tuple(self.pos, self.lx, self.dlx);

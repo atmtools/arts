@@ -19,3 +19,4 @@ and how to use existing features.
    dev.matpack
    dev.workspace
    dev.doc
+   dev.xml

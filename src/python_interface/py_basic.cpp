@@ -17,7 +17,7 @@ namespace Python {
 void py_basic(py::module_& m) try {
   py::class_<ValueHolder<String>> str(m, "String");
   value_holder_interface(str);
-  workspace_group_interface(str);
+  generic_interface(str);
   str.def("__init__", [](ValueHolder<String>* s, const py::bytes& b) {
     new (s) ValueHolder<String>{b.c_str()};
   });
@@ -25,7 +25,7 @@ void py_basic(py::module_& m) try {
 
   py::class_<ValueHolder<Numeric>> num(m, "Numeric");
   value_holder_interface(num);
-  workspace_group_interface(num);
+  generic_interface(num);
   num.def(
          "__array__",
          [](ValueHolder<Numeric>& n, py::object dtype, py::object copy) {
@@ -48,7 +48,7 @@ void py_basic(py::module_& m) try {
 
   py::class_<ValueHolder<Index>> ind(m, "Index");
   value_holder_interface(ind);
-  workspace_group_interface(ind);
+  generic_interface(ind);
   ind.def(
          "__array__",
          [](ValueHolder<Index>& n, py::object dtype, py::object copy) {
@@ -71,7 +71,7 @@ void py_basic(py::module_& m) try {
 
   auto aos = py::class_<ArrayOfString>(m, "ArrayOfString");
   value_holder_vector_interface(aos);
-  workspace_group_interface(aos);
+  generic_interface(aos);
 
   auto aoi = py::class_<ArrayOfIndex>(m, "ArrayOfIndex");
   aoi.def(
@@ -93,7 +93,7 @@ void py_basic(py::module_& m) try {
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(aoi);
   value_holder_vector_interface(aoi);
-  workspace_group_interface(aoi);
+  generic_interface(aoi);
 
   auto aon = py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric");
   aon.def(
@@ -118,22 +118,22 @@ void py_basic(py::module_& m) try {
       .doc() = "A list of :class:`~pyarts.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);
-  str_interface(aon);
+  generic_interface(aon);
 
   auto a1 =
       py::bind_vector<ArrayOfArrayOfIndex, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfIndex");
   vector_interface(a1);
-  workspace_group_interface(a1);
+  generic_interface(a1);
 
   auto a2 =
       py::bind_vector<ArrayOfArrayOfString, py::rv_policy::reference_internal>(
           m, "ArrayOfArrayOfString");
   vector_interface(a2);
-  workspace_group_interface(a2);
+  generic_interface(a2);
 
   py::class_<Any> any(m, "Any");
-  workspace_group_interface(any);
+  generic_interface(any);
   any.def(
          "__init__",
          [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; },

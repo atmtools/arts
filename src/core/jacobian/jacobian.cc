@@ -595,3 +595,289 @@ ErrorTarget& Targets::emplace_back(const ErrorKey& target,
                                           .set_x      = std::move(set_x)});
 }
 }  // namespace Jacobian
+
+void xml_io_stream<JacobianTargetType>::write(std::ostream& os,
+                                              const JacobianTargetType& x,
+                                              bofstream* pbofs,
+                                              std::string_view name) {
+  xml_write_to_stream(os, x.target, pbofs, name);
+}
+
+void xml_io_stream<JacobianTargetType>::read(std::istream& is,
+                                             JacobianTargetType& x,
+                                             bifstream* pbifs) {
+  xml_read_from_stream(is, x.target, pbifs);
+}
+
+void xml_io_stream<Jacobian::AtmTarget>::write(std::ostream& os,
+                                               const Jacobian::AtmTarget& x,
+                                               bofstream* pbofs,
+                                               std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.d, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_state, pbofs);
+  xml_write_to_stream(os, x.set_model, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::AtmTarget>::read(std::istream& is,
+                                              Jacobian::AtmTarget& x,
+                                              bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.d, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_state, pbifs);
+  xml_read_from_stream(is, x.set_model, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<Jacobian::SurfaceTarget>::write(
+    std::ostream& os,
+    const Jacobian::SurfaceTarget& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.d, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_state, pbofs);
+  xml_write_to_stream(os, x.set_model, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::SurfaceTarget>::read(std::istream& is,
+                                                  Jacobian::SurfaceTarget& x,
+                                                  bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.d, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_state, pbifs);
+  xml_read_from_stream(is, x.set_model, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<Jacobian::SubsurfaceTarget>::write(
+    std::ostream& os,
+    const Jacobian::SubsurfaceTarget& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.d, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_state, pbofs);
+  xml_write_to_stream(os, x.set_model, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::SubsurfaceTarget>::read(
+    std::istream& is, Jacobian::SubsurfaceTarget& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.d, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_state, pbifs);
+  xml_read_from_stream(is, x.set_model, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<Jacobian::LineTarget>::write(std::ostream& os,
+                                                const Jacobian::LineTarget& x,
+                                                bofstream* pbofs,
+                                                std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.d, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_state, pbofs);
+  xml_write_to_stream(os, x.set_model, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::LineTarget>::read(std::istream& is,
+                                               Jacobian::LineTarget& x,
+                                               bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.d, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_state, pbifs);
+  xml_read_from_stream(is, x.set_model, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<Jacobian::SensorTarget>::write(
+    std::ostream& os,
+    const Jacobian::SensorTarget& x,
+    bofstream* pbofs,
+    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.d, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_state, pbofs);
+  xml_write_to_stream(os, x.set_model, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::SensorTarget>::read(std::istream& is,
+                                                 Jacobian::SensorTarget& x,
+                                                 bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.d, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_state, pbifs);
+  xml_read_from_stream(is, x.set_model, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<ErrorKey>::write(std::ostream& os,
+                                    const ErrorKey& x,
+                                    bofstream* pbofs,
+                                    std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.y_start, pbofs);
+  xml_write_to_stream(os, x.y_size, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<ErrorKey>::read(std::istream& is,
+                                   ErrorKey& x,
+                                   bifstream* pbifs) {
+  XMLTag tag;
+
+  xml_read_from_stream(is, x.y_start, pbifs);
+  xml_read_from_stream(is, x.y_size, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<Jacobian::ErrorTarget>::write(std::ostream& os,
+                                                 const Jacobian::ErrorTarget& x,
+                                                 bofstream* pbofs,
+                                                 std::string_view name) {
+  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+  xml_write_to_stream(os, x.type, pbofs);
+  xml_write_to_stream(os, x.target_pos, pbofs);
+  xml_write_to_stream(os, x.x_start, pbofs);
+  xml_write_to_stream(os, x.x_size, pbofs);
+  xml_write_to_stream(os, x.set_y, pbofs);
+  xml_write_to_stream(os, x.set_x, pbofs);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<Jacobian::ErrorTarget>::read(std::istream& is,
+                                                Jacobian::ErrorTarget& x,
+                                                bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.type, pbifs);
+  xml_read_from_stream(is, x.target_pos, pbifs);
+  xml_read_from_stream(is, x.x_start, pbifs);
+  xml_read_from_stream(is, x.x_size, pbifs);
+  xml_read_from_stream(is, x.set_y, pbifs);
+  xml_read_from_stream(is, x.set_x, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<JacobianTargets>::write(std::ostream& os,
+                                           const JacobianTargets& x,
+                                           bofstream* pbofs,
+                                           std::string_view name) {
+  std::println(os,
+               R"(<{0} name="{1}" final="{2}">)",
+               type_name,
+               name,
+               Index{x.finalized});
+
+  xml_write_to_stream(os, x.targets, pbofs, name);
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<JacobianTargets>::read(std::istream& is,
+                                          JacobianTargets& x,
+                                          bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  Index fin{};
+  tag.get_attribute_value("final", fin);
+
+  x.finalized = fin != 0;
+
+  xml_read_from_stream(is, x.targets, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

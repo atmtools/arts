@@ -28,7 +28,7 @@
 namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
-  workspace_group_interface(atmdata);
+  generic_interface(atmdata);
   atmdata.def(py::init_implicit<SortedGriddedField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
@@ -111,14 +111,15 @@ void py_atm(py::module_ &m) try {
   auto aad =
       py::bind_vector<std::vector<Atm::Data>,
                       py::rv_policy::reference_internal>(m, "ArrayOfAtmData");
+  generic_interface(aad);
   aad.doc() = "A list of :class:`~pyarts.arts.AtmData`";
   vector_interface(aad);
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
-  workspace_group_interface(pnt);
+  generic_interface(pnt);
 
   auto fld = py::class_<AtmField>(m, "AtmField");
-  workspace_group_interface(fld);
+  generic_interface(fld);
 
   pnt.def_rw("temperature", &AtmPoint::temperature, "Temperature [K]")
       .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]")
@@ -844,7 +845,7 @@ Parameters
   auto aap =
       py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(
           m, "ArrayOfAtmPoint");
-  workspace_group_interface(aap);
+  generic_interface(aap);
   aap.def(
       "field1D",
       [](const ArrayOfAtmPoint &atm,

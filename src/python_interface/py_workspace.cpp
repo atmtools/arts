@@ -159,6 +159,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "Swap the workspace for andother.");
 
   str_interface(ws);
+  xml_interface(ws);
   ws.def(
         "__iter__",
         [](const Workspace& w) {

@@ -21,8 +21,11 @@ struct species_model {
 
   //! Removes the variables from the model.
   template <LineShapeModelVariable... V>
-  std::vector<std::pair<LineShapeModelVariable, temperature::data>>::size_type remove_variables() {
-   return (std::erase_if(data, [v = V](const auto& x) { return x.first == v; }) + ...);
+  std::vector<std::pair<LineShapeModelVariable, temperature::data>>::size_type
+  remove_variables() {
+    return (
+        std::erase_if(data, [v = V](const auto& x) { return x.first == v; }) +
+        ...);
   }
 
 #define VARIABLE(name) \
@@ -243,9 +246,13 @@ struct std::formatter<lbl::line_shape::species_model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::species_model& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.species, tags.sep(), v.data);
-    tags.add_if_bracket(ctx, ']');
+    if (tags.io) {
+      tags.format(ctx, v.species, ' ', v.data.size(), ' ', v.data);
+    } else {
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx, v.species, tags.sep(), v.data);
+      tags.add_if_bracket(ctx, ']');
+    }
 
     return ctx.out();
   }
@@ -266,11 +273,21 @@ struct std::formatter<lbl::line_shape::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::model& v,
                               FmtContext& ctx) const {
-    const auto sep = tags.sep();
-
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
-    tags.add_if_bracket(ctx, ']');
+    if (tags.io) {
+      tags.format(ctx,
+                  v.T0,
+                  ' ',
+                  Index{v.one_by_one},
+                  ' ',
+                  v.single_models.size(),
+                  ' ',
+                  v.single_models);
+    } else {
+      const auto sep = tags.sep();
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
+      tags.add_if_bracket(ctx, ']');
+    }
 
     return ctx.out();
   }

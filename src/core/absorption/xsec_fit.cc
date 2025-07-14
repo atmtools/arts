@@ -250,3 +250,73 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x) {
   for (auto& a : x) os << a << '\n';
   return os;
 }
+
+void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
+                                      const XsecRecord& xd,
+                                      bofstream* pbofs,
+                                      std::string_view name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
+
+  open_tag.set_name("XsecRecord");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("version", xd.Version());
+
+  open_tag.write_to_stream(os_xml);
+  std::println(os_xml);
+  xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species");
+
+  xml_write_to_stream(
+      os_xml, xd.FitMinPressures(), pbofs, "Mininum pressures from fit");
+  xml_write_to_stream(
+      os_xml, xd.FitMaxPressures(), pbofs, "Maximum pressures from fit");
+  xml_write_to_stream(
+      os_xml, xd.FitMinTemperatures(), pbofs, "Mininum temperatures from fit");
+  xml_write_to_stream(
+      os_xml, xd.FitMaxTemperatures(), pbofs, "Maximum temperatures from fit");
+  xml_write_to_stream(os_xml, xd.FitCoeffs(), pbofs, "Fit coefficients");
+
+  close_tag.set_name("/XsecRecord");
+  close_tag.write_to_stream(os_xml);
+
+  std::println(os_xml);
+}
+
+void xml_io_stream<XsecRecord>::read(std::istream& is_xml,
+                                     XsecRecord& xd,
+                                     bifstream* pbifs) {
+  XMLTag tag;
+  Index version;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("XsecRecord");
+  tag.get_attribute_value("version", version);
+  xd.SetVersion(version);
+
+  String species_name;
+  xml_read_from_stream(is_xml, species_name, pbifs);
+
+  const SpeciesEnum species = to<SpeciesEnum>(species_name);
+  if (not good_enum(species)) {
+    std::ostringstream os;
+    os << "  Unknown species in XsecRecord: " << species_name;
+    throw std::runtime_error(os.str());
+  }
+  xd.SetSpecies(species);
+
+  xml_read_from_stream(is_xml, xd.FitMinPressures(), pbifs);
+  xml_read_from_stream(is_xml, xd.FitMaxPressures(), pbifs);
+  xml_read_from_stream(is_xml, xd.FitMinTemperatures(), pbifs);
+  xml_read_from_stream(is_xml, xd.FitMaxTemperatures(), pbifs);
+  xml_read_from_stream(is_xml, xd.FitCoeffs(), pbifs);
+
+  for (const auto& fitcoeffs : xd.FitCoeffs()) {
+    const Index ncoeff = fitcoeffs.data.ncols();
+    ARTS_USER_ERROR_IF(ncoeff != 4,
+                       "Wrong number of coefficients, expected 4, found {}",
+                       ncoeff)
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/XsecRecord");
+}

@@ -1,10 +1,9 @@
-add_executable(partfun_generator
-    make_auto_partfuns.cc
-    xml_io_partfun.cc
-)
+add_library(xml_partfun STATIC xml_io_partfun.cc)
+target_link_libraries (xml_partfun PUBLIC matpack xml_io coretypes)
+target_include_directories(xml_partfun PUBLIC ${ARTS_SOURCE_DIR}/src)
 
-target_link_libraries (partfun_generator PRIVATE matpack xmliobase coretypes)
-target_include_directories(partfun_generator PRIVATE ${ARTS_SOURCE_DIR}/src)
+add_executable(partfun_generator make_auto_partfuns.cc)
+target_link_libraries (partfun_generator PRIVATE xml_partfun species)
 
 file(GLOB_RECURSE partfun_xml_files LIST_DIRECTORIES FALSE RELATIVE ${ARTS_PARTFUN_DATA_PATH} "*.xml")
 set(partfun_cpp_files ${partfun_xml_files})
@@ -20,8 +19,8 @@ add_custom_command(
     COMMENT "Generating automatic partition function interface"
 )
 
-add_library(auto_partfun STATIC xml_io_partfun.cc ${partfun_cpp_files} auto_partfun.h)
-target_link_libraries(auto_partfun PUBLIC matpack binio)
+add_library(auto_partfun STATIC ${partfun_cpp_files} auto_partfun.h)
+target_link_libraries(auto_partfun PUBLIC matpack binio xml_partfun)
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(auto_partfun PUBLIC ${ARTS_SOURCE_DIR}/src)
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <double_imanip.h>
+
 #include <concepts>
-#include <functional>
 #include <type_traits>
 
-#include "experimental/__p0009_bits/extents.hpp"
 #include "matpack_mdspan_common.h"
 #include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_elemwise_mditer.h"
@@ -16,6 +16,8 @@ struct [[nodiscard]] cdata_t {
 
   constexpr static Size N     = sizeof...(dims);
   constexpr static Size ndata = (dims * ...);
+
+  static_assert(std::is_trivially_copyable_v<T>, "Non-trivial type");
 
   using extents_type     = view_t<T, N>::extents_type;
   using layout_type      = view_t<T, N>::layout_type;
@@ -32,7 +34,7 @@ struct [[nodiscard]] cdata_t {
   static_assert(not std::is_const_v<T>);
   static_assert(ndata > 0);
 
-  std::array<T, ndata> data;
+  std::array<T, ndata> data{};
 
   static constexpr std::array<Index, N> shape_ = {dims...};
   static constexpr const std::array<Index, N>& shape() { return shape_; }
@@ -246,6 +248,14 @@ struct [[nodiscard]] cdata_t {
   template <Index i>
   constexpr T&& get() && {
     return std::get<i>(data);
+  }
+
+  friend std::istream& operator>>(std::istream& is, cdata_t& x) {
+    if constexpr (std::same_as<Numeric, T>)
+      for (auto& a : x.data) is >> double_imanip() >> a;
+    else
+      for (auto& a : x.data) is >> a;
+    return is;
   }
 };
 

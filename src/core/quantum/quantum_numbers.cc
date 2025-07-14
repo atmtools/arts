@@ -2,6 +2,7 @@
 
 #include <debug.h>
 #include <isotopologues.h>
+#include <xml_io_base.h>
 
 #include <algorithm>
 #include <sstream>
@@ -541,7 +542,7 @@ std::ostream& operator<<(std::ostream& os, Value x) {
   return os << x.type << ' ' << x.str_upp() << ' ' << x.str_low();
 }
 
-std::istream& operator>>(std::istream& is, Value& x) {
+std::istream& operator>>(std::istream& is, Value& x) try {
   std::string upp, low;
   is >> x.type >> upp >> low;
 
@@ -549,6 +550,9 @@ std::istream& operator>>(std::istream& is, Value& x) {
       value_holder(upp, x.type), value_holder(low, x.type), x.type);
 
   return is;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error reading Value: {}\n{}", e.what(), x));
 }
 
 void ValueList::sort_by_type() {
@@ -1570,8 +1574,8 @@ GlobalState::GlobalState(std::string_view s, Index v) {
     throw std::runtime_error("Invalid isotopologue: " + std::string(specname) +
                              " from " + std::string(s));
   if (Species::Isotopologues[isotopologue_index].is_joker() or
-      
-          Species::Isotopologues[isotopologue_index].is_predefined()) {
+
+      Species::Isotopologues[isotopologue_index].is_predefined()) {
     throw std::runtime_error("Expects valid standard isotopologue, got: " +
                              std::string(specname) + " from " + std::string(s));
   }
@@ -1683,4 +1687,85 @@ void ValueList::reserve(Size n) { values.reserve(n); }
 std::ostream& operator<<(std::ostream& os, const Array<QuantumNumberType>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
+}
+
+void xml_io_stream<QuantumIdentifier>::write(std::ostream& os_xml,
+                                             const QuantumIdentifier& qi,
+                                             bofstream*,
+                                             std::string_view name) {
+  std::println(os_xml,
+               R"(<{0} name="{1}" version="{2}">
+{3:IO}
+</{0}>)",
+               type_name,
+               name,
+               QuantumIdentifier::version,
+               qi);
+}
+
+void xml_io_stream<QuantumIdentifier>::read(std::istream& is_xml,
+                                            QuantumIdentifier& qi,
+                                            bifstream*) try {
+  static_assert(QuantumIdentifier::version == 1,
+                "QuantumIdentifier must be updated");
+
+  XMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name(type_name);
+
+  Index version;
+  if (tag.has_attribute("version")) {
+    tag.get_attribute_value("version", version);
+  } else {
+    version = 0;
+  }
+  ARTS_USER_ERROR_IF(
+      QuantumIdentifier::version < version,
+      "The version of this quantum identifier is too new.  You need to upgrade ARTS to use it.")
+
+  String qi_str;
+  parse_xml_tag_content_as_string(is_xml, qi_str);
+  qi = QuantumIdentifier(qi_str, version);
+
+  tag.read_from_stream(is_xml);
+  tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading QuantumIdentifier:\n{}", e.what())
+}
+
+void xml_io_stream<QuantumNumberLocalState>::write(
+    std::ostream& os_xml,
+    const QuantumNumberLocalState& qns,
+    bofstream*,
+    std::string_view name) {
+  std::println(os_xml,
+               R"(<{0} name="{1}">
+{2:IO}
+</{0}>)",
+               type_name,
+               name,
+               qns);
+}
+
+void xml_io_stream<QuantumNumberLocalState>::read(std::istream& is_xml,
+                                                  QuantumNumberLocalState& x,
+                                                  bifstream*) try {
+  static_assert(QuantumIdentifier::version == 1,
+                "QuantumIdentifier must be updated");
+
+  XMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name(type_name);
+
+  String str;
+  parse_xml_tag_content_as_string(is_xml, str);
+
+  x.val = Quantum::Number::ValueList(str);
+
+  tag.read_from_stream(is_xml);
+  tag.check_end_name(type_name);
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading QuantumNumberLocalState:\n{}", e.what())
 }

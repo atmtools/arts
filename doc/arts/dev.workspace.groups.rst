@@ -25,7 +25,7 @@ your new workspace group interface smooth from python.
 Note that there are several templated methods available that will help your
 class have a better python interface.  Please write more if you find some
 defaults are missing.  The most important one for all workspace groups is
-``workspace_group_interface``, which handles bindings for all the standard
+``generic_interface``, which handles bindings for all the standard
 interfaces required for workspace groups (such as IO).
 
 Defining a workspace group
@@ -59,7 +59,7 @@ The following must compile:
 - ``std::format("{}", a)``, ``std::format("{:sqNB,}", a)``, ``x.inner_fmt().tags``, and ``static_assert(std::same_as<format_tags, std::remove_cvref_t<decltype(x.inner_fmt().tags)>>)`` - allow formatting the group to a string.  The exception to this are classes that pass one of these consepts: ``std::integral<T>`` or ``std::floating_point<T>`` or ``std::same_as<T, std::string>``.   Failure to comply leads to a static assertion as the group fails the ``arts_formattable_or_value_type`` concept.  Note that to ensure this, you should read the :doc:`dev.classes.formatter` documentation.
 - ``x[i]`` and ``x[k]`` should also implement all the above if the group is an array or map type, respectively.  This also holds true for the group of ``k`` for map types.  Failure to compile will lead to difficult errors in the python binding compilation.
 
-Additionally, you need to ensure that your group passes the ``pytest`` tests when ``pyarts`` is built.  There exist a helper method ``workspace_group_interface`` you can send a mutable version
+Additionally, you need to ensure that your group passes the ``pytest`` tests when ``pyarts`` is built.  There exist a helper method ``generic_interface`` you can send a mutable version
 of the ``py::class_<T>`` object to that should ensure this.  However, generally they interface via python might require some additional work.
 
 Generated files

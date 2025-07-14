@@ -2,6 +2,7 @@
 
 #include <isotopologues.h>
 #include <species.h>
+#include <xml.h>
 
 #include <unordered_map>
 
@@ -38,17 +39,17 @@ template <>
 struct std::formatter<LinemixingSingleEcsData> {
   format_tags tags;
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
   constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+      std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lbl::linemixing::species_data& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const lbl::linemixing::species_data &v,
+                              FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
 
     tags.add_if_bracket(ctx, '[');
@@ -64,4 +65,18 @@ struct std::formatter<LinemixingSingleEcsData> {
 
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<LinemixingSingleEcsData> {
+  static constexpr std::string_view type_name = "LinemixingSingleEcsData"sv;
+
+  static void write(std::ostream &os,
+                    const LinemixingSingleEcsData &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream &is,
+                   LinemixingSingleEcsData &x,
+                   bifstream *pbifs = nullptr);
 };

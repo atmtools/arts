@@ -11,7 +11,7 @@
 */
 
 #include "bofstream.h"
-#include "debug.h"
+#include <debug.h>
 
 void bofstream::seek(long spos, Offset offs) {
   if (!in) {
@@ -66,11 +66,11 @@ bofstream& operator<<(bofstream& bof, float n) {
 }
 
 bofstream& operator<<(bofstream& bof, std::int64_t n) {
-  bof.writeInt(n, 4);
+  bof.writeInt(n, sizeof(std::int64_t));
   return (bof);
 }
 
 bofstream& operator<<(bofstream& bof, int n) {
-  bof.writeInt(n, 4);
+  bof.writeInt(n, sizeof(std::int64_t));
   return (bof);
 }

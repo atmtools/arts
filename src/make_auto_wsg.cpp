@@ -102,13 +102,6 @@ concept WorkspaceGroupIsCopyable = requires(T a) {
 )";
 
   os << '\n';
-  for (auto& group : groups()) {
-    os << std::format(R"(
-void xml_read_from_stream(std::istream &, {0}&, bifstream *);
-void xml_write_to_stream(std::ostream &, const {0}&, bofstream *, const String &);
-)",
-                      group);
-  }
 
   os << R"(
 template <typename T> struct WorkspaceGroupInfo {
@@ -317,9 +310,6 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
              SetWsv{{"{0}_operator", {0}_operator}});
   {0} = std::move(agenda).finalize(false);
 }}
-
-void xml_read_from_stream(std::istream&, {0}Operator&, bifstream*) {{throw std::runtime_error("Cannot read {0}Operator");}}
-void xml_write_to_stream(std::ostream&, const {0}Operator&, bofstream*, const String&) {{throw std::runtime_error("Cannot save {0}Operator");}}
 
 )",
         name,
@@ -577,7 +567,7 @@ void wsv_implement_includes(std::ostream& os) {
 #include <cassert>
 #include <format>
 
-#include "auto_wsv_value_wrapper.h"
+#include "wsv_value_wrapper.h"
 #include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
 )-x-");
@@ -597,7 +587,7 @@ int main() try {
 
   agenda_operators();
 
-  std::ofstream wsv_header_file("auto_wsv_value_wrapper.h");
+  // std::ofstream wsv_header_file("auto_wsv_value_wrapper.h");
   std::ofstream wsv_impl_file1("auto_wsv_value_wrapper_copied.cpp");
   std::ofstream wsv_impl_file2("auto_wsv_value_wrapper_from_named_type.cpp");
   std::ofstream wsv_impl_file3("auto_wsv_value_wrapper_type_name.cpp");
@@ -605,7 +595,7 @@ int main() try {
   std::ofstream wsv_impl_file5("auto_wsv_value_wrapper_read_from_stream.cpp");
   std::ofstream wsv_impl_file6("auto_wsv_value_wrapper_write_to_stream.cpp");
 
-  wsv_header(wsv_header_file);
+  // wsv_header(wsv_header_file);
 
   wsv_implement_includes(wsv_impl_file1);
   wsv_implement_includes(wsv_impl_file2);

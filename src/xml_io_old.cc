@@ -332,12 +332,19 @@ The error is:
   return output;
 }
 
-void xml_read_from_stream(std::istream& is_xml,
-                          ArrayOfArtscatMeta& meta,
-                          bifstream*) {
+void xml_io_stream<ArrayOfArtscatMeta>::write(std::ostream&,
+                                              const ArrayOfArtscatMeta&,
+                                              bofstream*,
+                                              std::string_view) {
+  assert(false);
+}
+
+void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml,
+                                             ArrayOfArtscatMeta& meta,
+                                             bifstream*) {
   meta.clear();
 
-  ArtsXMLTag tag;
+  XMLTag tag;
 
   String version;
   Index nelem;

@@ -5,6 +5,7 @@
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
@@ -26,11 +27,17 @@ struct global_data {
                                   true;
 #endif
 
-  static constexpr bool has_profiling = 
+  static constexpr bool has_profiling =
 #if ARTS_PROFILING
-  true;
+      true;
 #else
-  false;
+      false;
+#endif
+
+#ifdef ARTS_SOURCE_DIR
+  static constexpr std::string_view arts_source_dir = ARTS_SOURCE_DIR;
+#else
+  static constexpr std::string_view arts_source_dir = "";
 #endif
 };
 
@@ -198,6 +205,9 @@ Parameters
       .def_ro_static("has_profiling",
                      &global_data::has_profiling,
                      "Whether the ARTS library is compiled with time profiling")
+      .def_ro_static("arts_source_dir",
+                     &global_data::arts_source_dir,
+                     "The original ARTS source directory, if available")
       .def("__repr__",
            [](const global_data&) {
              return std::format(R"(Global state of ARTS:
@@ -214,7 +224,7 @@ has_sht: {}
   global.def("time_report",
              &arts::get_report,
              "min_time"_a = 0,
-             "clear"_a = true,
+             "clear"_a    = true,
              R"(Get the time report.
 
 .. note::

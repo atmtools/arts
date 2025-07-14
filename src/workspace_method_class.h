@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wsv_value_wrapper.h>
+
 #include <optional>
 #include <string>
 #include <string_view>
@@ -7,7 +9,6 @@
 #include <vector>
 
 #include "format_tags.h"
-#include <auto_wsv_value_wrapper.h>
 
 inline constexpr char named_input_prefix = '@';
 inline constexpr char internal_prefix    = '_';
@@ -164,4 +165,28 @@ struct std::formatter<Agenda> {
     tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
+};
+
+template <>
+struct xml_io_stream<Wsv> {
+  static constexpr std::string_view type_name = "Wsv"sv;
+
+  static void write(std::ostream& os,
+                    const Wsv& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Wsv& x, bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<Method> {
+  static constexpr std::string_view type_name = "Method"sv;
+
+  static void write(std::ostream& os,
+                    const Method& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Method& x, bifstream* pbifs = nullptr);
 };

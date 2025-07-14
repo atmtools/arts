@@ -21,7 +21,6 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "partfun.h"
-#include "py_macros.h"
 #include "quantum_numbers.h"
 
 namespace Python {
@@ -57,7 +56,6 @@ void py_lbl(py::module_& m) try {
             self = lbl::temperature::data{self.Type(), x};
           },
           ":class:`~pyarts.arts.Vector` The coefficients")
-      .PythonInterfaceBasicRepresentation(lbl::temperature::data)
       .def("__getstate__",
            [](const lbl::temperature::data& v) {
              return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
@@ -95,8 +93,7 @@ void py_lbl(py::module_& m) try {
                    }
                  }
                  self.emplace_back(x, y);
-               })
-          .PythonInterfaceBasicRepresentation(pair_vector_type);
+               });
   lsvtml.doc() = "A list of line shape models with temperature coefficients";
   vector_interface(lsvtml);
 
@@ -166,14 +163,12 @@ void py_lbl(py::module_& m) try {
           "T0"_a,
           "T"_a,
           "P"_a)
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model)
       .doc() = "Line shape model for a species";
 
   using line_shape_model_list = std::vector<lbl::line_shape::species_model>;
   auto lsml =
       py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(
-          m, "LineShapeModelList")
-          .PythonInterfaceBasicRepresentation(line_shape_model_list);
+          m, "LineShapeModelList");
   lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
 
@@ -204,7 +199,6 @@ void py_lbl(py::module_& m) try {
           "remove_zeros",
           [](lbl::line_shape::model& self) { self.clear_zeroes(); },
           "Remove zero coefficients")
-      .PythonInterfaceBasicRepresentation(lbl::line_shape::model)
       .doc() = "Line shape model";
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
@@ -248,7 +242,6 @@ void py_lbl(py::module_& m) try {
             return out;
           },
           "The number of Zeeman lines")
-      .PythonInterfaceBasicRepresentation(lbl::zeeman::model)
       .doc() = "Zeeman model";
 
   py::class_<lbl::line>(m, "AbsorptionLine")
@@ -296,12 +289,10 @@ void py_lbl(py::module_& m) try {
           "isot"_a,
           "T0"_a = 296.0,
           "The HITRAN-like line strength")
-      .PythonInterfaceBasicRepresentation(lbl::line)
       .doc() = "A single absorption line";
 
-  auto ll = py::bind_vector<std::vector<lbl::line>,
-                            py::rv_policy::reference_internal>(m, "LineList")
-                .PythonInterfaceBasicRepresentation(std::vector<lbl::line>);
+  auto ll  = py::bind_vector<std::vector<lbl::line>,
+                             py::rv_policy::reference_internal>(m, "LineList");
   ll.doc() = "A list of absorption lines";
   vector_interface(ll);
 
@@ -336,11 +327,11 @@ void py_lbl(py::module_& m) try {
           "isot"_a,
           "T0"_a = 296.0,
           "Keep only the lines with a stronger HITRAN-like line strength");
-  workspace_group_interface(ab);
+  generic_interface(ab);
 
   auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
       m, "AbsorptionBands");
-  workspace_group_interface(aoab);
+  generic_interface(aoab);
   aoab.def("__getitem__",
            [](const AbsorptionBands& x, const lbl::line_key& key) -> Numeric {
              return key.get_value(x);
@@ -519,14 +510,14 @@ T0 : float
          "energy_x"_a,
          "energy_xm2"_a,
          R"(The Omega coefficient for the ECS model)");
-  workspace_group_interface(ed);
+  generic_interface(ed);
 
   auto lsed =
       py::bind_map<LinemixingSpeciesEcsData>(m, "LinemixingSpeciesEcsData");
-  workspace_group_interface(lsed);
+  generic_interface(lsed);
 
   auto led = py::bind_map<LinemixingEcsData>(m, "LinemixingEcsData");
-  workspace_group_interface(led);
+  generic_interface(led);
 
   lbl.def(
       "equivalent_lines",
@@ -628,6 +619,11 @@ propagation_matrix : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");
+
+  py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
+  generic_interface(partfun);
+  partfun.doc() =
+      "Data for partition functions, used in the line-by-line model";
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));

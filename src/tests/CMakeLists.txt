@@ -81,7 +81,7 @@ target_link_libraries(test_sparse artsworkspace test_utils)
 
 # ########## next testcase ###############
 add_executable(test_xml test_xml.cc)
-target_link_libraries(test_xml xmliobase)
+target_link_libraries(test_xml matpack xml_io)
 target_include_directories(test_xml PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 # ########## next testcase ###############
@@ -142,7 +142,7 @@ target_link_libraries(linemixing_jmh artsworkspace)
 
 # ########## next testcase ###############
 add_executable(arts_qn arts_quantum_numbers.cc)
-target_link_libraries(arts_qn species xmliobase quantum)
+target_link_libraries(arts_qn species xml_io quantum)
 
 # #######################################################################################
 # Test OpenMP
@@ -210,7 +210,7 @@ target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 # ####
 add_executable(test_rtepack test_rtepack.cc)
-target_link_libraries(test_rtepack PUBLIC artstime rtepack)
+target_link_libraries(test_rtepack PUBLIC artstime rtepack rng)
 
 # ####
 add_executable(test_path_point test_path_point.cc)

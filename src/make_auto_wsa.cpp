@@ -127,7 +127,7 @@ void header(std::ostream& os) {
 
 #include "auto_wsg.h"
 
-class Workspace;
+struct Workspace;
 
 struct WorkspaceAgendaRecord {
   std::string desc;

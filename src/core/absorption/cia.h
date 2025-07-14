@@ -15,6 +15,7 @@
 #define cia_h
 
 #include <matpack.h>
+#include <xml.h>
 
 #include <memory>
 
@@ -150,10 +151,6 @@ class CIARecord {
   /** Read CIA catalog file. */
   void ReadFromCIA(const String& filename);
 
-  friend void xml_read_from_stream(std::istream& is_xml,
-                                   CIARecord& cr,
-                                   bifstream* pbifs);
-
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
@@ -210,8 +207,20 @@ struct std::formatter<CIARecord> {
 
   template <class FmtContext>
   FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.TwoSpecies(), tags.sep(),v.Data());
+    return tags.format(ctx, v.TwoSpecies(), tags.sep(), v.Data());
   }
+};
+
+template <>
+struct xml_io_stream<CIARecord> {
+  static constexpr std::string_view type_name = "CIARecord"sv;
+
+  static void write(std::ostream& os,
+                    const CIARecord& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, CIARecord& x, bifstream* pbifs = nullptr);
 };
 
 #endif  // cia_h

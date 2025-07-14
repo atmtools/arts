@@ -4,6 +4,7 @@
 
 #include <concepts>
 #include <format>
+#include <functional>
 #include <map>
 #include <print>
 #include <ranges>
@@ -34,7 +35,7 @@ concept arts_formattable =
 template <typename T>
 concept arts_formattable_or_value_type =
     arts_formattable<T> or std::integral<T> or std::floating_point<T> or
-    std::same_as<T, std::string>;
+    std::same_as<T, std::string> or std::same_as<T, std::string_view>;
 
 struct format_tags {
   bool names     = false;
@@ -236,8 +237,14 @@ struct std::formatter<std::variant<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::variant<WTs...>& v,
                               FmtContext& ctx) const {
-    std::visit([*this, &ctx]<typename T>(const T& x) { tags.format(ctx, x); },
-               v);
+    const auto call = []<typename T>(const format_tags& tags,
+                                     FmtContext& ctx,
+                                     const T* const e) -> bool {
+      if (e) tags.format(ctx, *e);
+      return e;
+    };
+    if (not(call(tags, ctx, std::get_if<WTs>(&v)) or ...))
+      throw std::runtime_error("formatting variant");
     return ctx.out();
   }
 };
@@ -434,7 +441,8 @@ struct std::formatter<std::pair<A, B>> {
   }
 };
 
-template <arts_formattable_or_value_type... WT>
+template <typename... WT>
+  requires((arts_formattable_or_value_type<std::remove_cvref_t<WT>> and ...))
 struct std::formatter<std::tuple<WT...>> {
   format_tags tags;
 
@@ -450,7 +458,10 @@ struct std::formatter<std::tuple<WT...>> {
   void format(FmtContext& ctx,
               std::index_sequence<Ints...>,
               const tuple<WT...>& v) const {
-    (tags.format(ctx, std::get<Ints>(v), tags.sep()), ...);
+    if (tags.io)
+      (tags.format(ctx, std::get<Ints>(v), '\n'), ...);
+    else
+      (tags.format(ctx, std::get<Ints>(v), tags.sep()), ...);
   }
 
   template <class FmtContext>
@@ -460,5 +471,25 @@ struct std::formatter<std::tuple<WT...>> {
     format(ctx, std::index_sequence_for<WT...>{}, v);
     tags.add_if_bracket(ctx, ')');
     return ctx.out();
+  }
+};
+
+template <typename R, typename... Ts>
+struct std::formatter<std::function<R(Ts...)>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const std::function<R(Ts...)>&,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, "<functional>");
   }
 };

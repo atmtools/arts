@@ -28,8 +28,10 @@ struct [[nodiscard]] StridedRange {
   Index nelem;
   Index stride;
 
-  template <integral Offset, integral Nelem, integral Stride>
-  constexpr StridedRange(Offset i0, Nelem n, Stride d)
+  template <integral Offset = Index,
+            integral Nelem  = Index,
+            integral Stride = Index>
+  constexpr StridedRange(Offset i0 = 0, Nelem n = 0, Stride d = 1)
       : offset(static_cast<Index>(i0)),
         nelem(static_cast<Index>(n)),
         stride(static_cast<Index>(d)) {}
@@ -45,8 +47,8 @@ struct [[nodiscard]] Range {
   Index offset;
   Index nelem;
 
-  template <integral Offset, integral Nelem>
-  constexpr Range(Offset i0, Nelem n)
+  template <integral Offset = Index, integral Nelem = Index>
+  constexpr Range(Offset i0 = 0, Nelem n = 0)
       : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
   [[nodiscard]] constexpr stdx::

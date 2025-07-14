@@ -1,11 +1,12 @@
 #pragma once
 
 #include <array.h>
+#include <xml.h>
 
 #include <vector>
 
 class Method;
-class Workspace;
+struct Workspace;
 class Wsv;
 
 class Agenda {
@@ -62,4 +63,16 @@ class Agenda {
       const std::string_view prep = "- ") const;
 
   friend std::ostream& operator<<(std::ostream& os, const Agenda& a);
+};
+
+template <>
+struct xml_io_stream<Agenda> {
+  static constexpr std::string_view type_name = "Agenda"sv;
+
+  static void write(std::ostream& os,
+                    const Agenda& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Agenda& x, bifstream* pbifs = nullptr);
 };

@@ -12,7 +12,6 @@
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
-#include "py_macros.h"
 
 
 namespace Python {
@@ -328,7 +327,7 @@ void py_scattering_species(py::module_& m) try {
   //
 
   py::class_<ScatteringSpeciesProperty> ssp(m, "ScatteringSpeciesProperty");
-  workspace_group_interface(ssp);
+  generic_interface(ssp);
   ssp.def(py::init<std::string, ParticulateProperty>(), "Constructor")
       .def_rw("species_name",
               &ScatteringSpeciesProperty::species_name,
@@ -498,7 +497,7 @@ void py_scattering_species(py::module_& m) try {
     //       "m"_a,
     //       "Get bulk scattering properties");
 
-  workspace_group_interface(aoss);
+  generic_interface(aoss);
 
   bind_phase_matrix_data_tro_gridded<double>(m, "PhaseMatrixDataTROGridded4")
       .doc() = "Phase matrix data";

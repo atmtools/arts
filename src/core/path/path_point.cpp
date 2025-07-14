@@ -713,12 +713,11 @@ struct Intersections {
   bool second_is_valid;
 };
 
-Intersections pair_line_ellipsoid_intersect(
-    const PropagationPathPoint& path,
-    const AtmField& atm_field,
-    const SurfaceField& surface_field,
-    const Numeric safe_search_accuracy,
-    const bool search_safe) {
+Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
+                                            const AtmField& atm_field,
+                                            const SurfaceField& surface_field,
+                                            const Numeric safe_search_accuracy,
+                                            const bool search_safe) {
   using enum PathPositionType;
 
   const auto [surf_h_min, surf_h_max] = minmax_surface_altitude(surface_field);
@@ -1294,3 +1293,58 @@ bool is_valid_old_pos(const Vector3& pos) {
   return is_valid_old_pos(pos.view());
 }
 }  // namespace path
+
+void xml_io_stream<PropagationPathPoint>::write(std::ostream& os,
+                                                const PropagationPathPoint& x,
+                                                bofstream* pbofs,
+                                                std::string_view name) {
+  std::println(os,
+               R"(<{0} name="{1}" pos_type="{2}" los_type="{3}">)",
+               type_name,
+               name,
+               x.pos_type,
+               x.los_type);
+
+  if (pbofs) {
+    xml_io_stream<Vector3>::put({&x.pos, 1}, pbofs);
+    xml_io_stream<Vector2>::put({&x.los, 1}, pbofs);
+    xml_io_stream<Numeric>::put({&x.nreal, 1}, pbofs);
+    xml_io_stream<Numeric>::put({&x.ngroup, 1}, pbofs);
+  } else {
+    xml_io_stream<Vector3>::write(os, x.pos, pbofs, "Pos"sv);
+    xml_io_stream<Vector2>::write(os, x.los, pbofs, "Los"sv);
+    xml_io_stream<Numeric>::write(os, x.nreal, pbofs, "Nreal"sv);
+    xml_io_stream<Numeric>::write(os, x.ngroup, pbofs, "Nimag"sv);
+  }
+
+  std::println(os, R"(</{0}>)", type_name);
+}
+
+void xml_io_stream<PropagationPathPoint>::read(std::istream& is,
+                                               PropagationPathPoint& x,
+                                               bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  String str;
+  tag.get_attribute_value("pos_type", str);
+  x.pos_type = to<PathPositionType>(str);
+  tag.get_attribute_value("los_type", str);
+  x.los_type = to<PathPositionType>(str);
+
+  if (pbifs) {
+    xml_io_stream<Vector3>::get({&x.pos, 1}, pbifs);
+    xml_io_stream<Vector2>::get({&x.los, 1}, pbifs);
+    xml_io_stream<Numeric>::get({&x.nreal, 1}, pbifs);
+    xml_io_stream<Numeric>::get({&x.ngroup, 1}, pbifs);
+  } else {
+    xml_io_stream<Vector3>::read(is, x.pos);
+    xml_io_stream<Vector2>::read(is, x.los);
+    xml_io_stream<Numeric>::read(is, x.nreal);
+    xml_io_stream<Numeric>::read(is, x.ngroup);
+  }
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

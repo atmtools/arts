@@ -632,7 +632,8 @@ if good cases, so we have provide this selection mechanism to make them match.
 
   opts.emplace_back(EnumeratedOption{
       .name = "HydrostaticPressureOption",
-      .desc = R"(These options control how the hydrostatic pressure is computed in ARTS.
+      .desc =
+          R"(These options control how the hydrostatic pressure is computed in ARTS.
 
 There are two main options for how the hydrostatic pressure is computed:
 
@@ -1023,6 +1024,7 @@ template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
 
 template<> struct enumdocs<{0}> {{
   static std::string_view str() noexcept;
+  static constexpr std::string_view name = "{0}"sv;
 }};
 
 namespace enumtyps {{
@@ -1060,7 +1062,7 @@ namespace enumstrs {{
   inline constexpr auto {1}Names = enum_str_data<{1}, i>::strs;
 }}  // namespace enumstrs
 
-template <int i={0}> constexpr const std::string_view toString({1} x)  requires(i >= 0 and i < {2}) {{
+template <int i={0}> constexpr std::string_view toString({1} x)  requires(i >= 0 and i < {2}) {{
   if (good_enum(x))
     return enumstrs::{1}Names<i>[static_cast<std::size_t>(x)];
   return "BAD {1}"sv;
@@ -1086,9 +1088,9 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
   }
   std::format_to(std::back_inserter(out),
                  R"(
-  throw std::runtime_error(R"-x-(Bad value. Valid options for "{0}":
+  throw std::runtime_error(R"-x-(Bad value.
 
-{1}
+See https://atmtools.github.io/arts-docs-master/pyarts.arts.{0}.html for valid options.
 )-x-");
 }}
 
@@ -1097,10 +1099,6 @@ namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
 std::ostream& operator<<(std::ostream &os, const {0} x);
 
 std::istream& operator>>(std::istream &is, {0}& x);
-
-void xml_read_from_stream(std::istream& is_xml, {0}& s, bifstream*);
-
-void xml_write_to_stream(std::ostream& os_xml, const {0}& s, bofstream*, const std::string&);
 
 template<> struct std::formatter<{0}> {{
   using T={0};
@@ -1116,9 +1114,7 @@ template<> struct std::formatter<{0}> {{
 
   template <class FmtContext>
   FmtContext::iterator format(const T& v, FmtContext& ctx) const {{
-    const auto q = tags.quote();
-
-    return std::format_to(ctx.out(), "{{}}{{}}{{}}", q, toString<{3}>(v), q);
+    return std::format_to(ctx.out(), "{{0}}{{1}}{{0}}", tags.quote(), toString<{3}>(v));
   }}
 }};)",
                  name,
@@ -1205,22 +1201,13 @@ std::ostream &operator<<(std::ostream &os, const {0} x) {{
 std::istream &operator>>(std::istream &is, {0}& x) {{
   std::string s;
   is >> s;
-  x = to<{0}>(s);
+  try {{
+    x = to<{0}>(s);
+  }} catch (const std::exception &e) {{
+    throw std::runtime_error(
+        std::format("Failed to read {0} from input stream value {{}}:\n{{}}", x, e.what()));
+  }}
   return is;
-}}
-
-void xml_read_from_stream(std::istream& is, {0}& s, bifstream*) {{
-  std::string x;
-  is >> x;
-  if (x != "<{0}>")  throw std::runtime_error("Expected \"<{0}>\" got: \""+x+"\"");
-  is >> x;
-  s = to<{0}>(x);
-  is >> x;
-  if (x != "</{0}>")  throw std::runtime_error("Expected \"</{0}>\" got: \""+x+"\"");
-}}
-
-void xml_write_to_stream(std::ostream& os, const {0}& s, bofstream*, const std::string&) {{
-  std::print(os, "<{0}> {{}} </{0}>\\n", toString<{1}>(s));
 }}
 
 std::string_view enumdocs<{0}>::str() noexcept {{

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <matpack.h>
+#include <xml.h>
 
 #include <functional>
 #include <iosfwd>
 
 #include "debug.h"
+#include "xml_io_stream.h"
 
 #ifndef _MSC_VER
 #if defined(__clang__)
@@ -61,5 +63,35 @@ struct std::formatter<CustomOperator<WTs...>> {
   FmtContext::iterator format(const CustomOperator<WTs...> &,
                               FmtContext &ctx) const {
     return std::format_to(ctx.out(), "{0}functional-data{0}"sv, tags.quote());
+  }
+};
+
+template <typename R, typename... Args>
+  requires(arts_xml_ioable<std::function<R(Args...)>>)
+struct xml_io_stream<CustomOperator<R, Args...>> {
+  static constexpr std::string_view type_name = "CustomOperator"sv;
+
+  static void write(std::ostream &os,
+                    const CustomOperator<R, Args...> &x,
+                    bofstream *pbofs      = nullptr,
+                    std::string_view name = ""sv) {
+    std::println(os, R"(<{0} name="{1}">)", type_name, name);
+
+    xml_write_to_stream(os, x.f, pbofs);
+
+    std::println(os, R"(</{0}>)", type_name);
+  }
+
+  static void read(std::istream &is,
+                   CustomOperator<R, Args...> &x,
+                   bifstream *pbifs = nullptr) {
+    XMLTag tag;
+    tag.read_from_stream(is);
+    tag.check_name(type_name);
+
+    xml_read_from_stream(is, x.f, pbifs);
+
+    tag.read_from_stream(is);
+    tag.check_end_name(type_name);
   }
 };

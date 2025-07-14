@@ -11,7 +11,7 @@ void WriteBuiltinPartitionFunctionsXML(
   const Numeric& Tlow,
   const Numeric& Tupp,
   const Index& N) {
-  ARTS_USER_ERROR_IF(Tupp <= Tlow, "Need a range [low, high], has [{}, {}]", Tlow, Tupp, "]")
+  ARTS_USER_ERROR_IF(Tupp <= Tlow, "Need a range [low, high], has [{}, {}]", Tlow, Tupp)
   ARTS_USER_ERROR_IF(N < 2, "Need a positive step counter 2 or larger, has: {}", N)
   
   const auto d = std::filesystem::path(dir.c_str());

@@ -61,7 +61,6 @@ option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
-option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
@@ -126,6 +125,11 @@ list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Boost ###########
 find_package (Boost COMPONENTS REQUIRED headers)
+
+########### Find FastFloat ###########
+
+find_package(FastFloat REQUIRED)
+# Get the target FastFloat::fast_float
 
 ########### Find Python ##########
 find_package (Python REQUIRED COMPONENTS Interpreter Development.Module)
@@ -274,14 +278,6 @@ set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 ########## BLAS/LAPACK support #########
 find_package (LAPACK REQUIRED)
 
-########## NetCDF support #########
-if (ENABLE_NETCDF)
-  include (FindNetCDF)
-  if (NOT NETCDF_FOUND)
-      message(FATAL_ERROR "NetCDF library not found")
-  endif()
-endif (ENABLE_NETCDF)
-
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
@@ -337,6 +333,7 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+  ARTS_ADD_COMPILER_FLAG (wd4834)
 else ()
   ARTS_ADD_COMPILER_FLAG (W)
   ARTS_ADD_COMPILER_FLAG (Wall)
@@ -423,7 +420,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set (WINDOWS 1)
 endif (APPLE)
 
-set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/controlfiles")
+set (ARTS_SOURCE_DIR "${ARTS_SOURCE_DIR}/")
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")

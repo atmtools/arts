@@ -76,3 +76,35 @@ dunit_converter(const SpectralRadianceUnitType type, const Numeric n) {
   std::unreachable();
 }
 }  // namespace rtepack
+
+void xml_io_stream<rtepack::stokvec>::write(std::ostream &os,
+                                            const rtepack::stokvec &x,
+                                            bofstream *pbofs,
+                                            std::string_view name) {
+  xml_io_stream<rtepack::vec4>::write(os, x, pbofs, name);
+}
+
+void xml_io_stream<rtepack::stokvec>::read(std::istream &is,
+                                           rtepack::stokvec &x,
+                                           bifstream *pbifs) {
+  xml_io_stream<rtepack::vec4>::read(is, x, pbifs);
+}
+
+void xml_io_stream<rtepack::stokvec>::put(std::span<const rtepack::stokvec> x,
+                                          bofstream *pbofs) {
+  xml_io_stream<rtepack::vec4>::put(
+      std::span{reinterpret_cast<const rtepack::vec4 *>(x.data()), x.size()},
+      pbofs);
+}
+
+void xml_io_stream<rtepack::stokvec>::get(std::span<rtepack::stokvec> x,
+                                          bifstream *pbifs) {
+  xml_io_stream<rtepack::vec4>::get(
+      std::span{reinterpret_cast<rtepack::vec4 *>(x.data()), x.size()}, pbifs);
+}
+
+void xml_io_stream<rtepack::stokvec>::parse(std::span<rtepack::stokvec> x,
+                                            std::istream &is) {
+  xml_io_stream<rtepack::vec4>::parse(
+      std::span{reinterpret_cast<rtepack::vec4 *>(x.data()), x.size()}, is);
+}

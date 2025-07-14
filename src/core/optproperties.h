@@ -241,4 +241,32 @@ PType PType2FromString(const std::string_view ptype_string);
 
 PType PTypeFromString(const std::string_view ptype_string);
 
+template <>
+struct xml_io_stream<SingleScatteringData> {
+  static constexpr std::string_view type_name = "SingleScatteringData"sv;
+
+  static void write(std::ostream& os,
+                    const SingleScatteringData& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SingleScatteringData& x,
+                   bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream<ScatteringMetaData> {
+  static constexpr std::string_view type_name = "ScatteringMetaData"sv;
+
+  static void write(std::ostream& os,
+                    const ScatteringMetaData& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   ScatteringMetaData& x,
+                   bifstream* pbifs = nullptr);
+};
+
 #endif  //optproperties_h
