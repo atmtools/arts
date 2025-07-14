@@ -90,7 +90,7 @@ Rational band_data::max(QuantumNumberType x) const {
   Rational out{std::numeric_limits<Index>::lowest()};
   for (auto& line : *this) {
     auto& qn = line.qn.val[x];
-    out      = std::max(out, std::max(qn.upp(), qn.low()));
+    out      = ::max(out, ::max(qn.upp(), qn.low()));
   }
   return out;
 }

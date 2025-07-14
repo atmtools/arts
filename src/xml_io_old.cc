@@ -1,7 +1,6 @@
 #include "xml_io_old.h"
 
 #include <double_imanip.h>
-#include <string_extract.h>
 
 #include <algorithm>
 #include <istream>
@@ -40,8 +39,8 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
     if (line.size() == 0 && is.eof()) return output;
 
     // @ as first character marks catalogue entry
-    char c;
-    extract(c, line, 1);
+   const char c=line.front();
+   line.erase(0, 1);
 
     // check for empty line
     if (c == '@') {
@@ -255,8 +254,8 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
     if (line.size() == 0 && is.eof()) return output;
 
     // @ as first character marks catalogue entry
-    char c;
-    extract(c, line, 1);
+   const char c=line.front();
+   line.erase(0, 1);
 
     // check for empty line
     if (c == '@') {

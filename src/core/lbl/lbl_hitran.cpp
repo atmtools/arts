@@ -4,7 +4,7 @@
 #include <hitran_species.h>
 #include <partfun.h>
 
-#include <charconv>
+#include <boost/charconv.hpp>
 
 namespace lbl {
 namespace {
@@ -37,7 +37,8 @@ struct reader {
                            "Failed to fully parse string \"{}\"",
                            orig)
       } else {
-        auto res = std::from_chars(sv.data(), sv.data() + sv.size(), x);
+        auto res =
+            boost::charconv::from_chars(sv.data(), sv.data() + sv.size(), x);
         ARTS_USER_ERROR_IF(res.ec != std::errc{},
                            "Failed to parse value from string \"{}\"",
                            orig)

@@ -12,7 +12,7 @@
 #include <enumsTimeStepType.h>
 #include <fast_float/fast_float.h>
 
-#include <charconv>
+#include <boost/charconv.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -193,12 +193,12 @@ std::istream& operator>>(std::istream& is, Time& t) {
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
   int year{}, month{}, day{};
-  auto res_year =
-      std::from_chars(YMD[0].c_str(), YMD[0].c_str() + YMD[0].size(), year);
-  auto res_mon =
-      std::from_chars(YMD[1].c_str(), YMD[1].c_str() + YMD[1].size(), month);
-  auto res_day =
-      std::from_chars(YMD[2].c_str(), YMD[2].c_str() + YMD[2].size(), day);
+  auto res_year = boost::charconv::from_chars(
+      YMD[0].c_str(), YMD[0].c_str() + YMD[0].size(), year);
+  auto res_mon = boost::charconv::from_chars(
+      YMD[1].c_str(), YMD[1].c_str() + YMD[1].size(), month);
+  auto res_day = boost::charconv::from_chars(
+      YMD[2].c_str(), YMD[2].c_str() + YMD[2].size(), day);
 
   ARTS_USER_ERROR_IF(std::make_error_code(res_year.ec) or
                          std::make_error_code(res_mon.ec) or
@@ -210,10 +210,10 @@ std::istream& operator>>(std::istream& is, Time& t) {
 
   int hour{}, minute{};
   Numeric sec{};
-  auto res_hour =
-      std::from_chars(HMS[0].c_str(), HMS[0].c_str() + HMS[0].size(), hour);
-  auto res_min =
-      std::from_chars(HMS[1].c_str(), HMS[1].c_str() + HMS[1].size(), minute);
+  auto res_hour = boost::charconv::from_chars(
+      HMS[0].c_str(), HMS[0].c_str() + HMS[0].size(), hour);
+  auto res_min = boost::charconv::from_chars(
+      HMS[1].c_str(), HMS[1].c_str() + HMS[1].size(), minute);
   auto res_sec = fast_float::from_chars(
       HMS[2].c_str(), HMS[2].c_str() + HMS[2].size(), sec);
 

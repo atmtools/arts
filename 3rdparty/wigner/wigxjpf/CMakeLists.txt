@@ -156,10 +156,15 @@ target_include_directories(wigxjpf
         src/
 )
 
-target_compile_definitions(wigxjpf PUBLIC -DERRNO_ERROR_HANDLING)
+target_compile_definitions(wigxjpf PRIVATE -DERRNO_ERROR_HANDLING)
 
-set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS
-  "-O3 -fPIC ${CMAKE_C_FLAGS}")
+if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS
+      "${CMAKE_C_FLAGS}")
+else()
+    set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS
+      "-O3 -fPIC ${CMAKE_C_FLAGS}")
+endif()
 
 if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   target_compile_options(wigxjpf PRIVATE -Wno-shadow)
