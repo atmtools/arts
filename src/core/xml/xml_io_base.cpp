@@ -17,9 +17,13 @@
 #include <double_imanip.h>
 #include <file.h>
 
+#include <format>
 #include <iomanip>
 #include <iterator>
+#include <stdexcept>
 #include <string_view>
+
+constexpr Index ARTS_XML_VERSION = 3;
 
 namespace {
 static inline std::string quotation_mark_replacement{"”"};
@@ -607,6 +611,15 @@ void xml_read_header_from_stream(std::istream& is,
   tag.read_from_stream(is);
   tag.check_name("arts"sv);
 
+  Index version{};
+  tag.get_attribute_value("version", version);
+  if (version > ARTS_XML_VERSION) {
+    throw std::runtime_error(std::format(
+        R"(Bad version in "arts"-tag.  Compiled version number: {}, got {})",
+        ARTS_XML_VERSION,
+        version));
+  }
+
   // Check file format
   tag.get_attribute_value("format", strtype);
   if (strtype == "binary") {
@@ -616,29 +629,23 @@ void xml_read_header_from_stream(std::istream& is,
   }
 
   // Check endian type
-  // tag.get_attribute_value("endian_type", strtype, "little");
-  // if (strtype == "little") {
-  //   etype = ENDIAN_TYPE_LITTLE;
-  // }
-  // if (strtype == "big") {
-  //   etype = ENDIAN_TYPE_BIG;
-  // }
-  // if (strtype == "") {
-  etype = ENDIAN_TYPE_LITTLE;
-  // } else {
-  //   std::ostringstream os;
-  //   os << "  Error: Unknown endian type \"" << strtype
-  //      << "\" specified in XML file.\n";
-  //   throw std::runtime_error(os.str());
-  // }
+  tag.get_attribute_value("endian_type", strtype, "little");
+  if (strtype == "little") {
+    etype = ENDIAN_TYPE_LITTLE;
+  } else if (strtype == "big") {
+    etype = ENDIAN_TYPE_BIG;
+  } else {
+    std::ostringstream os;
+    os << "  Error: Unknown endian type \"" << strtype
+       << "\" specified in XML file.\n";
+    throw std::runtime_error(os.str());
+  }
 
   // Check numeric type
   tag.get_attribute_value("numeric_type", strtype, "double");
   if (strtype == "float") {
     ntype = NUMERIC_TYPE_FLOAT;
   } else if (strtype == "double") {
-    ntype = NUMERIC_TYPE_DOUBLE;
-  } else if (strtype == "") {
     ntype = NUMERIC_TYPE_DOUBLE;
   } else {
     std::ostringstream os;
@@ -678,7 +685,7 @@ void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
     case FileType::binary: tag.add_attribute("format", "binary"); break;
   }
 
-  tag.add_attribute("version", "1");
+  tag.add_attribute("version", ARTS_XML_VERSION);
 
   tag.write_to_stream(os);
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <wsv_value_wrapper.h>
 #include <format_tags.h>
+#include <wsv_value_wrapper.h>
 
 #include <memory>
 #include <unordered_map>
@@ -132,6 +132,13 @@ struct xml_io_stream_name<Workspace> {
 };
 
 template <>
-struct xml_io_stream_aggregate<Workspace> {
-  static constexpr bool value = true;
+struct xml_io_stream<Workspace> {
+  constexpr static std::string_view type_name = xml_io_stream_name_v<Workspace>;
+
+  static void write(std::ostream& os,
+                    const Workspace& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is, Workspace& x, bifstream* pbifs = nullptr);
 };
