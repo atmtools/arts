@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <tuple>
 #include <unordered_map>
 #include <variant>
@@ -570,12 +571,23 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   ARTS_TIME_REPORT
 
-  atmospheric_field[AtmKey::mag_u] =
-      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::u)};
-  atmospheric_field[AtmKey::mag_v] =
-      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::v)};
-  atmospheric_field[AtmKey::mag_w] =
-      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::w)};
+  const NumericTernaryOperator magu{
+      .f = NumericTernary{Atm::IGRF13(time, FieldComponent::u)}};
+  const NumericTernaryOperator magv{
+      .f = NumericTernary{Atm::IGRF13(time, FieldComponent::v)}};
+  const NumericTernaryOperator magw{
+      .f = NumericTernary{Atm::IGRF13(time, FieldComponent::w)}};
+
+  atmospheric_field[AtmKey::mag_u] = magu;
+  atmospheric_field[AtmKey::mag_v] = magv;
+  atmospheric_field[AtmKey::mag_w] = magw;
+
+  if (magu.f.target<Atm::IGRF13>() == nullptr)
+    throw std::runtime_error("Bad ABI: magu");
+  if (magv.f.target<Atm::IGRF13>() == nullptr)
+    throw std::runtime_error("Bad ABI: magv");
+  if (magw.f.target<Atm::IGRF13>() == nullptr)
+    throw std::runtime_error("Bad ABI: magw");
 }
 
 void atmospheric_fieldHydrostaticPressure(
