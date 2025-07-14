@@ -2428,6 +2428,44 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
+  wsm_data["jacobian_targetsToggleLogarithmicAtmTarget"] = {
+      .desc   = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelAtmTarget"] = {
+      .desc   = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
   wsm_data["jacobian_targetsToggleRelativeSurfaceTarget"] = {
       .desc      = R"--(Toggles relative or absolute retrievals.
 
@@ -2445,11 +2483,83 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
+  wsm_data["jacobian_targetsToggleLogarithmicSurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelSurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
   wsm_data["jacobian_targetsToggleRelativeSubsurfaceTarget"] = {
       .desc      = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
 If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogarithmicSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
 
 Overwrites all other functional toggles.
 )--",

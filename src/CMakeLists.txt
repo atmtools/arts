@@ -175,6 +175,8 @@ add_library(artsworkspace STATIC
   m_xsec_fit.cc
   m_jactargets.cc
   m_jactargets_reltoggle.cc
+  m_jactargets_logtoggle.cc
+  m_jactargets_logreltoggle.cc
   m_lbl.cc
   m_linemixing.cc
   m_lookup.cc

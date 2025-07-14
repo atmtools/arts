@@ -15,7 +15,7 @@ ws.frequency_grid = np.linspace(10e9, 400e9, NF)
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["H2O-PWR98"])
+ws.absorption_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
 ws.ReadCatalogData()
 ws.WignerInit()
 
@@ -39,22 +39,16 @@ pos = [0e3, 0, 0]
 los = [20.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
-DO_RAT = True
 RAT = 0.8
 field = copy(ws.atmospheric_field["H2O"])
 fieldg = copy(ws.atmospheric_field["H2O"])
 
 fieldg.data /= RAT
-if DO_RAT:
-    orig = np.ones(50) * RAT
-else:
-    orig = field.data.data.flatten()
+orig = field.data.data.flatten()
+orig = np.log(orig)
 
 ws.RetrievalInit()
-if DO_RAT:
-    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-5)
-else:
-    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-13)
+ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50)) * 1e-4))
 ws.RetrievalFinalizeDiagonal()
 
 ws.measurement_vectorFromSensor()
@@ -66,8 +60,7 @@ ws.model_state_vector = []
 ws.measurement_jacobian = [[]]
 
 ws.atmospheric_field["H2O"] = fieldg
-if DO_RAT:
-    ws.jacobian_targetsToggleRelativeAtmTarget(key="H2O")
+ws.jacobian_targetsToggleLogarithmicAtmTarget(key="H2O")
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vectorFromSensor()
 apri = ws.measurement_vector * 1.0
@@ -86,29 +79,22 @@ if PLOT:
     plt.plot(ws.frequency_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
     plt.legend()
     plt.show()
-    if DO_RAT:
-        plt.plot(orig, field.data.grids[0], label="original", lw=5)
-        plt.plot(
-            ws.model_state_vector_apriori,
-            field.data.grids[0],
-            ":",
-            lw=3,
-            label="apriori",
-        )
-        plt.plot(ws.model_state_vector, field.data.grids[0], label="fitted")
-    else:
-        plt.semilogx(orig, field.data.grids[0], label="original", lw=5)
-        plt.semilogx(
-            ws.model_state_vector_apriori,
-            field.data.grids[0],
-            ":",
-            lw=3,
-            label="apriori",
-        )
-        plt.semilogx(ws.model_state_vector, field.data.grids[0], label="fitted")
+    plt.plot(
+        np.exp(ws.model_state_vector_apriori) / np.exp(orig),
+        field.data.grids[0],
+        ":",
+        lw=3,
+        label="apriori ratio",
+    )
+    plt.plot(
+        np.exp(ws.model_state_vector) / np.exp(orig),
+        field.data.grids[0],
+        label="fitted ratio",
+    )
+    plt.plot(ws.model_state_vector * 0 + 1, field.data.grids[0], label="true ratio")
     plt.legend()
     plt.show()
 
 # Just a simple test that some real convergence happens (the fit is not good but better)
-print(np.std(true - apri), "vs", 2 * np.std(true - ws.measurement_vector_fitted))
+print(np.std(true - apri), "vs", np.std(true - ws.measurement_vector_fitted))
 assert np.std(true - apri) > 2 * np.std(true - ws.measurement_vector_fitted)
