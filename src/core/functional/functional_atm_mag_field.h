@@ -7,8 +7,6 @@
 
 namespace Atm {
 struct IGRF13 {
-  static constexpr Vector2 ell{6378137., 6356752.314245};
-
   Time time{};
   FieldComponent component{};
 

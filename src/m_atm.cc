@@ -571,11 +571,11 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   ARTS_TIME_REPORT
 
   atmospheric_field[AtmKey::mag_u] =
-      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::u)};
+      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::u)};
   atmospheric_field[AtmKey::mag_v] =
-      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::v)};
+      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::v)};
   atmospheric_field[AtmKey::mag_w] =
-      NumericTernaryOperator{Atm::IGRF13(time, FieldComponent::w)};
+      NumericTernaryOperator{.f = Atm::IGRF13(time, FieldComponent::w)};
 }
 
 void atmospheric_fieldHydrostaticPressure(
