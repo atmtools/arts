@@ -577,32 +577,7 @@ void test_unordered_map(std::string fn) {
   }
 }
 
-struct X {
-  Index a{}, b{};
-  Numeric c{};
-  String s{};
-};
-
-template <>
-struct xml_io_stream_name<X> {
-  static constexpr std::string_view name = "MyX";
-};
-
-template <>
-struct xml_io_stream_aggregate<X> {
-  static constexpr bool value = true;
-};
-
 int main() try {
-  X x{1, 2, 3.14, "hi"}, y{};
-  xml_write_to_file_base("mystruct.xml", x, FileType::ascii);
-  std::println("x: {}", as_tuple(x));
-  std::println("y: {}", as_tuple(y));
-  xml_read_from_file_base("mystruct.xml", y);
-  std::println("x: {}", as_tuple(x));
-  std::println("y: {}", as_tuple(y));
-  return 0;
-
   test_basic<Index>("index");
   test_basic<Size>("size");
   test_basic<Numeric>("numeric");

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xml.h>
+
 #include "functional_atm.h"
 #include "functional_gravity.h"
 

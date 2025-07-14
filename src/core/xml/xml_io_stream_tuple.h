@@ -14,32 +14,29 @@ struct xml_io_stream_name<std::tuple<Ts...>> {
 };
 
 template <typename... Ts>
-  requires((arts_xml_ioable<std::remove_cvref_t<Ts>> and ...))
+  requires((arts_xml_ioable<Ts> and ...))
 struct xml_io_stream<std::tuple<Ts...>> {
-  template <typename U>
-  using Decayed = std::remove_cvref_t<U>;
+  using tup_t = std::tuple<Ts...>;
 
-  constexpr static std::string_view type_name =
-      xml_io_stream_name_v<std::tuple<Ts...>>;
+  constexpr static std::string_view type_name = xml_io_stream_name_v<tup_t>;
 
   constexpr static bool all_binary = (xml_io_binary<Ts> and ...);
   constexpr static bool all_parse  = (xml_io_parseable<Ts> and ...);
 
-  static void put(std::span<const std::tuple<Ts...>> x, bofstream* pbofs)
+  static void put(std::span<const tup_t> x, bofstream* pbofs)
     requires(all_binary)
   {
     for (auto& v : x) {
       std::apply(
           [&pbofs](auto&... args) {
-            (xml_io_stream<Decayed<decltype(args)>>::put({&args, 1}, pbofs),
-             ...);
+            (xml_io_stream<Ts>::put({&args, 1}, pbofs), ...);
           },
           v);
     }
   }
 
   static void write(std::ostream& os,
-                    const std::tuple<Ts...>& n,
+                    const tup_t& n,
                     bofstream* pbofs = nullptr,
                     std::string_view = ""sv) {
     if (pbofs) {
@@ -47,9 +44,8 @@ struct xml_io_stream<std::tuple<Ts...>> {
         put({&n, 1}, pbofs);
       else
         std::apply(
-            [&os, &pbofs](const auto&... args) {
-              (xml_io_stream<Decayed<decltype(args)>>::write(os, args, pbofs),
-               ...);
+            [&os, &pbofs](const Ts&... args) {
+              (xml_io_stream<Ts>::write(os, args, pbofs), ...);
             },
             n);
     } else {
@@ -57,49 +53,43 @@ struct xml_io_stream<std::tuple<Ts...>> {
         std::println(os, "{:IO}", n);
       else
         std::apply(
-            [&os, &pbofs](const auto&... args) {
-              (xml_io_stream<Decayed<decltype(args)>>::write(os, args, pbofs),
-               ...);
+            [&os, &pbofs](const Ts&... args) {
+              (xml_io_stream<Ts>::write(os, args, pbofs), ...);
             },
             n);
     }
   }
 
-  static void get(std::span<std::tuple<Ts...>> x, bifstream* pbifs)
+  static void get(std::span<tup_t> x, bifstream* pbifs)
     requires(all_binary)
   {
     for (auto& v : x) {
       std::apply(
           [&pbifs](auto&... args) {
-            (xml_io_stream<Decayed<decltype(args)>>::get(args, pbifs), ...);
+            (xml_io_stream<Ts>::get(args, pbifs), ...);
           },
           v);
     }
   }
 
-  static void parse(std::span<std::tuple<Ts...>> x, std::istream& is)
+  static void parse(std::span<tup_t> x, std::istream& is)
     requires(all_parse)
   {
     for (auto& v : x) {
       std::apply(
-          [&is](auto&... args) {
-            (xml_io_stream<Decayed<decltype(args)>>::parse(args, is), ...);
-          },
+          [&is](auto&... args) { (xml_io_stream<Ts>::parse(args, is), ...); },
           v);
     }
   }
 
-  static void read(std::istream& is,
-                   std::tuple<Ts...>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, tup_t& n, bifstream* pbifs = nullptr) try {
     if (pbifs) {
       if constexpr (all_binary)
         get({&n, 1}, pbifs);
       else
         std::apply(
-            [&](auto&... args) {
-              (xml_io_stream<Decayed<decltype(args)>>::read(is, args, pbifs),
-               ...);
+            [&](Ts&... args) {
+              (xml_io_stream<Ts>::read(is, args, pbifs), ...);
             },
             n);
     } else {
@@ -108,8 +98,7 @@ struct xml_io_stream<std::tuple<Ts...>> {
       else
         std::apply(
             [&](auto&... args) {
-              (xml_io_stream<Decayed<decltype(args)>>::read(is, args, pbifs),
-               ...);
+              (xml_io_stream<Ts>::read(is, args, pbifs), ...);
             },
             n);
     }

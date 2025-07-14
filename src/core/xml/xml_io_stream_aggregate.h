@@ -1,6 +1,10 @@
 #pragma once
 
-#include "xml_io_stream_tuple.h"
+#include <concepts>
+#include <type_traits>
+
+#include "xml_io_base.h"
+#include "xml_io_stream.h"
 
 template <typename T>
 concept aggregate_0 = std::is_aggregate_v<T> and requires { T{}; };
@@ -220,10 +224,7 @@ constexpr bool xml_io_stream_aggregate_v = xml_io_stream_aggregate<T>::value;
 
 template <typename T>
 concept xml_io_aggregratable =
-    xml_io_stream_aggregate_v<T> and requires(T a, std::ostream& os) {
-      as_tuple(a);
-      xml_write_to_stream(os, as_tuple(a));
-    };
+    xml_io_stream_aggregate_v<T> and requires(T a) { as_tuple(a); };
 
 template <xml_io_aggregratable T>
 struct xml_io_stream<T> {
@@ -234,40 +235,17 @@ struct xml_io_stream<T> {
   using mtup_t  = std::invoke_result_t<_lambda, T&>;
   using inner   = xml_io_stream<mtup_t>;
 
-  static void put(std::span<const T> x, bofstream* pbofs)
-    requires(inner::all_binary)
-  {
-    for (const T& v : x) {
-      ctup_t tmp = as_tuple(v);
-      inner::put({&tmp, 1}, pbofs);
-    }
-  }
-
-  static void get(std::span<T> x, bifstream* pbifs)
-    requires(inner::all_binary)
-  {
-    for (T& v : x) {
-      mtup_t tmp = as_tuple(v);
-      mtup_t::get({&tmp, 1}, pbifs);
-    }
-  }
-
-  static void parse(std::span<T> x, std::istream& is)
-    requires(inner::all_parse)
-  {
-    for (T& v : x) {
-      mtup_t tmp = as_tuple(v);
-      inner::parse({&tmp, 1}, is);
-    }
-  }
-
   static void write(std::ostream& os,
                     const T& t,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
     std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
-    xml_write_to_stream(os, as_tuple(t), pbofs);
+    std::apply(
+        [&os, &pbofs]<typename... Ts>(const Ts&... v) {
+          (xml_io_stream<Ts>::write(os, v, pbofs), ...);
+        },
+        as_tuple(t));
 
     std::println(os, R"(</{0}>)", type_name);
   }
@@ -277,8 +255,9 @@ struct xml_io_stream<T> {
     tag.read_from_stream(is);
     tag.check_name(type_name);
 
-    mtup_t tmp = as_tuple(t);
-    xml_read_from_stream(is, tmp, pbifs);
+    std::apply([&is, &pbifs]<typename... Ts>(
+                   Ts&... v) { (xml_io_stream<Ts>::read(is, v, pbifs), ...); },
+               as_tuple(t));
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
