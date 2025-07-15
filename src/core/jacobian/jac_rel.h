@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include "jacobian.h"
+#include "jacobian_names.h"
 
 struct relfwd {
   std::shared_ptr<const Vector> sorig;
@@ -41,3 +41,23 @@ struct relinv {
 void make_relfit(Jacobian::AtmTarget&, const AtmField&);
 void make_relfit(Jacobian::SurfaceTarget&, const SurfaceField&);
 void make_relfit(Jacobian::SubsurfaceTarget&, const SubsurfaceField&);
+
+template <>
+struct xml_io_stream_name<relfwd> {
+  constexpr static std::string_view name = "relfwd";
+};
+
+template <>
+struct xml_io_stream_name<relinv> {
+  constexpr static std::string_view name = "relinv";
+};
+
+template <>
+struct xml_io_stream_aggregate<relfwd> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<relinv> {
+  constexpr static bool value = true;
+};

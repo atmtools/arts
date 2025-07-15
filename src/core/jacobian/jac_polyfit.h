@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "jacobian.h"
+#include "jacobian_names.h"
 
 void polyfit(VectorView param,
              const ConstVectorView x,
@@ -49,3 +49,43 @@ void make_polyfit(Jacobian::ErrorTarget&, const Size, const Vector&);
 void make_polyoffset(Jacobian::SensorTarget&,
                      const Size,
                      const ArrayOfSensorObsel&);
+
+template <>
+struct xml_io_stream_name<polyfit_t> {
+  constexpr static std::string_view name = "polyfit_t";
+};
+
+template <>
+struct xml_io_stream_name<polyfit_sensor_offset_t> {
+  constexpr static std::string_view name = "polyfit_sensor_offset_t";
+};
+
+template <>
+struct xml_io_stream_name<polyinv_t> {
+  constexpr static std::string_view name = "polyinv_t";
+};
+
+template <>
+struct xml_io_stream_name<polyinv_sensor_offset_t> {
+  constexpr static std::string_view name = "polyinv_sensor_offset_t";
+};
+
+template <>
+struct xml_io_stream_aggregate<polyfit_t> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<polyfit_sensor_offset_t> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<polyinv_t> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<polyinv_sensor_offset_t> {
+  constexpr static bool value = true;
+};

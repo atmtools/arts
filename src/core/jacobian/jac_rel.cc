@@ -1,5 +1,6 @@
 #include "jac_rel.h"
 
+#include "jacobian.h"
 #include "matpack_einsum.h"
 
 Vector relfwd::operator()(ConstVectorView xx) const {

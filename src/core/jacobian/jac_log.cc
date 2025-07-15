@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "jacobian.h"
+
 Vector logfwd::operator()(ConstVectorView xx) const {
   ARTS_USER_ERROR_IF(N != xx.size(),
                      R"(Mismatch size.

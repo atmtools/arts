@@ -4,8 +4,9 @@
 #include <matpack.h>
 #include <subsurface.h>
 #include <surf.h>
+#include <xml.h>
 
-#include "jacobian.h"
+#include "jacobian_names.h"
 
 template <class T>
 struct pairfwd {
@@ -43,3 +44,23 @@ struct pairinv {
 void make_logrelfit(Jacobian::AtmTarget&, const AtmField&);
 void make_logrelfit(Jacobian::SurfaceTarget&, const SurfaceField&);
 void make_logrelfit(Jacobian::SubsurfaceTarget&, const SubsurfaceField&);
+
+template <typename T>
+struct xml_io_stream_name<pairinv<T>> {
+  constexpr static std::string_view name = "pairinv";
+};
+
+template <typename T>
+struct xml_io_stream_name<pairfwd<T>> {
+  constexpr static std::string_view name = "pairfwd";
+};
+
+template <typename T>
+struct xml_io_stream_aggregate<pairinv<T>> {
+  constexpr static bool value = true;
+};
+
+template <typename T>
+struct xml_io_stream_aggregate<pairfwd<T>> {
+  constexpr static bool value = true;
+};

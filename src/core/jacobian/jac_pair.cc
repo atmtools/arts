@@ -2,6 +2,7 @@
 
 #include "jac_log.h"
 #include "jac_rel.h"
+#include "jacobian.h"
 
 void make_logrelfit(Jacobian::AtmTarget& x, const AtmField& atm) {
   auto sorig = std::make_shared<Vector>(atm[x.type].flat_view());

@@ -4,7 +4,7 @@
 
 #include <utility>
 
-#include "obsel.h"
+#include "jacobian.h"
 
 void polyfit(VectorView param,
              const ConstVectorView x,

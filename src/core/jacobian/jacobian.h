@@ -14,8 +14,13 @@
 #include <variant>
 #include <vector>
 
-#include "lbl_data.h"
-#include "matpack_mdspan_view_t.h"
+#include "atm_field.h"
+#include "jac_log.h"
+#include "jac_pair.h"
+#include "jac_polyfit.h"
+#include "jac_rel.h"
+#include "jacobian_names.h"
+#include "xml_io_stream_functional.h"
 
 struct ErrorKey {
   Size y_start;
@@ -35,21 +40,6 @@ struct std::hash<ErrorKey> {
 };
 
 namespace Jacobian {
-using cv          = ConstVectorView;
-using cm          = ConstMatrixView;
-using atm_vec     = std::function<Vector(cv, const AtmField&)>;
-using atm_mat     = std::function<Matrix(cm, cv, const AtmField&)>;
-using surf_vec    = std::function<Vector(cv, const SurfaceField&)>;
-using surf_mat    = std::function<Matrix(cm, cv, const SurfaceField&)>;
-using subsurf_vec = std::function<Vector(cv, const SubsurfaceField&)>;
-using subsurf_mat = std::function<Matrix(cm, cv, const SubsurfaceField&)>;
-using line_vec    = std::function<Vector(cv, const AbsorptionBands&)>;
-using line_mat    = std::function<Matrix(cm, cv, const AbsorptionBands&)>;
-using sensor_vec  = std::function<Vector(cv, const ArrayOfSensorObsel&)>;
-using sensor_mat  = std::function<Matrix(cm, cv, const ArrayOfSensorObsel&)>;
-using error_vec   = std::function<Vector(cv, cv)>;
-using error_mat   = std::function<Matrix(cm, cv, cv)>;
-
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
  * The intent here is that the type should be able to match into any Key that can
@@ -816,4 +806,23 @@ struct xml_io_stream<JacobianTargets> {
   static void read(std::istream& is,
                    JacobianTargets& x,
                    bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream_functional<Jacobian::atm_vec> {
+  using func_t    = Vector (*)(ConstVectorView, const AtmField&);
+  using structs_t = std::variant<relinv,
+                                 relfwd,
+                                 loginv,
+                                 logfwd,
+                                 pairfwd<AtmField>,
+                                 pairinv<AtmField>>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <>
+struct xml_io_stream_functional<Jacobian::atm_mat> {
+  using func_t = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
+  using structs_t = std::variant<relinv, loginv, pairinv<AtmField>>;
+  static constexpr std::array<func_t*, 0> funcs{};
 };
