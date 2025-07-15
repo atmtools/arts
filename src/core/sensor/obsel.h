@@ -348,15 +348,13 @@ struct xml_io_stream<SensorPosLos> {
 };
 
 template <>
-struct xml_io_stream<SensorKey> {
-  static constexpr std::string_view type_name = "SensorKey"sv;
+struct xml_io_stream_name<SensorKey> {
+  static constexpr std::string_view name = "SensorKey"sv;
+};
 
-  static void write(std::ostream& os,
-                    const SensorKey& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, SensorKey& x, bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<SensorKey> {
+  static constexpr bool value = true;
 };
 
 template <>

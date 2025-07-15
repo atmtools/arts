@@ -4,7 +4,6 @@
 #include <lbl.h>
 #include <matpack.h>
 #include <obsel.h>
-#include <operators.h>
 #include <subsurface.h>
 #include <surf.h>
 #include <xml.h>
@@ -736,99 +735,73 @@ struct xml_io_stream<JacobianTargetType> {
 };
 
 template <>
-struct xml_io_stream<Jacobian::AtmTarget> {
-  static constexpr std::string_view type_name = "AtmTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::AtmTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::AtmTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::AtmTarget> {
+  static constexpr std::string_view name = "AtmTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::LineTarget> {
-  static constexpr std::string_view type_name = "LineTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::LineTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::LineTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::LineTarget> {
+  static constexpr std::string_view name = "LineTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SurfaceTarget> {
-  static constexpr std::string_view type_name = "SurfaceTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SurfaceTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SurfaceTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SurfaceTarget> {
+  static constexpr std::string_view name = "SurfaceTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SubsurfaceTarget> {
-  static constexpr std::string_view type_name = "SubsurfaceTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SubsurfaceTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SubsurfaceTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SubsurfaceTarget> {
+  static constexpr std::string_view name = "SubsurfaceTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SensorTarget> {
-  static constexpr std::string_view type_name = "SensorTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SensorTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SensorTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SensorTarget> {
+  static constexpr std::string_view name = "SensorTarget"sv;
 };
 
 template <>
-struct xml_io_stream<ErrorKey> {
-  static constexpr std::string_view type_name = "ErrorKey"sv;
-
-  static void write(std::ostream& os,
-                    const ErrorKey& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, ErrorKey& x, bifstream* pbifs = nullptr);
+struct xml_io_stream_name<ErrorKey> {
+  static constexpr std::string_view name = "ErrorKey"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::ErrorTarget> {
-  static constexpr std::string_view type_name = "ErrorTarget"sv;
+struct xml_io_stream_name<Jacobian::ErrorTarget> {
+  static constexpr std::string_view name = "ErrorTarget"sv;
+};
 
-  static void write(std::ostream& os,
-                    const Jacobian::ErrorTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+template <>
+struct xml_io_stream_aggregate<Jacobian::AtmTarget> {
+  static constexpr bool value = true;
+};
 
-  static void read(std::istream& is,
-                   Jacobian::ErrorTarget& x,
-                   bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<Jacobian::LineTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SurfaceTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SubsurfaceTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SensorTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<ErrorKey> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::ErrorTarget> {
+  static constexpr bool value = true;
 };
 
 template <>
