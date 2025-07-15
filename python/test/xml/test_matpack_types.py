@@ -215,7 +215,7 @@ class TestSave:
     @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
     def test_save_arrayofindex(self, inttype):
         """Save ArrayOfIndex to file, read it and compare the results."""
-        reference = arts.ArrayOfIndex([inttype(i) for i in [1., 2., 3.]])
+        reference = arts.ArrayOfIndex([inttype(i) for i in [-1., 2., 3.]])
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
@@ -223,7 +223,7 @@ class TestSave:
     @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
     def test_save_arrayofindex_binary(self, inttype):
         """Save ArrayOfIndex to binary file, read it and compare the result."""
-        reference = arts.ArrayOfIndex([inttype(i) for i in [1., 2., 3.]])
+        reference = arts.ArrayOfIndex([inttype(i) for i in [-1., 2., 3.]])
         xml.save(reference, self.f, format='binary')
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
