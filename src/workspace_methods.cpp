@@ -2410,6 +2410,50 @@ matrix to be calculated will work.
            "Extrapolation factor"},
   };
 
+  wsm_data["water_equivalent_pressure_operatorMK05"] = {
+      .desc =
+          "Sets an operator to compute the water equivalent pressure according to Murphy and Koop, 2005.\n"
+          "\n"
+          "Default is setting the saturation pressure to the one with respect\n"
+          "to water at temperatures >= 0C, and to the one with respect to ice\n"
+          "for <0C. The GIN ``only_liquid`` allows you to apply the liquid value\n"
+          "at all temperatures.\n"
+          "\n"
+          "The saturation pressure with respect to liquid and ice water is\n"
+          "calculated according to Eq. 10 and 7, respectively, of:\n"
+          "Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of\n"
+          "ice and supercooled water for atmospheric applications. Quarterly\n"
+          "Journal of the Royal Meteorological Society, 131(608), 1539-1565.\n",
+      .author    = {"Patrick Eriksson"},
+      .out       = {"water_equivalent_pressure_operator"},
+      .gin       = {"only_liquid"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"See text"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeHumidityAtmTarget"] = {
+      .desc   = R"--(Toggles relative humidity or absolute retrievals.
+
+If the target is in relative humidity mode, it becomes absolute.
+If the target is not in relative humidity mode, it becomes relative humidity.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets",
+                 "atmospheric_field",
+                 "water_equivalent_pressure_operator"},
+      .gin    = {"key", "nonnegative"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+           "Index"},
+      .gin_value = {std::nullopt, Index{1}},
+      .gin_desc  = {"Key to toggle",
+                    "Whether or not to zero-out negative values"},
+  };
+
   wsm_data["jacobian_targetsToggleRelativeAtmTarget"] = {
       .desc   = R"--(Toggles relative or absolute retrievals.
 

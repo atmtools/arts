@@ -4,6 +4,7 @@ add_library(jacobian STATIC
     retrieval_target.cc
     jac_polyfit.cc
     jac_rel.cc
+    jac_rh.cc
     jac_log.cc
     jac_pair.cc
 )

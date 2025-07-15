@@ -548,6 +548,24 @@ gravity : Numeric
       .type = "NumericTernaryOperator",
   };
 
+  wsv_data["water_equivalent_pressure_operator"] = {
+      .desc = R"--(The water equivalent pressure operator.
+
+Usage: psat = water_equivalent_pressure_operator(temperature).
+
+Parameters
+----------
+temperature : Numeric
+    Temperature in Kelvin.
+
+Returns
+-------
+psat : Numeric
+    The water equivalent pressure in Pascal.
+)--",
+      .type = "NumericUnaryOperator",
+  };
+
   wsv_data["spectral_radiance_field"] = {
       .desc = R"(The spectral radiance field.
 
