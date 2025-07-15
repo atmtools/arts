@@ -85,7 +85,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto erot = erot_selection(bnd_qid.Isotopologue());
 
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J));
+  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J).toIndex());
 
   const auto Om = [&]() {
     Vector out(maxL);

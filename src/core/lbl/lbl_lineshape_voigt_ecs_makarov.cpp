@@ -119,8 +119,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   const Rational Si = S.upp();
   const Rational Sf = S.low();
 
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J),
-                                   bnd.max(QuantumNumberType::N));
+  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J).toIndex(),
+                                   bnd.max(QuantumNumberType::N).toIndex());
 
   const auto Om = [&]() {
     Vector out(maxL);

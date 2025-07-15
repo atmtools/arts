@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <iosfwd>
 
 #ifdef FAST_WIGNER_PATH_3J
@@ -229,11 +230,11 @@ bool is_wigner3_ready(const Rational& J);
  */
 bool is_wigner6_ready(const Rational& J);
 
-template <class... Integer>
+template <std::integral... Integer>
 constexpr int temp_init_size(Integer... vals) noexcept {
   constexpr auto N = sizeof...(Integer);
   static_assert(N > 0);
-  const std::array<int, N> v{int(vals)...};
+  const std::array<int, N> v{static_cast<int>(vals)...};
   return 1 + 2 * (*std::max_element(v.begin(), v.end()));
 }
 
