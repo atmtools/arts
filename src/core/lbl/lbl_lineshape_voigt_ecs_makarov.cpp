@@ -140,6 +140,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     return out;
   }();
 
+std::println("{}", maxL);
+
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
     auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
