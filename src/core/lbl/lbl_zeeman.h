@@ -50,7 +50,7 @@ constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
         return -Ju + 1;
       else
         return -Ju + 2;
-    case pol::pi: return -min(Ju, Jl);
+    case pol::pi: return -minr(Ju, Jl);
     case pol::sp: return -Ju;
     case pol::no: return 0;
   }
@@ -74,7 +74,7 @@ constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
 constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
   switch (type) {
     case pol::sm: return Ju + 1;
-    case pol::pi: return min(Ju, Jl);
+    case pol::pi: return minr(Ju, Jl);
     case pol::sp:
       if (Ju < Jl)
         return Ju + 1;
