@@ -2,6 +2,8 @@
 
 #include <wigner_functions.h>
 
+#include "debug.h"
+
 namespace lbl::voigt::ecs::makarov {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -49,7 +51,7 @@ namespace {
  * @return Rotational energy in Joule
  */
 template <bool rescale_pure_rotational = true>
-constexpr Numeric erot(const Rational N, const Rational j = -1) {
+constexpr Numeric erot(const Rational N, const Rational j = -1) try {
   const Rational J = j < 0 ? N : j;
 
   if constexpr (rescale_pure_rotational) {
@@ -90,6 +92,7 @@ constexpr Numeric erot(const Rational N, const Rational j = -1) {
     return mhz2joule(C1);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 }  // namespace
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
@@ -99,7 +102,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
-                                   const AtmPoint& atm) {
+                                   const AtmPoint& atm) try {
   using Conversion::kelvin2joule;
 
   ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
@@ -221,4 +224,5 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     }
   }
 }
+ARTS_METHOD_ERROR_CATCH
 }  // namespace lbl::voigt::ecs::makarov

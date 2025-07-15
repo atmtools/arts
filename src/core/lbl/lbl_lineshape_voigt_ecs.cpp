@@ -13,6 +13,8 @@
 #include <Faddeeva.hh>
 #include <algorithm>
 #include <cmath>
+#include <exception>
+#include <stdexcept>
 
 #include "lbl_lineshape_linemixing.h"
 #include "lbl_lineshape_voigt_ecs_hartmann.h"
@@ -94,7 +96,7 @@ void ComputeData::core_calc_eqv() {
   }
 }
 
-void ComputeData::core_calc(const ConstVectorView& f_grid) {
+void ComputeData::core_calc(const ConstVectorView& f_grid) try {
   core_calc_eqv();
 
   const auto m = vmrs.size();
@@ -113,12 +115,13 @@ void ComputeData::core_calc(const ConstVectorView& f_grid) {
     }
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
                               const band_data& bnd,
                               const LinemixingSpeciesEcsData& rovib_data,
                               const AtmPoint& atm,
-                              const bool presorted) {
+                              const bool presorted) try {
   const auto n = bnd.size();
   const auto m = bnd.front().ls.single_models.size();
 
@@ -242,12 +245,13 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     Ws[joker, i, i] += bnd.lines[sort[i]].f0;
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
                                const band_data& bnd,
                                const LinemixingSpeciesEcsData& rovib_data,
                                const AtmPoint& atm,
-                               const bool presorted) {
+                               const bool presorted) try {
   const auto n = bnd.size();
 
   pop.resize(n);
@@ -376,6 +380,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
         bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void calculate(PropmatVectorView pm_,
                PropmatMatrixView,
@@ -388,7 +393,7 @@ void calculate(PropmatVectorView pm_,
                const LinemixingSpeciesEcsData& rovib_data,
                const AtmPoint& atm,
                const zeeman::pol pol,
-               const bool no_negative_absorption) {
+               const bool no_negative_absorption) try {
   if (pol != zeeman::pol::no) {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
@@ -423,6 +428,7 @@ void calculate(PropmatVectorView pm_,
     pm[i] += zeeman::scale(com_data.npm, F);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void equivalent_values(ComplexTensor3View eqv_str,
                        ComplexTensor3View eqv_val,
@@ -431,7 +437,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
                        const band_data& bnd,
                        const LinemixingSpeciesEcsData& rovib_data,
                        const AtmPoint& atm,
-                       const Vector& T) {
+                       const Vector& T) try {
   const auto k = eqv_str.npages();
   const auto m = eqv_str.ncols();
 
@@ -452,9 +458,10 @@ void equivalent_values(ComplexTensor3View eqv_str,
     com_data.adapt_single(bnd_qid, bnd, rovib_data, atm, false);
   }
 
-  if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > 1) {
-#pragma omp parallel for firstprivate(com_data)
-    for (Index i = 0; i < k; ++i) {
+  std::string err{};
+#pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(com_data)
+  for (Index i = 0; i < k; ++i) {
+    try {
       AtmPoint atm_copy    = atm;
       atm_copy.temperature = T[i];
       if (one_by_one) {
@@ -465,20 +472,13 @@ void equivalent_values(ComplexTensor3View eqv_str,
       com_data.core_calc_eqv();
       eqv_str[i] = com_data.eqv_strs;
       eqv_val[i] = com_data.eqv_vals;
-    }
-  } else {
-    for (Index i = 0; i < k; ++i) {
-      AtmPoint atm_copy    = atm;
-      atm_copy.temperature = T[i];
-      if (one_by_one) {
-        com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
-      } else {
-        com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
-      }
-      com_data.core_calc_eqv();
-      eqv_str[i] = com_data.eqv_strs;
-      eqv_val[i] = com_data.eqv_vals;
+    } catch (std::exception& e) {
+#pragma omp critical
+      err += std::format("{}\n", e.what());
     }
   }
+
+  if (not err.empty()) throw std::runtime_error(err);
 }
+ARTS_METHOD_ERROR_CATCH
 }  // namespace lbl::voigt::ecs
