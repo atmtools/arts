@@ -122,8 +122,6 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J),
                                    bnd.max(QuantumNumberType::N));
 
-  std::println("{}", maxL);
-
   const auto Om = [&]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
