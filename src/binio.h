@@ -77,7 +77,7 @@ class binio {
   virtual std::streampos pos() = 0;
 
  protected:
-  using Int = std::int64_t;
+  using Int = std::int32_t;
   using Float = double;
   using Byte = unsigned char;  // has to be unsigned!
 
