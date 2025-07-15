@@ -13,3 +13,5 @@ The subsections below are given in no particular order.
    
    concept.absorption
    concept.radiative_transfer
+   concept.oem
+   concept.jacobian_transformation

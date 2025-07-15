@@ -37,7 +37,7 @@ struct pairinv {
   }
 
   Matrix operator()(ConstMatrixView dy, ConstVectorView x, const T& y) const {
-    return mfunc_2(mfunc_1(dy, x, y), x, y);
+    return mfunc_2(mfunc_1(dy, x, y), vfunc_1(x, y), y);
   }
 };
 

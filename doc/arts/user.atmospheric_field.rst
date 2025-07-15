@@ -16,9 +16,9 @@ An atmospheric point effectively holds the local state of the atmosphere at a sp
 
 Key notations:
 
-- :class:`~pyarts.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.
-- :class:`~pyarts.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.
-- :class:`~pyarts.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.
+- :class:`~pyarts.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts.workspace.Workspace.atmospheric_field`.
+- :class:`~pyarts.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.  These do not generally live on the workspace.
+- :class:`~pyarts.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts.workspace.Workspace.atmospheric_point`.
 
 .. note::
 
