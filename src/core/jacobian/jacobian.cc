@@ -8,365 +8,457 @@
 #include <utility>
 
 namespace Jacobian {
-void default_atm_x_set(VectorView x,
-                       const AtmField& atm,
-                       const AtmKeyVal& key) {
-  ARTS_USER_ERROR_IF(
-      not atm.contains(key), "Atmosphere does not contain key value {}", key)
-
-  auto xn = atm[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      atm[key].flat_view().size() not_eq x.size(),
-      "Problem with sizes.  \n"
-      "Did you change your atmosphere since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  x = xn;
-}
-
-void default_x_atm_set(AtmField& atm,
-                       const AtmKeyVal& key,
-                       const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(
-      not atm.contains(key), "Atmosphere does not contain key value {}", key)
-
-  auto xn = atm[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      atm[key].flat_view().size() not_eq x.size(),
-      "Problem with sizes.  \n"
-      "Did you change your atmosphere since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  xn = x;
-}
-
-void default_surf_x_set(VectorView x,
-                        const SurfaceField& surf,
-                        const SurfaceKeyVal& key) {
-  ARTS_USER_ERROR_IF(
-      not surf.contains(key), "Surface does not contain key value {}", key)
-
-  auto xn = surf[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xn.size() not_eq x.size(),
-      "Problem with sizes.\n"
-      "Did you change your surface since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  x = xn;
-}
-
-void default_x_surf_set(SurfaceField& surf,
-                        const SurfaceKeyVal& key,
-                        const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(
-      not surf.contains(key), "Surface does not contain key value {}", key)
-
-  auto xn = surf[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xn.size() not_eq x.size(),
-      "Problem with sizes.\n"
-      "Did you change your surface since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  xn = x;
-}
-
-void default_subsurf_x_set(VectorView x,
-                           const SubsurfaceField& surf,
-                           const SubsurfaceKeyVal& key) {
-  ARTS_USER_ERROR_IF(
-      not surf.contains(key), "Subsurface does not contain key value {}", key)
-
-  auto xn = surf[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xn.size() not_eq x.size(),
-      "Problem with sizes.\n"
-      "Did you change your subsurface since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  x = xn;
-}
-
-void default_x_subsurf_set(SubsurfaceField& surf,
-                           const SubsurfaceKeyVal& key,
-                           const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(
-      not surf.contains(key), "Subsurface does not contain key value {}", key)
-
-  auto xn = surf[key].flat_view();
-
-  ARTS_USER_ERROR_IF(
-      xn.size() not_eq x.size(),
-      "Problem with sizes.\n"
-      "Did you change your subsurface since you set the jacobian targets?\n"
-      "Did you forget to finalize the JacobianTargets?")
-
-  xn = x;
-}
-
-void default_line_x_set(VectorView x,
-                        const AbsorptionBands& bands,
-                        const LblLineKey& key) {
-  x = key.get_value(bands);
-}
-
-void default_x_line_set(AbsorptionBands& bands,
-                        const LblLineKey& key,
-                        const ConstVectorView x) {
-  VectorView{key.get_value(bands)} = x;
-}
+////////////////////////////////////////////////////////////////////////
+/// Templates for doing the common work of updating fields, model state vectors, and Jacobians
+////////////////////////////////////////////////////////////////////////
 
 namespace {
-Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
-                     "Bad size. x.size(): {}, f_grid().size(): {}",
-                     x.size(),
-                     v.f_grid().size())
+template <typename Func, typename Key, typename Field>
+void update_x(VectorView x,
+              ConstVectorView y,
+              Func&& transform_state,
+              const Key& type,
+              const Field& field) {
+  if (transform_state) {
+    const Vector x_from_y = transform_state(y, field);
 
-  const auto& fs = v.f_grid();
+    ARTS_USER_ERROR_IF(x_from_y.size() not_eq x.size(),
+                       R"(Size mismatch in transformation for target {}.
 
-  Vector out(fs);
-  out -= x;
-  return out;
-}
+Cannot set the model state vector from the transformation of the field.
 
-template <bool pos, Index k>
-Vector rem_poslos(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                     x.size(),
-                     v.poslos_grid().size())
-
-  const SensorPosLosVector& xsv = v.poslos_grid();
-
-  Vector out(xsv.size());
-  std::transform(xsv.begin(),
-                 xsv.end(),
-                 x.begin(),
-                 out.begin(),
-                 [](auto poslos, Numeric val) {
-                   if constexpr (pos) {
-                     return poslos.pos[k] - val;
-                   } else {
-                     return poslos.los[k] - val;
-                   }
-                 });
-  return out;
-}
-
-Vector rem_alt(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 0>(v, x);
-}
-
-Vector rem_lat(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 1>(v, x);
-}
-
-Vector rem_lon(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<true, 2>(v, x);
-}
-
-Vector rem_zag(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<false, 0>(v, x);
-}
-
-Vector rem_aag(const SensorObsel& v, const ConstVectorView x) {
-  return rem_poslos<false, 1>(v, x);
-}
-}  // namespace
-
-void polyfit(VectorView param,
-             const ConstVectorView x,
-             const ConstVectorView y) {
-  ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
-
-  using namespace Minimize;
-  auto [success, fit] = curve_fit<Polynom>(x, y, param.size() - 1);
-
-  ARTS_USER_ERROR_IF(not success,
-                     R"(Could not fit polynomial:
-  x:   {:B,},
-  y:   {:B,}
-  fit: {:B,}
+The size of the target field is       : {}.
+The size of the transformed target is : {}.
+The expected size of the target is    : {}.
 )",
-                     x,
-                     y,
-                     Vector{fit})
-  ARTS_USER_ERROR_IF(static_cast<Size>(fit.size()) != param.size(),
-                     "Bad size. fit.size(): {}, param.size(): {}",
-                     fit.size(),
-                     param.size())
+                       type,
+                       y.size(),
+                       x_from_y.size(),
+                       x.size())
 
-  param = fit;
-}
+    x = x_from_y;
+  } else {
+    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
+                       R"(Size mismatch in Jacobian target for {}.
 
-void default_sensor_x_set(VectorView x,
-                          const ArrayOfSensorObsel& sensor,
-                          const SensorKey& key) {
-  const SensorObsel& v = sensor.at(key.measurement_elem);
-  const Vector& o      = key.original_grid;
+Cannot set the model state vector from the field.
 
-  using enum SensorKeyType;
-  switch (key.model) {
-    case SensorJacobianModelType::None: v.flat(x, key.type); break;
-    case SensorJacobianModelType::PolynomialOffset:
-      switch (key.type) {
-        case f:   polyfit(x, o, rem_frq(v, o)); break;
-        case za:  polyfit(x, o, rem_zag(v, o)); break;
-        case aa:  polyfit(x, o, rem_aag(v, o)); break;
-        case alt: polyfit(x, o, rem_alt(v, o)); break;
-        case lat: polyfit(x, o, rem_lat(v, o)); break;
-        case lon: polyfit(x, o, rem_lon(v, o)); break;
-      }
-      break;
+The size of the target field is    : {}.
+The expected size of the target is : {}.
+)",
+                       type,
+                       y.size(),
+                       x.size())
+
+    x = y;
   }
 }
 
-namespace {
-// Returns p + x[0] + x[1]*p + x[2]*p^2 + ...
-Vector polynomial_offset_evaluate(const ConstVectorView x, const Vector& p) {
-  ARTS_USER_ERROR_IF(x.empty(), "Must have some polynomial coefficients.")
+template <typename Func, typename Key, typename Field>
+void update_dy(StridedMatrixView dy,
+               ConstVectorView x,
+               Func&& inverse_jacobian,
+               const Key& type,
+               const Field& y) {
+  const Matrix dy_transformed = inverse_jacobian(Matrix{dy}, x, y);
 
-  Vector out(p);
+  ARTS_USER_ERROR_IF(dy_transformed.shape() != dy.shape(),
+                     R"(Size mismatch in Jacobian transformation for target {}.
 
-  for (Size i = 0; i < p.size(); ++i) {
-    out[i]    += x[0];
-    Numeric v  = 1.0;
-    for (Size j = 1; j < x.size(); ++j) {
-      out[i] += x[j] * (v *= p[i]);
-    }
+Cannot transform the Jacobian matrix.
+
+The original shape is                 : {:B,}.
+The size of the transformed target is : {:B,}.
+)",
+                     type,
+                     dy.shape(),
+                     dy_transformed.shape())
+
+  dy = dy_transformed;
+}
+
+template <typename Func, typename Key, typename Field>
+void update_field(VectorView y,
+                  ConstVectorView x,
+                  Func&& inverse_state,
+                  const Key& type,
+                  const Field& field) {
+  if (inverse_state) {
+    const Vector y_of_x = inverse_state(x, field);
+
+    ARTS_USER_ERROR_IF(y_of_x.size() != y.size(),
+                       R"(Size mismatch in inverse transformation for target {}.
+
+Cannot set the field from the inverse transformation of the model state vector.
+
+The original size of the target is            : {}.
+The size of the inverse transformed target is : {}.
+The expected size of the target is            : {}.
+)",
+                       type,
+                       y.size(),
+                       y_of_x.size(),
+                       x.size())
+
+    y = y_of_x;
+  } else {
+    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
+                       R"(Size mismatch for target {}.
+
+Cannot set the field from the model state vector.
+
+The size of the target is          : {}.
+The expected size of the target is : {}.
+)",
+                       type,
+                       y.size(),
+                       x.size())
+
+    y = x;
   }
-
-  return out;
 }
 }  // namespace
 
-void default_x_sensor_set(ArrayOfSensorObsel& sensor,
-                          const SensorKey& key,
-                          const ConstVectorView x) {
-  auto& v = sensor.at(key.measurement_elem);
+////////////////////////////////////////////////////////////////////////
+/// Update the fields
+////////////////////////////////////////////////////////////////////////
 
-  using enum SensorKeyType;
-  switch (key.model) {
-    case SensorJacobianModelType::None:
-      unflatten(sensor, x, v, key.type);
-      break;
-    case SensorJacobianModelType::PolynomialOffset: {
-      auto& o        = key.original_grid;
-      const Vector r = polynomial_offset_evaluate(x, o);
-      unflatten(sensor, r, v, key.type);
-    } break;
+void ErrorTarget::update_model(VectorView y, ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(
+      x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
+
+Expected minimum shape: [{}, {}]
+Got shape:              [{}, {}]
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      y.size(),
+      x.size())
+
+  update_field(y[Range(type.y_start, type.y_size)],
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               y[Range(type.y_start, type.y_size)]);
+}
+
+void AtmTarget::update_model(AtmField& atm, ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(
+      not atm.contains(type), "Atmosphere does not contain key value {}", type)
+
+  update_field(atm[type].flat_view(),
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               atm);
+}
+
+void SurfaceTarget::update_model(SurfaceField& surf, ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(
+      not surf.contains(type), "Surface does not contain key value {}", type)
+
+  update_field(surf[type].flat_view(),
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               surf);
+}
+
+void SubsurfaceTarget::update_model(SubsurfaceField& subsurf,
+                                    ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(not subsurf.contains(type),
+                     "Subsurface does not contain key value {}",
+                     type)
+
+  update_field(subsurf[type].flat_view(),
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               subsurf);
+}
+
+void LineTarget::update_model(AbsorptionBands& bands, ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  update_field(VectorView{type.get_value(bands)},
+               x[Range(x_start, x_size)],
+               inverse_state,
+               type,
+               bands);
+}
+
+void SensorTarget::update_model(ArrayOfSensorObsel& sens,
+                                ConstVectorView x) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ConstVectorView x_state = x[Range(x_start, x_size)];
+
+  const SensorObsel& v = sens.at(type.measurement_elem);
+  const Size N         = v.flat_size(type.type);
+
+  if (inverse_state) {
+    const Vector x_inverse = inverse_state(Vector{x_state}, sens);
+
+    ARTS_USER_ERROR_IF(x_inverse.size() not_eq N,
+                       R"(Size mismatch in inverse transformation for target {}.
+
+Cannot set the field from the inverse transformation of the model state vector.
+
+The original size of the target is            : {}.
+The size of the inverse transformed target is : {}.
+The expected size of the target is            : {}.
+)",
+                       type,
+                       N,
+                       x_inverse.size(),
+                       x_state.size())
+    unflatten(sens, x_inverse, v, type.type);
+  } else {
+    ARTS_USER_ERROR_IF(N not_eq x_state.size(),
+                       R"(Size mismatch for target {}.
+
+Cannot set the field from the model state vector.
+
+The size of the target is          : {}.
+The expected size of the target is : {}.
+)",
+                       type,
+                       N,
+                       x_state.size())
+
+    unflatten(sens, x_state, v, type.type);
   }
 }
 
-void AtmTarget::update(AtmField& atm, const Vector& x) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(atm, type, x[Range(x_start, x_size)]);
+////////////////////////////////////////////////////////////////////////
+/// Update the model state vector
+////////////////////////////////////////////////////////////////////////
+
+void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
+  ARTS_USER_ERROR_IF(
+      x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
+
+Expected minimum shape: [{}, {}]
+Got shape:              [{}, {}]
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      y.size(),
+      x.size())
+
+  update_x(x[Range(x_start, x_size)],
+           y[Range(type.y_start, type.y_size)],
+           transform_state,
+           type,
+           y[Range(type.y_start, type.y_size)]);
 }
 
-void AtmTarget::update(Vector& x, const AtmField& atm) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x[Range(x_start, x_size)], atm, type);
+void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(
+      not atm.contains(type), "Atmosphere does not contain key value {}", type)
+
+  update_x(x[Range(x_start, x_size)],
+           atm[type].flat_view(),
+           transform_state,
+           type,
+           atm);
 }
+
+void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(
+      not surf.contains(type), "Surface does not contain key value {}", type)
+
+  update_x(x[Range(x_start, x_size)],
+           surf[type].flat_view(),
+           transform_state,
+           type,
+           surf);
+}
+
+void SubsurfaceTarget::update_state(VectorView x,
+                                    const SubsurfaceField& subsurf) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  ARTS_USER_ERROR_IF(not subsurf.contains(type),
+                     "Subsurface does not contain key value {}",
+                     type)
+
+  update_x(x[Range(x_start, x_size)],
+           subsurf[type].flat_view(),
+           transform_state,
+           type,
+           subsurf);
+}
+
+void LineTarget::update_state(VectorView x,
+                              const AbsorptionBands& bands) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  update_x(x[Range(x_start, x_size)],
+           ConstVectorView{type.get_value(bands)},
+           transform_state,
+           type,
+           bands);
+}
+
+void SensorTarget::update_state(VectorView x,
+                                const ArrayOfSensorObsel& sens) const {
+  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size),
+                     "Model state vector is too small.")
+
+  const SensorObsel& v = sens.at(type.measurement_elem);
+  const Size N         = v.flat_size(type.type);
+
+  const auto call = [&](VectorView x_field) {
+    v.flat(x_field, type.type);
+
+    update_x(x[Range(x_start, x_size)], x_field, transform_state, type, sens);
+  };
+
+  if (N == x_size) {
+    call(x[Range(x_start, x_size)]);
+  } else {
+    Vector x_field(N);
+    call(x_field);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+/// Update the Jacobian
+////////////////////////////////////////////////////////////////////////
+
+void ErrorTarget::update_jac(MatrixView dy,
+                             ConstVectorView x,
+                             ConstVectorView y) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size) or
+          static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size),
+      R"(Measurement Jacobian too small.
+
+Expected minimum shape: [{}, {}]
+Got shape:              {:B,}
+)",
+      type.y_start + type.y_size,
+      x_start + x_size,
+      dy.shape())
+
+  if (inverse_jacobian) {
+    update_dy(dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              y[Range(type.y_start, type.y_size)]);
+  }
+}
+
+void AtmTarget::update_jac(MatrixView dy,
+                           ConstVectorView x,
+                           const AtmField& atm) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size),
+      "Model state vector dimension of the Jacobian is too small.")
+
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              atm);
+  }
+}
+
+void SurfaceTarget::update_jac(MatrixView dy,
+                               ConstVectorView x,
+                               const SurfaceField& surf) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size),
+      "Model state vector dimension of the Jacobian is too small.")
+
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              surf);
+  }
+}
+
+void SubsurfaceTarget::update_jac(MatrixView dy,
+                                  ConstVectorView x,
+                                  const SubsurfaceField& subsurf) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size),
+      "Model state vector dimension of the Jacobian is too small.")
+
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              subsurf);
+  }
+}
+
+void LineTarget::update_jac(MatrixView dy,
+                            ConstVectorView x,
+                            const AbsorptionBands& bands) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size),
+      "Model state vector dimension of the Jacobian is too small.")
+
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              bands);
+  }
+}
+
+void SensorTarget::update_jac(MatrixView dy,
+                              ConstVectorView x,
+                              const ArrayOfSensorObsel& sens) const {
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(dy.ncols()) < (x_start + x_size),
+      "Model state vector dimension of the Jacobian is too small.")
+
+  if (inverse_jacobian) {
+    update_dy(dy[joker, Range(x_start, x_size)],
+              x[Range(x_start, x_size)],
+              inverse_jacobian,
+              type,
+              sens);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+/// ...
+////////////////////////////////////////////////////////////////////////
 
 bool AtmTarget::is_wind() const {
   return type == AtmKey::wind_u or type == AtmKey::wind_v or
          type == AtmKey::wind_w;
-}
-
-void SubsurfaceTarget::update(SubsurfaceField& subsurface,
-                              const Vector& x) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(subsurface, type, x[Range(x_start, x_size)]);
-}
-
-void SubsurfaceTarget::update(Vector& x,
-                              const SubsurfaceField& subsurface) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x[Range(x_start, x_size)], subsurface, type);
-}
-
-void SensorTarget::update(ArrayOfSensorObsel& sens, const Vector& x) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(sens, type, x[Range(x_start, x_size)]);
-}
-
-void SensorTarget::update(Vector& x, const ArrayOfSensorObsel& sens) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x[Range(x_start, x_size)], sens, type);
-}
-
-void SurfaceTarget::update(SurfaceField& surf, const Vector& x) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(surf, type, x[Range(x_start, x_size)]);
-}
-
-void SurfaceTarget::update(Vector& x, const SurfaceField& surf) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x[Range(x_start, x_size)], surf, type);
-}
-
-void LineTarget::update(AbsorptionBands& absorption_bands,
-                        const Vector& x) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_model(absorption_bands, type, x[Range(x_start, x_size)]);
-}
-
-void LineTarget::update(Vector& x,
-                        const AbsorptionBands& absorption_bands) const {
-  const auto sz = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(sz < (x_start + x_size), "Got too small vector.")
-  set_state(x[Range(x_start, x_size)], absorption_bands, type);
-}
-
-void ErrorTarget::update_y(Vector& y, Matrix& dy, const Vector& x) const {
-  const Index szx = x.size();
-  ARTS_USER_ERROR_IF(szx < static_cast<Index>(x_start + x_size),
-                     "Got too small x.")
-
-  const Index szy = y.size();
-  ARTS_USER_ERROR_IF(szy < static_cast<Index>(type.y_start + type.y_size),
-                     "Got too small y.")
-
-  ARTS_USER_ERROR_IF((dy.shape() != std::array{szy, szx}),
-                     "Mismatched dy shape. {:B,} vs [{}, {}]",
-                     dy.shape(),
-                     szy,
-                     szx)
-
-  set_y(y[Range(type.y_start, type.y_size)],
-        dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
-        x[Range(x_start, x_size)]);
-}
-
-void ErrorTarget::update_x(Vector& x, const Vector& y, const Vector& y0) const {
-  ARTS_USER_ERROR_IF(y.size() != y0.size(), "Got different size y and y0.")
-
-  const auto szx = static_cast<Size>(x.size());
-  ARTS_USER_ERROR_IF(szx < (x_start + x_size), "Got too small x.")
-
-  const auto szy = static_cast<Size>(y.size());
-  ARTS_USER_ERROR_IF(szy < (type.y_start + type.y_size), "Got too small y.")
-
-  Vector e(y[Range(type.y_start, type.y_size)]);
-  e -= y0[Range(type.y_start, type.y_size)];
-
-  set_x(x[Range(x_start, x_size)], e);
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {
@@ -482,7 +574,6 @@ void Targets::finalize(const AtmField& atmospheric_field,
             sensor() | std::views::drop(i + 1),
             [&](const SensorKey& key) {
               if (t.type.type != key.type) return false;
-              if (t.type.model != key.model) return false;
 
               const Index elem1 = t.type.measurement_elem;
               const Index elem2 = key.measurement_elem;
@@ -509,17 +600,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
         t.type)
 
     t.x_start = last_size;
-    switch (t.type.model) {
-      case SensorJacobianModelType::None:
-        t.x_size = measurement_sensor.at(t.type.measurement_elem)
-                       .flat_size(t.type.type);
-        break;
-      case SensorJacobianModelType::PolynomialOffset:
-        ARTS_USER_ERROR_IF(t.type.polyorder < 0,
-                           "Must have a polynomial order.")
-        t.x_size = t.type.polyorder + 1;
-        break;
-    }
+    // t.x_size already known
     last_size += t.x_size;
   }
 
@@ -564,6 +645,10 @@ SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
   return sensor().emplace_back(std::move(t), d, target_count());
 }
 
+ErrorTarget& Targets::emplace_back(ErrorKey&& t, Numeric d) {
+  return error().emplace_back(std::move(t), d, target_count());
+}
+
 AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) {
   return atm().emplace_back(t, d, target_count());
 }
@@ -584,15 +669,8 @@ SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) {
   return sensor().emplace_back(t, d, target_count());
 }
 
-ErrorTarget& Targets::emplace_back(const ErrorKey& target,
-                                   Size x_size,
-                                   ErrorTargetSetState&& set_y,
-                                   ErrorTargetSetModel&& set_x) {
-  return error().emplace_back(ErrorTarget{.type       = target,
-                                          .target_pos = target_count(),
-                                          .x_size     = x_size,
-                                          .set_y      = std::move(set_y),
-                                          .set_x      = std::move(set_x)});
+ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) {
+  return error().emplace_back(t, d, target_count());
 }
 }  // namespace Jacobian
 
@@ -607,246 +685,6 @@ void xml_io_stream<JacobianTargetType>::read(std::istream& is,
                                              JacobianTargetType& x,
                                              bifstream* pbifs) {
   xml_read_from_stream(is, x.target, pbifs);
-}
-
-void xml_io_stream<Jacobian::AtmTarget>::write(std::ostream& os,
-                                               const Jacobian::AtmTarget& x,
-                                               bofstream* pbofs,
-                                               std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.d, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_state, pbofs);
-  xml_write_to_stream(os, x.set_model, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::AtmTarget>::read(std::istream& is,
-                                              Jacobian::AtmTarget& x,
-                                              bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.d, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_state, pbifs);
-  xml_read_from_stream(is, x.set_model, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<Jacobian::SurfaceTarget>::write(
-    std::ostream& os,
-    const Jacobian::SurfaceTarget& x,
-    bofstream* pbofs,
-    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.d, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_state, pbofs);
-  xml_write_to_stream(os, x.set_model, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::SurfaceTarget>::read(std::istream& is,
-                                                  Jacobian::SurfaceTarget& x,
-                                                  bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.d, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_state, pbifs);
-  xml_read_from_stream(is, x.set_model, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<Jacobian::SubsurfaceTarget>::write(
-    std::ostream& os,
-    const Jacobian::SubsurfaceTarget& x,
-    bofstream* pbofs,
-    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.d, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_state, pbofs);
-  xml_write_to_stream(os, x.set_model, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::SubsurfaceTarget>::read(
-    std::istream& is, Jacobian::SubsurfaceTarget& x, bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.d, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_state, pbifs);
-  xml_read_from_stream(is, x.set_model, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<Jacobian::LineTarget>::write(std::ostream& os,
-                                                const Jacobian::LineTarget& x,
-                                                bofstream* pbofs,
-                                                std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.d, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_state, pbofs);
-  xml_write_to_stream(os, x.set_model, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::LineTarget>::read(std::istream& is,
-                                               Jacobian::LineTarget& x,
-                                               bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.d, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_state, pbifs);
-  xml_read_from_stream(is, x.set_model, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<Jacobian::SensorTarget>::write(
-    std::ostream& os,
-    const Jacobian::SensorTarget& x,
-    bofstream* pbofs,
-    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.d, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_state, pbofs);
-  xml_write_to_stream(os, x.set_model, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::SensorTarget>::read(std::istream& is,
-                                                 Jacobian::SensorTarget& x,
-                                                 bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.d, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_state, pbifs);
-  xml_read_from_stream(is, x.set_model, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<ErrorKey>::write(std::ostream& os,
-                                    const ErrorKey& x,
-                                    bofstream* pbofs,
-                                    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.y_start, pbofs);
-  xml_write_to_stream(os, x.y_size, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<ErrorKey>::read(std::istream& is,
-                                   ErrorKey& x,
-                                   bifstream* pbifs) {
-  XMLTag tag;
-
-  xml_read_from_stream(is, x.y_start, pbifs);
-  xml_read_from_stream(is, x.y_size, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<Jacobian::ErrorTarget>::write(std::ostream& os,
-                                                 const Jacobian::ErrorTarget& x,
-                                                 bofstream* pbofs,
-                                                 std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.target_pos, pbofs);
-  xml_write_to_stream(os, x.x_start, pbofs);
-  xml_write_to_stream(os, x.x_size, pbofs);
-  xml_write_to_stream(os, x.set_y, pbofs);
-  xml_write_to_stream(os, x.set_x, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<Jacobian::ErrorTarget>::read(std::istream& is,
-                                                Jacobian::ErrorTarget& x,
-                                                bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.target_pos, pbifs);
-  xml_read_from_stream(is, x.x_start, pbifs);
-  xml_read_from_stream(is, x.x_size, pbifs);
-  xml_read_from_stream(is, x.set_y, pbifs);
-  xml_read_from_stream(is, x.set_x, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
 }
 
 void xml_io_stream<JacobianTargets>::write(std::ostream& os,

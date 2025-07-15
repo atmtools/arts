@@ -159,6 +159,7 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
       agenda.add("measurement_vector_errorFromModelState");
       agenda.add("jacobian_targetsConditionalClear");
       agenda.add("measurement_vectorFromSensor");
+      agenda.add("measurement_jacobianTransformations");
       agenda.add("measurement_vectorConditionalAddError");
       agenda.add("measurement_vector_fittedFromMeasurement");
       break;

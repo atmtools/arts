@@ -1,15 +1,15 @@
+#include <jac_polyfit.h>
 #include <workspace.h>
 
 #include <limits>
-
-#include "matpack_mdspan_helpers_grid_t.h"
+#include <memory>
 
 void measurement_vector_errorFromModelState(
     Vector& measurement_vector_error,
     Matrix& measurement_jacobian_error,
     const ArrayOfSensorObsel& measurement_sensor,
     const JacobianTargets& jacobian_targets,
-    const Vector& model_state_vector) {
+    const Vector& model_state_vector) try {
   ARTS_TIME_REPORT
 
   measurement_vector_error.resize(measurement_sensor.size());
@@ -20,18 +20,20 @@ void measurement_vector_errorFromModelState(
   measurement_jacobian_error = 0.0;
 
   for (auto& elem : jacobian_targets.error()) {
-    elem.update_y(measurement_vector_error,
-                  measurement_jacobian_error,
-                  model_state_vector);
+    elem.update_model(measurement_vector_error, model_state_vector);
+    elem.update_jac(measurement_jacobian_error,
+                    model_state_vector,
+                    measurement_vector_error);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void measurement_vectorConditionalAddError(
     Vector& measurement_vector,
     Matrix& measurement_jacobian,
     const Vector& measurement_vector_error,
     const Matrix& measurement_jacobian_error,
-    const Index& do_jacobian) {
+    const Index& do_jacobian) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -60,45 +62,22 @@ measurement_jacobian_error.shape() : {:B,}
     measurement_jacobian += measurement_jacobian_error;
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
-void model_state_vectorUpdateError(Vector& model_state_vector,
-                                   const JacobianTargets& jacobian_targets,
-                                   const Vector& measurement_vector,
-                                   const Vector& measurement_vector_fitted) {
+void model_state_vectorUpdateError(
+    Vector& model_state_vector,
+    const JacobianTargets& jacobian_targets,
+    const Vector& measurement_vector,
+    const Vector& measurement_vector_fitted) try {
   ARTS_TIME_REPORT
 
+  Vector meas{measurement_vector};
+  meas -= measurement_vector_fitted;
   for (auto& elem : jacobian_targets.error()) {
-    elem.update_x(
-        model_state_vector, measurement_vector, measurement_vector_fitted);
+    elem.update_state(model_state_vector, meas);
   }
 }
-
-struct polyfit {
-  Vector t;
-
-  void operator()(VectorView y,
-                  StridedMatrixView dy,
-                  const ConstVectorView p) const {
-    ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
-    ARTS_USER_ERROR_IF(static_cast<Index>(y.size()) != dy.nrows(),
-                       "Mismatched y and dy sizes.")
-    ARTS_USER_ERROR_IF(dy.ncols() != static_cast<Index>(p.size()),
-                       "Mismatched dy and p sizes.")
-
-    for (Size j = 0; j < t.size(); j++) {
-      for (Size i = 0; i < p.size(); i++) {
-        const Numeric xn  = std::pow(t[j], i);
-        y[j]             += p[i] * xn;
-        dy[j, i]          = xn;
-      }
-    }
-  }
-
-  void operator()(VectorView p, const ConstVectorView y) const {
-    ARTS_USER_ERROR_IF(y.size() != t.size(), "Mismatched y and t sizes.")
-    Jacobian::polyfit(p, t, y);
-  }
-};
+ARTS_METHOD_ERROR_CATCH
 
 void jacobian_targetsAddErrorPolyFit(
     JacobianTargets& jacobian_targets,
@@ -157,9 +136,8 @@ Grid (size: {}): {:B,}
                      t.size(),
                      t)
 
-  const polyfit p{t};
-
-  jacobian_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size},
-                                static_cast<Size>(polyorder + 1),
-                                p);
+  make_polyfit(jacobian_targets.emplace_back(
+                   ErrorKey{.y_start = y_start, .y_size = y_size}),
+               static_cast<Size>(polyorder),
+               t);
 }
