@@ -2,6 +2,8 @@
 
 #include <wigner_functions.h>
 
+#include "debug.h"
+
 namespace lbl::voigt::ecs::makarov {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -49,7 +51,7 @@ namespace {
  * @return Rotational energy in Joule
  */
 template <bool rescale_pure_rotational = true>
-constexpr Numeric erot(const Rational N, const Rational j = -1) {
+constexpr Numeric erot(const Rational N, const Rational j = -1) try {
   const Rational J = j < 0 ? N : j;
 
   if constexpr (rescale_pure_rotational) {
@@ -90,6 +92,7 @@ constexpr Numeric erot(const Rational N, const Rational j = -1) {
     return mhz2joule(C1);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 }  // namespace
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
@@ -99,7 +102,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
-                                   const AtmPoint& atm) {
+                                   const AtmPoint& atm) try {
   using Conversion::kelvin2joule;
 
   ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
@@ -112,14 +115,15 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S           = bnd_qid.val[QuantumNumberType::S];
+  auto S            = bnd_qid.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
 
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J),
-                                   bnd.max(QuantumNumberType::N));
+  const std::array rats{
+      bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
+  const int maxL = wigner_init_size(rats);
 
-  const auto Om = [&]() {
+  const auto Om = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
       out[i] = rovib_data.Omega(atm.temperature,
@@ -133,7 +137,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     return out;
   }();
 
-  const auto Q = [&]() {
+  const auto Q = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
       out[i] = rovib_data.Q(i, atm.temperature, bnd.front().ls.T0, erot(i));
@@ -221,4 +225,5 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     }
   }
 }
+ARTS_METHOD_ERROR_CATCH
 }  // namespace lbl::voigt::ecs::makarov

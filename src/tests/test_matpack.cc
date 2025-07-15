@@ -711,7 +711,7 @@ constexpr Rational test_numeric2rational(const Index i,
 
 void test43() {
   // Simple construction compile-time test
-  constexpr Rational r = 3_2;  // should be 3/2
+  constexpr Rational r = Rational(3, 2);  // should be 3/2
   static_assert(r.numer == 3, "Rational fail to initialize properly");
   static_assert(r.denom == 2, "Rational fail to initialize properly");
 

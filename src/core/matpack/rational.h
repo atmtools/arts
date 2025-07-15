@@ -9,8 +9,6 @@
 #ifndef rational_h
 #define rational_h
 
-#include "xml_io_stream.h"
-
 #include <array.h>
 #include <bifstream.h>
 #include <bofstream.h>
@@ -23,6 +21,8 @@
 #include <format>
 #include <iosfwd>
 #include <numeric>
+
+#include "xml_io_stream.h"
 
 using std::gcd;
 
@@ -868,7 +868,7 @@ constexpr Rational abs(const Rational a) noexcept { return a < 0 ? -a : a; }
  * @param[in] b Any Rational
  * @return constexpr Rational Largest of a and b
  */
-constexpr Rational max(const Rational a, const Rational b) noexcept {
+constexpr Rational maxr(const Rational a, const Rational b) noexcept {
   return a < b ? b : a;
 }  // Let other operators find out if this is allowed instead
 
@@ -878,20 +878,11 @@ constexpr Rational max(const Rational a, const Rational b) noexcept {
  * @param[in] b Any Rational
  * @return constexpr Rational Smallest of a and b
  */
-constexpr Rational min(const Rational a, const Rational b) noexcept {
+constexpr Rational minr(const Rational a, const Rational b) noexcept {
   return a < b ? a : b;
 }  // Let other operators find out if this is allowed instead
 
 using ArrayOfRational = Array<Rational>;
-
-/** Returns common operator n/2
- * 
- * @param[in] n Any positive integer
- * @return Rational(n, 2)
- */
-constexpr Rational operator""_2(unsigned long long int n) noexcept {
-  return Rational(n, 2);
-};
 
 /** Returns true if even integer
  * 
