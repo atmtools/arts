@@ -71,7 +71,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   if (not n) return;
 
   // These are constant for a band
-  auto& l2    = bnd_qid.val[QuantumNumberType::l2];
+  auto l2     = bnd_qid.val[QuantumNumberType::l2];
   Rational li = l2.upp();
   Rational lf = l2.low();
 
@@ -85,7 +85,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto erot = erot_selection(bnd_qid.Isotopologue());
 
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J).toIndex());
+  const std::array rats{bnd.max(QuantumNumberType::J), li, lf};
+  const int maxL = wigner_init_size(rats);
 
   const auto Om = [&]() {
     Vector out(maxL);

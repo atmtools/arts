@@ -8,11 +8,10 @@
 
 #include "wigner_functions.h"
 
+#include <debug.h>
 #include <wigxjpf_config.h>
 
 #include <algorithm>
-
-#include <debug.h>
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -31,6 +30,13 @@ void arts_wigner_thread_init(int max_two_j [[maybe_unused]]) {
 }
 
 void arts_wigner_thread_free() { wig_temp_free(); }
+
+int wigner_init_size(std::span<const Rational> x) noexcept {
+  if (x.size() == 0) return 0;
+  Rational out = x[0];
+  for (Size i = 1; i < x.size(); i++) out = maxr(out, x[i]);
+  return 1 + 2 * out.toInt();
+}
 
 Numeric wigner3j(const Rational j1,
                  const Rational j2,
@@ -146,9 +152,13 @@ constexpr int wigner3_size(const Rational& J) { return 1 + 2 * J.toInt(6); }
 
 constexpr int wigner6_size(const Rational& J) { return J.toInt(4) + 1; }
 
-constexpr Rational wigner3_revere_size(const int j) { return Rational{(j - 1) / 2, 6}; }
+constexpr Rational wigner3_revere_size(const int j) {
+  return Rational{(j - 1) / 2, 6};
+}
 
-constexpr Rational wigner6_revere_size(const int j) { return Rational{j - 1, 4}; }
+constexpr Rational wigner6_revere_size(const int j) {
+  return Rational{j - 1, 4};
+}
 }  // namespace
 
 extern "C" int wigxjpf_max_prime_decomp;
@@ -218,24 +228,17 @@ Numeric dwigner6j(Index A, Index B, Index C, Index D, Index F) {
   if (std::abs(A - C) > F or std::abs(B - D) > F or (A + C) < F or (B + D < F))
     goto x1000;
   switch (C - D + 2) {
-    case 2:
-      goto x2;
-    case 3:
-      goto x3;
-    case 4:
-      goto x1000;
-    default:
-      goto x1;
+    case 2:  goto x2;
+    case 3:  goto x3;
+    case 4:  goto x1000;
+    default: goto x1;
   }
 
 x1:
   switch (A - B + 2) {
-    case 2:
-      goto x11;
-    case 3:
-      goto x12;
-    default:
-      goto x10;
+    case 2:  goto x11;
+    case 3:  goto x12;
+    default: goto x10;
   }
 
 x10:
@@ -272,12 +275,9 @@ x12:
 
 x2:
   switch (A - B + 2) {
-    case 2:
-      goto x21;
-    case 3:
-      goto x22;
-    default:
-      goto x20;
+    case 2:  goto x21;
+    case 3:  goto x22;
+    default: goto x20;
   }
 
 x20:
@@ -315,12 +315,9 @@ x22:
 
 x3:
   switch (A - B + 2) {
-    case 2:
-      goto x31;
-    case 3:
-      goto x32;
-    default:
-      goto x30;
+    case 2:  goto x31;
+    case 3:  goto x32;
+    default: goto x30;
   }
 
 x30:
@@ -458,17 +455,19 @@ WignerInformation::WignerInformation(int largest_symbol,
 void WignerInformation::assert_valid_wigner3(const Rational J) {
   ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
 
-  ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
-                     "Wigner library not ready for Wigner 3j symbols with J = {}"
-                     "\nPlease initialize it properly.",
-                     J);
+  ARTS_USER_ERROR_IF(
+      not(threej or is_wigner3_ready(J)),
+      "Wigner library not ready for Wigner 3j symbols with J = {}"
+      "\nPlease initialize it properly.",
+      J);
 }
 
 void WignerInformation::assert_valid_wigner6(const Rational J) {
   ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
 
-  ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
-                     "Wigner library not ready for Wigner 6j symbols with J = {}"
-                     "\nPlease initialize it properly.",
-                     J);
+  ARTS_USER_ERROR_IF(
+      not(sixj or is_wigner6_ready(J)),
+      "Wigner library not ready for Wigner 6j symbols with J = {}"
+      "\nPlease initialize it properly.",
+      J);
 }

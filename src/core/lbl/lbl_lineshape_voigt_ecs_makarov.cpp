@@ -115,14 +115,15 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S           = bnd_qid.val[QuantumNumberType::S];
+  auto S            = bnd_qid.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
 
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J).toIndex(),
-                                   bnd.max(QuantumNumberType::N).toIndex());
+  const std::array rats{
+      bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
+  const int maxL = wigner_init_size(rats);
 
-  const auto Om = [&]() {
+  const auto Om = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
       out[i] = rovib_data.Omega(atm.temperature,
@@ -136,7 +137,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     return out;
   }();
 
-  const auto Q = [&]() {
+  const auto Q = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
       out[i] = rovib_data.Q(i, atm.temperature, bnd.front().ls.T0, erot(i));
