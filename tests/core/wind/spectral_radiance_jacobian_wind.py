@@ -101,3 +101,4 @@ for fc in [uf, vf, wf]:
             break
 
     assert not fail
+print("done!")

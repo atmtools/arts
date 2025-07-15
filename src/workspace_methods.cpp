@@ -2410,6 +2410,212 @@ matrix to be calculated will work.
            "Extrapolation factor"},
   };
 
+  wsm_data["water_equivalent_pressure_operatorMK05"] = {
+      .desc =
+          "Sets an operator to compute the water equivalent pressure according to Murphy and Koop, 2005.\n"
+          "\n"
+          "Default is setting the saturation pressure to the one with respect\n"
+          "to water at temperatures >= 0C, and to the one with respect to ice\n"
+          "for <0C. The GIN ``only_liquid`` allows you to apply the liquid value\n"
+          "at all temperatures.\n"
+          "\n"
+          "The saturation pressure with respect to liquid and ice water is\n"
+          "calculated according to Eq. 10 and 7, respectively, of:\n"
+          "Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of\n"
+          "ice and supercooled water for atmospheric applications. Quarterly\n"
+          "Journal of the Royal Meteorological Society, 131(608), 1539-1565.\n",
+      .author    = {"Patrick Eriksson"},
+      .out       = {"water_equivalent_pressure_operator"},
+      .gin       = {"only_liquid"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"See text"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeHumidityAtmTarget"] = {
+      .desc   = R"--(Toggles relative humidity or absolute retrievals.
+
+If the target is in relative humidity mode, it becomes absolute.
+If the target is not in relative humidity mode, it becomes relative humidity.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets",
+                 "atmospheric_field",
+                 "water_equivalent_pressure_operator"},
+      .gin    = {"key", "nonnegative"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+           "Index"},
+      .gin_value = {std::nullopt, Index{1}},
+      .gin_desc  = {"Key to toggle",
+                    "Whether or not to zero-out negative values"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeAtmTarget"] = {
+      .desc   = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogarithmicAtmTarget"] = {
+      .desc   = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelAtmTarget"] = {
+      .desc   = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets", "atmospheric_field"},
+      .gin    = {"key"},
+      .gin_type =
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeSurfaceTarget"] = {
+      .desc      = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogarithmicSurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelSurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "surface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleRelativeSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles relative or absolute retrievals.
+
+If the target is in relative mode, it becomes absolute.
+If the target is not in relative mode, it becomes relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogarithmicSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic or absolute retrievals.
+
+If the target is in logarithmic mode, it becomes absolute.
+If the target is not in logarithmic mode, it becomes logarithmic.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
+  wsm_data["jacobian_targetsToggleLogRelSubsurfaceTarget"] = {
+      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
+
+This means to take the logarithm of the relative value.
+
+If the target is in logarithmic/relative mode, it becomes absolute.
+If the target is not in logarithmic/relative mode, it becomes logarithmic/relative.
+
+Overwrites all other functional toggles.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets", "subsurface_field"},
+      .gin       = {"key"},
+      .gin_type  = {"SubsurfaceKey"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"Key to toggle"},
+  };
+
   wsm_data["jacobian_targetsConditionalClear"] = {
       .desc = R"--(Clears *jacobian_targets* if *do_jacobian* evaluates false.
 )--",
@@ -2515,7 +2721,7 @@ those with regards to a, b, etc..
   wsm_data["RetrievalAddErrorPolyFit"] =
       jac2ret("jacobian_targetsAddErrorPolyFit");
 
-  wsm_data["jacobian_targetsAddSensorFrequencyPolyFit"] = {
+  wsm_data["jacobian_targetsAddSensorFrequencyPolyOffset"] = {
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
@@ -2546,8 +2752,8 @@ those with regards to a, b, etc..
            "The sensor element whose frequency grid to use",
            "The order of the polynomial fit"},
   };
-  wsm_data["RetrievalAddSensorFrequencyPolyFit"] =
-      jac2ret("jacobian_targetsAddSensorFrequencyPolyFit");
+  wsm_data["RetrievalAddSensorFrequencyPolyOffset"] =
+      jac2ret("jacobian_targetsAddSensorFrequencyPolyOffset");
 
   wsm_data["jacobian_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative.
@@ -3954,6 +4160,57 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
                          "spectral_radiance_transform_operator",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
+  };
+
+  wsm_data["measurement_jacobianAtmosphereTransformation"] = {
+      .desc   = "Applies transformations to the atmospheric state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "atmospheric_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSurfaceTransformation"] = {
+      .desc   = "Applies transformations to the surface state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "surface_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSubsurfaceTransformation"] = {
+      .desc   = "Applies transformations to the subsurface state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "subsurface_field",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianBandTransformation"] = {
+      .desc   = "Applies transformations to the line-by-line state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "absorption_bands",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["measurement_jacobianSensorTransformation"] = {
+      .desc =
+          "Applies transformations to the measurement sensor state Jacobian\n",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_jacobian"},
+      .in     = {"measurement_jacobian",
+                 "model_state_vector",
+                 "measurement_sensor",
+                 "jacobian_targets"},
   };
 
   wsm_data["measurement_sensorFromModelState"] = {

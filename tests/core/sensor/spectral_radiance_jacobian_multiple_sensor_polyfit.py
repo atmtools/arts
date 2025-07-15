@@ -121,3 +121,5 @@ for i in range(LIMIT):
     print(ws.model_state_vector)
 
 assert not fail, "Failed to retrieve sensor polynomial offsets grid"
+
+print("done!")

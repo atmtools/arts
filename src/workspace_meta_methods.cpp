@@ -90,8 +90,7 @@ It is common that *ray_path* is defined but not *ray_path_point*.
 This method simply is a convenience wrapper for that use case.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointForeground",
-                  "spectral_radianceApplyUnit"},
+      .methods = {"ray_path_pointForeground", "spectral_radianceApplyUnit"},
       .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
@@ -115,8 +114,9 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceClearskyRayleighScattering",
-      .desc    = "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
+      .name = "spectral_radianceClearskyRayleighScattering",
+      .desc =
+          "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
@@ -232,6 +232,19 @@ This method simply is a convenience wrapper for that use case.
                   "model_state_vectorFromBands",
                   "model_state_vectorFromSensor"},
       .out     = {"model_state_vector"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "measurement_jacobianTransformations",
+      .desc =
+          "Apply all transformations to the Jacobian related to states in *model_state_vectorFromData*",
+      .author  = {"Richard Larsson"},
+      .methods = {"measurement_jacobianAtmosphereTransformation",
+                  "measurement_jacobianSurfaceTransformation",
+                  "measurement_jacobianSubsurfaceTransformation",
+                  "measurement_jacobianBandTransformation",
+                  "measurement_jacobianSensorTransformation"},
+      .out     = {"measurement_jacobian"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

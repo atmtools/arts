@@ -36,32 +36,6 @@ void py_jac(py::module_& m) try {
   atm.def_ro(
       "x_size", &Jacobian::AtmTarget::x_size, "Size of target in state vector");
   str_interface(atm);
-  atm.def(
-      "model_state",
-      [](const Jacobian::AtmTarget& t, const AtmField& f) {
-        Vector x(t.x_size);
-        t.set_state(x, f, t.type);
-        return x;
-      },
-      R"--(Invokes the internal model-state-setter
-
-Warning:
-
-    May segment-fault if there's a discrepancy between the data container and
-    the target.  Such discrepancies should just happen if you have a manual
-    setter for the target, or if you have changed the data container since you
-    created the target.
-
-Parameters
-----------
-t : AtmField
-    The atmospheric data container
-
-Returns
--------
-x : Vector
-    The local state vector
-)--");
 
   py::class_<Jacobian::SurfaceTarget> surf(m, "JacobianSurfaceTarget");
   surf.doc() = "Surface target";
@@ -76,32 +50,6 @@ x : Vector
               &Jacobian::SurfaceTarget::x_size,
               "Size of target in state vector");
   str_interface(surf);
-  surf.def(
-      "model_state",
-      [](const Jacobian::SurfaceTarget& t, const SurfaceField& f) {
-        Vector x(t.x_size);
-        t.set_state(x, f, t.type);
-        return x;
-      },
-      R"--(Invokes the internal model-state-setter
-
-Warning:
-
-    May segment-fault if there's a discrepancy between the data container and
-    the target.  Such discrepancies should just happen if you have a manual
-    setter for the target, or if you have changed the data container since you
-    created the target.
-
-Parameters
-----------
-t : SurfaceField
-    The surface data container
-
-Returns
--------
-x : Vector
-    The local state vector
-)--");
 
   py::class_<Jacobian::LineTarget> line(m, "JacobianLineTarget");
   line.doc() = "Line target";
@@ -116,32 +64,6 @@ x : Vector
               &Jacobian::LineTarget::x_size,
               "Size of target in state vector");
   str_interface(line);
-  line.def(
-      "model_state",
-      [](const Jacobian::LineTarget& t, const AbsorptionBands& f) {
-        Vector x(t.x_size);
-        t.set_state(x, f, t.type);
-        return x;
-      },
-      R"--(Invokes the internal model-state-setter
-
-Warning:
-
-    May segment-fault if there's a discrepancy between the data container and
-    the target.  Such discrepancies should just happen if you have a manual
-    setter for the target, or if you have changed the data container since you
-    created the target.
-
-Parameters
-----------
-t : AbsorptionBands
-    The absorption data container
-
-Returns
--------
-x : Vector
-    The local state vector
-)--");
 
   py::class_<Jacobian::SensorTarget> sensor(m, "JacobianSensorTarget");
   sensor.doc() = "Sensor target";
@@ -156,32 +78,6 @@ x : Vector
                 &Jacobian::SensorTarget::x_size,
                 "Size of target in state vector");
   str_interface(sensor);
-  sensor.def(
-      "model_state",
-      [](const Jacobian::SensorTarget& t, const ArrayOfSensorObsel& v) {
-        Vector x(t.x_size);
-        t.set_state(x, v, t.type);
-        return x;
-      },
-      R"--(Invokes the internal model-state-setter
-
-Warning:
-
-    May segment-fault if there's a discrepancy between the data container and
-    the target.  Such discrepancies should just happen if you have a manual
-    setter for the target, or if you have changed the data container since you
-    created the target.
-
-Parameters
-----------
-t : ArrayOfSensorObsel
-    The sensor configuration container
-
-Returns
--------
-x : Vector
-    The local state vector
-)--");
 
   py::class_<Jacobian::ErrorTarget> error(m, "JacobianErrorTarget");
   error.doc() = "Error target";

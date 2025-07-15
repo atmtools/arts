@@ -47,6 +47,7 @@ void atmospheric_pointInit(AtmPoint &atmospheric_point,
   atmospheric_point = AtmPoint{to<IsoRatioOption>(default_isotopologue)};
 }
 
+namespace{
 template <Size I = 0, typename... T, Size N = sizeof...(T)>
 std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_,
                                               const String &filename)
@@ -120,6 +121,137 @@ void append_data(
     }
   }
 }
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const AbsorptionBands &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.Species()];
+
+    for (auto &line : value.lines) {
+      for (auto &ls : line.ls.single_models) {
+        ++keys[ls.species];
+      }
+    }
+  }
+}
+
+void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
+                      const AbsorptionBands &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.Isotopologue()];
+  }
+}
+
+void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
+              const AbsorptionBands &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.UpperLevel()];
+    ++keys[key.LowerLevel()];
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfArrayOfSpeciesTag &absorption_species) {
+  if (absorption_species.empty()) return;
+
+  for (auto &species_tags : absorption_species) {
+    ++keys[species_tags.Species()];
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfCIARecord &absorption_cia_data) {
+  if (absorption_cia_data.empty()) return;
+
+  for (auto &cia_record : absorption_cia_data) {
+    const auto [spec1, spec2] = cia_record.TwoSpecies();
+    ++keys[spec1];
+    ++keys[spec2];
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const AbsorptionLookupTables &absorption_lookup_table) {
+  if (absorption_lookup_table.empty()) return;
+
+  for (auto &&spec : absorption_lookup_table | stdv::keys) {
+    ++keys[spec];
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfXsecRecord &absorption_xsec_fit_data) {
+  if (absorption_xsec_fit_data.empty()) return;
+
+  for (auto &xsec_record : absorption_xsec_fit_data) {
+    ++keys[xsec_record.Species()];
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const PredefinedModelData &absorption_predefined_model_data) {
+  if (absorption_predefined_model_data.empty()) return;
+
+  for (auto &predef_record : absorption_predefined_model_data) {
+    ++keys[predef_record.first.spec];
+  }
+}
+
+template <Atm::KeyType T>
+void atmospheric_fieldRegridTemplate(AtmData &data,
+                                     const T &key,
+                                     const AscendingGrid &alt,
+                                     const AscendingGrid &lat,
+                                     const AscendingGrid &lon,
+                                     const String &extrapolation) {
+  ARTS_USER_ERROR_IF(alt.size() * lat.size() * lon.size() == 0,
+                     R"(Cannot regrid to empty grid
+alt: {:Bs,} [{} elements]
+lat: {:Bs,} [{} elements]
+lon: {:Bs,} [{} elements]
+)",
+                     alt,
+                     alt.size(),
+                     lat,
+                     lat.size(),
+                     lon,
+                     lon.size())
+
+  const InterpolationExtrapolation extrap =
+      to<InterpolationExtrapolation>(extrapolation);
+
+  SortedGriddedField3 new_field{
+      .data_name  = String{std::format("{}", key)},
+      .data       = Tensor3(alt.size(), lat.size(), lon.size()),
+      .grid_names = {String{"Altitude"},
+                     String{"Latitude"},
+                     String{"Longitude"}},
+      .grids      = {alt, lat, lon},
+  };
+
+  for (Size i = 0; i < alt.size(); i++) {
+    for (Size j = 0; j < lat.size(); j++) {
+      for (Size k = 0; k < lon.size(); k++) {
+        new_field[i, j, k] = data.at(alt[i], lat[j], lon[k]);
+      }
+    }
+  }
+
+  data.data    = std::move(new_field);
+  data.alt_upp = extrap;
+  data.alt_low = extrap;
+  data.lat_upp = extrap;
+  data.lat_low = extrap;
+  data.lon_upp = extrap;
+  data.lon_low = extrap;
+}
+}  // namespace
 
 void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                                      const String &basename,
@@ -200,21 +332,6 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
   }
 }
 
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const AbsorptionBands &absorption_bands) {
-  if (absorption_bands.empty()) return;
-
-  for (auto &[key, value] : absorption_bands) {
-    ++keys[key.Species()];
-
-    for (auto &line : value.lines) {
-      for (auto &ls : line.ls.single_models) {
-        ++keys[ls.species];
-      }
-    }
-  }
-}
-
 void atmospheric_fieldAppendLineSpeciesData(
     AtmField &atmospheric_field,
     const AbsorptionBands &absorption_bands,
@@ -235,15 +352,6 @@ void atmospheric_fieldAppendLineSpeciesData(
               0,
               keys,
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
-}
-
-void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
-                      const AbsorptionBands &absorption_bands) {
-  if (absorption_bands.empty()) return;
-
-  for (auto &[key, value] : absorption_bands) {
-    ++keys[key.Isotopologue()];
-  }
 }
 
 void atmospheric_fieldAppendLineIsotopologueData(
@@ -270,16 +378,6 @@ void atmospheric_fieldAppendLineIsotopologueData(
               0,
               keys,
               [](const SpeciesIsotope &x) { return x.FullName(); });
-}
-
-void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
-              const AbsorptionBands &absorption_bands) {
-  if (absorption_bands.empty()) return;
-
-  for (auto &[key, value] : absorption_bands) {
-    ++keys[key.UpperLevel()];
-    ++keys[key.LowerLevel()];
-  }
 }
 
 void atmospheric_fieldAppendLineLevelData(
@@ -309,15 +407,6 @@ void atmospheric_fieldAppendLineLevelData(
               [](const QuantumIdentifier &x) { return std::format("{}", x); });
 }
 
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfArrayOfSpeciesTag &absorption_species) {
-  if (absorption_species.empty()) return;
-
-  for (auto &species_tags : absorption_species) {
-    ++keys[species_tags.Species()];
-  }
-}
-
 void atmospheric_fieldAppendTagsSpeciesData(
     AtmField &atmospheric_field,
     const ArrayOfArrayOfSpeciesTag &absorption_species,
@@ -338,17 +427,6 @@ void atmospheric_fieldAppendTagsSpeciesData(
               0,
               keys,
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
-}
-
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfCIARecord &absorption_cia_data) {
-  if (absorption_cia_data.empty()) return;
-
-  for (auto &cia_record : absorption_cia_data) {
-    const auto [spec1, spec2] = cia_record.TwoSpecies();
-    ++keys[spec1];
-    ++keys[spec2];
-  }
 }
 
 void atmospheric_fieldAppendCIASpeciesData(
@@ -373,15 +451,6 @@ void atmospheric_fieldAppendCIASpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const AbsorptionLookupTables &absorption_lookup_table) {
-  if (absorption_lookup_table.empty()) return;
-
-  for (auto &&spec : absorption_lookup_table | stdv::keys) {
-    ++keys[spec];
-  }
-}
-
 void atmospheric_fieldAppendLookupTableSpeciesData(
     AtmField &atmospheric_field,
     const AbsorptionLookupTables &absorption_lookup_table,
@@ -402,15 +471,6 @@ void atmospheric_fieldAppendLookupTableSpeciesData(
               0,
               keys,
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
-}
-
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfXsecRecord &absorption_xsec_fit_data) {
-  if (absorption_xsec_fit_data.empty()) return;
-
-  for (auto &xsec_record : absorption_xsec_fit_data) {
-    ++keys[xsec_record.Species()];
-  }
 }
 
 void atmospheric_fieldAppendXsecSpeciesData(
@@ -435,15 +495,6 @@ void atmospheric_fieldAppendXsecSpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const PredefinedModelData &absorption_predefined_model_data) {
-  if (absorption_predefined_model_data.empty()) return;
-
-  for (auto &predef_record : absorption_predefined_model_data) {
-    ++keys[predef_record.first.spec];
-  }
-}
-
 void atmospheric_fieldAppendPredefSpeciesData(
     AtmField &atmospheric_field,
     const PredefinedModelData &absorption_predefined_model_data,
@@ -452,6 +503,10 @@ void atmospheric_fieldAppendPredefSpeciesData(
     const Index &missing_is_zero,
     const Index &replace_existing) {
   ARTS_TIME_REPORT
+
+  const auto to_string = [](const SpeciesEnum &x) {
+    return String{toString<1>(x)};
+  };
 
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_predefined_model_data);
@@ -463,7 +518,22 @@ void atmospheric_fieldAppendPredefSpeciesData(
               replace_existing,
               0,
               keys,
-              [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
+              to_string);
+
+  // H2O might be used, so we will maybe read it
+  constexpr auto water = "H2O"_spec;
+  if (not keys.contains(water)) {
+    keys = {{water, 1}};
+
+    append_data(atmospheric_field,
+                basename,
+                extrapolation,
+                missing_is_zero,
+                replace_existing,
+                1,
+                keys,
+                to_string);
+  }
 }
 
 void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
@@ -693,55 +763,6 @@ void atmospheric_fieldHydrostaticPressure(
                                        fixed_specific_gas_constant,
                                        fixed_atm_temperature,
                                        hydrostatic_option);
-}
-
-template <Atm::KeyType T>
-void atmospheric_fieldRegridTemplate(AtmData &data,
-                                     const T &key,
-                                     const AscendingGrid &alt,
-                                     const AscendingGrid &lat,
-                                     const AscendingGrid &lon,
-                                     const String &extrapolation) {
-  ARTS_USER_ERROR_IF(alt.size() * lat.size() * lon.size() == 0,
-                     R"(Cannot regrid to empty grid
-alt: {:Bs,} [{} elements]
-lat: {:Bs,} [{} elements]
-lon: {:Bs,} [{} elements]
-)",
-                     alt,
-                     alt.size(),
-                     lat,
-                     lat.size(),
-                     lon,
-                     lon.size())
-
-  const InterpolationExtrapolation extrap =
-      to<InterpolationExtrapolation>(extrapolation);
-
-  SortedGriddedField3 new_field{
-      .data_name  = String{std::format("{}", key)},
-      .data       = Tensor3(alt.size(), lat.size(), lon.size()),
-      .grid_names = {String{"Altitude"},
-                     String{"Latitude"},
-                     String{"Longitude"}},
-      .grids      = {alt, lat, lon},
-  };
-
-  for (Size i = 0; i < alt.size(); i++) {
-    for (Size j = 0; j < lat.size(); j++) {
-      for (Size k = 0; k < lon.size(); k++) {
-        new_field[i, j, k] = data.at(alt[i], lat[j], lon[k]);
-      }
-    }
-  }
-
-  data.data    = std::move(new_field);
-  data.alt_upp = extrap;
-  data.alt_low = extrap;
-  data.lat_upp = extrap;
-  data.lat_low = extrap;
-  data.lon_upp = extrap;
-  data.lon_low = extrap;
 }
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,

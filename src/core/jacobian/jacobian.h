@@ -4,7 +4,6 @@
 #include <lbl.h>
 #include <matpack.h>
 #include <obsel.h>
-#include <operators.h>
 #include <subsurface.h>
 #include <surf.h>
 #include <xml.h>
@@ -14,6 +13,14 @@
 #include <numeric>
 #include <variant>
 #include <vector>
+
+#include "atm_field.h"
+#include "jac_log.h"
+#include "jac_pair.h"
+#include "jac_polyfit.h"
+#include "jac_rel.h"
+#include "jacobian_names.h"
+#include "xml_io_stream_functional.h"
 
 struct ErrorKey {
   Size y_start;
@@ -32,48 +39,7 @@ struct std::hash<ErrorKey> {
   }
 };
 
-using AtmTargetSetState =
-    CustomOperator<void, VectorView, const AtmField&, const AtmKeyVal&>;
-using AtmTargetSetModel =
-    CustomOperator<void, AtmField&, const AtmKeyVal&, const ConstVectorView>;
-
-using SubsurfaceTargetSetState = CustomOperator<void,
-                                                VectorView,
-                                                const SubsurfaceField&,
-                                                const SubsurfaceKeyVal&>;
-using SubsurfaceTargetSetModel = CustomOperator<void,
-                                                SubsurfaceField&,
-                                                const SubsurfaceKeyVal&,
-                                                const ConstVectorView>;
-using SurfaceTargetSetState =
-    CustomOperator<void, VectorView, const SurfaceField&, const SurfaceKeyVal&>;
-using SurfaceTargetSetModel = CustomOperator<void,
-                                             SurfaceField&,
-                                             const SurfaceKeyVal&,
-                                             const ConstVectorView>;
-using LineTargetSetState =
-    CustomOperator<void, VectorView, const AbsorptionBands&, const LblLineKey&>;
-using LineTargetSetModel   = CustomOperator<void,
-                                            AbsorptionBands&,
-                                            const LblLineKey&,
-                                            const ConstVectorView>;
-using SensorTargetSetState = CustomOperator<void,
-                                            VectorView,
-                                            const ArrayOfSensorObsel&,
-                                            const SensorKey&>;
-using SensorTargetSetModel = CustomOperator<void,
-                                            ArrayOfSensorObsel&,
-                                            const SensorKey&,
-                                            const ConstVectorView>;
-using ErrorTargetSetState =
-    CustomOperator<void, VectorView, StridedMatrixView, const ConstVectorView>;
-using ErrorTargetSetModel =
-    CustomOperator<void, VectorView, const ConstVectorView>;
-
 namespace Jacobian {
-void default_atm_x_set(VectorView, const AtmField&, const AtmKeyVal&);
-void default_x_atm_set(AtmField&, const AtmKeyVal&, const ConstVectorView);
-
 /** The class that deals with Jacobian targets that are part of an AtmField object
  * 
  * The intent here is that the type should be able to match into any Key that can
@@ -95,26 +61,19 @@ struct AtmTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  AtmTargetSetState set_state{default_atm_x_set};
+  atm_vec transform_state{};
+  atm_mat inverse_jacobian{};
+  atm_vec inverse_state{};
 
-  AtmTargetSetModel set_model{default_x_atm_set};
-
-  void update(AtmField& atm, const Vector& x) const;
-
-  void update(Vector& x, const AtmField& atm) const;
+  void update_model(AtmField& y, cv x) const;
+  void update_state(VectorView x, const AtmField& y) const;
+  void update_jac(MatrixView dy, cv x, const AtmField& y) const;
 
   [[nodiscard]] bool is_wind() const;
 };
-
-void default_surf_x_set(VectorView, const SurfaceField&, const SurfaceKeyVal&);
-void default_x_surf_set(SurfaceField&,
-                        const SurfaceKeyVal&,
-                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a SurfaceField object
  * 
@@ -137,26 +96,17 @@ struct SurfaceTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SurfaceTargetSetState set_state{default_surf_x_set};
+  surf_vec transform_state{};
+  surf_mat inverse_jacobian{};
+  surf_vec inverse_state{};
 
-  SurfaceTargetSetModel set_model{default_x_surf_set};
-
-  void update(SurfaceField& surf, const Vector& x) const;
-
-  void update(Vector& x, const SurfaceField& surf) const;
+  void update_model(SurfaceField& y, cv x) const;
+  void update_state(VectorView x, const SurfaceField& y) const;
+  void update_jac(MatrixView dy, cv x, const SurfaceField& y) const;
 };
-
-void default_subsurf_x_set(VectorView,
-                           const SubsurfaceField&,
-                           const SubsurfaceKeyVal&);
-void default_x_subsurf_set(SubsurfaceField&,
-                           const SubsurfaceKeyVal&,
-                           const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a SubsurfaceField object
  * 
@@ -179,24 +129,17 @@ struct SubsurfaceTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SubsurfaceTargetSetState set_state{default_subsurf_x_set};
+  subsurf_vec transform_state{};
+  subsurf_mat inverse_jacobian{};
+  subsurf_vec inverse_state{};
 
-  SubsurfaceTargetSetModel set_model{default_x_subsurf_set};
-
-  void update(SubsurfaceField& atm, const Vector& x) const;
-
-  void update(Vector& x, const SubsurfaceField& atm) const;
+  void update_model(SubsurfaceField& y, cv x) const;
+  void update_state(VectorView x, const SubsurfaceField& y) const;
+  void update_jac(MatrixView dy, cv x, const SubsurfaceField& y) const;
 };
-
-void default_line_x_set(VectorView, const AbsorptionBands&, const LblLineKey&);
-void default_x_line_set(AbsorptionBands&,
-                        const LblLineKey&,
-                        const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of an AbsorptionBands object
  * 
@@ -219,26 +162,17 @@ struct LineTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  LineTargetSetState set_state{default_line_x_set};
+  line_vec transform_state{};
+  line_mat inverse_jacobian{};
+  line_vec inverse_state{};
 
-  LineTargetSetModel set_model{default_x_line_set};
-
-  void update(AbsorptionBands&, const Vector&) const;
-
-  void update(Vector&, const AbsorptionBands&) const;
+  void update_model(AbsorptionBands& y, cv x) const;
+  void update_state(VectorView x, const AbsorptionBands& y) const;
+  void update_jac(MatrixView dy, cv x, const AbsorptionBands& y) const;
 };
-
-void default_sensor_x_set(VectorView,
-                          const ArrayOfSensorObsel&,
-                          const SensorKey&);
-void default_x_sensor_set(ArrayOfSensorObsel&,
-                          const SensorKey&,
-                          const ConstVectorView);
 
 /** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
  * 
@@ -264,18 +198,16 @@ struct SensorTarget {
   Numeric d{};
 
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  SensorTargetSetState set_state{default_sensor_x_set};
+  sensor_vec transform_state{};
+  sensor_mat inverse_jacobian{};
+  sensor_vec inverse_state{};
 
-  SensorTargetSetModel set_model{default_x_sensor_set};
-
-  void update(ArrayOfSensorObsel&, const Vector&) const;
-
-  void update(Vector&, const ArrayOfSensorObsel&) const;
+  void update_model(ArrayOfSensorObsel& y, cv x) const;
+  void update_state(VectorView x, const ArrayOfSensorObsel& y) const;
+  void update_jac(MatrixView dy, cv x, const ArrayOfSensorObsel& y) const;
 };
 
 /** The class that deals with Jacobian targets that are not part of any input object
@@ -295,19 +227,19 @@ struct SensorTarget {
 struct ErrorTarget {
   ErrorKey type;
 
+  Numeric d{};
+
   Size target_pos{std::numeric_limits<Size>::max()};
-
   Size x_start{std::numeric_limits<Size>::max()};
-
   Size x_size{std::numeric_limits<Size>::max()};
 
-  ErrorTargetSetState set_y{};
+  error_vec transform_state{};
+  error_mat inverse_jacobian{};
+  error_vec inverse_state{};
 
-  ErrorTargetSetModel set_x{};
-
-  void update_y(Vector& y, Matrix& dy, const Vector& x) const;
-
-  void update_x(Vector& x, const Vector& y, const Vector& y0) const;
+  void update_model(VectorView y, cv x) const;
+  void update_state(VectorView x, ConstVectorView y) const;
+  void update_jac(MatrixView dy, cv x, cv y) const;
 };
 
 template <typename T>
@@ -439,28 +371,18 @@ struct Targets final : targets_t<AtmTarget,
                 const AbsorptionBands& absorption_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
-  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d);
-  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d);
-  LineTarget& emplace_back(LblLineKey&& t, Numeric d);
-  LineTarget& emplace_back(const LblLineKey& t, Numeric d);
-  SensorTarget& emplace_back(SensorKey&& t, Numeric d);
-  SensorTarget& emplace_back(const SensorKey& t, Numeric d);
-  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d);
-  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d);
-  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d);
-  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d);
-
-  ErrorTarget& emplace_back(const ErrorKey& target,
-                            Size x_size,
-                            ErrorTargetSetState&& set_y,
-                            ErrorTargetSetModel&& set_x);
-  template <class Func>
-  ErrorTarget& emplace_back(const ErrorKey& target,
-                            Size x_size,
-                            const Func& set) {
-    return emplace_back(
-        target, x_size, ErrorTargetSetState{set}, ErrorTargetSetModel{set});
-  }
+  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
+  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
+  LineTarget& emplace_back(LblLineKey&& t, Numeric d = 0.0);
+  LineTarget& emplace_back(const LblLineKey& t, Numeric d = 0.0);
+  SensorTarget& emplace_back(SensorKey&& t, Numeric d = 0.0);
+  SensorTarget& emplace_back(const SensorKey& t, Numeric d = 0.0);
+  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
+  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
+  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
+  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
+  ErrorTarget& emplace_back(ErrorKey&& t, Numeric d = 0.0);
+  ErrorTarget& emplace_back(const ErrorKey& t, Numeric d = 0.0);
 };
 
 struct TargetType {
@@ -515,10 +437,6 @@ struct TargetType {
                  [](auto&) { return "ErrorKey"s; });
   }
 };
-
-void polyfit(VectorView param,
-             const ConstVectorView x,
-             const ConstVectorView y);
 }  // namespace Jacobian
 
 Numeric field_perturbation(const auto& f) {
@@ -807,99 +725,73 @@ struct xml_io_stream<JacobianTargetType> {
 };
 
 template <>
-struct xml_io_stream<Jacobian::AtmTarget> {
-  static constexpr std::string_view type_name = "AtmTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::AtmTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::AtmTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::AtmTarget> {
+  static constexpr std::string_view name = "AtmTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::LineTarget> {
-  static constexpr std::string_view type_name = "LineTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::LineTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::LineTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::LineTarget> {
+  static constexpr std::string_view name = "LineTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SurfaceTarget> {
-  static constexpr std::string_view type_name = "SurfaceTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SurfaceTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SurfaceTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SurfaceTarget> {
+  static constexpr std::string_view name = "SurfaceTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SubsurfaceTarget> {
-  static constexpr std::string_view type_name = "SubsurfaceTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SubsurfaceTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SubsurfaceTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SubsurfaceTarget> {
+  static constexpr std::string_view name = "SubsurfaceTarget"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::SensorTarget> {
-  static constexpr std::string_view type_name = "SensorTarget"sv;
-
-  static void write(std::ostream& os,
-                    const Jacobian::SensorTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   Jacobian::SensorTarget& x,
-                   bifstream* pbifs = nullptr);
+struct xml_io_stream_name<Jacobian::SensorTarget> {
+  static constexpr std::string_view name = "SensorTarget"sv;
 };
 
 template <>
-struct xml_io_stream<ErrorKey> {
-  static constexpr std::string_view type_name = "ErrorKey"sv;
-
-  static void write(std::ostream& os,
-                    const ErrorKey& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, ErrorKey& x, bifstream* pbifs = nullptr);
+struct xml_io_stream_name<ErrorKey> {
+  static constexpr std::string_view name = "ErrorKey"sv;
 };
 
 template <>
-struct xml_io_stream<Jacobian::ErrorTarget> {
-  static constexpr std::string_view type_name = "ErrorTarget"sv;
+struct xml_io_stream_name<Jacobian::ErrorTarget> {
+  static constexpr std::string_view name = "ErrorTarget"sv;
+};
 
-  static void write(std::ostream& os,
-                    const Jacobian::ErrorTarget& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+template <>
+struct xml_io_stream_aggregate<Jacobian::AtmTarget> {
+  static constexpr bool value = true;
+};
 
-  static void read(std::istream& is,
-                   Jacobian::ErrorTarget& x,
-                   bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<Jacobian::LineTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SurfaceTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SubsurfaceTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::SensorTarget> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<ErrorKey> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct xml_io_stream_aggregate<Jacobian::ErrorTarget> {
+  static constexpr bool value = true;
 };
 
 template <>
@@ -914,4 +806,23 @@ struct xml_io_stream<JacobianTargets> {
   static void read(std::istream& is,
                    JacobianTargets& x,
                    bifstream* pbifs = nullptr);
+};
+
+template <>
+struct xml_io_stream_functional<Jacobian::atm_vec> {
+  using func_t    = Vector (*)(ConstVectorView, const AtmField&);
+  using structs_t = std::variant<relinv,
+                                 relfwd,
+                                 loginv,
+                                 logfwd,
+                                 pairfwd<AtmField>,
+                                 pairinv<AtmField>>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <>
+struct xml_io_stream_functional<Jacobian::atm_mat> {
+  using func_t = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
+  using structs_t = std::variant<relinv, loginv, pairinv<AtmField>>;
+  static constexpr std::array<func_t*, 0> funcs{};
 };

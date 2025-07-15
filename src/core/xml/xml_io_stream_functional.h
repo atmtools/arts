@@ -67,12 +67,12 @@ struct xml_io_stream<std::function<R(Ts...)>> {
                     std::string_view name = ""sv) try {
     const func_t* ptr = f.template target<func_t>();
 
-    std::print(os,
-               R"(<{} name="{}" empty="{}" type="{}">)",
-               type_name,
-               name,
-               Index{not f},
-               ptr ? "array"sv : "struct"sv);
+    std::println(os,
+                 R"(<{} name="{}" empty="{}" type="{}">)",
+                 type_name,
+                 name,
+                 Index{not f},
+                 ptr ? "array"sv : "struct"sv);
 
     if (f) {
       if (ptr != nullptr) {

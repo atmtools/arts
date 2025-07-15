@@ -378,6 +378,11 @@ void measurement_vector_error_covariance_matrixConstant(
        Range(0, N),
        IndexPair{0, 0},
        std::make_shared<Sparse>(Sparse::diagonal(Vector(N, x)))});
+  measurement_vector_error_covariance_matrix.add_correlation_inverse(
+      {Range(0, N),
+       Range(0, N),
+       IndexPair{0, 0},
+       std::make_shared<Sparse>(Sparse::diagonal(Vector(N, 1.0 / x)))});
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -8,8 +8,7 @@
 
 bool SensorKey::operator==(const SensorKey& other) const {
   return other.sensor_elem == sensor_elem and
-         other.measurement_elem == measurement_elem and other.model == model and
-         other.type == type;
+         other.measurement_elem == measurement_elem and other.type == type;
 }
 
 namespace sensor {
@@ -636,40 +635,6 @@ void xml_io_stream<SensorPosLos>::parse(std::span<SensorPosLos> x,
                                         std::istream& is) {
   xml_io_stream<Numeric>::parse(
       std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, is);
-}
-
-void xml_io_stream<SensorKey>::write(std::ostream& os,
-                                     const SensorKey& x,
-                                     bofstream* pbofs,
-                                     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
-
-  xml_write_to_stream(os, x.type, pbofs);
-  xml_write_to_stream(os, x.sensor_elem, pbofs);
-  xml_write_to_stream(os, x.measurement_elem, pbofs);
-  xml_write_to_stream(os, x.model, pbofs);
-  xml_write_to_stream(os, x.polyorder, pbofs);
-  xml_write_to_stream(os, x.original_grid, pbofs);
-
-  std::println(os, R"(</{0}>)", type_name);
-}
-
-void xml_io_stream<SensorKey>::read(std::istream& is,
-                                    SensorKey& x,
-                                    bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.type, pbifs);
-  xml_read_from_stream(is, x.sensor_elem, pbifs);
-  xml_read_from_stream(is, x.measurement_elem, pbifs);
-  xml_read_from_stream(is, x.model, pbifs);
-  xml_read_from_stream(is, x.polyorder, pbifs);
-  xml_read_from_stream(is, x.original_grid, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
 }
 
 void xml_io_stream<sensor::SparseStokvec>::put(

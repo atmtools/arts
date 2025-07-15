@@ -169,12 +169,6 @@ struct SensorKey {
 
   Index measurement_elem{};
 
-  SensorJacobianModelType model{};
-
-  Index polyorder{-1};
-
-  Vector original_grid{};
-
   bool operator==(const SensorKey& other) const;
 };
 
@@ -182,8 +176,6 @@ template <>
 struct std::hash<SensorKey> {
   std::size_t operator()(const SensorKey& g) const {
     return std::hash<SensorKeyType>{}(g.type) ^
-           (std::hash<SensorJacobianModelType>{}(g.model)
-            << (8 * sizeof(SensorKeyType))) ^
            (std::hash<Index>{}(g.measurement_elem)
             << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
   }
@@ -203,14 +195,8 @@ struct std::formatter<SensorKey> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx,
-                       v.type,
-                       tags.sep(),
-                       v.sensor_elem,
-                       tags.sep(),
-                       v.measurement_elem,
-                       tags.sep(),
-                       v.model);
+    return tags.format(
+        ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem);
   }
 };
 
@@ -362,15 +348,13 @@ struct xml_io_stream<SensorPosLos> {
 };
 
 template <>
-struct xml_io_stream<SensorKey> {
-  static constexpr std::string_view type_name = "SensorKey"sv;
+struct xml_io_stream_name<SensorKey> {
+  static constexpr std::string_view name = "SensorKey"sv;
+};
 
-  static void write(std::ostream& os,
-                    const SensorKey& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is, SensorKey& x, bifstream* pbifs = nullptr);
+template <>
+struct xml_io_stream_aggregate<SensorKey> {
+  static constexpr bool value = true;
 };
 
 template <>
