@@ -11,9 +11,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <format>
 #include <limits>
 #include <print>
+#include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -78,18 +80,18 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
   return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
 }
 
-Rational band_data::max(QuantumNumberType x) const {
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          lines, [x](auto& qn) { return not qn.contains(x); }, &line::qn),
-      "Quantum number not found in all lines of the band");
-
+Rational band_data::max(QuantumNumberType x) const try {
   Rational out{std::numeric_limits<Index>::lowest()};
   for (auto& line : *this) {
     auto& qn = line.qn.at(x);
     out = maxr(out, maxr(qn.upper.get<Rational>(), qn.lower.get<Rational>()));
   }
   return out;
+} catch (std::out_of_range&) {
+  throw std::runtime_error(
+      std::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
+} catch (std::exception&) {
+  throw;
 }
 
 namespace {
