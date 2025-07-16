@@ -19,33 +19,17 @@
 namespace Quantum {
 using enum QuantumNumberType;
 
-NoSpaceString::NoSpaceString(String&& s) : str_(std::move(s)) {
-  ARTS_USER_ERROR_IF(str_.empty(), "No empty strings")
-  for (auto& c : str_) {
-    if (nonstd::isspace(c)) c = '*';
-  }
-}
-
-String NoSpaceString::str() const { return str_; }
-
-std::istream& operator>>(std::istream& is, NoSpaceString& str) {
-  String s;
-  is >> s;
-  str = NoSpaceString(std::move(s));
-  return is;
-}
-
 Value::Value(String x) : value(std::move(x)) {}
 
 Value::Value(Rational x) : value(x) {}
 
-Value::Value() : Value(Rational{0, 0}) {}
+Value::Value() : Value(Rational{}) {}
 
 Value::Value(QuantumNumberType type) {
   switch (type) {
-    case alpha:              value = NoSpaceString{"*"}; return;
-    case config:             value = NoSpaceString{"*"}; return;
-    case ElecStateLabel:     value = NoSpaceString{"*"}; return;
+    case alpha:              value = String{"*"}; return;
+    case config:             value = String{"*"}; return;
+    case ElecStateLabel:     value = String{"*"}; return;
     case F:                  value = Rational{}; return;
     case F1:                 value = Rational{}; return;
     case F10:                value = Rational{}; return;
@@ -71,11 +55,11 @@ Value::Value(QuantumNumberType type) {
     case S:                  value = Rational{}; return;
     case Sigma:              value = Rational{}; return;
     case SpinComponentLabel: value = Rational{}; return;
-    case asSym:              value = NoSpaceString{"*"}; return;
-    case elecInv:            value = NoSpaceString{"*"}; return;
-    case elecRefl:           value = NoSpaceString{"*"}; return;
-    case elecSym:            value = NoSpaceString{"*"}; return;
-    case kronigParity:       value = NoSpaceString{"*"}; return;
+    case asSym:              value = String{"*"}; return;
+    case elecInv:            value = String{"*"}; return;
+    case elecRefl:           value = String{"*"}; return;
+    case elecSym:            value = String{"*"}; return;
+    case kronigParity:       value = String{"*"}; return;
     case l:                  value = Rational{}; return;
     case l1:                 value = Rational{}; return;
     case l10:                value = Rational{}; return;
@@ -89,14 +73,14 @@ Value::Value(QuantumNumberType type) {
     case l7:                 value = Rational{}; return;
     case l8:                 value = Rational{}; return;
     case l9:                 value = Rational{}; return;
-    case n:                  value = NoSpaceString{"*"}; return;
-    case parity:             value = NoSpaceString{"*"}; return;
+    case n:                  value = String{"*"}; return;
+    case parity:             value = String{"*"}; return;
     case r:                  value = Rational{}; return;
-    case rotSym:             value = NoSpaceString{"*"}; return;
-    case rovibSym:           value = NoSpaceString{"*"}; return;
-    case sym:                value = NoSpaceString{"*"}; return;
-    case tau:                value = NoSpaceString{"*"}; return;
-    case term:               value = NoSpaceString{"*"}; return;
+    case rotSym:             value = String{"*"}; return;
+    case rovibSym:           value = String{"*"}; return;
+    case sym:                value = String{"*"}; return;
+    case tau:                value = String{"*"}; return;
+    case term:               value = String{"*"}; return;
     case v:                  value = Rational{}; return;
     case v1:                 value = Rational{}; return;
     case v10:                value = Rational{}; return;
@@ -110,17 +94,16 @@ Value::Value(QuantumNumberType type) {
     case v7:                 value = Rational{}; return;
     case v8:                 value = Rational{}; return;
     case v9:                 value = Rational{}; return;
-    case vibInv:             value = NoSpaceString{"*"}; return;
-    case vibRefl:            value = NoSpaceString{"*"}; return;
-    case vibSym:             value = NoSpaceString{"*"}; return;
+    case vibInv:             value = String{"*"}; return;
+    case vibRefl:            value = String{"*"}; return;
+    case vibSym:             value = String{"*"}; return;
   }
   std::unreachable();
 }
 
 std::istream& operator>>(std::istream& is, Value& v) {
-  if (auto* ptr = std::get_if<Rational>(&v.value)) return is >> *ptr;
-  if (auto* ptr = std::get_if<NoSpaceString>(&v.value)) return is >> *ptr;
-  return is;
+  return std::visit([&is](auto& x) -> std::istream& { return is >> x; },
+                    v.value);
 }
 
 std::istream& operator>>(std::istream& is, UpperLower& ul) {
@@ -722,8 +705,8 @@ bool vamdcCheck(const State& st, VAMDC type) {
 template <>
 struct std::hash<Quantum::Value> {
   std::size_t operator()(const Quantum::Value& g) const {
-    if (auto* ptr = std::get_if<Quantum::NoSpaceString>(&g.value))
-      return std::hash<String>{}(ptr->str());
+    if (auto* ptr = std::get_if<String>(&g.value))
+      return std::hash<String>{}(*ptr);
     if (auto* ptr = std::get_if<Rational>(&g.value)) {
       std::size_t seed{};
 

@@ -23,14 +23,9 @@ void py_quantum(py::module_& m) try {
   qval.def(py::init<String>())
       .def(py::init<Rational>())
       .def(py::init<QuantumNumberType>())
-      .def_prop_rw(
-          "value",
-          [](Quantum::Value& x) { return x.value; },
-          [](Quantum::Value& x, std::variant<Rational, String> y) {
-            x = std::visit(
-                [](auto& v) -> Quantum::Value { return Quantum::Value{v}; }, y);
-          },
-          ":class:`~pyarts.arts.String` Upper value")
+      .def_rw("value",
+              &Quantum::Value::value,
+              ":class:`~pyarts.arts.String` or :class:`~pyarts.arts.Rational`")
       .def("__getstate__",
            [](const Quantum::Value& qnv) {
              return std::tuple<std::string>{std::format("{}", qnv)};

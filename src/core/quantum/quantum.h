@@ -12,30 +12,12 @@
 #include <variant>
 
 namespace Quantum {
-class NoSpaceString {
-  String str_;
-
- public:
-  NoSpaceString(String&&);  // Replaces ' ' with '*'
-  NoSpaceString(const NoSpaceString&)                = default;
-  NoSpaceString(NoSpaceString&&) noexcept            = default;
-  NoSpaceString& operator=(const NoSpaceString&)     = default;
-  NoSpaceString& operator=(NoSpaceString&&) noexcept = default;
-
-  //! Get the value, you cannot modify it
-  [[nodiscard]] String str() const;
-
-  std::strong_ordering operator<=>(const NoSpaceString& l) const = default;
-
-  friend std::istream& operator>>(std::istream&, NoSpaceString&);
-};
-
 template <typename T>
 concept quantum_value_holder =
     std::same_as<T, String> or std::same_as<T, Rational>;
 
 struct Value {
-  std::variant<Rational, NoSpaceString> value;
+  std::variant<Rational, String> value;
 
   Value();
 
@@ -50,11 +32,7 @@ struct Value {
 
   template <quantum_value_holder T>
   T get() const {
-    if constexpr (std::same_as<T, String>) {
-      return std::get<NoSpaceString>(value).str();
-    } else {
-      return std::get<Rational>(value);
-    }
+    return std::get<T>(value);
   }
 
   std::strong_ordering operator<=>(const Value& l) const = default;
@@ -273,26 +251,6 @@ struct std::hash<QuantumLevelIdentifier> {
 template <>
 struct std::hash<QuantumIdentifier> {
   std::size_t operator()(const QuantumIdentifier& g) const;
-};
-
-template <>
-struct std::formatter<Quantum::NoSpaceString> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-
-  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const Quantum::NoSpaceString& q,
-                              FmtContext& ctx) const {
-    return tags.format(ctx, q.str());
-  }
 };
 
 template <>
