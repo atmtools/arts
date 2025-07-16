@@ -245,6 +245,10 @@ enum class VAMDC : char {
 };
 
 bool vamdcCheck(const State& l, VAMDC type);
+
+bool contains_any_of(const State& state, std::initializer_list<QuantumNumberType> keys);
+
+bool contains_all_of(const State& state, std::initializer_list<QuantumNumberType> keys);
 }  // namespace Quantum
 
 using QuantumIdentifier      = Quantum::Identifier;

@@ -7,6 +7,7 @@
 #include <hitran_species.h>
 #include <partfun.h>
 #include <quantum.h>
+#include <rational.h>
 
 #include <algorithm>
 #include <cmath>
@@ -16,8 +17,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-
-#include "rational.h"
 
 //! In CPP file
 using Constant::c;

@@ -10,11 +10,15 @@
 #include <boost/functional/hash.hpp>
 #include <compare>
 #include <exception>
+#include <initializer_list>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 #include <variant>
 
 namespace Quantum {
+using enum QuantumNumberType;
+
 NoSpaceString::NoSpaceString(String&& s) : str_(std::move(s)) {
   ARTS_USER_ERROR_IF(str_.empty(), "No empty strings")
   for (auto& c : str_) {
@@ -39,7 +43,6 @@ Value::Value() : Value(Rational{0, 0}) {}
 
 Value::Value(QuantumNumberType type) {
   switch (type) {
-    using enum QuantumNumberType;
     case alpha:              value = NoSpaceString{"*"}; return;
     case config:             value = NoSpaceString{"*"}; return;
     case ElecStateLabel:     value = NoSpaceString{"*"}; return;
@@ -405,506 +408,324 @@ State from_hitran(std::string_view upp, std::string_view low) {
   return out;
 }
 
-bool vamdcCheck(const State& l, VAMDC type) {
+bool contains_any_of(const State& state,
+                     std::initializer_list<QuantumNumberType> keys) {
+  for (auto& key : keys)
+    if (state.contains(key)) return true;
+  return false;
+}
+
+bool contains_all_of(const State& state,
+                     std::initializer_list<QuantumNumberType> keys) {
+  for (auto& key : keys)
+    if (not state.contains(key)) return false;
+  return true;
+}
+
+bool vamdcCheck(const State& st, VAMDC type) {
   switch (type) {
     case VAMDC::asymcs:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::asSym)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::kronigParity)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  asSym,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  kronigParity,
+                                  l,
+                                  l1,
+                                  l10,
+                                  l11,
+                                  l12,
+                                  l2,
+                                  l3,
+                                  l4,
+                                  l5,
+                                  l6,
+                                  l7,
+                                  l8,
+                                  l9,
+                                  sym,
+                                  v,
+                                  vibRefl});
     case VAMDC::asymos:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::asSym)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::kronigParity)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Lambda,
+                                  Omega,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  asSym,
+                                  elecRefl,
+                                  kronigParity,
+                                  l,
+                                  l1,
+                                  l10,
+                                  l11,
+                                  l12,
+                                  l2,
+                                  l3,
+                                  l4,
+                                  l5,
+                                  l6,
+                                  l7,
+                                  l8,
+                                  l9,
+                                  sym,
+                                  v,
+                                  vibRefl});
     case VAMDC::dcs:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F2)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v1)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v2)) return false;
-      if (l.contains(QuantumNumberType::v3)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(
+          st, {F10,     F11,      F12,      F2,    F3,
+               F4,      F5,       F6,       F7,    F8,
+               F9,      K,        Ka,       Kc,    Lambda,
+               N,       Omega,    S,        Sigma, SpinComponentLabel,
+               elecInv, elecRefl, elecSym,  l,     l1,
+               l10,     l11,      l12,      l2,    l3,
+               l4,      l5,       l6,       l7,    l8,
+               l9,      rotSym,   rovibSym, sym,   v1,
+               v10,     v11,      v12,      v2,    v3,
+               v4,      v5,       v6,       v7,    v8,
+               v9,      vibInv,   vibRefl,  vibSym});
     case VAMDC::hunda:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F2)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v1)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v2)) return false;
-      if (l.contains(QuantumNumberType::v3)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(
+          st, {F10,     F11, F12, F2,  F3,  F4,     F5,      F6,
+               F7,      F8,  F9,  K,   Ka,  Kc,     N,       SpinComponentLabel,
+               elecSym, l,   l1,  l10, l11, l12,    l2,      l3,
+               l4,      l5,  l6,  l7,  l8,  l9,     rotSym,  rovibSym,
+               sym,     v1,  v10, v11, v12, v2,     v3,      v4,
+               v5,      v6,  v7,  v8,  v9,  vibInv, vibRefl, vibSym});
     case VAMDC::hundb:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F2)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v1)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v2)) return false;
-      if (l.contains(QuantumNumberType::v3)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(
+          st,
+          {F10,    F11,      F12, F2, F3,    F4,     F5,      F6,    F7, F8,
+           F9,     K,        Ka,  Kc, Omega, Sigma,  elecSym, l,     l1, l10,
+           l11,    l12,      l2,  l3, l4,    l5,     l6,      l7,    l8, l9,
+           rotSym, rovibSym, sym, v1, v10,   v11,    v12,     v2,    v3, v4,
+           v5,     v6,       v7,  v8, v9,    vibInv, vibRefl, vibSym});
     case VAMDC::lpcs:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Ka,
+                                  Kc,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  rotSym,
+                                  rovibSym,
+                                  sym,
+                                  v});
     case VAMDC::lpos:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Ka,
+                                  Kc,
+                                  Omega,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  elecSym,
+                                  rotSym,
+                                  rovibSym,
+                                  sym,
+                                  v,
+                                  vibSym});
     case VAMDC::ltcs:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {F10,
+                                  F11,
+                                  F12,
+                                  F3,
+                                  F4,
+                                  F5,
+                                  F6,
+                                  F7,
+                                  F8,
+                                  F9,
+                                  K,
+                                  Ka,
+                                  Kc,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  l,
+                                  l1,
+                                  l10,
+                                  l11,
+                                  l12,
+                                  l3,
+                                  l4,
+                                  l5,
+                                  l6,
+                                  l7,
+                                  l8,
+                                  l9,
+                                  rotSym,
+                                  rovibSym,
+                                  sym,
+                                  v,
+                                  v10,
+                                  v11,
+                                  v12,
+                                  v4,
+                                  v5,
+                                  v6,
+                                  v7,
+                                  v8,
+                                  v9,
+                                  vibInv,
+                                  vibRefl,
+                                  vibSym});
     case VAMDC::ltos:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {F10,     F11,    F12,      F3,
+                                  F4,      F5,     F6,       F7,
+                                  F8,      F9,     K,        Ka,
+                                  Kc,      Omega,  Sigma,    SpinComponentLabel,
+                                  elecSym, l,      l1,       l10,
+                                  l11,     l12,    l3,       l4,
+                                  l5,      l6,     l7,       l8,
+                                  l9,      rotSym, rovibSym, sym,
+                                  v,       v10,    v11,      v12,
+                                  v4,      v5,     v6,       v7,
+                                  v8,      v9,     vibInv,   vibRefl,
+                                  vibSym});
     case VAMDC::nltcs:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {F10,
+                                  F11,
+                                  F12,
+                                  F3,
+                                  F4,
+                                  F5,
+                                  F6,
+                                  F7,
+                                  F8,
+                                  F9,
+                                  K,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  l,
+                                  l1,
+                                  l10,
+                                  l11,
+                                  l12,
+                                  l2,
+                                  l3,
+                                  l4,
+                                  l5,
+                                  l6,
+                                  l7,
+                                  l8,
+                                  l9,
+                                  rotSym,
+                                  rovibSym,
+                                  sym,
+                                  v,
+                                  v10,
+                                  v11,
+                                  v12,
+                                  v4,
+                                  v5,
+                                  v6,
+                                  v7,
+                                  v8,
+                                  v9,
+                                  vibInv,
+                                  vibRefl,
+                                  vibSym});
     case VAMDC::nltos:
-      if (l.contains(QuantumNumberType::F10)) return false;
-      if (l.contains(QuantumNumberType::F11)) return false;
-      if (l.contains(QuantumNumberType::F12)) return false;
-      if (l.contains(QuantumNumberType::F3)) return false;
-      if (l.contains(QuantumNumberType::F4)) return false;
-      if (l.contains(QuantumNumberType::F5)) return false;
-      if (l.contains(QuantumNumberType::F6)) return false;
-      if (l.contains(QuantumNumberType::F7)) return false;
-      if (l.contains(QuantumNumberType::F8)) return false;
-      if (l.contains(QuantumNumberType::F9)) return false;
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::l1)) return false;
-      if (l.contains(QuantumNumberType::l10)) return false;
-      if (l.contains(QuantumNumberType::l11)) return false;
-      if (l.contains(QuantumNumberType::l12)) return false;
-      if (l.contains(QuantumNumberType::l2)) return false;
-      if (l.contains(QuantumNumberType::l3)) return false;
-      if (l.contains(QuantumNumberType::l4)) return false;
-      if (l.contains(QuantumNumberType::l5)) return false;
-      if (l.contains(QuantumNumberType::l6)) return false;
-      if (l.contains(QuantumNumberType::l7)) return false;
-      if (l.contains(QuantumNumberType::l8)) return false;
-      if (l.contains(QuantumNumberType::l9)) return false;
-      if (l.contains(QuantumNumberType::rotSym)) return false;
-      if (l.contains(QuantumNumberType::rovibSym)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::v10)) return false;
-      if (l.contains(QuantumNumberType::v11)) return false;
-      if (l.contains(QuantumNumberType::v12)) return false;
-      if (l.contains(QuantumNumberType::v4)) return false;
-      if (l.contains(QuantumNumberType::v5)) return false;
-      if (l.contains(QuantumNumberType::v6)) return false;
-      if (l.contains(QuantumNumberType::v7)) return false;
-      if (l.contains(QuantumNumberType::v8)) return false;
-      if (l.contains(QuantumNumberType::v9)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      if (l.contains(QuantumNumberType::vibSym)) return false;
-      return true;
+      return not contains_any_of(
+          st, {F10,     F11,      F12,   F3,     F4,
+               F5,      F6,       F7,    F8,     F9,
+               K,       Lambda,   Omega, Sigma,  SpinComponentLabel,
+               elecInv, elecRefl, l,     l1,     l10,
+               l11,     l12,      l2,    l3,     l4,
+               l5,      l6,       l7,    l8,     l9,
+               rotSym,  rovibSym, sym,   v,      v10,
+               v11,     v12,      v4,    v5,     v6,
+               v7,      v8,       v9,    vibInv, vibRefl,
+               vibSym});
     case VAMDC::sphcs:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::asSym)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::kronigParity)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Ka,
+                                  Kc,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  asSym,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  kronigParity,
+                                  l,
+                                  v,
+                                  vibInv,
+                                  vibRefl});
     case VAMDC::sphos:
-      if (l.contains(QuantumNumberType::K)) return false;
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::asSym)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::kronigParity)) return false;
-      if (l.contains(QuantumNumberType::l)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibInv)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {K,
+                                  Ka,
+                                  Kc,
+                                  Lambda,
+                                  Omega,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  asSym,
+                                  elecRefl,
+                                  kronigParity,
+                                  l,
+                                  v,
+                                  vibInv,
+                                  vibRefl});
     case VAMDC::stcs:
-      if (l.contains(QuantumNumberType::Ka)) return false;
-      if (l.contains(QuantumNumberType::Kc)) return false;
-      if (l.contains(QuantumNumberType::Lambda)) return false;
-      if (l.contains(QuantumNumberType::N)) return false;
-      if (l.contains(QuantumNumberType::Omega)) return false;
-      if (l.contains(QuantumNumberType::S)) return false;
-      if (l.contains(QuantumNumberType::Sigma)) return false;
-      if (l.contains(QuantumNumberType::SpinComponentLabel)) return false;
-      if (l.contains(QuantumNumberType::asSym)) return false;
-      if (l.contains(QuantumNumberType::elecInv)) return false;
-      if (l.contains(QuantumNumberType::elecRefl)) return false;
-      if (l.contains(QuantumNumberType::elecSym)) return false;
-      if (l.contains(QuantumNumberType::kronigParity)) return false;
-      if (l.contains(QuantumNumberType::sym)) return false;
-      if (l.contains(QuantumNumberType::v)) return false;
-      if (l.contains(QuantumNumberType::vibRefl)) return false;
-      return true;
+      return not contains_any_of(st,
+                                 {Ka,
+                                  Kc,
+                                  Lambda,
+                                  N,
+                                  Omega,
+                                  S,
+                                  Sigma,
+                                  SpinComponentLabel,
+                                  asSym,
+                                  elecInv,
+                                  elecRefl,
+                                  elecSym,
+                                  kronigParity,
+                                  sym,
+                                  v,
+                                  vibRefl});
   }
-  return false;
+  std::unreachable();
 }
 }  // namespace Quantum
 
