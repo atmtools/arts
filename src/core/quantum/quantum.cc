@@ -26,7 +26,7 @@ NoSpaceString::NoSpaceString(String&& s) : str_(std::move(s)) {
   }
 }
 
-const String& NoSpaceString::str() const { return str_; }
+String NoSpaceString::str() const { return str_; }
 
 std::istream& operator>>(std::istream& is, NoSpaceString& str) {
   String s;
@@ -121,16 +121,6 @@ std::istream& operator>>(std::istream& is, Value& v) {
   if (auto* ptr = std::get_if<Rational>(&v.value)) return is >> *ptr;
   if (auto* ptr = std::get_if<NoSpaceString>(&v.value)) return is >> *ptr;
   return is;
-}
-
-template <>
-const String& Value::get() const {
-  return std::get<NoSpaceString>(value).str();
-}
-
-template <>
-[[nodiscard]] const Rational& Value::get() const {
-  return std::get<Rational>(value);
 }
 
 std::istream& operator>>(std::istream& is, UpperLower& ul) {

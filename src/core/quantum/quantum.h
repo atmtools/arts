@@ -23,12 +23,16 @@ class NoSpaceString {
   NoSpaceString& operator=(NoSpaceString&&) noexcept = default;
 
   //! Get the value, you cannot modify it
-  [[nodiscard]] const String& str() const;
+  [[nodiscard]] String str() const;
 
   std::strong_ordering operator<=>(const NoSpaceString& l) const = default;
 
   friend std::istream& operator>>(std::istream&, NoSpaceString&);
 };
+
+template <typename T>
+concept quantum_value_holder =
+    std::same_as<T, String> or std::same_as<T, Rational>;
 
 struct Value {
   std::variant<Rational, NoSpaceString> value;
@@ -44,14 +48,14 @@ struct Value {
   Value& operator=(const Value&)     = default;
   Value& operator=(Value&&) noexcept = default;
 
-  template <typename T>
-  const T& get() const = delete;
-
-  template <>
-  [[nodiscard]] const String& get() const;
-
-  template <>
-  [[nodiscard]] const Rational& get() const;
+  template <quantum_value_holder T>
+  T get() const {
+    if constexpr (std::same_as<T, String>) {
+      return std::get<NoSpaceString>(value).str();
+    } else {
+      return std::get<Rational>(value);
+    }
+  }
 
   std::strong_ordering operator<=>(const Value& l) const = default;
 
@@ -246,9 +250,11 @@ enum class VAMDC : char {
 
 bool vamdcCheck(const State& l, VAMDC type);
 
-bool contains_any_of(const State& state, std::initializer_list<QuantumNumberType> keys);
+bool contains_any_of(const State& state,
+                     std::initializer_list<QuantumNumberType> keys);
 
-bool contains_all_of(const State& state, std::initializer_list<QuantumNumberType> keys);
+bool contains_all_of(const State& state,
+                     std::initializer_list<QuantumNumberType> keys);
 }  // namespace Quantum
 
 using QuantumIdentifier      = Quantum::Identifier;
