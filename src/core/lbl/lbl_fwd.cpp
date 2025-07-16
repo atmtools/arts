@@ -61,7 +61,7 @@ void lte::adapt() try {
 
     band_shape_helper(shapes,
                       shapes_pos,
-                      qid.Isotopologue(),
+                      qid.isot,
                       band,
                       *atm,
                       std::numeric_limits<Numeric>::lowest(),
@@ -116,7 +116,7 @@ void lte_mirror::adapt() {
 
     band_shape_helper(shapes,
                       shapes_pos,
-                      qid.Isotopologue(),
+                      qid.isot,
                       band,
                       *atm,
                       std::numeric_limits<Numeric>::lowest(),

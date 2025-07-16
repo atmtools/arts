@@ -6,6 +6,8 @@
 
 #include <charconv>
 
+#include "quantum.h"
+
 namespace lbl {
 namespace {
 struct reader {
@@ -93,9 +95,9 @@ bool read_hitran_par_record(hitran_record& record,
                        "Failed to parse HITRAN Quantum numbers:\n\n{}",
                        remainder);
 
-    record.qid.val = Quantum::Number::from_hitran(
-        std::string_view{remainder.begin(), space},
-        std::string_view{space + 1, remainder.end()});
+    record.qid.state =
+        Quantum::from_hitran(std::string_view{remainder.begin(), space},
+                             std::string_view{space + 1, remainder.end()});
   }
 
   return true;
@@ -136,7 +138,7 @@ hitran_data read_hitran_par(std::istream&& file,
 }
 
 line hitran_record::from(HitranLineStrengthOption ls,
-                         QuantumNumberLocalState&& local,
+                         QuantumState&& local,
                          bool do_zeeman) const {
   line l;
   l.a  = A;
@@ -152,7 +154,7 @@ line hitran_record::from(HitranLineStrengthOption ls,
         l.gl = -1.0;
       }
 
-      l.a = l.hitran_a(S, qid.Isotopologue());
+      l.a = l.hitran_a(S, qid.isot);
 
       break;
     case HitranLineStrengthOption::A: break;
@@ -178,7 +180,7 @@ line hitran_record::from(HitranLineStrengthOption ls,
   l.ls.one_by_one = false;
   l.ls.single_models.resize(2);
 
-  l.ls.single_models[0].species = qid.Species();
+  l.ls.single_models[0].species = qid.isot.spec;
   l.ls.single_models[0].data.emplace_back(
       LineShapeModelVariable::G0,
       lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_self, n}});

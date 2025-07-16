@@ -7,7 +7,6 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
-#include <quantum_numbers.h>
 #include <species_tags.h>
 #include <surf.h>
 

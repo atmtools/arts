@@ -195,7 +195,7 @@ void ray_path_fieldFluxProfile(
       if (error.empty()) error = e.what();
     }
   }
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error);
+  if(not error.empty()) throw std::runtime_error(error);
 
   ray_path_observer_agendaExecute(ws,
                                   ray_path_field[looking_up.size() - 1],
@@ -222,7 +222,7 @@ void ray_path_fieldFluxProfile(
       if (error.empty()) error = e.what();
     }
   }
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error);
+  if(not error.empty()) throw std::runtime_error(error);
 
   ray_path_observer_agendaExecute(ws,
                                   ray_path_field.back(),
@@ -261,5 +261,5 @@ void ray_path_fieldFromObserverAgenda(
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error);
+  if(not error.empty()) throw std::runtime_error(error);
 }

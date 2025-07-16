@@ -228,7 +228,7 @@ void absorption_lookup_tablePrecomputeAll(
   ArrayOfSpeciesEnum lut_species;
   const auto species_not_in_lut =
       std::views::transform(
-          [](const auto& pair) { return pair.first.Species(); }) |
+          [](const auto& pair) { return pair.first.isot.spec; }) |
       std::views::filter([&lut_species](const SpeciesEnum& s) {
         return lut_species.end() == std::ranges::find(lut_species, s);
       });

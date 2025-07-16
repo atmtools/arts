@@ -86,7 +86,7 @@ void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
 }
 
 void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const QuantumIdentifier& key,
+                                   const QuantumLevelIdentifier& key,
                                    const Numeric& d) {
   ARTS_TIME_REPORT
 

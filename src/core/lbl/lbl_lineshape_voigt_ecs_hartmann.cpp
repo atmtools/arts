@@ -3,6 +3,8 @@
 #include <atm.h>
 #include <wigner_functions.h>
 
+#include "rational.h"
+
 namespace lbl::voigt::ecs::hartmann {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -71,9 +73,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   if (not n) return;
 
   // These are constant for a band
-  auto l2     = bnd_qid.val[QuantumNumberType::l2];
-  Rational li = l2.upp();
-  Rational lf = l2.low();
+  auto l2     = bnd_qid.state.at(QuantumNumberType::l2);
+  Rational li = l2.upper.get<Rational>();
+  Rational lf = l2.lower.get<Rational>();
 
   using std::swap;
   const bool swap_order = li > lf;
@@ -83,7 +85,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const Numeric T = atm.temperature;
 
-  const auto erot = erot_selection(bnd_qid.Isotopologue());
+  const auto erot = erot_selection(bnd_qid.isot);
 
   const std::array rats{bnd.max(QuantumNumberType::J), li, lf};
   const int maxL = wigner_init_size(rats);
@@ -96,7 +98,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                 broadening_species == SpeciesEnum::Bath
                                     ? atm.mean_mass()
                                     : atm.mean_mass(broadening_species),
-                                bnd_qid.Isotopologue().mass,
+                                bnd_qid.isot.mass,
                                 erot(i),
                                 erot(i - 2));
     return out;
@@ -111,16 +113,16 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J     = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
-    Rational Ji = J.upp();
-    Rational Jf = J.low();
+    auto& J     = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    Rational Ji = J.upper.get<Rational>();
+    Rational Jf = J.lower.get<Rational>();
     if (swap_order) swap(Ji, Jf);
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
-      auto& J_p     = bnd.lines[sorting[j]].qn.val[QuantumNumberType::J];
-      Rational Ji_p = J_p.upp();
-      Rational Jf_p = J_p.low();
+      auto& J_p     = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      Rational Ji_p = J_p.upper.get<Rational>();
+      Rational Jf_p = J_p.lower.get<Rational>();
       if (swap_order) swap(Ji_p, Jf_p);
 
       // Select upper quantum number
@@ -171,10 +173,11 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     }
 
     const Rational Ji =
-        bnd.lines[sorting[i]].qn.val[QuantumNumberType::J].low();
+        bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower.get<Rational>();
     for (Size j = i + 1; j < n; j++) {
-      const Rational Jj =
-          bnd.lines[sorting[j]].qn.val[QuantumNumberType::J].low();
+      const Rational Jj = bnd.lines[sorting[j]]
+                              .qn.at(QuantumNumberType::J)
+                              .lower.get<Rational>();
       if (sumlw == 0) {
         W[j, i] = 0.0;
         W[i, j] = 0.0;

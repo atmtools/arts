@@ -375,10 +375,10 @@ struct single_shape_builder {
                                        const zeeman::pol pol,
                                        const Size iz) const {
     single_shape s;
-    s.f0     = f0 + H * ln.z.Splitting(ln.qn.val, pol, iz);
+    s.f0     = f0 + H * ln.z.Splitting(ln.qn, pol, iz);
     s.inv_gd = 1.0 / (scaled_gd_part * f0);
     s.z_imag = G0 * s.inv_gd;
-    s.s      = ln.z.Strength(ln.qn.val, pol, iz) *
+    s.s      = ln.z.Strength(ln.qn, pol, iz) *
           (ispec == std::numeric_limits<Size>::max()
                ? line_strength_calc(s.inv_gd, spec, ln, atm)
                : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
@@ -405,10 +405,10 @@ single_shape::single_shape(const SpeciesIsotope& spec,
                            const Index iz)
     : f0(line_center_calc(line, atm) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn.val, pol, iz)),
+             line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, spec.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd),
-      s(line.z.Strength(line.qn.val, pol, iz) *
+      s(line.z.Strength(line.qn, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm)) {}
 
 single_shape::single_shape(const SpeciesIsotope& spec,
@@ -419,12 +419,12 @@ single_shape::single_shape(const SpeciesIsotope& spec,
                            const Size ispec)
     : f0(line_center_calc(line, atm, ispec) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn.val, pol, iz)),
+             line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, spec.mass, f0)),
       z_imag(line.ls.single_models[ispec].G0(
                  line.ls.T0, atm.temperature, atm.pressure) *
              inv_gd),
-      s(line.z.Strength(line.qn.val, pol, iz) *
+      s(line.z.Strength(line.qn, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm, ispec)) {}
 
 Complex single_shape::F(const Complex z_) { return Faddeeva::w(z_); }
@@ -534,7 +534,7 @@ Size count_lines(const band_data& bnd, const zeeman::pol type) {
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
         const Index factor =
             line.ls.one_by_one ? line.ls.single_models.size() : 1;
-        return factor * line.z.size(line.qn.val, type);
+        return factor * line.z.size(line.qn, type);
       });
 }
 
@@ -552,7 +552,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
     pos.emplace_back(line_pos{.line = iline, .spec = ispec});
   } else {
     const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
-    const auto nz   = static_cast<Size>(line.z.size(line.qn.val, pol));
+    const auto nz   = static_cast<Size>(line.z.size(line.qn, pol));
     for (Size iz = 0; iz < nz; iz++) {
       lines.emplace_back(s.as_zeeman(H, pol, iz));
       pos.emplace_back(line_pos{.line = iline, .spec = ispec, .iz = iz});
@@ -1224,7 +1224,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
           (-2 * T * line.ls.dD0_dT(atm) - 2 * T * line.ls.dDV_dT(atm) - f0) /
           (2 * T * f0);
 
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dT(inv_gd, f0, spec, line, atm);
 
       dz[i] = inv_gd *
@@ -1236,7 +1236,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
                    2 * T * ls.dDV_dT(line.ls.T0, T, atm.pressure) - f0) /
                   (2 * T * f0);
 
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dT(f0, inv_gd, spec, line, atm, pos[i].spec);
 
       dz[i] = inv_gd * Complex{-ls.dD0_dT(line.ls.T0, T, atm.pressure) -
@@ -1301,7 +1301,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -1330,7 +1330,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -1359,7 +1359,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -1398,7 +1398,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
                   f0;
 
       ds[i] =
-          line.z.Strength(line.qn.val, pol, pos[i].iz) *
+          line.z.Strength(line.qn, pol, pos[i].iz) *
           dline_strength_calc_dVMR(inv_gd, f0, spec, target_spec, line, atm);
 
       dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
@@ -1481,14 +1481,14 @@ void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       dz_fac[i] = -1.0 / f0;
 
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_df0(f0, inv_gd, spec, line, atm);
 
       dz[i] = -inv_gd;
     } else {
       dz_fac[i] = -1.0 / f0;
 
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_df0(f0, inv_gd, spec, line, atm, pos[i].spec);
 
       dz[i] = -inv_gd;
@@ -1658,14 +1658,14 @@ void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
     const auto& lshp = shp.lines[i];
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
                                      lshp.inv_gd,
                                      spec,
                                      line,
                                      atm);
     } else {
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dY(
                   line.ls.single_models[pos[i].spec].dY_dX(
                       line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
@@ -1704,14 +1704,14 @@ void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
     const auto& lshp = shp.lines[i];
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
                                      lshp.inv_gd,
                                      spec,
                                      line,
                                      atm);
     } else {
-      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dG(
                   line.ls.single_models[pos[i].spec].dG_dX(
                       line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
@@ -1992,7 +1992,7 @@ void calculate(PropmatVectorView pm_,
   const Size nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotope spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.isot;
   const Numeric fmin        = f_grid.front();
   const Numeric fmax        = f_grid.back();
 

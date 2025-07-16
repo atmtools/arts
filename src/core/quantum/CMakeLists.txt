@@ -1,6 +1,6 @@
 add_library(quantum STATIC
             hitran_species.cc
-            quantum_numbers.cc
+            quantum.cc
             quantum_term_symbol.cc
             )
 target_link_libraries(quantum PUBLIC species matpack binio)

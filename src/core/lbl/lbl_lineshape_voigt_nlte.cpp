@@ -7,7 +7,7 @@
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <rtepack.h>
 #include <sorting.h>
 
@@ -29,8 +29,8 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
   using Constant::h, Constant::c, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
-  const Numeric ru = atm[qid.UpperLevel()];
-  const Numeric rl = atm[qid.LowerLevel()];
+  const Numeric ru = atm[qid.upper()];
+  const Numeric rl = atm[qid.lower()];
 
   const Numeric k      = line.nlte_k(ru, rl);
   const Numeric e      = line.nlte_e(ru);
@@ -39,8 +39,8 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
   const Numeric T      = atm.temperature;
   const Numeric B_part = f * f * f / std::expm1(h * f / (kB * T));
 
-  const Numeric r = atm[qid.Isotopologue()];
-  const Numeric x = atm[qid.Isotopologue().spec];
+  const Numeric r = atm[qid.isot];
+  const Numeric x = atm[qid.isot.spec];
 
   //! Missing factor is c^2 f / 8pi
   return {inv_sqrt_pi * inv_gd * r * x * k,
@@ -55,8 +55,8 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
   using Constant::h, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
-  const Numeric ru = atm[qid.UpperLevel()];
-  const Numeric rl = atm[qid.LowerLevel()];
+  const Numeric ru = atm[qid.upper()];
+  const Numeric rl = atm[qid.lower()];
 
   const Numeric k      = line.nlte_k(ru, rl);
   const Numeric e      = line.nlte_e(ru);
@@ -70,8 +70,8 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
 
   const Numeric dinv_gd = inv_gd * (2 * T * dD0 + f0) / (2 * T * f0);
 
-  const Numeric r = atm[qid.Isotopologue()];
-  const Numeric x = atm[qid.Isotopologue().spec];
+  const Numeric r = atm[qid.isot];
+  const Numeric x = atm[qid.isot.spec];
 
   //! Missing factor is c^2 f / 8pi
   return {inv_sqrt_pi * dinv_gd * r * x * k,
@@ -88,8 +88,8 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
   using Constant::h, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
-  const Numeric ru = atm[qid.UpperLevel()];
-  const Numeric rl = atm[qid.LowerLevel()];
+  const Numeric ru = atm[qid.upper()];
+  const Numeric rl = atm[qid.lower()];
 
   const Numeric k      = line.nlte_k(ru, rl);
   const Numeric e      = line.nlte_e(ru);
@@ -106,8 +106,8 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
 
   const Numeric dinv_gd = inv_gd * (2 * T * dD0 + f0) / (2 * T * f0);
 
-  const Numeric r = atm[qid.Isotopologue()];
-  const Numeric x = atm[qid.Isotopologue().spec];
+  const Numeric r = atm[qid.isot];
+  const Numeric x = atm[qid.isot.spec];
 
   //! Missing factor is c^2 f / 8pi
   return {inv_sqrt_pi * dinv_gd * r * x * k,
@@ -173,7 +173,7 @@ struct single_shape_builder {
         atm(a),
         f0(line_center_calc(ln, atm)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
-                                 atm.temperature / id.Isotopologue().mass)),
+                                 atm.temperature / id.isot.mass)),
         G0(ln.ls.G0(atm)) {}
 
   single_shape_builder(const QuantumIdentifier& id,
@@ -185,7 +185,7 @@ struct single_shape_builder {
         atm(a),
         f0(line_center_calc(ln, atm, is)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
-                                 atm.temperature / id.Isotopologue().mass)),
+                                 atm.temperature / id.isot.mass)),
         G0(ln.ls.single_models[is].G0(ln.ls.T0, atm.temperature, atm.pressure)),
         ispec(is) {}
 
@@ -193,12 +193,12 @@ struct single_shape_builder {
                                        const zeeman::pol pol,
                                        const Size iz) const {
     single_shape s;
-    s.f0                    = f0 + H * ln.z.Splitting(ln.qn.val, pol, iz);
+    s.f0                    = f0 + H * ln.z.Splitting(ln.qn, pol, iz);
     s.inv_gd                = 1.0 / (scaled_gd_part * f0);
     s.z_imag                = G0 * s.inv_gd;
     const auto [k, e_ratio] = line_strength_calc(s.inv_gd, qid, ln, atm);
-    s.k                     = ln.z.Strength(ln.qn.val, pol, iz) * k;
-    s.e_ratio               = ln.z.Strength(ln.qn.val, pol, iz) * e_ratio;
+    s.k                     = ln.z.Strength(ln.qn, pol, iz) * k;
+    s.e_ratio               = ln.z.Strength(ln.qn, pol, iz) * e_ratio;
     return s;
   }
 
@@ -222,12 +222,12 @@ single_shape::single_shape(const QuantumIdentifier& qid,
                            const Index iz)
     : f0(line_center_calc(line, atm) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn.val, pol, iz)),
-      inv_gd(1.0 / scaled_gd(atm.temperature, qid.Isotopologue().mass, f0)),
+             line.z.Splitting(line.qn, pol, iz)),
+      inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
-  k                         = line.z.Strength(line.qn.val, pol, iz) * kp;
-  e_ratio                   = line.z.Strength(line.qn.val, pol, iz) * e_ratiop;
+  k                         = line.z.Strength(line.qn, pol, iz) * kp;
+  e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
 }
 
 single_shape::single_shape(const QuantumIdentifier& qid,
@@ -238,14 +238,14 @@ single_shape::single_shape(const QuantumIdentifier& qid,
                            const Size ispec)
     : f0(line_center_calc(line, atm, ispec) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn.val, pol, iz)),
-      inv_gd(1.0 / scaled_gd(atm.temperature, qid.Isotopologue().mass, f0)),
+             line.z.Splitting(line.qn, pol, iz)),
+      inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
       z_imag(line.ls.single_models[ispec].G0(
                  line.ls.T0, atm.temperature, atm.pressure) *
              inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
-  k                         = line.z.Strength(line.qn.val, pol, iz) * kp;
-  e_ratio                   = line.z.Strength(line.qn.val, pol, iz) * e_ratiop;
+  k                         = line.z.Strength(line.qn, pol, iz) * kp;
+  e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
 }
 
 Complex single_shape::F(const Complex z_) { return Faddeeva::w(z_); }
@@ -361,7 +361,7 @@ Size count_lines(const band_data& bnd, const zeeman::pol type) {
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
         const Index factor =
             line.ls.one_by_one ? line.ls.single_models.size() : 1;
-        return factor * line.z.size(line.qn.val, type);
+        return factor * line.z.size(line.qn, type);
       });
 }
 
@@ -378,7 +378,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
     pos.emplace_back(line_pos{.line = iline, .spec = ispec});
   } else {
     const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
-    const auto nz   = static_cast<Size>(line.z.size(line.qn.val, pol));
+    const auto nz   = static_cast<Size>(line.z.size(line.qn, pol));
     for (Size iz = 0; iz < nz; iz++) {
       lines.emplace_back(s.as_zeeman(H, pol, iz));
       pos.emplace_back(line_pos{.line = iline, .spec = ispec, .iz = iz});
@@ -711,8 +711,8 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
 
       const auto [dkp, dep] =
           dline_strength_calc_dT(inv_gd, f0, qid, line, atm);
-      dk[i]       = line.z.Strength(line.qn.val, pol, pos[i].iz) * dkp;
-      de_ratio[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) * dep;
+      dk[i]       = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
+      de_ratio[i] = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
 
       dz[i] = inv_gd *
               Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
@@ -724,8 +724,8 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
 
       const auto [dkp, dep] =
           dline_strength_calc_dT(inv_gd, f0, qid, line, atm, pos[i].spec);
-      dk[i]       = line.z.Strength(line.qn.val, pol, pos[i].iz) * dkp;
-      de_ratio[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) * dep;
+      dk[i]       = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
+      de_ratio[i] = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
 
       dz[i] = inv_gd * Complex{-ls.dD0_dT(line.ls.T0, T, atm.pressure),
                                ls.dG0_dT(line.ls.T0, T, atm.pressure)};
@@ -788,7 +788,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -817,7 +817,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -846,7 +846,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w *
-            line.z.Splitting(line.qn.val, pol, pos[i].iz);
+            line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -964,7 +964,7 @@ void compute_derivative(PropmatVectorView,
                         const AtmPoint&,
                         const zeeman::pol,
                         const SpeciesIsotope& deriv_spec) {
-  ARTS_USER_ERROR_IF(deriv_spec == qid.Isotopologue(), "Not supported")
+  ARTS_USER_ERROR_IF(deriv_spec == qid.isot, "Not supported")
 }
 
 void compute_derivative(PropmatVectorView,
@@ -1030,7 +1030,7 @@ void calculate(PropmatVectorView pm_,
   const Size nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotope spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.isot;
   const Numeric fmin        = f_grid.front();
   const Numeric fmax        = f_grid.back();
 

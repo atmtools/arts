@@ -41,11 +41,11 @@ SortedGriddedField3 level_density(const SortedGriddedField3& T,
 }  // namespace
 
 namespace lbl::nlte {
-std::unordered_map<QuantumIdentifier, AtmData> from_lte(
+std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
     const AtmField& atmospheric_field,
     const AbsorptionBands& absorption_bands,
     const Numeric& normalizing_factor) {
-  std::unordered_map<QuantumIdentifier, AtmData> out;
+  std::unordered_map<QuantumLevelIdentifier, AtmData> out;
 
   ARTS_USER_ERROR_IF(not atmospheric_field.contains(AtmKey::t),
                      "Atmospheric field does not contain temperature data");
@@ -55,11 +55,11 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
   for (const auto& [key, band] : absorption_bands) {
     ARTS_USER_ERROR_IF(band.size() != 1, "Only for single-line bands");
 
-    const auto upp = key.UpperLevel();
-    const auto low = key.LowerLevel();
+    const auto upp = key.upper();
+    const auto low = key.lower();
 
     const auto& line = band.lines.front();
-    const auto spec  = key.Isotopologue();
+    const auto spec  = key.isot;
 
     if (not out.contains(upp)) {
       const Numeric g = line.gu;
@@ -86,10 +86,10 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
     std::unordered_map<SpeciesIsotope, AtmData> normalization;
 
     for (const auto& [key, data] : out) {
-      if (not normalization.contains(key.Isotopologue())) {
-        normalization[key.Isotopologue()] = out[key];
+      if (not normalization.contains(key.isot)) {
+        normalization[key.isot] = out[key];
       } else {
-        auto& x = normalization[key.Isotopologue()];
+        auto& x = normalization[key.isot];
 
         auto srhs = std::get_if<SortedGriddedField3>(&data.data);
         if (auto lhs = std::get_if<SortedGriddedField3>(&x.data);
@@ -130,7 +130,7 @@ std::unordered_map<QuantumIdentifier, AtmData> from_lte(
     }
 
     for (auto& [key, data] : out) {
-      auto& x = normalization[key.Isotopologue()];
+      auto& x = normalization[key.isot];
 
       if (auto lhs = std::get_if<SortedGriddedField3>(&data.data),
           rhs      = std::get_if<SortedGriddedField3>(&x.data);
@@ -219,7 +219,7 @@ QuantumIdentifierVectorMap createCij(
     Vector& x        = Cij[key];
 
     for (auto& atmospheric_point : ray_path_atmospheric_point) {
-      const auto numden = atmospheric_point.number_density(key.Isotopologue());
+      const auto numden = atmospheric_point.number_density(key.isot);
       x.push_back(coll.interp<lag>(atmospheric_point.temperature) * numden);
     }
   }
@@ -251,7 +251,7 @@ QuantumIdentifierVectorMap createCji(
 ARTS_METHOD_ERROR_CATCH
 
 Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point,
-                      const ArrayOfQuantumIdentifier& levels) try {
+                      const ArrayOfQuantumLevelIdentifier& levels) try {
   return Vector(std::from_range,
                 ray_path_atmospheric_point |
                     stdv::transform([&levels](const AtmPoint& atm) {
@@ -278,21 +278,21 @@ ARTS_METHOD_ERROR_CATCH
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
     const AbsorptionBands& absorption_bands,
-    const ArrayOfQuantumIdentifier& level_keys) try {
+    const ArrayOfQuantumLevelIdentifier& level_keys) try {
   std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
   band_level_map.reserve(absorption_bands.size());
 
   for (const auto& key : absorption_bands | stdv::keys) {
     UppLow& ul = band_level_map[key];
 
-    const auto lower      = key.LowerLevel();
+    const auto lower      = key.lower();
     const auto lower_find = stdr::find(level_keys, lower);
     ul.low                = std::distance(stdr::begin(level_keys), lower_find);
     ARTS_USER_ERROR_IF(lower_find == stdr::end(level_keys),
                        "Lower level {} not found in level keys",
                        lower)
 
-    const auto upper      = key.UpperLevel();
+    const auto upper      = key.upper();
     const auto upper_find = stdr::find(level_keys, upper);
     ul.upp                = std::distance(stdr::begin(level_keys), upper_find);
     ARTS_USER_ERROR_IF(upper_find == stdr::end(level_keys),
@@ -354,7 +354,7 @@ Matrix statistical_equilibrium_equation(
 ARTS_METHOD_ERROR_CATCH
 
 Numeric set_nlte(AtmPoint& atmospheric_point,
-                 const ArrayOfQuantumIdentifier& level_keys,
+                 const ArrayOfQuantumLevelIdentifier& level_keys,
                  const Vector& x) try {
   assert(x.size() == level_keys.size());
   Numeric max_change = 0.0;

@@ -1,6 +1,6 @@
 #include <string>
 
-#include "quantum_numbers.h"
+#include "quantum.h"
 
 namespace Quantum::Helpers {
 /** Returns the Molecular Term in LaTeX formatting of a QuantumIdentifier */

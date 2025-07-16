@@ -424,8 +424,7 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
       species_list not_eq hitmap.cend()) {
     if (auto species_info = species_list->second.find(isonum);
         species_info not_eq species_list->second.cend()) {
-      return QuantumIdentifier{
-          Species::find_species_index(species_info->second)};
+      return QuantumIdentifier{species_info->second};
     }
   }
   ARTS_USER_ERROR(

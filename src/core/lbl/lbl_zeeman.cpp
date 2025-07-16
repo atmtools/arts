@@ -13,7 +13,6 @@
 
 #include <arts_constexpr_math.h>
 #include <double_imanip.h>
-#include <quantum_numbers.h>
 #include <wigner_functions.h>
 
 #include <utility>
@@ -33,37 +32,53 @@ constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
 
 constexpr Numeric get_lande_lambda_constant() noexcept { return 1.0; }
 
-lbl::zeeman::data SimpleG(const Quantum::Number::ValueList& qns,
+lbl::zeeman::data SimpleG(const QuantumState& qns,
                           const Numeric& GS,
                           const Numeric& GL) noexcept {
-  if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hunda) and
-      qns.has(QuantumNumberType::Omega,
-              QuantumNumberType::J,
-              QuantumNumberType::Lambda,
-              QuantumNumberType::S)) {
-    auto& Omega  = qns[QuantumNumberType::Omega];
-    auto& J      = qns[QuantumNumberType::J];
-    auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S      = qns[QuantumNumberType::S];
-    return {.gu = lbl::zeeman::SimpleGCaseA(
-                Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-            .gl = lbl::zeeman::SimpleGCaseA(
-                Omega.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hunda) and
+      qns.contains(QuantumNumberType::Omega) and
+      qns.contains(QuantumNumberType::J) and
+      qns.contains(QuantumNumberType::Lambda) and
+      qns.contains(QuantumNumberType::S)) {
+    auto& Omega  = qns.at(QuantumNumberType::Omega);
+    auto& J      = qns.at(QuantumNumberType::J);
+    auto& Lambda = qns.at(QuantumNumberType::Lambda);
+    auto& S      = qns.at(QuantumNumberType::S);
+    return {.gu = lbl::zeeman::SimpleGCaseA(Omega.upper.get<Rational>(),
+                                            J.upper.get<Rational>(),
+                                            Lambda.upper.get<Rational>(),
+                                            S.upper.get<Rational>(),
+                                            GS,
+                                            GL),
+            .gl = lbl::zeeman::SimpleGCaseA(Omega.lower.get<Rational>(),
+                                            J.lower.get<Rational>(),
+                                            Lambda.lower.get<Rational>(),
+                                            S.lower.get<Rational>(),
+                                            GS,
+                                            GL)};
   }
 
-  if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hundb) and
-      qns.has(QuantumNumberType::N,
-              QuantumNumberType::J,
-              QuantumNumberType::Lambda,
-              QuantumNumberType::S)) {
-    auto& N      = qns[QuantumNumberType::N];
-    auto& J      = qns[QuantumNumberType::J];
-    auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S      = qns[QuantumNumberType::S];
-    return {.gu = lbl::zeeman::SimpleGCaseB(
-                N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-            .gl = lbl::zeeman::SimpleGCaseB(
-                N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hundb) and
+      qns.contains(QuantumNumberType::N) and
+      qns.contains(QuantumNumberType::J) and
+      qns.contains(QuantumNumberType::Lambda) and
+      qns.contains(QuantumNumberType::S)) {
+    auto& N      = qns.at(QuantumNumberType::N);
+    auto& J      = qns.at(QuantumNumberType::J);
+    auto& Lambda = qns.at(QuantumNumberType::Lambda);
+    auto& S      = qns.at(QuantumNumberType::S);
+    return {.gu = lbl::zeeman::SimpleGCaseB(N.upper.get<Rational>(),
+                                            J.upper.get<Rational>(),
+                                            Lambda.upper.get<Rational>(),
+                                            S.upper.get<Rational>(),
+                                            GS,
+                                            GL),
+            .gl = lbl::zeeman::SimpleGCaseB(N.lower.get<Rational>(),
+                                            J.lower.get<Rational>(),
+                                            Lambda.lower.get<Rational>(),
+                                            S.lower.get<Rational>(),
+                                            GS,
+                                            GL)};
   }
 
   return {};
@@ -125,17 +140,18 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 
 namespace lbl::zeeman {
 data GetSimpleModel(const QuantumIdentifier& qid) {
-  const Numeric GS = ::get_lande_spin_constant(qid.Species());
+  const Numeric GS = ::get_lande_spin_constant(qid.isot.spec);
   const Numeric GL = ::get_lande_lambda_constant();
-  return ::SimpleG(qid.val, GS, GL);
+  return ::SimpleG(qid.state, GS, GL);
 }
 
 data GetAdvancedModel(const QuantumIdentifier& qid) {
-  if (qid.Isotopologue() == "O2-66"_isot) {
-    if (qid.val.has(
-            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
-      if (qid.val[QuantumNumberType::v].low() == 0 and
-          qid.val[QuantumNumberType::v].upp() == 0) {
+  if (qid.isot == "O2-66"_isot) {
+    if (qid.state.contains(QuantumNumberType::J) and
+        qid.state.contains(QuantumNumberType::N) and
+        qid.state.contains(QuantumNumberType::v)) {
+      if (qid.state.at(QuantumNumberType::v).lower.get<Rational>() == 0 and
+          qid.state.at(QuantumNumberType::v).upper.get<Rational>() == 0) {
         constexpr Numeric GS  = 2.002084;
         constexpr Numeric GLE = 2.77e-3;
         constexpr Numeric GR  = -1.16e-4;
@@ -149,12 +165,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         constexpr Numeric gD  = -243.42;
         constexpr Numeric gH  = -1.46e-3;
 
-        const auto& J = qid.val[QuantumNumberType::J];
-        const auto& N = qid.val[QuantumNumberType::N];
-        auto JU       = J.upp();
-        auto NU       = N.upp();
-        auto JL       = J.low();
-        auto NL       = N.low();
+        const auto& J = qid.state.at(QuantumNumberType::J);
+        const auto& N = qid.state.at(QuantumNumberType::N);
+        auto JU       = J.upper.get<Rational>();
+        auto NU       = N.upper.get<Rational>();
+        auto JL       = J.lower.get<Rational>();
+        auto NL       = N.lower.get<Rational>();
 
         Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -163,11 +179,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         return {.gu = gu, .gl = gl};
       }
     }
-  } else if (qid.Isotopologue() == "O2-68"_isot) {
-    if (qid.val.has(
-            QuantumNumberType::J, QuantumNumberType::N, QuantumNumberType::v)) {
-      if (qid.val[QuantumNumberType::v].low() == 0 and
-          qid.val[QuantumNumberType::v].upp() == 0) {
+  } else if (qid.isot == "O2-68"_isot) {
+    if (qid.state.contains(QuantumNumberType::J) and
+        qid.state.contains(QuantumNumberType::N) and
+        qid.state.contains(QuantumNumberType::v)) {
+      if (qid.state.at(QuantumNumberType::v).lower.get<Rational>() == 0 and
+          qid.state.at(QuantumNumberType::v).upper.get<Rational>() == 0) {
         constexpr Numeric GS  = 2.002025;
         constexpr Numeric GLE = 2.813e-3;
         constexpr Numeric GR  = -1.26e-4;
@@ -181,12 +198,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         constexpr Numeric gD  = -217.77;
         constexpr Numeric gH  = -1.305e-3;
 
-        const auto& J = qid.val[QuantumNumberType::J];
-        const auto& N = qid.val[QuantumNumberType::N];
-        auto JU       = J.upp();
-        auto NU       = N.upp();
-        auto JL       = J.low();
-        auto NL       = N.low();
+        const auto& J = qid.state.at(QuantumNumberType::J);
+        const auto& N = qid.state.at(QuantumNumberType::N);
+        auto JU       = J.upper.get<Rational>();
+        auto NU       = N.upper.get<Rational>();
+        auto JL       = J.lower.get<Rational>();
+        auto NL       = N.lower.get<Rational>();
 
         Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -195,31 +212,32 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         return {.gu = gu, .gl = gl};
       }
     }
-  } else if (qid.Isotopologue() == "CO-26"_isot) {
+  } else if (qid.isot == "CO-26"_isot) {
     constexpr Numeric gperp =
         -0.2689 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
     return {.gu = gperp, .gl = gperp};
-  } else if (qid.Isotopologue() == "OCS-622"_isot) {
+  } else if (qid.isot == "OCS-622"_isot) {
     constexpr Numeric gperp =
         -.02889 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     constexpr Numeric gpara =
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J  = qid.val[QuantumNumberType::J];
-      const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU        = J.upp();
-      auto KU        = Ka.upp();
-      auto JL        = J.low();
-      auto KL        = Ka.low();
+    if (qid.state.contains(QuantumNumberType::J) and
+        qid.state.contains(QuantumNumberType::Ka)) {
+      const auto& J  = qid.state.at(QuantumNumberType::J);
+      const auto& Ka = qid.state.at(QuantumNumberType::K);
+      auto JU        = J.upper.get<Rational>();
+      auto KU        = Ka.upper.get<Rational>();
+      auto JL        = J.lower.get<Rational>();
+      auto KL        = Ka.lower.get<Rational>();
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
-  } else if (qid.Isotopologue() == "OCS-624"_isot) {
+  } else if (qid.isot == "OCS-624"_isot) {
     constexpr Numeric gperp =
         -.0285 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -227,18 +245,19 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         -.061 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J  = qid.val[QuantumNumberType::J];
-      const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU        = J.upp();
-      auto KU        = Ka.upp();
-      auto JL        = J.low();
-      auto KL        = Ka.low();
+    if (qid.state.contains(QuantumNumberType::J) and
+        qid.state.contains(QuantumNumberType::Ka)) {
+      const auto& J  = qid.state.at(QuantumNumberType::J);
+      const auto& Ka = qid.state.at(QuantumNumberType::K);
+      auto JU        = J.upper.get<Rational>();
+      auto KU        = Ka.upper.get<Rational>();
+      auto JL        = J.lower.get<Rational>();
+      auto KL        = Ka.lower.get<Rational>();
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
-  } else if (qid.Isotopologue() == "CO2-626"_isot) {
+  } else if (qid.isot == "CO2-626"_isot) {
     constexpr Numeric gperp =
         -.05508 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -246,13 +265,13 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J  = qid.val[QuantumNumberType::J];
-      const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU        = J.upp();
-      auto KU        = Ka.upp();
-      auto JL        = J.low();
-      auto KL        = Ka.low();
+    if (qid.state.contains(QuantumNumberType::J) and qid.state.contains( QuantumNumberType::Ka)) {
+      const auto& J  = qid.state.at(QuantumNumberType::J);
+      const auto& Ka = qid.state.at(QuantumNumberType::K);
+      auto JU        = J.upper.get<Rational>();
+      auto KU        = Ka.upper.get<Rational>();
+      auto JL        = J.lower.get<Rational>();
+      auto KL        = Ka.lower.get<Rational>();
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -281,33 +300,33 @@ Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
                    pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
 }
 
-Numeric model::Strength(const QuantumNumberValueList& qn,
+Numeric model::Strength(const QuantumState& qn,
                         pol type,
                         Index n) const {
   if (type == pol::no) return 1.0;
 
-  const auto& J = qn[QuantumNumberType::J];
+  const auto& J = qn.at(QuantumNumberType::J);
 
-  return Strength(J.upp(), J.low(), type, n);
+  return Strength(J.upper.get<Rational>(), J.lower.get<Rational>(), type, n);
 }
 
-Numeric model::Splitting(const QuantumNumberValueList& qn,
+Numeric model::Splitting(const QuantumState& qn,
                          pol type,
                          Index n) const noexcept {
   if (type == pol::no) return 0.0;
 
-  const auto& J = qn[QuantumNumberType::J];
+  const auto& J = qn.at(QuantumNumberType::J);
 
-  return Splitting(J.upp(), J.low(), type, n);
+  return Splitting(J.upper.get<Rational>(), J.lower.get<Rational>(), type, n);
 }
 
-Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
+Index model::size(const QuantumState& qn, pol type) const noexcept {
   if (on) {
     if (type == pol::no) return 0;
 
-    const auto& J = qn[QuantumNumberType::J];
+    const auto& J = qn.at(QuantumNumberType::J);
 
-    return zeeman::size(J.upp(), J.low(), type);
+    return zeeman::size(J.upper.get<Rational>(), J.lower.get<Rational>(), type);
   }
 
   return static_cast<Index>(type == pol::no);

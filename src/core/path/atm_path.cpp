@@ -81,7 +81,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+    if(not error.empty()) throw std::runtime_error(error);
   }
 }
 

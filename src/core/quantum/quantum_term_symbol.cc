@@ -18,38 +18,38 @@ namespace Quantum::Helpers {
 std::string molecular_term_symbol(const QuantumIdentifier& qid) {
   std::string upp, low;
 
-  if (qid.val.has(QuantumNumberType::ElecStateLabel)) {
-    upp += qid.val[QuantumNumberType::ElecStateLabel].str_upp();
-    low += qid.val[QuantumNumberType::ElecStateLabel].str_low();
+  if (qid.state.contains(QuantumNumberType::ElecStateLabel)) {
+    upp += qid.state.at(QuantumNumberType::ElecStateLabel).upper.get<String>();
+    low += qid.state.at(QuantumNumberType::ElecStateLabel).lower.get<String>();
   }
 
-  if (qid.val.has(QuantumNumberType::S)) {
+  if (qid.state.contains(QuantumNumberType::S)) {
     upp +=
-        std::format("$^{{{}}}$", 2 * qid.val[QuantumNumberType::S].upp() + 1);
+        std::format("$^{{{}}}$", 2 * qid.state.at(QuantumNumberType::S).upper.get<Rational>() + 1);
     low +=
-        std::format("$^{{{}}}$", 2 * qid.val[QuantumNumberType::S].low() + 1);
+        std::format("$^{{{}}}$", 2 * qid.state.at(QuantumNumberType::S).lower.get<Rational>() + 1);
   } else {
     upp += "$^{?}$";
     low += "$^{?}$";
   }
 
-  if (qid.val.has(QuantumNumberType::Lambda)) {
+  if (qid.state.contains(QuantumNumberType::Lambda)) {
     upp += std::format("${{{}}}$",
                        select_molecular_lambda(
-                           qid.val[QuantumNumberType::Lambda].upp().toIndex()));
+                           qid.state.at(QuantumNumberType::Lambda).upper.get<Rational>().toIndex()));
     low += std::format("${{{}}}$",
                        select_molecular_lambda(
-                           qid.val[QuantumNumberType::Lambda].low().toIndex()));
+                           qid.state.at(QuantumNumberType::Lambda).lower.get<Rational>().toIndex()));
   } else {
     upp += "$?$";
     low += "$?$";
   }
 
-  const bool vibInv = qid.val.has(QuantumNumberType::vibInv);
-  const bool Omega  = qid.val.has(QuantumNumberType::Omega);
+  const bool vibInv = qid.state.contains(QuantumNumberType::vibInv);
+  const bool Omega  = qid.state.contains(QuantumNumberType::Omega);
   if (Omega) {
-    upp += std::format("$_{{{}", qid.val[QuantumNumberType::Omega].upp());
-    low += std::format("$_{{{}", qid.val[QuantumNumberType::Omega].low());
+    upp += std::format("$_{{{}", qid.state.at(QuantumNumberType::Omega).upper.get<Rational>());
+    low += std::format("$_{{{}", qid.state.at(QuantumNumberType::Omega).lower.get<Rational>());
 
     if (not vibInv) {
       upp += "}$";
@@ -60,29 +60,29 @@ std::string molecular_term_symbol(const QuantumIdentifier& qid) {
   if (vibInv) {
     if (not Omega) {
       upp += std::format("$_{{{}}}$",
-                         qid.val[QuantumNumberType::vibInv].str_upp());
+                         qid.state.at(QuantumNumberType::vibInv).upper.get<String>());
       low += std::format("$_{{{}}}$",
-                         qid.val[QuantumNumberType::vibInv].str_low());
+                         qid.state.at(QuantumNumberType::vibInv).lower.get<String>());
     } else {
       upp +=
-          std::format(",{}}}$", qid.val[QuantumNumberType::vibInv].str_upp());
+          std::format(",{}}}$", qid.state.at(QuantumNumberType::vibInv).upper.get<String>());
       low +=
-          std::format(",{}}}$", qid.val[QuantumNumberType::vibInv].str_low());
+          std::format(",{}}}$", qid.state.at(QuantumNumberType::vibInv).lower.get<String>());
     }
   }
 
-  if (qid.val.has(QuantumNumberType::parity)) {
+  if (qid.state.contains(QuantumNumberType::parity)) {
     upp +=
-        std::format("$^{{{}}}$", qid.val[QuantumNumberType::parity].str_upp());
+        std::format("$^{{{}}}$", qid.state.at(QuantumNumberType::parity).upper.get<String>());
     low +=
-        std::format("$^{{{}}}$", qid.val[QuantumNumberType::parity].str_low());
+        std::format("$^{{{}}}$", qid.state.at(QuantumNumberType::parity).lower.get<String>());
   }
 
-  if (qid.val.has(QuantumNumberType::v)) {
+  if (qid.state.contains(QuantumNumberType::v)) {
     upp += std::format(R"($\left(\nu={}\right)$)",
-                       qid.val[QuantumNumberType::v].upp());
+                       qid.state.at(QuantumNumberType::v).upper.get<Rational>());
     low += std::format(R"($\left(\nu={}\right)$)",
-                       qid.val[QuantumNumberType::v].low());
+                       qid.state.at(QuantumNumberType::v).lower.get<Rational>());
   }
 
   return std::format(R"({}$ \leftarrow ${})", low, upp);

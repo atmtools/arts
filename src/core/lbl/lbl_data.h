@@ -9,7 +9,7 @@
 #include <enumsLineShapeModelVariable.h>
 #include <enumsQuantumNumberType.h>
 #include <matpack.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <xml.h>
 
 #include <format>
@@ -44,7 +44,7 @@ struct line {
   line_shape::model ls{};
 
   //! Quantum numbers of this line
-  QuantumNumberLocalState qn{};
+  QuantumState qn{};
 
   /*! Line strength in LTE divided by frequency-factor
 

@@ -123,7 +123,7 @@ table::table(const SpeciesEnum& species,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 

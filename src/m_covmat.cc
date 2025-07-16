@@ -4,7 +4,6 @@
 #include "enumsFieldComponent.h"
 #include "enumsSpeciesEnum.h"
 #include "isotopologues.h"
-#include "quantum_numbers.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Measurement vector error covariance matrix
@@ -259,7 +258,7 @@ void model_state_covariance_matrixAddAtmosphere(
 void model_state_covariance_matrixAddAtmosphere(
     CovarianceMatrix& model_state_covariance_matrix,
     const JacobianTargets& jacobian_targets,
-    const QuantumIdentifier& key,
+    const QuantumLevelIdentifier& key,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT

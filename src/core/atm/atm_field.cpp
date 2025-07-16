@@ -91,10 +91,10 @@ Numeric AtmPoint::operator[](const SpeciesIsotope &x) const try {
   ARTS_USER_ERROR("Isotopologue ratio not found: \"{}\"", x)
 }
 
-Numeric AtmPoint::operator[](const QuantumIdentifier &x) const try {
+Numeric AtmPoint::operator[](const QuantumLevelIdentifier &x) const try {
   return nlte.at(x);
 } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("QuantumIdentifier not found: \"{}\"", x)
+  ARTS_USER_ERROR("QuantumLevelIdentifier not found: \"{}\"", x)
 }
 
 Numeric AtmPoint::operator[](const ScatteringSpeciesProperty &x) const try {
@@ -121,7 +121,9 @@ Numeric &AtmPoint::operator[](SpeciesEnum x) { return specs[x]; }
 
 Numeric &AtmPoint::operator[](const SpeciesIsotope &x) { return isots[x]; }
 
-Numeric &AtmPoint::operator[](const QuantumIdentifier &x) { return nlte[x]; }
+Numeric &AtmPoint::operator[](const QuantumLevelIdentifier &x) {
+  return nlte[x];
+}
 
 Numeric &AtmPoint::operator[](const ScatteringSpeciesProperty &x) {
   return ssprops[x];
@@ -143,7 +145,7 @@ Numeric &AtmPoint::operator[](AtmKey x) {
 
 std::pair<Numeric, Numeric> AtmPoint::levels(
     const QuantumIdentifier &band) const {
-  return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
+  return {operator[](band.lower()), operator[](band.upper())};
 }
 
 namespace Atm {
@@ -211,8 +213,8 @@ Data::Data(Data &&) noexcept               = default;
 Data &Data::operator=(const Data &)        = default;
 Data &Data::operator=(Data &&) noexcept    = default;
 
-const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
-  return map<QuantumIdentifier>();
+const std::unordered_map<QuantumLevelIdentifier, Data> &Field::nlte() const {
+  return map<QuantumLevelIdentifier>();
 }
 
 const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
@@ -231,8 +233,8 @@ const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops()
   return map<ScatteringSpeciesProperty>();
 }
 
-std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
-  return map<QuantumIdentifier>();
+std::unordered_map<QuantumLevelIdentifier, Data> &Field::nlte() {
+  return map<QuantumLevelIdentifier>();
 }
 
 std::unordered_map<SpeciesEnum, Data> &Field::specs() {
@@ -585,8 +587,8 @@ std::vector<AtmKey> get_keys(
 }
 }  // namespace
 
-ArrayOfQuantumIdentifier Field::nlte_keys() const {
-  return keys<QuantumIdentifier>();
+ArrayOfQuantumLevelIdentifier Field::nlte_keys() const {
+  return keys<QuantumLevelIdentifier>();
 }
 
 void Point::check_and_fix() try {
@@ -818,7 +820,7 @@ namespace {
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
-  return ptr and * ptr == key;
+  return ptr and *ptr == key;
 }
 }  // namespace
 
@@ -838,11 +840,11 @@ bool operator==(const SpeciesEnum &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const QuantumIdentifier &key) {
+bool operator==(const AtmKeyVal &keyval, const QuantumLevelIdentifier &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
+bool operator==(const QuantumLevelIdentifier &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
@@ -1260,7 +1262,7 @@ std::string std::formatter<AtmPoint>::to_string(const AtmPoint &v) const {
                         R"("SpeciesIsotope": )"sv,
                         v.isots.size(),
                         sep,
-                        R"("QuantumIdentifier": )"sv,
+                        R"("QuantumLevelIdentifier": )"sv,
                         v.nlte.size(),
                         sep,
                         R"("ScatteringSpeciesProperty": )"sv,
@@ -1273,7 +1275,7 @@ std::string std::formatter<AtmPoint>::to_string(const AtmPoint &v) const {
                         R"("SpeciesIsotope": )"sv,
                         v.isots,
                         sep,
-                        R"("QuantumIdentifier": )"sv,
+                        R"("QuantumLevelIdentifier": )"sv,
                         v.nlte,
                         sep,
                         R"("ScatteringSpeciesProperty": )"sv,
@@ -1301,7 +1303,7 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
                        R"("SpeciesIsotope": )"sv,
                        v.isots().size(),
                        sep,
-                       R"("QuantumIdentifier": )"sv,
+                       R"("QuantumLevelIdentifier": )"sv,
                        v.nlte().size(),
                        sep,
                        R"("ScatteringSpeciesProperty": )"sv,
@@ -1321,7 +1323,7 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
                        R"("SpeciesIsotope": )"sv,
                        v.isots(),
                        sep,
-                       R"("QuantumIdentifier": )"sv,
+                       R"("QuantumLevelIdentifier": )"sv,
                        v.nlte(),
                        sep,
                        R"("ScatteringSpeciesProperty": )"sv,

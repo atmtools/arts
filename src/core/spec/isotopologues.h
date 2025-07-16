@@ -1,15 +1,15 @@
 #pragma once
 
 #include <compare.h>
-#include <enumsSpeciesEnum.h>
 #include <mystring.h>
 #include <nonstd.h>
+#include <species.h>
 #include <xml_io_stream.h>
 
 #include <array>
+#include <compare>
 #include <limits>
 #include <string_view>
-#include <tuple>
 
 namespace Species {
 inline constexpr std::string_view Joker = "*";
@@ -51,29 +51,9 @@ struct Isotope {
 
   friend std::ostream& operator<<(std::ostream& os, const Isotope& ir);
 
-  constexpr auto operator==(const Isotope& that) const {
-    return std::tie(spec, isotname) == std::tie(that.spec, that.isotname);
-  }
-
-  constexpr auto operator!=(const Isotope& that) const {
-    return std::tie(spec, isotname) != std::tie(that.spec, that.isotname);
-  }
-
-  constexpr auto operator<=(const Isotope& that) const {
-    return std::tie(spec, isotname) <= std::tie(that.spec, that.isotname);
-  }
-
-  constexpr auto operator>=(const Isotope& that) const {
-    return std::tie(spec, isotname) >= std::tie(that.spec, that.isotname);
-  }
-
-  constexpr auto operator<(const Isotope& that) const {
-    return std::tie(spec, isotname) < std::tie(that.spec, that.isotname);
-  }
-
-  constexpr auto operator>(const Isotope& that) const {
-    return std::tie(spec, isotname) > std::tie(that.spec, that.isotname);
-  }
+  std::strong_ordering operator<=>(const Isotope&) const;
+  bool operator==(const Isotope&) const;
+  bool operator!=(const Isotope&) const;
 };
 }  // namespace Species
 
@@ -106,440 +86,437 @@ inline constexpr std::array Isotopologues{
     deal_with_spec(Bath),
     /** Water species **/
     deal_with_spec(Water),
-    Isotope(to<SpeciesEnum>("H2O"), "161", 18.010565, 1),
-    Isotope(to<SpeciesEnum>("H2O"), "162", 19.016740, 6),
-    Isotope(to<SpeciesEnum>("H2O"), "171", 19.014780, 6),
-    Isotope(to<SpeciesEnum>("H2O"), "172", 20.020956, 36),
-    Isotope(to<SpeciesEnum>("H2O"), "181", 20.014811, 1),
-    Isotope(to<SpeciesEnum>("H2O"), "182", 21.020985, 6),
-    Isotope(to<SpeciesEnum>("H2O"), "262", 20.022915, 1),
-    Isotope(to<SpeciesEnum>("H2O"), "ForeignContCKDMT320"),
-    Isotope(to<SpeciesEnum>("H2O"), "ForeignContCKDMT350"),
-    Isotope(to<SpeciesEnum>("H2O"), "ForeignContCKDMT400"),
-    Isotope(to<SpeciesEnum>("H2O"), "ForeignContStandardType"),
-    Isotope(to<SpeciesEnum>("H2O"), "MPM89"),
-    Isotope(to<SpeciesEnum>("H2O"), "PWR2021"),
-    Isotope(to<SpeciesEnum>("H2O"), "PWR2022"),
-    Isotope(to<SpeciesEnum>("H2O"), "PWR98"),
-    Isotope(to<SpeciesEnum>("H2O"), "SelfContCKDMT320"),
-    Isotope(to<SpeciesEnum>("H2O"), "SelfContCKDMT350"),
-    Isotope(to<SpeciesEnum>("H2O"), "SelfContCKDMT400"),
-    Isotope(to<SpeciesEnum>("H2O"), "SelfContStandardType"),
+    Isotope("H2O"_spec, "161", 18.010565, 1),
+    Isotope("H2O"_spec, "162", 19.016740, 6),
+    Isotope("H2O"_spec, "171", 19.014780, 6),
+    Isotope("H2O"_spec, "172", 20.020956, 36),
+    Isotope("H2O"_spec, "181", 20.014811, 1),
+    Isotope("H2O"_spec, "182", 21.020985, 6),
+    Isotope("H2O"_spec, "262", 20.022915, 1),
+    Isotope("H2O"_spec, "ForeignContCKDMT320"),
+    Isotope("H2O"_spec, "ForeignContCKDMT350"),
+    Isotope("H2O"_spec, "ForeignContCKDMT400"),
+    Isotope("H2O"_spec, "ForeignContStandardType"),
+    Isotope("H2O"_spec, "MPM89"),
+    Isotope("H2O"_spec, "PWR2021"),
+    Isotope("H2O"_spec, "PWR2022"),
+    Isotope("H2O"_spec, "PWR98"),
+    Isotope("H2O"_spec, "SelfContCKDMT320"),
+    Isotope("H2O"_spec, "SelfContCKDMT350"),
+    Isotope("H2O"_spec, "SelfContCKDMT400"),
+    Isotope("H2O"_spec, "SelfContStandardType"),
     /** Water species **/
 
     /** Carbon dioxide species **/
     deal_with_spec(CarbonDioxide),
-    Isotope(to<SpeciesEnum>("CO2"), "626", 43.989830, 1),
-    Isotope(to<SpeciesEnum>("CO2"), "627", 44.994045, 6),
-    Isotope(to<SpeciesEnum>("CO2"), "628", 45.994076, 1),
-    Isotope(to<SpeciesEnum>("CO2"), "636", 44.993185, 2),
-    Isotope(to<SpeciesEnum>("CO2"), "637", 45.997400, 12),
-    Isotope(to<SpeciesEnum>("CO2"), "638", 46.997431, 2),
-    Isotope(to<SpeciesEnum>("CO2"), "727", 45.998262, 1),
-    Isotope(to<SpeciesEnum>("CO2"), "737", 47.001618, 2),
-    Isotope(to<SpeciesEnum>("CO2"), "827", 46.998291, 6),
-    Isotope(to<SpeciesEnum>("CO2"), "828", 47.998322, 1),
-    Isotope(to<SpeciesEnum>("CO2"), "837", 48.001646, 12),
-    Isotope(to<SpeciesEnum>("CO2"), "838", 49.001675, 2),
-    Isotope(to<SpeciesEnum>("CO2"), "CKDMT252"),
+    Isotope("CO2"_spec, "626", 43.989830, 1),
+    Isotope("CO2"_spec, "627", 44.994045, 6),
+    Isotope("CO2"_spec, "628", 45.994076, 1),
+    Isotope("CO2"_spec, "636", 44.993185, 2),
+    Isotope("CO2"_spec, "637", 45.997400, 12),
+    Isotope("CO2"_spec, "638", 46.997431, 2),
+    Isotope("CO2"_spec, "727", 45.998262, 1),
+    Isotope("CO2"_spec, "737", 47.001618, 2),
+    Isotope("CO2"_spec, "827", 46.998291, 6),
+    Isotope("CO2"_spec, "828", 47.998322, 1),
+    Isotope("CO2"_spec, "837", 48.001646, 12),
+    Isotope("CO2"_spec, "838", 49.001675, 2),
+    Isotope("CO2"_spec, "CKDMT252"),
     /** Carbon dioxide species **/
 
     /** Ozone species **/
     deal_with_spec(Ozone),
-    Isotope(to<SpeciesEnum>("O3"), "666", 47.984745, 1),
-    Isotope(to<SpeciesEnum>("O3"), "667", 48.988960, 6),
-    Isotope(to<SpeciesEnum>("O3"), "668", 49.988991, 1),
-    Isotope(to<SpeciesEnum>("O3"), "676", 48.988960, 6),
-    Isotope(to<SpeciesEnum>("O3"), "686", 49.988991, 1),
+    Isotope("O3"_spec, "666", 47.984745, 1),
+    Isotope("O3"_spec, "667", 48.988960, 6),
+    Isotope("O3"_spec, "668", 49.988991, 1),
+    Isotope("O3"_spec, "676", 48.988960, 6),
+    Isotope("O3"_spec, "686", 49.988991, 1),
     /** Ozone species **/
 
     /** N2O species **/
     deal_with_spec(NitrogenOxide),
-    Isotope(to<SpeciesEnum>("N2O"), "446", 44.001062, 9),
-    Isotope(to<SpeciesEnum>("N2O"), "447", 45.005278, 54),
-    Isotope(to<SpeciesEnum>("N2O"), "448", 46.005308, 9),
-    Isotope(to<SpeciesEnum>("N2O"), "456", 44.998096, 6),
-    Isotope(to<SpeciesEnum>("N2O"), "546", 44.998096, 6),
+    Isotope("N2O"_spec, "446", 44.001062, 9),
+    Isotope("N2O"_spec, "447", 45.005278, 54),
+    Isotope("N2O"_spec, "448", 46.005308, 9),
+    Isotope("N2O"_spec, "456", 44.998096, 6),
+    Isotope("N2O"_spec, "546", 44.998096, 6),
     /** N2O species **/
 
     /** CO species **/
     deal_with_spec(CarbonMonoxide),
-    Isotope(to<SpeciesEnum>("CO"), "26", 27.994915, 1),
-    Isotope(to<SpeciesEnum>("CO"), "27", 28.999130, 6),
-    Isotope(to<SpeciesEnum>("CO"), "28", 29.999161, 1),
-    Isotope(to<SpeciesEnum>("CO"), "36", 28.998270, 2),
-    Isotope(to<SpeciesEnum>("CO"), "37", 30.002485, 12),
-    Isotope(to<SpeciesEnum>("CO"), "38", 31.002516, 2),
+    Isotope("CO"_spec, "26", 27.994915, 1),
+    Isotope("CO"_spec, "27", 28.999130, 6),
+    Isotope("CO"_spec, "28", 29.999161, 1),
+    Isotope("CO"_spec, "36", 28.998270, 2),
+    Isotope("CO"_spec, "37", 30.002485, 12),
+    Isotope("CO"_spec, "38", 31.002516, 2),
     /** CO species **/
 
     /** CH4 species **/
     deal_with_spec(Methane),
-    Isotope(to<SpeciesEnum>("CH4"), "211", 16.031300, 1),
-    Isotope(to<SpeciesEnum>("CH4"), "212", 17.037475, 3),
-    Isotope(to<SpeciesEnum>("CH4"), "311", 17.034655, 2),
-    Isotope(to<SpeciesEnum>("CH4"), "312", 18.040830, 6),
+    Isotope("CH4"_spec, "211", 16.031300, 1),
+    Isotope("CH4"_spec, "212", 17.037475, 3),
+    Isotope("CH4"_spec, "311", 17.034655, 2),
+    Isotope("CH4"_spec, "312", 18.040830, 6),
     /** CH4 species **/
 
     /** Oxygen species **/
     deal_with_spec(Oxygen),
-    Isotope(to<SpeciesEnum>("O2"), "66", 31.989830, 1),
-    Isotope(to<SpeciesEnum>("O2"), "67", 32.994045, 6),
-    Isotope(to<SpeciesEnum>("O2"), "68", 33.994076, 1),
-    Isotope(to<SpeciesEnum>("O2"), "CIAfunCKDMT100"),
-    Isotope(to<SpeciesEnum>("O2"), "MPM2020"),
-    Isotope(to<SpeciesEnum>("O2"), "MPM89"),
-    Isotope(to<SpeciesEnum>("O2"), "PWR2021"),
-    Isotope(to<SpeciesEnum>("O2"), "PWR2022"),
-    Isotope(to<SpeciesEnum>("O2"), "PWR98"),
-    Isotope(to<SpeciesEnum>("O2"), "SelfContStandardType"),
-    Isotope(to<SpeciesEnum>("O2"), "TRE05"),
-    Isotope(to<SpeciesEnum>("O2"), "v0v0CKDMT100"),
-    Isotope(to<SpeciesEnum>("O2"), "v1v0CKDMT100"),
-    Isotope(to<SpeciesEnum>("O2"), "visCKDMT252"),
+    Isotope("O2"_spec, "66", 31.989830, 1),
+    Isotope("O2"_spec, "67", 32.994045, 6),
+    Isotope("O2"_spec, "68", 33.994076, 1),
+    Isotope("O2"_spec, "CIAfunCKDMT100"),
+    Isotope("O2"_spec, "MPM2020"),
+    Isotope("O2"_spec, "MPM89"),
+    Isotope("O2"_spec, "PWR2021"),
+    Isotope("O2"_spec, "PWR2022"),
+    Isotope("O2"_spec, "PWR98"),
+    Isotope("O2"_spec, "SelfContStandardType"),
+    Isotope("O2"_spec, "TRE05"),
+    Isotope("O2"_spec, "v0v0CKDMT100"),
+    Isotope("O2"_spec, "v1v0CKDMT100"),
+    Isotope("O2"_spec, "visCKDMT252"),
     /** Oxygen species **/
 
     /** NO species **/
     deal_with_spec(NitricOxide),
-    Isotope(to<SpeciesEnum>("NO"), "46", 29.997989, 3),
-    Isotope(to<SpeciesEnum>("NO"), "48", 32.002234, 3),
-    Isotope(to<SpeciesEnum>("NO"), "56", 30.995023, 2),
+    Isotope("NO"_spec, "46", 29.997989, 3),
+    Isotope("NO"_spec, "48", 32.002234, 3),
+    Isotope("NO"_spec, "56", 30.995023, 2),
     /** NO species **/
 
     /** SO2 species **/
     deal_with_spec(SulfurDioxide),
-    Isotope(to<SpeciesEnum>("SO2"), "626", 63.961901, 1),
-    Isotope(to<SpeciesEnum>("SO2"), "628", 65.966146, 1),
-    Isotope(to<SpeciesEnum>("SO2"), "636", 64.961286, 4),
-    Isotope(to<SpeciesEnum>("SO2"), "646", 65.957695, 1),
+    Isotope("SO2"_spec, "626", 63.961901, 1),
+    Isotope("SO2"_spec, "628", 65.966146, 1),
+    Isotope("SO2"_spec, "636", 64.961286, 4),
+    Isotope("SO2"_spec, "646", 65.957695, 1),
     /** SO2 species **/
 
     /** NO2 species **/
     deal_with_spec(NitrogenDioxide),
-    Isotope(to<SpeciesEnum>("NO2"), "646", 45.992904, 3),
-    Isotope(to<SpeciesEnum>("NO2"), "656", 46.989938, 2),
+    Isotope("NO2"_spec, "646", 45.992904, 3),
+    Isotope("NO2"_spec, "656", 46.989938, 2),
     /** NO2 species **/
 
     /** NH3 species **/
     deal_with_spec(Ammonia),
-    Isotope(to<SpeciesEnum>("NH3"), "4111", 17.026549, 3),
-    Isotope(
-        to<SpeciesEnum>("NH3"), "4112", 18),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("NH3"), "5111", 18.023583, 2),
+    Isotope("NH3"_spec, "4111", 17.026549, 3),
+    Isotope("NH3"_spec, "4112", 18),  // FIXME: Better mass and some gj?
+    Isotope("NH3"_spec, "5111", 18.023583, 2),
     /** NH3 species **/
 
     /** HNO3 species **/
     deal_with_spec(NitricAcid),
-    Isotope(to<SpeciesEnum>("HNO3"), "146", 62.995644, 6),
-    Isotope(to<SpeciesEnum>("HNO3"), "156", 63.992680, 4),
+    Isotope("HNO3"_spec, "146", 62.995644, 6),
+    Isotope("HNO3"_spec, "156", 63.992680, 4),
     /** HNO3 species **/
 
     /** OH species **/
     deal_with_spec(Hydroxyl),
-    Isotope(to<SpeciesEnum>("OH"), "61", 17.002740, 2),
-    Isotope(to<SpeciesEnum>("OH"), "62", 18.008915, 3),
-    Isotope(to<SpeciesEnum>("OH"), "81", 19.006986, 2),
+    Isotope("OH"_spec, "61", 17.002740, 2),
+    Isotope("OH"_spec, "62", 18.008915, 3),
+    Isotope("OH"_spec, "81", 19.006986, 2),
     /** OH species **/
 
     /** HF species **/
     deal_with_spec(HydrogenFluoride),
-    Isotope(to<SpeciesEnum>("HF"), "19", 20.006229, 4),
-    Isotope(to<SpeciesEnum>("HF"), "29", 21.012404, 6),
+    Isotope("HF"_spec, "19", 20.006229, 4),
+    Isotope("HF"_spec, "29", 21.012404, 6),
     /** HF species **/
 
     /** HCl species **/
     deal_with_spec(HydrogenChloride),
-    Isotope(to<SpeciesEnum>("HCl"), "15", 35.976678, 8),
-    Isotope(to<SpeciesEnum>("HCl"), "17", 37.973729, 8),
-    Isotope(to<SpeciesEnum>("HCl"), "25", 36.982853, 12),
-    Isotope(to<SpeciesEnum>("HCl"), "27", 38.979904, 12),
+    Isotope("HCl"_spec, "15", 35.976678, 8),
+    Isotope("HCl"_spec, "17", 37.973729, 8),
+    Isotope("HCl"_spec, "25", 36.982853, 12),
+    Isotope("HCl"_spec, "27", 38.979904, 12),
     /** HCl species **/
 
     /** HBr species **/
     deal_with_spec(HydrogenBromide),
-    Isotope(to<SpeciesEnum>("HBr"), "11", 81.924115, 8),
-    Isotope(to<SpeciesEnum>("HBr"), "19", 79.926160, 8),
-    Isotope(to<SpeciesEnum>("HBr"), "21", 82.930289, 12),
-    Isotope(to<SpeciesEnum>("HBr"), "29", 80.932336, 12),
+    Isotope("HBr"_spec, "11", 81.924115, 8),
+    Isotope("HBr"_spec, "19", 79.926160, 8),
+    Isotope("HBr"_spec, "21", 82.930289, 12),
+    Isotope("HBr"_spec, "29", 80.932336, 12),
     /** HBr species **/
 
     /** HI species **/
     deal_with_spec(HydrogenIodide),
-    Isotope(to<SpeciesEnum>("HI"), "17", 127.912297, 12),
-    Isotope(to<SpeciesEnum>("HI"), "27", 128.918472, 18),
+    Isotope("HI"_spec, "17", 127.912297, 12),
+    Isotope("HI"_spec, "27", 128.918472, 18),
     /** HI species **/
 
     /** ClO species **/
     deal_with_spec(ChlorineMonoxide),
-    Isotope(to<SpeciesEnum>("ClO"), "56", 50.963768, 4),
-    Isotope(to<SpeciesEnum>("ClO"), "76", 52.960819, 4),
+    Isotope("ClO"_spec, "56", 50.963768, 4),
+    Isotope("ClO"_spec, "76", 52.960819, 4),
     /** ClO species **/
 
     /** OCS species **/
     deal_with_spec(CarbonylSulfide),
-    Isotope(to<SpeciesEnum>("OCS"), "622", 59.966986, 1),
-    Isotope(to<SpeciesEnum>("OCS"), "623", 60.966371, 4),
-    Isotope(to<SpeciesEnum>("OCS"), "624", 61.962780, 1),
-    Isotope(to<SpeciesEnum>("OCS"), "632", 60.970341, 2),
-    Isotope(to<SpeciesEnum>("OCS"), "634", 62.966137, 2),
-    Isotope(to<SpeciesEnum>("OCS"), "822", 61.971231, 1),
+    Isotope("OCS"_spec, "622", 59.966986, 1),
+    Isotope("OCS"_spec, "623", 60.966371, 4),
+    Isotope("OCS"_spec, "624", 61.962780, 1),
+    Isotope("OCS"_spec, "632", 60.970341, 2),
+    Isotope("OCS"_spec, "634", 62.966137, 2),
+    Isotope("OCS"_spec, "822", 61.971231, 1),
     /** OCS species **/
 
     /** H2CO species **/
     deal_with_spec(Formaldehyde),
-    Isotope(to<SpeciesEnum>("H2CO"), "126", 30.010565, 1),
-    Isotope(to<SpeciesEnum>("H2CO"), "128", 32.014811, 1),
-    Isotope(to<SpeciesEnum>("H2CO"), "136", 31.013920, 2),
+    Isotope("H2CO"_spec, "126", 30.010565, 1),
+    Isotope("H2CO"_spec, "128", 32.014811, 1),
+    Isotope("H2CO"_spec, "136", 31.013920, 2),
     /** H2CO species **/
 
     /** HDCO species nb. If the order D matters, rename this to indicate how **/
     deal_with_spec(HeavyFormaldehyde),
-    Isotope(to<SpeciesEnum>("HDCO"),
+    Isotope("HDCO"_spec,
             "26",
             31),  // FIXME: Better mass and some gj?  What is the AFGL code???
     /** HDCO species **/
 
     /** D2CO species **/
     deal_with_spec(VeryHeavyFormaldehyde),
-    Isotope(to<SpeciesEnum>("D2CO"),
+    Isotope("D2CO"_spec,
             "26",
             32),  // FIXME: Better mass and some gj?  What is the AFGL code???
     /** D2CO species **/
 
     /** HOCl species **/
     deal_with_spec(HypochlorousAcid),
-    Isotope(to<SpeciesEnum>("HOCl"), "165", 51.971593, 8),
-    Isotope(to<SpeciesEnum>("HOCl"), "167", 53.968644, 8),
+    Isotope("HOCl"_spec, "165", 51.971593, 8),
+    Isotope("HOCl"_spec, "167", 53.968644, 8),
     /** HOCl species **/
 
     /** N2 species **/
     deal_with_spec(Nitrogen),
-    Isotope(to<SpeciesEnum>("N2"), "44", 28.006148, 1),
-    Isotope(to<SpeciesEnum>("N2"), "45", 29.003182, 6),
-    Isotope(to<SpeciesEnum>("N2"), "CIAfunCKDMT252"),
-    Isotope(to<SpeciesEnum>("N2"), "CIArotCKDMT252"),
-    Isotope(to<SpeciesEnum>("N2"), "SelfContMPM93"),
-    Isotope(to<SpeciesEnum>("N2"), "SelfContPWR2021"),
-    Isotope(to<SpeciesEnum>("N2"), "SelfContStandardType"),
+    Isotope("N2"_spec, "44", 28.006148, 1),
+    Isotope("N2"_spec, "45", 29.003182, 6),
+    Isotope("N2"_spec, "CIAfunCKDMT252"),
+    Isotope("N2"_spec, "CIArotCKDMT252"),
+    Isotope("N2"_spec, "SelfContMPM93"),
+    Isotope("N2"_spec, "SelfContPWR2021"),
+    Isotope("N2"_spec, "SelfContStandardType"),
     /** N2 species **/
 
     /** HCN species **/
     deal_with_spec(HydrogenCyanide),
-    Isotope(to<SpeciesEnum>("HCN"), "124", 27.010899, 6),
-    Isotope(to<SpeciesEnum>("HCN"), "125", 28.007933, 4),
-    Isotope(to<SpeciesEnum>("HCN"), "134", 28.014254, 12),
-    Isotope(
-        to<SpeciesEnum>("HCN"), "224", 28),  // FIXME: Better mass and some gj?
+    Isotope("HCN"_spec, "124", 27.010899, 6),
+    Isotope("HCN"_spec, "125", 28.007933, 4),
+    Isotope("HCN"_spec, "134", 28.014254, 12),
+    Isotope("HCN"_spec, "224", 28),  // FIXME: Better mass and some gj?
     /** HCN species **/
 
     /** CH3Cl species **/
     deal_with_spec(Chloromethane),
-    Isotope(to<SpeciesEnum>("CH3Cl"), "215", 49.992328, 4),
-    Isotope(to<SpeciesEnum>("CH3Cl"), "217", 51.989379, 4),
+    Isotope("CH3Cl"_spec, "215", 49.992328, 4),
+    Isotope("CH3Cl"_spec, "217", 51.989379, 4),
     /** CH3Cl species **/
 
     /** H2O2 species **/
     deal_with_spec(HydrogenPeroxide),
-    Isotope(to<SpeciesEnum>("H2O2"), "1661", 34.005480, 1),
+    Isotope("H2O2"_spec, "1661", 34.005480, 1),
     /** H2O2 species **/
 
     /** C2H2 species **/
     deal_with_spec(Acetylene),
-    Isotope(to<SpeciesEnum>("C2H2"), "1221", 26.015650, 1),
-    Isotope(to<SpeciesEnum>("C2H2"), "1222", 27.021825, 6),
-    Isotope(to<SpeciesEnum>("C2H2"), "1231", 27.019005, 8),
+    Isotope("C2H2"_spec, "1221", 26.015650, 1),
+    Isotope("C2H2"_spec, "1222", 27.021825, 6),
+    Isotope("C2H2"_spec, "1231", 27.019005, 8),
     /** C2H2 species **/
 
     /** C2H6 species **/
     deal_with_spec(Ethane),
-    Isotope(to<SpeciesEnum>("C2H6"), "1221", 30.046950, 1),
-    Isotope(to<SpeciesEnum>("C2H6"), "1231", 31.050305, 2),
+    Isotope("C2H6"_spec, "1221", 30.046950, 1),
+    Isotope("C2H6"_spec, "1231", 31.050305, 2),
     /** C2H6 species **/
 
     /** PH3 species **/
     deal_with_spec(Phosphine),
-    Isotope(to<SpeciesEnum>("PH3"), "1111", 33.997238, 2),
+    Isotope("PH3"_spec, "1111", 33.997238, 2),
     /** PH3 species **/
 
     /** COF2 species **/
     deal_with_spec(CarbonylFluoride),
-    Isotope(to<SpeciesEnum>("COF2"), "269", 65.991722, 1),
-    Isotope(to<SpeciesEnum>("COF2"), "369", 66.995083, 2),
+    Isotope("COF2"_spec, "269", 65.991722, 1),
+    Isotope("COF2"_spec, "369", 66.995083, 2),
     /** COF2 species **/
 
     /** SF6 species **/
     deal_with_spec(SulfurHexafluoride),
-    Isotope(to<SpeciesEnum>("SF6"), "29", 145.962492, 1),
+    Isotope("SF6"_spec, "29", 145.962492, 1),
     /** SF6 species **/
 
     /** H2S species **/
     deal_with_spec(HydrogenSulfide),
-    Isotope(to<SpeciesEnum>("H2S"), "121", 33.987721, 1),
-    Isotope(
-        to<SpeciesEnum>("H2S"), "122", 35),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("H2S"), "131", 34.987105, 4),
-    Isotope(to<SpeciesEnum>("H2S"), "141", 35.983515, 1),
+    Isotope("H2S"_spec, "121", 33.987721, 1),
+    Isotope("H2S"_spec, "122", 35),  // FIXME: Better mass and some gj?
+    Isotope("H2S"_spec, "131", 34.987105, 4),
+    Isotope("H2S"_spec, "141", 35.983515, 1),
     /** H2S species **/
 
     /** HCOOH species **/
     deal_with_spec(FormicAcid),
-    Isotope(to<SpeciesEnum>("HCOOH"), "126", 46.005480, 4),
-    Isotope(to<SpeciesEnum>("HCOOH"),
+    Isotope("HCOOH"_spec, "126", 46.005480, 4),
+    Isotope("HCOOH"_spec,
             "136",
             47),  // FIXME: Better mass and some gj?
     /** HCOOH species **/
 
     /** DCOOH species **/
     deal_with_spec(LeftHeavyFormicAcid),
-    Isotope(to<SpeciesEnum>("DCOOH"),
+    Isotope("DCOOH"_spec,
             "266",
             47),  // FIXME: Better mass and some gj?  What is the AFGL code???
     /** DCOOH species **/
 
     /** HCOOD species **/
     deal_with_spec(RightHeavyFormicAcid),
-    Isotope(to<SpeciesEnum>("HCOOD"),
+    Isotope("HCOOD"_spec,
             "266",
             47),  // FIXME: Better mass and some gj?  What is the AFGL code???
     /** HCOOD species **/
 
     /** HO2 species **/
     deal_with_spec(Hydroperoxyl),
-    Isotope(to<SpeciesEnum>("HO2"), "166", 32.997655, 2),
+    Isotope("HO2"_spec, "166", 32.997655, 2),
     /** HO2 species **/
 
     /** O species **/
     deal_with_spec(OxygenAtom),
-    Isotope(to<SpeciesEnum>("O"), "6", 15.994915, 1),
+    Isotope("O"_spec, "6", 15.994915, 1),
     /** O species **/
 
     /** ClONO2 species **/
     deal_with_spec(ChlorineNitrate),
-    Isotope(to<SpeciesEnum>("ClONO2"), "5646", 96.956672, 12),
-    Isotope(to<SpeciesEnum>("ClONO2"), "7646", 98.953723, 12),
+    Isotope("ClONO2"_spec, "5646", 96.956672, 12),
+    Isotope("ClONO2"_spec, "7646", 98.953723, 12),
     /** ClONO2 species **/
 
     /** NO+ species **/
     deal_with_spec(NitricOxideCation),
-    Isotope(to<SpeciesEnum>("NO+"), "46", 29.997989, 3),
+    Isotope("NO+"_spec, "46", 29.997989, 3),
     /** NO+ species **/
 
     /** HOBr species **/
     deal_with_spec(HypobromousAcid),
-    Isotope(to<SpeciesEnum>("HOBr"), "161", 97.919027, 8),
-    Isotope(to<SpeciesEnum>("HOBr"), "169", 95.921076, 8),
+    Isotope("HOBr"_spec, "161", 97.919027, 8),
+    Isotope("HOBr"_spec, "169", 95.921076, 8),
     /** HOBr species **/
 
     /** C2H4 species **/
     deal_with_spec(Ethylene),
-    Isotope(to<SpeciesEnum>("C2H4"), "221", 28.031300, 1),
-    Isotope(to<SpeciesEnum>("C2H4"), "231", 29.034655, 2),
+    Isotope("C2H4"_spec, "221", 28.031300, 1),
+    Isotope("C2H4"_spec, "231", 29.034655, 2),
     /** C2H4 species **/
 
     /** CH3OH species **/
     deal_with_spec(Methanol),
-    Isotope(to<SpeciesEnum>("CH3OH"), "2161", 32.026215, 2),
+    Isotope("CH3OH"_spec, "2161", 32.026215, 2),
     /** CH3OH species **/
 
     /** CH3Br species **/
     deal_with_spec(Bromomethane),
-    Isotope(to<SpeciesEnum>("CH3Br"), "211", 95.939764, 4),
-    Isotope(to<SpeciesEnum>("CH3Br"), "219", 93.941811, 4),
+    Isotope("CH3Br"_spec, "211", 95.939764, 4),
+    Isotope("CH3Br"_spec, "219", 93.941811, 4),
     /** CH3Br species **/
 
     /** CH3CN species **/
     deal_with_spec(Acetonitrile),
-    Isotope(to<SpeciesEnum>("CH3CN"), "2124", 41.026549, 3),
-    Isotope(to<SpeciesEnum>("CH3CN"),
+    Isotope("CH3CN"_spec, "2124", 41.026549, 3),
+    Isotope("CH3CN"_spec,
             "2125",
             42),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("CH3CN"),
+    Isotope("CH3CN"_spec,
             "2134",
             42),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("CH3CN"),
+    Isotope("CH3CN"_spec,
             "3124",
             42),  // FIXME: Better mass and some gj?
     /** CH3CN species **/
 
     /** CH2DCN species nb. If the order D matters, rename this to indicate how **/
     deal_with_spec(HeavyAcetonitrile),
-    Isotope(to<SpeciesEnum>("CH2DCN"),
+    Isotope("CH2DCN"_spec,
             "224",
             42),  // FIXME: Better mass and some gj?  What is the AFGL code???
     /** CH2DCN species **/
 
     /** CF4 species **/
     deal_with_spec(CarbonTetrafluoride),
-    Isotope(to<SpeciesEnum>("CF4"), "29", 87.993616, 1),
+    Isotope("CF4"_spec, "29", 87.993616, 1),
     /** CF4 species **/
 
     /** C4H2 species **/
     deal_with_spec(Diacetylene),
-    Isotope(to<SpeciesEnum>("C4H2"), "2211", 50.015650, 1),
+    Isotope("C4H2"_spec, "2211", 50.015650, 1),
     /** C4H2 species **/
 
     /** HC3N species **/
     deal_with_spec(Cyanoacetylene),
-    Isotope(to<SpeciesEnum>("HC3N"), "12224", 51.010899, 6),
-    Isotope(to<SpeciesEnum>("HC3N"),
+    Isotope("HC3N"_spec, "12224", 51.010899, 6),
+    Isotope("HC3N"_spec,
             "12225",
             52),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("HC3N"),
+    Isotope("HC3N"_spec,
             "12234",
             52),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("HC3N"),
+    Isotope("HC3N"_spec,
             "12324",
             52),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("HC3N"),
+    Isotope("HC3N"_spec,
             "13224",
             52),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("HC3N"),
+    Isotope("HC3N"_spec,
             "22224",
             52),  // FIXME: Better mass and some gj?
     /** HC3N species **/
 
     /** H2 species **/
     deal_with_spec(Hydrogen),
-    Isotope(to<SpeciesEnum>("H2"), "11", 2.015650, 1),
-    Isotope(to<SpeciesEnum>("H2"), "12", 3.021825, 6),
+    Isotope("H2"_spec, "11", 2.015650, 1),
+    Isotope("H2"_spec, "12", 3.021825, 6),
     /** H2 species **/
 
     /** CS species **/
     deal_with_spec(CarbonMonosulfide),
-    Isotope(to<SpeciesEnum>("CS"), "22", 43.971036, 1),
-    Isotope(to<SpeciesEnum>("CS"), "23", 44.970399, 4),
-    Isotope(to<SpeciesEnum>("CS"), "24", 45.966787, 1),
-    Isotope(to<SpeciesEnum>("CS"), "32", 44.974368, 2),
+    Isotope("CS"_spec, "22", 43.971036, 1),
+    Isotope("CS"_spec, "23", 44.970399, 4),
+    Isotope("CS"_spec, "24", 45.966787, 1),
+    Isotope("CS"_spec, "32", 44.974368, 2),
     /** CS species **/
 
     /** SO3 species **/
     deal_with_spec(SulfurTrioxide),
-    Isotope(to<SpeciesEnum>("SO3"), "26", 79.956820, 1),
+    Isotope("SO3"_spec, "26", 79.956820, 1),
     /** SO3 species **/
 
     /** C2N2 species **/
     deal_with_spec(Cyanogen),
-    Isotope(to<SpeciesEnum>("C2N2"), "4224", 52.006148, 1),
+    Isotope("C2N2"_spec, "4224", 52.006148, 1),
     /** C2N2 species **/
 
     /** COCl2 species **/
     deal_with_spec(Phosgene),
-    Isotope(to<SpeciesEnum>("COCl2"), "2655", 97.932620, 1),
-    Isotope(to<SpeciesEnum>("COCl2"), "2657", 99.929670, 16),
+    Isotope("COCl2"_spec, "2655", 97.932620, 1),
+    Isotope("COCl2"_spec, "2657", 99.929670, 16),
     /** COCl2 species **/
 
     /** SO species **/
     deal_with_spec(SulfurMonoxide),
-    Isotope(to<SpeciesEnum>("SO"), "26", 47.966986, 1),
-    Isotope(to<SpeciesEnum>("SO"), "28", 49.971231, 1),
-    Isotope(to<SpeciesEnum>("SO"), "46", 49.962782, 1),
+    Isotope("SO"_spec, "26", 47.966986, 1),
+    Isotope("SO"_spec, "28", 49.971231, 1),
+    Isotope("SO"_spec, "46", 49.962782, 1),
     /** SO species **/
 
     /** CS2 species **/
     deal_with_spec(CarbonDisulfide),
-    Isotope(to<SpeciesEnum>("CS2"), "222", 75.944140, 1),
-    Isotope(to<SpeciesEnum>("CS2"), "223", 76.943256, 4),
-    Isotope(to<SpeciesEnum>("CS2"), "224", 77.939940, 1),
-    Isotope(to<SpeciesEnum>("CS2"), "232", 76.947495, 2),
+    Isotope("CS2"_spec, "222", 75.944140, 1),
+    Isotope("CS2"_spec, "223", 76.943256, 4),
+    Isotope("CS2"_spec, "224", 77.939940, 1),
+    Isotope("CS2"_spec, "232", 76.947495, 2),
     /** CS2 species **/
 
     deal_with_spec(Methyl),
@@ -547,69 +524,59 @@ inline constexpr std::array Isotopologues{
 
     /** H2SO4 species **/
     deal_with_spec(SulfuricAcid),
-    Isotope(to<SpeciesEnum>("H2SO4"),
+    Isotope("H2SO4"_spec,
             "126",
             98),  // FIXME: Better mass and some gj?
     /** H2SO4 species **/
 
     /** HNC species **/
     deal_with_spec(HydrogenIsocyanide),
-    Isotope(
-        to<SpeciesEnum>("HNC"), "142", 27),  // FIXME: Better mass and some gj?
-    Isotope(
-        to<SpeciesEnum>("HNC"), "143", 28),  // FIXME: Better mass and some gj?
-    Isotope(
-        to<SpeciesEnum>("HNC"), "152", 28),  // FIXME: Better mass and some gj?
-    Isotope(
-        to<SpeciesEnum>("HNC"), "242", 28),  // FIXME: Better mass and some gj?
+    Isotope("HNC"_spec, "142", 27),  // FIXME: Better mass and some gj?
+    Isotope("HNC"_spec, "143", 28),  // FIXME: Better mass and some gj?
+    Isotope("HNC"_spec, "152", 28),  // FIXME: Better mass and some gj?
+    Isotope("HNC"_spec, "242", 28),  // FIXME: Better mass and some gj?
     /** HNC species **/
 
     /** BrO species **/
     deal_with_spec(BromineMonoxide),
-    Isotope(
-        to<SpeciesEnum>("BrO"), "16", 97),  // FIXME: Better mass and some gj?
-    Isotope(
-        to<SpeciesEnum>("BrO"), "96", 95),  // FIXME: Better mass and some gj?
+    Isotope("BrO"_spec, "16", 97),  // FIXME: Better mass and some gj?
+    Isotope("BrO"_spec, "96", 95),  // FIXME: Better mass and some gj?
     /** BrO species **/
 
     /** OClO species **/
     deal_with_spec(ChlorineDioxide),
-    Isotope(
-        to<SpeciesEnum>("OClO"), "656", 67),  // FIXME: Better mass and some gj?
-    Isotope(
-        to<SpeciesEnum>("OClO"), "676", 69),  // FIXME: Better mass and some gj?
+    Isotope("OClO"_spec, "656", 67),  // FIXME: Better mass and some gj?
+    Isotope("OClO"_spec, "676", 69),  // FIXME: Better mass and some gj?
     /** OClO species **/
 
     /** C3H8 species **/
     deal_with_spec(Propane),
-    Isotope(
-        to<SpeciesEnum>("C3H8"), "21", 54),  // FIXME: Better mass and some gj?
+    Isotope("C3H8"_spec, "21", 54),  // FIXME: Better mass and some gj?
     /** C3H8 species **/
 
     /** He species **/
     deal_with_spec(Helium),
-    Isotope(to<SpeciesEnum>("He"), "4", 4),  // FIXME: Better mass and some gj?
+    Isotope("He"_spec, "4", 4),  // FIXME: Better mass and some gj?
     /** He species **/
 
     /** Cl2O2 species **/
     deal_with_spec(ChlorineMonoxideDimer),
-    Isotope(to<SpeciesEnum>("Cl2O2"),
+    Isotope("Cl2O2"_spec,
             "565",
             102),  // FIXME: Better mass and some gj?
-    Isotope(to<SpeciesEnum>("Cl2O2"),
+    Isotope("Cl2O2"_spec,
             "765",
             104),  // FIXME: Better mass and some gj?
     /** Cl2O2 species **/
 
     /** H species **/
     deal_with_spec(HydrogenAtom),
-    Isotope(to<SpeciesEnum>("H"), "1", 1),  // FIXME: Better mass and some gj?
+    Isotope("H"_spec, "1", 1),  // FIXME: Better mass and some gj?
     /** H species **/
 
     /** Ar species **/
     deal_with_spec(Argon),
-    Isotope(
-        to<SpeciesEnum>("Ar"), "8", 39.948),  // FIXME: Better mass and some gj?
+    Isotope("Ar"_spec, "8", 39.948),  // FIXME: Better mass and some gj?
     /** Ar species **/
 
     deal_with_spec(Hexafluoroethane),
@@ -647,7 +614,7 @@ inline constexpr std::array Isotopologues{
 
     /** NF3 species **/
     deal_with_spec(NitrogenTrifluoride),
-    Isotope(to<SpeciesEnum>("NF3"), "4999", 70.998286, 3),
+    Isotope("NF3"_spec, "4999", 70.998286, 3),
     /** NF3 species **/
 
     deal_with_spec(SulfurylFluoride),
@@ -655,21 +622,21 @@ inline constexpr std::array Isotopologues{
 
     /** GeH4 species **/
     deal_with_spec(Germane),
-    Isotope(to<SpeciesEnum>("GeH4"), "011", 73.955550, 1),
-    Isotope(to<SpeciesEnum>("GeH4"), "211", 75.953380, 1),
-    Isotope(to<SpeciesEnum>("GeH4"), "311", 76.954764, 10),
-    Isotope(to<SpeciesEnum>("GeH4"), "411", 77.952479, 1),
-    Isotope(to<SpeciesEnum>("GeH4"), "611", 79.952703, 1),
+    Isotope("GeH4"_spec, "011", 73.955550, 1),
+    Isotope("GeH4"_spec, "211", 75.953380, 1),
+    Isotope("GeH4"_spec, "311", 76.954764, 10),
+    Isotope("GeH4"_spec, "411", 77.952479, 1),
+    Isotope("GeH4"_spec, "611", 79.952703, 1),
     /** GeH4 species **/
 
     /** CH3I species **/
     deal_with_spec(Iodomethane),
-    Isotope(to<SpeciesEnum>("CH3I"), "217", 141.927947, 6),
+    Isotope("CH3I"_spec, "217", 141.927947, 6),
     /** CH3I species **/
 
     /** CH3F species **/
     deal_with_spec(Fluoromethane),
-    Isotope(to<SpeciesEnum>("CH3F"), "219", 34.021878, 2),
+    Isotope("CH3F"_spec, "219", 34.021878, 2),
     /** CH3F species **/
 
     /** Model species **/

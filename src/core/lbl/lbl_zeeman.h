@@ -1,7 +1,7 @@
 #pragma once
 
 #include <matpack.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <rtepack.h>
 
 #include <limits>
@@ -317,7 +317,7 @@ struct model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(const QuantumNumberValueList &qn,
+  [[nodiscard]] Numeric Strength(const QuantumState &qn,
                                  pol type,
                                  Index n) const;
 
@@ -360,7 +360,7 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] Numeric Splitting(const QuantumNumberValueList &qn,
+  [[nodiscard]] Numeric Splitting(const QuantumState &qn,
                                   pol type,
                                   Index n) const noexcept;
 
@@ -371,8 +371,7 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] Index size(const QuantumNumberValueList &qn,
-                           pol type) const noexcept;
+  [[nodiscard]] Index size(const QuantumState &qn, pol type) const noexcept;
 
   /** Input operator for Zeeman::Model */
   friend std::istream &operator>>(std::istream &is, model &m);

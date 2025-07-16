@@ -639,7 +639,7 @@ after the regridding.
                  "longitude_grid"},
       .gin    = {"parameter", "extrapolation"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty",
            "String"},
       .gin_value = {std::nullopt, String{"Nearest"}},
       .gin_desc =
@@ -844,7 +844,7 @@ is breached.
                     "iteration_limit",
                     "consider_limb"},
       .gin_type  = {"QuantumIdentifierGriddedField1Map",
-                    "ArrayOfQuantumIdentifier",
+                    "ArrayOfQuantumLevelIdentifier",
                     "Stokvec",
                     "Numeric",
                     "Numeric",
@@ -2447,7 +2447,7 @@ Overwrites all other functional toggles.
                  "water_equivalent_pressure_operator"},
       .gin    = {"key", "nonnegative"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty",
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty",
            "Index"},
       .gin_value = {std::nullopt, Index{1}},
       .gin_desc  = {"Key to toggle",
@@ -2467,7 +2467,7 @@ Overwrites all other functional toggles.
       .in     = {"jacobian_targets", "atmospheric_field"},
       .gin    = {"key"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
@@ -2485,7 +2485,7 @@ Overwrites all other functional toggles.
       .in     = {"jacobian_targets", "atmospheric_field"},
       .gin    = {"key"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
@@ -2505,7 +2505,7 @@ Overwrites all other functional toggles.
       .in     = {"jacobian_targets", "atmospheric_field"},
       .gin    = {"key"},
       .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier,ScatteringSpeciesProperty"},
+          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
@@ -2846,7 +2846,7 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"target", "d"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumIdentifier",
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier",
                     "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =

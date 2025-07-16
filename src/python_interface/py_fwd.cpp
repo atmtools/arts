@@ -51,7 +51,7 @@ void py_fwd(py::module_& m) try {
                 }
               }
 
-              ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+              if(not error.empty()) throw std::runtime_error(error);
             }
             return out;
           },

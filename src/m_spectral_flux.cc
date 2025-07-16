@@ -151,7 +151,7 @@ void spectral_flux_profileFromPathField(
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 
   ARTS_USER_ERROR_IF(
       not arr::each_same_size(ray_path_spectral_radiance_field, ray_path_field),
@@ -263,7 +263,7 @@ void nlte_line_flux_profileIntegrate(
                          band.lines.front(),
                          frequency_grid,
                          ray_path_atmospheric_point[k],
-                         key.Isotopologue().mass);
+                         key.isot.mass);
     }
 
     weighted_spectral_flux_profile *= spectral_flux_profile;
