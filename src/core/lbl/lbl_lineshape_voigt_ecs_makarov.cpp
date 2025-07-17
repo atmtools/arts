@@ -115,7 +115,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto S            = bnd_qid.state.at(QuantumNumberType::S);
+  auto& S            = bnd_qid.state.at(QuantumNumberType::S);
   const Rational Si = S.upper.get<Rational>();
   const Rational Sf = S.lower.get<Rational>();
 

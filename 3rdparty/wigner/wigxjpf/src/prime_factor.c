@@ -21,8 +21,9 @@
 #include "prime_factor.h"
 #include "wigxjpf_error.h"
 
-#include <string.h>
+#include <limits.h>
 #include <stddef.h>
+#include <string.h>
 
 uint32_t *wigxjpf_prime_list = NULL;
 
@@ -280,7 +281,7 @@ size_t wigxjpf_fill_factors(int max_factorial)
    * And we cannot use last bit,
    */
 
-  uint32_t max_allowed = (uint32_t) (1 << (sizeof (prime_exp_t) * 8 - 1));
+  uint32_t max_allowed = (uint32_t)INT_MAX + 1;
 
   /* We can never pick up more than @max_factorial factors of [2] during the
    * factorials.  I.e. FACTORIAL_PRIME_FACTOR(i)->expo[0] is always < i.
