@@ -3,10 +3,10 @@
 #include <algorithm>
 
 int main() {
-  const SpeciesIsotope* const first = Species::Isotopologues.begin();
-  const SpeciesIsotope* const last  = Species::Isotopologues.end();
+  const auto first = Species::Isotopologues.begin();
+  const auto last  = Species::Isotopologues.end();
 
-  const auto* const anybad = std::ranges::adjacent_find(
+  const auto anybad = std::ranges::adjacent_find(
       first, last, [](SpeciesIsotope x, SpeciesIsotope y) { return x >= y; });
 
   if (anybad == last) return 0;

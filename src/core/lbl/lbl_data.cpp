@@ -83,7 +83,7 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
 Rational band_data::max(QuantumNumberType x) const try {
   Rational out{std::numeric_limits<Index>::lowest()};
   for (auto& line : *this) {
-    auto& qn = line.qn.at(x);
+    auto qn = line.qn.at(x);
     out = maxr(out, maxr(qn.upper.get<Rational>(), qn.lower.get<Rational>()));
   }
   return out;

@@ -46,10 +46,12 @@ void py_quantum(py::module_& m) try {
   auto qlvl = py::bind_map<QuantumLevel, py::rv_policy::reference_internal>(
       m, "QuantumLevel");
   generic_interface(qlvl);
+  qlvl.doc() = "A map of level quantum number data";
 
   auto qstate = py::bind_map<QuantumState, py::rv_policy::reference_internal>(
       m, "QuantumState");
   generic_interface(qstate);
+  qstate.doc() = "A map of two-levels quantum number data";
 
   py::class_<QuantumIdentifier> qid(m, "QuantumIdentifier");
   qid.def(py::init_implicit<const std::string_view>());
@@ -119,8 +121,8 @@ symbol : str
   auto a2 = py::bind_vector<ArrayOfQuantumLevelIdentifier,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfQuantumLevelIdentifier");
-  generic_interface(a1);
-  vector_interface(a1);
+  generic_interface(a2);
+  vector_interface(a2);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize quantum\n{}", e.what()));
