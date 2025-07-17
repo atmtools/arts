@@ -81,15 +81,18 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
 }
 
 Rational band_data::max(QuantumNumberType x) const try {
-  Rational out{std::numeric_limits<Index>::lowest()};
-  for (auto& line : *this) {
-    auto qn = line.qn.at(x);
+  ARTS_USER_ERROR_IF(lines.empty(), "Must have lines")
+
+  Rational out{maxr(lines.front().qn.at(x).upper.get<Rational>(),
+                    lines.front().qn.at(x).lower.get<Rational>())};
+  for (auto& line : lines | stdv::drop(1)) {
+    auto& qn = line.qn.at(x);
     out = maxr(out, maxr(qn.upper.get<Rational>(), qn.lower.get<Rational>()));
   }
   return out;
 } catch (std::out_of_range&) {
-  throw std::runtime_error(
-      std::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
+  throw std::runtime_error(std::format(
+      "Cannot find QuantumNumberType \"{}\" for at least on line", x));
 } catch (std::exception&) {
   throw;
 }

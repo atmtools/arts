@@ -29,8 +29,12 @@ constexpr base max(const Array<base>& x) {
 template <class base, class ConvFunc>
 constexpr auto max(const Array<base>& x, ConvFunc&& f) {
   using RetType = std::remove_cvref_t<decltype(f(base{}))>;
-  RetType maxv  = std::numeric_limits<RetType>::lowest();
-  for (auto& elem : x) maxv = std::max<RetType>(f(elem), maxv);
+
+  if (x.empty()) return std::numeric_limits<RetType>::lowest();
+
+  RetType maxv = f(x.front());
+  for (auto& elem : x | std::views::drop(1))
+    maxv = std::max<RetType>(f(elem), maxv);
   return maxv;
 }
 
@@ -43,9 +47,13 @@ constexpr base min(const Array<base>& x) {
 template <class base, class ConvFunc>
 constexpr auto min(const Array<base>& x, ConvFunc&& f) {
   using RetType = std::remove_cvref_t<decltype(f(base{}))>;
-  RetType maxv  = std::numeric_limits<RetType>::max();
-  for (auto& elem : x) maxv = std::min<RetType>(f(elem), maxv);
-  return maxv;
+
+  if (x.empty()) return std::numeric_limits<RetType>::max();
+
+  RetType minv = f(x.front());
+  for (auto& elem : x | std::views::drop(1))
+    minv = std::min<RetType>(f(elem), minv);
+  return minv;
 }
 
 //! Find first occurance.

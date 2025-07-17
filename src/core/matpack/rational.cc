@@ -75,6 +75,31 @@ void Rational::simplify_in_place() noexcept {
   fixSign();
 }
 
+Numeric sqrt(const Rational r) { return std::sqrt(r.toNumeric()); }
+
+Numeric pow(const Rational base, Numeric exp) {
+  return std::pow(base.toNumeric(), exp);
+}
+
+Numeric pow(Numeric base, const Rational exp) {
+  return std::pow(base, exp.toNumeric());
+}
+
+Numeric pow(const Rational base, const Rational exp) {
+  return pow(base, exp.toNumeric());
+}
+
+bifstream& Rational::read(bifstream& bif) {
+  bif >> numer >> denom;
+  return bif;
+}
+
+/** Binary write for Rational */
+bofstream& Rational::write(bofstream& bof) const {
+  bof << numer << denom;
+  return bof;
+}
+
 void xml_io_stream<Rational>::write(std::ostream& os_xml,
                                     const Rational& rational,
                                     bofstream* pbofs,

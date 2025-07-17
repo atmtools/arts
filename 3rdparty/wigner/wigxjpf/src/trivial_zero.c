@@ -18,6 +18,8 @@
  *  <http://www.gnu.org/licenses/>.
  */
 
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "wigxjpf.h"
@@ -58,7 +60,7 @@ int trivial_zero_3j(int two_j1, int two_j2, int two_j3,
   COLLECT_ABS_M_WITHIN_J(two_m3, two_j3);
 
   return ((two_m1 + two_m2 + two_m3) |
-	  (collect_sign & (1 << (sizeof (int) * 8 - 1))) |
+	  (collect_sign & ((uint32_t)INT_MAX + 1)) |
 	  (collect_odd & 1));
 }
 
@@ -75,7 +77,7 @@ int trivial_zero_6j(int two_j1, int two_j2, int two_j3,
   COLLECT_TRIANGLE_TRIVIAL_ZERO(two_j4, two_j2, two_j6);
   COLLECT_TRIANGLE_TRIVIAL_ZERO(two_j4, two_j5, two_j3);
 
-  return ((collect_sign & (1 << (sizeof (int) * 8 - 1))) |
+  return ((collect_sign & ((uint32_t)INT_MAX + 1)) |
 	  (collect_odd & 1));
 }
 

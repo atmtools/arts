@@ -86,8 +86,6 @@ struct Rational {
 
   /** Converts the value to index by n-scaled division
    * 
-   * Throws a logic error if *this is not an Index
-   * 
    * @param[in]  n Scale to *this
    * @return constexpr Index Of *this
    */
@@ -276,16 +274,10 @@ struct Rational {
   explicit constexpr operator int() const noexcept { return toInt(); }
 
   /** Binary read for Rational */
-  bifstream& read(bifstream& bif) {
-    bif >> numer >> denom;
-    return bif;
-  }
+  bifstream& read(bifstream& bif);
 
   /** Binary write for Rational */
-  bofstream& write(bofstream& bof) const {
-    bof << numer << denom;
-    return bof;
-  }
+  bofstream& write(bofstream& bof) const;
 
   /** Makes the sign of denom positive */
   constexpr Rational& fixSign() noexcept {
@@ -703,7 +695,7 @@ constexpr bool operator!(const Rational a) noexcept {
  * @param[in] r Any Rational
  * @return Numeric Square root of the Rational
  */
-inline Numeric sqrt(const Rational r) { return std::sqrt(r.toNumeric()); }
+Numeric sqrt(const Rational r);
 
 /** Power of
  * 
@@ -711,9 +703,7 @@ inline Numeric sqrt(const Rational r) { return std::sqrt(r.toNumeric()); }
  * @param[in] exp Any Numeric
  * @return Numeric base to the power of exp
  */
-inline Numeric pow(const Rational base, Numeric exp) {
-  return std::pow(base.toNumeric(), exp);
-}
+Numeric pow(const Rational base, Numeric exp);
 
 /** Power of
  * 
@@ -721,9 +711,7 @@ inline Numeric pow(const Rational base, Numeric exp) {
  * @param[in] exp Any Rational
  * @return Numeric base to the power of exp
  */
-inline Numeric pow(Numeric base, const Rational exp) {
-  return std::pow(base, exp.toNumeric());
-}
+Numeric pow(Numeric base, const Rational exp);
 
 /** Power of
  * 
@@ -731,9 +719,7 @@ inline Numeric pow(Numeric base, const Rational exp) {
  * @param[in] exp Any Rational
  * @return Numeric base to the power of exp
  */
-inline Numeric pow(const Rational base, const Rational exp) {
-  return pow(base, exp.toNumeric());
-}
+Numeric pow(const Rational base, const Rational exp);
 
 /** less
  * 
@@ -868,7 +854,7 @@ constexpr Rational abs(const Rational a) noexcept { return a < 0 ? -a : a; }
  * @param[in] b Any Rational
  * @return constexpr Rational Largest of a and b
  */
-constexpr Rational maxr(const Rational a, const Rational b) noexcept {
+constexpr const Rational& maxr(const Rational& a, const Rational& b) noexcept {
   return a < b ? b : a;
 }  // Let other operators find out if this is allowed instead
 
@@ -878,7 +864,7 @@ constexpr Rational maxr(const Rational a, const Rational b) noexcept {
  * @param[in] b Any Rational
  * @return constexpr Rational Smallest of a and b
  */
-constexpr Rational minr(const Rational a, const Rational b) noexcept {
+constexpr const Rational& minr(const Rational& a, const Rational& b) noexcept {
   return a < b ? a : b;
 }  // Let other operators find out if this is allowed instead
 

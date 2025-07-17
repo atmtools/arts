@@ -73,7 +73,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   if (not n) return;
 
   // These are constant for a band
-  auto l2     = bnd_qid.state.at(QuantumNumberType::l2);
+  auto& l2     = bnd_qid.state.at(QuantumNumberType::l2);
   Rational li = l2.upper.get<Rational>();
   Rational lf = l2.lower.get<Rational>();
 
