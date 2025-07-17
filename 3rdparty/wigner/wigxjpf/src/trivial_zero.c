@@ -19,6 +19,7 @@
  */
 
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "wigxjpf.h"
