@@ -37,7 +37,7 @@ struct Rational {
    * @param[in] denom Denominator
    */
   constexpr Rational(const Index n = 0, const Index d = 1) noexcept
-      : numer(d ? n / gcd(n, d) : 0), denom(d / gcd(n, d)) {}
+      : numer(d ? n / gcd(n, d) : 0), denom(d ? d / gcd(n, d) : 0) {}
 
   /** Initialization call
    * 

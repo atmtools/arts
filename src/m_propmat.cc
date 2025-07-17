@@ -62,7 +62,7 @@ ray_path_frequency_grid_wind_shift_jacobian size: {} element(s)
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -76,7 +76,7 @@ void select_species_listCollectAbsorption(
 
   std::set<SpeciesEnum> s;
 
-  for (auto &[qid, _] : absorption_bands) s.insert(qid.Species());
+  for (auto &[qid, _] : absorption_bands) s.insert(qid.isot.spec);
   for (auto &spec : absorption_cia_data) s.insert(spec.Species(0));
   for (auto &spec : absorption_xsec_fit_data) s.insert(spec.Species());
   for (auto &[isot, _] : absorption_predef_model_data) s.insert(isot.spec);
@@ -149,6 +149,6 @@ void ray_path_propagation_matrix_species_splitFromPath(
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH

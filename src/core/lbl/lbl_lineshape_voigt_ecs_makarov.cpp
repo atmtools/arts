@@ -105,9 +105,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const AtmPoint& atm) try {
   using Conversion::kelvin2joule;
 
-  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
+  ARTS_USER_ERROR_IF(bnd_qid.isot != "O2-66"_isot,
                      "Bad isotopologue: {}",
-                     bnd_qid.Isotopologue())
+                     bnd_qid.isot)
 
   if (bnd.size() == 0) return;
 
@@ -115,9 +115,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto S            = bnd_qid.val[QuantumNumberType::S];
-  const Rational Si = S.upp();
-  const Rational Sf = S.low();
+  auto S            = bnd_qid.state.at(QuantumNumberType::S);
+  const Rational Si = S.upper.get<Rational>();
+  const Rational Sf = S.lower.get<Rational>();
 
   const std::array rats{
       bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
@@ -131,7 +131,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                 broadening_species == SpeciesEnum::Bath
                                     ? atm.mean_mass()
                                     : atm.mean_mass(broadening_species),
-                                bnd_qid.Isotopologue().mass,
+                                bnd_qid.isot.mass,
                                 erot(i),
                                 erot(i - 2));
     return out;
@@ -146,24 +146,24 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
-    auto& N = bnd.lines[sorting[i]].qn.val[QuantumNumberType::N];
+    auto& J = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    auto& N = bnd.lines[sorting[i]].qn.at(QuantumNumberType::N);
 
-    const Rational Ji = J.upp();
-    const Rational Jf = J.low();
-    const Rational Ni = N.upp();
-    const Rational Nf = N.low();
+    const Rational Ji = J.upper.get<Rational>();
+    const Rational Jf = J.lower.get<Rational>();
+    const Rational Ni = N.upper.get<Rational>();
+    const Rational Nf = N.lower.get<Rational>();
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
 
-      auto& J_p = bnd.lines[sorting[j]].qn.val[QuantumNumberType::J];
-      auto& N_p = bnd.lines[sorting[j]].qn.val[QuantumNumberType::N];
+      auto& J_p = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      auto& N_p = bnd.lines[sorting[j]].qn.at(QuantumNumberType::N);
 
-      const Rational Ji_p = J_p.upp();
-      const Rational Jf_p = J_p.low();
-      const Rational Ni_p = N_p.upp();
-      const Rational Nf_p = N_p.low();
+      const Rational Ji_p = J_p.upper.get<Rational>();
+      const Rational Jf_p = J_p.lower.get<Rational>();
+      const Rational Ni_p = N_p.upper.get<Rational>();
+      const Rational Nf_p = N_p.lower.get<Rational>();
 
       if (Jf_p > Jf) continue;
 

@@ -11,7 +11,7 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <species_tags.h>
 
 #include <stdexcept>
@@ -182,7 +182,7 @@ Parameters
           "Set the isotopologue ratio")
       .def(
           "nlte_value",
-          [](AtmPoint &atm, const QuantumIdentifier &s) {
+          [](AtmPoint &atm, const QuantumLevelIdentifier &s) {
             if (not atm.has(s))
               throw py::key_error(std::format("{}", s).c_str());
             return atm[s];
@@ -191,7 +191,7 @@ Parameters
           "Get the NLTE value")
       .def(
           "set_nlte_value",
-          [](AtmPoint &atm, const QuantumIdentifier &s, Numeric x) {
+          [](AtmPoint &atm, const QuantumLevelIdentifier &s, Numeric x) {
             atm[s] = x;
           },
           "qid"_a,
@@ -350,7 +350,7 @@ Parameters
             if (specs) out[key] = atm[key].data;
           } else if (std::holds_alternative<SpeciesIsotope>(key)) {
             if (isots) out[key] = atm[key].data;
-          } else if (std::holds_alternative<QuantumIdentifier>(key)) {
+          } else if (std::holds_alternative<QuantumLevelIdentifier>(key)) {
             if (nlte) out[key] = atm[key].data;
           } else if (std::holds_alternative<ScatteringSpeciesProperty>(key)) {
             if (ssprops) out[key] = atm[key].data;
@@ -658,11 +658,11 @@ Parameters
 
   fld.def_prop_rw(
          "nlte",
-         [](AtmField &atm) -> std::unordered_map<QuantumIdentifier, AtmData> & {
+         [](AtmField &atm) -> std::unordered_map<QuantumLevelIdentifier, AtmData> & {
            return atm.nlte();
          },
          [](AtmField &atm,
-            const std::unordered_map<QuantumIdentifier, AtmData> &in) {
+            const std::unordered_map<QuantumLevelIdentifier, AtmData> &in) {
            atm.nlte() = in;
          },
          py::for_getter(py::rv_policy::reference_internal),
@@ -729,7 +729,7 @@ Parameters
             if (specs) out[key] = atm[key];
           } else if (std::holds_alternative<SpeciesIsotope>(key)) {
             if (isots) out[key] = atm[key];
-          } else if (std::holds_alternative<QuantumIdentifier>(key)) {
+          } else if (std::holds_alternative<QuantumLevelIdentifier>(key)) {
             if (nlte) out[key] = atm[key];
           } else if (std::holds_alternative<ScatteringSpeciesProperty>(key)) {
             if (ssprops) out[key] = atm[key];
@@ -923,7 +923,7 @@ Indexed item keys:    {:B,}
                 if (specs) out[key].push_back(point[key]);
               } else if (std::holds_alternative<SpeciesIsotope>(key)) {
                 if (isots) out[key].push_back(point[key]);
-              } else if (std::holds_alternative<QuantumIdentifier>(key)) {
+              } else if (std::holds_alternative<QuantumLevelIdentifier>(key)) {
                 if (nlte) out[key].push_back(point[key]);
               } else if (std::holds_alternative<ScatteringSpeciesProperty>(
                              key)) {

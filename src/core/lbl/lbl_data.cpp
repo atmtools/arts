@@ -6,13 +6,16 @@
 #include <double_imanip.h>
 #include <hitran_species.h>
 #include <partfun.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
+#include <rational.h>
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <format>
-#include <iomanip>
 #include <limits>
+#include <print>
+#include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -60,15 +63,8 @@ void band_data::sort(LineByLineVariable v) {
 }
 
 std::istream& operator>>(std::istream& is, line& x) try {
-  Size s{};
-
   is >> double_imanip() >> x.f0 >> x.a >> x.e0 >> x.gu >> x.gl;
-  is >> x.z >> x.ls >> s;
-  x.qn.val.reserve(s);
-  for (Size i = 0; i < s; i++) is >> x.qn.val.emplace_back();
-  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in {}"sv, x.qn)
-
-  return is;
+  return is >> x.z >> x.ls >> x.qn;
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error reading line data:\n{}\n{:IO}", e.what(), x));
@@ -84,18 +80,18 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
   return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
 }
 
-Rational band_data::max(QuantumNumberType x) const {
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          lines, [x](auto& qn) { return not qn.val.has(x); }, &line::qn),
-      "Quantum number not found in all lines of the band");
-
+Rational band_data::max(QuantumNumberType x) const try {
   Rational out{std::numeric_limits<Index>::lowest()};
   for (auto& line : *this) {
-    auto& qn = line.qn.val[x];
-    out      = maxr(out, maxr(qn.upp(), qn.low()));
+    auto qn = line.qn.at(x);
+    out = maxr(out, maxr(qn.upper.get<Rational>(), qn.lower.get<Rational>()));
   }
   return out;
+} catch (std::out_of_range&) {
+  throw std::runtime_error(
+      std::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
+} catch (std::exception&) {
+  throw;
 }
 
 namespace {
@@ -198,7 +194,7 @@ std::unordered_set<SpeciesEnum> species_in_bands(
     const std::unordered_map<QuantumIdentifier, band_data>& bands) {
   std::unordered_set<SpeciesEnum> out;
   for (auto& [key, data] : bands) {
-    out.insert(key.Species());
+    out.insert(key.isot.spec);
 
     for (auto& line : data.lines) {
       for (auto spec :
@@ -215,10 +211,10 @@ void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
                    const std::unordered_map<SpeciesEnum, Numeric>& keep,
                    const Numeric T0) {
   for (auto& [key, data] : bands) {
-    const auto ptr = keep.find(key.Species());
+    const auto ptr = keep.find(key.isot.spec);
     if (ptr != keep.end()) {
       std::erase_if(data.lines, [&key, &T0, &min_s = ptr->second](line& line) {
-        return line.hitran_s(key.Isotopologue(), T0) < min_s;
+        return line.hitran_s(key.isot, T0) < min_s;
       });
     }
   }
@@ -234,7 +230,7 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
     for (auto& line : data.lines) {
-      compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+      compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0));
     }
   }
 
@@ -262,9 +258,9 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
-    if (approx_percentile.contains(key.Species())) {
+    if (approx_percentile.contains(key.isot.spec)) {
       for (auto& line : data.lines) {
-        compute[key.Species()].push_back(line.hitran_s(key.Isotopologue(), T0));
+        compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0));
       }
     }
   }

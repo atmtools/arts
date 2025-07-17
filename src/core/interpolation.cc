@@ -412,7 +412,7 @@ void gridpos(GridPos& gp,
              const Numeric& extpolfac) {
   ArrayOfGridPos agp(1);
   Vector v(1, new_grid);
-  std::print("{}\n{}\n{}\n", old_grid, v, extpolfac);
+
   gridpos(agp, old_grid, v, extpolfac);
   gridpos_copy(gp, agp[0]);
 }

@@ -3,6 +3,7 @@
 #include <xml_io_base.h>
 
 #include <algorithm>
+#include <compare>
 #include <sstream>
 
 namespace Species {
@@ -670,6 +671,22 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   assert(isotopologue_ratios.all_isotopes_have_a_value());
   return isotopologue_ratios;
 }
+
+std::strong_ordering Isotope::operator<=>(const Isotope& other) const {
+  if (std::strong_ordering test = spec <=> other.spec;
+      test != std::strong_ordering::equal)
+    return test;
+  return isotname <=> other.isotname;
+}
+static_assert(std::strong_ordering::equal == std::strong_ordering::equivalent);
+
+bool Isotope::operator==(const Isotope& other) const {
+  return this->operator<=>(other) == std::strong_ordering::equal;
+}
+
+bool Isotope::operator!=(const Isotope& other) const {
+  return not this->operator==(other);
+}
 }  // namespace Species
 
 std::ostream& operator<<(std::ostream& os,
@@ -680,9 +697,6 @@ std::ostream& operator<<(std::ostream& os,
   }
   return os;
 }
-
-static_assert(std::ranges::is_sorted(Species::Isotopologues),
-              "Species::Isotopologues must be sorted by name");
 
 void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
                                           const SpeciesIsotope& x,

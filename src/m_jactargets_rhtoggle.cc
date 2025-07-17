@@ -65,7 +65,7 @@ void jacobian_targetsToggleRelativeHumidityAtmTarget(
     JacobianTargets& jacobian_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
-    const QuantumIdentifier& key,
+    const QuantumLevelIdentifier& key,
     const Index& nonnegative) {
   jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
       jacobian_targets, f, key, psat, nonnegative);

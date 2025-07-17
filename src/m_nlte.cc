@@ -57,7 +57,7 @@ void atmospheric_profileFitNonLTE(
     const Numeric& latitude,
     const Numeric& longitude,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfQuantumIdentifier& levels,
+    const ArrayOfQuantumLevelIdentifier& levels,
     const Stokvec& pol,
     const Numeric& azimuth,
     const Numeric& dza,

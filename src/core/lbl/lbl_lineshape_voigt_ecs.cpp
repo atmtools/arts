@@ -145,10 +145,10 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   eqv_vals = 0;
 
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
-                     atm.temperature / bnd_qid.Isotopologue().mass);
+                     atm.temperature / bnd_qid.isot.mass);
 
   const Numeric T  = atm.temperature;
-  const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
+  const Numeric QT = PartitionFunctions::Q(T, bnd_qid.isot);
 
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
@@ -157,15 +157,20 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& N  = bnd.lines[i].qn.val[QuantumNumberType::N];
-      dipr[i]  = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& N  = bnd.lines[i].qn.at(QuantumNumberType::N);
+      dipr[i]  = makarov::reduced_dipole(J.upper.get<Rational>(),
+                                        J.lower.get<Rational>(),
+                                        N.upper.get<Rational>());
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& l2 = bnd_qid.val[QuantumNumberType::l2];
-      dipr[i]  = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]   = hartmann::reduced_dipole(J.upper.get<Rational>(),
+                                         J.lower.get<Rational>(),
+                                         l2.upper.get<Rational>(),
+                                         l2.lower.get<Rational>());
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -272,10 +277,10 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   eqv_vals = 0;
 
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
-                     atm.temperature / bnd_qid.Isotopologue().mass);
+                     atm.temperature / bnd_qid.isot.mass);
 
   const Numeric T  = atm.temperature;
-  const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
+  const Numeric QT = PartitionFunctions::Q(T, bnd_qid.isot);
 
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
@@ -284,15 +289,20 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& N  = bnd.lines[i].qn.val[QuantumNumberType::N];
-      dipr[i]  = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& N  = bnd.lines[i].qn.at(QuantumNumberType::N);
+      dipr[i]  = makarov::reduced_dipole(J.upper.get<Rational>(),
+                                        J.lower.get<Rational>(),
+                                        N.upper.get<Rational>());
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J  = bnd.lines[i].qn.val[QuantumNumberType::J];
-      auto& l2 = bnd_qid.val[QuantumNumberType::l2];
-      dipr[i]  = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]   = hartmann::reduced_dipole(J.upper.get<Rational>(),
+                                         J.lower.get<Rational>(),
+                                         l2.upper.get<Rational>(),
+                                         l2.lower.get<Rational>());
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -422,7 +432,7 @@ void calculate(PropmatVectorView pm_,
 
   for (Size i = 0; i < f_grid.size(); ++i) {
     const auto F = Constant::sqrt_ln_2 / Constant::sqrt_pi *
-                   atm[bnd_qid.Species()] * atm[bnd_qid.Isotopologue()] *
+                   atm[bnd_qid.isot.spec] * atm[bnd_qid.isot] *
                    com_data.scl[i] * com_data.shape[i];
     if (no_negative_absorption and F.real() < 0) continue;
     pm[i] += zeeman::scale(com_data.npm, F);

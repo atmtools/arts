@@ -21,7 +21,7 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "partfun.h"
-#include "quantum_numbers.h"
+#include "quantum.h"
 
 namespace Python {
 void py_lbl(py::module_& m) try {
@@ -218,25 +218,22 @@ void py_lbl(py::module_& m) try {
           ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
       .def(
           "strengths",
-          [](const lbl::zeeman::model& mod, const QuantumNumberLocalState& qn) {
+          [](const lbl::zeeman::model& mod, const QuantumState& qn) {
             std::map<std::string, std::vector<double>> out;
 
-            const Index Npi = mod.size(qn.val, lbl::zeeman::pol::pi);
+            const Index Npi = mod.size(qn, lbl::zeeman::pol::pi);
             for (Index i = 0; i < Npi; i++) {
-              out["pi"].push_back(
-                  mod.Strength(qn.val, lbl::zeeman::pol::pi, i));
+              out["pi"].push_back(mod.Strength(qn, lbl::zeeman::pol::pi, i));
             }
 
-            const Index Nsp = mod.size(qn.val, lbl::zeeman::pol::sp);
+            const Index Nsp = mod.size(qn, lbl::zeeman::pol::sp);
             for (Index i = 0; i < Nsp; i++) {
-              out["sp"].push_back(
-                  mod.Strength(qn.val, lbl::zeeman::pol::sp, i));
+              out["sp"].push_back(mod.Strength(qn, lbl::zeeman::pol::sp, i));
             }
 
-            const Index Nsm = mod.size(qn.val, lbl::zeeman::pol::sm);
+            const Index Nsm = mod.size(qn, lbl::zeeman::pol::sm);
             for (Index i = 0; i < Nsm; i++) {
-              out["sm"].push_back(
-                  mod.Strength(qn.val, lbl::zeeman::pol::sm, i));
+              out["sm"].push_back(mod.Strength(qn, lbl::zeeman::pol::sm, i));
             }
 
             return out;
@@ -408,7 +405,7 @@ int : The number of removed variables
           return n;
         }
         for (auto& [key, band] : self) {
-          if (spec == key.Species()) n += band.size();
+          if (spec == key.isot.spec) n += band.size();
         }
         return n;
       },
@@ -542,7 +539,7 @@ T0 : float
                           com_data,
                           qid,
                           band,
-                          ecs_data.at(qid.Isotopologue()),
+                          ecs_data.at(qid.isot),
                           atm,
                           T);
 

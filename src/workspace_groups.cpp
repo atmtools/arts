@@ -187,8 +187,13 @@ does not change the global workspace while minimizing the number of variables th
   };
 
   wsg_data["ArrayOfQuantumIdentifier"] = {
-      .file = "quantum_numbers.h",
+      .file = "quantum.h",
       .desc = "A list of *QuantumIdentifier*\n",
+  };
+
+  wsg_data["ArrayOfQuantumLevelIdentifier"] = {
+      .file = "quantum.h",
+      .desc = "A list of *QuantumLevelIdentifier*\n",
   };
 
   wsg_data["ArrayOfScatteringSpecies"] = {
@@ -623,19 +628,34 @@ Both the data and the grid may be named
   };
 
   wsg_data["QuantumIdentifier"] = {
-      .file = "quantum_numbers.h",
+      .file = "quantum.h",
       .desc =
           R"--(An ID for an absorption species state
 
-It contains information about the species and a set of quantum numbers
-and can thus be used to identify one of the following:
+It contains upper and lower level information of a quantum state.
+
+It can identify:
 
 1. a species
 2. an isotopologue of a species
 3. an absorption band of an isotopologue
 4. an absorption line of an isotopologue
-5. the energy level of absorption band(s) of an isotopologue
-6. the energy level of absorption line(s) of an isotopologue
+)--",
+  };
+
+  wsg_data["QuantumLevelIdentifier"] = {
+      .file = "quantum.h",
+      .desc =
+          R"--(An ID for an absorption species state
+
+It contains the level information of a quantum state.
+
+It can identify:
+
+1. a species
+2. an isotopologue of a species
+3. the energy level of absorption band(s) of an isotopologue
+4. the energy level of absorption line(s) of an isotopologue
 )--",
   };
 

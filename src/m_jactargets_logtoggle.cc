@@ -92,7 +92,7 @@ void jacobian_targetsToggleLogarithmicAtmTarget(
 void jacobian_targetsToggleLogarithmicAtmTarget(
     JacobianTargets& jacobian_targets,
     const AtmField& f,
-    const QuantumIdentifier& key) {
+    const QuantumLevelIdentifier& key) {
   jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
 }
 

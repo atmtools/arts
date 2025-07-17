@@ -26,7 +26,7 @@
 #include "operators.h"
 #include "predef_data.h"
 #include "predefined_absorption_models.h"
-#include "quantum_numbers.h"
+#include "quantum.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -47,7 +47,7 @@ void atmospheric_pointInit(AtmPoint &atmospheric_point,
   atmospheric_point = AtmPoint{to<IsoRatioOption>(default_isotopologue)};
 }
 
-namespace{
+namespace {
 template <Size I = 0, typename... T, Size N = sizeof...(T)>
 std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_,
                                               const String &filename)
@@ -127,7 +127,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
-    ++keys[key.Species()];
+    ++keys[key.isot.spec];
 
     for (auto &line : value.lines) {
       for (auto &ls : line.ls.single_models) {
@@ -137,22 +137,22 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   }
 }
 
-void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
+void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> &keys,
                       const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
-    ++keys[key.Isotopologue()];
+    ++keys[key.isot];
   }
 }
 
-void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
+void keysNLTE(std::unordered_map<QuantumLevelIdentifier, Index> &keys,
               const AbsorptionBands &absorption_bands) {
   if (absorption_bands.empty()) return;
 
   for (auto &[key, value] : absorption_bands) {
-    ++keys[key.UpperLevel()];
-    ++keys[key.LowerLevel()];
+    ++keys[key.upper()];
+    ++keys[key.lower()];
   }
 }
 
@@ -367,7 +367,7 @@ void atmospheric_fieldAppendLineIsotopologueData(
   keysIsotopologue(keys, absorption_bands);
 
   for (auto &[key, value] : absorption_bands) {
-    ++keys[key.Isotopologue()];
+    ++keys[key.isot];
   }
 
   append_data(atmospheric_field,
@@ -389,22 +389,23 @@ void atmospheric_fieldAppendLineLevelData(
     const Index &replace_existing) {
   ARTS_TIME_REPORT
 
-  std::unordered_map<QuantumIdentifier, Index> keys;
+  std::unordered_map<QuantumLevelIdentifier, Index> keys;
   keysNLTE(keys, absorption_bands);
 
   for (auto &[key, value] : absorption_bands) {
-    ++keys[key.UpperLevel()];
-    ++keys[key.LowerLevel()];
+    ++keys[key.upper()];
+    ++keys[key.lower()];
   }
 
-  append_data(atmospheric_field,
-              basename,
-              extrapolation,
-              missing_is_zero,
-              replace_existing,
-              0,
-              keys,
-              [](const QuantumIdentifier &x) { return std::format("{}", x); });
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const QuantumLevelIdentifier &x) { return std::format("{}", x); });
 }
 
 void atmospheric_fieldAppendTagsSpeciesData(
@@ -817,7 +818,7 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
                              const AscendingGrid &lat,
                              const AscendingGrid &lon,
-                             const QuantumIdentifier &key,
+                             const QuantumLevelIdentifier &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
 
@@ -864,7 +865,7 @@ void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 
-  for (auto &[key, data] : atmospheric_field.map<QuantumIdentifier>()) {
+  for (auto &[key, data] : atmospheric_field.map<QuantumLevelIdentifier>()) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 

@@ -172,7 +172,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+    if(not error.empty()) throw std::runtime_error(error);
   }
 }
 

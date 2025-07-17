@@ -2,7 +2,7 @@
 
 #include <enumsHitranLineStrengthOption.h>
 #include <matpack.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 
 #include "lbl_data.h"
 
@@ -21,7 +21,7 @@ struct hitran_record {
   Numeric g_low;
 
   [[nodiscard]] line from(HitranLineStrengthOption ls,
-                          QuantumNumberLocalState&& local,
+                          QuantumState&& local,
                           bool do_zeeman) const;
 };
 using hitran_data = std::vector<hitran_record>;

@@ -23,7 +23,7 @@
 #include "lbl_lineshape_linemixing.h"
 #include "minimize.h"
 #include "path_point.h"
-#include "quantum_numbers.h"
+#include "quantum.h"
 #include "rtepack.h"
 #include "sorting.h"
 #include "species_tags.h"
@@ -130,7 +130,7 @@ void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
             band.lines.end(),
             Numeric{0},
             std::plus<>{},
-            [T = temperature, ir = key.Isotopologue()](const lbl::line& l) {
+            [T = temperature](const lbl::line& l) {
               return -l.f0 *
                      std::expm1(-Constant::h * l.f0 / (Constant::k * T)) *
                      l.s(T, 1);
@@ -147,12 +147,12 @@ void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
 
   Size i = 0;
   while (i < qid_sorter.size()) {
-    auto [first, last] = std::ranges::equal_range(
-        qid_sorter | std::views::drop(i),
-        qid_sorter[i],
-        [](const auto& p1, const auto& p2) {
-          return p1.qid.isotopologue_index < p2.qid.isotopologue_index;
-        });
+    auto [first, last] =
+        std::ranges::equal_range(qid_sorter | std::views::drop(i),
+                                 qid_sorter[i],
+                                 [](const auto& p1, const auto& p2) {
+                                   return p1.qid.isot < p2.qid.isot;
+                                 });
 
     auto span  = std::span{first, last};
     i         += span.size();
@@ -287,7 +287,7 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 
   absorption_bands.reserve(std::transform_reduce(
       splitbands.begin(),
@@ -321,7 +321,7 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
 
   std::unordered_map<SpeciesIsotope, AbsorptionBands> isotopologues_data;
   for (auto& [key, band] : absorption_bands) {
-    isotopologues_data[key.Isotopologue()][key] = band;
+    isotopologues_data[key.isot][key] = band;
   }
 
   for (const auto& [isot, bands] : isotopologues_data) {
@@ -341,7 +341,7 @@ void absorption_bandsSetZeeman(AbsorptionBands& absorption_bands,
   const bool on = static_cast<bool>(_on);
 
   for (auto& [key, band] : absorption_bands) {
-    if (key.Isotopologue() != species) continue;
+    if (key.isot != species) continue;
 
     for (auto& line : band.lines) {
       if (line.f0 >= fmin and line.f0 <= fmax) {
@@ -410,7 +410,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+    if(not error.empty()) throw std::runtime_error(error);
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -422,7 +422,7 @@ void absorption_bandsReadHITRAN(AbsorptionBands& absorption_bands,
                                 const Index& compute_zeeman_parameters) try {
   ARTS_TIME_REPORT
 
-  using namespace Quantum::Number;
+  using namespace Quantum;
 
   const AbsorptionBand default_band{.lines        = {},
                                     .lineshape    = LineByLineLineshape::VP_LTE,
@@ -517,7 +517,7 @@ void absorption_bandsLineMixingAdaptation(
                                      com_data,
                                      band_key,
                                      band,
-                                     ecs_data.at(band_key.Isotopologue()),
+                                     ecs_data.at(band_key.isot),
                                      atmospheric_point,
                                      temperatures);
 
@@ -525,8 +525,7 @@ void absorption_bandsLineMixingAdaptation(
 
   Matrix lbl_str(M, N);
   for (Size i = 0; i < M; i++) {
-    const Numeric Q =
-        PartitionFunctions::Q(temperatures[i], band_key.Isotopologue());
+    const Numeric Q = PartitionFunctions::Q(temperatures[i], band_key.isot);
     for (Size k = 0; k < N; k++) {
       auto& line    = band.lines[k];
       lbl_str[i, k] = line.s(temperatures[i], Q) * Math::pow2(Constant::c) /

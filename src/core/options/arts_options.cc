@@ -1205,7 +1205,7 @@ std::istream &operator>>(std::istream &is, {0}& x) {{
     x = to<{0}>(s);
   }} catch (const std::exception &e) {{
     throw std::runtime_error(
-        std::format("Failed to read {0} from input stream value {{}}:\n{{}}", x, e.what()));
+        std::format("Failed to read {0} from input stream value \"{{}}\":\n{{}}", x, e.what()));
   }}
   return is;
 }}

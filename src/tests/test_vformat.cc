@@ -1,10 +1,16 @@
 #include <workspace.h>
 
+#include "quantum.h"
+
 QuantumIdentifier get_quantum_identifier() {
   QuantumIdentifier qid{};
-  qid.isotopologue_index = "H2O-161"_isot_index;
-  qid.val.add(QuantumNumberValue{QuantumNumberType::J, 1, 1});
-  qid.val.add(QuantumNumberValue{QuantumNumberType::K, 0, 0});
+  qid.isot = "H2O-161"_isot;
+  qid.state.emplace(QuantumNumberType::J,
+                    Quantum::UpperLower{.upper = Quantum::Value{1},
+                                        .lower = Quantum::Value{1}});
+  qid.state.emplace(QuantumNumberType::K,
+                    Quantum::UpperLower{.upper = Quantum::Value{0},
+                                        .lower = Quantum::Value{0}});
   return qid;
 }
 
@@ -15,7 +21,9 @@ lbl::line get_lbl_line() {
   l.e0 = 3.0;
   l.gu = 4.0;
   l.gl = 5.0;
-  l.qn.val.add(QuantumNumberValue{QuantumNumberType::J, 1, 1});
+  l.qn.emplace(QuantumNumberType::J,
+               Quantum::UpperLower{.upper = Quantum::Value{1},
+                                   .lower = Quantum::Value{1}});
 
   l.ls.one_by_one = false;
   l.ls.T0         = 300.0;

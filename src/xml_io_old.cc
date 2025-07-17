@@ -66,8 +66,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
           "Your input contains: ",
           artsid,
           ". which we cannot interpret as a plain species")
-      output.quantumidentity =
-          QuantumIdentifier{Species::find_species_index(isotopologue)};
+      output.quantumidentity = QuantumIdentifier{isotopologue};
 
       // Extract center frequency:
       icecream >> double_imanip() >> output.data.f0;
@@ -180,7 +179,7 @@ lbl::line_shape::model from_artscat4(std::istream& is,
   out.T0         = T0;
   out.single_models.resize(7);
 
-  out.single_models[0].species = qid.Species();
+  out.single_models[0].species = qid.isot.spec;
   out.single_models[1].species = to<SpeciesEnum>("N2");
   out.single_models[2].species = to<SpeciesEnum>("O2");
   out.single_models[3].species = to<SpeciesEnum>("H2O");
@@ -281,8 +280,7 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
           "Your input contains: ",
           artsid,
           ". which we cannot interpret as a plain species")
-      output.quantumidentity =
-          QuantumIdentifier{Species::find_species_index(isotopologue)};
+      output.quantumidentity = QuantumIdentifier{isotopologue};
 
       // Extract center frequency:
       icecream >> double_imanip() >> output.data.f0;

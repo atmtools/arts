@@ -1,7 +1,7 @@
 #include "lbl_lineshape.h"
 
 #include <debug.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 
 #include <algorithm>
 #include <memory>
@@ -144,10 +144,10 @@ void calculate(PropmatVectorView pm,
   const auto calc_voigt_ecs_linemixing = [&](const QuantumIdentifier& bnd_key,
                                              const band_data& bnd,
                                              const zeeman::pol pol) {
-    auto it = ecs_data.find(bnd_key.Isotopologue());
+    auto it = ecs_data.find(bnd_key.isot);
     if (it == ecs_data.end()) {
       ARTS_USER_ERROR("No ECS data for isotopologue {}",
-                      bnd_key.Isotopologue());
+                      bnd_key.isot);
     }
 
     voigt::ecs::calculate(pm,
@@ -185,7 +185,7 @@ void calculate(PropmatVectorView pm,
   };
 
   for (auto& [bnd_key, bnd] : bnds) {
-    if (species == bnd_key.Species() or species == SpeciesEnum::Bath) {
+    if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) {
       calc_switch(bnd_key, bnd, zeeman::pol::no);
     }
   }
@@ -194,7 +194,7 @@ void calculate(PropmatVectorView pm,
     if (voigt_lte_data) voigt_lte_data->update_zeeman(los, atm.mag, pol);
 
     for (auto& [bnd_key, bnd] : bnds) {
-      if (species == bnd_key.Species() or species == SpeciesEnum::Bath) {
+      if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) {
         calc_switch(bnd_key, bnd, pol);
       }
     }

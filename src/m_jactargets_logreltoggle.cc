@@ -90,7 +90,7 @@ void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
 
 void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
                                            const AtmField& f,
-                                           const QuantumIdentifier& key) {
+                                           const QuantumLevelIdentifier& key) {
   jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
 }
 

@@ -1,5 +1,6 @@
 #include <arts_omp.h>
 #include <atm.h>
+#include <stdexcept>
 
 void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
                                 const AtmField &atmospheric_field,
@@ -23,7 +24,7 @@ void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if(not error.empty()) throw std::runtime_error(error);
 }
 
 void atmospheric_profileFromGrid(ArrayOfAtmPoint &atmospheric_profile,

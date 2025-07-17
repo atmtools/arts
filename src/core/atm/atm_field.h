@@ -6,11 +6,12 @@
 #include <enumsInterpolationExtrapolation.h>
 #include <enumsIsoRatioOption.h>
 #include <fieldmap.h>
+#include <functional_numeric_ternary.h>
 #include <isotopologues.h>
 #include <matpack.h>
 #include <operators.h>
 #include <properties.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <species.h>
 
 #include <algorithm>
@@ -24,7 +25,6 @@
 #include <utility>
 #include <variant>
 
-#include <functional_numeric_ternary.h>
 #include "matpack_mdspan_helpers_gridded_data_t.h"
 
 AtmKey to_wind(const String &);
@@ -44,20 +44,20 @@ concept isSpeciesIsotope =
     std::is_same_v<std::remove_cvref_t<T>, SpeciesIsotope>;
 
 template <typename T>
-concept isQuantumIdentifier =
-    std::is_same_v<std::remove_cvref_t<T>, QuantumIdentifier>;
+concept isQuantumLevelIdentifier =
+    std::is_same_v<std::remove_cvref_t<T>, QuantumLevelIdentifier>;
 
 template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
 concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
-                  isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
+                  isQuantumLevelIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
                             SpeciesEnum,
                             SpeciesIsotope,
-                            QuantumIdentifier,
+                            QuantumLevelIdentifier,
                             ScatteringSpeciesProperty>;
 
 template <typename T>
@@ -75,7 +75,7 @@ concept ListOfNumeric = requires(T a) {
 struct Point {
   using SpeciesMap        = std::unordered_map<SpeciesEnum, Numeric>;
   using SpeciesIsotopeMap = std::unordered_map<SpeciesIsotope, Numeric>;
-  using NlteMap           = std::unordered_map<QuantumIdentifier, Numeric>;
+  using NlteMap           = std::unordered_map<QuantumLevelIdentifier, Numeric>;
   using ScatteringSpeciesMap =
       std::unordered_map<ScatteringSpeciesProperty, Numeric>;
 
@@ -98,13 +98,13 @@ struct Point {
 
   Numeric operator[](SpeciesEnum x) const;
   Numeric operator[](const SpeciesIsotope &x) const;
-  Numeric operator[](const QuantumIdentifier &x) const;
+  Numeric operator[](const QuantumLevelIdentifier &x) const;
   Numeric operator[](const ScatteringSpeciesProperty &x) const;
   Numeric operator[](AtmKey x) const;
 
   Numeric &operator[](SpeciesEnum x);
   Numeric &operator[](const SpeciesIsotope &x);
-  Numeric &operator[](const QuantumIdentifier &x);
+  Numeric &operator[](const QuantumLevelIdentifier &x);
   Numeric &operator[](const ScatteringSpeciesProperty &x);
   Numeric &operator[](AtmKey x);
 
@@ -124,7 +124,7 @@ struct Point {
         return x.isots.end() not_eq x.isots.find(std::forward<T>(k));
       else if constexpr (isAtmKey<T>)
         return true;
-      else if constexpr (isQuantumIdentifier<T>)
+      else if constexpr (isQuantumLevelIdentifier<T>)
         return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
       else if constexpr (isScatteringSpeciesProperty<T>)
         return x.ssprops.end() not_eq x.ssprops.find(std::forward<T>(k));
@@ -273,7 +273,7 @@ struct Field final : FieldMap::Map<Data,
                                    AtmKey,
                                    SpeciesEnum,
                                    SpeciesIsotope,
-                                   QuantumIdentifier,
+                                   QuantumLevelIdentifier,
                                    ScatteringSpeciesProperty> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
@@ -286,14 +286,15 @@ struct Field final : FieldMap::Map<Data,
   Field &operator=(const Field &);
   Field &operator=(Field &&) noexcept;
 
-  [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
+  [[nodiscard]] const std::unordered_map<QuantumLevelIdentifier, Data> &nlte()
+      const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data> &
   ssprops() const;
 
-  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
+  [[nodiscard]] std::unordered_map<QuantumLevelIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
@@ -313,7 +314,7 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] Index nother() const;
 
-  [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
+  [[nodiscard]] ArrayOfQuantumLevelIdentifier nlte_keys() const;
 
   [[nodiscard]] Field gridded(const AscendingGrid &alt,
                               const AscendingGrid &lat,
@@ -398,8 +399,8 @@ bool operator==(const AtmKeyVal &, AtmKey);
 bool operator==(AtmKey, const AtmKeyVal &);
 bool operator==(const AtmKeyVal &, const SpeciesEnum &);
 bool operator==(const SpeciesEnum &, const AtmKeyVal &);
-bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
-bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
+bool operator==(const AtmKeyVal &, const QuantumLevelIdentifier &);
+bool operator==(const QuantumLevelIdentifier &, const AtmKeyVal &);
 bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
 template <>

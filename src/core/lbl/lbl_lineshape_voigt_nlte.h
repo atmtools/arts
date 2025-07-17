@@ -3,7 +3,7 @@
 #include <arts_constants.h>
 #include <atm.h>
 #include <matpack.h>
-#include <quantum_numbers.h>
+#include <quantum.h>
 #include <rtepack.h>
 
 #include <vector>

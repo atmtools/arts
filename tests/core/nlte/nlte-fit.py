@@ -33,15 +33,15 @@ collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml"
 
 ws.frequency_gridFitNonLTE(nf=301, df=1e-4)
 
-levels = pyarts.arts.ArrayOfQuantumIdentifier(
+levels = pyarts.arts.ArrayOfQuantumLevelIdentifier(
     [
-        "H2O-161 J 1 1 Ka 0 0 Kc 1 1",
-        "H2O-161 J 1 1 Ka 1 1 Kc 0 0",
-        "H2O-161 J 2 2 Ka 1 1 Kc 2 2",
-        "H2O-161 J 2 2 Ka 2 2 Kc 1 1",
-        "H2O-161 J 3 3 Ka 0 0 Kc 3 3",
-        "H2O-161 J 3 3 Ka 1 1 Kc 2 2",
-        "H2O-161 J 3 3 Ka 2 2 Kc 1 1",
+        "H2O-161 J 1 Ka 0 Kc 1",
+        "H2O-161 J 1 Ka 1 Kc 0",
+        "H2O-161 J 2 Ka 1 Kc 2",
+        "H2O-161 J 2 Ka 2 Kc 1",
+        "H2O-161 J 3 Ka 0 Kc 3",
+        "H2O-161 J 3 Ka 1 Kc 2",
+        "H2O-161 J 3 Ka 2 Kc 1",
     ]
 )
 

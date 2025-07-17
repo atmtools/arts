@@ -90,7 +90,7 @@ void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
 
 void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
                                              const AtmField& f,
-                                             const QuantumIdentifier& key) {
+                                             const QuantumLevelIdentifier& key) {
   jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
 }
 
