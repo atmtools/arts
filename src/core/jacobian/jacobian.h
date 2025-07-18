@@ -16,7 +16,7 @@
 
 #include "atm_field.h"
 #include "jac_log.h"
-#include "jac_pair.h"
+#include "jac_logrel.h"
 #include "jac_polyfit.h"
 #include "jac_rel.h"
 #include "jacobian_names.h"
@@ -811,18 +811,13 @@ struct xml_io_stream<JacobianTargets> {
 template <>
 struct xml_io_stream_functional<Jacobian::atm_vec> {
   using func_t    = Vector (*)(ConstVectorView, const AtmField&);
-  using structs_t = std::variant<relinv,
-                                 relfwd,
-                                 loginv,
-                                 logfwd,
-                                 pairfwd<AtmField>,
-                                 pairinv<AtmField>>;
+  using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
 
 template <>
 struct xml_io_stream_functional<Jacobian::atm_mat> {
   using func_t = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
-  using structs_t = std::variant<relinv, loginv, pairinv<AtmField>>;
+  using structs_t = std::variant<relinv, loginv, logrelinv>;
   static constexpr std::array<func_t*, 0> funcs{};
 };

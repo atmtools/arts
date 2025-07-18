@@ -1,7 +1,7 @@
-#include <jac_pair.h>
 #include <workspace.h>
 
 #include "debug.h"
+#include "jac_logrel.h"
 
 namespace {
 void jacobian_targetsToggleLogRelAtmTargetImpl(
@@ -12,7 +12,7 @@ void jacobian_targetsToggleLogRelAtmTargetImpl(
 
   for (auto& t : jacobian_targets.atm()) {
     if (t.type == key) {
-      if (t.inverse_jacobian.target<pairinv<AtmField>>() != nullptr) {
+      if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
         t.inverse_state    = {};
         t.transform_state  = {};
@@ -33,7 +33,7 @@ void jacobian_targetsToggleLogRelSurfaceTargetImpl(
 
   for (auto& t : jacobian_targets.surf()) {
     if (t.type == key) {
-      if (t.inverse_jacobian.target<pairinv<SurfaceField>>() != nullptr) {
+      if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
         t.inverse_state    = {};
         t.transform_state  = {};
@@ -54,7 +54,7 @@ void jacobian_targetsToggleLogRelSubsurfaceTargetImpl(
 
   for (auto& t : jacobian_targets.subsurf()) {
     if (t.type == key) {
-      if (t.inverse_jacobian.target<pairinv<SubsurfaceField>>() != nullptr) {
+      if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
         t.inverse_state    = {};
         t.transform_state  = {};

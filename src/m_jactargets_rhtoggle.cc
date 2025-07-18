@@ -15,7 +15,7 @@ void jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
 
   for (auto& t : jacobian_targets.atm()) {
     if (t.type == key) {
-      if (t.inverse_jacobian.target<pairinv<AtmField>>() != nullptr) {
+      if (t.inverse_jacobian.target<rhinv>() != nullptr) {
         t.inverse_jacobian = {};
         t.inverse_state    = {};
         t.transform_state  = {};
