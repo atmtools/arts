@@ -45,11 +45,11 @@ add_custom_command(
 )
 
 add_library(gen_helpers STATIC gen_auto_py_helpers.cpp pydocs.cpp)
-target_link_libraries(gen_helpers PUBLIC artsworkspace arts_options)
+target_link_libraries(gen_helpers PUBLIC artsworkspace)
 target_include_directories(gen_helpers PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_executable(gen_auto_py_methods gen_auto_py_methods.cpp)
-target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace arts_options gen_helpers)
+target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_methods PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
@@ -61,7 +61,7 @@ add_custom_command(
 )
 
 add_executable(gen_auto_py_options gen_auto_py_options.cpp)
-target_link_libraries(gen_auto_py_options PUBLIC artsworkspace arts_options gen_helpers)
+target_link_libraries(gen_auto_py_options PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_options PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 set(PYARTS_WORKSPACE_OPTIONS
@@ -77,7 +77,7 @@ add_custom_command(
 )
 
 add_executable(gen_auto_py_groups gen_auto_py_groups.cpp)
-target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace arts_options gen_helpers)
+target_link_libraries(gen_auto_py_groups PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_groups PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 set(PYARTS_WORKSPACE_GROUPS
@@ -101,7 +101,7 @@ add_custom_command(
 )
 
 add_executable(gen_auto_py_variables gen_auto_py_variables.cpp)
-target_link_libraries(gen_auto_py_variables PUBLIC artsworkspace arts_options gen_helpers)
+target_link_libraries(gen_auto_py_variables PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_variables PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 add_custom_command(
@@ -192,7 +192,7 @@ if(ENABLE_PCH)
 endif()
 
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC scattering artsworkspace arts_options gen_helpers)
+target_link_libraries(pyarts_cpp PUBLIC artsworkspace gen_helpers)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(
