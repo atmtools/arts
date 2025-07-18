@@ -18,7 +18,7 @@ in the ARTS workspace),
 (i.e., :attr:`~pyarts.workspace.Workspace.model_state_vector`
 in the ARTS workspace),
 :math:`F` is the model (i.e., ARTS itself), and
-:\math:`\epsilon` is some measurement error that cannot
+:math:`\epsilon` is some measurement error that cannot
 be modelled.
 
 The forward model result from this is just
