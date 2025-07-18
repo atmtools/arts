@@ -1,5 +1,4 @@
 add_subdirectory(partfun)
-add_subdirectory(python_interface)
 add_subdirectory(core)
 
 if(ENABLE_MPI)
@@ -248,3 +247,6 @@ if(IPO_SUPPORTED)
 endif()
 
 add_subdirectory(tests)
+
+# Scans targets, must be ordered
+add_subdirectory(python_interface)
