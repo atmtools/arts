@@ -1,5 +1,5 @@
-Underpining concepts and background
-===================================
+Underpinning concepts and background
+====================================
 
 This section explains some concepts that are used implicitly in ARTS.
 It is useful to understand how different components of ARTS are intended to work together.
@@ -14,4 +14,3 @@ The subsections below are given in no particular order.
    concept.absorption
    concept.radiative_transfer
    concept.oem
-   concept.jacobian_transformation
