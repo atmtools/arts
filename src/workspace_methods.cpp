@@ -5305,6 +5305,20 @@ This is WIP and should not be used.
       .gin_desc  = {"The azimuthal angles"},
   };
 
+  wsm_data["cdisort_spectral_radiance_fieldCalc"] = {
+      .desc      = R"(Perform CDisort calculations for spectral radiance.
+)",
+      .author    = {"Oliver Lemke"},
+      .out       = {"disort_spectral_radiance_field",
+                    "disort_quadrature_angles",
+                    "disort_quadrature_weights"},
+      .in        = {"disort_settings", "ray_path_atmospheric_point", "ray_path_frequency_grid"},
+      .gin       = {"phis"},
+      .gin_type  = {"Vector"},
+      .gin_value = {Vector{0.0}},
+      .gin_desc  = {"The azimuthal angles"},
+  };
+
   wsm_data["disort_spectral_flux_fieldCalc"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.
 )",

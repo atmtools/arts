@@ -83,6 +83,33 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name   = "cdisort_spectral_radiance_fieldFromAgenda",
+      .desc   = "Use the disort settings agenda to calculate spectral radiance",
+      .author = {"Richard Larsson"},
+      .methods = {"disort_settings_agendaExecute",
+                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_frequency_gridFromPath",
+                  "cdisort_spectral_radiance_fieldCalc"},
+      .out     = {"disort_spectral_radiance_field",
+                  "disort_quadrature_angles",
+                  "disort_quadrature_weights"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "cdisort_spectral_radiance_fieldProfile",
+      .desc =
+          "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathGeometricDownlooking",
+                  "cdisort_spectral_radiance_fieldFromAgenda"},
+      .out     = {"disort_spectral_radiance_field",
+                  "disort_quadrature_angles",
+                  "disort_quadrature_weights",
+                  "ray_path"},
+  });
+
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
       .desc    = R"(Helper method for calling *spectral_radianceApplyUnit*.
 
