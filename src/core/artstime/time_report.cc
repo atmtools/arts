@@ -4,6 +4,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <arts_omp.h>
+
 namespace arts {
 namespace {
 std::string short_name(const std::string& name) {
