@@ -5,22 +5,26 @@
 #include "artstime.h"
 
 namespace arts {
+using StartEnd        = std::pair<Time, Time>;
+using SingleCoreTimer = std::unordered_map<std::string, std::vector<StartEnd>>;
+using TimeReport      = std::unordered_map<int, SingleCoreTimer>;
+
 struct profiler {
   std::string name;
   Time start;
 
   profiler(std::string&& key);
   profiler(std::source_location loc = std::source_location::current());
-  
-  profiler(const profiler&) = delete;
-  profiler(profiler&&) = delete;
+
+  profiler(const profiler&)            = delete;
+  profiler(profiler&&)                 = delete;
   profiler& operator=(const profiler&) = delete;
-  profiler& operator=(profiler&&) = delete;
+  profiler& operator=(profiler&&)      = delete;
 
   ~profiler();
 };
 
-std::string get_report(Size min_time = 0, bool clear = true);
+TimeReport get_report(bool clear = true);
 }  // namespace arts
 
 #if ARTS_PROFILING
