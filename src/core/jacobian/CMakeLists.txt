@@ -1,12 +1,12 @@
 add_library(jacobian STATIC
-    jacobian.cc
     covariance_matrix.cc
-    retrieval_target.cc
+    jac_log.cc
+    jac_logrel.cc
     jac_polyfit.cc
     jac_rel.cc
     jac_rh.cc
-    jac_log.cc
-    jac_pair.cc
+    jacobian.cc
+    retrieval_target.cc
 )
 
 target_link_libraries(jacobian PUBLIC atm subsurface surface sensor scattering lbl)

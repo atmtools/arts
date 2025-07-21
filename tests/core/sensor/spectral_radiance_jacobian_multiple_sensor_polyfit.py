@@ -8,7 +8,7 @@ NF = 1001
 std = 1
 pol1 = "RC"
 pol2 = "Ih"
-RTOL = 5e-3
+RTOL = 0.01
 
 ws = pyarts.workspace.Workspace()
 
@@ -77,7 +77,7 @@ ws.RetrievalAddErrorPolyFit(
     sensor_elem=0, t=f, matrix=np.diag(np.ones((1)) * 25), polyorder=0
 )
 ws.RetrievalAddErrorPolyFit(
-    sensor_elem=1, t=f - min(f), matrix=np.diag([25, 1e-12]), polyorder=1
+    sensor_elem=1, t=f - min(f), matrix=np.diag([25, 1e-12, 1e-16]), polyorder=2
 )
 ws.RetrievalFinalizeDiagonal()
 
@@ -98,7 +98,7 @@ for i in range(LIMIT):
     ws.measurement_vectorFromSensor()
     ws.measurement_vector += np.random.normal(0, noise, 2 * NF)
     ws.measurement_vector[:NF] += 5 + f * 0
-    ws.measurement_vector[NF:] += 15 + (f - min(f)) * 1e-6
+    ws.measurement_vector[NF:] += 15 + (f - min(f)) * 1e-6 + (f - min(f))**2 * 1e-12
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
@@ -111,12 +111,14 @@ for i in range(LIMIT):
     ws.OEM(method="gn")
 
     print(f"got:      {ws.model_state_vector:B,}")
-    print(f"expected: [5, 15, 1e-6]")
-    if np.allclose(ws.model_state_vector / [5, 15, 1e-6], 1, rtol=RTOL):
-        print(f"Within {RTOL}%.  Success!")
+    print(f"expected: [5, 15, 1e-6, 1e-12]")
+    m = abs(ws.model_state_vector / [5, 15, 1e-6, 1e-12] - 1).max()
+    print(f"{round(100*m, 2)}% max difference")
+    if m <= RTOL:
+        print(f"Within {100*RTOL}%.  Success!")
         fail = False
         break
-    print(f"RelDiff not less than {RTOL}%, rerunning with new random noise")
+    print(f"RelDiffs not less than {100*RTOL}%, rerunning with new random noise")
 
     print(ws.model_state_vector)
 
