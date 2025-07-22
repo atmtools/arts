@@ -123,7 +123,7 @@ void main_data::solve_for_coefs() {
             mathscr_v(RHS[Range{l * NQuad + N, NQuad}],
                       comp_data,
                       tau_arr[l],
-                      omega_arr[l],
+                      omega_arr[l + 1],
                       source_poly_coeffs[l + 1],
                       G_collect_m[l + 1],
                       K_collect_m[l + 1],
@@ -146,7 +146,7 @@ void main_data::solve_for_coefs() {
         mathscr_v(RHS[Range{n - N, N}],
                   comp_data,
                   tau_arr.back(),
-                  omega_arr.back(),
+                  omega_arr[ln],
                   source_poly_coeffs[ln],
                   G_collect_m[ln],
                   K_collect_m[ln],
@@ -158,7 +158,7 @@ void main_data::solve_for_coefs() {
           mathscr_v(jvec[rf(N)],
                     comp_data,
                     tau_arr.back(),
-                    omega_arr.back(),
+                    omega_arr[ln],
                     source_poly_coeffs[ln],
                     G_collect_m[ln],
                     K_collect_m[ln],
@@ -339,28 +339,34 @@ void main_data::diagonalize() {
         amb  = apb;  // still just alpha
         apb += sqr;  // sqr is beta
         amb -= sqr;
-        mult(sqr, amb, apb);
+
+        VectorView eval = K[rf(N)];
+        MatrixView evec = amb;
+        MatrixView AB   = apb;
+
+        mult(sqr, evec, AB);
 
         //FIXME: The matrix produces real eigen values, a specialized solver might be good
-        ::diagonalize_inplace(amb, K[rf(N)], K[rb(N)], sqr, diag_work);
+        ::diagonalize_inplace(evec, eval, K[rb(N)], sqr, diag_work);
 
         for (Index i = 0; i < N; i++) {
-          G[i, rf(N)]  = amb[i, rf(N)];
-          G[i, rf(N)] *= 0.5;
-          G[i, rb(N)]  = G[i, rf(N)];
-
-          const Numeric sqrt_x = std::sqrt(K[i]);
+          const Numeric sqrt_x = std::sqrt(std::abs(eval[i]));
           K[i]                 = -sqrt_x;
           K[i + N]             = sqrt_x;
         }
 
-        mult(GmG, apb, G[rf(N)]);
-        for (Index j = 0; j < NQuad; j++) {
-          GmG[joker, j] /= K[j];
+        mult(sqr, AB, evec);
+
+        for (Index i = 0; i < N; i++) {
+          for (Index j = 0; j < N; j++) {
+            const Numeric a = evec[i, j];
+            const Numeric b = sqr[i, j] / K[j];
+            G[i, j]         = 0.5 * (a - b);
+            G[i, j + N]     = 0.5 * (a + b);
+            G[i + N, j]     = G[i, j + N];
+            G[i + N, j + N] = G[i, j];
+          }
         }
-        G[rb(N)]  = G[rf(N)];
-        G[rf(N)] -= GmG;
-        G[rb(N)] += GmG;
 
         if (has_beam_source) {
           einsum<"i", "i", "i", "">(
@@ -379,9 +385,7 @@ void main_data::diagonalize() {
           std::copy(G.elem_begin(), G.elem_end(), Gml.elem_begin());
           solve_inplace(jvec, Gml, solve_work);
 
-          for (Index j = 0; j < NQuad; j++) {
-            jvec[j] *= mu0 / (1.0 + K[j] * mu0);
-          }
+          for (Index j = 0; j < NQuad; j++) jvec[j] *= mu0 / (1.0 + K[j] * mu0);
 
           mult(Bm[l], G, jvec, -1);
         }
