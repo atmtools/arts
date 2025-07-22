@@ -225,6 +225,7 @@ class main_data {
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
+  void gridded_TMS(Tensor3View tms, const Vector& phi) const;
 
   /** Get the IMS correction factor
     *
@@ -232,11 +233,12 @@ class main_data {
     *
     * Safe for parallel use if ims is unique for each call
     *
-    * @param oms Compute data
+    * @param ims Compute data
     * @param tau The point-wise optical thickness
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;
+  void gridded_IMS(Tensor3View ims, const Vector& phi) const;
 
   /** Spectral radiance at a given tau and phi
     *
@@ -280,6 +282,10 @@ class main_data {
               tms_data& tms_data,
               const Numeric tau,
               const Numeric phi) const;
+  void gridded_u_corr(Tensor3View u_data,
+                      Tensor3View tms,
+                      Tensor3View ims,
+                      const Vector& phi) const;
 
   /** Compute the upward flux at a given tau
     *
