@@ -276,8 +276,6 @@ Numeric poch(Index x, Index n) {
 }  // namespace
 
 void main_data::diagonalize() {
-  auto GmG = Gml[rf(N)];
-
   for (Index m = 0; m < NFourier; m++) {
     auto Km = K_collect[m];
     auto Gm = G_collect[m];
