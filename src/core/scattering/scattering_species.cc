@@ -1,5 +1,6 @@
 #include "scattering_species.h"
 
+#include <stdexcept>
 #include <utility>
 
 namespace scattering {

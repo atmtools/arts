@@ -2335,6 +2335,20 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
           },
   };
 
+  wsm_data["spectral_radianceApplyForwardUnit"] = {
+      .desc   = R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in =
+          {
+              "spectral_radiance",
+              "frequency_grid",
+              "ray_path_point",
+              "spectral_radiance_transform_operator",
+          },
+  };
+
   wsm_data["propagation_matrix_jacobianWindFix"] = {
       .desc   = R"--(Fix for the wind field derivative.
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="binary" version="1">
-<Array type="ArrayOfSingleScatteringData" nelem="2">
+<Array type="Array" nelem="2">
 <Array type="SingleScatteringData" nelem="6">
 <SingleScatteringData version="3">
 <String>

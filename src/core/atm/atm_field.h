@@ -1,6 +1,5 @@
 #pragma once
 
-#include <compare.h>
 #include <debug.h>
 #include <enumsAtmKey.h>
 #include <enumsInterpolationExtrapolation.h>

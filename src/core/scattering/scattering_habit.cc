@@ -279,3 +279,16 @@ ScatteringTroSpectralVector
 
 
 }
+
+void xml_io_stream<scattering::ScatteringHabit>::write(
+    std::ostream&,
+    const scattering::ScatteringHabit&,
+    bofstream*,
+    std::string_view) {
+  throw std::runtime_error("private data not readable");
+}
+
+void xml_io_stream<scattering::ScatteringHabit>::read(
+    std::istream&, scattering::ScatteringHabit&, bifstream*) {
+  throw std::runtime_error("private data not writeable");
+}

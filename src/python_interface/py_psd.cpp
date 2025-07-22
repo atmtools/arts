@@ -13,7 +13,6 @@
 
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
-#include "py_macros.h"
 
 
 namespace Python {

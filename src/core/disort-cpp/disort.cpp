@@ -49,26 +49,21 @@ void mathscr_v(VectorView um,
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 
-  for (Index i = 0; i < n; i++) {
-    data.cvec[i] = std::pow(tau, n - i);
-  }
+  for (Index i = 0; i < n; i++) data.cvec[i] = std::pow(tau, n - i);
   data.cvec.back() = 1.0;
+
+  const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
+                                                               Index j) {
+    return cvec[i] * Legendre::factorial(n - j) * source_poly_coeffs[n - j];
+  };
 
   for (Index k = 0; k < Nk; k++) {
     Numeric sum2 = 0.0;
     for (Index i = 0; i < Nc; i++) {
-      const Numeric fi = Legendre::factorial(n - i);
-      for (Index j = 0; j <= i; j++) {
-        const Numeric f = data.cvec[i] * Legendre::factorial(n - j) *
-                          source_poly_coeffs[n - j] / fi;
-        if (j == i) {
-          sum2 += f / K[k];
-        } else if ((j - i) == 1) {
-          sum2 += f;
-        } else {
-          sum2 += f * std::pow(K[k], j - i - 1);
-        }
-      }
+      Numeric fac = std::pow(K[k], -i - 1) / Legendre::factorial(n - i);
+
+      for (Index j = 0; j < i; fac *= K[k], j++) sum2 += leg(i, j) * fac;
+      sum2 += leg(i, i) * fac;
     }
 
     data.k1[k] *= sum2;
@@ -266,7 +261,10 @@ void main_data::solve_for_coefs() {
 }
 
 namespace {
-Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
+Numeric poch(Index x, Index n) {
+  return Legendre::tgamma_ratio(static_cast<Numeric>(x + n),
+                                static_cast<Numeric>(x));
+}
 }  // namespace
 
 void main_data::diagonalize() {
@@ -289,10 +287,7 @@ void main_data::diagonalize() {
     const bool m_equals_0_bool = (m == 0);
 
     fac.resize(NLeg - m);
-    for (Index i = m; i < NLeg; i++) {
-      fac[i - m] =
-          poch(static_cast<Numeric>(i + m + 1), static_cast<Numeric>(-2 * m));
-    }
+    for (Index i = m; i < NLeg; i++) fac[i - m] = poch(i + m + 1, -2 * m);
 
     for (Index i = m; i < NLeg; i++) {
       for (Index j = 0; j < N; j++) {
