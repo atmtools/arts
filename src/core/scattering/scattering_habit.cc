@@ -1,3 +1,4 @@
+#include "configtypes.h"
 #include "interpolation.h"
 #include "scattering_habit.h"
 
@@ -168,10 +169,10 @@ BulkScatteringPropertiesTROGridded
 
 
 ScatteringTroSpectralVector
-  ScatteringHabit::get_bulk_scattering_properties_tro_spectral_tol(
+  ScatteringHabit::get_bulk_scattering_properties_tro_spectral(
       const AtmPoint& point,
       const Vector& f_grid,
-      const Numeric) const {
+      const Index degree [[maybe_unused]]) const {
 
   auto sizes = particle_habit.get_sizes(std::visit([](const auto& psd){return psd.get_size_parameter();}, psd));
   Index n_particles = sizes.size();

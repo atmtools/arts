@@ -31,10 +31,10 @@ class ScatteringHabit {
       const Numeric f_tol = 1e-3) const;
 
   ScatteringTroSpectralVector
-  get_bulk_scattering_properties_tro_spectral_tol(
+  get_bulk_scattering_properties_tro_spectral(
       const AtmPoint&,
       const Vector& f_grid,
-      const Numeric f_tol = 1e-3) const;
+      const Index degree [[maybe_unused]]) const;
 
 //  BulkScatteringProperties<Format::TRO, Representation::Gridded>
 //  get_bulk_scattering_properties_tro_spectral(
