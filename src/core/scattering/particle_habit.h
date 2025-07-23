@@ -126,7 +126,11 @@ class ParticleHabit {
   static ParticleHabit from_legacy_tro(std::vector<::SingleScatteringData> ssd_,
                                        std::vector<::ScatteringMetaData> meta_);
 
-  ParticleHabit() = default;
+  ParticleHabit()                                = default;
+  ParticleHabit(const ParticleHabit&)            = default;
+  ParticleHabit(ParticleHabit&&)                 = default;
+  ParticleHabit& operator=(const ParticleHabit&) = default;
+  ParticleHabit& operator=(ParticleHabit&&)      = default;
 
   Vector get_sizes(SizeParameter param) const;
 
@@ -174,8 +178,6 @@ class ParticleHabit {
                      [](const auto& ssd) { return ssd; });
     }
   }
-
-  ParticleHabit(const ParticleHabit&) = default;
 
   template <Format format, Representation repr>
   void append_particle(const SingleScatteringData<Numeric, format, repr>& ssd) {

@@ -36,16 +36,7 @@ struct MGDSingleMoment {
                   Numeric gamma_,
                   Numeric t_min_,
                   Numeric t_max_,
-                  bool picky_)
-      : moment(std::move(moment_)),
-        n_alpha(n_alpha_),
-        n_b(n_b_),
-        mu(mu_),
-        gamma(gamma_),
-        t_min(t_min_),
-        t_max(t_max_),
-    picky(picky_)
-  {}
+                  bool picky_);
 
   MGDSingleMoment(ScatteringSpeciesProperty moment_,
                   std::string name,
@@ -53,7 +44,7 @@ struct MGDSingleMoment {
                   Numeric t_max_,
                   bool picky_);
 
-  SizeParameter get_size_parameter() const {
+  static constexpr SizeParameter get_size_parameter() {
     return SizeParameter::DVeq;
   }
 
@@ -98,7 +89,7 @@ struct BinnedPSD {
             Numeric t_min_ = 0.0,
             Numeric t_max_ = 350.0);
 
-  SizeParameter get_size_parameter() const {
+  static constexpr SizeParameter get_size_parameter() {
     return SizeParameter::Mass;
   }
 

@@ -1,6 +1,39 @@
 #include "phase_matrix.h"
 
 namespace scattering {
+ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
+                                         std::shared_ptr<const Vector> f_grid_)
+    : t_grid(std::move(t_grid_)),
+      f_grid(std::move(f_grid_)),
+      aa_inc_grid(nullptr),
+      za_inc_grid(nullptr),
+      aa_scat_grid(nullptr),
+      za_scat_grid(nullptr) {}
+
+ScatteringDataGrids::ScatteringDataGrids(
+    std::shared_ptr<const Vector> t_grid_,
+    std::shared_ptr<const Vector> f_grid_,
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
+    : t_grid(std::move(t_grid_)),
+      f_grid(std::move(f_grid_)),
+      aa_inc_grid(nullptr),
+      za_inc_grid(nullptr),
+      aa_scat_grid(nullptr),
+      za_scat_grid(std::move(za_scat_grid_)) {}
+
+ScatteringDataGrids::ScatteringDataGrids(
+    std::shared_ptr<const Vector> t_grid_,
+    std::shared_ptr<const Vector> f_grid_,
+    std::shared_ptr<const Vector> za_inc_grid_,
+    std::shared_ptr<const Vector> delta_aa_grid_,
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
+    : t_grid(std::move(t_grid_)),
+      f_grid(std::move(f_grid_)),
+      aa_inc_grid(nullptr),
+      za_inc_grid(std::move(za_inc_grid_)),
+      aa_scat_grid(std::move(delta_aa_grid_)),
+      za_scat_grid(std::move(za_scat_grid_)) {}
+
 Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
   Matrix mat{4, 4};
   mat[0, 0] = detail::f11(compact);

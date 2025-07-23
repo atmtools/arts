@@ -168,7 +168,7 @@ BulkScatteringPropertiesTROGridded
 
 
 ScatteringTroSpectralVector
-  ScatteringHabit::get_bulk_scattering_properties_tro_spectral(
+  ScatteringHabit::get_bulk_scattering_properties_tro_spectral_tol(
       const AtmPoint& point,
       const Vector& f_grid,
       const Numeric) const {

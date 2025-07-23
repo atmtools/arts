@@ -631,11 +631,11 @@ void py_scattering_species(py::module_& m) try {
            py::arg("mass_size_rel_a") = -1.0,
            py::arg("mass_size_rel_b") = -1.0)
       .def("get_bulk_scattering_properties_tro_spectral",
-           &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
+           &ScatteringHabit::get_bulk_scattering_properties_tro_spectral_tol,
            "point"_a,
            "f_grid"_a,
            "f_tol"_a,
-           "Get the bulk scattering properties for totally random orientation")
+           "Get the bulk scattering properties for totally random orientation based on tolerance and not degree")
       .doc() =
       "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 

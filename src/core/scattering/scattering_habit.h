@@ -18,7 +18,7 @@ using PSD = std::variant<MGDSingleMoment, BinnedPSD>;
 class ScatteringHabit {
  public:
 
-  ScatteringHabit() {};
+  ScatteringHabit() = default;
   ScatteringHabit(const ParticleHabit &particle_habit_,
                   const PSD &psd_,
                   Numeric mass_size_rel_a_ = -1.0,
@@ -31,7 +31,7 @@ class ScatteringHabit {
       const Numeric f_tol = 1e-3) const;
 
   ScatteringTroSpectralVector
-  get_bulk_scattering_properties_tro_spectral(
+  get_bulk_scattering_properties_tro_spectral_tol(
       const AtmPoint&,
       const Vector& f_grid,
       const Numeric f_tol = 1e-3) const;

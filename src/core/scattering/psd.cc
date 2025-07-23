@@ -1,6 +1,22 @@
 #include "psd.h"
 
 namespace scattering {
+MGDSingleMoment::MGDSingleMoment(ScatteringSpeciesProperty moment_,
+                                 Numeric n_alpha_,
+                                 Numeric n_b_,
+                                 Numeric mu_,
+                                 Numeric gamma_,
+                                 Numeric t_min_,
+                                 Numeric t_max_,
+                                 bool picky_)
+    : moment(std::move(moment_)),
+      n_alpha(n_alpha_),
+      n_b(n_b_),
+      mu(mu_),
+      gamma(gamma_),
+      t_min(t_min_),
+      t_max(t_max_),
+      picky(picky_) {}
 
 Vector MGDSingleMoment::evaluate(const AtmPoint& point,
                                  const Vector& particle_sizes,

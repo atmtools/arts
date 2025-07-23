@@ -23,10 +23,7 @@ struct ScatteringSpeciesProperty {
   constexpr auto operator<=>(const ScatteringSpeciesProperty& other) const =
       default;
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const ScatteringSpeciesProperty& ssp) {
-  return os << ssp.species_name << "_" << ssp.pproperty;
-}
+  friend std::ostream& operator<<(std::ostream& os, const ScatteringSpeciesProperty& ssp) ;
 };
 
 namespace std {

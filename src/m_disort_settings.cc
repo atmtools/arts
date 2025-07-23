@@ -602,7 +602,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       const Numeric abs_scat = std::midpoint(abs_scat_upper, abs_scat_lower);
       const Numeric ext_scat = std::midpoint(ext_scat_upper, ext_scat_lower);
 
-      const Numeric abs = ext + abs_scat;
+      // const Numeric abs = ext + abs_scat;
 
       const Numeric x = (ext_scat - abs_scat) / ext;
       disort_settings.single_scattering_albedo[iv, i] =

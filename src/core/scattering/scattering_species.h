@@ -73,11 +73,8 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
                                               Index order) const;
 };
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const ArrayOfScatteringSpecies& /*species*/) {
-  os << "An array of scattering species." << '\n';
-  return os;
-}
+std::ostream& operator<<(std::ostream& os,
+                                const ArrayOfScatteringSpecies& /*species*/) ;
 
 template <>
 struct std::formatter<ArrayOfScatteringSpecies> {

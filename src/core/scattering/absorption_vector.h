@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "phase_matrix.h"
-#include "sht.h"
 
 namespace scattering {
 

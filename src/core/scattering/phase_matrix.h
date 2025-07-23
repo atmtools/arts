@@ -248,35 +248,17 @@ ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact);
 /// The grid over which the scattering data is defined.
 struct ScatteringDataGrids {
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
-                      std::shared_ptr<const Vector> f_grid_)
-      : t_grid(std::move(t_grid_)),
-        f_grid(std::move(f_grid_)),
-        aa_inc_grid(nullptr),
-        za_inc_grid(nullptr),
-        aa_scat_grid(nullptr),
-        za_scat_grid(nullptr) {}
+                      std::shared_ptr<const Vector> f_grid_);
 
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
-                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
-      : t_grid(std::move(t_grid_)),
-        f_grid(std::move(f_grid_)),
-        aa_inc_grid(nullptr),
-        za_inc_grid(nullptr),
-        aa_scat_grid(nullptr),
-        za_scat_grid(std::move(za_scat_grid_)) {}
+                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_);
 
   ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
                       std::shared_ptr<const Vector> f_grid_,
                       std::shared_ptr<const Vector> za_inc_grid_,
                       std::shared_ptr<const Vector> delta_aa_grid_,
-                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
-      : t_grid(std::move(t_grid_)),
-        f_grid(std::move(f_grid_)),
-        aa_inc_grid(nullptr),
-        za_inc_grid(std::move(za_inc_grid_)),
-        aa_scat_grid(std::move(delta_aa_grid_)),
-        za_scat_grid(std::move(za_scat_grid_)) {}
+                      std::shared_ptr<const ZenithAngleGrid> za_scat_grid_);
 
   std::shared_ptr<const Vector> t_grid;
   std::shared_ptr<const Vector> f_grid;
@@ -604,7 +586,12 @@ class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
 
   using matpack::data_t<Scalar, 4>::operator[];
 
-  PhaseMatrixData() {}
+  PhaseMatrixData()                                   = default;
+  PhaseMatrixData(const PhaseMatrixData &)            = default;
+  PhaseMatrixData(PhaseMatrixData &&)                 = default;
+  PhaseMatrixData &operator=(const PhaseMatrixData &) = default;
+  PhaseMatrixData &operator=(PhaseMatrixData &&)      = default;
+
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -985,8 +972,12 @@ class PhaseMatrixData<Scalar, Format::TRO, repr>
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::TRO);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
+  PhaseMatrixData()                                   = default;
+  PhaseMatrixData(const PhaseMatrixData &)            = default;
+  PhaseMatrixData(PhaseMatrixData &&)                 = default;
+  PhaseMatrixData &operator=(const PhaseMatrixData &) = default;
+  PhaseMatrixData &operator=(PhaseMatrixData &&)      = default;
 
-  PhaseMatrixData() {}
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1311,7 +1302,12 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>
   static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<Scalar, 1, n_stokes_coeffs>;
 
-  PhaseMatrixData() {}
+  PhaseMatrixData()                                   = default;
+  PhaseMatrixData(const PhaseMatrixData &)            = default;
+  PhaseMatrixData(PhaseMatrixData &&)                 = default;
+  PhaseMatrixData &operator=(const PhaseMatrixData &) = default;
+  PhaseMatrixData &operator=(PhaseMatrixData &&)      = default;
+
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the
@@ -1852,7 +1848,12 @@ class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
   static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::ARO);
   using CoeffVector = Eigen::Matrix<std::complex<Scalar>, 1, n_stokes_coeffs>;
 
-  PhaseMatrixData() {}
+  PhaseMatrixData()                                   = default;
+  PhaseMatrixData(const PhaseMatrixData &)            = default;
+  PhaseMatrixData(PhaseMatrixData &&)                 = default;
+  PhaseMatrixData &operator=(const PhaseMatrixData &) = default;
+  PhaseMatrixData &operator=(PhaseMatrixData &&)      = default;
+
   /** Create a new PhaseMatrixData container.
    *
    * Creates a container to hold phase matrix data for the

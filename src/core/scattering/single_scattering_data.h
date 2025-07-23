@@ -2,7 +2,9 @@
 
 #include <optional>
 #include <ranges>
+#include <utility>
 
+#include "enumsSizeParameter.h"
 #include "mie.h"
 #include "optproperties.h"
 #include "scattering/absorption_vector.h"
@@ -71,13 +73,12 @@ struct SingleScatteringData {
     }
 
     auto pprops = ParticleProperties{
-      "Mie Sphere",
-      "ARTS Mie solver",
-      "Ellison (2007)",
-      1e3 * 4.0 * Constant::pi * std::pow(diameter / 2.0, 3),
-      diameter,
-      diameter
-    };
+        .name             = "Mie Sphere",
+        .source           = "ARTS Mie solver",
+        .refractive_index = "Ellison (2007)",
+        .mass  = 1e3 * 4.0 * Constant::pi * std::pow(diameter / 2.0, 3),
+        .d_veq = diameter,
+        .d_max = diameter};
 
     return SingleScatteringData(pprops,
                                 phase_matrix,
@@ -212,13 +213,17 @@ struct SingleScatteringData {
         backscatter_matrix(backscatter_matrix_),
         forwardscatter_matrix(forwardscatter_matrix_) {}
 
-  SingleScatteringData(const SingleScatteringData &) = default;
+  SingleScatteringData()                                        = default;
+  SingleScatteringData(const SingleScatteringData &)            = default;
+  SingleScatteringData(SingleScatteringData &&)                 = default;
+  SingleScatteringData &operator=(const SingleScatteringData &) = default;
+  SingleScatteringData &operator=(SingleScatteringData &&)      = default;
 
-  constexpr Format get_format() const noexcept {
+  static constexpr Format get_format() noexcept {
     return format;
   }
 
-   constexpr Representation get_representation() const noexcept {
+   static constexpr Representation get_representation() noexcept {
     return repr;
   }
 
@@ -227,15 +232,15 @@ struct SingleScatteringData {
     return properties.transform(extract_size);
   }
 
-  std::optional<Numeric> get_size(SizeParameter param) const {auto extract_size = [&param](const ParticleProperties &part_props) {
-      if (param ==  SizeParameter::Mass) {
-        return part_props.mass;
-      } else if (param == SizeParameter::DMax) {
-        return part_props.d_max;
-      } else if (param == SizeParameter::DVeq) {
-        return part_props.d_veq;
+  std::optional<Numeric> get_size(SizeParameter param) const {
+    auto extract_size = [&param](const ParticleProperties &part_props) {
+      switch (param) {
+        using enum SizeParameter;
+        case Mass: return part_props.mass;
+        case DMax: return part_props.d_max;
+        case DVeq: return part_props.d_veq;
       }
-      ARTS_USER_ERROR("Encountered unsupported size parameter.");
+      std::unreachable();
     };
     return properties.transform(extract_size);
   }
