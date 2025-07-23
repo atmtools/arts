@@ -43,8 +43,8 @@ bool test_calculate_bulk_properties_tro_gridded() {
   //av_ref += std::get<SSD>(particle_habit[0]).absorption_vector[2];
 
   /// Ensure relative errors are small.
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
-    for (Index ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+    for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
       Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
       if (err > 1e-3) return false;
     }
@@ -105,7 +105,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test temperature interpolation.
   ///
   auto point = AtmPoint{1e4, 290.0};
-  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid);
+  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, -1);
 
   auto pm = bulk_props.phase_matrix.value();
   using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
@@ -122,7 +122,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
 
   /// Ensure relative errors are small.
 
-  for (Index f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
+  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     for (Index coeff_ind = 0; coeff_ind < l; ++coeff_ind) {
       Numeric err = max_rel_error(pm[f_ind, coeff_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, coeff_ind]));
       if (err > 1e-3) return false;
@@ -148,7 +148,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid);
+  bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, -1);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
