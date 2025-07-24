@@ -344,8 +344,7 @@ void main_data::diagonalize() {
 
         mult(sqr, evec, AB);
 
-        //FIXME: The matrix produces real eigen values, a specialized solver might be good
-        ::diagonalize_inplace(evec, eval, K[rb(N)], sqr, diag_work);
+        diagonalize_inplace(evec, eval, sqr, diag_work);
 
         for (Index i = 0; i < N; i++) {
           const Numeric sqrt_x = std::sqrt(std::abs(eval[i]));

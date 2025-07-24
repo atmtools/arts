@@ -7,6 +7,8 @@
 #include <format>
 #include <iosfwd>
 
+#include "disort-eigen.h"
+
 namespace disort {
 struct BDRF {
   using func_t = CustomOperator<void,
@@ -163,7 +165,7 @@ class main_data {
   solve_workdata solve_work{};
 
   //! [4 * N] + [N, N]
-  diagonalize_workdata diag_work{};
+  real_diagonalize_workdata diag_work{};
 
   //! [n, 9 * N - 2] + [n / 2]
   matpack::band_matrix LHSB{};
