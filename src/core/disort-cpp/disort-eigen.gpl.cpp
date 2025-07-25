@@ -4,16 +4,10 @@
 #include <matpack.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace {
-using nonstd::abs;
-
-template <typename T>
-constexpr T f77_sign(T a, T b) {
-  return b >= 0 ? abs(a) : -abs(a);
-}
-
 /*============================= c_asymmetric_matrix() ===================*/
 
 /*
@@ -68,13 +62,17 @@ Index c_asymmetric_matrix(MatrixView P,
                           VectorView work,
                           std::span<Index> iwork) {
   using Math::pow2;
-
-  const Index m = W.size();
+  using nonstd::abs;
+  using std::copysign;
+  using std::min;
+  using std::sqrt;
 
   constexpr Numeric c1 = 0.4375, c2 = 0.5, c3 = 0.75, c4 = 0.95, c5 = 16,
                     c6 = 256;
 
   constexpr Numeric tol = std::numeric_limits<Numeric>::epsilon();
+
+  const Index m = W.size();
 
   assert(work.size() >= static_cast<Size>(2 * m));
   assert(iwork.size() >= static_cast<Size>(m));
@@ -98,8 +96,8 @@ Index c_asymmetric_matrix(MatrixView P,
     const Numeric discri = pow2(A[0, 0] - A[1, 1]) + 4 * A[0, 1] * A[1, 0];
     const Numeric sgn    = (A[0, 0] < A[1, 1]) ? -1 : 1;
 
-    W[0]    = 0.5 * (A[0, 0] + A[1, 1] + sgn * std::sqrt(discri));
-    W[1]    = 0.5 * (A[0, 0] + A[1, 1] - sgn * std::sqrt(discri));
+    W[0]    = 0.5 * (A[0, 0] + A[1, 1] + sgn * sqrt(discri));
+    W[1]    = 0.5 * (A[0, 0] + A[1, 1] - sgn * sqrt(discri));
     P[0, 0] = 1;
     P[1, 1] = 1;
 
@@ -239,7 +237,7 @@ Index c_asymmetric_matrix(MatrixView P,
           h        += pow2(rwork[i]);
         }
 
-        const Numeric g  = -f77_sign(std::sqrt(h), rwork[n]);
+        const Numeric g  = -copysign(sqrt(h), rwork[n]);
         h               -= rwork[n] * g;
         rwork[n]        -= g;
 
@@ -297,7 +295,7 @@ Index c_asymmetric_matrix(MatrixView P,
   W[zl]   = dA[zl];
   W[km]   = dA[km];
 
-  Index i, ii, in, j, ka, lb = 0;
+  Index i, in, j, ka, lb = 0;
   Numeric p = 0, q = 0, r = 0, s, uu, vv, w, x, y, z;
 
   Index n   = k;
@@ -351,7 +349,7 @@ Index c_asymmetric_matrix(MatrixView P,
        */
       p      = (y - x) * c2;
       q      = p * p + w;
-      z      = std::sqrt(abs(q));
+      z      = sqrt(abs(q));
       dA[n]  = x + t;
       x      = dA[n];
       dA[n1] = y + t;
@@ -359,7 +357,7 @@ Index c_asymmetric_matrix(MatrixView P,
       /*
        * Real pair
        */
-      z     = p + f77_sign(z, p);
+      z     = p + copysign(z, p);
       W[n1] = x + z;
       W[n]  = W[n1];
 
@@ -370,7 +368,7 @@ Index c_asymmetric_matrix(MatrixView P,
       /*
        * Employ scale factor in case X and Z are very small
        */
-      r = std::hypot(x, z);
+      r = sqrt(x * x + z * z);
       p = x / r;
       q = z / r;
 
@@ -465,7 +463,7 @@ Index c_asymmetric_matrix(MatrixView P,
   for (ka = i; ka <= n1; ka++) {
     const bool notlas = (ka != n1);
     if (ka == i) {
-      s = f77_sign(std::hypot(p, q, r), p);
+      s = copysign(sqrt(p * p + q * q + r * r), p);
       if (lb != i) A[ka, ka - 1] *= -1;
 
     } else {
@@ -481,7 +479,7 @@ Index c_asymmetric_matrix(MatrixView P,
       p /= x;
       q /= x;
       r /= x;
-      s  = f77_sign(std::hypot(p, q, r), p);
+      s  = copysign(sqrt(p * p + q * q + r * r), p);
 
       A[ka, ka - 1] = -s * x;
     }
@@ -511,7 +509,7 @@ Index c_asymmetric_matrix(MatrixView P,
     /*
      * Column modification
      */
-    for (ii = 0; ii <= std::min(n, ka + 3); ii++) {
+    for (Index ii = 0; ii <= min(n, ka + 3); ii++) {
       p = x * A[ii, ka] + y * A[ii, ka + 1];
 
       if (notlas) {
@@ -526,7 +524,7 @@ Index c_asymmetric_matrix(MatrixView P,
     /*
      * Accumulate transformations
      */
-    for (ii = l; ii <= k; ii++) {
+    for (Index ii = l; ii <= k; ii++) {
       p = x * P[ii, ka] + y * P[ii, ka + 1];
 
       if (notlas) {
@@ -577,9 +575,8 @@ S550:
     if (k != 0) {
       for (j = m - 1; j >= l; j--) {
         for (i = l; i <= k; i++) {
-          const Range nk(l, std::min(j, k) - l + 1);
+          const Range nk(l, min(j, k) - l + 1);
           //! NOTE: This can be turned into a mult(vec, mat, vec)
-          // but time tests show its slower becase m is generally small
           P[i, j] = dot(P[i, nk], A[nk, j]);
         }
       }
