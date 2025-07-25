@@ -9,7 +9,7 @@ struct real_diagonalize_workdata {
 
   real_diagonalize_workdata(Size N) : imag(N), workdata(N) {}
 #else
-  std::vector<Numeric> reals;
+  Vector reals;
   std::vector<Index> ints;
 
   real_diagonalize_workdata(Size N) : reals(2 * N), ints(N) {}

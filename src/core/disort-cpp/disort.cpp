@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <legendre.h>
 #include <matpack.h>
+#include <time_report.h>
 #include <xml.h>
 
 #include <algorithm>
@@ -53,8 +54,9 @@ void mathscr_v(VectorView um,
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 
-  for (Index i = 0; i < n; i++) data.cvec[i] = std::pow(tau, n - i);
-  data.cvec.back() = 1.0;
+  for (Index i = 0; i < n; i++)
+    data.cvec[i] = (1 - omega) * std::pow(tau, n - i);
+  data.cvec.back() = 1 - omega;
 
   const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
                                                                Index j) {
@@ -73,13 +75,13 @@ void mathscr_v(VectorView um,
     data.k1[k] *= sum2;
   }
 
-  data.k1 *= 1 - omega;
-
   mult(um, G[Range{Ni0, Ni}], data.k1, scl, add);
 }
 }  // namespace
 
 void main_data::solve_for_coefs() {
+  ARTS_TIME_REPORT
+
   const Index ln  = NLayers - 1;
   auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NQuad, NLayers - 1);
 
@@ -276,6 +278,8 @@ Numeric poch(Index x, Index n) {
 }  // namespace
 
 void main_data::diagonalize() {
+  ARTS_TIME_REPORT
+
   for (Index m = 0; m < NFourier; m++) {
     auto Km = K_collect[m];
     auto Gm = G_collect[m];

@@ -3,9 +3,8 @@
 #include <arts_constexpr_math.h>
 #include <matpack.h>
 
+#include <algorithm>
 #include <limits>
-
-#include "matpack_mdspan_helpers_matrix.h"
 
 namespace {
 using nonstd::abs;
@@ -66,7 +65,7 @@ constexpr T f77_sign(T a, T b) {
 Index c_asymmetric_matrix(MatrixView P,
                           VectorView W,
                           MatrixView A,
-                          std::span<Numeric> work,
+                          VectorView work,
                           std::span<Index> iwork) {
   using Math::pow2;
 
@@ -123,64 +122,59 @@ Index c_asymmetric_matrix(MatrixView P,
   P           = 0;
   diagonal(P) = 1;
 
+  // lowest and highest valid index - to be adjusted
+  Index l = 0, k = m - 1;
+
   /*
    * Balance the input matrix and reduce its norm by diagonal similarity transformation stored in wk;
    * then search for rows isolating an eigenvalue and push them down.
    */
 
-  Index l = 0;
-  Index k = m - 1;
-
-S50:
-
   for (Index j = k; j >= 0; j--) {
-    Numeric row = 0;
-    for (Index i = 0; i <= k; i++) {
-      if (i != j) row += abs(A[j, i]);
-    }
+    const Range oj{0, j}, jm{j + 1, m - j};
+    const Numeric row = abssum(A[j, oj]) + abssum(A[j, jm]);
 
     if (row == 0) {
       iwork[k] = j;
 
       if (j != k) {
-        for (Index i = 0; i <= k; i++) std::swap(A[i, j], A[i, k]);
-        for (Index i = l; i < m; i++) std::swap(A[j, i], A[k, i]);
+        stdr::swap_ranges(A[Range{0, k + 1}, j], A[Range{0, k + 1}, k]);
+        stdr::swap_ranges(A[j], A[k]);
       }
 
-      k--;
-      goto S50;
+      j = k--;
     }
   }
+
+  const Range zk{0, k + 1};
 
   /*
    * Search for columns isolating an eigenvalue and push them left.
    */
 
-S100:
-
   for (Index j = l; j <= k; j++) {
-    Numeric col = 0;
-    for (Index i = l; i <= k; i++) {
-      if (i != j) col += abs(A[i, j]);
-    }
+    const Range oj{0, j}, jm{j + 1, m - j};
+    const Numeric col = abssum(A[oj, j]) + abssum(A[jm, j]);
 
     if (col == 0) {
       iwork[l] = j;
 
       if (j != l) {
-        for (Index i = 0; i <= k; i++) std::swap(A[i, j], A[i, l]);
-        for (Index i = l; i < m; i++) std::swap(A[j, i], A[l, i]);
+        stdr::swap_ranges(A[zk, j], A[zk, l]);
+        stdr::swap_ranges(A[j, Range{l, m - l}], A[l, Range{l, m - l}]);
       }
 
-      l++;
-      goto S100;
+      j = l++;
     }
   }
+
+  const Range lm{l, m - l};
+  const Range lk{l, k - l + 1};
 
   /*
    * Balance the submatrix in rows L through K
    */
-  for (Index i = l; i <= k; i++) work[i] = 1;
+  work[lk] = 1;
 
   for (bool noconv = true; noconv;) {
     noconv = false;
@@ -217,61 +211,59 @@ S100:
         work[i] *= f;
         noconv   = true;
 
-        for (Index j = l; j < m; j++) A[i, j] /= f;
-
-        for (Index j = 0; j <= k; j++) A[j, i] *= f;
+        A[i, lm] /= f;
+        A[zk, i] *= f;
       }
     }
   }
 
   Index n1{}, n2{};
+
   if (k - 1 >= l + 1) {
+    VectorView rwork = work[Range{m, m}];
     /*
      * Transfer A to a Hessenberg form.
      */
     for (Index n = l + 1; n <= k - 1; n++) {
-      Numeric h     = 0;
-      Numeric scale = 0;
-      work[n + m]   = 0;
+      Numeric h = 0;
+      rwork[n]  = 0;
 
       /*
        * Scale column
        */
-      for (Index i = n; i <= k; i++) scale += abs(A[i, n - 1]);
+      const Numeric scale = abssum(A[Range{n, k - n + 1}, n - 1]);
 
       if (scale != 0) {
         for (Index i = k; i >= n; i--) {
-          work[i + m]  = A[i, n - 1] / scale;
-          h           += pow2(work[i + m]);
+          rwork[i]  = A[i, n - 1] / scale;
+          h        += pow2(rwork[i]);
         }
 
-        const Numeric g  = -f77_sign(std::sqrt(h), work[n + m]);
-        h               -= work[n + m] * g;
-        work[n + m]     -= g;
+        const Numeric g  = -f77_sign(std::sqrt(h), rwork[n]);
+        h               -= rwork[n] * g;
+        rwork[n]        -= g;
 
         /*
          * Form (I-(U*UT)/H)*A
          */
         for (Index j = n; j < m; j++) {
-          Numeric f = 0;
+          const Range nk{n, k - n + 1};
+          const Numeric f = dot(rwork[nk], A[nk, j]) / h;
 
-          for (Index i = k; i >= n; i--) f += work[i + m] * A[i, j];
-
-          for (Index i = n; i <= k; i++) A[i, j] -= work[i + m] * f / h;
+          for (Index i = n; i <= k; i++) A[i, j] -= rwork[i] * f;
         }
 
         /*
          * Form (i-(u*ut)/h)*a*(i-(u*ut)/h)
          */
         for (Index i = 0; i <= k; i++) {
-          Numeric f = 0;
+          const Range nk{n, k - n + 1};
+          const Numeric f = dot(rwork[nk], A[i, nk]) / h;
 
-          for (Index j = k; j >= n; j--) f += work[j + m] * A[i, j];
-
-          for (Index j = n; j <= k; j++) A[i, j] -= work[j + m] * f / h;
+          for (Index j = n; j <= k; j++) A[i, j] -= rwork[j] * f;
         }
 
-        work[n + m] *= scale;
+        rwork[n]    *= scale;
         A[n, n - 1]  = scale * g;
       }
     }
@@ -282,26 +274,28 @@ S100:
       Numeric f = A[n + 1, n];
 
       if (f != 0) {
-        f *= work[n + m + 1];
+        f *= rwork[n + 1];
 
-        for (Index i = n + 2; i <= k; i++) work[i + m] = A[i, n];
+        const Range rs{n + 2, k - n - 1};
+        rwork[rs] = A[rs, n];
 
         if (n + 1 <= k) {
           for (Index j = 0; j < m; j++) {
-            Numeric g = 0;
-            for (Index i = n + 1; i <= k; i++) g += work[i + m] * P[i, j];
+            const Range nk{n + 1, k - n};
+            const Numeric g = dot(rwork[nk], P[nk, j]) / f;
 
-            g /= f;
-            for (Index i = n + 1; i <= k; i++) P[i, j] += g * work[i + m];
+            for (Index i = n + 1; i <= k; i++) P[i, j] += g * rwork[i];
           }
         }
       }
     }
   }
 
-  for (Index i = 0; i < m; i++) {
-    if (i < l || i > k) W[i] = A[i, i];
-  }
+  const Range zl{0, l};
+  const Range km{k + 1, m - k};
+  auto dA = diagonal(A);
+  W[zl]   = dA[zl];
+  W[km]   = dA[km];
 
   Index i, ii, in, j, ka, lb = 0;
   Numeric p = 0, q = 0, r = 0, s, uu, vv, w, x, y, z;
@@ -330,37 +324,37 @@ S100:
 
       if (lb == l) break;
 
-      s = abs(A[lb - 1, lb - 1]) + abs(A[lb, lb]);
+      s = abs(dA[lb - 1]) + abs(dA[lb]);
       if (s == 0) s = rnorm;
 
       if (abs(A[lb, lb - 1]) <= tol * s) break;
     }
 
-    x = A[n, n];
+    x = dA[n];
 
     if (lb == n) {
       /*
        * One eigenvalue found
        */
-      A[n, n] = x + t;
-      W[n]    = A[n, n];
-      n       = n1;
+      dA[n] = x + t;
+      W[n]  = dA[n];
+      n     = n1;
       continue;
     }
 
-    y = A[n1, n1];
+    y = dA[n1];
     w = A[n, n1] * A[n1, n];
 
     if (lb == n1) {
       /*
        * Two eigenvalues found
        */
-      p         = (y - x) * c2;
-      q         = p * p + w;
-      z         = std::sqrt(abs(q));
-      A[n, n]   = x + t;
-      x         = A[n, n];
-      A[n1, n1] = y + t;
+      p      = (y - x) * c2;
+      q      = p * p + w;
+      z      = std::sqrt(abs(q));
+      dA[n]  = x + t;
+      x      = dA[n];
+      dA[n1] = y + t;
 
       /*
        * Real pair
@@ -424,8 +418,8 @@ S100:
    * Form shift
    */
   if (in == 10 || in == 20) {
-    t += x;
-    for (i = l; i <= n; i++) A[i, i] -= x;
+    t                       += x;
+    dA[Range{l, n - l + 1}] -= x;
 
     s = abs(A[n, n1]) + abs(A[n1, n2]);
     x = c3 * s;
@@ -440,11 +434,11 @@ S100:
    */
   for (j = lb; j <= n2; j++) {
     i  = n2 + lb - j;
-    z  = A[i, i];
+    z  = dA[i];
     r  = x - z;
     s  = y - z;
     p  = (r * s - w) / A[i + 1, i] + A[i, i + 1];
-    q  = A[i + 1, i + 1] - z - r - s;
+    q  = dA[i + 1] - z - r - s;
     r  = A[i + 2, i + 1];
     s  = abs(p) + abs(q) + abs(r);
     p /= s;
@@ -454,7 +448,7 @@ S100:
     if (i == lb) break;
 
     uu = abs(A[i, i - 1]) * (abs(q) + abs(r));
-    vv = abs(p) * (abs(A[i - 1, i - 1]) + abs(z) + abs(A[i + 1, i + 1]));
+    vv = abs(p) * (abs(dA[i - 1]) + abs(z) + abs(dA[i + 1]));
 
     if (uu <= tol * vv) break;
   }
@@ -555,15 +549,14 @@ S550:
 
   if (rnorm != 0) {
     for (n = m - 1; n >= 0; n--) {
-      n2      = n;
-      A[n, n] = 1;
+      n2    = n;
+      dA[n] = 1;
 
       for (i = n - 1; i >= 0; i--) {
-        w = A[i, i] - W[n];
+        w = dA[i] - W[n];
         if (w == 0) w = tol * rnorm;
 
-        r = A[i, n];
-        for (j = n2; j <= n - 1; j++) r += A[i, j] * A[j, n];
+        r = A[i, n] + dot(A[i, Range(n2, n - n2)], A[Range(n2, n - n2), n]);
 
         A[i, n] = -r / w;
         n2      = i;
@@ -574,7 +567,8 @@ S550:
      */
     for (i = 0; i < m; i++) {
       if (i < l || i > k) {
-        for (j = i; j < m; j++) P[i, j] = A[i, j];
+        const Range im{i, m - i};
+        P[i, im] = A[i, im];
       }
     }
     /*
@@ -583,33 +577,28 @@ S550:
     if (k != 0) {
       for (j = m - 1; j >= l; j--) {
         for (i = l; i <= k; i++) {
-          z = 0;
-          for (n = l; n <= std::min(j, k); n++) z += P[i, n] * A[n, j];
-
-          P[i, j] = z;
+          const Range nk(l, std::min(j, k) - l + 1);
+          //! NOTE: This can be turned into a mult(vec, mat, vec)
+          // but time tests show its slower becase m is generally small
+          P[i, j] = dot(P[i, nk], A[nk, j]);
         }
       }
     }
   }
-  for (i = l; i <= k; i++) {
-    for (j = 0; j < m; j++) P[i, j] *= work[i];
-  }
+
+  for (i = l; i <= k; i++) P[i] *= work[i];
 
   /*
    * Interchange rows if permutations occurred
    */
   for (i = l - 1; i >= 0; i--) {
     j = iwork[i];
-    if (i != j) {
-      for (n = 0; n < m; n++) std::swap(P[i, n], P[j, n]);
-    }
+    if (i != j) stdr::swap_ranges(P[i], P[j]);
   }
 
   for (i = k + 1; i < m; i++) {
     j = iwork[i];
-    if (i != j) {
-      for (n = 0; n < m; n++) std::swap(P[i, n], P[j, n]);
-    }
+    if (i != j) stdr::swap_ranges(P[i], P[j]);
   }
 
   return 0;
