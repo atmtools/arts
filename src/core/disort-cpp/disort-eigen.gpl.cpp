@@ -143,17 +143,8 @@ S50:
       iwork[k] = j;
 
       if (j != k) {
-        for (Index i = 0; i <= k; i++) {
-          const Numeric repl = A[i, j];
-          A[i, j]            = A[i, k];
-          A[i, k]            = repl;
-        }
-
-        for (Index i = l; i < m; i++) {
-          const Numeric repl = A[j, i];
-          A[j, i]            = A[k, i];
-          A[k, i]            = repl;
-        }
+        for (Index i = 0; i <= k; i++) std::swap(A[i, j], A[i, k]);
+        for (Index i = l; i < m; i++) std::swap(A[j, i], A[k, i]);
       }
 
       k--;
@@ -177,17 +168,8 @@ S100:
       iwork[l] = j;
 
       if (j != l) {
-        for (Index i = 0; i <= k; i++) {
-          const Numeric repl = A[i, j];
-          A[i, j]            = A[i, l];
-          A[i, l]            = repl;
-        }
-
-        for (Index i = l; i <= m; i++) {
-          const Numeric repl = A[j, i];
-          A[j, i]            = A[l, i];
-          A[l, i]            = repl;
-        }
+        for (Index i = 0; i <= k; i++) std::swap(A[i, j], A[i, l]);
+        for (Index i = l; i < m; i++) std::swap(A[j, i], A[l, i]);
       }
 
       l++;
@@ -619,22 +601,14 @@ S550:
   for (i = l - 1; i >= 0; i--) {
     j = iwork[i];
     if (i != j) {
-      for (n = 0; n < m; n++) {
-        const Numeric repl = P[i, n];
-        P[i, n]            = P[j, n];
-        P[j, n]            = repl;
-      }
+      for (n = 0; n < m; n++) std::swap(P[i, n], P[j, n]);
     }
   }
 
   for (i = k + 1; i < m; i++) {
     j = iwork[i];
     if (i != j) {
-      for (n = 0; n < m; n++) {
-        const Numeric repl = P[i, n];
-        P[i, n]            = P[j, n];
-        P[j, n]            = repl;
-      }
+      for (n = 0; n < m; n++) std::swap(P[i, n], P[j, n]);
     }
   }
 
