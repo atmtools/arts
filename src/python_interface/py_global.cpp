@@ -4,6 +4,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
@@ -223,9 +224,14 @@ has_sht: {}
 
   global.def("time_report",
              &arts::get_report,
-             "min_time"_a = 0,
-             "clear"_a    = true,
+             "clear"_a = true,
              R"(Get the time report.
+
+The time report is a :class:`dict` with :class:`int` keys representing threads.
+
+Each entry has another :class:`dict` with :class:`str` key representing the short-name of the C++ method that was timed.
+
+As a thread can call a method multiple times, these results are stored as a :class:`list` of a start and an end :class:`~pyarts.arts.Time`.
 
 .. note::
     This function is only available if ARTS is compiled with profiling enabled.
@@ -235,18 +241,12 @@ has_sht: {}
 
 Parameters
 ----------
-    min_time : int
-        Minimum time in *native* time units to report.  Default: 0.
     clear : bool
         Clear the report after getting it.  Default: True.
 
 Return
 ------
-:class:`str`
-    Nominally, the time report as a string in markdown table format.
-    If no profiling data is available, a message indicating that ARTS
-    is compiled without profiling or that no profiling data is available
-    is returned.
+See above, :class:`dict`
 )");
 } catch (std::exception& e) {
   throw std::runtime_error(

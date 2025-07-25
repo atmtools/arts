@@ -2,6 +2,7 @@
 
 from pyarts.plots.ray_path import *  # noqa
 from pyarts.plots.ppvar_atm import * # noqa
+from pyarts.plots.time_report import time_report # noqa
 
 from . import AtmField
 from . import ArrayOfSensorObsel

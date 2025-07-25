@@ -1,15 +1,10 @@
 #include "time_report.h"
 
-#include <sorting.h>
-
 #include <chrono>
 #include <mutex>
+#include <unordered_map>
 
-namespace {
-using Delta = Time::InternalTimeStep;
-std::unordered_map<std::string, std::vector<Delta>> profile_report;
-std::mutex m;
-};  // namespace
+#include <arts_omp.h>
 
 namespace arts {
 namespace {
@@ -18,6 +13,9 @@ std::string short_name(const std::string& name) {
 }
 }  // namespace
 
+TimeReport profile_report;
+std::mutex mprofile_report;
+
 profiler::profiler(std::string&& key) : name(std::move(key)), start(Time{}) {}
 
 profiler::profiler(std::source_location loc)
@@ -25,61 +23,20 @@ profiler::profiler(std::source_location loc)
 
 profiler::~profiler() {
   const Time end{};
-  const auto diff = end - start;
-  std::scoped_lock lock{m};
-  profile_report[name].push_back(diff);
+  const int core = arts_omp_get_thread_num();
+
+  // Lock might add extra pause inbetween thread calls, but it is safe
+  std::scoped_lock lock{mprofile_report};
+  profile_report[core][name].emplace_back(start, end);
 }
 
-std::string get_report(Size min_time, bool clear) {
-  if (profile_report.empty()) {
-#if ARTS_PROFILING
-    return "No profiling data available.\n";
-#else
-    return "Automatic profiling is disabled and no manual profiling performed.  "
-           "Recompile ARTS with profiling information to use this functionality.\n";
-#endif
-  }
+TimeReport get_report(bool clear) {
+  std::scoped_lock lock{mprofile_report};
 
-  std::scoped_lock lock{m};
+  TimeReport copy = profile_report;
 
-  std::vector<std::string> vec{};
-  std::vector<Delta> total_time{};
-  for (const auto& [name, deltas] : profile_report) {
-    const Size N = deltas.size();
-    if (N == 0) continue;
-
-    const auto sum = std::accumulate(deltas.begin(), deltas.end(), Delta{});
-    const auto avg = sum / N;
-    const auto max = *stdr::max_element(deltas);
-    const auto min = *stdr::min_element(deltas);
-
-    total_time.push_back(sum);
-    vec.push_back(std::format(
-        "| {0} | {1}μs | {3}μs | {4}μs | {5}μs | {2} |\n",
-        name,
-        std::chrono::duration_cast<std::chrono::microseconds>(avg).count(),
-        N,
-        std::chrono::duration_cast<std::chrono::microseconds>(min).count(),
-        std::chrono::duration_cast<std::chrono::microseconds>(max).count(),
-        std::chrono::duration_cast<std::chrono::microseconds>(sum).count()));
-  }
-
-  if (clear) profile_report.clear();
-
-  bubble_sort_by(
-      [&](Index i, Index j) { return total_time[i] < total_time[j]; },
-      total_time,
-      vec);
-
-  const Size N = stdr::distance(
-      stdr::rbegin(total_time),
-      stdr::lower_bound(total_time | std::views::reverse, Delta(min_time)));
-
-  return std::format(
-      "| Function | Average time | Min time | Max time | Total time | Times called |\n"
-      "| -------- | ------------ | -------- | -------- | ---------- | ------------ |\n"
-      "{}",
-      std::accumulate(
-          vec.begin(), vec.begin() + (vec.size() - N), std::string{}));
+  if (clear)
+    for (auto& [key, value] : profile_report) value.clear();
+  return copy;
 }
 }  // namespace arts
