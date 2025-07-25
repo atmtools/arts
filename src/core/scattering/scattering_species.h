@@ -15,30 +15,15 @@
 #include "particle_habit.h"
 #include "properties.h"
 #include "psd.h"
+#include "general_tro_spectral.h"
+#include "scattering_habit.h"
 
 namespace scattering {
 
-using PSD = std::variant<MGDSingleMoment>;
-
-/*** A scattering habit
- *
- * A scattering habit combines a particle habit with an additional PSD
- * and thus defines a mapping between atmospheric scattering species properties
- * and corresponding bulk skattering properties.
- */
-class ScatteringHabit {
- public:
-  ScatteringHabit() {};
-
- private:
-  ParticleHabit particle_habit;
-  PSD psd;
-};
 
 struct ScatteringDataSpec {};
 
-using Species =
-    std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO>;
+using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO, ScatteringHabit>;
 
 }  // namespace scattering
 
@@ -88,11 +73,8 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
                                               Index order) const;
 };
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const ArrayOfScatteringSpecies& /*species*/) {
-  os << "An array of scattering species." << '\n';
-  return os;
-}
+std::ostream& operator<<(std::ostream& os,
+                                const ArrayOfScatteringSpecies& /*species*/) ;
 
 template <>
 struct std::formatter<ArrayOfScatteringSpecies> {

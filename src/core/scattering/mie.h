@@ -191,7 +191,7 @@ using MatrixGen = matpack::data_t<Scalar, 2>;
  *
  * @param rho: The product of relative refractive index n and size parameter x.
  * @param n_steps: The number of steps in the downward recursion.
- * @return An Eigen vector containing the 'n_steps' calculated complex values
+ * @return A vector containing the 'n_steps' calculated complex values
  * of the logarithmic derivative
  */
 template <std::floating_point Scalar>
@@ -227,7 +227,7 @@ class MieSphere {
   MieSphere(Scalar lambda,
             Scalar radius,
             std::complex<Scalar> n,
-            VectorGen<Scalar> theta)
+            StridedConstVectorView theta)
       : lambda_(lambda),
         r_(radius),
         x_(2.0 * std::numbers::pi_v<Scalar> * radius / lambda_),
@@ -253,7 +253,7 @@ class MieSphere {
   static MieSphere Liquid(Scalar frequency,
                           Scalar temperature,
                           Scalar radius,
-                          VectorGen<Scalar> theta) {
+                          StridedConstVectorView theta) {
     Scalar c = 2.99792458e8;
     Scalar lambda = c / frequency;
     std::complex n = refr_index_water_ellison07(frequency, temperature);
@@ -333,7 +333,7 @@ class MieSphere {
      *
      * This method implements Eq. 4.77 from [1].
      *
-     * @return An Eigen::Matrix holding the four scattering matrix elements along its columns
+     * @return A matrix holding the four scattering matrix elements along its columns
      * for all requested scattering angles.
      */
   MatrixGen<Scalar> get_scattering_matrix_compact() {
@@ -423,7 +423,7 @@ class MieSphere {
       Numeric n2p1_nnp1 = n2p1 / (step_f * (step_f + 1.0));
       q_sca_ += n2p1 * (pow(abs(a_n), 2) + pow(abs(b_n), 2));
       q_ext_ += n2p1 * (a_n.real() + b_n.real());
-      q_back_acc += n2p1 * pow(-1, step + 1) * (a_n - b_n);
+      q_back_acc += n2p1 * std::pow(-1, step + 1) * (a_n - b_n);
       g_sca_ +=
           (n2p1_nnp1 * (a_n.real() * b_n.real() + a_n.imag() * b_n.imag()));
       if (step > 0) {

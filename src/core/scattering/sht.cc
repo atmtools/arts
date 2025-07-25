@@ -11,6 +11,8 @@ namespace scattering {
 namespace sht {
 static std::mutex shtns_mutex{};
 
+std::shared_ptr<const Vector> SHT::get_aa_grid_ptr() const { return aa_grid_; }
+
 Vector SHT::get_azimuth_angle_grid(Index n_aa, bool radians) {
   if (n_aa == 1) {
     Vector result(1);

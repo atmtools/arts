@@ -7,6 +7,8 @@
 #include <format>
 #include <iosfwd>
 
+#include "disort-eigen.h"
+
 namespace disort {
 struct BDRF {
   using func_t = CustomOperator<void,
@@ -163,7 +165,7 @@ class main_data {
   solve_workdata solve_work{};
 
   //! [4 * N] + [N, N]
-  diagonalize_workdata diag_work{};
+  real_diagonalize_workdata diag_work{};
 
   //! [n, 9 * N - 2] + [n / 2]
   matpack::band_matrix LHSB{};
@@ -225,6 +227,7 @@ class main_data {
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
+  void gridded_TMS(Tensor3View tms, const Vector& phi) const;
 
   /** Get the IMS correction factor
     *
@@ -232,11 +235,12 @@ class main_data {
     *
     * Safe for parallel use if ims is unique for each call
     *
-    * @param oms Compute data
+    * @param ims Compute data
     * @param tau The point-wise optical thickness
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;
+  void gridded_IMS(Tensor3View ims, const Vector& phi) const;
 
   /** Spectral radiance at a given tau and phi
     *
@@ -280,6 +284,10 @@ class main_data {
               tms_data& tms_data,
               const Numeric tau,
               const Numeric phi) const;
+  void gridded_u_corr(Tensor3View u_data,
+                      Tensor3View tms,
+                      Tensor3View ims,
+                      const Vector& phi) const;
 
   /** Compute the upward flux at a given tau
     *

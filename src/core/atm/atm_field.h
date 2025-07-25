@@ -1,6 +1,5 @@
 #pragma once
 
-#include <compare.h>
 #include <debug.h>
 #include <enumsAtmKey.h>
 #include <enumsInterpolationExtrapolation.h>
@@ -90,6 +89,7 @@ struct Point {
   Vector3 mag{0, 0, 0};
 
   Point(const IsoRatioOption);
+  Point(Numeric pressure, Numeric temperature);
   Point();
   Point(const Point &);
   Point(Point &&) noexcept;

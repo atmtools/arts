@@ -117,9 +117,7 @@ class SHT {
                                                      bool radians = false);
 
   /// Pointer to the azimuth angle grid in degrees.
-  [[nodiscard]] std::shared_ptr<const Vector> get_aa_grid_ptr() const {
-    return aa_grid_;
-  }
+  [[nodiscard]] std::shared_ptr<const Vector> get_aa_grid_ptr() const;
 
   /** Return zenith-angle grid used by the SH transform.
    * @param The number of points in the zenith-angle grid.
@@ -440,6 +438,7 @@ class SHT {
   template <typename Vec1, typename Vec2>
   friend matpack::data_t<typename Vec1::value_type, 1> add_coeffs(
       const SHT &sht_v, const Vec1 &v, const SHT &sht_w, const Vec2 &w);
+
   template <typename T>
   friend matpack::data_t<T, 2> add_coeffs(
       const SHT &sht_inc_v,

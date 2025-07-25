@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <legendre.h>
 #include <matpack.h>
+#include <time_report.h>
 #include <xml.h>
 
 #include <algorithm>
@@ -30,9 +31,13 @@ Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
 std::ostream& operator<<(std::ostream& os, const BDRF&) { return os << "BDRF"; }
 
 namespace {
+constexpr Range rf(Size N) { return {0, N}; }
+constexpr Range rb(Size N) { return {N, N}; }
+
 void mathscr_v(VectorView um,
                mathscr_v_data& data,
                const Numeric tau,
+               const Numeric omega,
                const ConstVectorView& source_poly_coeffs,
                const ConstMatrixView& G,
                const ConstVectorView& K,
@@ -49,26 +54,22 @@ void mathscr_v(VectorView um,
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 
-  for (Index i = 0; i < n; i++) {
-    data.cvec[i] = std::pow(tau, n - i);
-  }
-  data.cvec.back() = 1.0;
+  for (Index i = 0; i < n; i++)
+    data.cvec[i] = (1 - omega) * std::pow(tau, n - i);
+  data.cvec.back() = 1 - omega;
+
+  const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
+                                                               Index j) {
+    return cvec[i] * Legendre::factorial(n - j) * source_poly_coeffs[n - j];
+  };
 
   for (Index k = 0; k < Nk; k++) {
     Numeric sum2 = 0.0;
     for (Index i = 0; i < Nc; i++) {
-      const Numeric fi = Legendre::factorial(n - i);
-      for (Index j = 0; j <= i; j++) {
-        const Numeric f = data.cvec[i] * Legendre::factorial(n - j) *
-                          source_poly_coeffs[n - j] / fi;
-        if (j == i) {
-          sum2 += f / K[k];
-        } else if ((j - i) == 1) {
-          sum2 += f;
-        } else {
-          sum2 += f * std::pow(K[k], j - i - 1);
-        }
-      }
+      Numeric fac = std::pow(K[k], -i - 1) / Legendre::factorial(n - i);
+
+      for (Index j = 0; j < i; fac *= K[k], j++) sum2 += leg(i, j) * fac;
+      sum2 += leg(i, i) * fac;
     }
 
     data.k1[k] *= sum2;
@@ -79,6 +80,8 @@ void mathscr_v(VectorView um,
 }  // namespace
 
 void main_data::solve_for_coefs() {
+  ARTS_TIME_REPORT
+
   const Index ln  = NLayers - 1;
   auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NQuad, NLayers - 1);
 
@@ -90,14 +93,12 @@ void main_data::solve_for_coefs() {
     const auto B_collect_m     = B_collect[m];
 
     if (BDRF_bool) {
-      brdf_fourier_modes[m](
-          mathscr_D_neg, mu_arr[Range{0, N}], mu_arr[Range{N, N}]),
+      brdf_fourier_modes[m](mathscr_D_neg, mu_arr[rf(N)], mu_arr[rb(N)]),
           einsum<"ij", "", "ij", "j", "j">(
-              R, 1 + m_equals_0_bool, mathscr_D_neg, mu_arr[Range{0, N}], W);
+              R, 1 + m_equals_0_bool, mathscr_D_neg, mu_arr[rf(N)], W);
       if (has_beam_source) {
-        brdf_fourier_modes[m](mathscr_X_pos.view_as(N, 1),
-                              mu_arr[Range{0, N}],
-                              ConstVectorView{-mu0});
+        brdf_fourier_modes[m](
+            mathscr_X_pos.view_as(N, 1), mu_arr[rf(N)], ConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
       }
     }
@@ -108,9 +109,10 @@ void main_data::solve_for_coefs() {
     // Fill RHS
     {
       if (has_source_poly and m_equals_0_bool) {
-        mathscr_v(RHS[Range{0, N}],
+        mathscr_v(RHS[rf(N)],
                   comp_data,
                   0.0,
+                  omega_arr[0],
                   source_poly_coeffs[0],
                   G_collect_m[0],
                   K_collect_m[0],
@@ -123,6 +125,7 @@ void main_data::solve_for_coefs() {
             mathscr_v(RHS[Range{l * NQuad + N, NQuad}],
                       comp_data,
                       tau_arr[l],
+                      omega_arr[l + 1],
                       source_poly_coeffs[l + 1],
                       G_collect_m[l + 1],
                       K_collect_m[l + 1],
@@ -131,6 +134,7 @@ void main_data::solve_for_coefs() {
             mathscr_v(RHS[Range{l * NQuad + N, NQuad}],
                       comp_data,
                       tau_arr[l],
+                      omega_arr[l],
                       source_poly_coeffs[l],
                       G_collect_m[l],
                       K_collect_m[l],
@@ -144,6 +148,7 @@ void main_data::solve_for_coefs() {
         mathscr_v(RHS[Range{n - N, N}],
                   comp_data,
                   tau_arr.back(),
+                  omega_arr[ln],
                   source_poly_coeffs[ln],
                   G_collect_m[ln],
                   K_collect_m[ln],
@@ -152,15 +157,16 @@ void main_data::solve_for_coefs() {
                   -1.0);
 
         if (NBDRF > 0) {
-          mathscr_v(jvec[Range{0, N}],
+          mathscr_v(jvec[rf(N)],
                     comp_data,
                     tau_arr.back(),
+                    omega_arr[ln],
                     source_poly_coeffs[ln],
                     G_collect_m[ln],
                     K_collect_m[ln],
                     inv_mu_arr,
                     N);
-          mult(RHS[Range{n - N, N}], R, jvec[Range{0, N}], 1.0, 1.0);
+          mult(RHS[Range{n - N, N}], R, jvec[rf(N)], 1.0, 1.0);
         }
       } else {
         RHS = 0.0;
@@ -169,8 +175,7 @@ void main_data::solve_for_coefs() {
       if (has_beam_source) {
         if (BDRF_bool) {
           std::ranges::copy(mathscr_X_pos, BDRF_RHS_contribution.begin());
-          mult(
-              BDRF_RHS_contribution, R, B_collect_m[ln, Range{0, N}], 1.0, 1.0);
+          mult(BDRF_RHS_contribution, R, B_collect_m[ln, rf(N)], 1.0, 1.0);
         } else {
           BDRF_RHS_contribution = 0.0;
         }
@@ -192,7 +197,7 @@ void main_data::solve_for_coefs() {
                                std::exp(-scaled_tau_arr_with_0.back() / mu0);
         }
       } else {
-        RHS[Range{0, N}]     += b_neg_m;
+        RHS[rf(N)]           += b_neg_m;
         RHS[Range{n - N, N}] += b_pos_m;
       }
     }
@@ -206,7 +211,7 @@ void main_data::solve_for_coefs() {
       }
 
       if (BDRF_bool) {
-        mult(BDRF_LHS, R, G_collect_m[ln, Range{N, N}]);
+        mult(BDRF_LHS, R, G_collect_m[ln, rb(N)]);
       } else {
         BDRF_LHS = 0;
       }
@@ -266,11 +271,14 @@ void main_data::solve_for_coefs() {
 }
 
 namespace {
-Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
+Numeric poch(Index x, Index n) {
+  return Legendre::tgamma_ratio(static_cast<Numeric>(x + n),
+                                static_cast<Numeric>(x));
+}
 }  // namespace
 
 void main_data::diagonalize() {
-  auto GmG = Gml[Range{0, N}];
+  ARTS_TIME_REPORT
 
   for (Index m = 0; m < NFourier; m++) {
     auto Km = K_collect[m];
@@ -289,10 +297,7 @@ void main_data::diagonalize() {
     const bool m_equals_0_bool = (m == 0);
 
     fac.resize(NLeg - m);
-    for (Index i = m; i < NLeg; i++) {
-      fac[i - m] =
-          poch(static_cast<Numeric>(i + m + 1), static_cast<Numeric>(-2 * m));
-    }
+    for (Index i = m; i < NLeg; i++) fac[i - m] = poch(i + m + 1, -2 * m);
 
     for (Index i = m; i < NLeg; i++) {
       for (Index j = 0; j < N; j++) {
@@ -329,36 +334,40 @@ void main_data::diagonalize() {
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
         mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
 
-        einsum<"ij", "i", "ij", "j">(sqr, inv_mu_arr[Range{0, N}], D_neg, W);
-        einsum<"ij", "i", "ij", "j">(apb, inv_mu_arr[Range{0, N}], D_pos, W);
-        diagonal(apb) -= inv_mu_arr[Range{0, N}];
+        einsum<"ij", "i", "ij", "j">(sqr, inv_mu_arr[rf(N)], D_neg, W);
+        einsum<"ij", "i", "ij", "j">(apb, inv_mu_arr[rf(N)], D_pos, W);
+        diagonal(apb) -= inv_mu_arr[rf(N)];
 
         amb  = apb;  // still just alpha
         apb += sqr;  // sqr is beta
         amb -= sqr;
-        mult(sqr, amb, apb);
 
-        //FIXME: The matrix produces real eigen values, a specialized solver might be good
-        ::diagonalize_inplace(
-            amb, K[Range{0, N}], K[Range{N, N}], sqr, diag_work);
+        VectorView eval = K[rf(N)];
+        MatrixView evec = amb;
+        MatrixView AB   = apb;
+
+        mult(sqr, evec, AB);
+
+        diagonalize_inplace(evec, eval, sqr, diag_work);
 
         for (Index i = 0; i < N; i++) {
-          G[i, Range{0, N}]  = amb[i, Range{0, N}];
-          G[i, Range{0, N}] *= 0.5;
-          G[i, Range{N, N}]  = G[i, Range{0, N}];
-
-          const Numeric sqrt_x = std::sqrt(K[i]);
+          const Numeric sqrt_x = std::sqrt(std::abs(eval[i]));
           K[i]                 = -sqrt_x;
           K[i + N]             = sqrt_x;
         }
 
-        mult(GmG, apb, G[Range{0, N}]);
-        for (Index j = 0; j < NQuad; j++) {
-          GmG[joker, j] /= K[j];
+        mult(sqr, AB, evec);
+
+        for (Index i = 0; i < N; i++) {
+          for (Index j = 0; j < N; j++) {
+            const Numeric a = evec[i, j];
+            const Numeric b = sqr[i, j] / K[j];
+            G[i, j]         = 0.5 * (a - b);
+            G[i, j + N]     = 0.5 * (a + b);
+            G[i + N, j]     = G[i, j + N];
+            G[i + N, j + N] = G[i, j];
+          }
         }
-        G[Range{N, N}]  = G[Range{0, N}];
-        G[Range{0, N}] -= GmG;
-        G[Range{N, N}] += GmG;
 
         if (has_beam_source) {
           einsum<"i", "i", "i", "">(
@@ -368,18 +377,16 @@ void main_data::diagonalize() {
               (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
                (4 * Constant::pi)));
 
-          mult(jvec[Range{0, N}].view_as(1, N), xtemp, asso_leg_term_pos, -1);
-          jvec[Range{0, N}] *= inv_mu_arr[Range{0, N}];
+          mult(jvec[rf(N)].view_as(1, N), xtemp, asso_leg_term_pos, -1);
+          jvec[rf(N)] *= inv_mu_arr[rf(N)];
 
-          mult(jvec[Range{N, N}].view_as(1, N), xtemp, asso_leg_term_neg);
-          jvec[Range{N, N}] *= inv_mu_arr[Range{0, N}];
+          mult(jvec[rb(N)].view_as(1, N), xtemp, asso_leg_term_neg);
+          jvec[rb(N)] *= inv_mu_arr[rf(N)];
 
           std::copy(G.elem_begin(), G.elem_end(), Gml.elem_begin());
           solve_inplace(jvec, Gml, solve_work);
 
-          for (Index j = 0; j < NQuad; j++) {
-            jvec[j] *= mu0 / (1.0 + K[j] * mu0);
-          }
+          for (Index j = 0; j < NQuad; j++) jvec[j] *= mu0 / (1.0 + K[j] * mu0);
 
           mult(Bm[l], G, jvec, -1);
         }
@@ -581,7 +588,7 @@ void main_data::check_input_value() const {
 
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(
-          mu_arr[Range{0, N}],
+          mu_arr[rf(N)],
           [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
       "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0. Got mu_arr {:B,} for mu0 {}",
       mu_arr,
@@ -669,7 +676,7 @@ main_data::main_data(const Index NLayers_,
       diag_work(N),
       LHSB(3 * N - 1, 3 * N - 1, n, n),
       comp_data(NQuad, Nscoeffs) {
-  Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
+  Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
 
   std::transform(
       mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
@@ -761,7 +768,7 @@ main_data::main_data(const Index NQuad_,
       diag_work(N),
       LHSB(3 * N - 1, 3 * N - 1, n, n),
       comp_data(NQuad, Nscoeffs) {
-  Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
+  Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
 
   std::transform(
       mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
@@ -824,6 +831,7 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
     mathscr_v(data.um[0],
               data.src,
               tau,
+              omega_arr[l],
               source_poly_coeffs[l],
               G_collect[0, l],
               K_collect[0, l],
@@ -870,6 +878,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
     mathscr_v(data.u0,
               data.src,
               tau,
+              omega_arr[l],
               source_poly_coeffs[l],
               G_collect[0][l],
               K_collect[0][l],
@@ -1032,6 +1041,58 @@ void main_data::u_corr(u_data& u_data,
   }
 }
 
+//! FIXME: This implementation should be improved
+void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
+  const Index M = phi.size();
+  tms_data t{};
+
+  for (Index l = 0; l < NLayers; l++) {
+    for (Index j = 0; j < M; j++) {
+      TMS(t, tau_arr[l], phi[j]);
+      tms[l, j] = t.TMS;
+    }
+  }
+}
+
+void main_data::gridded_IMS(Tensor3View ims, const Vector& phi) const {
+  const Index M = phi.size();
+
+  for (Index l = 0; l < NLayers; l++) {
+    for (Index j = 0; j < M; j++) {
+      for (Index i = 0; i < N; i++) {
+        const Numeric nu = calculate_nu(mu_arr[i + N], phi[j], -mu0, phi0);
+        const Numeric x  = 1.0 / mu_arr[i] - 1.0 / scaled_mu0;
+        const Numeric chi =
+            (1 / (mu_arr[i] * scaled_mu0 * x)) *
+            ((tau_arr[l] - 1.0 / x) * std::exp(-tau_arr[l] / scaled_mu0) +
+             std::exp(-tau_arr[l] / mu_arr[i]) / x);
+        ims[l, j, i] =
+            (I0 / (4 * Constant::pi) * Math::pow2(omega_avg * f_avg) /
+             (1 - omega_avg * f_avg) *
+             Legendre::legendre_sum(Leg_coeffs_residue_avg, nu)) *
+            chi;
+      }
+    }
+  }
+}
+
+void main_data::gridded_u_corr(Tensor3View u_data,
+                               Tensor3View tms,
+                               Tensor3View ims,
+                               const Vector& phi) const {
+  gridded_u(u_data, phi);
+
+  if (I0_orig != 0.0) {
+    gridded_TMS(tms, phi);
+    gridded_IMS(ims, phi);
+
+    tms                         *= I0_orig;
+    u_data                      += tms;
+    ims                         *= I0_orig;
+    u_data[joker, joker, rb(N)] += ims;
+  }
+}
+
 Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
   ARTS_USER_ERROR_IF(tau < 0,
@@ -1052,6 +1113,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
     mathscr_v(data.u0_pos,
               data.src,
               tau,
+              omega_arr[l],
               source_poly_coeffs[l],
               G_collect[0][l],
               K_collect[0][l],
@@ -1081,8 +1143,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
        1.0);
 
   return Constant::two_pi * I0_orig *
-         einsum<Numeric, "", "i", "i", "i">(
-             {}, mu_arr[Range{0, N}], W, data.u0_pos);
+         einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, data.u0_pos);
 }
 
 std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
@@ -1106,6 +1167,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
     mathscr_v(data.u0_neg,
               data.src,
               tau,
+              omega_arr[l],
               source_poly_coeffs[l],
               G_collect[0][l],
               K_collect[0][l],
@@ -1139,10 +1201,9 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
        1.0,
        1.0);
 
-  return {I0_orig *
-              (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                      {}, mu_arr[Range{0, N}], W, data.u0_neg) -
-               direct_beam + direct_beam_scaled),
+  return {I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
+                                            {}, mu_arr[rf(N)], W, data.u0_neg) -
+                     direct_beam + direct_beam_scaled),
           I0_orig * I0 * direct_beam};
 }
 
@@ -1161,6 +1222,7 @@ void main_data::gridded_flux(VectorView flux_up,
       mathscr_v(u0,
                 src,
                 tau_arr[l],
+                omega_arr[l],
                 source_poly_coeffs[l],
                 G_collect[0][l],
                 K_collect[0][l],
@@ -1186,14 +1248,13 @@ void main_data::gridded_flux(VectorView flux_up,
 
     mult(u0, GC_collect[0, l, joker, joker], exponent, 1.0, 1.0);
 
-    flux_up[l] = Constant::two_pi * I0_orig *
-                 einsum<Numeric, "", "i", "i", "i">(
-                     {}, mu_arr[Range{0, N}], W, u0[Range{0, N}]);
+    flux_up[l] =
+        Constant::two_pi * I0_orig *
+        einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[l] =
-        I0_orig *
-        (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                {}, mu_arr[Range{0, N}], W, u0[Range{N, N}]) -
-         direct_beam + direct_beam_scaled);
+        I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
+                                          {}, mu_arr[rf(N)], W, u0[rb(N)]) -
+                   direct_beam + direct_beam_scaled);
     flux_dd[l] = I0_orig * I0 * direct_beam;
   }
 }
@@ -1240,6 +1301,7 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
       mathscr_v(um[0],
                 src,
                 tau_arr[l],
+                omega_arr[l],
                 source_poly_coeffs[l],
                 G_collect[0][l],
                 K_collect[0][l],
@@ -1284,6 +1346,7 @@ void main_data::ungridded_flux(VectorView flux_up,
       mathscr_v(u0,
                 src,
                 tau[il],
+                omega_arr[l],
                 source_poly_coeffs[l],
                 G_collect[0][l],
                 K_collect[0][l],
@@ -1311,14 +1374,13 @@ void main_data::ungridded_flux(VectorView flux_up,
 
     mult(u0, GC_collect[0, l, joker, joker], exponent, 1.0, 1.0);
 
-    flux_up[il] = Constant::two_pi * I0_orig *
-                  einsum<Numeric, "", "i", "i", "i">(
-                      {}, mu_arr[Range{0, N}], W, u0[Range{0, N}]);
+    flux_up[il] =
+        Constant::two_pi * I0_orig *
+        einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[il] =
-        I0_orig *
-        (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                {}, mu_arr[Range{0, N}], W, u0[Range{N, N}]) -
-         direct_beam + direct_beam_scaled);
+        I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
+                                          {}, mu_arr[rf(N)], W, u0[rb(N)]) -
+                   direct_beam + direct_beam_scaled);
     flux_dd[il] = I0_orig * I0 * direct_beam;
   }
 }
@@ -1380,6 +1442,7 @@ void main_data::ungridded_u(Tensor3View out,
       mathscr_v(um[0],
                 src,
                 tau[il],
+                omega_arr[l],
                 source_poly_coeffs[l],
                 G_collect[0][l],
                 K_collect[0][l],

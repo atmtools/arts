@@ -3,6 +3,11 @@
 #include <xml_io_base.h>
 #include <xml_io_stream_core.h>
 
+std::ostream& operator<<(std::ostream& os,
+                                  const ScatteringSpeciesProperty& ssp) {
+  return os << ssp.species_name << "_" << ssp.pproperty;
+}
+
 void xml_io_stream<ScatteringSpeciesProperty>::write(
     std::ostream& os,
     const ScatteringSpeciesProperty& x,
