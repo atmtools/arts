@@ -23,13 +23,22 @@ class band_matrix {
   band_matrix& operator=(const band_matrix&);
   band_matrix& operator=(band_matrix&&) noexcept;
 
-  [[nodiscard]] Index end_row(Index j) const;
+  [[nodiscard]] constexpr Index end_row(Index j) const {
+    return std::min<Index>(M, j + KL + 1);
+  }
 
-  [[nodiscard]] Index start_row(Index j) const;
+  [[nodiscard]] constexpr Index start_row(Index j) const {
+    return std::max<Index>(0, j - KU);
+  }
 
   band_matrix(const Matrix& ab);
 
-  Numeric& operator[](Index i, Index j);
+  template <std::integral A, std::integral B>
+  [[nodiscard]] constexpr Numeric& operator[](const A& i, const B& j) {
+    assert(static_cast<Index>(i) >= start_row(static_cast<Index>(j)));
+    assert(static_cast<Index>(i) < end_row(static_cast<Index>(j)));
+    return AB[j, KU + KL + i - j];
+  }
 
   //! Solves the system of equations A * x = b destructively
   int solve(Vector& bx);

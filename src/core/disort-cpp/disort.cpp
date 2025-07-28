@@ -17,12 +17,16 @@ namespace disort {
 void BDRF::operator()(MatrixView x,
                       const ConstVectorView& a,
                       const ConstVectorView& b) const {
+  ARTS_TIME_REPORT
+
   assert(static_cast<Size>(x.nrows()) == a.size());
   assert(static_cast<Size>(x.ncols()) == b.size());
   f(x, a, b);
 }
 
 Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
+  ARTS_TIME_REPORT
+
   Matrix x(a.size(), b.size());
   f(x, a, b);
   return x;
@@ -33,6 +37,54 @@ std::ostream& operator<<(std::ostream& os, const BDRF&) { return os << "BDRF"; }
 namespace {
 constexpr Range rf(Size N) { return {0, N}; }
 constexpr Range rb(Size N) { return {N, N}; }
+
+void source_set_k1(mathscr_v_data& data,
+                   const ConstMatrixView& G,
+                   const ConstVectorView& inv_mu) {
+  stdr::copy(inv_mu, data.k1.elem_begin());
+  stdr::copy(elemwise_range(G), data.G.elem_begin());
+  solve_inplace(data.k1, data.G, data.solve_work);
+}
+
+void source_set_k2(mathscr_v_data& data,
+                   const Numeric tau,
+                   const Numeric omega,
+                   const ConstVectorView& source_poly_coeffs,
+                   const ConstVectorView& K) {
+  const Index Nk = K.size();
+  const Index Nc = source_poly_coeffs.size();
+  const Index n  = Nc - 1;
+
+  Numeric x = 1 - omega;
+  for (Index i = n; i >= 0; x *= tau, i--) data.cvec[i] = x;
+
+  const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
+                                                               Index j) {
+    return cvec[i] * Legendre::factorial(n - j) * source_poly_coeffs[n - j];
+  };
+
+  for (Index k = 0; k < Nk; k++) {
+    data.k2[k] = 0.0;
+    for (Index i = 0; i < Nc; i++) {
+      Numeric fac = 1.0 / (std::pow(K[k], i + 1) * Legendre::factorial(n - i));
+
+      for (Index j = 0; j < i; fac *= K[k], j++) data.k2[k] += leg(i, j) * fac;
+      data.k2[k] += leg(i, i) * fac;
+    }
+  }
+}
+
+void source_scale_k2(mathscr_v_data& data) { data.k2 *= data.k1; }
+
+void source_update_um(mathscr_v_data& data,
+                      VectorView um,
+                      const ConstMatrixView& G,
+                      const Index Ni0   = 0,
+                      const Numeric scl = 1.0,
+                      const Numeric add = 0.0) {
+  const Index Ni = um.size();
+  mult(um, G[Range{Ni0, Ni}], data.k2, scl, add);
+}
 
 void mathscr_v(VectorView um,
                mathscr_v_data& data,
@@ -45,39 +97,56 @@ void mathscr_v(VectorView um,
                const Index Ni0   = 0,
                const Numeric scl = 1.0,
                const Numeric add = 0.0) {
-ARTS_TIME_REPORT
+  source_set_k1(data, G, inv_mu);
+  source_set_k2(data, tau, omega, source_poly_coeffs, K);
+  source_scale_k2(data);
+  source_update_um(data, um, G, Ni0, scl, add);
+}
 
-  const Index Nk = K.size();
-  const Index Ni = um.size();
-  const Index Nc = source_poly_coeffs.size();
-  const Index n  = Nc - 1;
+void rhs_source_term(VectorView RHS,
+                     mathscr_v_data& data,
+                     VectorView jvec,
+                     const Vector& tau,
+                     const Vector& omega,
+                     const Matrix& Sc,
+                     const Matrix& R,
+                     const ConstTensor3View& Gm,
+                     const ConstMatrixView& Km,
+                     const Vector& inv_mu_arr,
+                     const Index n,
+                     const Index N,
+                     const Index NBDRF,
+                     const Index ln,
+                     const Index NQuad) {
+  const Range rb{n - N, N};
 
-  std::ranges::copy(inv_mu, data.k1.begin());
-  std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
-  solve_inplace(data.k1, data.G, data.solve_work);
+  source_set_k1(data, Gm[0], inv_mu_arr);
+  source_set_k2(data, 0.0, omega[0], Sc[0], Km[0]);
+  source_scale_k2(data);
+  source_update_um(data, RHS[rf(N)], Gm[0], N, -1.0);
 
-  for (Index i = 0; i < n; i++)
-    data.cvec[i] = (1 - omega) * std::pow(tau, n - i);
-  data.cvec.back() = 1 - omega;
+  for (Index l = 0; l < ln; l++) {
+    const Range r{l * NQuad + N, NQuad};
 
-  const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
-                                                               Index j) {
-    return cvec[i] * Legendre::factorial(n - j) * source_poly_coeffs[n - j];
-  };
+    source_set_k2(data, tau[l], omega[l], Sc[l], Km[l]);
+    source_scale_k2(data);
+    source_update_um(data, RHS[r], Gm[l], 0, -1.0);
 
-  for (Index k = 0; k < Nk; k++) {
-    Numeric sum2 = 0.0;
-    for (Index i = 0; i < Nc; i++) {
-      Numeric fac = std::pow(K[k], -i - 1) / Legendre::factorial(n - i);
+    source_set_k1(data, Gm[l + 1], inv_mu_arr);
 
-      for (Index j = 0; j < i; fac *= K[k], j++) sum2 += leg(i, j) * fac;
-      sum2 += leg(i, i) * fac;
-    }
-
-    data.k1[k] *= sum2;
+    source_set_k2(data, tau[l], omega[l + 1], Sc[l + 1], Km[l + 1]);
+    source_scale_k2(data);
+    source_update_um(data, RHS[r], Gm[l + 1], 0, 1.0, 1.0);
   }
 
-  mult(um, G[Range{Ni0, Ni}], data.k1, scl, add);
+  source_set_k2(data, tau.back(), omega[ln], Sc[ln], Km[ln]);
+  source_scale_k2(data);
+  source_update_um(data, RHS[rb], Gm[ln], 0, -1.0);
+
+  if (NBDRF > 0) {
+    source_update_um(data, jvec[rf(N)], Gm[ln], N);
+    mult(RHS[rb], R, jvec[rf(N)], 1.0, 1.0);
+  }
 }
 }  // namespace
 
@@ -110,66 +179,24 @@ void main_data::solve_for_coefs() {
 
     // Fill RHS
     {
+      ARTS_NAMED_TIME_REPORT("disort::rhs"s);
+
       if (has_source_poly and m_equals_0_bool) {
-        mathscr_v(RHS[rf(N)],
-                  comp_data,
-                  0.0,
-                  omega_arr[0],
-                  source_poly_coeffs[0],
-                  G_collect_m[0],
-                  K_collect_m[0],
-                  inv_mu_arr,
-                  N,
-                  -1.0);
-
-        if (is_multilayer) {
-          for (Index l = 0; l < ln; l++) {
-            mathscr_v(RHS[Range{l * NQuad + N, NQuad}],
-                      comp_data,
-                      tau_arr[l],
-                      omega_arr[l + 1],
-                      source_poly_coeffs[l + 1],
-                      G_collect_m[l + 1],
-                      K_collect_m[l + 1],
-                      inv_mu_arr);
-
-            mathscr_v(RHS[Range{l * NQuad + N, NQuad}],
-                      comp_data,
-                      tau_arr[l],
-                      omega_arr[l],
-                      source_poly_coeffs[l],
-                      G_collect_m[l],
-                      K_collect_m[l],
-                      inv_mu_arr,
-                      0,
-                      -1.0,
-                      1.0);
-          }
-        }
-
-        mathscr_v(RHS[Range{n - N, N}],
-                  comp_data,
-                  tau_arr.back(),
-                  omega_arr[ln],
-                  source_poly_coeffs[ln],
-                  G_collect_m[ln],
-                  K_collect_m[ln],
-                  inv_mu_arr,
-                  0,
-                  -1.0);
-
-        if (NBDRF > 0) {
-          mathscr_v(jvec[rf(N)],
-                    comp_data,
-                    tau_arr.back(),
-                    omega_arr[ln],
-                    source_poly_coeffs[ln],
-                    G_collect_m[ln],
-                    K_collect_m[ln],
-                    inv_mu_arr,
-                    N);
-          mult(RHS[Range{n - N, N}], R, jvec[rf(N)], 1.0, 1.0);
-        }
+        rhs_source_term(RHS,
+                        comp_data,
+                        jvec,
+                        tau_arr,
+                        omega_arr,
+                        source_poly_coeffs,
+                        R,
+                        G_collect_m,
+                        K_collect_m,
+                        inv_mu_arr,
+                        n,
+                        N,
+                        NBDRF,
+                        ln,
+                        NQuad);
       } else {
         RHS = 0.0;
       }
@@ -182,13 +209,11 @@ void main_data::solve_for_coefs() {
           BDRF_RHS_contribution = 0.0;
         }
 
-        if (is_multilayer) {
-          for (Index l = 0; l < ln; l++) {
-            const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
-            for (Index j = 0; j < NQuad; j++) {
-              RHS_middle[j, l] +=
-                  (B_collect_m[l + 1, j] - B_collect_m[l, j]) * scl;
-            }
+        for (Index l = 0; l < ln; l++) {
+          const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
+          for (Index j = 0; j < NQuad; j++) {
+            RHS_middle[j, l] +=
+                (B_collect_m[l + 1, j] - B_collect_m[l, j]) * scl;
           }
         }
 
@@ -206,6 +231,8 @@ void main_data::solve_for_coefs() {
 
     // Fill LHS
     {
+      ARTS_NAMED_TIME_REPORT("disort::lhs"s);
+
       for (Index i = 0; i < N; i++) {
         E_Lm1L[i] =
             std::exp(K_collect_m[ln, i] * (scaled_tau_arr_with_0[NLayers] -
@@ -214,7 +241,7 @@ void main_data::solve_for_coefs() {
 
       if (BDRF_bool) {
         mult(BDRF_LHS, R, G_collect_m[ln, rb(N)]);
-      } else {
+      } else if (m == NBDRF) {  // only once
         BDRF_LHS = 0;
       }
 
@@ -250,7 +277,7 @@ void main_data::solve_for_coefs() {
             LHSB[N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
                 -G_collect_m[l + 1, i, N + j] * E_llp1[j];
             LHSB[2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
-                -1 * G_collect_m[l + 1, N + i, N + j] * E_llp1[j];
+                -G_collect_m[l + 1, N + i, N + j] * E_llp1[j];
           }
         }
 
@@ -265,10 +292,14 @@ void main_data::solve_for_coefs() {
       }
     }
 
-    LHSB.solve(RHS);
+    {
+      ARTS_NAMED_TIME_REPORT("disort::solve-band"s);
 
-    einsum<"ijm", "ijm", "im">(
-        GC_collect[m], G_collect_m, RHS.view_as(NLayers, NQuad));
+      LHSB.solve(RHS);
+
+      einsum<"ijm", "ijm", "im">(
+          GC_collect[m], G_collect_m, RHS.view_as(NLayers, NQuad));
+    }
   }
 }
 
@@ -420,6 +451,8 @@ void main_data::diagonalize() {
  * - f_avg
  */
 void main_data::set_ims_factors() {
+  ARTS_TIME_REPORT
+
   const Numeric sum1 = dot(omega_arr, tau_arr.vec());
   omega_avg          = sum1 / sum(tau_arr.vec());
 
@@ -456,6 +489,8 @@ void main_data::set_ims_factors() {
 }
 
 void main_data::set_scales() {
+  ARTS_TIME_REPORT
+
   std::transform(omega_arr.begin(),
                  omega_arr.end(),
                  f_arr.begin(),
@@ -484,6 +519,8 @@ void main_data::set_scales() {
 }
 
 void main_data::set_weighted_Leg_coeffs_all() {
+  ARTS_TIME_REPORT
+
   for (Index j = 0; j < NLayers; j++) {
     for (Index i = 0; i < NLeg_all; i++) {
       weighted_Leg_coeffs_all[joker, i] =
@@ -493,6 +530,8 @@ void main_data::set_weighted_Leg_coeffs_all() {
 }
 
 void main_data::set_beam_source(const Numeric I0_) {
+  ARTS_TIME_REPORT
+
   has_beam_source = I0_ > 0;
 
   if (std::all_of(b_pos.elem_begin(), b_pos.elem_end(), Cmp::eq(0)) and
@@ -506,6 +545,8 @@ void main_data::set_beam_source(const Numeric I0_) {
 }
 
 void main_data::check_input_size() const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(static_cast<Index>(tau_arr.size()) != NLayers,
                      "{} vs {}",
                      tau_arr.size(),
@@ -554,6 +595,8 @@ void main_data::check_input_size() const {
 }
 
 void main_data::check_input_value() const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
                      "tau_arr must be strictly positive, got {:B,}",
                      tau_arr);
@@ -598,6 +641,8 @@ void main_data::check_input_value() const {
 }
 
 void main_data::update_all(const Numeric I0_) try {
+  ARTS_TIME_REPORT
+
   check_input_value();
 
   set_weighted_Leg_coeffs_all();
@@ -625,7 +670,6 @@ main_data::main_data(const Index NLayers_,
       NLeg_all(NLeg_all_),
       NBDRF(NBDRF_),
       has_source_poly(Nscoeffs > 0),
-      is_multilayer(NLayers > 1),
       // User data
       tau_arr(NLayers),
       omega_arr(NLayers),
@@ -678,6 +722,8 @@ main_data::main_data(const Index NLayers_,
       diag_work(N),
       LHSB(3 * N - 1, 3 * N - 1, n, n),
       comp_data(NQuad, Nscoeffs) {
+  ARTS_TIME_REPORT
+
   Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
 
   std::transform(
@@ -713,7 +759,6 @@ main_data::main_data(const Index NQuad_,
       NLeg_all(Leg_coeffs_all_.ncols()),
       NBDRF(brdf_fourier_modes_.size()),
       has_source_poly(Nscoeffs > 0),
-      is_multilayer(NLayers > 1),
       has_beam_source(I0_ > 0),
       // User data
       tau_arr(std::move(tau_arr_)),
@@ -770,6 +815,8 @@ main_data::main_data(const Index NQuad_,
       diag_work(N),
       LHSB(3 * N - 1, 3 * N - 1, n, n),
       comp_data(NQuad, Nscoeffs) {
+  ARTS_TIME_REPORT
+
   Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
 
   std::transform(
@@ -786,6 +833,8 @@ main_data::main_data(const Index NQuad_,
 }
 
 [[nodiscard]] Index main_data::tau_index(const Numeric tau) const {
+  ARTS_TIME_REPORT
+
   const Index l =
       std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
   ARTS_USER_ERROR_IF(
@@ -794,6 +843,8 @@ main_data::main_data(const Index NQuad_,
 }
 
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
@@ -857,6 +908,8 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
 }
 
 void main_data::u0(u0_data& data, const Numeric tau) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
@@ -882,8 +935,8 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
               tau,
               omega_arr[l],
               source_poly_coeffs[l],
-              G_collect[0][l],
-              K_collect[0][l],
+              G_collect[0, l],
+              K_collect[0, l],
               inv_mu_arr);
   } else {
     data.u0 = 0.0;
@@ -933,6 +986,8 @@ void calculate_nu(Vector& nu,
 void main_data::TMS(tms_data& data,
                     const Numeric tau,
                     const Numeric phi) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
@@ -1009,6 +1064,8 @@ void main_data::TMS(tms_data& data,
 }
 
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
   ims.resize(N);
@@ -1030,6 +1087,8 @@ void main_data::u_corr(u_data& u_data,
                        tms_data& tms_data,
                        const Numeric tau,
                        const Numeric phi) const {
+  ARTS_TIME_REPORT
+
   TMS(tms_data, tau, phi);
   IMS(ims, tau, phi);
   u(u_data, tau, phi);
@@ -1045,6 +1104,8 @@ void main_data::u_corr(u_data& u_data,
 
 //! FIXME: This implementation should be improved
 void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
+  ARTS_TIME_REPORT
+
   const Index M = phi.size();
   tms_data t{};
 
@@ -1057,6 +1118,8 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
 }
 
 void main_data::gridded_IMS(Tensor3View ims, const Vector& phi) const {
+  ARTS_TIME_REPORT
+
   const Index M = phi.size();
 
   for (Index l = 0; l < NLayers; l++) {
@@ -1098,6 +1161,8 @@ void main_data::gridded_u_corr(Tensor3View u_data,
 }
 
 Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
   ARTS_USER_ERROR_IF(tau < 0,
                      "tau ({}) must be less than the last layer ({})",
@@ -1119,8 +1184,8 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
               tau,
               omega_arr[l],
               source_poly_coeffs[l],
-              G_collect[0][l],
-              K_collect[0][l],
+              G_collect[0, l],
+              K_collect[0, l],
               inv_mu_arr);
   } else {
     data.u0_pos = 0.0;
@@ -1152,6 +1217,8 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
 
 std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
                                                  const Numeric tau) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
   ARTS_USER_ERROR_IF(tau < 0,
                      "tau ({}) must be less than the last layer ({})",
@@ -1173,8 +1240,8 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
               tau,
               omega_arr[l],
               source_poly_coeffs[l],
-              G_collect[0][l],
-              K_collect[0][l],
+              G_collect[0, l],
+              K_collect[0, l],
               inv_mu_arr,
               N);
   } else {
@@ -1214,6 +1281,8 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
 void main_data::gridded_flux(VectorView flux_up,
                              VectorView flux_do,
                              VectorView flux_dd) const try {
+  ARTS_TIME_REPORT
+
   Vector u0(NQuad);
   Vector exponent(NQuad, 1);
   mathscr_v_data src(NQuad, Nscoeffs);
@@ -1228,8 +1297,8 @@ void main_data::gridded_flux(VectorView flux_up,
                 tau_arr[l],
                 omega_arr[l],
                 source_poly_coeffs[l],
-                G_collect[0][l],
-                K_collect[0][l],
+                G_collect[0, l],
+                K_collect[0, l],
                 inv_mu_arr);
     } else {
       u0 = 0.0;
@@ -1309,8 +1378,8 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
                 tau_arr[l],
                 omega_arr[l],
                 source_poly_coeffs[l],
-                G_collect[0][l],
-                K_collect[0][l],
+                G_collect[0, l],
+                K_collect[0, l],
                 inv_mu_arr,
                 0,
                 1.0,
@@ -1328,6 +1397,8 @@ void main_data::ungridded_flux(VectorView flux_up,
                                VectorView flux_do,
                                VectorView flux_dd,
                                const AscendingGrid& tau) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       tau.front() < 0, "the first tau ({}) must be positive", tau.front());
   ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
@@ -1354,8 +1425,8 @@ void main_data::ungridded_flux(VectorView flux_up,
                 tau[il],
                 omega_arr[l],
                 source_poly_coeffs[l],
-                G_collect[0][l],
-                K_collect[0][l],
+                G_collect[0, l],
+                K_collect[0, l],
                 inv_mu_arr);
     } else {
       u0 = 0.0;
@@ -1394,6 +1465,8 @@ void main_data::ungridded_flux(VectorView flux_up,
 void main_data::ungridded_u(Tensor3View out,
                             const AscendingGrid& tau,
                             const Vector& phi) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(
       tau.front() < 0, "the first tau ({}) must be positive", tau.front());
   ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
@@ -1450,8 +1523,8 @@ void main_data::ungridded_u(Tensor3View out,
                 tau[il],
                 omega_arr[l],
                 source_poly_coeffs[l],
-                G_collect[0][l],
-                K_collect[0][l],
+                G_collect[0, l],
+                K_collect[0, l],
                 inv_mu_arr,
                 0,
                 1.0,

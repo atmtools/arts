@@ -25,6 +25,8 @@ std::string get_report(Size min_time = 0, bool clear = true);
 
 #if ARTS_PROFILING
 #define ARTS_TIME_REPORT arts::profiler _arts_prof_var_name_{};
+#define ARTS_NAMED_TIME_REPORT(_name_var_) arts::profiler _arts_named__prof_var_name_{_name_var_};
 #else
 #define ARTS_TIME_REPORT
+#define ARTS_NAMED_TIME_REPORT(_name_var_)
 #endif

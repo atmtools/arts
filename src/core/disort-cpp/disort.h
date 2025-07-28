@@ -100,7 +100,6 @@ class main_data {
   Index NLeg_all{0};
   Index NBDRF{0};
   bool has_source_poly{false};
-  bool is_multilayer{false};
   bool has_beam_source{false};
 
   //! User inputs
@@ -687,9 +686,8 @@ struct std::formatter<disort::main_data> {
         v.NBDRF,
         sep);
     std::format_to(ctx.out(),
-                   "Has source: {}, Is multilayer: {}, Has beam source: {}{}",
+                   "Has source: {}, Has beam source: {}{}",
                    v.has_source_poly,
-                   v.is_multilayer,
                    v.has_beam_source,
                    sep);
     tags.format(ctx, "tau_arr: "sv, v.tau_arr, sep);
