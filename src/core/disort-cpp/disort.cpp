@@ -45,6 +45,8 @@ void mathscr_v(VectorView um,
                const Index Ni0   = 0,
                const Numeric scl = 1.0,
                const Numeric add = 0.0) {
+ARTS_TIME_REPORT
+
   const Index Nk = K.size();
   const Index Ni = um.size();
   const Index Nc = source_poly_coeffs.size();
@@ -1080,9 +1082,11 @@ void main_data::gridded_u_corr(Tensor3View u_data,
                                Tensor3View tms,
                                Tensor3View ims,
                                const Vector& phi) const {
+  ARTS_TIME_REPORT
+
   gridded_u(u_data, phi);
 
-  if (I0_orig != 0.0) {
+  if (has_beam_source) {
     gridded_TMS(tms, phi);
     gridded_IMS(ims, phi);
 
@@ -1261,6 +1265,8 @@ void main_data::gridded_flux(VectorView flux_up,
 ARTS_METHOD_ERROR_CATCH
 
 void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
+  ARTS_TIME_REPORT
+
   Matrix exponent(NFourier, NQuad, 1);
   Matrix um(NFourier, NQuad);
   mathscr_v_data src(NQuad, Nscoeffs);
