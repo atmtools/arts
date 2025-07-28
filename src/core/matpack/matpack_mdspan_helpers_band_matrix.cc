@@ -24,14 +24,6 @@ Matrix band_matrix::mat(Index KL, Index KU, Index N) {
   return Matrix(N, 2 * KL + KU + 1);
 }
 
-Index band_matrix::end_row(Index j) const {
-  return std::min<Index>(M, j + KL + 1);
-}
-
-Index band_matrix::start_row(Index j) const {
-  return std::max<Index>(0, j - KU);
-}
-
 band_matrix::band_matrix(Index ku, Index kl, Index m, Index n)
     : KU(ku), KL(kl), M(m), N(n), AB(mat(KL, KU, N)), ipiv(N) {}
 
@@ -58,12 +50,6 @@ band_matrix::band_matrix(const Matrix& ab)
       this->operator[](i, j) = ab[i, j];
     }
   }
-}
-
-Numeric& band_matrix::operator[](Index i, Index j) {
-  assert(i >= start_row(j));
-  assert(i < end_row(j));
-  return AB[j, KU + KL + i - j];
 }
 
 int band_matrix::solve(Vector& bx) {

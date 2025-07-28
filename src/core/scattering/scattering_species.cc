@@ -1,6 +1,13 @@
 #include "scattering_species.h"
 
+#include <stdexcept>
 #include <utility>
+
+std::ostream& operator<<(std::ostream& os,
+                                const ArrayOfScatteringSpecies& /*species*/) {
+  os << "An array of scattering species." << '\n';
+  return os;
+}
 
 namespace scattering {
 std::ostream& operator<<(std::ostream& os, const Species& /*species*/) {

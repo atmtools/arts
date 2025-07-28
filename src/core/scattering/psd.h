@@ -2,11 +2,15 @@
 #define ARTS_CORE_SCATTERING_PSD_H_
 
 #include <matpack.h>
-
 #include <optional>
 
 #include "atm.h"
+#include "enums.h"
 #include "properties.h"
+#include "utils.h"
+
+namespace scattering {
+
 
 /*** Single-moment modified gamma distribution
  *
@@ -32,45 +36,16 @@ struct MGDSingleMoment {
                   Numeric gamma_,
                   Numeric t_min_,
                   Numeric t_max_,
-                  bool picky_)
-      : moment(moment_),
-        n_alpha(n_alpha_),
-        n_b(n_b_),
-        mu(mu_),
-        gamma(gamma_),
-        t_min(t_min_),
-        t_max(t_max_),
-    picky(picky_)
-  {}
+                  bool picky_);
 
   MGDSingleMoment(ScatteringSpeciesProperty moment_,
                   std::string name,
                   Numeric t_min_,
                   Numeric t_max_,
-                  bool picky_)
-      : moment(moment_), t_min(t_min_), t_max(t_max_), picky(picky_) {
-    if (name == "Abel12") {
-      n_alpha = 0.22;
-      n_b = 2.2;
-      mu = 0.0;
-      gamma = 1.0;
-    } else if (name == "Wang16") {
-      // Wang 16 parameters converted to SI units
-      n_alpha = 14.764;
-      n_b = 1.49;
-      mu = 0.0;
-      gamma = 1.0;
-    } else if (name == "Field19") {
-      n_alpha = 7.9e9;
-      n_b = -2.58;
-      mu = 0.0;
-      gamma = 1.0;
-    } else {
-      std::ostringstream os;
-      os << "The PSD configuration '" << name << "' is currently not supported."
-         << " Supported config names are 'Abel12', 'Wang16', 'Field19'.";
-      throw std::runtime_error(os.str());
-    }
+                  bool picky_);
+
+  static constexpr SizeParameter get_size_parameter() {
+    return SizeParameter::DVeq;
   }
 
   /** Evaluate PSD at given atmospheric point.
@@ -88,6 +63,41 @@ struct MGDSingleMoment {
                   const Vector& particle_sizes,
                   const Numeric& scat_species_a,
                   const Numeric& scat_species_b) const;
+
 };
 
+
+/*** Binned PSD
+ *
+ * The BinnedPSD class represents a particle size distribution using a fixed number of particle counts
+ * over a sequence of size bins. Particles with sizes outside the size and temperature range are set
+ * to zero.
+ */
+struct BinnedPSD {
+
+  SizeParameter size_parameter = SizeParameter::DVeq;
+  Vector bins;
+  Vector counts;
+  Numeric t_min = 0.0;
+  Numeric t_max = 350.0;
+
+  BinnedPSD() = default;
+
+  BinnedPSD(SizeParameter size_parameter_,
+            Vector bins_,
+            Vector counts_,
+            Numeric t_min_ = 0.0,
+            Numeric t_max_ = 350.0);
+
+  static constexpr SizeParameter get_size_parameter() {
+    return SizeParameter::Mass;
+  }
+
+  Vector evaluate(const AtmPoint& point,
+                  const Vector& particle_sizes,
+                  const Numeric& /*scat_species_a*/,
+                  const Numeric& /*scat_species_b*/) const;
+};
+
+}
 #endif  // ARTS_CORE_PSD_H_

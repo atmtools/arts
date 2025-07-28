@@ -257,6 +257,8 @@ class IrregularZenithAngleGrid {
   */
   IrregularZenithAngleGrid(const Vector& zenith_angles);
 
+  size_t size() const { return angles.size(); }
+
   /// The cosines of the zenith-angle grid points in radians.
   const Vector& get_angle_cosines() const { return cos_theta_; }
 
@@ -275,7 +277,7 @@ class IrregularZenithAngleGrid {
 template <typename Quadrature>
 class QuadratureZenithAngleGrid {
  public:
-  Vector angles;
+  Vector angles{};
 
   /** Create new quadrature zenith-angle grid with given number of points.
   *
@@ -286,8 +288,13 @@ class QuadratureZenithAngleGrid {
   * weights of the quadrature.
   * @param degree The number of points of the quadrature.
   */
-  QuadratureZenithAngleGrid() : angles() {}
+  QuadratureZenithAngleGrid()                                 = default;
   QuadratureZenithAngleGrid(const QuadratureZenithAngleGrid&) = default;
+  QuadratureZenithAngleGrid(QuadratureZenithAngleGrid&&)      = default;
+  QuadratureZenithAngleGrid& operator=(const QuadratureZenithAngleGrid&) =
+      default;
+  QuadratureZenithAngleGrid& operator=(QuadratureZenithAngleGrid&&) = default;
+
   QuadratureZenithAngleGrid(Index n_points)
       : angles(n_points), quadrature_(n_points) {
     auto nodes = quadrature_.get_nodes();

@@ -5,8 +5,12 @@ add_library(scattering STATIC
    properties.cc
    psd.cc
    sht.cc
+   utils.cc
    phase_matrix.cc
    henyey_greenstein.cc
+   particle_habit.cc
+   scattering_habit.cc
+   bulk_scattering_properties.cc
 )
 
 target_include_directories(scattering PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")

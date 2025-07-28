@@ -1,6 +1,13 @@
+if (ENABLE_ARTS_LGPL)
+  add_library(disort-cpp-eigen STATIC disort-eigen.lgpl.cpp)
+else (ENABLE_ARTS_LGPL)
+  add_library(disort-cpp-eigen STATIC disort-eigen.gpl.cpp)
+endif ()
+target_link_libraries(disort-cpp-eigen PUBLIC matpack)
+
 add_library(disort-cpp STATIC disort.cpp)
 
-target_link_libraries(disort-cpp PUBLIC matpack legendre artstime operators)
+target_link_libraries(disort-cpp PUBLIC matpack legendre artstime operators disort-cpp-eigen)
 target_include_directories(disort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Add tests, split them because they contain too much data otherwise

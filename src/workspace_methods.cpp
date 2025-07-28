@@ -2335,6 +2335,20 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
           },
   };
 
+  wsm_data["spectral_radianceApplyForwardUnit"] = {
+      .desc   = R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in =
+          {
+              "spectral_radiance",
+              "frequency_grid",
+              "ray_path_point",
+              "spectral_radiance_transform_operator",
+          },
+  };
+
   wsm_data["propagation_matrix_jacobianWindFix"] = {
       .desc   = R"--(Fix for the wind field derivative.
 
@@ -5017,9 +5031,13 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "ray_path_propagation_matrix_scattering",
-                 "ray_path_absorption_vector_scattering"},
+      .in =
+          {
+              "disort_settings",
+              "ray_path_propagation_matrix",
+              "ray_path_propagation_matrix_scattering",
+              "ray_path_absorption_vector_scattering",
+          },
   };
 
   wsm_data["disort_settingsNoSun"] = {
@@ -5181,8 +5199,8 @@ This is WIP and should not be used.
       .in     = {"frequency_grid",
                  "ray_path",
                  "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
+                 "disort_legendre_polynomial_dimension",
+                 "disort_fourier_mode_dimension"},
   };
 
   wsm_data["disort_spectral_radiance_fieldCalc"] = {

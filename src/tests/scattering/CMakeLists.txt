@@ -51,6 +51,14 @@ add_executable(test_particle_habit test_particle_habit.cc)
 target_link_libraries(test_particle_habit scattering artsworkspace)
 target_include_directories(test_particle_habit PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(test_scattering_habit test_scattering_habit.cc)
+target_link_libraries(test_scattering_habit scattering)
+target_include_directories(test_scattering_habit PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(test_psd test_psd.cc)
+target_link_libraries(test_psd scattering)
+target_include_directories(test_psd PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
+
 if(DOWNLOAD_XMLDATA_DEPS)
   add_dependencies(test_particle_habit arts_testdata_folder_download_xml)
 endif()

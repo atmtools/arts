@@ -163,6 +163,23 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radianceApplyForwardUnit(
+    StokvecVector &spectral_radiance,
+    const AscendingGrid &frequency_grid,
+    const PropagationPathPoint &ray_path_point,
+    const SpectralRadianceTransformOperator
+        &spectral_radiance_transform_operator) try {
+  ARTS_TIME_REPORT
+
+  StokvecMatrix spectral_radiance_jacobian(0, frequency_grid.size());
+
+  spectral_radiance_transform_operator(spectral_radiance,
+                                       spectral_radiance_jacobian,
+                                       frequency_grid,
+                                       ray_path_point);
+}
+ARTS_METHOD_ERROR_CATCH
+
 void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const Workspace &ws,
     StokvecMatrix &spectral_radiance_jacobian,

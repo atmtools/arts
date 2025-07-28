@@ -18,6 +18,24 @@ constexpr auto sum(const Self& self) {
   return std::reduce(self.elem_begin(), self.elem_end());
 }
 
+/** Sum the absolute of all elements in the range
+ * 
+ * @param self The range to sum
+ * @return The absolute sum of all elements in the range
+ */
+template <any_md Self>
+constexpr auto abssum(const Self& self) {
+  const auto sum_abs = [](auto& a) -> value_type<Self> {
+    return nonstd::abs(a);
+  };
+
+  return std::transform_reduce(self.elem_begin(),
+                               self.elem_end(),
+                               value_type<Self>{},
+                               std::plus<>{},
+                               sum_abs);
+}
+
 /** The mean of all elements in the range using it's reduce operation after scaling the value by the size of the range
  * 
  * This is effectively the same as sum(self / len(self)).

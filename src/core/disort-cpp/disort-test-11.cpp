@@ -27,8 +27,9 @@ void test_11a_1layer() try {
   b_pos[0] = 1;
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
-  const Matrix s_poly_coeffs{
-      Vector{172311.79936609, -102511.4417051}.reshape(tau_arr.size(), 2)};
+  const Matrix s_poly_coeffs{Vector{172311.79936609 / (1 - omega_arr[0]),
+                                    -102511.4417051 / (1 - omega_arr[0])}
+                                 .reshape(tau_arr.size(), 2)};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)
@@ -233,6 +234,7 @@ void test_11a_multilayer() try {
   Matrix s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs)
     v = std::array{172311.79936609, -102511.4417051};
+  s_poly_coeffs /= 1 - omega_arr[0];
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
   // Optional (unused)

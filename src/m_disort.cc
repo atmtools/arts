@@ -33,6 +33,8 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
   disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
 
   disort::main_data dis = disort_settings.init();
+  Tensor3 ims(np, phis.size(), nquad / 2);
+  Tensor3 tms(np, phis.size(), nquad);
 
   //! Supplementary outputs
   disort_quadrature_weights = dis.weights();
@@ -43,12 +45,12 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
                  [](const Numeric& mu) { return acosd(mu); });
 
   String error;
-#pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis)
+#pragma omp parallel for if (not arts_omp_in_parallel()) \
+    firstprivate(dis, tms, ims)
   for (Index iv = 0; iv < nv; iv++) {
     try {
       disort_settings.set(dis, iv);
-
-      dis.gridded_u(disort_spectral_radiance_field[iv], phis);
+      dis.gridded_u_corr(disort_spectral_radiance_field[iv], tms, ims, phis);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

@@ -4,9 +4,12 @@
 #include "phase_matrix.h"
 #include "extinction_matrix.h"
 #include "absorption_vector.h"
+#include <rtepack.h>
+
 
 
 namespace scattering {
+
 
   template<Format format, Representation repr>
   using PhaseMatrix = PhaseMatrixData<Numeric, format, repr>;
@@ -64,6 +67,49 @@ namespace scattering {
       return *this;
     }
   };
+
+  //////////////////////////////////////////////////////////////////////////////
+  //  TRO bulk scattering properties in gridded format
+  //////////////////////////////////////////////////////////////////////////////
+
+  struct BulkScatteringPropertiesTROGridded {
+
+    using PhaseMatrixVector = Tensor4;
+    using ExtinctionMatrixVector = Tensor3;
+    using AbsorptionVectorVector = Matrix;
+
+    std::optional<PhaseMatrixVector> phase_matrix;
+    ExtinctionMatrixVector extinction_matrix;
+    AbsorptionVectorVector absorption_vector;
+
+     BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded &other) const ;
+
+     BulkScatteringPropertiesTROGridded& operator+=(const BulkScatteringPropertiesTROGridded &other)  ;
+
+     BulkScatteringPropertiesTROGridded& operator*=(Numeric fac)  ;
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  //  TRO bulk scattering properties in spectral format
+  //////////////////////////////////////////////////////////////////////////////
+
+  struct BulkScatteringPropertiesTROSpectral {
+
+      using PhaseMatrixVector = ComplexTensor4;
+      using ExtinctionMatrixVector = Tensor3;
+      using AbsorptionVectorVector = Matrix;
+
+      std::optional<PhaseMatrixVector> phase_matrix;
+      ExtinctionMatrixVector extinction_matrix;
+      AbsorptionVectorVector absorption_vector;
+
+       BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral &other) const ;
+
+       BulkScatteringPropertiesTROSpectral& operator+=(const BulkScatteringPropertiesTROSpectral &other) ;
+
+       BulkScatteringPropertiesTROSpectral& operator*=(Numeric fac);
+  };
+
 }
 
 
