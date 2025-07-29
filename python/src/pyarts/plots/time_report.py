@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 
-def time_report(*, clear=True, scale=1.0, fig=None):
-    """ Plots the time report.
+def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
+    """Plots the time report.
 
     The time report is available only when
     ARTS has been compiled with the CMake option ``-DENABLE_ARTS_PROFILING=OFF``,
@@ -22,22 +22,18 @@ def time_report(*, clear=True, scale=1.0, fig=None):
     scale : float, optional
         The scale of the time axis, defaults to 1.0.
     fig : matplotlib figure, optional
-        The figure to draw on.  By default creates a new figure.
-    
+        The figure to draw on in a plotting mode.  By default creates a new figure.
+
     Return
     ------
-    fig : matplotlib figure
-    ax : matplotlib axis on figure
     r : dict
         The time report
-
+    *out : tuple
+        If mode is "plot", returns the matplotlib figure and axis.
+        If mode is "table", returns a string containing the time report in Markdown table format.
     """
+
     r = pyarts.arts.globals.time_report(clear)
-
-    if fig is None:
-        fig = plt.figure()
-
-    ax = fig.add_subplot()
 
     m = None
     X = 0
@@ -56,19 +52,76 @@ def time_report(*, clear=True, scale=1.0, fig=None):
         for f in r[x]:
             if f not in res:
                 res[f] = []
-                dt[f] = 1e309
+                dt[f] = [1e309, 0.0]
             for p in r[x][f]:
-                tv = np.array([p[0].sec, p[1].sec])-m
+                tv = np.array([p[0].sec, p[1].sec]) - m
                 tv *= scale
                 res[f].append([tv, np.array([x, x])])
-                dt[f] = np.min([tv[0], dt[f]])
+                dt[f][0] = np.min([tv[0], dt[f][0]])
+                dt[f][1] += tv[1] - tv[0]
+
+    if mintime is not None:
+        keys = np.array(list(res.keys()))
+        for key in keys:
+            if dt[key][0] < mintime:
+                del res[key]
+                del dt[key]
+
+    unit = time_report_unit(scale)
+
+    if mode == "plot":
+        out = time_report_plot(res, dt, unit, fig)
+    elif mode == "table":
+        out = [time_report_table(res, dt, unit)]
+    else:
+        raise ValueError(
+            f"Unknown mode {mode}, see method description for valid modes."
+        )
+
+    return r, *out
+
+
+def time_report_unit(scale):
+    if scale == 1.0:
+        return "s"
+    elif scale == 1e3:
+        return "ms"
+    elif scale == 1e6:
+        return "µs"
+    else:
+        return f"{scale} x s"
+
+
+def time_report_plot(res, dt, unit, fig):
+    """Plots the time report.
+
+    Parameters
+    ----------
+    res : dict
+        The flattened time report.
+    dt : dict
+        The time report with the minimum time for each method.
+    unit : str
+        The unit of the time axis, e.g., 's', 'ms', 'µs', etc.
+    fig : matplotlib figure, optional
+        The figure to draw on.
+
+    Returns
+    -------
+    fig : matplotlib figure
+    ax : matplotlib axis on figure
+    """
 
     keys = np.array(list(res.keys()))
-    vs = np.array([dt[key] for key in keys])
+    vs = np.array([dt[key][0] for key in keys])
     keys = keys[np.argsort(vs)]
 
+    if fig is None:
+        fig = plt.figure()
 
-    colors = cm.get_cmap('viridis', len(keys))
+    ax = fig.add_subplot()
+
+    colors = cm.get_cmap("viridis", len(keys))
 
     i = 0
     for key in keys:
@@ -80,15 +133,43 @@ def time_report(*, clear=True, scale=1.0, fig=None):
                 plt.plot(*x, color=colors.colors[i], lw=3)
         i += 1
 
-    ax.legend(ncols= 4, loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend(ncols=4, loc="center left", bbox_to_anchor=(1, 0.5))
     ax.set_ylabel("Core ID")
-    if scale == 1.0:
-        ax.set_xlabel("Time [s]")
-    elif scale == 1e3:
-        ax.set_xlabel("Time [ms]")
-    elif scale == 1e6:
-        ax.set_xlabel("Time [µs]")
-    else:
-        ax.set_xlabel(f"Time [{scale} x s]")
+    ax.set_xlabel(f"Time [{unit}]")
 
-    return fig, ax, r
+    return fig, ax
+
+
+def time_report_table(res, dt, unit):
+    """Prints the time report in text format.
+
+    Parameters
+    ----------
+    res : dict
+        The flattened time report.
+    dt : dict
+        The time report with the minimum time for each method.
+
+    Returns
+    -------
+    str
+        A string containing the time report in Markdown table format.
+    """
+
+    keys = np.array(list(res.keys()))
+    vs = np.array([dt[key][1] for key in keys])
+    keys = keys[np.argsort(vs)]
+
+    out = f"| Method    | Total Time [{unit}]  | Minimum Time [{unit}] | Max Time [{unit}] | Average Time [{unit}] | Times Called |\n"
+    out += "| --------- | ------------ | ------------ | -------- | ------------ | ------------ |\n"
+
+    for key in keys:
+        mint = dt[key][0]
+        numc = len(res[key])
+        avgt = dt[key][1] / numc
+        dts = [v[0][1] - v[0][0] for v in res[key]]
+        maxt = max(dts)
+        tott = dt[key][1]
+        out += f"| {key} | {tott} | {mint} | {maxt} | {avgt} | {numc} |\n"
+
+    return out
