@@ -42,9 +42,9 @@ def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
         for f in r[x]:
             for p in r[x][f]:
                 if m is None:
-                    m = p[0].sec
-                m = min(m, p[0].sec)
-                m = min(m, p[1].sec)
+                    m = p[0].timestamp()
+                m = min(m, p[0].timestamp())
+                m = min(m, p[1].timestamp())
 
     dt = {}
     res = {}
@@ -54,7 +54,7 @@ def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
                 res[f] = []
                 dt[f] = [1e309, 0.0]
             for p in r[x][f]:
-                tv = np.array([p[0].sec, p[1].sec]) - m
+                tv = np.array([p[0].timestamp(), p[1].timestamp()]) - m
                 tv *= scale
                 res[f].append([tv, np.array([x, x])])
                 dt[f][0] = np.min([tv[0], dt[f][0]])

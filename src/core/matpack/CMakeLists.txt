@@ -18,7 +18,7 @@ find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
 
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
-target_link_libraries(matpack PUBLIC coretypes util binio arts_enum_options Eigen3::Eigen xml_io)
+target_link_libraries(matpack PUBLIC coretypes util binio arts_enum_options time_report Eigen3::Eigen xml_io)
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")
 

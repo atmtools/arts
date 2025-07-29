@@ -1,6 +1,7 @@
 #include "matpack_mdspan_helpers_band_matrix.h"
 
 #include <debug.h>
+#include <time_report.h>
 
 extern "C" void dgbsv_(int* N,
                        int* KL,
@@ -53,6 +54,8 @@ band_matrix::band_matrix(const Matrix& ab)
 }
 
 int band_matrix::solve(Vector& bx) {
+  ARTS_TIME_REPORT
+
   int n    = static_cast<int>(N);
   int kl   = static_cast<int>(KL);
   int ku   = static_cast<int>(KU);

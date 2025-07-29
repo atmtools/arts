@@ -1,6 +1,7 @@
 #include "time_report.h"
 
 #include <arts_omp.h>
+#include <mystring.h>
 
 #include <mutex>
 #include <unordered_map>
@@ -24,13 +25,14 @@ TimeReport profile_report;
 std::mutex mprofile_report;
 }  // namespace
 
-profiler::profiler(std::string&& key) : name(std::move(key)), start(Time{}) {}
+profiler::profiler(std::string&& key)
+    : name(std::move(key)), start(std::chrono::system_clock::now()) {}
 
 profiler::profiler(std::source_location loc)
     : profiler(short_name(loc.function_name())) {}
 
 profiler::~profiler() {
-  const Time end{};
+  const time_t end{std::chrono::system_clock::now()};
   const int core = arts_omp_get_thread_num();
 
   // Lock might add extra pause inbetween thread calls, but it is safe
