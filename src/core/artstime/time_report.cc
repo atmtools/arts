@@ -1,20 +1,28 @@
 #include "time_report.h"
 
-#include <chrono>
+#include <arts_omp.h>
+
 #include <mutex>
 #include <unordered_map>
-
-#include <arts_omp.h>
 
 namespace arts {
 namespace {
 std::string short_name(const std::string& name) {
-  return split(split(name, "(")[0], " ").back();
+  const auto p1 = split(name, "(");
+
+  const auto s1 = std::span{p1}.first(std::max<Size>(p1.size() - 1, 1));
+  String s      = join(s1, "(");
+  trim(s);
+
+  const auto p2 = split(s, " ");
+  const auto s2 = std::span{p2}.last(std::max<Size>(p2.size() - 1, 1));
+
+  return join(s2, " ");
 }
-}  // namespace
 
 TimeReport profile_report;
 std::mutex mprofile_report;
+}  // namespace
 
 profiler::profiler(std::string&& key) : name(std::move(key)), start(Time{}) {}
 

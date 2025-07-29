@@ -63,7 +63,7 @@ def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
     if mintime is not None:
         keys = np.array(list(res.keys()))
         for key in keys:
-            if dt[key][0] < mintime:
+            if dt[key][1] < mintime:
                 del res[key]
                 del dt[key]
 
@@ -158,18 +158,18 @@ def time_report_table(res, dt, unit):
 
     keys = np.array(list(res.keys()))
     vs = np.array([dt[key][1] for key in keys])
-    keys = keys[np.argsort(vs)]
+    keys = keys[np.argsort(vs)][::-1]
 
-    out = f"| Method    | Total Time [{unit}]  | Minimum Time [{unit}] | Max Time [{unit}] | Average Time [{unit}] | Times Called |\n"
+    out = f"| Method    | Total Time [{unit}]  | Min Time [{unit}] | Max Time [{unit}] | Average Time [{unit}] | Times Called |\n"
     out += "| --------- | ------------ | ------------ | -------- | ------------ | ------------ |\n"
 
     for key in keys:
-        mint = dt[key][0]
         numc = len(res[key])
         avgt = dt[key][1] / numc
         dts = [v[0][1] - v[0][0] for v in res[key]]
+        mint = min(dts)
         maxt = max(dts)
         tott = dt[key][1]
-        out += f"| {key} | {tott} | {mint} | {maxt} | {avgt} | {numc} |\n"
+        out += f"| {key} | {round(tott,1)} | {round(mint,1)} | {round(maxt,1)} | {round(avgt,1)} | {numc} |\n"
 
     return out

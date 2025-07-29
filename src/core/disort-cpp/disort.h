@@ -24,8 +24,6 @@ struct BDRF {
                   const ConstVectorView& b) const;
 
   Matrix operator()(const Vector& a, const Vector& b) const;
-
-  friend std::ostream& operator<<(std::ostream& os, const BDRF&);
 };
 
 struct mathscr_v_data {
@@ -128,6 +126,7 @@ class main_data {
   Tensor4 GC_collect{};                 // [NFourier, NLayers, NQuad, NQuad]
   Tensor4 G_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
   Tensor3 K_collect{};                  // [NFourier, NLayers, NQuad]
+  Tensor3 expK_collect{};               // [NFourier, NLayers, NQuad]
   Tensor3 B_collect{};                  // [NFourier, NLayers, NQuad]
   Numeric I0_orig{};
   Numeric f_avg{};
@@ -147,6 +146,9 @@ class main_data {
   Vector E_lm1l{};                      // [N]
   Vector E_llp1{};                      // [N]
   Vector BDRF_RHS_contribution{};       // [N]
+  Vector SRCB{};                        // [NQuad]
+  Matrix SRC0{};                        // [NLayers, NQuad]
+  Matrix SRC1{};                        // [NLayers, NQuad]
   Matrix Gml{};                         // [NQuad, NQuad]
   Matrix BDRF_LHS{};                    // [N, NQuad]
   Matrix R{};                           // [N, N]
@@ -401,6 +403,36 @@ class main_data {
     */
   void diagonalize();
 
+  /** Compute the transmission coefficients
+    *
+    * This function depends on diagonalize.
+    * 
+    * Depends on:
+    * - K_collect
+    *
+    * Modifies:
+    * - exp_K
+    */
+  void transmission();
+
+  /** Compute the source function
+    *
+    * This function depends on diagonalize.
+    * 
+    * Depends on:
+    * - G_collect[0]
+    * - K_collect[0]
+    * - source_poly_coeffs 
+    * - omega_arr
+    * - tau_arr
+    * - inv_mu_arr
+    *
+    * Modifies:
+    * - SRC0
+    * - SRC1
+    */
+  void source_function();
+
   /** Solves the system of equations
     *
     * If you have manually changed any of the "Depends on" parameters,
@@ -577,8 +609,6 @@ class main_data {
 
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
-
-  friend std::ostream& operator<<(std::ostream& os, const main_data&);
 };
 }  // namespace disort
 
