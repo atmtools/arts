@@ -32,8 +32,6 @@ Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
   return x;
 }
 
-std::ostream& operator<<(std::ostream& os, const BDRF&) { return os << "BDRF"; }
-
 namespace {
 constexpr Range rf(Size N) { return {0, N}; }
 constexpr Range rb(Size N) { return {N, N}; }
@@ -103,64 +101,56 @@ void mathscr_v(VectorView um,
   source_update_um(data, um, G, Ni0, scl, add);
 }
 
-void rhs_source_term(VectorView RHS,
-                     mathscr_v_data& data,
-                     VectorView jvec,
-                     const Vector& tau,
-                     const Vector& omega,
-                     const Matrix& Sc,
-                     const Matrix& R,
-                     const ConstTensor3View& Gm,
-                     const ConstMatrixView& Km,
-                     const Vector& inv_mu_arr,
-                     const Index n,
-                     const Index N,
-                     const Index NBDRF,
-                     const Index ln,
-                     const Index NQuad) {
-  const Range rb{n - N, N};
-
+void source_terms(MatrixView SRC0,
+                  MatrixView SRC1,
+                  VectorView SRCB,
+                  mathscr_v_data& data,
+                  const Vector& tau,
+                  const Vector& omega,
+                  const Matrix& Sc,
+                  const ConstTensor3View& Gm,
+                  const ConstMatrixView& Km,
+                  const Vector& inv_mu_arr,
+                  const Index N,
+                  const Index NLayers) {
   source_set_k1(data, Gm[0], inv_mu_arr);
   source_set_k2(data, 0.0, omega[0], Sc[0], Km[0]);
   source_scale_k2(data);
-  source_update_um(data, RHS[rf(N)], Gm[0], N, -1.0);
+  source_update_um(data, SRCB[rf(N)], Gm[0], N);
 
-  for (Index l = 0; l < ln; l++) {
-    const Range r{l * NQuad + N, NQuad};
-
+  for (Index l = 0; l < NLayers; l++) {
     source_set_k2(data, tau[l], omega[l], Sc[l], Km[l]);
     source_scale_k2(data);
-    source_update_um(data, RHS[r], Gm[l], 0, -1.0);
+    source_update_um(data, SRC0[l], Gm[l]);
 
-    source_set_k1(data, Gm[l + 1], inv_mu_arr);
+    if (l < NLayers - 1) {
+      source_set_k1(data, Gm[l + 1], inv_mu_arr);
 
-    source_set_k2(data, tau[l], omega[l + 1], Sc[l + 1], Km[l + 1]);
-    source_scale_k2(data);
-    source_update_um(data, RHS[r], Gm[l + 1], 0, 1.0, 1.0);
+      source_set_k2(data, tau[l], omega[l + 1], Sc[l + 1], Km[l + 1]);
+      source_scale_k2(data);
+      source_update_um(data, SRC1[l], Gm[l + 1]);
+    }
   }
 
+  const Index ln = NLayers - 1;
   source_set_k2(data, tau.back(), omega[ln], Sc[ln], Km[ln]);
   source_scale_k2(data);
-  source_update_um(data, RHS[rb], Gm[ln], 0, -1.0);
-
-  if (NBDRF > 0) {
-    source_update_um(data, jvec[rf(N)], Gm[ln], N);
-    mult(RHS[rb], R, jvec[rf(N)], 1.0, 1.0);
-  }
+  source_update_um(data, SRCB[rb(N)], Gm[ln]);
 }
 }  // namespace
 
 void main_data::solve_for_coefs() {
   ARTS_TIME_REPORT
 
-  const Index ln  = NLayers - 1;
-  auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NQuad, NLayers - 1);
+  const Index ln = NLayers - 1;
+
+  //! FIXME: Original code is transposed, but I suspect it is a bug
+  auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NLayers - 1, NQuad);
 
   for (Index m = 0; m < NFourier; m++) {
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool       = m < NBDRF;
     const auto G_collect_m     = G_collect[m];
-    const auto K_collect_m     = K_collect[m];
     const auto B_collect_m     = B_collect[m];
 
     if (BDRF_bool) {
@@ -182,28 +172,25 @@ void main_data::solve_for_coefs() {
       ARTS_NAMED_TIME_REPORT("disort::rhs"s);
 
       if (has_source_poly and m_equals_0_bool) {
-        rhs_source_term(RHS,
-                        comp_data,
-                        jvec,
-                        tau_arr,
-                        omega_arr,
-                        source_poly_coeffs,
-                        R,
-                        G_collect_m,
-                        K_collect_m,
-                        inv_mu_arr,
-                        n,
-                        N,
-                        NBDRF,
-                        ln,
-                        NQuad);
+        for (Index i = 0; i < N; i++) RHS[i] = -SRCB[i];
+        for (Index i = 0; i < N; i++) RHS[n - N + i] = -SRCB[i + N];
+        std::transform(SRC1.elem_begin(),
+                       SRC1.elem_end() - NQuad,
+                       SRC0.elem_begin(),
+                       RHS_middle.elem_begin(),
+                       std::minus{});
+
+        if (NBDRF > 0) {
+          source_update_um(comp_data, jvec[rf(N)], G_collect_m[ln], N);
+          mult(RHS[Range{n - N, N}], R, jvec[rf(N)], 1.0, 1.0);
+        }
       } else {
         RHS = 0.0;
       }
 
       if (has_beam_source) {
         if (BDRF_bool) {
-          std::ranges::copy(mathscr_X_pos, BDRF_RHS_contribution.begin());
+          stdr::copy(mathscr_X_pos, BDRF_RHS_contribution.begin());
           mult(BDRF_RHS_contribution, R, B_collect_m[ln, rf(N)], 1.0, 1.0);
         } else {
           BDRF_RHS_contribution = 0.0;
@@ -212,7 +199,7 @@ void main_data::solve_for_coefs() {
         for (Index l = 0; l < ln; l++) {
           const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
           for (Index j = 0; j < NQuad; j++) {
-            RHS_middle[j, l] +=
+            RHS_middle[l, j] +=
                 (B_collect_m[l + 1, j] - B_collect_m[l, j]) * scl;
           }
         }
@@ -233,51 +220,35 @@ void main_data::solve_for_coefs() {
     {
       ARTS_NAMED_TIME_REPORT("disort::lhs"s);
 
-      for (Index i = 0; i < N; i++) {
-        E_Lm1L[i] =
-            std::exp(K_collect_m[ln, i] * (scaled_tau_arr_with_0[NLayers] -
-                                           scaled_tau_arr_with_0[NLayers - 1]));
-      }
-
       if (BDRF_bool) {
         mult(BDRF_LHS, R, G_collect_m[ln, rb(N)]);
       } else if (m == NBDRF) {  // only once
         BDRF_LHS = 0;
       }
 
-      for (Index i = 0; i < N; i++) {
-        for (Index j = 0; j < N; j++) {
-          LHSB[i, j] = G_collect_m[0, i + N, j];
-          LHSB[i, N + j] =
-              G_collect_m[0, i + N, j + N] *
-              std::exp(K_collect_m[0, j] * scaled_tau_arr_with_0[1]);
+      for (Index j = 0; j < N; j++) {
+        for (Index i = 0; i < N; i++) {
+          LHSB[i, j]     = G_collect_m[0, i + N, j];
+          LHSB[i, N + j] = G_collect_m[0, i + N, j + N] * expK_collect[m, 0, j];
           LHSB[n - N + i, n - 2 * N + j] =
-              (G_collect_m[ln, i, j] - BDRF_LHS[i, j]) * E_Lm1L[j];
+              (G_collect_m[ln, i, j] - BDRF_LHS[i, j]) * expK_collect[m, ln, j];
           LHSB[n - N + i, n - N + j] =
               G_collect_m[ln, i, j + N] - BDRF_LHS[i, j + N];
         }
       }
 
       for (Index l = 0; l < ln; l++) {
-        for (Index i = 0; i < N; i++) {
-          E_lm1l[i] =
-              std::exp(K_collect_m[l, i + N] * (scaled_tau_arr_with_0[l] -
-                                                scaled_tau_arr_with_0[l + 1]));
-          E_llp1[i] = std::exp(
-              K_collect_m[l + 1, i + N] *
-              (scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l + 2]));
-        }
-
-        for (Index i = 0; i < N; i++) {
-          for (Index j = 0; j < N; j++) {
-            LHSB[N + l * NQuad + i, l * NQuad + j] =
-                G_collect_m[l, i, j] * E_lm1l[j];
+        for (Index j = 0; j < N; j++) {
+          const Numeric e1 = 1.0 / expK_collect[m, l, j + N];
+          const Numeric e2 = 1.0 / expK_collect[m, l + 1, j + N];
+          for (Index i = 0; i < N; i++) {
+            LHSB[N + l * NQuad + i, l * NQuad + j] = G_collect_m[l, i, j] * e1;
             LHSB[2 * N + l * NQuad + i, l * NQuad + j] =
-                G_collect_m[l, N + i, j] * E_lm1l[j];
+                G_collect_m[l, N + i, j] * e1;
             LHSB[N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
-                -G_collect_m[l + 1, i, N + j] * E_llp1[j];
+                -G_collect_m[l + 1, i, N + j] * e2;
             LHSB[2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j] =
-                -G_collect_m[l + 1, N + i, N + j] * E_llp1[j];
+                -G_collect_m[l + 1, N + i, N + j] * e2;
           }
         }
 
@@ -342,9 +313,8 @@ void main_data::diagonalize() {
     }
 
     const bool all_asso_leg_term_pos_finite =
-        std::all_of(asso_leg_term_pos.elem_begin(),
-                    asso_leg_term_pos.elem_end(),
-                    [](auto& x) { return std::isfinite(x); });
+        stdr::all_of(elemwise_range(asso_leg_term_pos),
+                     [](auto& x) { return std::isfinite(x); });
 
     for (Index l = 0; l < NLayers; l++) {
       VectorView K = Km[l];
@@ -359,9 +329,8 @@ void main_data::diagonalize() {
 
       if (scaled_omega_l != 0.0 or
           (all_asso_leg_term_pos_finite and
-           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
-                       weighted_asso_Leg_coeffs_l.elem_end(),
-                       Cmp::gt(0)))) {
+           stdr::any_of(elemwise_range(weighted_asso_Leg_coeffs_l),
+                        Cmp::gt(0)))) {
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
@@ -416,7 +385,7 @@ void main_data::diagonalize() {
           mult(jvec[rb(N)].view_as(1, N), xtemp, asso_leg_term_neg);
           jvec[rb(N)] *= inv_mu_arr[rf(N)];
 
-          std::copy(G.elem_begin(), G.elem_end(), Gml.elem_begin());
+          stdr::copy(elemwise_range(G), Gml.elem_begin());
           solve_inplace(jvec, Gml, solve_work);
 
           for (Index j = 0; j < NQuad; j++) jvec[j] *= mu0 / (1.0 + K[j] * mu0);
@@ -534,7 +503,7 @@ void main_data::set_beam_source(const Numeric I0_) {
 
   has_beam_source = I0_ > 0;
 
-  if (std::all_of(b_pos.elem_begin(), b_pos.elem_end(), Cmp::eq(0)) and
+  if (stdr::all_of(elemwise_range(b_pos), Cmp::eq(0)) and
       not has_source_poly and has_beam_source) {
     I0_orig = I0_;
     I0      = 1;
@@ -602,19 +571,18 @@ void main_data::check_input_value() const {
                      tau_arr);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(omega_arr,
-                          [](auto&& omega) { return omega >= 1 or omega < 0; }),
+      stdr::any_of(omega_arr,
+                   [](auto&& omega) { return omega >= 1 or omega < 0; }),
       "omega_arr must be [0, 1), but got {:B,}",
       omega_arr);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Leg_coeffs_all,
-                          [](auto&& x) {
-                            return x[0] != 1 or
-                                   std::ranges::any_of(x, [](auto&& u) {
-                                     return std::abs<Numeric>(u) > 1;
-                                   });
-                          }),
+      stdr::any_of(Leg_coeffs_all,
+                   [](auto&& x) {
+                     return x[0] != 1 or stdr::any_of(x, [](auto&& u) {
+                              return std::abs<Numeric>(u) > 1;
+                            });
+                   }),
       "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
       Leg_coeffs_all);
 
@@ -625,19 +593,49 @@ void main_data::check_input_value() const {
                      phi0);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
+      stdr::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
       "f_arr must be [0, 1], got {:B,}",
       f_arr);
 
   ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          mu_arr[rf(N)],
-          [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
+      stdr::any_of(mu_arr[rf(N)],
+                   [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
       "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0. Got mu_arr {:B,} for mu0 {}",
       mu_arr,
       mu0);
+}
+
+void main_data::transmission() {
+  ARTS_TIME_REPORT
+
+  for (Index m = 0; m < NFourier; m++) {
+    for (Index l = 0; l < NLayers; l++) {
+      for (Index i = 0; i < NQuad; i++) {
+        expK_collect[m, l, i] =
+            std::exp(K_collect[m, l, i] *
+                     (scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]));
+      }
+    }
+  }
+}
+
+void main_data::source_function() {
+  ARTS_TIME_REPORT
+
+  source_terms(SRC0,
+               SRC1,
+               SRCB,
+               comp_data,
+               tau_arr,
+               omega_arr,
+               source_poly_coeffs,
+               G_collect[0],
+               K_collect[0],
+               inv_mu_arr,
+               N,
+               NLayers);
 }
 
 void main_data::update_all(const Numeric I0_) try {
@@ -650,6 +648,8 @@ void main_data::update_all(const Numeric I0_) try {
   set_scales();
   set_ims_factors();
   diagonalize();
+  transmission();
+  source_function();
   solve_for_coefs();
 }
 ARTS_METHOD_ERROR_CATCH
@@ -692,6 +692,7 @@ main_data::main_data(const Index NLayers_,
       GC_collect(NFourier, NLayers, NQuad, NQuad),
       G_collect(NFourier, NLayers, NQuad, NQuad),
       K_collect(NFourier, NLayers, NQuad),
+      expK_collect(NFourier, NLayers, NQuad),
       B_collect(NFourier, NLayers, NQuad),
       // Pure compute allocations
       n(NQuad * NLayers),
@@ -706,6 +707,9 @@ main_data::main_data(const Index NLayers_,
       E_lm1l(N),
       E_llp1(N),
       BDRF_RHS_contribution(N),
+      SRCB(NQuad),
+      SRC0(NLayers, NQuad),
+      SRC1(NLayers, NQuad),
       Gml(NQuad, NQuad),
       BDRF_LHS(N, NQuad),
       R(N, N),
@@ -785,6 +789,7 @@ main_data::main_data(const Index NQuad_,
       GC_collect(NFourier, NLayers, NQuad, NQuad),
       G_collect(NFourier, NLayers, NQuad, NQuad),
       K_collect(NFourier, NLayers, NQuad),
+      expK_collect(NFourier, NLayers, NQuad),
       B_collect(NFourier, NLayers, NQuad),
       // Pure compute allocations
       n(NQuad * NLayers),
@@ -799,6 +804,9 @@ main_data::main_data(const Index NQuad_,
       E_lm1l(N),
       E_llp1(N),
       BDRF_RHS_contribution(N),
+      SRCB(NQuad),
+      SRC0(NLayers, NQuad),
+      SRC1(NLayers, NQuad),
       Gml(NQuad, NQuad),
       BDRF_LHS(N, NQuad),
       R(N, N),
@@ -836,7 +844,7 @@ main_data::main_data(const Index NQuad_,
   ARTS_TIME_REPORT
 
   const Index l =
-      std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
+      std::distance(tau_arr.begin(), stdr::lower_bound(tau_arr, tau));
   ARTS_USER_ERROR_IF(
       l == NLayers, "tau ({}) must be at most {}", tau, tau_arr.back());
   return l;
@@ -1205,11 +1213,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
         std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
-  mult(data.u0_pos,
-       GC_collect[0, l, Range(0, N), joker],
-       data.exponent,
-       1.0,
-       1.0);
+  mult(data.u0_pos, GC_collect[0, l, rf(N), joker], data.exponent, 1.0, 1.0);
 
   return Constant::two_pi * I0_orig *
          einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, data.u0_pos);
@@ -1266,11 +1270,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
         std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
   }
 
-  mult(data.u0_neg,
-       GC_collect[0, l, Range(N, N), joker],
-       data.exponent,
-       1.0,
-       1.0);
+  mult(data.u0_neg, GC_collect[0, l, rb(N), joker], data.exponent, 1.0, 1.0);
 
   return {I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
                                             {}, mu_arr[rf(N)], W, data.u0_neg) -
@@ -1285,21 +1285,12 @@ void main_data::gridded_flux(VectorView flux_up,
 
   Vector u0(NQuad);
   Vector exponent(NQuad, 1);
-  mathscr_v_data src(NQuad, Nscoeffs);
 
   for (Index l = 0; l < NLayers; l++) {
-    const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
-    const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
+    const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
 
     if (has_source_poly) {
-      mathscr_v(u0,
-                src,
-                tau_arr[l],
-                omega_arr[l],
-                source_poly_coeffs[l],
-                G_collect[0, l],
-                K_collect[0, l],
-                inv_mu_arr);
+      u0 = SRC0[l];
     } else {
       u0 = 0.0;
     }
@@ -1314,12 +1305,8 @@ void main_data::gridded_flux(VectorView flux_up,
       }
     }
 
-    for (Index i = 0; i < N; i++) {
-      exponent[i] = std::exp(K_collect[0, l, i] *
-                             (scaled_tau_arr_l - scaled_tau_arr_lm1));
-    }
-
-    mult(u0, GC_collect[0, l, joker, joker], exponent, 1.0, 1.0);
+    exponent[rf(N)] = expK_collect[0, l, rf(N)];
+    mult(u0, GC_collect[0, l], exponent, 1.0, 1.0);
 
     flux_up[l] =
         Constant::two_pi * I0_orig *
@@ -1338,7 +1325,6 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
 
   Matrix exponent(NFourier, NQuad, 1);
   Matrix um(NFourier, NQuad);
-  mathscr_v_data src(NQuad, Nscoeffs);
 
   const Index Nphi = phi.size();
   Matrix cp(Nphi, NFourier);
@@ -1349,20 +1335,13 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
   }
 
   for (Index l = 0; l < NLayers; l++) {
-    const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
-    const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-
-    for (Index i = 0; i < NFourier; i++) {
-      for (Index j = 0; j < N; j++) {
-        exponent[i, j] = std::exp(K_collect[i, l, j] *
-                                  (scaled_tau_arr_l - scaled_tau_arr_lm1));
-      }
-    }
+    const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
 
     static_assert(
         matpack::einsum_optpath<"mi", "mij", "mj">(),
         "On Failure, the einsum has been changed to not use optimal path");
-    einsum<"mi", "mij", "mj">(um, GC_collect[joker, l, joker, joker], exponent);
+    exponent[joker, rf(N)] = expK_collect[joker, l, rf(N)];
+    einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
 
     if (has_beam_source) {
       for (Index m = 0; m < NFourier; m++) {
@@ -1372,19 +1351,7 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
       }
     }
 
-    if (has_source_poly) {
-      mathscr_v(um[0],
-                src,
-                tau_arr[l],
-                omega_arr[l],
-                source_poly_coeffs[l],
-                G_collect[0, l],
-                K_collect[0, l],
-                inv_mu_arr,
-                0,
-                1.0,
-                1.0);
-    }
+    if (has_source_poly) um[0] += SRC0[l];
 
     static_assert(
         matpack::einsum_optpath<"pi", "im", "pm">(),
@@ -1536,10 +1503,6 @@ void main_data::ungridded_u(Tensor3View out,
         "On Failure, the einsum has been changed to not use optimal path");
     einsum<"pi", "im", "pm">(out[il], transpose(um), cp);
   }
-}
-
-std::ostream& operator<<(std::ostream& os, const main_data&) {
-  return os << "Not implemented, output stream operator\n";
 }
 }  // namespace disort
 

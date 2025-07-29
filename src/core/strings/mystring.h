@@ -23,8 +23,8 @@ void tolower(String& x);
 
 void toupper(String& x);
 
-void join(String& res, const ArrayOfString& list, const String& with);
-String join(const ArrayOfString& list, const String& with);
+void join(String& res, const std::span<const String>& list, const String& with);
+String join(const std::span<const String>& list, const String& with);
 
 void split(ArrayOfString& aos, const String& x, const String& delim);
 ArrayOfString split(const String& x, const String& delim);
