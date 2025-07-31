@@ -34,7 +34,6 @@ SchmidthLegendre from(const IGRF13& x) {
   result.ell        = {Body::Earth::a, Body::Earth::b};
   result.component  = x.component;
   result.gh        *= 1e-9;  // Convert to nT
-  std::println("{:B}", result.gh);
   return result;
 }
 
