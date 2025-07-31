@@ -203,7 +203,7 @@ void jacobian_targetsAddOverlappingWindField(
     case wind_u:
     case wind_v: jacobian_targets.atm().back().type = wind_w; break;
     case wind_w: jacobian_targets.atm().back().type = wind_v; break;
-    default:     throw std::out_of_range("Invalide state");
+    default:     throw std::out_of_range("Invalid state");
   }
 }
 
