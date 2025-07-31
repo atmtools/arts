@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <utility>
 
+#include "functional_numeric_ternary.h"
+
 namespace Jacobian {
 ////////////////////////////////////////////////////////////////////////
 /// Templates for doing the common work of updating fields, model state vectors, and Jacobians
@@ -456,9 +458,14 @@ void SensorTarget::update_jac(MatrixView dy,
 /// ...
 ////////////////////////////////////////////////////////////////////////
 
-bool AtmTarget::is_wind() const {
-  return type == AtmKey::wind_u or type == AtmKey::wind_v or
-         type == AtmKey::wind_w;
+bool is_wind(const AtmTarget& t) {
+  return t.type == AtmKey::wind_u or t.type == AtmKey::wind_v or
+         t.type == AtmKey::wind_w;
+}
+
+bool is_mag(const AtmTarget& t) {
+  return t.type == AtmKey::mag_u or t.type == AtmKey::mag_v or
+         t.type == AtmKey::mag_w;
 }
 
 const std::vector<AtmTarget>& Targets::atm() const {
@@ -512,6 +519,29 @@ void Targets::finalize(const AtmField& atmospheric_field,
 
   Size last_size = 0;
 
+  bool magfield  = false;
+  bool windfield = false;
+  Size imag1st   = 0;
+  Size iwind1st  = 0;
+  for (Size i = 0; i < natm; i++) {
+    AtmTarget& t = atm()[i];
+    if (const auto& atmf = atmospheric_field[t.type];
+        std::holds_alternative<Atm::FunctionalData>(atmf.data)) {
+      if (ternary::is_field_function(
+              std::get_if<Atm::FunctionalData>(&atmf.data)->f)) {
+        if (not windfield and is_wind(t)) {
+          windfield = true;
+          iwind1st  = i;
+        }
+
+        if (not magfield and is_mag(t)) {
+          magfield = true;
+          imag1st  = i;
+        }
+      }
+    }
+  }
+
   for (Size i = 0; i < natm; i++) {
     AtmTarget& t = atm()[i];
     ARTS_USER_ERROR_IF(
@@ -519,9 +549,17 @@ void Targets::finalize(const AtmField& atmospheric_field,
             atm() | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
         "Multiple targets of the same type: {}",
         t.type)
-    t.x_start  = last_size;
-    t.x_size   = atmospheric_field[t.type].flat_view().size();
-    last_size += t.x_size;
+    if (imag1st < i and magfield and is_mag(t)) {
+      t.x_start = atm()[imag1st].x_start;
+      t.x_size  = atm()[imag1st].x_size;
+    } else if (iwind1st < i and windfield and is_wind(t)) {
+      t.x_start = atm()[iwind1st].x_start;
+      t.x_size  = atm()[iwind1st].x_size;
+    } else {
+      t.x_start  = last_size;
+      t.x_size   = atmospheric_field[t.type].flat_view().size();
+      last_size += t.x_size;
+    }
   }
 
   for (Size i = 0; i < nsurf; i++) {

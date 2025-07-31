@@ -71,9 +71,10 @@ struct AtmTarget {
   void update_model(AtmField& y, cv x) const;
   void update_state(VectorView x, const AtmField& y) const;
   void update_jac(MatrixView dy, cv x, const AtmField& y) const;
-
-  [[nodiscard]] bool is_wind() const;
 };
+
+[[nodiscard]] bool is_wind(const AtmTarget&);
+[[nodiscard]] bool is_mag(const AtmTarget&);
 
 /** The class that deals with Jacobian targets that are part of a SurfaceField object
  * 

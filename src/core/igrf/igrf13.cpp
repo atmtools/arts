@@ -2,11 +2,10 @@
 
 #include <arts_conversions.h>
 #include <arts_omp.h>
+#include <geodetic.h>
 #include <legendre.h>
 
 #include <cmath>
-
-#include "geodetic.h"
 
 namespace {
 /** International Geomagnetic Reference Field version 13
@@ -307,52 +306,6 @@ constexpr matpack::cdata_t<Numeric, 14, 14> h2000{
 //! The reference radius in IGRF13
 constexpr Numeric r0{6371.2e3};
 
-Vector3 geocentric2ecef(const Vector3 pos) {
-  const Numeric latrad = Conversion::deg2rad(pos[1]);
-  const Numeric lonrad = Conversion::deg2rad(pos[2]);
-  Vector3 ecef;
-  ecef[0] = pos[0] * std::cos(latrad);  // Common term for x and z
-  ecef[1] = ecef[0] * std::sin(lonrad);
-  ecef[0] = ecef[0] * std::cos(lonrad);
-  ecef[2] = pos[0] * std::sin(latrad);
-  return ecef;
-}
-
-Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
-  Vector3 ecef;
-
-  // Use geocentric function if geoid is spherical
-  if (is_ellipsoid_spherical(refellipsoid)) {
-    ecef = geocentric2ecef({pos[0] + refellipsoid[0], pos[1], pos[2]});
-  } else {
-    // See https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
-    const Numeric latrad = Conversion::deg2rad(pos[1]);
-    const Numeric lonrad = Conversion::deg2rad(pos[2]);
-    const Numeric sinlat = std::sin(latrad);
-    const Numeric coslat = std::cos(latrad);
-    const Numeric a2     = refellipsoid[0] * refellipsoid[0];
-    const Numeric b2     = refellipsoid[1] * refellipsoid[1];
-    const Numeric N =
-        a2 / std::sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
-    const Numeric nhcos = (N + pos[0]) * coslat;
-    ecef[0]             = nhcos * std::cos(lonrad);
-    ecef[1]             = nhcos * std::sin(lonrad);
-    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
-  }
-
-  return ecef;
-}
-
-Vector3 ecef2geocentric(const Vector3 ecef) {
-  const Numeric r = hypot(ecef);
-  return {
-      r, Conversion::asind(ecef[2] / r), Conversion::atan2d(ecef[1], ecef[0])};
-}
-
-Vector3 geodetic2geocentric(const Vector3 pos, const Vector2 ell) {
-  return ecef2geocentric(geodetic2ecef(pos, ell));
-}
-
 /** Perform all computations on pre-allocated local data
  *
  * \param[in,out] out Size-initialized output data
@@ -463,5 +416,98 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   }
 
   return igrf_impl(mg2000, mh2000, pos, ell);
+}
+
+std::pair<Matrix, Matrix> igrf_coefficients(const Time &time) {
+  static const Time y2020("2020-01-01 00:00:00");
+  static const Matrix mg2020{g2020};
+  static const Matrix mh2020{h2020};
+
+  if (time >= y2020) return {mg2020, mh2020};
+
+  static const Time y2015("2015-01-01 00:00:00");
+  static const Matrix mg2015{g2015};
+  static const Matrix mh2015{h2015};
+
+  if (time >= y2015) {
+    const Numeric scale = (time.Seconds() - y2015.Seconds()) /
+                          (y2020.Seconds() - y2015.Seconds());
+    assert(scale >= 0 and scale < 1);
+
+    Matrix h(mh2020), g(mg2020);
+    Matrix tmp_h(mh2015), tmp_g(mg2015);
+    h     *= (1.0 - scale);
+    g     *= (1.0 - scale);
+    tmp_h *= scale;
+    tmp_g *= scale;
+    h     += tmp_h;
+    g     += tmp_g;
+
+    return {g, h};
+  }
+
+  static const Time y2010("2010-01-01 00:00:00");
+  static const Matrix mg2010{g2010};
+  static const Matrix mh2010{h2010};
+
+  if (time >= y2010) {
+    const Numeric scale = (time.Seconds() - y2010.Seconds()) /
+                          (y2015.Seconds() - y2010.Seconds());
+    assert(scale >= 0 and scale < 1);
+
+    Matrix h(mh2015), g(mg2015);
+    Matrix tmp_h(mh2010), tmp_g(mg2010);
+    h     *= (1.0 - scale);
+    g     *= (1.0 - scale);
+    tmp_h *= scale;
+    tmp_g *= scale;
+    h     += tmp_h;
+    g     += tmp_g;
+
+    return {g, h};
+  }
+
+  static const Time y2005("2005-01-01 00:00:00");
+  static const Matrix mg2005{g2005};
+  static const Matrix mh2005{h2005};
+
+  if (time >= y2005) {
+    const Numeric scale = (time.Seconds() - y2005.Seconds()) /
+                          (y2010.Seconds() - y2005.Seconds());
+    assert(scale >= 0 and scale < 1);
+
+    Matrix h(mh2010), g(mg2010);
+    Matrix tmp_h(mh2005), tmp_g(mg2005);
+    h     *= (1.0 - scale);
+    g     *= (1.0 - scale);
+    tmp_h *= scale;
+    tmp_g *= scale;
+    h     += tmp_h;
+    g     += tmp_g;
+
+    return {g, h};
+  }
+
+  static const Time y2000("2000-01-01 00:00:00");
+  static const Matrix mg2000{g2000};
+  static const Matrix mh2000{h2000};
+
+  if (time >= y2000) {
+    const Numeric scale = (time.Seconds() - y2000.Seconds()) /
+                          (y2005.Seconds() - y2000.Seconds());
+    assert(scale >= 0 and scale < 1);
+
+    Matrix h(mh2005), g(mg2005);
+    Matrix tmp_h(mh2000), tmp_g(mg2000);
+    h     *= (1.0 - scale);
+    g     *= (1.0 - scale);
+    tmp_h *= scale;
+    tmp_g *= scale;
+    h     += tmp_h;
+    g     += tmp_g;
+    return {g, h};
+  }
+
+  return {mg2000, mh2000};
 }
 }  // namespace IGRF

@@ -77,8 +77,59 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) {
   return {P, dP};
 }
 
-Vector3 schmidt_fieldcalc(const Matrix& g,
-                          const Matrix& h,
+Tensor4 dschmidt_fieldcalc(const Size N, const Numeric r0, const Vector3 pos) {
+  const auto [r, lat, lon] = pos;
+
+  ARTS_USER_ERROR_IF(
+      lat < -90 and lat > 90, "Latitude is {} should be in [-90, 90]", lat)
+
+  Tensor4 dB(2, 3, N, N, 0.0);
+
+  // Take care of boundary issues
+  const auto colat        = Conversion::deg2rad(90.0 - lat);
+  const Numeric sin_theta = std::sin(colat);
+
+  // Compute the legendre polynominal with Schmidt renormalization
+  const auto [P, dP] = schmidt(colat, N - 1);
+
+  // Pre-compute the cosine/sine values
+  std::vector<Numeric> cosm(N);
+  std::vector<Numeric> sinm(N);
+  const Numeric clon = longitude_clamp(lon);
+
+  for (Size m = 0; m < N; ++m) {
+    cosm[m] = Conversion::cosd(m * clon);
+    sinm[m] = Conversion::sind(m * clon);
+  }
+
+  const Numeric r_ratio = r0 / r;
+  Numeric ratn          = r_ratio * r_ratio;
+  for (Size n = 1; n < N; ++n) {
+    ratn *= r_ratio;
+    for (Size m = 0; m < n + 1; ++m) {
+      dB[0, 0, n, m] = cosm[m] * P[n, m] * (n + 1) * ratn;
+      dB[1, 0, n, m] = sinm[m] * P[n, m] * (n + 1) * ratn;
+
+      dB[0, 1, n, m] = -cosm[m] * dP[n, m] * ratn;
+      dB[1, 1, n, m] = -sinm[m] * dP[n, m] * ratn;
+
+      dB[0, 2, n, m] = sinm[m] * P[n, m] * m * ratn;
+      dB[1, 2, n, m] = -cosm[m] * P[n, m] * m * ratn;
+    }
+  }
+
+  // Fix the phi component if sin_theta is not zero
+  if (std::abs(sin_theta) > 1e-6) {
+    dB[joker, 2] /= sin_theta;
+  } else {
+    dB[joker, 2] = 0.0;
+  }
+
+  return dB;
+}
+
+Vector3 schmidt_fieldcalc(const ConstMatrixView& g,
+                          const ConstMatrixView& h,
                           const Numeric r0,
                           const Vector3 pos) {
   const auto [r, lat, lon] = pos;

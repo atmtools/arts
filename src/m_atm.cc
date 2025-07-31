@@ -4,32 +4,12 @@
 #include <workspace.h>
 #include <zconf.h>
 
-#include <algorithm>
-#include <iomanip>
-#include <iterator>
-#include <memory>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_map>
 #include <variant>
 
-#include "atm.h"
-#include "compare.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "enumsFieldComponent.h"
-#include "igrf13.h"
-#include "interp.h"
-#include "interpolation.h"
-#include "isotopologues.h"
-#include "lbl_data.h"
 #include "operators.h"
-#include "predef_data.h"
-#include "predefined_absorption_models.h"
-#include "quantum.h"
-#include "species.h"
-#include "species_tags.h"
-#include "xml_io.h"
 
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
@@ -652,6 +632,19 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field, const Time &time) {
   atmospheric_field[AtmKey::mag_u] = magu;
   atmospheric_field[AtmKey::mag_v] = magv;
   atmospheric_field[AtmKey::mag_w] = magw;
+}
+
+void atmospheric_fieldSchmidthFieldFromIGRF(AtmField &atmospheric_field,
+                                            const Time &time) {
+  ARTS_TIME_REPORT
+
+  const auto magu{Atm::IGRF13(time, FieldComponent::u)};
+  const auto magv{Atm::IGRF13(time, FieldComponent::v)};
+  const auto magw{Atm::IGRF13(time, FieldComponent::w)};
+
+  atmospheric_field[AtmKey::mag_u] = NumericTernaryOperator{.f = from(magu)};
+  atmospheric_field[AtmKey::mag_v] = NumericTernaryOperator{.f = from(magv)};
+  atmospheric_field[AtmKey::mag_w] = NumericTernaryOperator{.f = from(magw)};
 }
 
 void atmospheric_fieldHydrostaticPressure(

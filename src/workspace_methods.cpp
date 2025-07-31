@@ -721,6 +721,24 @@ spherical harmonics and is only valid for a limited time period.
       .gin_desc  = {"Time of data to use"},
   };
 
+  wsm_data["atmospheric_fieldSchmidthFieldFromIGRF"] = {
+      .desc      = R"--(For forward calculations, this should be similar to *atmospheric_fieldIGRF*.
+
+What it does different is that it is 1) not a direct computations matching the IGRF field,
+instead averaging the Legendre coefficient matrices.
+
+What it does very different is that it supports retrievals
+of the magnetic field Legendre coefficients.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"atmospheric_field"},
+      .in        = {"atmospheric_field"},
+      .gin       = {"time"},
+      .gin_type  = {"Time"},
+      .gin_value = {Time{}},
+      .gin_desc  = {"Time of IGRF data to use"},
+  };
+
   wsm_data["frequency_gridFitNonLTE"] = {
       .desc      = R"(Frequency grid useful for *atmospheric_profileFitNonLTE*.
 

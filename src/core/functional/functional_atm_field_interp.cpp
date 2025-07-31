@@ -98,4 +98,41 @@ Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>& fd,
             const Numeric lon) {
   return fd(alt, lat, lon);
 }
+
+std::vector<std::pair<Index, Numeric>> flat_weight(
+    const SortedGriddedField3 &gf3,
+    const Numeric alt,
+    const Numeric lat,
+    const Numeric lon) {
+  if (not gf3.ok()) throw std::runtime_error("bad field");
+
+  const Index nalt = gf3.grid<0>().size();
+  const Index nlat = gf3.grid<1>().size();
+  const Index nlon = gf3.grid<2>().size();
+
+  return std::visit(
+      [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
+          const ALT &al, const LAT &la, const LON &lo) {
+        const auto x = interpweights(al, la, lo);
+        std::vector<std::pair<Index, Numeric>> out;
+        out.reserve(al.size() * NN);
+
+        for (Index i = 0; i < al.size(); i++) {
+          for (Index j = 0; j < la.size(); j++) {
+            for (Index k = 0; k < lo.size(); k++) {
+              out.emplace_back(
+                  (al.pos + i) * NN + (la.pos + j) * N + lo.pos + k,
+                  x[i, j, k]);
+            }
+          }
+        }
+        return out;
+      },
+      nalt == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
+                : altlags{gf3.lag<0, altlag1>(alt)},
+      nlat == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
+                : latlags{gf3.lag<1, latlag1>(lat)},
+      nlon == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
+                : lonlags{gf3.lag<2, lonlag1>(lon)});
+}
 }  // namespace Atm::interp

@@ -62,10 +62,29 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax);
  * @param[in] pos The position [r, lat, lon] (spherical)
  * @return A spherical field {Br, Btheta, Bphi}
  */
-Vector3 schmidt_fieldcalc(const Matrix& g,
-                          const Matrix& h,
+Vector3 schmidt_fieldcalc(const ConstMatrixView& g,
+                          const ConstMatrixView& h,
                           const Numeric r0,
                           const Vector3 pos);
+
+/** The derivative of the schmidt_fieldcalc function wrt g and h
+ *
+ * The output is a 2 x 3 x N x N tensor, where the first index is
+ * 0 for the g-coefficients and 1 for the h-coefficients,
+ * the second index is 0 for the radial component, 1 for the
+ * colatitudinal component, and 2 for the longitudinal component,
+ * and the last two indices are the n and m indices of the
+ * spherical harmonics.
+ *
+ * Only n = [1 N) and m = [0 n] are computed, the rest being NAN.
+ * There are thus N * (N + 1) - 2 valid elements in the output.
+ *
+ * @param[in] N The maximum order of the spherical harmonics
+ * @param[in] r0 The reference radius (spherical)
+ * @param[in] pos The position [r, lat, lon] (spherical)
+ * @return The tensor of derivatives
+ */
+Tensor4 dschmidt_fieldcalc(const Size N, const Numeric r0, const Vector3 pos);
 
 /** Computes sum (s[i] P_i(x)) for all s [first is for P_0, second is for P_1, ...]
   * 

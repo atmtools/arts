@@ -17,82 +17,53 @@
 
 #include <matpack.h>
 
-
-/** Threshold for non-spherical ellipsoid
-  
-    If the two radii of an ellipsoid differ with less than this value, it is
-    treated as spherical for efficiency reasons.
-*/
-inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
-
-
-/** Size of north and south poles
-  
-    Latitudes with an absolute value > POLELAT are considered to be on
-    the south or north pole. This is needed for definition of azimuth.
-*/
-inline constexpr Numeric POLELATZZZ = 90 - 1e-8;   // Rename to POLELAT when other one removed
-
-
 /** Conversion from ECEF to geocentric coordinates
 
-    @param[out]  pos   Geocentric position (r,lat,lon)
     @param[in]   ecef  ECEF position (x,y,z)
+    @return      pos   Geocentric position (r,lat,lon)
 
     \author  Patrick Eriksson
     \date    2021-07-29
 */
-void ecef2geocentric(VectorView pos,
-                     ConstVectorView ecef);
-
+Vector3 ecef2geocentric(Vector3 ecef);
 
 /** Conversion from ECEF to geocentric coordinates including a LOS
 
-    @param[out]  pos    Geocentric position (r,lat,lon)
-    @param[out]  los    Geocentric line-of-sight (za,aa)
     @param[in]   ecef   ECEF position (x,y,z)
     @param[in]   decef  Normalised ECEF direction vector (dx,dy,dz)
+    @return      pos    Geocentric position (r,lat,lon)
+    @return      los    Geocentric line-of-sight (za,aa)
 
     \author  Patrick Eriksson
     \date    2021-07-29
 */
-void ecef2geocentric_los(VectorView pos,
-                         VectorView los,
-                         ConstVectorView ecef,
-                         ConstVectorView decef);
-
+std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef);
 
 /** Conversion from ECEF to geodetic coordinates
 
-    @param[out]  pos           Geodetic position (h,lat,lon)
     @param[in]   ecef          ECEF position (x,y,z)
     @param[in]   refellipsoid  As the WSV with same name.
+    @return      pos           Geodetic position (h,lat,lon)
 
     @author  Patrick Eriksson
     @date    2021-07-29
 */
-void ecef2geodetic(VectorView pos,
-                   ConstVectorView ecef,
-                   const Vector2 refellipsoid);
-
+Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid);
 
 /** Conversion from ECEF to geodetic coordinates including a LOS
 
-    @param[out]  pos           Geodetic position (h,lat,lon)
-    @param[out]  los           Geodetic line-of-sight (za,aa)
     @param[in]   ecef          ECEF position (x,y,z)
     @param[in]   decef         Normalised ECEF direction vector (dx,dy,dz)
     @param[in]   refellipsoid  As the WSV with the same name.
+    @return      pos           Geodetic position (h,lat,lon)
+    @return      los           Geodetic line-of-sight (za,aa)
 
     @author  Patrick Eriksson
     @date    2021-07-29
 */
-void ecef2geodetic_los(VectorView pos,
-                       VectorView los,
-                       ConstVectorView ecef,
-                       ConstVectorView decef,
-                       const Vector2 refellipsoid);
-
+std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
+                                              Vector3 decef,
+                                              Vector2 refellipsoid);
 
 /** ECEF position at a given distance 
 
@@ -107,11 +78,7 @@ void ecef2geodetic_los(VectorView pos,
     @author  Patrick Eriksson
     @date    2021-07-29
 */
-void ecef_at_distance(VectorView ecef,
-                      ConstVectorView ecef0,
-                      ConstVectorView decef,
-                      const Numeric l);
-
+Vector3 ecef_at_distance(Vector3 ecef0, Vector3 decef, Numeric l);
 
 /** The distance between two ECEF positions
 
@@ -123,25 +90,20 @@ void ecef_at_distance(VectorView ecef,
    @author  Patrick Eriksson
    @date    2021-08-08
 */
-Numeric ecef_distance(ConstVectorView ecef1,
-                      ConstVectorView ecef2);
-
+Numeric ecef_distance(Vector3 ecef1, Vector3 ecef2);
 
 /** The vector between two ECEF positions
 
     Calculates the vector from ecef0 to ecef1. 
 
-    @param[out]  ecef   The difference vector (x,y,z)
     @param[in]   ecef0  The reference ECEF position
     @param[in]   ecef1  Target ECEF position
+    @return      ecef   The difference vector (x,y,z)
 
     @author  Patrick Eriksson
     @date    2021-08-10
 */
-void ecef_vector_distance(VectorView ecef,
-                          ConstVectorView ecef0,
-                          ConstVectorView ecef1);
-
+Vector3 ecef_vector_distance(Vector3 ecef0, Vector3 ecef1);
 
 /** Converts ENU unit vector vector to local zenith and azimuth
 
@@ -149,75 +111,61 @@ void ecef_vector_distance(VectorView ecef,
     line-of-sights, from and to ENU (east-north-up). The ENU vector is
     normalised to have length 1.
 
-    @param[out]  los  Geodetic line-of-sight (za,aa)
     @param[in]   enu  ENU vector (de,dn,du)
+    @return      los  Geodetic line-of-sight (za,aa)
 
    @author  Patrick Eriksson
    @date    2020-09-17
 */
-void enu2los(VectorView los,
-             ConstVectorView enu);
-
+Vector2 enu2los(Vector3 enu);
 
 /** Conversion from geocentric to ECEF coordinates
 
-   @param[out]  ecef  ECEF position (x,y,z)
    @param[in]   pos   Geocentric position (r,lat,lon)
+   @return      ecef  ECEF position (x,y,z)
 
    @author  Patrick Eriksson
    @date    2021-07-29
 */
-void geocentric2ecef(VectorView ecef,
-                     ConstVectorView pos);
-
+Vector3 geocentric2ecef(Vector3 pos);
 
 /** Conversion from geocentric to ECEF coordinates including a LOS
 
-    @param[out]  ecef   ECEF position (x,y,z)
-    @param[out]  decef  Normalised ECEF direction vector (dx,dy,dz)
     @param[in]   pos    Geocentric position (r,lat,lon)
     @param[in]   los    Geocentric line-of-sight (za,aa)
+    @return      ecef   ECEF position (x,y,z)
+    @return      decef  Normalised ECEF direction vector (dx,dy,dz)
 
     @author  Patrick Eriksson
     @date    2021-07-29
 */
-void geocentric_los2ecef(VectorView ecef,
-                         VectorView decef,
-                         ConstVectorView pos,
-                         ConstVectorView los);
-
+std::pair<Vector3, Vector3> geocentric_los2ecef(Vector3 pos, Vector2 los);
 
 /** Conversion from geodetic to ECEF coordinates.
  
-    @param[out]  ecef          ECEF position (x,y,z)
     @param[in]   pos           Geodetic position (h,lat,lon)
     @param[in]   refellipsoid  As the WSV with the same name.
+    @return      ecef          ECEF position (x,y,z)
   
     @author Patrick Eriksson
     @date   2020-09-17
 */
-void geodetic2ecef(VectorView ecef,
-                   ConstVectorView pos,
-                   const Vector2 refellipsoid);
-
+Vector3 geodetic2ecef(Vector3 pos, Vector2 refellipsoid);
 
 /** Conversion from geodetic to ECEF coordinates including a LOS
  
-    @param[out]  ecef          ECEF position (x,y,z)
-    @param[out]  decef         Normalised ECEF direction vector (dx,dy,dz)
     @param[in]   pos           Geodetic position (h,lat,lon)
     @param[in]   los           Geodetic line-of-sight (za,aa)
     @param[in]   refellipsoid  As the WSV with the same name.
-  
+    @return      ecef          ECEF position (x,y,z)
+    @return      decef         Normalised ECEF direction vector (dx,dy,dz)
+
     @author  Patrick Eriksson
     @date    2020-09-17
 */
-void geodetic_los2ecef(VectorView ecef,
-                       VectorView decef,
-                       ConstVectorView pos,
-                       ConstVectorView los,
-                       const Vector2 refellipsoid);
-
+std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
+                                              Vector2 los,
+                                              Vector2 refellipsoid);
 
 /** Calculates the geometrical tangent point, approximately
 
@@ -240,11 +188,9 @@ void geodetic_los2ecef(VectorView ecef,
     @author  Patrick Eriksson
     @date    2021-08-02
 */
-void approx_geometrical_tangent_point(VectorView ecef_tan,
-                                      ConstVectorView ecef,
-                                      ConstVectorView decef,
-                                      const Vector2 refellipsoid);
-
+Vector3 approx_geometrical_tangent_point(Vector3 ecef,
+                                         Vector3 decef,
+                                         Vector2 refellipsoid);
 
 /** Finds the distance to the intersection between an ECEF line and an ellipsoid
 
@@ -266,12 +212,11 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
     @author  Patrick Eriksson
     @date    2021-07-28
 */
-Numeric intersection_altitude(ConstVectorView ecef,
-                              ConstVectorView decef,
-                              const Vector2 refellipsoid,
-                              const Numeric& altitude,
-                              const Numeric& l_min = 0);
-
+Numeric intersection_altitude(Vector3 ecef,
+                              Vector3 decef,
+                              Vector2 refellipsoid,
+                              Numeric altitude,
+                              Numeric l_min = 0);
 
 /** Finds the distance to the intersection between an ECEF line and a latitude
 
@@ -289,13 +234,12 @@ Numeric intersection_altitude(ConstVectorView ecef,
     @author  Patrick Eriksson
     @date    2021-08-10
 */
-Numeric intersection_latitude(ConstVectorView ecef,
-                              ConstVectorView decef,
-                              ConstVectorView pos,
-                              ConstVectorView los,
-                              const Vector2 refellipsoid,
-                              const Numeric& lat);
-
+Numeric intersection_latitude(Vector3 ecef,
+                              Vector3 decef,
+                              Vector3 pos,
+                              Vector2 los,
+                              Vector2 refellipsoid,
+                              Numeric lat);
 
 /** Finds the distance to the intersection between an ECEF line and a longitude
 
@@ -316,12 +260,8 @@ Numeric intersection_latitude(ConstVectorView ecef,
     @author  Patrick Eriksson
     @date    2021-07-30
 */
-Numeric intersection_longitude(ConstVectorView ecef,
-                               ConstVectorView decef,
-                               ConstVectorView pos,
-                               ConstVectorView los,
-                               const Numeric& lon);
-
+Numeric intersection_longitude(
+    Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon);
 
 /** Determines if an ellipsoid can be treated as a sphere
 
@@ -332,8 +272,7 @@ Numeric intersection_longitude(ConstVectorView ecef,
    @author Patrick Eriksson
    @date   2021-07-28
 */
-bool is_ellipsoid_spherical(const Vector2 ellipsoid);
-
+bool is_ellipsoid_spherical(Vector2 ellipsoid);
 
 /** Converts local zenith and azimuth angles to ENU unit vector.
 
@@ -347,61 +286,52 @@ bool is_ellipsoid_spherical(const Vector2 ellipsoid);
     @author  Patrick Eriksson
     @date    2020-09-17
 */
-void los2enu(VectorView enu,
-             ConstVectorView los);
-
+Vector3 los2enu(Vector2 los);
 
 /** Reverses a line-of-sight
 
     The new LOS is the one for going in the beckward direction.
 
-    @param[out]  los_new  The line-of-sight for reversed direction.
     @param[in]   los      A line-of-sight
+    @return      los_new  The line-of-sight for reversed direction.
 
     @author  Patrick Eriksson 
     @date    2023-01-14
 */
-void reverse_los(VectorView los_new,
-                 ConstVectorView los);
-
+Vector2 reverse_los(Vector2 los);
 
 /** Geodetic position and line-of-sightat a given distance
 
-    @param[out]  pos           Geodetic position (h,lat,lon)
-    @param[out]  los           Geodetic LOS (za,aa)
     @param[in]   ecef          ECEF position (x,y,z)
     @param[in]   decef         Normalised ECEF direction vector (dx,dy,dz)
     @param[in]   refellipsoid  As the WSV with the same name.
     @param[in]   l             Distance from *ecef*
+    @return      pos           Geodetic position (h,lat,lon)
+    @return      los           Geodetic LOS (za,aa)
 
     @author  Patrick Eriksson
     @date    2021-08-12
 */
-void poslos_at_distance(VectorView pos,
-                        VectorView los,
-                        ConstVectorView ecef,
-                        ConstVectorView decef,
-                        const Vector2 refellipsoid,
-                        const Numeric l);
-
+std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef,
+                                               Vector3 decef,
+                                               Vector2 refellipsoid,
+                                               Numeric l);
 
 /** Geodetic position at a given distance
 
-    @param[out]  pos           Geodetic position (h,lat,lon)
     @param[in]   ecef          ECEF position (x,y,z)
     @param[in]   decef         Normalised ECEF direction vector (dx,dy,dz)
     @param[in]   refellipsoid  As the WSV with the same name.
     @param[in]   l             Distance from *ecef*
+    @return      pos           Geodetic position (h,lat,lon)
 
     @author  Patrick Eriksson
     @date    2021-08-12
 */
-void pos_at_distance(VectorView pos,
-                     ConstVectorView ecef,
-                     ConstVectorView decef,
-                     const Vector2 refellipsoid,
-                     const Numeric l);
-
+Vector3 pos_at_distance(Vector3 ecef,
+                        Vector3 decef,
+                        Vector2 refellipsoid,
+                        Numeric l);
 
 /** The prime vertical radius
 
@@ -418,7 +348,18 @@ void pos_at_distance(VectorView pos,
     @author  Patrick Eriksson
     @date    2023-01-06
 */
-Numeric prime_vertical_radius(const Vector2 refellipsoid,
-                              const Numeric& lat);
+Numeric prime_vertical_radius(Vector2 refellipsoid, Numeric lat);
+
+/** Converts geodetic coordinates to geocentric coordinates
+
+    @param[in]  pos  Geodetic position (h,lat,lon)
+    @param[in]  ell  Ellipsoid radii (a,b)
+
+    @return  Geocentric position (r,lat,lon)
+
+    @author  Patrick Eriksson
+    @date    2021-07-29
+*/
+Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell);
 
 #endif  // geodetic_h
