@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <utility>
 
-#include "debug.h"
 #include "functional_numeric_ternary.h"
 
 namespace Jacobian {
