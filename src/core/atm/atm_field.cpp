@@ -712,7 +712,7 @@ std::vector<std::pair<Index, Numeric>> flat_weight_(const FunctionalData &f,
                                                     Numeric alt,
                                                     Numeric lat,
                                                     Numeric lon) {
-  return ternary::get_w(f, alt, lat, lon);
+  return ternary::get_w(f.f, alt, lat, lon);
 }
 }  // namespace
 

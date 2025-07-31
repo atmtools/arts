@@ -739,6 +739,32 @@ of the magnetic field Legendre coefficients.
       .gin_desc  = {"Time of IGRF data to use"},
   };
 
+  wsm_data["atmospheric_fieldAbsoluteMagneticField"] = {
+      .desc = R"--(Set the magnetic field to use the magnitude field functional.
+
+The input field must be a *SortedGriddedField3* for all three parameters
+to call this method.
+
+The main purpose of this method is to retrieve the magnitude rather than the vector field.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field"},
+  };
+
+  wsm_data["atmospheric_fieldAbsoluteWindField"] = {
+      .desc   = R"--(Set the wind field to use the magnitude field functional.
+
+The input field must be a *SortedGriddedField3* for all three parameters
+to call this method.
+
+The main purpose of this method is to retrieve the magnitude rather than the vector field.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field"},
+  };
+
   wsm_data["frequency_gridFitNonLTE"] = {
       .desc      = R"(Frequency grid useful for *atmospheric_profileFitNonLTE*.
 
@@ -2834,6 +2860,23 @@ See *FieldComponent* for valid ``component``.
   wsm_data["RetrievalAddMagneticField"] =
       jac2ret("jacobian_targetsAddMagneticField");
 
+  wsm_data["jacobian_targetsAddOverlappingMagneticField"] = {
+      .desc      = R"--(Set magnetic field derivative for overlapping fields.
+
+An overlapping field means that the derivative is computed but that the
+x-component of the jacobian is at the same position as another Jacobian
+target.
+
+To call this method, you first have added 1 component of the magnetic field
+derivative, and then you call this method to add the second and third component.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+  };
+  wsm_data["RetrievalAddOverlappingMagneticField"] =
+      jac2ret("jacobian_targetsAddOverlappingMagneticField");
+
   wsm_data["jacobian_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative.
 
@@ -2853,6 +2896,23 @@ See *FieldComponent* for valid ``component``
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
+
+  wsm_data["jacobian_targetsAddOverlappingWindField"] = {
+      .desc      = R"--(Set wind field derivative for overlapping fields.
+
+An overlapping field means that the derivative is computed but that the
+x-component of the jacobian is at the same position as another Jacobian
+target.
+
+To call this method, you first have added 1 component of the wind field
+derivative, and then you call this method to add the second and third component.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jacobian_targets"},
+      .in        = {"jacobian_targets"},
+  };
+  wsm_data["RetrievalAddOverlappingWindField"] =
+      jac2ret("jacobian_targetsAddOverlappingWindField");
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative.

@@ -1,11 +1,12 @@
 #include "functional_atm_field.h"
 
+#include <geodetic.h>
+
 #include <utility>
 
 #include "functional_atm_field_interp.h"
 
 namespace Atm {
-
 Numeric MagnitudeField::operator()(Numeric alt,
                                    Numeric lat,
                                    Numeric lon) const {
@@ -13,10 +14,12 @@ Numeric MagnitudeField::operator()(Numeric alt,
   const Numeric T = Atm::interp::get(theta, alt, lat, lon);
   const Numeric P = Atm::interp::get(phi, alt, lat, lon);
 
+  const Vector3 x = geocentric2ecef({M, T, P});
+
   switch (component) {
-    case FieldComponent::u: return M * std::cos(T) * std::cos(P);
-    case FieldComponent::v: return M * std::cos(T) * std::sin(P);
-    case FieldComponent::w: return M * std::sin(T);
+    case FieldComponent::u: return x[0];
+    case FieldComponent::v: return x[1];
+    case FieldComponent::w: return x[2];
   }
   std::unreachable();
 }
@@ -45,14 +48,18 @@ std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt,
   switch (component) {
     case FieldComponent::u:
       for (auto& [i, v] : out)
-        v *= std::cos(theta.data.elem_at(i)) * std::cos(phi.data.elem_at(i));
+        v *= geocentric2ecef(
+            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[0];
       break;
     case FieldComponent::v:
       for (auto& [i, v] : out)
-        v *= std::cos(theta.data.elem_at(i)) * std::sin(phi.data.elem_at(i));
+        v *= geocentric2ecef(
+            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[1];
       break;
     case FieldComponent::w:
-      for (auto& [i, v] : out) v *= std::sin(theta.data.elem_at(i));
+      for (auto& [i, v] : out)
+        v *= geocentric2ecef(
+            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[2];
       break;
   }
 

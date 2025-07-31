@@ -1,6 +1,7 @@
 #include <enumsHydrostaticPressureOption.h>
 #include <enumsIsoRatioOption.h>
 #include <enumsMissingFieldComponentError.h>
+#include <geodetic.h>
 #include <workspace.h>
 #include <zconf.h>
 
@@ -8,8 +9,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <variant>
-
-#include "operators.h"
 
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
@@ -645,6 +644,93 @@ void atmospheric_fieldSchmidthFieldFromIGRF(AtmField &atmospheric_field,
   atmospheric_field[AtmKey::mag_u] = NumericTernaryOperator{.f = from(magu)};
   atmospheric_field[AtmKey::mag_v] = NumericTernaryOperator{.f = from(magv)};
   atmospheric_field[AtmKey::mag_w] = NumericTernaryOperator{.f = from(magw)};
+}
+
+namespace {
+Atm::MagnitudeField to_magnitude_field(const SortedGriddedField3 &u,
+                                       const SortedGriddedField3 &v,
+                                       const SortedGriddedField3 &w) {
+  ARTS_USER_ERROR_IF(u.shape() != v.shape() or u.shape() != w.shape(),
+                     R"(The field components must have the same shape
+
+u.shape(): {:B,}
+v.shape(): {:B,}
+w.shape(): {:B,}                  )",
+                     u.shape(),
+                     v.shape(),
+                     w.shape())
+
+  Tensor3 Mag(u.data);
+  Tensor3 Theta(u.data);
+  Tensor3 Phi(u.data);
+  for (Index i = 0; i < Mag.npages(); i++) {
+    for (Index j = 0; j < Mag.nrows(); j++) {
+      for (Index k = 0; k < Mag.ncols(); k++) {
+        const Vector3 x = ecef2geocentric({u[i, j, k], v[i, j, k], w[i, j, k]});
+        Mag[i, j, k]    = x[0];
+        Theta[i, j, k]  = x[1];
+        Phi[i, j, k]    = x[2];
+      }
+    }
+  }
+
+  Atm::MagnitudeField field;
+
+  field.magnitude.data       = std::move(Mag);
+  field.theta.data           = std::move(Theta);
+  field.phi.data             = std::move(Phi);
+  field.magnitude.grids      = u.grids;
+  field.theta.grids          = u.grids;
+  field.phi.grids            = u.grids;
+  field.magnitude.grid_names = u.grid_names;
+  field.theta.grid_names     = u.grid_names;
+  field.phi.grid_names       = u.grid_names;
+  field.magnitude.data_name  = "magnitude";
+  field.theta.data_name      = "theta";
+  field.phi.data_name        = "phi";
+
+  return field;
+}
+}  // namespace
+
+void atmospheric_fieldAbsoluteMagneticField(AtmField &atmospheric_field) {
+  constexpr AtmKey u = AtmKey::mag_u;
+  constexpr AtmKey v = AtmKey::mag_v;
+  constexpr AtmKey w = AtmKey::mag_w;
+
+  Atm::MagnitudeField field =
+      to_magnitude_field(atmospheric_field[u].get<SortedGriddedField3>(),
+                         atmospheric_field[v].get<SortedGriddedField3>(),
+                         atmospheric_field[w].get<SortedGriddedField3>());
+
+  field.component      = FieldComponent::u;
+  atmospheric_field[u] = AtmFunctionalData{.f = field};
+
+  field.component      = FieldComponent::v;
+  atmospheric_field[v] = AtmFunctionalData{.f = field};
+
+  field.component      = FieldComponent::w;
+  atmospheric_field[w] = AtmFunctionalData{.f = std::move(field)};
+}
+
+void atmospheric_fieldAbsoluteWindField(AtmField &atmospheric_field) {
+  constexpr AtmKey u = AtmKey::wind_u;
+  constexpr AtmKey v = AtmKey::wind_v;
+  constexpr AtmKey w = AtmKey::wind_w;
+
+  Atm::MagnitudeField field =
+      to_magnitude_field(atmospheric_field[u].get<SortedGriddedField3>(),
+                         atmospheric_field[v].get<SortedGriddedField3>(),
+                         atmospheric_field[w].get<SortedGriddedField3>());
+
+  field.component      = FieldComponent::u;
+  atmospheric_field[u] = AtmFunctionalData{.f = field};
+
+  field.component      = FieldComponent::v;
+  atmospheric_field[v] = AtmFunctionalData{.f = field};
+
+  field.component      = FieldComponent::w;
+  atmospheric_field[w] = AtmFunctionalData{.f = std::move(field)};
 }
 
 void atmospheric_fieldHydrostaticPressure(

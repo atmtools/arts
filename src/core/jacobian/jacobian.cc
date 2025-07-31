@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "debug.h"
 #include "functional_numeric_ternary.h"
 
 namespace Jacobian {
@@ -516,31 +517,9 @@ void Targets::finalize(const AtmField& atmospheric_field,
   const Size nsubsurf = subsurf().size();
   const Size nline    = line().size();
   const Size nsensor  = sensor().size();
+  const Size nerror   = error().size();
 
   Size last_size = 0;
-
-  bool magfield  = false;
-  bool windfield = false;
-  Size imag1st   = 0;
-  Size iwind1st  = 0;
-  for (Size i = 0; i < natm; i++) {
-    AtmTarget& t = atm()[i];
-    if (const auto& atmf = atmospheric_field[t.type];
-        std::holds_alternative<Atm::FunctionalData>(atmf.data)) {
-      if (ternary::is_field_function(
-              std::get_if<Atm::FunctionalData>(&atmf.data)->f)) {
-        if (not windfield and is_wind(t)) {
-          windfield = true;
-          iwind1st  = i;
-        }
-
-        if (not magfield and is_mag(t)) {
-          magfield = true;
-          imag1st  = i;
-        }
-      }
-    }
-  }
 
   for (Size i = 0; i < natm; i++) {
     AtmTarget& t = atm()[i];
@@ -549,12 +528,15 @@ void Targets::finalize(const AtmField& atmospheric_field,
             atm() | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
         "Multiple targets of the same type: {}",
         t.type)
-    if (imag1st < i and magfield and is_mag(t)) {
-      t.x_start = atm()[imag1st].x_start;
-      t.x_size  = atm()[imag1st].x_size;
-    } else if (iwind1st < i and windfield and is_wind(t)) {
-      t.x_start = atm()[iwind1st].x_start;
-      t.x_size  = atm()[iwind1st].x_size;
+
+    if (t.overlap) {
+      const auto f = stdr::find(atm(), t.overlap_key, &AtmTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(atm().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
       t.x_size   = atmospheric_field[t.type].flat_view().size();
@@ -569,9 +551,20 @@ void Targets::finalize(const AtmField& atmospheric_field,
                                            &SurfaceTarget::type),
                        "Multiple targets of the same type: {}",
                        t.type)
-    t.x_start  = last_size;
-    t.x_size   = surface_field[t.type].flat_view().size();
-    last_size += t.x_size;
+
+    if (t.overlap) {
+      const auto f = stdr::find(surf(), t.overlap_key, &SurfaceTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(surf().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
+    } else {
+      t.x_start  = last_size;
+      t.x_size   = surface_field[t.type].flat_view().size();
+      last_size += t.x_size;
+    }
   }
 
   for (Size i = 0; i < nsubsurf; i++) {
@@ -581,9 +574,21 @@ void Targets::finalize(const AtmField& atmospheric_field,
                                            &SubsurfaceTarget::type),
                        "Multiple targets of the same type: {}",
                        t.type)
-    t.x_start  = last_size;
-    t.x_size   = subsurface_field[t.type].flat_view().size();
-    last_size += t.x_size;
+
+    if (t.overlap) {
+      const auto f =
+          stdr::find(subsurf(), t.overlap_key, &SubsurfaceTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(subsurf().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
+    } else {
+      t.x_start  = last_size;
+      t.x_size   = subsurface_field[t.type].flat_view().size();
+      last_size += t.x_size;
+    }
   }
 
   for (Size i = 0; i < nline; i++) {
@@ -593,9 +598,20 @@ void Targets::finalize(const AtmField& atmospheric_field,
                                            &LineTarget::type),
                        "Multiple targets of the same type: {}",
                        t.type)
-    t.x_start  = last_size;
-    t.x_size   = 1;
-    last_size += t.x_size;
+
+    if (t.overlap) {
+      const auto f = stdr::find(line(), t.overlap_key, &LineTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(line().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
+    } else {
+      t.x_start  = last_size;
+      t.x_size   = 1;
+      last_size += t.x_size;
+    }
   }
 
   for (auto& elem : sensor()) {
@@ -637,15 +653,37 @@ void Targets::finalize(const AtmField& atmospheric_field,
         "- note that different sensor element targets may not share the same type, model, and relevant grids",
         t.type)
 
-    t.x_start = last_size;
-    // t.x_size already known
-    last_size += t.x_size;
+    if (t.overlap) {
+      const auto f = stdr::find(sensor(), t.overlap_key, &SensorTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(sensor().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
+    } else {
+      t.x_start = last_size;
+      // t.x_size already known
+      last_size += t.x_size;
+    }
   }
 
-  for (auto& t : error()) {
-    t.x_start = last_size;
-    // t.x_size already known
-    last_size += t.x_size;
+  for (Size i = 0; i < nerror; i++) {
+    ErrorTarget& t = error()[i];
+
+    if (t.overlap) {
+      const auto f = stdr::find(error(), t.overlap_key, &ErrorTarget::type);
+      ARTS_USER_ERROR_IF(
+          static_cast<Index>(i) <= stdr::distance(error().begin(), f),
+          "Overlap target {} not found prior in targets.",
+          t.overlap_key)
+      t.x_start = f->x_start;
+      t.x_size  = f->x_size;
+    } else {
+      t.x_start = last_size;
+      // t.x_size already known
+      last_size += t.x_size;
+    }
 
     ARTS_USER_ERROR_IF(
         t.type.y_start + t.type.y_size > measurement_sensor.size(),

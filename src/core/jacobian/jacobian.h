@@ -68,6 +68,9 @@ struct AtmTarget {
   atm_mat inverse_jacobian{};
   atm_vec inverse_state{};
 
+  bool overlap{false};
+  AtmKeyVal overlap_key{};
+
   void update_model(AtmField& y, cv x) const;
   void update_state(VectorView x, const AtmField& y) const;
   void update_jac(MatrixView dy, cv x, const AtmField& y) const;
@@ -104,6 +107,9 @@ struct SurfaceTarget {
   surf_mat inverse_jacobian{};
   surf_vec inverse_state{};
 
+  bool overlap{false};
+  SurfaceKeyVal overlap_key{};
+
   void update_model(SurfaceField& y, cv x) const;
   void update_state(VectorView x, const SurfaceField& y) const;
   void update_jac(MatrixView dy, cv x, const SurfaceField& y) const;
@@ -137,6 +143,9 @@ struct SubsurfaceTarget {
   subsurf_mat inverse_jacobian{};
   subsurf_vec inverse_state{};
 
+  bool overlap{false};
+  SubsurfaceKeyVal overlap_key{};
+
   void update_model(SubsurfaceField& y, cv x) const;
   void update_state(VectorView x, const SubsurfaceField& y) const;
   void update_jac(MatrixView dy, cv x, const SubsurfaceField& y) const;
@@ -169,6 +178,9 @@ struct LineTarget {
   line_vec transform_state{};
   line_mat inverse_jacobian{};
   line_vec inverse_state{};
+
+  bool overlap{false};
+  LblLineKey overlap_key{};
 
   void update_model(AbsorptionBands& y, cv x) const;
   void update_state(VectorView x, const AbsorptionBands& y) const;
@@ -206,6 +218,9 @@ struct SensorTarget {
   sensor_mat inverse_jacobian{};
   sensor_vec inverse_state{};
 
+  bool overlap{false};
+  SensorKey overlap_key{};
+
   void update_model(ArrayOfSensorObsel& y, cv x) const;
   void update_state(VectorView x, const ArrayOfSensorObsel& y) const;
   void update_jac(MatrixView dy, cv x, const ArrayOfSensorObsel& y) const;
@@ -237,6 +252,9 @@ struct ErrorTarget {
   error_vec transform_state{};
   error_mat inverse_jacobian{};
   error_vec inverse_state{};
+
+  bool overlap{false};
+  ErrorKey overlap_key{};
 
   void update_model(VectorView y, cv x) const;
   void update_state(VectorView x, ConstVectorView y) const;
@@ -309,7 +327,10 @@ struct targets_t {
     if (target_count() != 0 and not finalized)
       throw std::runtime_error("Not finalized.");
 
-    const auto sz = [](const auto& x) { return x.x_size; };
+    const auto sz = [](const auto& x) -> Size {
+      return x.overlap ? 0 : x.x_size;
+    };
+
     return (std::transform_reduce(target<Targets>().begin(),
                                   target<Targets>().end(),
                                   Size{0},
