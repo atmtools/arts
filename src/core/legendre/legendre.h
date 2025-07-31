@@ -22,6 +22,25 @@ struct SphericalField {
   constexpr SphericalField() noexcept = default;
 };
 
+struct SchmidtMatrix {
+  Size N;    // The size
+  Vector x;  // The values
+
+  SchmidtMatrix(Size N = 0);
+  SchmidtMatrix(const ConstMatrixView&);
+  Numeric& operator[](Index n, Index m);
+  Numeric operator[](Index n, Index m) const;
+};
+
+struct SchmidtMatrixView {
+  Size N;             // The size
+  ConstVectorView x;  // The values
+
+  SchmidtMatrixView(const SchmidtMatrix&);
+  SchmidtMatrixView(Size N, const ConstVectorView&);
+  Numeric operator[](Index n, Index m) const;
+};
+
 //! Holds a SphericalField for multiple dimensions (radius times longitudes)
 using MatrixOfSphericalField = Grid<SphericalField, 2>;
 
@@ -38,7 +57,8 @@ using MatrixOfSphericalField = Grid<SphericalField, 2>;
  * @param[in] nmax Max number of n
  * @return The pair of (nmax+1) x (nmax+1) matrices, order: main and derivative
  */
-std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax);
+std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta,
+                                                const Index nmax);
 
 /** Computes the spherical field
  * 
@@ -62,8 +82,8 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax);
  * @param[in] pos The position [r, lat, lon] (spherical)
  * @return A spherical field {Br, Btheta, Bphi}
  */
-Vector3 schmidt_fieldcalc(const ConstMatrixView& g,
-                          const ConstMatrixView& h,
+Vector3 schmidt_fieldcalc(const SchmidtMatrixView& g,
+                          const SchmidtMatrixView& h,
                           const Numeric r0,
                           const Vector3 pos);
 
@@ -84,7 +104,8 @@ Vector3 schmidt_fieldcalc(const ConstMatrixView& g,
  * @param[in] pos The position [r, lat, lon] (spherical)
  * @return The tensor of derivatives
  */
-Tensor4 dschmidt_fieldcalc(const Size N, const Numeric r0, const Vector3 pos);
+std::array<std::pair<SchmidtMatrix, SchmidtMatrix>, 3> dschmidt_fieldcalc(
+    const Size N, const Numeric r0, const Vector3 pos);
 
 /** Computes sum (s[i] P_i(x)) for all s [first is for P_0, second is for P_1, ...]
   * 

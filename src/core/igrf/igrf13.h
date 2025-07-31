@@ -2,6 +2,7 @@
 
 #include <artstime.h>
 #include <matpack.h>
+#include <legendre.h>
 
 namespace IGRF {
 /** Computes the magnetic field based on IGRF13 coefficients
@@ -29,5 +30,5 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time& time=Time{});
  *
  * @note The time is assumed to be in UTC.
  */
-std::pair<Matrix, Matrix> igrf_coefficients(const Time &time);
+std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> igrf_coefficients(const Time &time);
 }  // namespace IGRF

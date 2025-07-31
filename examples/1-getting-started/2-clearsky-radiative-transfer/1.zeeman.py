@@ -27,7 +27,7 @@ ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atmospheric_fieldSchmidthFieldFromIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 

@@ -72,6 +72,9 @@ los = [160.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 ws.measurement_vectorFromSensor()
 
+ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+ws.measurement_vector += np.random.normal(0, noise, NF)
+
 orig = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
 
 mag_u.data += 5e-6
@@ -104,9 +107,6 @@ for i in range(LIMIT):
     ws.measurement_jacobian = [[]]
 
     ws.model_state_vector_aprioriFromData()
-
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 

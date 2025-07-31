@@ -318,8 +318,8 @@ constexpr Numeric r0{6371.2e3};
  * \param[in] scale the addition scales with this, set to 1.0 for complete
  * calculations
  */
-Vector3 igrf_impl(const Matrix &g,
-                  const Matrix &h,
+Vector3 igrf_impl(const Legendre::SchmidtMatrix &g,
+                  const Legendre::SchmidtMatrix &h,
                   const Vector3 pos,
                   const Vector2 ell) {
   using Conversion::cosd, Conversion::sind;
@@ -339,16 +339,16 @@ Vector3 igrf_impl(const Matrix &g,
 namespace IGRF {
 Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   static const Time y2020("2020-01-01 00:00:00");
-  static const Matrix mg2020{g2020};
-  static const Matrix mh2020{h2020};
+  static const Legendre::SchmidtMatrix mg2020{g2020};
+  static const Legendre::SchmidtMatrix mh2020{h2020};
 
   if (time >= y2020) {
     return igrf_impl(mg2020, mh2020, pos, ell);
   }
 
   static const Time y2015("2015-01-01 00:00:00");
-  static const Matrix mg2015{g2015};
-  static const Matrix mh2015{h2015};
+  static const Legendre::SchmidtMatrix mg2015{g2015};
+  static const Legendre::SchmidtMatrix mh2015{h2015};
 
   if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) /
@@ -364,8 +364,8 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   }
 
   static const Time y2010("2010-01-01 00:00:00");
-  static const Matrix mg2010{g2010};
-  static const Matrix mh2010{h2010};
+  static const Legendre::SchmidtMatrix mg2010{g2010};
+  static const Legendre::SchmidtMatrix mh2010{h2010};
 
   if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) /
@@ -381,8 +381,8 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   }
 
   static const Time y2005("2005-01-01 00:00:00");
-  static const Matrix mg2005{g2005};
-  static const Matrix mh2005{h2005};
+  static const Legendre::SchmidtMatrix mg2005{g2005};
+  static const Legendre::SchmidtMatrix mh2005{h2005};
 
   if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) /
@@ -399,8 +399,8 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   }
 
   static const Time y2000("2000-01-01 00:00:00");
-  static const Matrix mg2000{g2000};
-  static const Matrix mh2000{h2000};
+  static const Legendre::SchmidtMatrix mg2000{g2000};
+  static const Legendre::SchmidtMatrix mh2000{h2000};
 
   if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) /
@@ -418,93 +418,94 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   return igrf_impl(mg2000, mh2000, pos, ell);
 }
 
-std::pair<Matrix, Matrix> igrf_coefficients(const Time &time) {
+std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> igrf_coefficients(
+    const Time &time) {
   static const Time y2020("2020-01-01 00:00:00");
-  static const Matrix mg2020{g2020};
-  static const Matrix mh2020{h2020};
+  static const Legendre::SchmidtMatrix mg2020{g2020};
+  static const Legendre::SchmidtMatrix mh2020{h2020};
 
   if (time >= y2020) return {mg2020, mh2020};
 
   static const Time y2015("2015-01-01 00:00:00");
-  static const Matrix mg2015{g2015};
-  static const Matrix mh2015{h2015};
+  static const Legendre::SchmidtMatrix mg2015{g2015};
+  static const Legendre::SchmidtMatrix mh2015{h2015};
 
   if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) /
                           (y2020.Seconds() - y2015.Seconds());
     assert(scale >= 0 and scale < 1);
 
-    Matrix h(mh2020), g(mg2020);
-    Matrix tmp_h(mh2015), tmp_g(mg2015);
-    h     *= (1.0 - scale);
-    g     *= (1.0 - scale);
-    tmp_h *= scale;
-    tmp_g *= scale;
-    h     += tmp_h;
-    g     += tmp_g;
+    Legendre::SchmidtMatrix h(mh2020), g(mg2020);
+    Legendre::SchmidtMatrix tmp_h(mh2015), tmp_g(mg2015);
+    h.x     *= (1.0 - scale);
+    g.x     *= (1.0 - scale);
+    tmp_h.x *= scale;
+    tmp_g.x *= scale;
+    h.x     += tmp_h.x;
+    g.x     += tmp_g.x;
 
     return {g, h};
   }
 
   static const Time y2010("2010-01-01 00:00:00");
-  static const Matrix mg2010{g2010};
-  static const Matrix mh2010{h2010};
+  static const Legendre::SchmidtMatrix mg2010{g2010};
+  static const Legendre::SchmidtMatrix mh2010{h2010};
 
   if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) /
                           (y2015.Seconds() - y2010.Seconds());
     assert(scale >= 0 and scale < 1);
 
-    Matrix h(mh2015), g(mg2015);
-    Matrix tmp_h(mh2010), tmp_g(mg2010);
-    h     *= (1.0 - scale);
-    g     *= (1.0 - scale);
-    tmp_h *= scale;
-    tmp_g *= scale;
-    h     += tmp_h;
-    g     += tmp_g;
+    Legendre::SchmidtMatrix h(mh2015), g(mg2015);
+    Legendre::SchmidtMatrix tmp_h(mh2010), tmp_g(mg2010);
+    h.x     *= (1.0 - scale);
+    g.x     *= (1.0 - scale);
+    tmp_h.x *= scale;
+    tmp_g.x *= scale;
+    h.x     += tmp_h.x;
+    g.x     += tmp_g.x;
 
     return {g, h};
   }
 
   static const Time y2005("2005-01-01 00:00:00");
-  static const Matrix mg2005{g2005};
-  static const Matrix mh2005{h2005};
+  static const Legendre::SchmidtMatrix mg2005{g2005};
+  static const Legendre::SchmidtMatrix mh2005{h2005};
 
   if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) /
                           (y2010.Seconds() - y2005.Seconds());
     assert(scale >= 0 and scale < 1);
 
-    Matrix h(mh2010), g(mg2010);
-    Matrix tmp_h(mh2005), tmp_g(mg2005);
-    h     *= (1.0 - scale);
-    g     *= (1.0 - scale);
-    tmp_h *= scale;
-    tmp_g *= scale;
-    h     += tmp_h;
-    g     += tmp_g;
+    Legendre::SchmidtMatrix h(mh2010), g(mg2010);
+    Legendre::SchmidtMatrix tmp_h(mh2005), tmp_g(mg2005);
+    h.x     *= (1.0 - scale);
+    g.x     *= (1.0 - scale);
+    tmp_h.x *= scale;
+    tmp_g.x *= scale;
+    h.x     += tmp_h.x;
+    g.x     += tmp_g.x;
 
     return {g, h};
   }
 
   static const Time y2000("2000-01-01 00:00:00");
-  static const Matrix mg2000{g2000};
-  static const Matrix mh2000{h2000};
+  static const Legendre::SchmidtMatrix mg2000{g2000};
+  static const Legendre::SchmidtMatrix mh2000{h2000};
 
   if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) /
                           (y2005.Seconds() - y2000.Seconds());
     assert(scale >= 0 and scale < 1);
 
-    Matrix h(mh2005), g(mg2005);
-    Matrix tmp_h(mh2000), tmp_g(mg2000);
-    h     *= (1.0 - scale);
-    g     *= (1.0 - scale);
-    tmp_h *= scale;
-    tmp_g *= scale;
-    h     += tmp_h;
-    g     += tmp_g;
+    Legendre::SchmidtMatrix h(mh2005), g(mg2005);
+    Legendre::SchmidtMatrix tmp_h(mh2000), tmp_g(mg2000);
+    h.x     *= (1.0 - scale);
+    g.x     *= (1.0 - scale);
+    tmp_h.x *= scale;
+    tmp_g.x *= scale;
+    h.x     += tmp_h.x;
+    g.x     += tmp_g.x;
     return {g, h};
   }
 

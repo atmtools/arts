@@ -14,7 +14,8 @@ struct IGRF13 {
 };
 
 struct SchmidthLegendre {
-  Tensor3 gh;
+  Matrix gh;
+  Size N;
   Numeric r0{};
   Vector2 ell{};
   FieldComponent component{};
