@@ -153,7 +153,7 @@ void jacobian_targetsAddOverlappingMagneticField(
     case mag_u:
     case mag_v: jacobian_targets.atm().back().type = mag_w; break;
     case mag_w: jacobian_targets.atm().back().type = mag_v; break;
-    default:    throw std::out_of_range("Invalide state");
+    default:    throw std::out_of_range("Invalid state");
   }
 }
 
