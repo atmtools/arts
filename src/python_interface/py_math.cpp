@@ -239,6 +239,44 @@ w : List[float]
     The weights
 )");
 
+  py::class_<Legendre::SchmidtMatrix>(math, "SchmidtMatrix")
+      .def(py::init<Size>(), "N"_a, "Default Schmidt matrix")
+      .def(
+          "__getitem__",
+          [](const Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx) {
+            if (idx.first < 0 or idx.second < 0 or
+                static_cast<Size>(idx.first) >= self.N or
+                idx.second >= idx.first)
+              throw std::out_of_range(
+                  "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
+
+            return self[idx.first, idx.second];
+          },
+          "idx"_a,
+          R"(Get the value at the given index pair)")
+      .def(
+          "__setitem__",
+          [](Legendre::SchmidtMatrix& self,
+             std::pair<Index, Index> idx,
+             Numeric value) {
+            if (idx.first < 0 or idx.second < 0 or
+                static_cast<Size>(idx.first) >= self.N or
+                idx.second >= idx.first)
+              throw std::out_of_range(
+                  "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
+
+            self[idx.first, idx.second] = value;
+          },
+          "idx"_a,
+          "value"_a,
+          R"(Get the value at the given index pair)")
+      .doc() = R"(Special matrix for the Schmidt polynomials
+
+This is a lower triangular N-by-N-matrix missing the 0, 0 entry.
+Can only be accessed at indices
+``(i, j)``, where ``0 <= i < N`` and ``0 <= j <= i``.
+)";
+
   math.def("schmidt_legendre_polynomial",
            &Legendre::schmidt,
            "theta"_a,
@@ -254,10 +292,10 @@ nmax : int
 
 Returns
 -------
-Pnm : Matrix
-    The Polynominal matrix (nmax+1 x nmax+1; valid the the left of the diagonal only)
-dPnm : Matrix
-    The Polynominal matrix derivative (nmax+1 x nmax+1; valid the the left of the diagonal only)
+Pnm : SchmidtMatrix
+    The Polynominal matrix (nmax+1 x nmax+1).
+dPnm : SchmidtMatrix
+    The Polynominal matrix derivative (nmax+1 x nmax+1).
 )");
 } catch (std::exception& e) {
   throw std::runtime_error(
