@@ -1,3 +1,4 @@
+#include <arts_omp.h>
 #include <atm.h>
 #include <jacobian.h>
 #include <path_point.h>
@@ -8,14 +9,6 @@
 
 #include <algorithm>
 #include <exception>
-#include <stdexcept>
-
-#include "arts_omp.h"
-#include "debug.h"
-#include "enumsSensorJacobianModelType.h"
-#include "fwd.h"
-#include "rtepack_stokes_vector.h"
-#include "workspace_agenda_class.h"
 
 void spectral_radiance_jacobianEmpty(
     StokvecMatrix &spectral_radiance_jacobian,
@@ -103,39 +96,29 @@ void spectral_radiance_jacobianAddPathPropagation(
   //! The derivative part from the atmosphere
   for (auto &atm_block : jacobian_targets.atm()) {
     ARTS_USER_ERROR_IF(not atmospheric_field.contains(atm_block.type),
-                       "No {}"
-                       " in atmospheric_field but in jacobian_targets",
+                       "No {} in atmospheric_field but in jacobian_targets",
                        atm_block.type)
     const auto &data = atmospheric_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
+      const auto &local  = ray_path_spectral_radiance_jacobian[ip];
+
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
           assert(i < static_cast<Size>(nj));
           std::transform(
-              ray_path_spectral_radiance_jacobian[ip][atm_block.target_pos]
-                  .begin(),
-              ray_path_spectral_radiance_jacobian[ip][atm_block.target_pos]
-                  .end(),
+              local[atm_block.target_pos].begin(),
+              local[atm_block.target_pos].end(),
               spectral_radiance_jacobian[i].begin(),
               spectral_radiance_jacobian[i].begin(),
-              [x = w.second](auto &a, auto &b) { return x * a + b; });
+              [x = w.second](const Stokvec &a, const Stokvec &b) -> Stokvec {
+                return fma(x, a, b);
+              });
         }
       }
     }
   }
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_radianceFromPathPropagation(
-    StokvecVector &spectral_radiance,
-    const ArrayOfStokvecVector &ray_path_spectral_radiance) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(ray_path_spectral_radiance.empty(),
-                     "Empty ray_path_spectral_radiance")
-  spectral_radiance = ray_path_spectral_radiance.front();
 }
 ARTS_METHOD_ERROR_CATCH
 

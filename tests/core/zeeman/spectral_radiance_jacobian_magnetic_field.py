@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 PLOT = False  # Plot for debug
 LIMIT = 50  # Rerun limit for finding a fit
-ATOL = 100
+ATOL = 200
 NF = 1001
 noise = 0.5
 

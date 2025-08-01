@@ -14,7 +14,7 @@ void add_diagonal_covmat(CovarianceMatrix& covmat,
                          const T& target,
                          const BlockMatrix& matrix,
                          const BlockMatrix& inverse) {
-  Range colrow(target.x_start, target.x_size);
+  const Range colrow(target.x_start, target.x_size);
 
   ARTS_USER_ERROR_IF(
       matrix.ncols() != colrow.nelem or matrix.nrows() != colrow.nelem,
@@ -28,10 +28,12 @@ Target: {}
       colrow.nelem,
       target.type);
 
-  covmat.add_correlation({colrow,
-                          colrow,
-                          IndexPair{target.target_pos, target.target_pos},
-                          matrix});
+  if (not target.overlap) {
+    covmat.add_correlation({colrow,
+                            colrow,
+                            IndexPair{target.target_pos, target.target_pos},
+                            matrix});
+  }
 
   if (inverse.not_null()) {
     ARTS_USER_ERROR_IF(
@@ -46,10 +48,12 @@ Target: {}
         colrow.nelem,
         target.type);
 
-    covmat.add_correlation({colrow,
-                            colrow,
-                            IndexPair{target.target_pos, target.target_pos},
-                            matrix});
+    if (not target.overlap) {
+      covmat.add_correlation({colrow,
+                              colrow,
+                              IndexPair{target.target_pos, target.target_pos},
+                              matrix});
+    }
   }
 }
 

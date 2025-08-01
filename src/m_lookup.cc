@@ -88,7 +88,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
             "The target {} is not good, it lacks a perturbation value.",
             jacobian_target);
 
-        if (jacobian_target.is_wind()) {
+        if (is_wind(jacobian_target)) {
           const AscendingGrid frequency_grid2(
               frequency_grid.begin(),
               frequency_grid.end(),

@@ -104,9 +104,16 @@ constexpr stokvec operator*(stokvec a, const Numeric &b) {
   return a;
 }
 
+constexpr stokvec fma(const Numeric &x, const stokvec &a, const stokvec &b) {
+  return {std::fma(x, a.I(), b.I()),
+          std::fma(x, a.Q(), b.Q()),
+          std::fma(x, a.U(), b.U()),
+          std::fma(x, a.V(), b.V())};
+}
+
 //! Take the average of two stokvec vectors
 constexpr stokvec avg(const stokvec &a, const stokvec &b) {
-  return 0.5 * a + 0.5 * b;
+  return fma(0.5, a, 0.5 * b);
 }
 
 /** Convertion methods for stokes vectors

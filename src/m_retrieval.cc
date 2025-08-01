@@ -1,7 +1,6 @@
 #include <workspace.h>
 
 #include "enumsAtmKey.h"
-#include "enumsFieldComponent.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Retrieval code.  This wraps Jacobian and Covmat code.
@@ -166,6 +165,48 @@ void RetrievalAddMagneticField(JacobianTargets& jacobian_targets,
   jacobian_targetsAddMagneticField(jacobian_targets, component, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
       jacobian_targets.atm().back().type}] = {.first  = matrix,
+                                              .second = inverse};
+}
+
+void RetrievalAddOverlappingMagneticField(
+    JacobianTargets& jacobian_targets,
+    JacobianTargetsDiagonalCovarianceMatrixMap&
+        covariance_matrix_diagonal_blocks,
+    const BlockMatrix& matrix,
+    const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
+  jacobian_targetsAddOverlappingMagneticField(jacobian_targets);
+
+  const Size N = jacobian_targets.atm().size();
+
+  covariance_matrix_diagonal_blocks[JacobianTargetType{
+      jacobian_targets.atm()[N - 2].type}] = {.first  = matrix,
+                                              .second = inverse};
+
+  covariance_matrix_diagonal_blocks[JacobianTargetType{
+      jacobian_targets.atm()[N - 1].type}] = {.first  = matrix,
+                                              .second = inverse};
+}
+
+void RetrievalAddOverlappingWindField(
+    JacobianTargets& jacobian_targets,
+    JacobianTargetsDiagonalCovarianceMatrixMap&
+        covariance_matrix_diagonal_blocks,
+    const BlockMatrix& matrix,
+    const BlockMatrix& inverse) {
+  ARTS_TIME_REPORT
+
+  jacobian_targetsAddOverlappingWindField(jacobian_targets);
+
+  const Size N = jacobian_targets.atm().size();
+
+  covariance_matrix_diagonal_blocks[JacobianTargetType{
+      jacobian_targets.atm()[N - 2].type}] = {.first  = matrix,
+                                              .second = inverse};
+
+  covariance_matrix_diagonal_blocks[JacobianTargetType{
+      jacobian_targets.atm()[N - 1].type}] = {.first  = matrix,
                                               .second = inverse};
 }
 

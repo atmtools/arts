@@ -256,10 +256,10 @@ struct Data {
   [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions in an atmosphere
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
+  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
       const Numeric alt, const Numeric lat, const Numeric lon) const;
 
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
+  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
       const Vector3 pos) const;
 };
 

@@ -29,21 +29,46 @@ using Math::pow2;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 
+/** Threshold for non-spherical ellipsoid
+  
+    If the two radii of an ellipsoid differ with less than this value, it is
+    treated as spherical for efficiency reasons.
+*/
+inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
+
+/** Size of north and south poles
+  
+    Latitudes with an absolute value > POLELAT are considered to be on
+    the south or north pole. This is needed for definition of azimuth.
+*/
+inline constexpr Numeric POLELATZZZ =
+    90 - 1e-8;  // Rename to POLELAT when other one removed
+
 /*===========================================================================
   === The functions, in alphabetical order
   ===========================================================================*/
 
-void ecef2geocentric(VectorView pos, ConstVectorView ecef) {
+Vector3 ecef2geocentric(Vector3 ecef) {
+  Vector3 pos;
   pos[0] = sqrt(ecef[0] * ecef[0] + ecef[1] * ecef[1] + ecef[2] * ecef[2]);
   pos[1] = RAD2DEG * asin(ecef[2] / pos[0]);
   pos[2] = RAD2DEG * atan2(ecef[1], ecef[0]);
+  return pos;
 }
 
-void ecef2geocentric_los(VectorView pos,
-                         VectorView los,
-                         ConstVectorView ecef,
-                         ConstVectorView decef) {
-  ecef2geocentric(pos, ecef);
+Vector3 geocentric2ecef(Vector3 pos) {
+  Vector3 ecef;
+  const Numeric latrad = DEG2RAD * pos[1];
+  const Numeric lonrad = DEG2RAD * pos[2];
+  ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
+  ecef[1]              = ecef[0] * sin(lonrad);
+  ecef[0]              = ecef[0] * cos(lonrad);
+  ecef[2]              = pos[0] * sin(latrad);
+  return ecef;
+}
+
+std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
+  Vector3 pos = ecef2geocentric(ecef);
 
   const Numeric latrad = DEG2RAD * pos[1];
   const Numeric lonrad = DEG2RAD * pos[2];
@@ -60,6 +85,7 @@ void ecef2geocentric_los(VectorView pos,
   const Numeric dlon = -sinlon / coslat / pos[0] * decef[0] +
                        coslon / coslat / pos[0] * decef[1];
 
+  Vector2 los;
   los[0] = acos(dr);  // Conersion to deg below
 
   // Azimuth needs special treatment at poles
@@ -78,14 +104,16 @@ void ecef2geocentric_los(VectorView pos,
     }
   }
   los[0] *= RAD2DEG;
+
+  return {pos, los};
 }
 
-void ecef2geodetic(VectorView pos,
-                   ConstVectorView ecef,
-                   const Vector2 refellipsoid) {
+Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
+  Vector3 pos;
+
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid)) {
-    ecef2geocentric(pos, ecef);
+    pos     = ecef2geocentric(ecef);
     pos[0] -= refellipsoid[0];
 
     // The general algorithm not stable for lat=+-90. Catch these cases
@@ -112,14 +140,14 @@ void ecef2geodetic(VectorView pos,
     }
     pos[1] = RAD2DEG * B;
   }
+
+  return pos;
 }
 
-void ecef2geodetic_los(VectorView pos,
-                       VectorView los,
-                       ConstVectorView ecef,
-                       ConstVectorView decef,
-                       const Vector2 refellipsoid) {
-  ecef2geodetic(pos, ecef, refellipsoid);
+std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
+                                              Vector3 decef,
+                                              Vector2 refellipsoid) {
+  Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = DEG2RAD * pos[1];
   const Numeric lonrad = DEG2RAD * pos[2];
@@ -130,65 +158,59 @@ void ecef2geodetic_los(VectorView pos,
 
   // See
   // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-  Vector enu(3);
+  Vector3 enu;
   enu[0] = -sinlon * decef[0] + coslon * decef[1];
   enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] +
            coslat * decef[2];
   enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] +
            sinlat * decef[2];
 
-  enu2los(los, enu);
+  Vector2 los = enu2los(enu);
 
   // Azimuth at poles needs special treatment
   if (fabs(pos[1]) > POLELATZZZ) los[1] = RAD2DEG * atan2(decef[1], decef[0]);
+
+  return {pos, los};
 }
 
-void ecef_at_distance(VectorView ecef,
-                      ConstVectorView ecef0,
-                      ConstVectorView decef,
-                      const Numeric l) {
+Vector3 ecef_at_distance(Vector3 ecef0, Vector3 decef, Numeric l) {
+  Vector3 ecef;
   ecef[0] = ecef0[0] + l * decef[0];
   ecef[1] = ecef0[1] + l * decef[1];
   ecef[2] = ecef0[2] + l * decef[2];
+  return ecef;
 }
 
-Numeric ecef_distance(ConstVectorView ecef1, ConstVectorView ecef2) {
+Numeric ecef_distance(Vector3 ecef1, Vector3 ecef2) {
   const Numeric dx = ecef2[0] - ecef1[0];
   const Numeric dy = ecef2[1] - ecef1[1];
   const Numeric dz = ecef2[2] - ecef1[2];
   return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-void ecef_vector_distance(VectorView ecef,
-                          ConstVectorView ecef0,
-                          ConstVectorView ecef1) {
+Vector3 ecef_vector_distance(Vector3 ecef0, Vector3 ecef1) {
+  Vector3 ecef;
   ecef[0] = ecef1[0] - ecef0[0];
   ecef[1] = ecef1[1] - ecef0[1];
   ecef[2] = ecef1[2] - ecef0[2];
+  return ecef;
 }
 
-void enu2los(VectorView los, ConstVectorView enu) {
+Vector2 enu2los(Vector3 enu) {
+  Vector2 los;
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = norm2(enu);
   assert(fabs(twonorm - 1.0) < 1e-6);
   los[0] = RAD2DEG * acos(enu[2] / twonorm);
   los[1] = RAD2DEG * atan2(enu[0], enu[1]);
+  return los;
 }
 
-void geocentric2ecef(VectorView ecef, ConstVectorView pos) {
-  const Numeric latrad = DEG2RAD * pos[1];
-  const Numeric lonrad = DEG2RAD * pos[2];
-  ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
-  ecef[1]              = ecef[0] * sin(lonrad);
-  ecef[0]              = ecef[0] * cos(lonrad);
-  ecef[2]              = pos[0] * sin(latrad);
-}
+std::pair<Vector3, Vector3> geocentric_los2ecef(Vector3 pos, Vector2 los) {
+  Vector3 ecef;
+  Vector3 decef;
 
-void geocentric_los2ecef(VectorView ecef,
-                         VectorView decef,
-                         ConstVectorView pos,
-                         ConstVectorView los) {
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -236,15 +258,18 @@ void geocentric_los2ecef(VectorView ecef,
     decef[1] =
         coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon;
   }
+
+  return {ecef, decef};
 }
 
-void approx_geometrical_tangent_point(VectorView ecef_tan,
-                                      ConstVectorView ecef,
-                                      ConstVectorView decef,
-                                      const Vector2 refellipsoid) {
+Vector3 approx_geometrical_tangent_point(Vector3 ecef,
+                                         Vector3 decef,
+                                         Vector2 refellipsoid) {
+  Vector3 ecef_tan;
+
   // Spherical case (length simply obtained by dot product)
   if (is_ellipsoid_spherical(refellipsoid)) {
-    ecef_at_distance(ecef_tan, ecef, decef, -dot(decef, ecef));
+    ecef_tan = ecef_at_distance(ecef, decef, -dot(decef, ecef));
 
     // General case
   } else {
@@ -258,7 +283,7 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
 
     const Numeric a2 = refellipsoid[0] * refellipsoid[0];
     const Numeric b2 = refellipsoid[1] * refellipsoid[1];
-    Vector yunit(3), zunit(3);
+    Vector3 yunit, zunit;
 
     cross3(zunit, decef, ecef);
     zunit /= norm2(zunit);
@@ -290,16 +315,18 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
     ecef_tan[1] = decef[1] * xx + yunit[1] * yr;
     ecef_tan[2] = decef[2] * xx + yunit[2] * yr;
   }
+
+  return ecef_tan;
 }
 
-void geodetic2ecef(VectorView ecef,
-                   ConstVectorView pos,
-                   const Vector2 refellipsoid) {
+Vector3 geodetic2ecef(Vector3 pos, Vector2 refellipsoid) {
+  Vector3 ecef;
+
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid)) {
-    Vector posc{pos};
+    Vector3 posc{pos};
     posc[0] += refellipsoid[0];
-    geocentric2ecef(ecef, posc);
+    ecef     = geocentric2ecef(posc);
   } else {
     // See https://en.wikipedia.org/wiki/
     // Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
@@ -315,13 +342,15 @@ void geodetic2ecef(VectorView ecef,
     ecef[1]             = nhcos * sin(lonrad);
     ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
   }
+
+  return ecef;
 }
 
-void geodetic_los2ecef(VectorView ecef,
-                       VectorView decef,
-                       ConstVectorView pos,
-                       ConstVectorView los,
-                       const Vector2 refellipsoid) {
+std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
+                                              Vector2 los,
+                                              Vector2 refellipsoid) {
+  Vector3 ecef, decef;
+
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -347,10 +376,9 @@ void geodetic_los2ecef(VectorView ecef,
     const Numeric coslon = cos(lonrad);
     const Numeric sinlon = sin(lonrad);
 
-    geodetic2ecef(ecef, pos, refellipsoid);
+    ecef = geodetic2ecef(pos, refellipsoid);
 
-    Vector enu(3);
-    los2enu(enu, los);
+    Vector3 enu = los2enu(los);
 
     // See
     // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
@@ -360,13 +388,15 @@ void geodetic_los2ecef(VectorView ecef,
         coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2];
     decef[2] = coslat * enu[1] + sinlat * enu[2];
   }
+
+  return {ecef, decef};
 }
 
-Numeric intersection_altitude(ConstVectorView ecef,
-                              ConstVectorView decef,
-                              const Vector2 refellipsoid,
-                              const Numeric& altitude,
-                              const Numeric& l_min) {
+Numeric intersection_altitude(Vector3 ecef,
+                              Vector3 decef,
+                              Vector2 refellipsoid,
+                              Numeric altitude,
+                              Numeric l_min) {
   Numeric l;
   Vector2 ellipsoid{refellipsoid};
   ellipsoid += altitude;
@@ -425,183 +455,168 @@ Numeric intersection_altitude(ConstVectorView ecef,
   return l;
 }
 
-Numeric intersection_latitude(ConstVectorView ecef,
-                              ConstVectorView decef,
-                              ConstVectorView pos,
-                              ConstVectorView los,
-                              const Vector2 refellipsoid,
-                              const Numeric& lat) {
+Numeric intersection_latitude(Vector3 ecef,
+                              Vector3 decef,
+                              Vector3 pos,
+                              Vector2 los,
+                              Vector2 refellipsoid,
+                              Numeric lat) {
   // If already at lat, l=0
-  if (pos[1] == lat) {
-    return 0;
-    // No solution if outside of latitude cone and looking away or
-    // looking at zenith or nadir
-  } else if ((lat <= 0 && pos[1] > lat && fabs(los[1]) <= 90) ||  // lat on SH
-             (lat >= 0 && pos[1] < lat && fabs(los[1]) >= 90) ||  // lat on NH
-             (los[0] == 0) || (los[0] == 180)) {  // zenith/nadir
+  if (pos[1] == lat) return 0;
+  // No solution if outside of latitude cone and looking away or
+  // looking at zenith or nadir
+
+  if ((lat <= 0 && pos[1] > lat && fabs(los[1]) <= 90) ||  // lat on SH
+      (lat >= 0 && pos[1] < lat && fabs(los[1]) >= 90) ||  // lat on NH
+      (los[0] == 0) || (los[0] == 180)) {                  // zenith/nadir
     return -1;
     // Solution simple if lat = 0 (-z/dz)
-  } else if (lat == 0) {
-    if (decef[2] == 0)
-      return -1;
-    else
-      return -ecef[2] / decef[2];
-    // Special treatment of lat=90
-  } else if (lat > POLELATZZZ) {
-    if (los[1] != 0)
-      return -1;
-    else {
-      if (fabs(decef[0]) > fabs(decef[1]))
-        return -ecef[0] / decef[0];
-      else
-        return -ecef[1] / decef[1];
-    }
-    // Special treatment of lat=-90
-  } else if (-lat > POLELATZZZ) {
-    if (fabs(los[1]) != 180)
-      return -1;
-    else {
-      if (fabs(decef[0]) > fabs(decef[1]))
-        return -ecef[0] / decef[0];
-      else
-        return -ecef[1] / decef[1];
-    }
-  } else {
-    // Algorithm based on:
-    // lousodrome.net/blog/light/2017/01/03/intersection-of-a-ray-and-a-cone/
-    // C: Position of tip of cone
-    Vector C(3, 0.0);
-    if (is_ellipsoid_spherical(refellipsoid)) {
-      C[2] = 0;  // At (0,0,0) for spherical planet
-    } else {     // At (0,0,z) for ellipsoidal planet
-      // Calculate normal to ellipsoid at (0,lat,0) and use it to determine z
-      // of cone tip. The distance from (0,lat,0) to z-axis is l=x/dx, so
-      // z of cone tip is z-l*dz.
-      Vector pos2(3, 0.0), los2(2, 0.0), ecefn(3), n(3);
-      pos2[1] = lat;
-      geodetic_los2ecef(ecefn, n, pos2, los2, refellipsoid);
-      const Numeric l2axis = ecefn[0] / n[0];
-      C[2]                 = ecefn[2] - l2axis * n[2];
-    }
-    // V: Vector describing centre of cone
-    Vector V(3);
-    V[0] = 0;
-    V[1] = 0;
-    V[2] = lat > 0 ? 1 : -1;
-    // Angle term (cos(lat)^2)
-    Numeric costerm  = cos(DEG2RAD * (90 - fabs(lat)));
-    costerm         *= costerm;
-    // Rename to follow nomenclature on web page
-    ConstVectorView D = decef;
-    // Vector from C to O
-    Vector CO(3);
-    ecef_vector_distance(CO, C, ecef);
-    // Dot products repeated
-    const Numeric DVdot  = dot(D, V);
-    const Numeric COVdot = dot(CO, V);
-    // The a, b, c and delta terms
-    const Numeric a = DVdot * DVdot - costerm;
-    const Numeric b = 2 * (DVdot * COVdot - dot(D, CO) * costerm);
-    const Numeric c = COVdot * COVdot - dot(CO, CO) * costerm;
-    const Numeric d = b * b - 4 * a * c;
-    //
-    if (d < 0) {
-      return -1;
-    } else if (d == 0) {
-      return -b / (2 * a);
-    } else {
-      const Numeric sqrtd = sqrt(d);
-      const Numeric aa    = 2 * a;
-      Numeric l1          = (-b - sqrtd) / aa;
-      Numeric l2          = (-b + sqrtd) / aa;
-      // Check that crossing is not with -lat
-      if (l1 > 0) {
-        Vector P(3);
-        ecef_at_distance(P, ecef, decef, l1);
-        Vector PC(3);
-        ecef_vector_distance(PC, C, P);
-        if (dot(PC, V) <= 0) l1 = -1;
-      }
-      if (l2 > 0) {
-        Vector P(3);
-        ecef_at_distance(P, ecef, decef, l2);
-        Vector PC(3);
-        ecef_vector_distance(PC, C, P);
-        if (dot(PC, V) <= 0) l2 = -1;
-      }
-      if (l1 > 0 && l2 > 0)
-        return l1 < l2 ? l1 : l2;  // min of l1 and l2 is returned
-      else
-        return l1 < l2 ? l2 : l1;  // max of l1 and l2 is returned
-    }
   }
+
+  if (lat == 0) {
+    if (decef[2] == 0) return -1;
+    return -ecef[2] / decef[2];
+    // Special treatment of lat=90
+  }
+
+  if (lat > POLELATZZZ) {
+    if (los[1] != 0) return -1;
+
+    if (fabs(decef[0]) > fabs(decef[1])) return -ecef[0] / decef[0];
+
+    return -ecef[1] / decef[1];
+
+    // Special treatment of lat=-90
+  }
+
+  if (-lat > POLELATZZZ) {
+    if (fabs(los[1]) != 180) return -1;
+    if (fabs(decef[0]) > fabs(decef[1])) return -ecef[0] / decef[0];
+
+    return -ecef[1] / decef[1];
+  }
+  // Algorithm based on:
+  // lousodrome.net/blog/light/2017/01/03/intersection-of-a-ray-and-a-cone/
+  // C: Position of tip of cone
+  Vector3 C;
+  if (is_ellipsoid_spherical(refellipsoid)) {
+    C[2] = 0;  // At (0,0,0) for spherical planet
+  } else {     // At (0,0,z) for ellipsoidal planet
+    // Calculate normal to ellipsoid at (0,lat,0) and use it to determine z
+    // of cone tip. The distance from (0,lat,0) to z-axis is l=x/dx, so
+    // z of cone tip is z-l*dz.
+    Vector3 pos2{0, lat, 0};
+    Vector2 los2{0, 0};
+    pos2[1]              = lat;
+    auto [ecefn, n]      = geodetic_los2ecef(pos2, los2, refellipsoid);
+    const Numeric l2axis = ecefn[0] / n[0];
+    C[2]                 = ecefn[2] - l2axis * n[2];
+  }
+
+  // V: Vector3 describing centre of cone
+  Vector3 V{0, 0, lat > 0 ? 1. : -1.};
+
+  // Angle term (cos(lat)^2)
+  Numeric costerm  = cos(DEG2RAD * (90 - fabs(lat)));
+  costerm         *= costerm;
+  // Rename to follow nomenclature on web page
+  Vector3 D = decef;
+  // Vector3 from C to O
+  Vector3 CO = ecef_vector_distance(C, ecef);
+  // Dot products repeated
+  const Numeric DVdot  = dot(D, V);
+  const Numeric COVdot = dot(CO, V);
+  // The a, b, c and delta terms
+  const Numeric a = DVdot * DVdot - costerm;
+  const Numeric b = 2 * (DVdot * COVdot - dot(D, CO) * costerm);
+  const Numeric c = COVdot * COVdot - dot(CO, CO) * costerm;
+  const Numeric d = b * b - 4 * a * c;
+  //
+  if (d < 0) return -1;
+
+  if (d == 0) return -b / (2 * a);
+
+  const Numeric sqrtd = sqrt(d);
+  const Numeric aa    = 2 * a;
+  Numeric l1          = (-b - sqrtd) / aa;
+  Numeric l2          = (-b + sqrtd) / aa;
+  // Check that crossing is not with -lat
+  if (l1 > 0) {
+    Vector3 P  = ecef_at_distance(ecef, decef, l1);
+    Vector3 PC = ecef_vector_distance(C, P);
+    if (dot(PC, V) <= 0) l1 = -1;
+  }
+
+  if (l2 > 0) {
+    Vector3 P  = ecef_at_distance(ecef, decef, l2);
+    Vector3 PC = ecef_vector_distance(C, P);
+    if (dot(PC, V) <= 0) l2 = -1;
+  }
+
+  // min of l1 and l2 is returned
+  if (l1 > 0 && l2 > 0) return l1 < l2 ? l1 : l2;
+
+  return l1 < l2 ? l2 : l1;  // max of l1 and l2 is returned
 }
 
-Numeric intersection_longitude(ConstVectorView ecef,
-                               ConstVectorView decef,
-                               ConstVectorView pos,
-                               ConstVectorView los,
-                               const Numeric& lon) {
+Numeric intersection_longitude(
+    Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon) {
   // If already at lon or on a pole, l=0
-  if ((pos[2] == lon) || fabs(pos[1]) > POLELATZZZ) {
-    return 0;
-    // No solution if looking straight N or S, or azimuth in wrong direction
-  } else if ((los[1] == 0) || (fabs(los[1]) == 180) ||
-             (pos[2] > lon && los[1] > 0) || (pos[2] < lon && los[1] < 0)) {
+  if ((pos[2] == lon) || fabs(pos[1]) > POLELATZZZ) return 0;
+  // No solution if looking straight N or S, or azimuth in wrong direction
+
+  if ((los[1] == 0) || (fabs(los[1]) == 180) || (pos[2] > lon && los[1] > 0) ||
+      (pos[2] < lon && los[1] < 0)) {
     return -1;
-  } else {
-    const Numeric tanlon = tan(DEG2RAD * lon);
-    return (ecef[1] - ecef[0] * tanlon) / (decef[0] * tanlon - decef[1]);
   }
+
+  const Numeric tanlon = tan(DEG2RAD * lon);
+  return (ecef[1] - ecef[0] * tanlon) / (decef[0] * tanlon - decef[1]);
 }
 
 bool is_ellipsoid_spherical(const Vector2 ellipsoid) {
-  if (fabs(ellipsoid[0] - ellipsoid[1]) < ellipsoid_radii_threshold)
-    return true;
-  else
-    return false;
+  return (fabs(ellipsoid[0] - ellipsoid[1]) < ellipsoid_radii_threshold);
 }
 
-void los2enu(VectorView enu, ConstVectorView los) {
+Vector3 los2enu(Vector2 los) {
   const Numeric zarad = DEG2RAD * los[0];
   const Numeric aarad = DEG2RAD * los[1];
   const Numeric st    = sin(zarad);
-  enu[0]              = st * sin(aarad);
-  enu[1]              = st * cos(aarad);
-  enu[2]              = cos(zarad);
+  return {st * sin(aarad), st * cos(aarad), cos(zarad)};
 }
 
-void poslos_at_distance(VectorView pos,
-                        VectorView los,
-                        ConstVectorView ecef,
-                        ConstVectorView decef,
-                        const Vector2 refellipsoid,
-                        const Numeric l) {
-  Vector ecef_new(3);
-  ecef_at_distance(ecef_new, ecef, decef, l);
-  ecef2geodetic_los(pos, los, ecef_new, decef, refellipsoid);
+std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef,
+                                               Vector3 decef,
+                                               Vector2 refellipsoid,
+                                               Numeric l) {
+  Vector3 ecef_new = ecef_at_distance(ecef, decef, l);
+  return ecef2geodetic_los(ecef_new, decef, refellipsoid);
 }
 
-void pos_at_distance(VectorView pos,
-                     ConstVectorView ecef,
-                     ConstVectorView decef,
-                     const Vector2 refellipsoid,
-                     const Numeric l) {
-  Vector ecef_new(3);
-  ecef_at_distance(ecef_new, ecef, decef, l);
-  ecef2geodetic(pos, ecef_new, refellipsoid);
+Vector3 pos_at_distance(Vector3 ecef,
+                        Vector3 decef,
+                        Vector2 refellipsoid,
+                        Numeric l) {
+  Vector3 ecef_new = ecef_at_distance(ecef, decef, l);
+  return ecef2geodetic(ecef_new, refellipsoid);
 }
 
-Numeric prime_vertical_radius(const Vector2 refellipsoid, const Numeric& lat) {
+Numeric prime_vertical_radius(Vector2 refellipsoid, Numeric lat) {
   return refellipsoid[0] *
          (refellipsoid[0] / sqrt(pow2(refellipsoid[0] * cos(DEG2RAD * lat)) +
                                  pow2(refellipsoid[1] * sin(DEG2RAD * lat))));
 }
 
-void reverse_los(VectorView los_new, ConstVectorView los) {
+Vector2 reverse_los(Vector2 los) {
+  Vector2 los_new;
   los_new[0] = 180 - los[0];
   if (los[1] < 0)
     los_new[1] = los[1] + 180;
   else
     los_new[1] = los[1] - 180;
+  return los_new;
+}
+
+Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell) {
+  return ecef2geocentric(geodetic2ecef(pos, ell));
 }

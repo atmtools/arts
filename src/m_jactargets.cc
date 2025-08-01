@@ -120,6 +120,43 @@ void jacobian_targetsAddMagneticField(JacobianTargets& jacobian_targets,
   }
 }
 
+void jacobian_targetsAddOverlappingMagneticField(
+    JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  const auto f = stdr::find_if(jacobian_targets.atm(), Jacobian::is_mag);
+
+  ARTS_USER_ERROR_IF(f == jacobian_targets.atm().end(),
+                     "Cannot find original magnetic field for component");
+
+  const AtmKey component = std::get<AtmKey>(f->type);
+  const Size N           = jacobian_targets.target_count();
+
+  jacobian_targets.atm().emplace_back(*f);
+  jacobian_targets.atm().back().overlap     = true;
+  jacobian_targets.atm().back().overlap_key = component;
+  jacobian_targets.atm().back().target_pos  = N;
+  switch (component) {
+    using enum AtmKey;
+    case mag_u: jacobian_targets.atm().back().type = mag_v; break;
+    case mag_v:
+    case mag_w: jacobian_targets.atm().back().type = mag_u; break;
+    default:    throw std::out_of_range("Invalid state");
+  }
+
+  jacobian_targets.atm().emplace_back(*f);
+  jacobian_targets.atm().back().overlap     = true;
+  jacobian_targets.atm().back().overlap_key = component;
+  jacobian_targets.atm().back().target_pos  = N + 1;
+  switch (component) {
+    using enum AtmKey;
+    case mag_u:
+    case mag_v: jacobian_targets.atm().back().type = mag_w; break;
+    case mag_w: jacobian_targets.atm().back().type = mag_v; break;
+    default:    throw std::out_of_range("Invalid state");
+  }
+}
+
 void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
                                   const String& component,
                                   const Numeric& d) {
@@ -130,6 +167,43 @@ void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
     case u: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_u}, d); break;
     case v: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_v}, d); break;
     case w: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_w}, d); break;
+  }
+}
+
+void jacobian_targetsAddOverlappingWindField(
+    JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  const auto f = stdr::find_if(jacobian_targets.atm(), Jacobian::is_wind);
+
+  ARTS_USER_ERROR_IF(f == jacobian_targets.atm().end(),
+                     "Cannot find original wind field for component");
+
+  const AtmKey component = std::get<AtmKey>(f->type);
+  const Size N           = jacobian_targets.target_count();
+
+  jacobian_targets.atm().emplace_back(*f);
+  jacobian_targets.atm().back().overlap     = true;
+  jacobian_targets.atm().back().overlap_key = component;
+  jacobian_targets.atm().back().target_pos  = N;
+  switch (component) {
+    using enum AtmKey;
+    case wind_u: jacobian_targets.atm().back().type = wind_v; break;
+    case wind_v:
+    case wind_w: jacobian_targets.atm().back().type = wind_u; break;
+    default:     throw std::out_of_range("Invalid state");
+  }
+
+  jacobian_targets.atm().emplace_back(*f);
+  jacobian_targets.atm().back().overlap     = true;
+  jacobian_targets.atm().back().overlap_key = component;
+  jacobian_targets.atm().back().target_pos  = N + 1;
+  switch (component) {
+    using enum AtmKey;
+    case wind_u:
+    case wind_v: jacobian_targets.atm().back().type = wind_w; break;
+    case wind_w: jacobian_targets.atm().back().type = wind_v; break;
+    default:     throw std::out_of_range("Invalid state");
   }
 }
 

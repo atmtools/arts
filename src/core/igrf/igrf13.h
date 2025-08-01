@@ -2,6 +2,7 @@
 
 #include <artstime.h>
 #include <matpack.h>
+#include <legendre.h>
 
 namespace IGRF {
 /** Computes the magnetic field based on IGRF13 coefficients
@@ -18,4 +19,16 @@ namespace IGRF {
  * @return The magnetic field in ENU as described by the MagneticField struct
  */
 Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time& time=Time{});
+
+/** Get the IGRF13 coefficients for a given time
+
+ * The coefficients are returned as two matrices, one for the g-coefficients
+ * and one for the h-coefficients.
+ *
+ * @param[in] time The time stamp
+ * @return A pair of matrices (g, h)
+ *
+ * @note The time is assumed to be in UTC.
+ */
+std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> igrf_coefficients(const Time &time);
 }  // namespace IGRF

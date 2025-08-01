@@ -3,9 +3,27 @@
 #include <xml.h>
 
 #include "functional_atm.h"
+#include "functional_atm_field.h"
 #include "functional_gravity.h"
 
 using NumericTernary = std::function<Numeric(Numeric, Numeric, Numeric)>;
+
+namespace ternary {
+//! Method that returns the x-value for retrieval from a NumericTernary
+ConstVectorView get_xc(const NumericTernary& f);
+
+//! Method that returns the x-value for retrieval from a NumericTernary
+VectorView get_xm(NumericTernary& f);
+
+//! Method that returns the scaling-value for retrieval from a NumericTernary
+std::vector<std::pair<Index, Numeric>> get_w(const NumericTernary& f,
+                                             Numeric alt,
+                                             Numeric lat,
+                                             Numeric lon);
+
+//! Method checks that the NumericTernary is a field function (i.e., requires multiple derivatives)
+bool is_field_function(const NumericTernary& f);
+}  // namespace ternary
 
 template <>
 struct xml_io_stream_name<NumericTernary> {
@@ -14,9 +32,13 @@ struct xml_io_stream_name<NumericTernary> {
 
 template <>
 struct xml_io_stream_functional<NumericTernary> {
-  using func_t = Numeric (*)(Numeric, Numeric, Numeric);
-  using structs_t =
-      std::variant<Atm::IGRF13, Atm::HydrostaticPressure, EllipsoidGravity>;
+  using func_t    = Numeric (*)(Numeric, Numeric, Numeric);
+  using structs_t = std::variant<Atm::IGRF13,
+                                 Atm::SchmidthLegendre,
+                                 Atm::HydrostaticPressure,
+                                 Atm::MagnitudeField,
+                                 Atm::External,
+                                 EllipsoidGravity>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
 

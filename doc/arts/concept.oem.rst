@@ -88,47 +88,52 @@ too slowly to warrant more iterations.
 Transforming the Jacobian matrix
 ================================
 
-It is often desired to transform the Jacobian matrix away from the
+It is sometimes desired to transform the Jacobian matrix away from the
 native units that are available in the model.  Instead of retrieving
-volume-mixing-ratio, it is often more stable to retrieve the
+volume-mixing-ratio, it is sometimes more stable to retrieve the
 relative change in the volume-mixing-ratio, or perhaps even
 the logarithm of the volume-mixing-ratio, to avoid negative
 values creeping in to what is otherwise an intensive and numerical
 exercise.
 
-There are two ways perform transformations on the Jacobian
+There are three ways perform transformations on the Jacobian
 matrix in ARTS.
 You can change the measurement unit (e.g., from spectral radiance
-to brightness temperature) or you can change the model state unit
-(e.g., from volume-mixing-ratio to relative humidity).
+to brightness temperature), you can change the model state unit
+(e.g., from volume-mixing-ratio to relative humidity), or you can
+map the Jacobian matrix to another vector space (e.g., from
+Cartesian coordinates to spherical coordinates).
 
 The first type of transformations are performed by an
 :class:`~pyarts.arts.SpectralRadianceTransformOperator`
-in ARTS.  Generally, you should just use one of the
+in ARTS.  This is a local operation that is almost trivial to undo.
+Generally, you should just use one of the
 provided enumeration values of
 :class:`~pyarts.arts.SpectralRadianceUnitType` to
 set up these types of transformations.
 The enumeration class also describes how the transformations
-are done.
+are done.  This will not be repeated here.
 
-The second type of transformation are a bit more complicated
-because it's generally required to be able to perform
-the transformation both ways.  This is the case because
-optimal estimation methods are iterative, and they must be
+The second and third types of transformations are a bit more complicated
+because they transform the model state vector.
+The optimal estimation methods are sometimes iterative, and they must be
 able to update the state of the model between iterations.
+These two types of transformations are therefore required to
+be able to transform the model state vector from native to non-native
+units, and vice versa, as well as to transform the Jacobian matrix
+from native to non-native units (but only in one-way, this operation
+does not need to be reversible).
 
-.. note::
-  A third type of transformation is imaginable as a target
-  selection transformation.
-  That is, for example, the wind-field using all three components
-  as targets but transforming the Jacobian matrix to work on
-  only the absolute wind-speed.  This type of transformation is
-  not available in ARTS at this time but would be a welcome
-  addition.  This comment is thus ignored by the rest of this
-  text.
+From a mathematical point of view, these two behave very similar.
+But from a practical point of view they are quite different.
+Transforming the model state vector requires just the model state
+vector of the native units and the Jacobian matrix that corresponds
+to just that model state parameter.
+Mapping the model state vector to non-native units may require
+knowing more than just a single model state parameter.
 
-Core transformation expression
-------------------------------
+Core mapping/transformation expression
+--------------------------------------
 
 If we define the native units of :math:`\vec{x}` as :math:`\vec{t}`
 so that
@@ -143,7 +148,7 @@ there must be a reversible functions so that
 
   \vec{t} = f^{-1}\left(\vec{x}\right)
 
-for any transformation of this sort to work.  It must also be possible
+for any transformation or mapping to work.  It must also be possible
 to take the partial derivative of :math:`\vec{t}` with regards
 to :math:`\vec{x}`.
 
@@ -183,6 +188,7 @@ operators above.
 Relative retrievals
 ^^^^^^^^^^^^^^^^^^^
 
+This is a model state vector transformation.
 By relative retrievals, we mean that the value itself is not
 retrieved, but instead its ratio is retrieved.
 
@@ -212,6 +218,7 @@ simply the a priori value of :math:`\vec{t}`.
 Logarithmic retrievals
 ^^^^^^^^^^^^^^^^^^^^^^
 
+This is a model state vector transformation.
 By logarithmic retrievals, we mean that the value itself is not
 retrieved, but instead its logarithm is retrieved.
 
@@ -234,6 +241,7 @@ where the exponential and logarithmic operations are element-wise.
 Logarithmic relative retrievals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+This is a model state vector transformation.
 By logarithmic relative retrievals, we mean that the value itself is not
 retrieved, but instead the logarithm of its relative value is retrieved.
 
@@ -260,6 +268,7 @@ where the operations are still element-wise on the product that is created.
 Relative humidity retrievals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+This is a model state vector transformation.
 By relative humidity retrievals, we mean that the value itself is not
 retrieved, but instead the its conversion to relative humidity is retrieved.
 
@@ -294,3 +303,44 @@ saturation pressure.
   and that while you can choose to treat temperature as, e.g.,
   relative humidity... please don't.  It makes sense only for
   some species.
+
+Absolute field retrievals
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a model state vector mapping.
+By absolute field retrievals, we mean that the value itself is not
+retrieved, but instead the absolute value of the field is retrieved.
+
+In this scenario:
+
+.. math::
+
+  \begin{array}{rcl}
+    \vec{x} &=& \sqrt{\vec{t}_u \odot \vec{t}_u + \vec{t}_v \odot \vec{t}_v + \vec{t}_w \odot \vec{t}_w},\\
+    \vec{\theta} &=& \arcsin\left(\vec{t}_w \oslash \vec{x}\right),\\
+    \vec{\phi} &=& \arctan\left(\vec{t}_v \oslash \vec{t}_u\right),\\
+    \vec{t}_u &=& \vec{x} \odot \cos\left(\vec{\theta}\right) \odot \cos\left(\vec{\phi}\right),\\
+    \vec{t}_v &=& \vec{x} \odot \cos\left(\vec{\theta}\right) \odot \sin\left(\vec{\phi}\right),\\
+    \vec{t}_w &=& \vec{x} \odot \sin\left(\vec{\theta}\right),\\
+  \end{array}
+
+.. math::
+
+  \mathbf{J} = \mathbf{J}_u' \odot \vec{t}_u \oslash \vec{x} +
+               \mathbf{J}_v' \odot \vec{t}_v \oslash \vec{x} +
+               \mathbf{J}_w' \odot \vec{t}_w \oslash \vec{x},
+
+where the subscripts :math:`u`, :math:`v`, and :math:`w`
+indicate the three components of the vector north, east, and up,
+respectively,
+and :math:`\mathbf{J}_u'`, :math:`\mathbf{J}_v'`, and :math:`\mathbf{J}_w'`
+are the Jacobian matrices of these three components
+in the native units of the model state vector.
+
+.. note::
+
+  Neither :math:`\vec{\theta}` nor :math:`\vec{\phi}` are part of the
+  model state vector, but are instead derived from the model state vector
+  and are used to map the Cartesian coordinates to spherical coordinates.
+  They are fixed during the retrieval process
+  and are not updated between iterations.
