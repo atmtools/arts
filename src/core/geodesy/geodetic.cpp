@@ -56,6 +56,17 @@ Vector3 ecef2geocentric(Vector3 ecef) {
   return pos;
 }
 
+Vector3 geocentric2ecef(Vector3 pos) {
+  Vector3 ecef;
+  const Numeric latrad = DEG2RAD * pos[1];
+  const Numeric lonrad = DEG2RAD * pos[2];
+  ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
+  ecef[1]              = ecef[0] * sin(lonrad);
+  ecef[0]              = ecef[0] * cos(lonrad);
+  ecef[2]              = pos[0] * sin(latrad);
+  return ecef;
+}
+
 std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
   Vector3 pos = ecef2geocentric(ecef);
 
@@ -194,17 +205,6 @@ Vector2 enu2los(Vector3 enu) {
   los[0] = RAD2DEG * acos(enu[2] / twonorm);
   los[1] = RAD2DEG * atan2(enu[0], enu[1]);
   return los;
-}
-
-Vector3 geocentric2ecef(Vector3 pos) {
-  Vector3 ecef;
-  const Numeric latrad = DEG2RAD * pos[1];
-  const Numeric lonrad = DEG2RAD * pos[2];
-  ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
-  ecef[1]              = ecef[0] * sin(lonrad);
-  ecef[0]              = ecef[0] * cos(lonrad);
-  ecef[2]              = pos[0] * sin(latrad);
-  return ecef;
 }
 
 std::pair<Vector3, Vector3> geocentric_los2ecef(Vector3 pos, Vector2 los) {

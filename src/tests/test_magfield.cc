@@ -49,7 +49,10 @@ int main() {
   for (Numeric lat = -90.0; lat <= 90.0; lat += 2.5) {
     for (Numeric lon = 0.0; lon <= 360.0; lon += 2.5) {
       const auto [Bu, Bv, Bw] =
-          Legendre::schmidt_fieldcalc(g, h, 6371.2e3, {6371.2e3, lat, lon});
+          Legendre::schmidt_fieldcalc(Legendre::SchmidtMatrix{g},
+                                      Legendre::SchmidtMatrix{h},
+                                      6371.2e3,
+                                      {6371.2e3, lat, lon});
       std::cout << lat << ' ' << lon << ' ' << Bu << ' ' << Bv << ' ' << Bw
                 << ' ' << std::hypot(Bu, Bv, Bw) << '\n';
     }
