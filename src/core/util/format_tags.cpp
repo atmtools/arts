@@ -33,52 +33,47 @@ std::string_view format_tags::quote() const {
 }
 
 template <>
-void format_tags::add_if_bracket(std::format_context& ctx, char x) const {
+void format_tags::add_if_bracket(std::format_context& ctx, char x) const try {
   if (bracket) std::format_to(ctx.out(), "{}", x);
+} catch (const std::exception& e) {
+  throw std::runtime_error("Error in single_format with fmt-string: " +
+                           get_format_args() + "\n" + e.what());
 }
 
 template <>
 void format_tags::single_format(std::format_context& ctx,
-                                const std::string& x) const {
-  std::formatter<std::string> fmt;
-  compat(fmt);
-  fmt.format(x, ctx);
+                                const std::string& x) const try {
+  std::format_to(ctx.out(), "{}", x);
+} catch (const std::exception& e) {
+  throw std::runtime_error("Error in single_format with fmt-string: " +
+                           get_format_args() + "\n" + e.what());
 }
 
 template <>
 void format_tags::single_format(std::format_context& ctx,
-                                const std::string_view& x) const {
-  std::formatter<std::string_view> fmt;
-  compat(fmt);
-  fmt.format(x, ctx);
+                                const std::string_view& x) const try {
+  std::format_to(ctx.out(), "{}", x);
+} catch (const std::exception& e) {
+  throw std::runtime_error("Error in single_format with fmt-string: " +
+                           get_format_args() + "\n" + e.what());
 }
 
 template <>
 void format_tags::single_format(std::format_context& ctx, const bool& x) const {
-  std::formatter<bool> fmt;
-  compat(fmt);
-  fmt.format(x, ctx);
+  std::format_to(ctx.out(), "{}", x);
 }
 
 template <>
 void format_tags::single_format(std::format_context& ctx, const char& x) const {
-  std::formatter<char> fmt;
-  compat(fmt);
-  fmt.format(x, ctx);
+  std::format_to(ctx.out(), "{}", x);
 }
 
 template <>
-std::string format_tags::vformat(const std::string& x) const try {
+std::string format_tags::vformat(const std::string& x) const {
   return x;
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in vformat with fmt-string: " +
-                           get_format_args() + "\n" + e.what());
 }
 
 template <>
-std::string format_tags::vformat(const std::string_view& x) const try {
+std::string format_tags::vformat(const std::string_view& x) const {
   return std::string(x);
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in vformat with fmt-string: " +
-                           get_format_args() + "\n" + e.what());
 }

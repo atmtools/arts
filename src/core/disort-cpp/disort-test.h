@@ -3,6 +3,7 @@
 #include <disort.h>
 #include <matpack.h>
 
+#include <iomanip>
 #include <iostream>
 
 #include "nonstd.h"

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include "array.h"

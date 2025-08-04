@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "array.h"
+#include "array_algo.h"
 #include "exceptions.h"
 #include "math_funcs.h"
 #include "matpack.h"
@@ -242,9 +243,9 @@ void test14() {
   Array<String> a{"Test"};
   Array<Index> b{1, 2};
   Array<Numeric> c{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
-  cout << "a = \n" << std::format("{}",a) << "\n";
-  cout << "b = \n" << std::format("{}",b) << "\n";
-  cout << "c = \n" << std::format("{}",c) << "\n";
+  cout << "a = \n" << std::format("{}", a) << "\n";
+  cout << "b = \n" << std::format("{}", b) << "\n";
+  cout << "c = \n" << std::format("{}", c) << "\n";
 }
 
 void test15() {

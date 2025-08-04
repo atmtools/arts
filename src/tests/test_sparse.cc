@@ -8,8 +8,10 @@
   Add more tests here as necessary...
 */
 
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
+
 #include "lin_alg.h"
 #include "matpack_sparse.h"
 #include "test_utils.h"
@@ -166,21 +168,23 @@ void test40() {
   A.rw(2, 2) = 33;
   std::cout << "Diagonal A:\n" << A << "\n";
 
-  Vector b=matpack::uniform_grid(1, 3, 1), c(3);
+  Vector b = matpack::uniform_grid(1, 3, 1), c(3);
   std::cout << "b:\n" << std::format("{}", b) << "\n";
 
   mult(c, A, b);
-  std::cout << "c = A*b (should be [11,44,99]):\n" << std::format("{}", c) << "\n";
+  std::cout << "c = A*b (should be [11,44,99]):\n"
+            << std::format("{}", c) << "\n";
 
   Matrix D(3, 2);
-  D[joker, 0] = b;
-  D[joker, 1] = b;
+  D[joker, 0]  = b;
+  D[joker, 1]  = b;
   D[joker, 1] *= 2;
   std::cout << "D:\n" << std::format("{}", D) << "\n";
 
   Matrix E(3, 2);
   mult(E, A, D);
-  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << std::format("{}", E) << "\n";
+  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n"
+            << std::format("{}", E) << "\n";
 }
 
 void test41() {
@@ -244,7 +248,7 @@ void test43() {
 
   for (Index i = 0; i < 100; ++i) {
     B.rw(0, 0) += 1;
-    A = B;
+    A           = B;
   }
 
   std::cout << "A now:\n" << A << "\n";
@@ -270,7 +274,7 @@ void test44() {
 
 void test45() {
   std::cout << "Test Sparse-Sparse multiplication reading matrices from xml "
-          "files:\n";
+               "files:\n";
 
   Sparse A, B;
   String a = "antenna.xml";
@@ -407,7 +411,7 @@ Numeric test_xml_io(Index ntests, bool verbose) {
 
     if (verbose)
       std::cout << "Test " << i << ": "
-           << "Max. Rel. Error = " << err << '\n';
+                << "Max. Rel. Error = " << err << '\n';
   }
 
   return err_max;
@@ -666,9 +670,12 @@ Numeric test_dense_sparse_multiplication(Index m,
   if (verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
-    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
-    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
-    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5)
+              << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1"
+              << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15)
+              << "A = B x C";
     std::cout << std::setw(18) << "A^T = C^T x B^T" << '\n';
     std::cout << std::string(80, '-') << '\n';
   }
@@ -685,28 +692,31 @@ Numeric test_dense_sparse_multiplication(Index m,
 
     Index m1, dm, n1, dn, c_stride, r_stride;
 
-    m1 = rand() % (m - 1);
-    n1 = rand() % (n - 1);
-    dm = (rand() % (m - m1)) + 1;
-    dn = (rand() % (n - n1)) + 1;
+    m1       = rand() % (m - 1);
+    n1       = rand() % (n - 1);
+    dm       = (rand() % (m - m1)) + 1;
+    dn       = (rand() % (n - n1)) + 1;
     c_stride = (rand() % 10) + 1;
     r_stride = (rand() % 10) + 1;
 
     c_stride = std::min(dn, c_stride);
     r_stride = std::min(dm, r_stride);
-    dn = dn / c_stride;
-    dm = dm / r_stride;
+    dn       = dn / c_stride;
+    dm       = dm / r_stride;
 
     if (verbose) {
-      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
-      std::cout << std::setw(10) << r_stride << std::setw(5) << n1 << std::setw(5) << dn;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5)
+                << dm;
+      std::cout << std::setw(10) << r_stride << std::setw(5) << n1
+                << std::setw(5) << dn;
       std::cout << std::setw(10) << c_stride;
     }
 
-    StridedMatrixView A_view = A[StridedRange(m1, dm, r_stride), joker];
+    StridedMatrixView A_view     = A[StridedRange(m1, dm, r_stride), joker];
     StridedMatrixView A_ref_view = A_ref[StridedRange(m1, dm, r_stride), joker];
     Matrix C(dn, n);
-    StridedMatrixView B_mul = B[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
+    StridedMatrixView B_mul =
+        B[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
     Sparse C_sparse(dn, n), C_sparse_transpose(dn, n);
 
     //
@@ -734,7 +744,8 @@ Numeric test_dense_sparse_multiplication(Index m,
     A.resize(n, m);
     A_ref.resize(n, m);
     StridedMatrixView A_view_transp = A[joker, StridedRange(m1, dm, r_stride)];
-    StridedMatrixView A_ref_view_transp = A_ref[joker, StridedRange(m1, dm, r_stride)];
+    StridedMatrixView A_ref_view_transp =
+        A_ref[joker, StridedRange(m1, dm, r_stride)];
 
     C_sparse.resize(n, dn);
     C.resize(n, dn);
@@ -786,9 +797,12 @@ Numeric test_sparse_dense_multiplication(Index m,
   if (verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
-    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
-    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
-    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5)
+              << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1"
+              << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15)
+              << "A = B x C";
     std::cout << std::setw(18) << "A^T = C^T x B^T" << '\n';
     std::cout << std::string(80, '-') << '\n';
   }
@@ -805,28 +819,31 @@ Numeric test_sparse_dense_multiplication(Index m,
 
     Index m1, dm, n1, dn, c_stride, r_stride;
 
-    m1 = rand() % (m - 1);
-    n1 = rand() % (n - 1);
-    dm = (rand() % (m - m1)) + 1;
-    dn = (rand() % (n - n1)) + 1;
+    m1       = rand() % (m - 1);
+    n1       = rand() % (n - 1);
+    dm       = (rand() % (m - m1)) + 1;
+    dn       = (rand() % (n - n1)) + 1;
     c_stride = (rand() % 10) + 1;
     r_stride = (rand() % 10) + 1;
 
     if (verbose) {
-      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
-      std::cout << std::setw(10) << c_stride << std::setw(5) << n1 << std::setw(5) << dn;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5)
+                << dm;
+      std::cout << std::setw(10) << c_stride << std::setw(5) << n1
+                << std::setw(5) << dn;
       std::cout << std::setw(10) << r_stride;
     }
 
     c_stride = std::min(dn, c_stride);
     r_stride = std::min(dm, r_stride);
-    dn = dn / c_stride;
-    dm = dm / r_stride;
+    dn       = dn / c_stride;
+    dm       = dm / r_stride;
 
     Matrix B(m, dm);
-    StridedMatrixView A_view = A[joker, StridedRange(n1, dn, c_stride)];
+    StridedMatrixView A_view     = A[joker, StridedRange(n1, dn, c_stride)];
     StridedMatrixView A_ref_view = A_ref[joker, StridedRange(n1, dn, c_stride)];
-    StridedMatrixView C_mul = C[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
+    StridedMatrixView C_mul =
+        C[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
     Sparse B_sparse(m, dm), B_sparse_transpose(m, dm);
 
     //
@@ -856,7 +873,8 @@ Numeric test_sparse_dense_multiplication(Index m,
     A.resize(n, m);
     A_ref.resize(n, m);
     StridedMatrixView A_view_transp = A[StridedRange(n1, dn, c_stride), joker];
-    StridedMatrixView A_ref_view_transp = A_ref[StridedRange(n1, dn, c_stride), joker];
+    StridedMatrixView A_ref_view_transp =
+        A_ref[StridedRange(n1, dn, c_stride), joker];
 
     B_sparse.resize(dm, m);
     B.resize(dm, m);
@@ -864,7 +882,8 @@ Numeric test_sparse_dense_multiplication(Index m,
     transpose(B_sparse_transpose, B_sparse);
     B = static_cast<Matrix>(B_sparse);
 
-    StridedMatrixView C_mul2 = C[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
+    StridedMatrixView C_mul2 =
+        C[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
 
     // Transposed sparse-dense multiplication
     mult(transpose(A_ref_view_transp), transpose(B), transpose(C_mul2));
@@ -915,7 +934,8 @@ Numeric test_sparse_multiplication(Index m,
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
     std::cout << std::setw(5) << "Test " << std::setw(15) << "sparse-sparse";
-    std::cout << std::setw(15) << "sparse-dense" << std::setw(15) << "matrix-vector";
+    std::cout << std::setw(15) << "sparse-dense" << std::setw(15)
+              << "matrix-vector";
     std::cout << "transposed matrix-vector";
     std::cout << '\n' << std::string(80, '-') << '\n';
   }
@@ -1008,7 +1028,8 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse arithmetic:" << '\n' << '\n';
     std::cout << std::setw(5) << "Test " << std::setw(15) << "Addition";
-    std::cout << std::setw(15) << "Multiplication" << std::setw(15) << "Subtraction";
+    std::cout << std::setw(15) << "Multiplication" << std::setw(15)
+              << "Subtraction";
     std::cout << std::setw(15) << "Scaling" << '\n';
     std::cout << std::string(70, '-') << '\n';
   }
@@ -1051,7 +1072,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
 
     // Subtraction
 
-    C = static_cast<Matrix>(C_sparse);
+    C  = static_cast<Matrix>(C_sparse);
     C -= D;
     sub(B_sparse, C_sparse, D_sparse);
 
@@ -1068,13 +1089,13 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     // Scaling
 
     C_sparse *= 1.2;
-    C *= 1.2;
+    C        *= 1.2;
 
     err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     C_sparse /= 1.2;
-    C /= 1.2;
+    C        /= 1.2;
 
     err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
