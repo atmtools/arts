@@ -27,7 +27,7 @@ struct xml_io_stream<std::shared_ptr<T>> {
                "name",
                name,
                "type",
-               xml_io_stream<T>::type_name,
+               xml_io_stream<mutT>::type_name,
                "notnull",
                Index{bool{x}}};
     tag.write_to_stream(os);
