@@ -1,8 +1,8 @@
 #include "lbl_nlte.h"
 
+#include <array_algo.h>
+#include <matpack_mdspan_elemwise_mditer.h>
 #include <partfun.h>
-
-#include "matpack_mdspan_elemwise_mditer.h"
 
 namespace {
 Numeric level_density(Numeric T,
