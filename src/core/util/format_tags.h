@@ -75,9 +75,6 @@ struct format_tags {
     if (bracket) std::format_to(ctx.out(), "{}", x);
   }
 
-  template <>
-  void add_if_bracket(std::format_context& ctx, char x) const;
-
   template <class FmtContext>
   constexpr auto format(FmtContext& ctx) const {
     return ctx.out();
@@ -89,22 +86,6 @@ struct format_tags {
     compat(fmt);
     fmt.format(x, ctx);
   }
-
-  template <>
-  void single_format<std::format_context, std::string>(
-      std::format_context& ctx, const std::string& x) const;
-
-  template <>
-  void single_format<std::format_context, std::string_view>(
-      std::format_context& ctx, const std::string_view& x) const;
-
-  template <>
-  void single_format<std::format_context, bool>(
-      std::format_context& ctx, const bool& x) const;
-
-  template <>
-  void single_format<std::format_context, char>(
-      std::format_context& ctx, const char& x) const;
 
   template <class FmtContext, std::formattable<char> T, typename... Rest>
   constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
@@ -123,12 +104,6 @@ struct format_tags {
                              get_format_args() + "\n" + e.what());
   }
 
-  template <>
-  std::string vformat<std::string>(const std::string& x) const;
-
-  template <>
-  std::string vformat<std::string_view>(const std::string_view& x) const;
-
   template <std::formattable<char>... Ts>
   [[nodiscard]] std::string vformat(const Ts&... xs) const
     requires(sizeof...(Ts) > 1)
@@ -136,6 +111,29 @@ struct format_tags {
     return (vformat(xs) + ...);
   }
 };
+
+template <>
+void format_tags::add_if_bracket(std::format_context& ctx, char x) const;
+
+template <>
+void format_tags::single_format(std::format_context& ctx,
+                                const std::string& x) const;
+
+template <>
+void format_tags::single_format(std::format_context& ctx,
+                                const std::string_view& x) const;
+
+template <>
+void format_tags::single_format(std::format_context& ctx, const bool& x) const;
+
+template <>
+void format_tags::single_format(std::format_context& ctx, const char& x) const;
+
+template <>
+std::string format_tags::vformat(const std::string& x) const;
+
+template <>
+std::string format_tags::vformat(const std::string_view& x) const;
 
 constexpr std::format_parse_context::iterator parse_format_tags(
     format_tags& fmt, std::format_parse_context& ctx) {
