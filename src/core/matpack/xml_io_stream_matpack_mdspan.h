@@ -52,15 +52,18 @@ struct xml_io_stream<matpack::data_t<T, N>> {
                     const matpack::data_t<T, N>& x,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) try {
-    std::println(
-        os,
-        R"(<{0} rank="{1}" type="{2}" shape="{3}" name="{4}" version="{5}">)",
-        type_name,
-        N,
-        inner::type_name,
-        x.shape(),
-        name,
-        codeversion);
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "rank",
+               N,
+               "type",
+               inner::type_name,
+               "shape",
+               std::format("{}", x.shape()),
+               "version",
+               codeversion};
+    tag.write_to_stream(os);
 
     if (pbofs) {
       if constexpr (xml_io_binary<T>)
@@ -74,7 +77,7 @@ struct xml_io_stream<matpack::data_t<T, N>> {
         for (auto& v : elemwise_range(x)) inner::write(os, v, pbofs);
     }
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
   ARTS_METHOD_ERROR_CATCH
 
@@ -88,9 +91,10 @@ struct xml_io_stream<matpack::data_t<T, N>> {
     if (tag.has_attribute("version"))
       tag.get_attribute_value("version", fileversion);
 
-    if (fileversion > codeversion or fileversion == 0) {
+    if (fileversion > codeversion or fileversion == 0)
       throw std::runtime_error("Unknown version");
-    } else if (fileversion == codeversion) {
+
+    if (fileversion == codeversion) {
       tag.check_name(type_name);
 
       String str_shape{};
@@ -170,13 +174,16 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
                     const matpack::cdata_t<T, N...>& x,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) try {
-    std::println(os,
-                 R"(<{0} rank="{1}" type="{2}" shape="{3}" name="{4}">)",
-                 type_name,
-                 sizeof...(N),
-                 inner::type_name,
-                 x.shape(),
-                 name);
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "rank",
+               sizeof...(N),
+               "type",
+               inner::type_name,
+               "shape",
+               std::format("{}", x.shape())};
+    tag.write_to_stream(os);
 
     if (pbofs) {
       if constexpr (xml_io_binary<T>)
@@ -190,7 +197,7 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
         for (auto& v : x.data) inner::write(os, v, pbofs);
     }
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
   ARTS_METHOD_ERROR_CATCH
 

@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <variant>
 
+#include "configtypes.h"
 #include "debug.h"
 #include "xml_io_base.h"
 #include "xml_io_stream.h"
@@ -67,12 +68,14 @@ struct xml_io_stream<std::function<R(Ts...)>> {
                     std::string_view name = ""sv) try {
     const func_t* ptr = f.template target<func_t>();
 
-    std::println(os,
-                 R"(<{} name="{}" empty="{}" type="{}">)",
-                 type_name,
-                 name,
-                 Index{not f},
-                 ptr ? "array"sv : "struct"sv);
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "empty",
+               Index{not f},
+               "type",
+               ptr ? "array"sv : "struct"sv};
+    tag.write_to_stream(os);
 
     if (f) {
       if (ptr != nullptr) {
@@ -95,7 +98,7 @@ struct xml_io_stream<std::function<R(Ts...)>> {
       }
     }
 
-    std::println(os, R"(</{}>)", type_name);
+    tag.write_to_end_stream(os);
   } catch (const std::exception& e) {
     throw std::runtime_error(
         std::format("Error writing {} (with mangled-name: '{}')\n{}",

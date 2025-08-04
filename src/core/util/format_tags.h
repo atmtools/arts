@@ -7,8 +7,8 @@
 #include <functional>
 #include <map>
 #include <print>
-#include <ranges>
 #include <set>
+#include <span>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -75,16 +75,40 @@ struct format_tags {
     if (bracket) std::format_to(ctx.out(), "{}", x);
   }
 
+  template <>
+  void add_if_bracket(std::format_context& ctx, char x) const;
+
   template <class FmtContext>
   constexpr auto format(FmtContext& ctx) const {
     return ctx.out();
   }
 
-  template <class FmtContext, std::formattable<char> T, typename... Rest>
-  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
+  template <class FmtContext, std::formattable<char> T>
+  void single_format(FmtContext& ctx, const T& x) const {
     std::formatter<T> fmt;
     compat(fmt);
     fmt.format(x, ctx);
+  }
+
+  template <>
+  void single_format<std::format_context, std::string>(
+      std::format_context& ctx, const std::string& x) const;
+
+  template <>
+  void single_format<std::format_context, std::string_view>(
+      std::format_context& ctx, const std::string_view& x) const;
+
+  template <>
+  void single_format<std::format_context, bool>(
+      std::format_context& ctx, const bool& x) const;
+
+  template <>
+  void single_format<std::format_context, char>(
+      std::format_context& ctx, const char& x) const;
+
+  template <class FmtContext, std::formattable<char> T, typename... Rest>
+  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
+    single_format(ctx, x);
     return format(ctx, r...);
   }
 
@@ -93,12 +117,17 @@ struct format_tags {
     if constexpr (arts_formattable<T>)
       return std::vformat(get_format_args(), std::make_format_args(x));
     else
-      return std::format("{}", x);
-
+      return std::format("{}"sv, x);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in vformat with fmt-string: " +
                              get_format_args() + "\n" + e.what());
   }
+
+  template <>
+  std::string vformat<std::string>(const std::string& x) const;
+
+  template <>
+  std::string vformat<std::string_view>(const std::string_view& x) const;
 
   template <std::formattable<char>... Ts>
   [[nodiscard]] std::string vformat(const Ts&... xs) const
@@ -182,13 +211,20 @@ void format_value_iterable(FmtContext& ctx,
   const std::size_t n = std::size(v);
   if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
-    for (auto&& s : v | std::views::take(3)) {
-      tags.format(ctx, s, sep);
-    }
+    auto&& s       = v.begin();
+    tags.format(ctx, *s, sep);
+    std::advance(s, 1);
+    tags.format(ctx, *s, sep);
+    std::advance(s, 1);
+    tags.format(ctx, *s, sep);
     tags.format(ctx, "..."sv);
-    for (auto&& s : v | std::views::drop(n - 3)) {
-      tags.format(ctx, sep, s);
-    }
+
+    std::advance(s, n - 5);
+    tags.format(ctx, *s, sep);
+    std::advance(s, 1);
+    tags.format(ctx, *s, sep);
+    std::advance(s, 1);
+    tags.format(ctx, *s);
   } else {
     std::string_view next = tags.sep();
     std::string_view sep  = ""sv;
@@ -205,13 +241,20 @@ void format_map_iterable(FmtContext& ctx,
   const std::size_t n = std::size(m);
   if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
-    for (auto&& [k, v] : m | std::views::take(3)) {
-      tags.format(ctx, k, ": "sv, v, sep);
-    }
+    auto&& kv      = m.begin();
+    tags.format(ctx, kv->first, ": "sv, kv->second, sep);
+    std::advance(kv, 1);
+    tags.format(ctx, kv->first, ": "sv, kv->second, sep);
+    std::advance(kv, 1);
+    tags.format(ctx, kv->first, ": "sv, kv->second, sep);
     tags.format(ctx, "..."sv);
-    for (auto&& [k, v] : m | std::views::drop(n - 3)) {
-      tags.format(ctx, sep, k, ": "sv, v);
-    }
+
+    std::advance(kv, n - 5);
+    tags.format(ctx, kv->first, ": "sv, kv->second, sep);
+    std::advance(kv, 1);
+    tags.format(ctx, kv->first, ": "sv, kv->second, sep);
+    std::advance(kv, 1);
+    tags.format(ctx, kv->first, ": "sv, kv->second);
   } else {
     std::string_view next = tags.sep();
     std::string_view sep  = ""sv;

@@ -82,17 +82,14 @@ struct xml_io_stream<std::variant<Ts...>> {
                     const std::variant<Ts...>& n,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
-    std::println(os,
-                 R"(<{0} type="{1}" name="{2}">)",
-                 type_name,
-                 variant_unique_name(n),
-                 name);
+    XMLTag tag{type_name, "name", name, "type", variant_unique_name(n)};
+    tag.write_to_stream(os);
 
     if (not variant_write(os, n, pbofs)) {
       throw std::runtime_error("Failed to write, got nullptr");
     }
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
 
   static void read(std::istream& is,
@@ -114,7 +111,8 @@ struct xml_io_stream<std::variant<Ts...>> {
   } catch (const std::exception& e) {
     throw std::runtime_error(
         std::format("Error reading {}<{:,}>:\n{}",
-                    type_name, std::array{xml_io_stream<Ts>::type_name...},
+                    type_name,
+                    std::array{xml_io_stream<Ts>::type_name...},
                     e.what()));
   }
 };

@@ -93,7 +93,7 @@ void propagation_matrix_jacobianWindFix(
 
   using enum AtmKey;
 
-  const auto& atm = jacobian_targets.atm();
+  const auto& atm = jacobian_targets.atm;
 
   const auto [df_du, df_dv, df_dw] = frequency_grid_wind_shift_jacobian;
 

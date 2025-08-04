@@ -2,9 +2,10 @@
 
 #include <enumsInterpolationExtrapolation.h>
 #include <enumsSubsurfaceKey.h>
-#include <fieldmap.h>
 #include <matpack.h>
 #include <operators.h>
+
+#include <unordered_map>
 
 namespace Subsurface {
 template <typename T>
@@ -71,16 +72,8 @@ template <typename T>
 concept RawDataType = isCartesianSubsurfaceGriddedField3<T> or isNumeric<T> or
                       isFunctionalDataType<T>;
 
-struct FunctionalDataAlwaysThrow {
-  std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric, Numeric) const {
-    throw std::runtime_error(error);
-  }
-};
-
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
-      "You touched the field but did not set any data"}}};
+  FieldData data{FunctionalData{}};
   InterpolationExtrapolation alt_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation alt_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
@@ -141,7 +134,11 @@ struct Data {
       const Vector3 pos) const;
 };
 
-struct Field final : FieldMap::Map<Data, SubsurfaceKey> {
+struct Field final {
+  using KeyVal = std::variant<SubsurfaceKey>;
+
+  std::unordered_map<SubsurfaceKey, Data> other;
+
   Numeric bottom_depth{std::numeric_limits<Numeric>::max()};
 
   Field();
@@ -150,8 +147,14 @@ struct Field final : FieldMap::Map<Data, SubsurfaceKey> {
   Field &operator=(const Field &);
   Field &operator=(Field &&) noexcept;
 
-  [[nodiscard]] const std::unordered_map<SubsurfaceKey, Data> &basic() const;
-  [[nodiscard]] std::unordered_map<SubsurfaceKey, Data> &basic();
+  Data &operator[](const SubsurfaceKey &key);
+  Data &operator[](const KeyVal &key);
+
+  const Data &operator[](const SubsurfaceKey &key) const;
+  const Data &operator[](const KeyVal &key) const;
+
+  [[nodiscard]] bool contains(const SubsurfaceKey &key) const;
+  [[nodiscard]] bool contains(const KeyVal &key) const;
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
@@ -161,7 +164,10 @@ struct Field final : FieldMap::Map<Data, SubsurfaceKey> {
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Vector3 pos) const;
 
+  [[nodiscard]] Index size() const;
   [[nodiscard]] Index nbasic() const;
+
+  [[nodiscard]] std::vector<KeyVal> keys() const;
 };
 }  // namespace Subsurface
 

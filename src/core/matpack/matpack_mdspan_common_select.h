@@ -126,24 +126,15 @@ template <Size N, access_operator... Acc>
 constexpr decltype(auto) acc(Acc&&... i)
   requires(sizeof...(Acc) <= N)
 {
-  if constexpr (N == sizeof...(Acc)) {
-    return std::forward_as_tuple(std::forward<Acc>(i)...);
-  } else {
-    return std::tuple_cat(std::forward_as_tuple(std::forward<Acc>(i)...),
-                          jokers<N - sizeof...(Acc)>());
-  }
+  return std::tuple_cat(std::forward_as_tuple(std::forward<Acc>(i)...),
+                        jokers<N - sizeof...(Acc)>());
 }
 
 template <Size N, typename Self, access_operator... Acc>
 constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   return std::apply(
       [&s]<access_operator... AccT>(AccT&&... x) {
-        if constexpr (any_md<Self>) {
-          return stdx::submdspan(s.base_md(),
-                                 to_base(std::forward<AccT>(x))...);
-        } else {
-          return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
-        }
+        return stdx::submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
       },
       acc<N>(std::forward<Acc>(i)...));
 }

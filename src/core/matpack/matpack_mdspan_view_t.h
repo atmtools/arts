@@ -388,10 +388,17 @@ struct view_t final : public mdview_t<T, N> {
 };
 }  // namespace matpack
 
-std::string to_string(const matpack::view_t<const Numeric, 2>,
+std::string to_string(const matpack::view_t<const Numeric, 2>&,
                       format_tags& tags,
                       const std::span<const Size>);
-std::string to_string(const matpack::view_t<const Complex, 2>,
+std::string to_string(const matpack::view_t<const Complex, 2>&,
+                      format_tags& tags,
+                      const std::span<const Size>);
+
+std::string to_string(const matpack::view_t<Numeric, 2>&,
+                      format_tags& tags,
+                      const std::span<const Size>);
+std::string to_string(const matpack::view_t<Complex, 2>&,
                       format_tags& tags,
                       const std::span<const Size>);
 
@@ -419,7 +426,7 @@ struct std::formatter<matpack::view_t<T, N>> {
     if constexpr (requires { to_string(mat_view, tags); }) {
       auto nl = md.shape();
       for (Size i = N - 2; i < N; i--) nl[i] *= nl[i + 1];
-      std::format_to(ctx.out(), to_string(mat_view, tags, nl));
+      tags.format(ctx, to_string(mat_view, tags, nl));
     } else {
       std::formatter<matpack::strided_view_t<T, N>> fmt;
       fmt.tags = tags;

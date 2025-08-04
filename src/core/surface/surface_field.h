@@ -2,7 +2,6 @@
 
 #include <enumsInterpolationExtrapolation.h>
 #include <enumsSurfaceKey.h>
-#include <fieldmap.h>
 #include <matpack.h>
 #include <mystring.h>
 #include <operators.h>
@@ -92,17 +91,9 @@ struct Point {
 using FunctionalData = NumericBinaryOperator;
 using FieldData = std::variant<SortedGriddedField2, Numeric, FunctionalData>;
 
-struct FunctionalDataAlwaysThrow {
-  std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric) const {
-    throw std::runtime_error(error);
-  }
-};
-
 //! Hold all atmospheric data
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
-      "You touched the field but did not set any data"}}};
+  FieldData data{FunctionalData{}};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
@@ -154,7 +145,12 @@ struct Data {
   [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
 };
 
-struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
+struct Field final {
+  using KeyVal = std::variant<SurfaceKey, SurfacePropertyTag>;
+
+  std::unordered_map<SurfaceKey, Data> other;
+  std::unordered_map<SurfacePropertyTag, Data> props;
+
   //! The ellipsoid used for the surface, in [a, b] in meters
   Vector2 ellipsoid;
 
@@ -163,6 +159,18 @@ struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
   Field(Field &&) noexcept;
   Field &operator=(const Field &);
   Field &operator=(Field &&) noexcept;
+
+  Data &operator[](const SurfaceKey &key);
+  Data &operator[](const SurfacePropertyTag &key);
+  Data &operator[](const KeyVal &key);
+
+  const Data &operator[](const SurfaceKey &key) const;
+  const Data &operator[](const SurfacePropertyTag &key) const;
+  const Data &operator[](const KeyVal &key) const;
+
+  [[nodiscard]] bool contains(const SurfaceKey &key) const;
+  [[nodiscard]] bool contains(const SurfacePropertyTag &key) const;
+  [[nodiscard]] bool contains(const KeyVal &key) const;
 
   /** Compute the values at a single point
    *
@@ -197,6 +205,12 @@ struct Field final : FieldMap::Map<Data, SurfaceKey, SurfacePropertyTag> {
       const KeyVal &key) const;
 
   [[nodiscard]] bool constant_value(const KeyVal &key) const;
+
+  [[nodiscard]] Size size() const;
+  [[nodiscard]] Size nprops() const;
+  [[nodiscard]] Size nother() const;
+
+  [[nodiscard]] std::vector<KeyVal> keys() const;
 };
 
 static_assert(
@@ -230,7 +244,7 @@ struct std::formatter<SurfacePropertyTag> {
   FmtContext::iterator format(const SurfacePropertyTag &v,
                               FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.name, quote);
+    return tags.format(ctx, quote, v.name, quote);
   }
 };
 
@@ -272,7 +286,7 @@ struct std::formatter<Surf::FunctionalData> {
   FmtContext::iterator format(const Surf::FunctionalData &,
                               FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}functional-data{}", quote, quote);
+    return tags.format(ctx, quote, "functional-data"sv, quote);
   }
 };
 template <>
@@ -316,23 +330,23 @@ struct std::formatter<SurfaceField> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
-    std::format_to(ctx.out(), R"()");
     tags.format(ctx, R"("Ellipsoid": )"sv, v.ellipsoid);
 
     if (tags.short_str) {
-      std::format_to(ctx.out(),
-                     R"(, "SurfaceKey": {}, "SurfacePropertyTag": {})",
-                     v.map<SurfaceKey>().size(),
-                     v.map<SurfacePropertyTag>().size());
+      tags.format(ctx,
+                  R"(, "SurfaceKey": )"sv,
+                  v.other.size(),
+                  R"(, "SurfacePropertyTag": )",
+                  v.props.size());
     } else {
       const std::string_view sep = tags.sep(true);
       tags.format(ctx,
                   sep,
                   R"("SurfaceKey": )"sv,
-                  v.map<SurfaceKey>(),
+                  v.other,
                   sep,
                   R"("SurfacePropertyTag": )"sv,
-                  v.map<SurfacePropertyTag>());
+                  v.props);
     }
 
     tags.add_if_bracket(ctx, '}');
@@ -355,14 +369,16 @@ struct std::formatter<SurfacePoint> {
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
     tags.add_if_bracket(ctx, '{');
-    std::format_to(ctx.out(),
-                   R"("elevation": {}, "temperature": {}, "normal": {:B,})",
-                   v.elevation,
-                   v.temperature,
-                   v.normal);
+    tags.format(ctx,
+                R"("elevation": )"sv,
+                v.elevation,
+                R"(, "temperature": )"sv,
+                v.temperature,
+                R"(, "normal": )"sv,
+                v.normal);
 
     if (tags.short_str) {
-      std::format_to(ctx.out(), R"(, "SurfacePropertyTag": {})", v.prop.size());
+      tags.format(ctx, R"(, "SurfacePropertyTag": )", v.prop.size());
     } else {
       const std::string_view sep = tags.sep(true);
       tags.format(ctx, sep, R"("SurfacePropertyTag": )"sv, v.prop);

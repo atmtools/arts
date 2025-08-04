@@ -15,9 +15,7 @@ struct BDRF {
                                 MatrixView,
                                 const ConstVectorView&,
                                 const ConstVectorView&>;
-  func_t f{[](auto, auto&, auto&) {
-    throw std::runtime_error("BDRF function not set");
-  }};
+  func_t f;
 
   void operator()(MatrixView x,
                   const ConstVectorView& a,
@@ -683,7 +681,7 @@ struct std::formatter<DisortBDRF> {
   }
   template <class FmtContext>
   FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
-    return std::format_to(ctx.out(), "BDRF"sv);
+    return tags.format(ctx, "BDRF"sv);
   }
 };
 
@@ -703,88 +701,186 @@ struct std::formatter<disort::main_data> {
   FmtContext::iterator format(const disort::main_data& v,
                               FmtContext& ctx) const {
     const auto sep = tags.sep(true);
-    std::format_to(
-        ctx.out(),
-        "NLayers: {}, NQuad: {}, NLeg: {}, NFourier: {}, N: {}, Nscoeffs: {}, NLeg_all: {}, NBDRF: {}{}",
-        v.NLayers,
-        v.NQuad,
-        v.NLeg,
-        v.NFourier,
-        v.N,
-        v.Nscoeffs,
-        v.NLeg_all,
-        v.NBDRF,
-        sep);
-    std::format_to(ctx.out(),
-                   "Has source: {}, Has beam source: {}{}",
-                   v.has_source_poly,
-                   v.has_beam_source,
-                   sep);
-    tags.format(ctx, "tau_arr: "sv, v.tau_arr, sep);
-    tags.format(ctx, "omega_arr: "sv, v.omega_arr, sep);
-    tags.format(ctx, "f_arr: "sv, v.f_arr, sep);
-    tags.format(ctx, "source_poly_coeffs: "sv, v.source_poly_coeffs, sep);
-    tags.format(ctx, "Leg_coeffs_all: "sv, v.Leg_coeffs_all, sep);
-    tags.format(ctx, "b_pos: "sv, v.b_pos, sep);
-    tags.format(ctx, "b_neg: "sv, v.b_neg, sep);
-    tags.format(ctx,
-                "brdf_fourier_modes: "sv,
-                // v.brdf_fourier_modes,
-                sep);
-    tags.format(ctx, "mu0: "sv, v.mu0, sep);
-    tags.format(ctx, "I0: "sv, v.I0, sep);
-    tags.format(ctx, "phi0: "sv, v.phi0, sep);
-    tags.format(ctx, "scale_tau: "sv, v.scale_tau, sep);
-    tags.format(ctx, "scaled_omega_arr: "sv, v.scaled_omega_arr, sep);
-    tags.format(ctx, "scaled_tau_arr_with_0: "sv, v.scaled_tau_arr_with_0, sep);
-    tags.format(ctx, "mu_arr: "sv, v.mu_arr, sep);
-    tags.format(ctx, "inv_mu_arr: "sv, v.inv_mu_arr, sep);
-    tags.format(ctx, "W: "sv, v.W, sep);
-    tags.format(
-        ctx, "Leg_coeffs_residue_avg: "sv, v.Leg_coeffs_residue_avg, sep);
-    tags.format(ctx,
-                "weighted_scaled_Leg_coeffs: "sv,
-                v.weighted_scaled_Leg_coeffs,
-                sep);
-    tags.format(
-        ctx, "weighted_Leg_coeffs_all: "sv, v.weighted_Leg_coeffs_all, sep);
-    tags.format(ctx, "GC_collect: "sv, v.GC_collect, sep);
-    tags.format(ctx, "G_collect: "sv, v.G_collect, sep);
-    tags.format(ctx, "K_collect: "sv, v.K_collect, sep);
-    tags.format(ctx, "B_collect: "sv, v.B_collect, sep);
-    tags.format(ctx, "I0_orig: "sv, v.I0_orig, sep);
-    tags.format(ctx, "f_avg: "sv, v.f_avg, sep);
-    tags.format(ctx, "omega_avg: "sv, v.omega_avg, sep);
-    tags.format(ctx, "scaled_mu0: "sv, v.scaled_mu0, sep);
-    tags.format(ctx, "n: "sv, v.n, sep);
-    tags.format(ctx, "RHS: "sv, v.RHS, sep);
-    tags.format(ctx, "jvec: "sv, v.jvec, sep);
-    tags.format(ctx, "fac: "sv, v.fac, sep);
-    tags.format(ctx,
-                "weighted_asso_Leg_coeffs_l: "sv,
-                v.weighted_asso_Leg_coeffs_l,
-                sep);
-    tags.format(ctx, "asso_leg_term_mu0: "sv, v.asso_leg_term_mu0, sep);
-    tags.format(ctx, "X_temp: "sv, v.X_temp, sep);
-    tags.format(ctx, "mathscr_X_pos: "sv, v.mathscr_X_pos, sep);
-    tags.format(ctx, "E_Lm1L: "sv, v.E_Lm1L, sep);
-    tags.format(ctx, "E_lm1l: "sv, v.E_lm1l, sep);
-    tags.format(ctx, "E_llp1: "sv, v.E_llp1, sep);
-    tags.format(ctx, "BDRF_RHS_contribution: "sv, v.BDRF_RHS_contribution, sep);
-    tags.format(ctx, "Gml: "sv, v.Gml, sep);
-    tags.format(ctx, "BDRF_LHS: "sv, v.BDRF_LHS, sep);
-    tags.format(ctx, "R: "sv, v.R, sep);
-    tags.format(ctx, "mathscr_D_neg: "sv, v.mathscr_D_neg, sep);
-    tags.format(ctx, "D_pos: "sv, v.D_pos, sep);
-    tags.format(ctx, "D_neg: "sv, v.D_neg, sep);
-    tags.format(ctx, "apb: "sv, v.apb, sep);
-    tags.format(ctx, "amb: "sv, v.amb, sep);
-    tags.format(ctx, "sqr: "sv, v.sqr, sep);
-    tags.format(ctx, "asso_leg_term_pos: "sv, v.asso_leg_term_pos, sep);
-    tags.format(ctx, "asso_leg_term_neg: "sv, v.asso_leg_term_neg, sep);
-    tags.format(ctx, "D_temp: "sv, v.D_temp);
+    return tags.format(ctx,
+                       "NLayers: "sv,
+                       v.NLayers,
+                       ", NQuad: "sv,
+                       v.NQuad,
+                       ", NLeg: "sv,
+                       v.NLeg,
+                       ", NFourier: "sv,
+                       v.NFourier,
+                       ", N: "sv,
+                       v.N,
+                       ", Nscoeffs: "sv,
+                       v.Nscoeffs,
+                       ", NLeg_all: "sv,
+                       v.NLeg_all,
+                       ", NBDRF: "sv,
+                       v.NBDRF,
+                       sep,
+                       "Has source: "sv,
+                       v.has_source_poly,
+                       ", Has beam source: "sv,
+                       v.has_beam_source,
+                       sep,
+                       "tau_arr: "sv,
+                       v.tau_arr,
+                       sep,
+                       "omega_arr: "sv,
+                       v.omega_arr,
+                       sep,
+                       "f_arr: "sv,
+                       v.f_arr,
+                       sep,
+                       "source_poly_coeffs: "sv,
+                       v.source_poly_coeffs,
+                       sep,
+                       "Leg_coeffs_all: "sv,
+                       v.Leg_coeffs_all,
+                       sep,
+                       "b_pos: "sv,
+                       v.b_pos,
+                       sep,
+                       "b_neg: "sv,
+                       v.b_neg,
+                       sep,
+                       "brdf_fourier_modes: "sv,
+                       // v.brdf_fourier_modes,
+                       sep,
+                       "mu0: "sv,
+                       v.mu0,
+                       sep,
+                       "I0: "sv,
+                       v.I0,
+                       sep,
+                       "phi0: "sv,
+                       v.phi0,
+                       sep,
+                       "scale_tau: "sv,
+                       v.scale_tau,
+                       sep,
+                       "scaled_omega_arr: "sv,
+                       v.scaled_omega_arr,
+                       sep,
+                       "scaled_tau_arr_with_0: "sv,
+                       v.scaled_tau_arr_with_0,
+                       sep,
+                       "mu_arr: "sv,
+                       v.mu_arr,
+                       sep,
+                       "inv_mu_arr: "sv,
+                       v.inv_mu_arr,
+                       sep,
+                       "W: "sv,
+                       v.W,
+                       sep,
+                       "Leg_coeffs_residue_avg: "sv,
+                       v.Leg_coeffs_residue_avg,
+                       sep,
 
-    return ctx.out();
+                       "weighted_scaled_Leg_coeffs: "sv,
+                       v.weighted_scaled_Leg_coeffs,
+                       sep,
+                       "weighted_Leg_coeffs_all: "sv,
+                       v.weighted_Leg_coeffs_all,
+                       sep,
+                       "GC_collect: "sv,
+                       v.GC_collect,
+                       sep,
+                       "G_collect: "sv,
+                       v.G_collect,
+                       sep,
+                       "K_collect: "sv,
+                       v.K_collect,
+                       sep,
+                       "B_collect: "sv,
+                       v.B_collect,
+                       sep,
+                       "I0_orig: "sv,
+                       v.I0_orig,
+                       sep,
+                       "f_avg: "sv,
+                       v.f_avg,
+                       sep,
+                       "omega_avg: "sv,
+                       v.omega_avg,
+                       sep,
+                       "scaled_mu0: "sv,
+                       v.scaled_mu0,
+                       sep,
+                       "n: "sv,
+                       v.n,
+                       sep,
+                       "RHS: "sv,
+                       v.RHS,
+                       sep,
+                       "jvec: "sv,
+                       v.jvec,
+                       sep,
+                       "fac: "sv,
+                       v.fac,
+                       sep,
+
+                       "weighted_asso_Leg_coeffs_l: "sv,
+                       v.weighted_asso_Leg_coeffs_l,
+                       sep,
+                       "asso_leg_term_mu0: "sv,
+                       v.asso_leg_term_mu0,
+                       sep,
+                       "X_temp: "sv,
+                       v.X_temp,
+                       sep,
+                       "mathscr_X_pos: "sv,
+                       v.mathscr_X_pos,
+                       sep,
+                       "E_Lm1L: "sv,
+                       v.E_Lm1L,
+                       sep,
+                       "E_lm1l: "sv,
+                       v.E_lm1l,
+                       sep,
+                       "E_llp1: "sv,
+                       v.E_llp1,
+                       sep,
+                       "BDRF_RHS_contribution: "sv,
+                       v.BDRF_RHS_contribution,
+                       sep,
+                       "Gml: "sv,
+                       v.Gml,
+                       sep,
+                       "BDRF_LHS: "sv,
+                       v.BDRF_LHS,
+                       sep,
+                       "R: "sv,
+                       v.R,
+                       sep,
+                       "mathscr_D_neg: "sv,
+                       v.mathscr_D_neg,
+                       sep,
+                       "D_pos: "sv,
+                       v.D_pos,
+                       sep,
+                       "D_neg: "sv,
+                       v.D_neg,
+                       sep,
+                       "apb: "sv,
+                       v.apb,
+                       sep,
+                       "amb: "sv,
+                       v.amb,
+                       sep,
+                       "sqr: "sv,
+                       v.sqr,
+                       sep,
+                       "asso_leg_term_pos: "sv,
+                       v.asso_leg_term_pos,
+                       sep,
+                       "asso_leg_term_neg: "sv,
+                       v.asso_leg_term_neg,
+                       sep,
+                       "D_temp: "sv,
+                       v.D_temp);
   }
 };
 
@@ -803,97 +899,132 @@ struct std::formatter<DisortSettings> {
   template <class FmtContext>
   FmtContext::iterator format(const DisortSettings& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      std::format_to(ctx.out(),
-                     R"-x-(quadrature_dimension:          {}
-legendre_polynomial_dimension: {}
-fourier_mode_dimension:        {}
-nfreq:                         {}
-nlay:                          {}
-nsrc:                          {}
-nbrdf:                         {}
+      return tags.format(
+          ctx,
+          R"-x-(quadrature_dimension:          ")-x-"sv,
+          v.quadrature_dimension,
+          R"-x-(
+legendre_polynomial_dimension: ")-x-"sv,
+          v.legendre_polynomial_dimension,
+          R"-x-(
+fourier_mode_dimension:        ")-x-"sv,
+          v.fourier_mode_dimension,
+          R"-x-(
+nfreq:                         ")-x-"sv,
+          v.nfreq,
+          R"-x-(
+nlay:                          ")-x-"sv,
+          v.nlay,
+          R"-x-(
+nsrc:                          ")-x-"sv,
+          v.source_polynomial.ncols(),
+          R"-x-(
+nbrdf:                         ")-x-"sv,
+          v.bidirectional_reflectance_distribution_functions.ncols(),
+          R"-x-(
 
-solar_source.shape():                                     {:B,} - should be nfreq.
-solar_zenith_angle.shape():                               {:B,} - should be nfreq.
-solar_azimuth_angle.shape():                              {:B,} - should be nfreq.
-bidirectional_reflectance_distribution_functions.shape(): {:B,} - should be nfreq x nbrdf.
-optical_thicknesses.shape():                              {:B,} - should be nfreq x nlay.
-single_scattering_albedo.shape():                         {:B,} - should be nfreq x nlay.
-fractional_scattering.shape():                            {:B,} - should be nfreq x nlay.
-source_polynomial.shape():                                {:B,} - should be nfreq x nlay x nsrc.
-legendre_coefficients.shape():                            {:B,} - should be nfreq x nlay x nleg.
-positive_boundary_condition.shape():                      {:B,} - should be nfreq x nlay x (quadrature_dimension / 2).
-negative_boundary_condition.shape():                      {:B,} - should be nfreq x nlay x (quadrature_dimension / 2).)-x-"sv,
-                     v.quadrature_dimension,
-                     v.legendre_polynomial_dimension,
-                     v.fourier_mode_dimension,
-                     v.nfreq,
-                     v.nlay,
-                     v.source_polynomial.ncols(),
-                     v.bidirectional_reflectance_distribution_functions.ncols(),
-                     v.solar_source.shape(),
-                     v.solar_zenith_angle.shape(),
-                     v.solar_azimuth_angle.shape(),
-                     v.bidirectional_reflectance_distribution_functions.shape(),
-                     v.optical_thicknesses.shape(),
-                     v.single_scattering_albedo.shape(),
-                     v.fractional_scattering.shape(),
-                     v.source_polynomial.shape(),
-                     v.legendre_coefficients.shape(),
-                     v.positive_boundary_condition.shape(),
-                     v.negative_boundary_condition.shape());
-    } else {
-      std::format_to(ctx.out(),
-                     R"-x-(quadrature_dimension:          {}
-legendre_polynomial_dimension: {}
-fourier_mode_dimension:        {}
-nfreq:                         {}
-nlay:                          {}
-nsrc:                          {}
-nbrdf:                         {}
+solar_source.shape():                                     ")-x-"sv,
+          v.solar_source.shape(),
+          R"-x-( - should be nfreq.
+solar_zenith_angle.shape():                               ")-x-"sv,
+          v.solar_zenith_angle.shape(),
+          R"-x-( - should be nfreq.
+solar_azimuth_angle.shape():                              ")-x-"sv,
+
+          v.solar_azimuth_angle.shape(),
+          R"-x-( - should be nfreq.
+bidirectional_reflectance_distribution_functions.shape(): ")-x-"sv,
+          v.bidirectional_reflectance_distribution_functions.shape(),
+          R"-x-( - should be nfreq x nbrdf.
+optical_thicknesses.shape():                              ")-x-"sv,
+          v.optical_thicknesses.shape(),
+          R"-x-( - should be nfreq x nlay.
+single_scattering_albedo.shape():                         ")-x-"sv,
+          v.single_scattering_albedo.shape(),
+          R"-x-( - should be nfreq x nlay.
+fractional_scattering.shape():                            ")-x-"sv,
+          v.fractional_scattering.shape(),
+          R"-x-( - should be nfreq x nlay.
+source_polynomial.shape():                                ")-x-"sv,
+          v.source_polynomial.shape(),
+          R"-x-( - should be nfreq x nlay x nsrc.
+legendre_coefficients.shape():                            ")-x-"sv,
+          v.legendre_coefficients.shape(),
+          R"-x-( - should be nfreq x nlay x nleg.
+positive_boundary_condition.shape():                      ")-x-"sv,
+          v.positive_boundary_condition.shape(),
+          R"-x-( - should be nfreq x nlay x (quadrature_dimension / 2).
+negative_boundary_condition.shape():                      ")-x-"sv,
+          v.negative_boundary_condition.shape(),
+          R"-x-( - should be nfreq x nlay x (quadrature_dimension / 2).)-x-"sv);
+    }
+    return tags.format(
+        ctx,
+        R"-x-(quadrature_dimension:          ")-x-"sv,
+        v.quadrature_dimension,
+        R"-x-(
+legendre_polynomial_dimension: ")-x-"sv,
+        v.legendre_polynomial_dimension,
+        R"-x-(
+fourier_mode_dimension:        ")-x-"sv,
+        v.fourier_mode_dimension,
+        R"-x-(
+nfreq:                         ")-x-"sv,
+        v.nfreq,
+        R"-x-(
+nlay:                          ")-x-"sv,
+        v.nlay,
+        R"-x-(
+nsrc:                          ")-x-"sv,
+        v.source_polynomial.ncols(),
+        R"-x-(
+nbrdf:                         ")-x-"sv,
+        v.bidirectional_reflectance_distribution_functions.ncols(),
+        R"-x-(
 
 solar_source:
-{}
+")-x-"sv,
+        v.solar_source,
+        R"-x-(
 solar_zenith_angle:
-{}
+")-x-"sv,
+        v.solar_zenith_angle,
+        R"-x-(
 solar_azimuth_angle:
-{}
+")-x-"sv,
+        v.solar_azimuth_angle,
+        R"-x-(
 bidirectional_reflectance_distribution_functions:
-{}
+")-x-"sv,
+        v.bidirectional_reflectance_distribution_functions,
+        R"-x-(
 optical_thicknesses:
-{}
+")-x-"sv,
+        v.optical_thicknesses,
+        R"-x-(
 single_scattering_albedo:
-{}
+")-x-"sv,
+        v.single_scattering_albedo,
+        R"-x-(
 fractional_scattering:
-{}
+")-x-"sv,
+        v.fractional_scattering,
+        R"-x-(
 source_polynomial:
-{}
+")-x-"sv,
+        v.source_polynomial,
+        R"-x-(
 legendre_coefficients:
-{}
+")-x-"sv,
+        v.legendre_coefficients,
+        R"-x-(
 positive_boundary_condition:
-{}
+")-x-"sv,
+        v.positive_boundary_condition,
+        R"-x-(
 negative_boundary_condition:
-{})-x-"sv,
-                     v.quadrature_dimension,
-                     v.legendre_polynomial_dimension,
-                     v.fourier_mode_dimension,
-                     v.nfreq,
-                     v.nlay,
-                     v.source_polynomial.ncols(),
-                     v.bidirectional_reflectance_distribution_functions.ncols(),
-                     v.solar_source,
-                     v.solar_zenith_angle,
-                     v.solar_azimuth_angle,
-                     v.bidirectional_reflectance_distribution_functions,
-                     v.optical_thicknesses,
-                     v.single_scattering_albedo,
-                     v.fractional_scattering,
-                     v.source_polynomial,
-                     v.legendre_coefficients,
-                     v.positive_boundary_condition,
-                     v.negative_boundary_condition);
-    }
-
-    return ctx.out();
+")-x-"sv,
+        v.negative_boundary_condition);
   }
 };
 

@@ -30,13 +30,12 @@
  */
 #pragma once
 
+#include <arts_constexpr_math.h>
+#include <arts_conversions.h>
+#include <matpack.h>
+
 #include <complex>
 #include <numbers>
-#include <vector>
-
-#include "arts_constexpr_math.h"
-#include "arts_conversions.h"
-#include "matpack/matpack.h"
 
 namespace scattering {
 

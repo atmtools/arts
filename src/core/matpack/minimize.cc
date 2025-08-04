@@ -1,4 +1,5 @@
 #include "minimize.h"
+
 namespace Minimize {
 int Polynom::operator()(const T4::InputType& p, T4::ValueType& f) const {
   for (Index i = 0; i < m_values; i++) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array.h>
+#include <debug.h>
 #include <double_imanip.h>
 
 #include "xml_io_base.h"
@@ -28,12 +29,9 @@ struct xml_io_stream<Array<T>> {
                     const Array<T>& n,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) try {
-    std::println(os,
-                 R"(<{0} type="{1}" name="{2}" nelem="{3}">)",
-                 type_name,
-                 inner::type_name,
-                 name,
-                 n.size());
+    XMLTag tag{
+        type_name, "name", name, "type", inner::type_name, "nelem", n.size()};
+    tag.write_to_stream(os);
 
     if (pbofs) {
       if constexpr (xml_io_binary<T>)
@@ -47,7 +45,7 @@ struct xml_io_stream<Array<T>> {
         for (auto& v : n) inner::write(os, v, pbofs);
     }
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
   ARTS_METHOD_ERROR_CATCH
 
@@ -78,10 +76,8 @@ struct xml_io_stream<Array<T>> {
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Error reading {}<{}>:\n{}",
-                                         type_name,
-                                         inner::type_name,
-                                         e.what()));
+    throw std::runtime_error(std::format(
+        "Error reading {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 };
 

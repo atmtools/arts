@@ -73,7 +73,7 @@ struct std::formatter<Species::Isotope> {
   FmtContext::iterator format(const Species::Isotope& v,
                               FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.FullName(), quote);
+    return tags.format(ctx, quote, v.FullName(), quote);
   }
 };
 

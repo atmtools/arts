@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -62,7 +63,7 @@ ray_path_frequency_grid_wind_shift_jacobian size: {} element(s)
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -149,6 +150,6 @@ void ray_path_propagation_matrix_species_splitFromPath(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH

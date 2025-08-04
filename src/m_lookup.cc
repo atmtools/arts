@@ -79,10 +79,10 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
       }
     }
 
-    if (jacobian_targets.atm().size()) {
+    if (jacobian_targets.atm.size()) {
       Vector d_absorption;
 
-      for (auto& jacobian_target : jacobian_targets.atm()) {
+      for (auto& jacobian_target : jacobian_targets.atm) {
         ARTS_USER_ERROR_IF(
             not std::isnormal(jacobian_target.d),
             "The target {} is not good, it lacks a perturbation value.",

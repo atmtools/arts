@@ -44,8 +44,8 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <xml_io_stream.h>
 #include <xml.h>
+#include <xml_io_stream.h>
 
 #include "array.h"
 #include "matpack_mdspan_data_t.h"
@@ -206,10 +206,9 @@ struct std::formatter<Sparse> {
 
     for (int k = 0; k < v.matrix.outerSize(); ++k) {
       for (Iter it(v.matrix, k); it; ++it) {
-        std::format_to(ctx.out(), "{}", std::exchange(sep, first));
+        tags.format(ctx, std::exchange(sep, first));
         tags.add_if_bracket(ctx, '[');
-        std::format_to(
-            ctx.out(), "{}{}{}{}{}", it.row(), sep, it.col(), sep, it.value());
+        tags.format(ctx, it.row(), sep, it.col(), sep, it.value());
         tags.add_if_bracket(ctx, ']');
       }
     }

@@ -37,9 +37,6 @@ add_subdirectory(igrf)
 # #####
 add_library(artscore STATIC
   gas_scattering.cc
-  interpolation.cc
-  minimize.cc
-  optproperties.cc
   spectral_radiance_transform_operator.cc
 )
 

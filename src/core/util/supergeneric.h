@@ -36,7 +36,7 @@ struct std::formatter<Any> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Any&, FmtContext& ctx) const {
-    return std::format_to(ctx.out(), "{}Any{}", tags.quote(), tags.quote());
+    return tags.format(ctx, tags.quote(), "Any"sv, tags.quote());
   }
 };
 

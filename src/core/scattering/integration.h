@@ -341,18 +341,11 @@ using ZenithAngleGrid = std::variant<
   FejerGrid
   >;
 
-  inline Index grid_size(const ZenithAngleGrid &grid) {
-    return std::visit([](const auto &grd) { return grd.angles.size(); }, grid);
-  }
+Index grid_size(const ZenithAngleGrid& grid);
 
-  inline StridedVectorView grid_vector(ZenithAngleGrid &grid) {
-    return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd.angles); }, grid);
-  }
+StridedVectorView grid_vector(ZenithAngleGrid& grid);
 
-   inline StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
-    return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd.angles); }, grid);
-  }
-
+StridedConstVectorView grid_vector(const ZenithAngleGrid& grid);
 
 template <typename VectorType>
 auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {

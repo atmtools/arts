@@ -408,8 +408,10 @@ struct std::formatter<BlockMatrix> {
     if (v.not_null())
       return v.is_dense() ? tags.format(ctx, v.dense())
                           : tags.format(ctx, v.sparse());
-    tags.add_if_bracket(ctx, '[');
-    tags.add_if_bracket(ctx, ']');
+    else {
+      tags.add_if_bracket(ctx, '[');
+      tags.add_if_bracket(ctx, ']');
+    }
     return ctx.out();
   }
 };

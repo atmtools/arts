@@ -3,8 +3,10 @@
 #include <array.h>
 #include <configtypes.h>
 
+#include <span>
 #include <string>
 #include <string_view>
+
 #include "string_extract.h"
 
 /** The String type for ARTS. Implementation. */

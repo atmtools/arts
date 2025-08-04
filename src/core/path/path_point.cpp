@@ -17,6 +17,25 @@
 #include <utility>
 
 namespace path {
+Numeric PropagationPathPoint::altitude() const noexcept { return pos[0]; }
+Numeric& PropagationPathPoint::altitude() noexcept { return pos[0]; }
+Numeric PropagationPathPoint::latitude() const noexcept { return pos[1]; }
+Numeric& PropagationPathPoint::latitude() noexcept { return pos[1]; }
+Numeric PropagationPathPoint::longitude() const noexcept { return pos[2]; }
+Numeric& PropagationPathPoint::longitude() noexcept { return pos[2]; }
+Numeric PropagationPathPoint::zenith() const noexcept { return los[0]; }
+Numeric& PropagationPathPoint::zenith() noexcept { return los[0]; }
+Numeric PropagationPathPoint::azimuth() const noexcept { return los[1]; }
+Numeric& PropagationPathPoint::azimuth() noexcept { return los[1]; }
+
+Vector2 mirror(const Vector2 los) {
+  Vector2 los_mirrored;
+  los_mirrored[0] = 180 - los[0];
+  los_mirrored[1] = los[1] + 180;
+  if (los_mirrored[1] > 180) los_mirrored[1] -= 360;
+  return los_mirrored;
+}
+
 namespace {
 /** Size of north and south poles
   
@@ -334,14 +353,14 @@ constexpr Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
 constexpr Numeric surface_altitude(const SurfaceField& surface_field,
                                    const Numeric lat,
                                    const Numeric lon) {
-  return surface_field.has(SurfaceKey::h)
+  return surface_field.contains(SurfaceKey::h)
              ? surface_field.single_value(SurfaceKey::h, lat, lon)
              : 0.0;
 }
 
 constexpr std::pair<Numeric, Numeric> minmax_surface_altitude(
     const SurfaceField& surface_field) {
-  return surface_field.has(SurfaceKey::h)
+  return surface_field.contains(SurfaceKey::h)
              ? surface_field.minmax_single_value(SurfaceKey::h)
              : std::pair<Numeric, Numeric>{0.0, 0.0};
 }

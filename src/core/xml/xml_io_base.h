@@ -37,29 +37,34 @@ enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
   Handles reading, writing and constructing of XML tags.
 */
 struct XMLTag {
-  String& get_name() { return name; }
+  String name;                                /*!< Tag name */
+  std::unordered_map<String, String> attribs; /*!< List of attributes */
+
+  XMLTag() = default;
 
   void check_name(const std::string_view& expected_name);
   void check_end_name(const std::string_view& expected_name);
-
-  void set_name(const std::string_view& new_name) {
-    name = std::string{new_name};
-  }
-  void set_end_name(const std::string_view& new_name) {
-    name = "/" + std::string{new_name};
-  }
 
   void add_attribute(const std::string_view& aname,
                      const std::string_view& value);
   void add_attribute(const std::string_view& aname, const Index& value);
   void add_attribute(const std::string_view& aname, const Size& value);
-
-  /** Adds value of attribute as type Numeric to tag
-   * 
-   * @param[in] aname Attribute name
-   * @param[in] value Set value
-   */
   void add_attribute(const std::string_view& aname, const Numeric& value);
+
+  template <typename... Args>
+  void add_attribute(const std::string_view& name,
+                     const auto& value,
+                     const Args&... args)
+    requires(sizeof...(Args) >= 2 and (sizeof...(Args) % 2 == 0))
+  {
+    add_attribute(name, value);
+    add_attribute(args...);
+  }
+
+  template <typename... Args>
+  XMLTag(std::string_view n, const Args&... args) : name(n), attribs{} {
+    if (sizeof...(Args) != 0) add_attribute(args...);
+  }
 
   void check_attribute(const std::string_view& aname,
                        const std::string_view& value);
@@ -86,6 +91,7 @@ struct XMLTag {
   void read_from_stream(std::istream& is);
 
   void write_to_stream(std::ostream& os);
+  void write_to_end_stream(std::ostream& os);
 
   /** Returns if the attribute exists or not
    * 
@@ -93,10 +99,6 @@ struct XMLTag {
    * @return bool Does this attribute exist?
    */
   [[nodiscard]] bool has_attribute(const std::string_view& aname) const;
-
- protected:
-  String name;                                /*!< Tag name */
-  std::unordered_map<String, String> attribs; /*!< List of attributes */
 };
 
 ////////////////////////////////////////////////////////////////////////////

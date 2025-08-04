@@ -119,7 +119,7 @@ void XMLTag::check_attribute(const std::string_view& aname,
     xml_parse_error(std::format("Required attribute {} does not exist", aname));
   } else if (actual_value != value) {
     xml_parse_error(
-        std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
+        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
                     aname,
                     actual_value,
                     value));
@@ -133,7 +133,7 @@ void XMLTag::check_attribute(const std::string_view& aname, const Size& value) {
 
   if (actual_value != value) {
     xml_parse_error(
-        std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
+        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
                     aname,
                     actual_value,
                     value));
@@ -148,7 +148,7 @@ void XMLTag::check_attribute(const std::string_view& aname,
 
   if (actual_value != value) {
     xml_parse_error(
-        std::format("Attribute {} has value \"{}\" but \"{}\" was expected.",
+        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
                     aname,
                     actual_value,
                     value));
@@ -363,9 +363,16 @@ void XMLTag::read_from_stream(std::istream& is) {
 void XMLTag::write_to_stream(std::ostream& os) {
   std::print(os, "<{}", name);
 
-  for (auto& [an, av] : attribs) std::print(os, R"( {}="{}")", an, av);
+  for (auto& [an, av] : attribs) {
+    if (av.empty() or an.empty()) continue;
+    std::print(os, R"( {}="{}")", an, av);
+  }
 
   std::print(os, ">");
+}
+
+void XMLTag::write_to_end_stream(std::ostream& os) {
+  std::print(os, "</{}>", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -678,7 +685,7 @@ void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
 
   std::println(os, "<?xml version=\"1.0\"?>");
 
-  tag.set_name("arts");
+  tag.name = "arts";
   switch (ftype) {
     case FileType::ascii:
     case FileType::zascii: tag.add_attribute("format", "ascii"); break;
@@ -699,7 +706,7 @@ void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
 void xml_write_footer_to_stream(std::ostream& os) {
   XMLTag tag;
 
-  tag.set_name("/arts");
+  tag.name = "/arts";
   tag.write_to_stream(os);
 
   std::println(os);

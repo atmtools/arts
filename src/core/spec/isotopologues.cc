@@ -1,8 +1,9 @@
 #include "isotopologues.h"
 
+#include <debug.h>
 #include <xml_io_base.h>
 
-#include <algorithm>
+#include <cassert>
 #include <compare>
 #include <sstream>
 

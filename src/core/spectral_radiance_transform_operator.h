@@ -54,8 +54,8 @@ struct std::formatter<SpectralRadianceTransformOperator> {
   template <class FmtContext>
   FmtContext::iterator format(const SpectralRadianceTransformOperator& op,
                               FmtContext& ctx) const {
-    return std::format_to(
-        ctx.out(), "<SpectralRadianceTransformOperator::{0}>"sv, op.type);
+    return tags.format(
+        ctx, "<SpectralRadianceTransformOperator::"sv, op.type, ">"sv);
   }
 };
 

@@ -38,16 +38,16 @@ struct PropagationPathPoint {
     return pos_type == x or los_type == x;
   }
 
-  [[nodiscard]] constexpr Numeric altitude() const noexcept { return pos[0]; }
-  [[nodiscard]] constexpr Numeric& altitude() noexcept { return pos[0]; }
-  [[nodiscard]] constexpr Numeric latitude() const noexcept { return pos[1]; }
-  [[nodiscard]] constexpr Numeric& latitude() noexcept { return pos[1]; }
-  [[nodiscard]] constexpr Numeric longitude() const noexcept { return pos[2]; }
-  [[nodiscard]] constexpr Numeric& longitude() noexcept { return pos[2]; }
-  [[nodiscard]] constexpr Numeric zenith() const noexcept { return los[0]; }
-  [[nodiscard]] constexpr Numeric& zenith() noexcept { return los[0]; }
-  [[nodiscard]] constexpr Numeric azimuth() const noexcept { return los[1]; }
-  [[nodiscard]] constexpr Numeric& azimuth() noexcept { return los[1]; }
+  [[nodiscard]] Numeric altitude() const noexcept;
+  Numeric& altitude() noexcept;
+  [[nodiscard]] Numeric latitude() const noexcept;
+  Numeric& latitude() noexcept;
+  [[nodiscard]] Numeric longitude() const noexcept;
+  Numeric& longitude() noexcept;
+  [[nodiscard]] Numeric zenith() const noexcept;
+  Numeric& zenith() noexcept;
+  [[nodiscard]] Numeric azimuth() const noexcept;
+  Numeric& azimuth() noexcept;
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
@@ -61,13 +61,7 @@ using ArrayOfArrayOfArrayOfPropagationPathPoint =
  * @param los A line-of-sight [zenith, azimuth] in degrees
  * @return The mirrored line-of-sight [zenith, azimuth] in degrees
  */
-constexpr Vector2 mirror(const Vector2 los) {
-  Vector2 los_mirrored;
-  los_mirrored[0] = 180 - los[0];
-  los_mirrored[1] = los[1] + 180;
-  if (los_mirrored[1] > 180) los_mirrored[1] -= 360;
-  return los_mirrored;
-}
+Vector2 mirror(const Vector2 los);
 
 /** Initializes a propagation path point
  *

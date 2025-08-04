@@ -15,12 +15,11 @@
 #define cia_h
 
 #include <matpack.h>
+#include <mystring.h>
+#include <species.h>
 #include <xml.h>
 
 #include <memory>
-
-#include "mystring.h"
-#include "species.h"
 
 // Declare existance of some classes:
 class bifstream;

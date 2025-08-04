@@ -4,7 +4,6 @@
 #include <enumsAtmKey.h>
 #include <enumsInterpolationExtrapolation.h>
 #include <enumsIsoRatioOption.h>
-#include <fieldmap.h>
 #include <functional_numeric_ternary.h>
 #include <isotopologues.h>
 #include <matpack.h>
@@ -12,19 +11,6 @@
 #include <properties.h>
 #include <quantum.h>
 #include <species.h>
-
-#include <algorithm>
-#include <cmath>
-#include <concepts>
-#include <cstddef>
-#include <format>
-#include <limits>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-#include <variant>
-
-#include "matpack_mdspan_helpers_gridded_data_t.h"
 
 AtmKey to_wind(const String &);
 AtmKey to_mag(const String &);
@@ -157,13 +143,9 @@ struct Point {
     return static_cast<Index>(enumsize::AtmKeySize);
   }
 
-  [[nodiscard]] constexpr bool zero_wind() const noexcept {
-    return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
-  }
+  [[nodiscard]] bool zero_wind() const noexcept;
 
-  [[nodiscard]] constexpr bool zero_mag() const noexcept {
-    return std::all_of(mag.begin(), mag.end(), Cmp::eq(0));
-  }
+  [[nodiscard]] bool zero_mag() const noexcept;
 
   [[nodiscard]] bool is_lte() const noexcept;
 
@@ -177,13 +159,6 @@ struct Point {
 //! reconsider...
 using FunctionalData = NumericTernaryOperator;
 using FieldData = std::variant<SortedGriddedField3, Numeric, FunctionalData>;
-
-struct FunctionalDataAlwaysThrow {
-  std::string error{"Undefined data"};
-  Numeric operator()(Numeric, Numeric, Numeric) const {
-    throw std::runtime_error(error);
-  }
-};
 
 template <typename T>
 concept isSortedGriddedField3 =
@@ -202,8 +177,7 @@ concept RawDataType =
 
 //! Hold all atmospheric data
 struct Data {
-  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
-      "You touched the field but did not set any data"}}};
+  FieldData data{FunctionalData{}};
   InterpolationExtrapolation alt_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation alt_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
@@ -269,12 +243,20 @@ concept isData = std::is_same_v<std::remove_cvref_t<T>, Data>;
 template <typename T>
 concept DataType = RawDataType<T> or isData<T>;
 
-struct Field final : FieldMap::Map<Data,
-                                   AtmKey,
-                                   SpeciesEnum,
-                                   SpeciesIsotope,
-                                   QuantumLevelIdentifier,
-                                   ScatteringSpeciesProperty> {
+struct Field final {
+  //! NOTE: Order matters for this variant
+  using KeyVal = std::variant<AtmKey,
+                              SpeciesEnum,
+                              SpeciesIsotope,
+                              QuantumLevelIdentifier,
+                              ScatteringSpeciesProperty>;
+
+  std::unordered_map<AtmKey, Data> other;
+  std::unordered_map<SpeciesEnum, Data> specs;
+  std::unordered_map<SpeciesIsotope, Data> isots;
+  std::unordered_map<QuantumLevelIdentifier, Data> nlte;
+  std::unordered_map<ScatteringSpeciesProperty, Data> ssprops;
+
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
@@ -286,19 +268,26 @@ struct Field final : FieldMap::Map<Data,
   Field &operator=(const Field &);
   Field &operator=(Field &&) noexcept;
 
-  [[nodiscard]] const std::unordered_map<QuantumLevelIdentifier, Data> &nlte()
-      const;
-  [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
-  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
-  [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data> &
-  ssprops() const;
+  Data &operator[](const AtmKey &key);
+  Data &operator[](const SpeciesEnum &key);
+  Data &operator[](const SpeciesIsotope &key);
+  Data &operator[](const QuantumLevelIdentifier &key);
+  Data &operator[](const ScatteringSpeciesProperty &key);
+  Data &operator[](const KeyVal &key);
 
-  [[nodiscard]] std::unordered_map<QuantumLevelIdentifier, Data> &nlte();
-  [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
-  [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
-  [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
-  [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &ssprops();
+  const Data &operator[](const AtmKey &key) const;
+  const Data &operator[](const SpeciesEnum &key) const;
+  const Data &operator[](const SpeciesIsotope &key) const;
+  const Data &operator[](const QuantumLevelIdentifier &key) const;
+  const Data &operator[](const ScatteringSpeciesProperty &key) const;
+  const Data &operator[](const KeyVal &key) const;
+
+  [[nodiscard]] bool contains(const AtmKey &key) const;
+  [[nodiscard]] bool contains(const SpeciesEnum &key) const;
+  [[nodiscard]] bool contains(const SpeciesIsotope &key) const;
+  [[nodiscard]] bool contains(const QuantumLevelIdentifier &key) const;
+  [[nodiscard]] bool contains(const ScatteringSpeciesProperty &key) const;
+  [[nodiscard]] bool contains(const KeyVal &key) const;
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Numeric alt,
@@ -308,13 +297,14 @@ struct Field final : FieldMap::Map<Data,
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Vector3 pos) const;
 
-  [[nodiscard]] Index nspec() const;
-  [[nodiscard]] Index nisot() const;
-  [[nodiscard]] Index npart() const;
-  [[nodiscard]] Index nnlte() const;
-  [[nodiscard]] Index nother() const;
+  [[nodiscard]] Size size() const;
+  [[nodiscard]] Size nspec() const;
+  [[nodiscard]] Size nisot() const;
+  [[nodiscard]] Size npart() const;
+  [[nodiscard]] Size nnlte() const;
+  [[nodiscard]] Size nother() const;
 
-  [[nodiscard]] ArrayOfQuantumLevelIdentifier nlte_keys() const;
+  [[nodiscard]] std::vector<KeyVal> keys() const;
 
   [[nodiscard]] Field gridded(const AscendingGrid &alt,
                               const AscendingGrid &lat,
@@ -420,8 +410,7 @@ struct std::formatter<AtmKeyVal> {
 
   template <class FmtContext>
   FmtContext::iterator format(const AtmKeyVal &v, FmtContext &ctx) const {
-    tags.format(ctx, to_string(v));
-    return ctx.out();
+    return tags.format(ctx, to_string(v));
   }
 };
 

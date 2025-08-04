@@ -394,9 +394,8 @@ std::string method_resolution_variadic(
       for (std::size_t i = 0; i < wsm.gout.size(); i++) {
         auto& t = wsm.gout_type[i];
         if (uses_variadic(t)) {
-          const auto& mytype = ungen[vars.size()];
-          std::format_to(
-              std::back_inserter(test),
+          const auto& mytype  = ungen[vars.size()];
+          test               += std::format(
               " and std::holds_alternative<{0}>(std::shared_ptr<py{1}>)",
               mytype,
               wsm.gout[i]);
@@ -408,9 +407,8 @@ std::string method_resolution_variadic(
       for (std::size_t i = 0; i < wsm.gin.size(); i++) {
         auto& t = wsm.gin_type[i];
         if (uses_variadic(t)) {
-          const auto& mytype = ungen[vars.size()];
-          std::format_to(
-              std::back_inserter(test),
+          const auto& mytype  = ungen[vars.size()];
+          test               += std::format(
               " and std::holds_alternative<std::shared_ptr<py{0}>>({1})",
               mytype,
               wsm.gin[i]);

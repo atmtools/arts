@@ -1,11 +1,40 @@
 #include "rtepack_rtestep.h"
 
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <physics_funcs.h>
 
 #include "rtepack_transmission.h"
 
 namespace rtepack {
+stokvec linear_step(const muelmat &T, const stokvec &I, const stokvec &J) {
+  return T * (I - J) + J;
+}
+
+stokvec two_level_linear_step(stokvec_vector_view &dI1,
+                              stokvec_vector_view &dI2,
+                              const muelmat &T,
+                              const muelmat &PiT,
+                              const stokvec &I,
+                              const stokvec &J1,
+                              const stokvec &J2,
+                              const muelmat_vector_const_view &dT1,
+                              const muelmat_vector_const_view &dT2,
+                              const stokvec_vector_const_view &dJ1,
+                              const stokvec_vector_const_view &dJ2) {
+  assert(dI1.size() == dI2.size() and dT1.size() == dT2.size() and
+         dJ1.size() == dJ2.size() and dI1.size() == dT1.size());
+
+  const auto J = avg(J1, J2);
+
+  for (Size k = 0; k < dT1.size(); k++) {
+    dI1[k] += PiT * (dT1[k] * (I - J) + dJ1[k] - T * dJ1[k]);
+    dI2[k] += PiT * (dT2[k] * (I - J) + dJ2[k] - T * dJ2[k]);
+  }
+
+  return linear_step(T, I, J);
+}
+
 void two_level_linear_emission_step(stokvec_vector_view I,
                                     stokvec_matrix_view dI1,
                                     stokvec_matrix_view dI2,

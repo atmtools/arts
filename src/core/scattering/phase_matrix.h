@@ -5,10 +5,9 @@
 #include <memory>
 
 #include "arts_constants.h"
-#include "interpolation.h"
 #include "sht.h"
 
-#include "scattering/utils.h"
+#include "utils.h"
 
 namespace scattering {
 

@@ -3,8 +3,10 @@
 #include <debug.h>
 #include <isotopologues.h>
 #include <nonstd.h>
+#include <xml.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cfloat>
 #include <iterator>
 #include <string_view>
@@ -175,21 +177,6 @@ Array<Tag> parse_tags(std::string_view text) {
 
 Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 
-std::ostream& operator<<(std::ostream& os, const Tag& ot) {
-  os << ot.Isotopologue().FullName();
-
-  // Is this a CIA tag?
-  if (ot.type == SpeciesTagType::Cia) {
-    os << "-CIA-" << toString<1>(ot.cia_2nd_species);
-  }
-
-  else if (ot.type == SpeciesTagType::XsecFit) {
-    os << "-XFIT";
-  }
-
-  return os;
-}
-
 /** Return the full name of the tag.
  * 
  * \return The tag name as a string.
@@ -322,22 +309,6 @@ std::set<SpeciesEnum> lbl_species(
   return unique_species;
 }
 
-Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
-                           const Vector& rtp_vmr,
-                           const SpeciesEnum spec) {
-  assert(abs_species.size() == static_cast<Size>(rtp_vmr.size()));
-
-  auto pos =
-      std::find_if(abs_species.begin(),
-                   abs_species.end(),
-                   [spec](const ArrayOfSpeciesTag& tag_group) {
-                     return tag_group.size() and tag_group.Species() == spec;
-                   });
-  return pos == abs_species.end()
-             ? 0
-             : rtp_vmr[std::distance(abs_species.begin(), pos)];
-}
-
 SpeciesTagTypeStatus::SpeciesTagTypeStatus(
     const ArrayOfArrayOfSpeciesTag& abs_species) {
   for (auto& species_list : abs_species) {
@@ -350,42 +321,6 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
       }
     }
   }
-}
-
-std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
-  SpeciesTagType x{SpeciesTagType::Plain};
-  os << "Species tag types:\n";
-  switch (x) {
-    case SpeciesTagType::Plain:
-      os << "    Plain:            " << val.Plain << '\n';
-      [[fallthrough]];
-    case SpeciesTagType::Predefined:
-      os << "    Predefined: " << val.Predefined << '\n';
-      [[fallthrough]];
-    case SpeciesTagType::Cia:
-      os << "    Cia:              " << val.Cia << '\n';
-      [[fallthrough]];
-    case SpeciesTagType::XsecFit:
-      os << "    XsecFit:       " << val.XsecFit << '\n';
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
-  bool first = true;
-  for (auto& x : ot) {
-    if (not first)
-      os << ' ';
-    else
-      first = false;
-    os << x;
-  }
-  return os;
 }
 
 void xml_io_stream<SpeciesTag>::write(std::ostream& os,

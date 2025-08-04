@@ -1,7 +1,7 @@
 #include "particle_habit.h"
 
-#include "matpack.h"
-#include "util/sorting.h"
+#include <matpack.h>
+#include <sorting.h>
 
 namespace scattering {
 

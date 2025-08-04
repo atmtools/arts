@@ -67,8 +67,7 @@ struct std::formatter<Wsv> {
   template <class FmtContext>
   FmtContext::iterator format(const Wsv& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      return std::format_to(
-          ctx.out(), "{}{}{}", tags.quote(), v.type_name(), tags.quote());
+      return tags.format(ctx, tags.quote(), v.type_name(), tags.quote());
     }
 
     return tags.format(ctx, to_string(v));

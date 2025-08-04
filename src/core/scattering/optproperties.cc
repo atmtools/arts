@@ -469,7 +469,7 @@ void xml_io_stream<SingleScatteringData>::write(
   XMLTag open_tag;
   XMLTag close_tag;
 
-  open_tag.set_name("SingleScatteringData");
+  open_tag.name=("SingleScatteringData");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
@@ -485,7 +485,7 @@ void xml_io_stream<SingleScatteringData>::write(
   xml_write_to_stream(os_xml, ssdata.ext_mat_data, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.abs_vec_data, pbofs, "");
 
-  close_tag.set_name("/SingleScatteringData");
+  close_tag.name=("/SingleScatteringData");
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
 }

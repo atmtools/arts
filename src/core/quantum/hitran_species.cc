@@ -2,6 +2,7 @@
 
 #include <isotopologues.h>
 
+#include <cassert>
 #include <map>
 
 namespace Hitran {

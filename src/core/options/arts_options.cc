@@ -961,10 +961,11 @@ radiation).
       .desc =
           R"(Parameters used to represent the size of particles.
 )",
-      .values_and_desc =
-          {Value{"Mass", "m", "Mass in kg"},
-           Value{"DMax", "d_max", "Maximum diameter in m"},
-           Value{"DVeq", "d_veq", "Volume-equivalent diameter in m"}},
+      .values_and_desc = {Value{"Mass", "m", "Mass in kg"},
+                          Value{"DMax", "d_max", "Maximum diameter in m"},
+                          Value{"DVeq",
+                                "d_veq",
+                                "Volume-equivalent diameter in m"}},
   });
 
   fix_static(opts);
@@ -1002,17 +1003,13 @@ std::string EnumeratedOption::docs() const {
 
   const auto n = values_and_desc.front().size();
 
-  std::format_to(std::back_inserter(out), "{}\n\nValid options:\n\n", desc);
+  out += std::format("{}\n\nValid options:\n\n", desc);
   for (auto& v : values_and_desc) {
     std::string_view x = "- "sv;
     for (auto& s : v | stdv::take(n - 1)) {
-      std::format_to(std::back_inserter(out),
-                     R"({}``"{}"``)",
-                     std::exchange(x, " or "sv),
-                     s);
+      out += std::format(R"({}``"{}"``)", std::exchange(x, " or "sv), s);
     }
-    std::format_to(
-        std::back_inserter(out), ":\n  {}\n", add_spaces(v.back(), 2));
+    out += std::format(":\n  {}\n", add_spaces(v.back(), 2));
   }
 
   return out;
@@ -1025,8 +1022,8 @@ std::string EnumeratedOption::tail() const {
   const auto n = values_and_desc.front().size();
 
   // Create good enum function
-  std::format_to(std::back_inserter(out),
-                 R"(
+  out += std::format(
+      R"(
 template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
     const auto v = static_cast<std::size_t>(x);
     return v < {1};
@@ -1039,35 +1036,35 @@ template<> struct enumdocs<{0}> {{
 
 namespace enumtyps {{
     inline constexpr std::array {0}Types = {{)",
-                 name,
-                 m);
+      name,
+      m);
 
   for (const auto& v : values_and_desc)
-    std::format_to(std::back_inserter(out), "{}::{}, ", name, v[0]);
+    out += std::format("{}::{}, ", name, v[0]);
 
-  std::format_to(std::back_inserter(out), R"(}};
-}}  // namespace enumtyps
+  out += R"(};
+}  // namespace enumtyps
 
-namespace enumstrs {{
-)");
+namespace enumstrs {
+)";
 
   // Create enumstrs arrays
   for (std::size_t i = 0; i < n - 1; i++) {
-    std::format_to(std::back_inserter(out),
-                   R"(
+    out += std::format(
+        R"(
   template <> struct enum_str_data<{}, {}> {{
     static constexpr std::array strs={{)",
-                   name,
-                   i);
+        name,
+        i);
 
     for (const auto& v : values_and_desc)
-      std::format_to(std::back_inserter(out), R"("{}"sv, )", v[i]);
+      out += std::format(R"("{}"sv, )", v[i]);
 
-    std::format_to(std::back_inserter(out), "}};\n  }};\n");
+    out += "};\n  };\n";
   }
 
-  std::format_to(std::back_inserter(out),
-                 R"(
+  out += std::format(
+      R"(
   template <int i={0}>
   inline constexpr auto {1}Names = enum_str_data<{1}, i>::strs;
 }}  // namespace enumstrs
@@ -1081,23 +1078,23 @@ template <int i={0}> constexpr std::string_view toString({1} x)  requires(i >= 0
 template<> constexpr {1} to<{1}>(const std::string_view x) {{
   using namespace enumstrs;
   using namespace enumtyps;)",
-                 preferred_print,
-                 name,
-                 n - 1);
+      preferred_print,
+      name,
+      n - 1);
 
   for (std::size_t i = 0; i < n - 1; i++) {
-    std::format_to(std::back_inserter(out),
-                   R"(
+    out += std::format(
+        R"(
   if (const auto i = std::ranges::distance(std::ranges::begin({0}Names<{1}>),
                                            std::ranges::find({0}Names<{1}>, x));
                      i < {2})
     return {0}Types[i];)",
-                   name,
-                   i,
-                   m);
+        name,
+        i,
+        m);
   }
-  std::format_to(std::back_inserter(out),
-                 R"(
+  out += std::format(
+      R"(
   throw std::runtime_error(R"-x-(Bad value.
 
 See https://atmtools.github.io/arts-docs-master/pyarts.arts.{0}.html for valid options.
@@ -1124,13 +1121,13 @@ template<> struct std::formatter<{0}> {{
 
   template <class FmtContext>
   FmtContext::iterator format(const T& v, FmtContext& ctx) const {{
-    return std::format_to(ctx.out(), "{{0}}{{1}}{{0}}", tags.quote(), toString<{3}>(v));
+    return tags.format(ctx, tags.quote(), toString<{3}>(v), tags.quote());
   }}
 }};)",
-                 name,
-                 docs(),
-                 m,
-                 preferred_print);
+      name,
+      docs(),
+      m,
+      preferred_print);
 
   return out;
 }
@@ -1177,8 +1174,7 @@ std::string EnumeratedOption::head() const {
 
   std::string out;
 
-  std::format_to(
-      std::back_inserter(out), "enum class {} : {} {{\n", name, sz());
+  out += std::format("enum class {} : {} {{\n", name, sz());
 
   for (const auto& v : values_and_desc) {
     if (v.empty()) {
@@ -1190,10 +1186,10 @@ std::string EnumeratedOption::head() const {
                                " " + v.front());
     }
 
-    std::format_to(std::back_inserter(out), "{}, ", v[0]);
+    out += std::format("{}, ", v[0]);
   }
 
-  std::format_to(std::back_inserter(out), "}};\n\n");
+  out += "};\n\n";
 
   return out;
 }
@@ -1201,8 +1197,8 @@ std::string EnumeratedOption::head() const {
 std::string EnumeratedOption::impl() const {
   std::string out;
 
-  std::format_to(std::back_inserter(out),
-                 R"(
+  out += std::format(
+      R"(
 std::ostream &operator<<(std::ostream &os, const {0} x) {{
   std::print(os, "{{}}", toString<{1}>(x));
   return os;
@@ -1226,9 +1222,9 @@ std::string_view enumdocs<{0}>::str() noexcept {{
 
 static_assert(arts_formattable<{0}>, "Not good: {0}");
 )",
-                 name,
-                 preferred_print,
-                 docs());
+      name,
+      preferred_print,
+      docs());
 
   return out;
 }

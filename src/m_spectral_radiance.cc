@@ -1,10 +1,5 @@
+#include <array_algo.h>
 #include <workspace.h>
-
-#include <algorithm>
-
-#include "configtypes.h"
-#include "debug.h"
-#include "rtepack.h"
 
 void ray_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector& ray_path_transmission_matrix,
@@ -37,7 +32,7 @@ ray_path_atmospheric_point.size()           = {})",
 
   // HSE variables
   const Index temperature_derivative_position =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
+      jacobian_targets.target_position(AtmKey::t);
 
   const Size N = ray_path.size();
 

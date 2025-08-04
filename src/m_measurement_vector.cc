@@ -19,7 +19,7 @@ void measurement_vector_errorFromModelState(
                                     jacobian_targets.x_size());
   measurement_jacobian_error = 0.0;
 
-  for (auto& elem : jacobian_targets.error()) {
+  for (auto& elem : jacobian_targets.error) {
     elem.update_model(measurement_vector_error, model_state_vector);
     elem.update_jac(measurement_jacobian_error,
                     model_state_vector,
@@ -73,7 +73,7 @@ void model_state_vectorUpdateError(
 
   Vector meas{measurement_vector};
   meas -= measurement_vector_fitted;
-  for (auto& elem : jacobian_targets.error()) {
+  for (auto& elem : jacobian_targets.error) {
     elem.update_state(model_state_vector, meas);
   }
 }

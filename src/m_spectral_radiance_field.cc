@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -46,7 +47,7 @@ auto ray_path_propagation_matrixProfile(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
   return out;
 }
 

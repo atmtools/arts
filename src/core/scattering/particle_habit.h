@@ -4,9 +4,9 @@
 #include <optional>
 #include <variant>
 
-#include "scattering/psd.h"
-#include "scattering/sht.h"
-#include "scattering/single_scattering_data.h"
+#include "psd.h"
+#include "sht.h"
+#include "single_scattering_data.h"
 
 namespace scattering {
 

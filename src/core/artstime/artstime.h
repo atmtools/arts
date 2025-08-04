@@ -1,11 +1,9 @@
 #pragma once
 
-#include <matpack.h>
 #include <mystring.h>
 #include <xml.h>
 
 #include <chrono>
-#include <cmath>
 #include <ctime>
 #include <string_view>
 
@@ -137,20 +135,6 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt);
  */
 Time mean_time(const ArrayOfTime& ts, Index s = 0, Index e = -1);
 
-/** Converts from each Time to seconds and returns as Vector
- * 
- * @param[in] times Times
- * @return Vector of Time->Seconds() calls
- */
-Vector time_vector(const ArrayOfTime& times);
-
-/** Converts from each Vector entry by seconds and returns as ArrayOfTime
- * 
- * @param[in] times Times
- * @return ArrayOfTime from seconds
- */
-ArrayOfTime time_vector(const Vector& times);
-
 /** Returns the median time step
  * 
  * Takes vector by copy to sort
@@ -193,7 +177,7 @@ struct std::formatter<Time> {
   template <class FmtContext>
   FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    return std::format_to(ctx.out(), "{}{}{}", quote, v.time, quote);
+    return tags.format(ctx, quote, v.time, quote);
   }
 };
 
@@ -206,7 +190,5 @@ struct xml_io_stream<Time> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   Time& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, Time& x, bifstream* pbifs = nullptr);
 };

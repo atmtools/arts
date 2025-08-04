@@ -28,7 +28,7 @@ void RetrievalAddSubsurface(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddSubsurface(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.surf().back().type}] = {.first  = matrix,
+      jacobian_targets.surf.back().type}] = {.first  = matrix,
                                                .second = inverse};
 }
 
@@ -43,7 +43,7 @@ void RetrievalAddSurface(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddSurface(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.surf().back().type}] = {.first  = matrix,
+      jacobian_targets.surf.back().type}] = {.first  = matrix,
                                                .second = inverse};
 }
 
@@ -58,7 +58,7 @@ void RetrievalAddSurface(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddSurface(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.surf().back().type}] = {.first  = matrix,
+      jacobian_targets.surf.back().type}] = {.first  = matrix,
                                                .second = inverse};
 }
 
@@ -73,7 +73,7 @@ void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddAtmosphere(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -88,7 +88,7 @@ void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddAtmosphere(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -103,7 +103,7 @@ void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddAtmosphere(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -118,7 +118,7 @@ void RetrievalAddAtmosphere(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddAtmosphere(jacobian_targets, key, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -133,7 +133,7 @@ void RetrievalAddSpeciesVMR(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddSpeciesVMR(jacobian_targets, species, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -149,7 +149,7 @@ void RetrievalAddSpeciesIsotopologueRatio(
 
   jacobian_targetsAddSpeciesIsotopologueRatio(jacobian_targets, species, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -164,7 +164,7 @@ void RetrievalAddMagneticField(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddMagneticField(jacobian_targets, component, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -178,14 +178,14 @@ void RetrievalAddOverlappingMagneticField(
 
   jacobian_targetsAddOverlappingMagneticField(jacobian_targets);
 
-  const Size N = jacobian_targets.atm().size();
+  const Size N = jacobian_targets.atm.size();
 
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm()[N - 2].type}] = {.first  = matrix,
+      jacobian_targets.atm[N - 2].type}] = {.first  = matrix,
                                               .second = inverse};
 
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm()[N - 1].type}] = {.first  = matrix,
+      jacobian_targets.atm[N - 1].type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -199,14 +199,14 @@ void RetrievalAddOverlappingWindField(
 
   jacobian_targetsAddOverlappingWindField(jacobian_targets);
 
-  const Size N = jacobian_targets.atm().size();
+  const Size N = jacobian_targets.atm.size();
 
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm()[N - 2].type}] = {.first  = matrix,
+      jacobian_targets.atm[N - 2].type}] = {.first  = matrix,
                                               .second = inverse};
 
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm()[N - 1].type}] = {.first  = matrix,
+      jacobian_targets.atm[N - 1].type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -221,7 +221,7 @@ void RetrievalAddWindField(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddWindField(jacobian_targets, component, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -235,7 +235,7 @@ void RetrievalAddTemperature(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddTemperature(jacobian_targets, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -249,7 +249,7 @@ void RetrievalAddPressure(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddPressure(jacobian_targets, d);
   covariance_matrix_diagonal_blocks[JacobianTargetType{
-      jacobian_targets.atm().back().type}] = {.first  = matrix,
+      jacobian_targets.atm.back().type}] = {.first  = matrix,
                                               .second = inverse};
 }
 
@@ -267,7 +267,7 @@ void RetrievalAddSensorFrequencyPolyOffset(
 
   jacobian_targetsAddSensorFrequencyPolyOffset(
       jacobian_targets, measurement_sensor, d, sensor_elem, polyorder);
-  auto keyk = JacobianTargetType{jacobian_targets.sensor().back().type};
+  auto keyk = JacobianTargetType{jacobian_targets.sensor.back().type};
   covariance_matrix_diagonal_blocks[keyk] = {.first  = matrix,
                                              .second = inverse};
 }
@@ -285,7 +285,7 @@ void RetrievalAddErrorPolyFit(JacobianTargets& jacobian_targets,
 
   jacobian_targetsAddErrorPolyFit(
       jacobian_targets, measurement_sensor, t, sensor_elem, polyorder);
-  auto keyk = JacobianTargetType{jacobian_targets.error().back().type};
+  auto keyk = JacobianTargetType{jacobian_targets.error.back().type};
   covariance_matrix_diagonal_blocks[keyk] = {.first  = matrix,
                                              .second = inverse};
 }

@@ -77,7 +77,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.atm()) {
+  for (const auto& target : jacobian_targets.atm) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -102,7 +102,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.surf()) {
+  for (const auto& target : jacobian_targets.surf) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -127,7 +127,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.subsurf()) {
+  for (const auto& target : jacobian_targets.subsurf) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -152,7 +152,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.line()) {
+  for (const auto& target : jacobian_targets.line) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -177,7 +177,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.sensor()) {
+  for (const auto& target : jacobian_targets.sensor) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -202,7 +202,7 @@ void model_state_covariance_matrixAdd(
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.error()) {
+  for (const auto& target : jacobian_targets.error) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(

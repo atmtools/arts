@@ -106,49 +106,18 @@ void py_jac(py::module_& m) try {
 
   py::class_<JacobianTargets> jacs(m, "JacobianTargets");
   generic_interface(jacs);
-  jacs.def_prop_rw(
-      "atm",
-      [](JacobianTargets& j) { return j.atm(); },
-      [](JacobianTargets& j, std::vector<Jacobian::AtmTarget> t) {
-        j.atm() = std::move(t);
-      },
-      "List of atmospheric targets");
-  jacs.def_prop_rw(
-      "surf",
-      [](JacobianTargets& j) { return j.surf(); },
-      [](JacobianTargets& j, std::vector<Jacobian::SurfaceTarget> t) {
-        j.surf() = std::move(t);
-      },
-      "List of surface targets");
-  jacs.def_prop_rw(
-      "line",
-      [](JacobianTargets& j) { return j.line(); },
-      [](JacobianTargets& j, std::vector<Jacobian::LineTarget> t) {
-        j.line() = std::move(t);
-      },
-      "List of line targets");
-  jacs.def_prop_rw(
-      "sensor",
-      [](JacobianTargets& j) { return j.sensor(); },
-      [](JacobianTargets& j, std::vector<Jacobian::SensorTarget> t) {
-        j.sensor() = std::move(t);
-      },
-      "List of sensor targets");
-  jacs.def_prop_rw(
-      "error",
-      [](JacobianTargets& j) { return j.error(); },
-      [](JacobianTargets& j, std::vector<Jacobian::ErrorTarget> t) {
-        j.error() = std::move(t);
-      },
-      "List of error targets");
-  jacs.def(
-      "x_size",
-      [](const JacobianTargets& j){return j.x_size();},
-      "The number of elements required in the *model_state_vector* to represent the Jacobian.");
-  jacs.def(
-      "target_count",
-      [](const JacobianTargets& j){return j.target_count();},
-      "The number of targets added to the Jacobian.");
+  jacs.def_rw("atm", &JacobianTargets::atm, "List of atmospheric targets");
+  jacs.def_rw("surf", &JacobianTargets::surf, "List of surface targets");
+  jacs.def_rw("subsurf", &JacobianTargets::subsurf, "List of subsurface targets");
+  jacs.def_rw("line", &JacobianTargets::line, "List of line targets");
+  jacs.def_rw("sensor", &JacobianTargets::sensor, "List of sensor targets");
+  jacs.def_rw("error", &JacobianTargets::error, "List of error targets");
+  jacs.def("x_size",
+           &JacobianTargets::x_size,
+           "The size of the model state vector.");
+  jacs.def("target_count",
+           &JacobianTargets::target_count,
+           "The number of targets added to the Jacobian.");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize jac\n{}", e.what()));

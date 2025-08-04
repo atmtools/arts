@@ -15,7 +15,7 @@ void atmospheric_fieldFromModelState(AtmField& atmospheric_field,
                                      const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.atm()) {
+  for (auto& target : jacobian_targets.atm) {
     target.update_model(atmospheric_field, model_state_vector);
   }
 }
@@ -25,7 +25,7 @@ void surface_fieldFromModelState(SurfaceField& surface_field,
                                  const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.surf()) {
+  for (auto& target : jacobian_targets.surf) {
     target.update_model(surface_field, model_state_vector);
   }
 }
@@ -35,7 +35,7 @@ void subsurface_fieldFromModelState(SubsurfaceField& subsurface_field,
                                     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.subsurf()) {
+  for (auto& target : jacobian_targets.subsurf) {
     target.update_model(subsurface_field, model_state_vector);
   }
 }
@@ -45,7 +45,7 @@ void absorption_bandsFromModelState(AbsorptionBands& absorption_bands,
                                     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.line()) {
+  for (auto& target : jacobian_targets.line) {
     target.update_model(absorption_bands, model_state_vector);
   }
 }
@@ -55,7 +55,7 @@ void measurement_sensorFromModelState(ArrayOfSensorObsel& measurement_sensor,
                                       const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.sensor()) {
+  for (auto& target : jacobian_targets.sensor) {
     target.update_model(measurement_sensor, model_state_vector);
   }
 }
@@ -67,7 +67,7 @@ void model_state_vectorFromAtmosphere(Vector& model_state_vector,
                                       const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.atm()) {
+  for (auto& target : jacobian_targets.atm) {
     target.update_state(model_state_vector, atmospheric_field);
   }
 }
@@ -77,7 +77,7 @@ void model_state_vectorFromSurface(Vector& model_state_vector,
                                    const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.surf()) {
+  for (auto& target : jacobian_targets.surf) {
     target.update_state(model_state_vector, surface_field);
   }
 }
@@ -87,7 +87,7 @@ void model_state_vectorFromSubsurface(Vector& model_state_vector,
                                       const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.subsurf()) {
+  for (auto& target : jacobian_targets.subsurf) {
     target.update_state(model_state_vector, subsurface_field);
   }
 }
@@ -97,7 +97,7 @@ void model_state_vectorFromBands(Vector& model_state_vector,
                                  const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.line()) {
+  for (auto& target : jacobian_targets.line) {
     target.update_state(model_state_vector, absorption_bands);
   }
 }
@@ -107,7 +107,7 @@ void model_state_vectorFromSensor(Vector& model_state_vector,
                                   const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.sensor()) {
+  for (auto& target : jacobian_targets.sensor) {
     target.update_state(model_state_vector, measurement_sensor);
   }
 }
@@ -121,7 +121,7 @@ void measurement_jacobianAtmosphereTransformation(
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.atm()) {
+  for (auto& target : jacobian_targets.atm) {
     target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
@@ -133,7 +133,7 @@ void measurement_jacobianSurfaceTransformation(
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.surf()) {
+  for (auto& target : jacobian_targets.surf) {
     target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
@@ -145,7 +145,7 @@ void measurement_jacobianSubsurfaceTransformation(
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.subsurf()) {
+  for (auto& target : jacobian_targets.subsurf) {
     target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
@@ -157,7 +157,7 @@ void measurement_jacobianBandTransformation(
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.line()) {
+  for (auto& target : jacobian_targets.line) {
     target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }
@@ -169,7 +169,7 @@ void measurement_jacobianSensorTransformation(
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.sensor()) {
+  for (auto& target : jacobian_targets.sensor) {
     target.update_jac(measurement_jacobian, model_state_vector, field);
   }
 }

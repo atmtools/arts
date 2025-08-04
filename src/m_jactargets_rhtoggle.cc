@@ -13,7 +13,7 @@ void jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
     const Index& nonnegative) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm()) {
+  for (auto& t : jacobian_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<rhinv>() != nullptr) {
         t.inverse_jacobian = {};

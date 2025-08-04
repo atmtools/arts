@@ -278,113 +278,21 @@ concept target_comparable = target_type<T> and requires(T a, U b) {
 template <typename U, typename... T>
 concept valid_target = (std::same_as<U, T> or ...);
 
-template <target_type... Targets>
-struct targets_t {
-  static constexpr Size N = sizeof...(Targets);
-
-  using tup_t = std::tuple<std::vector<Targets>...>;
-  tup_t targets{};
+struct Targets final {
+  std::vector<AtmTarget> atm;
+  std::vector<SurfaceTarget> surf;
+  std::vector<SubsurfaceTarget> subsurf;
+  std::vector<LineTarget> line;
+  std::vector<SensorTarget> sensor;
+  std::vector<ErrorTarget> error;
 
   bool finalized{false};
 
-  template <valid_target<Targets...> T>
-  constexpr auto& target() {
-    return std::get<std::vector<T>>(targets);
-  }
+  [[nodiscard]] Size x_size() const;
 
-  template <valid_target<Targets...> T>
-  [[nodiscard]] constexpr const auto& target() const {
-    return std::get<std::vector<T>>(targets);
-  }
+  [[nodiscard]] Size target_count() const;
 
-  template <valid_target<Targets...> T>
-  constexpr auto find(const target_comparable<T> auto& t) const {
-    auto out =
-        std::pair{false, std::ranges::find_if(target<T>(), [&t](auto& v) {
-                    return v.type == t;
-                  })};
-    out.first = out.second not_eq target<T>().end();
-    return out;
-  }
-
-  template <valid_target<Targets...> T>
-  constexpr auto find_all(const target_comparable<T> auto&... t) const {
-    return std::array{find<T>(t)...};
-  }
-
-  template <valid_target<Targets...> T>
-  constexpr bool contains(const target_comparable<T> auto& t) const {
-    return find<T>(t).first;
-  }
-
-  template <valid_target<Targets...> T>
-  constexpr Index target_position(const target_comparable<T> auto& t) const {
-    auto pair = find<T>(t);
-    return pair.first ? pair.second->target_pos : -1;
-  }
-
-  [[nodiscard]] constexpr Size x_size() const {
-    if (target_count() != 0 and not finalized)
-      throw std::runtime_error("Not finalized.");
-
-    const auto sz = [](const auto& x) -> Size {
-      return x.overlap ? 0 : x.x_size;
-    };
-
-    return (std::transform_reduce(target<Targets>().begin(),
-                                  target<Targets>().end(),
-                                  Size{0},
-                                  std::plus<>{},
-                                  sz) +
-            ...);
-  }
-
-  [[nodiscard]] constexpr Size target_count() const {
-    return (target<Targets>().size() + ...);
-  }
-
-  [[nodiscard]] constexpr bool any() const { return target_count() != 0; }
-
-  void throwing_check(Size xsize) const {
-    const auto t_size = target_count();
-
-    if (xsize != x_size())
-      throw std::runtime_error(
-          "The size of the x-vector does not match the size of the targets.");
-
-    ((std::ranges::for_each(
-         target<Targets>(),
-         [xsize, t_size](auto& a) {
-           if ((a.x_start + a.x_size) > xsize)
-             throw std::runtime_error("x-vector out-of-bounds");
-           if (t_size <= a.target_pos)
-             throw std::runtime_error("target-vector out-of-bounds.");
-         })),
-     ...);
-  }
-
-  void clear() { ((target<Targets>().clear()), ...); }
-};
-
-struct Targets final : targets_t<AtmTarget,
-                                 SurfaceTarget,
-                                 SubsurfaceTarget,
-                                 LineTarget,
-                                 SensorTarget,
-                                 ErrorTarget> {
-  [[nodiscard]] const std::vector<AtmTarget>& atm() const;
-  [[nodiscard]] const std::vector<SurfaceTarget>& surf() const;
-  [[nodiscard]] const std::vector<SubsurfaceTarget>& subsurf() const;
-  [[nodiscard]] const std::vector<LineTarget>& line() const;
-  [[nodiscard]] const std::vector<SensorTarget>& sensor() const;
-  [[nodiscard]] const std::vector<ErrorTarget>& error() const;
-
-  [[nodiscard]] std::vector<AtmTarget>& atm();
-  [[nodiscard]] std::vector<SurfaceTarget>& surf();
-  [[nodiscard]] std::vector<SubsurfaceTarget>& subsurf();
-  [[nodiscard]] std::vector<LineTarget>& line();
-  [[nodiscard]] std::vector<SensorTarget>& sensor();
-  [[nodiscard]] std::vector<ErrorTarget>& error();
+  void throwing_check(Size xsize) const;
 
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atmospheric_field,
@@ -405,6 +313,22 @@ struct Targets final : targets_t<AtmTarget,
   SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
   ErrorTarget& emplace_back(ErrorKey&& t, Numeric d = 0.0);
   ErrorTarget& emplace_back(const ErrorKey& t, Numeric d = 0.0);
+
+  [[nodiscard]] std::vector<AtmTarget>::const_iterator find(const AtmKeyVal& t) const;
+  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator find(const SurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<LineTarget>::const_iterator find(const LblLineKey& t) const;
+  [[nodiscard]] std::vector<SensorTarget>::const_iterator find(const SensorKey& t) const;
+  [[nodiscard]] std::vector<ErrorTarget>::const_iterator find(const ErrorKey& t) const;
+
+  [[nodiscard]] Index target_position(const AtmKeyVal& t) const;
+  [[nodiscard]] Index target_position(const SurfaceKeyVal& t) const;
+  [[nodiscard]] Index target_position(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] Index target_position(const LblLineKey& t) const;
+  [[nodiscard]] Index target_position(const SensorKey& t) const;
+  [[nodiscard]] Index target_position(const ErrorKey& t) const;
+
+  void clear();
 };
 
 struct TargetType {
@@ -448,27 +372,10 @@ struct TargetType {
         target);
   }
 
-  constexpr bool operator==(const TargetType&) const = default;
-
-  [[nodiscard]] std::string type() const {
-    return apply([](auto&) { return "AtmKeyVal"s; },
-                 [](auto&) { return "SurfaceKeyVal"s; },
-                 [](auto&) { return "SubsurfaceKeyVal"s; },
-                 [](auto&) { return "LblLineKey"s; },
-                 [](auto&) { return "SensorKey"s; },
-                 [](auto&) { return "ErrorKey"s; });
-  }
+  [[nodiscard]] bool operator==(const TargetType&) const;
+  [[nodiscard]] std::string type() const;
 };
 }  // namespace Jacobian
-
-Numeric field_perturbation(const auto& f) {
-  return std::transform_reduce(
-      f.begin(),
-      f.end(),
-      0.0,
-      [](auto a, auto b) { return std::max(a, b); },
-      [](auto& m) { return m.first ? m.second->d : 0.0; });
-}
 
 using JacobianTargets    = Jacobian::Targets;
 using JacobianTargetType = Jacobian::TargetType;
@@ -713,19 +620,19 @@ struct std::formatter<JacobianTargets> {
     const std::string_view sep = tags.sep(true);
     tags.format(ctx,
                 R"("atm": )"sv,
-                v.atm(),
+                v.atm,
                 sep,
                 R"("surf": )"sv,
-                v.surf(),
+                v.surf,
                 sep,
                 R"("line": )"sv,
-                v.line(),
+                v.line,
                 sep,
                 R"("sensor": )"sv,
-                v.sensor(),
+                v.sensor,
                 sep,
                 R"("error": )"sv,
-                v.error());
+                v.error);
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();

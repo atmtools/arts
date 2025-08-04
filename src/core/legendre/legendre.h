@@ -1,27 +1,9 @@
 #pragma once
 
 #include <configtypes.h>
-#include <grids.h>
 #include <matpack.h>
 
 namespace Legendre {
-
-//! Stores the up (U), south (S), east (E) values of a field relative to the sphere
-struct SphericalField {
-  Numeric U{0};
-  Numeric S{0};
-  Numeric E{0};
-
-  //! Returns the total strength of the field
-  [[nodiscard]] Numeric total() const noexcept;
-
-  //! Returns the total strength of the field
-  [[nodiscard]] Numeric total_horizontal() const noexcept;
-
-  //! Always construct to zeroes explicitly
-  constexpr SphericalField() noexcept = default;
-};
-
 struct SchmidtMatrix {
   Size N;    // The size
   Vector x;  // The values
@@ -40,9 +22,6 @@ struct SchmidtMatrixView {
   SchmidtMatrixView(Size N, const ConstVectorView&);
   Numeric operator[](Index n, Index m) const;
 };
-
-//! Holds a SphericalField for multiple dimensions (radius times longitudes)
-using MatrixOfSphericalField = Grid<SphericalField, 2>;
 
 /** Returns the Schmidt normalized Lagrange polynominal and its derivative
  *

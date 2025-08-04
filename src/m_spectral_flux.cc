@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -151,7 +152,7 @@ void spectral_flux_profileFromPathField(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 
   ARTS_USER_ERROR_IF(
       not arr::each_same_size(ray_path_spectral_radiance_field, ray_path_field),

@@ -10,6 +10,168 @@
 #include "functional_numeric_ternary.h"
 
 namespace Jacobian {
+void Targets::clear() {
+  atm.clear();
+  surf.clear();
+  subsurf.clear();
+  line.clear();
+  sensor.clear();
+  error.clear();
+}
+
+Size Targets::x_size() const {
+  if (target_count() != 0 and not finalized)
+    throw std::runtime_error("Not finalized.");
+
+  const auto sz = [](const auto& x) -> Size {
+    return x.overlap ? 0 : x.x_size;
+  };
+
+  return std::transform_reduce(
+             atm.begin(), atm.end(), Size{0}, std::plus<>{}, sz) +
+         std::transform_reduce(
+             surf.begin(), surf.end(), Size{0}, std::plus<>{}, sz) +
+         std::transform_reduce(
+             subsurf.begin(), subsurf.end(), Size{0}, std::plus<>{}, sz) +
+         std::transform_reduce(
+             line.begin(), line.end(), Size{0}, std::plus<>{}, sz) +
+         std::transform_reduce(
+             sensor.begin(), sensor.end(), Size{0}, std::plus<>{}, sz) +
+         std::transform_reduce(
+             error.begin(), error.end(), Size{0}, std::plus<>{}, sz);
+}
+
+Size Targets::target_count() const {
+  return atm.size() + surf.size() + subsurf.size() + line.size() +
+         sensor.size() + error.size();
+}
+
+void Targets::throwing_check(Size xsize) const {
+  const auto t_size = target_count();
+
+  if (xsize != x_size())
+    throw std::runtime_error(
+        "The size of the x-vector does not match the size of the targets.");
+
+  for (auto& a : atm) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+
+  for (auto& a : surf) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+
+  for (auto& a : subsurf) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+
+  for (auto& a : line) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+
+  for (auto& a : sensor) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+
+  for (auto& a : error) {
+    if ((a.x_start + a.x_size) > xsize)
+      throw std::runtime_error("x-vector out-of-bounds");
+    if (t_size <= a.target_pos)
+      throw std::runtime_error("target-vector out-of-bounds.");
+  }
+}
+
+std::vector<AtmTarget>::const_iterator Targets::find(const AtmKeyVal& t) const {
+  return stdr::find_if(atm,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<SurfaceTarget>::const_iterator Targets::find(
+    const SurfaceKeyVal& t) const {
+  return stdr::find_if(surf,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<SubsurfaceTarget>::const_iterator Targets::find(
+    const SubsurfaceKeyVal& t) const {
+  return stdr::find_if(subsurf,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<LineTarget>::const_iterator Targets::find(
+    const LblLineKey& t) const {
+  return stdr::find_if(line,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<SensorTarget>::const_iterator Targets::find(
+    const SensorKey& t) const {
+  return stdr::find_if(sensor,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<ErrorTarget>::const_iterator Targets::find(
+    const ErrorKey& t) const {
+  return stdr::find_if(error,
+                       [&t](const auto& target) { return target.type == t; });
+}
+
+Index Targets::target_position(const AtmKeyVal& t) const {
+  const auto it = find(t);
+  return it != atm.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const SurfaceKeyVal& t) const {
+  const auto it = find(t);
+  return it != surf.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const SubsurfaceKeyVal& t) const {
+  const auto it = find(t);
+  return it != subsurf.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const LblLineKey& t) const {
+  const auto it = find(t);
+  return it != line.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const SensorKey& t) const {
+  const auto it = find(t);
+  return it != sensor.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const ErrorKey& t) const {
+  const auto it = find(t);
+  return it != error.end() ? it->target_pos : -1;
+}
+
+bool TargetType::operator==(const TargetType&) const = default;
+
+std::string TargetType::type() const {
+  return apply([](auto&) { return "AtmKeyVal"s; },
+               [](auto&) { return "SurfaceKeyVal"s; },
+               [](auto&) { return "SubsurfaceKeyVal"s; },
+               [](auto&) { return "LblLineKey"s; },
+               [](auto&) { return "SensorKey"s; },
+               [](auto&) { return "ErrorKey"s; });
+}
+
 ////////////////////////////////////////////////////////////////////////
 /// Templates for doing the common work of updating fields, model state vectors, and Jacobians
 ////////////////////////////////////////////////////////////////////////
@@ -468,70 +630,32 @@ bool is_mag(const AtmTarget& t) {
          t.type == AtmKey::mag_w;
 }
 
-const std::vector<AtmTarget>& Targets::atm() const {
-  return target<AtmTarget>();
-}
-
-const std::vector<SurfaceTarget>& Targets::surf() const {
-  return target<SurfaceTarget>();
-}
-
-const std::vector<SubsurfaceTarget>& Targets::subsurf() const {
-  return target<SubsurfaceTarget>();
-}
-
-const std::vector<LineTarget>& Targets::line() const {
-  return target<LineTarget>();
-}
-
-const std::vector<SensorTarget>& Targets::sensor() const {
-  return target<SensorTarget>();
-}
-
-const std::vector<ErrorTarget>& Targets::error() const {
-  return target<ErrorTarget>();
-}
-
-std::vector<AtmTarget>& Targets::atm() { return target<AtmTarget>(); }
-
-std::vector<SurfaceTarget>& Targets::surf() { return target<SurfaceTarget>(); }
-
-std::vector<SubsurfaceTarget>& Targets::subsurf() {
-  return target<SubsurfaceTarget>();
-}
-
-std::vector<LineTarget>& Targets::line() { return target<LineTarget>(); }
-
-std::vector<SensorTarget>& Targets::sensor() { return target<SensorTarget>(); }
-
-std::vector<ErrorTarget>& Targets::error() { return target<ErrorTarget>(); }
-
 void Targets::finalize(const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
                        const SubsurfaceField& subsurface_field,
                        const AbsorptionBands&,
                        const ArrayOfSensorObsel& measurement_sensor) {
-  const Size natm     = atm().size();
-  const Size nsurf    = surf().size();
-  const Size nsubsurf = subsurf().size();
-  const Size nline    = line().size();
-  const Size nsensor  = sensor().size();
-  const Size nerror   = error().size();
+  const Size natm     = atm.size();
+  const Size nsurf    = surf.size();
+  const Size nsubsurf = subsurf.size();
+  const Size nline    = line.size();
+  const Size nsensor  = sensor.size();
+  const Size nerror   = error.size();
 
   Size last_size = 0;
 
   for (Size i = 0; i < natm; i++) {
-    AtmTarget& t = atm()[i];
+    AtmTarget& t = atm[i];
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
-            atm() | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
+            atm | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
         "Multiple targets of the same type: {}",
         t.type)
 
     if (t.overlap) {
-      const auto f = stdr::find(atm(), t.overlap_key, &AtmTarget::type);
+      const auto f = stdr::find(atm, t.overlap_key, &AtmTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(atm().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(atm.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -544,17 +668,17 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (Size i = 0; i < nsurf; i++) {
-    SurfaceTarget& t = surf()[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(surf() | std::views::drop(i + 1),
+    SurfaceTarget& t = surf[i];
+    ARTS_USER_ERROR_IF(std::ranges::any_of(surf | std::views::drop(i + 1),
                                            Cmp::eq(t.type),
                                            &SurfaceTarget::type),
                        "Multiple targets of the same type: {}",
                        t.type)
 
     if (t.overlap) {
-      const auto f = stdr::find(surf(), t.overlap_key, &SurfaceTarget::type);
+      const auto f = stdr::find(surf, t.overlap_key, &SurfaceTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(surf().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(surf.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -567,8 +691,8 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (Size i = 0; i < nsubsurf; i++) {
-    SubsurfaceTarget& t = subsurf()[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(subsurf() | std::views::drop(i + 1),
+    SubsurfaceTarget& t = subsurf[i];
+    ARTS_USER_ERROR_IF(std::ranges::any_of(subsurf | std::views::drop(i + 1),
                                            Cmp::eq(t.type),
                                            &SubsurfaceTarget::type),
                        "Multiple targets of the same type: {}",
@@ -576,9 +700,9 @@ void Targets::finalize(const AtmField& atmospheric_field,
 
     if (t.overlap) {
       const auto f =
-          stdr::find(subsurf(), t.overlap_key, &SubsurfaceTarget::type);
+          stdr::find(subsurf, t.overlap_key, &SubsurfaceTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(subsurf().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(subsurf.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -591,17 +715,17 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (Size i = 0; i < nline; i++) {
-    LineTarget& t = line()[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(line() | std::views::drop(i + 1),
-                                           Cmp::eq(t.type),
-                                           &LineTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    LineTarget& t = line[i];
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(
+            line | std::views::drop(i + 1), Cmp::eq(t.type), &LineTarget::type),
+        "Multiple targets of the same type: {}",
+        t.type)
 
     if (t.overlap) {
-      const auto f = stdr::find(line(), t.overlap_key, &LineTarget::type);
+      const auto f = stdr::find(line, t.overlap_key, &LineTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(line().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(line.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -613,7 +737,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
     }
   }
 
-  for (auto& elem : sensor()) {
+  for (auto& elem : sensor) {
     ARTS_USER_ERROR_IF(static_cast<Size>(elem.type.measurement_elem) >=
                            measurement_sensor.size(),
                        "Bad sensor elements {}, out-of-bounds",
@@ -621,10 +745,10 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (Size i = 0; i < nsensor; i++) {
-    SensorTarget& t = sensor()[i];
+    SensorTarget& t = sensor[i];
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
-            sensor() | std::views::drop(i + 1),
+            sensor | std::views::drop(i + 1),
             [&](const SensorKey& key) {
               if (t.type.type != key.type) return false;
 
@@ -653,9 +777,9 @@ void Targets::finalize(const AtmField& atmospheric_field,
         t.type)
 
     if (t.overlap) {
-      const auto f = stdr::find(sensor(), t.overlap_key, &SensorTarget::type);
+      const auto f = stdr::find(sensor, t.overlap_key, &SensorTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(sensor().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(sensor.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -668,12 +792,12 @@ void Targets::finalize(const AtmField& atmospheric_field,
   }
 
   for (Size i = 0; i < nerror; i++) {
-    ErrorTarget& t = error()[i];
+    ErrorTarget& t = error[i];
 
     if (t.overlap) {
-      const auto f = stdr::find(error(), t.overlap_key, &ErrorTarget::type);
+      const auto f = stdr::find(error, t.overlap_key, &ErrorTarget::type);
       ARTS_USER_ERROR_IF(
-          static_cast<Index>(i) <= stdr::distance(error().begin(), f),
+          static_cast<Index>(i) <= stdr::distance(error.begin(), f),
           "Overlap target {} not found prior in targets.",
           t.overlap_key)
       t.x_start = f->x_start;
@@ -701,51 +825,51 @@ but the measurement_vector will only have {} element by the measurement_sensor.
 }
 
 AtmTarget& Targets::emplace_back(AtmKeyVal&& t, Numeric d) {
-  return atm().emplace_back(std::move(t), d, target_count());
+  return atm.emplace_back(std::move(t), d, target_count());
 }
 
 SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
-  return surf().emplace_back(std::move(t), d, target_count());
+  return surf.emplace_back(std::move(t), d, target_count());
 }
 
 SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
-  return subsurf().emplace_back(std::move(t), d, target_count());
+  return subsurf.emplace_back(std::move(t), d, target_count());
 }
 
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
-  return line().emplace_back(std::move(t), d, target_count());
+  return line.emplace_back(std::move(t), d, target_count());
 }
 
 SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
-  return sensor().emplace_back(std::move(t), d, target_count());
+  return sensor.emplace_back(std::move(t), d, target_count());
 }
 
 ErrorTarget& Targets::emplace_back(ErrorKey&& t, Numeric d) {
-  return error().emplace_back(std::move(t), d, target_count());
+  return error.emplace_back(std::move(t), d, target_count());
 }
 
 AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) {
-  return atm().emplace_back(t, d, target_count());
+  return atm.emplace_back(t, d, target_count());
 }
 
 SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) {
-  return surf().emplace_back(t, d, target_count());
+  return surf.emplace_back(t, d, target_count());
 }
 
 SubsurfaceTarget& Targets::emplace_back(const SubsurfaceKeyVal& t, Numeric d) {
-  return subsurf().emplace_back(t, d, target_count());
+  return subsurf.emplace_back(t, d, target_count());
 }
 
 LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) {
-  return line().emplace_back(t, d, target_count());
+  return line.emplace_back(t, d, target_count());
 }
 
 SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) {
-  return sensor().emplace_back(t, d, target_count());
+  return sensor.emplace_back(t, d, target_count());
 }
 
 ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) {
-  return error().emplace_back(t, d, target_count());
+  return error.emplace_back(t, d, target_count());
 }
 }  // namespace Jacobian
 
@@ -772,7 +896,12 @@ void xml_io_stream<JacobianTargets>::write(std::ostream& os,
                name,
                Index{x.finalized});
 
-  xml_write_to_stream(os, x.targets, pbofs, name);
+  xml_write_to_stream(os, x.atm, pbofs, "atm");
+  xml_write_to_stream(os, x.surf, pbofs, "surf");
+  xml_write_to_stream(os, x.subsurf, pbofs, "subsurf");
+  xml_write_to_stream(os, x.line, pbofs, "line");
+  xml_write_to_stream(os, x.sensor, pbofs, "sensor");
+  xml_write_to_stream(os, x.error, pbofs, "error");
 
   std::println(os, R"(</{0}>)", type_name);
 }
@@ -789,7 +918,12 @@ void xml_io_stream<JacobianTargets>::read(std::istream& is,
 
   x.finalized = fin != 0;
 
-  xml_read_from_stream(is, x.targets, pbifs);
+  xml_read_from_stream(is, x.atm, pbifs);
+  xml_read_from_stream(is, x.surf, pbifs);
+  xml_read_from_stream(is, x.subsurf, pbifs);
+  xml_read_from_stream(is, x.line, pbifs);
+  xml_read_from_stream(is, x.sensor, pbifs);
+  xml_read_from_stream(is, x.error, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

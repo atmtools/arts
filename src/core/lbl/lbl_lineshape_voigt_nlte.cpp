@@ -1059,7 +1059,7 @@ void calculate(PropmatVectorView pm_,
     sv[i]             += {srcvec.A(), srcvec.B(), srcvec.C(), srcvec.D()};
   }
 
-  for (auto& atm_target : jacobian_targets.atm()) {
+  for (auto& atm_target : jacobian_targets.atm) {
     std::visit(
         [&](auto& target) {
           compute_derivative(dpm[atm_target.target_pos, f_range],
@@ -1076,7 +1076,7 @@ void calculate(PropmatVectorView pm_,
         atm_target.type);
   }
 
-  for (auto& line_target : jacobian_targets.line()) {
+  for (auto& line_target : jacobian_targets.line) {
     if (line_target.type.band == bnd_qid) {
       compute_derivative(dpm[line_target.target_pos, f_range],
                          dsv[line_target.target_pos, f_range],

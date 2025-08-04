@@ -7,10 +7,10 @@
 #include "enumsSizeParameter.h"
 #include "mie.h"
 #include "optproperties.h"
-#include "scattering/absorption_vector.h"
-#include "scattering/extinction_matrix.h"
-#include "scattering/phase_matrix.h"
-#include "scattering/psd.h"
+#include "absorption_vector.h"
+#include "extinction_matrix.h"
+#include "phase_matrix.h"
+#include "psd.h"
 
 
 namespace scattering {

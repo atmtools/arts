@@ -9,14 +9,13 @@
 #ifndef HITRAN_XSEC_H
 #define HITRAN_XSEC_H
 
+#include <array.h>
 #include <matpack.h>
+#include <mystring.h>
+#include <species.h>
 #include <xml.h>
 
 #include <memory>
-
-#include "array.h"
-#include "mystring.h"
-#include "species.h"
 
 /** Hitran crosssection class.
  *
@@ -147,7 +146,7 @@ struct std::formatter<XsecRecord> {
   template <class FmtContext>
   FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      return std::format_to(ctx.out(), "XsecRecord({})", v.Species());
+      return tags.format(ctx, "XsecRecord("sv, v.Species(), ")"sv);
     }
 
     const std::string_view sep = tags.sep(true);

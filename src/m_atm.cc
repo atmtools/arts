@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <enumsHydrostaticPressureOption.h>
 #include <enumsIsoRatioOption.h>
 #include <enumsMissingFieldComponentError.h>
@@ -259,51 +260,65 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
   using enum AtmKey;
 
   ARTS_USER_ERROR_IF(
-      not atmospheric_field.has(p) and
+      not atmospheric_field.contains(p) and
           not static_cast<bool>(allow_missing_pressure),
       "Pressure is missing from the read atmospheric field at \"{}\"",
       basename)
 
   ARTS_USER_ERROR_IF(
-      not atmospheric_field.has(t) and
+      not atmospheric_field.contains(t) and
           not static_cast<bool>(allow_missing_temperature),
       "Temperature is missing from the read atmospheric field at \"{}\"",
       basename)
 
   switch (to<MissingFieldComponentError>(deal_with_field_component)) {
     case MissingFieldComponentError::Throw:
-      if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
-          atmospheric_field.has(wind_w)) {
+      if (atmospheric_field.contains(wind_u) or
+          atmospheric_field.contains(wind_v) or
+          atmospheric_field.contains(wind_w)) {
         ARTS_USER_ERROR_IF(
-            not atmospheric_field.has(wind_u, wind_v, wind_w),
+            not atmospheric_field.contains(wind_u) or
+                not atmospheric_field.contains(wind_v) or
+                not atmospheric_field.contains(wind_w),
             "Need all wind components, has [u: {}, v: {}, w: {}]",
-            atmospheric_field.has(wind_u),
-            atmospheric_field.has(wind_v),
-            atmospheric_field.has(wind_w));
+            atmospheric_field.contains(wind_u),
+            atmospheric_field.contains(wind_v),
+            atmospheric_field.contains(wind_w));
       }
 
-      if (atmospheric_field.has(mag_u) or atmospheric_field.has(mag_v) or
-          atmospheric_field.has(mag_w)) {
-        ARTS_USER_ERROR_IF(not atmospheric_field.has(mag_u, mag_v, mag_w),
+      if (atmospheric_field.contains(mag_u) or
+          atmospheric_field.contains(mag_v) or
+          atmospheric_field.contains(mag_w)) {
+        ARTS_USER_ERROR_IF(not atmospheric_field.contains(mag_u) or
+                               not atmospheric_field.contains(mag_v) or
+                               not atmospheric_field.contains(mag_w),
                            "Need all mag components, has [u: {}, v: {}, w: {}]",
-                           atmospheric_field.has(mag_u),
-                           atmospheric_field.has(mag_v),
-                           atmospheric_field.has(mag_w));
+                           atmospheric_field.contains(mag_u),
+                           atmospheric_field.contains(mag_v),
+                           atmospheric_field.contains(mag_w));
       }
       break;
     case MissingFieldComponentError::Zero:
-      if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
-          atmospheric_field.has(wind_w)) {
-        if (not atmospheric_field.has(wind_u)) atmospheric_field[wind_u] = 0.0;
-        if (not atmospheric_field.has(wind_v)) atmospheric_field[wind_v] = 0.0;
-        if (not atmospheric_field.has(wind_w)) atmospheric_field[wind_w] = 0.0;
+      if (atmospheric_field.contains(wind_u) or
+          atmospheric_field.contains(wind_v) or
+          atmospheric_field.contains(wind_w)) {
+        if (not atmospheric_field.contains(wind_u))
+          atmospheric_field[wind_u] = 0.0;
+        if (not atmospheric_field.contains(wind_v))
+          atmospheric_field[wind_v] = 0.0;
+        if (not atmospheric_field.contains(wind_w))
+          atmospheric_field[wind_w] = 0.0;
       }
 
-      if (atmospheric_field.has(mag_u) or atmospheric_field.has(mag_v) or
-          atmospheric_field.has(mag_w)) {
-        if (not atmospheric_field.has(mag_u)) atmospheric_field[mag_u] = 0.0;
-        if (not atmospheric_field.has(mag_v)) atmospheric_field[mag_v] = 0.0;
-        if (not atmospheric_field.has(mag_w)) atmospheric_field[mag_w] = 0.0;
+      if (atmospheric_field.contains(mag_u) or
+          atmospheric_field.contains(mag_v) or
+          atmospheric_field.contains(mag_w)) {
+        if (not atmospheric_field.contains(mag_u))
+          atmospheric_field[mag_u] = 0.0;
+        if (not atmospheric_field.contains(mag_v))
+          atmospheric_field[mag_v] = 0.0;
+        if (not atmospheric_field.contains(mag_w))
+          atmospheric_field[mag_w] = 0.0;
       }
       break;
 
@@ -820,7 +835,7 @@ void atmospheric_fieldHydrostaticPressure(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      not atmospheric_field.has(AtmKey::t),
+      not atmospheric_field.contains(AtmKey::t),
       "Must have a temperature field to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
 
   const auto &t = atmospheric_field[AtmKey::t];
@@ -932,23 +947,23 @@ void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
                                 const String &extrapolation) {
   ARTS_TIME_REPORT
 
-  for (auto &[key, data] : atmospheric_field.map<ScatteringSpeciesProperty>()) {
+  for (auto &[key, data] : atmospheric_field.ssprops) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 
-  for (auto &[key, data] : atmospheric_field.map<SpeciesEnum>()) {
+  for (auto &[key, data] : atmospheric_field.specs) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 
-  for (auto &[key, data] : atmospheric_field.map<SpeciesIsotope>()) {
+  for (auto &[key, data] : atmospheric_field.isots) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 
-  for (auto &[key, data] : atmospheric_field.map<QuantumLevelIdentifier>()) {
+  for (auto &[key, data] : atmospheric_field.nlte) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 
-  for (auto &[key, data] : atmospheric_field.map<AtmKey>()) {
+  for (auto &[key, data] : atmospheric_field.other) {
     atmospheric_fieldRegridTemplate(data, key, alt, lat, lon, extrapolation);
   }
 }

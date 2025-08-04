@@ -7,7 +7,7 @@ void xml_io_stream<SubsurfaceField>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, x.bottom_depth, pbofs, "Depth"sv);
-  xml_write_to_stream(os, x.map_data, pbofs);
+  xml_write_to_stream(os, x.other, pbofs);
 
   std::println(os, R"(</{0}>)", type_name);
 }
@@ -20,7 +20,7 @@ void xml_io_stream<SubsurfaceField>::read(std::istream& is,
   tag.check_name(type_name);
 
   xml_read_from_stream(is, x.bottom_depth, pbifs);
-  xml_read_from_stream(is, x.map_data, pbifs);
+  xml_read_from_stream(is, x.other, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

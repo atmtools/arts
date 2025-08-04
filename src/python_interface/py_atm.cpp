@@ -1,4 +1,3 @@
-
 #include <atm.h>
 #include <atm_path.h>
 #include <debug.h>
@@ -17,13 +16,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "enumsInterpolationExtrapolation.h"
-#include "enumsIsoRatioOption.h"
-#include "enumsSpeciesEnum.h"
-#include "hpy_arts.h"
-#include "isotopologues.h"
-#include "nanobind/nanobind.h"
-#include "physics_funcs.h"
+#include <hpy_arts.h>
 
 namespace Python {
 void py_atm(py::module_ &m) try {
@@ -264,7 +257,13 @@ Parameters
          },
          "toa"_a = 100e3,
          "iso"_a = IsoRatioOption::Builtin)
-      .def("species_keys", &AtmField::keys<SpeciesEnum>, "Species keys")
+      .def(
+          "species_keys",
+          [](const AtmField &atm) {
+            return atm.specs | stdv::keys |
+                   stdr::to<std::vector<SpeciesEnum>>();
+          },
+          "Species keys")
       .def(
           "__call__",
           [](const AtmField &atm,
@@ -399,11 +398,11 @@ Parameters
         using std::back_inserter;
 
         std::vector<Atm::KeyVal> out;
-        if (core) stdr::copy(atm.other() | stdv::keys, back_inserter(out));
-        if (specs) stdr::copy(atm.specs() | stdv::keys, back_inserter(out));
-        if (isots) stdr::copy(atm.isots() | stdv::keys, back_inserter(out));
-        if (nlte) stdr::copy(atm.nlte() | stdv::keys, back_inserter(out));
-        if (ssprops) stdr::copy(atm.ssprops() | stdv::keys, back_inserter(out));
+        if (core) stdr::copy(atm.other | stdv::keys, back_inserter(out));
+        if (specs) stdr::copy(atm.specs | stdv::keys, back_inserter(out));
+        if (isots) stdr::copy(atm.isots | stdv::keys, back_inserter(out));
+        if (nlte) stdr::copy(atm.nlte | stdv::keys, back_inserter(out));
+        if (ssprops) stdr::copy(atm.ssprops | stdv::keys, back_inserter(out));
 
         return out;
       },
@@ -439,9 +438,8 @@ Parameters
          const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
          const InterpolationExtrapolation &extrap) {
         for (auto &[key, data] : dict) {
-          const bool existed =
-              std::visit([&atm](auto &x) { return atm.has(x); }, key);
-          atm[key].data = data;
+          const bool existed = atm.contains(key);
+          atm[key].data      = data;
           if (not existed) {
             atm[key].alt_low = extrap;
             atm[key].alt_upp = extrap;
@@ -656,61 +654,11 @@ Parameters
                   k[i]) = v[i];
           });
 
-  fld.def_prop_rw(
-         "nlte",
-         [](AtmField &atm) -> std::unordered_map<QuantumLevelIdentifier, AtmData> & {
-           return atm.nlte();
-         },
-         [](AtmField &atm,
-            const std::unordered_map<QuantumLevelIdentifier, AtmData> &in) {
-           atm.nlte() = in;
-         },
-         py::for_getter(py::rv_policy::reference_internal),
-         "NLTE data")
-      .def_prop_rw(
-          "specs",
-          [](AtmField &atm) -> std::unordered_map<SpeciesEnum, AtmData> & {
-            return atm.specs();
-          },
-          [](AtmField &atm,
-             const std::unordered_map<SpeciesEnum, AtmData> &in) {
-            atm.specs() = in;
-          },
-          py::for_getter(py::rv_policy::reference_internal),
-          "Species data")
-      .def_prop_rw(
-          "isots",
-          [](AtmField &atm) -> std::unordered_map<SpeciesIsotope, AtmData> & {
-            return atm.isots();
-          },
-          [](AtmField &atm,
-             const std::unordered_map<SpeciesIsotope, AtmData> &in) {
-            atm.isots() = in;
-          },
-          py::for_getter(py::rv_policy::reference_internal),
-          "Isotopologue ratio data")
-      .def_prop_rw(
-          "other",
-          [](AtmField &atm) -> std::unordered_map<AtmKey, AtmData> & {
-            return atm.other();
-          },
-          [](AtmField &atm, const std::unordered_map<AtmKey, AtmData> &in) {
-            atm.other() = in;
-          },
-          py::for_getter(py::rv_policy::reference_internal),
-          "Other data")
-      .def_prop_rw(
-          "ssprops",
-          [](AtmField &atm)
-              -> std::unordered_map<ScatteringSpeciesProperty, AtmData> & {
-            return atm.ssprops();
-          },
-          [](AtmField &atm,
-             const std::unordered_map<ScatteringSpeciesProperty, AtmData> &in) {
-            atm.ssprops() = in;
-          },
-          py::for_getter(py::rv_policy::reference_internal),
-          "Scattering species properties data");
+  fld.def_rw("nlte", &AtmField::nlte, "NLTE data");
+  fld.def_rw("specs", &AtmField::specs, "Species data");
+  fld.def_rw("isots", &AtmField::isots, "Isotopologue ratio data");
+  fld.def_rw("other", &AtmField::other, "Basic atmospheric data");
+  fld.def_rw("ssprops", &AtmField::ssprops, "Scattering species properties data");
 
   pnt.def(
       "to_dict",

@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -45,7 +46,8 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
   const Index L = phase_matrix_scattering_spectral.ncols();
 
   ARTS_USER_ERROR_IF(L < 1, "Need at least one Legendre coefficient")
-  ARTS_USER_ERROR_IF(scattering_species.empty(), "No scattering species")
+  ARTS_USER_ERROR_IF(scattering_species.species.empty(),
+                     "No scattering species")
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(
@@ -86,7 +88,7 @@ Supporting variable sizes:
       absorption_vector.shape(),
       absorption_vector_scattering.shape(),
       frequency_grid.size(),
-      scattering_species.size())
+      scattering_species.species.size())
 
   propagation_matrix_scattering    += extinction_matrix;
   phase_matrix_scattering_spectral += phase_matrix;
@@ -175,6 +177,6 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH

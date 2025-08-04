@@ -42,20 +42,15 @@ struct xml_io_stream_gridded_field {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
     constexpr Size M = sizeof...(Grids);
-
-    std::println(os,
-                 R"(<{0} N="{1}", name="{2}" version="{3}">)",
-                 type_name,
-                 M,
-                 name,
-                 codeversion);
+    XMLTag tag{type_name, "name", name, "N", M, "version", codeversion};
+    tag.write_to_stream(os);
 
     xml_write_to_stream(os, gf.data_name, pbofs, "Name of Data");
     xml_write_to_stream(os, gf.grid_names, pbofs, "Gridnames");
     xml_write_to_stream(os, gf.grids, pbofs, "Grids");
     xml_write_to_stream(os, gf.data, pbofs, "Data");
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
 
   static void parse(std::istream& is,

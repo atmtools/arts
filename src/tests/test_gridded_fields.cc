@@ -8,7 +8,7 @@ int main() {
   const GriddedField1 f{.data_name  = "TestData-1D",
                         .data       = Vector{1, 2, 3, 4, 5, 6},
                         .grid_names = {"x"},
-                        .grids      = Vector{2, 4, 6, 8, 10, 12}};
+                        .grids      = {Vector{2, 4, 6, 8, 10, 12}}};
   std::print(std::cout, "Matpack data:\n{:B,Ns}\n", f);
 
   std::print(std::cout,

@@ -2015,7 +2015,7 @@ void calculate(PropmatVectorView pm_,
     pm[i] += zeeman::scale(com_data.npm, F);
   }
 
-  for (auto& atm_target : jacobian_targets.atm()) {
+  for (auto& atm_target : jacobian_targets.atm) {
     std::visit(
         [&](auto& target) {
           compute_derivative(dpm[atm_target.target_pos, f_range],
@@ -2031,7 +2031,7 @@ void calculate(PropmatVectorView pm_,
         atm_target.type);
   }
 
-  for (auto& line_target : jacobian_targets.line()) {
+  for (auto& line_target : jacobian_targets.line) {
     if (line_target.type.band == bnd_qid) {
       compute_derivative(dpm[line_target.target_pos, f_range],
                          com_data,

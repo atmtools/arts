@@ -39,8 +39,7 @@
 #include <numbers>
 
 #include "arts_constexpr_math.h"
-
-#include <configtypes.h>
+#include "configtypes.h"
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {
@@ -67,7 +66,7 @@ inline constexpr Numeric two_pi = 2 * pi;
 inline constexpr Numeric inv_two_pi = 0.5 * inv_pi;
 
 /** Square root of pi */
-inline constexpr Numeric sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
+inline constexpr Numeric sqrt_pi = 1.0 / std::numbers::inv_sqrtpi;
 
 /** Inverse of the square root of pi */
 inline constexpr Numeric inv_sqrt_pi = std::numbers::inv_sqrtpi;
@@ -188,19 +187,22 @@ inline constexpr Numeric rydberg_constant = 10973731.568160;
 inline constexpr Numeric R_inf = rydberg_constant;
 
 /** Magnetic constant [H/m] **/
-inline constexpr Numeric magnetic_constant = 2 * h * alpha / (c * Math::pow2(e));
+inline constexpr Numeric magnetic_constant =
+    2 * h * alpha / (c * Math::pow2(e));
 
 /** Magnetic constant convenience name [H/m] **/
 inline constexpr Numeric mu_0 = magnetic_constant;
 
 /** Vacuum permittivity [F/m] **/
-inline constexpr Numeric vacuum_permittivity = Math::pow2(e) / (2 * h * c * alpha);
+inline constexpr Numeric vacuum_permittivity =
+    Math::pow2(e) / (2 * h * c * alpha);
 
 /** Vacuum permittivity convenience name [F/m] **/
 inline constexpr Numeric epsilon_0 = vacuum_permittivity;
 
 /** Mass of resting electron [kg] **/
-inline constexpr Numeric electron_mass = 2 * h * R_inf / (c * Math::pow2(alpha));
+inline constexpr Numeric electron_mass =
+    2 * h * R_inf / (c * Math::pow2(alpha));
 
 /** Mass of resting electron convenience name [kg] **/
 inline constexpr Numeric m_e = electron_mass;
@@ -247,7 +249,8 @@ inline constexpr Numeric ideal_gas_constant = k * NA;
 inline constexpr Numeric R = ideal_gas_constant;
 
 /** Doppler broadening constant squared [kg/T]^2 **/
-inline constexpr Numeric doppler_broadening_const_squared = 2'000 * R / Math::pow2(c);
+inline constexpr Numeric doppler_broadening_const_squared =
+    2'000 * R / Math::pow2(c);
 
 /** One degree in radians */
 inline constexpr Numeric one_degree_in_radians = pi / 180;

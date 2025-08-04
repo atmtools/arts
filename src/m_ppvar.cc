@@ -152,8 +152,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
   const Index nf = ray_path_propagation_matrix.front().size();
   const Index nq = jacobian_targets.target_count();
 
-  const Index it =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
+  const Index it = jacobian_targets.target_position(AtmKey::t);
 
   ray_path_spectral_radiance_source.resize(np);
   for (auto &t : ray_path_spectral_radiance_source) {
@@ -186,7 +185,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -228,7 +227,7 @@ void ray_path_frequency_gridFromPath(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 

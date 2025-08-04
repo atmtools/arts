@@ -94,7 +94,7 @@ void spectral_radiance_jacobianAddPathPropagation(
   jacobian_targets.throwing_check(nj);
 
   //! The derivative part from the atmosphere
-  for (auto &atm_block : jacobian_targets.atm()) {
+  for (auto &atm_block : jacobian_targets.atm) {
     ARTS_USER_ERROR_IF(not atmospheric_field.contains(atm_block.type),
                        "No {} in atmospheric_field but in jacobian_targets",
                        atm_block.type)
@@ -192,7 +192,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
   as a mini-optimization.
 
   */
-  if (jacobian_targets.sensor().empty()) return;
+  if (jacobian_targets.sensor.empty()) return;
 
   ARTS_USER_ERROR_IF(
       spectral_radiance.size() != frequency_grid.size(),
@@ -258,7 +258,7 @@ frequency_grid.size()              = {}
   const auto *e = x.end();
 
   bool find_any = false;
-  for (auto &target : jacobian_targets.sensor()) {
+  for (auto &target : jacobian_targets.sensor) {
     ARTS_USER_ERROR_IF(measurement_sensor.size() <=
                            static_cast<Size>(target.type.measurement_elem),
                        "Sensor element out of bounds");

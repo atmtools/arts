@@ -23,16 +23,18 @@ struct xml_io_stream<std::shared_ptr<T>> {
                     const std::shared_ptr<T>& x,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
-    std::println(os,
-                 R"(<{0} name="{1}" type="{2}" notnull="{3}">)",
-                 type_name,
-                 name,
-                 xml_io_stream<mutT>::type_name,
-                 Index{bool{x}});
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "type",
+               xml_io_stream<T>::type_name,
+               "notnull",
+               Index{bool{x}}};
+    tag.write_to_stream(os);
 
     if (x) xml_io_stream<mutT>::write(os, *x, pbofs, name);
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
 
   static void read(std::istream& is,

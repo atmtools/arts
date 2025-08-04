@@ -10,7 +10,7 @@ void jacobian_targetsToggleLogarithmicAtmTargetImpl(
     const AtmKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm()) {
+  for (auto& t : jacobian_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -31,7 +31,7 @@ void jacobian_targetsToggleLogarithmicSurfaceTargetImpl(
     const SurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.surf()) {
+  for (auto& t : jacobian_targets.surf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -52,7 +52,7 @@ void jacobian_targetsToggleLogarithmicSubsurfaceTargetImpl(
     const SubsurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.subsurf()) {
+  for (auto& t : jacobian_targets.subsurf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};

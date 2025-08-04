@@ -47,12 +47,6 @@ Numeric SchmidtMatrixView::operator[](Index n, Index m) const {
   return x[(n * (n + 1)) / 2 + m - 1];
 }
 
-Numeric SphericalField::total() const noexcept { return std::hypot(U, S, E); }
-
-Numeric SphericalField::total_horizontal() const noexcept {
-  return std::hypot(S, E);
-}
-
 namespace {
 //! Clamps the longitude in the range [-180, 180)
 constexpr Numeric longitude_clamp(Numeric lon) {

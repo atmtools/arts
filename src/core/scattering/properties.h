@@ -23,7 +23,8 @@ struct ScatteringSpeciesProperty {
   constexpr auto operator<=>(const ScatteringSpeciesProperty& other) const =
       default;
 
-  friend std::ostream& operator<<(std::ostream& os, const ScatteringSpeciesProperty& ssp) ;
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ScatteringSpeciesProperty& ssp);
 };
 
 namespace std {
@@ -52,8 +53,7 @@ struct std::formatter<ScatteringSpeciesProperty> {
   FmtContext::iterator format(const ScatteringSpeciesProperty& v,
                               FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    return std::format_to(
-        ctx.out(), "{}{}_{}{}", quote, v.species_name, v.pproperty, quote);
+    return tags.format(ctx, quote, v.species_name, '_', v.pproperty, quote);
   }
 };
 
