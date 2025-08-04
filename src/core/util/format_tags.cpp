@@ -40,33 +40,33 @@ void format_tags::add_if_bracket(std::format_context& ctx, char x) const try {
                            get_format_args() + "\n" + e.what());
 }
 
-template <>
-void format_tags::single_format(std::format_context& ctx,
-                                const std::string& x) const try {
-  std::format_to(ctx.out(), "{}", x);
-} catch (const std::exception& e) {
-  throw std::runtime_error("Error in single_format with fmt-string: " +
-                           get_format_args() + "\n" + e.what());
-}
+// template <>
+// void format_tags::single_format(std::format_context& ctx,
+//                                 const std::string& x) const try {
+//   std::format_to(ctx.out(), "{}", x);
+// } catch (const std::exception& e) {
+//   throw std::runtime_error("Error in single_format with fmt-string: " +
+//                            get_format_args() + "\n" + e.what());
+// }
 
-template <>
-void format_tags::single_format(std::format_context& ctx,
-                                const std::string_view& x) const try {
-  std::format_to(ctx.out(), "{}", x);
-} catch (const std::exception& e) {
-  throw std::runtime_error("Error in single_format with fmt-string: " +
-                           get_format_args() + "\n" + e.what());
-}
+// template <>
+// void format_tags::single_format(std::format_context& ctx,
+//                                 const std::string_view& x) const try {
+//   std::format_to(ctx.out(), "{}", x);
+// } catch (const std::exception& e) {
+//   throw std::runtime_error("Error in single_format with fmt-string: " +
+//                            get_format_args() + "\n" + e.what());
+// }
 
-template <>
-void format_tags::single_format(std::format_context& ctx, const bool& x) const {
-  std::format_to(ctx.out(), "{}", x);
-}
+// template <>
+// void format_tags::single_format(std::format_context& ctx, const bool& x) const {
+//   std::format_to(ctx.out(), "{}", x);
+// }
 
-template <>
-void format_tags::single_format(std::format_context& ctx, const char& x) const {
-  std::format_to(ctx.out(), "{}", x);
-}
+// template <>
+// void format_tags::single_format(std::format_context& ctx, const char& x) const {
+//   std::format_to(ctx.out(), "{}", x);
+// }
 
 template <>
 std::string format_tags::vformat(const std::string& x) const {

@@ -5,6 +5,7 @@
 #include <concepts>
 #include <format>
 #include <functional>
+#include <iterator>
 #include <map>
 #include <print>
 #include <set>
@@ -115,19 +116,21 @@ struct format_tags {
 template <>
 void format_tags::add_if_bracket(std::format_context& ctx, char x) const;
 
-template <>
-void format_tags::single_format(std::format_context& ctx,
-                                const std::string& x) const;
+// GCC complains here for unknown reasons - these would be good to have...
 
-template <>
-void format_tags::single_format(std::format_context& ctx,
-                                const std::string_view& x) const;
+// template <>
+// void format_tags::single_format(std::format_context& ctx,
+//                                 const std::string& x) const;
 
-template <>
-void format_tags::single_format(std::format_context& ctx, const bool& x) const;
+// template <>
+// void format_tags::single_format(std::format_context& ctx,
+//                                 const std::string_view& x) const;
 
-template <>
-void format_tags::single_format(std::format_context& ctx, const char& x) const;
+// template <>
+// void format_tags::single_format(std::format_context& ctx, const bool& x) const;
+
+// template <>
+// void format_tags::single_format(std::format_context& ctx, const char& x) const;
 
 template <>
 std::string format_tags::vformat(const std::string& x) const;
