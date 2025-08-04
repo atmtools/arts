@@ -3,5 +3,5 @@ add_library(absorption STATIC
   xsec_fit.cc
   predefined_absorption_models.cc
 )
-target_link_libraries(absorption PUBLIC path predef physics lbl)
+target_link_libraries(absorption PUBLIC path strings species matpack xml_io predef jacobian rtepack)
 target_include_directories(absorption PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

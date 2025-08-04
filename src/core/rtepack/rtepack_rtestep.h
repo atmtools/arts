@@ -12,13 +12,10 @@ namespace rtepack {
  * @param T Transmission matrix of the medium
  * @param I Radiation attenuated by the medium
  * @param J Source function of the medium
- * @return constexpr stokvec Radiation leaving the medium
+ * @return stokvec Radiation leaving the medium
  */
-constexpr stokvec linear_step(const muelmat &T,
-                              const stokvec &I,
-                              const stokvec &J) {
-  return T * (I - J) + J;
-}
+stokvec linear_step(const muelmat &T, const stokvec &I, const stokvec &J);
+
 /** A single linear step of the point-to-point radiative transfer equation
  * 
  * Sets I := T * (I - J) + J
@@ -69,31 +66,19 @@ void nlte_step(stokvec_vector_view I,
  * @param dT2 Transmission matrix of the medium wrt point 2
  * @param dJ1 Source function derivative of the medium wrt point 1
  * @param dJ2 Source function derivative of the medium wrt point 1
- * @return constexpr stokvec as in linear_step with J = avg(J1, J2)
+ * @return stokvec as in linear_step with J = avg(J1, J2)
  */
-constexpr stokvec two_level_linear_step(stokvec_vector_view &dI1,
-                                        stokvec_vector_view &dI2,
-                                        const muelmat &T,
-                                        const muelmat &PiT,
-                                        const stokvec &I,
-                                        const stokvec &J1,
-                                        const stokvec &J2,
-                                        const muelmat_vector_const_view &dT1,
-                                        const muelmat_vector_const_view &dT2,
-                                        const stokvec_vector_const_view &dJ1,
-                                        const stokvec_vector_const_view &dJ2) {
-  assert(dI1.size() == dI2.size() and dT1.size() == dT2.size() and
-         dJ1.size() == dJ2.size() and dI1.size() == dT1.size());
-
-  const auto J = avg(J1, J2);
-
-  for (Size k = 0; k < dT1.size(); k++) {
-    dI1[k] += PiT * (dT1[k] * (I - J) + dJ1[k] - T * dJ1[k]);
-    dI2[k] += PiT * (dT2[k] * (I - J) + dJ2[k] - T * dJ2[k]);
-  }
-
-  return linear_step(T, I, J);
-}
+stokvec two_level_linear_step(stokvec_vector_view &dI1,
+                              stokvec_vector_view &dI2,
+                              const muelmat &T,
+                              const muelmat &PiT,
+                              const stokvec &I,
+                              const stokvec &J1,
+                              const stokvec &J2,
+                              const muelmat_vector_const_view &dT1,
+                              const muelmat_vector_const_view &dT2,
+                              const stokvec_vector_const_view &dJ1,
+                              const stokvec_vector_const_view &dJ2);
 
 void two_level_linear_emission_step(stokvec_vector_view I,
                                     stokvec_matrix_view dI1,

@@ -1667,7 +1667,7 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
   XMLTag open_tag;
   XMLTag close_tag;
 
-  open_tag.set_name(type_name);
+  open_tag.name = type_name;
   open_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
@@ -1704,6 +1704,6 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
                       pbofs,
                       "negative_boundary_condition");
 
-  close_tag.set_end_name(type_name);
-  close_tag.write_to_stream(os_xml);
+  close_tag.name = type_name;
+  close_tag.write_to_end_stream(os_xml);
 }

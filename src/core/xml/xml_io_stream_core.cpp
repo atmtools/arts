@@ -206,14 +206,14 @@ void xml_io_stream<String>::write(std::ostream& os_xml,
   XMLTag open_tag;
   XMLTag close_tag;
 
-  open_tag.set_name("String");
+  open_tag.name = "String";
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.write_to_stream(os_xml);
 
   std::print(os_xml, R"("{}")", str);
 
-  close_tag.set_name("/String");
+  close_tag.name = "/String";
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
 }

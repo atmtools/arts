@@ -21,20 +21,23 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
                     const std::unordered_map<Key, T>& n,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
-    std::println(os,
-                 R"(<{0} key="{1}" type="{2}" name="{3}" nelem="{4}">)",
-                 type_name,
-                 xml_io_stream<Key>::type_name,
-                 xml_io_stream<T>::type_name,
-                 name,
-                 n.size());
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "type",
+               xml_io_stream<T>::type_name,
+               "key",
+               xml_io_stream<Key>::type_name,
+               "nelem",
+               n.size()};
+    tag.write_to_stream(os);
 
     for (const auto& [key, elem] : n) {
       xml_io_stream<Key>::write(os, key, pbofs);
       xml_io_stream<T>::write(os, elem, pbofs);
     }
 
-    std::println(os, R"(</{0}>)", type_name);
+    tag.write_to_end_stream(os);
   }
 
   static void read(std::istream& is,

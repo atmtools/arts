@@ -1,8 +1,8 @@
+#include <array_algo.h>
 #include <auto_wsg.h>
 
 #include <algorithm>
 #include <exception>
-#include <iomanip>
 #include <iostream>
 #include <map>
 #include <utility>

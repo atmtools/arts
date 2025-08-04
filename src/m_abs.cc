@@ -203,12 +203,11 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
 
   constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
 
-  if (select_absorption_species != electrons_key or select_absorption_species ==
-      SpeciesEnum::Bath) {
+  if (select_absorption_species != electrons_key or
+      select_absorption_species == SpeciesEnum::Bath) {
     // If the selected species is not free electrons, we do not add Faraday rotation.
     return;
   }
-  
 
   const Vector rtp_los{path::mirror(path_point.los)};
 
@@ -219,15 +218,19 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                   (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY *
                    ELECTRON_MASS * ELECTRON_MASS));
 
-  const auto jacs =
-      jacobian_targets.find_all<Jacobian::AtmTarget>(AtmKey::mag_u,
-                                                     AtmKey::mag_v,
-                                                     AtmKey::mag_w,
-                                                     AtmKey::wind_u,
-                                                     AtmKey::wind_v,
-                                                     AtmKey::wind_w,
-                                                     electrons_key);
-  const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
+  const auto end  = jacobian_targets.atm.end();
+  const auto jacs = std::array{jacobian_targets.find(AtmKey::mag_u),
+                               jacobian_targets.find(AtmKey::mag_v),
+                               jacobian_targets.find(AtmKey::mag_w),
+                               jacobian_targets.find(AtmKey::wind_u),
+                               jacobian_targets.find(AtmKey::wind_v),
+                               jacobian_targets.find(AtmKey::wind_w),
+                               jacobian_targets.find(electrons_key)};
+
+  const Numeric dmag = jacs[0] != end   ? jacs[0]->d
+                       : jacs[1] != end ? jacs[1]->d
+                       : jacs[2] != end ? jacs[2]->d
+                                        : 0.0;
 
   const Numeric ne = atm_point[electrons_key];
 
@@ -269,21 +272,21 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
       propagation_matrix[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
-        if (jacs[i].first) {
-          propagation_matrix_jacobian[jacs[i].second->target_pos, iv].U() +=
+        if (jacs[i] != end) {
+          propagation_matrix_jacobian[jacs[i]->target_pos, iv].U() +=
               ne * dc1[i] / f2;
         }
       }
 
       for (Size i = 3; i < 6; i++) {
-        if (jacs[i].first) {
-          propagation_matrix_jacobian[jacs[i].second->target_pos, iv].U() +=
+        if (jacs[i] != end) {
+          propagation_matrix_jacobian[jacs[i]->target_pos, iv].U() +=
               -2.0 * ne * r / frequency_grid[iv];
         }
       }
 
-      if (jacs[6].first) {
-        propagation_matrix_jacobian[jacs[6].second->target_pos, iv].U() += r;
+      if (jacs[6] != end) {
+        propagation_matrix_jacobian[jacs[6]->target_pos, iv].U() += r;
       }
     }
   }

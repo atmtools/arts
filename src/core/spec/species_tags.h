@@ -1,8 +1,8 @@
 #pragma once
 
+#include <configtypes.h>
 #include <enumsSpeciesTagType.h>
 #include <isotopologues.h>
-#include <matpack.h>
 #include <mystring.h>
 
 #include <set>
@@ -41,8 +41,6 @@ struct Tag {
 
   [[nodiscard]] SpeciesTagType Type() const noexcept;
 
-  friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
-
   [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept =
       default;
 
@@ -75,9 +73,6 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 
   ArrayOfSpeciesTag(std::string_view text);
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const ArrayOfSpeciesTag& ot);
-
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
   [[nodiscard]] SpeciesEnum Species() const;
 
@@ -97,13 +92,10 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a);
-
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a Speciestagtype
 struct SpeciesTagTypeStatus {
   bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
-  friend std::ostream& operator<<(std::ostream&, SpeciesTagTypeStatus);
 };
 
 /*! Find the next species of this type inclusively after the start index
@@ -154,16 +146,6 @@ std::pair<Index, Index> find_first_isotologue(
 std::set<SpeciesEnum> lbl_species(const ArrayOfArrayOfSpeciesTag&) noexcept;
 
 namespace Species {
-/*! First VMR or 0
- * 
- * @param abs_species  As WSV
- * @param rtp_vmr  As WSV
- * @param spec A species
- */
-Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const Vector& rtp_vmr,
-                  const SpeciesEnum spec);
-
 /** Parse a list of species tags into an Array<Tag>
  *
  * This is the function call that ArrayOfSpeciesTag uses
@@ -174,9 +156,6 @@ Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
  * @return Array<Tag> List of species tags with no constraints
  */
 Array<Tag> parse_tags(std::string_view text);
-
-std::ostream& operator<<(std::ostream& os, const Array<SpeciesEnum>& a);
-std::ostream& operator<<(std::ostream& os, const Array<Array<SpeciesEnum>>& a);
 }  // namespace Species
 
 namespace std {
@@ -220,23 +199,22 @@ struct std::formatter<SpeciesTag> {
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesTag& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    std::format_to(ctx.out(), "{}{}", quote, v.Spec());
+    tags.format(ctx, quote, v.Spec());
 
     switch (v.type) {
       case SpeciesTagType::Plain:
-        if (not v.is_joker())
-          std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
+        if (not v.is_joker()) tags.format(ctx, '-', v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Predefined:
-        std::format_to(ctx.out(), "-{}", v.Isotopologue().isotname);
+        tags.format(ctx, '-', v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Cia:
-        std::format_to(ctx.out(), "-CIA-{}", v.cia_2nd_species);
+        tags.format(ctx, "-CIA-", v.cia_2nd_species);
         break;
-      case SpeciesTagType::XsecFit: std::format_to(ctx.out(), "-XFIT"); break;
+      case SpeciesTagType::XsecFit: tags.format(ctx, "-XFIT"sv); break;
     }
 
-    std::format_to(ctx.out(), "{}", quote);
+    tags.format(ctx, quote);
     return ctx.out();
   }
 };
@@ -266,5 +244,7 @@ struct xml_io_stream<ArrayOfSpeciesTag> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is, ArrayOfSpeciesTag& x, bifstream* pbifs = nullptr);
+  static void read(std::istream& is,
+                   ArrayOfSpeciesTag& x,
+                   bifstream* pbifs = nullptr);
 };

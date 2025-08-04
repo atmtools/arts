@@ -213,16 +213,23 @@ void compute(
     return;
 
   using enum SpeciesEnum;
-  const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
-  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
-  const auto vmrs_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      CarbonDioxide, Oxygen, Nitrogen, Water, liquidcloud);
+  const auto freq_jac = std::array{jacobian_targets.find(AtmKey::wind_u),
+                                   jacobian_targets.find(AtmKey::wind_v),
+                                   jacobian_targets.find(AtmKey::wind_w)};
+  const auto temp_jac = jacobian_targets.find(AtmKey::t);
+  const auto vmrs_jac = {jacobian_targets.find(CarbonDioxide),
+                         jacobian_targets.find(Oxygen),
+                         jacobian_targets.find(Nitrogen),
+                         jacobian_targets.find(Water),
+                         jacobian_targets.find(liquidcloud)};
+  const auto e        = jacobian_targets.atm.end();
   const bool do_freq_jac =
-      std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
-  const bool do_temp_jac = temp_jac.first;
+      std::ranges::any_of(freq_jac, [e](auto& x) { return x != e; });
+
+  const bool do_temp_jac = temp_jac != e;
+
   const bool do_vmrs_jac =
-      std::ranges::any_of(vmrs_jac, [](auto& x) { return x.first; });
+      std::ranges::any_of(vmrs_jac, [e](auto& x) { return x != e; });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
     PropmatVector pm(f_grid.size());
@@ -234,8 +241,8 @@ void compute(
     propmat_clearsky += pm;
 
     if (do_temp_jac) {
-      const Numeric d = temp_jac.second->d;
-      const auto iq   = temp_jac.second->target_pos;
+      const Numeric d = temp_jac->d;
+      const auto iq   = temp_jac->target_pos;
       assert(d not_eq 0);
 
       dpm                     = 0;
@@ -249,9 +256,9 @@ void compute(
     }
 
     for (auto& j : freq_jac) {
-      if (j.first) {
-        const Numeric d = j.second->d;
-        const auto iq   = j.second->target_pos;
+      if (j != e) {
+        const Numeric d = j->d;
+        const auto iq   = j->target_pos;
         assert(d not_eq 0);
 
         Vector f_grid_d{f_grid};
@@ -267,16 +274,16 @@ void compute(
     }
 
     for (auto& j : vmrs_jac) {
-      if (j.first) {
-        const Numeric d = j.second->d;
-        const auto iq   = j.second->target_pos;
+      if (j != e) {
+        const Numeric d = j->d;
+        const auto iq   = j->target_pos;
         compute_vmr_deriv(dpm,
                           pm,
                           model,
                           f_grid,
                           atm_point,
                           d,
-                          *std::get_if<SpeciesEnum>(&j.second->type),
+                          *std::get_if<SpeciesEnum>(&j->type),
                           predefined_model_data);
         dpropmat_clearsky_dx[iq] += dpm;
       }

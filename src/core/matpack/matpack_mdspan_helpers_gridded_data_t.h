@@ -5,18 +5,22 @@
 
 #include <algorithm>
 
+#include "configtypes.h"
 #include "interp.h"
 #include "matpack_mdspan.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
 namespace matpack {
-template <typename T, typename... Grids>
+template <typename T, typename Grid0, typename... Grids>
 struct gridded_data_t {
-  static constexpr Size dim = sizeof...(Grids);
+  static constexpr Size dim       = 1 + sizeof...(Grids);
+  static constexpr bool same_grid = (std::same_as<Grid0, Grids> and ...);
 
   using data_t = matpack::data_t<T, dim>;
 
-  using grids_t = std::tuple<Grids...>;
+  using grids_t = std::conditional_t<same_grid,
+                                     std::array<Grid0, dim>,
+                                     std::tuple<Grid0, Grids...>>;
 
   template <Size Grid>
   using grid_t = std::tuple_element_t<Grid, grids_t>;
@@ -29,19 +33,29 @@ struct gridded_data_t {
   std::array<String, dim> grid_names{};
   grids_t grids;
 
+ private:
+  template <Size... sz>
+  void grid_copy(auto& out, std::index_sequence<sz...>) const {
+    ((out.template grid<sz>() = grid<sz>()), ...);
+  }
+
+ public:
   // Allow copy conversion from another gridded_data_t with the same
   // number of grids, but possibly different types.  E.g., sorted to unsorted or vice versa.
-  template <typename OtherT, typename... OtherGrids>
-  operator gridded_data_t<OtherT, OtherGrids...>() const
+  template <typename OtherT, typename OtherGrid0, typename... OtherGrids>
+  operator gridded_data_t<OtherT, OtherGrid0, OtherGrids...>() const
     requires(std::is_convertible_v<T, OtherT> and
+             std::is_convertible_v<Grid0, OtherGrid0> and
              (std::is_convertible_v<Grids, OtherGrids> and ...) and
-             sizeof...(OtherGrids) == dim)
+             sizeof...(OtherGrids) == dim - 1)
   {
-    gridded_data_t<OtherT, OtherGrids...> out;
+    gridded_data_t<OtherT, OtherGrid0, OtherGrids...> out;
     out.data_name  = data_name;
     out.data       = data;
     out.grid_names = grid_names;
-    out.grids      = grids;
+
+    grid_copy(out, std::make_index_sequence<dim>{});
+
     return out;
   }
 
@@ -126,51 +140,76 @@ struct gridded_data_t {
   }
 
  private:
-  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts,
+            Size... sz>
   [[nodiscard]] constexpr data_t reinterp(
+      const Grid0& other0,
       const Grids&... other,
       Index order,
       Numeric extrapol,
       std::integer_sequence<Size, sz...>) const {
     if (not ok()) throw std::runtime_error("bad field");
+
     return my_interp::reinterp(data,
-                               lag<sz, lag_ts>(other, order, extrapol)...);
+                               lag<0, lag_ts0>(other0, order, extrapol),
+                               lag<sz + 1, lag_ts>(other, order, extrapol)...);
   }
 
-  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts,
+            Size... sz>
   [[nodiscard]] constexpr data_t reinterp(
+      const Grid0& other0,
       const Grids&... other,
       Numeric extrapol,
       std::integer_sequence<Size, sz...>) const {
     if (not ok()) throw std::runtime_error("bad field");
-    return my_interp::reinterp(data, lag<sz, lag_ts>(other, extrapol)...);
+
+    return my_interp::reinterp(data,
+                               lag<0, lag_ts0>(other0, extrapol),
+                               lag<sz + 1, lag_ts>(other, extrapol)...);
   }
 
  public:
-  template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr data_t reinterp(const Grids&... other,
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] constexpr data_t reinterp(const Grid0& other0,
+                                          const Grids&... other,
                                           Index order,
                                           Numeric extrapol = 0.5) const
-    requires(0 < dim and
+    requires(0 < dim and std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
-             sizeof...(lag_ts) == dim)
+             sizeof...(lag_ts) == dim - 1)
   {
     if (not ok()) throw std::runtime_error("bad field");
-    return reinterp<lag_ts...>(
-        other..., order, extrapol, std::make_integer_sequence<Size, dim>{});
+
+    return reinterp<lag_ts0, lag_ts...>(
+        other0,
+        other...,
+        order,
+        extrapol,
+        std::make_integer_sequence<Size, dim - 1>{});
   }
 
-  template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr data_t reinterp(const Grids&... other,
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] constexpr data_t reinterp(const Grid0& other0,
+                                          const Grids&... other,
                                           Numeric extrapol = 0.5) const
     requires(0 < dim and
+             not std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
              ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
               ...) and
-             sizeof...(lag_ts) == dim)
+             sizeof...(lag_ts) == dim - 1)
   {
     if (not ok()) throw std::runtime_error("bad field");
-    return reinterp<lag_ts...>(
-        other..., extrapol, std::make_integer_sequence<Size, dim>{});
+
+    return reinterp<lag_ts0, lag_ts...>(
+        other0,
+        other...,
+        extrapol,
+        std::make_integer_sequence<Size, dim - 1>{});
   }
 
   template <Size Grid, my_interp::lagrange_type lag_t>
@@ -196,44 +235,62 @@ struct gridded_data_t {
   }
 
  private:
-  template <my_interp::lagrange_type... lag_ts, Size... sz>
-  [[nodiscard]] constexpr T interp(const typename Grids::value_type&... other,
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts,
+            Size... sz>
+  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
+                                   const typename Grids::value_type&... other,
                                    Index order,
                                    std::integer_sequence<Size, sz...>) const {
     if (not ok()) throw std::runtime_error("bad field");
-    return my_interp::interp(data, lag<sz, lag_ts>(other, order)...);
+
+    return my_interp::interp(data,
+                             lag<0, lag_ts0>(other0, order),
+                             lag<sz + 1, lag_ts>(other, order)...);
   }
 
-  template <my_interp::lagrange_type... lag_ts, Size... sz>
-  [[nodiscard]] constexpr T interp(const typename Grids::value_type&... other,
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts,
+            Size... sz>
+  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
+                                   const typename Grids::value_type&... other,
                                    std::integer_sequence<Size, sz...>) const {
     if (not ok()) throw std::runtime_error("bad field");
-    return my_interp::interp(data, lag<sz, lag_ts>(other)...);
+
+    return my_interp::interp(
+        data, lag<0, lag_ts0>(other0), lag<sz + 1, lag_ts>(other)...);
   }
 
  public:
-  template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr T interp(const typename Grids::value_type&... other,
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
+                                   const typename Grids::value_type&... other,
                                    Index order) const
-    requires(0 < dim and
+    requires(0 < dim and std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
-             sizeof...(lag_ts) == dim)
+             sizeof...(lag_ts) == dim - 1)
   {
     if (not ok()) throw std::runtime_error("bad field");
-    return interp<lag_ts...>(
-        other..., order, std::make_integer_sequence<Size, dim>{});
+
+    return interp<lag_ts0, lag_ts...>(
+        other0, other..., order, std::make_integer_sequence<Size, dim - 1>{});
   }
 
-  template <my_interp::lagrange_type... lag_ts>
+  template <my_interp::lagrange_type lag_ts0,
+            my_interp::lagrange_type... lag_ts>
   [[nodiscard]] constexpr T interp(
+      const typename Grid0::value_type& other0,
       const typename Grids::value_type&... other) const
     requires(0 < dim and
+             not std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
              ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
               ...) and
-             sizeof...(lag_ts) == dim)
+             sizeof...(lag_ts) == dim - 1)
   {
     if (not ok()) throw std::runtime_error("bad field");
-    return interp<lag_ts...>(other..., std::make_integer_sequence<Size, dim>{});
+    return interp<lag_ts0, lag_ts...>(
+        other0, other..., std::make_integer_sequence<Size, dim - 1>{});
   }
 };
 }  // namespace matpack
@@ -325,7 +382,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
   void grid(const fmt_t& v, FmtContext& ctx) const {
     if (tags.names) {
       const std::string_view quote = tags.quote();
-      std::format_to(ctx.out(), "{}{}{}: ", quote, v.grid_names[N], quote);
+      tags.format(ctx, quote, v.grid_names[N], quote, ": "sv);
     }
 
     tags.format(ctx, std::get<N>(v.grids), tags.sep(true));
@@ -350,7 +407,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
 
     if (tags.names) {
       const std::string_view quote = tags.quote();
-      std::format_to(ctx.out(), "{}{}{}: ", quote, v.data_name, quote);
+      tags.format(ctx, quote, v.data_name, quote, ": "sv);
     }
 
     tags.format(ctx, v.data);

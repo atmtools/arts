@@ -339,7 +339,7 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
   ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
 
   XMLTag open_tag;
-  open_tag.set_name("AbsorptionBandData");
+  open_tag.name=("AbsorptionBandData");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("lineshape", String{toString(data.lineshape)});
   open_tag.add_attribute("cutoff_type", String{toString(data.cutoff)});
@@ -353,7 +353,7 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
   }
 
   XMLTag close_tag;
-  close_tag.set_name("/AbsorptionBandData");
+  close_tag.name=("/AbsorptionBandData");
   close_tag.write_to_stream(os);
   std::println(os);
 }

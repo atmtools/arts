@@ -8,11 +8,11 @@
 
 #include "xsec_fit.h"
 
+#include <debug.h>
+#include <interp.h>
+
 #include <algorithm>
 #include <memory>
-
-#include "debug.h"
-#include "interp.h"
 
 const SpeciesEnum& XsecRecord::Species() const { return mspecies; };
 
@@ -258,7 +258,7 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
   XMLTag open_tag;
   XMLTag close_tag;
 
-  open_tag.set_name("XsecRecord");
+  open_tag.name = ("XsecRecord");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("version", xd.Version());
 
@@ -276,7 +276,7 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
       os_xml, xd.FitMaxTemperatures(), pbofs, "Maximum temperatures from fit");
   xml_write_to_stream(os_xml, xd.FitCoeffs(), pbofs, "Fit coefficients");
 
-  close_tag.set_name("/XsecRecord");
+  close_tag.name = ("/XsecRecord");
   close_tag.write_to_stream(os_xml);
 
   std::println(os_xml);

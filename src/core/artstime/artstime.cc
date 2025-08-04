@@ -254,18 +254,6 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E) {
   return ts[s] + dt;
 }
 
-Vector time_vector(const ArrayOfTime& times) {
-  Vector t(times.size());
-  for (Size i = 0; i < times.size(); i++) t[i] = Numeric(times[i]);
-  return t;
-}
-
-ArrayOfTime time_vector(const Vector& times) {
-  ArrayOfTime t(times.size());
-  for (Size i = 0; i < times.size(); i++) t[i].Seconds(times[i]);
-  return t;
-}
-
 TimeStep median(ArrayOfTimeStep dt) {
   const auto n = dt.size();
   if (n) {

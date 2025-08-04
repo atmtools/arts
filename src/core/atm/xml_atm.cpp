@@ -82,7 +82,12 @@ void xml_io_stream<AtmField>::read(std::istream& is,
   tag.check_name(type_name);
 
   xml_read_from_stream(is, v.top_of_atmosphere, pbifs);
-  xml_read_from_stream(is, v.map_data, pbifs);
+
+  xml_read_from_stream(is, v.other, pbifs);
+  xml_read_from_stream(is, v.specs, pbifs);
+  xml_read_from_stream(is, v.isots, pbifs);
+  xml_read_from_stream(is, v.nlte, pbifs);
+  xml_read_from_stream(is, v.ssprops, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
@@ -95,7 +100,12 @@ void xml_io_stream<AtmField>::write(std::ostream& os,
   std::println(os, R"(<{0} name="{1}">)", type_name, name);
 
   xml_write_to_stream(os, v.top_of_atmosphere, pbofs, "TOA"sv);
-  xml_write_to_stream(os, v.map_data, pbofs, "Data"sv);
+
+  xml_write_to_stream(os, v.other, pbofs, "Other"sv);
+  xml_write_to_stream(os, v.specs, pbofs, "Species Data"sv);
+  xml_write_to_stream(os, v.isots, pbofs, "Isotopologue Data"sv);
+  xml_write_to_stream(os, v.nlte, pbofs, "NLTE Data"sv);
+  xml_write_to_stream(os, v.ssprops, pbofs, "Scattering Data"sv);
 
   std::println(os, R"(</{0}>)", type_name);
 }

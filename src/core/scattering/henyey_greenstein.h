@@ -19,13 +19,9 @@ struct ExtinctionSSALookup {
   ScatteringSpeciesProperty extinction_field{};
   ScatteringSpeciesProperty ssa_field{};
   ExtinctionSSALookup(ScatteringSpeciesProperty extinction_field_,
-                      ScatteringSpeciesProperty ssa_field_)
-      : extinction_field(std::move(extinction_field_)),
-        ssa_field(std::move(ssa_field_)) {}
+                      ScatteringSpeciesProperty ssa_field_);
 
-  std::pair<Numeric, Numeric> operator()(Numeric, const AtmPoint& atm_point) {
-    return {atm_point[extinction_field], atm_point[ssa_field]};
-  }
+  std::pair<Numeric, Numeric> operator()(Numeric, const AtmPoint& atm_point) ;
 };
 
 struct HenyeyGreensteinScatterer {

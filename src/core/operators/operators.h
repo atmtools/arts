@@ -20,14 +20,7 @@
 template <typename R, typename... Args>
 struct CustomOperator {
   using func_t = std::function<R(Args...)>;
-  func_t f{[](Args...) -> R {
-    throw std::runtime_error("CustomOperator not set");
-    std::unreachable();
-  }};
-
-  friend std::ostream &operator<<(std::ostream &os, const CustomOperator &) {
-    return os << "custom-operator";
-  }
+  func_t f;
 
   R operator()(Args... args) const {
     if (f) return f(args...);
@@ -62,7 +55,7 @@ struct std::formatter<CustomOperator<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const CustomOperator<WTs...> &,
                               FmtContext &ctx) const {
-    return std::format_to(ctx.out(), "{0}functional-data{0}"sv, tags.quote());
+    return tags.format(ctx, tags.quote(), "functional-data"sv, tags.quote());
   }
 };
 

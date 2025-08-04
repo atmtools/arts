@@ -113,7 +113,7 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
   template <class FmtContext>
   FmtContext::iterator format(const Absorption::PredefinedModel::ModelName &,
                               FmtContext &ctx) const {
-    return std::format_to(ctx.out(), "[]");
+    return tags.format(ctx, "[]");
   }
 };
 

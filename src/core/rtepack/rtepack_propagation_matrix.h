@@ -38,9 +38,7 @@ struct propmat final : vec7 {
   [[nodiscard]] constexpr bool is_rotational() const { return A() == 0.0; }
 
   //! Check if the matrix is polarized
-  [[nodiscard]] constexpr bool is_polarized() const {
-    return std::ranges::any_of(begin() + 1, end(), Cmp::ne(0.0));
-  }
+  [[nodiscard]] bool is_polarized() const;
 
   constexpr auto operator<=>(const propmat &pm) const { return A() <=> pm.A(); }
 };

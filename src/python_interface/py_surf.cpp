@@ -194,7 +194,7 @@ void py_surf(py::module_ &m) try {
   fld.def(
          "__getitem__",
          [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
-           if (not surf.has(x)) {
+           if (not surf.contains(x)) {
              const auto error_message = std::format("{}", x);
              throw py::key_error(error_message.c_str());
            }
@@ -208,7 +208,7 @@ void py_surf(py::module_ &m) try {
       .def(
           "__getitem__",
           [](SurfaceField &surf, const SurfacePropertyTag &x) -> Surf::Data & {
-            if (not surf.has(x)) {
+            if (not surf.contains(x)) {
               const auto error_message = std::format("{}", x);
               throw py::key_error(error_message.c_str());
             }
@@ -280,9 +280,17 @@ void py_surf(py::module_ &m) try {
                    k[i]) = v[i];
              }
            });
+  fld.def_rw("other", &SurfaceField::other, "Other data in the surface field")
+      .def_rw("props", &SurfaceField::props, "Properties of the surface field");
 
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
+  ssf.def_rw(
+      "other", &SubsurfaceField::other, "Other data in the subsurface field");
+  ssf.def_rw("bottom_depth",
+             &SubsurfaceField::bottom_depth,
+             "The depth of the bottom of the subsurface [m]");
   generic_interface(ssf);
+
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
   generic_interface(ssp);
   auto assp = py::bind_vector<Array<SubsurfacePoint>,

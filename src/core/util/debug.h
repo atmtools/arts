@@ -11,11 +11,7 @@
 
 #include <format_tags.h>
 
-#include <cassert>
-#include <format>
 #include <source_location>
-#include <string>
-#include <version>
 
 struct src_location {
   std::source_location loc;
@@ -53,21 +49,21 @@ std::runtime_error user_error(const std::string_view msg,
 #endif /* NDEBUG */
 
 /*! An error has occured, will throw the error */
-#define ARTS_USER_ERROR(fmt, ...)                                \
-  {                                                              \
-    throw arts::user_error(                                      \
-        __VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__), \
-        src_location{}.get());                                   \
+#define ARTS_USER_ERROR(fmt, ...)                                    \
+  {                                                                  \
+    throw arts::user_error(std::string_view{__VA_OPT__(std::format)( \
+                               fmt __VA_OPT__(, ) __VA_ARGS__)},     \
+                           src_location{}.get());                    \
   }
 
 /*! Condition should be false to pass external check */
-#define ARTS_USER_ERROR_IF(condition, fmt, ...)                    \
-  {                                                                \
-    if (condition)                                                 \
-      throw arts::user_error(                                      \
-          __VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__), \
-          #condition,                                              \
-          src_location{}.get());                                   \
+#define ARTS_USER_ERROR_IF(condition, fmt, ...)                        \
+  {                                                                    \
+    if (condition)                                                     \
+      throw arts::user_error(std::string_view{__VA_OPT__(std::format)( \
+                                 fmt __VA_OPT__(, ) __VA_ARGS__)},     \
+                             #condition,                               \
+                             src_location{}.get());                    \
   }
 
 #endif /* debug_h */

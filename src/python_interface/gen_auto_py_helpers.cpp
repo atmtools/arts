@@ -228,7 +228,7 @@ String compose_generic_groups(const String& grps) {
 String to_defval_str(const Wsv& wsv, const std::string_view x) try {
   const auto& group = wsv.type_name();
 
-  std::string out = wsv.vformat("{}");
+  std::string out = wsv.vformat("{}"sv);
 
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();

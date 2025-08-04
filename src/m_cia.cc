@@ -61,15 +61,17 @@ void propagation_matrixAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
-  const auto jac_temps = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
+  const auto end       = jacobian_targets.atm.end();
+  const auto jac_freqs = std::array{jacobian_targets.find(AtmKey::wind_u),
+                                    jacobian_targets.find(AtmKey::wind_v),
+                                    jacobian_targets.find(AtmKey::wind_w)};
+  const auto jac_temps = jacobian_targets.find(AtmKey::t);
 
   const bool do_wind_jac =
-      std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
-  const bool do_temp_jac = jac_temps.first;
-  const Numeric dt       = field_perturbation(std::span{&jac_temps, 1});
-  const Numeric df       = field_perturbation(std::span{jac_freqs});
+      std::ranges::any_of(jac_freqs, [end](const auto& x) { return x != end; });
+  const bool do_temp_jac = jac_temps != end;
+  const Numeric dt       = do_temp_jac ? jac_temps->d : 0.0;
+  const Numeric df       = jac_freqs[0] != end ? jac_freqs[0]->d : jac_freqs[1] != end ? jac_freqs[1]->d : jac_freqs[2] != end ? jac_freqs[2]->d : 0.0;
 
   Vector dfreq;
   Vector dabs_t{atm_point.temperature + dt};
@@ -153,8 +155,8 @@ void propagation_matrixAddCIA(  // WS Output:
       propagation_matrix[iv].A() +=
           nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
-      if (jac_temps.first) {
-        const auto iq = jac_temps.second->target_pos;
+      if (jac_temps != end) {
+        const auto iq = jac_temps->target_pos;
         propagation_matrix_jacobian[iq, iv].A() +=
             ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
               xsec_temp[iv] * dnd_dt_sec) *
@@ -164,25 +166,21 @@ void propagation_matrixAddCIA(  // WS Output:
       }
 
       for (auto& j : jac_freqs) {
-        if (j.first) {
-          const auto iq = j.second->target_pos;
+        if (j != end) {
+          const auto iq = j->target_pos;
           propagation_matrix_jacobian[iq, iv].A() +=
               nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
               atm_point[this_cia.Species(1)];
         }
       }
 
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(0));
-          j.first) {
-        const auto iq                            = j.second->target_pos;
+      if (const auto j = jacobian_targets.find(this_cia.Species(0)); j != end) {
+        const auto iq                            = j->target_pos;
         propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(1));
-          j.first) {
-        const auto iq                            = j.second->target_pos;
+      if (const auto j = jacobian_targets.find(this_cia.Species(1)); j != end) {
+        const auto iq                            = j->target_pos;
         propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
@@ -371,7 +369,7 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
   ARTS_TIME_REPORT
 
   absorption_cia_data.clear();
-  
+
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   ArrayOfString names{};

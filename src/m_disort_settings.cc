@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <disort.h>
 #include <matpack.h>
@@ -589,16 +590,19 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-
       const Numeric ext_upper = ray_path_propagation_matrix[i][iv][0];
-      const Numeric abs_scat_upper = ray_path_absorption_vector_scattering[i][iv][0];
-      const Numeric ext_scat_upper = ray_path_propagation_matrix_scattering[i][iv][0];
+      const Numeric abs_scat_upper =
+          ray_path_absorption_vector_scattering[i][iv][0];
+      const Numeric ext_scat_upper =
+          ray_path_propagation_matrix_scattering[i][iv][0];
 
       const Numeric ext_lower = ray_path_propagation_matrix[i + 1][iv][0];
-      const Numeric abs_scat_lower = ray_path_absorption_vector_scattering[i + 1][iv][0];
-      const Numeric ext_scat_lower = ray_path_propagation_matrix_scattering[i + 1][iv][0];
+      const Numeric abs_scat_lower =
+          ray_path_absorption_vector_scattering[i + 1][iv][0];
+      const Numeric ext_scat_lower =
+          ray_path_propagation_matrix_scattering[i + 1][iv][0];
 
-      const Numeric ext = std::midpoint(ext_upper, ext_lower);
+      const Numeric ext      = std::midpoint(ext_upper, ext_lower);
       const Numeric abs_scat = std::midpoint(abs_scat_upper, abs_scat_lower);
       const Numeric ext_scat = std::midpoint(ext_scat_upper, ext_scat_lower);
 

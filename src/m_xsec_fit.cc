@@ -96,14 +96,19 @@ void propagation_matrixAddXsecFit(  // WS Output:
   Vector dxsec_temp_dF;
   Vector dfreq;
   // Jacobian vectors END
-  const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
-  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
+  const auto end      = jacobian_targets.atm.end();
+  const auto freq_jac = std::array{jacobian_targets.find(AtmKey::wind_u),
+                                   jacobian_targets.find(AtmKey::wind_v),
+                                   jacobian_targets.find(AtmKey::wind_w)};
+  const auto temp_jac = jacobian_targets.find(AtmKey::t);
   const bool do_freq_jac =
-      std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
-  const bool do_temp_jac = temp_jac.first;
-  const Numeric df       = field_perturbation(freq_jac);
-  const Numeric dt       = temp_jac.first;
+      std::ranges::any_of(freq_jac, [end](auto& x) { return x != end; });
+  const bool do_temp_jac = temp_jac != end;
+  const Numeric df       = freq_jac[0] != end   ? freq_jac[0]->d
+                           : freq_jac[1] != end ? freq_jac[1]->d
+                           : freq_jac[2] != end ? freq_jac[2]->d
+                                                : 0.0;
+  const Numeric dt       = temp_jac != end ? temp_jac->d : 0.0;
   if (do_freq_jac) {
     dfreq.resize(f_grid.size());
     dfreq  = f_grid;
@@ -155,8 +160,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
     for (Size f = 0; f < f_grid.size(); f++) {
       propagation_matrix[f].A() += xsec_temp[f] * nd * vmr;
 
-      if (temp_jac.first) {
-        const auto iq = temp_jac.second->target_pos;
+      if (temp_jac != end) {
+        const auto iq = temp_jac->target_pos;
         propagation_matrix_jacobian[iq, f].A() +=
             ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
              xsec_temp[f] * dnd_dt) *
@@ -164,17 +169,16 @@ void propagation_matrixAddXsecFit(  // WS Output:
       }
 
       for (auto& j : freq_jac) {
-        if (j.first) {
-          const auto iq = j.second->target_pos;
+        if (j != end) {
+          const auto iq = j->target_pos;
           propagation_matrix_jacobian[iq, f].A() +=
               (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
         }
       }
 
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(this_xdata.Species());
-          j.first) {
-        const auto iq                           = j.second->target_pos;
+      if (const auto j = jacobian_targets.find(this_xdata.Species());
+          j != end) {
+        const auto iq                           = j->target_pos;
         propagation_matrix_jacobian[iq, f].A() += xsec_temp[f] * nd * vmr;
       }
     }

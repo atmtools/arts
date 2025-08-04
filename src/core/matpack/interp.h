@@ -12,7 +12,6 @@
 #include <array>
 #include <cstddef>
 #include <exception>
-#include <iomanip>
 #include <limits>
 #include <numeric>
 #include <tuple>
@@ -1639,16 +1638,12 @@ struct std::formatter<my_interp::Lagrange<PolyOrder, do_derivs, type, Limit>> {
 
     const std::string_view sep = tags.sep();
 
-    std::format_to(ctx.out(), "{}", v.pos);
+    tags.format(ctx, v.pos);
 
-    for (auto &x : v.lx) {
-      std::format_to(ctx.out(), "{}{}", sep, x);
-    }
+    for (auto &x : v.lx) tags.format(ctx, sep, x);
 
     if constexpr (do_derivs) {
-      for (auto &x : v.dlx) {
-        std::format_to(ctx.out(), "{}{}", sep, x);
-      }
+      for (auto &x : v.dlx) tags.format(ctx, sep, x);
     }
 
     tags.add_if_bracket(ctx, ']');

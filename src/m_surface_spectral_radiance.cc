@@ -34,7 +34,8 @@ void spectral_radianceFlatScalarReflectance(
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag reflectance_target{"flat scalar reflectance"};
 
-  ARTS_USER_ERROR_IF(not surface_field.has(reflectance_target, SurfaceKey::t),
+  ARTS_USER_ERROR_IF(not surface_field.contains(reflectance_target) or
+                         not surface_field.contains(SurfaceKey::t),
                      R"--(Missing key property tag for method.
 
 Tag "flat scalar reflectance" not in the surface field.
@@ -87,7 +88,7 @@ surface_field:
     }
   }
 
-  for (auto& target : jacobian_targets.surf()) {
+  for (auto& target : jacobian_targets.surf) {
     if (target.type == SurfaceKey::t) {
       const auto& data = surface_field[target.type];
 

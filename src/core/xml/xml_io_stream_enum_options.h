@@ -25,7 +25,9 @@ struct xml_io_stream<T> {
                     const T& x,
                     bofstream*       = nullptr,
                     std::string_view = ""sv) {
-    std::println(os, R"(<{0} value="{1}"> </{0}>)", type_name, toString(x));
+    XMLTag tag{type_name, "value", toString(x)};
+    tag.write_to_stream(os);
+    tag.write_to_end_stream(os);
   }
 
   static void read(std::istream& is, T& x, bifstream* = nullptr) try {
@@ -38,8 +40,11 @@ struct xml_io_stream<T> {
     try {
       x = to<T>(value);
     } catch (const std::exception& e) {
-      throw std::runtime_error(std::format(
-          "Failed to convert '{}' to enum {}:\n{}", value, type_name, e.what()));
+      throw std::runtime_error(
+          std::format("Failed to convert '{}' to enum {}:\n{}",
+                      value,
+                      type_name,
+                      e.what()));
     }
 
     tag.read_from_stream(is);

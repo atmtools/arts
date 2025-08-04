@@ -5,6 +5,24 @@
 #endif
 
 namespace scattering {
+Index grid_size(const ZenithAngleGrid &grid) {
+  return std::visit([](const auto &grd) { return grd.angles.size(); }, grid);
+}
+
+StridedVectorView grid_vector(ZenithAngleGrid &grid) {
+  return std::visit(
+      [](auto &grd) { return static_cast<StridedVectorView>(grd.angles); },
+      grid);
+}
+
+StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
+  return std::visit(
+      [](const auto &grd) {
+        return static_cast<StridedConstVectorView>(grd.angles);
+      },
+      grid);
+}
+
 void GaussLegendreQuadrature::calculate_nodes_and_weights() {
   const Index n            = degree_;
   const Index n_half_nodes = (n + 1) / 2;

@@ -69,15 +69,15 @@ String comma(bool& first, const String& spaces) {
   return std::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
 }
 
-void join(String& res, const std::span<const String>& list, const String& with) {
+void join(String& res,
+          const std::span<const String>& list,
+          const String& with) {
   res.clear();
 
   if (list.empty()) return;
 
   res = list.front();
-  for (auto& v : list.subspan(1)) {
-    std::format_to(std::back_inserter(res), "{}{}", with, v);
-  }
+  for (auto& v : list.subspan(1)) res += std::format("{}{}", with, v);
 }
 
 String join(const std::span<const String>& list, const String& with) {

@@ -13,13 +13,13 @@
 
 #include "cia.h"
 
+#include <arts_constants.h>
+#include <double_imanip.h>
+#include <file.h>
+#include <interp.h>
+
 #include <cmath>
 #include <memory>
-
-#include "arts_constants.h"
-#include "double_imanip.h"
-#include "file.h"
-#include "interp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 

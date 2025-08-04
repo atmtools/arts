@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "interpolation.h"
+#include <interpolation.h>
 
 
 namespace scattering {

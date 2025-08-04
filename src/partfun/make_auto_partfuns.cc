@@ -1,7 +1,7 @@
 #include <debug.h>
 #include <enumsSpeciesEnum.h>
-#include <matpack.h>
 #include <isotopologues.h>
+#include <matpack.h>
 #include <species.h>
 #include <xml_io_base.h>
 
@@ -273,7 +273,7 @@ std::string make_h_string(
 
     compute += std::format(
         R"(template<Derivatives deriv>
-Numeric compute{0}(Numeric T [[maybe_unused]], const std::string_view isot) {{
+Numeric compute{0}(Numeric T [[maybe_unused]], const std::string_view isot [[maybe_unused]]) {{
   using enum Derivatives;
 )",
         specstr);
@@ -306,10 +306,9 @@ Numeric d{0}(Numeric T) noexcept;
 
     compute += std::format(
         R"(
-  ARTS_USER_ERROR("No partition function for {}-{{}}", isot);
+  throw std::out_of_range("unknown isotopologue");
 }}
-)",
-        spec);
+)");
   }
 
   return std::format(

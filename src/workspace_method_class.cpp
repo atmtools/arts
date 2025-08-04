@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
       os << ')';
     } else {
       os << m.name;
-      auto var                      = wsv.vformat("{}");
+      auto var                      = wsv.vformat("{}"sv);
       constexpr std::size_t maxsize = 50;
       if (var.size() > maxsize) {
         var = std::string(var.begin(), var.begin() + maxsize) + "...";
@@ -305,8 +305,8 @@ std::string Method::sphinx_list_item() const {
 
     const std::string fmtated =
         has_str    ? std::format("\"{}\"", setval->get<String>())
-        : is_basic ? setval->vformat("{}")
-                   : setval->vformat("{:sqNB,}");
+        : is_basic ? setval->vformat("{}"sv)
+                   : setval->vformat("{:sqNB,}"sv);
 
     return std::format("{} = {}", wsv_format(std::string{name}), fmtated);
   }

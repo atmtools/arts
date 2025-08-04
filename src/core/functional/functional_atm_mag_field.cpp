@@ -54,6 +54,8 @@ Numeric SchmidthLegendre::operator()(Numeric a, Numeric la, Numeric lo) const {
     case FieldComponent::v: return -ca * mag[1] - sa * mag[0];
     case FieldComponent::w: return -sa * mag[1] + ca * mag[0];
   }
+
+  return NAN;  // Should never happen
 }
 
 ConstVectorView SchmidthLegendre::x() const { return gh.view_as(gh.size()); }

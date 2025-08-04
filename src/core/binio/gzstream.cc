@@ -26,8 +26,11 @@
 // Standard C++ Library".
 // ============================================================================
 
-#include <debug.h>
 #include "gzstream.h"
+
+#include <debug.h>
+
+#include <cassert>
 #include <cstring>  // for memcpy
 
 #ifdef GZSTREAM_NAMESPACE
@@ -56,8 +59,8 @@ gzstreambuf* gzstreambuf::open(const char* name, int open_mode) {
   else if (mode & std::ios::out)
     *fmodeptr++ = 'w';
   *fmodeptr++ = 'b';
-  *fmodeptr = '\0';
-  file = gzopen(name, fmode);
+  *fmodeptr   = '\0';
+  file        = gzopen(name, fmode);
   if (file == 0) return (gzstreambuf*)0;
   opened = 1;
   return this;

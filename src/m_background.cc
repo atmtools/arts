@@ -133,7 +133,7 @@ void spectral_radianceSurfaceBlackbody(
   spectral_radiance_jacobianEmpty(
       spectral_radiance_jacobian, frequency_grid, jacobian_targets);
 
-  for (auto& target : jacobian_targets.surf()) {
+  for (auto& target : jacobian_targets.surf) {
     if (target.type == SurfaceKey::t) {
       const auto& data = surface_field[target.type];
 

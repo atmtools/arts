@@ -1,5 +1,3 @@
-#include "surf.h"
-
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
 #include <debug.h>
@@ -11,6 +9,8 @@
 #include <stdexcept>
 #include <utility>
 #include <variant>
+
+#include "surf.h"
 
 Surf::Point::Point()                                   = default;
 Surf::Point::Point(const Point &)                      = default;
@@ -258,6 +258,40 @@ auto interpolation_function(Numeric lat, Numeric lon) {
 }
 }  // namespace
 
+Data &Field::operator[](const SurfaceKey &key) { return other[key]; }
+
+Data &Field::operator[](const SurfacePropertyTag &key) { return props[key]; }
+
+Data &Field::operator[](const KeyVal &key) {
+  return std::visit([this](auto &k) -> Data & { return this->operator[](k); },
+                    key);
+}
+
+const Data &Field::operator[](const SurfaceKey &key) const {
+  return other.at(key);
+}
+
+const Data &Field::operator[](const SurfacePropertyTag &key) const {
+  return props.at(key);
+}
+
+const Data &Field::operator[](const KeyVal &key) const {
+  return std::visit(
+      [this](auto &k) -> const Data & { return this->operator[](k); }, key);
+}
+
+bool Field::contains(const SurfaceKey &key) const {
+  return other.contains(key);
+}
+
+bool Field::contains(const SurfacePropertyTag &key) const {
+  return props.contains(key);
+}
+
+bool Field::contains(const KeyVal &key) const {
+  return std::visit([this](auto &k) -> bool { return this->contains(k); }, key);
+}
+
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   ARTS_USER_ERROR_IF(ellipsoid[0] <= 0. or ellipsoid[1] <= 0.,
                      "Ellipsoid must have positive axes: {:B,}",
@@ -269,7 +303,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
     return up;
   }
 
-  const auto &z = this->operator[](SurfaceKey::h);
+  const auto &z = other.at(SurfaceKey::h);
 
   if (std::holds_alternative<Numeric>(z.data)) {
     return up;
@@ -304,6 +338,18 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
 
 Numeric Data::at(const Numeric lat, const Numeric lon) const {
   return interpolation_function(lat, lon)(*this);
+}
+
+Size Field::nprops() const { return props.size(); }
+Size Field::nother() const { return other.size(); }
+Size Field::size() const { return nprops() + nother(); }
+
+std::vector<Field::KeyVal> Field::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(size());
+  for (const auto &kv : other) out.emplace_back(kv.first);
+  for (const auto &kv : props) out.emplace_back(kv.first);
+  return out;
 }
 
 Point Field::at(Numeric lat, Numeric lon) const {
@@ -519,7 +565,7 @@ std::string std::formatter<SurfaceKeyVal>::to_string(
   std::string out;
   return std::visit(
       [fmt = tags.get_format_args()](const auto &val) {
-        return std::vformat(fmt.c_str(), std::make_format_args(val));
+        return std::vformat(fmt, std::make_format_args(val));
       },
       v);
 }

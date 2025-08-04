@@ -13,7 +13,7 @@
 #ifndef file_h
 #define file_h
 
-#include "mystring.h"
+#include <mystring.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names

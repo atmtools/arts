@@ -20,7 +20,6 @@
 
 namespace scattering {
 
-
 struct ScatteringDataSpec {};
 
 using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO, ScatteringHabit>;
@@ -39,9 +38,11 @@ using BulkScatteringProperties =
   * and provides convenience functions to calculate their bulk scattering
   * properties.
   */
-struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
-  void add(const scattering::Species& species) { push_back(species); }
-  void prepare_scattering_data(scattering::ScatteringDataSpec) {}
+struct ArrayOfScatteringSpecies {
+  std::vector<scattering::Species> species;
+
+  void add(const scattering::Species& species);
+  void prepare_scattering_data(scattering::ScatteringDataSpec);
 
   [[nodiscard]] BulkScatteringProperties<scattering::Format::TRO,
                                          scattering::Representation::Gridded>
@@ -73,9 +74,6 @@ struct ArrayOfScatteringSpecies : public std::vector<scattering::Species> {
                                               Index order) const;
 };
 
-std::ostream& operator<<(std::ostream& os,
-                                const ArrayOfScatteringSpecies& /*species*/) ;
-
 template <>
 struct std::formatter<ArrayOfScatteringSpecies> {
   format_tags tags;
@@ -105,7 +103,7 @@ std::ostream& operator<<(
     const std::variant<HenyeyGreensteinScatterer,
                        scattering::ScatteringHabit>& /*species*/);
 
-//! Nming the variant
+//! Naming the variant
 template <>
 struct xml_io_stream_name<ScatteringSpecies> {
   static constexpr std::string_view name = "ScatteringSpecies"sv;
@@ -113,15 +111,11 @@ struct xml_io_stream_name<ScatteringSpecies> {
 
 //! Required overload since it inherits
 template <>
-struct xml_io_stream<ArrayOfScatteringSpecies> {
-  static constexpr std::string_view type_name = "ArrayOfScatteringSpecies"sv;
+struct xml_io_stream_name<ArrayOfScatteringSpecies> {
+  static constexpr std::string_view name = "ArrayOfScatteringSpecies"sv;
+};
 
-  static void write(std::ostream& os,
-                    const ArrayOfScatteringSpecies& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) ;
-
-  static void read(std::istream& is,
-                   ArrayOfScatteringSpecies& x,
-                   bifstream* pbifs = nullptr) ;
+template <>
+struct xml_io_stream_aggregate<ArrayOfScatteringSpecies> {
+  static constexpr bool value = true;
 };

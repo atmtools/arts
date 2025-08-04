@@ -15,6 +15,7 @@
 
 /** Input manipulator class for doubles to enable nan and inf parsing. */
 #include <iosfwd>
+
 class double_imanip {
  public:
   const double_imanip& operator>>(double& x) const;

@@ -65,16 +65,13 @@ struct std::formatter<ParticleSSDMethod> {
 
     switch (v) {
       case PARTICLE_SSDMETHOD_NONE:
-        std::format_to(
-            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_NONE"sv, quote);
+        tags.format(ctx, quote, "PARTICLE_SSDMETHOD_NONE"sv, quote);
         break;
       case PARTICLE_SSDMETHOD_TMATRIX:
-        std::format_to(
-            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_TMATRIX"sv, quote);
+        tags.format(ctx, quote, "PARTICLE_SSDMETHOD_TMATRIX"sv, quote);
         break;
       default:
-        std::format_to(
-            ctx.out(), "{}{}{}", quote, "PARTICLE_SSDMETHOD_UNKNOWN"sv, quote);
+        tags.format(ctx, quote, "PARTICLE_SSDMETHOD_UNKNOWN"sv, quote);
         break;
     }
 
@@ -196,18 +193,15 @@ struct std::formatter<PType> {
 
     switch (v) {
       case PTYPE_GENERAL:
-        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_GENERAL"sv, quote);
+        tags.format(ctx, quote, "PTYPE_GENERAL"sv, quote);
         break;
       case PTYPE_AZIMUTH_RND:
-        std::format_to(
-            ctx.out(), "{}{}{}", quote, "PTYPE_AZIMUTH_RND"sv, quote);
+        tags.format(ctx, quote, "PTYPE_AZIMUTH_RND"sv, quote);
         break;
       case PTYPE_TOTAL_RND:
-        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_TOTAL_RND"sv, quote);
+        tags.format(ctx, quote, "PTYPE_TOTAL_RND"sv, quote);
         break;
-      default:
-        std::format_to(ctx.out(), "{}{}{}", quote, "PTYPE_UNKNOWN"sv, quote);
-        break;
+      default: tags.format(ctx, quote, "PTYPE_UNKNOWN"sv, quote); break;
     }
 
     return ctx.out();

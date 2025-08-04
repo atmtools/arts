@@ -34,7 +34,7 @@
 #include <array.h>
 #include <arts_conversions.h>
 #include <matpack.h>
-#include <scattering/integration.h>
+#include "integration.h"
 
 #include <complex>
 #include <map>

@@ -1,8 +1,9 @@
 #include <matpack.h>
 #include <xml.h>
 
+namespace {
 template <typename T>
-void test_basic(std::string fn) try {
+void test_basic(const std::string& fn) try {
   const auto n = static_cast<T>(3.14);
   xml_write_to_file_base(fn + fn + "test.xml", n, FileType::ascii);
   T n_read{};
@@ -24,7 +25,7 @@ void test_basic(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_string(std::string fn) try {
+void test_string(const std::string& fn) try {
   const String s = "Hello, XML!";
   xml_write_to_file_base(fn + "test.xml", s, FileType::ascii);
   String s_read;
@@ -50,7 +51,7 @@ void test_string(std::string fn) try {
 ARTS_METHOD_ERROR_CATCH
 
 template <typename T>
-void test_basic_array(std::string fn) try {
+void test_basic_array(const std::string& fn) try {
   const Array<T> arr{
       static_cast<T>(1.2), static_cast<T>(2.4), static_cast<T>(3.8)};
   xml_write_to_file_base(fn + "test.xml", arr, FileType::ascii);
@@ -81,7 +82,7 @@ void test_basic_array(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_array_string(std::string fn) try {
+void test_array_string(const std::string& fn) try {
   const Array<String> s = {"Hello", "my", "XML!"};
   xml_write_to_file_base(fn + "test.xml", s, FileType::ascii);
   Array<String> s_read;
@@ -108,7 +109,7 @@ void test_array_string(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_vector(std::string fn) try {
+void test_vector(const std::string& fn) try {
   const Vector x{1, 2, 3, 4, 5.5};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   Vector x_read;
@@ -132,7 +133,7 @@ void test_vector(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_matrix(std::string fn) try {
+void test_matrix(const std::string& fn) try {
   const Matrix x = Vector{1, 2, 3, 4, 5.5, 3.2}.reshape(3, 2);
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   Matrix x_read;
@@ -156,7 +157,7 @@ void test_matrix(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_tensor3(std::string fn) try {
+void test_tensor3(const std::string& fn) try {
   const Tensor3 x =
       Vector{1, 2, 3, 4, 5.5, 3.2, 1, 2, 3, 4, 5.5, 3.2}.reshape(3, 2, 2);
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
@@ -181,7 +182,7 @@ void test_tensor3(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_complex_vector(std::string fn) try {
+void test_complex_vector(const std::string& fn) try {
   const ComplexVector x{1 + 2i, 2 + 5i, 3 + 5i, 4 + 12i, 5.5 - 32i};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   ComplexVector x_read;
@@ -207,7 +208,7 @@ void test_complex_vector(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_complex_matrix(std::string fn) try {
+void test_complex_matrix(const std::string& fn) try {
   const ComplexMatrix x =
       ComplexVector{1 + 2i, 2 + 5i, 3 + 5i, 4 + 12i, 5.5 - 32i, 32 - 90i}
           .reshape(3, 2);
@@ -235,7 +236,7 @@ void test_complex_matrix(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_complex_tensor3(std::string fn) try {
+void test_complex_tensor3(const std::string& fn) try {
   const ComplexTensor3 x = ComplexVector{1 + 2i,
                                          2 + 5i,
                                          3 + 5i,
@@ -273,7 +274,7 @@ void test_complex_tensor3(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_vector2(std::string fn) try {
+void test_vector2(const std::string& fn) try {
   const Vector2 x{1, 2};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   Vector2 x_read;
@@ -297,7 +298,7 @@ void test_vector2(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_matrix44(std::string fn) try {
+void test_matrix44(const std::string& fn) try {
   using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
   const Matrix44 x{1, 2, 3, 4, 5, 6, 7, 8, 9, 321, 312, 31, 23, 123, 12};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
@@ -324,7 +325,7 @@ void test_matrix44(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_array_matrix44(std::string fn) try {
+void test_array_matrix44(const std::string& fn) try {
   using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
   const Matrix44 v{1, 2, 3, 4, 5, 6, 7, 8, 9, 321, 312, 31, 23, 123, 12};
   Array<Matrix44> x  = {v, v, v};
@@ -354,7 +355,7 @@ void test_array_matrix44(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_complex_vector2(std::string fn) try {
+void test_complex_vector2(const std::string& fn) try {
   using ComplexVector2 = matpack::cdata_t<Complex, 2>;
   const ComplexVector2 x{1 - 3i, 2 + 8i};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
@@ -379,7 +380,7 @@ void test_complex_vector2(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_complex_matrix44(std::string fn) try {
+void test_complex_matrix44(const std::string& fn) try {
   using ComplexMatrix44 = matpack::cdata_t<Complex, 4, 4>;
   const ComplexMatrix44 x{
       1 - 6i, 2 + 8i, 3 - 99i, 4, 5, 6, 7, 8, 9, 321, 312, 31, 23, 123, 12};
@@ -407,7 +408,7 @@ void test_complex_matrix44(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_string_vector(std::string fn) try {
+void test_string_vector(const std::string& fn) try {
   const matpack::data_t<String, 1> x{
       "Hello"s, "World"s, "how"s, "are"s, "you"s, "doing"s};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
@@ -434,7 +435,7 @@ void test_string_vector(std::string fn) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void test_ascending_grid(std::string fn) {
+void test_ascending_grid(const std::string& fn) {
   const AscendingGrid grid{0, 1, 2, 3, 4, 5};
   xml_write_to_file_base(fn + "test.xml", grid, FileType::ascii);
   AscendingGrid grid_read;
@@ -459,7 +460,7 @@ void test_ascending_grid(std::string fn) {
   }
 }
 
-void test_descending_grid(std::string fn) {
+void test_descending_grid(const std::string& fn) {
   const DescendingGrid grid{5, 4, 3, 2, 1};
   xml_write_to_file_base(fn + "test.xml", grid, FileType::ascii);
   DescendingGrid grid_read;
@@ -498,12 +499,13 @@ auto grid() {
 }
 
 template <class Grid>
-void test_gridded_field(std::string fn) {
+void test_gridded_field(const std::string& fn) {
   const matpack::gridded_data_t<Numeric, Grid> x{
       .data_name  = "TestField",
       .data       = {1.0, 2.0, 3.0, 4.0, 5.0},
       .grid_names = {"Grid1"},
-      .grids      = grid<Grid>()};
+      .grids      = {grid<Grid>()},
+  };
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   matpack::gridded_data_t<Numeric, Grid> x_read;
   xml_read_from_file_base(fn + "test.xml", x_read);
@@ -528,7 +530,7 @@ void test_gridded_field(std::string fn) {
 }
 
 template <typename... Ts>
-void test_variant(auto&& data, std::string fn) {
+void test_variant(auto&& data, const std::string& fn) {
   const std::variant<Ts...> x{std::move(data)};
   xml_write_to_file_base(fn + "test.xml", x, FileType::ascii);
   std::variant<Ts...> x_read;
@@ -553,7 +555,7 @@ void test_variant(auto&& data, std::string fn) {
   }
 }
 
-void test_unordered_map(std::string fn) {
+void test_unordered_map(const std::string& fn) {
   const std::unordered_map<String, Numeric> map{
       {"A", 1.0}, {"B", 2.0}, {"C", 3.0}, {"D", 4.0}};
   xml_write_to_file_base(fn + "test.xml", map, FileType::ascii);
@@ -576,6 +578,15 @@ void test_unordered_map(std::string fn) {
     throw std::runtime_error("Read from XML does not match original.");
   }
 }
+
+static_assert(std::is_trivially_copyable_v<Numeric>);
+static_assert(std::is_trivially_copyable_v<Vector2>);
+static_assert(std::is_trivially_copyable_v<Index>);
+static_assert(std::is_trivially_copyable_v<Size>);
+static_assert(std::is_trivially_copyable_v<Complex>);
+static_assert(not std::is_trivially_copyable_v<String>);
+static_assert(not std::is_trivially_copyable_v<std::vector<Numeric>>);
+}  // namespace
 
 int main() try {
   test_basic<Index>("index");
@@ -613,11 +624,3 @@ int main() try {
   std::println("Error:\n{}", e.what());
   return EXIT_FAILURE;
 }
-
-static_assert(std::is_trivially_copyable_v<Numeric>);
-static_assert(std::is_trivially_copyable_v<Vector2>);
-static_assert(std::is_trivially_copyable_v<Index>);
-static_assert(std::is_trivially_copyable_v<Size>);
-static_assert(std::is_trivially_copyable_v<Complex>);
-static_assert(not std::is_trivially_copyable_v<String>);
-static_assert(not std::is_trivially_copyable_v<std::vector<Numeric>>);

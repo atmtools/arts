@@ -1,5 +1,6 @@
 #include "matpack_mdspan_view_t.h"
 
+namespace{
 template <typename T>
 std::string to_string_impl(const matpack::view_t<const T, 2>& md,
                            format_tags& tags,
@@ -74,15 +75,28 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
 
   return out;
 }
+}  // namespace
 
-std::string to_string(const matpack::view_t<const Numeric, 2> x,
+std::string to_string(const matpack::view_t<const Numeric, 2>& x,
                       format_tags& tags,
                       const std::span<const Size> nl) {
   return to_string_impl(x, tags, nl);
 }
 
-std::string to_string(const matpack::view_t<const Complex, 2> x,
+std::string to_string(const matpack::view_t<const Complex, 2>& x,
                       format_tags& tags,
                       const std::span<const Size> nl) {
   return to_string_impl(x, tags, nl);
+}
+
+std::string to_string(const matpack::view_t<Numeric, 2>& x,
+                      format_tags& tags,
+                      const std::span<const Size> nl) {
+  return to_string(matpack::view_t<const Numeric, 2>{x}, tags, nl);
+}
+
+std::string to_string(const matpack::view_t<Complex, 2>& x,
+                      format_tags& tags,
+                      const std::span<const Size> nl) {
+  return to_string(matpack::view_t<const Complex, 2>{x}, tags, nl);
 }

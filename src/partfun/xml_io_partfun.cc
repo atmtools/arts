@@ -42,7 +42,7 @@ void xml_io_stream<PartitionFunctionsData>::write(
   XMLTag close_tag;
   std::ostringstream v;
 
-  open_tag.set_name(type_name);
+  open_tag.name = type_name;
   if (name not_eq "") open_tag.add_attribute("name", String{name});
   open_tag.add_attribute("type", String(toString(data.type)));
   open_tag.write_to_stream(os_xml);
@@ -50,8 +50,8 @@ void xml_io_stream<PartitionFunctionsData>::write(
 
   xml_io_stream<Matrix>::write(os_xml, data.data, pbofs, "Data");
 
-  close_tag.set_end_name(type_name);
-  close_tag.write_to_stream(os_xml);
+  close_tag.name = type_name;
+  close_tag.write_to_end_stream(os_xml);
 
   os_xml << '\n';
 }

@@ -5,6 +5,17 @@
 #include "math_funcs.h"
 
 namespace scattering {
+ExtinctionSSALookup::ExtinctionSSALookup(
+    ScatteringSpeciesProperty extinction_field_,
+    ScatteringSpeciesProperty ssa_field_)
+    : extinction_field(std::move(extinction_field_)),
+      ssa_field(std::move(ssa_field_)) {}
+
+std::pair<Numeric, Numeric> ExtinctionSSALookup::operator()(
+    Numeric, const AtmPoint& atm_point) {
+  return {atm_point[extinction_field], atm_point[ssa_field]};
+}
+
 HenyeyGreensteinScatterer::HenyeyGreensteinScatterer(
     ExtSSACallback ext_ssa_callback_, const Numeric& g_)
     : ext_ssa_callback(std::move(ext_ssa_callback_)), g(g_) {

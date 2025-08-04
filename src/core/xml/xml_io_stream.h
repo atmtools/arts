@@ -82,7 +82,6 @@ concept xml_io_binary =
 // For most types this means doing the reverse of std::println(os, "{:IO}", x).
 // This is not an explicit demand since, e.g., Numeric cannot, being builtin
 template <typename T>
-concept xml_io_parseable =
-    requires(std::span<T> b, std::istream& is) {
-      xml_io_stream<T>::parse(b, is);
-    };
+concept xml_io_parseable = requires(std::span<T> b, std::istream& is) {
+  xml_io_stream<T>::parse(b, is);
+};

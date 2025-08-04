@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -195,7 +196,7 @@ void ray_path_fieldFluxProfile(
       if (error.empty()) error = e.what();
     }
   }
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 
   ray_path_observer_agendaExecute(ws,
                                   ray_path_field[looking_up.size() - 1],
@@ -222,7 +223,7 @@ void ray_path_fieldFluxProfile(
       if (error.empty()) error = e.what();
     }
   }
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 
   ray_path_observer_agendaExecute(ws,
                                   ray_path_field.back(),
@@ -261,5 +262,5 @@ void ray_path_fieldFromObserverAgenda(
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }

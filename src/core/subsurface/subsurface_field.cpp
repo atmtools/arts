@@ -1,6 +1,5 @@
-#include "subsurface.h"
-
 #include "enumsSubsurfaceKey.h"
+#include "subsurface.h"
 
 namespace Subsurface {
 Point::Point()                             = default;
@@ -440,11 +439,37 @@ Field::Field(Field &&) noexcept            = default;
 Field &Field::operator=(const Field &)     = default;
 Field &Field::operator=(Field &&) noexcept = default;
 
-const std::unordered_map<SubsurfaceKey, Data> &Field::basic() const {
-  return map<SubsurfaceKey>();
+Index Field::nbasic() const { return other.size(); }
+Index Field::size() const { return nbasic(); }
+
+[[nodiscard]] std::vector<Field::KeyVal> Field::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(size());
+  for (const auto &[key, _] : other) out.push_back(key);
+  return out;
 }
-std::unordered_map<SubsurfaceKey, Data> &Field::basic() {
-  return map<SubsurfaceKey>();
+
+Data &Field::operator[](const SubsurfaceKey &key) { return other[key]; }
+
+Data &Field::operator[](const KeyVal &key) {
+  return std::visit([this](auto &k) -> Data & { return other[k]; }, key);
+}
+
+const Data &Field::operator[](const SubsurfaceKey &key) const {
+  return other.at(key);
+}
+
+const Data &Field::operator[](const KeyVal &key) const {
+  return std::visit([this](auto &k) -> const Data & { return other.at(k); },
+                    key);
+}
+
+bool Field::contains(const SubsurfaceKey &key) const {
+  return other.contains(key);
+}
+
+bool Field::contains(const KeyVal &key) const {
+  return std::visit([this](auto &k) { return this->contains(k); }, key);
 }
 
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
@@ -463,8 +488,6 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
 ARTS_METHOD_ERROR_CATCH
 
 Point Field::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
-
-Index Field::nbasic() const { return basic().size(); }
 }  // namespace Subsurface
 
 std::string std::formatter<SubsurfacePoint>::to_string(
@@ -490,16 +513,16 @@ std::string std::formatter<SubsurfaceField>::to_string(
     out = tags.vformat(R"("bottom_depth": )"sv,
                        v.bottom_depth,
                        sep,
-                       R"("Basic": )"sv,
-                       v.basic().size());
+                       R"("Other": )"sv,
+                       v.other.size());
   } else {
     const std::string_view sep = tags.sep(true);
 
     out = tags.vformat(R"("bottom_depth": )"sv,
                        v.bottom_depth,
                        sep,
-                       R"("Basic": )"sv,
-                       v.basic());
+                       R"("Other": )"sv,
+                       v.other);
   }
 
   return tags.bracket ? ("{" + out + "}") : out;
@@ -510,7 +533,7 @@ std::string std::formatter<SubsurfaceKeyVal>::to_string(
   std::string out;
   return std::visit(
       [fmt = tags.get_format_args()](const auto &val) {
-        return std::vformat(fmt.c_str(), std::make_format_args(val));
+        return std::vformat(fmt, std::make_format_args(val));
       },
       v);
 }

@@ -688,16 +688,16 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
   XMLTag data_tag;
   XMLTag close_tag;
 
-  sparse_tag.set_name(type_name);
+  sparse_tag.name = type_name;
   if (name.length()) sparse_tag.add_attribute("name", name);
   sparse_tag.add_attribute("nrows", sparse.nrows());
   sparse_tag.add_attribute("ncols", sparse.ncols());
   //sparse_tag.add_attribute ("nnz", sparse.nnz());
-  row_tag.set_name("RowIndex");
+  row_tag.name = "RowIndex";
   row_tag.add_attribute("nelem", sparse.nnz());
-  col_tag.set_name("ColIndex");
+  col_tag.name = "ColIndex";
   col_tag.add_attribute("nelem", sparse.nnz());
-  data_tag.set_name("SparseData");
+  data_tag.name = "SparseData";
   data_tag.add_attribute("nelem", sparse.nnz());
 
   sparse_tag.write_to_stream(os_xml);
@@ -720,7 +720,7 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
       std::println(os_xml, "{}", rowind[i]);
   }
 
-  close_tag.set_name("/RowIndex");
+  close_tag.name = "/RowIndex";
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
@@ -737,7 +737,7 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
       std::println(os_xml, "{}", colind[i]);
   }
 
-  close_tag.set_name("/ColIndex");
+  close_tag.name = "/ColIndex";
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
@@ -754,12 +754,12 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
       std::print(os_xml, "{} ", data[i]);
   }
   std::println(os_xml);
-  close_tag.set_name("/SparseData");
+  close_tag.name = "/SparseData";
   close_tag.write_to_stream(os_xml);
   std::println(os_xml);
 
-  close_tag.set_end_name(type_name);
-  close_tag.write_to_stream(os_xml);
+  close_tag.name = type_name;
+  close_tag.write_to_end_stream(os_xml);
 
   std::println(os_xml);
 }

@@ -1,3 +1,4 @@
+#include <array_algo.h>
 #include <arts_omp.h>
 #include <workspace.h>
 
@@ -18,7 +19,7 @@ void atmospheric_fieldInitializeNonLTE(AtmField& atmospheric_field,
                                        const Numeric& normalizing_factor) try {
   ARTS_TIME_REPORT
 
-  atmospheric_field.nlte() = lbl::nlte::from_lte(
+  atmospheric_field.nlte = lbl::nlte::from_lte(
       atmospheric_field, absorption_bands, normalizing_factor);
 }
 ARTS_METHOD_ERROR_CATCH

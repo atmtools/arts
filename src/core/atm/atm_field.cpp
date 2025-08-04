@@ -20,6 +20,14 @@
 #include <variant>
 #include <vector>
 
+bool AtmPoint::zero_wind() const noexcept {
+  return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
+}
+
+bool AtmPoint::zero_mag() const noexcept {
+  return std::all_of(mag.begin(), mag.end(), Cmp::eq(0));
+}
+
 void Atm::Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<SortedGriddedField3>(data)) {
     auto &field = std::get<SortedGriddedField3>(data);
@@ -180,7 +188,7 @@ Field::Field(const IsoRatioOption isots_key) {
       for (Index i = 0; i < x.maxsize; i++) {
         if (Species::Isotopologues[i].is_joker()) continue;
         if (Species::Isotopologues[i].is_predefined()) continue;
-        isots()[Species::Isotopologues[i]] = x.data[i];
+        isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
@@ -188,7 +196,7 @@ Field::Field(const IsoRatioOption isots_key) {
       for (Index i = 0; i < x.maxsize; i++) {
         if (Species::Isotopologues[i].is_joker()) continue;
         if (Species::Isotopologues[i].is_predefined()) continue;
-        isots()[Species::Isotopologues[i]] = x.data[i];
+        isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::None: break;
@@ -213,42 +221,26 @@ Data::Data(Data &&) noexcept               = default;
 Data &Data::operator=(const Data &)        = default;
 Data &Data::operator=(Data &&) noexcept    = default;
 
-const std::unordered_map<QuantumLevelIdentifier, Data> &Field::nlte() const {
-  return map<QuantumLevelIdentifier>();
+bool Field::contains(const AtmKey &key) const { return other.contains(key); }
+
+bool Field::contains(const SpeciesEnum &key) const {
+  return specs.contains(key);
 }
 
-const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
-  return map<SpeciesEnum>();
+bool Field::contains(const SpeciesIsotope &key) const {
+  return isots.contains(key);
 }
 
-const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
-  return map<SpeciesIsotope>();
-}
-const std::unordered_map<AtmKey, Data> &Field::other() const {
-  return map<AtmKey>();
+bool Field::contains(const QuantumLevelIdentifier &key) const {
+  return nlte.contains(key);
 }
 
-const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops()
-    const {
-  return map<ScatteringSpeciesProperty>();
+bool Field::contains(const ScatteringSpeciesProperty &key) const {
+  return ssprops.contains(key);
 }
 
-std::unordered_map<QuantumLevelIdentifier, Data> &Field::nlte() {
-  return map<QuantumLevelIdentifier>();
-}
-
-std::unordered_map<SpeciesEnum, Data> &Field::specs() {
-  return map<SpeciesEnum>();
-}
-
-std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
-  return map<SpeciesIsotope>();
-}
-
-std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
-
-std::unordered_map<ScatteringSpeciesProperty, Data> &Field::ssprops() {
-  return map<ScatteringSpeciesProperty>();
+bool Field::contains(const KeyVal &key) const {
+  return std::visit([this](auto &x) { return contains(x); }, key);
 }
 
 bool Point::contains(const KeyVal &key) const {
@@ -330,15 +322,19 @@ Index Point::size() const {
   return nspec() + nnlte() + nother() + npart() + nisot();
 }
 
-Index Field::nspec() const { return static_cast<Index>(specs().size()); }
+Size Field::nspec() const { return specs.size(); }
 
-Index Field::nisot() const { return static_cast<Index>(isots().size()); }
+Size Field::nisot() const { return isots.size(); }
 
-Index Field::npart() const { return static_cast<Index>(ssprops().size()); }
+Size Field::npart() const { return ssprops.size(); }
 
-Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
+Size Field::nnlte() const { return nlte.size(); }
 
-Index Field::nother() const { return static_cast<Index>(other().size()); }
+Size Field::nother() const { return other.size(); }
+
+Size Field::size() const {
+  return nspec() + nnlte() + nother() + npart() + nisot();
+}
 
 String Data::data_type() const {
   if (std::holds_alternative<SortedGriddedField3>(data))
@@ -587,8 +583,17 @@ std::vector<AtmKey> get_keys(
 }
 }  // namespace
 
-ArrayOfQuantumLevelIdentifier Field::nlte_keys() const {
-  return keys<QuantumLevelIdentifier>();
+std::vector<KeyVal> Field::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(size());
+
+  for (const auto &a : other) out.emplace_back(a.first);
+  for (const auto &a : specs) out.emplace_back(a.first);
+  for (const auto &a : isots) out.emplace_back(a.first);
+  for (const auto &a : nlte) out.emplace_back(a.first);
+  for (const auto &a : ssprops) out.emplace_back(a.first);
+
+  return out;
 }
 
 void Point::check_and_fix() try {
@@ -645,6 +650,46 @@ void Point::check_and_fix() try {
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+Data &Field::operator[](const AtmKey &key) { return other[key]; }
+
+Data &Field::operator[](const SpeciesEnum &key) { return specs[key]; }
+
+Data &Field::operator[](const SpeciesIsotope &key) { return isots[key]; }
+
+Data &Field::operator[](const QuantumLevelIdentifier &key) { return nlte[key]; }
+
+Data &Field::operator[](const ScatteringSpeciesProperty &key) {
+  return ssprops[key];
+}
+
+Data &Field::operator[](const KeyVal &key) {
+  return std::visit(
+      [this](auto &key) -> Data & { return this->operator[](key); }, key);
+}
+
+const Data &Field::operator[](const AtmKey &key) const { return other.at(key); }
+
+const Data &Field::operator[](const SpeciesEnum &key) const {
+  return specs.at(key);
+}
+
+const Data &Field::operator[](const SpeciesIsotope &key) const {
+  return isots.at(key);
+}
+
+const Data &Field::operator[](const QuantumLevelIdentifier &key) const {
+  return nlte.at(key);
+}
+
+const Data &Field::operator[](const ScatteringSpeciesProperty &key) const {
+  return ssprops.at(key);
+}
+
+const Data &Field::operator[](const KeyVal &key) const {
+  return std::visit(
+      [this](auto &key) -> const Data & { return this->operator[](key); }, key);
+}
 
 Numeric Point::operator[](const KeyVal &k) const {
   return std::visit([this](auto &key) { return this->operator[](key); }, k);
@@ -1236,19 +1281,19 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
                        v.top_of_atmosphere,
                        sep,
                        R"("Base": )"sv,
-                       v.other().size(),
+                       v.other.size(),
                        sep,
                        R"("SpeciesEnum": )"sv,
-                       v.specs().size(),
+                       v.specs.size(),
                        sep,
                        R"("SpeciesIsotope": )"sv,
-                       v.isots().size(),
+                       v.isots.size(),
                        sep,
                        R"("QuantumLevelIdentifier": )"sv,
-                       v.nlte().size(),
+                       v.nlte.size(),
                        sep,
                        R"("ScatteringSpeciesProperty": )"sv,
-                       v.ssprops().size());
+                       v.ssprops.size());
   } else {
     const std::string_view sep = tags.sep(true);
 
@@ -1256,19 +1301,19 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
                        v.top_of_atmosphere,
                        sep,
                        R"("Base": )"sv,
-                       v.other(),
+                       v.other,
                        sep,
                        R"("SpeciesEnum": )"sv,
-                       v.specs(),
+                       v.specs,
                        sep,
                        R"("SpeciesIsotope": )"sv,
-                       v.isots(),
+                       v.isots,
                        sep,
                        R"("QuantumLevelIdentifier": )"sv,
-                       v.nlte(),
+                       v.nlte,
                        sep,
                        R"("ScatteringSpeciesProperty": )"sv,
-                       v.ssprops());
+                       v.ssprops);
   }
 
   return tags.bracket ? ("{" + out + "}") : out;

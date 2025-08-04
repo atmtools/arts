@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <debug.h>
 #include <file.h>
 
 #include <type_traits>
