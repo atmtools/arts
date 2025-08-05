@@ -4,12 +4,13 @@ void xml_io_stream<SubsurfaceField>::write(std::ostream& os,
                                            const SubsurfaceField& x,
                                            bofstream* pbofs,
                                            std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.bottom_depth, pbofs, "Depth"sv);
   xml_write_to_stream(os, x.other, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SubsurfaceField>::read(std::istream& is,
@@ -49,7 +50,8 @@ void xml_io_stream<SubsurfaceData>::write(std::ostream& os,
                                           const SubsurfaceData& v,
                                           bofstream* pbofs,
                                           std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, v.data, pbofs, "Data"sv);
   xml_write_to_stream(os, v.alt_upp, pbofs, "alt_upp"sv);
@@ -59,7 +61,7 @@ void xml_io_stream<SubsurfaceData>::write(std::ostream& os,
   xml_write_to_stream(os, v.lon_upp, pbofs, "lon_upp"sv);
   xml_write_to_stream(os, v.lon_low, pbofs, "lon_low"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SubsurfacePoint>::read(std::istream& is,
@@ -80,10 +82,11 @@ void xml_io_stream<SubsurfacePoint>::write(std::ostream& os,
                                            const SubsurfacePoint& v,
                                            bofstream* pbofs,
                                            std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, v.temperature, pbofs, "temperature"sv);
   xml_write_to_stream(os, v.density, pbofs, "density"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }

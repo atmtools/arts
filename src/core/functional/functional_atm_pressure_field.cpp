@@ -72,13 +72,14 @@ void xml_io_stream<Atm::HydrostaticPressure>::write(
     const Atm::HydrostaticPressure& a,
     bofstream* pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, a.grad_p, pbofs);
   xml_write_to_stream(os, a.pre, pbofs);
   xml_write_to_stream(os, a.option, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Atm::HydrostaticPressure>::read(std::istream& is,

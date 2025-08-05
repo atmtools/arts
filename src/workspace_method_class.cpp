@@ -333,12 +333,12 @@ void xml_io_stream<Wsv>::write(std::ostream& os,
                                const Wsv& x,
                                bofstream* pbofs,
                                std::string_view name) {
-  std::println(
-      os, R"(<{0} name="{1}" type="{2}">)", type_name, name, x.type_name());
+  XMLTag tag(type_name, "name", name, "type", x.type_name());
+  tag.write_to_stream(os);
 
   x.write_to_stream(os, pbofs, "WSV");
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Wsv>::read(std::istream& is, Wsv& x, bifstream* pbifs) {
@@ -359,7 +359,8 @@ void xml_io_stream<Method>::write(std::ostream& os,
                                   const Method& x,
                                   bofstream* pbofs,
                                   std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.get_name(), pbofs);
   xml_write_to_stream(os, x.get_outs(), pbofs);
@@ -367,7 +368,7 @@ void xml_io_stream<Method>::write(std::ostream& os,
   xml_write_to_stream(os, x.get_setval(), pbofs);
   xml_write_to_stream(os, x.overwrite(), pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Method>::read(std::istream& is,

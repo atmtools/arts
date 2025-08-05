@@ -14,14 +14,15 @@ void xml_io_stream<Numeric>::write(std::ostream& os,
                                    const Numeric& n,
                                    bofstream* pbofs,
                                    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs)
     xml_io_stream<Numeric>::put({&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Numeric>::get(std::span<Numeric> v, bifstream* pbifs) {
@@ -61,14 +62,15 @@ void xml_io_stream<std::complex<Numeric>>::write(std::ostream& os,
                                                  const std::complex<Numeric>& n,
                                                  bofstream* pbofs,
                                                  std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs)
     xml_io_stream<std::complex<Numeric>>::put({&n, 1}, pbofs);
   else
     std::println(os, "{} {}", n.real(), n.imag());
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<std::complex<Numeric>>::get(
@@ -110,14 +112,15 @@ void xml_io_stream<Index>::write(std::ostream& os,
                                  const Index& n,
                                  bofstream* pbofs,
                                  std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs)
     xml_io_stream<Index>::put({&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Index>::get(std::span<Index> v, bifstream* pbifs) {
@@ -160,14 +163,15 @@ void xml_io_stream<Size>::write(std::ostream& os,
                                 const Size& n,
                                 bofstream* pbofs,
                                 std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs)
     xml_io_stream<Size>::put({&n, 1}, pbofs);
   else
     std::println(os, "{}", n);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Size>::get(std::span<Size> v, bifstream* pbifs) {
@@ -286,14 +290,19 @@ void xml_io_stream<bool>::write(std::ostream& os,
                                 const bool& n,
                                 bofstream*,
                                 std::string_view name) {
-  std::println(os, R"(<{0} name="{1}"> {2} </{0}>)", type_name, name, Index{n});
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+  std::println(os, "{}", Index{n});
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Any>::write(std::ostream& os,
                                const Any&,
                                bofstream*,
-                               std::string_view) {
-  std::println(os, "<{0}> </{0}>", type_name);
+                               std::string_view name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Any>::read(std::istream& is, Any&, bifstream*) {

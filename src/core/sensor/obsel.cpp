@@ -590,7 +590,8 @@ void xml_io_stream<SensorPosLos>::write(std::ostream& os,
                                         const SensorPosLos& x,
                                         bofstream* pbofs,
                                         std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs) {
     put({&x, 1}, pbofs);
@@ -598,7 +599,7 @@ void xml_io_stream<SensorPosLos>::write(std::ostream& os,
     std::println(os, "{:IO}", x);
   }
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SensorPosLos>::read(std::istream& is,
@@ -650,7 +651,8 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
                                                  const sensor::SparseStokvec& x,
                                                  bofstream* pbofs,
                                                  std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (pbofs) {
     put({&x, 1}, pbofs);
@@ -658,7 +660,7 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
     std::println(os, "{:IO}", x);
   }
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<sensor::SparseStokvec>::get(
@@ -699,13 +701,14 @@ void xml_io_stream<sensor::SparseStokvecMatrix>::write(
     const sensor::SparseStokvecMatrix& x,
     bofstream* pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.nrows(), pbofs);
   xml_write_to_stream(os, x.ncols(), pbofs);
   xml_write_to_stream(os, x.vector(), pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<sensor::SparseStokvecMatrix>::read(
@@ -733,13 +736,14 @@ void xml_io_stream<SensorObsel>::write(std::ostream& os,
                                        const SensorObsel& g,
                                        bofstream* pbofs,
                                        std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, g.f_grid(), pbofs, "f_grid");
   xml_write_to_stream(os, g.poslos_grid(), pbofs, "poslos");
   xml_write_to_stream(os, g.weight_matrix(), pbofs, "weight_matrix");
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SensorObsel>::read(std::istream& is,
@@ -781,7 +785,8 @@ void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
   freqs.reserve(sen.size());
   for (const auto& i : sen | stdv::keys) freqs.push_back(i);
 
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, freqs, pbofs, "f_grid");
   xml_write_to_stream(os, plos, pbofs, "poslos");
@@ -808,7 +813,7 @@ void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
                       pbofs,
                       "Weights");
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,

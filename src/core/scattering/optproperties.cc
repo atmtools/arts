@@ -474,7 +474,6 @@ void xml_io_stream<SingleScatteringData>::write(
   open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
 
-  std::println(os_xml);
   xml_write_to_stream(os_xml, String{PTypeToString(ssdata.ptype)}, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "");
@@ -487,7 +486,6 @@ void xml_io_stream<SingleScatteringData>::write(
 
   close_tag.name=("/SingleScatteringData");
   close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
 }
 
 void xml_io_stream<SingleScatteringData>::read(std::istream& is_xml,
@@ -567,7 +565,8 @@ void xml_io_stream<ScatteringMetaData>::write(std::ostream& os,
                                               const ScatteringMetaData& x,
                                               bofstream* pbofs,
                                               std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.description, pbofs);
   xml_write_to_stream(os, x.source, pbofs);
@@ -577,7 +576,7 @@ void xml_io_stream<ScatteringMetaData>::write(std::ostream& os,
   xml_write_to_stream(os, x.diameter_volume_equ, pbofs);
   xml_write_to_stream(os, x.diameter_area_equ_aerodynamical, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<ScatteringMetaData>::read(std::istream& is,

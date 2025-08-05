@@ -890,11 +890,8 @@ void xml_io_stream<JacobianTargets>::write(std::ostream& os,
                                            const JacobianTargets& x,
                                            bofstream* pbofs,
                                            std::string_view name) {
-  std::println(os,
-               R"(<{0} name="{1}" final="{2}">)",
-               type_name,
-               name,
-               Index{x.finalized});
+  XMLTag tag(type_name, "name", name, "final", Index{x.finalized});
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.atm, pbofs, "atm");
   xml_write_to_stream(os, x.surf, pbofs, "surf");
@@ -903,7 +900,7 @@ void xml_io_stream<JacobianTargets>::write(std::ostream& os,
   xml_write_to_stream(os, x.sensor, pbofs, "sensor");
   xml_write_to_stream(os, x.error, pbofs, "error");
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<JacobianTargets>::read(std::istream& is,

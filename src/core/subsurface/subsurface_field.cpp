@@ -1,3 +1,7 @@
+#include "subsurface_field.h"
+
+#include <utility>
+
 #include "enumsSubsurfaceKey.h"
 #include "subsurface.h"
 
@@ -369,10 +373,7 @@ ConstVectorView Data::flat_view() const {
           return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ConstVectorView{};
-        else
-          static_assert(
-              RawDataType<T>,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        std::unreachable();
       },
       data);
 }
@@ -387,10 +388,7 @@ VectorView Data::flat_view() {
           return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return VectorView{};
-        else
-          static_assert(
-              RawDataType<T>,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        std::unreachable();
       },
       data);
 }
@@ -528,12 +526,7 @@ std::string std::formatter<SubsurfaceField>::to_string(
   return tags.bracket ? ("{" + out + "}") : out;
 }
 
-std::string std::formatter<SubsurfaceKeyVal>::to_string(
-    const SubsurfaceKeyVal &v) const {
-  std::string out;
-  return std::visit(
-      [fmt = tags.get_format_args()](const auto &val) {
-        return std::vformat(fmt, std::make_format_args(val));
-      },
-      v);
-}
+static_assert(
+    std::same_as<typename SubsurfaceField::KeyVal, SubsurfaceKeyVal>,
+    "The order of arguments in the template of which Field inherits from is "
+    "wrong.  KeyVal must be defined in the same way for this to work.");

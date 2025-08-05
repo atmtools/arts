@@ -301,12 +301,10 @@ void xml_io_stream<Time>::write(std::ostream& os,
                                 const Time& x,
                                 bofstream*,
                                 std::string_view name) {
-  std::println(os,
-               R"(<{0} name="{1}" version="{2}"> {3:IO} </{0}>)",
-               type_name,
-               name,
-               x.Version(),
-               x);
+  XMLTag tag(type_name, "name", name, "version", x.Version());
+  tag.write_to_stream(os);
+  std::println(os, "{:IO}", x);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Time>::read(std::istream& is, Time& x, bifstream*) {

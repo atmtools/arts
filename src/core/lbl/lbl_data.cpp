@@ -338,24 +338,22 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
                                           std::string_view name) {
   ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
 
-  XMLTag open_tag;
-  open_tag.name=("AbsorptionBandData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("lineshape", String{toString(data.lineshape)});
-  open_tag.add_attribute("cutoff_type", String{toString(data.cutoff)});
-  open_tag.add_attribute("cutoff_value", data.cutoff_value);
-  open_tag.add_attribute("nelem", static_cast<Index>(data.lines.size()));
-  open_tag.write_to_stream(os);
-  std::println(os);
+  XMLTag tag(type_name,
+             "name",
+             name,
+             "lineshape",
+             String{toString(data.lineshape)},
+             "cutoff_type",
+             String{toString(data.cutoff)},
+             "cutoff_value",
+             data.cutoff_value,
+             "nelem",
+             static_cast<Index>(data.lines.size()));
+  tag.write_to_stream(os);
 
-  for (auto& line : data) {
-    std::println(os, "{:IO}", line);
-  }
+  for (auto& line : data) std::println(os, "{:IO}", line);
 
-  XMLTag close_tag;
-  close_tag.name=("/AbsorptionBandData");
-  close_tag.write_to_stream(os);
-  std::println(os);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<AbsorptionBand>::read(std::istream& is,
@@ -398,7 +396,8 @@ void xml_io_stream<LblLineKey>::write(std::ostream& os,
                                       const LblLineKey& x,
                                       bofstream* pbofs,
                                       std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.band, pbofs);
   xml_write_to_stream(os, x.line, pbofs);
@@ -407,7 +406,7 @@ void xml_io_stream<LblLineKey>::write(std::ostream& os,
   xml_write_to_stream(os, x.ls_coeff, pbofs);
   xml_write_to_stream(os, x.var, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<LblLineKey>::read(std::istream& is,

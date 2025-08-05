@@ -690,20 +690,14 @@ bool Isotope::operator!=(const Isotope& other) const {
 }
 }  // namespace Species
 
-std::ostream& operator<<(std::ostream& os,
-                         const SpeciesIsotopologueRatios& iso_rat) {
-  for (size_t i = 0; i < iso_rat.maxsize; i++) {
-    if (i not_eq 0) os << '\n';
-    os << Species::Isotopologues[i].FullName() << ' ' << iso_rat.data[i];
-  }
-  return os;
-}
 
 void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
                                           const SpeciesIsotope& x,
                                           bofstream*,
-                                          std::string_view) {
-  std::println(os, R"(<{0} isot="{1}"> </{0}>)", type_name, x.FullName());
+                                          std::string_view name) {
+  XMLTag tag(type_name, "name", name, "isot", x.FullName());
+  tag.write_to_stream(os);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SpeciesIsotope>::read(std::istream& is,

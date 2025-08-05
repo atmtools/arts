@@ -2,10 +2,6 @@
 
 #include <workspace.h>
 
-#include <exception>
-#include <ostream>
-#include <stdexcept>
-
 #include "workspace_class.h"
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {
@@ -33,13 +29,14 @@ void xml_io_stream<CallbackOperator>::write(std::ostream& os,
                                             const CallbackOperator& x,
                                             bofstream* pbofs,
                                             std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.callback, pbofs);
   xml_write_to_stream(os, x.inputs, pbofs);
   xml_write_to_stream(os, x.outputs, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<CallbackOperator>::read(std::istream& is,

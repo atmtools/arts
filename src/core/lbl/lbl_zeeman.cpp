@@ -265,7 +265,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    if (qid.state.contains(QuantumNumberType::J) and qid.state.contains( QuantumNumberType::Ka)) {
+    if (qid.state.contains(QuantumNumberType::J) and
+        qid.state.contains(QuantumNumberType::Ka)) {
       const auto& J  = qid.state.at(QuantumNumberType::J);
       const auto& Ka = qid.state.at(QuantumNumberType::K);
       auto JU        = J.upper.get<Rational>();
@@ -300,9 +301,7 @@ Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
                    pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
 }
 
-Numeric model::Strength(const QuantumState& qn,
-                        pol type,
-                        Index n) const {
+Numeric model::Strength(const QuantumState& qn, pol type, Index n) const {
   if (type == pol::no) return 1.0;
 
   const auto& J = qn.at(QuantumNumberType::J);

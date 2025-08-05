@@ -212,11 +212,6 @@ struct Field final {
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 };
-
-static_assert(
-    std::same_as<typename Field::KeyVal, SurfaceKeyVal>,
-    "The order of arguments in the template of which Field inherits from is "
-    "wrong.  KeyVal must be defined in the same way for this to work.");
 }  // namespace Surf
 
 using SurfaceData         = Surf::Data;
@@ -248,47 +243,6 @@ struct std::formatter<SurfacePropertyTag> {
   }
 };
 
-template <>
-struct std::formatter<SurfaceKeyVal> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-
-  [[nodiscard]] constexpr const auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  [[nodiscard]] std::string to_string(const SurfaceKeyVal &v) const;
-
-  template <class FmtContext>
-  FmtContext::iterator format(const SurfaceKeyVal &v, FmtContext &ctx) const {
-    tags.format(ctx, to_string(v));
-    return ctx.out();
-  }
-};
-
-template <>
-struct std::formatter<Surf::FunctionalData> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const Surf::FunctionalData &,
-                              FmtContext &ctx) const {
-    const std::string_view quote = tags.quote();
-    return tags.format(ctx, quote, "functional-data"sv, quote);
-  }
-};
 template <>
 struct std::formatter<Surf::Data> {
   format_tags tags;

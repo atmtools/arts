@@ -7,6 +7,9 @@
 #include <utility>
 
 namespace lbl::temperature {
+static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
+              "Invalid number of models");
+
 data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
   ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
   ARTS_USER_ERROR_IF(auto n = model_size(t);
@@ -291,12 +294,13 @@ void xml_io_stream<lbl::temperature::data>::write(
     const lbl::temperature::data& x,
     bofstream* pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.Type(), pbofs);
   xml_write_to_stream(os, x.X(), pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<lbl::temperature::data>::read(std::istream& is,

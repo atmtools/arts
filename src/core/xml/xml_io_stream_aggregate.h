@@ -239,7 +239,8 @@ struct xml_io_stream<T> {
                     const T& t,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
-    std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
     std::apply(
         [&os, &pbofs]<typename... Ts>(const Ts&... v) {
@@ -247,7 +248,7 @@ struct xml_io_stream<T> {
         },
         as_tuple(t));
 
-    std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
   }
 
   static void read(std::istream& is, T& t, bifstream* pbifs = nullptr) try {

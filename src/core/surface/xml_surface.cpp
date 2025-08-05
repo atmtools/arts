@@ -4,13 +4,14 @@ void xml_io_stream<SurfaceField>::write(std::ostream& os,
                                         const SurfaceField& x,
                                         bofstream* pbofs,
                                         std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.ellipsoid, pbofs, "Ellipsoid"sv);
   xml_write_to_stream(os, x.other, pbofs, "SurfaceKey"sv);
   xml_write_to_stream(os, x.props, pbofs, "SurfacePropertyTag"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SurfaceField>::read(std::istream& is,
@@ -32,7 +33,8 @@ void xml_io_stream<SurfaceData>::write(std::ostream& os,
                                        const SurfaceData& x,
                                        bofstream* pbofs,
                                        std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.data, pbofs);
   xml_write_to_stream(os, x.lat_upp, pbofs);
@@ -40,7 +42,7 @@ void xml_io_stream<SurfaceData>::write(std::ostream& os,
   xml_write_to_stream(os, x.lon_upp, pbofs);
   xml_write_to_stream(os, x.lon_low, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SurfaceData>::read(std::istream& is,
@@ -64,14 +66,15 @@ void xml_io_stream<SurfacePoint>::write(std::ostream& os,
                                         const SurfacePoint& x,
                                         bofstream* pbofs,
                                         std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.elevation, pbofs);
   xml_write_to_stream(os, x.temperature, pbofs);
   xml_write_to_stream(os, x.normal, pbofs);
   xml_write_to_stream(os, x.prop, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SurfacePoint>::read(std::istream& is,
@@ -94,11 +97,12 @@ void xml_io_stream<SurfacePropertyTag>::write(std::ostream& os,
                                               const SurfacePropertyTag& x,
                                               bofstream* pbofs,
                                               std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.name, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SurfacePropertyTag>::read(std::istream& is,

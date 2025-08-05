@@ -1167,9 +1167,10 @@ struct select_derivative {
    * @return constexpr const auto& The derivative or pure weights 
    */
   template <bool selection_flag, lagrange_type lag_t>
-  static constexpr const auto &one_by_one(const lag_t &lag) {
+  static constexpr const auto &one_by_one(const lag_t &lag)
+    requires(not(selection_flag xor has_derivatives<lag_t>()))
+  {
     if constexpr (selection_flag) {
-      static_assert(has_derivatives<lag_t>(), "Your type lacks derivatives");
       return lag.dlx;
     } else {
       return lag.lx;
