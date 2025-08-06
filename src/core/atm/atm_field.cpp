@@ -713,10 +713,7 @@ ConstVectorView Data::flat_view() const {
           return ConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ternary::get_xc(X.f);
-        else
-          static_assert(
-              RawDataType<T>,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        std::unreachable();
       },
       data);
 }
@@ -731,10 +728,7 @@ VectorView Data::flat_view() {
           return VectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ternary::get_xm(X.f);
-        else
-          static_assert(
-              RawDataType<T>,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        std::unreachable();
       },
       data);
 }
@@ -806,7 +800,7 @@ namespace {
 template <Atm::KeyType T>
 constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
-  return ptr and * ptr == key;
+  return ptr and *ptr == key;
 }
 }  // namespace
 
@@ -1318,3 +1312,8 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
+
+static_assert(
+    std::same_as<typename AtmField::KeyVal, AtmKeyVal>,
+    "The order of arguments in the template of which Field inherits from is "
+    "wrong.  KeyVal must be defined in the same way for this to work.");

@@ -1,3 +1,5 @@
+#include "surface_field.h"
+
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
 #include <debug.h>
@@ -9,8 +11,6 @@
 #include <stdexcept>
 #include <utility>
 #include <variant>
-
-#include "surf.h"
 
 Surf::Point::Point()                                   = default;
 Surf::Point::Point(const Point &)                      = default;
@@ -560,16 +560,6 @@ Data &Data::operator=(FunctionalData x) {
 }
 }  // namespace Surf
 
-std::string std::formatter<SurfaceKeyVal>::to_string(
-    const SurfaceKeyVal &v) const {
-  std::string out;
-  return std::visit(
-      [fmt = tags.get_format_args()](const auto &val) {
-        return std::vformat(fmt, std::make_format_args(val));
-      },
-      v);
-}
-
 bool operator==(const SurfaceKeyVal &lhs, SurfaceKey rhs) {
   auto *val = std::get_if<SurfaceKey>(&lhs);
 
@@ -587,3 +577,8 @@ bool operator==(const SurfaceKeyVal &lhs, const SurfacePropertyTag &rhs) {
 bool operator==(const SurfacePropertyTag &lhs, const SurfaceKeyVal &rhs) {
   return rhs == lhs;
 }
+
+static_assert(
+    std::same_as<typename SurfaceField::KeyVal, SurfaceKeyVal>,
+    "The order of arguments in the template of which Field inherits from is "
+    "wrong.  KeyVal must be defined in the same way for this to work.");

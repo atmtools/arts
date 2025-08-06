@@ -1317,12 +1317,14 @@ void xml_io_stream<PropagationPathPoint>::write(std::ostream& os,
                                                 const PropagationPathPoint& x,
                                                 bofstream* pbofs,
                                                 std::string_view name) {
-  std::println(os,
-               R"(<{0} name="{1}" pos_type="{2}" los_type="{3}">)",
-               type_name,
-               name,
-               x.pos_type,
-               x.los_type);
+  XMLTag tag(type_name,
+             "name",
+             name,
+             "pos_type",
+             toString(x.pos_type),
+             "los_type",
+             toString(x.los_type));
+  tag.write_to_stream(os);
 
   if (pbofs) {
     xml_io_stream<Vector3>::put({&x.pos, 1}, pbofs);
@@ -1336,7 +1338,7 @@ void xml_io_stream<PropagationPathPoint>::write(std::ostream& os,
     xml_io_stream<Numeric>::write(os, x.ngroup, pbofs, "Nimag"sv);
   }
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<PropagationPathPoint>::read(std::istream& is,

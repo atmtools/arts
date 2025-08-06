@@ -24,7 +24,8 @@ void xml_io_stream<AtmPoint>::write(std::ostream& os,
                                     const AtmPoint& v,
                                     bofstream* pbofs,
                                     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, v.specs, pbofs, "Species Data"sv);
   xml_write_to_stream(os, v.isots, pbofs, "Isotopologue Data"sv);
@@ -35,7 +36,7 @@ void xml_io_stream<AtmPoint>::write(std::ostream& os,
   xml_write_to_stream(os, v.wind, pbofs, "wind field"sv);
   xml_write_to_stream(os, v.mag, pbofs, "magnetic field"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<AtmData>::read(std::istream& is,
@@ -61,7 +62,8 @@ void xml_io_stream<AtmData>::write(std::ostream& os,
                                    const AtmData& v,
                                    bofstream* pbofs,
                                    std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, v.data, pbofs, "Data"sv);
   xml_write_to_stream(os, v.alt_upp, pbofs, "alt_upp"sv);
@@ -71,7 +73,7 @@ void xml_io_stream<AtmData>::write(std::ostream& os,
   xml_write_to_stream(os, v.lon_upp, pbofs, "lon_upp"sv);
   xml_write_to_stream(os, v.lon_low, pbofs, "lon_low"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<AtmField>::read(std::istream& is,
@@ -97,7 +99,8 @@ void xml_io_stream<AtmField>::write(std::ostream& os,
                                     const AtmField& v,
                                     bofstream* pbofs,
                                     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, v.top_of_atmosphere, pbofs, "TOA"sv);
 
@@ -107,5 +110,5 @@ void xml_io_stream<AtmField>::write(std::ostream& os,
   xml_write_to_stream(os, v.nlte, pbofs, "NLTE Data"sv);
   xml_write_to_stream(os, v.ssprops, pbofs, "Scattering Data"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }

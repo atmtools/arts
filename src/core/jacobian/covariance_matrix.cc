@@ -776,14 +776,15 @@ void xml_io_stream<Block>::write(std::ostream &os,
                                  const Block &x,
                                  bofstream *pbofs,
                                  std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.row_range_, pbofs);
   xml_write_to_stream(os, x.column_range_, pbofs);
   xml_write_to_stream(os, x.indices_, pbofs);
   xml_write_to_stream(os, x.matrix_, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Block>::read(std::istream &is, Block &x, bifstream *pbifs) {
@@ -804,11 +805,12 @@ void xml_io_stream<BlockMatrix>::write(std::ostream &os,
                                        const BlockMatrix &x,
                                        bofstream *pbofs,
                                        std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   if (x.not_null()) xml_write_to_stream(os, x.data, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<BlockMatrix>::read(std::istream &is,
@@ -828,12 +830,13 @@ void xml_io_stream<CovarianceMatrix>::write(std::ostream &os,
                                             const CovarianceMatrix &x,
                                             bofstream *pbofs,
                                             std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.get_blocks(), pbofs);
   xml_write_to_stream(os, x.get_inverse_blocks(), pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<CovarianceMatrix>::read(std::istream &is,

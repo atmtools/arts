@@ -136,16 +136,34 @@ constexpr decltype(auto) acc(Acc&&... i)
 
 template <Size N, typename Self, access_operator... Acc>
 constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
-  return std::apply(
-      [&s]<access_operator... AccT>(AccT&&... x) {
-        if constexpr (any_md<Self>) {
-          return stdx::submdspan(s.base_md(),
-                                 to_base(std::forward<AccT>(x))...);
-        } else {
+  if constexpr (any_md<Self>) {
+    constexpr Size M = sizeof...(Acc);
+    if constexpr (N == M) {
+      return stdx::submdspan(s.base_md(), to_base(std::forward<Acc>(i))...);
+    } else if constexpr (N == (M + 1)) {
+      return stdx::submdspan(
+          s.base_md(), to_base(std::forward<Acc>(i))..., joker);
+    } else if constexpr (N == (M + 2)) {
+      return stdx::submdspan(
+          s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker);
+    } else if constexpr (N == (M + 3)) {
+      return stdx::submdspan(
+          s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker, joker);
+    } else {
+      return std::apply(
+          [&s]<access_operator... AccT>(AccT&&... x) {
+            return stdx::submdspan(s.base_md(),
+                                   to_base(std::forward<AccT>(x))...);
+          },
+          acc<N>(std::forward<Acc>(i)...));
+    }
+  } else {
+    return std::apply(
+        [&s]<access_operator... AccT>(AccT&&... x) {
           return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
-        }
-      },
-      acc<N>(std::forward<Acc>(i)...));
+        },
+        acc<N>(std::forward<Acc>(i)...));
+  }
 }
 
 //! Create a tuple to access an index surrounded by jokers

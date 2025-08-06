@@ -113,11 +113,12 @@ void xml_io_stream<Workspace>::write(std::ostream& os,
                                      const Workspace& x,
                                      bofstream* pbofs,
                                      std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.wsv, pbofs, "WSVs"sv);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Workspace>::read(std::istream& is,

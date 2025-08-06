@@ -322,11 +322,6 @@ struct Xarr {
   Xarr(const Field &, std::vector<Field::KeyVal> keys = {});
 };
 
-static_assert(
-    std::same_as<typename Field::KeyVal, KeyVal>,
-    "The order of arguments in the template of which Field inherits from is "
-    "wrong.  KeyVal must be defined in the same way for this to work.");
-
 /** Returns true if the pressure is increasing
  * 
  * The pressure must be consistently increasing or decreasing.

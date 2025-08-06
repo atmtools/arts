@@ -123,7 +123,7 @@ table::table(const SpeciesEnum& species,
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -312,7 +312,8 @@ void xml_io_stream<AbsorptionLookupTable>::write(std::ostream& os,
                                                  const AbsorptionLookupTable& x,
                                                  bofstream* pbofs,
                                                  std::string_view name) {
-  std::println(os, R"(<{0}> name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.f_grid, pbofs, "frequency"sv);
   xml_write_to_stream(os, x.log_p_grid, pbofs, "log-p"sv);
@@ -322,7 +323,7 @@ void xml_io_stream<AbsorptionLookupTable>::write(std::ostream& os,
   xml_write_to_stream(os, x.t_atmref, pbofs, "t-ref"sv);
   xml_write_to_stream(os, x.xsec, pbofs, "xsec");
 
-  std::println(os, R"(</{0}>>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<AbsorptionLookupTable>::read(std::istream& is,

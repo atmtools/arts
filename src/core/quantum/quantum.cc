@@ -800,13 +800,10 @@ void xml_io_stream<QuantumLevel>::write(std::ostream& os_xml,
                                         const QuantumLevel& qns,
                                         bofstream*,
                                         std::string_view name) {
-  std::println(os_xml,
-               R"(<{0} name="{1}">
-{2:IO}
-</{0}>)",
-               type_name,
-               name,
-               qns);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os_xml);
+  std::println(os_xml, "{:IO}", qns);
+  tag.write_to_end_stream(os_xml);
 }
 
 void xml_io_stream<QuantumLevel>::read(std::istream& is_xml,
@@ -837,13 +834,10 @@ void xml_io_stream<QuantumState>::write(std::ostream& os_xml,
                                         const QuantumState& qns,
                                         bofstream*,
                                         std::string_view name) {
-  std::println(os_xml,
-               R"(<{0} name="{1}">
-{2:IO}
-</{0}>)",
-               type_name,
-               name,
-               qns);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os_xml);
+  std::println(os_xml, "{:IO}", qns);
+  tag.write_to_end_stream(os_xml);
 }
 
 void xml_io_stream<QuantumState>::read(std::istream& is_xml,
@@ -866,13 +860,10 @@ void xml_io_stream<QuantumIdentifier>::write(std::ostream& os_xml,
                                              const QuantumIdentifier& qns,
                                              bofstream*,
                                              std::string_view name) {
-  std::println(os_xml,
-               R"(<{0} name="{1}">
-{2}
-</{0}>)",
-               type_name,
-               name,
-               qns);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os_xml);
+  std::println(os_xml, "{:IO}", qns);
+  tag.write_to_end_stream(os_xml);
 }
 
 void xml_io_stream<QuantumIdentifier>::read(std::istream& is_xml,
@@ -898,13 +889,10 @@ void xml_io_stream<QuantumLevelIdentifier>::write(
     const QuantumLevelIdentifier& qns,
     bofstream*,
     std::string_view name) {
-  std::println(os_xml,
-               R"(<{0} name="{1}">
-{2}
-</{0}>)",
-               type_name,
-               name,
-               qns);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os_xml);
+  std::println(os_xml, "{:IO}", qns);
+  tag.write_to_end_stream(os_xml);
 }
 
 void xml_io_stream<QuantumLevelIdentifier>::read(std::istream& is_xml,

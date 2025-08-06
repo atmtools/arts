@@ -46,14 +46,11 @@ void xml_io_stream<PartitionFunctionsData>::write(
   if (name not_eq "") open_tag.add_attribute("name", String{name});
   open_tag.add_attribute("type", String(toString(data.type)));
   open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
 
   xml_io_stream<Matrix>::write(os_xml, data.data, pbofs, "Data");
 
   close_tag.name = type_name;
   close_tag.write_to_end_stream(os_xml);
-
-  os_xml << '\n';
 }
 
 namespace PartitionFunctions {

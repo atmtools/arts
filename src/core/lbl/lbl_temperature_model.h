@@ -9,8 +9,6 @@
 
 namespace lbl::temperature {
 inline constexpr std::size_t LineShapeModelTypeSize = 9;
-static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
-              "Invalid number of models");
 
 //! The number of parameters per model type (max() means and arbitrary number)
 constexpr Size model_size(LineShapeModelType type) {

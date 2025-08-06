@@ -284,7 +284,8 @@ void xml_io_stream<SpectralRadianceOperator>::write(
     const SpectralRadianceOperator& x,
     bofstream* pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.alt, pbofs);
   xml_write_to_stream(os, x.lat, pbofs);
@@ -295,7 +296,7 @@ void xml_io_stream<SpectralRadianceOperator>::write(
   xml_write_to_stream(os, x.spectral_radiance_space, pbofs);
   xml_write_to_stream(os, x.ellipsoid, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<SpectralRadianceOperator>::read(std::istream& is,

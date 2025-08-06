@@ -280,7 +280,7 @@ struct std::formatter<std::variant<WTs...>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::variant<WTs...>& v,
-                              FmtContext& ctx) const {
+                                   FmtContext& ctx) const {
     const auto call = []<typename T>(const format_tags& tags,
                                      FmtContext& ctx,
                                      const T* const e) -> bool {
@@ -309,7 +309,7 @@ struct std::formatter<std::unordered_map<Key, Value>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
-                              FmtContext& ctx) const {
+                                   FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -333,7 +333,7 @@ struct std::formatter<std::map<Key, Value>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
-                              FmtContext& ctx) const {
+                                   FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -431,7 +431,7 @@ struct std::formatter<std::vector<T, Allocator>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::vector<T, Allocator>& v,
-                              FmtContext& ctx) const {
+                                   FmtContext& ctx) const {
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -456,7 +456,7 @@ struct std::formatter<std::array<T, N>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::array<T, N>& v,
-                              FmtContext& ctx) const {
+                                   FmtContext& ctx) const {
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');

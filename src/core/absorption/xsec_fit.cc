@@ -263,7 +263,6 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
   open_tag.add_attribute("version", xd.Version());
 
   open_tag.write_to_stream(os_xml);
-  std::println(os_xml);
   xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species");
 
   xml_write_to_stream(
@@ -278,8 +277,6 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
 
   close_tag.name = ("/XsecRecord");
   close_tag.write_to_stream(os_xml);
-
-  std::println(os_xml);
 }
 
 void xml_io_stream<XsecRecord>::read(std::istream& is_xml,

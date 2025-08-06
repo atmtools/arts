@@ -115,9 +115,9 @@ constexpr std::pair<Rational, Rational> wigner3j_limits(
     [[maybe_unused]] const Rational b = 0,
     [[maybe_unused]] const Rational c = 0,
     [[maybe_unused]] const Rational d = 0,
-    [[maybe_unused]] const Rational e = 0) {
-  static_assert(pos < 7 and pos > 0,
-                "Only valid for pos := 1, 2, 3, 4, 5, and 6");
+    [[maybe_unused]] const Rational e = 0)
+  requires(pos < 7 and pos > 0)
+{
   using std::swap;
 
   if constexpr (pos == 1 or pos == 2) {

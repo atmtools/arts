@@ -57,7 +57,8 @@ void xml_io_stream<Absorption::PredefinedModel::MT_CKD400::WaterData>::write(
     const Absorption::PredefinedModel::MT_CKD400::WaterData &x,
     bofstream *pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.ref_press, pbofs);
   xml_write_to_stream(os, x.ref_temp, pbofs);
@@ -67,7 +68,7 @@ void xml_io_stream<Absorption::PredefinedModel::MT_CKD400::WaterData>::write(
   xml_write_to_stream(os, x.wavenumbers, pbofs);
   xml_write_to_stream(os, x.self_texp, pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Absorption::PredefinedModel::MT_CKD400::WaterData>::read(
@@ -95,7 +96,9 @@ void xml_io_stream<Absorption::PredefinedModel::ModelName>::write(
     const Absorption::PredefinedModel::ModelName &,
     bofstream *,
     std::string_view name) {
-  std::println(os, R"(<{0} name="{1}"> </{0}>)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<Absorption::PredefinedModel::ModelName>::read(

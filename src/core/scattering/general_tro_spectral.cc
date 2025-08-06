@@ -145,11 +145,12 @@ void xml_io_stream<ScatteringGeneralSpectralTRO>::write(
     const ScatteringGeneralSpectralTRO& x,
     bofstream* pbofs,
     std::string_view name) {
-  std::println(os, R"(<{0}> name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.f, pbofs);
 
-  std::println(os, R"(</{0}>>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<ScatteringGeneralSpectralTRO>::read(

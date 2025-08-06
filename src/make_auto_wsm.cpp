@@ -357,7 +357,7 @@ void call_function(std::ostream& os,
     std::println(os, R"(      }}
     }})");
   } else if (wsmr.has_overloads()) {
-    os << "[map = std::unordered_map<std::string, std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)>>{\n";
+    os << "[map = std::unordered_map<std::string_view, std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)>>{\n";
 
     const auto ol = overloads(wsmr);
 
@@ -394,7 +394,7 @@ void call_function(std::ostream& os,
     }
 
     os << R"--(}] (Workspace& ws [[maybe_unused]],const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {
-      const auto& func = map.at(std::format("{}", )--";
+      const auto& func = map.at()--";
 
     bool final_first = true;
     for (std::size_t garg = 0; garg < wsmr.gout_type.size(); garg++) {
@@ -416,7 +416,7 @@ void call_function(std::ostream& os,
       }
     }
 
-    os << R"--());
+    os << R"--();
       func(ws, out, in);
     }
 )--";

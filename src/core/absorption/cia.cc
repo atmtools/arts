@@ -522,12 +522,13 @@ void xml_io_stream<CIARecord>::write(std::ostream& os,
                                      const CIARecord& x,
                                      bofstream* pbofs,
                                      std::string_view name) {
-  std::println(os, R"(<{0} name="{1}">)", type_name, name);
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.TwoSpecies(), pbofs);
   xml_write_to_stream(os, x.Data(), pbofs);
 
-  std::println(os, R"(</{0}>)", type_name);
+  tag.write_to_end_stream(os);
 }
 
 void xml_io_stream<CIARecord>::read(std::istream& is,

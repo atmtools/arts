@@ -183,29 +183,6 @@ struct xml_io_stream_name<SubsurfaceKeyVal> {
 };
 
 template <>
-struct std::formatter<SubsurfaceKeyVal> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
-
-  [[nodiscard]] constexpr const auto &inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  [[nodiscard]] std::string to_string(const SubsurfaceKeyVal &v) const;
-
-  template <class FmtContext>
-  FmtContext::iterator format(const SubsurfaceKeyVal &v,
-                              FmtContext &ctx) const {
-    tags.format(ctx, to_string(v));
-    return ctx.out();
-  }
-};
-
-template <>
 struct std::formatter<SubsurfacePoint> {
   format_tags tags;
 

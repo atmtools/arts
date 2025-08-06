@@ -368,11 +368,11 @@ void XMLTag::write_to_stream(std::ostream& os) {
     std::print(os, R"( {}="{}")", an, av);
   }
 
-  std::print(os, ">");
+  std::println(os, ">");
 }
 
 void XMLTag::write_to_end_stream(std::ostream& os) {
-  std::print(os, "</{}>", name);
+  std::println(os, "</{}>", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -695,8 +695,6 @@ void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
   tag.add_attribute("version", ARTS_XML_VERSION);
 
   tag.write_to_stream(os);
-
-  std::println(os);
 }
 
 //! Write closing root tag
@@ -708,8 +706,6 @@ void xml_write_footer_to_stream(std::ostream& os) {
 
   tag.name = "/arts";
   tag.write_to_stream(os);
-
-  std::println(os);
 }
 
 void xml_set_stream_precision(std::ostream& os) {

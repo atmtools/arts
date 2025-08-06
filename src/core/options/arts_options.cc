@@ -1108,8 +1108,6 @@ std::ostream& operator<<(std::ostream &os, const {0} x);
 std::istream& operator>>(std::istream &is, {0}& x);
 
 template<> struct std::formatter<{0}> {{
-  using T={0};
-    
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() {{ return *this; }}
@@ -1120,7 +1118,7 @@ template<> struct std::formatter<{0}> {{
   }}
 
   template <class FmtContext>
-  FmtContext::iterator format(const T& v, FmtContext& ctx) const {{
+  FmtContext::iterator format(const {0}& v, FmtContext& ctx) const {{
     return tags.format(ctx, tags.quote(), toString<{3}>(v), tags.quote());
   }}
 }};)",
