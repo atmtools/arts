@@ -115,7 +115,7 @@ py::object npprod(py::object& self,
             py::object& dtype,
             py::object& out,
             py::object& keepdims);
-py::object npravel(py::object& self, py::list& order);
+py::object npravel(py::object& self, py::object& order);
 py::object nprepeat(py::object& self, py::object& repeats, py::object& axis);
 py::object npreshape(py::object& self, py::object& shape, py::object& order);
 py::object npround(py::object& self, py::object& decimals, py::object& out);
@@ -137,7 +137,7 @@ py::object nptrace(py::object& self,
              py::object& axis2,
              py::object& dtype,
              py::object& out);
-py::object nptranspose(py::object& self, py::list& axes);
+py::object nptranspose(py::object& self, py::args& axes);
 py::object npvar(py::object& self,
            py::object& axis,
            py::object& dtype,

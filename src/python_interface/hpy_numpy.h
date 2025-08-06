@@ -313,7 +313,7 @@ void common_ndarray(auto& c) {
         "keepdims"_a = false,
         "See :attr:`numpy.ndarray.prod`");
 
-  c.def("ravel", &npravel, "order"_a, "See :attr:`numpy.ndarray.ravel`");
+  c.def("ravel", &npravel, "order"_a = 'C', "See :attr:`numpy.ndarray.ravel`");
 
   c.def("repeat",
         &nprepeat,
