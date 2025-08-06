@@ -1,3 +1,5 @@
+#include "hpy_numpy_impl.h"
+
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/function.h>
 
@@ -387,7 +389,7 @@ py::object npprod(py::object& self,
   return self.attr("value").attr("prod")(axis, dtype, out, keepdims);
 }
 
-py::object npravel(py::object& self, py::list& order) {
+py::object npravel(py::object& self, py::object& order) {
   return self.attr("value").attr("ravel")(order);
 }
 
@@ -433,7 +435,8 @@ py::object nptrace(py::object& self,
   return self.attr("value").attr("trace")(offset, axis1, axis2, dtype, out);
 }
 
-py::object nptranspose(py::object& self, py::list& axes) {
+py::object nptranspose(py::object& self, py::args& axes) {
+  if (axes.size() == 0) return self.attr("value").attr("transpose")();
   return self.attr("value").attr("transpose")(axes);
 }
 

@@ -5,8 +5,6 @@ template <typename T>
 std::string to_string_impl(const matpack::view_t<const T, 2>& md,
                            format_tags& tags,
                            const std::span<const Size> nl) {
-  using std::ranges::views::take, std::ranges::views::drop;
-
   std::string out;
   out.reserve(md.size() * 10);
 
@@ -52,9 +50,14 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
     add_sep();
     out += tags.vformat(view[sz - 1]);
   } else {
-    if (sz > 0) out += tags.vformat(view.front());
+    bool first = true;
+    for (auto&& e : view) {
+      if (first) {
+        out += tags.vformat(view.front());
+        first = false;
+        continue;
+      }
 
-    for (auto&& e : view | drop(1)) {
       ++i;
 
       if (const Size spaces = row_sep(i); spaces < N) {

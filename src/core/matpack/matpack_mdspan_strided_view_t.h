@@ -397,44 +397,50 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
   template <class FmtContext>
   FmtContext::iterator format(const matpack::strided_view_t<T, N>& md,
                               FmtContext& ctx) const {
-
-    const Size d               = tags.bracket ? tags.depth : 0;
-    const std::string_view sep = inner_fmt().tags.sep();
-
     auto nl = md.shape();
     for (Size i = N - 2; i < N; i--) nl[i] *= nl[i + 1];
 
+    const Size d = tags.bracket ? tags.depth : 0;
+
     const auto row_sep = [nl](Size i) -> Size {
-      for (Size j = 0; j < N; j++) {
+      for (Size j = 0; j < nl.size(); j++) {
         if ((i % nl[j]) == 0) return j;
       }
 
-      return N;
+      return nl.size();
     };
 
     Size i          = 0;
     const auto view = elemwise_range(md);
     const Size sz   = md.size();
+    const auto sep  = tags.sep();
 
     for (Size j = 0; j < d; j++) tags.add_if_bracket(ctx, '[');
 
     if (tags.short_str and sz > 8) {
-      auto&& s = view.begin();
-      tags.format(ctx, *s, sep);
-      std::advance(s, 1);
-      tags.format(ctx, *s, sep);
-      std::advance(s, 1);
-      tags.format(ctx, *s, sep);
-      tags.format(ctx, "..."sv);
-
-      std::advance(s, sz - 5);
-      tags.format(ctx, *s, sep);
-      std::advance(s, 1);
-      tags.format(ctx, *s, sep);
-      std::advance(s, 1);
-      tags.format(ctx, *s);
+      tags.format(ctx,
+                  view[0],
+                  sep,
+                  view[1],
+                  sep,
+                  view[2],
+                  sep,
+                  "..."sv,
+                  sep,
+                  view[sz - 3],
+                  sep,
+                  view[sz - 2],
+                  sep,
+                  view[sz - 1]);
     } else {
+      bool first = true;
       for (auto&& e : view) {
+        if (first) {
+          tags.format(ctx, view.front());
+          first = false;
+          continue;
+        }
+
         ++i;
 
         if (const Size spaces = row_sep(i); spaces < N) {
@@ -442,7 +448,7 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
           tags.format(ctx, sep, '\n');
           for (Size j = 0; j < spaces; j++) tags.add_if_bracket(ctx, ' ');
           for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, '[');
-        } else if (i > 1) {
+        } else {
           tags.format(ctx, sep);
         }
 
