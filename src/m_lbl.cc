@@ -287,7 +287,7 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 
   absorption_bands.reserve(std::transform_reduce(
       splitbands.begin(),
@@ -410,7 +410,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
       }
     }
 
-    if(not error.empty()) throw std::runtime_error(error);
+    if (not error.empty()) throw std::runtime_error(error);
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -580,31 +580,31 @@ void absorption_bandsLineMixingAdaptation(
   for (Size j = 0; j < K; j++) {
     for (Size k = 0; k < N; k++) {
       if (rosenkranz_fit_order >= 1) {
-        auto [success_y, yfit] = curve_fit<Polynom>(
+        auto yfit = polyfit(
             temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
-            not success_y, "Cannot fit y for line {} of band {}", k, band_key)
+            not yfit, "Cannot fit y for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(
             LineShapeModelVariable::Y,
-            lbl::temperature::data{LineShapeModelType::POLY, Vector{yfit}});
+            lbl::temperature::data{LineShapeModelType::POLY, *yfit});
       }
 
       if (rosenkranz_fit_order >= 2) {
-        auto [success_g, gfit] = curve_fit<Polynom>(
+        auto gfit = polyfit(
             temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
-            not success_g, "Cannot fit g for line {} of band {}", k, band_key)
+            not gfit, "Cannot fit g for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(
             LineShapeModelVariable::G,
-            lbl::temperature::data{LineShapeModelType::POLY, Vector{gfit}});
+            lbl::temperature::data{LineShapeModelType::POLY, *gfit});
 
-        auto [success_d, dfit] = curve_fit<Polynom>(
+        auto dfit = polyfit(
             temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
-            not success_d, "Cannot fit dv for line {} of band {}", k, band_key)
+            not dfit, "Cannot fit dv for line {} of band {}", k, band_key)
         band.lines[k].ls.single_models[j].data.emplace_back(
             LineShapeModelVariable::DV,
-            lbl::temperature::data{LineShapeModelType::POLY, Vector{dfit}});
+            lbl::temperature::data{LineShapeModelType::POLY, *dfit});
       }
     }
   }

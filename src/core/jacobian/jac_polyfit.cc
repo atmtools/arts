@@ -12,23 +12,24 @@ void polyfit(VectorView param,
   ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
 
   using namespace Minimize;
-  auto [success, fit] = curve_fit<Polynom>(x, y, param.size() - 1);
+  auto fit = polyfit(x, y, param.size() - 1);
 
-  ARTS_USER_ERROR_IF(not success,
+  ARTS_USER_ERROR_IF(not fit,
                      R"(Could not fit polynomial:
-  x:   {:B,},
-  y:   {:B,}
-  fit: {:B,}
+
+  x:     {:B,},
+  y:     {:B,},
+  order: {}
 )",
                      x,
                      y,
-                     Vector{fit})
-  ARTS_USER_ERROR_IF(static_cast<Size>(fit.size()) != param.size(),
+                     param.size() - 1)
+  ARTS_USER_ERROR_IF(static_cast<Size>(fit->size()) != param.size(),
                      "Bad size. fit.size(): {}, param.size(): {}",
-                     fit.size(),
+                     fit->size(),
                      param.size())
 
-  param = fit;
+  param = *fit;
 }
 
 Vector polyfit_t::operator()(ConstVectorView y) const {

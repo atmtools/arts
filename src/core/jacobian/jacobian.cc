@@ -1,13 +1,10 @@
 #include "jacobian.h"
 
 #include <compare.h>
-#include <minimize.h>
 #include <obsel.h>
 
 #include <algorithm>
 #include <utility>
-
-#include "functional_numeric_ternary.h"
 
 namespace Jacobian {
 void Targets::clear() {
