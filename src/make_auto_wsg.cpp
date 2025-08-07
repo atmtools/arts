@@ -190,41 +190,6 @@ template <> {0}& Workspace::get<{0}>(const std::string& name) const try {{
   }
 }
 
-void static_assert_for_vector_and_map(std::ostream& os) {
-  os << R"--(
-template <typename T>
-concept has_value_type = requires { typename T::value_type; };
-
-template <typename T>
-concept value_type_is_wsg = QualifiedWorkspaceGroup<typename T::value_type>;
-
-template <typename T>
-concept mapped_type_is_wsg = QualifiedWorkspaceGroup<typename T::mapped_type>;
-
-template <typename T>
-concept python_requires_map_and_vector_subtype_are_groups =
-    value_type_is_wsg<T> or (mapped_type_is_wsg<T>) or not has_value_type<T> or
-    std::same_as<T, String>;
-
-template <typename T>
-concept internally_consistent =
-      (value_type_is_wsg<T> or mapped_type_is_wsg<T>) or
-   not WorkspaceGroupInfo<T>::map_or_vector;
-
-)--";
-
-  for (auto&& group : groups()) {
-    os << std::format(R"(
-static_assert(internally_consistent<{0}>,
-     R"-x-("
-This fails one of the following:
-  1) It has either a value_type or a mapped_type templated type that is not a WSG (e.g., Array<NotWSG>)
-")-x-");
-)",
-                      group);
-  }
-}
-
 void agenda_operators() {
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
@@ -584,7 +549,6 @@ int main() try {
 
   std::ofstream ws_os("auto_workspace.cpp");
   auto_workspace(ws_os);
-  static_assert_for_vector_and_map(ws_os);
 
   agenda_operators();
 

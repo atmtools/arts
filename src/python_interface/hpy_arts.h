@@ -238,7 +238,7 @@ void generic_interface(py::class_<T, E...>& c) {
 
   if constexpr (arts_xml_ioable<T>) xml_interface(c);
 
-  if constexpr (WorkspaceGroup<T>)
+  if constexpr (requires { PythonWorkspaceGroupInfo<T>::desc(); })
     c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
 }
 }  // namespace Python

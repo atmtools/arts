@@ -1,6 +1,8 @@
 #include <workspace.h>
+#include <workspace_group_friends.h>
 
 #include <iostream>
+#include <ranges>
 #include <string>
 
 #include "pydocs.h"
@@ -225,7 +227,8 @@ void groups(const std::string& fname) {
 
 )--";
 
-  for (auto& [group, wsg] : wsgs) {
+  for (auto& [group, wsg] :
+       std::array{wsgs, workspace_group_friends()} | stdv::join) {
     hos << "NB_MAKE_OPAQUE(Array<" << group << ">);\n";
     if (wsg.map_type) {
       hos << "NB_MAKE_OPAQUE(" << group << ");\n";
@@ -313,7 +316,8 @@ struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
   std::println(osc, R"(#include "py_auto_wsgdocs.h"
 )");
 
-  for (auto& [group, wsg] : wsgs) {
+  for (auto& [group, wsg] :
+       std::array{wsgs, workspace_group_friends()} | stdv::join) {
     const auto info =
         unwrap_stars(std::format("{}\n{}{}",
                                  wsg.desc,
