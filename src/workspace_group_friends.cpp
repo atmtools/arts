@@ -3,6 +3,7 @@
 #include <arts_options.h>
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "workspace_groups.h"
 
