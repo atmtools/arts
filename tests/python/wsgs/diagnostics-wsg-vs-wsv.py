@@ -1,3 +1,19 @@
+reason = """
+We do not want any workspace groups that are not used in any workspace method or variable.
+
+You have three options to fix this issue:
+1.  Remove the unused workspace groups.
+2.  Add a dependency of the workspace group to a workspace method or agenda.
+3.  Move the declaration of the workspace group to the group friend list.
+    This is required for one of two reasons:
+    1.  The *Group* syntax is used to reference the group in some other
+        documentation, such as other workspace groups, variables, methods,
+        or agendas.
+    2.  The group is used in a way that requires it to be opaque in the
+        Python bindings.  This is required for all enum-types, all std::vector,
+        and all std::*map types.
+"""
+
 import pyarts
 
 wsvs = pyarts.arts.globals.workspace_variables()
@@ -28,6 +44,7 @@ for wsm in wsms:
 keys = list(wsgs.keys())
 keys.sort()
 
-for wsg in keys:
-    if wsgs[wsg] == 0:
-        print(f"{wsg} is not used in any workspace method and is not a variable")
+errors = [f"\n{wsg} should not be a workspace group"
+          for wsg in keys if wsgs[wsg] == 0]
+
+assert len(errors) == 0, ", and".join(errors) + '\n' + reason
