@@ -15,6 +15,7 @@
 #include "workspace_meta_methods.h"
 #include "workspace_method_extra_doc.h"
 #include "workspace_variables.h"
+#include "workspace_group_friends.h"
 
 String rawify(const String& x) {
   std::stringstream os{x};
@@ -34,6 +35,7 @@ String as_pyarts(const String& x) try {
   const auto& wsgs = internal_workspace_groups();
   const auto& wsvs = workspace_variables();
   const auto& wsms = workspace_methods();
+  const auto& group_friends = workspace_group_friends();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
   const auto found_in_options = [&](auto& key) {
@@ -41,7 +43,7 @@ String as_pyarts(const String& x) try {
         internal_options(), Cmp::eq(key), &EnumeratedOption::name);
   };
 
-  if (found_in_options(x) or found_in(wsgs))
+  if (found_in_options(x) or found_in(wsgs) or found_in(group_friends))
     return std::format(":class:`~pyarts.arts.{}`", x);
   if (found_in(wsms))
     return std::format(":func:`~pyarts.workspace.Workspace.{}`", x);
