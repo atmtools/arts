@@ -14,6 +14,7 @@ add_library(matpack STATIC
   matpack_mdspan_view_t.cc
   interpolation.cc
   minimize.cc
+  lagrange_interp.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)

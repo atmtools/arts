@@ -1,4 +1,5 @@
 #include <interp.h>
+#include <lagrange_interp.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
@@ -17,7 +18,8 @@ void py_interp(py::module_& m) {
   py::class_<my_interp::Empty>(interp, "Empty")
       .def(py::init<>())
       .def("__repr__", [](const my_interp::Empty&) { return "Empty()"; })
-      .doc() = "An empty interpolation object, it is just a filler and has no use but naming itself";
+      .doc() =
+      "An empty interpolation object, it is just a filler and has no use but naming itself";
 
   py::class_<LagrangeInterpolation>(interp, "PolyGrid")
       .def(
@@ -37,7 +39,8 @@ void py_interp(py::module_& m) {
           [](const LagrangeInterpolation& l) { return l.size() - 1; },
           "The order of interpolation")
       .def_rw("pos", &LagrangeInterpolation::pos, "The interpolation positions")
-      .def_rw("weights", &LagrangeInterpolation::lx, "The interpolation weights")
+      .def_rw(
+          "weights", &LagrangeInterpolation::lx, "The interpolation weights")
       .def("__getstate__",
            [](const LagrangeInterpolation& self) {
              return std::make_tuple(self.pos, self.lx, self.dlx);
@@ -180,5 +183,26 @@ void py_interp(py::module_& m) {
       "lag2"_a,
       "lag3"_a,
       "Interpolate a 3D tensor");
+
+  interp.def(
+      "interp1d",
+      [](const Vector& yi,
+         const Vector& xi,
+         const Vector& x,
+         const Index polyorder,
+         bool cyclic) {
+        if (cyclic)
+          return reinterp(yi,
+                          lagrange_interp::make_lags<lagrange_interp::loncross>(
+                              xi, x, polyorder, 0.0));
+        return reinterp(yi,
+                        lagrange_interp::make_lags<>(xi, x, polyorder, 0.0));
+      },
+      "yi"_a,
+      "xi"_a,
+      "x"_a,
+      "polyorder"_a = 1,
+      "cyclic"_a    = false,
+      "Interpolate a 1D vector");
 }
 }  // namespace Python
