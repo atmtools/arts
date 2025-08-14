@@ -1,19 +1,23 @@
 #include <lagrange_interp.h>
+#include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
-#include <python_interface.h>
 
+#include <stdexcept>
 #include <variant>
 
-#include "nanobind/nanobind.h"
+#include "hpy_arts.h"
+#include "hpy_vector.h"
+#include "python_interface.h"
 
 namespace Python {
 using id = lagrange_interp::lag_t<-1, lagrange_interp::identity>;
 using lc = lagrange_interp::lag_t<-1, lagrange_interp::loncross>;
 
-using PythonLags = std::variant<id, lc>;
+using PythonLag  = std::variant<id, lc>;
+using PythonLags = std::variant<std::vector<id>, std::vector<lc>>;
 
 template <lagrange_interp::lagrange_type T>
 py::class_<T>& interp_class_(py::class_<T>& cl) {
@@ -30,8 +34,9 @@ py::class_<T>& interp_class_(py::class_<T>& cl) {
           "order",
           [](const T& l) { return l.size() - 1; },
           "The order of interpolation")
-      .def_rw("pos", &T::indx, "The interpolation positions")
-      .def_rw("weights", &T::data, "The interpolation weights")
+      .def_rw("indx", &T::indx, "The interpolation positions")
+      .def_rw("data", &T::data, "The interpolation weights")
+      .def("__len__", &T::size, "The interpolation size")
       .def("__getstate__",
            [](const T& self) { return std::make_tuple(self.indx, self.data); })
       .def("__setstate__",
@@ -43,6 +48,7 @@ py::class_<T>& interp_class_(py::class_<T>& cl) {
              l->indx = std::get<0>(state);
              l->data = std::get<1>(state);
            });
+  generic_interface(cl);
 
   return cl;
 }
@@ -65,6 +71,8 @@ auto& interp_vec_class(py::class_<T, Ts...>& cl) {
       "polyorder"_a     = Index{1},
       "extrapolation"_a = 0.0,
       "Construct a vector of Lagrange interpolation objects");
+  vector_interface(cl);
+  generic_interface(cl);
 
   return cl;
 }
@@ -86,26 +94,5 @@ void py_interp(py::module_& m) {
           interp, "ArrayOfLagrangeCyclic");
   interp_vec_class(vid_).doc() = "List of :class:`~pyarts.arts.Lagrange`";
   interp_vec_class(vlc_).doc() = "List of :class:`~pyarts.arts.LagrangeCyclic`";
-
-  interp.def(
-      "interp1d",
-      [](const Vector& yi,
-         const Vector& xi,
-         const Vector& x,
-         const Index polyorder,
-         bool cyclic) {
-        if (cyclic)
-          return reinterp(yi,
-                          lagrange_interp::make_lags<lagrange_interp::loncross>(
-                              xi, x, polyorder, 0.0));
-        return reinterp(yi,
-                        lagrange_interp::make_lags<>(xi, x, polyorder, 0.0));
-      },
-      "yi"_a,
-      "xi"_a,
-      "x"_a,
-      "polyorder"_a = 1,
-      "cyclic"_a    = false,
-      "Interpolate a 1D vector");
 }
 }  // namespace Python

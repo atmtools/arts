@@ -24,8 +24,8 @@ namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
 
-template <typename T>
-void vector_interface(py::class_<Array<T>> &c) {
+template <typename T, typename... Ts>
+void vector_interface(py::class_<Array<T>, Ts...> &c) {
   using Vec = Array<T>;
 
   c.def("__getstate__", [](const Vec &v) { return std::tuple<Vec>{v}; });

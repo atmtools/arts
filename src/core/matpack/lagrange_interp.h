@@ -886,8 +886,7 @@ struct xml_io_stream<lagrange_interp::lag_t<N, transform>> {
                     const lagrange_interp::lag_t<N, transform>& x,
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv) {
-    XMLTag tag(type_name, "name", name, "N", N);
-
+    XMLTag tag(type_name, "name"sv, name, "N"sv, N);
     tag.write_to_stream(os);
 
     xml_write_to_stream(os, x.data, pbofs, "data");
@@ -899,7 +898,7 @@ struct xml_io_stream<lagrange_interp::lag_t<N, transform>> {
   static void read(std::istream& is,
                    lagrange_interp::lag_t<N, transform>& x,
                    bifstream* pbifs = nullptr) {
-    XMLTag tag(type_name);
+    XMLTag tag;
     tag.read_from_stream(is);
 
     tag.check_name(type_name);
