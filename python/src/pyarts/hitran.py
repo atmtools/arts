@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Various interfaces to HITRAN."""
+
 from urllib.request import urlopen
 
 # Map Hitran to ARTS species names
