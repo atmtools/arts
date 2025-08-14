@@ -133,7 +133,6 @@ void freq_setup_cdisort(disort_state& ds,
   // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
   ds.bc.fisot = 0;
 
-  // FIXME OLE: LOOK AT THESE!!!!
   std::memcpy(
       ds.dtauc, dis.tau().vec().data_handle(), sizeof(Numeric) * ds.nlyr);
   std::memcpy(ds.ssalb, dis.omega().data_handle(), sizeof(Numeric) * ds.nlyr);
@@ -193,9 +192,9 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 
   for (Index i = 0; i < ds.nphi; i++) {
     for (Index j = 0; j < ds.numu; j++) {
-      for (Index k = ds.nlyr; k >= 0; k--) {
-        disort_spectral_radiance_field[k, j, i] =
-            out.uu[j + ((ds.nlyr - k) + i * (ds.nlyr + 1)) * ds.numu] /
+      for (Index k = 0; k <= ds.nlyr; k++) {
+        disort_spectral_radiance_field[k, i, j] =
+            out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
       }
     }
@@ -229,20 +228,21 @@ void cdisort_spectral_radiance_fieldCalc(
   //! Supplementary outputs
   disort_quadrature_weights = dis.weights();
   disort_quadrature_angles.resize(nquad);
+
   std::transform(dis.mu().begin(),
                  dis.mu().end(),
                  disort_quadrature_angles.begin(),
                  [](const Numeric& mu) { return acosd(mu); });
 
-  disort_state ds;
-  disort_output out;
-  setup_cdisort(ds, phis, disort_settings, dis);
-
   String error;
 // #pragma omp parallel for if (not arts_omp_in_parallel()) \
-//     firstprivate(dis, ds, out)
+//   firstprivate(dis)
   for (Index iv = 0; iv < nv; iv++) {
     try {
+      disort_state ds;
+      disort_output out;
+      setup_cdisort(ds, phis, disort_settings, dis);
+
       disort_settings.set(dis, iv);
       /* Allocate memory */
       c_disort_state_alloc(&ds);
