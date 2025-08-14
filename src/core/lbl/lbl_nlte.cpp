@@ -1,6 +1,7 @@
 #include "lbl_nlte.h"
 
 #include <array_algo.h>
+#include <lagrange_interp.h>
 #include <matpack_mdspan_elemwise_mditer.h>
 #include <partfun.h>
 
@@ -210,8 +211,6 @@ QuantumIdentifierVectorMap createCij(
     const AbsorptionBands& absorption_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
     const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
-  using lag = FixedLagrangeInterpolation<1>;
-
   QuantumIdentifierVectorMap Cij(absorption_bands.size());
   for (const auto& [key, data] : absorption_bands) {
     assert(data.size() == 1);
@@ -220,7 +219,11 @@ QuantumIdentifierVectorMap createCij(
 
     for (auto& atmospheric_point : ray_path_atmospheric_point) {
       const auto numden = atmospheric_point.number_density(key.isot);
-      x.push_back(coll.interp<lag>(atmospheric_point.temperature) * numden);
+
+      x.push_back(interp(coll.data,
+                         coll.lag<0, 1, lagrange_interp::identity>(
+                             atmospheric_point.temperature)) *
+                  numden);
     }
   }
 

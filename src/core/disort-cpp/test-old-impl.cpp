@@ -3,6 +3,8 @@
 #include <iostream>
 #include <ranges>
 
+#include <arts_constants.h>
+
 #include "artstime.h"
 #include "cdisort/cdisort.h"
 #include "configtypes.h"

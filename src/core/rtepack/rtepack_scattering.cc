@@ -1,10 +1,12 @@
 #include "rtepack_scattering.h"
 
+#include <arts_conversions.h>
 #include <debug.h>
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
+
 namespace rtepack {
 Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
                                        const ConstMatrixView &pnd) {

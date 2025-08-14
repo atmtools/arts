@@ -1,5 +1,6 @@
 #include "functional_atm_mag_field.h"
 
+#include <arts_conversions.h>
 #include <configtypes.h>
 #include <debug.h>
 #include <geodetic.h>

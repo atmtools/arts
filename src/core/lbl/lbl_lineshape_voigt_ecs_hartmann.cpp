@@ -1,5 +1,6 @@
 #include "lbl_lineshape_voigt_ecs_hartmann.h"
 
+#include <arts_conversions.h>
 #include <atm.h>
 #include <wigner_functions.h>
 

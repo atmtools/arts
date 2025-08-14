@@ -1,5 +1,7 @@
 #include "rtepack_transmission.h"
 
+#include <arts_constexpr_math.h>
+
 #include <algorithm>
 
 #include "rtepack_mueller_matrix.h"

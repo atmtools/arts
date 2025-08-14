@@ -5,16 +5,16 @@
 #include <variant>
 
 namespace Atm::interp {
-using namespace my_interp;
+using namespace lagrange_interp;
 
-using altlag1 = Lagrange<1>;
-using altlag0 = Lagrange<0>;
+using altlag1 = lag_t<1>;
+using altlag0 = lag_t<0>;
 
-using latlag1 = Lagrange<1>;
-using latlag0 = Lagrange<0>;
+using latlag1 = lag_t<1>;
+using latlag0 = lag_t<0>;
 
-using lonlag1 = Lagrange<1, false, GridType::Cyclic, cycle_m180_p180>;
-using lonlag0 = Lagrange<0, false, GridType::Cyclic, cycle_m180_p180>;
+using lonlag1 = lag_t<1, loncross>;
+using lonlag0 = lag_t<0, loncross>;
 
 using altlags = std::variant<altlag0, altlag1>;
 using latlags = std::variant<latlag0, latlag1>;

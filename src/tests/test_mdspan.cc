@@ -13,10 +13,8 @@
 #include <type_traits>
 #include <vector>
 
-#include "matpack.h"
-#include "matpack_mdspan_helpers.h"
-#include "matpack_mdspan_helpers_eigen.h"
-#include "matpack_mdspan_helpers_vector.h"
+#include <matpack.h>
+#include <matpack_mdspan_helpers_eigen.h>
 
 namespace matpack {
 static_assert(
@@ -1587,36 +1585,6 @@ void test_const_data() {
   }
 }
 
-void test_my_interp() {
-  my_interp::Lagrange<1, true> x(
-      0, 3.5, matpack::cdata_t<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
-  my_interp::Lagrange<1, false> x2(
-      0, 3.5, matpack::cdata_t<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
-  auto iw = interpweights(std::array{x, x}, std::array{x2, x2});
-
-  interp(Matrix(7, 7, 1), interpweights(x, x2), x, x2);
-
-  [[maybe_unused]] auto f =
-      reinterp(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2});
-
-  Matrix Z  = matpack::uniform_grid(-5, 49, 0.2).reshape(7, 7);
-  Vector X  = matpack::uniform_grid(1, 7, 1);
-  Vector Y  = matpack::uniform_grid(1, 7, 1);
-  Vector XN = matpack::uniform_grid(1, 14, 0.5);
-  Vector YN = matpack::uniform_grid(1, 28, 0.25);
-
-  for (auto mx : XN) {
-    for (auto my : YN) {
-      auto lagx = my_interp::Lagrange<1, false>(0, mx, X);
-      auto lagy = my_interp::Lagrange<1, false>(0, my, Y);
-      auto iw2  = my_interp::interpweights(lagx, lagy);
-      ARTS_USER_ERROR_IF(
-          std::abs(interp(Z, iw2, lagx, lagy) - interp(Z, lagx, lagy)) > 1e-16,
-          "Bad");
-    }
-  }
-}
-
 void test_sorted_grid() {
   {
     const AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
@@ -1763,7 +1731,6 @@ int main() try {
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
   EXECUTE_TEST(test_const_data)
-  EXECUTE_TEST(test_my_interp)
   EXECUTE_TEST(test_sorted_grid)
   EXECUTE_TEST(test_lapack_vector_mult)
   EXECUTE_TEST(test_grid)

@@ -6,7 +6,6 @@
 #include <enumsFieldComponent.h>
 #include <functional_atm_field_interp.h>
 #include <hitran_species.h>
-#include <interp.h>
 #include <isotopologues.h>
 #include <matpack.h>
 #include <physics_funcs.h>
@@ -373,28 +372,15 @@ Limits find_limits(const SortedGriddedField3 &gf3) {
           .lon_upp = gf3.grid<2>().back()};
 }
 
-template <Index poly_alt,
-          Index poly_lat,
-          Index poly_lon,
-          bool precompute = false>
+template <Index poly_alt, Index poly_lat, Index poly_lon>
 struct interp_helper {
-  using AltLag = my_interp::Lagrange<poly_alt>;
-  using LatLag = my_interp::Lagrange<poly_lat>;
-  using LonLag =
-      std::conditional_t<poly_lon == 0,
-                         my_interp::Lagrange<0>,
-                         my_interp::Lagrange<poly_lon,
-                                             false,
-                                             GridType::Cyclic,
-                                             my_interp::cycle_m180_p180>>;
+  using AltLag = lagrange_interp::lag_t<poly_alt>;
+  using LatLag = lagrange_interp::lag_t<poly_lat>;
+  using LonLag = lagrange_interp::lag_t<poly_lon, lagrange_interp::loncross>;
 
   Array<AltLag> lags_alt;
   Array<LatLag> lags_lat;
   Array<LonLag> lags_lon;
-  [[no_unique_address]] std::conditional_t<
-      precompute,
-      decltype(my_interp::flat_interpweights(lags_alt, lags_lat, lags_lon)),
-      my_interp::Empty> iws{};
 
   constexpr interp_helper(const Vector &alt_grid,
                           const Vector &lat_grid,
@@ -402,34 +388,16 @@ struct interp_helper {
                           const Vector &alt,
                           const Vector &lat,
                           const Vector &lon)
-    requires(not precompute)
-      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
-            alt, alt_grid, -1, "Altitude")),
-        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
-            lat, lat_grid, -1, "Latitude")),
-        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
-            lon, lon_grid, -1, "Longitude")) {}
-
-  constexpr interp_helper(const Vector &alt_grid,
-                          const Vector &lat_grid,
-                          const Vector &lon_grid,
-                          const Vector &alt,
-                          const Vector &lat,
-                          const Vector &lon)
-    requires(precompute)
-      : lags_alt(my_interp::lagrange_interpolation_list<AltLag>(
-            alt, alt_grid, -1, "Altitude")),
-        lags_lat(my_interp::lagrange_interpolation_list<LatLag>(
-            lat, lat_grid, -1, "Latitude")),
-        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
-            lon, lon_grid, -1, "Longitude")),
-        iws(flat_interpweights(lags_alt, lags_lat, lags_lon)) {}
+      : lags_alt(lagrange_interp::make_lags<poly_alt>(
+            alt_grid, alt, -1, "Altitude")),
+        lags_lat(lagrange_interp::make_lags<poly_lat>(
+            lat_grid, lat, -1, "Latitude")),
+        lags_lon(
+            lagrange_interp::make_lags<poly_lon, lagrange_interp::loncross>(
+                lon_grid, lon, -1, "Longitude")) {}
 
   Vector operator()(const Tensor3 &data) const {
-    if constexpr (precompute)
-      return flat_interp(data, iws, lags_alt, lags_lat, lags_lon);
-    else
-      return flat_interp(data, lags_alt, lags_lat, lags_lon);
+    return flat_interp(data, lags_alt, lags_lat, lags_lon);
   }
 };
 

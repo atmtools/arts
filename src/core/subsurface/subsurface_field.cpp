@@ -1,8 +1,10 @@
 #include "subsurface_field.h"
 
+#include <enumsSubsurfaceKey.h>
+#include <lagrange_interp.h>
+
 #include <utility>
 
-#include "enumsSubsurfaceKey.h"
 #include "subsurface.h"
 
 namespace Subsurface {
@@ -130,16 +132,14 @@ String Data::data_type() const {
 
 namespace interp {
 namespace {
-using altlag1 = my_interp::Lagrange<1>;
-using altlag0 = my_interp::Lagrange<0>;
+using altlag1 = lagrange_interp::lag_t<1>;
+using altlag0 = lagrange_interp::lag_t<0>;
 
-using latlag1 = my_interp::Lagrange<1>;
-using latlag0 = my_interp::Lagrange<0>;
+using latlag1 = lagrange_interp::lag_t<1>;
+using latlag0 = lagrange_interp::lag_t<0>;
 
-using lonlag1 =
-    my_interp::Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-using lonlag0 =
-    my_interp::Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag1 = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
+using lonlag0 = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
 
 using altlags = std::variant<altlag0, altlag1>;
 using latlags = std::variant<latlag0, latlag1>;
@@ -251,14 +251,17 @@ Numeric get(const CartesianSubsurfaceGriddedField3 &gf3,
 
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
-        return my_interp::interp(data, al, la, lo);
+        return lagrange_interp::interp(data, al, la, lo);
       },
-      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
-                                : altlags{gf3.lag<0, altlag1>(alt)},
-      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
-                                : latlags{gf3.lag<1, latlag1>(lat)},
-      gf3.grid<2>().size() == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
-                                : lonlags{gf3.lag<2, lonlag1>(lon)});
+      gf3.grid<0>().size() == 1
+          ? altlags{gf3.lag<0, 0, lagrange_interp::identity>(alt)}
+          : altlags{gf3.lag<0, 1, lagrange_interp::identity>(alt)},
+      gf3.grid<1>().size() == 1
+          ? latlags{gf3.lag<1, 0, lagrange_interp::identity>(lat)}
+          : latlags{gf3.lag<1, 1, lagrange_interp::identity>(lat)},
+      gf3.grid<2>().size() == 1
+          ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
+          : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
 }
 
 constexpr Numeric get(const Numeric num,
@@ -336,19 +339,19 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(
         for (Index i = 0; i < al.size(); i++) {
           for (Index j = 0; j < la.size(); j++) {
             for (Index k = 0; k < lo.size(); k++, ++m) {
-              out[m] = {{(al.pos + i) * NN + (la.pos + j) * N + lo.pos + k},
+              out[m] = {{al.indx[i] * NN + la.indx[j] * N + lo.indx[k]},
                         x[i, j, k]};
             }
           }
         }
         return out;
       },
-      nalt == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
-                : altlags{gf3.lag<0, altlag1>(alt)},
-      nlat == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
-                : latlags{gf3.lag<1, latlag1>(lat)},
-      nlon == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
-                : lonlags{gf3.lag<2, lonlag1>(lon)});
+      nalt == 1 ? altlags{gf3.lag<0, 0, lagrange_interp::identity>(alt)}
+                : altlags{gf3.lag<0, 1, lagrange_interp::identity>(alt)},
+      nlat == 1 ? latlags{gf3.lag<1, 0, lagrange_interp::identity>(lat)}
+                : latlags{gf3.lag<1, 1, lagrange_interp::identity>(lat)},
+      nlon == 1 ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
+                : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
 }
 }  // namespace
 }  // namespace interp

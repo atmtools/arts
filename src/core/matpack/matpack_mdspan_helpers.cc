@@ -1,5 +1,7 @@
 #include "matpack_mdspan_helpers.h"
 
+#include <arts_constants.h>
+
 namespace matpack {
 Vector uniform_grid(Numeric x0, Index N, Numeric dx) {
   Vector out(N);

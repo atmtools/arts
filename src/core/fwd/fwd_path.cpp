@@ -1,5 +1,6 @@
 #include "fwd_path.h"
 
+#include <arts_conversions.h>
 #include <debug.h>
 #include <path_point.h>
 

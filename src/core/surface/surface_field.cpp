@@ -12,6 +12,8 @@
 #include <utility>
 #include <variant>
 
+#include <lagrange_interp.h>
+
 Surf::Point::Point()                                   = default;
 Surf::Point::Point(const Point &)                      = default;
 Surf::Point::Point(Point &&) noexcept                  = default;
@@ -201,27 +203,24 @@ Numeric numeric_interpolation(
   }
 
   if (lats.size() == 1) {
-    using LatLag = my_interp::Lagrange<0>;
-    using LonLag = my_interp::
-        Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+    using LatLag = lagrange_interp::lag_t<0>;
+    using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
+    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
   }
 
   if (lons.size() == 1) {
-    using LatLag = my_interp::Lagrange<1>;
-    using LonLag = my_interp::
-        Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+    using LatLag = lagrange_interp::lag_t<1>;
+    using LonLag = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
+    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
   }
 
   {
-    using LatLag = my_interp::Lagrange<1>;
-    using LonLag = my_interp::
-        Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+    using LatLag = lagrange_interp::lag_t<1>;
+    using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
+    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
   }
 }
 
@@ -456,9 +455,8 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
 
 std::array<std::pair<Index, Numeric>, 4> flat_weights_(
     const SortedGriddedField2 &v, const Numeric &lat, const Numeric &lon) {
-  using LonLag = my_interp::
-      Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-  using LatLag = my_interp::Lagrange<1>;
+  using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
+  using LatLag = lagrange_interp::lag_t<1>;
 
   const auto slon = v.shape()[1];
   const bool d1   = v.shape()[0] == 1;
@@ -472,35 +470,35 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(
   }
 
   if (d1) {
-    const LonLag wlon(0, lon, v.grid<1>());
-    return {std::pair<Index, Numeric>{wlon.pos, wlon.lx[0]},
-            std::pair<Index, Numeric>{wlon.pos + 1, wlon.lx[1]},
+    const LonLag wlon(v.grid<1>(), lon);
+    return {std::pair<Index, Numeric>{wlon.indx[0], wlon.data[0]},
+            std::pair<Index, Numeric>{wlon.indx[1], wlon.data[1]},
             v0,
             v0};
   }
 
   if (d2) {
-    const LatLag wlat(0, lat, v.grid<0>());
-    return {std::pair<Index, Numeric>{wlat.pos, wlat.lx[0]},
-            std::pair<Index, Numeric>{wlat.pos + 1, wlat.lx[1]},
+    const LatLag wlat(v.grid<0>(), lat);
+    return {std::pair<Index, Numeric>{wlat.indx[0], wlat.data[0]},
+            std::pair<Index, Numeric>{wlat.indx[1], wlat.data[1]},
             v0,
             v0};
   }
 
-  const LatLag wlat(0, lat, v.grid<0>());
-  const LonLag wlon(0, lon, v.grid<1>());
+  const LatLag wlat(v.grid<0>(), lat);
+  const LonLag wlon(v.grid<1>(), lon);
   auto sz = [slon](auto lat_pos, auto lon_pos) {
     return lat_pos * slon + lon_pos;
   };
 
-  return {std::pair<Index, Numeric>{sz(wlat.pos, wlon.pos),
-                                    wlat.lx[0] * wlon.lx[0]},
-          std::pair<Index, Numeric>{sz(wlat.pos, wlon.pos + 1),
-                                    wlat.lx[0] * wlon.lx[1]},
-          std::pair<Index, Numeric>{sz(wlat.pos + 1, wlon.pos),
-                                    wlat.lx[1] * wlon.lx[0]},
-          std::pair<Index, Numeric>{sz(wlat.pos + 1, wlon.pos + 1),
-                                    wlat.lx[1] * wlon.lx[1]}};
+  return {std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[0]),
+                                    wlat.data[0] * wlon.data[0]},
+          std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[1]),
+                                    wlat.data[0] * wlon.data[1]},
+          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[0]),
+                                    wlat.data[1] * wlon.data[0]},
+          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[1]),
+                                    wlat.data[1] * wlon.data[1]}};
 }
 }  // namespace
 

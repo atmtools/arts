@@ -1,5 +1,6 @@
 #include "lbl_hitran.h"
 
+#include <arts_conversions.h>
 #include <fast_float/fast_float.h>
 #include <hitran_species.h>
 #include <partfun.h>

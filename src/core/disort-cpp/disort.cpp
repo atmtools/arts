@@ -1,5 +1,6 @@
 #include "disort.h"
 
+#include <arts_conversions.h>
 #include <arts_constants.h>
 #include <compare.h>
 #include <debug.h>

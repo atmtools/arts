@@ -1,6 +1,7 @@
 #include "functional_gravity.h"
 
 #include <arts_constexpr_math.h>
+#include <arts_conversions.h>
 #include <planet_data.h>
 
 Numeric EllipsoidGravity::operator()(Numeric h, Numeric lat, Numeric lon) const {

@@ -9,12 +9,6 @@ add_executable(test_binaryio test_binaryio.cc)
 target_link_libraries(test_binaryio artsworkspace)
 
 # ########## next testcase ###############
-add_executable(test_gridded_fields
-  test_gridded_fields.cc)
-
-target_link_libraries(test_gridded_fields matpack)
-
-# ########## next testcase ###############
 add_executable(test_linalg
   test_linalg.cc)
 
@@ -191,19 +185,6 @@ add_custom_target(
 )
 
 # ####
-add_executable(test_interp_perf test_interp_perf.cc)
-target_link_libraries(test_interp_perf PUBLIC matpack artsworkspace)
-
-add_custom_target(
-  run_interp_perf
-  COMMAND test_interp_perf 10 1000000 1000000 3000000 20000 > interp_perf.txt
-  DEPENDS test_interp_perf
-  BYPRODUCTS interp_perf.txt
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "Running performance test for interpolation"
-)
-
-# ####
 add_executable(test_rng test_rng.cc)
 target_link_libraries(test_rng PUBLIC artscore)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
@@ -223,19 +204,6 @@ add_executable(test_fwd test_fwd.cc)
 target_link_libraries(test_fwd PUBLIC fwd)
 add_test(NAME "cpp.fast.test_fwd" COMMAND test_fwd)
 add_dependencies(check-deps test_fwd)
-
-# ###  Set up a bunch of performance tests
-# ###  NOTE: New tests should be added as dependencies to the run_perf target,
-# ###        but also to one-another so the tests are not run at the same time
-# ###        (affecting performance, which is what we want to test, so we want to avoid that)
-add_dependencies(run_interp_perf run_matpack_perf)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/perf_results.py perf_results.py COPYONLY)
-add_custom_target(run_perf
-  COMMAND ${Python_EXECUTABLE} perf_results.py matpack_perf.txt interp_perf.txt > perf_report.rst
-  DEPENDS run_matpack_perf run_interp_perf
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "Creating performance test report"
-)
 
 # ####
 add_executable(test_legendre test_legendre.cc)

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <array.h>
+#include <configtypes.h>
 #include <mystring.h>
 
 #include <algorithm>
 
-#include "configtypes.h"
-#include "interp.h"
+#include "lagrange_interp.h"
 #include "matpack_mdspan.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
@@ -120,177 +120,28 @@ struct gridded_data_t {
 
   constexpr auto operator<=>(const gridded_data_t&) const = default;
 
-  template <Size Grid, my_interp::lagrange_type lag_t>
-  [[nodiscard]] constexpr Array<lag_t> lag(const grid_t<Grid>& other,
-                                           Index order,
-                                           Numeric extrapol = 0.5) const
-    requires(Grid < dim and std::remove_cvref_t<lag_t>::runtime_polyorder())
-  {
-    return my_interp::lagrange_interpolation_list<lag_t>(
-        other, grid<Grid>(), order, extrapol, gridname<Grid>().c_str());
+  template <Size Grid, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(const grid_t<Grid>& other,
+                         Index order,
+                         Numeric extrapol) const {
+    return lagrange_interp::make_lags<transform>(
+        grid<Grid>(), other, order, extrapol, gridname<Grid>().c_str());
   }
 
-  template <Size Grid, my_interp::lagrange_type lag_t>
-  [[nodiscard]] constexpr Array<lag_t> lag(const grid_t<Grid>& other,
-                                           Numeric extrapol = 0.5) const
-    requires(Grid < dim and not std::remove_cvref_t<lag_t>::runtime_polyorder())
-  {
-    return my_interp::lagrange_interpolation_list<lag_t>(
-        other, grid<Grid>(), extrapol, gridname<Grid>().c_str());
+  template <Size Grid, Index N, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(const grid_t<Grid>& other, Numeric extrapol) const {
+    return lagrange_interp::make_lags<N, transform>(
+        grid<Grid>(), other, extrapol, gridname<Grid>().c_str());
   }
 
- private:
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts,
-            Size... sz>
-  [[nodiscard]] constexpr data_t reinterp(
-      const Grid0& other0,
-      const Grids&... other,
-      Index order,
-      Numeric extrapol,
-      std::integer_sequence<Size, sz...>) const {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return my_interp::reinterp(data,
-                               lag<0, lag_ts0>(other0, order, extrapol),
-                               lag<sz + 1, lag_ts>(other, order, extrapol)...);
+  template <Size Grid, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(const grid_value_t<Grid>& other, Index order) const {
+    return lagrange_interp::lag_t<-1, transform>(grid<Grid>(), other, order);
   }
 
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts,
-            Size... sz>
-  [[nodiscard]] constexpr data_t reinterp(
-      const Grid0& other0,
-      const Grids&... other,
-      Numeric extrapol,
-      std::integer_sequence<Size, sz...>) const {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return my_interp::reinterp(data,
-                               lag<0, lag_ts0>(other0, extrapol),
-                               lag<sz + 1, lag_ts>(other, extrapol)...);
-  }
-
- public:
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr data_t reinterp(const Grid0& other0,
-                                          const Grids&... other,
-                                          Index order,
-                                          Numeric extrapol = 0.5) const
-    requires(0 < dim and std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
-             (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
-             sizeof...(lag_ts) == dim - 1)
-  {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return reinterp<lag_ts0, lag_ts...>(
-        other0,
-        other...,
-        order,
-        extrapol,
-        std::make_integer_sequence<Size, dim - 1>{});
-  }
-
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr data_t reinterp(const Grid0& other0,
-                                          const Grids&... other,
-                                          Numeric extrapol = 0.5) const
-    requires(0 < dim and
-             not std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
-             ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
-              ...) and
-             sizeof...(lag_ts) == dim - 1)
-  {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return reinterp<lag_ts0, lag_ts...>(
-        other0,
-        other...,
-        extrapol,
-        std::make_integer_sequence<Size, dim - 1>{});
-  }
-
-  template <Size Grid, my_interp::lagrange_type lag_t>
-  [[nodiscard]] constexpr lag_t lag(const grid_value_t<Grid>& other,
-                                    Index order) const
-    requires(Grid < dim and std::remove_cvref_t<lag_t>::runtime_polyorder())
-  {
-    return lag_t(
-        std::ranges::lower_bound(grid<Grid>(), other) - grid<Grid>().begin(),
-        other,
-        grid<Grid>(),
-        order);
-  }
-
-  template <Size Grid, my_interp::lagrange_type lag_t>
-  [[nodiscard]] constexpr lag_t lag(const grid_value_t<Grid>& other) const
-    requires(Grid < dim and not std::remove_cvref_t<lag_t>::runtime_polyorder())
-  {
-    return lag_t(
-        std::ranges::lower_bound(grid<Grid>(), other) - grid<Grid>().begin(),
-        other,
-        grid<Grid>());
-  }
-
- private:
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts,
-            Size... sz>
-  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
-                                   const typename Grids::value_type&... other,
-                                   Index order,
-                                   std::integer_sequence<Size, sz...>) const {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return my_interp::interp(data,
-                             lag<0, lag_ts0>(other0, order),
-                             lag<sz + 1, lag_ts>(other, order)...);
-  }
-
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts,
-            Size... sz>
-  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
-                                   const typename Grids::value_type&... other,
-                                   std::integer_sequence<Size, sz...>) const {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return my_interp::interp(
-        data, lag<0, lag_ts0>(other0), lag<sz + 1, lag_ts>(other)...);
-  }
-
- public:
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr T interp(const typename Grid0::value_type& other0,
-                                   const typename Grids::value_type&... other,
-                                   Index order) const
-    requires(0 < dim and std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
-             (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
-             sizeof...(lag_ts) == dim - 1)
-  {
-    if (not ok()) throw std::runtime_error("bad field");
-
-    return interp<lag_ts0, lag_ts...>(
-        other0, other..., order, std::make_integer_sequence<Size, dim - 1>{});
-  }
-
-  template <my_interp::lagrange_type lag_ts0,
-            my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] constexpr T interp(
-      const typename Grid0::value_type& other0,
-      const typename Grids::value_type&... other) const
-    requires(0 < dim and
-             not std::remove_cvref_t<lag_ts0>::runtime_polyorder() and
-             ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
-              ...) and
-             sizeof...(lag_ts) == dim - 1)
-  {
-    if (not ok()) throw std::runtime_error("bad field");
-    return interp<lag_ts0, lag_ts...>(
-        other0, other..., std::make_integer_sequence<Size, dim - 1>{});
+  template <Size Grid, Index N, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(const grid_value_t<Grid>& other) const {
+    return lagrange_interp::lag_t<N, transform>(grid<Grid>(), other);
   }
 };
 }  // namespace matpack

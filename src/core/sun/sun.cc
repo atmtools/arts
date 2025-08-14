@@ -15,11 +15,10 @@
 
 #include <arts_conversions.h>
 #include <debug.h>
-#include <interp.h>
+#include <interpolation.h>
+#include <lagrange_interp.h>
 #include <physics_funcs.h>
 #include <xml_io_base.h>
-
-#include "interpolation.h"
 
 /*===========================================================================
   === The functions
@@ -87,11 +86,8 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
   const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
   // Check if frequency is inside the range covered by the data:
-  LagrangeInterpolation::check(data_f_grid,
-                               1,
-                               minmax(f_grid_active),
-                               0.5,
-                               "Frequency grid for sun spectrum");
+  lagrange_interp::check_limit<lagrange_interp::identity>(
+      data_f_grid, f_grid_active, 0.5, 1, "Frequency grid for sun spectrum");
 
   {
     // Find frequency grid positions:

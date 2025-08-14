@@ -13,6 +13,9 @@
 
 #include "gas_scattering.h"
 
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
+
 #include <cmath>
 
 Vector calc_rayleighPhaMat(const Numeric& theta_rad) {

@@ -1,16 +1,14 @@
+#include <configtypes.h>
 #include <lagrange_interp.h>
 #include <matpack.h>
+#include <matpack_mdspan_helpers_vector.h>
 #include <rng.h>
 
 #include <cstdlib>
-#include <limits>
 
-#include "configtypes.h"
-#include "interp.h"
-#include "math_funcs.h"
-#include "matpack_mdspan_helpers_vector.h"
 #include "time_test_util.h"
 
+namespace {
 template <Size N>
 void test_fixed(bool sorted) {
   const Vector grid{1, 2, 3, 4, 5, 6};
@@ -20,7 +18,6 @@ void test_fixed(bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -5.0, 10.0);
   auto r2 = random_numbers(r.size(), -5.0, 10.0);
@@ -30,26 +27,13 @@ void test_fixed(bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT = my_interp::Lagrange<N>;
-  std::vector<oldT> lag1(r.size());
-  std::vector<oldT> lag2(r.size());
-
   using newT = lagrange_interp::lag_t<N>;
   std::vector<newT> flag1(r.size());
   std::vector<newT> flag2(r.size());
 
   {
-    test_timer_t t{std::format(
-        "lag fixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] = oldT(my_interp::start_pos_finder(r[i], grid), r[i], grid);
-      lag2[i] = oldT(my_interp::start_pos_finder(r2[i], grid), r2[i], grid);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "lag fixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{
+        std::format("lag fixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       flag1[i] = newT(grid, r[i]);
       flag2[i] = newT(grid, r2[i]);
@@ -58,15 +42,7 @@ void test_fixed(bool sorted) {
 
   {
     test_timer_t t{std::format(
-        "interp fixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "interp fixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "interp fixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       sumf0 += interp(data, flag1[i], flag2[i]);
     }
@@ -74,16 +50,7 @@ void test_fixed(bool sorted) {
 
   {
     test_timer_t t{std::format(
-        "interp-itw fixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      const auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3          += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "interp-itw fixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "interp-itw fixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       const auto itw  = interpweights(flag1[i], flag2[i]);
       sumf3          += interp(data, itw, flag1[i], flag2[i]);
@@ -92,13 +59,7 @@ void test_fixed(bool sorted) {
 
   {
     test_timer_t t{std::format(
-        "flat_interp fixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format(
-        "flat_interp fixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "flat_interp fixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
   }
 
@@ -109,46 +70,29 @@ void test_fixed(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw fixed {} new {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "flat_interp-itw fixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
     sumf4          = sum(flat_interp(data, flag1, flag2));
   }
 
   {
-    test_timer_t t{std::format("flat_interp fixed-vec {} new {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "flat_interp fixed-vec {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 = lagrange_interp::make_lags<N>(grid, r, 0.0);
     const auto l2 = lagrange_interp::make_lags<N>(grid, r2, 0.0);
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp fixed-vec {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT>(
-        r, grid, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT>(
-        r2, grid, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 template <Size N>
@@ -160,7 +104,6 @@ void test_fixed_cyclic(bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -500.0, 500.0);
   auto r2 = random_numbers(r.size(), -500.0, 500.0);
@@ -170,27 +113,13 @@ void test_fixed_cyclic(bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT = my_interp::
-      Lagrange<N, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-  std::vector<oldT> lag1(r.size());
-  std::vector<oldT> lag2(r.size());
-
   using newT = lagrange_interp::lag_t<N, lagrange_interp::loncross>;
   std::vector<newT> flag1(r.size());
   std::vector<newT> flag2(r.size());
 
   {
     test_timer_t t{std::format(
-        "lag fixed-cyclic {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] = oldT(my_interp::start_pos_finder(r[i], grid), r[i], grid);
-      lag2[i] = oldT(my_interp::start_pos_finder(r2[i], grid), r2[i], grid);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "lag fixed-cyclic {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "lag fixed-cyclic {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       flag1[i] = newT(grid, r[i]);
       flag2[i] = newT(grid, r2[i]);
@@ -198,35 +127,15 @@ void test_fixed_cyclic(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp fixed-cyclic {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp fixed-cyclic {} new {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "interp fixed-cyclic {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       sumf0 += interp(data, flag1[i], flag2[i]);
     }
   }
 
   {
-    test_timer_t t{std::format("interp-itw fixed-cyclic {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3    += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp-itw fixed-cyclic {} new {}",
+    test_timer_t t{std::format("interp-itw fixed-cyclic {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -236,14 +145,7 @@ void test_fixed_cyclic(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp fixed-cyclic {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format("flat_interp fixed-cyclic {} new {}",
+    test_timer_t t{std::format("flat_interp fixed-cyclic {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
@@ -256,7 +158,7 @@ void test_fixed_cyclic(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw fixed-cyclic {} new {}",
+    test_timer_t t{std::format("flat_interp-itw fixed-cyclic {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
@@ -264,7 +166,7 @@ void test_fixed_cyclic(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp fixed-cyclic-vec {} new {}",
+    test_timer_t t{std::format("flat_interp fixed-cyclic-vec {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 =
@@ -274,30 +176,15 @@ void test_fixed_cyclic(bool sorted) {
     sumf2 = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp fixed-cyclic-vec {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT>(
-        r, grid, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT>(
-        r2, grid, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 template <Size N>
@@ -309,7 +196,6 @@ void test_fixed_mixed(bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -500.0, 500.0);
   auto r2 = random_numbers(r.size(), -500.0, 500.0);
@@ -319,12 +205,6 @@ void test_fixed_mixed(bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT1 = my_interp::
-      Lagrange<N, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-  using oldT2 = my_interp::Lagrange<N>;
-  std::vector<oldT1> lag1(r.size());
-  std::vector<oldT2> lag2(r.size());
-
   using newT1 = lagrange_interp::lag_t<N, lagrange_interp::loncross>;
   using newT2 = lagrange_interp::lag_t<N>;
   std::vector<newT1> flag1(r.size());
@@ -332,16 +212,7 @@ void test_fixed_mixed(bool sorted) {
 
   {
     test_timer_t t{std::format(
-        "lag fixed-mixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] = oldT1(my_interp::start_pos_finder(r[i], grid), r[i], grid);
-      lag2[i] = oldT2(my_interp::start_pos_finder(r2[i], grid), r2[i], grid);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "lag fixed-mixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "lag fixed-mixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       flag1[i] = newT1(grid, r[i]);
       flag2[i] = newT2(grid, r2[i]);
@@ -350,34 +221,15 @@ void test_fixed_mixed(bool sorted) {
 
   {
     test_timer_t t{std::format(
-        "interp fixed-mixed {} old {}", N, sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format(
-        "interp fixed-mixed {} new {}", N, sorted ? "sorted"sv : "unsorted"sv)};
+        "interp fixed-mixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       sumf0 += interp(data, flag1[i], flag2[i]);
     }
   }
 
   {
-    test_timer_t t{std::format("interp-itw fixed-mixed {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3    += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp-itw fixed-mixed {} new {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "interp-itw fixed-mixed {} {}", N, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       auto itw  = interpweights(flag1[i], flag2[i]);
       sumf3    += interp(data, itw, flag1[i], flag2[i]);
@@ -385,14 +237,7 @@ void test_fixed_mixed(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp fixed-mixed {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format("flat_interp fixed-mixed {} new {}",
+    test_timer_t t{std::format("flat_interp fixed-mixed {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
@@ -405,7 +250,7 @@ void test_fixed_mixed(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw fixed-mixed {} new {}",
+    test_timer_t t{std::format("flat_interp-itw fixed-mixed {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
@@ -413,7 +258,7 @@ void test_fixed_mixed(bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp fixed-mixed-vec {} new {}",
+    test_timer_t t{std::format("flat_interp fixed-mixed-vec {} {}",
                                N,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 =
@@ -422,30 +267,15 @@ void test_fixed_mixed(bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp fixed-mixed-vec {} old {}",
-                               N,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT1>(
-        r, grid, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT2>(
-        r2, grid, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 void test_dynamic(Index polyorder, bool sorted) {
@@ -456,7 +286,6 @@ void test_dynamic(Index polyorder, bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -5.0, 10.0);
   auto r2 = random_numbers(r.size(), -5.0, 10.0);
@@ -466,30 +295,13 @@ void test_dynamic(Index polyorder, bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT = my_interp::Lagrange<-1>;
-  std::vector<oldT> lag1(r.size());
-  std::vector<oldT> lag2(r.size());
-
   using newT = lagrange_interp::lag_t<-1>;
   std::vector<newT> flag1(r.size());
   std::vector<newT> flag2(r.size());
 
   {
-    test_timer_t t{std::format("lag dynamic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] =
-          oldT(my_interp::start_pos_finder(r[i], grid), r[i], grid, polyorder);
-      lag2[i] = oldT(
-          my_interp::start_pos_finder(r2[i], grid), r2[i], grid, polyorder);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("lag dynamic {} new {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "lag dynamic {} {}", polyorder, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       flag1[i] = newT(grid, r[i], polyorder);
       flag2[i] = newT(grid, r2[i], polyorder);
@@ -497,35 +309,15 @@ void test_dynamic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp dynamic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp dynamic {} new {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
+    test_timer_t t{std::format(
+        "interp dynamic {} {}", polyorder, sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
       sumf0 += interp(data, flag1[i], flag2[i]);
     }
   }
 
   {
-    test_timer_t t{std::format("interp-itw dynamic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3    += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp-itw dynamic {} new {}",
+    test_timer_t t{std::format("interp-itw dynamic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -535,14 +327,7 @@ void test_dynamic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format("flat_interp dynamic {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
@@ -555,7 +340,7 @@ void test_dynamic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw dynamic {} new {}",
+    test_timer_t t{std::format("flat_interp-itw dynamic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
@@ -563,7 +348,7 @@ void test_dynamic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic-vec {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic-vec {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 = lagrange_interp::make_lags(grid, r, polyorder, 0.0);
@@ -571,30 +356,15 @@ void test_dynamic(Index polyorder, bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp dynamic-vec {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT>(
-        r, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT>(
-        r2, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 void test_dynamic_cyclic(Index polyorder, bool sorted) {
@@ -605,7 +375,6 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -500.0, 500.0);
   auto r2 = random_numbers(r.size(), -500.0, 500.0);
@@ -615,29 +384,12 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT = my_interp::
-      Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-  std::vector<oldT> lag1(r.size());
-  std::vector<oldT> lag2(r.size());
-
   using newT = lagrange_interp::lag_t<-1, lagrange_interp::loncross>;
   std::vector<newT> flag1(r.size());
   std::vector<newT> flag2(r.size());
 
   {
-    test_timer_t t{std::format("lag dynamic-cyclic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] =
-          oldT(my_interp::start_pos_finder(r[i], grid), r[i], grid, polyorder);
-      lag2[i] = oldT(
-          my_interp::start_pos_finder(r2[i], grid), r2[i], grid, polyorder);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("lag dynamic-cyclic {} new {}",
+    test_timer_t t{std::format("lag dynamic-cyclic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -647,16 +399,7 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp dynamic-cyclic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp dynamic-cyclic {} new {}",
+    test_timer_t t{std::format("interp dynamic-cyclic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -665,17 +408,7 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp-itw dynamic-cyclic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3    += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp-itw dynamic-cyclic {} new {}",
+    test_timer_t t{std::format("interp-itw dynamic-cyclic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -685,14 +418,7 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic-cyclic {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format("flat_interp dynamic-cyclic {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic-cyclic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
@@ -705,7 +431,7 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw dynamic-cyclic {} new {}",
+    test_timer_t t{std::format("flat_interp-itw dynamic-cyclic {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
@@ -713,7 +439,7 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic-cyclic-vec {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic-cyclic-vec {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 = lagrange_interp::make_lags<lagrange_interp::loncross>(
@@ -723,30 +449,15 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
     sumf2 = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp dynamic-cyclic-vec {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT>(
-        r, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT>(
-        r2, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 void test_dynamic_mixed(Index polyorder, bool sorted) {
@@ -757,7 +468,6 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
           .reshape(grid.size(), grid.size());
 
   Numeric sumf0{}, sumf1{}, sumf2{}, sumf3{}, sumf4{};
-  Numeric suml0{}, suml1{}, suml2{}, suml3{};
 
   auto r  = random_numbers(10000, -500.0, 500.0);
   auto r2 = random_numbers(r.size(), -500.0, 500.0);
@@ -767,31 +477,13 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
     std::sort(r2.begin(), r2.end());
   }
 
-  using oldT1 = my_interp::
-      Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-  using oldT2 = my_interp::Lagrange<-1>;
-  std::vector<oldT1> lag1(r.size());
-  std::vector<oldT2> lag2(r.size());
-
   using newT1 = lagrange_interp::lag_t<-1, lagrange_interp::loncross>;
   using newT2 = lagrange_interp::lag_t<-1>;
   std::vector<newT1> flag1(r.size());
   std::vector<newT2> flag2(r.size());
 
   {
-    test_timer_t t{std::format("lag dynamic-mixed {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      lag1[i] =
-          oldT1(my_interp::start_pos_finder(r[i], grid), r[i], grid, polyorder);
-      lag2[i] = oldT2(
-          my_interp::start_pos_finder(r2[i], grid), r2[i], grid, polyorder);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("lag dynamic-mixed {} new {}",
+    test_timer_t t{std::format("lag dynamic-mixed {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -801,16 +493,7 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp dynamic-mixed {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      suml0 += interp(data, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp dynamic-mixed {} new {}",
+    test_timer_t t{std::format("interp dynamic-mixed {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -819,17 +502,7 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("interp-itw dynamic-mixed {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    for (Size i = 0; i < r.size(); ++i) {
-      auto itw  = interpweights(lag1[i], lag2[i]);
-      suml3    += interp(data, itw, lag1[i], lag2[i]);
-    }
-  }
-
-  {
-    test_timer_t t{std::format("interp-itw dynamic-mixed {} new {}",
+    test_timer_t t{std::format("interp-itw dynamic-mixed {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     for (Size i = 0; i < r.size(); ++i) {
@@ -839,14 +512,7 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic-mixed {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    suml1 = sum(flat_interp(data, lag1, lag2));
-  }
-
-  {
-    test_timer_t t{std::format("flat_interp dynamic-mixed {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic-mixed {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     sumf1 = sum(flat_interp(data, flag1, flag2));
@@ -859,7 +525,7 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp-itw dynamic-mixed {} new {}",
+    test_timer_t t{std::format("flat_interp-itw dynamic-mixed {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto itw = flat_interpweights(flag1, flag2);
@@ -867,7 +533,7 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
   }
 
   {
-    test_timer_t t{std::format("flat_interp dynamic-mixed-vec {} new {}",
+    test_timer_t t{std::format("flat_interp dynamic-mixed-vec {} {}",
                                polyorder,
                                sorted ? "sorted"sv : "unsorted"sv)};
     const auto l1 = lagrange_interp::make_lags<lagrange_interp::loncross>(
@@ -876,30 +542,15 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  {
-    test_timer_t t{std::format("flat_interp dynamic-mixed-vec {} old {}",
-                               polyorder,
-                               sorted ? "sorted"sv : "unsorted"sv)};
-    const auto l1 = my_interp::lagrange_interpolation_list<oldT1>(
-        r, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    const auto l2 = my_interp::lagrange_interpolation_list<oldT2>(
-        r2, grid, polyorder, std::numeric_limits<Numeric>::infinity());
-    suml2 = sum(flat_interp(data, l1, l2));
-  }
-
   ARTS_USER_ERROR_IF(
       sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and new interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}\nold: {5} != {6} != {7} != {8}",
+      "Results of old and interpolation do not match!\n"
+      "new: {0} != {1} != {2} != {3} != {4}",
       sumf0,
       sumf1,
       sumf2,
       sumf3,
-      sumf4,
-      suml0,
-      suml1,
-      suml2,
-      suml3);
+      sumf4);
 }
 
 template <Size N>
@@ -914,24 +565,8 @@ void test_reinterp_fixed() {
   using NLinT = lagrange_interp::lag_t<N>;
   using NCycT = lagrange_interp::lag_t<N, lagrange_interp::loncross>;
 
-  using OLinT = my_interp::Lagrange<N>;
-  using OCycT = my_interp::
-      Lagrange<N, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-
   std::vector<NLinT> fl1;
-  std::vector<OLinT> ol1;
   std::vector<NCycT> fl2;
-  std::vector<OCycT> ol2;
-
-  {
-    test_timer_t t{std::format("lag reinterp fixed {} old", N)};
-    {
-      ol1 = my_interp::lagrange_interpolation_list<OLinT>(
-          ngrid1, grid, std::numeric_limits<Numeric>::infinity());
-      ol2 = my_interp::lagrange_interpolation_list<OCycT>(
-          ngrid2, grid, std::numeric_limits<Numeric>::infinity());
-    }
-  }
 
   {
     test_timer_t t{std::format("lag reinterp fixed {} new", N)};
@@ -943,20 +578,11 @@ void test_reinterp_fixed() {
     }
   }
 
-  Matrix mo, mn, mo2, mn2;
-  {
-    test_timer_t t{std::format("reinterp fixed {} old", N)};
-    mo = reinterp(data, ol1, ol2);
-  }
+  Matrix mn, mn2;
 
   {
     test_timer_t t{std::format("reinterp fixed {} new", N)};
     mn = reinterp(data, fl1, fl2);
-  }
-  {
-    test_timer_t t{std::format("reinterp-itw fixed {} old", N)};
-    auto itw = interpweights(ol1, ol2);
-    mo2      = reinterp(data, itw, ol1, ol2);
   }
 
   {
@@ -965,7 +591,7 @@ void test_reinterp_fixed() {
     mn2      = reinterp(data, itw, fl1, fl2);
   }
 
-  ARTS_USER_ERROR_IF(sum(mn) != sum(mn2) or sum(mo) != sum(mo2),
+  ARTS_USER_ERROR_IF(sum(mn) != sum(mn2),
                      "Reinterpolation results do not match");
 }
 
@@ -980,24 +606,8 @@ void test_reinterp_dynamic(Index N) {
   using NLinT = lagrange_interp::lag_t<-1>;
   using NCycT = lagrange_interp::lag_t<-1, lagrange_interp::loncross>;
 
-  using OLinT = my_interp::Lagrange<-1>;
-  using OCycT = my_interp::
-      Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-
   std::vector<NLinT> fl1;
-  std::vector<OLinT> ol1;
   std::vector<NCycT> fl2;
-  std::vector<OCycT> ol2;
-
-  {
-    test_timer_t t{std::format("lag reinterp dynamic {} old", N)};
-    {
-      ol1 = my_interp::lagrange_interpolation_list<OLinT>(
-          ngrid1, grid, N, std::numeric_limits<Numeric>::infinity());
-      ol2 = my_interp::lagrange_interpolation_list<OCycT>(
-          ngrid2, grid, N, std::numeric_limits<Numeric>::infinity());
-    }
-  }
 
   {
     test_timer_t t{std::format("lag reinterp dynamic {} new", N)};
@@ -1009,21 +619,11 @@ void test_reinterp_dynamic(Index N) {
     }
   }
 
-  Matrix mo, mn, mo2, mn2;
-  {
-    test_timer_t t{std::format("reinterp dynamic {} old", N)};
-    mo = reinterp(data, ol1, ol2);
-  }
+  Matrix mn, mn2;
 
   {
     test_timer_t t{std::format("reinterp dynamic {} new", N)};
     mn = reinterp(data, fl1, fl2);
-  }
-
-  {
-    test_timer_t t{std::format("reinterp-itw dynamic {} old", N)};
-    auto itw = interpweights(ol1, ol2);
-    mo2      = reinterp(data, itw, ol1, ol2);
   }
 
   {
@@ -1032,9 +632,10 @@ void test_reinterp_dynamic(Index N) {
     mn2      = reinterp(data, itw, fl1, fl2);
   }
 
-  ARTS_USER_ERROR_IF(sum(mn) != sum(mn2) or sum(mo) != sum(mo2),
+  ARTS_USER_ERROR_IF(sum(mn) != sum(mn2),
                      "Reinterpolation results do not match");
 }
+}  // namespace
 
 int main() {
   for (Index i = 0; i < 5; ++i) {

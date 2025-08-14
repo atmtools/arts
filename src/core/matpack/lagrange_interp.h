@@ -371,8 +371,11 @@ void set_weights(std::span<Numeric, M> data,
 
 template <Index N, transformer transform = identity>
 struct lag_t {
-  static constexpr bool cyclic  = lagrange_interp::cyclic<transform>;
-  static constexpr bool runtime = N == -1;
+  static constexpr bool cyclic     = lagrange_interp::cyclic<transform>;
+  static constexpr bool runtime    = N == -1;
+  static constexpr Index PolyOrder = N;
+  using transform_t                = transform;
+
   static_assert(
       N >= -1,
       "N must be -1 or greater, -1 is only accepted for runtime polynomials");
@@ -460,7 +463,7 @@ void check_limit(const std::span<const Numeric>& xi,
         ascending ? xi.front() - extrapolation_limit * (xi[1] - xi.front())
                   : xi.back() - extrapolation_limit * (xi[n - 2] - xi.back());
 
-    if (xmax_lim < xmax or xmin_lim < xmin) {
+    if (xmax_lim < xmax or xmin_lim > xmin) {
       throw std::runtime_error(std::format(
           R"(Extrapolation limit ({0}) yields limits to the extrapolation of the grid that are outside the input grid.
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atm.h>
-#include <interp.h>
 #include <isotopologues.h>
+#include <lagrange_interp.h>
 #include <lbl.h>
 #include <matpack.h>
 #include <xml.h>
@@ -70,25 +70,25 @@ struct table {
   [[nodiscard]] std::array<Index, 4> grid_shape() const;
   void check() const;
 
-  [[nodiscard]] LagrangeInterpolation pressure_lagrange(
+  [[nodiscard]] lagrange_interp::lag_t<-1> pressure_lagrange(
       const Numeric& pressure,
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 
-  [[nodiscard]] ArrayOfLagrangeInterpolation frequency_lagrange(
+  [[nodiscard]] std::vector<lagrange_interp::lag_t<-1>> frequency_lagrange(
       const Vector& frequency_grid,
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 
-  [[nodiscard]] LagrangeInterpolation water_lagrange(
+  [[nodiscard]] lagrange_interp::lag_t<-1> water_lagrange(
       const Numeric& water_vmr,
-      const LagrangeInterpolation& pressure_lagrange,
+      const lagrange_interp::lag_t<-1>& pressure_lagrange,
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 
-  [[nodiscard]] LagrangeInterpolation temperature_lagrange(
+  [[nodiscard]] lagrange_interp::lag_t<-1> temperature_lagrange(
       const Numeric& temperature,
-      const LagrangeInterpolation& pressure_lagrange,
+      const lagrange_interp::lag_t<-1>& pressure_lagrange,
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 };
