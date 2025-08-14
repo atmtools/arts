@@ -743,7 +743,7 @@ void flat_interp(matpack::mut_ranked_md<1> auto&& out,
 
 //! Reuse interpolation weights.
 template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
-void flat_interp(const matpack::ranked_md<N> auto& field,
+auto flat_interp(const matpack::ranked_md<N> auto& field,
                  const matpack::ranked_md<N + 1> auto& itw,
                  const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
