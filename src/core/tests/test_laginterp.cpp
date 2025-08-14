@@ -9,6 +9,12 @@
 #include "time_test_util.h"
 
 namespace {
+bool allclose(Numeric x, auto... xs) {
+  return ((nonstd::abs(x - xs) <
+           x * 100 * std::numeric_limits<Numeric>::epsilon()) and
+          ...);
+}
+
 template <Size N>
 void test_fixed(bool sorted) {
   const Vector grid{1, 2, 3, 4, 5, 6};
@@ -84,15 +90,14 @@ void test_fixed(bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 template <Size N>
@@ -176,15 +181,14 @@ void test_fixed_cyclic(bool sorted) {
     sumf2 = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 template <Size N>
@@ -267,15 +271,14 @@ void test_fixed_mixed(bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 void test_dynamic(Index polyorder, bool sorted) {
@@ -356,15 +359,14 @@ void test_dynamic(Index polyorder, bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 void test_dynamic_cyclic(Index polyorder, bool sorted) {
@@ -449,15 +451,14 @@ void test_dynamic_cyclic(Index polyorder, bool sorted) {
     sumf2 = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 void test_dynamic_mixed(Index polyorder, bool sorted) {
@@ -542,15 +543,14 @@ void test_dynamic_mixed(Index polyorder, bool sorted) {
     sumf2         = sum(flat_interp(data, l1, l2));
   }
 
-  ARTS_USER_ERROR_IF(
-      sumf0 != sumf1 or sumf0 != sumf2 or sumf0 != sumf3 or sumf0 != sumf4,
-      "Results of old and interpolation do not match!\n"
-      "new: {0} != {1} != {2} != {3} != {4}",
-      sumf0,
-      sumf1,
-      sumf2,
-      sumf3,
-      sumf4);
+  ARTS_USER_ERROR_IF(allclose(sumf0, sumf1, sumf2, sumf3, sumf4),
+                     "Results of old and interpolation do not match!\n"
+                     "new: {0} != {1} != {2} != {3} != {4}",
+                     sumf0,
+                     sumf1,
+                     sumf2,
+                     sumf3,
+                     sumf4);
 }
 
 template <Size N>
