@@ -29,6 +29,7 @@ void setup_cdisort(disort_state& ds,
                    const Vector& phis,
                    const DisortSettings& disort_settings,
                    const disort::main_data& dis,
+                   const Numeric surface_temperature,
                    const bool intensity_correction = false) {
   // solar dependent properties if no sun is present
   // Number of azimuth angles
@@ -98,6 +99,12 @@ void setup_cdisort(disort_state& ds,
 
   // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
+
+  // Top of the atmosphere temperature and emissivity
+  ds.bc.ttemp = Constant::cosmic_microwave_background_temperature;
+  ds.bc.btemp = surface_temperature;
+  ds.bc.temis = 1.;
+
 }
 
 void freq_setup_cdisort(disort_state& ds,
@@ -122,12 +129,6 @@ void freq_setup_cdisort(disort_state& ds,
     ds.umu[i + ds.numu / 2] = dis.mu()[i];  // -cos(za_grid[i] * PI / 180);
   }
 
-  // Top of the atmosphere temperature and emissivity
-  ds.bc.ttemp = Constant::cosmic_microwave_background_temperature;
-  ds.bc.btemp =
-      ray_path_atmospheric_point[ray_path_atmospheric_point.size() - 1]
-          .temperature;
-  ds.bc.temis = 1.;
 
   // Cosmic background
   // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
@@ -214,6 +215,8 @@ void cdisort_spectral_radiance_fieldCalc(
     const DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const SurfaceField& surface_field,
     const Vector& phis) {
   ARTS_TIME_REPORT
 #if not ARTS_LGPL
@@ -227,6 +230,11 @@ void cdisort_spectral_radiance_fieldCalc(
   disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
 
   disort::main_data dis = disort_settings.init();
+
+  const Numeric surface_temperature =
+      surface_field.single_value(SurfaceKey::t,
+                                 ray_path[ray_path.size() - 1].latitude(),
+                                 ray_path[ray_path.size() - 1].longitude());
 
   //! Supplementary outputs
   disort_quadrature_weights = dis.weights();
@@ -244,7 +252,11 @@ void cdisort_spectral_radiance_fieldCalc(
     try {
       disort_state ds;
       disort_output out;
-      setup_cdisort(ds, phis, disort_settings, dis);
+      setup_cdisort(ds,
+                    phis,
+                    disort_settings,
+                    dis,
+                    surface_temperature);
 
       disort_settings.set(dis, iv);
       /* Allocate memory */
