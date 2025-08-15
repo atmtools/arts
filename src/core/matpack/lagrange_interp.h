@@ -178,12 +178,12 @@ void update_pos(std::span<Index, X> indx,
   if (N == 0) xp += std::abs(x - *(xp + 1)) < std::abs(x - *xp);
 
 [[maybe_unused]] end:
-  indx[0] = std::clamp(xp, xf, xe) - xf;
-
-  if constexpr (cyclic<transform>)
+  if constexpr (cyclic<transform>) {
+    indx[0] = (std::clamp(xp, xf, xe) - xf) % n;
     for (Size i = 1; i < P; i++) indx[i] = (indx[i - 1] + 1) % n;
-  else
-    for (Size i = 1; i < P; i++) indx[i] = indx[i - 1] + i;
+  } else {
+    std::iota(indx.begin(), indx.end(), std::clamp(xp, xf, xe) - xf);
+  }
 }
 
 /******************************************************************
