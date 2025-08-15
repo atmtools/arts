@@ -4,15 +4,21 @@
 
 namespace Atm::interp {
 altlags altlag(const AscendingGrid& xs, Numeric x) {
-  return xs.size() == 1 ? altlags{altlag0(xs, x)} : altlags{altlag1(xs, x)};
+  return xs.size() == 1
+             ? altlags{altlag0(xs, x, lagrange_interp::ascending_grid_t{})}
+             : altlags{altlag1(xs, x, lagrange_interp::ascending_grid_t{})};
 }
 
 latlags latlag(const AscendingGrid& xs, Numeric x) {
-  return xs.size() == 1 ? latlags{latlag0(xs, x)} : latlags{latlag1(xs, x)};
+  return xs.size() == 1
+             ? latlags{latlag0(xs, x, lagrange_interp::ascending_grid_t{})}
+             : latlags{latlag1(xs, x, lagrange_interp::ascending_grid_t{})};
 }
 
 lonlags lonlag(const AscendingGrid& xs, Numeric x) {
-  return xs.size() == 1 ? lonlags{lonlag0(xs, x)} : lonlags{lonlag1(xs, x)};
+  return xs.size() == 1
+             ? lonlags{lonlag0(xs, x, lagrange_interp::ascending_grid_t{})}
+             : lonlags{lonlag1(xs, x, lagrange_interp::ascending_grid_t{})};
 }
 
 Tensor3 interpweights(const altlags& a, const latlags& b, const lonlags& c) {
@@ -126,10 +132,8 @@ std::vector<std::pair<Index, Numeric>> flat_weight(
         }
         return out;
       },
-      nalt == 1 ? altlags{gf3.lag<0, 0, lagrange_interp::identity>(alt)}
-                : altlags{gf3.lag<0, 1, lagrange_interp::identity>(alt)},
-      nlat == 1 ? latlags{gf3.lag<1, 0, lagrange_interp::identity>(lat)}
-                : latlags{gf3.lag<1, 1, lagrange_interp::identity>(lat)},
+      nalt == 1 ? altlags{gf3.lag<0, 0>(alt)} : altlags{gf3.lag<0, 1>(alt)},
+      nlat == 1 ? latlags{gf3.lag<1, 0>(lat)} : latlags{gf3.lag<1, 1>(lat)},
       nlon == 1 ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
                 : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
 }

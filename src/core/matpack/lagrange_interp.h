@@ -15,8 +15,6 @@
 #include <vector>
 
 #include "matpack_mdspan.h"
-#include "xml_io_base.h"
-#include "xml_io_stream.h"
 
 namespace lagrange_interp {
 /*! Defines a transformer concept
@@ -99,6 +97,27 @@ struct cycler {
 using loncross = cycler<-180.0, 180.0>;
 
 /******************************************************************
+ * Knowledge about the order of the interpolation is very important
+ * for the interpolation to work correctly.  The order is defined
+ * by the transformer and the size of the input array.
+ ******************************************************************/
+
+struct ascending_grid_t {};
+
+struct descending_grid_t {};
+
+using order_t = std::variant<ascending_grid_t, descending_grid_t>;
+
+template <typename T>
+concept grid_order =
+    std::same_as<T, ascending_grid_t> or std::same_as<T, descending_grid_t>;
+
+template <grid_order T>
+consteval bool ascending() {
+  return std::same_as<T, ascending_grid_t>;
+}
+
+/******************************************************************
  * Update the position in the input array so that the closest value
  * for a given polynomial order is in index 0 or 1
  * Polynomial order  |        x <- value here
@@ -117,7 +136,7 @@ using loncross = cycler<-180.0, 180.0>;
  * the previous x.
  ******************************************************************/
 
-template <transformer transform, Size X>
+template <transformer transform, Size X, grid_order grid>
 void update_pos(std::span<Index, X> indx,
                 std::span<const Numeric> xi,
                 Numeric x) {
@@ -130,44 +149,39 @@ void update_pos(std::span<Index, X> indx,
 
   const Size N                                = P - 1;
   const Size Of                               = N / 2;
-  const Size Oe                               = (not cyclic<transform>)*P / 2;
-  const Size Ofc                              = (not cyclic<transform>)*Of;
-  std::span<const Numeric>::iterator xp       = xi.begin() + Of;
-  const std::span<const Numeric>::iterator xf = xi.begin() + Ofc;
-  const std::span<const Numeric>::iterator xe = xi.end() - Oe - 1;
+  std::span<const Numeric>::iterator xp       = xi.begin() + indx[Of];
+  const std::span<const Numeric>::iterator xf = xi.begin() + Of;
+  const std::span<const Numeric>::iterator xe = xi.end() - P / 2 - 1;
 
   if constexpr (cyclic<transform>) {
-    if (xi[0] < xi[1]) {
+    if constexpr (ascending<grid>()) {
       if (x < xi.front() or x >= xi.back()) {
         xp = xe;
-      } else {
-        while (xp < xe and *(xp + 1) < x) ++xp;
-        while (xp > xf and *xp > x) --xp;
+        goto end;
       }
     } else {
       if (x < xi.back() or x >= xi.front()) {
         xp = xe;
-      } else {
-        while (xp < xe and *(xp + 1) > x) ++xp;
-        while (xp > xf and *xp < x) --xp;
+        goto end;
       }
     }
+  }
+
+  if constexpr (ascending<grid>()) {
+    while (xp < xe and *(xp + 1) < x) ++xp;
+    while (xp > xf and *xp > x) --xp;
   } else {
-    if (xi[0] < xi[1]) {
-      while (xp < xe and *(xp + 1) < x) ++xp;
-      while (xp > xf and *xp > x) --xp;
-    } else {
-      while (xp < xe and *(xp + 1) > x) ++xp;
-      while (xp > xf and *xp < x) --xp;
-    }
+    while (xp < xe and *(xp + 1) > x) ++xp;
+    while (xp > xf and *xp < x) --xp;
   }
 
   if (N == 0) xp += std::abs(x - *(xp + 1)) < std::abs(x - *xp);
 
-  const Index pos = xp - xi.begin() - Of;
+[[maybe_unused]] end:
+  const Index pos = std::clamp(xp, xf, xe) - xf;
 
   if constexpr (cyclic<transform>)
-    for (Size i = 0; i < P; i++) indx[i] = (pos + i + n) % n;
+    for (Size i = 0; i < P; i++) indx[i] = (pos + i) % n;
   else
     for (Size i = 0; i < P; i++) indx[i] = pos + i;
 }
@@ -177,14 +191,13 @@ void update_pos(std::span<Index, X> indx,
  * with sorted evenly spaced arrays.  
  ******************************************************************/
 
-constexpr Index fractional_index(
-    Numeric x, Numeric x0, Numeric x1, Index n, Index dn) {
+constexpr Index fractional_index(Numeric x, Numeric x0, Numeric x1, Index n) {
   const Numeric frac = (x - x0) / (x1 - x0);
-  const Index p0     = static_cast<Index>(frac * (Numeric)(n - dn));
-  return std::min(p0, n - dn);
+  const Index p0     = static_cast<Index>(frac * (Numeric)(n));
+  return std::clamp<Index>(p0, 0, n);
 }
 
-template <transformer transform, Size X>
+template <transformer transform, Size X, grid_order grid>
 void find_pos(std::span<Index, X> indx,
               std::span<const Numeric> xi,
               Numeric x) {
@@ -201,22 +214,22 @@ void find_pos(std::span<Index, X> indx,
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
 
-  const Index p0 =
-      fractional_index(x, xi.front(), xi.back(), n, cyclic<transform> ? 0 : P);
+  const Index p0 = fractional_index(
+      x, xi.front(), xi.back(), n - (cyclic<transform> ? 0 : P));
 
   std::iota(indx.begin(), indx.end(), p0);
 
   if constexpr (cyclic<transform>)
     for (auto& i : indx) i = (i + n) % n;
 
-  update_pos<transform, X>(indx, xi, x);
+  update_pos<transform, X, grid>(indx, xi, x);
 }
 
 /******************************************************************
  * The Lagrange interpolation weights
  ******************************************************************/
 
-template <transformer transform, Size M>
+template <transformer transform, Size M, grid_order grid>
 void set_weights(std::span<Numeric, M> data,
                  std::span<const Index, M> indx,
                  std::span<const Numeric> xi,
@@ -230,7 +243,7 @@ void set_weights(std::span<Numeric, M> data,
   // And i != j in the internal loop
 
   if constexpr (cyclic<transform>) {
-    if (xi[0] < xi[1]) {
+    if constexpr (ascending<grid>()) {
       if (x < xi.front()) {
         for (Size j = 0; j < N; ++j) {
           Numeric xj = transform{}(xi[indx[j]]);
@@ -395,24 +408,27 @@ struct lag_t {
   lag_t& operator=(const lag_t&)     = default;
   lag_t& operator=(lag_t&&) noexcept = default;
 
-  lag_t(std::span<const Numeric> xi, Numeric x)
+  template <grid_order grid>
+  lag_t(std::span<const Numeric> xi, Numeric x, grid)
     requires(not runtime)
   {
-    find_pos<transform, N + 1>(indx, xi, x);
-    set_weights<transform, N + 1>(data, indx, xi, x);
+    find_pos<transform, N + 1, grid>(indx, xi, x);
+    set_weights<transform, N + 1, grid>(data, indx, xi, x);
   }
 
-  lag_t(std::span<const Numeric> xi, Numeric x, Index M)
+  template <grid_order grid>
+  lag_t(std::span<const Numeric> xi, Numeric x, Index M, grid)
     requires(runtime)
       : data(M + 1), indx(M + 1) {
-    find_pos<transform, std::dynamic_extent>(indx, xi, x);
-    set_weights<transform, std::dynamic_extent>(data, indx, xi, x);
+    find_pos<transform, std::dynamic_extent, grid>(indx, xi, x);
+    set_weights<transform, std::dynamic_extent, grid>(data, indx, xi, x);
   }
 
-  lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x)
+  template <grid_order grid>
+  lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
       : indx(std::move(pos)) {
     if constexpr (not runtime) data.resize(indx.size());
-    set_weights<transform, N + 1>(data, indx, xi, x);
+    set_weights<transform, N + 1, grid>(data, indx, xi, x);
   }
 
   [[nodiscard]] constexpr Index size() const
@@ -433,13 +449,17 @@ struct lag_t {
  ******************************************************************/
 
 template <transformer transform>
-void check_limit(const std::span<const Numeric>& xi,
-                 const std::span<const Numeric>& xn,
-                 Numeric extrapolation_limit,
-                 const Index polyorder,
-                 const char* info) try {
-  const Index n = xi.size();
-  if (n == 0) return;
+order_t check_limit(const std::span<const Numeric>& xi,
+                    const std::span<const Numeric>& xn,
+                    Numeric extrapolation_limit,
+                    const Index polyorder,
+                    const char* info) try {
+  const Index n        = xi.size();
+  const bool ascending = n <= 1 or xi[0] < xi[1];
+  auto retval =
+      ascending ? order_t{ascending_grid_t{}} : order_t{descending_grid_t{}};
+
+  if (n == 0) return retval;
 
   if (polyorder >= n) {
     throw std::runtime_error(
@@ -447,9 +467,7 @@ void check_limit(const std::span<const Numeric>& xi,
   }
 
   if constexpr (not cyclic<transform>) {
-    if (polyorder == 0 or extrapolation_limit <= 0.0) return;
-
-    const bool ascending = xi[0] < xi[1];
+    if (polyorder == 0 or extrapolation_limit <= 0.0) return retval;
 
     const auto [minptr, maxptr] = stdr::minmax_element(xn);
     const Numeric xmin          = *minptr;
@@ -501,6 +519,8 @@ The actual minimum value is {8}
           transform::cycle(xi.back())));
     }
   }
+
+  return retval;
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error in check_limit for {}:\n{}", info, e.what()));
@@ -518,20 +538,25 @@ std::vector<FlagT> make_lags(std::span<const Numeric> xi,
                              std::span<const Numeric> xn,
                              Numeric extrapolation_limit = 0.5,
                              const char* info            = "UNNAMED") {
-  check_limit<transform>(xi, xn, extrapolation_limit, N, info);
+  const order_t order =
+      check_limit<transform>(xi, xn, extrapolation_limit, N, info);
 
   std::vector<FlagT> lags;
   lags.reserve(xn.size());
 
-  if (not xn.empty()) lags.emplace_back(xi, xn.front());
+  std::visit(
+      [&]<typename grid>(const grid& ord) {
+        if (not xn.empty()) lags.emplace_back(xi, xn.front(), ord);
 
-  for (Size i = 1; i < xn.size(); ++i) {
-    const Numeric x = xn[i];
-    auto& f         = lags.emplace_back(lags[i - 1]);
+        for (Size i = 1; i < xn.size(); ++i) {
+          const Numeric x = xn[i];
+          auto& f         = lags.emplace_back(lags[i - 1]);
 
-    update_pos<transform, N + 1>(f.indx, xi, x);
-    set_weights<transform, N + 1>(f.data, f.indx, xi, x);
-  }
+          update_pos<transform, N + 1, grid>(f.indx, xi, x);
+          set_weights<transform, N + 1, grid>(f.data, f.indx, xi, x);
+        }
+      },
+      order);
 
   return lags;
 }
@@ -543,20 +568,26 @@ std::vector<FlagT> make_lags(std::span<const Numeric> xi,
                              const Index polyorder       = 1,
                              Numeric extrapolation_limit = 0.5,
                              const char* info            = "UNNAMED") {
-  check_limit<transform>(xi, xn, extrapolation_limit, polyorder, info);
+  const order_t order =
+      check_limit<transform>(xi, xn, extrapolation_limit, polyorder, info);
 
   std::vector<FlagT> lags;
   lags.reserve(xn.size());
 
-  if (not xn.empty()) lags.emplace_back(xi, xn.front(), polyorder);
+  std::visit(
+      [&]<typename grid>(const grid& ord) {
+        if (not xn.empty()) lags.emplace_back(xi, xn.front(), polyorder, ord);
 
-  for (Size i = 1; i < xn.size(); ++i) {
-    const Numeric x = xn[i];
-    auto& f         = lags.emplace_back(lags[i - 1]);
+        for (Size i = 1; i < xn.size(); ++i) {
+          const Numeric x = xn[i];
+          auto& f         = lags.emplace_back(lags[i - 1]);
 
-    update_pos<transform, std::dynamic_extent>(f.indx, xi, x);
-    set_weights<transform, std::dynamic_extent>(f.data, f.indx, xi, x);
-  }
+          update_pos<transform, std::dynamic_extent, grid>(f.indx, xi, x);
+          set_weights<transform, std::dynamic_extent, grid>(
+              f.data, f.indx, xi, x);
+        }
+      },
+      order);
 
   return lags;
 }

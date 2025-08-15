@@ -23,12 +23,19 @@ template <lagrange_interp::lagrange_type T>
 py::class_<T>& interp_class_(py::class_<T>& cl) {
   cl.def(
         "__init__",
-        [](T* l, const Numeric x, const Vector& xi, const Index polyorder) {
-          new (l) T(xi, x, polyorder);
+        [](T* l, const Numeric x, const Vector& xi, const Size polyorder) {
+          if (xi.size() < polyorder + 1)
+            throw std::invalid_argument("Insufficient data points");
+
+          if (xi.size() <= 1 or xi[0] < xi[1]) {
+            new (l) T(xi, x, polyorder, lagrange_interp::ascending_grid_t{});
+          } else {
+            new (l) T(xi, x, polyorder, lagrange_interp::descending_grid_t{});
+          }
         },
         "val"_a,
         "vec"_a,
-        "polyorder"_a = Index{1},
+        "polyorder"_a = Size{1},
         "Construct a Lagrange interpolation object")
       .def_prop_ro(
           "order",

@@ -220,10 +220,9 @@ QuantumIdentifierVectorMap createCij(
     for (auto& atmospheric_point : ray_path_atmospheric_point) {
       const auto numden = atmospheric_point.number_density(key.isot);
 
-      x.push_back(interp(coll.data,
-                         coll.lag<0, 1, lagrange_interp::identity>(
-                             atmospheric_point.temperature)) *
-                  numden);
+      x.push_back(
+          interp(coll.data, coll.lag<0, 1>(atmospheric_point.temperature)) *
+          numden);
     }
   }
 

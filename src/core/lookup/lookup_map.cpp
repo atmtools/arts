@@ -140,7 +140,11 @@ lagrange_interp::lag_t<-1> table::pressure_lagrange(
                                                           extpolation_factor,
                                                           interpolation_order,
                                                           "Log-Pressure");
-  return {plog_v, plog_local[0], interpolation_order};
+                                                          std::println("{:B,}", plog_v);
+  return {plog_v,
+          plog_local[0],
+          interpolation_order,
+          lagrange_interp::descending_grid_t{}};
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -170,7 +174,7 @@ lagrange_interp::lag_t<-1> table::water_lagrange(
   const Vector& xi(*w_pert);
   lagrange_interp::check_limit<lagrange_interp::identity>(
       xi, x, extpolation_factor, interpolation_order, "Water VMR");
-  return {xi, x[0], interpolation_order};
+  return {xi, x[0], interpolation_order, lagrange_interp::ascending_grid_t{}};
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -185,7 +189,7 @@ lagrange_interp::lag_t<-1> table::temperature_lagrange(
   const Vector& xi(*t_pert);
   lagrange_interp::check_limit<lagrange_interp::identity>(
       xi, x, extpolation_factor, interpolation_order, "Temperature");
-  return {xi, x[0], interpolation_order};
+  return {xi, x[0], interpolation_order, lagrange_interp::ascending_grid_t{}};
 }
 ARTS_METHOD_ERROR_CATCH
 

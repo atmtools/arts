@@ -4,6 +4,7 @@
 #include <arts_conversions.h>
 #include <debug.h>
 #include <enumsSurfaceKey.h>
+#include <lagrange_interp.h>
 
 #include <cmath>
 #include <exception>
@@ -11,8 +12,6 @@
 #include <stdexcept>
 #include <utility>
 #include <variant>
-
-#include <lagrange_interp.h>
 
 Surf::Point::Point()                                   = default;
 Surf::Point::Point(const Point &)                      = default;
@@ -206,21 +205,27 @@ Numeric numeric_interpolation(
     using LatLag = lagrange_interp::lag_t<0>;
     using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
+    return interp(data.data,
+                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
+                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
   }
 
   if (lons.size() == 1) {
     using LatLag = lagrange_interp::lag_t<1>;
     using LonLag = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
+    return interp(data.data,
+                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
+                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
   }
 
   {
     using LatLag = lagrange_interp::lag_t<1>;
     using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
 
-    return interp(data.data, LatLag(lats, lat), LonLag(lons, lon));
+    return interp(data.data,
+                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
+                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
   }
 }
 
@@ -470,7 +475,7 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(
   }
 
   if (d1) {
-    const LonLag wlon(v.grid<1>(), lon);
+    const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
     return {std::pair<Index, Numeric>{wlon.indx[0], wlon.data[0]},
             std::pair<Index, Numeric>{wlon.indx[1], wlon.data[1]},
             v0,
@@ -478,15 +483,15 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(
   }
 
   if (d2) {
-    const LatLag wlat(v.grid<0>(), lat);
+    const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
     return {std::pair<Index, Numeric>{wlat.indx[0], wlat.data[0]},
             std::pair<Index, Numeric>{wlat.indx[1], wlat.data[1]},
             v0,
             v0};
   }
 
-  const LatLag wlat(v.grid<0>(), lat);
-  const LonLag wlon(v.grid<1>(), lon);
+  const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
+  const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
   auto sz = [slon](auto lat_pos, auto lon_pos) {
     return lat_pos * slon + lon_pos;
   };

@@ -56,7 +56,8 @@ StokvecVector interp(const StokvecConstMatrixView& data,
                      const Numeric& zenith) {
   const Size NF = data.shape().back();
 
-  const lagrange_interp::lag_t<1> za(zenith_grid, zenith);
+  const lagrange_interp::lag_t<1> za(
+      zenith_grid, zenith, lagrange_interp::ascending_grid_t{});
 
   StokvecVector out(NF);
 

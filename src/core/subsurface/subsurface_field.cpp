@@ -253,12 +253,10 @@ Numeric get(const CartesianSubsurfaceGriddedField3 &gf3,
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
         return lagrange_interp::interp(data, al, la, lo);
       },
-      gf3.grid<0>().size() == 1
-          ? altlags{gf3.lag<0, 0, lagrange_interp::identity>(alt)}
-          : altlags{gf3.lag<0, 1, lagrange_interp::identity>(alt)},
-      gf3.grid<1>().size() == 1
-          ? latlags{gf3.lag<1, 0, lagrange_interp::identity>(lat)}
-          : latlags{gf3.lag<1, 1, lagrange_interp::identity>(lat)},
+      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, 0>(alt)}
+                                : altlags{gf3.lag<0, 1>(alt)},
+      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, 0>(lat)}
+                                : latlags{gf3.lag<1, 1>(lat)},
       gf3.grid<2>().size() == 1
           ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
           : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
@@ -346,10 +344,8 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(
         }
         return out;
       },
-      nalt == 1 ? altlags{gf3.lag<0, 0, lagrange_interp::identity>(alt)}
-                : altlags{gf3.lag<0, 1, lagrange_interp::identity>(alt)},
-      nlat == 1 ? latlags{gf3.lag<1, 0, lagrange_interp::identity>(lat)}
-                : latlags{gf3.lag<1, 1, lagrange_interp::identity>(lat)},
+      nalt == 1 ? altlags{gf3.lag<0, 0>(alt)} : altlags{gf3.lag<0, 1>(alt)},
+      nlat == 1 ? latlags{gf3.lag<1, 0>(lat)} : latlags{gf3.lag<1, 1>(lat)},
       nlon == 1 ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
                 : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
 }
