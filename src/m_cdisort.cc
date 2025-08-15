@@ -191,10 +191,13 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
   } while (tries != Status::SUCCESS);
 
   for (Index i = 0; i < ds.nphi; i++) {
-    for (Index j = 0; j < ds.numu; j++) {
-      for (Index k = 0; k < ds.nlyr; k++) {
-        disort_spectral_radiance_field[k, i, j] =
+    for (Index k = 0; k < ds.nlyr; k++) {
+      for (Index j = 0; j < ds.numu / 2; j++) {
+        disort_spectral_radiance_field[k, i, ds.numu - j - 1] =
             out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
+            (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
+        disort_spectral_radiance_field[k, i, j] =
+            out.uu[j + ds.numu / 2 + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
       }
     }
