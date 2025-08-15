@@ -140,7 +140,6 @@ lagrange_interp::lag_t<-1> table::pressure_lagrange(
                                                           extpolation_factor,
                                                           interpolation_order,
                                                           "Log-Pressure");
-                                                          std::println("{:B,}", plog_v);
   return {plog_v,
           plog_local[0],
           interpolation_order,
