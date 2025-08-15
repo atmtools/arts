@@ -427,7 +427,7 @@ struct lag_t {
   template <grid_order grid>
   lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
       : indx(std::move(pos)) {
-    if constexpr (not runtime) data.resize(indx.size());
+    if constexpr (runtime) data.resize(indx.size());
     set_weights<transform, N + 1, grid>(data, indx, xi, x);
   }
 
