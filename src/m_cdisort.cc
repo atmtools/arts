@@ -192,7 +192,7 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 
   for (Index i = 0; i < ds.nphi; i++) {
     for (Index j = 0; j < ds.numu; j++) {
-      for (Index k = 0; k <= ds.nlyr; k++) {
+      for (Index k = 0; k < ds.nlyr; k++) {
         disort_spectral_radiance_field[k, i, j] =
             out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
@@ -235,8 +235,8 @@ void cdisort_spectral_radiance_fieldCalc(
                  [](const Numeric& mu) { return acosd(mu); });
 
   String error;
-// #pragma omp parallel for if (not arts_omp_in_parallel()) \
-//   firstprivate(dis)
+#pragma omp parallel for if (not arts_omp_in_parallel()) \
+  firstprivate(dis)
   for (Index iv = 0; iv < nv; iv++) {
     try {
       disort_state ds;
