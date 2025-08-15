@@ -1,12 +1,13 @@
 #include <configtypes.h>
+#include <interpolation.h>
 #include <lagrange_interp.h>
 #include <matpack.h>
 #include <matpack_mdspan_helpers_vector.h>
 #include <rng.h>
 
 #include <cstdlib>
+#include <stdexcept>
 
-#include "matpack_mdspan_elemwise_mditer.h"
 #include "time_test_util.h"
 
 namespace {
@@ -44,6 +45,8 @@ void test_fixed() {
 
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
+
+  test_timer_t test_fixed_time{std::format("test_fixed N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -241,17 +244,18 @@ void test_fixed() {
 
   if (not all_close(results_interp) or not all_close(results_reinterp) or
       not all_close(results_flat_interp)) {
-    std::println(R"(Results are not close for {}-{} with N={}
+    throw std::runtime_error(
+        std::format(R"(Results are not close for {}-{} with N={}
 
 interp:      {:B,}
 reinterp:    {:B,},
 flat_interp: {:B,})",
-                 name1,
-                 name2,
-                 N,
-                 results_interp,
-                 results_reinterp,
-                 results_flat_interp);
+                    name1,
+                    name2,
+                    N,
+                    results_interp,
+                    results_reinterp,
+                    results_flat_interp));
   }
 }
 
@@ -262,6 +266,8 @@ void test_runtime(Size N) {
 
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
+
+  test_timer_t test_fixed_time{std::format("test_runtime N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -466,17 +472,59 @@ void test_runtime(Size N) {
 
   if (not all_close(results_interp) or not all_close(results_reinterp) or
       not all_close(results_flat_interp)) {
-    std::println(R"(Results are not close for {}-{} with N={}
+    throw std::runtime_error(
+        std::format(R"(Results are not close for {}-{} with N={}
 
 interp:      {:B,}
 reinterp:    {:B,},
 flat_interp: {:B,})",
-                 name1,
-                 name2,
-                 N,
-                 results_interp,
-                 results_reinterp,
-                 results_flat_interp);
+                    name1,
+                    name2,
+                    N,
+                    results_interp,
+                    results_reinterp,
+                    results_flat_interp));
+  }
+}
+
+void test_old() {
+  test_timer_t test_fixed_time{"test_old"};
+
+  const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
+  const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
+
+  const Vector coords1{nlinspace(-180, 180, 300)};
+  const Vector coords2{nlinspace(180, -180, 300)};
+
+  const Matrix data = nlinspace(1, 2, grid1.size() * grid2.size())
+                          .reshape(grid1.size(), grid2.size());
+
+  ArrayOfGridPos grid1_pos;
+  ArrayOfGridPos grid2_pos;
+  Tensor3 itw;
+  Matrix res;
+
+  {
+    test_timer_t timer("gridpos");
+
+    grid1_pos.resize(coords1.size());
+    grid2_pos.resize(coords2.size());
+    gridpos(grid1_pos, grid1, coords1, 1e99);
+    gridpos(grid2_pos, grid2, coords2, 1e99);
+  }
+
+  {
+    test_timer_t timer("itw");
+
+    itw.resize(coords1.size(), coords2.size(), 4);
+    interpweights(itw, grid1_pos, grid2_pos);
+  }
+
+  {
+    test_timer_t timer("res");
+
+    res.resize(coords1.size(), coords2.size());
+    interp(res, itw, data, grid1_pos, grid2_pos);
   }
 }
 }  // namespace
@@ -513,6 +561,8 @@ int main() {
       test_runtime<lagrange_interp::loncross, lagrange_interp::identity>(N);
       test_runtime<lagrange_interp::loncross, lagrange_interp::loncross>(N);
     }
+
+    test_old();
   }
 
   print_time_points();
