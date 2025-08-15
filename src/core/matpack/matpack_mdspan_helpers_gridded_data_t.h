@@ -163,10 +163,10 @@ struct gridded_data_t {
   [[nodiscard]] auto lag(const grid_value_t<Grid>& other) const {
     if constexpr (std::same_as<grid_t<Grid>, AscendingGrid>) {
       return lagrange_interp::lag_t<N, transform>(
-          grid<Grid>(), other, lagrange_interp::descending_grid_t{});
+          grid<Grid>(), other, lagrange_interp::ascending_grid_t{});
     } else if constexpr (std::same_as<grid_t<Grid>, DescendingGrid>) {
       return lagrange_interp::lag_t<N, transform>(
-          grid<Grid>(), other, lagrange_interp::ascending_grid_t{});
+          grid<Grid>(), other, lagrange_interp::descending_grid_t{});
     } else {
       if (grid<Grid>().size() <= 1 or grid<Grid>()[0] < grid<Grid>()[1]) {
         return lagrange_interp::lag_t<N, transform>(
