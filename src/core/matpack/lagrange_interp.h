@@ -155,14 +155,30 @@ void update_pos(std::span<Index, X> indx,
 
   if constexpr (cyclic<transform>) {
     if constexpr (ascending<grid>()) {
-      if (x < xi.front() or x >= xi.back()) {
-        xp = xe;
-        goto end;
+      Numeric xl = xi.front(), xu = xi.back();
+      if (x < xl or x >= xu) {
+        if (N == 0) {
+          xu      = xu - (x < xl) * transform::cycle();
+          xl      = xl + (x >= xu) * transform::cycle();
+          indx[0] = (std::abs(x - xl) > std::abs(x - xu)) * (n - 1);
+        } else {
+          for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
+        }
+
+        return;
       }
     } else {
-      if (x < xi.back() or x >= xi.front()) {
-        xp = xe;
-        goto end;
+      Numeric xu = xi.front(), xl = xi.back();
+      if (x < xl or x >= xu) {
+        if (N == 0) {
+          xu      = xu - (x < xl) * transform::cycle();
+          xl      = xl + (x >= xu) * transform::cycle();
+          indx[0] = (std::abs(x - xl) < std::abs(x - xu)) * (n - 1);
+        } else {
+          for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
+        }
+
+        return;
       }
     }
   }
@@ -177,7 +193,6 @@ void update_pos(std::span<Index, X> indx,
 
   if (N == 0) xp += std::abs(x - *(xp + 1)) < std::abs(x - *xp);
 
-[[maybe_unused]] end:
   if constexpr (cyclic<transform>) {
     indx[0] = (std::clamp(xp, xf, xe) - xf) % n;
     for (Size i = 1; i < P; i++) indx[i] = (indx[i - 1] + 1) % n;
