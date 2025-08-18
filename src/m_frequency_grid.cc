@@ -47,9 +47,10 @@ ray_path_point.los:     {:B,}
 
   // shift the frequency grid
   {
-    ExtendAscendingGrid tmp = frequency_grid;
+    Vector tmp = std::move(frequency_grid);
     stdr::transform(
         tmp, tmp.begin(), [fac](const Numeric& f) { return fac * f; });
+    frequency_grid = std::move(tmp);
   }
 
   {

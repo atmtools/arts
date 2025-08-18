@@ -56,9 +56,10 @@ void forward_path_freq(AscendingGrid &path_freq,
   ARTS_USER_ERROR_IF(
       fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
 
-  ExtendAscendingGrid tmp = path_freq;
+  Vector tmp = std::move(path_freq);
   stdr::transform(
       main_freq, tmp.begin(), [fac](const auto &f) { return fac * f; });
+  path_freq = std::move(tmp);
 }
 
 void forward_path_freq(ArrayOfAscendingGrid &path_freq,
@@ -81,7 +82,7 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
       }
     }
 
-    if(not error.empty()) throw std::runtime_error(error);
+    if (not error.empty()) throw std::runtime_error(error);
   }
 }
 

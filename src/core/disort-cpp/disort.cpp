@@ -1,7 +1,7 @@
 #include "disort.h"
 
-#include <arts_conversions.h>
 #include <arts_constants.h>
+#include <arts_conversions.h>
 #include <compare.h>
 #include <debug.h>
 #include <legendre.h>
@@ -1592,9 +1592,9 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
         bidirectional_reflectance_distribution_functions[iv, i];
   }
 
+  dis.tau(optical_thicknesses[iv]);
   dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
   dis.beam_azimuth()        = deg2rad(solar_azimuth_angle[iv]);
-  dis.tau()                 = optical_thicknesses[iv];
   dis.omega()               = single_scattering_albedo[iv];
   dis.f()                   = fractional_scattering[iv];
   dis.all_legendre_coeffs() = legendre_coefficients[iv];
