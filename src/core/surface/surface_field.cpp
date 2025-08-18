@@ -513,6 +513,53 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
   return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
 }
 
+bool Data::ok() const {
+  if (std::holds_alternative<SortedGriddedField2>(data)) {
+    auto &v = *std::get_if<SortedGriddedField2>(&data);
+    return v.ok() and
+           lagrange_interp::loncross::cycle(v.grid<1>().front()) ==
+               v.grid<1>().front() and
+           lagrange_interp::loncross::cycle(v.grid<1>().back()) ==
+               v.grid<1>().back() and
+           v.grid<0>().front() >= -90 and v.grid<0>().back() <= 90;
+  }
+
+  return true;
+}
+
+void Data::fix_cyclicity() {
+  if (std::holds_alternative<SortedGriddedField2>(data)) {
+    if (ok()) return;
+
+    auto &v              = *std::get_if<SortedGriddedField2>(&data);
+    const auto &lon_grid = v.grid<1>();
+
+    std::vector<std::pair<Index, Numeric>> lon{lon_grid.size()};
+    for (Size i = 0; i < lon.size(); ++i) {
+      lon[i] = {i, lon_grid[i]};
+      while (lon[i].second != lagrange_interp::loncross::cycle(lon[i].second)) {
+        lon[i].second = lagrange_interp::loncross::cycle(lon[i].second);
+      }
+    }
+
+    stdr::sort(lon, {}, &std::pair<Index, Numeric>::second);
+    auto [end, _] = stdr::unique(lon, {}, &std::pair<Index, Numeric>::second);
+    lon.erase(end, lon.end());
+
+    Matrix data(v.shape()[0], lon.size());
+    Vector lon_grid_new;
+    lon_grid_new.reserve(lon.size());
+
+    for (auto [i, l] : lon) {
+      lon_grid_new.emplace_back(l);
+      data[joker, i] = v.data[joker, i];
+    }
+
+    v.data      = std::move(data);
+    v.grid<1>() = std::move(lon_grid_new);
+  }
+}
+
 void Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<SortedGriddedField2>(data)) {
     auto &field = std::get<SortedGriddedField2>(data);

@@ -269,20 +269,28 @@ An example of using :class:`~pyarts.arts.Numeric` as surface field data is given
 
   print(surf_field(0, 0))
 
-GriddedField2
-^^^^^^^^^^^^^
+SortedGriddedField2
+^^^^^^^^^^^^^^^^^^^
 
-If the surface data is of the type :class:`~pyarts.arts.GriddedField2`,
+If the surface data is of the type :class:`~pyarts.arts.SortedGriddedField2`,
 the data is defined on a grid of geodetic latitude and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
-For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
+For sake of this linear interpolation, longitude is treated as a cyclic coordinate between [-180, 180) - please ensure your grid is defined accordingly.
 This data type fully respects the rules of extrapolation outside its grid.
 
 .. note::
 
-  If the :class:`~pyarts.arts.GriddedField2` does not cover the full range of the surface, the extrapolation rules will be used to
+  If the :class:`~pyarts.arts.SortedGriddedField2` does not cover the full range of the surface, the extrapolation rules will be used to
   extrapolate it.  By default, these rules are set to not allow any extrapolation.  This can be changed by setting the
   extrapolation settings as needed.  See headers `Extrapolation rules`_ and `surface field data`_ for more information.
+
+.. warning::
+
+  Even though the longitude grid is cyclic, only longitude values [-540, 540) are allowed when interpolating
+  the field.  This is because we need the interpolation to be very fast and this is only possible for single
+  cycles of the longitude.  Most algorithm will produce values [-360, 360] for the longitude, so this should
+  in practice not be a problem for normal use-cases.  Please still ensure that the grid is defined properly
+  or the interpolation routines will fail.
 
 NumericBinaryOperator
 ^^^^^^^^^^^^^^^^^^^^^

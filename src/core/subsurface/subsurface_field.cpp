@@ -5,8 +5,6 @@
 
 #include <utility>
 
-#include "subsurface.h"
-
 namespace Subsurface {
 Point::Point()                             = default;
 Point::Point(const Point &)                = default;
@@ -428,6 +426,52 @@ std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
 std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
     const Vector3 pos) const {
   return flat_weight(pos[0], pos[1], pos[2]);
+}
+
+bool Data::ok() const {
+  if (std::holds_alternative<CartesianSubsurfaceGriddedField3>(data)) {
+    auto &v = *std::get_if<CartesianSubsurfaceGriddedField3>(&data);
+    return v.ok() and
+           lagrange_interp::loncross::cycle(v.grid<2>().front()) ==
+               v.grid<2>().front() and
+           lagrange_interp::loncross::cycle(v.grid<2>().back()) ==
+               v.grid<2>().back() and
+           v.grid<1>().front() >= -90 and v.grid<1>().back() <= 90;
+  }
+
+  return true;
+}
+
+void Data::fix_cyclicity() {
+  if (std::holds_alternative<CartesianSubsurfaceGriddedField3>(data)) {
+    if (ok()) return;
+
+    auto &v = *std::get_if<CartesianSubsurfaceGriddedField3>(&data);
+    const auto &lon_grid = v.grid<2>();
+
+    std::vector<std::pair<Index, Numeric>> lon{lon_grid.size()};
+    for (Size i = 0; i < lon.size(); ++i) {
+      lon[i] = {i, lon_grid[i]};
+      while (lon[i].second != lagrange_interp::loncross::cycle(lon[i].second)) {
+        lon[i].second = lagrange_interp::loncross::cycle(lon[i].second);
+      }
+    }
+
+    stdr::sort(lon, {}, &std::pair<Index, Numeric>::second);
+    auto [end, _] = stdr::unique(lon, {}, &std::pair<Index, Numeric>::second);
+    lon.erase(end, lon.end());
+
+    Tensor3 data(v.shape()[0], v.shape()[1], lon.size());
+    Vector lon_grid_new(lon.size());
+
+    for (auto [i, l] : lon) {
+      lon_grid_new[i] = l;
+      data[joker, i]  = v.data[joker, joker, i];
+    }
+
+    v.data      = std::move(data);
+    v.grid<2>() = std::move(lon_grid_new);
+  }
 }
 
 Field::Field()                             = default;

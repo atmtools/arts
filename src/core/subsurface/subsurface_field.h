@@ -132,6 +132,10 @@ struct Data {
 
   [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
       const Vector3 pos) const;
+
+  [[nodiscard]] bool ok() const;
+
+  void fix_cyclicity();
 };
 
 struct Field final {

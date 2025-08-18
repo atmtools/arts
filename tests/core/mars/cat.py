@@ -15,6 +15,8 @@ ws.surface_field["h"] = pyarts.arts.SortedGriddedField2.fromxml(
 ws.surface_field["t"].set_extrapolation("Nearest")
 ws.surface_field["h"].set_extrapolation("Nearest")
 
+ws.surface_fieldFixCyclicity()
+
 pos = [200e3, 0, 0]
 los = [180, 0]
 f0 = 556.935985e9

@@ -235,6 +235,10 @@ struct Data {
 
   [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
       const Vector3 pos) const;
+
+  [[nodiscard]] bool ok() const;
+
+  void fix_cyclicity();
 };
 
 template <typename T>

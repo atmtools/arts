@@ -340,6 +340,81 @@ std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods_create() try {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
+  wsm_data["atmospheric_fieldCheck"] = {
+      .desc =
+          R"(Check the atmospheric field for consistency and validity.
+
+This method is optional and recommended to be used in-case you get
+results that are weird.  Just to ensure there are no issues
+with the data.
+)",
+      .author = {"Richard Larsson"},
+      .in     = {"atmospheric_field"},
+  };
+
+  wsm_data["surface_fieldCheck"] = {
+      .desc =
+          R"(Check the surface field for consistency and validity.
+
+This method is optional and recommended to be used in-case you get
+results that are weird.  Just to ensure there are no issues
+with the data.
+)",
+      .author = {"Richard Larsson"},
+      .in     = {"surface_field"},
+  };
+
+  wsm_data["subsurface_fieldCheck"] = {
+      .desc =
+          R"(Check the subsurface field for consistency and validity.
+
+This method is optional and recommended to be used in-case you get
+results that are weird somehow.  Just to ensure there are no issues
+with the data.
+)",
+      .author = {"Richard Larsson"},
+      .in     = {"subsurface_field"},
+  };
+
+  wsm_data["atmospheric_fieldFixCyclicity"] = {
+      .desc =
+          R"(Fix the cyclicity of the atmospheric field.
+
+This method ensures that the atmospheric field is properly
+cyclic in the longitude dimension, meaning that the data
+wraps around correctly from -180 to 180 degrees.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"atmospheric_field"},
+      .in     = {"atmospheric_field"},
+  };
+
+  wsm_data["surface_fieldFixCyclicity"] = {
+      .desc =
+          R"(Fix the cyclicity of the surface field.
+
+This method ensures that the surface field is properly
+cyclic in the longitude dimension, meaning that the data
+wraps around correctly from -180 to 180 degrees.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_field"},
+      .in     = {"surface_field"},
+  };
+
+  wsm_data["subsurface_fieldFixCyclicity"] = {
+      .desc =
+          R"(Fix the cyclicity of the subsurface field.
+
+This method ensures that the subsurface field is properly
+cyclic in the longitude dimension, meaning that the data
+wraps around correctly from -180 to 180 degrees.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"subsurface_field"},
+      .in     = {"subsurface_field"},
+  };
+
   wsm_data["Ignore"] = {
       .desc      = R"--(Ignore a workspace variable.
 
@@ -722,7 +797,8 @@ spherical harmonics and is only valid for a limited time period.
   };
 
   wsm_data["atmospheric_fieldSchmidthFieldFromIGRF"] = {
-      .desc      = R"--(For forward calculations, this should be similar to *atmospheric_fieldIGRF*.
+      .desc =
+          R"--(For forward calculations, this should be similar to *atmospheric_fieldIGRF*.
 
 What it does different is that it is 1) not a direct computations matching the IGRF field,
 instead averaging the Legendre coefficient matrices.
@@ -2380,7 +2456,8 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
   };
 
   wsm_data["spectral_radianceApplyForwardUnit"] = {
-      .desc   = R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
+      .desc =
+          R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
@@ -2861,7 +2938,7 @@ See *FieldComponent* for valid ``component``.
       jac2ret("jacobian_targetsAddMagneticField");
 
   wsm_data["jacobian_targetsAddOverlappingMagneticField"] = {
-      .desc      = R"--(Set magnetic field derivative for overlapping fields.
+      .desc   = R"--(Set magnetic field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
 x-component of the jacobian is at the same position as another Jacobian
@@ -2870,9 +2947,9 @@ target.
 To call this method, you first have added 1 component of the magnetic field
 derivative, and then you call this method to add the second and third component.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
   };
   wsm_data["RetrievalAddOverlappingMagneticField"] =
       jac2ret("jacobian_targetsAddOverlappingMagneticField");
@@ -2898,7 +2975,7 @@ See *FieldComponent* for valid ``component``
   wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
 
   wsm_data["jacobian_targetsAddOverlappingWindField"] = {
-      .desc      = R"--(Set wind field derivative for overlapping fields.
+      .desc   = R"--(Set wind field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
 x-component of the jacobian is at the same position as another Jacobian
@@ -2907,9 +2984,9 @@ target.
 To call this method, you first have added 1 component of the wind field
 derivative, and then you call this method to add the second and third component.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
   };
   wsm_data["RetrievalAddOverlappingWindField"] =
       jac2ret("jacobian_targetsAddOverlappingWindField");

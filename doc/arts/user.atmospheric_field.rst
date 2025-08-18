@@ -309,15 +309,15 @@ An example of using :class:`~pyarts.arts.Numeric` as atmospheric field data is g
   [sub.set_xlabel("Field strength [T]") for sub in subs]
   plt.show()
 
-GriddedField3
-^^^^^^^^^^^^^
+SortedGriddedField3
+^^^^^^^^^^^^^^^^^^^
 
-If the atmospheric data is of the type :class:`~pyarts.arts.GriddedField3`,
+If the atmospheric data is of the type :class:`~pyarts.arts.SortedGriddedField3`,
 the data is defined on a grid of altitude, geodetic latitude, and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
-For sake of this linear interpolation, longitude is treated as a cyclic coordinate.
+For sake of this linear interpolation, longitude is treated as a cyclic coordinate between [-180, 180) - please ensure your grid is defined accordingly.
 This data type fully respects the rules of extrapolation outside its grid.
-An example of using :class:`~pyarts.arts.GriddedField3` as atmospheric field data is given in the following code block.
+An example of using :class:`~pyarts.arts.SortedGriddedField3` as atmospheric field data is given in the following code block.
 
 .. plot::
   :include-source:
@@ -327,9 +327,9 @@ An example of using :class:`~pyarts.arts.GriddedField3` as atmospheric field dat
   import pyarts
 
   atm_field = pyarts.arts.AtmField(toa=100e3)
-  atm_field["t"] = pyarts.arts.GriddedField3.fromxml("planets/Earth/afgl/tropical/t.xml")
-  atm_field["O2"] = pyarts.arts.GriddedField3.fromxml("planets/Earth/afgl/tropical/O2.xml")
-  atm_field["H2O"] = pyarts.arts.GriddedField3.fromxml("planets/Earth/afgl/tropical/H2O.xml")
+  atm_field["t"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/t.xml")
+  atm_field["O2"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/O2.xml")
+  atm_field["H2O"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/H2O.xml")
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["t", "O2", "H2O"])
@@ -345,15 +345,23 @@ An example of using :class:`~pyarts.arts.GriddedField3` as atmospheric field dat
 
 .. tip::
 
-  It is possible to use any number of 1-long grids in a :class:`~pyarts.arts.GriddedField3` meant for use as a :class:`~pyarts.arts.AtmData`.
+  It is possible to use any number of 1-long grids in a :class:`~pyarts.arts.SortedGriddedField3` meant for use as a :class:`~pyarts.arts.AtmData`.
   The 1-long grids will by default apply the "nearest" interpolation rule for those grids, potentially reducing the atmospheric data
   to a 1D profile if only the altitude is given, or even a constant if all three grids are 1-long.
 
 .. note::
 
-  If the :class:`~pyarts.arts.GriddedField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
+  If the :class:`~pyarts.arts.SortedGriddedField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
   extrapolate it.  By default, these rules are set to not allow any extrapolation.  This can be changed by setting the
   extrapolation settings as needed.  See headers `Extrapolation rules`_ and `Atmospheric field data`_ for more information.
+
+.. warning::
+
+  Even though the longitude grid is cyclic, only longitude values [-540, 540) are allowed when interpolating
+  the field.  This is because we need the interpolation to be very fast and this is only possible for single
+  cycles of the longitude.  Most algorithm will produce values [-360, 360] for the longitude, so this should
+  in practice not be a problem for normal use-cases.  Please still ensure that the grid is defined properly
+  or the interpolation routines will fail.
 
 NumericTernaryOperator
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -370,8 +378,8 @@ An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric 
   import numpy as np
   import pyarts
 
-  h = pyarts.arts.GriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").grids[0]
-  p = pyarts.arts.GriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").data.flatten()
+  h = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").grids[0]
+  p = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").data.flatten()
 
   def h2p(alt, *args):
       return np.interp(alt, h, p)

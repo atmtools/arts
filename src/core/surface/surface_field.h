@@ -143,6 +143,10 @@ struct Data {
       const Numeric &lat, const Numeric &lon) const;
 
   [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
+
+  [[nodiscard]] bool ok() const;
+
+  void fix_cyclicity();
 };
 
 struct Field final {

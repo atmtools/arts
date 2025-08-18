@@ -735,6 +735,52 @@ std::vector<std::pair<Index, Numeric>> Data::flat_weight(
   return flat_weight(pos[0], pos[1], pos[2]);
 }
 
+bool Data::ok() const {
+  if (std::holds_alternative<SortedGriddedField3>(data)) {
+    auto &v = *std::get_if<SortedGriddedField3>(&data);
+    return v.ok() and
+           lagrange_interp::loncross::cycle(v.grid<2>().front()) ==
+               v.grid<2>().front() and
+           lagrange_interp::loncross::cycle(v.grid<2>().back()) ==
+               v.grid<2>().back() and
+           v.grid<1>().front() >= -90 and v.grid<1>().back() <= 90;
+  }
+
+  return true;
+}
+
+void Data::fix_cyclicity() {
+  if (std::holds_alternative<SortedGriddedField3>(data)) {
+    if (ok()) return;
+
+    auto &v              = *std::get_if<SortedGriddedField3>(&data);
+    const auto &lon_grid = v.grid<2>();
+
+    std::vector<std::pair<Index, Numeric>> lon{lon_grid.size()};
+    for (Size i = 0; i < lon.size(); ++i) {
+      lon[i] = {i, lon_grid[i]};
+      while (lon[i].second != lagrange_interp::loncross::cycle(lon[i].second)) {
+        lon[i].second = lagrange_interp::loncross::cycle(lon[i].second);
+      }
+    }
+
+    stdr::sort(lon, {}, &std::pair<Index, Numeric>::second);
+    auto [end, _] = stdr::unique(lon, {}, &std::pair<Index, Numeric>::second);
+    lon.erase(end, lon.end());
+
+    Tensor3 data(v.shape()[0], v.shape()[1], lon.size());
+    Vector lon_grid_new(lon.size());
+
+    for (auto [i, l] : lon) {
+      lon_grid_new[i] = l;
+      data[joker, i]  = v.data[joker, joker, i];
+    }
+
+    v.data      = std::move(data);
+    v.grid<2>() = std::move(lon_grid_new);
+  }
+}
+
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
 
 Data::Data(SortedGriddedField3 x) : data(std::move(x)) {
@@ -1061,6 +1107,17 @@ AtmField AtmField::gridded(const AscendingGrid &alt,
   const Index nalt = alt.size();
   const Index nlat = lat.size();
   const Index nlon = lon.size();
+
+  ARTS_USER_ERROR_IF(
+      lagrange_interp::loncross::cycle(lon.front()) != lon.front() or
+          lagrange_interp::loncross::cycle(lon.back()) != lon.back(),
+      "The longitude grid is incorrect.  It needs to be [-180, 180), its: {:Bs,}",
+      lon);
+
+  ARTS_USER_ERROR_IF(
+      lat.front() < -90 or lat.back() > 90,
+      "The latitude grid is incorrect.  It needs to be [-90, 90], its: {:Bs,}",
+      lat);
 
   ARTS_USER_ERROR_IF(nalt * nlat * nlon == 0, "Must have a grid")
 
