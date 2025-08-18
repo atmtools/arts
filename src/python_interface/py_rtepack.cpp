@@ -5,6 +5,7 @@
 #include <nanobind/stl/complex.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <rtepack.h>
@@ -62,25 +63,37 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
   py::implicitly_convertible<matpack::data_t<U, M + 1>,
                              matpack::data_t<T, M>>();
 
+  using nd =
+      py::ndarray<py::numpy, Numeric, py::ndim<M + sizeof...(N)>, py::c_contig>;
   c.def(
       "__array__",
-      [](matpack::data_t<T, M> &v, py::object dtype, py::object copy) {
+      [](matpack::data_t<T, M> &v,
+         py::object dtype,
+         py::object copy) -> std::variant<nd, py::object> {
         constexpr auto n = M + sizeof...(N);
         std::array<size_t, n> shape{};
         std::ranges::copy(v.shape(), shape.begin());
         std::ranges::copy(std::array{N...}, shape.begin() + M);
         auto np = py::module_::import_("numpy");
-        auto x  = py::ndarray<py::numpy, Numeric, py::ndim<n>, py::c_contig>(
-            v.data_handle(), n, shape.data(), py::cast(v));
-        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+        auto x  = nd(v.data_handle(), n, shape.data(), py::cast(v));
+
+        if (not dtype.is_none()) {
+          if (copy.is_none())
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+        }
+
+        return x.cast((not copy.is_none() and py::bool_(copy))
+                          ? py::rv_policy::copy
+                          : py::rv_policy::automatic_reference);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
-      "Returns a :class:`~numpy.ndarray` of the object.");
+      "Returns a :class:`~numpy.ndarray` of the object.  The last dimensions are fixed to the underlying rtepack type's size.");
 
   c.def_prop_rw(
       "value",
-      [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+      [](py::object &x) { return x.attr("__array__")(); },
       [](matpack::data_t<T, M> &x, matpack::data_t<T, M> &y) { x = y; },
       "A :class:`~numpy.ndarray` of the object.");
 
@@ -118,20 +131,33 @@ void py_rtepack(py::module_ &m) try {
           "angle"_a)
       .def(
           "__array__",
-          [](Stokvec &v, py::object dtype, py::object copy) {
+          [](Stokvec &v, py::object dtype, py::object copy)
+              -> std::variant<
+                  py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>,
+                  py::object> {
             std::array<size_t, 1> shape = {4};
             auto np                     = py::module_::import_("numpy");
             auto x =
                 py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
                     v.data.data(), 1, shape.data(), py::cast(v));
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    x, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return x.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
-          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object &x) { return x.attr("__array__")(); },
           [](Stokvec &x, Stokvec &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(sv);
@@ -173,13 +199,26 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init_implicit<std::array<Numeric, 7>>())
       .def(
           "__array__",
-          [](Propmat &x, py::object dtype, py::object copy) {
+          [](Propmat &x, py::object dtype, py::object copy)
+              -> std::variant<
+                  py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>,
+                  py::object> {
             std::array<size_t, 1> shape = {7};
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
                     x.data.data(), 1, shape.data(), py::cast(x));
-            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    w, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return w.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -190,7 +229,7 @@ void py_rtepack(py::module_ &m) try {
           "Returns the Propmat as a matrix.")
       .def_prop_rw(
           "value",
-          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object &x) { return x.attr("__array__")(); },
           [](Propmat &x, Propmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(pm);
@@ -214,20 +253,36 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init_implicit<std::array<Numeric, 16>>())
       .def(
           "__array__",
-          [](Muelmat &x, py::object dtype, py::object copy) {
+          [](Muelmat &x,
+             py::object dtype,
+             py::object copy) -> std::variant<py::ndarray<py::numpy,
+                                                          Numeric,
+                                                          py::shape<4, 4>,
+                                                          py::c_contig>,
+                                              py::object> {
             std::array<size_t, 2> shape = {4, 4};
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
                     x.data.data(), 2, shape.data(), py::cast(x));
-            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    w, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return w.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
-          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object &x) { return x.attr("__array__")(); },
           [](Muelmat &x, Muelmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(mm);
@@ -255,20 +310,30 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init_implicit<std::array<Complex, 16>>())
       .def(
           "__array__",
-          [](Specmat &x, py::object dtype, py::object copy) {
+          [](Specmat &x, py::object dtype, py::object copy)->std::variant<py::ndarray<py::numpy, Complex, py::shape<4, 4>, py::c_contig>, py::object> {
             std::array<size_t, 2> shape = {4, 4};
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Complex, py::shape<4, 4>, py::c_contig>(
                     x.data.data(), 2, shape.data(), py::cast(x));
-            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    w, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return w.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
-          [](py::object &x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object &x) { return x.attr("__array__")(); },
           [](Specmat &x, Specmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.");
   common_ndarray(cmm);

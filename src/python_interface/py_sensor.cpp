@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <obsel.h>
 #include <python_interface.h>
@@ -17,20 +18,33 @@ void py_sensor(py::module_& m) try {
   splos
       .def(
           "__array__",
-          [](SensorPosLos& x, py::object dtype, py::object copy) {
+          [](SensorPosLos& x, py::object dtype, py::object copy)
+              -> std::variant<
+                  py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>,
+                  py::object> {
             std::array<size_t, 1> shape = {5};
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
                     &x, 1, shape.data(), py::cast(x));
-            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    w, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return w.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
-          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object& x) { return x.attr("__array__")(); },
           [](SensorPosLos& a, const SensorPosLos& b) { a = b; },
           "A :class:`~numpy.ndarray` of the object.")
       .def(py::init<Vector3, Vector2>(), "From pos and los")
@@ -65,20 +79,36 @@ void py_sensor(py::module_& m) try {
   vsplos
       .def(
           "__array__",
-          [](SensorPosLosVector& x, py::object dtype, py::object copy) {
+          [](SensorPosLosVector& x,
+             py::object dtype,
+             py::object copy) -> std::variant<py::ndarray<py::numpy,
+                                                          Numeric,
+                                                          py::shape<-1, 5>,
+                                                          py::c_contig>,
+                                              py::object> {
             std::array<size_t, 2> shape = {static_cast<size_t>(x.size()), 5};
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
                     x.data_handle(), 2, shape.data(), py::cast(x));
-            return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+
+            if (not dtype.is_none()) {
+              if (copy.is_none())
+                return np.attr("asarray")(
+                    w, "dtype"_a = dtype, "copy"_a = false);
+              return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
+            }
+
+            return w.cast((not copy.is_none() and py::bool_(copy))
+                              ? py::rv_policy::copy
+                              : py::rv_policy::automatic_reference);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
           "Returns a :class:`~numpy.ndarray` of the object.")
       .def_prop_rw(
           "value",
-          [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
+          [](py::object& x) { return x.attr("__array__")(); },
           [](SensorPosLosVector& x, Matrix& y) {
             if (y.ncols() != 5) {
               throw std::runtime_error("Bad shape");
