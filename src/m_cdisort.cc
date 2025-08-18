@@ -54,7 +54,7 @@ void setup_cdisort(disort_state& ds,
   ds.flag.prnt[1] = FALSE;
   ds.flag.prnt[2] = FALSE;
   ds.flag.prnt[3] = FALSE;
-  ds.flag.prnt[4] = TRUE;
+  ds.flag.prnt[4] = FALSE;
 
   ds.flag.usrtau         = FALSE;
   ds.flag.usrang         = TRUE;  // Toggle for custom zenith angles
@@ -67,7 +67,6 @@ void setup_cdisort(disort_state& ds,
   ds.flag.brdf_type = BRDF_NONE;
 
   ds.flag.ibcnd  = GENERAL_BC;
-  ds.flag.usrang = TRUE;
 
   if (disort_settings.source_polynomial.ncols() > 0) {
     ds.flag.planck = TRUE;
@@ -134,8 +133,12 @@ void freq_setup_cdisort(disort_state& ds,
   // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
   ds.bc.fisot = 0;
 
+  std::vector<Numeric> dtauc(ds.nlyr);
+  const auto& tau = dis.tau();
+  std::adjacent_difference(tau.begin(), tau.end(), dtauc.begin());
+
   std::memcpy(
-      ds.dtauc, dis.tau().vec().data_handle(), sizeof(Numeric) * ds.nlyr);
+      ds.dtauc, dtauc.data(), sizeof(Numeric) * ds.nlyr);
   std::memcpy(ds.ssalb, dis.omega().data_handle(), sizeof(Numeric) * ds.nlyr);
 
   // Wavenumber in [1/cm]
@@ -192,12 +195,12 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
   } while (tries != Status::SUCCESS);
 
   for (Index i = 0; i < ds.nphi; i++) {
-    for (Index k = 0; k < ds.nlyr; k++) {
+    for (Index k = 1; k <= ds.nlyr; k++) {
       for (Index j = 0; j < ds.numu / 2; j++) {
-        disort_spectral_radiance_field[k, i, ds.numu - j - 1] =
+        disort_spectral_radiance_field[k-1, i, ds.numu - j - 1] =
             out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
-        disort_spectral_radiance_field[k, i, j] =
+        disort_spectral_radiance_field[k-1, i, j] =
             out.uu[j + ds.numu / 2 + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
       }
