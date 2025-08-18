@@ -670,6 +670,7 @@ struct DisortSettings {
 
   [[nodiscard]] disort::main_data init() const;
   disort::main_data& set(disort::main_data&, Index iv) const;
+  disort::main_data& set_cdisort(disort::main_data&, Index iv) const;
   void check() const;
 };
 

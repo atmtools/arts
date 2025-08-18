@@ -9,7 +9,6 @@
 #pragma clang - format on
 
 #include <algorithm>
-#include <format>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -261,7 +260,7 @@ void cdisort_spectral_radiance_fieldCalc(
                     dis,
                     surface_temperature);
 
-      disort_settings.set(dis, iv);
+      disort_settings.set_cdisort(dis, iv);
       /* Allocate memory */
       c_disort_state_alloc(&ds);
       c_disort_out_alloc(&ds, &out);
