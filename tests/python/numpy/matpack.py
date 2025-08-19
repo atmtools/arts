@@ -74,8 +74,8 @@ except ValueError:
 
 test1 = [owns_data(x) for x in [a, d, e]]
 test2 = [not_owns_data(x) for x in [b, c]]
-test1 = [writable(x) for x in [a, d, e]]
-test3 = [not_writable(x) for x in [b, c]]
+test3 = [writable(x) for x in [a, d, e]]
+test4 = [not_writable(x) for x in [b, c]]
 
 ts = [pyarts.arts.AscendingGrid,
       pyarts.arts.LatGrid,
@@ -100,5 +100,5 @@ for t in ts:
 
   test1 = [owns_data(x) for x in [a, d, e]]
   test2 = [not_owns_data(x) for x in [b, c]]
-  test1 = [writable(x) for x in [a, d, e]]
-  test3 = [not_writable(x) for x in [b, c]]
+  test3 = [writable(x) for x in [a, d, e]]
+  test4 = [not_writable(x) for x in [b, c]]

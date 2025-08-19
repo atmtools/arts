@@ -39,9 +39,6 @@ void py_basic(py::module_& m) try {
            auto x  = nd_numeric(n.val.get(), 0, shape.data(), py::cast(n));
 
            if (not dtype.is_none()) {
-             if (copy.is_none())
-               return np.attr("asarray")(
-                   x, "dtype"_a = dtype, "copy"_a = false);
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
@@ -73,9 +70,6 @@ void py_basic(py::module_& m) try {
            auto x  = nd_index(n.val.get(), 0, shape.data(), py::cast(n));
 
            if (not dtype.is_none()) {
-             if (copy.is_none())
-               return np.attr("asarray")(
-                   x, "dtype"_a = dtype, "copy"_a = false);
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
@@ -111,9 +105,6 @@ void py_basic(py::module_& m) try {
            auto x  = nd_index_array(v.data(), 1, shape.data(), py::cast(v));
 
            if (not dtype.is_none()) {
-             if (copy.is_none())
-               return np.attr("asarray")(
-                   x, "dtype"_a = dtype, "copy"_a = false);
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
@@ -146,9 +137,6 @@ void py_basic(py::module_& m) try {
            auto x  = nd_numeric_array(v.data(), 1, shape.data(), py::cast(v));
 
            if (not dtype.is_none()) {
-             if (copy.is_none())
-               return np.attr("asarray")(
-                   x, "dtype"_a = dtype, "copy"_a = false);
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 

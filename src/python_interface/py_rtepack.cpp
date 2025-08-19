@@ -78,8 +78,6 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
         auto x  = nd(v.data_handle(), n, shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
@@ -142,9 +140,6 @@ void py_rtepack(py::module_ &m) try {
                     v.data.data(), 1, shape.data(), py::cast(v));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    x, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
             }
 
@@ -210,9 +205,6 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 1, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
@@ -267,9 +259,6 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 2, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
@@ -324,9 +313,6 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 2, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 

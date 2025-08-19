@@ -29,9 +29,6 @@ void py_sensor(py::module_& m) try {
                     &x, 1, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
@@ -93,9 +90,6 @@ void py_sensor(py::module_& m) try {
                     x.data_handle(), 2, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 

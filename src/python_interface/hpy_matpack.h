@@ -80,8 +80,6 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
   
@@ -125,8 +123,6 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
         auto x  = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
@@ -174,8 +170,6 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
@@ -221,8 +215,6 @@ void matpack_grid_interface(
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
